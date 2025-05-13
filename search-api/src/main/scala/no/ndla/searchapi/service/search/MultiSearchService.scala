@@ -61,69 +61,10 @@ trait MultiSearchService {
     }
 
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
-
-      val contentSearch = settings.query.map(q => {
-        val langQueryFunc = (fieldName: String, boost: Double) =>
-          buildSimpleStringQueryForField(
-            q,
-            fieldName,
-            boost,
-            settings.language,
-            settings.fallback,
-            searchDecompounded = true
-          )
-        boolQuery()
-          .must(
-            boolQuery().should(
-              List(
-                buildMatchQueryForField(q, "title", settings.language, settings.fallback, 20),
-                buildBreadcrumbQuery(q, settings.language, settings.fallback, 1)
-              ).flatten ++
-                List(
-                  langQueryFunc("title", 20),
-                  langQueryFunc("introduction", 2),
-                  langQueryFunc("metaDescription", 1),
-                  langQueryFunc("content", 1),
-                  langQueryFunc("tags", 1),
-                  langQueryFunc("embedAttributes", 1),
-                  simpleStringQuery(q.underlying).field("authors", 1),
-                  simpleStringQuery(q.underlying).field("grepContexts.title", 1),
-                  nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
-                  termQuery("contextids", q.underlying),
-                  idsQuery(q.underlying)
-                ) ++
-                buildNestedEmbedField(List(q.underlying), None, settings.language, settings.fallback) ++
-                buildNestedEmbedField(List.empty, Some(q.underlying), settings.language, settings.fallback)
-            )
-          )
-          .should(typeNameQuery(q))
-      })
-
-      val nodeSearch = settings.query.map { q =>
-        val langQueryFunc = (fieldName: String, boost: Double) =>
-          List(
-            buildSimpleStringQueryForField(
-              q,
-              fieldName,
-              boost,
-              settings.language,
-              settings.fallback,
-              searchDecompounded = true
-            ).some,
-            buildMatchQueryForField(
-              q,
-              fieldName,
-              settings.language,
-              settings.fallback,
-              boost
-            )
-          ).flatten
-        boolQuery()
-          .must(boolQuery().should(langQueryFunc("title", 100)))
-          .should(typeNameQuery(q))
-      }
-      val indexFilterNode    = getIndexFilter(List(SearchType.Nodes))
-      val indexFilterContent = getIndexFilter(List(SearchType.Articles, SearchType.LearningPaths))
+      val contentSearch: Option[BoolQuery] = buildContentIndexesQuery(settings)
+      val nodeSearch: Option[BoolQuery]    = buildNodeIndexQuery(settings)
+      val indexFilterNode                  = getIndexFilter(List(SearchType.Nodes))
+      val indexFilterContent               = getIndexFilter(List(SearchType.Articles, SearchType.LearningPaths))
 
       val boolQueries: List[BoolQuery] = List(
         contentSearch.map(_.filter(indexFilterContent)),
@@ -140,6 +81,50 @@ trait MultiSearchService {
 
       executeSearch(settings, filteredSearch)
     }
+
+    private def buildNodeIndexQuery(settings: SearchSettings) = settings.query.map { q =>
+      val langQueryFunc = (fieldName: String, boost: Double) => {
+        List(
+          buildSimpleStringQuery(q, fieldName, boost, settings.language, settings.fallback, decompounded = true).some,
+          buildMatchQueryForField(q, fieldName, settings.language, settings.fallback, boost)
+        ).flatten
+      }
+
+      boolQuery()
+        .must(boolQuery().should(langQueryFunc("title", 100)))
+        .should(typeNameQuery(q))
+    }
+
+    private def buildContentIndexesQuery(settings: SearchSettings) = settings.query.map(q => {
+      val langQueryFunc = (fieldName: String, boost: Double) =>
+        buildSimpleStringQuery(q, fieldName, boost, settings.language, settings.fallback, decompounded = true)
+
+      boolQuery()
+        .must(
+          boolQuery().should(
+            List(
+              buildMatchQueryForField(q, "title", settings.language, settings.fallback, 20),
+              buildBreadcrumbQuery(q, settings.language, settings.fallback, 1)
+            ).flatten ++
+              List(
+                langQueryFunc("title", 20),
+                langQueryFunc("introduction", 2),
+                langQueryFunc("metaDescription", 1),
+                langQueryFunc("content", 1),
+                langQueryFunc("tags", 1),
+                langQueryFunc("embedAttributes", 1),
+                simpleStringQuery(q.underlying).field("authors", 1),
+                simpleStringQuery(q.underlying).field("grepContexts.title", 1),
+                nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
+                termQuery("contextids", q.underlying),
+                idsQuery(q.underlying)
+              ) ++
+              buildNestedEmbedField(List(q.underlying), None, settings.language, settings.fallback) ++
+              buildNestedEmbedField(List.empty, Some(q.underlying), settings.language, settings.fallback)
+          )
+        )
+        .should(typeNameQuery(q))
+    })
 
     private def getSearchIndexes(settings: SearchSettings): Try[List[String]] = {
       settings.resultTypes match {

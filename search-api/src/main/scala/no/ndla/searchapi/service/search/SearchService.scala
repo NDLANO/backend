@@ -85,7 +85,7 @@ trait SearchService {
 
     def languageQuery(query: NonEmptyString, field: String, boost: Double, language: String): List[Query] =
       List(
-        buildSimpleStringQueryForField(query, field, boost, language, fallback = true, searchDecompounded = true).some,
+        buildSimpleStringQuery(query, field, boost, language, fallback = true, decompounded = true).some,
         buildMatchQueryForField(query, field, language, fallback = true, boost)
       ).flatten
 
@@ -141,13 +141,13 @@ trait SearchService {
       ).flatten
     }
 
-    def buildSimpleStringQueryForField(
+    def buildSimpleStringQuery(
         query: NonEmptyString,
         field: String,
         boost: Double,
         language: String,
         fallback: Boolean,
-        searchDecompounded: Boolean
+        decompounded: Boolean
     ): SimpleStringQuery = {
       val searchLanguage = language match {
         case lang if Iso639.get(lang).isSuccess => lang
@@ -159,12 +159,12 @@ trait SearchService {
           SimpleStringQuery(query.underlying, quote_field_suffix = Some(".exact"))
         )((acc, cur) => {
           val base = acc.field(s"$field.${cur.languageTag.toString}", boost)
-          if (searchDecompounded) base.field(s"$field.${cur.languageTag.toString}.decompounded", 0.1) else base
+          if (decompounded) base.field(s"$field.${cur.languageTag.toString}.decompounded", 0.1) else base
         })
       } else {
         val base =
           SimpleStringQuery(query.underlying, quote_field_suffix = Some(".exact")).field(s"$field.$language", boost)
-        if (searchDecompounded) base.field(s"$field.$language.decompounded", 0.1) else base
+        if (decompounded) base.field(s"$field.$language.decompounded", 0.1) else base
       }
     }
 
