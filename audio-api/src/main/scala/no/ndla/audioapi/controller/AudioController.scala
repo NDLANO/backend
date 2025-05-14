@@ -188,7 +188,7 @@ trait AudioController {
       .description("Deletes audio with the specified id")
       .in(pathAudioId)
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(emptyOutput)
+      .out(noContent)
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ => audioId =>
         writeService.deleteAudioAndFiles(audioId).map(_ => ())

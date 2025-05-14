@@ -309,7 +309,7 @@ trait ImageControllerV3 {
       .summary("Deletes the specified images meta data and file")
       .description("Deletes the specified images meta data and file")
       .in(pathImageId)
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(IMAGE_API_WRITE)
       .serverLogicPure { _ => imageId =>
