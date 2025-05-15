@@ -241,7 +241,15 @@ trait SearchConverterService {
         case LearningResourceType.TopicArticle =>
           List("topic", "topic-article", "emne", "emneartikkel")
         case LearningResourceType.FrontpageArticle =>
-          List("frontpage", "frontpage article", "forside", "forsideartikkel")
+          List(
+            "frontpage",
+            "frontpage article",
+            "forside",
+            "forsideartikkel",
+            "om-ndla",
+            "about-ndla",
+            "om-ndla-artikkel"
+          )
         case LearningResourceType.LearningPath =>
           List("learningpath", "læringssti")
         case LearningResourceType.Concept | LearningResourceType.Gloss =>
