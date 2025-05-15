@@ -113,7 +113,7 @@ trait InternController {
 
     def deleteDocument: ServerEndpoint[Any, Eff] = endpoint.delete
       .in(path[String]("type") / path[Long]("id"))
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(400))
       .serverLogicPure { case (indexType, documentId) =>
         (indexType match {

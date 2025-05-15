@@ -482,7 +482,7 @@ trait DraftController {
       .description("Add notes to a draft")
       .in(jsonBody[AddMultipleNotesDTO])
       .errorOut(errorOutputsFor(401, 403, 404))
-      .out(emptyOutput)
+      .out(noContent)
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user => { input => writeService.addNotesToDrafts(input, user) } }
 
@@ -599,7 +599,7 @@ trait DraftController {
       .in("copyRevisionDates" / pathNodeId)
       .summary("Copy revision dates from the node with this id to _all_ children in taxonomy")
       .description("Copy revision dates from the node with this id to _all_ children in taxonomy")
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(401, 403, 404))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => publicId =>
@@ -634,7 +634,7 @@ trait DraftController {
       .summary("Iterate all articles and migrate outdated grep codes")
       .description("Iterate all articles and migrate outdated grep codes")
       .errorOut(errorOutputsFor(500))
-      .out(emptyOutput)
+      .out(noContent)
       .requirePermission(DRAFT_API_WRITE, ARTICLE_API_WRITE)
       .serverLogicPure { user => _ =>
         writeService.migrateOutdatedGreps(user).handleErrorsOrOk

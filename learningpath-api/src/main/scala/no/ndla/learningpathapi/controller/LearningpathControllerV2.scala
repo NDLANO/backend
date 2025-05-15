@@ -615,7 +615,7 @@ trait LearningpathControllerV2 {
       .summary("Delete given learningpath")
       .description("Deletes the given learningPath")
       .in(pathLearningpathId)
-      .out(statusCode(StatusCode.NoContent).and(emptyOutput))
+      .out(noContent)
       .errorOut(errorOutputsFor(403, 404, 500))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user => pathId =>
@@ -636,7 +636,7 @@ trait LearningpathControllerV2 {
       .summary("Delete given learningstep")
       .description("Deletes the given learningStep")
       .in(pathLearningpathId / "learningsteps" / pathLearningstepId)
-      .out(statusCode(StatusCode.NoContent).and(emptyOutput))
+      .out(noContent)
       .errorOut(errorOutputsFor(403, 404, 500))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>

@@ -123,7 +123,7 @@ trait SeriesController {
       .summary("Deletes series with the specified id")
       .description("Deletes series with the specified id")
       .in(pathSeriesId)
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(400, 403, 404))
       .requirePermission(AUDIO_API_WRITE)
       .serverLogicPure { _ => seriesId =>
