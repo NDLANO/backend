@@ -41,7 +41,9 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
   override val nodeIndexService: NodeIndexService = new NodeIndexService {
     override val indexShards = 1
   }
-  override val multiSearchService     = new MultiSearchService
+  override val multiSearchService = new MultiSearchService {
+    override val enableExplanations = true
+  }
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
@@ -867,6 +869,185 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         "Node:urn:subject:19284",
         "Multi:1",
         "Multi:2"
+      )
+    )
+  }
+
+  test("That type keywords affects search order") {
+    val taxonomyBundle = TaxonomyBundle(
+      List(
+        Node(
+          id = "urn:subject:19284",
+          name = "Apekatt",
+          contentUri = Some("urn:frontpage:1"),
+          path = Some("/subject:19284"),
+          url = Some("/f/apekatt/asdf2362"),
+          metadata = Some(Metadata(List.empty, visible = true, Map.empty)),
+          translations = List.empty,
+          nodeType = NodeType.SUBJECT,
+          contextids = List(),
+          context = Some(
+            TaxonomyContext(
+              publicId = "urn:subject:19284",
+              rootId = "urn:subject:19284",
+              SearchableLanguageValues(Seq(LanguageValue("nb", "Apekatt"))),
+              path = "/subject:19284",
+              breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+              contextType = None,
+              relevanceId = core.id,
+              relevance = SearchableLanguageValues(Seq.empty),
+              resourceTypes = List.empty,
+              parentIds = List.empty,
+              isPrimary = true,
+              contextId = "asdf2362",
+              isVisible = true,
+              isActive = true,
+              url = "/f/apekatt/asdf2362"
+            )
+          ),
+          contexts = List()
+        ),
+        Node(
+          id = "urn:subject:19285",
+          name = "Snabel",
+          contentUri = Some("urn:frontpage:2"),
+          path = Some("/subject:19285"),
+          url = Some("/f/snabel/asdf2362"),
+          metadata = Some(Metadata(List.empty, visible = true, Map.empty)),
+          translations = List.empty,
+          nodeType = NodeType.SUBJECT,
+          contextids = List(),
+          context = Some(
+            TaxonomyContext(
+              publicId = "urn:subject:19285",
+              rootId = "urn:subject:19285",
+              SearchableLanguageValues(Seq(LanguageValue("nb", "Snabel"))),
+              path = "/subject:19285",
+              breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+              contextType = None,
+              relevanceId = core.id,
+              relevance = SearchableLanguageValues(Seq.empty),
+              resourceTypes = List.empty,
+              parentIds = List.empty,
+              isPrimary = true,
+              contextId = "asdf2362",
+              isVisible = true,
+              isActive = true,
+              url = "/f/snabel/asdf2362"
+            )
+          ),
+          contexts = List()
+        )
+      ) ++
+        indexingBundle.taxonomyBundle.get.nodes
+    )
+
+    doReturn(
+      Success(
+        SubjectPage(
+          id = Some(1),
+          name = "Apekatt",
+          bannerImage = BannerImage(None, 5),
+          about = Seq(),
+          metaDescription = Seq(MetaDescription("Apekatt beskrivelse", "nb")),
+          editorsChoices = List(),
+          connectedTo = List(),
+          buildsOn = List(),
+          leadsTo = List()
+        )
+      )
+    ).when(frontpageApiClient).getSubjectPage(eqTo(1L))
+
+    doReturn(
+      Success(
+        SubjectPage(
+          id = Some(2),
+          name = "Snabel",
+          bannerImage = BannerImage(None, 5),
+          about = Seq(),
+          metaDescription = Seq(MetaDescription("Snabel beskrivelse", "nb")),
+          editorsChoices = List(),
+          connectedTo = List(),
+          buildsOn = List(),
+          leadsTo = List()
+        )
+      )
+    ).when(frontpageApiClient).getSubjectPage(eqTo(2L))
+
+    val article1 = TestData.article1.copy(
+      id = Some(1),
+      title = Seq(Title("Apekatt en", "nb"))
+    )
+    val article2 = TestData.article1.copy(
+      id = Some(2),
+      title = Seq(Title("Apekatt to", "nb"))
+    )
+    val article3 = TestData.article1.copy(
+      id = Some(3),
+      title = Seq(Title("Noe helt annet", "nb"))
+    )
+    val bundle = indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))
+
+    nodeIndexService.indexDocuments(None, bundle).get
+    articleIndexService.indexDocument(article1, bundle).get
+    articleIndexService.indexDocument(article2, bundle).get
+    articleIndexService.indexDocument(article3, bundle).get
+
+    blockUntil(() => {
+      val indexedNodes    = nodeIndexService.countDocuments
+      val indexedArticles = articleIndexService.countDocuments
+      indexedNodes == 23 && indexedArticles == 3
+    })
+
+    val search1 =
+      multiSearchService.matchingQuery(
+        TestData.searchSettings.copy(
+          sort = Sort.ByRelevanceDesc,
+          query = NonEmptyString.fromString("Apekatt"),
+          nodeTypeFilter = List(NodeType.SUBJECT),
+          resultTypes = Some(
+            List(
+              SearchType.Nodes,
+              SearchType.Articles
+            )
+          )
+        )
+      )
+
+    search1.get.results.map {
+      case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
+      case x: NodeHitDTO            => s"Node:${x.id}"
+    } should be(
+      List(
+        "Node:urn:subject:19284",
+        "Multi:1",
+        "Multi:2"
+      )
+    )
+
+    val search2 =
+      multiSearchService.matchingQuery(
+        TestData.searchSettings.copy(
+          sort = Sort.ByRelevanceDesc,
+          query = NonEmptyString.fromString("Apekatt artikkel"),
+          nodeTypeFilter = List(NodeType.SUBJECT),
+          resultTypes = Some(
+            List(
+              SearchType.Nodes,
+              SearchType.Articles
+            )
+          )
+        )
+      )
+
+    search2.get.results.map {
+      case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
+      case x: NodeHitDTO            => s"Node:${x.id}"
+    } should be(
+      List(
+        "Multi:1",
+        "Multi:2",
+        "Node:urn:subject:19284"
       )
     )
   }

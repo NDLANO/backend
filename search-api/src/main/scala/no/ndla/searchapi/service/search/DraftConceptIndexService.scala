@@ -57,6 +57,7 @@ trait DraftConceptIndexService {
         keywordField("draftStatus.current"),
         keywordField("draftStatus.other"),
         keywordField("users"),
+        textField("typeName"),
         keywordField("updatedBy"),
         keywordField("license"),
         keywordField("authors"),

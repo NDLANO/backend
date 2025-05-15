@@ -70,7 +70,8 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       contexts = searchableTaxonomyContexts,
       contextids = searchableTaxonomyContexts.map(_.contextId),
       favorited = 0,
-      learningResourceType = LearningResourceType.LearningPath
+      learningResourceType = LearningResourceType.LearningPath,
+      typeName = List.empty
     )
 
     val json         = CirceUtil.toJsonString(original)

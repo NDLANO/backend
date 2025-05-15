@@ -58,7 +58,8 @@ class DraftConceptIndexServiceTest extends ElasticsearchIntegrationSuite with Un
       gloss = Some("hei"),
       domainObject = TestData.sampleNbDomainConcept,
       favorited = 0,
-      learningResourceType = LearningResourceType.Concept
+      learningResourceType = LearningResourceType.Concept,
+      typeName = List("concept")
     )
     val searchableFields = searchableToTestWith.asJson
     val fields           = getFields(searchableFields, None, Seq("domainObject"))

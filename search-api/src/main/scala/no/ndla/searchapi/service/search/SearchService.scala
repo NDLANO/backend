@@ -17,6 +17,8 @@ import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.sksamuel.elastic4s.requests.searches.suggestion.SuggestionResult
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import SortOrder.{Asc, Desc}
+import com.sksamuel.elastic4s.RequestSuccess
+import com.sksamuel.elastic4s.requests.explain.Explanation
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.api.search.{
   MultiSearchSuggestionDTO,
@@ -83,7 +85,7 @@ trait SearchService {
 
     def languageQuery(query: NonEmptyString, field: String, boost: Double, language: String): List[Query] =
       List(
-        buildSimpleStringQueryForField(query, field, boost, language, fallback = true, searchDecompounded = true).some,
+        buildSimpleStringQuery(query, field, boost, language, fallback = true, decompounded = true).some,
         buildMatchQueryForField(query, field, language, fallback = true, boost)
       ).flatten
 
@@ -139,13 +141,13 @@ trait SearchService {
       ).flatten
     }
 
-    def buildSimpleStringQueryForField(
+    def buildSimpleStringQuery(
         query: NonEmptyString,
         field: String,
         boost: Double,
         language: String,
         fallback: Boolean,
-        searchDecompounded: Boolean
+        decompounded: Boolean
     ): SimpleStringQuery = {
       val searchLanguage = language match {
         case lang if Iso639.get(lang).isSuccess => lang
@@ -157,12 +159,12 @@ trait SearchService {
           SimpleStringQuery(query.underlying, quote_field_suffix = Some(".exact"))
         )((acc, cur) => {
           val base = acc.field(s"$field.${cur.languageTag.toString}", boost)
-          if (searchDecompounded) base.field(s"$field.${cur.languageTag.toString}.decompounded", 0.1) else base
+          if (decompounded) base.field(s"$field.${cur.languageTag.toString}.decompounded", 0.1) else base
         })
       } else {
         val base =
           SimpleStringQuery(query.underlying, quote_field_suffix = Some(".exact")).field(s"$field.$language", boost)
-        if (searchDecompounded) base.field(s"$field.$language.decompounded", 0.1) else base
+        if (decompounded) base.field(s"$field.$language.decompounded", 0.1) else base
       }
     }
 
@@ -361,6 +363,28 @@ trait SearchService {
         logger.info(s"Max supported results are $maxResultWindow, user requested $resultWindow")
         Failure(ResultWindowTooLargeException())
       } else Success(SearchPagination(safePage, safePageSize, startAt))
+    }
+
+    /** Flag to enable printing of explanations, used for debugging query scoring */
+    val enableExplanations = false
+
+    /** Helper function to print explanation of scoring for search queries */
+    def printExplanations(value: RequestSuccess[SearchResponse]): Unit = {
+      def _printExpl(hitId: String, ex: Explanation, indent: Int = 0): Unit = {
+        logger.info(s"${"  " * indent}${ex.value}: ${ex.description}")
+        ex.details.foreach { d => _printExpl(hitId, d, indent + 1) }
+      }
+
+      if (enableExplanations) {
+        value.result.hits.hits.foreach { hit =>
+          val hitId = s"${hit.index}:${hit.id}"
+          logger.info(s"EXPLAIN START $hitId:")
+          hit.explanation match {
+            case Some(ex) => _printExpl(hitId, ex)
+            case None     => println("No explanation found...")
+          }
+        }
+      }
     }
   }
 }

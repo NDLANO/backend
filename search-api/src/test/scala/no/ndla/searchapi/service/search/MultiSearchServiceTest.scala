@@ -43,7 +43,9 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     override val indexShards = 1
   }
 
-  override val multiSearchService     = new MultiSearchService
+  override val multiSearchService = new MultiSearchService {
+    override val enableExplanations = true
+  }
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 

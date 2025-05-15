@@ -1934,7 +1934,8 @@ object TestData {
     defaultResourceTypeName = searchableTitles.defaultValue,
     published = TestData.today,
     favorited = 0,
-    learningResourceType = LearningResourceType.Article
+    learningResourceType = LearningResourceType.Article,
+    typeName = List()
   )
 
   val sampleNbDomainConcept: Concept = Concept(

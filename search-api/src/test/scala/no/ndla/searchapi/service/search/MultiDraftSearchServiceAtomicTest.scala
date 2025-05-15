@@ -45,9 +45,11 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards = 1
   }
-  override val multiDraftSearchService = new MultiDraftSearchService
-  override val converterService        = new ConverterService
-  override val searchConverterService  = new SearchConverterService
+  override val multiDraftSearchService: MultiDraftSearchService = new MultiDraftSearchService {
+    override val enableExplanations = true
+  }
+  override val converterService       = new ConverterService
+  override val searchConverterService = new SearchConverterService
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
@@ -949,7 +951,9 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     indexService.indexDocument(TestData.draft1.copy(id = Some(3)), indexingBundle).get
 
     blockUntil(() => indexService.countDocuments == 3)
-    val searchService = new MultiDraftSearchService
+    val searchService: MultiDraftSearchService = new MultiDraftSearchService {
+      override val enableExplanations: Boolean = true
+    }
 
     val Success(search1) = searchService.matchingQuery(
       multiDraftSearchSettings.copy(sort = Sort.ByParentTopicNameAsc)

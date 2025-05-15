@@ -234,6 +234,29 @@ trait SearchConverterService {
 
     private def toPlaintext(text: String): String = Jsoup.parseBodyFragment(text).text()
 
+    def getTypeNames(learningResourceType: LearningResourceType): List[String] = {
+      learningResourceType match {
+        case LearningResourceType.Article =>
+          List("article", "artikkel")
+        case LearningResourceType.TopicArticle =>
+          List("topic", "topic-article", "emne", "emneartikkel")
+        case LearningResourceType.FrontpageArticle =>
+          List(
+            "frontpage",
+            "frontpage article",
+            "forside",
+            "forsideartikkel",
+            "om-ndla",
+            "about-ndla",
+            "om-ndla-artikkel"
+          )
+        case LearningResourceType.LearningPath =>
+          List("learningpath", "læringssti", "sti", "læringsti")
+        case LearningResourceType.Concept | LearningResourceType.Gloss =>
+          List("concept", "forklaring", "konsept", "glose", "gloss")
+      }
+    }
+
     def asSearchableArticle(
         ai: Article,
         indexingBundle: IndexingBundle
@@ -268,7 +291,9 @@ trait SearchConverterService {
         ai.content,
         ai.tags
       ).toList
-      val contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
+      val contexts             = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
+      val learningResourceType = LearningResourceType.fromArticleType(ai.articleType)
+      val typeNames            = getTypeNames(learningResourceType)
 
       Success(
         SearchableArticle(
@@ -303,8 +328,9 @@ trait SearchConverterService {
           embedAttributes = embedAttributes,
           embedResourcesAndIds = embedResourcesAndIds,
           availability = ai.availability.toString,
-          learningResourceType = LearningResourceType.fromArticleType(ai.articleType),
-          domainObject = ai
+          learningResourceType = learningResourceType,
+          domainObject = ai,
+          typeName = typeNames
         )
       )
 
@@ -392,7 +418,8 @@ trait SearchConverterService {
           contextids =
             indexingBundle.taxonomyBundle.map(getTaxonomyContexids(lp.id.get, "learningpath", _)).getOrElse(List.empty),
           favorited = favorited,
-          learningResourceType = LearningResourceType.LearningPath
+          learningResourceType = LearningResourceType.LearningPath,
+          typeName = getTypeNames(LearningResourceType.LearningPath)
         )
       )
     }
@@ -425,7 +452,8 @@ trait SearchConverterService {
 
       val users: Seq[String] = c.updatedBy ++ c.editorNotes.map(_.user)
 
-      val status = StatusDTO(c.status.current.toString, c.status.other.map(_.toString).toSeq)
+      val status               = StatusDTO(c.status.current.toString, c.status.other.map(_.toString).toSeq)
+      val learningResourceType = LearningResourceType.fromConceptType(c.conceptType)
 
       Success(
         SearchableConcept(
@@ -447,7 +475,8 @@ trait SearchConverterService {
           gloss = c.glossData.map(_.gloss),
           domainObject = c,
           favorited = favorited,
-          learningResourceType = LearningResourceType.fromConceptType(c.conceptType)
+          learningResourceType = learningResourceType,
+          typeName = getTypeNames(learningResourceType)
         )
       )
     }
@@ -534,11 +563,13 @@ trait SearchConverterService {
             .map(_.map(_.favourites).sum)
       }).?
 
-      val title           = model.SearchableLanguageValues.fromFieldsMap(draft.title, toPlaintext)
-      val content         = model.SearchableLanguageValues.fromFieldsMap(draft.content, toPlaintext)
-      val introduction    = model.SearchableLanguageValues.fromFieldsMap(draft.introduction, toPlaintext)
-      val metaDescription = model.SearchableLanguageValues.fromFields(draft.metaDescription)
-      val contexts        = asSearchableTaxonomyContexts(taxonomyContexts)
+      val title                = model.SearchableLanguageValues.fromFieldsMap(draft.title, toPlaintext)
+      val content              = model.SearchableLanguageValues.fromFieldsMap(draft.content, toPlaintext)
+      val introduction         = model.SearchableLanguageValues.fromFieldsMap(draft.introduction, toPlaintext)
+      val metaDescription      = model.SearchableLanguageValues.fromFields(draft.metaDescription)
+      val contexts             = asSearchableTaxonomyContexts(taxonomyContexts)
+      val learningResourceType = LearningResourceType.fromArticleType(draft.articleType)
+      val typeNames            = getTypeNames(learningResourceType)
 
       Success(
         SearchableDraft(
@@ -579,7 +610,8 @@ trait SearchConverterService {
           defaultResourceTypeName = sortableResourceTypeName.defaultValue,
           published = draft.published,
           favorited = favorited,
-          learningResourceType = LearningResourceType.fromArticleType(draft.articleType)
+          learningResourceType = learningResourceType,
+          typeName = typeNames
         )
       )
     }
@@ -1145,6 +1177,14 @@ trait SearchConverterService {
         val grepContexts =
           node.metadata.map(meta => getGrepContexts(meta.grepCodes, indexingBundle.grepBundle)).getOrElse(List.empty)
 
+        val typeNames = node.nodeType match {
+          case NodeType.NODE      => List("node")
+          case NodeType.SUBJECT   => List("fag", "subject")
+          case NodeType.TOPIC     => List("emne", "topic")
+          case NodeType.RESOURCE  => List("ressurs", "resource")
+          case NodeType.PROGRAMME => List("programfag", "program", "programme")
+        }
+
         SearchableNode(
           nodeId = node.id,
           title = getSearchableLanguageValues(node.name, node.translations),
@@ -1154,7 +1194,8 @@ trait SearchConverterService {
           subjectPage = frontpage,
           context = context.orElse(contexts.find(_.isPrimary)),
           contexts = contexts,
-          grepContexts = grepContexts
+          grepContexts = grepContexts,
+          typeName = typeNames
         )
       }
     }

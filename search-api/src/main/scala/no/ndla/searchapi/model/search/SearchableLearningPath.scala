@@ -37,7 +37,8 @@ case class SearchableLearningPath(
     contexts: List[SearchableTaxonomyContext],
     contextids: List[String],
     favorited: Long,
-    learningResourceType: LearningResourceType
+    learningResourceType: LearningResourceType,
+    typeName: List[String]
 )
 
 object SearchableLearningPath {

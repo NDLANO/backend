@@ -58,6 +58,7 @@ trait DraftIndexService {
         dateField("published"),
         keywordField("license"),
         keywordField("defaultTitle"),
+        textField("typeName"),
         textField("authors"),
         keywordField("articleType"),
         keywordField("supportedLanguages"),
