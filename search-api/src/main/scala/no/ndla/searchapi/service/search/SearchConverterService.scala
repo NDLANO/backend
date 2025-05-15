@@ -251,9 +251,9 @@ trait SearchConverterService {
             "om-ndla-artikkel"
           )
         case LearningResourceType.LearningPath =>
-          List("learningpath", "læringssti")
+          List("learningpath", "læringssti", "sti", "læringsti")
         case LearningResourceType.Concept | LearningResourceType.Gloss =>
-          List("concept", "forklaring", "konsept")
+          List("concept", "forklaring", "konsept", "glose", "gloss")
       }
     }
 
