@@ -10,6 +10,7 @@ package no.ndla.network.tapir
 
 import no.ndla.common.Environment.setPropsFromEnv
 import no.ndla.common.configuration.BaseProps
+import org.apache.logging.log4j.jul.Log4jBridgeHandler
 import org.log4s.{Logger, getLogger}
 
 import scala.concurrent.Future
@@ -64,6 +65,7 @@ trait NdlaTapirMain[T <: TapirApplication] {
 
   def run(args: Array[String]): Try[Unit] = {
     setPropsFromEnv()
+    Log4jBridgeHandler.install(true, null, true)
     if (args.contains("--save-swagger")) {
       Try(componentRegistry.swagger.saveSwagger())
     } else {

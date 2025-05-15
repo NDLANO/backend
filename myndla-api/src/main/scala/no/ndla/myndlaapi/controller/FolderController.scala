@@ -130,7 +130,7 @@ trait FolderController {
       .in(feideHeader)
       .in(pathFolderId)
       .errorOut(errorOutputsFor(400, 401, 403, 404))
-      .out(emptyOutput)
+      .out(noContent)
       .serverLogicPure { case (feideHeader, folderId) =>
         folderWriteService.deleteFolder(folderId, feideHeader).map(_ => ())
       }
@@ -197,7 +197,7 @@ trait FolderController {
       .description("Delete selected resource")
       .in(feideHeader)
       .in(pathFolderId / "resources" / pathResourceId)
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (feideHeader, folderId, resourceId) =>
         folderWriteService
@@ -248,7 +248,7 @@ trait FolderController {
       .in("sort-resources" / pathFolderId)
       .in(feideHeader)
       .in(jsonBody[FolderSortRequestDTO])
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (folderId, feideHeader, sortRequest) =>
         val sortObject = ResourceSorting(folderId)
@@ -262,7 +262,7 @@ trait FolderController {
       .in(feideHeader)
       .in(jsonBody[FolderSortRequestDTO])
       .in(queryFolderId)
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (feideHeader, sortRequest, folderId) =>
         val sortObject = folderId.map(id => FolderSorting(id)).getOrElse(RootFolderSorting())
@@ -275,7 +275,7 @@ trait FolderController {
       .in("sort-saved")
       .in(feideHeader)
       .in(jsonBody[FolderSortRequestDTO])
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (feideHeader, sortRequest) =>
         val sortObject = SharedFolderSorting()
@@ -287,7 +287,7 @@ trait FolderController {
       .description("Saves a shared folder")
       .in("shared" / pathFolderId / "save")
       .in(feideHeader)
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (folderId, feideHeader) =>
         folderWriteService.newSaveSharedFolder(folderId, feideHeader)
@@ -298,7 +298,7 @@ trait FolderController {
       .description("Deletes a saved shared folder")
       .in("shared" / pathFolderId / "save")
       .in(feideHeader)
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
       .serverLogicPure { case (folderId, feideHeader) =>
         folderWriteService.deleteSavedSharedFolder(folderId, feideHeader)

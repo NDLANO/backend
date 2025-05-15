@@ -16,7 +16,7 @@ import no.ndla.draftapi.service.WriteService
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
-import sttp.model.{Part, StatusCode}
+import sttp.model.Part
 import sttp.tapir.EndpointInput
 import sttp.tapir.*
 import io.circe.generic.auto.*
@@ -70,7 +70,7 @@ trait FileController {
     def deleteFile: ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Deletes provided file")
       .description("Deletes provided file")
-      .out(statusCode(StatusCode.NoContent).and(emptyOutput))
+      .out(noContent)
       .errorOut(errorOutputsFor(400, 401, 403))
       .in(filePath)
       .requirePermission(DRAFT_API_WRITE)

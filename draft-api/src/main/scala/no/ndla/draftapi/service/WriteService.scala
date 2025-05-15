@@ -15,7 +15,7 @@ import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.errors.{MissingIdException, ValidationException}
+import no.ndla.common.errors.{MissingIdException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
 import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.api.UpdateWith
@@ -27,7 +27,7 @@ import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.database.DBUtility
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.*
-import no.ndla.draftapi.model.api.PartialArticleFieldsDTO
+import no.ndla.draftapi.model.api.{AddMultipleNotesDTO, AddNoteDTO, PartialArticleFieldsDTO}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{ArticleIndexService, GrepCodesIndexService, TagIndexService}
@@ -461,6 +461,32 @@ trait WriteService {
       val comparableExisting = withComparableValues(existingArticle)
       val shouldUpdateStatus = comparableNew != comparableExisting
       shouldUpdateStatus
+    }
+
+    private def flattenNotes(notes: AddMultipleNotesDTO): List[AddNoteDTO] =
+      notes.data
+        .groupBy(_.draftId)
+        .map { case (draftId, notes) => AddNoteDTO(draftId, notes.flatMap(_.notes)) }
+        .toList
+
+    def addNotesToDrafts(input: AddMultipleNotesDTO, user: TokenUser): Try[Unit] = DBUtil.rollbackOnFailure { session =>
+      flattenNotes(input)
+        .traverse(info => addNotesToDraft(info.draftId, info.notes, user)(session))
+        .unit
+    }
+
+    private def addNotesToDraft(id: Long, notes: List[String], user: TokenUser)(
+        session: DBSession
+    ): Try[api.ArticleDTO] = {
+      for {
+        maybeDraft <- Try(draftRepository.withId(id)(session))
+        draft      <- maybeDraft.toTry(NotFoundException(s"Article with id $id not found"))
+        now       = clock.now()
+        newNotes  = notes.map(note => common.EditorNote(note, user.id, draft.status, now))
+        converted = draft.copy(notes = draft.notes ++ newNotes)
+        updated <- draftRepository.updateArticle(converted)(session)
+        output  <- converterService.toApiArticle(updated, Language.AllLanguages)
+      } yield output
     }
 
     /** Compares articles to check whether earliest not-revised revision date has changed since that is the only one
