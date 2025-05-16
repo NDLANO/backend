@@ -36,6 +36,7 @@ import scala.util.{Success, Try}
 @description("Information about a single grep search result entry")
 sealed trait GrepResultDTO {
   @description("The grep code") val code: String
+  @description("The grep status") val status: String
   @description("The greps title") val title: TitleDTO
 }
 
@@ -82,10 +83,12 @@ object GrepResultDTO {
         Success(
           GrepKjerneelementDTO(
             code = core.kode,
+            status = core.status.toString,
             title = title,
             description = description,
             laereplan = GrepReferencedLaereplanDTO(
               code = core.`tilhoerer-laereplan`.kode,
+              status = core.`tilhoerer-laereplan`.status.toString,
               title = core.`tilhoerer-laereplan`.tittel
             )
           )
@@ -94,30 +97,36 @@ object GrepResultDTO {
         Success(
           GrepKompetansemaalDTO(
             code = goal.kode,
+            status = goal.status.toString,
             title = title,
             laereplan = GrepReferencedLaereplanDTO(
               code = goal.`tilhoerer-laereplan`.kode,
+              status = goal.`tilhoerer-laereplan`.status.toString,
               title = goal.`tilhoerer-laereplan`.tittel
             ),
             kompetansemaalSett = GrepReferencedKompetansemaalSettDTO(
               code = goal.`tilhoerer-kompetansemaalsett`.kode,
+              status = goal.`tilhoerer-kompetansemaalsett`.status.toString,
               title = goal.`tilhoerer-kompetansemaalsett`.tittel
             ),
             tverrfagligeTemaer = goal.`tilknyttede-tverrfaglige-temaer`.map { crossTopic =>
               GrepTverrfagligTemaDTO(
                 code = crossTopic.referanse.kode,
+                status = crossTopic.referanse.status.toString,
                 title = TitleDTO(crossTopic.referanse.tittel, Language.DefaultLanguage)
               )
             },
             kjerneelementer = goal.`tilknyttede-kjerneelementer`.map { core =>
               GrepReferencedKjerneelementDTO(
                 code = core.referanse.kode,
+                status = core.referanse.status.toString,
                 title = core.referanse.tittel
               )
             },
             reuseOf = goal.`gjenbruk-av`.map { goal =>
               GrepReferencedKompetansemaalDTO(
                 code = goal.kode,
+                status = goal.status.toString,
                 title = goal.tittel
               )
             }
@@ -127,10 +136,12 @@ object GrepResultDTO {
         Success(
           GrepKompetansemaalSettDTO(
             code = goalSet.kode,
+            status = goalSet.status.toString,
             title = title,
             kompetansemaal = goalSet.kompetansemaal.map { goal =>
               GrepReferencedKompetansemaalDTO(
                 code = goal.kode,
+                status = goal.status.toString,
                 title = goal.tittel
               )
             }
@@ -140,10 +151,12 @@ object GrepResultDTO {
         Success(
           GrepLaererplanDTO(
             code = curriculum.kode,
+            status = curriculum.status.toString,
             title = title,
             replacedBy = curriculum.`erstattes-av`.map(replacement =>
               GrepReferencedLaereplanDTO(
                 code = replacement.kode,
+                status = replacement.status.toString,
                 title = replacement.tittel
               )
             )
@@ -153,6 +166,7 @@ object GrepResultDTO {
         Success(
           GrepTverrfagligTemaDTO(
             code = crossTopic.kode,
+            status = crossTopic.status.toString,
             title = title
           )
         )
@@ -160,11 +174,12 @@ object GrepResultDTO {
   }
 }
 
-case class GrepReferencedKjerneelementDTO(code: String, title: String)
-case class GrepReferencedKompetansemaalDTO(code: String, title: String)
-case class GrepReferencedLaereplanDTO(code: String, title: String)
+case class GrepReferencedKjerneelementDTO(code: String, status: String, title: String)
+case class GrepReferencedKompetansemaalDTO(code: String, status: String, title: String)
+case class GrepReferencedLaereplanDTO(code: String, status: String, title: String)
 case class GrepKjerneelementDTO(
     code: String,
+    status: String,
     title: TitleDTO,
     description: DescriptionDTO,
     laereplan: GrepReferencedLaereplanDTO,
@@ -172,6 +187,7 @@ case class GrepKjerneelementDTO(
 ) extends GrepResultDTO
 case class GrepKompetansemaalDTO(
     code: String,
+    status: String,
     title: TitleDTO,
     laereplan: GrepReferencedLaereplanDTO,
     kompetansemaalSett: GrepReferencedKompetansemaalSettDTO,
@@ -182,22 +198,26 @@ case class GrepKompetansemaalDTO(
 ) extends GrepResultDTO
 case class GrepReferencedKompetansemaalSettDTO(
     code: String,
+    status: String,
     title: String
 )
 case class GrepKompetansemaalSettDTO(
     code: String,
+    status: String,
     title: TitleDTO,
     kompetansemaal: List[GrepReferencedKompetansemaalDTO],
     typename: "GrepKompetansemaalSettDTO" = "GrepKompetansemaalSettDTO"
 ) extends GrepResultDTO
 case class GrepLaererplanDTO(
     code: String,
+    status: String,
     title: TitleDTO,
     replacedBy: List[GrepReferencedLaereplanDTO],
     typename: "GrepLaererplanDTO" = "GrepLaererplanDTO"
 ) extends GrepResultDTO
 case class GrepTverrfagligTemaDTO(
     code: String,
+    status: String,
     title: TitleDTO,
     typename: "GrepTverrfagligTemaDTO" = "GrepTverrfagligTemaDTO"
 ) extends GrepResultDTO
