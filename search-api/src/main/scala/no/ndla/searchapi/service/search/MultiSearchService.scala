@@ -91,7 +91,14 @@ trait MultiSearchService {
       }
 
       boolQuery()
-        .must(boolQuery().should(langQueryFunc("title", 100)))
+        .must(
+          boolQuery().should(
+            langQueryFunc("title", 100) ++
+              langQueryFunc("subjectPage.aboutTitle", 2) ++
+              langQueryFunc("subjectPage.aboutDescription", 1) ++
+              langQueryFunc("subjectPage.metaDescription", 1)
+          )
+        )
         .should(typeNameQuery(q))
     }
 

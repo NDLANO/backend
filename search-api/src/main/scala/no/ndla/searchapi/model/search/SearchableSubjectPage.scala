@@ -11,10 +11,14 @@ package no.ndla.searchapi.model.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.domain.frontpage.SubjectPage
+import no.ndla.search.model.SearchableLanguageValues
 
 case class SearchableSubjectPage(
     id: Long,
     name: String,
+    aboutTitle: SearchableLanguageValues,
+    aboutDescription: SearchableLanguageValues,
+    metaDescription: SearchableLanguageValues,
     domainObject: SubjectPage
 )
 

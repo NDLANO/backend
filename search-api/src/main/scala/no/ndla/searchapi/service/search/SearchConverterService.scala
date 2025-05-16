@@ -39,7 +39,7 @@ import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
-import no.ndla.common.model.domain.frontpage.SubjectPage
+import no.ndla.common.model.domain.frontpage.{AboutSubject, SubjectPage}
 import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep}
 import no.ndla.common.model.domain.{
   ArticleContent,
@@ -51,7 +51,7 @@ import no.ndla.common.model.domain.{
   ResourceType as MyNDLAResourceType
 }
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
-import no.ndla.language.model.Iso639
+import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.clients.MyNDLAApiClient
@@ -232,7 +232,8 @@ trait SearchConverterService {
       )
     }
 
-    private def toPlaintext(text: String): String = Jsoup.parseBodyFragment(text).text()
+    private def toPlaintext(text: String): String              = Jsoup.parseBodyFragment(text).text()
+    private def toPlaintext(lv: LanguageField[String]): String = toPlaintext(lv.value)
 
     def getTypeNames(learningResourceType: LearningResourceType): List[String] = {
       learningResourceType match {
@@ -440,7 +441,7 @@ trait SearchConverterService {
 
     def asSearchableConcept(c: Concept, indexingBundle: IndexingBundle): Try[SearchableConcept] = {
       val title     = SearchableLanguageValues.fromFields(c.title)
-      val content   = SearchableLanguageValues.fromFieldsMap(c.content, toPlaintext)
+      val content   = SearchableLanguageValues.fromFieldsMap(c.content)(toPlaintext)
       val tags      = SearchableLanguageList.fromFields(c.tags)
       val favorited = getFavoritedCountFor(indexingBundle, c.id.get.toString, List(MyNDLAResourceType.Concept)).?
 
@@ -563,10 +564,10 @@ trait SearchConverterService {
             .map(_.map(_.favourites).sum)
       }).?
 
-      val title                = model.SearchableLanguageValues.fromFieldsMap(draft.title, toPlaintext)
-      val content              = model.SearchableLanguageValues.fromFieldsMap(draft.content, toPlaintext)
-      val introduction         = model.SearchableLanguageValues.fromFieldsMap(draft.introduction, toPlaintext)
-      val metaDescription      = model.SearchableLanguageValues.fromFields(draft.metaDescription)
+      val title                = SearchableLanguageValues.fromFieldsMap(draft.title)(toPlaintext)
+      val content              = SearchableLanguageValues.fromFieldsMap(draft.content)(toPlaintext)
+      val introduction         = SearchableLanguageValues.fromFieldsMap(draft.introduction)(toPlaintext)
+      val metaDescription      = SearchableLanguageValues.fromFields(draft.metaDescription)
       val contexts             = asSearchableTaxonomyContexts(taxonomyContexts)
       val learningResourceType = LearningResourceType.fromArticleType(draft.articleType)
       val typeNames            = getTypeNames(learningResourceType)
@@ -1161,7 +1162,21 @@ trait SearchConverterService {
             case None =>
               Failure(MissingIdException("Missing id for fetched frontpage. This is weird and probably a bug."))
             case Some(id) =>
-              Success(Some(SearchableSubjectPage(id = id, name = fp.name, domainObject = fp)))
+              val aboutTitles       = SearchableLanguageValues.fromFieldsMap[AboutSubject](fp.about)(_.title)
+              val aboutDescriptions = SearchableLanguageValues.fromFieldsMap[AboutSubject](fp.about)(_.description)
+              val metaDescriptions  = SearchableLanguageValues.fromFields(fp.metaDescription)
+              Success(
+                Some(
+                  SearchableSubjectPage(
+                    id = id,
+                    name = fp.name,
+                    aboutTitle = aboutTitles,
+                    aboutDescription = aboutDescriptions,
+                    metaDescription = metaDescriptions,
+                    domainObject = fp
+                  )
+                )
+              )
           }
       }
     }
