@@ -105,7 +105,10 @@ trait SearchConverterService {
         language: Option[String]
     ): Try[SearchableImageFile] = {
       findByLanguageOrBestEffort(meta.imageFiles, language) match {
-        case None        => Failure(ImageConversionException("Could not find image in meta, this is a bug."))
+        case None =>
+          Failure(
+            ImageConversionException(s"Could not find image in meta for image with id '${meta.id}', this is a bug.")
+          )
         case Some(image) => Success(image)
       }
     }
