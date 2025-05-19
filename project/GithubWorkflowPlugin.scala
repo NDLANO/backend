@@ -19,7 +19,6 @@ object GithubWorkflowPlugin extends AutoPlugin {
       taskKey[Unit]("Generate workflow yay")
 
   }
-  val workflowJavaVersion = "20"
 
   def getSafeName(name: String): String = name.replaceAll("-", "")
 
@@ -124,7 +123,7 @@ object GithubWorkflowPlugin extends AutoPlugin {
        |      - uses: actions/setup-java@v3
        |        with:
        |          distribution: temurin
-       |          java-version: '$workflowJavaVersion'
+       |          java-version: $${{ vars.JAVA_VERSION }}
        |      - uses: hashicorp/setup-terraform@v3
        |        with:
        |          terraform_version: $${{ vars.TERRAFORM_VERSION }}
@@ -171,18 +170,18 @@ object GithubWorkflowPlugin extends AutoPlugin {
        |          echo -n "$$GPG_KEY" | base64 --decode | gpg --import
        |      - name: Install kubectl
        |        run: |
-       |          curl -L https://storage.googleapis.com/kubernetes-release/release/v1.21.11/bin/linux/amd64/kubectl > kubectl
+       |          curl -L https://dl.k8s.io/release/v$${{ vars.KUBECTL_VERSION }}/bin/linux/amd64/kubectl > kubectl
        |          sudo mv kubectl /home/runner/bin/kubectl
        |          sudo chmod +x /home/runner/bin/kubectl
        |          mkdir -p ~/.kube
        |      - name: Install aws-iam-authenticator
        |        run: |
-       |          sudo curl -L https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.7/2019-03-27/bin/linux/amd64/aws-iam-authenticator > aws-iam-authenticator
+       |          sudo curl -L https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v$${{ vars.AWS_IAM_AUTHENTICATOR_VERSION }}/aws-iam-authenticator_$${{ vars.AWS_IAM_AUTHENTICATOR_VERSION }}_linux_amd64 > aws-iam-authenticator
        |          sudo mv aws-iam-authenticator /home/runner/bin/aws-iam-authenticator
        |          sudo chmod +x /home/runner/bin/aws-iam-authenticator
        |      - name: Install helm /w push-plugin
        |        run: |
-       |          curl -L https://get.helm.sh/helm-v3.11.3-linux-amd64.tar.gz > /tmp/helm.tar.gz
+       |          curl -L https://get.helm.sh/helm-v$${{ vars.HELM_VERSION }}-linux-amd64.tar.gz > /tmp/helm.tar.gz
        |          tar xvzf /tmp/helm.tar.gz -C /tmp/
        |          sudo mv /tmp/linux-amd64/helm /home/runner/bin/
        |          sudo chmod +x /home/runner/bin/helm
@@ -228,7 +227,7 @@ object GithubWorkflowPlugin extends AutoPlugin {
       |      - uses: actions/setup-java@v3
       |        with:
       |          distribution: temurin
-      |          java-version: '$workflowJavaVersion'
+      |          java-version: $${{ vars.JAVA_VERSION }}
       |      - uses: sbt/setup-sbt@v1
       |      - name: Login to ECR repo
       |        run: RES=$$(aws sts assume-role --role-arn $$CI_RELEASE_ROLE --role-session-name
