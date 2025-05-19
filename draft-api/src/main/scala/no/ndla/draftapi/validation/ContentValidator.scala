@@ -155,7 +155,7 @@ trait ContentValidator {
         case None => Failure(NotFoundException(s"Article with id $id does not exist"))
         case Some(existing) =>
           converterService
-            .toDomainArticle(existing, updatedArticle, isImported = false, user, None, None)
+            .toDomainArticle(existing, updatedArticle, user)
             .flatMap(converterService.toArticleApiArticle)
             .flatMap(articleApiClient.validateArticle(_, importValidate, Some(user)))
             .map(_ => ContentIdDTO(id))

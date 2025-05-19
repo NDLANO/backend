@@ -10,7 +10,6 @@ package no.ndla.draftapi.controller
 
 import cats.implicits.*
 import io.circe.generic.auto.*
-import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.{LanguageCode, LicenseDTO}
 import no.ndla.common.model.domain.ArticleType
@@ -97,11 +96,6 @@ trait DraftController {
          |If you are not paginating past ${props.ElasticSearchIndexMaxResultWindow} hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
          |""".stripMargin
     )
-    private val externalIds      = listQuery[String]("externalId")
-    private val oldCreatedDate   = query[Option[String]]("oldNdlaCreatedDate")
-    private val oldUpdatedDate   = query[Option[String]]("oldNdlaUpdatedDate")
-    private val externalSubjects = listQuery[String]("externalSubjectIds")
-    private val importId         = query[Option[String]]("importId")
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getLicenses,
@@ -124,7 +118,8 @@ trait DraftController {
       partialPublishMultiple,
       copyRevisionDates,
       getArticleBySlug,
-      migrateOutdatedGreps
+      migrateOutdatedGreps,
+      addNotes
     )
 
     /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
@@ -446,37 +441,11 @@ trait DraftController {
       .summary("Create a new article")
       .description("Creates a new article")
       .in(jsonBody[NewArticleDTO])
-      .in(externalIds)
-      .in(oldCreatedDate)
-      .in(oldUpdatedDate)
-      .in(externalSubjects)
-      .in(importId)
       .errorOut(errorOutputsFor(401, 403))
       .out(statusCode(StatusCode.Created).and(jsonBody[ArticleDTO]))
       .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure { user => params =>
-        val (
-          newArticle,
-          externalId,
-          oldNdlaCreatedDateStr,
-          oldNdlaUpdatedDateStr,
-          externalSubjectIds,
-          importId
-        ) = params
-        val oldNdlaCreatedDate = oldNdlaCreatedDateStr.flatMap(NDLADate.fromString(_).toOption)
-        val oldNdlaUpdatedDate = oldNdlaUpdatedDateStr.flatMap(NDLADate.fromString(_).toOption)
-
-        writeService
-          .newArticle(
-            newArticle,
-            externalId.values,
-            externalSubjectIds.values,
-            user,
-            oldNdlaCreatedDate,
-            oldNdlaUpdatedDate,
-            importId
-          )
-
+      .serverLogicPure { user => newArticle =>
+        writeService.newArticle(newArticle, user)
       }
 
     def updateArticle: ServerEndpoint[Any, Eff] = endpoint.patch
@@ -484,59 +453,38 @@ trait DraftController {
       .summary("Update an existing article")
       .description("Update an existing article")
       .in(jsonBody[UpdatedArticleDTO])
-      .in(externalIds)
-      .in(oldCreatedDate)
-      .in(oldUpdatedDate)
-      .in(externalSubjects)
-      .in(importId)
       .errorOut(errorOutputsFor(401, 403, 404, 409, 502))
       .out(jsonBody[ArticleDTO])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user => params =>
-        val (
-          articleId,
-          updatedArticle,
-          externalId,
-          oldNdlaCreatedDateStr,
-          oldNdlaUpdatedDateStr,
-          externalSubjectIds,
-          importId
-        ) = params
-        val oldNdlaCreatedDate = oldNdlaCreatedDateStr.flatMap(NDLADate.fromString(_).toOption)
-        val oldNdlaUpdatedDate = oldNdlaUpdatedDateStr.flatMap(NDLADate.fromString(_).toOption)
-
-        writeService
-          .updateArticle(
-            articleId,
-            updatedArticle,
-            externalId.values,
-            externalSubjectIds.values,
-            user,
-            oldNdlaCreatedDate,
-            oldNdlaUpdatedDate,
-            importId
-          )
-
+        val (articleId, updatedArticle) = params
+        writeService.updateArticle(articleId, updatedArticle, user)
       }
 
     def updateArticleStatus: ServerEndpoint[Any, Eff] = endpoint.put
       .in(pathArticleId / "status" / pathStatus)
       .summary("Update status of an article")
       .description("Update status of an article")
-      .in(query[Boolean]("import_publish").default(false))
       .errorOut(errorOutputsFor(401, 403, 404))
       .out(jsonBody[ArticleDTO])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user =>
-        { case (id, status, isImported) =>
+        { case (id, status) =>
           DraftStatus
             .valueOfOrError(status)
-            .flatMap(
-              writeService.updateArticleStatus(_, id, user, isImported)
-            )
-
+            .flatMap(writeService.updateArticleStatus(_, id, user))
         }
       }
+
+    def addNotes: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("notes")
+      .summary("Add notes to a draft")
+      .description("Add notes to a draft")
+      .in(jsonBody[AddMultipleNotesDTO])
+      .errorOut(errorOutputsFor(401, 403, 404))
+      .out(noContent)
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { user => { input => writeService.addNotesToDrafts(input, user) } }
 
     def validateArticle: ServerEndpoint[Any, Eff] = endpoint.put
       .in(pathArticleId / "validate")
@@ -651,7 +599,7 @@ trait DraftController {
       .in("copyRevisionDates" / pathNodeId)
       .summary("Copy revision dates from the node with this id to _all_ children in taxonomy")
       .description("Copy revision dates from the node with this id to _all_ children in taxonomy")
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(401, 403, 404))
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => publicId =>
@@ -686,7 +634,7 @@ trait DraftController {
       .summary("Iterate all articles and migrate outdated grep codes")
       .description("Iterate all articles and migrate outdated grep codes")
       .errorOut(errorOutputsFor(500))
-      .out(emptyOutput)
+      .out(noContent)
       .requirePermission(DRAFT_API_WRITE, ARTICLE_API_WRITE)
       .serverLogicPure { user => _ =>
         writeService.migrateOutdatedGreps(user).handleErrorsOrOk

@@ -54,13 +54,14 @@ trait TapirController extends TapirErrorHandling {
     }
 
     /** Helper to simplify returning _both_ NoContent and some json body T from an endpoint */
-    def noContentOrBodyOutput[T: Encoder: Decoder: Schema]: EndpointOutput.OneOf[Option[T], Option[T]] =
+    def noContentOrBodyOutput[T: Encoder: Decoder: Schema]: EndpointOutput.OneOf[Option[T], Option[T]] = {
+      val noContentVariant = noContent.and(emptyOutputAs[Option[T]](None))
+      val okVariant        = statusCode(StatusCode.Ok).and(jsonBody[Option[T]])
       oneOf[Option[T]](
-        oneOfVariantValueMatcher(statusCode(StatusCode.Ok).and(jsonBody[Option[T]])) { case Some(_) => true },
-        oneOfVariantValueMatcher(statusCode(StatusCode.NoContent).and(emptyOutputAs[Option[T]](None))) { case None =>
-          true
-        }
+        oneOfVariantValueMatcher(okVariant) { case Some(_) => true },
+        oneOfVariantValueMatcher(noContentVariant) { case None => true }
       )
+    }
 
     /** Helper function that returns function one can pass to `serverSecurityLogicPure` to require a specific scope for
       * some endpoint.
@@ -178,6 +179,15 @@ trait TapirController extends TapirErrorHandling {
         PartialServerEndpoint(newEndpoint, securityLogic)
       }
     }
+
+    private val zeroNoContentHeader: EndpointIO.FixedHeader[Unit] = header("Content-Length", "0")
+
+    // NOTE: We use our own emptyOutput to add the `Content-Length` header
+    //       to signify no output body, since openapi-fetch doesn't react nicely
+    //       200 OK responses without body and no `Content-Length` header.
+    def emptyOutput: EndpointOutput[Unit] = sttp.tapir.emptyOutput.and(zeroNoContentHeader)
+    def noContent: EndpointOutput[Unit]   = statusCode(StatusCode.NoContent)
+
   }
 
 }

@@ -119,6 +119,7 @@ object Dependencies {
     lazy val logging: Seq[ModuleID] = Seq(
       "org.apache.logging.log4j"    % "log4j-api"         % Log4JV,
       "org.apache.logging.log4j"    % "log4j-core"        % Log4JV,
+      "org.apache.logging.log4j"    % "log4j-jul"         % Log4JV,
       "org.apache.logging.log4j"    % "log4j-slf4j2-impl" % Log4JV,
       "com.typesafe.scala-logging" %% "scala-logging"     % ScalaLoggingV,
       "org.slf4j"                   % "slf4j-api"         % "2.0.17",

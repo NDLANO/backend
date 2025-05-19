@@ -388,6 +388,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/draft-api/v1/drafts/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add notes to a draft
+         * @description Add notes to a draft
+         */
+        post: operations["postDraft-apiV1DraftsNotes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/draft-api/v1/files": {
         parameters: {
             query?: never;
@@ -440,6 +460,27 @@ export type paths = {
 export type webhooks = Record<string, never>;
 export type components = {
     schemas: {
+        /**
+         * AddMultipleNotesDTO
+         * @description Information about notes to add to drafts
+         */
+        AddMultipleNotesDTO: {
+            /** @description Objects for which notes should be added to which drafts */
+            data: components["schemas"]["AddNoteDTO"][];
+        };
+        /**
+         * AddNoteDTO
+         * @description Information containing new notes and which draft to add them to
+         */
+        AddNoteDTO: {
+            /**
+             * Format: int64
+             * @description Id of the draft to add notes to
+             */
+            draftId: number;
+            /** @description Notes to add to the draft */
+            notes: string[];
+        };
         /** AllErrors */
         AllErrors: components["schemas"]["ErrorBody"] | components["schemas"]["NotFoundWithSupportedLanguages"] | components["schemas"]["ValidationErrorBody"];
         /**
@@ -1525,13 +1566,7 @@ export interface operations {
     };
     "postDraft-apiV1Drafts": {
         parameters: {
-            query?: {
-                externalId?: string[];
-                oldNdlaCreatedDate?: string;
-                oldNdlaUpdatedDate?: string;
-                externalSubjectIds?: string[];
-                importId?: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -1856,13 +1891,7 @@ export interface operations {
     };
     "patchDraft-apiV1DraftsArticle_id": {
         parameters: {
-            query?: {
-                externalId?: string[];
-                oldNdlaCreatedDate?: string;
-                oldNdlaUpdatedDate?: string;
-                externalSubjectIds?: string[];
-                importId?: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 /** @description Id of the article that is to be fetched */
@@ -2072,9 +2101,7 @@ export interface operations {
     };
     "putDraft-apiV1DraftsArticle_idStatusStatus": {
         parameters: {
-            query?: {
-                import_publish?: boolean;
-            };
+            query?: never;
             header?: never;
             path: {
                 /** @description Id of the article that is to be fetched */
@@ -2486,7 +2513,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2610,7 +2637,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2638,6 +2665,67 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AllErrors"] | components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "postDraft-apiV1DraftsNotes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddMultipleNotesDTO"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };

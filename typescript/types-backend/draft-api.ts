@@ -4,6 +4,10 @@ import * as openapi from "./draft-api-openapi";
 type schemas = openapi.components["schemas"];
 export { openapi };
 
+export type AddMultipleNotesDTO = schemas["AddMultipleNotesDTO"];
+export type IAddMultipleNotesDTO = schemas["AddMultipleNotesDTO"];
+export type AddNoteDTO = schemas["AddNoteDTO"];
+export type IAddNoteDTO = schemas["AddNoteDTO"];
 export type AllErrors = schemas["AllErrors"];
 export type IAllErrors = schemas["AllErrors"];
 export type ArticleContentDTO = schemas["ArticleContentDTO"];

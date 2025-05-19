@@ -57,7 +57,7 @@ trait UserController {
       .in("delete-personal-data")
       .in(feideHeader)
       .errorOut(errorOutputsFor(401, 403))
-      .out(emptyOutput)
+      .out(noContent)
       .serverLogicPure { feideHeader =>
         userService.deleteAllUserData(feideHeader)
       }
