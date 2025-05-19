@@ -25,7 +25,7 @@ abstract class StringBasedValue(val value: String) extends Comparable[StringBase
 }
 
 object StringBasedValue {
-  implicit def schema[T <: StringBasedValue]: Schema[T] = Schema.string.asInstanceOf[Schema[T]]
+  implicit def schema[T <: StringBasedValue]: Schema[T] = Schema.string
 
   implicit def codec[T <: StringBasedValue](constructor: String => T): Codec[String, T, CodecFormat.TextPlain] =
     Codec.string.mapDecode { value =>
