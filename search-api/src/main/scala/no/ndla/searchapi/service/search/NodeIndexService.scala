@@ -49,10 +49,16 @@ trait NodeIndexService {
         textField("grepContexts.title"),
         getTaxonomyContextMapping("context"),
         getTaxonomyContextMapping("contexts"),
-        nestedField("subjectPage").fields(
-          keywordField("id"),
-          keywordField("name"),
-          ObjectField("domainObject", enabled = Some(false))
+        ObjectField(
+          "subjectPage",
+          properties = List(
+            keywordField("id"),
+            keywordField("name"),
+            ObjectField("domainObject", enabled = Some(false))
+          ) ++
+            languageValuesMapping("aboutTitle") ++
+            languageValuesMapping("aboutDescription") ++
+            languageValuesMapping("metaDescription")
         )
       )
 

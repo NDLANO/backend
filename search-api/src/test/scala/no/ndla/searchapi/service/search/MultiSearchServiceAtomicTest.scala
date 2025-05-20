@@ -10,7 +10,8 @@ package no.ndla.searchapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.search.{MultiSearchSummaryDTO, NodeHitDTO, SearchType}
-import no.ndla.common.model.domain.frontpage.{BannerImage, MetaDescription, SubjectPage}
+import no.ndla.common.model.domain.frontpage.VisualElementType.Image
+import no.ndla.common.model.domain.frontpage.{AboutSubject, BannerImage, MetaDescription, SubjectPage, VisualElement}
 import no.ndla.common.model.domain.{ArticleContent, Title}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
@@ -948,7 +949,18 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           id = Some(1),
           name = "Apekatt",
           bannerImage = BannerImage(None, 5),
-          about = Seq(),
+          about = Seq(
+            AboutSubject(
+              title = "Apekatt",
+              description = "Apekatt about beskrivelse",
+              language = "nb",
+              visualElement = VisualElement(
+                `type` = Image,
+                id = "123",
+                alt = None
+              )
+            )
+          ),
           metaDescription = Seq(MetaDescription("Apekatt beskrivelse", "nb")),
           editorsChoices = List(),
           connectedTo = List(),
@@ -1049,6 +1061,184 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         "Multi:2",
         "Node:urn:subject:19284"
       )
+    )
+  }
+
+  test("that searching for about description of subject pages gives matches") {
+    val taxonomyBundle = TaxonomyBundle(
+      List(
+        Node(
+          id = "urn:subject:19284",
+          name = "Apekatt",
+          contentUri = Some("urn:frontpage:1"),
+          path = Some("/subject:19284"),
+          url = Some("/f/apekatt/asdf2362"),
+          metadata = Some(Metadata(List.empty, visible = true, Map.empty)),
+          translations = List.empty,
+          nodeType = NodeType.SUBJECT,
+          contextids = List(),
+          context = Some(
+            TaxonomyContext(
+              publicId = "urn:subject:19284",
+              rootId = "urn:subject:19284",
+              SearchableLanguageValues(Seq(LanguageValue("nb", "Apekatt"))),
+              path = "/subject:19284",
+              breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+              contextType = None,
+              relevanceId = core.id,
+              relevance = SearchableLanguageValues(Seq.empty),
+              resourceTypes = List.empty,
+              parentIds = List.empty,
+              isPrimary = true,
+              contextId = "asdf2362",
+              isVisible = true,
+              isActive = true,
+              url = "/f/apekatt/asdf2362"
+            )
+          ),
+          contexts = List()
+        ),
+        Node(
+          id = "urn:subject:19285",
+          name = "Snabel",
+          contentUri = Some("urn:frontpage:2"),
+          path = Some("/subject:19285"),
+          url = Some("/f/snabel/asdf2362"),
+          metadata = Some(Metadata(List.empty, visible = true, Map.empty)),
+          translations = List.empty,
+          nodeType = NodeType.SUBJECT,
+          contextids = List(),
+          context = Some(
+            TaxonomyContext(
+              publicId = "urn:subject:19285",
+              rootId = "urn:subject:19285",
+              SearchableLanguageValues(Seq(LanguageValue("nb", "Snabel"))),
+              path = "/subject:19285",
+              breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+              contextType = None,
+              relevanceId = core.id,
+              relevance = SearchableLanguageValues(Seq.empty),
+              resourceTypes = List.empty,
+              parentIds = List.empty,
+              isPrimary = true,
+              contextId = "asdf2362",
+              isVisible = true,
+              isActive = true,
+              url = "/f/snabel/asdf2362"
+            )
+          ),
+          contexts = List()
+        )
+      ) ++
+        indexingBundle.taxonomyBundle.get.nodes
+    )
+
+    doReturn(
+      Success(
+        SubjectPage(
+          id = Some(1),
+          name = "Apekatt",
+          bannerImage = BannerImage(None, 5),
+          about = Seq(
+            AboutSubject(
+              "Krutt",
+              "Beskrivels",
+              "nb",
+              VisualElement(Image, "123", None)
+            )
+          ),
+          metaDescription = Seq(MetaDescription("Apekatt beskrivelse", "nb")),
+          editorsChoices = List(),
+          connectedTo = List(),
+          buildsOn = List(),
+          leadsTo = List()
+        )
+      )
+    ).when(frontpageApiClient).getSubjectPage(eqTo(1L))
+
+    doReturn(
+      Success(
+        SubjectPage(
+          id = Some(2),
+          name = "Snabel",
+          bannerImage = BannerImage(None, 5),
+          about = Seq(),
+          metaDescription = Seq(MetaDescription("Kamelon", "nb")),
+          editorsChoices = List(),
+          connectedTo = List(),
+          buildsOn = List(),
+          leadsTo = List()
+        )
+      )
+    ).when(frontpageApiClient).getSubjectPage(eqTo(2L))
+
+    val article1 = TestData.article1.copy(
+      id = Some(1),
+      title = Seq(Title("Apekatt en", "nb"))
+    )
+    val article2 = TestData.article1.copy(
+      id = Some(2),
+      title = Seq(Title("Apekatt to", "nb"))
+    )
+    val article3 = TestData.article1.copy(
+      id = Some(3),
+      title = Seq(Title("Noe helt annet", "nb"))
+    )
+    val bundle = indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))
+
+    nodeIndexService.indexDocuments(None, bundle).get
+    articleIndexService.indexDocument(article1, bundle).get
+    articleIndexService.indexDocument(article2, bundle).get
+    articleIndexService.indexDocument(article3, bundle).get
+
+    blockUntil(() => {
+      val indexedNodes    = nodeIndexService.countDocuments
+      val indexedArticles = articleIndexService.countDocuments
+      indexedNodes == 23 && indexedArticles == 3
+    })
+
+    val search1 =
+      multiSearchService.matchingQuery(
+        TestData.searchSettings.copy(
+          sort = Sort.ByRelevanceDesc,
+          query = NonEmptyString.fromString("Krutt"),
+          nodeTypeFilter = List(NodeType.SUBJECT),
+          resultTypes = Some(
+            List(
+              SearchType.Nodes,
+              SearchType.Articles
+            )
+          )
+        )
+      )
+
+    search1.get.results.map {
+      case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
+      case x: NodeHitDTO            => s"Node:${x.id}"
+    } should be(
+      List("Node:urn:subject:19284")
+    )
+
+    val search2 =
+      multiSearchService.matchingQuery(
+        TestData.searchSettings.copy(
+          sort = Sort.ByRelevanceDesc,
+          query = NonEmptyString.fromString("Kamelon"),
+          nodeTypeFilter = List(NodeType.SUBJECT),
+          resultTypes = Some(
+            List(
+              SearchType.Nodes,
+              SearchType.Articles
+            )
+          )
+        )
+      )
+
+    search2.get.results.map {
+      case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
+      case x: NodeHitDTO            => s"Node:${x.id}"
+    } should be(
+      List("Node:urn:subject:19285")
     )
   }
 }
