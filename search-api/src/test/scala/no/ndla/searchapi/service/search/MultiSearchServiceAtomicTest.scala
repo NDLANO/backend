@@ -949,7 +949,18 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           id = Some(1),
           name = "Apekatt",
           bannerImage = BannerImage(None, 5),
-          about = Seq(),
+          about = Seq(
+            AboutSubject(
+              title = "Apekatt",
+              description = "Apekatt about beskrivelse",
+              language = "nb",
+              visualElement = VisualElement(
+                `type` = Image,
+                id = "123",
+                alt = None
+              )
+            )
+          ),
           metaDescription = Seq(MetaDescription("Apekatt beskrivelse", "nb")),
           editorsChoices = List(),
           connectedTo = List(),
