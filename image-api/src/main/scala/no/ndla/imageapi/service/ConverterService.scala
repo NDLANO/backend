@@ -159,7 +159,8 @@ trait ConverterService {
 
     private def getImageFromMeta(meta: ImageMetaInformation, language: Option[String]): Try[ImageFileData] = {
       findByLanguageOrBestEffort(meta.images.getOrElse(Seq.empty), language) match {
-        case None        => Failure(ImageConversionException("Could not find image in meta, this is a bug."))
+        case None =>
+          Failure(ImageConversionException(s"Could not find image in meta with id '${meta.id}', this is a bug."))
         case Some(image) => Success(image)
       }
     }

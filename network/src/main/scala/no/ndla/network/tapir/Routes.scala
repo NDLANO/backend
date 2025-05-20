@@ -145,7 +145,9 @@ trait Routes {
               latency = latency,
               responseCode = code
             )
-            logger.info(s)
+
+            if (code >= 500) logger.error(s)
+            else logger.info(s)
           }
 
           RequestInfo.clear()

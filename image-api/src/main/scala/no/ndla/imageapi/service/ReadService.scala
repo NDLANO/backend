@@ -108,7 +108,7 @@ trait ReadService {
             case None =>
               Failure(
                 ImageConversionException(
-                  "Image path was found in database, but not found in metadata. This is a bug."
+                  s"Image path '$path' was found in database, but not found in metadata. This is a bug."
                 )
               )
           }
