@@ -56,6 +56,7 @@ trait ArticleIndexService {
         textField("typeName"),
         dateField("lastUpdated"),
         keywordField("license"),
+        keywordField("status"),
         textField("authors"),
         keywordField("articleType"),
         keywordField("supportedLanguages"),

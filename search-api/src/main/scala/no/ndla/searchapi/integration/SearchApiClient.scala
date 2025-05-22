@@ -63,7 +63,7 @@ trait SearchApiClient {
       }
     }
 
-    private def getChunk[T: Decoder](page: Int, pageSize: Int): Try[DomainDumpResults[T]] = {
+    protected def getChunk[T: Decoder](page: Int, pageSize: Int): Try[DomainDumpResults[T]] = {
       val params = Map(
         "page"      -> page.toString,
         "page-size" -> pageSize.toString
