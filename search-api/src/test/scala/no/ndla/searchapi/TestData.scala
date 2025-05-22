@@ -53,6 +53,7 @@ import no.ndla.language.Language.DefaultLanguage
 import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.*
 import no.ndla.searchapi.model.grep.{
   BelongsToObj,
@@ -60,7 +61,6 @@ import no.ndla.searchapi.model.grep.{
   GrepKjerneelement,
   GrepKompetansemaal,
   GrepLaererplan,
-  GrepStatus,
   GrepTextObj,
   GrepTitle,
   GrepTverrfagligTema
@@ -1681,33 +1681,30 @@ object TestData {
     kjerneelementer = List(
       GrepKjerneelement(
         kode = "KE12",
-        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+        GrepStatusDTO.Published,
         tittel = GrepTextObj(List(GrepTitle("default", "Utforsking og problemløysing"))),
         beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
-        `tilhoerer-laereplan` =
-          BelongsToObj("LP1", GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"), "Dette er LP1")
+        `tilhoerer-laereplan` = BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP1")
       ),
       GrepKjerneelement(
         kode = "KE34",
-        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+        GrepStatusDTO.Published,
         tittel = GrepTextObj(List(GrepTitle("default", "Abstraksjon og generalisering"))),
         beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
-        `tilhoerer-laereplan` =
-          BelongsToObj("LP1", GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"), "Dette er LP2")
+        `tilhoerer-laereplan` = BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP2")
       )
     ),
     kompetansemaal = List(
       GrepKompetansemaal(
         kode = "KM123",
-        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+        GrepStatusDTO.Published,
         tittel = GrepTextObj(
           List(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))
         ),
-        `tilhoerer-laereplan` =
-          BelongsToObj("LP1", GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"), "Dette er LP1"),
+        `tilhoerer-laereplan` = BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP1"),
         `tilhoerer-kompetansemaalsett` = BelongsToObj(
           "KMS1",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          GrepStatusDTO.Published,
           "Dette er KMS1"
         ),
         `tilknyttede-tverrfaglige-temaer` = List(),
@@ -1718,14 +1715,14 @@ object TestData {
     tverrfagligeTemaer = List(
       GrepTverrfagligTema(
         "TT2",
-        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+        GrepStatusDTO.Published,
         Seq(GrepTitle("default", "Demokrati og medborgerskap"))
       )
     ),
     laereplaner = List(
       GrepLaererplan(
         "LP1",
-        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+        GrepStatusDTO.Published,
         GrepTextObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)"))),
         `erstattes-av` = List.empty
       )

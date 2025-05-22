@@ -14,6 +14,7 @@ import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.searchapi.TestEnvironment
 import no.ndla.searchapi.controller.parameters.GrepSearchInputDTO
 import no.ndla.searchapi.model.api.grep.GrepSortDTO.{ByCodeAsc, ByCodeDesc}
+import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.grep.*
 
 class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
@@ -42,38 +43,37 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
     kjerneelementer = List(
       GrepKjerneelement(
         "KE12",
-        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+        GrepStatusDTO.Published,
         GrepTextObj(
           List(GrepTitle("default", "Utforsking og problemløysing"), GrepTitle("nob", "Utforsking og problemløsning"))
         ),
         GrepTextObj(List(GrepTitle("default", ""))),
-        BelongsToObj("LP1", GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"), "Dette er LP1")
+        BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP1")
       ),
       GrepKjerneelement(
         "KE34",
-        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+        GrepStatusDTO.Published,
         GrepTextObj(
           List(GrepTitle("default", "Abstraksjon og generalisering"), GrepTitle("nob", "Abstraksjon og generalisering"))
         ),
         GrepTextObj(List(GrepTitle("default", ""))),
-        BelongsToObj("LP2", GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"), "Dette er LP2")
+        BelongsToObj("LP2", GrepStatusDTO.Published, "Dette er LP2")
       )
     ),
     kompetansemaal = List(
       GrepKompetansemaal(
         kode = "KM123",
-        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+        GrepStatusDTO.Published,
         tittel = GrepTextObj(
           List(
             GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
             GrepTitle("nob", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")
           )
         ),
-        `tilhoerer-laereplan` =
-          BelongsToObj("LP2", GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"), "Dette er LP2"),
+        `tilhoerer-laereplan` = BelongsToObj("LP2", GrepStatusDTO.Published, "Dette er LP2"),
         `tilhoerer-kompetansemaalsett` = BelongsToObj(
           "KE200",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          GrepStatusDTO.Published,
           "Kompetansemaalsett"
         ),
         `tilknyttede-tverrfaglige-temaer` = List(),
@@ -85,20 +85,20 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
     tverrfagligeTemaer = List(
       GrepTverrfagligTema(
         "TT2",
-        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+        GrepStatusDTO.Published,
         Seq(GrepTitle("default", "Demokrati og medborgerskap"), GrepTitle("nob", "Demokrati og medborgerskap"))
       )
     ),
     laereplaner = List(
       GrepLaererplan(
         "LP1",
-        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+        GrepStatusDTO.Published,
         GrepTextObj(List(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk"))),
         List.empty
       ),
       GrepLaererplan(
         "LP2",
-        GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+        GrepStatusDTO.Published,
         GrepTextObj(List(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk"))),
         List.empty
       )

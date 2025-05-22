@@ -10,7 +10,8 @@ package no.ndla.searchapi.integration
 
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import io.circe.Decoder
+import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.logging.logTaskTime
@@ -18,6 +19,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.network.NdlaClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.caching.Memoize
+import no.ndla.searchapi.model.api.grep.{GrepStatusDTO, GrepStatusEncoderConfiguration}
 import no.ndla.searchapi.model.grep.*
 import sttp.client3.quick.*
 
@@ -40,6 +42,9 @@ trait GrepApiClient {
         source.getLines().mkString
       }
     }
+
+    implicit val statusEncoderConfig: GrepStatusEncoderConfiguration =
+      GrepStatusEncoderConfiguration(encodeToUrl = true)
 
     private def readGrepJsonFiles[T](dump: File, path: String)(implicit d: Decoder[T]): Try[List[T]] = {
       val folder    = new File(dump, path)

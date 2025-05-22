@@ -14,13 +14,13 @@ import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.caching.Memoize
+import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.grep.{
   BelongsToObj,
   GrepKjerneelement,
   GrepKompetansemaal,
   GrepKompetansemaalSett,
-  GrepStatus,
   GrepTextObj,
   GrepTitle,
   GrepTverrfagligTema,
@@ -521,23 +521,23 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       kjerneelementer = List(
         GrepKjerneelement(
           "KE12",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel12"))),
           GrepTextObj(List(GrepTitle("default", ""))),
           BelongsToObj(
             "LP123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            GrepStatusDTO.Published,
             "Dette er LP123"
           )
         ),
         GrepKjerneelement(
           "KE34",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel34"))),
           GrepTextObj(List(GrepTitle("default", ""))),
           BelongsToObj(
             "LP123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            GrepStatusDTO.Published,
             "Dette er LP123"
           )
         )
@@ -545,16 +545,16 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       kompetansemaal = List(
         GrepKompetansemaal(
           "KM123",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel123"))),
           BelongsToObj(
             "LP123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            GrepStatusDTO.Published,
             "Dette er LP123"
           ),
           BelongsToObj(
             "KMS123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            GrepStatusDTO.Published,
             "Dette er KMS123"
           ),
           List(),
@@ -565,7 +565,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       tverrfagligeTemaer = List(
         GrepTverrfagligTema(
           "TT2",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          GrepStatusDTO.Published,
           Seq(GrepTitle("default", "tittel2"))
         )
       )
@@ -586,23 +586,23 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       kjerneelementer = List(
         GrepKjerneelement(
           "KE12",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel12"))),
           GrepTextObj(List(GrepTitle("default", ""))),
           BelongsToObj(
             "LP123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            GrepStatusDTO.Published,
             "Dette er LP123"
           )
         ),
         GrepKjerneelement(
           "KE34",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel34"))),
           GrepTextObj(List(GrepTitle("default", ""))),
           BelongsToObj(
             "LP123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+            GrepStatusDTO.Published,
             "Dette er LP123"
           )
         )
@@ -610,29 +610,17 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       kompetansemaal = List(
         GrepKompetansemaal(
           "KM123",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel123"))),
-          BelongsToObj(
-            "LP123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
-            "Dette er LP123"
-          ),
-          BelongsToObj(
-            "KMS123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
-            "Dette er KMS123"
-          ),
+          BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
+          BelongsToObj("KMS123", GrepStatusDTO.Published, "Dette er KMS123"),
           List(),
           List(),
           None
         )
       ),
       tverrfagligeTemaer = List(
-        GrepTverrfagligTema(
-          "TT2",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
-          Seq(GrepTitle("default", "tittel2"))
-        )
+        GrepTverrfagligTema("TT2", GrepStatusDTO.Published, Seq(GrepTitle("default", "tittel2")))
       )
     )
     val grepContexts = List.empty
@@ -722,60 +710,32 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       kompetansemaalsett = List(
         GrepKompetansemaalSett(
           "KV123",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel123"))),
-          BelongsToObj(
-            "LP123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
-            "Dette er LP123"
-          ),
+          BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
           List(
-            ReferenceObj(
-              "KM123",
-              GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
-              "Tittel KM123"
-            ),
-            ReferenceObj(
-              "KM234",
-              GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
-              "Tittel KM234"
-            )
+            ReferenceObj("KM123", GrepStatusDTO.Published, "Tittel KM123"),
+            ReferenceObj("KM234", GrepStatusDTO.Published, "Tittel KM234")
           )
         )
       ),
       kompetansemaal = List(
         GrepKompetansemaal(
           "KM123",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel123"))),
-          BelongsToObj(
-            "LP123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
-            "Dette er LP123"
-          ),
-          BelongsToObj(
-            "KV123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
-            "Dette er KV123"
-          ),
+          BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
+          BelongsToObj("KV123", GrepStatusDTO.Published, "Dette er KV123"),
           List(),
           List(),
           None
         ),
         GrepKompetansemaal(
           "KM234",
-          GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel234"))),
-          BelongsToObj(
-            "LP123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
-            "Dette er LP123"
-          ),
-          BelongsToObj(
-            "KV123",
-            GrepStatus("https://data.udir.no/kl06/v201906/status/status_publisert"),
-            "Dette er KV123"
-          ),
+          BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
+          BelongsToObj("KV123", GrepStatusDTO.Published, "Dette er KV123"),
           List(),
           List(),
           None

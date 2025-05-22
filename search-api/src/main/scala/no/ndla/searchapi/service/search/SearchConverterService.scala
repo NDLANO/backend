@@ -1091,14 +1091,14 @@ trait SearchConverterService {
                 subContexts :+ SearchableGrepContext(
                   code = grepCode,
                   title = element.getTitleValue("default"),
-                  status = element.status.status
+                  status = element.status.entryName
                 )
               case Some(element) =>
                 List(
                   SearchableGrepContext(
                     code = grepCode,
                     title = element.getTitleValue("default"),
-                    status = element.status.status
+                    status = element.status.entryName
                   )
                 )
               case None => List(SearchableGrepContext(code = grepCode, title = None, status = ""))
