@@ -591,7 +591,7 @@ trait SearchConverterService {
           context = contexts.find(_.isPrimary),
           contexts = contexts,
           contextids =
-          indexingBundle.taxonomyBundle.map(getTaxonomyContexids(draft.id.get, "article", _)).getOrElse(List.empty),
+            indexingBundle.taxonomyBundle.map(getTaxonomyContexids(draft.id.get, "article", _)).getOrElse(List.empty),
           draftStatus = draftStatus,
           status = draft.status.current.toString,
           users = users.distinct,
