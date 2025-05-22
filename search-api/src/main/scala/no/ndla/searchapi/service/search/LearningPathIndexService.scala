@@ -54,7 +54,7 @@ trait LearningPathIndexService {
         textField("coverPhotoId"),
         intField("duration"),
         keywordField("learningResourceType"),
-        textField("status"),
+        keywordField("status"),
         textField("verificationStatus"),
         dateField("lastUpdated"),
         keywordField("defaultTitle"),
