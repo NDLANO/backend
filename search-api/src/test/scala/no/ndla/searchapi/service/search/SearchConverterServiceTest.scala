@@ -472,13 +472,13 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asSearchableArticle converts grepContexts correctly based on grepBundle if article has grepCodes") {
     val article = TestData.emptyDomainArticle.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepContexts = List(
-      SearchableGrepContext("KE12", Some("Utforsking og problemløysing"), "status_publisert"),
+      SearchableGrepContext("KE12", Some("Utforsking og problemløysing"), "Published"),
       SearchableGrepContext(
         "KM123",
         Some("bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
-        "status_publisert"
+        "Published"
       ),
-      SearchableGrepContext("TT2", Some("Demokrati og medborgerskap"), "status_publisert")
+      SearchableGrepContext("TT2", Some("Demokrati og medborgerskap"), "Published")
     )
     val Success(searchableArticle) =
       searchConverterService.asSearchableArticle(
@@ -571,9 +571,9 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     )
     val grepContexts = List(
-      SearchableGrepContext("KE12", Some("tittel12"), "status_publisert"),
-      SearchableGrepContext("KM123", Some("tittel123"), "status_publisert"),
-      SearchableGrepContext("TT2", Some("tittel2"), "status_publisert")
+      SearchableGrepContext("KE12", Some("tittel12"), "Published"),
+      SearchableGrepContext("KM123", Some("tittel123"), "Published"),
+      SearchableGrepContext("TT2", Some("tittel2"), "Published")
     )
     val Success(searchableArticle) =
       searchConverterService.asSearchableDraft(draft, IndexingBundle(Some(grepBundle), Some(emptyBundle), None))
@@ -743,9 +743,9 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     )
     val grepContexts = List(
-      SearchableGrepContext("KM123", Some("tittel123"), "status_publisert"),
-      SearchableGrepContext("KM234", Some("tittel234"), "status_publisert"),
-      SearchableGrepContext("KV123", Some("tittel123"), "status_publisert")
+      SearchableGrepContext("KM123", Some("tittel123"), "Published"),
+      SearchableGrepContext("KM234", Some("tittel234"), "Published"),
+      SearchableGrepContext("KV123", Some("tittel123"), "Published")
     )
     val Success(searchableNode) =
       searchConverterService.asSearchableNode(node, None, IndexingBundle(Some(grepBundle), Some(emptyBundle), None))

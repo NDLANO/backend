@@ -9,10 +9,9 @@
 package no.ndla.searchapi.model.api.grep;
 
 import io.circe.generic.semiauto.deriveDecoder
-import io.circe.{Decoder, Encoder}
+import io.circe.Decoder
 import io.circe.syntax.EncoderOps
 import no.ndla.common.CirceUtil
-import no.ndla.searchapi.model.grep.{GrepElement, GrepLaererplan}
 import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 
 class GrepStatusDTOTest extends UnitSuite with TestEnvironment {
@@ -40,12 +39,12 @@ class GrepStatusDTOTest extends UnitSuite with TestEnvironment {
   test("GrepStatusDTO decoding as inner class works as expected") {
     case class WithStatus(status: GrepStatusDTO)
     implicit val decoder: Decoder[WithStatus] = deriveDecoder[WithStatus]
-    val json = """{"status":"https://data.udir.no/kl06/v201906/status/status_publisert"}"""
+    val json    = """{"status":"https://data.udir.no/kl06/v201906/status/status_publisert"}"""
     val element = CirceUtil.tryParseAs[WithStatus](json).get
     element.status should be(GrepStatusDTO.Published)
 
-    val json2 = """{"status":"Published"}"""
-    val element2 = CirceUtil.tryParseAs[WithStatus](json).get
+    val json2    = """{"status":"Published"}"""
+    val element2 = CirceUtil.tryParseAs[WithStatus](json2).get
     element2.status should be(GrepStatusDTO.Published)
   }
 }

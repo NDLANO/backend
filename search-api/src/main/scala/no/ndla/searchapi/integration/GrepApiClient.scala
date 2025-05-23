@@ -10,8 +10,7 @@ package no.ndla.searchapi.integration
 
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import io.circe.syntax.EncoderOps
-import io.circe.{Decoder, Encoder}
+import io.circe.Decoder
 import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.logging.logTaskTime
@@ -19,7 +18,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.network.NdlaClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.caching.Memoize
-import no.ndla.searchapi.model.api.grep.{GrepStatusDTO, GrepStatusEncoderConfiguration}
+import no.ndla.searchapi.model.api.grep.GrepStatusEncoderConfiguration
 import no.ndla.searchapi.model.grep.*
 import sttp.client3.quick.*
 
