@@ -318,7 +318,7 @@ trait MultiSearchService {
       List(
         licenseFilter,
         idFilter,
-        statusFilter, // Including this makes elasticsearch fail with "search_phase_execution_exception,all shards failed"
+        statusFilter,
         articleTypeFilter,
         learningResourceTypeFilter,
         languageFilter,
