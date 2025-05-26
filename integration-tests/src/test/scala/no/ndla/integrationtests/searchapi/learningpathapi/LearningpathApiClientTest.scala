@@ -94,7 +94,7 @@ class LearningpathApiClientTest
     AuthUser.setHeader(s"Bearer $exampleToken")
     val learningPathApiClient = new LearningPathApiClient(learningpathApiBaseUrl)
 
-    val chunks              = learningPathApiClient.getChunks[LearningPath].toList
+    val chunks              = learningPathApiClient.getChunks.toList
     val fetchedLearningPath = chunks.head.get.head
 
     val searchable =

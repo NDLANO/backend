@@ -108,7 +108,7 @@ class ArticleApiClientTest
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
 
-    val chunks         = articleApiClient.getChunks[Article].toList
+    val chunks         = articleApiClient.getChunks.toList
     val fetchedArticle = chunks.head.get.head
     val searchable = searchConverterService
       .asSearchableArticle(

@@ -8,13 +8,14 @@
 
 package no.ndla.searchapi.integration
 
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.network.NdlaClient
 
 trait DraftConceptApiClient {
   this: NdlaClient & SearchApiClient =>
   val draftConceptApiClient: DraftConceptApiClient
 
-  class DraftConceptApiClient(val baseUrl: String) extends SearchApiClient {
+  class DraftConceptApiClient(val baseUrl: String) extends SearchApiClient[Concept] {
     override val searchPath     = "concept-api/v1/drafts"
     override val name           = "concepts"
     override val dumpDomainPath = "intern/dump/draft-concept"
