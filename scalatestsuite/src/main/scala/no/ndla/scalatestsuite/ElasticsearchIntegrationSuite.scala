@@ -21,7 +21,7 @@ import sys.env
 trait ElasticsearchIntegrationSuite extends UnitTestSuite with ContainerSuite {
   this: HasBaseProps =>
   val EnableElasticsearchContainer: Boolean = true
-  val ElasticsearchImage: String            = "6409dd6" // elasticsearch 8.11.4
+  val ElasticsearchImage: String            = "c3f7a34" // elasticsearch 8.18.1
 
   val elasticSearchContainer: Try[ElasticsearchContainer] = if (EnableElasticsearchContainer) {
     if (skipContainerSpawn) {
