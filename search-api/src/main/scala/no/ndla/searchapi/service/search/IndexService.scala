@@ -104,7 +104,7 @@ trait IndexService {
   }
 
   trait IndexService[D <: Content] extends BulkIndexingService with StrictLogging {
-    val apiClient: SearchApiClient
+    val apiClient: SearchApiClient[D]
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
     def createIndexRequest(domainModel: D, indexName: String, indexingBundle: IndexingBundle): Try[IndexRequest]
@@ -158,7 +158,7 @@ trait IndexService {
         grepBundle <- grepApiClient.getGrepBundle()
         indexingBundle = IndexingBundle(grepBundle = Some(grepBundle), None, None)
         _       <- createIndexIfNotExists()
-        toIndex <- apiClient.getSingle[D](id)
+        toIndex <- apiClient.getSingle(id)
         request <- createIndexRequest(toIndex, searchIndex, indexingBundle)
         _ <- e4sClient.execute {
           request
@@ -184,7 +184,7 @@ trait IndexService {
         d: Decoder[D]
     ): Try[BulkIndexResult] = {
 
-      val chunks = apiClient.getChunks[D]
+      val chunks = apiClient.getChunks
       val results = chunks
         .map({
           case Failure(ex) =>

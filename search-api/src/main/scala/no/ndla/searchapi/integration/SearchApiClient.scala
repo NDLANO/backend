@@ -24,13 +24,13 @@ import scala.util.{Failure, Success, Try}
 trait SearchApiClient {
   this: NdlaClient & StrictLogging & Props =>
 
-  trait SearchApiClient {
+  trait SearchApiClient[T] {
     val name: String
     val baseUrl: String
     val searchPath: String
     val dumpDomainPath: String = s"intern/dump/$name"
 
-    def getSingle[T: Decoder](id: Long): Try[T] = {
+    def getSingle(id: Long)(implicit d: Decoder[T]): Try[T] = {
       val path = s"$dumpDomainPath/$id"
       get[T](path, Map.empty, timeout = 120000) match {
         case Failure(ex) =>
@@ -42,7 +42,7 @@ trait SearchApiClient {
       }
     }
 
-    def getChunks[T: Decoder]: Iterator[Try[Seq[T]]] = {
+    def getChunks(implicit d: Decoder[T]): Iterator[Try[Seq[T]]] = {
       val initial = getChunk(0, 0)
 
       initial match {
@@ -53,7 +53,7 @@ trait SearchApiClient {
           val pages    = Seq.range(1, numPages + 1)
 
           val iterator: Iterator[Try[Seq[T]]] = pages.iterator.map(p => {
-            getChunk[T](p, pageSize).map(_.results)
+            getChunk(p, pageSize).map(_.results)
           })
 
           iterator
@@ -63,7 +63,7 @@ trait SearchApiClient {
       }
     }
 
-    protected def getChunk[T: Decoder](page: Int, pageSize: Int): Try[DomainDumpResults[T]] = {
+    protected def getChunk(page: Int, pageSize: Int)(implicit d: Decoder[T]): Try[DomainDumpResults[T]] = {
       val params = Map(
         "page"      -> page.toString,
         "page-size" -> pageSize.toString
@@ -82,10 +82,10 @@ trait SearchApiClient {
       }
     }
 
-    def get[T: Decoder](path: String, params: Map[String, String], timeout: Int = 5000): Try[T] = {
+    def get[R: Decoder](path: String, params: Map[String, String], timeout: Int = 5000): Try[R] = {
       val url     = s"$baseUrl/$path"
       val request = quickRequest.get(uri"$url?$params").readTimeout(timeout.millis)
-      ndlaClient.fetchWithForwardedAuth[T](request, None)
+      ndlaClient.fetchWithForwardedAuth[R](request, None)
     }
   }
 }

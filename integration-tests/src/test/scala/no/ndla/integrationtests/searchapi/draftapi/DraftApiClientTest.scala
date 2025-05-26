@@ -106,7 +106,7 @@ class DraftApiClientTest
     AuthUser.setHeader(s"Bearer $exampleToken")
     val draftApiClient = new DraftApiClient(draftApiBaseUrl)
 
-    val chunks       = draftApiClient.getChunks[Draft].toList
+    val chunks       = draftApiClient.getChunks.toList
     val fetchedDraft = chunks.head.get.head
     val searchable = searchConverterService
       .asSearchableDraft(
