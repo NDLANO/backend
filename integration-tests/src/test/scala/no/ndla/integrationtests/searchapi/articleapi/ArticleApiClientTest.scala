@@ -11,7 +11,6 @@ package no.ndla.integrationtests.searchapi.articleapi
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.article.Article
 import no.ndla.database.HasDatabaseProps
 import no.ndla.network.AuthUser
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}

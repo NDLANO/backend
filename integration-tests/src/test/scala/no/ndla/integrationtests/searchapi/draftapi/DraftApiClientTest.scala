@@ -10,7 +10,6 @@ package no.ndla.integrationtests.searchapi.draftapi
 
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.draft.Draft
 import no.ndla.database.HasDatabaseProps
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
