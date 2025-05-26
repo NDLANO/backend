@@ -13,7 +13,7 @@ import no.ndla.testbase.UnitTestSuiteBase
 class UpdateOrDeleteTest extends UnitTestSuiteBase {
 
   test("That encoding UpdateOrDelete works as expected") {
-    import io.circe.syntax._
+    import io.circe.syntax.*
     import io.circe.Encoder
     import io.circe.generic.semiauto.deriveEncoder
     case class ApiObject(

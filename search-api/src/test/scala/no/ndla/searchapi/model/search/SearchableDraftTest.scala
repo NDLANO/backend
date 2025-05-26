@@ -102,8 +102,10 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       status = DraftStatus.PLANNED.toString,
       users = List("ndalId54321", "ndalId12345"),
       previousVersionsNotes = List("OldNote"),
-      grepContexts =
-        List(SearchableGrepContext("K123", Some("some title")), SearchableGrepContext("K456", Some("some title 2"))),
+      grepContexts = List(
+        SearchableGrepContext("K123", Some("some title"), "Published"),
+        SearchableGrepContext("K456", Some("some title 2"), "Published")
+      ),
       traits = List.empty,
       embedAttributes = embedAttrs,
       embedResourcesAndIds = embedResourcesAndIds,

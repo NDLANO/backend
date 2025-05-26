@@ -310,6 +310,8 @@ export type components = {
         GrepKjerneelementDTO: {
             /** @description The grep code */
             code: string;
+            /** @description The grep status */
+            status: components["schemas"]["GrepStatusDTO"];
             title: components["schemas"]["TitleDTO"];
             description: components["schemas"]["DescriptionDTO"];
             laereplan: components["schemas"]["GrepReferencedLaereplanDTO"];
@@ -327,6 +329,8 @@ export type components = {
         GrepKompetansemaalDTO: {
             /** @description The grep code */
             code: string;
+            /** @description The grep status */
+            status: components["schemas"]["GrepStatusDTO"];
             title: components["schemas"]["TitleDTO"];
             laereplan: components["schemas"]["GrepReferencedLaereplanDTO"];
             kompetansemaalSett: components["schemas"]["GrepReferencedKompetansemaalSettDTO"];
@@ -347,6 +351,8 @@ export type components = {
         GrepKompetansemaalSettDTO: {
             /** @description The grep code */
             code: string;
+            /** @description The grep status */
+            status: components["schemas"]["GrepStatusDTO"];
             title: components["schemas"]["TitleDTO"];
             kompetansemaal: components["schemas"]["GrepReferencedKompetansemaalDTO"][];
             typename: components["schemas"]["GrepKompetansemaalSettDTO1"];
@@ -363,6 +369,8 @@ export type components = {
         GrepLaererplanDTO: {
             /** @description The grep code */
             code: string;
+            /** @description The grep status */
+            status: components["schemas"]["GrepStatusDTO"];
             title: components["schemas"]["TitleDTO"];
             replacedBy: components["schemas"]["GrepReferencedLaereplanDTO"][];
             typename: components["schemas"]["GrepLaererplanDTO1"];
@@ -375,21 +383,25 @@ export type components = {
         /** GrepReferencedKjerneelementDTO */
         GrepReferencedKjerneelementDTO: {
             code: string;
+            status: components["schemas"]["GrepStatusDTO"];
             title: string;
         };
         /** GrepReferencedKompetansemaalDTO */
         GrepReferencedKompetansemaalDTO: {
             code: string;
+            status: components["schemas"]["GrepStatusDTO"];
             title: string;
         };
         /** GrepReferencedKompetansemaalSettDTO */
         GrepReferencedKompetansemaalSettDTO: {
             code: string;
+            status: components["schemas"]["GrepStatusDTO"];
             title: string;
         };
         /** GrepReferencedLaereplanDTO */
         GrepReferencedLaereplanDTO: {
             code: string;
+            status: components["schemas"]["GrepStatusDTO"];
             title: string;
         };
         /** GrepResultDTO */
@@ -449,7 +461,12 @@ export type components = {
          * @description The sort order of the search hits.
          * @enum {string}
          */
-        GrepSortDTO: "-relevance" | "relevance" | "-title" | "title" | "-code" | "code";
+        GrepSortDTO: "-relevance" | "relevance" | "-title" | "title" | "-code" | "code" | "-status" | "status";
+        /**
+         * GrepStatusDTO
+         * @enum {string}
+         */
+        GrepStatusDTO: "Published" | "InProgress" | "ToRevision" | "Expired" | "Invalid";
         /**
          * GrepTverrfagligTemaDTO
          * @description Information about a single grep search result entry
@@ -457,6 +474,8 @@ export type components = {
         GrepTverrfagligTemaDTO: {
             /** @description The grep code */
             code: string;
+            /** @description The grep status */
+            status: components["schemas"]["GrepStatusDTO"];
             title: components["schemas"]["TitleDTO"];
             typename: components["schemas"]["GrepTverrfagligTemaDTO1"];
         };

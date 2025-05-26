@@ -61,6 +61,7 @@ trait ArticleIndexService {
         keywordField("articleType"),
         keywordField("supportedLanguages"),
         keywordField("grepContexts.code"),
+        keywordField("grepContexts.status"),
         textField("grepContexts.title"),
         keywordField("traits"),
         keywordField("availability"),

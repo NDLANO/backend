@@ -67,6 +67,7 @@ trait DraftIndexService {
         textField("previousVersionsNotes"),
         keywordField("users"),
         keywordField("grepContexts.code"),
+        keywordField("grepContexts.status"),
         textField("grepContexts.title"),
         keywordField("traits"),
         longField("favorited"),

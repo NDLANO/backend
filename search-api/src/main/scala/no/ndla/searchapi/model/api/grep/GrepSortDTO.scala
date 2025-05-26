@@ -24,6 +24,8 @@ object GrepSortDTO extends Enum[GrepSortDTO] with CirceEnum[GrepSortDTO] {
   case object ByTitleAsc      extends GrepSortDTO("title")
   case object ByCodeDesc      extends GrepSortDTO("-code")
   case object ByCodeAsc       extends GrepSortDTO("code")
+  case object ByStatusDesc    extends GrepSortDTO("-status")
+  case object ByStatusAsc     extends GrepSortDTO("status")
 
   implicit val schema: Schema[GrepSortDTO]    = schemaForEnumEntry[GrepSortDTO]
   implicit val codec: PlainCodec[GrepSortDTO] = plainCodecEnumEntry[GrepSortDTO]
