@@ -35,6 +35,7 @@ case class SearchableDraft(
     contexts: List[SearchableTaxonomyContext],
     contextids: List[String],
     draftStatus: SearchableStatus,
+    status: String,
     users: List[String],
     previousVersionsNotes: List[String],
     grepContexts: List[SearchableGrepContext],

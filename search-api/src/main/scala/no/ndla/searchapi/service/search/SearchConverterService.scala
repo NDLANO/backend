@@ -314,6 +314,7 @@ trait SearchConverterService {
           tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
           lastUpdated = ai.updated,
           license = ai.copyright.license,
+          status = "PUBLISHED",
           authors = (ai.copyright.creators.map(_.name) ++ ai.copyright.processors
             .map(_.name) ++ ai.copyright.rightsholders.map(_.name)).toList,
           articleType = ai.articleType.entryName,
@@ -362,9 +363,9 @@ trait SearchConverterService {
           title = title,
           defaultTitle = defaultTitle.map(_.verdi),
           laereplanCode = laererplan,
-          domainObject = grepElement,
+          gjenbrukAv = gjenbrukAv,
           erstattesAv = erstattesAv,
-          gjenbrukAv = gjenbrukAv
+          domainObject = grepElement
         )
       )
     }
@@ -592,6 +593,7 @@ trait SearchConverterService {
           contextids =
             indexingBundle.taxonomyBundle.map(getTaxonomyContexids(draft.id.get, "article", _)).getOrElse(List.empty),
           draftStatus = draftStatus,
+          status = draft.status.current.toString,
           users = users.distinct,
           previousVersionsNotes = draft.previousVersionsNotes.map(_.note).toList,
           grepContexts = getGrepContexts(draft.grepCodes, indexingBundle.grepBundle),
@@ -1213,8 +1215,8 @@ trait SearchConverterService {
         SearchableNode(
           nodeId = node.id,
           title = getSearchableLanguageValues(node.name, node.translations),
-          url = node.url,
           contentUri = node.contentUri,
+          url = node.url,
           nodeType = node.nodeType,
           subjectPage = frontpage,
           context = context.orElse(contexts.find(_.isPrimary)),
