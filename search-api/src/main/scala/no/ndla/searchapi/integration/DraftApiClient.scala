@@ -18,7 +18,7 @@ trait DraftApiClient {
 
   class DraftApiClient(val baseUrl: String) extends SearchApiClient[Draft] {
     override val searchPath     = "draft-api/v1/drafts"
-    override val name           = "articles"
+    override val name           = "drafts"
     override val dumpDomainPath = "intern/dump/article"
   }
 
