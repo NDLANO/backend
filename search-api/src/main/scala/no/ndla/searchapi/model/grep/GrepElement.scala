@@ -12,9 +12,11 @@ import cats.implicits.*
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
+import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 
 sealed trait GrepElement {
   val kode: String
+  val status: GrepStatusDTO
   def getTitle: Seq[GrepTitle]
   def getTitleValue(language: String): Option[String] = {
     getTitle.find(title => title.spraak == language).map(title => title.verdi)
@@ -51,6 +53,7 @@ object GrepTextObj {
 
 case class GrepKjerneelement(
     kode: String,
+    status: GrepStatusDTO,
     tittel: GrepTextObj,
     beskrivelse: GrepTextObj,
     `tilhoerer-laereplan`: BelongsToObj
@@ -65,6 +68,7 @@ object GrepKjerneelement {
 
 case class BelongsToObj(
     kode: String,
+    status: GrepStatusDTO,
     tittel: String
 )
 object BelongsToObj {
@@ -74,6 +78,7 @@ object BelongsToObj {
 
 case class ReferenceObj(
     kode: String,
+    status: GrepStatusDTO,
     tittel: String
 )
 object ReferenceObj {
@@ -89,6 +94,7 @@ object ReferenceWrapperObj {
 
 case class GrepKompetansemaal(
     kode: String,
+    status: GrepStatusDTO,
     tittel: GrepTextObj,
     `tilhoerer-laereplan`: BelongsToObj,
     `tilhoerer-kompetansemaalsett`: BelongsToObj,
@@ -106,6 +112,7 @@ object GrepKompetansemaal {
 
 case class GrepKompetansemaalSett(
     kode: String,
+    status: GrepStatusDTO,
     tittel: GrepTextObj,
     `tilhoerer-laereplan`: BelongsToObj,
     kompetansemaal: List[ReferenceObj]
@@ -120,6 +127,7 @@ object GrepKompetansemaalSett {
 
 case class GrepLaererplan(
     kode: String,
+    status: GrepStatusDTO,
     tittel: GrepTextObj,
     `erstattes-av`: List[ReferenceObj]
 ) extends GrepElement {
@@ -132,6 +140,7 @@ object GrepLaererplan {
 
 case class GrepTverrfagligTema(
     kode: String,
+    status: GrepStatusDTO,
     tittel: Seq[GrepTitle]
 ) extends GrepElement {
   override def getTitle: Seq[GrepTitle] = tittel

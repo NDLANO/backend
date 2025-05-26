@@ -18,6 +18,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.network.NdlaClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.caching.Memoize
+import no.ndla.searchapi.model.api.grep.GrepStatusEncoderConfiguration
 import no.ndla.searchapi.model.grep.*
 import sttp.client3.quick.*
 
@@ -40,6 +41,9 @@ trait GrepApiClient {
         source.getLines().mkString
       }
     }
+
+    implicit val statusEncoderConfig: GrepStatusEncoderConfiguration =
+      GrepStatusEncoderConfiguration(encodeToUrl = true)
 
     private def readGrepJsonFiles[T](dump: File, path: String)(implicit d: Decoder[T]): Try[List[T]] = {
       val folder    = new File(dump, path)
