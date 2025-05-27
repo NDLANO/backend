@@ -29,6 +29,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   override val migrator: DBMigrator           = new DBMigrator
   var repository: FolderRepository            = _
   override val userRepository: UserRepository = new UserRepository
+  override val DBUtil: DBUtility              = new DBUtility
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {

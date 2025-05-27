@@ -16,6 +16,7 @@ import no.ndla.myndlaapi.controller.{
   ConfigController,
   ErrorHandling,
   FolderController,
+  RobotController,
   StatsController,
   SwaggerDocControllerConfig,
   UserController
@@ -23,7 +24,7 @@ import no.ndla.myndlaapi.controller.{
 import no.ndla.myndlaapi.db.migrationwithdependencies.V16__MigrateResourcePaths
 import no.ndla.myndlaapi.integration.{LearningPathApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
-import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, UserRepository}
+import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, RobotRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
   ConfigService,
   FolderConverterService,
@@ -48,6 +49,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with FolderRepository
     with FolderReadService
     with FolderWriteService
+    with RobotRepository
     with FolderConverterService
     with UserService
     with ConfigService
@@ -57,6 +59,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with ConfigController
     with RedisClient
     with FolderController
+    with RobotController
     with UserController
     with StatsController
     with MyNDLAAuthHelpers
@@ -71,6 +74,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val healthController: TapirHealthController              = new TapirHealthController
   lazy val clock: SystemClock                                   = new SystemClock
   lazy val folderController: FolderController                   = new FolderController
+  lazy val robotController: RobotController                     = new RobotController
   lazy val feideApiClient: FeideApiClient                       = new FeideApiClient
   lazy val redisClient                                          = new RedisClient(props.RedisHost, props.RedisPort)
   lazy val folderRepository: FolderRepository                   = new FolderRepository
@@ -78,6 +82,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val folderReadService: FolderReadService                 = new FolderReadService
   lazy val folderWriteService: FolderWriteService               = new FolderWriteService
   lazy val userRepository: UserRepository                       = new UserRepository
+  lazy val robotRepository: RobotRepository                     = new RobotRepository
   lazy val userService: UserService                             = new UserService
   lazy val userController: UserController                       = new UserController
   lazy val configRepository: ConfigRepository                   = new ConfigRepository
@@ -100,6 +105,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     List(
       healthController,
       folderController,
+      robotController,
       userController,
       configController,
       statsController

@@ -279,6 +279,78 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/myndla-api/v1/robots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List out all of your own robot definitions
+         * @description List out all of your own robot definitions
+         */
+        get: operations["getMyndla-apiV1Robots"];
+        put?: never;
+        /**
+         * Create a new robot definition
+         * @description Create a new robot definition
+         */
+        post: operations["postMyndla-apiV1Robots"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/myndla-api/v1/robots/{robot-id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get single robot definition
+         * @description Get single robot definition
+         */
+        get: operations["getMyndla-apiV1RobotsRobot-id"];
+        /**
+         * Update a robot definition
+         * @description Update a robot definition
+         */
+        put: operations["putMyndla-apiV1RobotsRobot-id"];
+        post?: never;
+        /**
+         * Delete a robot definition
+         * @description Update a robot definition
+         */
+        delete: operations["deleteMyndla-apiV1RobotsRobot-id"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/myndla-api/v1/robots/{robot-id}/{robot-status}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update a robot definition
+         * @description Update a robot definition
+         */
+        put: operations["putMyndla-apiV1RobotsRobot-idRobot-status"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/myndla-api/v1/users": {
         parameters: {
             query?: never;
@@ -495,6 +567,15 @@ export type components = {
             value: string[] | boolean;
         };
         /**
+         * CreateRobotDefinitionDTO
+         * @description DTO for creating a new robot definition
+         */
+        CreateRobotDefinitionDTO: {
+            status: components["schemas"]["RobotStatus"];
+            /** @description DTO for robot configuration */
+            configuration: components["schemas"]["RobotConfigurationDTO"];
+        };
+        /**
          * ErrorBody
          * @description Information about an error
          */
@@ -561,6 +642,13 @@ export type components = {
          * @enum {string}
          */
         FolderStatus: "private" | "shared";
+        /**
+         * ListOfRobotDefinitionsDTO
+         * @description DTO for listing all robot definitions
+         */
+        ListOfRobotDefinitionsDTO: {
+            robots: components["schemas"]["RobotDefinitionDTO"][];
+        };
         /** Map_Long */
         Map_Long: {
             [key: string]: number;
@@ -693,6 +781,46 @@ export type components = {
          * @enum {string}
          */
         ResourceType: "article" | "audio" | "concept" | "image" | "learningpath" | "multidisciplinary" | "topic" | "video";
+        /** RobotConfigurationDTO */
+        RobotConfigurationDTO: {
+            title: string;
+            version: string;
+            settings: components["schemas"]["RobotSettingsDTO"];
+        };
+        /**
+         * RobotDefinitionDTO
+         * @description DTO for creating a new robot definition
+         */
+        RobotDefinitionDTO: {
+            /** @description The unique identifier of the robot */
+            id: string;
+            /** @description The status of the robot */
+            status: components["schemas"]["RobotStatus"];
+            /** @description The configuration details of the robot */
+            configuration: components["schemas"]["RobotConfigurationDTO"];
+            /** @description The date when the robot was created */
+            created: string;
+            /** @description The date when the robot was last updated */
+            updated: string;
+            /** @description The date when the robot was shared, if applicable */
+            shared?: string;
+        };
+        /**
+         * RobotSettingsDTO
+         * @description DTO for robot settings
+         */
+        RobotSettingsDTO: {
+            name: string;
+            systemprompt?: string;
+            question?: string;
+            temperature: string;
+            model: string;
+        };
+        /**
+         * RobotStatus
+         * @enum {string}
+         */
+        RobotStatus: "PRIVATE" | "SHARED";
         /**
          * SingleResourceStatsDTO
          * @description Stats for single resource
@@ -2129,6 +2257,393 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+        };
+    };
+    "getMyndla-apiV1Robots": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Header containing FEIDE access token. */
+                FeideAuthorization?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListOfRobotDefinitionsDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "postMyndla-apiV1Robots": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Header containing FEIDE access token. */
+                FeideAuthorization?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRobotDefinitionDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RobotDefinitionDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "getMyndla-apiV1RobotsRobot-id": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Header containing FEIDE access token. */
+                FeideAuthorization?: string;
+            };
+            path: {
+                "robot-id": string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RobotDefinitionDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "putMyndla-apiV1RobotsRobot-id": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Header containing FEIDE access token. */
+                FeideAuthorization?: string;
+            };
+            path: {
+                "robot-id": string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRobotDefinitionDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RobotDefinitionDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "deleteMyndla-apiV1RobotsRobot-id": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Header containing FEIDE access token. */
+                FeideAuthorization?: string;
+            };
+            path: {
+                "robot-id": string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "putMyndla-apiV1RobotsRobot-idRobot-status": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Header containing FEIDE access token. */
+                FeideAuthorization?: string;
+            };
+            path: {
+                "robot-id": string;
+                "robot-status": components["schemas"]["RobotStatus"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RobotDefinitionDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };
