@@ -543,7 +543,7 @@ trait SearchConverterService {
           .getOrElse(Seq.empty)
       )
 
-      val primaryContext           = taxonomyContexts.find(_.isPrimary)
+      val primaryContext           = taxonomyContexts.find(tc => tc.isPrimary && tc.rootId.startsWith("urn:subject:"))
       val primaryRoot              = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
       val sortableResourceTypeName = getSortableResourceTypeName(draft, taxonomyContexts)
 
