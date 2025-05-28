@@ -9,7 +9,10 @@
 package no.ndla.database
 
 import com.typesafe.scalalogging.StrictLogging
+import io.circe.Encoder
+import no.ndla.common.CirceUtil
 import no.ndla.common.errors.RollbackException
+import org.postgresql.util.PGobject
 import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
@@ -38,6 +41,9 @@ trait DBUtility {
       }
     }
 
+    def readOnly[T](func: DBSession => T): T =
+      DB.readOnly { session => func(session) }
+
     /** Builds a where clause from a list of conditions. If the list is empty, an empty SQLSyntax object with no where
       * clause is returned.
       *
@@ -56,5 +62,16 @@ trait DBUtility {
       cc._2
     } else sqls""
 
+    def asRawJsonb(value: String): ParameterBinderWithValue = {
+      val obj = new PGobject()
+      obj.setType("jsonb")
+      obj.setValue(value)
+      ParameterBinder(obj, (ps, idx) => ps.setObject(idx, obj))
+    }
+
+    def asJsonb[T: Encoder](value: T): ParameterBinderWithValue = {
+      val serialized = CirceUtil.toJsonString(value)
+      asRawJsonb(serialized)
+    }
   }
 }
