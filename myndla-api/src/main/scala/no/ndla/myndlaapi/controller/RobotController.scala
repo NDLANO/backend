@@ -70,8 +70,8 @@ trait RobotController {
       }
 
     private def updateRobotStatus(): ServerEndpoint[Any, Eff] = endpoint.put
-      .summary("Update a robot definition")
-      .description("Update a robot definition")
+      .summary("Update a robot definition status")
+      .description("Update a robot definition status")
       .in(feideHeader)
       .in(path[UUID]("robot-id") / path[RobotStatus]("robot-status"))
       .errorOut(errorOutputsFor(400, 401, 403))
