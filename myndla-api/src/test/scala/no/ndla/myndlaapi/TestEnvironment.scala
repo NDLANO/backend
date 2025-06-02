@@ -28,6 +28,7 @@ import no.ndla.myndlaapi.service.{
   FolderConverterService,
   FolderReadService,
   FolderWriteService,
+  RobotService,
   UserService
 }
 import no.ndla.network.NdlaClient
@@ -59,6 +60,7 @@ trait TestEnvironment
     with RedisClient
     with FolderController
     with RobotController
+    with RobotService
     with UserController
     with StatsController
     with ErrorHandling
@@ -75,6 +77,7 @@ trait TestEnvironment
   val folderReadService: FolderReadService           = mock[FolderReadService]
   val folderWriteService: FolderWriteService         = mock[FolderWriteService]
   val folderConverterService: FolderConverterService = mock[FolderConverterService]
+  val robotService: RobotService                     = mock[RobotService]
   val userService: UserService                       = mock[UserService]
   val configService: ConfigService                   = mock[ConfigService]
   val userRepository: UserRepository                 = mock[UserRepository]
@@ -118,5 +121,6 @@ trait TestEnvironment
     reset(robotController)
     reset(ndlaClient)
     reset(searchApiClient)
+    reset(robotService)
   }
 }

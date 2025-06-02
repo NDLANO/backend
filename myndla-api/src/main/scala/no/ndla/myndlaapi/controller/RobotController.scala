@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.controller
 
 import no.ndla.myndlaapi.model.api.robot.{CreateRobotDefinitionDTO, ListOfRobotDefinitionsDTO, RobotDefinitionDTO}
 import no.ndla.myndlaapi.model.domain.RobotStatus
-import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService}
+import no.ndla.myndlaapi.service.RobotService
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.TapirController
@@ -22,7 +22,7 @@ import sttp.tapir.server.ServerEndpoint
 import java.util.UUID
 
 trait RobotController {
-  this: ErrorHandling & TapirController & FolderReadService & FolderWriteService =>
+  this: ErrorHandling & TapirController & RobotService =>
   val robotController: RobotController
 
   class RobotController extends TapirController {
@@ -37,7 +37,7 @@ trait RobotController {
       .errorOut(errorOutputsFor(400, 401, 403))
       .out(jsonBody[RobotDefinitionDTO])
       .serverLogicPure { case (feide, robotDefinitionDTO) =>
-        folderWriteService.createRobot(robotDefinitionDTO, feide)
+        robotService.createRobot(robotDefinitionDTO, feide)
       }
 
     private def getAllRobotDefinitions: ServerEndpoint[Any, Eff] = endpoint.get
@@ -46,7 +46,7 @@ trait RobotController {
       .in(feideHeader)
       .errorOut(errorOutputsFor(400, 401, 403))
       .out(jsonBody[ListOfRobotDefinitionsDTO])
-      .serverLogicPure { feide => folderReadService.getAllRobots(feide) }
+      .serverLogicPure { feide => robotService.getAllRobots(feide) }
 
     private def getSingleRobotDefinition: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Get single robot definition")
@@ -55,7 +55,7 @@ trait RobotController {
       .in(path[UUID]("robot-id"))
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[RobotDefinitionDTO])
-      .serverLogicPure { case (feide, robotId) => folderReadService.getSingleRobot(robotId, feide) }
+      .serverLogicPure { case (feide, robotId) => robotService.getSingleRobot(robotId, feide) }
 
     private def updateRobotDefinition(): ServerEndpoint[Any, Eff] = endpoint.put
       .summary("Update a robot definition")
@@ -66,7 +66,7 @@ trait RobotController {
       .in(jsonBody[CreateRobotDefinitionDTO])
       .out(jsonBody[RobotDefinitionDTO])
       .serverLogicPure { case (token, robotId, robotDefinitionDTO) =>
-        folderWriteService.updateRobot(robotId, robotDefinitionDTO, token)
+        robotService.updateRobot(robotId, robotDefinitionDTO, token)
       }
 
     private def updateRobotStatus(): ServerEndpoint[Any, Eff] = endpoint.put
@@ -77,7 +77,7 @@ trait RobotController {
       .errorOut(errorOutputsFor(400, 401, 403))
       .out(jsonBody[RobotDefinitionDTO])
       .serverLogicPure { case (token, robotId, newStatus) =>
-        folderWriteService.updateRobotStatus(robotId, newStatus, token)
+        robotService.updateRobotStatus(robotId, newStatus, token)
       }
 
     private def deleteRobotDefinition(): ServerEndpoint[Any, Eff] = endpoint.delete
@@ -88,7 +88,7 @@ trait RobotController {
       .errorOut(errorOutputsFor(400, 401, 403))
       .out(noContent)
       .serverLogicPure { case (feideToken, robotId) =>
-        folderWriteService.deleteRobot(robotId, feideToken)
+        robotService.deleteRobot(robotId, feideToken)
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

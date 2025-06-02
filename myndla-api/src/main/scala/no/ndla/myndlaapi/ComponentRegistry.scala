@@ -30,6 +30,7 @@ import no.ndla.myndlaapi.service.{
   FolderConverterService,
   FolderReadService,
   FolderWriteService,
+  RobotService,
   UserService
 }
 import no.ndla.network.NdlaClient
@@ -53,6 +54,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with FolderConverterService
     with UserService
     with ConfigService
+    with RobotService
     with UserRepository
     with ConfigRepository
     with FeideApiClient
@@ -83,6 +85,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val folderWriteService: FolderWriteService               = new FolderWriteService
   lazy val userRepository: UserRepository                       = new UserRepository
   lazy val robotRepository: RobotRepository                     = new RobotRepository
+  lazy val robotService: RobotService                           = new RobotService
   lazy val userService: UserService                             = new UserService
   lazy val userController: UserController                       = new UserController
   lazy val configRepository: ConfigRepository                   = new ConfigRepository

@@ -11,7 +11,7 @@ package no.ndla.myndlaapi.service
 import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
-import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.SingleResourceStatsDTO
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.TryMaybe.*
@@ -20,7 +20,6 @@ import no.ndla.common.model.domain.myndla.{FolderStatus, UserRole}
 import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.FavoriteFolderDefaultName
 import no.ndla.myndlaapi.integration.LearningPathApiClient
-import no.ndla.myndlaapi.model.api.robot.{ListOfRobotDefinitionsDTO, RobotDefinitionDTO}
 import no.ndla.myndlaapi.model.api.{ExportedUserDataDTO, FolderDTO, ResourceDTO, StatsDTO, UserFolderDTO, UserStatsDTO}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.repository.{FolderRepository, RobotRepository, UserRepository}
@@ -61,25 +60,6 @@ trait FolderReadService {
         )
         sorted = apiFolders.sortBy(_.rank)
       } yield sorted
-    }
-
-    def getSingleRobot(robotId: UUID, feide: Option[FeideAccessToken]): Try[RobotDefinitionDTO] = DBUtil.readOnly {
-      session =>
-        lazy val nfe = NotFoundException(s"Could not find robot definition with id $robotId")
-        for {
-          feideId    <- feideApiClient.getFeideID(feide)
-          maybeRobot <- robotRepository.getRobotWithId(robotId)(session)
-          robot      <- maybeRobot.toTry(nfe)
-          _          <- robot.canRead(feideId, notFound = true)
-        } yield RobotDefinitionDTO.fromDomain(robot)
-    }
-
-    def getAllRobots(feideToken: Option[FeideAccessToken]): Try[ListOfRobotDefinitionsDTO] = DBUtil.readOnly {
-      session =>
-        for {
-          feideId <- feideApiClient.getFeideID(feideToken)
-          robots  <- robotRepository.getRobotsWithFeideId(feideId)(session)
-        } yield ListOfRobotDefinitionsDTO(robots = robots.map(RobotDefinitionDTO.fromDomain))
     }
 
     private def getSharedSubFoldersAndResources(
