@@ -54,6 +54,7 @@ trait DraftIndexService {
         intField("id"),
         keywordField("draftStatus.current"),
         keywordField("draftStatus.other"),
+        keywordField("status"),
         dateField("lastUpdated"),
         dateField("published"),
         keywordField("license"),

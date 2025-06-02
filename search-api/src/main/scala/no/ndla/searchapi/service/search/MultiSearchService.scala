@@ -272,6 +272,8 @@ trait MultiSearchService {
         case _ => None
       }
 
+      val statusFilter = Some(boolQuery().should(termQuery("status", "PUBLISHED")))
+
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
 
       val licenseFilter = settings.license match {
@@ -316,6 +318,7 @@ trait MultiSearchService {
       List(
         licenseFilter,
         idFilter,
+        statusFilter,
         articleTypeFilter,
         learningResourceTypeFilter,
         languageFilter,

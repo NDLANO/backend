@@ -99,6 +99,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       contexts = searchableTaxonomyContexts,
       contextids = searchableTaxonomyContexts.map(_.contextId),
       draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
+      status = DraftStatus.PLANNED.toString,
       users = List("ndalId54321", "ndalId12345"),
       previousVersionsNotes = List("OldNote"),
       grepContexts = List(

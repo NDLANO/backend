@@ -10,7 +10,6 @@ package no.ndla.integrationtests.searchapi.learningpathapi
 
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.database.HasDatabaseProps
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.learningpathapi.LearningpathApiProperties
@@ -94,7 +93,7 @@ class LearningpathApiClientTest
     AuthUser.setHeader(s"Bearer $exampleToken")
     val learningPathApiClient = new LearningPathApiClient(learningpathApiBaseUrl)
 
-    val chunks              = learningPathApiClient.getChunks[LearningPath].toList
+    val chunks              = learningPathApiClient.getChunks.toList
     val fetchedLearningPath = chunks.head.get.head
 
     val searchable =

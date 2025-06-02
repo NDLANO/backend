@@ -46,6 +46,7 @@ trait NodeIndexService {
         keywordField("url"),
         textField("typeName"),
         keywordField("grepContexts.code"),
+        keywordField("status"),
         textField("grepContexts.title"),
         getTaxonomyContextMapping("context"),
         getTaxonomyContextMapping("contexts"),
