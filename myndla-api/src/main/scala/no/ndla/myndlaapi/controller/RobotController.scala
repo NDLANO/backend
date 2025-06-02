@@ -82,7 +82,7 @@ trait RobotController {
 
     private def deleteRobotDefinition(): ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Delete a robot definition")
-      .description("Update a robot definition")
+      .description("Delete a robot definition")
       .in(feideHeader)
       .in(path[UUID]("robot-id"))
       .errorOut(errorOutputsFor(400, 401, 403))
