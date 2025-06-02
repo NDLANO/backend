@@ -626,7 +626,8 @@ trait FolderWriteService {
         case ResourceType.Article           => searchApiClient.reindexDraft(resource.resourceId)
         case ResourceType.Topic             => searchApiClient.reindexDraft(resource.resourceId)
         case ResourceType.Learningpath      => searchApiClient.reindexLearningpath(resource.resourceId)
-        case _                              =>
+        case ResourceType.Concept           => searchApiClient.reindexConcept(resource.resourceId)
+        case ResourceType.Audio | ResourceType.Image | ResourceType.Video =>
       }
     }
 

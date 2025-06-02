@@ -48,5 +48,6 @@ trait SearchApiClient {
 
     def reindexDraft(id: String): Unit        = reindexAsync(id, "draft")
     def reindexLearningpath(id: String): Unit = reindexAsync(id, "learningpath")
+    def reindexConcept(id: String): Unit      = reindexAsync(id, "concept")
   }
 }
