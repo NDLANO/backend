@@ -41,7 +41,7 @@ import no.ndla.myndlaapi.model.domain.{
   Rankable,
   SavedSharedFolder
 }
-import no.ndla.myndlaapi.repository.{FolderRepository, RobotRepository, UserRepository}
+import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
@@ -52,7 +52,7 @@ import scala.util.{Failure, Success, Try}
 
 trait FolderWriteService {
   this: FolderReadService & Clock & FeideApiClient & FolderRepository & FolderConverterService & UserRepository &
-    ConfigService & UserService & SearchApiClient & DBUtility & RobotRepository =>
+    ConfigService & UserService & SearchApiClient & DBUtility =>
 
   val folderWriteService: FolderWriteService
   class FolderWriteService {
