@@ -323,7 +323,7 @@ export type paths = {
         post?: never;
         /**
          * Delete a robot definition
-         * @description Update a robot definition
+         * @description Delete a robot definition
          */
         delete: operations["deleteMyndla-apiV1RobotsRobot-id"];
         options?: never;
@@ -340,8 +340,8 @@ export type paths = {
         };
         get?: never;
         /**
-         * Update a robot definition
-         * @description Update a robot definition
+         * Update a robot definition status
+         * @description Update a robot definition status
          */
         put: operations["putMyndla-apiV1RobotsRobot-idRobot-status"];
         post?: never;
