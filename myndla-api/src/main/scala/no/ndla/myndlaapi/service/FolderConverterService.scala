@@ -50,7 +50,7 @@ trait FolderConverterService {
       ): Try[FolderDTO] = folder.subfolders
         .traverse(folder => {
           val newCrumb = api.BreadcrumbDTO(
-            id = folder.id.toString,
+            id = folder.id,
             name = folder.name
           )
           val newCrumbs = crumbs :+ newCrumb
@@ -61,13 +61,13 @@ trait FolderConverterService {
             .traverse(r => toApiResource(r, isOwner))
             .map(resources => {
               api.FolderDTO(
-                id = folder.id.toString,
+                id = folder.id,
                 name = folder.name,
                 status = folder.status.toString,
                 subfolders = subFolders.sortBy(_.rank),
                 resources = resources.sortBy(_.rank),
                 breadcrumbs = crumbs,
-                parentId = folder.parentId.map(_.toString),
+                parentId = folder.parentId,
                 rank = folder.rank,
                 created = folder.created,
                 updated = folder.updated,
@@ -150,7 +150,7 @@ trait FolderConverterService {
 
       Success(
         api.ResourceDTO(
-          id = domainResource.id.toString,
+          id = domainResource.id,
           resourceType = resourceType,
           path = path,
           created = created,

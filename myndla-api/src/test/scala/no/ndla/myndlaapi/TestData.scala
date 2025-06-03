@@ -73,7 +73,7 @@ object TestData {
   )
 
   val emptyApiFolder: api.FolderDTO = api.FolderDTO(
-    id = "",
+    id = UUID.randomUUID(),
     name = "",
     status = "",
     subfolders = List.empty,

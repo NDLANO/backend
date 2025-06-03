@@ -53,7 +53,7 @@ trait FolderReadService {
           v =>
             folderConverterService.toApiFolder(
               v,
-              List(api.BreadcrumbDTO(id = v.id.toString, name = v.name)),
+              List(api.BreadcrumbDTO(id = v.id, name = v.name)),
               feideUser,
               feideUser.exists(_.feideId == v.feideId)
             )
@@ -79,7 +79,7 @@ trait FolderReadService {
           (v: domain.Folder) => {
             folderConverterService.toApiFolder(
               v,
-              List(api.BreadcrumbDTO(id = v.id.toString, name = v.name)),
+              List(api.BreadcrumbDTO(id = v.id, name = v.name)),
               v.user,
               v.user.exists(_.feideId == v.feideId)
             )
@@ -201,7 +201,7 @@ trait FolderReadService {
               case Failure(ex) => Failure(ex)
               case Success(p) =>
                 val newCrumb = api.BreadcrumbDTO(
-                  id = p.id.toString,
+                  id = p.id,
                   name = p.name
                 )
                 getParentRecursively(p, newCrumb +: crumbs)
@@ -213,7 +213,7 @@ trait FolderReadService {
         case Failure(ex) => Failure(ex)
         case Success(value) =>
           val newCrumb = api.BreadcrumbDTO(
-            id = folder.id.toString,
+            id = folder.id,
             name = folder.name
           )
           Success(value :+ newCrumb)

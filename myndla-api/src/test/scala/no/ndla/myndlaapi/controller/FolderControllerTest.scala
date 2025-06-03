@@ -64,7 +64,7 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     when(folderReadService.getSingleFolder(eqTo(someId), any, any, any)).thenReturn(
       Success(
         FolderDTO(
-          id = someId.toString,
+          id = someId,
           name = "folderName",
           status = "private",
           parentId = None,

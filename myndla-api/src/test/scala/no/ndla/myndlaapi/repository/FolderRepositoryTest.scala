@@ -14,7 +14,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.ResourceType.Article
 import no.ndla.common.model.domain.myndla.FolderStatus
-import no.ndla.myndlaapi.model.domain.{Folder, FolderResource, NewFolderData, Resource, ResourceDocument}
+import no.ndla.myndlaapi.model.domain.{BulkInserts, Folder, FolderResource, NewFolderData, Resource, ResourceDocument}
 import no.ndla.myndlaapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import org.mockito.Mockito.when
@@ -323,12 +323,12 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   test("that resourcesWithFeideId works as expected") {
     val created = NDLADate.now()
 
-    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide2", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide3", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument).get
+    repository.insertResource("feide2", "/path1", ResourceType.Article, created, TestData.baseResourceDocument).get
+    repository.insertResource("feide3", "/path1", ResourceType.Article, created, TestData.baseResourceDocument).get
+    repository.insertResource("feide1", "/path2", ResourceType.Article, created, TestData.baseResourceDocument).get
+    repository.insertResource("feide1", "/path3", ResourceType.Article, created, TestData.baseResourceDocument).get
+    repository.insertResource("feide1", "/path4", ResourceType.Article, created, TestData.baseResourceDocument).get
 
     val results = repository.resourcesWithFeideId(feideId = "feide1", size = 2)
     results.isSuccess should be(true)
@@ -477,9 +477,9 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
     repository.insertResource("feide2", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
     repository.insertResource("feide3", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path3", ResourceType.Article, created, TestData.baseResourceDocument)
+    repository.insertResource("feide1", "/path4", ResourceType.Article, created, TestData.baseResourceDocument)
 
     resourceCount() should be(6)
     repository.deleteAllUserResources(feideId = "feide1") should be(Success(4))
@@ -749,5 +749,110 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
     numberOfUsersWithFavourites should be(Success(Some(1)))
     numberOfUsersWithoutFavourites should be(Success(Some(2)))
+  }
+
+  test("that inserting in batches works as expected") {
+    val now = NDLADate.now().withNano(0)
+    val id1 = UUID.randomUUID()
+    val id2 = UUID.randomUUID()
+    val folder1 = Folder(
+      id = id1,
+      feideId = "feide1",
+      parentId = None,
+      name = "folder1",
+      status = FolderStatus.PRIVATE,
+      description = Some("Beskrivelse 1"),
+      rank = 1,
+      created = now,
+      updated = now,
+      resources = List.empty,
+      subfolders = List.empty,
+      shared = None,
+      user = None
+    )
+
+    val folder2 = Folder(
+      id = id2,
+      feideId = "feide1",
+      parentId = None,
+      name = "folder1",
+      status = FolderStatus.PRIVATE,
+      description = Some("Beskrivelse 1"),
+      rank = 2,
+      created = now,
+      updated = now,
+      resources = List.empty,
+      subfolders = List.empty,
+      shared = None,
+      user = None
+    )
+
+    val resource1 = Resource(
+      id = UUID.randomUUID(),
+      feideId = "feide1",
+      created = now,
+      path = "/r/norsk-sf-vg2/an-be-het-else-ord/140d6a7263",
+      resourceType = ResourceType.Article,
+      tags = List("tag"),
+      resourceId = "16434",
+      connection = None
+    )
+
+    val resource2 = Resource(
+      id = UUID.randomUUID(),
+      feideId = "feide1",
+      created = now,
+      path = "/r/norsk-sf-vg2/hvordan-skrive-kortsvar-om-grammatikk/c44c43b139",
+      resourceType = ResourceType.Article,
+      tags = List("tag"),
+      resourceId = "35549",
+      connection = None
+    )
+
+    val resource3 = resource2.copy(id = UUID.randomUUID())
+
+    val folderResource1 = FolderResource(
+      folderId = folder1.id,
+      resourceId = resource1.id,
+      rank = 1,
+      favoritedDate = now
+    )
+
+    val folderResource2 = FolderResource(
+      folderId = folder2.id,
+      resourceId = resource3.id,
+      rank = 1,
+      favoritedDate = now
+    )
+
+    val session = repository.getSession(false)
+    val bulkInserts = BulkInserts(
+      folders = List(folder1, folder2),
+      resources = List(resource1, resource2, resource3),
+      connections = List(folderResource1, folderResource2)
+    )
+    repository.insertFolderInBulk(bulkInserts)(session).get
+
+    repository.folderWithId(id1).get should be(folder1)
+    repository.folderWithId(id2).get should be(folder2)
+
+    repository.insertResourcesInBulk(bulkInserts.copy(resources = List(resource2)))(session).get
+    repository.resourceWithId(resource2.id).get should be(resource2)
+
+    repository.insertResourcesInBulk(bulkInserts)(session).get
+    repository.resourceWithId(resource1.id).get should be(resource1)
+    repository.resourceWithId(resource2.id).get should be(resource2)
+    val err = repository.resourceWithId(resource3.id)
+    err.isFailure should be(true)
+
+    repository.insertResourceConnectionInBulk(bulkInserts)(session).get
+
+    val conn1 = repository.getConnection(folder1.id, resource1.id).get
+    conn1 should be(Some(folderResource1))
+
+    // Make sure folderResource connections are replaced with correct resources
+    // so even if we reference resource3 in the connection we get a connection to 2 since there is a conflict
+    val conn2 = repository.getConnection(folder2.id, resource2.id).get
+    conn2 should be(Some(folderResource2.copy(resourceId = resource2.id)))
   }
 }

@@ -18,6 +18,7 @@ import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.{maybeUuidBinder, uuidBinder, uuidParameterFactory}
 import no.ndla.myndlaapi.model.domain.{
+  BulkInserts,
   DBMyNDLAUser,
   Folder,
   FolderResource,
@@ -33,6 +34,7 @@ import scalikejdbc.*
 import scalikejdbc.interpolation.SQLSyntax
 
 import java.util.UUID
+import scala.collection.IndexedSeq.iterableFactory
 import scala.util.{Failure, Success, Try}
 
 trait FolderRepository {
@@ -228,7 +230,7 @@ trait FolderRepository {
               folderId   <- rs.get[Try[UUID]]("folder_id")
               rank          = rs.int("rank")
               favoritedDate = NDLADate.fromUtcDate(rs.localDateTime("favorited_date"))
-            } yield FolderResource(resourceId, folderId, rank, favoritedDate)
+            } yield FolderResource(folderId, resourceId, rank, favoritedDate)
           })
           .single()
       )
@@ -737,6 +739,106 @@ trait FolderRepository {
       sql"select count(tag) from (select distinct jsonb_array_elements_text(document->'tags') from ${Resource.table}) as tag"
         .map(rs => rs.long("count"))
         .single()
+    }
+
+    def insertResourcesInBulk(bulk: BulkInserts)(implicit session: DBSession): Try[Unit] = {
+      Try {
+        val insertSql =
+          sql"""
+          insert into ${Resource.table} (id, feide_id, path, resource_type, created, document)
+          values (?, ?, ?, ?, ? ,?)
+          on conflict (feide_id, path, resource_type) do nothing
+       """
+
+        val batchParams = bulk.resources.map { resource =>
+          val document = DBUtil.asJsonb(ResourceDocument(resource.tags, resource.resourceId))
+          Seq[Any](
+            resource.id,
+            resource.feideId,
+            resource.path,
+            resource.resourceType.entryName,
+            NDLADate.parameterBinderFactory(resource.created),
+            document
+          )
+        }
+
+        insertSql
+          .batch(batchParams*)
+          .apply(): Unit
+      }
+    }
+
+    def insertResourceConnectionInBulk(bulkInserts: BulkInserts)(implicit session: DBSession): Try[Unit] = {
+      Try {
+        val insertSql = sql"""
+        with rid as (
+          select id from resources r
+          where r.feide_id = ?
+          and r.resource_type = ?
+          and r.path = ?
+        )
+        insert into ${FolderResource.table} (folder_id, resource_id, rank, favorited_date)
+        select ?, id, ?, ? from rid
+      """
+
+        val batchParams = {
+          bulkInserts.connections.traverse { c =>
+            bulkInserts.resources.find(_.id == c.resourceId) match {
+              case Some(resource) =>
+                Success(
+                  Seq[Any](
+                    resource.feideId,
+                    resource.resourceType.entryName,
+                    resource.path,
+                    c.folderId,
+                    c.rank,
+                    NDLADate.parameterBinderFactory(c.favoritedDate)
+                  )
+                )
+
+              case None =>
+                logger.error("Something went wrong when generating parameters for batch inserting folder_resources")
+                Failure(
+                  new RuntimeException(
+                    "Something went wrong when generating parameters for batch inserting folder_resources"
+                  )
+                )
+            }
+          }
+        }
+
+        batchParams.map { params =>
+          insertSql
+            .batch(params*)
+            .apply(): Unit
+        }
+      }.flatten
+    }
+
+    def insertFolderInBulk(bulk: BulkInserts)(implicit session: DBSession): Try[Unit] = Try {
+      val insertSql = sql"""
+        insert into ${Folder.table} (id, parent_id, feide_id, name, status, rank, created, updated, shared, description)
+        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      """
+
+      val batchParams = bulk.folders.map { folder =>
+        Seq[Any](
+          folder.id,
+          folder.parentId,
+          folder.feideId,
+          folder.name,
+          folder.status.toString,
+          folder.rank,
+          NDLADate.parameterBinderFactory(folder.created),
+          NDLADate.parameterBinderFactory(folder.updated),
+          folder.shared.map(d => NDLADate.parameterBinderFactory(d)),
+          folder.description
+        )
+      }
+
+      insertSql
+        .batch(batchParams*)
+        .apply(): Unit
     }
 
     def numberOfResources()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
