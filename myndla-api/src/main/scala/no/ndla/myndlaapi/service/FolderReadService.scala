@@ -22,7 +22,7 @@ import no.ndla.myndlaapi.FavoriteFolderDefaultName
 import no.ndla.myndlaapi.integration.LearningPathApiClient
 import no.ndla.myndlaapi.model.api.{ExportedUserDataDTO, FolderDTO, ResourceDTO, StatsDTO, UserFolderDTO, UserStatsDTO}
 import no.ndla.myndlaapi.model.{api, domain}
-import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
+import no.ndla.myndlaapi.repository.{FolderRepository, RobotRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 import scalikejdbc.DBSession
@@ -33,7 +33,7 @@ import scala.util.{Failure, Success, Try}
 
 trait FolderReadService {
   this: FolderConverterService & FolderRepository & UserRepository & FeideApiClient & Clock & ConfigService &
-    UserService & DBUtility & LearningPathApiClient =>
+    UserService & DBUtility & LearningPathApiClient & RobotRepository =>
 
   val folderReadService: FolderReadService
 

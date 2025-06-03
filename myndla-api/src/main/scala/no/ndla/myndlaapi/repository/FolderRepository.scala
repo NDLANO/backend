@@ -15,6 +15,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
 import no.ndla.common.{CirceUtil, Clock}
+import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.{maybeUuidBinder, uuidBinder, uuidParameterFactory}
 import no.ndla.myndlaapi.model.domain.{
   DBMyNDLAUser,
@@ -35,7 +36,7 @@ import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 trait FolderRepository {
-  this: Clock =>
+  this: Clock & DBUtility =>
   val folderRepository: FolderRepository
 
   class FolderRepository extends StrictLogging {
@@ -94,13 +95,6 @@ trait FolderRepository {
         created: NDLADate,
         document: ResourceDocument
     )(implicit session: DBSession = AutoSession): Try[Resource] = Try {
-      val jsonDocument = {
-        val dataObject = new PGobject()
-        dataObject.setType("jsonb")
-        dataObject.setValue(CirceUtil.toJsonString(document))
-        ParameterBinder(dataObject, (ps, idx) => ps.setObject(idx, dataObject))
-      }
-
       val newId  = UUID.randomUUID()
       val column = Resource.column.c _
 
@@ -113,7 +107,7 @@ trait FolderRepository {
             column("path")          -> path,
             column("resource_type") -> resourceType.entryName,
             column("created")       -> created,
-            column("document")      -> jsonDocument
+            column("document")      -> DBUtil.asJsonb(document)
           )
       }.update(): Unit
 
@@ -846,12 +840,6 @@ trait FolderRepository {
     }
 
     def insertResourceRow(resourceRow: ResourceRow)(implicit session: DBSession): Unit = {
-      val jsonDocument = {
-        val dataObject = new PGobject()
-        dataObject.setType("jsonb")
-        dataObject.setValue(resourceRow.document)
-        ParameterBinder(dataObject, (ps, idx) => ps.setObject(idx, dataObject))
-      }
       val column = Resource.column.c _
       withSQL {
         insert
@@ -862,7 +850,7 @@ trait FolderRepository {
             column("path")          -> resourceRow.path,
             column("resource_type") -> resourceRow.resource_type,
             column("created")       -> resourceRow.created,
-            column("document")      -> jsonDocument
+            column("document")      -> DBUtil.asRawJsonb(resourceRow.document)
           )
       }.update(): Unit
       logger.info(s"Inserted new resource with id ${resourceRow.id}")

@@ -15,18 +15,20 @@ import no.ndla.myndlaapi.controller.{
   ConfigController,
   ErrorHandling,
   FolderController,
+  RobotController,
   StatsController,
   SwaggerDocControllerConfig,
   UserController
 }
 import no.ndla.myndlaapi.integration.{LearningPathApiClient, SearchApiClient}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
-import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, UserRepository}
+import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, RobotRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
   ConfigService,
   FolderConverterService,
   FolderReadService,
   FolderWriteService,
+  RobotService,
   UserService
 }
 import no.ndla.network.NdlaClient
@@ -44,6 +46,7 @@ trait TestEnvironment
     with DBMigrator
     with MyNDLAAuthHelpers
     with FolderRepository
+    with RobotRepository
     with FolderReadService
     with FolderWriteService
     with FolderConverterService
@@ -56,6 +59,8 @@ trait TestEnvironment
     with ConfigController
     with RedisClient
     with FolderController
+    with RobotController
+    with RobotService
     with UserController
     with StatsController
     with ErrorHandling
@@ -68,15 +73,18 @@ trait TestEnvironment
   val dataSource: HikariDataSource                   = mock[HikariDataSource]
   val migrator: DBMigrator                           = mock[DBMigrator]
   val folderRepository: FolderRepository             = mock[FolderRepository]
+  val robotRepository: RobotRepository               = mock[RobotRepository]
   val folderReadService: FolderReadService           = mock[FolderReadService]
   val folderWriteService: FolderWriteService         = mock[FolderWriteService]
   val folderConverterService: FolderConverterService = mock[FolderConverterService]
+  val robotService: RobotService                     = mock[RobotService]
   val userService: UserService                       = mock[UserService]
   val configService: ConfigService                   = mock[ConfigService]
   val userRepository: UserRepository                 = mock[UserRepository]
   val configRepository: ConfigRepository             = mock[ConfigRepository]
   val feideApiClient: FeideApiClient                 = mock[FeideApiClient]
   val configController: ConfigController             = mock[ConfigController]
+  val robotController: RobotController               = mock[RobotController]
   val redisClient: RedisClient                       = mock[RedisClient]
   val folderController: FolderController             = mock[FolderController]
   val userController: UserController                 = mock[UserController]
@@ -103,13 +111,16 @@ trait TestEnvironment
     reset(userService)
     reset(configService)
     reset(userRepository)
+    reset(robotRepository)
     reset(configRepository)
     reset(feideApiClient)
     reset(configController)
     reset(redisClient)
     reset(folderController)
     reset(userController)
+    reset(robotController)
     reset(ndlaClient)
     reset(searchApiClient)
+    reset(robotService)
   }
 }
