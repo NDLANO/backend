@@ -151,7 +151,7 @@ trait Module {
           s"java $$JAVA_OPTS ${reflectiveAccessOptions.mkString(" ")} -jar $artifactTargetPath"
 
         new Dockerfile {
-          from("eclipse-temurin:21-jdk")
+          from("eclipse-temurin:21-alpine")
           env("LOG_APPENDER", "Docker")
           add(artifact, artifactTargetPath)
           entryPointRaw(entry)
