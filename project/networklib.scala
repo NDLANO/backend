@@ -9,7 +9,7 @@ object networklib extends Module {
     Seq(
       sttp,
       "org.scalatest"        %% "scalatest" % ScalaTestV % "test",
-      "redis.clients"         % "jedis"     % "5.2.0",
+      "redis.clients"         % "jedis"     % "6.0.0",
       "com.github.jwt-scala" %% "jwt-circe" % "10.0.4"
     ),
     mockito,
