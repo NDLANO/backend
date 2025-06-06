@@ -15,10 +15,7 @@ class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMai
   val componentRegistry = new ComponentRegistry(props)
 
   override def beforeStart(): Unit = {
-    logger.info("Starting DB Migration")
-    val dBstartMillis = System.currentTimeMillis()
     componentRegistry.migrator.migrate()
-    logger.info(s"Done DB Migration took ${System.currentTimeMillis() - dBstartMillis} ms")
   }
 
   private def warmupRequest = (path: String) => Warmup.warmupRequest(props.ApplicationPort, path, Map.empty)

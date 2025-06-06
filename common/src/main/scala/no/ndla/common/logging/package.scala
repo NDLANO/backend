@@ -13,7 +13,11 @@ import com.typesafe.scalalogging.StrictLogging
 import scala.concurrent.duration.*
 
 package object logging extends StrictLogging {
-  def logTaskTime[T](taskName: String, warnLimit: Duration = Duration.Zero)(task: => T): T = {
+  def logTaskTime[T](taskName: String, warnLimit: Duration = Duration.Zero, logTaskStart: Boolean = false)(
+      task: => T
+  ): T = {
+    if (logTaskStart) logger.info(s"Task '$taskName' started...")
+
     val start  = System.nanoTime()
     val result = task
     val end    = System.nanoTime()
@@ -21,9 +25,9 @@ package object logging extends StrictLogging {
     val taskDuration = Duration.fromNanos(end - start).toMillis.millis
 
     if (warnLimit != Duration.Zero && taskDuration >= warnLimit) {
-      logger.warn(s"Task $taskName took $taskDuration")
+      logger.warn(s"Task '$taskName' took $taskDuration")
     } else {
-      logger.info(s"Task $taskName took $taskDuration")
+      logger.info(s"Task '$taskName' took $taskDuration")
     }
     result
   }
