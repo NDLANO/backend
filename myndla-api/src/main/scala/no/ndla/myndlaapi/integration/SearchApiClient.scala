@@ -14,6 +14,7 @@ import no.ndla.network.NdlaClient
 import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
@@ -26,7 +27,10 @@ trait SearchApiClient {
     private val internEndpoint = s"${props.SearchApiUrl}/intern"
 
     private def reindex(id: String, documentType: String): Try[Unit] = {
-      val req = quickRequest.post(uri"$internEndpoint/reindex/$documentType/$id")
+      val req =
+        quickRequest
+          .post(uri"$internEndpoint/reindex/$documentType/$id")
+          .readTimeout(60.seconds)
       ndlaClient.fetchRaw(req).map(_ => ())
     }
 
@@ -44,5 +48,6 @@ trait SearchApiClient {
 
     def reindexDraft(id: String): Unit        = reindexAsync(id, "draft")
     def reindexLearningpath(id: String): Unit = reindexAsync(id, "learningpath")
+    def reindexConcept(id: String): Unit      = reindexAsync(id, "concept")
   }
 }

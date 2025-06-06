@@ -12,8 +12,10 @@ import io.circe.generic.semiauto.*
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
+import java.util.UUID
+
 case class BreadcrumbDTO(
-    @description("UUID of the folder") id: String,
+    @description("UUID of the folder") id: UUID,
     @description("Folder name") name: String
 )
 

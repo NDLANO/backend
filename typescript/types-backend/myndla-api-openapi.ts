@@ -527,7 +527,10 @@ export type components = {
         AllErrors: components["schemas"]["ErrorBody"] | components["schemas"]["NotFoundWithSupportedLanguages"] | components["schemas"]["ValidationErrorBody"];
         /** BreadcrumbDTO */
         BreadcrumbDTO: {
-            /** @description UUID of the folder */
+            /**
+             * Format: uuid
+             * @description UUID of the folder
+             */
             id: string;
             /** @description Folder name */
             name: string;
@@ -601,13 +604,19 @@ export type components = {
         };
         /** FolderDTO */
         FolderDTO: {
-            /** @description UUID of the folder */
+            /**
+             * Format: uuid
+             * @description UUID of the folder
+             */
             id: string;
             /** @description Folder name */
             name: string;
             /** @description Folder status */
             status: string;
-            /** @description UUID of parent folder */
+            /**
+             * Format: uuid
+             * @description UUID of parent folder
+             */
             parentId?: string;
             /** @description List of parent folders to resource */
             breadcrumbs: components["schemas"]["BreadcrumbDTO"][];
@@ -748,7 +757,10 @@ export type components = {
         };
         /** ResourceDTO */
         ResourceDTO: {
-            /** @description Unique ID of the resource */
+            /**
+             * Format: uuid
+             * @description Unique ID of the resource
+             */
             id: string;
             /** @description Type of the resource. (Article, Learningpath) */
             resourceType: components["schemas"]["ResourceType"];

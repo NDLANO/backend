@@ -17,6 +17,8 @@ import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.model.domain.{CopyableFolder, CopyableResource}
 import sttp.tapir.Schema.annotations.description
 
+import java.util.UUID
+
 case class OwnerDTO(
     @description("Name of the owner") name: String
 )
@@ -27,10 +29,10 @@ object OwnerDTO {
 }
 
 case class FolderDTO(
-    @description("UUID of the folder") id: String,
+    @description("UUID of the folder") id: UUID,
     @description("Folder name") name: String,
     @description("Folder status") status: String,
-    @description("UUID of parent folder") parentId: Option[String],
+    @description("UUID of parent folder") parentId: Option[UUID],
     @description("List of parent folders to resource") breadcrumbs: List[BreadcrumbDTO],
     @description("List of subfolders") subfolders: List[FolderDataDTO],
     @description("List of resources") resources: List[ResourceDTO],
@@ -58,10 +60,10 @@ object FolderDataDTO {
 //  implicit val decoder: Decoder[FolderData] = Decoder[Folder].widen
 
   def apply(
-      id: String,
+      id: UUID,
       name: String,
       status: String,
-      parentId: Option[String],
+      parentId: Option[UUID],
       breadcrumbs: List[BreadcrumbDTO],
       subfolders: List[FolderDataDTO],
       resources: List[ResourceDTO],
@@ -104,7 +106,7 @@ case class UpdatedFolderDTO(
 )
 
 case class ResourceDTO(
-    @description("Unique ID of the resource") id: String,
+    @description("Unique ID of the resource") id: UUID,
     @description("Type of the resource. (Article, Learningpath)") resourceType: ResourceType,
     @description("Relative path of this resource") path: String,
     @description("When the resource was created") created: NDLADate,

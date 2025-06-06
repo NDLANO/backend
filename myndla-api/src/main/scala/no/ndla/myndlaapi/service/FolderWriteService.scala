@@ -9,6 +9,7 @@
 package no.ndla.myndlaapi.service
 
 import cats.implicits.*
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.*
@@ -35,6 +36,7 @@ import no.ndla.myndlaapi.model.api.{
 }
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.{
+  BulkInserts,
   CopyableFolder,
   FolderAndDirectChildren,
   FolderSortException,
@@ -55,8 +57,8 @@ trait FolderWriteService {
     ConfigService & UserService & SearchApiClient & DBUtility =>
 
   val folderWriteService: FolderWriteService
-  class FolderWriteService {
 
+  class FolderWriteService extends StrictLogging {
     val MaxFolderDepth = 5L
 
     private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
@@ -115,41 +117,73 @@ trait FolderWriteService {
         } yield updatedIds
       })
 
+    private def buildInsertList(
+        source: CopyableFolder,
+        destination: domain.Folder,
+        toInsert: BulkInserts,
+        feideId: FeideID,
+        now: NDLADate,
+        isOwner: Boolean
+    ): BulkInserts = {
+      val withResources = source.resources.sortBy(_.rank).zipWithIndex.foldLeft(toInsert) { case (acc, cur) =>
+        val (curResource, idx) = cur
+        val newResourceId      = UUID.randomUUID()
+        acc
+          .addResource(
+            domain.Resource(
+              id = newResourceId,
+              feideId = feideId,
+              created = now,
+              path = curResource.path,
+              resourceType = curResource.resourceType,
+              tags = if (isOwner) curResource.tags else List.empty,
+              resourceId = curResource.resourceId,
+              connection = None
+            )
+          )
+          .addConnection(
+            domain.FolderResource(
+              folderId = destination.id,
+              resourceId = newResourceId,
+              rank = idx + 1,
+              favoritedDate = now
+            )
+          )
+      }
+      source.subfolders.foldLeft(withResources) { case (acc, cur) =>
+        val newFolder = domain.Folder(
+          id = UUID.randomUUID(),
+          feideId = feideId,
+          parentId = destination.id.some,
+          name = cur.name,
+          status = FolderStatus.PRIVATE,
+          description = cur.description,
+          rank = cur.rank,
+          created = now,
+          updated = now,
+          resources = List.empty,
+          subfolders = List.empty,
+          shared = None,
+          user = None
+        )
+        val wf = acc.addFolder(newFolder)
+        buildInsertList(cur, newFolder, wf, feideId, now, isOwner)
+      }
+    }
+
     private[service] def cloneChildrenRecursively(
         sourceFolder: CopyableFolder,
         destinationFolder: domain.Folder,
         feideId: FeideID,
         isOwner: Boolean
-    )(implicit session: DBSession): Try[domain.Folder] = {
-
-      val clonedResources = sourceFolder.resources.traverse(res => {
-        val newResource =
-          NewResourceDTO(
-            resourceType = res.resourceType,
-            path = res.path,
-            tags = if (isOwner) res.tags.some else None,
-            resourceId = res.resourceId
-          )
-        createOrUpdateFolderResourceConnection(destinationFolder.id, newResource, feideId)
-      })
-
-      val clonedSubfolders = sourceFolder.subfolders.traverse(childFolder => {
-        val newFolder = domain.NewFolderData(
-          parentId = destinationFolder.id.some,
-          name = childFolder.name,
-          status = FolderStatus.PRIVATE,
-          rank = childFolder.rank,
-          description = childFolder.description
-        )
-        folderRepository
-          .insertFolder(feideId, newFolder)
-          .flatMap(newFolder => cloneChildrenRecursively(childFolder, newFolder, feideId, isOwner))
-      })
-
+    )(implicit session: DBSession): Try[Unit] = {
+      val now      = clock.now()
+      val toInsert = buildInsertList(sourceFolder, destinationFolder, BulkInserts.empty, feideId, now, isOwner)
       for {
-        resources <- clonedResources
-        folders   <- clonedSubfolders
-      } yield destinationFolder.copy(subfolders = folders, resources = resources)
+        _ <- folderRepository.insertFolderInBulk(toInsert)(session)
+        _ <- folderRepository.insertResourcesInBulk(toInsert)(session)
+        _ <- folderRepository.insertResourceConnectionInBulk(toInsert)(session)
+      } yield ()
     }
 
     private def cloneRecursively(
@@ -168,30 +202,14 @@ trait FolderWriteService {
         description = sourceFolder.description
       )
 
-      destinationId match {
-        case None =>
-          for {
-            createdFolder <- createNewFolder(
-              sourceFolderCopy,
-              feideId,
-              makeUniqueRootNamesWithPostfix,
-              isCloning = true
-            )
-            clonedFolder <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId, isOwner)
-          } yield clonedFolder
-        case Some(id) =>
-          for {
-            existingFolder <- folderRepository.folderWithId(id)
-            clonedSourceFolder = sourceFolderCopy.copy(parentId = existingFolder.id.toString.some)
-            createdFolder <- createNewFolder(
-              clonedSourceFolder,
-              feideId,
-              makeUniqueRootNamesWithPostfix,
-              isCloning = true
-            )
-            clonedFolder <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId, isOwner)
-          } yield clonedFolder
-      }
+      for {
+        maybeExistingFolder <- destinationId.traverse(id => folderRepository.folderWithId(id))
+        clonedSourceFolder = sourceFolderCopy.copy(parentId = maybeExistingFolder.map(_.id.toString))
+        createdFolder <- createNewFolder(clonedSourceFolder, feideId, makeUniqueRootNamesWithPostfix, isCloning = true)
+        _             <- cloneChildrenRecursively(sourceFolder, createdFolder, feideId, isOwner)
+        maybeFolder   <- folderRepository.getFolderAndChildrenSubfoldersWithResources(createdFolder.id)
+        clonedFolder  <- maybeFolder.toTry(new IllegalStateException("Folder not found after cloning. This is a bug"))
+      } yield clonedFolder
     }
 
     def cloneFolder(
@@ -626,7 +644,8 @@ trait FolderWriteService {
         case ResourceType.Article           => searchApiClient.reindexDraft(resource.resourceId)
         case ResourceType.Topic             => searchApiClient.reindexDraft(resource.resourceId)
         case ResourceType.Learningpath      => searchApiClient.reindexLearningpath(resource.resourceId)
-        case _                              =>
+        case ResourceType.Concept           => searchApiClient.reindexConcept(resource.resourceId)
+        case ResourceType.Audio | ResourceType.Image | ResourceType.Video =>
       }
     }
 
