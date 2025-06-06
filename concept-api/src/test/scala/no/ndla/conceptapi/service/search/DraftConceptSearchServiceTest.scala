@@ -164,7 +164,7 @@ class DraftConceptSearchServiceTest extends ElasticsearchIntegrationSuite with T
     responsible = Some(Responsible("test1", today)),
     visualElement = Seq(
       VisualElement(
-        s"""<$EmbedTagName data-resource="image" data-resource_id="test.image" data-url="test.url" />""",
+        s"""<$EmbedTagName data-resource="image" data-resource_id="test.image" data-url="test.url"></$EmbedTagName>""",
         "nb"
       )
     )
@@ -181,7 +181,7 @@ class DraftConceptSearchServiceTest extends ElasticsearchIntegrationSuite with T
     status = concept.Status(current = ConceptStatus.FOR_APPROVAL, other = Set(ConceptStatus.PUBLISHED)),
     visualElement = List(
       VisualElement(
-        s"""<$EmbedTagName data-resource="image" data-url="test.url" /><$EmbedTagName data-resource="brightcove" data-url="test.url2" data-videoid="test.id2" />""",
+        s"""<$EmbedTagName data-resource="image" data-url="test.url"></$EmbedTagName><$EmbedTagName data-resource="brightcove" data-url="test.url2" data-videoid="test.id2"></$EmbedTagName>""",
         "nb"
       )
     )

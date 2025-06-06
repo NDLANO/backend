@@ -58,20 +58,23 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("that visualElement gets url-property added") {
     val visualElements = Seq(
       VisualElement(
-        s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\" />",
+        s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\"></$EmbedTagName>",
         "nb"
       ),
-      VisualElement(s"<$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\" />", "nn")
+      VisualElement(
+        s"<$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\"></$EmbedTagName>",
+        "nn"
+      )
     )
     when(publishedConceptRepository.withId(any))
       .thenReturn(Some(TestData.sampleConcept.copy(visualElement = visualElements)))
     val concept = service.publishedConceptWithId(id = 1L, language = "nb", fallback = true, Some(userInfo))
     concept.get.visualElement.get.visualElement should equal(
-      s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\" data-url=\"http://api-gateway.ndla-local/image-api/v2/images/1\" />"
+      s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\" data-url=\"http://api-gateway.ndla-local/image-api/v2/images/1\"></$EmbedTagName>"
     )
     val concept2 = service.publishedConceptWithId(id = 1L, language = "nn", fallback = true, Some(userInfo))
     concept2.get.visualElement.get.visualElement should equal(
-      s"<$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\" data-url=\"https://h5p-test.ndla.no/resource/uuid\" />"
+      s"<$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\" data-url=\"https://h5p-test.ndla.no/resource/uuid\"></$EmbedTagName>"
     )
 
   }

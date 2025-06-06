@@ -475,16 +475,16 @@ object TestData {
     title = List(Title("Ekstrastoff", "nb"), Title("extra", "en")),
     content = List(
       ArticleContent(
-        s"Helsesøster H5P <p>delt-streng</p><$EmbedTagName data-title=\"Flubber\" data-resource=\"h5p\" data-path=\"/resource/id\"><$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\" /><$EmbedTagName data-videoid=\"77\" data-resource=\"video\"  /><$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"  /><$EmbedTagName data-resource=\"video\" data-url=\"http://test\" data-resource_id=\"test-id1\"/>",
+        s"Helsesøster H5P <p>delt-streng</p><$EmbedTagName data-title=\"Flubber\" data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName><$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName><$EmbedTagName data-videoid=\"77\" data-resource=\"video\"></$EmbedTagName><$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"></$EmbedTagName><$EmbedTagName data-resource=\"video\" data-url=\"http://test\" data-resource_id=\"test-id1\"></$EmbedTagName>",
         "nb"
       ),
       ArticleContent(
-        s"Header <$EmbedTagName data-resource_id=\"222\" /><$EmbedTagName data-resource=\"concept\" />",
+        s"Header <$EmbedTagName data-resource_id=\"222\" /><$EmbedTagName data-resource=\"concept\"></$EmbedTagName>",
         "en"
       )
     ),
     tags = List(Tag(List(""), "nb")),
-    visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"333\">", "nb")),
+    visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"333\"></$EmbedTagName>", "nb")),
     introduction = List(Introduction("Ekstra", "nb")),
     metaDescription = List(common.Description("", "nb")),
     created = today.minusDays(10),
@@ -519,12 +519,12 @@ object TestData {
     slug = Some("forsideartikkel"),
     content = List(
       ArticleContent(
-        s"Forsideartikkel <p>avsnitt</p><$EmbedTagName data-resource=\"concept\" data-content-id=\"123\" data-title=\"Forklaring\" data-type=\"block\" />",
+        s"Forsideartikkel <p>avsnitt</p><$EmbedTagName data-resource=\"concept\" data-content-id=\"123\" data-title=\"Forklaring\" data-type=\"block\"></$EmbedTagName>",
         "nb"
       )
     ),
     tags = List(Tag(List(""), "nb")),
-    visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"345\">", "nb")),
+    visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"345\"></$EmbedTagName>", "nb")),
     introduction = List(Introduction("Ekstra", "nb")),
     metaDescription = List(common.Description("", "nb")),
     created = today.minusDays(10),
@@ -860,7 +860,7 @@ object TestData {
     metaDescription = List(common.Description("", "nb")),
     content = List(
       ArticleContent(
-        s"<section><p>artikkeltekst med fire deler</p><$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\" /><$EmbedTagName data-resource=\"image\" data-resource_id=\"test-image.id\"  data-url=\"test-image.url\"/><$EmbedTagName data-resource=\"image\" data-resource_id=\"55\"/><$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\" /><$EmbedTagName data-videoid=\"77\" data-resource=\"video\"  /><$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"  /><$EmbedTagName data-resource=\"video\"  data-url=\"http://test.test\" />",
+        s"<section><p>artikkeltekst med fire deler</p><$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\"></$EmbedTagName><$EmbedTagName data-resource=\"image\" data-resource_id=\"test-image.id\"  data-url=\"test-image.url\"></$EmbedTagName><$EmbedTagName data-resource=\"image\" data-resource_id=\"55\"></$EmbedTagName><$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName><$EmbedTagName data-videoid=\"77\" data-resource=\"video\"></$EmbedTagName><$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"></$EmbedTagName><$EmbedTagName data-resource=\"video\"  data-url=\"http://test.test\"></$EmbedTagName>",
         "nb"
       )
     ),
@@ -878,11 +878,11 @@ object TestData {
     content = List(
       ArticleContent("<section><p>Helsesøster</p><p>Søkeord: delt?streng delt!streng delt&streng</p></section>", "nb"),
       ArticleContent(
-        s"Header <$EmbedTagName data-resource_id=\"222\" /><$EmbedTagName data-resource=\"concept\" />",
+        s"Header <$EmbedTagName data-resource_id=\"222\" /><$EmbedTagName data-resource=\"concept\"></$EmbedTagName>",
         "en"
       ),
       ArticleContent(
-        s"Header in Chhattisgarhi <$EmbedTagName data-resource_id=\"222\" /><$EmbedTagName data-resource=\"concept\" />",
+        s"Header in Chhattisgarhi <$EmbedTagName data-resource_id=\"222\" /><$EmbedTagName data-resource=\"concept\"></$EmbedTagName>",
         "hne"
       )
     ),
@@ -1970,7 +1970,7 @@ object TestData {
     ),
     visualElement = Seq(
       no.ndla.common.model.domain.concept.VisualElement(
-        s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" />""",
+        s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full"></$EmbedTagName>""",
         "nb"
       )
     ),
