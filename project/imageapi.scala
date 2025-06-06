@@ -17,7 +17,7 @@ object imageapi extends Module {
       // These are not strictly needed, for most cases, but offers better handling of loading images with encoding issues
       "com.twelvemonkeys.imageio" % "imageio-core" % "3.12.0",
       "com.twelvemonkeys.imageio" % "imageio-jpeg" % "3.12.0",
-      "commons-io"                % "commons-io"   % "2.18.0"
+      "commons-io"                % "commons-io"   % "2.19.0"
     ),
     awsS3,
     melody,

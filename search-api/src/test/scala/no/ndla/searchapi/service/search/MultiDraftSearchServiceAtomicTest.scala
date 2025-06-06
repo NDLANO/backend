@@ -80,7 +80,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       id = Some(1),
       content = Seq(
         ArticleContent(
-          s"""<section><div data-type="related-content"><$EmbedTagName data-article-id="3" data-resource="related-content"></div></section>""",
+          s"""<section><div data-type="related-content"><$EmbedTagName data-article-id="3" data-resource="related-content"></$EmbedTagName></div></section>""",
           "nb"
         )
       )
@@ -880,7 +880,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       id = Some(1),
       content = Seq(
         ArticleContent(
-          s"""<section><div data-type="related-content"><$EmbedTagName data-resource="video" data-videoid="$videoId&amp;t=1"></div></section>""",
+          s"""<section><div data-type="related-content"><$EmbedTagName data-resource="video" data-videoid="$videoId&amp;t=1"></$EmbedTagName></div></section>""",
           "nb"
         )
       )

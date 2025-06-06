@@ -41,10 +41,10 @@ object TestData {
   val yesterday: NDLADate = NDLADate.now().minusDays(1)
 
   val visualElementString: String =
-    s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" />"""
+    s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full"></$EmbedTagName>"""
 
   val visualElementStringWithUrl: String =
-    s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" data-url="http://api-gateway.ndla-local/image-api/v2/images/1" />"""
+    s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full" data-url="http://api-gateway.ndla-local/image-api/v2/images/1"></$EmbedTagName>"""
 
   val sampleNbApiConcept: api.ConceptDTO = api.ConceptDTO(
     1.toLong,

@@ -138,7 +138,7 @@ trait TestData {
       Seq(),
       Seq(
         VisualElement(
-          "<ndlaembed data-resource=\"image\" data-resource_id=\"1\" data-size=\"large\" data-align=\"center\" data-alt=\"alt\" />",
+          s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-size=\"large\" data-align=\"center\" data-alt=\"alt\"></$EmbedTagName>",
           "en"
         )
       ),
@@ -298,7 +298,7 @@ trait TestData {
     val sampleTitle: Title = Title("title", "en")
 
     val visualElement: VisualElement = VisualElement(
-      s"""<$EmbedTagName  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
+      s"""<$EmbedTagName  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size=""></$EmbedTagName>""",
       "nb"
     )
 

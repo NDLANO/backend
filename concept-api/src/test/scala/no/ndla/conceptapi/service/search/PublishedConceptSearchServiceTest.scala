@@ -151,7 +151,7 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
     tags = Seq(Tag(Seq("cageowl"), "en"), Tag(Seq("burugle"), "nb")),
     visualElement = List(
       VisualElement(
-        s"""<$EmbedTagName data-resource="image" data-url="test.url" /><$EmbedTagName data-resource="brightcove" data-url="test.url2" data-videoid="test.id2" />""",
+        s"""<$EmbedTagName data-resource="image" data-url="test.url"></$EmbedTagName><$EmbedTagName data-resource="brightcove" data-url="test.url2" data-videoid="test.id2"></$EmbedTagName>""",
         "nb"
       )
     )
