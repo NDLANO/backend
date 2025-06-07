@@ -30,7 +30,7 @@ trait DBUtility {
         }
       } catch {
         case rbex: RollbackException =>
-          logger.error("Rolling back transaction due to failure", rbex)
+          logger.info("Rolling back transaction due to failure", rbex)
           Failure(rbex.ex)
       }
     }

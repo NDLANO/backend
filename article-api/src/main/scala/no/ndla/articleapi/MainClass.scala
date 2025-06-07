@@ -27,9 +27,6 @@ class MainClass(override val props: ArticleApiProperties) extends NdlaTapirMain[
   }
 
   override def beforeStart(): Unit = {
-    logger.info("Starting the db migration...")
-    val startDBMillis = System.currentTimeMillis()
     componentRegistry.migrator.migrate()
-    logger.info(s"Done db migration, took ${System.currentTimeMillis() - startDBMillis}ms")
   }
 }
