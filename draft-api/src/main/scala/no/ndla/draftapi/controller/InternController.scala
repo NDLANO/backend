@@ -102,9 +102,9 @@ trait InternController {
             logger.warn(ex.getMessage, ex)
             ex.getMessage.asLeft
           case Success(results) =>
-            val maxTime = results.map(rr => rr.millisUsed).max
-            val result =
-              s"Completed all indexes in $maxTime ms."
+            val result = results
+              .map(rr => s"Completed indexing of ${rr.totalIndexed} ${rr.name}s in ${rr.millisUsed} ms.")
+              .mkString("\n")
             logger.info(result)
             result.asRight
         }

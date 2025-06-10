@@ -58,7 +58,7 @@ trait InternController {
         Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
           case Success(articleResult) =>
             val result =
-              s"Completed indexing of ${articleResult.totalIndexed} articles ${articleResult.millisUsed} ms."
+              s"Completed indexing of ${articleResult.totalIndexed} articles in ${articleResult.millisUsed} ms."
             logger.info(result)
             result.asRight
           case Failure(articleFail) =>

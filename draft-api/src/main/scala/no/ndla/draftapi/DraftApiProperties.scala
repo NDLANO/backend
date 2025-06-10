@@ -62,9 +62,9 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
   def DraftSearchIndex: String                   = propOrElse("SEARCH_INDEX_NAME", "draft-articles")
   def DraftTagSearchIndex: String                = propOrElse("TAG_SEARCH_INDEX_NAME", "draft-tags")
   def DraftGrepCodesSearchIndex: String          = propOrElse("GREP_CODES_SEARCH_INDEX_NAME", "draft-grepcodes")
-  def DraftSearchDocument                        = "article-drafts"
-  def DraftTagSearchDocument                     = "article-drafts-tag"
-  def DraftGrepCodesSearchDocument               = "article-drafts-grepcodes"
+  def DraftSearchDocument                        = "draft"
+  def DraftTagSearchDocument                     = "tag"
+  def DraftGrepCodesSearchDocument               = "grepcode"
   def DefaultPageSize                            = 10
   def MaxPageSize                                = 10000
   def IndexBulkSize                              = 200

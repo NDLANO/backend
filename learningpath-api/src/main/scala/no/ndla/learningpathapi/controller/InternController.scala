@@ -70,7 +70,7 @@ trait InternController {
         searchIndexService.indexDocuments(numShards) match {
           case Success(reindexResult) =>
             val result =
-              s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
+              s"Completed indexing of ${reindexResult.totalIndexed} learningpaths in ${reindexResult.millisUsed} ms."
             logger.info(result)
             result.asRight
           case Failure(f) =>
