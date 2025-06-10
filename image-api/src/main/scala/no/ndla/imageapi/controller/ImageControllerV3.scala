@@ -10,7 +10,8 @@ package no.ndla.imageapi.controller
 
 import cats.implicits.*
 import no.ndla.common.model.api.CommaSeparatedList.*
-import no.ndla.imageapi.controller.multipart.{MetaDataAndFileForm, UpdateMetaDataAndFileForm}
+import no.ndla.common.model.api.LanguageCode
+import no.ndla.imageapi.controller.multipart.{CopyMetaDataAndFileForm, MetaDataAndFileForm, UpdateMetaDataAndFileForm}
 import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain.{ModelReleasedStatus, SearchSettings, Sort}
 import no.ndla.imageapi.repository.ImageRepository
@@ -30,21 +31,13 @@ import sttp.tapir.server.ServerEndpoint
 import scala.util.{Failure, Success, Try}
 
 trait ImageControllerV3 {
-  this: ImageRepository
-    with ImageSearchService
-    with ConverterService
-    with ReadService
-    with WriteService
-    with SearchConverterService
-    with Props
-    with ErrorHandling
-    with BaseImageController
-    with TapirController =>
+  this: ImageRepository & ImageSearchService & ConverterService & ReadService & WriteService & SearchConverterService &
+    Props & ErrorHandling & BaseImageController & TapirController =>
   val imageControllerV3: ImageControllerV3
 
   class ImageControllerV3 extends TapirController with BaseImageController {
-    import ErrorHelpers._
-    import props._
+    import ErrorHelpers.*
+    import props.*
 
     override val serviceName: String         = "images V3"
     override val prefix: EndpointInput[Unit] = "image-api" / "v3" / "images"
@@ -82,7 +75,6 @@ trait ImageControllerV3 {
         pageSize: Option[Int],
         page: Option[Int],
         podcastFriendly: Option[Boolean],
-        includeCopyrighted: Boolean,
         shouldScroll: Boolean,
         modelReleasedStatus: Seq[ModelReleasedStatus.Value],
         user: Option[TokenUser],
@@ -100,7 +92,6 @@ trait ImageControllerV3 {
             page = page,
             pageSize = pageSize,
             podcastFriendly = podcastFriendly,
-            includeCopyrighted = includeCopyrighted,
             shouldScroll = shouldScroll,
             modelReleased = modelReleasedStatus,
             userFilter = userFilter
@@ -116,7 +107,6 @@ trait ImageControllerV3 {
             page = page,
             pageSize = pageSize,
             podcastFriendly = podcastFriendly,
-            includeCopyrighted = includeCopyrighted,
             shouldScroll = shouldScroll,
             modelReleased = modelReleasedStatus,
             userFilter = userFilter
@@ -124,7 +114,11 @@ trait ImageControllerV3 {
       }
       for {
         searchResult <- imageSearchService.matchingQueryV3(settings, user)
-        output       <- searchConverterService.asApiSearchResultV3(searchResult, language, user)
+        output <- searchConverterService.asApiSearchResultV3(
+          searchResult,
+          language,
+          user
+        )
         scrollHeader = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
       } yield (output, scrollHeader)
     }
@@ -166,22 +160,22 @@ trait ImageControllerV3 {
                 modelReleased,
                 userFilter
               ) =>
-            scrollSearchOr(scrollId, language, user) {
+            scrollSearchOr(scrollId, language.code, user) {
               val sort                = Sort.valueOf(sortStr)
               val shouldScroll        = scrollId.exists(InitialScrollContextKeywords.contains)
               val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
+              val licenseOpt          = license.orElse(Option.when(includeCopyrighted)("all"))
 
               searchV3(
                 minimumSize,
                 query,
-                language,
+                language.code,
                 fallback,
-                license,
+                licenseOpt,
                 sort,
                 pageSize,
                 pageNo,
                 podcastFriendly,
-                includeCopyrighted,
                 shouldScroll,
                 modelReleasedStatus,
                 user,
@@ -203,19 +197,20 @@ trait ImageControllerV3 {
       .serverLogicPure {
         user =>
           { searchParams =>
-            val language = searchParams.language.getOrElse(Language.AllLanguages)
+            val language = searchParams.language.getOrElse(LanguageCode(Language.AllLanguages))
             val fallback = searchParams.fallback.getOrElse(false)
 
-            scrollSearchOr(searchParams.scrollId, language, user) {
-              val minimumSize        = searchParams.minimumSize
-              val query              = searchParams.query
-              val license            = searchParams.license
-              val pageSize           = searchParams.pageSize
-              val page               = searchParams.page
-              val podcastFriendly    = searchParams.podcastFriendly
-              val sort               = searchParams.sort
-              val includeCopyrighted = searchParams.includeCopyrighted.getOrElse(false)
-              val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+            scrollSearchOr(searchParams.scrollId, language.code, user) {
+              val minimumSize = searchParams.minimumSize
+              val query       = searchParams.query
+              val license = searchParams.license.orElse {
+                Option.when(searchParams.includeCopyrighted.contains(true))("all")
+              }
+              val pageSize        = searchParams.pageSize
+              val page            = searchParams.page
+              val podcastFriendly = searchParams.podcastFriendly
+              val sort            = searchParams.sort
+              val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
               val modelReleasedStatus =
                 searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
               val userFilter = searchParams.users.getOrElse(List.empty)
@@ -223,14 +218,13 @@ trait ImageControllerV3 {
               searchV3(
                 minimumSize,
                 query,
-                language,
+                language.code,
                 fallback,
                 license,
                 sort,
                 pageSize,
                 page,
                 podcastFriendly,
-                includeCopyrighted,
                 shouldScroll,
                 modelReleasedStatus,
                 user,
@@ -300,7 +294,7 @@ trait ImageControllerV3 {
       .serverLogicPure(user =>
         formData =>
           doWithStream(formData.file) { uploadedFile =>
-            writeService.storeNewImage(formData.metadata.body, uploadedFile, user).map { case storedImage =>
+            writeService.storeNewImage(formData.metadata.body, uploadedFile, user).map { storedImage =>
               converterService
                 .asApiImageMetaInformationV3(
                   storedImage,
@@ -315,7 +309,7 @@ trait ImageControllerV3 {
       .summary("Deletes the specified images meta data and file")
       .description("Deletes the specified images meta data and file")
       .in(pathImageId)
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(IMAGE_API_WRITE)
       .serverLogicPure { _ => imageId =>
@@ -378,7 +372,28 @@ trait ImageControllerV3 {
         }
         val sort = Sort.valueOf(sortStr).getOrElse(Sort.ByRelevanceDesc)
 
-        readService.getAllTags(query, pageSize, pageNo, language, sort).handleErrorsOrOk
+        readService
+          .getAllTags(query, pageSize, pageNo, language.code, sort)
+          .handleErrorsOrOk
+      }
+
+    def copyImageMeta: ServerEndpoint[Any, Eff] = endpoint.post
+      .summary("Copy image meta data with a new image file")
+      .description("Copy image meta data with a new image file")
+      .in(pathImageId / "copy")
+      .in(languageOpt)
+      .in(multipartBody[CopyMetaDataAndFileForm])
+      .out(jsonBody[ImageMetaInformationV3DTO])
+      .errorOut(errorOutputsFor(400))
+      .requirePermission(IMAGE_API_WRITE)
+      .serverLogicPure { user => input =>
+        val (imageId, language, formData) = input
+        doWithStream(formData.file) { uploadedFile =>
+          for {
+            storedImage <- writeService.copyImage(imageId, uploadedFile, language, user)
+            converted   <- converterService.asApiImageMetaInformationV3(storedImage, language, Some(user))
+          } yield converted
+        }
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
@@ -391,7 +406,8 @@ trait ImageControllerV3 {
       newImageV3,
       deleteImageV3,
       deleteLanguageV3,
-      editImageV3
+      editImageV3,
+      copyImageMeta
     )
 
   }

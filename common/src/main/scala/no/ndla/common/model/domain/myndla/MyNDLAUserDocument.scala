@@ -14,7 +14,7 @@ import no.ndla.common.model.NDLADate
 
 case class MyNDLAUserDocument(
     favoriteSubjects: Seq[String],
-    userRole: UserRole.Value,
+    userRole: UserRole,
     lastUpdated: NDLADate,
     organization: String,
     groups: Seq[MyNDLAGroup],
@@ -23,7 +23,6 @@ case class MyNDLAUserDocument(
     email: String,
     arenaEnabled: Boolean,
     arenaAccepted: Boolean,
-    arenaGroups: List[ArenaGroup],
     shareNameAccepted: Boolean
 ) {
   def toFullUser(id: Long, feideId: String): MyNDLAUser = {
@@ -40,7 +39,6 @@ case class MyNDLAUserDocument(
       email = email,
       arenaEnabled = arenaEnabled,
       arenaAccepted = arenaAccepted,
-      arenaGroups = arenaGroups,
       shareNameAccepted = shareNameAccepted
     )
   }

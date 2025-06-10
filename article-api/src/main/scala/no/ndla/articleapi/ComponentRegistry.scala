@@ -26,7 +26,6 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.*
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api.ErrorHandling
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
@@ -34,8 +33,8 @@ import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.network.clients.{FeideApiClient, RedisClient, SearchApiClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ArticleApiProperties)
     extends BaseComponentRegistry[ArticleApiProperties]
@@ -52,6 +51,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with ArticleSearchService
     with IndexService
     with BaseIndexService
+    with SearchLanguage
     with ArticleIndexService
     with SearchService
     with ConverterService
@@ -83,9 +83,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
   )
   override val DBUtil: DBUtility = new DBUtility
 
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  DataSource.connectToDatabase()
-
+  lazy val dataSource: HikariDataSource            = DataSource.getHikariDataSource
   lazy val internController                        = new InternController
   lazy val articleControllerV2                     = new ArticleControllerV2
   lazy val healthController: TapirHealthController = new TapirHealthController
@@ -112,7 +110,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
 
   lazy val clock = new SystemClock
 
-  private val swagger = new SwaggerController(
+  val swagger = new SwaggerController(
     List(
       articleControllerV2,
       internController,

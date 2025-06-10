@@ -8,8 +8,6 @@
 
 package no.ndla.searchapi.model.api.grep
 
-import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
-import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
 import sttp.tapir.Codec.PlainCodec
 import sttp.tapir.Schema
@@ -26,10 +24,9 @@ object GrepSortDTO extends Enum[GrepSortDTO] with CirceEnum[GrepSortDTO] {
   case object ByTitleAsc      extends GrepSortDTO("title")
   case object ByCodeDesc      extends GrepSortDTO("-code")
   case object ByCodeAsc       extends GrepSortDTO("code")
+  case object ByStatusDesc    extends GrepSortDTO("-status")
+  case object ByStatusAsc     extends GrepSortDTO("status")
 
   implicit val schema: Schema[GrepSortDTO]    = schemaForEnumEntry[GrepSortDTO]
   implicit val codec: PlainCodec[GrepSortDTO] = plainCodecEnumEntry[GrepSortDTO]
-  implicit val enumTsType: TSNamedType[GrepSortDTO] =
-    TSType.alias[GrepSortDTO]("GrepSort", TSUnion(all.map(s => TSLiteralString(s))))
-
 }

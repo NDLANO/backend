@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi.controller
 
-import sttp.tapir.EndpointIO.annotations._
+import sttp.tapir.EndpointIO.annotations.*
 
 // format: off
 case class ImageParams(

@@ -22,6 +22,8 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.model.CommaSeparated
 
+import scala.util.Failure
+
 trait StatsController {
   this: FolderReadService & TapirController =>
   class StatsController extends TapirController {
@@ -34,11 +36,10 @@ trait StatsController {
       .out(jsonBody[StatsDTO])
       .errorOut(errorOutputsFor(404))
       .serverLogicPure { _ =>
-        folderReadService.getStats match {
-          case Some(c) => Right(c)
-          case None    => returnLeftError(NotFoundException("No stats found"))
-        }
+        folderReadService.getStats
+          .recoverNoneWith(Failure(NotFoundException("No stats found")))
       }
+
     private val pathResourceType =
       path[CommaSeparated[String]]("resourceType")
         .description(

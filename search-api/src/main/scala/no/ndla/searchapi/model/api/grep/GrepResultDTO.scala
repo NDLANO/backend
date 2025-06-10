@@ -9,12 +9,11 @@
 package no.ndla.searchapi.model.api.grep
 
 import cats.implicits.*
-import com.scalatsi.TypescriptType.TSUnion
-import com.scalatsi.{TSNamedType, TSType, TypescriptType}
 import io.circe.generic.auto.*
-import sttp.tapir.generic.auto.*
 import io.circe.syntax.*
-import io.circe.{Decoder, Encoder, Json}
+import io.circe.{Decoder, Encoder}
+import no.ndla.common.CirceUtil
+import no.ndla.common.TapirUtil.stringLiteralSchema
 import no.ndla.common.model.api.search.TitleDTO
 import no.ndla.language.Language
 import no.ndla.language.Language.findByLanguageOrBestEffort
@@ -37,6 +36,7 @@ import scala.util.{Success, Try}
 @description("Information about a single grep search result entry")
 sealed trait GrepResultDTO {
   @description("The grep code") val code: String
+  @description("The grep status") val status: GrepStatusDTO
   @description("The greps title") val title: TitleDTO
 }
 
@@ -51,25 +51,14 @@ object GrepResultDTO {
     }
     // NOTE: Adding the discriminator field that scala-tsi generates in the typescript type.
     //       Useful for guarding the type of the object in the frontend.
-    json.mapObject(_.add("typename", Json.fromString(result.getClass.getSimpleName)))
+    CirceUtil.addTypenameDiscriminator(json, result.getClass)
   }
 
-  val typescriptUnionTypes: Seq[TypescriptType.TSInterface] = Seq(
-    TSType.fromCaseClass[GrepKjerneelementDTO].get,
-    TSType.fromCaseClass[GrepKompetansemaalDTO].get,
-    TSType.fromCaseClass[GrepKompetansemaalSettDTO].get,
-    TSType.fromCaseClass[GrepLaererplanDTO].get,
-    TSType.fromCaseClass[GrepTverrfagligTemaDTO].get
-  )
-
-  implicit val t2: TSNamedType[GrepResultDTO] =
-    TSType.alias[GrepResultDTO]("GrepResultDTO", TSUnion(typescriptUnionTypes))
-
-  implicit val s1: Schema["GrepLaererplanDTO"]         = Schema.string
-  implicit val s2: Schema["GrepTverrfagligTemaDTO"]    = Schema.string
-  implicit val s3: Schema["GrepKompetansemaalSettDTO"] = Schema.string
-  implicit val s4: Schema["GrepKompetansemaalDTO"]     = Schema.string
-  implicit val s5: Schema["GrepKjerneelementDTO"]      = Schema.string
+  implicit val s1: Schema["GrepLaererplanDTO"]         = stringLiteralSchema("GrepLaererplanDTO")
+  implicit val s2: Schema["GrepTverrfagligTemaDTO"]    = stringLiteralSchema("GrepTverrfagligTemaDTO")
+  implicit val s3: Schema["GrepKompetansemaalSettDTO"] = stringLiteralSchema("GrepKompetansemaalSettDTO")
+  implicit val s4: Schema["GrepKompetansemaalDTO"]     = stringLiteralSchema("GrepKompetansemaalDTO")
+  implicit val s5: Schema["GrepKjerneelementDTO"]      = stringLiteralSchema("GrepKjerneelementDTO")
 
   implicit val decoder: Decoder[GrepResultDTO] = List[Decoder[GrepResultDTO]](
     Decoder[GrepKjerneelementDTO].widen,
@@ -79,7 +68,6 @@ object GrepResultDTO {
     Decoder[GrepTverrfagligTemaDTO].widen
   ).reduceLeft(_ or _)
 
-  implicit val s: Schema[GrepResultDTO] = Schema.oneOfWrapped[GrepResultDTO]
   def fromSearchable(searchable: SearchableGrepElement, language: String): Try[GrepResultDTO] = {
     val titleLv = findByLanguageOrBestEffort(searchable.title.languageValues, language)
       .getOrElse(LanguageValue(Language.DefaultLanguage, ""))
@@ -95,10 +83,12 @@ object GrepResultDTO {
         Success(
           GrepKjerneelementDTO(
             code = core.kode,
+            status = core.status,
             title = title,
             description = description,
             laereplan = GrepReferencedLaereplanDTO(
               code = core.`tilhoerer-laereplan`.kode,
+              status = core.`tilhoerer-laereplan`.status,
               title = core.`tilhoerer-laereplan`.tittel
             )
           )
@@ -107,30 +97,36 @@ object GrepResultDTO {
         Success(
           GrepKompetansemaalDTO(
             code = goal.kode,
+            status = goal.status,
             title = title,
             laereplan = GrepReferencedLaereplanDTO(
               code = goal.`tilhoerer-laereplan`.kode,
+              status = goal.`tilhoerer-laereplan`.status,
               title = goal.`tilhoerer-laereplan`.tittel
             ),
             kompetansemaalSett = GrepReferencedKompetansemaalSettDTO(
               code = goal.`tilhoerer-kompetansemaalsett`.kode,
+              status = goal.`tilhoerer-kompetansemaalsett`.status,
               title = goal.`tilhoerer-kompetansemaalsett`.tittel
             ),
             tverrfagligeTemaer = goal.`tilknyttede-tverrfaglige-temaer`.map { crossTopic =>
               GrepTverrfagligTemaDTO(
                 code = crossTopic.referanse.kode,
+                status = crossTopic.referanse.status,
                 title = TitleDTO(crossTopic.referanse.tittel, Language.DefaultLanguage)
               )
             },
             kjerneelementer = goal.`tilknyttede-kjerneelementer`.map { core =>
               GrepReferencedKjerneelementDTO(
                 code = core.referanse.kode,
+                status = core.referanse.status,
                 title = core.referanse.tittel
               )
             },
             reuseOf = goal.`gjenbruk-av`.map { goal =>
               GrepReferencedKompetansemaalDTO(
                 code = goal.kode,
+                status = goal.status,
                 title = goal.tittel
               )
             }
@@ -140,10 +136,12 @@ object GrepResultDTO {
         Success(
           GrepKompetansemaalSettDTO(
             code = goalSet.kode,
+            status = goalSet.status,
             title = title,
             kompetansemaal = goalSet.kompetansemaal.map { goal =>
               GrepReferencedKompetansemaalDTO(
                 code = goal.kode,
+                status = goal.status,
                 title = goal.tittel
               )
             }
@@ -153,10 +151,12 @@ object GrepResultDTO {
         Success(
           GrepLaererplanDTO(
             code = curriculum.kode,
+            status = curriculum.status,
             title = title,
             replacedBy = curriculum.`erstattes-av`.map(replacement =>
               GrepReferencedLaereplanDTO(
                 code = replacement.kode,
+                status = replacement.status,
                 title = replacement.tittel
               )
             )
@@ -166,6 +166,7 @@ object GrepResultDTO {
         Success(
           GrepTverrfagligTemaDTO(
             code = crossTopic.kode,
+            status = crossTopic.status,
             title = title
           )
         )
@@ -173,11 +174,12 @@ object GrepResultDTO {
   }
 }
 
-case class GrepReferencedKjerneelementDTO(code: String, title: String)
-case class GrepReferencedKompetansemaalDTO(code: String, title: String)
-case class GrepReferencedLaereplanDTO(code: String, title: String)
+case class GrepReferencedKjerneelementDTO(code: String, status: GrepStatusDTO, title: String)
+case class GrepReferencedKompetansemaalDTO(code: String, status: GrepStatusDTO, title: String)
+case class GrepReferencedLaereplanDTO(code: String, status: GrepStatusDTO, title: String)
 case class GrepKjerneelementDTO(
     code: String,
+    status: GrepStatusDTO,
     title: TitleDTO,
     description: DescriptionDTO,
     laereplan: GrepReferencedLaereplanDTO,
@@ -185,6 +187,7 @@ case class GrepKjerneelementDTO(
 ) extends GrepResultDTO
 case class GrepKompetansemaalDTO(
     code: String,
+    status: GrepStatusDTO,
     title: TitleDTO,
     laereplan: GrepReferencedLaereplanDTO,
     kompetansemaalSett: GrepReferencedKompetansemaalSettDTO,
@@ -195,22 +198,26 @@ case class GrepKompetansemaalDTO(
 ) extends GrepResultDTO
 case class GrepReferencedKompetansemaalSettDTO(
     code: String,
+    status: GrepStatusDTO,
     title: String
 )
 case class GrepKompetansemaalSettDTO(
     code: String,
+    status: GrepStatusDTO,
     title: TitleDTO,
     kompetansemaal: List[GrepReferencedKompetansemaalDTO],
     typename: "GrepKompetansemaalSettDTO" = "GrepKompetansemaalSettDTO"
 ) extends GrepResultDTO
 case class GrepLaererplanDTO(
     code: String,
+    status: GrepStatusDTO,
     title: TitleDTO,
     replacedBy: List[GrepReferencedLaereplanDTO],
     typename: "GrepLaererplanDTO" = "GrepLaererplanDTO"
 ) extends GrepResultDTO
 case class GrepTverrfagligTemaDTO(
     code: String,
+    status: GrepStatusDTO,
     title: TitleDTO,
     typename: "GrepTverrfagligTemaDTO" = "GrepTverrfagligTemaDTO"
 ) extends GrepResultDTO

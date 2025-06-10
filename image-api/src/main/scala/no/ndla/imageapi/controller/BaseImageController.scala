@@ -9,13 +9,14 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.common.errors.FileTooBigException
-import no.ndla.common.model.api.CommaSeparatedList._
+import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{ModelReleasedStatus, Sort}
 import no.ndla.language.Language
 import sttp.model.Part
-import sttp.tapir._
+import sttp.tapir.*
 
 import java.io.File
 import scala.util.{Failure, Try}
@@ -27,7 +28,7 @@ trait BaseImageController {
   /** Base class for sharing code between Image controllers. */
   trait BaseImageController {
 
-    import props._
+    import props.*
 
     val queryParam: EndpointInput.Query[Option[String]] =
       query[Option[String]]("query")
@@ -35,10 +36,10 @@ trait BaseImageController {
     val minSize: EndpointInput.Query[Option[Int]] =
       query[Option[Int]]("minimum-size")
         .description("Return only images with full size larger than submitted value in bytes.")
-    val language: EndpointInput.Query[String] =
-      query[String]("language")
+    val language: EndpointInput.Query[LanguageCode] =
+      query[LanguageCode]("language")
         .description("The ISO 639-1 language code describing language.")
-        .default(Language.AllLanguages)
+        .default(LanguageCode(Language.AllLanguages))
     val languageOpt: EndpointInput.Query[Option[String]] =
       query[Option[String]]("language")
         .description("The ISO 639-1 language code describing language.")
@@ -52,6 +53,7 @@ trait BaseImageController {
     val includeCopyrighted: EndpointInput.Query[Boolean] =
       query[Boolean]("includeCopyrighted")
         .description("Return copyrighted images. May be omitted.")
+        .deprecated()
         .default(false)
     val sort: EndpointInput.Query[Option[String]] = query[Option[String]]("sort")
       .description(

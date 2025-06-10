@@ -20,7 +20,7 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 trait UserDataController {
-  this: ReadService with WriteService with ErrorHandling with TapirController =>
+  this: ReadService & WriteService & ErrorHandling & TapirController =>
   val userDataController: UserDataController
 
   class UserDataController extends TapirController {

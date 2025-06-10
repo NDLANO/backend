@@ -47,14 +47,14 @@ trait ArticleIndexService {
         ),
         keywordField("grepCodes")
       )
-      val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("content") ++
-        generateLanguageSupportedDynamicTemplates("visualElement") ++
-        generateLanguageSupportedDynamicTemplates("introduction") ++
-        generateLanguageSupportedDynamicTemplates("metaDescription") ++
-        generateLanguageSupportedDynamicTemplates("tags")
+      val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
+        generateLanguageSupportedFieldList("content") ++
+        generateLanguageSupportedFieldList("visualElement") ++
+        generateLanguageSupportedFieldList("introduction") ++
+        generateLanguageSupportedFieldList("metaDescription") ++
+        generateLanguageSupportedFieldList("tags")
 
-      properties(fields).dynamicTemplates(dynamics)
+      properties(fields ++ dynamics)
     }
   }
 

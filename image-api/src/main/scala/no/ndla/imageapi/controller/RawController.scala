@@ -24,20 +24,15 @@ import java.io.InputStream
 import scala.util.{Failure, Success, Try}
 
 trait RawController {
-  this: ImageStorageService
-    with ImageConverter
-    with ImageRepository
-    with ErrorHandling
-    with Props
-    with ReadService
-    with TapirController =>
+  this: ImageStorageService & ImageConverter & ImageRepository & ErrorHandling & Props & ReadService &
+    TapirController =>
   val rawController: RawController
 
   class RawController extends TapirController {
     override val serviceName: String         = "raw"
     override val prefix: EndpointInput[Unit] = "image-api" / serviceName
     override val enableSwagger: Boolean      = true
-    import ErrorHelpers._
+    import ErrorHelpers.*
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getImageFileById,

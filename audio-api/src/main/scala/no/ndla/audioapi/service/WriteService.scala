@@ -27,16 +27,8 @@ import java.lang.Math.max
 import scala.util.{Failure, Random, Success, Try}
 
 trait WriteService {
-  this: ConverterService
-    with ValidationService
-    with AudioRepository
-    with SeriesRepository
-    with AudioIndexService
-    with SeriesIndexService
-    with TagIndexService
-    with NdlaS3Client
-    with ReadService
-    with Clock =>
+  this: ConverterService & ValidationService & AudioRepository & SeriesRepository & AudioIndexService &
+    SeriesIndexService & TagIndexService & NdlaS3Client & ReadService & Clock =>
   val writeService: WriteService
 
   class WriteService extends StrictLogging {
@@ -44,7 +36,7 @@ trait WriteService {
     def updateSeries(id: Long, toUpdateSeries: api.NewSeriesDTO): Try[api.SeriesDTO] = {
       seriesRepository.withId(id) match {
         case Failure(ex)   => Failure(ex)
-        case Success(None) => Failure(new NotFoundException(s"Could not find series to update with id: '$id'"))
+        case Success(None) => Failure(NotFoundException(s"Could not find series to update with id: '$id'"))
         case Success(Some(existingSeries)) =>
           val merged             = converterService.updateSeries(existingSeries, toUpdateSeries)
           val oldEpisodesIds     = existingSeries.episodes.traverse(_.flatMap(_.id)).flatten.toSet
@@ -85,7 +77,7 @@ trait WriteService {
 
     }
 
-    def updateSeriesForEpisodes(seriesId: Option[Long], episodeIds: Seq[Long]): Try[_] =
+    def updateSeriesForEpisodes(seriesId: Option[Long], episodeIds: Seq[Long]): Try[?] =
       episodeIds.traverse(id =>
         for {
           _ <- audioRepository.setSeriesId(
@@ -95,7 +87,7 @@ trait WriteService {
           episode <- audioRepository.withId(id) match {
             case Some(ep) => Success(ep)
             case None =>
-              Failure(new NotFoundException(s"Could not find episode with id '$id' when updating series connection."))
+              Failure(NotFoundException(s"Could not find episode with id '$id' when updating series connection."))
           }
           reindexed <- audioIndexService.indexDocument(episode)
         } yield reindexed
@@ -105,7 +97,7 @@ trait WriteService {
       seriesRepository.withId(seriesId) match {
         case Failure(ex) => Failure(ex)
         case Success(None) =>
-          Failure(new NotFoundException(s"Series with id $seriesId was not found, and could not be deleted."))
+          Failure(NotFoundException(s"Series with id $seriesId was not found, and could not be deleted."))
         case Success(Some(existingSeries)) =>
           val episodes = existingSeries.episodes.getOrElse(Seq.empty)
           freeEpisodes(episodes) match {
@@ -114,7 +106,7 @@ trait WriteService {
               seriesRepository.deleteWithId(seriesId) match {
                 case Success(numRows) if numRows > 0 => seriesIndexService.deleteDocument(seriesId)
                 case Success(_) =>
-                  Failure(new NotFoundException(s"Could not find series to delete with id: '$seriesId'"))
+                  Failure(NotFoundException(s"Could not find series to delete with id: '$seriesId'"))
                 case Failure(ex) => Failure(ex)
               }
           }
@@ -159,9 +151,9 @@ trait WriteService {
           }
 
         case Some(_) =>
-          Failure(new NotFoundException(s"Audio with id $audioId does not exist in language '$language'."))
+          Failure(NotFoundException(s"Audio with id $audioId does not exist in language '$language'."))
         case None =>
-          Failure(new NotFoundException(s"Audio with id $audioId was not found, and could not be deleted."))
+          Failure(NotFoundException(s"Audio with id $audioId was not found, and could not be deleted."))
       }
 
     def deleteSeriesLanguageVersion(seriesId: Long, language: String): Try[Option[api.SeriesDTO]] = {
@@ -182,9 +174,9 @@ trait WriteService {
             } yield result
           }
         case Success(Some(_)) =>
-          Failure(new NotFoundException(s"Series with id $seriesId does not exist in language '$language'."))
+          Failure(NotFoundException(s"Series with id $seriesId does not exist in language '$language'."))
         case Success(None) =>
-          Failure(new NotFoundException(s"Series with id $seriesId was not found, and could not be deleted."))
+          Failure(NotFoundException(s"Series with id $seriesId was not found, and could not be deleted."))
         case Failure(ex) => Failure(ex)
       }
     }
@@ -255,7 +247,7 @@ trait WriteService {
 
           if (metaDeleted < 1) {
             Failure(
-              new NotFoundException(s"Metadata for audio with id $audioId was not found, and could not be deleted.")
+              NotFoundException(s"Metadata for audio with id $audioId was not found, and could not be deleted.")
             )
           } else if (filesDeleted.exists(_.isFailure)) {
             val exceptions = filesDeleted.collect { case Failure(ex) => ex }
@@ -268,7 +260,7 @@ trait WriteService {
             }
           }
 
-        case None => Failure(new NotFoundException(s"Audio with id $audioId was not found, and could not be deleted."))
+        case None => Failure(NotFoundException(s"Audio with id $audioId was not found, and could not be deleted."))
       }
     }
 

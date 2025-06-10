@@ -144,43 +144,7 @@ trait MultiDraftSearchService {
     }
 
     def matchingQuery(settings: MultiDraftSearchSettings): Try[SearchResult] = {
-
-      val contentSearch = settings.query.map(queryString => {
-
-        val langQueryFunc = (fieldName: String, boost: Double) =>
-          buildSimpleStringQueryForField(
-            queryString,
-            fieldName,
-            boost,
-            settings.language,
-            settings.fallback,
-            searchDecompounded = settings.searchDecompounded
-          )
-
-        boolQuery().should(
-          List(
-            langQueryFunc("title", 3),
-            langQueryFunc("introduction", 2),
-            langQueryFunc("metaDescription", 1),
-            langQueryFunc("content", 1),
-            langQueryFunc("tags", 1),
-            langQueryFunc("embedAttributes", 1),
-            simpleStringQuery(queryString.underlying).field("authors", 1),
-            simpleStringQuery(queryString.underlying).field("grepContexts.title", 1),
-            nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", queryString.underlying)))
-              .ignoreUnmapped(true),
-            termQuery("contextids", queryString.underlying),
-            idsQuery(queryString.underlying),
-            nestedQuery("revisionMeta", simpleStringQuery(queryString.underlying).field("revisionMeta.note"))
-              .ignoreUnmapped(true)
-          ) ++
-            getRevisionHistoryLogQuery(queryString.underlying, settings.excludeRevisionHistory) ++
-            buildNestedEmbedField(List(queryString.underlying), None, settings.language, settings.fallback) ++
-            buildNestedEmbedField(List.empty, Some(queryString.underlying), settings.language, settings.fallback)
-        )
-
-      })
-
+      val contentSearch: Option[BoolQuery] = buildContentIndexesQuery(settings)
       val noteSearch = settings.noteQuery.map(q => {
         boolQuery()
           .should(
@@ -194,6 +158,41 @@ trait MultiDraftSearchService {
 
       executeSearch(settings, fullQuery)
     }
+
+    private def buildContentIndexesQuery(settings: MultiDraftSearchSettings) = settings.query.map(queryString => {
+      val langQueryFunc = (fieldName: String, boost: Double) =>
+        buildSimpleStringQuery(
+          queryString,
+          fieldName,
+          boost,
+          settings.language,
+          settings.fallback,
+          decompounded = settings.searchDecompounded
+        )
+
+      val contextIdQuery        = boolQuery().should(termQuery("contexts.contextId", queryString.underlying))
+      val revisionMetaNoteQuery = simpleStringQuery(queryString.underlying).field("revisionMeta.note")
+
+      boolQuery().should(
+        List(
+          langQueryFunc("title", 20),
+          langQueryFunc("introduction", 2),
+          langQueryFunc("metaDescription", 1),
+          langQueryFunc("content", 1),
+          langQueryFunc("tags", 1),
+          langQueryFunc("embedAttributes", 1),
+          simpleStringQuery(queryString.underlying).field("authors", 1),
+          simpleStringQuery(queryString.underlying).field("grepContexts.title", 1),
+          nestedQuery("contexts", contextIdQuery).ignoreUnmapped(true),
+          termQuery("contextids", queryString.underlying),
+          idsQuery(queryString.underlying),
+          nestedQuery("revisionMeta", revisionMetaNoteQuery).ignoreUnmapped(true)
+        ) ++
+          getRevisionHistoryLogQuery(queryString.underlying, settings.excludeRevisionHistory) ++
+          buildNestedEmbedField(List(queryString.underlying), None, settings.language, settings.fallback) ++
+          buildNestedEmbedField(List.empty, Some(queryString.underlying), settings.language, settings.fallback)
+      )
+    })
 
     private def filteredCountSearch(settings: MultiDraftSearchSettings): Try[Long] = {
       val filteredSearch = boolQuery().filter(getSearchFilters(settings))
@@ -217,6 +216,7 @@ trait MultiDraftSearchService {
       val pagination     = getStartAtAndNumResults(settings.page, settings.pageSize).?
       val aggregations   = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
       val index          = getSearchIndexes(settings).?
+      val sort           = getSortDefinition(settings.sort, searchLanguage)
       val searchToExecute = search(index)
         .query(filteredSearch)
         .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
@@ -225,7 +225,7 @@ trait MultiDraftSearchService {
         .size(pagination.pageSize)
         .highlighting(highlight("*"))
         .aggs(aggregations)
-        .sortBy(getSortDefinition(settings.sort, searchLanguage))
+        .sortBy(sort)
 
       // Only add scroll param if it is first page
       val searchWithScroll =
@@ -235,7 +235,8 @@ trait MultiDraftSearchService {
 
       e4sClient.execute(searchWithScroll) match {
         case Success(response) =>
-          getHits(response.result, settings.language, settings.filterInactive).map(hits => {
+          // For draft search we don't want to filter contexts from the result
+          getHits(response.result, settings.language, false).map(hits => {
             SearchResult(
               totalCount = response.result.totalHits,
               page = Some(settings.page),
@@ -269,9 +270,10 @@ trait MultiDraftSearchService {
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
 
       val licenseFilter = settings.license match {
-        case None      => Some(boolQuery().not(termQuery("license", "copyrighted")))
-        case Some(lic) => Some(termQuery("license", lic))
+        case Some("all") | None => None
+        case Some(lic)          => Some(termQuery("license", lic))
       }
+
       val grepCodesFilter =
         if (settings.grepCodes.nonEmpty) Some(termsQuery("grepContexts.code", settings.grepCodes))
         else None

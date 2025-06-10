@@ -12,14 +12,14 @@ import no.ndla.network.model.NdlaHttpRequest
 import scala.util.Properties.propOrNone
 
 object ApplicationUrl {
-  val X_FORWARDED_PROTO_HEADER = "X-Forwarded-Proto"
-  val X_FORWARDED_HOST_HEADER  = "X-Forwarded-Host"
-  val FORWARDED_HEADER         = "Forwarded"
-  val FORWARDED_PROTO          = "proto"
-  val HTTP                     = "http"
-  val HTTPS                    = "https"
-  val HTTP_PORT                = 80
-  val HTTPS_PORT               = 443
+  private val X_FORWARDED_PROTO_HEADER = "X-Forwarded-Proto"
+  private val X_FORWARDED_HOST_HEADER  = "X-Forwarded-Host"
+  private val FORWARDED_HEADER         = "Forwarded"
+  private val FORWARDED_PROTO          = "proto"
+  private val HTTP                     = "http"
+  private val HTTPS                    = "https"
+  private val HTTP_PORT                = 80
+  private val HTTPS_PORT               = 443
 
   val applicationUrl = new ThreadLocal[String]
 

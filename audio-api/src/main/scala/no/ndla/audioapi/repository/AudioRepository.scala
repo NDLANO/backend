@@ -20,12 +20,10 @@ import scalikejdbc.*
 import scala.util.{Failure, Success, Try}
 
 trait AudioRepository {
-  this: DataSource with SeriesRepository with Props with ErrorHandling =>
+  this: DataSource & SeriesRepository & Props & ErrorHandling =>
   val audioRepository: AudioRepository
 
   class AudioRepository extends StrictLogging with Repository[AudioMetaInformation] {
-    ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
-
     def audioCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
       sql"select count(*) from ${AudioMetaInformation.table}"
         .map(rs => rs.long("count"))

@@ -61,6 +61,7 @@ case class Resource(
     with CopyableResource {
   override val sortId: UUID          = id
   override val sortRank: Option[Int] = connection.map(_.rank)
+  override val rank: Option[Int]     = sortRank
 }
 
 object Resource extends SQLSyntaxSupport[Resource] {

@@ -8,7 +8,7 @@
 
 package no.ndla.audioapi.service
 
-import cats.implicits._
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.{CouldNotFindLanguageException, TagDTO}
@@ -16,7 +16,7 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, PodcastMe
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.common.Clock
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.{NDLADate, api => commonApi, domain => common}
+import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.language.model.WithLanguage
 import no.ndla.mapping.License.getLicense
@@ -25,11 +25,11 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with Props =>
+  this: Clock & Props =>
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
-    import props._
+    import props.*
 
     def updateSeries(existingSeries: domain.Series, updatedSeries: api.NewSeriesDTO): domain.Series = {
       val newTitle       = common.Title(updatedSeries.title, updatedSeries.language)

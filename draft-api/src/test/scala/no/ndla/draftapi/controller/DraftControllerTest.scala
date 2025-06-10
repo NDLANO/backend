@@ -12,7 +12,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.draft.DraftStatus.EXTERNAL_REVIEW
-import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
+import no.ndla.common.model.{api as commonApi, domain as common}
 import no.ndla.draftapi.TestData.authHeaderWithWriteRole
 import no.ndla.draftapi.model.api.ArticleSearchResultDTO
 import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
@@ -139,18 +139,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
   }
 
   test("POST / should return 201 on created") {
-    when(
-      writeService
-        .newArticle(
-          any[api.NewArticleDTO],
-          any[List[String]],
-          any[Seq[String]],
-          any[TokenUser],
-          any[Option[NDLADate]],
-          any[Option[NDLADate]],
-          any[Option[String]]
-        )
-    )
+    when(writeService.newArticle(any[api.NewArticleDTO], any[TokenUser]))
       .thenReturn(Success(TestData.sampleArticleV2))
     val bodyStr = CirceUtil.toJsonString(TestData.newArticle)
     val resp = simpleHttpClient.send(
@@ -262,18 +251,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
   }
 
   test("That PATCH /:id returns 403 if access denied") {
-    when(
-      writeService.updateArticle(
-        any[Long],
-        any[api.UpdatedArticleDTO],
-        any[List[String]],
-        any[Seq[String]],
-        any[TokenUser],
-        any[Option[NDLADate]],
-        any[Option[NDLADate]],
-        any[Option[String]]
-      )
-    )
+    when(writeService.updateArticle(any[Long], any[api.UpdatedArticleDTO], any[TokenUser]))
       .thenReturn(Failure(AccessDeniedException("Not today")))
 
     val resp = simpleHttpClient.send(
@@ -285,18 +263,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
   }
 
   test("That PATCH /:id returns 200 on success") {
-    when(
-      writeService.updateArticle(
-        any[Long],
-        any[api.UpdatedArticleDTO],
-        any[List[String]],
-        any[Seq[String]],
-        any[TokenUser],
-        any[Option[NDLADate]],
-        any[Option[NDLADate]],
-        any[Option[String]]
-      )
-    )
+    when(writeService.updateArticle(any[Long], any[api.UpdatedArticleDTO], any[TokenUser]))
       .thenReturn(Success(TestData.apiArticleWithHtmlFaultV2))
     val resp = simpleHttpClient.send(
       quickRequest
@@ -449,19 +416,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     "PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[NewArticleMetaImage]]"
   ) {
     reset(writeService)
-    when(
-      writeService
-        .updateArticle(
-          eqTo(1.toLong),
-          any[api.UpdatedArticleDTO],
-          any[List[String]],
-          any[Seq[String]],
-          any[TokenUser],
-          any[Option[NDLADate]],
-          any[Option[NDLADate]],
-          any[Option[String]]
-        )
-    )
+    when(writeService.updateArticle(eqTo(1.toLong), any[api.UpdatedArticleDTO], any[TokenUser]))
       .thenReturn(Success(TestData.sampleArticleV2))
 
     val missing         = """{"revision": 1, "language":"nb"}"""
@@ -484,16 +439,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       )
 
       resp.code.code should be(200)
-      verify(writeService, times(1)).updateArticle(
-        eqTo(1L),
-        eqTo(missingExpected),
-        any[List[String]],
-        any[Seq[String]],
-        any[TokenUser],
-        any[Option[NDLADate]],
-        any[Option[NDLADate]],
-        any[Option[String]]
-      )
+      verify(writeService, times(1)).updateArticle(eqTo(1L), eqTo(missingExpected), any[TokenUser])
     }
     {
       val resp = simpleHttpClient.send(
@@ -504,16 +450,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       )
       resp.code.code should be(200)
 
-      verify(writeService, times(1)).updateArticle(
-        eqTo(1L),
-        eqTo(nullExpected),
-        any[List[String]],
-        any[Seq[String]],
-        any[TokenUser],
-        any[Option[NDLADate]],
-        any[Option[NDLADate]],
-        any[Option[String]]
-      )
+      verify(writeService, times(1)).updateArticle(eqTo(1L), eqTo(nullExpected), any[TokenUser])
     }
     {
       val resp = simpleHttpClient.send(
@@ -523,16 +460,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
           .headers(Map("Authorization" -> authHeaderWithWriteRole))
       )
       resp.code.code should be(200)
-      verify(writeService, times(1)).updateArticle(
-        eqTo(1L),
-        eqTo(existingExpected),
-        any[List[String]],
-        any[Seq[String]],
-        any[TokenUser],
-        any[Option[NDLADate]],
-        any[Option[NDLADate]],
-        any[Option[String]]
-      )
+      verify(writeService, times(1)).updateArticle(eqTo(1L), eqTo(existingExpected), any[TokenUser])
     }
   }
 

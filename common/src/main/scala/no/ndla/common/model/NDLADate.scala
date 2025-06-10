@@ -8,7 +8,6 @@
 
 package no.ndla.common.model
 
-import com.scalatsi.TSType
 import io.circe.{Decoder, Encoder, FailedCursor}
 import io.circe.syntax.*
 import scalikejdbc.ParameterBinderFactory
@@ -57,9 +56,6 @@ case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate] {
 }
 
 object NDLADate {
-
-  implicit val typescriptType: TSType[NDLADate] = TSType.sameAs[NDLADate, String]
-
   case class NDLADateError(message: String) extends RuntimeException(message)
 
   private val baseFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")

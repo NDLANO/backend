@@ -36,7 +36,7 @@ import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: DraftApiProperties)
     extends BaseComponentRegistry[DraftApiProperties]
@@ -83,6 +83,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     with DBMigrator
     with ErrorHandling
     with SwaggerDocControllerConfig
+    with SearchLanguage
     with V57__MigrateSavedSearch
     with V66__SetHideBylineForImagesNotCopyrighted {
   override val props: DraftApiProperties = properties
@@ -97,9 +98,8 @@ class ComponentRegistry(properties: DraftApiProperties)
     new V57__MigrateSavedSearch,
     new V66__SetHideBylineForImagesNotCopyrighted
   )
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  override val DBUtil: DBUtility            = new DBUtility
-  DataSource.connectToDatabase()
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  override val DBUtil: DBUtility                 = new DBUtility
 
   lazy val draftRepository    = new DraftRepository
   lazy val userDataRepository = new UserDataRepository
@@ -144,7 +144,7 @@ class ComponentRegistry(properties: DraftApiProperties)
   lazy val userDataController                      = new UserDataController
   lazy val healthController: TapirHealthController = new TapirHealthController
 
-  private val swagger = new SwaggerController(
+  val swagger = new SwaggerController(
     List[TapirController](
       draftController,
       fileController,

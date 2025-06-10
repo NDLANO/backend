@@ -22,11 +22,11 @@ import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration.FiniteDuration
 
 trait OEmbedServiceComponent {
-  this: NdlaClient with ProviderService =>
+  this: NdlaClient & ProviderService =>
   val oEmbedService: OEmbedService
 
   class OEmbedService(optionalProviders: Option[List[OEmbedProvider]] = None) extends StrictLogging {
-    val remoteTimeout: FiniteDuration = 10.seconds
+    private val remoteTimeout: FiniteDuration = 10.seconds
 
     private lazy val providers = optionalProviders.toList.flatten ++ providerService
       .loadProviders()

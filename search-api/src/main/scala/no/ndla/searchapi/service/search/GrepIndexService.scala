@@ -38,14 +38,15 @@ trait GrepIndexService {
       val fields = List(
         keywordField("defaultTitle"),
         keywordField("code").normalizer("lower"),
+        keywordField("status"),
         keywordField("laereplanCode").normalizer("lower"),
         keywordField("gjenbrukAv").normalizer("lower"),
         keywordField("erstattesAv").normalizer("lower"),
         ObjectField("domainObject", enabled = Some(false))
       )
 
-      val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true)
-      properties(fields).dynamicTemplates(dynamics)
+      val dynamics = languageValuesMapping("title", keepRaw = true)
+      properties(fields ++ dynamics)
     }
 
     def indexDocuments(numShards: Option[Int], grepBundle: Option[GrepBundle]): Try[ReindexResult] = {

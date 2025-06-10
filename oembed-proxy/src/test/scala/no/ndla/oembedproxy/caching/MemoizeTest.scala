@@ -8,11 +8,11 @@
 
 package no.ndla.oembedproxy.caching
 
-import no.ndla.oembedproxy.UnitSuite
+import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import no.ndla.oembedproxy.model.DoNotUpdateMemoizeException
 import org.mockito.Mockito.{times, verify, when}
 
-class MemoizeTest extends UnitSuite {
+class MemoizeTest extends UnitSuite with TestEnvironment {
 
   class Target {
     def targetMethod(): String = "Hei"

@@ -21,12 +21,12 @@ case class SearchableArticle(
     id: Long,
     title: SearchableLanguageValues,
     content: SearchableLanguageValues,
-    visualElement: SearchableLanguageValues,
     introduction: SearchableLanguageValues,
     metaDescription: SearchableLanguageValues,
     tags: SearchableLanguageList,
     lastUpdated: NDLADate,
     license: String,
+    status: String,
     authors: List[String],
     articleType: String,
     metaImage: List[ArticleMetaImage],
@@ -41,6 +41,7 @@ case class SearchableArticle(
     embedResourcesAndIds: List[EmbedValues],
     availability: String,
     learningResourceType: LearningResourceType,
+    typeName: List[String],
     domainObject: Article
 )
 

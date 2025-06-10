@@ -8,13 +8,13 @@
 
 package no.ndla.audioapi.service
 
-import cats.implicits._
+import cats.implicits.*
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain
-import no.ndla.audioapi.model.domain._
+import no.ndla.audioapi.model.domain.*
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, Tag, Title, UploadedFile}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title, UploadedFile}
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
 import org.jsoup.Jsoup
@@ -26,11 +26,10 @@ import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
-  this: ConverterService with Props =>
+  this: ConverterService & Props =>
   val validationService: ValidationService
 
   class ValidationService {
-    import props._
 
     def validatePodcastEpisodes(
         episodes: Seq[(Long, Option[AudioMetaInformation])],
@@ -190,7 +189,7 @@ trait ValidationService {
       ImageIO.read(url)
     }
 
-    def validatePodcastCoverPhoto(fieldName: String, coverPhoto: domain.CoverPhoto): Seq[ValidationMessage] = {
+    private def validatePodcastCoverPhoto(fieldName: String, coverPhoto: domain.CoverPhoto): Seq[ValidationMessage] = {
       val imageUrl    = converterService.getPhotoUrl(coverPhoto)
       val image       = readImage(imageUrl)
       val imageHeight = image.getHeight
@@ -282,21 +281,25 @@ trait ValidationService {
           Some(copyright.license),
           copyright.rightsholders ++ copyright.processors ++ copyright.creators
         ) ++
-        copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, creatorTypeMap.values.toList)) ++
-        copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, processorTypeMap.values.toList)) ++
+        copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, ContributorType.creators)) ++
+        copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, ContributorType.processors)) ++
         copyright.rightsholders.flatMap(a =>
-          validateAuthor("copyright.rightsholders", a, rightsholderTypeMap.values.toList)
+          validateAuthor("copyright.rightsholders", a, ContributorType.rightsholders)
         ) ++
         copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
     }
 
-    def validateLicense(license: String): Seq[ValidationMessage] = {
+    private def validateLicense(license: String): Seq[ValidationMessage] = {
       getLicense(license) match {
         case None => Seq(ValidationMessage("license.license", s"$license is not a valid license"))
         case _    => Seq()
       }
     }
-    private def validateAuthorLicenseCorrelation(license: Option[String], authors: Seq[Author]) = {
+
+    private def validateAuthorLicenseCorrelation(
+        license: Option[String],
+        authors: Seq[Author]
+    ): Seq[ValidationMessage] = {
       val errorMessage = (lic: String) =>
         ValidationMessage("license.license", s"At least one copyright holder is required when license is $lic")
       license match {
@@ -305,14 +308,22 @@ trait ValidationService {
       }
     }
 
-    def validateAuthor(fieldPath: String, author: Author, allowedTypes: Seq[String]): Seq[ValidationMessage] = {
-      containsNoHtml(s"$fieldPath.type", author.`type`).toList ++
-        containsNoHtml(s"$fieldPath.name", author.name).toList ++
-        validateAuthorType(fieldPath, author.`type`, allowedTypes).toList
+    private def validateAuthor(
+        fieldPath: String,
+        author: Author,
+        allowedTypes: Seq[ContributorType]
+    ): Seq[ValidationMessage] = {
+      containsNoHtml(s"$fieldPath.name", author.name).toList ++
+        validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes).toList ++
+        validateMinimumLength(s"$fieldPath.name", author.name, 1)
     }
 
-    def validateAuthorType(fieldPath: String, `type`: String, allowedTypes: Seq[String]): Option[ValidationMessage] = {
-      if (allowedTypes.contains(`type`.toLowerCase)) {
+    private def validateAuthorType(
+        fieldPath: String,
+        `type`: ContributorType,
+        allowedTypes: Seq[ContributorType]
+    ): Option[ValidationMessage] = {
+      if (allowedTypes.contains(`type`)) {
         None
       } else {
         Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
@@ -348,7 +359,7 @@ trait ValidationService {
 
     private def languageCodeSupported639(languageCode: String): Boolean = Iso639.get(languageCode).isSuccess
 
-    def validateNonEmpty(fieldPath: String, sequence: Seq[Any]): Option[ValidationMessage] = {
+    private def validateNonEmpty(fieldPath: String, sequence: Seq[Any]): Option[ValidationMessage] = {
       if (sequence.nonEmpty) {
         None
       } else {

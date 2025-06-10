@@ -10,6 +10,7 @@ package no.ndla.frontpageapi.controller
 
 import cats.implicits.*
 import io.circe.generic.auto.*
+import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
@@ -43,27 +44,20 @@ trait InternController {
             case Failure(ex)       => returnLeftError(ex)
           }
         },
-      endpoint.post
-        .summary("Create new subject page")
-        .in("subjectpage")
-        .in(jsonBody[NewSubjectFrontPageDataDTO])
-        .errorOut(errorOutputsFor())
-        .out(jsonBody[SubjectPageDataDTO])
-        .serverLogicPure { subjectPage =>
-          writeService
-            .newSubjectPage(subjectPage)
-
+      endpoint.get
+        .in("dump" / "subjectpage")
+        .in(query[Int]("page").default(1))
+        .in(query[Int]("page-size").default(100))
+        .out(jsonBody[SubjectPageDomainDumpDTO])
+        .serverLogicPure { case (pageNo, pageSize) =>
+          readService.getSubjectPageDomainDump(pageNo, pageSize).asRight
         },
-      endpoint.put
-        .in("subjectpage" / path[Long]("subject-id").description("The subject id"))
-        .in(jsonBody[NewSubjectFrontPageDataDTO])
+      endpoint.get
+        .in("dump" / "subjectpage" / path[Long]("subjectId"))
+        .out(jsonBody[SubjectPage])
         .errorOut(errorOutputsFor(400, 404))
-        .summary("Update subject page")
-        .out(jsonBody[SubjectPageDataDTO])
-        .serverLogicPure { case (id, subjectPage) =>
-          writeService
-            .updateSubjectPage(id, subjectPage, props.DefaultLanguage)
-
+        .serverLogicPure { subjectId =>
+          readService.domainSubjectPage(subjectId)
         }
     )
   }

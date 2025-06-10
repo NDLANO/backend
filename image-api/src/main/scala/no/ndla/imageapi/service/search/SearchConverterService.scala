@@ -23,14 +23,14 @@ import no.ndla.mapping.ISO639
 import no.ndla.network.ApplicationUrl
 import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import cats.implicits._
+import cats.implicits.*
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
 
 trait SearchConverterService {
-  this: ConverterService with Props =>
+  this: ConverterService & Props & SearchLanguage =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
@@ -105,7 +105,10 @@ trait SearchConverterService {
         language: Option[String]
     ): Try[SearchableImageFile] = {
       findByLanguageOrBestEffort(meta.imageFiles, language) match {
-        case None        => Failure(ImageConversionException("Could not find image in meta, this is a bug."))
+        case None =>
+          Failure(
+            ImageConversionException(s"Could not find image in meta for image with id '${meta.id}', this is a bug.")
+          )
         case Some(image) => Success(image)
       }
     }
@@ -177,7 +180,7 @@ trait SearchConverterService {
           .lastOption
       }
 
-      val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
+      val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)
       val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
       matchLanguage match {

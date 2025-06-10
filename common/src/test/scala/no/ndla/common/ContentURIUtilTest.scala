@@ -5,14 +5,15 @@
  * See LICENSE
  *
  */
+
 package no.ndla.common
 
 import no.ndla.common.ContentURIUtil.NotUrnPatternException
-import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
 import scala.util.{Failure, Success}
 
-class ContentURIUtilTest extends UnitTestSuite {
+class ContentURIUtilTest extends UnitTestSuiteBase {
 
   test("That parsing articleId with and without revision works as expected") {
     ContentURIUtil.parseArticleIdAndRevision("urn:article:15") should be((Success(15), None))
@@ -30,8 +31,19 @@ class ContentURIUtilTest extends UnitTestSuite {
     val result = ContentURIUtil.parseArticleIdAndRevision("one")
     result should be(
       (
-        Failure(NotUrnPatternException("Pattern passed to `parseArticleIdAndRevision` did not match urn pattern.")),
+        Failure(
+          NotUrnPatternException("Pattern \"one\" passed to `parseArticleIdAndRevision` did not match urn pattern.")
+        ),
         None
+      )
+    )
+  }
+
+  test("That frontpages are matched, but does not match article :^)") {
+    ContentURIUtil.parseFrontpageId("urn:frontpage:15") should be(Success(15))
+    ContentURIUtil.parseFrontpageId("urn:article:15") should be(
+      Failure(
+        NotUrnPatternException("Pattern \"urn:article:15\" passed to `parseFrontpageId` did not match urn pattern.")
       )
     )
   }

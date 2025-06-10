@@ -8,8 +8,6 @@
 
 package no.ndla.common.model.api.search
 
-import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
-import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.concept.ConceptType
@@ -27,9 +25,6 @@ object LearningResourceType extends Enum[LearningResourceType] with CirceEnum[Le
   case object LearningPath     extends LearningResourceType("learningpath")
   case object Concept          extends LearningResourceType("concept")
   case object Gloss            extends LearningResourceType("gloss")
-
-  implicit val enumTsType: TSNamedType[LearningResourceType] =
-    TSType.alias[LearningResourceType]("LearningResourceType", TSUnion(values.map(e => TSLiteralString(e.entryName))))
 
   def all: List[String]                                 = LearningResourceType.values.map(_.entryName).toList
   def valueOf(s: String): Option[LearningResourceType]  = LearningResourceType.values.find(_.entryName == s)

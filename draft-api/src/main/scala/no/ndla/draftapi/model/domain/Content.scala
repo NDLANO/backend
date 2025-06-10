@@ -11,21 +11,9 @@ package no.ndla.draftapi.model.domain
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.CirceUtil
-import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.Content
-import no.ndla.common.model.domain.draft.{Draft, DraftCopyright}
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.model.api.SavedSearchDTO
 import scalikejdbc.*
-
-case class Agreement(
-    id: Option[Long],
-    title: String,
-    content: String,
-    copyright: DraftCopyright,
-    created: NDLADate,
-    updated: NDLADate,
-    updatedBy: String
-) extends Content
 
 case class UserData(
     id: Option[Long],
@@ -50,28 +38,6 @@ object DBArticle extends SQLSyntaxSupport[Draft] {
       slug = slug
     )
   }
-}
-
-object Agreement extends SQLSyntaxSupport[Agreement] {
-  override val tableName                   = "agreementdata"
-  implicit val encoder: Encoder[Agreement] = deriveEncoder
-  implicit val decoder: Decoder[Agreement] = deriveDecoder
-
-  def fromResultSet(lp: SyntaxProvider[Agreement])(rs: WrappedResultSet): Agreement = fromResultSet(lp.resultName)(rs)
-
-  def fromResultSet(lp: ResultName[Agreement])(rs: WrappedResultSet): Agreement = {
-    val meta = CirceUtil.unsafeParseAs[Agreement](rs.string(lp.c("document")))
-    Agreement(
-      id = Some(rs.long(lp.c("id"))),
-      title = meta.title,
-      content = meta.content,
-      copyright = meta.copyright,
-      created = meta.created,
-      updated = meta.updated,
-      updatedBy = meta.updatedBy
-    )
-  }
-
 }
 
 object UserData extends SQLSyntaxSupport[UserData] {

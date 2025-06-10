@@ -7,29 +7,28 @@ object Dependencies {
     if (withTests) dep % "test->compile;test->test" else dep % "test"
 
   object versions {
-    val ScalaV                = "2.13.15"
-    val HikariConnectionPoolV = "5.1.0"
+    val ScalaV                = "2.13.16"
+    val HikariConnectionPoolV = "6.3.0"
     val ScalaLoggingV         = "3.9.5"
     val ScalaTestV            = "3.2.19"
-    val Log4JV                = "2.23.1"
-    val AwsSdkV               = "2.28.9"
+    val Log4JV                = "2.24.3"
+    val AwsSdkV               = "2.31.58"
     val MockitoV              = "1.17.30"
     val Elastic4sV            = "8.11.5"
-    val JacksonV              = "2.18.0"
-    val CatsEffectV           = "3.5.4"
-    val FlywayV               = "10.17.3"
-    val PostgresV             = "42.7.3"
-    val ScalaTsiV             = "0.8.3"
-    val Http4sV               = "0.23.27"
-    val TapirV                = "1.11.2"
-    val ApiSpecV              = "0.11.0"
-    val SttpV                 = "3.9.7"
-    val CirceV                = "0.14.9"
-    val ScalikeJDBCV          = "4.3.0"
-    val TestContainersV       = "1.20.0"
-    val JsoupV                = "1.18.1"
-    val JavaMelodyV           = "2.2.0"
-    val EnumeratumV           = "1.7.4"
+    val JacksonV              = "2.19.0"
+    val CatsEffectV           = "3.6.1"
+    val FlywayV               = "11.9.1"
+    val PostgresV             = "42.7.6"
+    val Http4sV               = "0.23.30"
+    val TapirV                = "1.11.33"
+    val ApiSpecV              = "0.11.9"
+    val SttpV                 = "3.11.0"
+    val CirceV                = "0.14.13"
+    val ScalikeJDBCV          = "4.3.3"
+    val TestContainersV       = "1.21.1"
+    val JsoupV                = "1.20.1"
+    val JavaMelodyV           = "2.5.0"
+    val EnumeratumV           = "1.9.0"
     val FlexmarkV             = "0.64.8"
 
     lazy val scalaUri = ("io.lemonlabs" %% "scala-uri" % "4.0.3").excludeAll("org.typelevel", "cats-parse")
@@ -80,8 +79,6 @@ object Dependencies {
       "org.jrobin"          % "jrobin"          % "1.5.9" // This is needed for javamelody graphing
     )
 
-    lazy val scalaTsi = "com.scalatsi" %% "scala-tsi" % ScalaTsiV
-
     lazy val circe: Seq[ModuleID] = Seq(
       "io.circe" %% "circe-generic" % CirceV,
       "io.circe" %% "circe-literal" % CirceV,
@@ -93,7 +90,7 @@ object Dependencies {
       "org.http4s"    %% "http4s-dsl"          % Http4sV,
       "org.http4s"    %% "http4s-circe"        % Http4sV,
       "org.http4s"    %% "http4s-ember-server" % Http4sV,
-      "org.typelevel" %% "cats-parse"          % "1.0.0"
+      "org.typelevel" %% "cats-parse"          % "1.1.0"
     )
 
     lazy val tapir: Seq[ModuleID] = Seq(
@@ -122,9 +119,10 @@ object Dependencies {
     lazy val logging: Seq[ModuleID] = Seq(
       "org.apache.logging.log4j"    % "log4j-api"         % Log4JV,
       "org.apache.logging.log4j"    % "log4j-core"        % Log4JV,
+      "org.apache.logging.log4j"    % "log4j-jul"         % Log4JV,
       "org.apache.logging.log4j"    % "log4j-slf4j2-impl" % Log4JV,
       "com.typesafe.scala-logging" %% "scala-logging"     % ScalaLoggingV,
-      "org.slf4j"                   % "slf4j-api"         % "2.0.12",
+      "org.slf4j"                   % "slf4j-api"         % "2.0.17",
       // We need jackson to load `log4j2.yaml`
       "com.fasterxml.jackson.core"       % "jackson-core"            % JacksonV,
       "com.fasterxml.jackson.core"       % "jackson-databind"        % JacksonV,
@@ -134,9 +132,9 @@ object Dependencies {
 
     // Sometimes we override transitive dependencies because of vulnerabilities, we put these here
     lazy val vulnerabilityOverrides: Seq[ModuleID] = Seq(
-      "commons-codec"             % "commons-codec" % "1.17.0",
+      "commons-codec"             % "commons-codec" % "1.18.0",
       "org.apache.httpcomponents" % "httpclient"    % "4.5.14",
-      "org.yaml"                  % "snakeyaml"     % "2.0"
+      "org.yaml"                  % "snakeyaml"     % "2.4"
     )
     lazy val jave: Seq[ModuleID] = Seq(
       "ws.schild" % "jave-core"     % "3.5.0",

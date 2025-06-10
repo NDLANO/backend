@@ -16,15 +16,14 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.*
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api.ErrorHandling
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, RedisClient, SearchApiClient}
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
@@ -57,9 +56,10 @@ trait TestEnvironment
     with Props
     with TestData
     with DBMigrator
+    with SearchLanguage
     with FrontpageApiClient
     with ImageApiClient {
-  val props: ArticleApiProperties = new ArticleApiProperties {
+  lazy val props: ArticleApiProperties = new ArticleApiProperties {
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
   }
@@ -96,4 +96,5 @@ trait TestEnvironment
   val clock: SystemClock = mock[SystemClock]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 }

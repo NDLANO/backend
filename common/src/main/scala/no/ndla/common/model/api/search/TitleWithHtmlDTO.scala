@@ -11,6 +11,7 @@ package no.ndla.common.model.api.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.language.model.LanguageField
+import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
 @description("Title of resource")
@@ -26,4 +27,5 @@ case class TitleWithHtmlDTO(
 object TitleWithHtmlDTO {
   implicit val encoder: Encoder[TitleWithHtmlDTO] = deriveEncoder
   implicit val decoder: Decoder[TitleWithHtmlDTO] = deriveDecoder
+  implicit val schema: Schema[TitleWithHtmlDTO]   = Schema.derived
 }

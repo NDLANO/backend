@@ -14,6 +14,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.errors.MissingIdException
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.draft.CommentDTO
 import no.ndla.common.model.api.search.{
@@ -25,10 +26,12 @@ import no.ndla.common.model.api.search.{
   MetaImageDTO,
   MultiSearchResultDTO,
   MultiSearchSummaryDTO,
+  NodeHitDTO,
   RevisionMetaDTO,
   SearchTrait,
   SearchType,
   StatusDTO,
+  SubjectPageSummaryDTO,
   TaxonomyResourceTypeDTO,
   TitleWithHtmlDTO
 }
@@ -36,6 +39,7 @@ import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
+import no.ndla.common.model.domain.frontpage.{AboutSubject, SubjectPage}
 import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep}
 import no.ndla.common.model.domain.{
   ArticleContent,
@@ -47,7 +51,7 @@ import no.ndla.common.model.domain.{
   ResourceType as MyNDLAResourceType
 }
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
-import no.ndla.language.model.Iso639
+import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.clients.MyNDLAApiClient
@@ -71,10 +75,10 @@ import org.jsoup.nodes.Entities.EscapeMode
 
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 trait SearchConverterService {
-  this: DraftApiClient & TaxonomyApiClient & ConverterService & Props & MyNDLAApiClient =>
+  this: DraftApiClient & TaxonomyApiClient & ConverterService & Props & MyNDLAApiClient & SearchLanguage =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
@@ -115,6 +119,39 @@ trait SearchConverterService {
           })
         traits
       })
+    }
+
+    def nodeHitAsMultiSummary(hit: SearchHit, language: String): Try[NodeHitDTO] = {
+      val searchableNode = CirceUtil.tryParseAs[SearchableNode](hit.sourceAsString).?
+      val title          = searchableNode.title.getLanguageOrDefault(language).getOrElse("")
+      val url            = searchableNode.url.map(urlPath => s"${props.ndlaFrontendUrl}$urlPath")
+
+      val context  = searchableNode.context.map(c => searchableContextToApiContext(c, language))
+      val contexts = filterContexts(searchableNode.contexts, language, true)
+
+      Success(
+        NodeHitDTO(
+          id = searchableNode.nodeId,
+          title = title,
+          url = url,
+          subjectPage = searchableNode.subjectPage.map(subjectPageToSummary(_, language)),
+          context = context,
+          contexts = contexts
+        )
+      )
+    }
+
+    private def subjectPageToSummary(subjectPage: SearchableSubjectPage, language: String): SubjectPageSummaryDTO = {
+      val metaDescription =
+        findByLanguageOrBestEffort(subjectPage.domainObject.metaDescription, language)
+          .map(meta => MetaDescriptionDTO(meta.metaDescription, meta.language))
+          .getOrElse(MetaDescriptionDTO("", UnknownLanguage.toString))
+
+      SubjectPageSummaryDTO(
+        id = subjectPage.id,
+        name = subjectPage.name,
+        metaDescription = metaDescription
+      )
     }
 
     private[service] def getAttributes(html: String): List[String] = {
@@ -177,25 +214,49 @@ trait SearchConverterService {
     ): List[SearchableTaxonomyContext] = {
       taxonomyContexts.map(context =>
         SearchableTaxonomyContext(
+          domainObject = context,
           publicId = context.publicId,
           contextId = context.contextId,
           rootId = context.rootId,
-          root = context.root,
           path = context.path,
           breadcrumbs = context.breadcrumbs,
           contextType = context.contextType.getOrElse(""),
           relevanceId = context.relevanceId,
-          relevance = context.relevance,
-          resourceTypes = context.resourceTypes,
+          resourceTypeIds = context.resourceTypes.map(_.id),
           parentIds = context.parentIds,
           isPrimary = context.isPrimary,
           isActive = context.isActive,
+          isVisible = context.isVisible,
           url = context.url
         )
       )
     }
 
-    private def toPlaintext(text: String): String = Jsoup.parseBodyFragment(text).text()
+    private def toPlaintext(text: String): String              = Jsoup.parseBodyFragment(text).text()
+    private def toPlaintext(lv: LanguageField[String]): String = toPlaintext(lv.value)
+
+    def getTypeNames(learningResourceType: LearningResourceType): List[String] = {
+      learningResourceType match {
+        case LearningResourceType.Article =>
+          List("article", "artikkel")
+        case LearningResourceType.TopicArticle =>
+          List("topic", "topic-article", "emne", "emneartikkel")
+        case LearningResourceType.FrontpageArticle =>
+          List(
+            "frontpage",
+            "frontpage article",
+            "forside",
+            "forsideartikkel",
+            "om-ndla",
+            "about-ndla",
+            "om-ndla-artikkel"
+          )
+        case LearningResourceType.LearningPath =>
+          List("learningpath", "læringssti", "sti", "læringsti")
+        case LearningResourceType.Concept | LearningResourceType.Gloss =>
+          List("concept", "forklaring", "konsept", "glose", "gloss")
+      }
+    }
 
     def asSearchableArticle(
         ai: Article,
@@ -204,12 +265,12 @@ trait SearchConverterService {
       val articleId = ai.id.get
       val taxonomyContexts = indexingBundle.taxonomyBundle match {
         case Some(bundle) =>
-          Success(getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true, filterContexts = true))
+          Success(getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true, filterContexts = false))
         case None =>
           taxonomyApiClient.getTaxonomyContext(
             s"urn:article:$articleId",
             filterVisibles = true,
-            filterContexts = true,
+            filterContexts = false,
             shouldUsePublishedTax = true
           )
       }
@@ -231,7 +292,9 @@ trait SearchConverterService {
         ai.content,
         ai.tags
       ).toList
-      val contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
+      val contexts             = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
+      val learningResourceType = LearningResourceType.fromArticleType(ai.articleType)
+      val typeNames            = getTypeNames(learningResourceType)
 
       Success(
         SearchableArticle(
@@ -242,9 +305,6 @@ trait SearchConverterService {
           content = model.SearchableLanguageValues(
             ai.content.map(article => LanguageValue(article.language, toPlaintext(article.content)))
           ),
-          visualElement = model.SearchableLanguageValues(
-            ai.visualElement.map(visual => LanguageValue(visual.language, visual.resource))
-          ),
           introduction = model.SearchableLanguageValues(
             ai.introduction.map(intro => LanguageValue(intro.language, toPlaintext(intro.introduction)))
           ),
@@ -254,6 +314,7 @@ trait SearchConverterService {
           tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
           lastUpdated = ai.updated,
           license = ai.copyright.license,
+          status = "PUBLISHED",
           authors = (ai.copyright.creators.map(_.name) ++ ai.copyright.processors
             .map(_.name) ++ ai.copyright.rightsholders.map(_.name)).toList,
           articleType = ai.articleType.entryName,
@@ -269,8 +330,9 @@ trait SearchConverterService {
           embedAttributes = embedAttributes,
           embedResourcesAndIds = embedResourcesAndIds,
           availability = ai.availability.toString,
-          learningResourceType = LearningResourceType.fromArticleType(ai.articleType),
-          domainObject = ai
+          learningResourceType = learningResourceType,
+          domainObject = ai,
+          typeName = typeNames
         )
       )
 
@@ -301,9 +363,9 @@ trait SearchConverterService {
           title = title,
           defaultTitle = defaultTitle.map(_.verdi),
           laereplanCode = laererplan,
-          domainObject = grepElement,
+          gjenbrukAv = gjenbrukAv,
           erstattesAv = erstattesAv,
-          gjenbrukAv = gjenbrukAv
+          domainObject = grepElement
         )
       )
     }
@@ -311,12 +373,12 @@ trait SearchConverterService {
     def asSearchableLearningPath(lp: LearningPath, indexingBundle: IndexingBundle): Try[SearchableLearningPath] = {
       val taxonomyContexts = indexingBundle.taxonomyBundle match {
         case Some(bundle) =>
-          Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true, filterContexts = true))
+          Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true, filterContexts = false))
         case None =>
           taxonomyApiClient.getTaxonomyContext(
             s"urn:learningpath:${lp.id.get}",
             filterVisibles = true,
-            filterContexts = true,
+            filterContexts = false,
             shouldUsePublishedTax = true
           )
       }
@@ -358,7 +420,8 @@ trait SearchConverterService {
           contextids =
             indexingBundle.taxonomyBundle.map(getTaxonomyContexids(lp.id.get, "learningpath", _)).getOrElse(List.empty),
           favorited = favorited,
-          learningResourceType = LearningResourceType.LearningPath
+          learningResourceType = LearningResourceType.LearningPath,
+          typeName = getTypeNames(LearningResourceType.LearningPath)
         )
       )
     }
@@ -379,7 +442,7 @@ trait SearchConverterService {
 
     def asSearchableConcept(c: Concept, indexingBundle: IndexingBundle): Try[SearchableConcept] = {
       val title     = SearchableLanguageValues.fromFields(c.title)
-      val content   = SearchableLanguageValues.fromFieldsMap(c.content, toPlaintext)
+      val content   = SearchableLanguageValues.fromFieldsMap(c.content)(toPlaintext)
       val tags      = SearchableLanguageList.fromFields(c.tags)
       val favorited = getFavoritedCountFor(indexingBundle, c.id.get.toString, List(MyNDLAResourceType.Concept)).?
 
@@ -391,7 +454,8 @@ trait SearchConverterService {
 
       val users: Seq[String] = c.updatedBy ++ c.editorNotes.map(_.user)
 
-      val status = StatusDTO(c.status.current.toString, c.status.other.map(_.toString).toSeq)
+      val status               = StatusDTO(c.status.current.toString, c.status.other.map(_.toString).toSeq)
+      val learningResourceType = LearningResourceType.fromConceptType(c.conceptType)
 
       Success(
         SearchableConcept(
@@ -399,7 +463,6 @@ trait SearchConverterService {
           conceptType = c.conceptType.entryName,
           title = title,
           content = content,
-          metaImage = c.metaImage,
           defaultTitle = title.defaultValue,
           tags = tags,
           lastUpdated = c.updated,
@@ -414,7 +477,8 @@ trait SearchConverterService {
           gloss = c.glossData.map(_.gloss),
           domainObject = c,
           favorited = favorited,
-          learningResourceType = LearningResourceType.fromConceptType(c.conceptType)
+          learningResourceType = learningResourceType,
+          typeName = getTypeNames(learningResourceType)
         )
       )
     }
@@ -424,12 +488,12 @@ trait SearchConverterService {
         val draftId = draft.id.get
         indexingBundle.taxonomyBundle match {
           case Some(bundle) =>
-            Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false, filterContexts = true))
+            Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false, filterContexts = false))
           case None =>
             taxonomyApiClient.getTaxonomyContext(
               s"urn:article:$draftId",
               filterVisibles = false,
-              filterContexts = true,
+              filterContexts = false,
               shouldUsePublishedTax = false
             )
         }
@@ -480,7 +544,7 @@ trait SearchConverterService {
           .getOrElse(Seq.empty)
       )
 
-      val primaryContext           = taxonomyContexts.find(_.isPrimary)
+      val primaryContext           = taxonomyContexts.find(tc => tc.isPrimary && tc.rootId.startsWith("urn:subject:"))
       val primaryRoot              = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
       val sortableResourceTypeName = getSortableResourceTypeName(draft, taxonomyContexts)
 
@@ -501,19 +565,19 @@ trait SearchConverterService {
             .map(_.map(_.favourites).sum)
       }).?
 
-      val title           = model.SearchableLanguageValues.fromFieldsMap(draft.title, toPlaintext)
-      val content         = model.SearchableLanguageValues.fromFieldsMap(draft.content, toPlaintext)
-      val visualElement   = model.SearchableLanguageValues.fromFields(draft.visualElement)
-      val introduction    = model.SearchableLanguageValues.fromFieldsMap(draft.introduction, toPlaintext)
-      val metaDescription = model.SearchableLanguageValues.fromFields(draft.metaDescription)
-      val contexts        = asSearchableTaxonomyContexts(taxonomyContexts)
+      val title                = SearchableLanguageValues.fromFieldsMap(draft.title)(toPlaintext)
+      val content              = SearchableLanguageValues.fromFieldsMap(draft.content)(toPlaintext)
+      val introduction         = SearchableLanguageValues.fromFieldsMap(draft.introduction)(toPlaintext)
+      val metaDescription      = SearchableLanguageValues.fromFields(draft.metaDescription)
+      val contexts             = asSearchableTaxonomyContexts(taxonomyContexts)
+      val learningResourceType = LearningResourceType.fromArticleType(draft.articleType)
+      val typeNames            = getTypeNames(learningResourceType)
 
       Success(
         SearchableDraft(
           id = draft.id.get,
           title = title,
           content = content,
-          visualElement = visualElement,
           introduction = introduction,
           metaDescription = metaDescription,
           tags = SearchableLanguageList(draft.tags.map(tag => LanguageValue(tag.language, tag.tags))),
@@ -529,6 +593,7 @@ trait SearchConverterService {
           contextids =
             indexingBundle.taxonomyBundle.map(getTaxonomyContexids(draft.id.get, "article", _)).getOrElse(List.empty),
           draftStatus = draftStatus,
+          status = draft.status.current.toString,
           users = users.distinct,
           previousVersionsNotes = draft.previousVersionsNotes.map(_.note).toList,
           grepContexts = getGrepContexts(draft.grepCodes, indexingBundle.grepBundle),
@@ -548,7 +613,8 @@ trait SearchConverterService {
           defaultResourceTypeName = sortableResourceTypeName.defaultValue,
           published = draft.published,
           favorited = favorited,
-          learningResourceType = LearningResourceType.fromArticleType(draft.articleType)
+          learningResourceType = learningResourceType,
+          typeName = typeNames
         )
       )
     }
@@ -647,12 +713,19 @@ trait SearchConverterService {
         language: String,
         filterInactive: Boolean
     ): List[ApiTaxonomyContextDTO] = {
-      val filtered = if (filterInactive) contexts.filter(c => c.isActive) else contexts
+      val filtered = contexts.filter { c =>
+        // Filter inactive if required, and also don't show programme contexts
+        (!filterInactive || c.isActive) && !c.rootId.startsWith("urn:programme:")
+      }
       filtered.sortBy(!_.isPrimary).map(c => searchableContextToApiContext(c, language))
     }
 
-    def articleHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummaryDTO = {
-      val searchableArticle = CirceUtil.unsafeParseAs[SearchableArticle](hit.sourceAsString)
+    def articleHitAsMultiSummary(
+        hit: SearchHit,
+        language: String,
+        filterInactive: Boolean
+    ): Try[MultiSearchSummaryDTO] = {
+      val searchableArticle = CirceUtil.tryParseAs[SearchableArticle](hit.sourceAsString).?
 
       val context  = searchableArticle.context.map(c => searchableContextToApiContext(c, language))
       val contexts = filterContexts(searchableArticle.contexts, language, filterInactive)
@@ -670,7 +743,7 @@ trait SearchConverterService {
       val metaDescriptions =
         searchableArticle.metaDescription.languageValues.map(lv => MetaDescriptionDTO(lv.value, lv.language))
       val visualElements =
-        searchableArticle.visualElement.languageValues.map(lv => api.article.VisualElementDTO(lv.value, lv.language))
+        searchableArticle.domainObject.visualElement.map(lv => api.article.VisualElementDTO(lv.value, lv.language))
       val metaImages = searchableArticle.metaImage.map(image => {
         val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
         MetaImageDTO(metaImageUrl, image.altText, image.language)
@@ -689,39 +762,45 @@ trait SearchConverterService {
 
       val url = s"${props.ExternalApiUrls("article-api")}/${searchableArticle.id}"
 
-      MultiSearchSummaryDTO(
-        id = searchableArticle.id,
-        title = title,
-        metaDescription = metaDescription,
-        metaImage = metaImage,
-        url = url,
-        context = context,
-        contexts = contexts,
-        supportedLanguages = supportedLanguages,
-        learningResourceType = searchableArticle.learningResourceType,
-        status = None,
-        traits = searchableArticle.traits,
-        score = hit.score,
-        highlights = getHighlights(hit.highlight),
-        paths = getPathsFromContext(searchableArticle.contexts),
-        lastUpdated = searchableArticle.lastUpdated,
-        license = Some(searchableArticle.license),
-        revisions = Seq.empty,
-        responsible = None,
-        comments = None,
-        prioritized = None,
-        priority = None,
-        resourceTypeName = None,
-        parentTopicName = None,
-        primaryRootName = None,
-        published = None,
-        favorited = None,
-        resultType = SearchType.Articles
+      Success(
+        MultiSearchSummaryDTO(
+          id = searchableArticle.id,
+          title = title,
+          metaDescription = metaDescription,
+          metaImage = metaImage,
+          url = url,
+          context = context,
+          contexts = contexts,
+          supportedLanguages = supportedLanguages,
+          learningResourceType = searchableArticle.learningResourceType,
+          status = None,
+          traits = searchableArticle.traits,
+          score = hit.score,
+          highlights = getHighlights(hit.highlight),
+          paths = getPathsFromContext(searchableArticle.contexts),
+          lastUpdated = searchableArticle.lastUpdated,
+          license = Some(searchableArticle.license),
+          revisions = Seq.empty,
+          responsible = None,
+          comments = None,
+          prioritized = None,
+          priority = None,
+          resourceTypeName = None,
+          parentTopicName = None,
+          primaryRootName = None,
+          published = None,
+          favorited = None,
+          resultType = SearchType.Articles
+        )
       )
     }
 
-    def draftHitAsMultiSummary(hit: SearchHit, language: String, filterInactive: Boolean): MultiSearchSummaryDTO = {
-      val searchableDraft = CirceUtil.unsafeParseAs[SearchableDraft](hit.sourceAsString)
+    def draftHitAsMultiSummary(
+        hit: SearchHit,
+        language: String,
+        filterInactive: Boolean
+    ): Try[MultiSearchSummaryDTO] = {
+      val searchableDraft = CirceUtil.tryParseAs[SearchableDraft](hit.sourceAsString).?
 
       val context  = searchableDraft.context.map(c => searchableContextToApiContext(c, language))
       val contexts = filterContexts(searchableDraft.contexts, language, filterInactive)
@@ -742,7 +821,7 @@ trait SearchConverterService {
           common.model.api.search.MetaDescriptionDTO(lv.value, lv.language)
         )
       val visualElements =
-        searchableDraft.visualElement.languageValues.map(lv => api.article.VisualElementDTO(lv.value, lv.language))
+        searchableDraft.domainObject.visualElement.map(lv => api.article.VisualElementDTO(lv.value, lv.language))
       val metaImages = searchableDraft.domainObject.metaImage.map(image => {
         val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
         common.model.api.search.MetaImageDTO(metaImageUrl, image.altText, image.language)
@@ -770,36 +849,38 @@ trait SearchConverterService {
       val parentTopicName  = searchableDraft.parentTopicName.getLanguageOrDefault(language)
       val primaryRootName  = searchableDraft.primaryRoot.getLanguageOrDefault(language)
 
-      MultiSearchSummaryDTO(
-        id = searchableDraft.id,
-        title = title,
-        metaDescription = metaDescription,
-        metaImage = metaImage,
-        url = url,
-        context = context,
-        contexts = contexts,
-        supportedLanguages = supportedLanguages,
-        learningResourceType = searchableDraft.learningResourceType,
-        status = Some(
-          common.model.api.search.StatusDTO(searchableDraft.draftStatus.current, searchableDraft.draftStatus.other)
-        ),
-        traits = searchableDraft.traits,
-        score = hit.score,
-        highlights = getHighlights(hit.highlight),
-        paths = getPathsFromContext(searchableDraft.contexts),
-        lastUpdated = searchableDraft.lastUpdated,
-        license = searchableDraft.license,
-        revisions = revisions,
-        responsible = responsible,
-        comments = Some(comments),
-        prioritized = Some(searchableDraft.priority == Priority.Prioritized),
-        priority = Some(searchableDraft.priority.entryName),
-        resourceTypeName = resourceTypeName,
-        parentTopicName = parentTopicName,
-        primaryRootName = primaryRootName,
-        published = Some(searchableDraft.published),
-        favorited = Some(searchableDraft.favorited),
-        resultType = SearchType.Drafts
+      Success(
+        MultiSearchSummaryDTO(
+          id = searchableDraft.id,
+          title = title,
+          metaDescription = metaDescription,
+          metaImage = metaImage,
+          url = url,
+          context = context,
+          contexts = contexts,
+          supportedLanguages = supportedLanguages,
+          learningResourceType = searchableDraft.learningResourceType,
+          status = Some(
+            common.model.api.search.StatusDTO(searchableDraft.draftStatus.current, searchableDraft.draftStatus.other)
+          ),
+          traits = searchableDraft.traits,
+          score = hit.score,
+          highlights = getHighlights(hit.highlight),
+          paths = getPathsFromContext(searchableDraft.contexts),
+          lastUpdated = searchableDraft.lastUpdated,
+          license = searchableDraft.license,
+          revisions = revisions,
+          responsible = responsible,
+          comments = Some(comments),
+          prioritized = Some(searchableDraft.priority == Priority.Prioritized),
+          priority = Some(searchableDraft.priority.entryName),
+          resourceTypeName = resourceTypeName,
+          parentTopicName = parentTopicName,
+          primaryRootName = primaryRootName,
+          published = Some(searchableDraft.published),
+          favorited = Some(searchableDraft.favorited),
+          resultType = SearchType.Drafts
+        )
       )
     }
 
@@ -807,8 +888,8 @@ trait SearchConverterService {
         hit: SearchHit,
         language: String,
         filterInactive: Boolean
-    ): MultiSearchSummaryDTO = {
-      val searchableLearningPath = CirceUtil.unsafeParseAs[SearchableLearningPath](hit.sourceAsString)
+    ): Try[MultiSearchSummaryDTO] = {
+      val searchableLearningPath = CirceUtil.tryParseAs[SearchableLearningPath](hit.sourceAsString).?
 
       val context  = searchableLearningPath.context.map(c => searchableContextToApiContext(c, language))
       val contexts = filterContexts(searchableLearningPath.contexts, language, filterInactive)
@@ -844,39 +925,41 @@ trait SearchConverterService {
           )
         )
 
-      MultiSearchSummaryDTO(
-        id = searchableLearningPath.id,
-        title = title,
-        metaDescription = metaDescription,
-        metaImage = metaImage,
-        url = url,
-        context = context,
-        contexts = contexts,
-        supportedLanguages = supportedLanguages,
-        learningResourceType = LearningResourceType.LearningPath,
-        status = Some(common.model.api.search.StatusDTO(searchableLearningPath.status, Seq.empty)),
-        traits = List.empty,
-        score = hit.score,
-        highlights = getHighlights(hit.highlight),
-        paths = getPathsFromContext(searchableLearningPath.contexts),
-        lastUpdated = searchableLearningPath.lastUpdated,
-        license = Some(searchableLearningPath.license),
-        revisions = Seq.empty,
-        responsible = None,
-        comments = None,
-        prioritized = None,
-        priority = None,
-        resourceTypeName = None,
-        parentTopicName = None,
-        primaryRootName = None,
-        published = None,
-        favorited = Some(searchableLearningPath.favorited),
-        resultType = SearchType.LearningPaths
+      Success(
+        MultiSearchSummaryDTO(
+          id = searchableLearningPath.id,
+          title = title,
+          metaDescription = metaDescription,
+          metaImage = metaImage,
+          url = url,
+          context = context,
+          contexts = contexts,
+          supportedLanguages = supportedLanguages,
+          learningResourceType = LearningResourceType.LearningPath,
+          status = Some(common.model.api.search.StatusDTO(searchableLearningPath.status, Seq.empty)),
+          traits = List.empty,
+          score = hit.score,
+          highlights = getHighlights(hit.highlight),
+          paths = getPathsFromContext(searchableLearningPath.contexts),
+          lastUpdated = searchableLearningPath.lastUpdated,
+          license = Some(searchableLearningPath.license),
+          revisions = Seq.empty,
+          responsible = None,
+          comments = None,
+          prioritized = None,
+          priority = None,
+          resourceTypeName = None,
+          parentTopicName = None,
+          primaryRootName = None,
+          published = None,
+          favorited = Some(searchableLearningPath.favorited),
+          resultType = SearchType.LearningPaths
+        )
       )
     }
 
-    def conceptHitAsMultiSummary(hit: SearchHit, language: String): MultiSearchSummaryDTO = {
-      val searchableConcept = CirceUtil.unsafeParseAs[SearchableConcept](hit.sourceAsString)
+    def conceptHitAsMultiSummary(hit: SearchHit, language: String): Try[MultiSearchSummaryDTO] = {
+      val searchableConcept = CirceUtil.tryParseAs[SearchableConcept](hit.sourceAsString).?
 
       val titles =
         searchableConcept.title.languageValues.map(lv =>
@@ -895,11 +978,6 @@ trait SearchConverterService {
           common.model.api.search.TitleWithHtmlDTO("", "", UnknownLanguage.toString)
         )
       val url = s"${props.ExternalApiUrls("concept-api")}/${searchableConcept.id}"
-      val metaImages = searchableConcept.domainObject.metaImage.map(image => {
-        val metaImageUrl = s"${props.ExternalApiUrls("raw-image")}/${image.imageId}"
-        common.model.api.search.MetaImageDTO(metaImageUrl, image.altText, image.language)
-      })
-      val metaImage = findByLanguageOrBestEffort(metaImages, language)
 
       val responsible = searchableConcept.responsible.map(r =>
         common.model.api.search.DraftResponsibleDTO(r.responsibleId, r.lastUpdated)
@@ -908,34 +986,36 @@ trait SearchConverterService {
         common.model.api.search.MetaDescriptionDTO("", UnknownLanguage.toString)
       )
 
-      MultiSearchSummaryDTO(
-        id = searchableConcept.id,
-        title = title,
-        metaDescription = metaDescription,
-        metaImage = metaImage,
-        url = url,
-        context = None,
-        contexts = List.empty,
-        supportedLanguages = supportedLanguages,
-        learningResourceType = searchableConcept.learningResourceType,
-        status = Some(searchableConcept.draftStatus),
-        traits = List.empty,
-        score = hit.score,
-        highlights = getHighlights(hit.highlight),
-        paths = List.empty,
-        lastUpdated = searchableConcept.lastUpdated,
-        license = searchableConcept.license,
-        revisions = Seq.empty,
-        responsible = responsible,
-        comments = None,
-        prioritized = None,
-        priority = None,
-        resourceTypeName = None,
-        parentTopicName = None,
-        primaryRootName = None,
-        published = None,
-        favorited = Some(searchableConcept.favorited),
-        resultType = SearchType.Concepts
+      Success(
+        MultiSearchSummaryDTO(
+          id = searchableConcept.id,
+          title = title,
+          metaDescription = metaDescription,
+          metaImage = None,
+          url = url,
+          context = None,
+          contexts = List.empty,
+          supportedLanguages = supportedLanguages,
+          learningResourceType = searchableConcept.learningResourceType,
+          status = Some(searchableConcept.draftStatus),
+          traits = List.empty,
+          score = hit.score,
+          highlights = getHighlights(hit.highlight),
+          paths = List.empty,
+          lastUpdated = searchableConcept.lastUpdated,
+          license = searchableConcept.license,
+          revisions = Seq.empty,
+          responsible = responsible,
+          comments = None,
+          prioritized = None,
+          priority = None,
+          resourceTypeName = None,
+          parentTopicName = None,
+          primaryRootName = None,
+          published = None,
+          favorited = Some(searchableConcept.favorited),
+          resultType = SearchType.Concepts
+        )
       )
     }
 
@@ -943,19 +1023,21 @@ trait SearchConverterService {
         context: SearchableTaxonomyContext,
         language: String
     ): ApiTaxonomyContextDTO = {
-      val subjectName = findByLanguageOrBestEffort(context.root.languageValues, language).map(_.value).getOrElse("")
+      val subjectName =
+        findByLanguageOrBestEffort(context.domainObject.root.languageValues, language).map(_.value).getOrElse("")
       val breadcrumbs = findByLanguageOrBestEffort(context.breadcrumbs.languageValues, language)
         .map(_.value)
         .getOrElse(Seq.empty)
         .toList
 
-      val resourceTypes = context.resourceTypes.map(rt => {
+      val resourceTypes = context.domainObject.resourceTypes.map(rt => {
         val name = findByLanguageOrBestEffort(rt.name.languageValues, language)
           .getOrElse(LanguageValue(UnknownLanguage.toString, ""))
         TaxonomyResourceTypeDTO(id = rt.id, name = name.value, language = name.language)
       })
 
-      val relevance = findByLanguageOrBestEffort(context.relevance.languageValues, language).map(_.value).getOrElse("")
+      val relevance =
+        findByLanguageOrBestEffort(context.domainObject.relevance.languageValues, language).map(_.value).getOrElse("")
 
       ApiTaxonomyContextDTO(
         publicId = context.publicId,
@@ -1036,22 +1118,31 @@ trait SearchConverterService {
       bundle match {
         case None => List.empty
         case Some(grepBundle) =>
-          grepCodes
-            .map(grepCode =>
-              SearchableGrepContext(
-                grepCode,
-                grepBundle.grepContextByCode
-                  .get(grepCode)
-                  .flatMap(element =>
-                    element.getTitle.find(title => title.spraak == "default").map(title => title.verdi)
+          grepCodes.flatMap { grepCode =>
+            grepBundle.grepContextByCode
+              .get(grepCode) match {
+              case Some(element: GrepKompetansemaalSett) =>
+                val subContexts = getGrepContexts(element.kompetansemaal.map(_.kode), bundle)
+                subContexts :+ SearchableGrepContext(
+                  code = grepCode,
+                  title = element.getTitleValue("default"),
+                  status = element.status.entryName
+                )
+              case Some(element) =>
+                List(
+                  SearchableGrepContext(
+                    code = grepCode,
+                    title = element.getTitleValue("default"),
+                    status = element.status.entryName
                   )
-              )
-            )
-            .toList
+                )
+              case None => List(SearchableGrepContext(code = grepCode, title = None, status = ""))
+            }
+          }.toList
       }
     }
 
-    def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResultDTO =
+    def toApiMultiSearchResult(searchResult: domain.SearchResult): MultiSearchResultDTO = {
       common.model.api.search.MultiSearchResultDTO(
         searchResult.totalCount,
         searchResult.page,
@@ -1061,6 +1152,7 @@ trait SearchConverterService {
         searchResult.suggestions,
         searchResult.aggregations.map(toApiMultiTermsAggregation)
       )
+    }
 
     def toApiGroupMultiSearchResult(group: String, searchResult: domain.SearchResult): GroupSearchResultDTO =
       api.GroupSearchResultDTO(
@@ -1074,6 +1166,65 @@ trait SearchConverterService {
         group
       )
 
-  }
+    private def asFrontPage(frontpage: Option[SubjectPage]): Try[Option[SearchableSubjectPage]] = {
+      frontpage match {
+        case None => Success(None)
+        case Some(fp) =>
+          fp.id match {
+            case None =>
+              Failure(MissingIdException("Missing id for fetched frontpage. This is weird and probably a bug."))
+            case Some(id) =>
+              val aboutTitles       = SearchableLanguageValues.fromFieldsMap[AboutSubject](fp.about)(_.title)
+              val aboutDescriptions = SearchableLanguageValues.fromFieldsMap[AboutSubject](fp.about)(_.description)
+              val metaDescriptions  = SearchableLanguageValues.fromFields(fp.metaDescription)
+              Success(
+                Some(
+                  SearchableSubjectPage(
+                    id = id,
+                    name = fp.name,
+                    aboutTitle = aboutTitles,
+                    aboutDescription = aboutDescriptions,
+                    metaDescription = metaDescriptions,
+                    domainObject = fp
+                  )
+                )
+              )
+          }
+      }
+    }
 
+    def asSearchableNode(
+        node: Node,
+        frontpage: Option[SubjectPage],
+        indexingBundle: IndexingBundle
+    ): Try[SearchableNode] = {
+      asFrontPage(frontpage).map { frontpage =>
+        val context  = node.context.map(ctx => asSearchableTaxonomyContexts(List(ctx)).head)
+        val contexts = asSearchableTaxonomyContexts(node.contexts)
+        val grepContexts =
+          node.metadata.map(meta => getGrepContexts(meta.grepCodes, indexingBundle.grepBundle)).getOrElse(List.empty)
+
+        val typeNames = node.nodeType match {
+          case NodeType.NODE      => List("node")
+          case NodeType.SUBJECT   => List("fag", "subject")
+          case NodeType.TOPIC     => List("emne", "topic")
+          case NodeType.RESOURCE  => List("ressurs", "resource")
+          case NodeType.PROGRAMME => List("programfag", "program", "programme")
+        }
+
+        SearchableNode(
+          nodeId = node.id,
+          title = getSearchableLanguageValues(node.name, node.translations),
+          contentUri = node.contentUri,
+          url = node.url,
+          nodeType = node.nodeType,
+          subjectPage = frontpage,
+          context = context.orElse(contexts.find(_.isPrimary)),
+          contexts = contexts,
+          grepContexts = grepContexts,
+          typeName = typeNames
+        )
+      }
+    }
+  }
 }

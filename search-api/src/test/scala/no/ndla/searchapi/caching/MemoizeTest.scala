@@ -8,10 +8,10 @@
 
 package no.ndla.searchapi.caching
 
-import no.ndla.searchapi.UnitSuite
+import no.ndla.testbase.UnitTestSuiteBase
 import org.mockito.Mockito.{times, verify, when}
 
-class MemoizeTest extends UnitSuite {
+class MemoizeTest extends UnitTestSuiteBase {
 
   class Target {
     def targetMethod(): String = "Hei"

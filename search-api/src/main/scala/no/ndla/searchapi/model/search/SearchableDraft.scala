@@ -21,7 +21,6 @@ case class SearchableDraft(
     id: Long,
     title: SearchableLanguageValues,
     content: SearchableLanguageValues,
-    visualElement: SearchableLanguageValues,
     introduction: SearchableLanguageValues,
     metaDescription: SearchableLanguageValues,
     tags: SearchableLanguageList,
@@ -36,6 +35,7 @@ case class SearchableDraft(
     contexts: List[SearchableTaxonomyContext],
     contextids: List[String],
     draftStatus: SearchableStatus,
+    status: String,
     users: List[String],
     previousVersionsNotes: List[String],
     grepContexts: List[SearchableGrepContext],
@@ -55,7 +55,8 @@ case class SearchableDraft(
     defaultResourceTypeName: Option[String],
     published: NDLADate,
     favorited: Long,
-    learningResourceType: LearningResourceType
+    learningResourceType: LearningResourceType,
+    typeName: List[String]
 )
 
 object SearchableDraft {

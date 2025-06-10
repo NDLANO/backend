@@ -11,6 +11,7 @@ package no.ndla.searchapi.model.search
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.domain.ArticleMetaImage
+import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
@@ -29,8 +30,6 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
         LanguageValue("en", "I'm in my mums car wroomwroom")
       )
     )
-
-    val visualElements = SearchableLanguageValues(Seq(LanguageValue("nn", "image"), LanguageValue("nb", "image")))
 
     val introductions = SearchableLanguageValues(
       Seq(
@@ -66,12 +65,12 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       id = 100,
       title = titles,
       content = contents,
-      visualElement = visualElements,
       introduction = introductions,
       metaDescription = metaDescriptions,
       tags = tags,
       lastUpdated = TestData.today,
-      license = "by-sa",
+      license = License.CC_BY_SA.toString,
+      status = "PUBLISHED",
       authors = List("Jonas", "Papi"),
       articleType = LearningResourceType.Article.toString,
       metaImage = metaImages,
@@ -80,14 +79,17 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       context = searchableTaxonomyContexts.headOption,
       contexts = searchableTaxonomyContexts,
       contextids = searchableTaxonomyContexts.map(_.contextId),
-      grepContexts =
-        List(SearchableGrepContext("K123", Some("some title")), SearchableGrepContext("K456", Some("some title 2"))),
+      grepContexts = List(
+        SearchableGrepContext("K123", Some("some title"), "Published"),
+        SearchableGrepContext("K456", Some("some title 2"), "Published")
+      ),
       traits = List.empty,
       embedAttributes = embedAttrs,
       embedResourcesAndIds = embedResourcesAndIds,
       availability = "everyone",
       learningResourceType = LearningResourceType.Article,
-      domainObject = TestData.article1
+      domainObject = TestData.article1,
+      typeName = List.empty
     )
     val json         = CirceUtil.toJsonString(original)
     val deserialized = CirceUtil.unsafeParseAs[SearchableArticle](json)
@@ -109,8 +111,6 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       )
     )
 
-    val visualElements = SearchableLanguageValues(Seq(LanguageValue("nn", "image"), LanguageValue("nb", "image")))
-
     val introductions = SearchableLanguageValues(
       Seq(
         LanguageValue("en", "Wroom wroom")
@@ -145,12 +145,12 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       id = 100,
       title = titles,
       content = contents,
-      visualElement = visualElements,
       introduction = introductions,
       metaDescription = metaDescriptions,
       tags = tags,
       lastUpdated = TestData.today,
-      license = "by-sa",
+      license = License.CC_BY_SA.toString,
+      status = "PUBLISHED",
       authors = List("Jonas", "Papi"),
       articleType = LearningResourceType.Article.toString,
       metaImage = metaImages,
@@ -159,14 +159,17 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       context = Some(singleSearchableTaxonomyContext),
       contexts = List(singleSearchableTaxonomyContext),
       contextids = List(singleSearchableTaxonomyContext.contextId),
-      grepContexts =
-        List(SearchableGrepContext("K123", Some("some title")), SearchableGrepContext("K456", Some("some title 2"))),
+      grepContexts = List(
+        SearchableGrepContext("K123", Some("some title"), "Published"),
+        SearchableGrepContext("K456", Some("some title 2"), "Published")
+      ),
       traits = List.empty,
       embedAttributes = embedAttrs,
       embedResourcesAndIds = embedResourcesAndIds,
       availability = "everyone",
       learningResourceType = LearningResourceType.Article,
-      domainObject = TestData.article1
+      domainObject = TestData.article1,
+      typeName = List.empty
     )
 
     val json         = CirceUtil.toJsonString(original)

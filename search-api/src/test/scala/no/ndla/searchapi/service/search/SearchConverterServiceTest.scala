@@ -14,14 +14,17 @@ import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.caching.Memoize
+import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.grep.{
   BelongsToObj,
   GrepKjerneelement,
   GrepKompetansemaal,
+  GrepKompetansemaalSett,
+  GrepTextObj,
   GrepTitle,
   GrepTverrfagligTema,
-  GrepTextObj
+  ReferenceObj
 }
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
 import no.ndla.searchapi.model.taxonomy.*
@@ -80,6 +83,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       List.empty,
       NodeType.RESOURCE,
       List("asdf3456"),
+      None,
       List.empty
     ),
     Node(
@@ -92,6 +96,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       List.empty,
       NodeType.TOPIC,
       List("asdf3457"),
+      None,
       List.empty
     ),
     Node(
@@ -104,6 +109,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       List.empty,
       NodeType.SUBJECT,
       List("asdf3458"),
+      None,
       List.empty
     )
   )
@@ -189,11 +195,11 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
         )
       )
 
-    searchable2.contexts.head.resourceTypes.map(_.id).sorted should be(
+    searchable2.contexts.head.resourceTypeIds.sorted should be(
       Seq("urn:resourcetype:subjectMaterial", "urn:resourcetype:academicArticle").sorted
     )
-    searchable4.contexts.head.resourceTypes.map(_.id).sorted should be(Seq("urn:resourcetype:subjectMaterial").sorted)
-    searchable7.contexts.head.resourceTypes.map(_.id).sorted should be(
+    searchable4.contexts.head.resourceTypeIds.sorted should be(Seq("urn:resourcetype:subjectMaterial").sorted)
+    searchable7.contexts.head.resourceTypeIds.sorted should be(
       Seq(
         "urn:resourcetype:nested",
         "urn:resourcetype:peerEvaluation",
@@ -304,13 +310,17 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       )
 
     searchable1.contexts.size should be(2)
-    searchable1.contexts.map(_.root.languageValues.map(_.value)) should be(Seq(Seq("Matte"), Seq("Historie")))
+    searchable1.contexts.map(_.domainObject.root.languageValues.map(_.value)) should be(
+      Seq(Seq("Matte"), Seq("Historie"))
+    )
 
     searchable4.contexts.size should be(1)
-    searchable4.contexts.head.root.languageValues.map(_.value) should be(Seq("Matte"))
+    searchable4.contexts.head.domainObject.root.languageValues.map(_.value) should be(Seq("Matte"))
 
     searchable5.contexts.size should be(2)
-    searchable5.contexts.map(_.root.languageValues.map(_.value)) should be(Seq(Seq("Historie"), Seq("Matte")))
+    searchable5.contexts.map(_.domainObject.root.languageValues.map(_.value)) should be(
+      Seq(Seq("Historie"), Seq("Matte"))
+    )
   }
 
   test("That invisible contexts are not indexed") {
@@ -443,9 +453,9 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asSearchableArticle converts grepContexts correctly based on article grepCodes if grepBundle is empty") {
     val article = TestData.emptyDomainArticle.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepContexts = List(
-      SearchableGrepContext("KE12", None),
-      SearchableGrepContext("KM123", None),
-      SearchableGrepContext("TT2", None)
+      SearchableGrepContext("KE12", None, ""),
+      SearchableGrepContext("KM123", None, ""),
+      SearchableGrepContext("TT2", None, "")
     )
     val Success(searchableArticle) =
       searchConverterService.asSearchableArticle(
@@ -462,9 +472,13 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asSearchableArticle converts grepContexts correctly based on grepBundle if article has grepCodes") {
     val article = TestData.emptyDomainArticle.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepContexts = List(
-      SearchableGrepContext("KE12", Some("Utforsking og problemløysing")),
-      SearchableGrepContext("KM123", Some("bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")),
-      SearchableGrepContext("TT2", Some("Demokrati og medborgerskap"))
+      SearchableGrepContext("KE12", Some("Utforsking og problemløysing"), "Published"),
+      SearchableGrepContext(
+        "KM123",
+        Some("bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
+        "Published"
+      ),
+      SearchableGrepContext("TT2", Some("Demokrati og medborgerskap"), "Published")
     )
     val Success(searchableArticle) =
       searchConverterService.asSearchableArticle(
@@ -489,9 +503,9 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asSearchableDraft converts grepContexts correctly based on draft grepCodes if grepBundle is empty") {
     val draft = TestData.emptyDomainDraft.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepContexts = List(
-      SearchableGrepContext("KE12", None),
-      SearchableGrepContext("KM123", None),
-      SearchableGrepContext("TT2", None)
+      SearchableGrepContext("KE12", None, ""),
+      SearchableGrepContext("KM123", None, ""),
+      SearchableGrepContext("TT2", None, "")
     )
     val Success(searchableArticle) =
       searchConverterService.asSearchableDraft(
@@ -507,34 +521,59 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       kjerneelementer = List(
         GrepKjerneelement(
           "KE12",
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel12"))),
           GrepTextObj(List(GrepTitle("default", ""))),
-          BelongsToObj("LP123", "Dette er LP123")
+          BelongsToObj(
+            "LP123",
+            GrepStatusDTO.Published,
+            "Dette er LP123"
+          )
         ),
         GrepKjerneelement(
           "KE34",
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel34"))),
           GrepTextObj(List(GrepTitle("default", ""))),
-          BelongsToObj("LP123", "Dette er LP123")
+          BelongsToObj(
+            "LP123",
+            GrepStatusDTO.Published,
+            "Dette er LP123"
+          )
         )
       ),
       kompetansemaal = List(
         GrepKompetansemaal(
           "KM123",
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel123"))),
-          BelongsToObj("LP123", "Dette er LP123"),
-          BelongsToObj("KMS123", "Dette er KMS123"),
+          BelongsToObj(
+            "LP123",
+            GrepStatusDTO.Published,
+            "Dette er LP123"
+          ),
+          BelongsToObj(
+            "KMS123",
+            GrepStatusDTO.Published,
+            "Dette er KMS123"
+          ),
           List(),
           List(),
           None
         )
       ),
-      tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "tittel2"))))
+      tverrfagligeTemaer = List(
+        GrepTverrfagligTema(
+          "TT2",
+          GrepStatusDTO.Published,
+          Seq(GrepTitle("default", "tittel2"))
+        )
+      )
     )
     val grepContexts = List(
-      SearchableGrepContext("KE12", Some("tittel12")),
-      SearchableGrepContext("KM123", Some("tittel123")),
-      SearchableGrepContext("TT2", Some("tittel2"))
+      SearchableGrepContext("KE12", Some("tittel12"), "Published"),
+      SearchableGrepContext("KM123", Some("tittel123"), "Published"),
+      SearchableGrepContext("TT2", Some("tittel2"), "Published")
     )
     val Success(searchableArticle) =
       searchConverterService.asSearchableDraft(draft, IndexingBundle(Some(grepBundle), Some(emptyBundle), None))
@@ -547,29 +586,42 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       kjerneelementer = List(
         GrepKjerneelement(
           "KE12",
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel12"))),
           GrepTextObj(List(GrepTitle("default", ""))),
-          BelongsToObj("LP123", "Dette er LP123")
+          BelongsToObj(
+            "LP123",
+            GrepStatusDTO.Published,
+            "Dette er LP123"
+          )
         ),
         GrepKjerneelement(
           "KE34",
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel34"))),
           GrepTextObj(List(GrepTitle("default", ""))),
-          BelongsToObj("LP123", "Dette er LP123")
+          BelongsToObj(
+            "LP123",
+            GrepStatusDTO.Published,
+            "Dette er LP123"
+          )
         )
       ),
       kompetansemaal = List(
         GrepKompetansemaal(
           "KM123",
+          GrepStatusDTO.Published,
           GrepTextObj(List(GrepTitle("default", "tittel123"))),
-          BelongsToObj("LP123", "Dette er LP123"),
-          BelongsToObj("KMS123", "Dette er KMS123"),
+          BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
+          BelongsToObj("KMS123", GrepStatusDTO.Published, "Dette er KMS123"),
           List(),
           List(),
           None
         )
       ),
-      tverrfagligeTemaer = List(GrepTverrfagligTema("TT2", Seq(GrepTitle("default", "tittel2"))))
+      tverrfagligeTemaer = List(
+        GrepTverrfagligTema("TT2", GrepStatusDTO.Published, Seq(GrepTitle("default", "tittel2")))
+      )
     )
     val grepContexts = List.empty
 
@@ -583,8 +635,11 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       TestData.emptyDomainArticle.copy(
         id = Some(99),
         content = Seq(
-          ArticleContent(s"Sjekk denne h5p-en <$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/id\">", "nb"),
-          ArticleContent(s"Fil <$EmbedTagName data-resource=\"file\" data-path=\"/file/path\">", "nn")
+          ArticleContent(
+            s"Sjekk denne h5p-en <$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName>",
+            "nb"
+          ),
+          ArticleContent(s"Fil <$EmbedTagName data-resource=\"file\" data-path=\"/file/path\"></$EmbedTagName>", "nn")
         )
       )
 
@@ -599,13 +654,16 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       TestData.emptyDomainArticle.copy(
         id = Some(99),
         content = Seq(
-          ArticleContent(s"Skikkelig bra h5p: <$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/id\">", "nb"),
           ArticleContent(
-            s"Fin video <$EmbedTagName data-resource=\"external\" data-url=\"https://youtu.be/id\">",
+            s"Skikkelig bra h5p: <$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName>",
+            "nb"
+          ),
+          ArticleContent(
+            s"Fin video <$EmbedTagName data-resource=\"external\" data-url=\"https://youtu.be/id\"></$EmbedTagName>",
             "nn"
           ),
           ArticleContent(
-            s"Movie trailer <$EmbedTagName data-resource=\"iframe\" data-url=\"https://www.imdb.com/video/vi3074735641\">",
+            s"Movie trailer <$EmbedTagName data-resource=\"iframe\" data-url=\"https://www.imdb.com/video/vi3074735641\"></$EmbedTagName>",
             "en"
           )
         )
@@ -621,7 +679,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That extracting attributes extracts data-title but not all attributes") {
     val html =
-      s"""<section>Hei<p align="center">Heihei</p><$EmbedTagName class="testklasse" tulleattributt data-resource_id="55" data-title="For ei tittel" />"""
+      s"""<section>Hei<p align="center">Heihei</p><$EmbedTagName class="testklasse" tulleattributt data-resource_id="55" data-title="For ei tittel"></$EmbedTagName>"""
     val result = searchConverterService.getAttributes(html)
     result should be(List("For ei tittel"))
   }
@@ -650,6 +708,54 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
         )
       )
     )
+  }
+
+  test("That asSearchableNode converts grepContexts correctly based on grepBundle if node has KV grepCode") {
+    val node = TestData.subject_1.copy(metadata = Some(Metadata(Seq("KV123"), visible = true, Map.empty)))
+    val grepBundle = TestData.emptyGrepBundle.copy(
+      kompetansemaalsett = List(
+        GrepKompetansemaalSett(
+          "KV123",
+          GrepStatusDTO.Published,
+          GrepTextObj(List(GrepTitle("default", "tittel123"))),
+          BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
+          List(
+            ReferenceObj("KM123", GrepStatusDTO.Published, "Tittel KM123"),
+            ReferenceObj("KM234", GrepStatusDTO.Published, "Tittel KM234")
+          )
+        )
+      ),
+      kompetansemaal = List(
+        GrepKompetansemaal(
+          "KM123",
+          GrepStatusDTO.Published,
+          GrepTextObj(List(GrepTitle("default", "tittel123"))),
+          BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
+          BelongsToObj("KV123", GrepStatusDTO.Published, "Dette er KV123"),
+          List(),
+          List(),
+          None
+        ),
+        GrepKompetansemaal(
+          "KM234",
+          GrepStatusDTO.Published,
+          GrepTextObj(List(GrepTitle("default", "tittel234"))),
+          BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
+          BelongsToObj("KV123", GrepStatusDTO.Published, "Dette er KV123"),
+          List(),
+          List(),
+          None
+        )
+      )
+    )
+    val grepContexts = List(
+      SearchableGrepContext("KM123", Some("tittel123"), "Published"),
+      SearchableGrepContext("KM234", Some("tittel234"), "Published"),
+      SearchableGrepContext("KV123", Some("tittel123"), "Published")
+    )
+    val Success(searchableNode) =
+      searchConverterService.asSearchableNode(node, None, IndexingBundle(Some(grepBundle), Some(emptyBundle), None))
+    searchableNode.grepContexts should equal(grepContexts)
   }
 
   private def verifyTitles(searchableArticle: SearchableArticle): Unit = {

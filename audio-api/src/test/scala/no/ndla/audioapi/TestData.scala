@@ -12,8 +12,10 @@ import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType, SearchSettings}
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.api
+import no.ndla.common.model.domain.ContributorType
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.{NDLADate, domain => common, api => commonApi}
+import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
+import no.ndla.mapping.License
 import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -38,9 +40,9 @@ object TestData {
   val sampleCopyright: Copyright = Copyright(
     license = "CC-BY-4.0",
     origin = Some("origin"),
-    creators = Seq(common.Author("originator", "ole")),
-    processors = Seq(common.Author("processor", "dole")),
-    rightsholders = Seq(common.Author("rightsholder", "doffen")),
+    creators = Seq(common.Author(ContributorType.Originator, "ole")),
+    processors = Seq(common.Author(ContributorType.Processor, "dole")),
+    rightsholders = Seq(common.Author(ContributorType.RightsHolder, "doffen")),
     validFrom = None,
     validTo = None,
     false
@@ -118,7 +120,16 @@ object TestData {
     1,
     api.TitleDTO("title", "nb"),
     api.AudioDTO("audio/test.mp3", "audio/mpeg", 1024, "nb"),
-    commonApi.CopyrightDTO(commonApi.LicenseDTO("by-sa", None, None), None, Seq(), Seq(), Seq(), None, None, false),
+    commonApi.CopyrightDTO(
+      commonApi.LicenseDTO(License.CC_BY_SA.toString, None, None),
+      None,
+      Seq(),
+      Seq(),
+      Seq(),
+      None,
+      None,
+      false
+    ),
     api.TagDTO(Seq("tag"), "nb"),
     Seq("nb"),
     "standard",

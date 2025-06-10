@@ -99,32 +99,23 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
     val content =
-      s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}" ${TagAttribute.DataUrl}="http://some-url" data-random="hehe" />"""
-    val expectedContent = s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}" />"""
+      s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}" ${TagAttribute.DataUrl}="http://some-url" data-random="hehe"></$EmbedTagName>"""
+    val expectedContent =
+      s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}"></$EmbedTagName>"""
     val visualElement =
-      s"""<$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}" ${TagAttribute.DataUrl}="http://some-url" data-random="hehe" />"""
-    val expectedVisualElement = s"""<$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}" />"""
-    val apiArticle            = TestData.newArticle.copy(content = Some(content), visualElement = Some(visualElement))
-    val expectedTime          = TestData.today
+      s"""<$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}" ${TagAttribute.DataUrl}="http://some-url" data-random="hehe"></$EmbedTagName>"""
+    val expectedVisualElement =
+      s"""<$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}"></$EmbedTagName>"""
+    val apiArticle   = TestData.newArticle.copy(content = Some(content), visualElement = Some(visualElement))
+    val expectedTime = TestData.today
 
     when(clock.now()).thenReturn(expectedTime)
 
-    val Success(result) = service.toDomainArticle(1, apiArticle, List.empty, TestData.userWithWriteAccess, None, None)
+    val Success(result) = service.toDomainArticle(1, apiArticle, TestData.userWithWriteAccess)
     result.content.head.content should equal(expectedContent)
     result.visualElement.head.resource should equal(expectedVisualElement)
     result.created should equal(expectedTime)
     result.updated should equal(expectedTime)
-  }
-
-  test("toDomainArticleShould should use created and updated dates from parameter list if defined") {
-    val apiArticle = TestData.newArticle
-    val created    = NDLADate.fromString("2016-12-06T16:20:05.000Z").get
-    val updated    = NDLADate.fromString("2017-03-07T21:18:19.000Z").get
-
-    val Success(result) =
-      service.toDomainArticle(1, apiArticle, List.empty, TestData.userWithWriteAccess, Some(created), Some(updated))
-    result.created should equal(created)
-    result.updated should equal(updated)
   }
 
   test("toDomainArticle should fail if trying to update language fields without language being set") {
@@ -133,10 +124,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set())),
         updatedArticle,
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
     res.isFailure should be(true)
 
@@ -151,17 +139,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set())),
         updatedArticle,
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
     res.title.find(_.language == "nb").get.title should equal("kakemonster")
   }
 
   test("updateStatus should return an IO[Failure] if the status change is illegal") {
     val Failure(res: IllegalStatusStateTransition) =
-      service.updateStatus(PUBLISHED, TestData.sampleArticleWithByNcSa, TestData.userWithWriteAccess, false)
+      service.updateStatus(PUBLISHED, TestData.sampleArticleWithByNcSa, TestData.userWithWriteAccess)
     res.getMessage should equal(
       s"Cannot go to PUBLISHED when article is ${TestData.sampleArticleWithByNcSa.status.current}"
     )
@@ -345,7 +330,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val user = TokenUser("theuserthatchangeditid", Set.empty, None)
 
-    service.toDomainArticle(art, updatedNothing, false, user, None, None).get should be(art)
+    service.toDomainArticle(art, updatedNothing, user).get should be(art)
   }
 
   test("mergeArticleLanguageFields should replace every field correctly") {
@@ -445,7 +430,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val user = TokenUser("theuserthatchangeditid", Set.empty, None)
-    service.toDomainArticle(art, updatedEverything, false, user, None, None).get should be(expectedArticle)
+    service.toDomainArticle(art, updatedEverything, user).get should be(expectedArticle)
 
   }
 
@@ -553,7 +538,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val user = TokenUser("theuserthatchangeditid", Set.empty, None)
-    service.toDomainArticle(art, updatedEverything, false, user, None, None).get should be(expectedArticle)
+    service.toDomainArticle(art, updatedEverything, user).get should be(expectedArticle)
 
   }
 
@@ -570,37 +555,25 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithoutNotes,
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
     val Success(res2) =
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = Seq.empty),
         updatedArticleWithoutNotes,
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
     val Success(res3) =
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithNotes,
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
     val Success(res4) =
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = Seq.empty),
         updatedArticleWithNotes,
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
 
     res1.notes should be(existingNotes)
@@ -615,7 +588,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val article =
       TestData.sampleDomainArticle.copy(status = status, responsible = Some(Responsible("hei", clock.now())))
     val Failure(res: IllegalStatusStateTransition) =
-      service.updateStatus(ARCHIVED, article, TestData.userWithPublishAccess, isImported = false)
+      service.updateStatus(ARCHIVED, article, TestData.userWithPublishAccess)
 
     res.getMessage should equal(s"Cannot go to ARCHIVED when article contains ${status.other}")
   }
@@ -630,28 +603,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithNotes.copy(language = Some("sna")),
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
     val Success(res2) =
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithNotes.copy(language = Some("nb")),
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
     val Success(res3) =
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithoutNotes.copy(language = Some("sna")),
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
 
     res1.notes.map(_.note) should be(Seq("swoop", "fleibede", s"Ny språkvariant 'sna' ble lagt til."))
@@ -664,19 +628,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(res1) = service.toDomainArticle(
       1,
       TestData.newArticle.copy(grepCodes = Some(Seq("a", "b"))),
-      List(TestData.externalId),
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res2) = service.toDomainArticle(
       1,
       TestData.newArticle.copy(grepCodes = None),
-      List(TestData.externalId),
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     res1.grepCodes should be(Seq("a", "b"))
@@ -687,28 +645,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(res1) = service.toDomainArticle(
       TestData.sampleDomainArticle.copy(grepCodes = Seq("a", "b", "c")),
       TestData.sampleApiUpdateArticle.copy(grepCodes = Some(Seq("x", "y"))),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res2) = service.toDomainArticle(
       TestData.sampleDomainArticle.copy(grepCodes = Seq("a", "b", "c")),
       TestData.sampleApiUpdateArticle.copy(grepCodes = Some(Seq.empty)),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res3) = service.toDomainArticle(
       TestData.sampleDomainArticle.copy(grepCodes = Seq("a", "b", "c")),
       TestData.sampleApiUpdateArticle.copy(grepCodes = None),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     res1.grepCodes should be(Seq("x", "y"))
@@ -721,28 +670,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(res1) = service.toDomainArticle(
       1,
       TestData.sampleApiUpdateArticle.copy(grepCodes = Some(Seq("a", "b"))),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res2) = service.toDomainArticle(
       2,
       TestData.sampleApiUpdateArticle.copy(grepCodes = Some(Seq.empty)),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res3) = service.toDomainArticle(
       3,
       TestData.sampleApiUpdateArticle.copy(grepCodes = None),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     res1.grepCodes should be(Seq("a", "b"))
@@ -759,29 +699,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(res1) = service.toDomainArticle(
       beforeUpdate,
       TestData.sampleApiUpdateArticle.copy(language = Some("nb"), metaImage = Delete),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res2) = service.toDomainArticle(
       beforeUpdate,
       TestData.sampleApiUpdateArticle
         .copy(language = Some("nb"), metaImage = UpdateWith(api.NewArticleMetaImageDTO("1", "Hola"))),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res3) = service.toDomainArticle(
       beforeUpdate,
       TestData.sampleApiUpdateArticle.copy(language = Some("nb"), metaImage = Missing),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     res1.metaImage should be(Seq(ArticleMetaImage("2", "Hej", "nn")))
@@ -794,28 +725,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(res1) = service.toDomainArticle(
       1,
       TestData.sampleApiUpdateArticle.copy(metaImage = Delete),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res2) = service.toDomainArticle(
       2,
       TestData.sampleApiUpdateArticle.copy(metaImage = UpdateWith(api.NewArticleMetaImageDTO("1", "Hola"))),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res3) = service.toDomainArticle(
       3,
       TestData.sampleApiUpdateArticle.copy(metaImage = Missing),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     res1.metaImage should be(Seq.empty)
@@ -825,7 +747,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticle should clone files if existing files appear in new language") {
     val embed1 =
-      s"""<$EmbedTagName data-alt="Kul alt1" data-path="/files/resources/abc123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf">"""
+      s"""<$EmbedTagName data-alt="Kul alt1" data-path="/files/resources/abc123.pdf" data-resource="file" data-title="Kul tittel1" data-type="pdf"></$EmbedTagName>"""
     val existingArticle = TestData.sampleDomainArticle.copy(
       content = Seq(ArticleContent(s"<section><h1>Hei</h1>$embed1</section>", "nb"))
     )
@@ -845,10 +767,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(_) = service.toDomainArticle(
       existingArticle,
       apiArticle,
-      false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
   }
@@ -864,16 +783,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedPaths = Seq(enPath1, enPath2, nbPath1, nbPath2, vePath1, vePath2).sorted
 
     val articleContentNb = ArticleContent(
-      s"""<section><h1>Heisann</h1><$EmbedTagName data-path="$nbPath1" data-resource="h5p" /></section><section><p>Joda<$EmbedTagName data-path="$nbPath2" data-resource="h5p" /></p><$EmbedTagName data-resource="concept" data-path="thisisinvalidbutletsdoit"/></section>""",
+      s"""<section><h1>Heisann</h1><$EmbedTagName data-path="$nbPath1" data-resource="h5p"></$EmbedTagName></section><section><p>Joda<$EmbedTagName data-path="$nbPath2" data-resource="h5p"></$EmbedTagName></p><$EmbedTagName data-resource="concept" data-path="thisisinvalidbutletsdoit"></$EmbedTagName></section>""",
       "nb"
     )
     val articleContentEn = ArticleContent(
-      s"""<section><h1>Hello</h1><$EmbedTagName data-path="$enPath1" data-resource="h5p" /></section><section><p>Joda<$EmbedTagName data-path="$enPath2" data-resource="h5p" /></p><$EmbedTagName data-resource="concept" data-path="thisisinvalidbutletsdoit"/></section>""",
+      s"""<section><h1>Hello</h1><$EmbedTagName data-path="$enPath1" data-resource="h5p"></$EmbedTagName></section><section><p>Joda<$EmbedTagName data-path="$enPath2" data-resource="h5p"></$EmbedTagName></p><$EmbedTagName data-resource="concept" data-path="thisisinvalidbutletsdoit"></$EmbedTagName></section>""",
       "en"
     )
 
-    val visualElementNb = VisualElement(s"""<$EmbedTagName data-path="$vePath1" data-resource="h5p" />""", "nb")
-    val visualElementEn = VisualElement(s"""<$EmbedTagName data-path="$vePath2" data-resource="h5p" />""", "en")
+    val visualElementNb =
+      VisualElement(s"""<$EmbedTagName data-path="$vePath1" data-resource="h5p"></$EmbedTagName>""", "nb")
+    val visualElementEn =
+      VisualElement(s"""<$EmbedTagName data-path="$vePath2" data-resource="h5p"></$EmbedTagName>""", "en")
 
     val article = TestData.sampleDomainArticle.copy(
       id = Some(1),
@@ -888,28 +809,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toDomainArticle(
         1,
         TestData.newArticle.copy(availability = Some(Availability.teacher.toString)),
-        List(TestData.externalId),
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
 
     val Success(res2) = service.toDomainArticle(
       1,
       TestData.newArticle.copy(availability = None),
-      List(TestData.externalId),
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res3) = service.toDomainArticle(
       1,
       TestData.newArticle.copy(availability = Some("Krutte go")),
-      List(TestData.externalId),
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     res1.availability should be(Availability.teacher)
@@ -923,28 +835,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(res1) = service.toDomainArticle(
       TestData.sampleDomainArticle.copy(availability = Availability.everyone),
       TestData.sampleApiUpdateArticle.copy(availability = Some(Availability.teacher.toString)),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res2) = service.toDomainArticle(
       TestData.sampleDomainArticle.copy(availability = Availability.everyone),
       TestData.sampleApiUpdateArticle.copy(availability = Some("Krutte go")),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res3) = service.toDomainArticle(
       TestData.sampleDomainArticle.copy(availability = Availability.teacher),
       TestData.sampleApiUpdateArticle.copy(availability = None),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     res1.availability should be(Availability.teacher)
@@ -958,28 +861,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toDomainArticle(
         1,
         TestData.sampleApiUpdateArticle.copy(availability = Some(Availability.teacher.toString)),
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
 
     val Success(res2) = service.toDomainArticle(
       2,
       TestData.sampleApiUpdateArticle.copy(availability = Some("Krutte go")),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     val Success(res3) = service.toDomainArticle(
       3,
       TestData.sampleApiUpdateArticle.copy(availability = None),
-      isImported = false,
-      TestData.userWithWriteAccess,
-      None,
-      None
+      TestData.userWithWriteAccess
     )
 
     res1.availability should be(Availability.teacher)
@@ -993,10 +887,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       service.toDomainArticle(
         1,
         TestData.sampleApiUpdateArticle.copy(relatedContent = Some(List(Right(1)))),
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
 
     res1.relatedContent should be(List(Right(1L)))
@@ -1016,10 +907,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = Some(existingRepsonsible)),
         updatedArticleWithNotes.copy(language = Some("nb"), responsibleId = UpdateWith("nyid")),
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
 
     val Success(res2) =
@@ -1027,20 +915,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = None),
         updatedArticleWithNotes.copy(language = Some("nb"), responsibleId = UpdateWith("nyid")),
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
     val Success(res3) =
       service.toDomainArticle(
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = Some(existingRepsonsible)),
         updatedArticleWithNotes.copy(language = Some("nb")),
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
 
     res1.notes.map(_.note) should be(Seq("swoop", "fleibede", "Ansvarlig endret."))
@@ -1060,30 +942,21 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), responsible = Some(existingRepsonsible)),
         updatedArticle.copy(language = Some("nb"), responsibleId = UpdateWith("nyid")),
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
     val Success(res2) =
       service.toDomainArticle(
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), responsible = None),
         updatedArticle.copy(language = Some("nb"), responsibleId = UpdateWith("nyid")),
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
     val Success(res3) =
       service.toDomainArticle(
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), responsible = Some(existingRepsonsible)),
         updatedArticle.copy(language = Some("nb"), responsibleId = UpdateWith("oldId")),
-        isImported = false,
-        TestData.userWithWriteAccess,
-        None,
-        None
+        TestData.userWithWriteAccess
       )
 
     res1.responsible.get.responsibleId should be("nyid")
@@ -1259,11 +1132,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val blockContent =
       Seq(
         ArticleContent(
-          s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="block"/>""",
+          s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="block"></$EmbedTagName>""",
           "nb"
         ),
         ArticleContent(
-          s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="block"/>""",
+          s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="block"></$EmbedTagName>""",
           "nn"
         )
       )

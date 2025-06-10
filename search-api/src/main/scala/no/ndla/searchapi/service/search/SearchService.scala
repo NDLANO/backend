@@ -17,10 +17,12 @@ import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.sksamuel.elastic4s.requests.searches.suggestion.SuggestionResult
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchResponse}
 import SortOrder.{Asc, Desc}
+import com.sksamuel.elastic4s.RequestSuccess
+import com.sksamuel.elastic4s.requests.explain.Explanation
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.api.search.{
   MultiSearchSuggestionDTO,
-  MultiSearchSummaryDTO,
+  MultiSummaryBaseDTO,
   SearchSuggestionDTO,
   SearchType,
   SuggestOptionDTO
@@ -41,12 +43,16 @@ import scala.util.{Failure, Success, Try}
 
 trait SearchService {
   this: Elastic4sClient & IndexService & SearchConverterService & StrictLogging & Props & BaseIndexService &
-    ErrorHandling =>
+    ErrorHandling & SearchLanguage =>
 
   trait SearchService {
     import props.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
     val searchIndex: List[String]
     val indexServices: List[BaseIndexService]
+
+    // NOTE: Since some operators restricts simple query string results, we need to check for them
+    //       and not use other query types if they are present to make them effective.
+    private val simpleStringQueryOperators = List("+", "|", "-", "\"", "*", "(", ")", "~")
 
     /** Returns hit as summary
       *
@@ -57,17 +63,19 @@ trait SearchService {
       * @return
       *   api-model summary of hit
       */
-    private def hitToApiModel(hit: SearchHit, language: String, filterInactive: Boolean): Try[MultiSearchSummaryDTO] = {
+    private def hitToApiModel(hit: SearchHit, language: String, filterInactive: Boolean): Try[MultiSummaryBaseDTO] = {
       val indexName = hit.index.split("_").headOption.traverse(x => props.indexToSearchType(x))
       indexName.flatMap {
         case Some(SearchType.Articles) =>
-          Success(searchConverterService.articleHitAsMultiSummary(hit, language, filterInactive))
+          searchConverterService.articleHitAsMultiSummary(hit, language, filterInactive)
         case Some(SearchType.Drafts) =>
-          Success(searchConverterService.draftHitAsMultiSummary(hit, language, filterInactive))
+          searchConverterService.draftHitAsMultiSummary(hit, language, filterInactive)
         case Some(SearchType.LearningPaths) =>
-          Success(searchConverterService.learningpathHitAsMultiSummary(hit, language, filterInactive))
+          searchConverterService.learningpathHitAsMultiSummary(hit, language, filterInactive)
         case Some(SearchType.Concepts) =>
-          Success(searchConverterService.conceptHitAsMultiSummary(hit, language))
+          searchConverterService.conceptHitAsMultiSummary(hit, language)
+        case Some(SearchType.Nodes) =>
+          searchConverterService.nodeHitAsMultiSummary(hit, language)
         case Some(SearchType.Grep) =>
           Failure(NdlaSearchException("Got hit from grep index (SearchType.Grep) in `hitToApiModel`. This is a bug."))
         case None =>
@@ -75,16 +83,71 @@ trait SearchService {
       }
     }
 
-    def languageQuery(query: NonEmptyString, field: String, boost: Double, language: String): SimpleStringQuery =
-      buildSimpleStringQueryForField(query, field, boost, language, fallback = true, searchDecompounded = true)
+    def languageQuery(query: NonEmptyString, field: String, boost: Double, language: String): List[Query] =
+      List(
+        buildSimpleStringQuery(query, field, boost, language, fallback = true, decompounded = true).some,
+        buildMatchQueryForField(query, field, language, fallback = true, boost)
+      ).flatten
 
-    def buildSimpleStringQueryForField(
+    def buildBreadcrumbQuery(query: NonEmptyString, language: String, fallback: Boolean, boost: Double): List[Query] = {
+      if (simpleStringQueryOperators.exists(query.underlying.contains)) return List.empty
+
+      val subQueries = buildMatchQueryForField(query, "contexts.breadcrumbs", language, fallback, boost)
+      val sq         = boolQuery().should(subQueries)
+      List(nestedQuery("contexts", sq))
+    }
+
+    def buildMatchQueryForField(
+        query: NonEmptyString,
+        field: String,
+        language: String,
+        fallback: Boolean,
+        boost: Double
+    ): List[Query] = {
+      if (simpleStringQueryOperators.exists(query.underlying.contains)) return List.empty
+
+      val searchLanguage = language match {
+        case lang if Iso639.get(lang).isSuccess => lang
+        case _                                  => Language.AllLanguages
+      }
+      val matchQueries = if (searchLanguage == Language.AllLanguages || fallback) {
+        SearchLanguage.languageAnalyzers
+          .map { cur =>
+            List(
+              matchPhrasePrefixQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost),
+              matchPhraseQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost * 1.2)
+            )
+          }
+          .toList
+          .flatten
+      } else {
+        List(
+          matchPhrasePrefixQuery(s"$field.$language", query.underlying).boost(boost),
+          matchPhraseQuery(s"$field.$language", query.underlying).boost(boost * 1.2)
+        )
+      }
+
+      val termQueries = if (searchLanguage == Language.AllLanguages || fallback) {
+        SearchLanguage.languageAnalyzers.map { cur =>
+          prefixQuery(s"$field.${cur.languageTag.toString}.raw", query.underlying).boost(boost * 2)
+        }.toList
+      } else {
+        List(prefixQuery(s"$field.$language", query.underlying).boost(boost * 2))
+      }
+
+      List(
+        matchQueries,
+        termQueries
+      ).flatten
+    }
+
+    def buildSimpleStringQuery(
         query: NonEmptyString,
         field: String,
         boost: Double,
         language: String,
         fallback: Boolean,
-        searchDecompounded: Boolean
+        decompounded: Boolean
     ): SimpleStringQuery = {
       val searchLanguage = language match {
         case lang if Iso639.get(lang).isSuccess => lang
@@ -96,12 +159,12 @@ trait SearchService {
           SimpleStringQuery(query.underlying, quote_field_suffix = Some(".exact"))
         )((acc, cur) => {
           val base = acc.field(s"$field.${cur.languageTag.toString}", boost)
-          if (searchDecompounded) base.field(s"$field.${cur.languageTag.toString}.decompounded", 0.1) else base
+          if (decompounded) base.field(s"$field.${cur.languageTag.toString}.decompounded", 0.1) else base
         })
       } else {
         val base =
           SimpleStringQuery(query.underlying, quote_field_suffix = Some(".exact")).field(s"$field.$language", boost)
-        if (searchDecompounded) base.field(s"$field.$language.decompounded", 0.1) else base
+        if (decompounded) base.field(s"$field.$language.decompounded", 0.1) else base
       }
     }
 
@@ -148,7 +211,7 @@ trait SearchService {
         response: SearchResponse,
         language: String,
         filterInactive: Boolean
-    ): Try[Seq[MultiSearchSummaryDTO]] = {
+    ): Try[Seq[MultiSummaryBaseDTO]] = {
       response.totalHits match {
         case count if count > 0 =>
           val resultArray = response.hits.hits.toList
@@ -255,7 +318,7 @@ trait SearchService {
           fieldSort(s"$withLanguage.$sortLanguage.raw")
             .sortOrder(order)
             .missing("_last")
-            .unmappedType("long")
+            .unmappedType("keyword")
       }
     }
 
@@ -300,6 +363,28 @@ trait SearchService {
         logger.info(s"Max supported results are $maxResultWindow, user requested $resultWindow")
         Failure(ResultWindowTooLargeException())
       } else Success(SearchPagination(safePage, safePageSize, startAt))
+    }
+
+    /** Flag to enable printing of explanations, used for debugging query scoring */
+    val enableExplanations = false
+
+    /** Helper function to print explanation of scoring for search queries */
+    def printExplanations(value: RequestSuccess[SearchResponse]): Unit = {
+      def _printExpl(hitId: String, ex: Explanation, indent: Int = 0): Unit = {
+        logger.info(s"${"  " * indent}${ex.value}: ${ex.description}")
+        ex.details.foreach { d => _printExpl(hitId, d, indent + 1) }
+      }
+
+      if (enableExplanations) {
+        value.result.hits.hits.foreach { hit =>
+          val hitId = s"${hit.index}:${hit.id}"
+          logger.info(s"EXPLAIN START $hitId:")
+          hit.explanation match {
+            case Some(ex) => _printExpl(hitId, ex)
+            case None     => println("No explanation found...")
+          }
+        }
+      }
     }
   }
 }

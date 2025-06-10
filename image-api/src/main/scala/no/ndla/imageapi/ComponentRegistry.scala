@@ -29,7 +29,7 @@ import no.ndla.imageapi.service.search.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ImageApiProperties)
     extends BaseComponentRegistry[ImageApiProperties]
@@ -41,6 +41,7 @@ class ComponentRegistry(properties: ImageApiProperties)
     with ImageIndexService
     with SearchService
     with ImageSearchService
+    with SearchLanguage
     with TagSearchService
     with SearchConverterService
     with DataSource
@@ -71,8 +72,7 @@ class ComponentRegistry(properties: ImageApiProperties)
     new V6__AddAgreementToImages,
     new V7__TranslateUntranslatedAuthors
   )
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  DataSource.connectToDatabase()
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
   lazy val s3Client = new NdlaS3Client(props.StorageName, props.StorageRegion)
 
@@ -101,7 +101,7 @@ class ComponentRegistry(properties: ImageApiProperties)
   lazy val internController  = new InternController
   lazy val healthController  = new HealthController
 
-  private val swagger = new SwaggerController(
+  val swagger = new SwaggerController(
     List[TapirController](
       imageControllerV2,
       imageControllerV3,

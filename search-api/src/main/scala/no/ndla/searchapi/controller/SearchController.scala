@@ -12,6 +12,7 @@ import cats.implicits.*
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.api.search.{LearningResourceType, MultiSearchResultDTO, SearchTrait, SearchType}
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.Availability
@@ -35,6 +36,7 @@ import no.ndla.searchapi.model.api.grep.GrepSearchResultsDTO
 import no.ndla.searchapi.model.api.{ErrorHandling, GroupSearchResultDTO, SubjectAggregationsDTO}
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
+import no.ndla.searchapi.model.taxonomy.NodeType
 import no.ndla.searchapi.service.search.{
   GrepSearchService,
   MultiDraftSearchService,
@@ -64,77 +66,11 @@ trait SearchController {
     override val serviceName: String         = "search"
     override val prefix: EndpointInput[Unit] = "search-api" / "v1" / serviceName
 
-    private val queryParam =
-      query[Option[NonEmptyString]]("query")
-        .description("Return only results with content matching the specified query.")
-        .schema(NonEmptyString.schemaOpt)
-    private val language =
-      query[String]("language")
-        .description("The ISO 639-1 language code describing language.")
-        .default(AllLanguages)
-    private val sort = query[Option[String]]("sort").description(s"""The sorting used on results.
-             The following are supported: ${Sort.all.mkString(", ")}. Default is by -relevance (desc).""".stripMargin)
-
-    private val pageNo = query[Int]("page")
-      .description("The page number of the search hits to display.")
-      .default(1)
-      .validate(Validator.min(1))
-    private val pageSize = query[Int]("page-size")
-      .description(
-        s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
-      )
-      .default(DefaultPageSize)
-      .validate(Validator.inRange(0, MaxPageSize))
-    private val learningResourceIds =
-      listQuery[Long]("ids")
-        .description(
-          "Return only learning resources that have one of the provided ids. To provide multiple ids, separate by comma (,)."
-        )
-    private val fallback =
-      query[Boolean]("fallback")
-        .description("Fallback to existing language if language is specified.")
-        .default(false)
-    private val subjects =
-      listQuery[String]("subjects")
-        .description("A comma separated list of subjects the learning resources should be filtered by.")
-    private val contextTypes =
-      listQuery[String]("context-types")
-        .description(
-          s"A comma separated list of types the learning resources should be filtered by. Available values is ${LearningResourceType.values
-              .mkString(", ")}"
-        )
-    private val groupTypes =
-      listQuery[String]("resource-types")
-        .description("A comma separated list of resource-types the learning resources should be grouped by.")
-    private val languageFilter = listQuery[String]("language-filter")
-      .description("A comma separated list of ISO 639-1 language codes that the learning resource can be available in.")
-    private val relevanceFilter = listQuery[String]("relevance")
-      .description(
-        """A comma separated list of relevances the learning resources should be filtered by.
-        |If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
-        |If levels are specified the learning resource must have specified relevances in relation to a specified level.""".stripMargin
-      )
     private val includeMissingResourceTypeGroup = query[Boolean]("missing-group")
       .description(
         "Whether to include group without resource-types for group-search. Defaults to false."
       )
       .default(false)
-    private val grepCodes = listQuery[String]("grep-codes")
-      .description("A comma separated list of codes from GREP API the resources should be filtered by.")
-    private val traits = listQuery[String]("traits")
-      .description("A comma separated list of traits the resources should be filtered by.")
-    private val aggregatePaths = listQuery[String]("aggregate-paths")
-      .description("List of index-paths that should be term-aggregated and returned in result.")
-    private val embedResource =
-      listQuery[String]("embed-resource")
-        .description(
-          "Return only results with embed data-resource the specified resource. Can specify multiple with a comma separated list to filter for one of the embed types."
-        )
-    private val embedId =
-      query[Option[String]]("embed-id")
-        .description("Return only results with embed data-resource_id, data-videoid or data-url with the specified id.")
-    private val filterInactive =
-      query[Boolean]("filter-inactive").description("Filter out inactive taxonomy contexts.").default(false)
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       groupSearch,
@@ -164,86 +100,19 @@ trait SearchController {
       .summary("Search across multiple groups of learning resources")
       .description("Search across multiple groups of learning resources")
       .in("group")
-      .in(queryParam)
-      .in(groupTypes)
-      .in(pageNo)
-      .in(pageSize)
-      .in(language)
-      .in(fallback)
-      .in(subjects)
-      .in(sort)
-      .in(learningResourceIds)
-      .in(contextTypes)
-      .in(languageFilter)
-      .in(relevanceFilter)
+      .in(GetSearchQueryParams.input)
       .in(includeMissingResourceTypeGroup)
-      .in(aggregatePaths)
-      .in(grepCodes)
-      .in(traits)
-      .in(embedResource)
-      .in(embedId)
-      .in(filterInactive)
       .in(feideHeader)
       .out(jsonBody[Seq[GroupSearchResultDTO]])
       .errorOut(errorOutputsFor(401, 403))
-      .serverLogicPure {
-        case (
-              query,
-              groupTypes,
-              page,
-              pageSize,
-              language,
-              fallback,
-              subjects,
-              sortStr,
-              learningResourceIds,
-              contextTypes,
-              languageFilter,
-              relevanceFilter,
-              includeMissingResourceTypeGroup,
-              aggregatePaths,
-              grepCodes,
-              traits,
-              embedResource,
-              embedId,
-              filterInactive,
-              feideToken
-            ) =>
-          val sort = sortStr
-            .flatMap(Sort.valueOf)
-            .getOrElse(if (query.isDefined) Sort.ByRelevanceDesc else Sort.ByRelevanceDesc)
-
-          getAvailability(feideToken) match {
-            case Failure(ex) => returnLeftError(ex)
-            case Success(availability) =>
-              val settings = SearchSettings(
-                query = query,
-                fallback = fallback,
-                language = language,
-                license = None,
-                page = page,
-                pageSize = pageSize,
-                sort = sort,
-                withIdIn = learningResourceIds.values,
-                subjects = subjects.values,
-                resourceTypes = groupTypes.values,
-                learningResourceTypes = contextTypes.values.flatMap(LearningResourceType.valueOf),
-                supportedLanguages = languageFilter.values,
-                relevanceIds = relevanceFilter.values,
-                grepCodes = grepCodes.values,
-                traits = traits.values.flatMap(SearchTrait.valueOf),
-                shouldScroll = false,
-                filterByNoResourceType = false,
-                aggregatePaths = aggregatePaths.values,
-                embedResource = embedResource.values,
-                embedId = embedId,
-                availability = availability,
-                articleTypes = List.empty,
-                filterInactive = filterInactive
-              )
-
-              groupSearch(settings, includeMissingResourceTypeGroup)
-          }
+      .serverLogicPure { case (q, includeMissingResourceTypeGroup, feideToken) =>
+        getAvailability(feideToken) match {
+          case Failure(ex) => returnLeftError(ex)
+          case Success(availability) =>
+            val searchParams = asSearchParamsDTO(q)
+            val settings     = asSettings(searchParams.some, availability)
+            groupSearch(settings, includeMissingResourceTypeGroup)
+        }
       }
 
     private def searchInGroup(group: String, settings: SearchSettings): Try[GroupSearchResultDTO] = {
@@ -324,18 +193,50 @@ trait SearchController {
       * @return
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    private def scrollWithOr[T <: SearchService](scrollId: Option[String], language: String, scroller: T)(
+    private def scrollWithOr[T <: SearchService](scrollId: Option[String], language: LanguageCode, scroller: T)(
         orFunction: => Try[(MultiSearchResultDTO, DynamicHeaders)]
     ): Try[(MultiSearchResultDTO, DynamicHeaders)] = {
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           for {
-            scrollResult <- scroller.scroll(scroll, language)
+            scrollResult <- scroller.scroll(scroll, language.code)
             body    = searchConverterService.toApiMultiSearchResult(scrollResult)
             headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
           } yield (body, headers)
         case _ => orFunction
       }
+    }
+
+    private def asSearchParamsDTO(queryWrapper: GetParamsWrapper): SearchParamsDTO = {
+      val pagination = queryWrapper.pagination
+      val q          = queryWrapper.searchParams
+      val sort       = q.sort.flatMap(Sort.valueOf)
+
+      SearchParamsDTO(
+        page = pagination.page.some,
+        pageSize = pagination.pageSize.some,
+        articleTypes = q.articleTypes.values.some,
+        scrollId = q.scrollId,
+        query = q.queryParam,
+        fallback = q.fallback.some,
+        language = q.language.some,
+        license = q.license,
+        sort = sort,
+        ids = q.learningResourceIds.values.some,
+        subjects = q.subjects.values.some,
+        resourceTypes = q.resourceTypes.values.some,
+        contextTypes = q.contextTypes.values.some,
+        relevance = q.relevanceFilter.values.some,
+        languageFilter = q.languageFilter.values.some,
+        grepCodes = q.grepCodes.values.some,
+        traits = q.traits.values.flatMap(SearchTrait.valueOf).some,
+        aggregatePaths = q.aggregatePaths.values.some,
+        embedResource = q.embedResource.values.some,
+        embedId = q.embedId,
+        filterInactive = q.filterInactive.some,
+        resultTypes = q.resultTypes.values.flatMap(SearchType.withNameOption).some,
+        nodeTypeFilter = q.nodeTypeFilter.values.flatMap(NodeType.withNameOption).some
+      )
     }
 
     def searchLearningResources: ServerEndpoint[Any, Eff] = endpoint.get
@@ -346,36 +247,11 @@ trait SearchController {
       .out(EndpointOutput.derived[DynamicHeaders])
       .in(GetSearchQueryParams.input)
       .in(feideHeader)
-      .serverLogicPure { case (q, feideToken) =>
-        scrollWithOr(q.scrollId, q.language, multiSearchService) {
-          val sort         = q.sort.flatMap(Sort.valueOf)
-          val shouldScroll = q.scrollId.exists(InitialScrollContextKeywords.contains)
-          getAvailability(feideToken).flatMap(availability => {
-            val settings = SearchSettings(
-              query = q.queryParam,
-              fallback = q.fallback,
-              language = q.language,
-              license = q.license,
-              page = q.page,
-              pageSize = q.pageSize,
-              sort = sort.getOrElse(Sort.ByRelevanceDesc),
-              withIdIn = q.learningResourceIds.values,
-              subjects = q.subjects.values,
-              resourceTypes = q.resourceTypes.values,
-              learningResourceTypes = q.contextTypes.values.flatMap(LearningResourceType.valueOf),
-              supportedLanguages = q.languageFilter.values,
-              relevanceIds = q.relevanceFilter.values,
-              grepCodes = q.grepCodes.values,
-              shouldScroll = shouldScroll,
-              filterByNoResourceType = false,
-              aggregatePaths = q.aggregatePaths.values,
-              embedResource = q.embedResource.values,
-              embedId = q.embedId,
-              availability = availability,
-              articleTypes = q.articleTypes.values,
-              filterInactive = q.filterInactive,
-              traits = q.traits.values.flatMap(SearchTrait.valueOf)
-            )
+      .serverLogicPure { case (queryWrapper, feideToken) =>
+        scrollWithOr(queryWrapper.searchParams.scrollId, queryWrapper.searchParams.language, multiSearchService) {
+          val searchParams = asSearchParamsDTO(queryWrapper)
+          getAvailability(feideToken).flatMap { availability =>
+            val settings = asSettings(searchParams.some, availability)
             multiSearchService.matchingQuery(settings) match {
               case Success(searchResult) =>
                 val result  = searchConverterService.toApiMultiSearchResult(searchResult)
@@ -383,9 +259,8 @@ trait SearchController {
                 Success((result, headers))
               case Failure(ex) => Failure(ex)
             }
-          })
+          }
         }
-
       }
 
     def postSearchLearningResources: ServerEndpoint[Any, Eff] = endpoint.post
@@ -400,7 +275,7 @@ trait SearchController {
         getAvailability(feideToken)
           .flatMap(availability => {
             val settings = asSettings(searchParams, availability)
-            scrollWithOr(searchParams.flatMap(_.scrollId), settings.language, multiSearchService) {
+            scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiSearchService) {
               multiSearchService.matchingQuery(settings).map { searchResult =>
                 val result  = searchConverterService.toApiMultiSearchResult(searchResult)
                 val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
@@ -507,7 +382,7 @@ trait SearchController {
             )
 
             val settings = asDraftSettings(searchParams)
-            scrollWithOr(searchParams.flatMap(_.scrollId), settings.language, multiDraftSearchService) {
+            scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiDraftSearchService) {
               multiDraftSearchService.matchingQuery(settings).map { searchResult =>
                 val result  = searchConverterService.toApiMultiSearchResult(searchResult)
                 val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
@@ -528,7 +403,7 @@ trait SearchController {
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => searchParams =>
         val settings = asDraftSettings(searchParams)
-        scrollWithOr(searchParams.flatMap(_.scrollId), settings.language, multiDraftSearchService) {
+        scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiDraftSearchService) {
           multiDraftSearchService.matchingQuery(settings).map { searchResult =>
             val result  = searchConverterService.toApiMultiSearchResult(searchResult)
             val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
@@ -590,7 +465,7 @@ trait SearchController {
           SearchSettings(
             query = params.query,
             fallback = params.fallback.getOrElse(false),
-            language = params.language.getOrElse(AllLanguages),
+            language = params.language.getOrElse(LanguageCode(AllLanguages)).code,
             license = params.license,
             page = params.page.getOrElse(1),
             pageSize = params.pageSize.getOrElse(10),
@@ -610,7 +485,9 @@ trait SearchController {
             embedId = params.embedId,
             availability = availability,
             articleTypes = params.articleTypes.getOrElse(List.empty),
-            filterInactive = params.filterInactive.getOrElse(false)
+            filterInactive = params.filterInactive.getOrElse(false),
+            resultTypes = params.resultTypes,
+            nodeTypeFilter = params.nodeTypeFilter.getOrElse(List.empty)
           )
 
       }

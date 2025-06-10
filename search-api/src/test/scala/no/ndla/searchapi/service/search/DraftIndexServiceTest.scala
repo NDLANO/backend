@@ -11,8 +11,8 @@ package no.ndla.searchapi.service.search
 import io.circe.syntax.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
-import no.ndla.common.model.domain.{ArticleContent, Author, EditorNote, Responsible, Status}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.common.model.domain.*
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
@@ -22,10 +22,7 @@ import org.mockito.Mockito.when
 import java.util.UUID
 import scala.util.Success
 
-class DraftIndexServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
@@ -65,9 +62,9 @@ class DraftIndexServiceTest
         DraftCopyright(
           license = Some("hei"),
           origin = Some("ho"),
-          creators = Seq(Author("writer", "Jonas")),
-          processors = Seq(Author("writer", "Jonas")),
-          rightsholders = Seq(Author("writer", "Jonas")),
+          creators = Seq(Author(ContributorType.Writer, "Jonas")),
+          processors = Seq(Author(ContributorType.Writer, "Jonas")),
+          rightsholders = Seq(Author(ContributorType.Writer, "Jonas")),
           validFrom = Some(now),
           validTo = Some(now),
           false

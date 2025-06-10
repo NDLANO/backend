@@ -10,22 +10,14 @@ package no.ndla.searchapi.service.search
 
 import cats.implicits.catsSyntaxOptionId
 import no.ndla.network.tapir.NonEmptyString
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.searchapi.TestEnvironment
 import no.ndla.searchapi.controller.parameters.GrepSearchInputDTO
 import no.ndla.searchapi.model.api.grep.GrepSortDTO.{ByCodeAsc, ByCodeDesc}
-import no.ndla.searchapi.model.grep.{
-  BelongsToObj,
-  GrepBundle,
-  GrepKjerneelement,
-  GrepKompetansemaal,
-  GrepLaererplan,
-  GrepTitle,
-  GrepTverrfagligTema,
-  GrepTextObj
-}
+import no.ndla.searchapi.model.api.grep.GrepStatusDTO
+import no.ndla.searchapi.model.grep.*
 
-class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
   override val grepIndexService: GrepIndexService = new GrepIndexService {
@@ -51,32 +43,39 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
     kjerneelementer = List(
       GrepKjerneelement(
         "KE12",
+        GrepStatusDTO.Published,
         GrepTextObj(
           List(GrepTitle("default", "Utforsking og problemløysing"), GrepTitle("nob", "Utforsking og problemløsning"))
         ),
         GrepTextObj(List(GrepTitle("default", ""))),
-        BelongsToObj("LP1", "Dette er LP1")
+        BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP1")
       ),
       GrepKjerneelement(
         "KE34",
+        GrepStatusDTO.Published,
         GrepTextObj(
           List(GrepTitle("default", "Abstraksjon og generalisering"), GrepTitle("nob", "Abstraksjon og generalisering"))
         ),
         GrepTextObj(List(GrepTitle("default", ""))),
-        BelongsToObj("LP2", "Dette er LP2")
+        BelongsToObj("LP2", GrepStatusDTO.Published, "Dette er LP2")
       )
     ),
     kompetansemaal = List(
       GrepKompetansemaal(
         kode = "KM123",
+        GrepStatusDTO.Published,
         tittel = GrepTextObj(
           List(
             GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
             GrepTitle("nob", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")
           )
         ),
-        `tilhoerer-laereplan` = BelongsToObj("LP2", "Dette er LP2"),
-        `tilhoerer-kompetansemaalsett` = BelongsToObj("KE200", "Kompetansemaalsett"),
+        `tilhoerer-laereplan` = BelongsToObj("LP2", GrepStatusDTO.Published, "Dette er LP2"),
+        `tilhoerer-kompetansemaalsett` = BelongsToObj(
+          "KE200",
+          GrepStatusDTO.Published,
+          "Kompetansemaalsett"
+        ),
         `tilknyttede-tverrfaglige-temaer` = List(),
         `tilknyttede-kjerneelementer` = List(),
         `gjenbruk-av` = None
@@ -86,17 +85,20 @@ class GrepSearchServiceTest extends IntegrationSuite(EnableElasticsearchContaine
     tverrfagligeTemaer = List(
       GrepTverrfagligTema(
         "TT2",
+        GrepStatusDTO.Published,
         Seq(GrepTitle("default", "Demokrati og medborgerskap"), GrepTitle("nob", "Demokrati og medborgerskap"))
       )
     ),
     laereplaner = List(
       GrepLaererplan(
         "LP1",
+        GrepStatusDTO.Published,
         GrepTextObj(List(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk"))),
         List.empty
       ),
       GrepLaererplan(
         "LP2",
+        GrepStatusDTO.Published,
         GrepTextObj(List(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk"))),
         List.empty
       )

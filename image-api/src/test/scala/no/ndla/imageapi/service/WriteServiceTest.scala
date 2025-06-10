@@ -10,7 +10,7 @@ package no.ndla.imageapi.service
 
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.{CopyrightDTO, LicenseDTO, Missing, UpdateWith}
-import no.ndla.common.model.domain.UploadedFile
+import no.ndla.common.model.domain.{ContributorType, UploadedFile}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.common.model.domain.article.Copyright as DomainCopyright
 import no.ndla.imageapi.model.api.*
@@ -350,7 +350,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         CopyrightDTO(
           LicenseDTO("testLic", Some("License for testing"), None),
           Some("test"),
-          List(commonApi.AuthorDTO("Opphavsmann", "Testerud")),
+          List(commonApi.AuthorDTO(ContributorType.Originator, "Testerud")),
           List(),
           List(),
           None,
@@ -369,7 +369,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       copyright = DomainCopyright(
         "testLic",
         Some("test"),
-        List(common.Author("Opphavsmann", "Testerud")),
+        List(common.Author(ContributorType.Originator, "Testerud")),
         List(),
         List(),
         None,

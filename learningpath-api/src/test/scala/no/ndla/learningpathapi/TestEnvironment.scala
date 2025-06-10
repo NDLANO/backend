@@ -21,7 +21,7 @@ import no.ndla.learningpathapi.validation.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -35,6 +35,7 @@ trait TestEnvironment
     with UpdateService
     with SearchConverterServiceComponent
     with SearchService
+    with SearchLanguage
     with SearchIndexService
     with BaseIndexService
     with SearchApiClient
@@ -58,7 +59,7 @@ trait TestEnvironment
     with InternController
     with DBMigrator
     with RedisClient {
-  val props = new LearningpathApiProperties
+  lazy val props = new LearningpathApiProperties
 
   val migrator: DBMigrator         = mock[DBMigrator]
   val dataSource: HikariDataSource = mock[HikariDataSource]
@@ -78,6 +79,7 @@ trait TestEnvironment
   val learningpathControllerV2: LearningpathControllerV2               = mock[LearningpathControllerV2]
   val statsController: StatsController                                 = mock[StatsController]
   val internController: InternController                               = mock[InternController]
+  val healthController: TapirHealthController                          = mock[TapirHealthController]
   val learningStepValidator: LearningStepValidator                     = mock[LearningStepValidator]
   val learningPathValidator: LearningPathValidator                     = mock[LearningPathValidator]
   val titleValidator: TitleValidator                                   = mock[TitleValidator]
@@ -89,6 +91,7 @@ trait TestEnvironment
   val myndlaApiClient: MyNDLAApiClient                                 = mock[MyNDLAApiClient]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 
   def resetMocks(): Unit = {
     reset(dataSource)

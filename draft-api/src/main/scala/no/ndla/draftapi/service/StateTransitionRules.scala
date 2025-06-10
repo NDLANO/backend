@@ -70,10 +70,10 @@ trait StateTransitionRules {
     private val validateArticleApiArticle: SideEffect =
       SideEffect(
         "validateArticleApiArticle",
-        (draft: Draft, isImported: Boolean, user: TokenUser) => {
+        (draft: Draft, user: TokenUser) => {
           val validatedArticle = converterService.toArticleApiArticle(draft) match {
             case Failure(ex)      => Failure(ex)
-            case Success(article) => articleApiClient.validateArticle(article, isImported, Some(user))
+            case Success(article) => articleApiClient.validateArticle(article, importValidate = false, Some(user))
           }
           validatedArticle.map(_ => draft)
         }
@@ -82,17 +82,15 @@ trait StateTransitionRules {
     private def publishArticleSideEffect(useSoftValidation: Boolean): SideEffect =
       SideEffect(
         "publishArticleSideEffect",
-        (article, isImported, user) =>
+        (article, user) =>
           article.id match {
             case Some(id) =>
               val externalIds = draftRepository.getExternalIdsFromId(id)(ReadOnlyAutoSession)
-
-              val h5pPaths = converterService.getEmbeddedH5PPaths(article)
+              val h5pPaths    = converterService.getEmbeddedH5PPaths(article)
               h5pApiClient.publishH5Ps(h5pPaths, user): Unit
 
-              val taxonomyT = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
-              val articleUdpT =
-                articleApiClient.updateArticle(id, article, externalIds, isImported, useSoftValidation, user)
+              val taxonomyT   = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
+              val articleUdpT = articleApiClient.updateArticle(id, article, externalIds, useSoftValidation, user)
               val failures = Seq(taxonomyT, articleUdpT).collectFirst { case Failure(ex) =>
                 Failure(ex)
               }
@@ -250,8 +248,7 @@ trait StateTransitionRules {
     private[service] def doTransitionWithoutSideEffect(
         current: Draft,
         to: DraftStatus,
-        user: TokenUser,
-        isImported: Boolean
+        user: TokenUser
     ): (Try[Draft], Seq[SideEffect]) = {
       getTransition(current.status.current, to, user, current) match {
         case Some(t) =>
@@ -261,7 +258,7 @@ trait StateTransitionRules {
               val currentToOther   = if (t.addCurrentStateToOthersOnTransition) Set(current.status.current) else Set()
               val other            = current.status.other.intersect(t.otherStatesToKeepOnTransition) ++ currentToOther
               val newStatus        = common.Status(to, other)
-              val newEditorNotes   = newEditorNotesForTransition(current, to, newStatus, user, isImported)
+              val newEditorNotes   = newEditorNotesForTransition(current, to, newStatus, user, isImported = false)
               val convertedArticle = current.copy(status = newStatus, notes = newEditorNotes)
 
               (Success(convertedArticle), t.sideEffects)
@@ -283,11 +280,10 @@ trait StateTransitionRules {
     def doTransition(
         current: Draft,
         to: DraftStatus,
-        user: TokenUser,
-        isImported: Boolean
+        user: TokenUser
     ): Try[Draft] = {
       debugLog("---doTransition start---")
-      val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user, isImported)
+      val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user)
       debugLog(s"\tGot convertedArticle: $convertedArticle")
       debugLog(s"\tGot sideEffects: [${sideEffects.map(_.name).mkString(",")}]")
       val result = convertedArticle.flatMap(articleBeforeSideEffect => {
@@ -295,7 +291,7 @@ trait StateTransitionRules {
           .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
             debugLog(s"\tAttempting to run sideEffect: ${sideEffect.name}")
             accumulatedArticle.flatMap(a => {
-              val result = sideEffect.run(a, isImported, user)
+              val result = sideEffect.run(a, user)
               debugLog(s"\tRan sideEffect: ${sideEffect.name} with result: $result")
               result
             })

@@ -20,11 +20,11 @@ import no.ndla.common.CirceUtil
 import scala.util.{Success, Try}
 
 trait TagIndexService {
-  this: SearchConverterService with IndexService with AudioRepository with Props =>
+  this: SearchConverterService & IndexService & AudioRepository & Props =>
   val tagIndexService: TagIndexService
 
   class TagIndexService extends StrictLogging with IndexService[AudioMetaInformation, SearchableTag] {
-    import props._
+    import props.*
 
     override val documentType: String                         = AudioTagSearchDocument
     override val searchIndex: String                          = AudioTagSearchIndex

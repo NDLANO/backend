@@ -18,31 +18,14 @@ case class NdlaSearchException[T](
 ) extends RuntimeException(message)
 
 object NdlaSearchException {
-  private def message(
-      errorType: String,
-      reason: String,
-      index: Option[String],
-      shard: Option[String],
-      requestString: String
-  ): String = {
-    val indexError = index.map(idx => s"\nindex: $idx")
-    val shardError = shard.map(s => s"\nshard: $s")
-    s"""SearchError with following content occurred:
-       |Error type: $errorType
-       |reason: $reason
-       |$indexError$shardError
-       |Caused by request: $requestString
-       |""".stripMargin
-  }
-
   def apply[T](request: T, rf: RequestFailure): NdlaSearchException[T] = {
-    val msg = message(
-      rf.error.`type`,
-      rf.error.reason,
-      rf.error.index,
-      rf.error.shard,
-      request.toString
-    )
+    val msg =
+      s"""Got error from elasticsearch:
+        |  Status: ${rf.status}
+        |  Error: ${rf.error}
+        |  Caused by request: $request
+        |""".stripMargin
+
     new NdlaSearchException(msg, Some(rf))
   }
 

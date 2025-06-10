@@ -21,6 +21,7 @@ import no.ndla.imageapi.model.api.{
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.model.{ImageNotFoundException, api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
@@ -59,9 +60,9 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       |  "alttext":"test2",
       |  "copyright": {
       |    "license": {
-      |      "license": "by-sa",
-      |      "description": "Creative Commons Attribution-ShareAlike 2.0 Generic",
-      |      "url": "https:\/\/creativecommons.org\/licenses\/by-sa\/2.0\/"
+      |      "license": "CC-BY-SA-4.0",
+      |      "description": "Creative Commons Attribution-ShareAlike 4.0 Generic",
+      |      "url": "https:\/\/creativecommons.org\/licenses\/by-sa\/4.0\/"
       |    },
       |    "origin": "",
       |    "processed": false,
@@ -69,7 +70,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       |    "rightsholders": [],
       |    "processors": [
       |      {
-      |        "type": "Forfatter",
+      |        "type": "writer",
       |        "name": "Wenche Heir"
       |      }
       |    ]
@@ -124,7 +125,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       api.ImageCaptionDTO("Caption", "nb"),
       "http://image-api.ndla-local/image-api/raw/4",
       "http://image-api.ndla-local/image-api/v2/images/4",
-      "by-sa",
+      License.CC_BY_SA.toString,
       Seq("nb"),
       Some("yes"),
       None,
@@ -134,7 +135,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       None
     )
     val expectedBody =
-      s"""{"totalCount":1,"page":1,"pageSize":10,"language":"nb","results":[{"id":"4","title":{"title":"Tittel","language":"nb"},"contributors":["Jason Bourne","Ben Affleck"],"altText":{"alttext":"AltText","language":"nb"},"caption":{"caption":"Caption","language":"nb"},"previewUrl":"http://image-api.ndla-local/image-api/raw/4","metaUrl":"http://image-api.ndla-local/image-api/v2/images/4","license":"by-sa","supportedLanguages":["nb"],"modelRelease":"yes","lastUpdated":"${date.asString}","fileSize":123,"contentType":"image/jpg"}]}"""
+      s"""{"totalCount":1,"page":1,"pageSize":10,"language":"nb","results":[{"id":"4","title":{"title":"Tittel","language":"nb"},"contributors":["Jason Bourne","Ben Affleck"],"altText":{"alttext":"AltText","language":"nb"},"caption":{"caption":"Caption","language":"nb"},"previewUrl":"http://image-api.ndla-local/image-api/raw/4","metaUrl":"http://image-api.ndla-local/image-api/v2/images/4","license":"CC-BY-SA-4.0","supportedLanguages":["nb"],"modelRelease":"yes","lastUpdated":"${date.asString}","fileSize":123,"contentType":"image/jpg"}]}"""
     val domainSearchResult = domain.SearchResult(1, Some(1), 10, "nb", List(imageSummary), None)
     val apiSearchResult    = api.SearchResultDTO(1, Some(1), 10, "nb", List(imageSummary))
     when(imageSearchService.matchingQuery(any[SearchSettings], any)).thenReturn(Success(domainSearchResult))
@@ -157,7 +158,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
   test("That GET /<id> returns body and 200 when image exists") {
     val testUrl = "http://test.test/1"
     val expectedBody =
-      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"},"origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
+      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"},"origin":"http://www.scanpix.no","creators":[{"type":"photographer","name":"Test Testesen"}],"processors":[{"type":"editorial","name":"Kåre Knegg"}],"rightsholders":[{"type":"supplier","name":"Leverans Leveransensen"}],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](expectedBody)
     when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
 
@@ -169,10 +170,37 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     result.copy(imageUrl = testUrl, metaUrl = testUrl) should equal(expectedObject)
   }
 
-  test("That GET /<id> returns body with agreement license and authors") {
+  test("That GET /<id> returns body with license and authors") {
     val testUrl = "http://test.test/1"
     val expectedBody =
-      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"gnu","description":"gnuggert","url":"https://gnuli/"},"agreementId": 1,"origin":"http://www.scanpix.no","creators":[{"type":"Forfatter","name":"Knutulf Knagsen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
+      s"""
+         |{
+         |  "id":"1",
+         |  "metaUrl":"$testUrl",
+         |  "title":{"title":"Elg i busk","language":"nb"},
+         |  "created":"2017-04-01T12:15:32Z",
+         |  "createdBy":"ndla124",
+         |  "modelRelease":"yes",
+         |  "alttext":{"alttext":"Elg i busk","language":"nb"},
+         |  "imageUrl":"$testUrl",
+         |  "size":2865539,
+         |  "contentType":"image/jpeg",
+         |  "copyright":{
+         |    "license":{
+         |      "license":"CC-BY-NC-SA-4.0",
+         |      "description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
+         |      "url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"
+         |    },
+         |    "origin":"http://www.scanpix.no",
+         |    "creators":[{"type":"writer","name":"Knutulf Knagsen"}],
+         |    "processors":[{"type":"editorial","name":"Kåre Knegg"}],
+         |    "rightsholders":[],
+         |    "processed":false
+         |  },
+         |  "tags":{"tags":["rovdyr","elg"],"language":"nb"},
+         |  "caption":{"caption":"Elg i busk","language":"nb"},
+         |  "supportedLanguages":["nb"]
+         |}""".stripMargin
     val expectedObject = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](expectedBody)
 
     when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
@@ -181,22 +209,6 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/1")
     )
     res.code.code should be(200)
-    val result = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](res.body)
-    result.copy(imageUrl = testUrl, metaUrl = testUrl) should equal(expectedObject)
-  }
-
-  test("That GET /<id> returns body with original copyright if agreement doesnt exist") {
-    val testUrl = "http://test.test/1"
-    val expectedBody =
-      s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"}, "agreementId":1, "origin":"http://www.scanpix.no","creators":[{"type":"Fotograf","name":"Test Testesen"}],"processors":[{"type":"Redaksjonelt","name":"Kåre Knegg"}],"rightsholders":[{"type":"Leverandør","name":"Leverans Leveransensen"}],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
-    val expectedObject = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](expectedBody)
-
-    when(readService.withId(1, None, None)).thenReturn(Success(Option(expectedObject)))
-
-    val res = simpleHttpClient.send(
-      quickRequest.get(uri"http://localhost:$serverPort/image-api/v2/images/1")
-    )
-    res.code.code should equal(200)
     val result = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](res.body)
     result.copy(imageUrl = testUrl, metaUrl = testUrl) should equal(expectedObject)
   }

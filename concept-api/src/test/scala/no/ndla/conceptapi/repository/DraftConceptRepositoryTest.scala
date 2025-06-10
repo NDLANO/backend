@@ -14,16 +14,13 @@ import no.ndla.common.model.domain.concept
 import no.ndla.common.model.domain.concept.ConceptContent
 import no.ndla.conceptapi.TestData.*
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.*
 
 import java.net.Socket
 import scala.util.{Failure, Success, Try}
 
-class DraftConceptRepositoryTest
-    extends IntegrationSuite(EnablePostgresContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
 
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator                     = new DBMigrator
@@ -51,7 +48,7 @@ class DraftConceptRepositoryTest
   }
 
   def serverIsListening: Boolean = {
-    Try(new Socket(props.MetaServer, props.MetaPort)) match {
+    Try(new Socket(props.MetaServer.unsafeGet, props.MetaPort.unsafeGet)) match {
       case Success(c) =>
         c.close()
         true

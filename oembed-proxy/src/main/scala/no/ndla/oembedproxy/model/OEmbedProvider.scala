@@ -10,7 +10,7 @@ package no.ndla.oembedproxy.model
 
 import io.circe.Decoder
 import io.lemonlabs.uri.Url
-import io.lemonlabs.uri.typesafe.dsl._
+import io.lemonlabs.uri.typesafe.dsl.*
 
 case class OEmbedProvider(
     providerName: String,

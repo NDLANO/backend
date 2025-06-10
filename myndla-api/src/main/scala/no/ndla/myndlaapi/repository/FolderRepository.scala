@@ -15,8 +15,10 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
 import no.ndla.common.{CirceUtil, Clock}
+import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.{maybeUuidBinder, uuidBinder, uuidParameterFactory}
 import no.ndla.myndlaapi.model.domain.{
+  BulkInserts,
   DBMyNDLAUser,
   Folder,
   FolderResource,
@@ -32,10 +34,11 @@ import scalikejdbc.*
 import scalikejdbc.interpolation.SQLSyntax
 
 import java.util.UUID
+import scala.collection.IndexedSeq.iterableFactory
 import scala.util.{Failure, Success, Try}
 
 trait FolderRepository {
-  this: Clock =>
+  this: Clock & DBUtility =>
   val folderRepository: FolderRepository
 
   class FolderRepository extends StrictLogging {
@@ -94,13 +97,6 @@ trait FolderRepository {
         created: NDLADate,
         document: ResourceDocument
     )(implicit session: DBSession = AutoSession): Try[Resource] = Try {
-      val jsonDocument = {
-        val dataObject = new PGobject()
-        dataObject.setType("jsonb")
-        dataObject.setValue(CirceUtil.toJsonString(document))
-        ParameterBinder(dataObject, (ps, idx) => ps.setObject(idx, dataObject))
-      }
-
       val newId  = UUID.randomUUID()
       val column = Resource.column.c _
 
@@ -113,7 +109,7 @@ trait FolderRepository {
             column("path")          -> path,
             column("resource_type") -> resourceType.entryName,
             column("created")       -> created,
-            column("document")      -> jsonDocument
+            column("document")      -> DBUtil.asJsonb(document)
           )
       }.update(): Unit
 
@@ -234,7 +230,7 @@ trait FolderRepository {
               folderId   <- rs.get[Try[UUID]]("folder_id")
               rank          = rs.int("rank")
               favoritedDate = NDLADate.fromUtcDate(rs.localDateTime("favorited_date"))
-            } yield FolderResource(resourceId, folderId, rank, favoritedDate)
+            } yield FolderResource(folderId, resourceId, rank, favoritedDate)
           })
           .single()
       )
@@ -351,6 +347,24 @@ trait FolderRepository {
         .getOrElse(0L)
     }
 
+    def numberOfUsersWithFavourites(implicit session: DBSession = AutoSession): Try[Option[Long]] = Try {
+      sql"""
+           select count(distinct feide_id) as count from ${Resource.table}
+         """
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
+    def numberOfUsersWithoutFavourites(implicit session: DBSession = AutoSession): Try[Option[Long]] = Try {
+      sql"""
+           select count(distinct u.feide_id) as count from ${DBMyNDLAUser.table} u
+           left join ${Resource.table} r on u.feide_id = r.feide_id
+           where r.feide_id is null
+         """
+        .map(rs => rs.long("count"))
+        .single()
+    }
+
     def deleteAllUserFolders(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {
       Try(sql"delete from ${Folder.table} where feide_id = $feideId".update()) match {
         case Failure(ex) => Failure(ex)
@@ -447,7 +461,7 @@ trait FolderRepository {
         case Some(value) =>
           getFolderAndChildrenSubfoldersWithResourcesWhere(
             id,
-            sqls"AND (child.status = ${status.toString} OR child.feide_id = ${value})"
+            sqls"AND (child.status = ${status.toString} OR child.feide_id = $value)"
           )
       }
     }
@@ -550,7 +564,7 @@ trait FolderRepository {
     private def findUser(feideId: FeideID, users: collection.Seq[MyNDLAUser]): Try[Option[MyNDLAUser]] =
       users.find(user => feideId == user.feideId) match {
         case Some(u) => Success(Some(u))
-        case None    => Failure(NDLASQLException(s"${feideId} does not match any users with folder"))
+        case None    => Failure(NDLASQLException(s"$feideId does not match any users with folder"))
       }
 
     def getFolderAndChildrenSubfolders(id: UUID)(implicit session: DBSession): Try[Option[Folder]] = Try {
@@ -721,148 +735,134 @@ trait FolderRepository {
           Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
       }
 
-    def numberOfTags()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+    def numberOfTags()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
       sql"select count(tag) from (select distinct jsonb_array_elements_text(document->'tags') from ${Resource.table}) as tag"
         .map(rs => rs.long("count"))
         .single()
     }
 
-    def numberOfResources()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+    def insertResourcesInBulk(bulk: BulkInserts)(implicit session: DBSession): Try[Unit] = {
+      Try {
+        val insertSql =
+          sql"""
+          insert into ${Resource.table} (id, feide_id, path, resource_type, created, document)
+          values (?, ?, ?, ?, ? ,?)
+          on conflict (feide_id, path, resource_type) do nothing
+       """
+
+        val batchParams = bulk.resources.map { resource =>
+          val document = DBUtil.asJsonb(ResourceDocument(resource.tags, resource.resourceId))
+          Seq[Any](
+            resource.id,
+            resource.feideId,
+            resource.path,
+            resource.resourceType.entryName,
+            NDLADate.parameterBinderFactory(resource.created),
+            document
+          )
+        }
+
+        insertSql
+          .batch(batchParams*)
+          .apply(): Unit
+      }
+    }
+
+    def insertResourceConnectionInBulk(bulkInserts: BulkInserts)(implicit session: DBSession): Try[Unit] = {
+      Try {
+        val insertSql = sql"""
+        with rid as (
+          select id from resources r
+          where r.feide_id = ?
+          and r.resource_type = ?
+          and r.path = ?
+        )
+        insert into ${FolderResource.table} (folder_id, resource_id, rank, favorited_date)
+        select ?, id, ?, ? from rid
+      """
+
+        val batchParams = {
+          bulkInserts.connections.traverse { c =>
+            bulkInserts.resources.find(_.id == c.resourceId) match {
+              case Some(resource) =>
+                Success(
+                  Seq[Any](
+                    resource.feideId,
+                    resource.resourceType.entryName,
+                    resource.path,
+                    c.folderId,
+                    c.rank,
+                    NDLADate.parameterBinderFactory(c.favoritedDate)
+                  )
+                )
+
+              case None =>
+                logger.error("Something went wrong when generating parameters for batch inserting folder_resources")
+                Failure(
+                  new RuntimeException(
+                    "Something went wrong when generating parameters for batch inserting folder_resources"
+                  )
+                )
+            }
+          }
+        }
+
+        batchParams.map { params =>
+          insertSql
+            .batch(params*)
+            .apply(): Unit
+        }
+      }.flatten
+    }
+
+    def insertFolderInBulk(bulk: BulkInserts)(implicit session: DBSession): Try[Unit] = Try {
+      val insertSql = sql"""
+        insert into ${Folder.table} (id, parent_id, feide_id, name, status, rank, created, updated, shared, description)
+        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      """
+
+      val batchParams = bulk.folders.map { folder =>
+        Seq[Any](
+          folder.id,
+          folder.parentId,
+          folder.feideId,
+          folder.name,
+          folder.status.toString,
+          folder.rank,
+          NDLADate.parameterBinderFactory(folder.created),
+          NDLADate.parameterBinderFactory(folder.updated),
+          folder.shared.map(d => NDLADate.parameterBinderFactory(d)),
+          folder.description
+        )
+      }
+
+      insertSql
+        .batch(batchParams*)
+        .apply(): Unit
+    }
+
+    def numberOfResources()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
       sql"select count(*) from ${Resource.table}"
         .map(rs => rs.long("count"))
         .single()
     }
 
-    def numberOfFolders()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+    def numberOfFolders()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
       sql"select count(*) from ${Folder.table}"
         .map(rs => rs.long("count"))
         .single()
     }
 
-    def numberOfSharedFolders()(implicit session: DBSession = ReadOnlyAutoSession): Option[Long] = {
+    def numberOfSharedFolders()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
       sql"select count(*) from ${Folder.table} where status = ${FolderStatus.SHARED.toString}"
         .map(rs => rs.long("count"))
         .single()
     }
 
-    def numberOfResourcesGrouped()(implicit session: DBSession = ReadOnlyAutoSession): List[(Long, String)] = {
+    def numberOfResourcesGrouped()(implicit session: DBSession = ReadOnlyAutoSession): Try[List[(Long, String)]] = Try {
       sql"select count(*) as antall, resource_type from ${Resource.table} group by resource_type"
         .map(rs => (rs.long("antall"), rs.string("resource_type")))
         .list()
-    }
-    def getAllFolderRows(implicit session: DBSession): List[FolderRow] = {
-      sql"select * from ${Folder.table}"
-        .map(rs => {
-          FolderRow(
-            id = UUID.fromString(rs.string("id")),
-            parent_id = rs.stringOpt("parent_id").map(x => UUID.fromString(x)),
-            feide_id = rs.stringOpt("feide_id"),
-            rank = rs.longOpt("rank"),
-            name = rs.string("name"),
-            status = rs.string("status"),
-            created = NDLADate.fromUtcDate(rs.localDateTime("created")),
-            updated = NDLADate.fromUtcDate(rs.localDateTime("updated")),
-            shared = rs.localDateTimeOpt("shared").map(d => NDLADate.fromUtcDate(d)),
-            description = rs.stringOpt("description")
-          )
-        })
-        .list()
-    }
-
-    case class ResourceRow(
-        id: UUID,
-        feide_id: String,
-        path: String,
-        resource_type: String,
-        created: NDLADate,
-        document: String
-    )
-    def getAllResourceRows(implicit session: DBSession): List[ResourceRow] = {
-      sql"select * from ${Resource.table}"
-        .map(rs => {
-          ResourceRow(
-            id = UUID.fromString(rs.string("id")),
-            feide_id = rs.string("feide_id"),
-            path = rs.string("path"),
-            resource_type = rs.string("resource_type"),
-            created = NDLADate.fromUtcDate(rs.localDateTime("created")),
-            document = rs.string("document")
-          )
-        })
-        .list()
-    }
-
-    case class FolderResourceRow(folder_id: UUID, resource_id: UUID, rank: Int)
-    def getAllFolderResourceRows(implicit session: DBSession): List[FolderResourceRow] = {
-      sql"select * from ${FolderResource.table}"
-        .map(rs => {
-          FolderResourceRow(
-            folder_id = UUID.fromString(rs.string("folder_id")),
-            resource_id = UUID.fromString(rs.string("resource_id")),
-            rank = rs.int("rank")
-          )
-        })
-        .list()
-    }
-
-    def insertFolderRow(folderRow: FolderRow)(implicit session: DBSession): Unit = {
-      val column = Folder.column.c _
-      withSQL {
-        insert
-          .into(Folder)
-          .namedValues(
-            column("id")          -> folderRow.id,
-            column("parent_id")   -> folderRow.parent_id,
-            column("feide_id")    -> folderRow.feide_id,
-            column("rank")        -> folderRow.rank,
-            column("name")        -> folderRow.name,
-            column("status")      -> folderRow.status,
-            column("created")     -> folderRow.created,
-            column("updated")     -> folderRow.updated,
-            column("shared")      -> folderRow.shared,
-            column("description") -> folderRow.description
-          )
-      }.update(): Unit
-      logger.info(s"Inserted new folder with id ${folderRow.id}")
-    }
-
-    def insertResourceRow(resourceRow: ResourceRow)(implicit session: DBSession): Unit = {
-      val jsonDocument = {
-        val dataObject = new PGobject()
-        dataObject.setType("jsonb")
-        dataObject.setValue(resourceRow.document)
-        ParameterBinder(dataObject, (ps, idx) => ps.setObject(idx, dataObject))
-      }
-      val column = Resource.column.c _
-      withSQL {
-        insert
-          .into(Resource)
-          .namedValues(
-            column("id")            -> resourceRow.id,
-            column("feide_id")      -> resourceRow.feide_id,
-            column("path")          -> resourceRow.path,
-            column("resource_type") -> resourceRow.resource_type,
-            column("created")       -> resourceRow.created,
-            column("document")      -> jsonDocument
-          )
-      }.update(): Unit
-      logger.info(s"Inserted new resource with id ${resourceRow.id}")
-    }
-
-    def insertFolderResourceRow(folderResourceRow: FolderResourceRow)(implicit session: DBSession): Unit = {
-      val column = FolderResource.column.c _
-      withSQL {
-        insert
-          .into(FolderResource)
-          .namedValues(
-            column("folder_id")   -> folderResourceRow.folder_id,
-            column("resource_id") -> folderResourceRow.resource_id,
-            column("rank")        -> folderResourceRow.rank
-          )
-      }.update(): Unit
-      logger.info(
-        s"Inserted new folder resource with id ${folderResourceRow.folder_id}_${folderResourceRow.resource_id}"
-      )
     }
 
     def createFolderUserConnection(folderId: UUID, feideId: FeideID, rank: Int)(implicit
@@ -954,15 +954,3 @@ trait FolderRepository {
     }.flatten
   }
 }
-case class FolderRow(
-    id: UUID,
-    parent_id: Option[UUID],
-    feide_id: Option[String],
-    rank: Option[Long],
-    name: String,
-    status: String,
-    created: NDLADate,
-    updated: NDLADate,
-    shared: Option[NDLADate],
-    description: Option[String]
-)

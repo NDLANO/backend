@@ -17,6 +17,7 @@ import no.ndla.common.model.api.{LicenseDTO, UpdateWith}
 import no.ndla.common.model.domain.{
   Author,
   Availability,
+  ContributorType,
   Description,
   Introduction,
   RequiredLibrary,
@@ -30,6 +31,7 @@ import no.ndla.common.model.domain.article.{
   Copyright,
   PartialPublishArticleDTO
 }
+import no.ndla.mapping.License
 import org.mockito.Mockito.when
 
 import scala.util.Success
@@ -38,7 +40,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   val service                          = new ConverterService
   val contentTitle: Title              = Title("", "und")
-  val author: Author                   = Author("forfatter", "Henrik")
+  val author: Author                   = Author(ContributorType.Writer, "Henrik")
   val tag: Tag                         = Tag(List("asdf"), "nb")
   val requiredLibrary: RequiredLibrary = RequiredLibrary("", "", "")
   val nodeId                           = "1234"
@@ -149,7 +151,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val introduction       = "Baldur"
     val metaDescription    = "Hurr Durr"
     val metaImageAlt       = "Alt text is here"
-    val license            = "publicdomain"
+    val license            = License.PublicDomain.toString
     val articleType        = "topic-article"
     val supportedLanguages = Seq("nb", "en")
     val availability       = "everyone"

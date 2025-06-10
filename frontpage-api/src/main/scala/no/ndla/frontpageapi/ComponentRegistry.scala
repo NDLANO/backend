@@ -13,7 +13,7 @@ import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.frontpageapi.controller.*
 import no.ndla.frontpageapi.model.api.ErrorHandling
-import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
+import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.network.tapir.TapirApplication
@@ -30,19 +30,18 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     with SubjectPageController
     with FrontPageController
     with FilmPageController
-    with DBFilmFrontPageData
-    with DBSubjectFrontPageData
-    with DBFrontPageData
+    with DBFilmFrontPage
+    with DBSubjectPage
+    with DBFrontPage
     with ErrorHandling
     with Clock
     with Props
     with DBMigrator
     with ConverterService
     with SwaggerDocControllerConfig {
-  override val props: FrontpageApiProperties = properties
-  override val migrator: DBMigrator          = DBMigrator()
-  override val dataSource: HikariDataSource  = DataSource.getHikariDataSource
-  DataSource.connectToDatabase()
+  override val props: FrontpageApiProperties     = properties
+  override val migrator: DBMigrator              = DBMigrator()
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
   override val clock = new SystemClock
 
@@ -62,7 +61,7 @@ class ComponentRegistry(properties: FrontpageApiProperties)
   override val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
   override val ndlaClient: NdlaClient           = new NdlaClient
 
-  private val swagger = new SwaggerController(
+  val swagger = new SwaggerController(
     List(
       subjectPageController,
       frontPageController,

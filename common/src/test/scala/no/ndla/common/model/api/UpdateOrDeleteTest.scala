@@ -5,14 +5,15 @@
  * See LICENSE
  *
  */
+
 package no.ndla.common.model.api
 
-import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
-class UpdateOrDeleteTest extends UnitTestSuite {
+class UpdateOrDeleteTest extends UnitTestSuiteBase {
 
   test("That encoding UpdateOrDelete works as expected") {
-    import io.circe.syntax._
+    import io.circe.syntax.*
     import io.circe.Encoder
     import io.circe.generic.semiauto.deriveEncoder
     case class ApiObject(

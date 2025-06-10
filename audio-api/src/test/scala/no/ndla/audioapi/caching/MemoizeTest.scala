@@ -8,10 +8,10 @@
 
 package no.ndla.audioapi.caching
 
-import no.ndla.audioapi.UnitSuite
+import no.ndla.testbase.UnitTestSuiteBase
 import org.mockito.Mockito.{times, verify, when}
 
-class MemoizeTest extends UnitSuite {
+class MemoizeTest extends UnitTestSuiteBase {
 
   class Target {
     def targetMethod(): String = "Hei"

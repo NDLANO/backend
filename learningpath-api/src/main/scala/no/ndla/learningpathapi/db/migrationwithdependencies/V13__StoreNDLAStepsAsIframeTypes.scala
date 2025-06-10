@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.learningpathapi.db.migrationwithdependencies
 
 import com.typesafe.scalalogging.StrictLogging

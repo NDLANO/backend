@@ -24,27 +24,29 @@ import no.ndla.common.model.domain.learningpath.{
   StepStatus,
   StepType
 }
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.domain.*
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.mapping.License
+import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import org.mockito.Mockito.when
 import scalikejdbc.*
 
 import scala.util.Try
 
 class LearningPathRepositoryComponentIntegrationTest
-    extends IntegrationSuite(EnablePostgresContainer = true, schemaName = "learningpathapi_test")
+    extends DatabaseIntegrationSuite
     with UnitSuite
     with TestEnvironment {
+  override val schemaName = "learningpathapi_test"
 
   override val dataSource: HikariDataSource = testDataSource.get
   override val migrator: DBMigrator         = DBMigrator()
 
   var repository: LearningPathRepository = _
 
-  val clinton: Author                  = Author("author", "Hilla the Hun")
-  val license                          = "publicdomain"
+  val clinton: Author                  = Author(ContributorType.Writer, "Hilla the Hun")
+  val license: String                  = License.PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(clinton))
 
   val DefaultLearningPath: LearningPath = LearningPath(
@@ -264,9 +266,9 @@ class LearningPathRepositoryComponentIntegrationTest
         copyright = LearningpathCopyright(
           "by",
           List(
-            Author("forfatter", "James Bond"),
-            Author("forfatter", "Christian Bond"),
-            Author("forfatter", "Jens Petrius")
+            Author(ContributorType.Writer, "James Bond"),
+            Author(ContributorType.Writer, "Christian Bond"),
+            Author(ContributorType.Writer, "Jens Petrius")
           )
         )
       )
@@ -274,15 +276,15 @@ class LearningPathRepositoryComponentIntegrationTest
 
     val privatePath = repository.insert(
       DefaultLearningPath.copy(
-        copyright = LearningpathCopyright("by", List(Author("forfatter", "Test testesen")))
+        copyright = LearningpathCopyright("by", List(Author(ContributorType.Writer, "Test testesen")))
       )
     )
 
     val publicContributors = repository.allPublishedContributors
-    publicContributors should contain(Author("forfatter", "James Bond"))
-    publicContributors should contain(Author("forfatter", "Christian Bond"))
-    publicContributors should contain(Author("forfatter", "Jens Petrius"))
-    publicContributors should not contain Author("forfatter", "Test testesen")
+    publicContributors should contain(Author(ContributorType.Writer, "James Bond"))
+    publicContributors should contain(Author(ContributorType.Writer, "Christian Bond"))
+    publicContributors should contain(Author(ContributorType.Writer, "Jens Petrius"))
+    publicContributors should not contain Author(ContributorType.Writer, "Test testesen")
 
     repository.deletePath(publicPath.id.get)
     repository.deletePath(privatePath.id.get)
@@ -295,9 +297,9 @@ class LearningPathRepositoryComponentIntegrationTest
         copyright = LearningpathCopyright(
           "by",
           List(
-            Author("forfatter", "James Bond"),
-            Author("forfatter", "Christian Bond"),
-            Author("forfatter", "Jens Petrius")
+            Author(ContributorType.Writer, "James Bond"),
+            Author(ContributorType.Writer, "Christian Bond"),
+            Author(ContributorType.Writer, "Jens Petrius")
           )
         )
       )
@@ -305,16 +307,18 @@ class LearningPathRepositoryComponentIntegrationTest
     val publicPath2 = repository.insert(
       DefaultLearningPath.copy(
         status = LearningPathStatus.PUBLISHED,
-        copyright =
-          LearningpathCopyright("by", List(Author("forfatter", "James Bond"), Author("forfatter", "Test testesen")))
+        copyright = LearningpathCopyright(
+          "by",
+          List(Author(ContributorType.Writer, "James Bond"), Author(ContributorType.Writer, "Test testesen"))
+        )
       )
     )
 
     val publicContributors = repository.allPublishedContributors
-    publicContributors should contain(Author("forfatter", "James Bond"))
-    publicContributors should contain(Author("forfatter", "Christian Bond"))
-    publicContributors should contain(Author("forfatter", "Jens Petrius"))
-    publicContributors should contain(Author("forfatter", "Test testesen"))
+    publicContributors should contain(Author(ContributorType.Writer, "James Bond"))
+    publicContributors should contain(Author(ContributorType.Writer, "Christian Bond"))
+    publicContributors should contain(Author(ContributorType.Writer, "Jens Petrius"))
+    publicContributors should contain(Author(ContributorType.Writer, "Test testesen"))
 
     publicContributors.count(_.name == "James Bond") should be(1)
 

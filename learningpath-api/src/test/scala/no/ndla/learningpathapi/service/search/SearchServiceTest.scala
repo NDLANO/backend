@@ -21,21 +21,19 @@ import no.ndla.common.model.domain.learningpath.{
   StepStatus,
   StepType
 }
-import no.ndla.common.model.domain.{Author, Tag, Title, learningpath}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title, learningpath}
 import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.mapping.License
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.doReturn
 
 import scala.util.Success
 
-class SearchServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   import props.{DefaultPageSize, MaxPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
   override val searchConverterService: SearchConverterService = new SearchConverterService
@@ -44,8 +42,8 @@ class SearchServiceTest
   }
   override val searchService: SearchService = new SearchService
 
-  val paul: Author                     = Author("author", "Truly Weird Rand Paul")
-  val license                          = "publicdomain"
+  val paul: Author                     = Author(ContributorType.Writer, "Truly Weird Rand Paul")
+  val license: String                  = License.PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(paul))
 
   val DefaultLearningPath: LearningPath = LearningPath(
@@ -94,7 +92,9 @@ class SearchServiceTest
     if (elasticSearchContainer.isSuccess) {
       searchIndexService.createIndexAndAlias().get
 
-      doReturn(commonApi.AuthorDTO("Forfatter", "En eier"), Nil*).when(converterService).asAuthor(any[NdlaUserName])
+      doReturn(commonApi.AuthorDTO(ContributorType.Writer, "En eier"), Nil*)
+        .when(converterService)
+        .asAuthor(any[NdlaUserName])
 
       val today      = NDLADate.now()
       val yesterday  = NDLADate.now().minusDays(1)

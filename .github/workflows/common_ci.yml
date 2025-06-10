@@ -8,8 +8,8 @@ on:
     paths:
       - common/**
       - project/common*.scala
-      - scalatestsuite/**
-      - project/scalatestsuite*.scala
+      - testbase/**
+      - project/testbase*.scala
       - language/**
       - project/language*.scala
       - project/Dependencies.scala
@@ -18,8 +18,8 @@ on:
     paths:
       - common/**
       - project/common*.scala
-      - scalatestsuite/**
-      - project/scalatestsuite*.scala
+      - testbase/**
+      - project/testbase*.scala
       - language/**
       - project/language*.scala
       - project/Dependencies.scala
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: temurin
-          java-version: '20'
+          java-version: ${{ vars.JAVA_VERSION }}
       - uses: sbt/setup-sbt@v1
       - name: Login to ECR repo
         run: RES=$(aws sts assume-role --role-arn $CI_RELEASE_ROLE --role-session-name

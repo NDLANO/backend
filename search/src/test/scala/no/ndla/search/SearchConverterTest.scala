@@ -5,12 +5,13 @@
  * See LICENSE
  *
  */
+
 package no.ndla.search
 
-import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.search.model.domain.EmbedValues
+import no.ndla.testbase.UnitTestSuiteBase
 
-class SearchConverterTest extends UnitTestSuite {
+class SearchConverterTest extends UnitTestSuiteBase {
 
   test("That extracting imageids works") {
     val imageId = "123"

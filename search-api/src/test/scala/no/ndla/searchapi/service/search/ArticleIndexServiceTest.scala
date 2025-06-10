@@ -8,12 +8,12 @@
 
 package no.ndla.searchapi.service.search
 
-import io.circe.syntax.*
 import com.sksamuel.elastic4s.ElasticDsl.*
+import io.circe.syntax.*
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, Author, Description, VisualElement}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.common.model.domain.*
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.IndexingBundle
@@ -22,10 +22,7 @@ import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.Success
 
-class ArticleIndexServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   override val articleIndexService: ArticleIndexService = new ArticleIndexService {
@@ -137,9 +134,9 @@ class ArticleIndexServiceTest
       copyright = Copyright(
         license = "CC-BY-SA-4.0",
         origin = None,
-        creators = Seq(Author("writer", "hå")),
-        processors = Seq(Author("writer", "hå")),
-        rightsholders = Seq(Author("writer", "hå")),
+        creators = Seq(Author(ContributorType.Writer, "hå")),
+        processors = Seq(Author(ContributorType.Writer, "hå")),
+        rightsholders = Seq(Author(ContributorType.Writer, "hå")),
         validFrom = None,
         validTo = None,
         processed = false

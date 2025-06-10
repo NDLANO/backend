@@ -10,6 +10,7 @@ package no.ndla.imageapi.controller
 
 import cats.implicits.*
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.imageapi.controller.multipart.{MetaDataAndFileForm, UpdateMetaDataAndFileForm}
 import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain.{ModelReleasedStatus, SearchSettings, Sort}
@@ -60,12 +61,12 @@ trait ImageControllerV2 {
       * @return
       *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
       */
-    protected def scrollSearchOr(scrollId: Option[String], language: String, user: Option[TokenUser])(
+    protected def scrollSearchOr(scrollId: Option[String], language: LanguageCode, user: Option[TokenUser])(
         orFunction: => Try[(SearchResultDTO, DynamicHeaders)]
     ): Try[(SearchResultDTO, DynamicHeaders)] =
       scrollId match {
         case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
-          imageSearchService.scrollV2(scroll, language, user) match {
+          imageSearchService.scrollV2(scroll, language.code, user) match {
             case Success(scrollResult) =>
               val body    = searchConverterService.asApiSearchResult(scrollResult)
               val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
@@ -85,7 +86,6 @@ trait ImageControllerV2 {
         pageSize: Option[Int],
         page: Option[Int],
         podcastFriendly: Option[Boolean],
-        includeCopyrighted: Boolean,
         shouldScroll: Boolean,
         modelReleasedStatus: Seq[ModelReleasedStatus.Value],
         user: Option[TokenUser]
@@ -102,7 +102,6 @@ trait ImageControllerV2 {
             page = page,
             pageSize = pageSize,
             podcastFriendly = podcastFriendly,
-            includeCopyrighted = includeCopyrighted,
             shouldScroll = shouldScroll,
             modelReleased = modelReleasedStatus,
             userFilter = List.empty
@@ -118,7 +117,6 @@ trait ImageControllerV2 {
             page = page,
             pageSize = pageSize,
             podcastFriendly = podcastFriendly,
-            includeCopyrighted = includeCopyrighted,
             shouldScroll = shouldScroll,
             modelReleased = modelReleasedStatus,
             userFilter = List.empty
@@ -142,7 +140,6 @@ trait ImageControllerV2 {
       .in(language)
       .in(fallback)
       .in(license)
-      .in(includeCopyrighted)
       .in(sort)
       .in(pageNo)
       .in(pageSize)
@@ -161,7 +158,6 @@ trait ImageControllerV2 {
                 language,
                 fallback,
                 license,
-                includeCopyrighted,
                 sortStr,
                 pageNo,
                 pageSize,
@@ -177,14 +173,13 @@ trait ImageControllerV2 {
               search(
                 minimumSize,
                 query,
-                language,
+                language.code,
                 fallback,
                 license,
                 sort,
                 pageSize,
                 pageNo,
                 podcastFriendly,
-                includeCopyrighted,
                 shouldScroll,
                 modelReleasedStatus,
                 user
@@ -203,32 +198,30 @@ trait ImageControllerV2 {
       .out(EndpointOutput.derived[DynamicHeaders])
       .withOptionalUser
       .serverLogicPure(user => { searchParams =>
-        val language = searchParams.language.getOrElse(Language.AllLanguages)
+        val language = searchParams.language.getOrElse(LanguageCode(Language.AllLanguages))
         val fallback = searchParams.fallback.getOrElse(false)
         scrollSearchOr(searchParams.scrollId, language, user) {
-          val minimumSize        = searchParams.minimumSize
-          val query              = searchParams.query
-          val license            = searchParams.license
-          val pageSize           = searchParams.pageSize
-          val page               = searchParams.page
-          val podcastFriendly    = searchParams.podcastFriendly
-          val sort               = searchParams.sort
-          val includeCopyrighted = searchParams.includeCopyrighted.getOrElse(false)
-          val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+          val minimumSize = searchParams.minimumSize
+          val query       = searchParams.query
+          val license  = searchParams.license.orElse(Option.when(searchParams.includeCopyrighted.contains(true))("all"))
+          val pageSize = searchParams.pageSize
+          val page     = searchParams.page
+          val podcastFriendly = searchParams.podcastFriendly
+          val sort            = searchParams.sort
+          val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
           val modelReleasedStatus =
             searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
 
           search(
             minimumSize,
             query,
-            language,
+            language.code,
             fallback,
             license,
             sort,
             pageSize,
             page,
             podcastFriendly,
-            includeCopyrighted,
             shouldScroll,
             modelReleasedStatus,
             user
@@ -296,7 +289,7 @@ trait ImageControllerV2 {
       .summary("Deletes the specified images meta data and file")
       .description("Deletes the specified images meta data and file")
       .in(pathImageId)
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(IMAGE_API_WRITE)
       .serverLogicPure { _ => imageId =>
@@ -357,7 +350,9 @@ trait ImageControllerV2 {
         }
         val sort = Sort.valueOf(sortStr).getOrElse(Sort.ByRelevanceDesc)
 
-        readService.getAllTags(query, pageSize, pageNo, language, sort).handleErrorsOrOk
+        readService
+          .getAllTags(query, pageSize, pageNo, language.code, sort)
+          .handleErrorsOrOk
       }
   }
 }

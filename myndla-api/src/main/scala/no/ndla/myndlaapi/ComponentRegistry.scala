@@ -13,27 +13,24 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.controller.{
-  ArenaController,
   ConfigController,
   ErrorHandling,
   FolderController,
-  InternController,
+  RobotController,
   StatsController,
   SwaggerDocControllerConfig,
   UserController
 }
 import no.ndla.myndlaapi.db.migrationwithdependencies.V16__MigrateResourcePaths
-import no.ndla.myndlaapi.integration.{SearchApiClient, TaxonomyApiClient}
+import no.ndla.myndlaapi.integration.{LearningPathApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
-import no.ndla.myndlaapi.repository.{ArenaRepository, ConfigRepository, FolderRepository, UserRepository}
+import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, RobotRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
-  ArenaReadService,
   ConfigService,
-  ConverterService,
   FolderConverterService,
   FolderReadService,
   FolderWriteService,
-  ImportService,
+  RobotService,
   UserService
 }
 import no.ndla.network.NdlaClient
@@ -49,31 +46,29 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with SwaggerDocControllerConfig
     with DataSource
     with DBMigrator
-    with ArenaReadService
     with DBUtility
-    with ConverterService
     with FolderRepository
     with FolderReadService
     with FolderWriteService
+    with RobotRepository
     with FolderConverterService
     with UserService
     with ConfigService
+    with RobotService
     with UserRepository
     with ConfigRepository
     with FeideApiClient
     with ConfigController
     with RedisClient
     with FolderController
+    with RobotController
     with UserController
     with StatsController
-    with ArenaController
     with MyNDLAAuthHelpers
-    with ArenaRepository
-    with ImportService
     with NodeBBClient
-    with InternController
     with SearchApiClient
     with TaxonomyApiClient
+    with LearningPathApiClient
     with V16__MigrateResourcePaths
     with NdlaClient {
   override val props: MyNdlaApiProperties = properties
@@ -81,6 +76,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val healthController: TapirHealthController              = new TapirHealthController
   lazy val clock: SystemClock                                   = new SystemClock
   lazy val folderController: FolderController                   = new FolderController
+  lazy val robotController: RobotController                     = new RobotController
   lazy val feideApiClient: FeideApiClient                       = new FeideApiClient
   lazy val redisClient                                          = new RedisClient(props.RedisHost, props.RedisPort)
   lazy val folderRepository: FolderRepository                   = new FolderRepository
@@ -88,39 +84,34 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
   lazy val folderReadService: FolderReadService                 = new FolderReadService
   lazy val folderWriteService: FolderWriteService               = new FolderWriteService
   lazy val userRepository: UserRepository                       = new UserRepository
+  lazy val robotRepository: RobotRepository                     = new RobotRepository
+  lazy val robotService: RobotService                           = new RobotService
   lazy val userService: UserService                             = new UserService
   lazy val userController: UserController                       = new UserController
   lazy val configRepository: ConfigRepository                   = new ConfigRepository
   lazy val configService: ConfigService                         = new ConfigService
   lazy val configController: ConfigController                   = new ConfigController
   lazy val statsController: StatsController                     = new StatsController
-  lazy val arenaRepository: ArenaRepository                     = new ArenaRepository
-  lazy val arenaReadService: ArenaReadService                   = new ArenaReadService
-  lazy val arenaController: ArenaController                     = new ArenaController
-  lazy val converterService: ConverterService                   = new ConverterService
-  lazy val importService: ImportService                         = new ImportService
   lazy val nodebb: NodeBBClient                                 = new NodeBBClient
-  lazy val internController: InternController                   = new InternController
   lazy val searchApiClient: SearchApiClient                     = new SearchApiClient
   lazy val taxonomyApiClient: TaxonomyApiClient                 = new TaxonomyApiClient
+  lazy val learningPathApiClient: LearningPathApiClient         = new LearningPathApiClient
   lazy val ndlaClient: NdlaClient                               = new NdlaClient
   lazy val myndlaApiClient: MyNDLAApiClient                     = new MyNDLAApiClient
   lazy val v16__MigrateResourcePaths: V16__MigrateResourcePaths = new V16__MigrateResourcePaths
   lazy val DBUtil                                               = new DBUtility
 
-  override val migrator: DBMigrator         = DBMigrator(v16__MigrateResourcePaths)
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  DataSource.connectToDatabase()
+  override val migrator: DBMigrator              = DBMigrator(v16__MigrateResourcePaths)
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
-  private val swagger = new SwaggerController(
+  val swagger = new SwaggerController(
     List(
       healthController,
       folderController,
+      robotController,
       userController,
       configController,
-      statsController,
-      arenaController,
-      internController
+      statsController
     ),
     SwaggerDocControllerConfig.swaggerInfo
   )

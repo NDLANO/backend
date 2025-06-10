@@ -23,7 +23,7 @@ import no.ndla.database.DataSource
 import scala.util.{Failure, Success, Try}
 
 trait SeriesRepository {
-  this: DataSource with Props with ErrorHandling =>
+  this: DataSource & Props & ErrorHandling =>
   val seriesRepository: SeriesRepository
 
   class SeriesRepository extends StrictLogging with Repository[Series] {

@@ -27,7 +27,7 @@ trait ImageConverter {
   val imageConverter: ImageConverter
   case class PixelPoint(x: Int, y: Int) // A point given with pixles
   case class PercentPoint(x: Double, y: Double) { // A point given with values from MinValue to MaxValue. MinValue,MinValue is top-left, MaxValue,MaxValue is bottom-right
-    import PercentPoint._
+    import PercentPoint.*
     if (!inRange(x) || !inRange(y))
       throw new ValidationException(
         errors = Seq(
@@ -51,15 +51,15 @@ trait ImageConverter {
     * that doesn't support transparency
     */
   private def fillTransparentPixels(image: BufferedImage): BufferedImage = {
-    val width    = image.getWidth();
-    val height   = image.getHeight();
-    val newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-    val g        = newImage.createGraphics();
-    g.setColor(Color.WHITE);
-    g.fillRect(0, 0, width, height);
-    g.drawRenderedImage(image, null);
-    g.dispose();
-    return newImage;
+    val width    = image.getWidth()
+    val height   = image.getHeight()
+    val newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+    val g        = newImage.createGraphics()
+    g.setColor(Color.WHITE)
+    g.fillRect(0, 0, width, height)
+    g.drawRenderedImage(image, null)
+    g.dispose()
+    newImage
   }
 
   class ImageConverter extends StrictLogging {
@@ -86,10 +86,10 @@ trait ImageConverter {
       }
 
       new ImageStream {
-        override def stream: ByteArrayInputStream = new ByteArrayInputStream(outputStream.toByteArray)
-        override def contentType: String          = originalImage.contentType
-        override def fileName: String             = originalImage.fileName
-        override lazy val sourceImage             = ImageIO.read(stream)
+        override def stream: ByteArrayInputStream    = new ByteArrayInputStream(outputStream.toByteArray)
+        override def contentType: String             = originalImage.contentType
+        override def fileName: String                = originalImage.fileName
+        override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
       }
     }
 

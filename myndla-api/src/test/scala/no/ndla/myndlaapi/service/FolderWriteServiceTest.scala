@@ -543,10 +543,10 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       user = None
     )
     val apiFolder = FolderDTO(
-      id = folderId.toString,
+      id = folderId,
       name = "asd",
       status = "private",
-      parentId = Some(parentId.toString),
+      parentId = Some(parentId),
       breadcrumbs = List.empty,
       subfolders = List.empty,
       resources = List.empty,
@@ -743,10 +743,10 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       user = None
     )
     val expectedFolder = api.FolderDTO(
-      id = folderId.toString,
+      id = folderId,
       name = "noe unikt",
       status = "shared",
-      parentId = Some(parentId.toString),
+      parentId = Some(parentId),
       breadcrumbs = List.empty,
       subfolders = List.empty,
       resources = List.empty,

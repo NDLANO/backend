@@ -36,10 +36,10 @@ trait TranscriptionService {
       getVideoTranscription(videoId, language) match {
         case Success(TranscriptionComplete(_)) =>
           logger.info(s"Transcription already completed for videoId: $videoId")
-          return Failure(new JobAlreadyFoundException(s"Transcription already completed for videoId: $videoId"))
+          return Failure(JobAlreadyFoundException(s"Transcription already completed for videoId: $videoId"))
         case Success(TranscriptionNonComplete(TranscriptionJobStatus.IN_PROGRESS)) =>
           logger.info(s"Transcription already in progress for videoId: $videoId")
-          return Failure(new JobAlreadyFoundException(s"Transcription already in progress for videoId: $videoId"))
+          return Failure(JobAlreadyFoundException(s"Transcription already in progress for videoId: $videoId"))
         case _ =>
           logger.info(s"No existing transcription job for videoId: $videoId")
       }
@@ -93,7 +93,7 @@ trait TranscriptionService {
         val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus()
 
         if (transcriptionJobStatus == "COMPLETED") {
-          val transcribeUri = s"transcription/$language/${videoId}.vtt"
+          val transcribeUri = s"transcription/$language/$videoId.vtt"
 
           getObjectFromS3(transcribeUri).map(TranscriptionComplete(_))
         } else {
@@ -112,10 +112,10 @@ trait TranscriptionService {
       getAudioTranscription(audioId, language) match {
         case Success(Right(_)) =>
           logger.info(s"Transcription already completed for audio: $audioName")
-          return Failure(new JobAlreadyFoundException(s"Transcription already completed for audio: $audioName"))
+          return Failure(JobAlreadyFoundException(s"Transcription already completed for audio: $audioName"))
         case Success(Left("IN_PROGRESS")) =>
           logger.info(s"Transcription already in progress for videoId: $audioName")
-          return Failure(new JobAlreadyFoundException(s"Transcription already in progress for audio: $audioName"))
+          return Failure(JobAlreadyFoundException(s"Transcription already in progress for audio: $audioName"))
         case _ =>
           logger.info(s"No existing transcription job for audio name: $audioName")
       }
@@ -151,7 +151,7 @@ trait TranscriptionService {
         val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus().toString
 
         if (transcriptionJobStatus == "COMPLETED") {
-          val transcribeUri = s"audio-transcription/$language/${audioId}"
+          val transcribeUri = s"audio-transcription/$language/$audioId"
 
           getObjectFromS3(transcribeUri).map(Right(_))
         } else {
@@ -180,7 +180,7 @@ trait TranscriptionService {
         case Failure(ex)   => throw new RuntimeException(s"Failed to download video: $ex")
       }
 
-      val audioFile = new File(s"/tmp/audio_${videoId}.mp3")
+      val audioFile = new File(s"/tmp/audio_$videoId.mp3")
 
       val audioAttributes = new AudioAttributes()
       audioAttributes.setCodec("libmp3lame")
@@ -221,7 +221,7 @@ trait TranscriptionService {
     }
 
     def getAudioExtractionStatus(videoId: String, language: String): Try[Unit] = {
-      s3TranscribeClient.getObject(s"audio-extraction/$language/${videoId}.mp3") match {
+      s3TranscribeClient.getObject(s"audio-extraction/$language/$videoId.mp3") match {
         case Success(_)         => Success(())
         case Failure(exception) => Failure(exception)
       }

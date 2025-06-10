@@ -11,7 +11,7 @@ package no.ndla.draftapi
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
 import no.ndla.common.model.api.{DraftCopyrightDTO, Missing}
-import no.ndla.common.model.domain.{Priority, Title}
+import no.ndla.common.model.domain.{ContributorType, Priority, Title}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.language.OptLanguageFields
@@ -19,6 +19,7 @@ import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.draftapi.integration.LearningPath
 import no.ndla.draftapi.model.api.*
 import no.ndla.draftapi.model.{api, domain}
+import no.ndla.mapping.License
 import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA}
 import no.ndla.network.tapir.auth.Permission.{DRAFT_API_ADMIN, DRAFT_API_PUBLISH, DRAFT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
@@ -44,11 +45,20 @@ object TestData {
     TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH, DRAFT_API_ADMIN), None)
 
   val publicDomainCopyright: common.draft.DraftCopyright =
-    common.draft.DraftCopyright(Some("publicdomain"), Some(""), List.empty, List(), List(), None, None, false)
+    common.draft.DraftCopyright(
+      Some(License.PublicDomain.toString),
+      Some(""),
+      List.empty,
+      List(),
+      List(),
+      None,
+      None,
+      false
+    )
   private val byNcSaCopyright = common.draft.DraftCopyright(
     Some(CC_BY_NC_SA.toString),
     Some("Gotham City"),
-    List(common.Author("Forfatter", "DC Comics")),
+    List(common.Author(ContributorType.Writer, "DC Comics")),
     List(),
     List(),
     None,
@@ -56,9 +66,9 @@ object TestData {
     false
   )
   private val copyrighted = common.draft.DraftCopyright(
-    Some("copyrighted"),
+    Some(License.Copyrighted.toString),
     Some("New York"),
-    List(common.Author("Forfatter", "Clark Kent")),
+    List(common.Author(ContributorType.Writer, "Clark Kent")),
     List(),
     List(),
     None,
@@ -80,7 +90,7 @@ object TestData {
       DraftCopyrightDTO(
         Some(commonApi.LicenseDTO("licence", None, None)),
         Some("origin"),
-        Seq(commonApi.AuthorDTO("developer", "Per")),
+        Seq(commonApi.AuthorDTO(ContributorType.Artist, "Per")),
         List(),
         List(),
         None,
@@ -411,7 +421,7 @@ object TestData {
     None,
     Some(
       model.api.DraftCopyrightDTO(
-        Some(commonApi.LicenseDTO("publicdomain", None, None)),
+        Some(commonApi.LicenseDTO(License.PublicDomain.toString, None, None)),
         Some(""),
         Seq.empty,
         Seq.empty,
@@ -460,7 +470,16 @@ object TestData {
       )
     ),
     copyright = Some(
-      common.draft.DraftCopyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, false)
+      common.draft.DraftCopyright(
+        Some(License.PublicDomain.toString),
+        Some(""),
+        Seq.empty,
+        Seq.empty,
+        Seq.empty,
+        None,
+        None,
+        false
+      )
     ),
     tags = Seq.empty,
     requiredLibraries = Seq.empty,
@@ -508,7 +527,7 @@ object TestData {
     ),
     copyright = Some(
       model.api.DraftCopyrightDTO(
-        Some(commonApi.LicenseDTO("publicdomain", None, None)),
+        Some(commonApi.LicenseDTO(License.PublicDomain.toString, None, None)),
         Some(""),
         Seq.empty,
         Seq.empty,
@@ -551,7 +570,7 @@ object TestData {
   val sampleTitle: common.Title = common.Title("title", "en")
 
   val visualElement: common.VisualElement = common.VisualElement(
-    s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
+    s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size=""></$EmbedTagName>""",
     "nb"
   )
 
@@ -597,16 +616,6 @@ object TestData {
     articleTypes = Seq.empty,
     fallback = false,
     grepCodes = Seq.empty,
-    shouldScroll = false
-  )
-
-  val agreementSearchSettings: domain.AgreementSearchSettings = domain.AgreementSearchSettings(
-    query = None,
-    withIdIn = List.empty,
-    license = None,
-    page = 1,
-    pageSize = 10,
-    sort = domain.Sort.ByIdAsc,
     shouldScroll = false
   )
 }

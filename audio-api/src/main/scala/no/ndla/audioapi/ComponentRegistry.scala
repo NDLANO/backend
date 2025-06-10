@@ -22,7 +22,7 @@ import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: AudioApiProperties)
     extends BaseComponentRegistry[AudioApiProperties]
@@ -47,6 +47,7 @@ class ComponentRegistry(properties: AudioApiProperties)
     with Elastic4sClient
     with IndexService
     with BaseIndexService
+    with SearchLanguage
     with AudioIndexService
     with SeriesIndexService
     with TagIndexService
@@ -65,8 +66,7 @@ class ComponentRegistry(properties: AudioApiProperties)
     new V5__AddAgreementToAudio,
     new V6__TranslateUntranslatedAuthors
   )
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  DataSource.connectToDatabase()
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
   lazy val s3Client           = new NdlaS3Client(props.StorageName, props.StorageRegion)
   lazy val s3TranscribeClient = new NdlaS3Client(props.TranscribeStorageName, props.TranscribeStorageRegion)
@@ -102,7 +102,7 @@ class ComponentRegistry(properties: AudioApiProperties)
 
   lazy val clock = new SystemClock
 
-  private val swagger = new SwaggerController(
+  val swagger = new SwaggerController(
     List(
       audioApiController,
       seriesController,

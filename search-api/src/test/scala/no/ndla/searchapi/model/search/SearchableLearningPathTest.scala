@@ -11,7 +11,9 @@ package no.ndla.searchapi.model.search
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
+import no.ndla.common.model.domain.ContributorType
 import no.ndla.common.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
+import no.ndla.mapping.License
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.learningpath.CopyrightDTO
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
@@ -56,10 +58,10 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       defaultTitle = Some("Christian Tut"),
       tags = tags,
       learningsteps = learningsteps,
-      license = "by-sa",
+      license = License.CC_BY_SA.toString,
       copyright = CopyrightDTO(
-        LicenseDTO("by-sa", Some("bysasaa"), None),
-        Seq(AuthorDTO("Supplier", "Jonas"), AuthorDTO("Originator", "Kakemonsteret"))
+        LicenseDTO(License.CC_BY_SA.toString, Some("bysasaa"), None),
+        Seq(AuthorDTO(ContributorType.Supplier, "Jonas"), AuthorDTO(ContributorType.Originator, "Kakemonsteret"))
       ),
       isBasedOn = Some(1001),
       supportedLanguages = List("nb", "en", "nn"),
@@ -68,7 +70,8 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       contexts = searchableTaxonomyContexts,
       contextids = searchableTaxonomyContexts.map(_.contextId),
       favorited = 0,
-      learningResourceType = LearningResourceType.LearningPath
+      learningResourceType = LearningResourceType.LearningPath,
+      typeName = List.empty
     )
 
     val json         = CirceUtil.toJsonString(original)

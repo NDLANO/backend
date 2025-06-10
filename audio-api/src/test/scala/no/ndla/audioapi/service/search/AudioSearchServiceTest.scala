@@ -14,18 +14,16 @@ import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, Tag, Title}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
+import no.ndla.mapping.License
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 
 import scala.util.Success
 
-class AudioSearchServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with UnitSuite
-    with TestEnvironment {
-  import props._
+class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
+  import props.*
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
@@ -39,12 +37,21 @@ class AudioSearchServiceTest
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
-    Copyright("by-nc-sa", Some("Gotham City"), List(Author("Forfatter", "DC Comics")), Seq(), Seq(), None, None, false)
+    Copyright(
+      License.CC_BY_NC_SA.toString,
+      Some("Gotham City"),
+      List(Author(ContributorType.Writer, "DC Comics")),
+      Seq(),
+      Seq(),
+      None,
+      None,
+      false
+    )
 
   val publicDomain: Copyright = Copyright(
-    "publicdomain",
+    License.PublicDomain.toString,
     Some("Metropolis"),
-    List(Author("Forfatter", "Bruce Wayne")),
+    List(Author(ContributorType.Writer, "Bruce Wayne")),
     Seq(),
     Seq(),
     None,
@@ -53,7 +60,16 @@ class AudioSearchServiceTest
   )
 
   val copyrighted: Copyright =
-    Copyright("copyrighted", Some("New York"), List(Author("Forfatter", "Clark Kent")), Seq(), Seq(), None, None, false)
+    Copyright(
+      License.Copyrighted.toString,
+      Some("New York"),
+      List(Author(ContributorType.Writer, "Clark Kent")),
+      Seq(),
+      Seq(),
+      None,
+      None,
+      false
+    )
 
   val updated1: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val updated2: NDLADate = NDLADate.of(2017, 5, 1, 12, 15, 32)
@@ -191,23 +207,23 @@ class AudioSearchServiceTest
   val audio7: domain.AudioMetaInformation = domain.AudioMetaInformation(
     Some(7),
     Some(1),
-    List(Title("Não relacionado", "pt-br"), Title("Dogosé", "dos")),
-    List(Audio("pt-br.mp3", "audio/mpeg", 1024, "pt-br"), Audio("pt-br.mp3", "audio/mpeg", 1024, "dos")),
+    List(Title("Não relacionado", "es"), Title("ukranian", "ukr")),
+    List(Audio("pt-br.mp3", "audio/mpeg", 1024, "es"), Audio("pt-br.mp3", "audio/mpeg", 1024, "ukr")),
     byNcSa,
-    List(Tag(List("wubbi"), "pt-br"), Tag(List("asdf"), "dos")),
+    List(Tag(List("wubbi"), "es"), Tag(List("asdf"), "ukr")),
     "ndla123",
     updated7,
     created,
     Seq(
       domain.PodcastMeta(
-        introduction = "portugeseintro",
+        introduction = "spanishintro",
         coverPhoto = domain.CoverPhoto("2", "meta"),
-        language = "pt-br"
+        language = "es"
       ),
       domain.PodcastMeta(
-        introduction = "dogose intro",
+        introduction = "ukranian intro",
         coverPhoto = domain.CoverPhoto("1", "alt "),
-        language = "dos"
+        language = "ukr"
       )
     ),
     AudioType.Podcast,
@@ -271,7 +287,8 @@ class AudioSearchServiceTest
   }
 
   test("That filtering on license only returns documents with given license for all languages") {
-    val Success(results) = audioSearchService.matchingQuery(searchSettings.copy(license = Some("publicdomain")))
+    val Success(results) =
+      audioSearchService.matchingQuery(searchSettings.copy(license = Some(License.PublicDomain.toString)))
     results.totalCount should be(2)
     results.results.head.id should be(4)
     results.results.last.id should be(2)
@@ -339,7 +356,7 @@ class AudioSearchServiceTest
       searchSettings.copy(
         query = Some("batmen"),
         language = Some("nb"),
-        license = Some("copyrighted")
+        license = Some(License.Copyrighted.toString)
       )
     )
     results.totalCount should be(1)
@@ -392,12 +409,12 @@ class AudioSearchServiceTest
   }
 
   test("That searching for language not in predefined list should work") {
-    val Success(result) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("dos")))
+    val Success(result) = audioSearchService.matchingQuery(searchSettings.copy(language = Some("ukr")))
     result.totalCount should be(1)
-    result.language should be("dos")
+    result.language should be("ukr")
 
-    result.results.head.title.title should be("Dogosé")
-    result.results.head.title.language should be("dos")
+    result.results.head.title.title should be("ukranian")
+    result.results.head.title.language should be("ukr")
   }
 
   test("That searching for language not in indexed data should not fail") {
@@ -565,12 +582,12 @@ class AudioSearchServiceTest
       )
     )
     result1.results.map(_.id) should be(Seq(2, 3, 4, 5, 6, 7))
-    result1.results(0).title.language should be("nb")
+    result1.results.head.title.language should be("nb")
     result1.results(1).title.language should be("nb")
     result1.results(2).title.language should be("en")
     result1.results(3).title.language should be("nb")
     result1.results(4).title.language should be("en")
-    result1.results(5).title.language should be("pt-br")
+    result1.results(5).title.language should be("es")
 
     val Success(result2) = audioSearchService.matchingQuery(
       searchSettings.copy(
@@ -581,12 +598,12 @@ class AudioSearchServiceTest
       )
     )
     result2.results.map(_.id) should be(Seq(2, 3, 4, 5, 6, 7))
-    result2.results(0).title.language should be("nb")
+    result2.results.head.title.language should be("nb")
     result2.results(1).title.language should be("nb")
     result2.results(2).title.language should be("nb")
     result2.results(3).title.language should be("nb")
     result2.results(4).title.language should be("nb")
-    result2.results(5).title.language should be("pt-br")
+    result2.results(5).title.language should be("es")
   }
 
   test("That fallback searching includes audios with languages outside the search with query") {

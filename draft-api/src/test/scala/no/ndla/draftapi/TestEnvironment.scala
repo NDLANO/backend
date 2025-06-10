@@ -25,7 +25,7 @@ import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
@@ -38,6 +38,7 @@ trait TestEnvironment
     with GrepCodesSearchService
     with GrepCodesIndexService
     with IndexService
+    with SearchLanguage
     with BaseIndexService
     with SearchService
     with StrictLogging
@@ -72,7 +73,7 @@ trait TestEnvironment
     with DBMigrator
     with Props
     with V57__MigrateSavedSearch {
-  val props: DraftApiProperties = new DraftApiProperties {
+  lazy val props: DraftApiProperties = new DraftApiProperties {
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
   }
@@ -86,10 +87,11 @@ trait TestEnvironment
   val grepCodesSearchService: GrepCodesSearchService = mock[GrepCodesSearchService]
   val grepCodesIndexService: GrepCodesIndexService   = mock[GrepCodesIndexService]
 
-  val internController: InternController     = mock[InternController]
-  val draftController: DraftController       = mock[DraftController]
-  val fileController: FileController         = mock[FileController]
-  val userDataController: UserDataController = mock[UserDataController]
+  val internController: InternController      = mock[InternController]
+  val draftController: DraftController        = mock[DraftController]
+  val fileController: FileController          = mock[FileController]
+  val userDataController: UserDataController  = mock[UserDataController]
+  val healthController: TapirHealthController = mock[TapirHealthController]
 
   val dataSource: HikariDataSource           = mock[HikariDataSource]
   val draftRepository: DraftRepository       = mock[DraftRepository]
@@ -122,4 +124,5 @@ trait TestEnvironment
   val imageApiClient: ImageApiClient       = mock[ImageApiClient]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 }

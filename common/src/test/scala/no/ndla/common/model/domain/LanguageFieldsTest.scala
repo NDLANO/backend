@@ -11,9 +11,9 @@ package no.ndla.common.model.domain
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.language.*
 import no.ndla.language.model.BaseWithLanguageAndValue
-import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
-class LanguageFieldsTest extends UnitTestSuite {
+class LanguageFieldsTest extends UnitTestSuiteBase {
 
   test("That language fields serialize and deserialize as expected") {
     import io.circe.syntax.*
@@ -84,6 +84,30 @@ class LanguageFieldsTest extends UnitTestSuite {
     result.get("nb") should be(Some(Exists("bokmål")))
     result.get("nn") should be(None)
     result.get("en") should be(Some(NotWanted()))
+  }
+
+  test("That the OptLanguageFields type compares without unwanted fields") {
+    val a = {
+      val fields = Seq(BaseWithLanguageAndValue[String]("nb", "bokmål"))
+      OptLanguageFields.fromFields(fields).withUnwanted("en")
+    }
+
+    val b = {
+      val fields = Seq(BaseWithLanguageAndValue[String]("nb", "bokmål"))
+      OptLanguageFields.fromFields(fields)
+    }
+    (a == b) should be(true)
+
+    val c = {
+      val fields = Seq(BaseWithLanguageAndValue[String]("nb", "bokmål"))
+      OptLanguageFields.fromFields(fields).withValue("nynorsk", "nn")
+    }
+
+    val d = {
+      val fields = Seq(BaseWithLanguageAndValue[String]("nb", "bokmål"))
+      OptLanguageFields.fromFields(fields)
+    }
+    (c == d) should be(false)
   }
 
 }

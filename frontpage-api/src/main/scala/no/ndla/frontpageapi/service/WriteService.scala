@@ -8,21 +8,24 @@
 
 package no.ndla.frontpageapi.service
 
+import no.ndla.common.errors.{NotFoundException, ValidationException}
 import no.ndla.common.model.api.FrontPageDTO
+import no.ndla.common.model.api.frontpage.SubjectPageDTO
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api
-import no.ndla.frontpageapi.model.domain.Errors.{SubjectPageNotFoundException, ValidationException}
+import no.ndla.frontpageapi.model.domain.Errors.{OperationNotAllowedException, SubjectPageNotFoundException}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
+import no.ndla.language.Language
 
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: SubjectPageRepository with FrontPageRepository with FilmFrontPageRepository with Props with ConverterService =>
+  this: SubjectPageRepository & FrontPageRepository & FilmFrontPageRepository & Props & ConverterService =>
   val writeService: WriteService
 
   class WriteService {
 
-    def newSubjectPage(subject: api.NewSubjectFrontPageDataDTO): Try[api.SubjectPageDataDTO] = {
+    def newSubjectPage(subject: api.NewSubjectPageDTO): Try[SubjectPageDTO] = {
       for {
         convertedSubject <- ConverterService.toDomainSubjectPage(subject)
         subjectPage      <- subjectPageRepository.newSubjectPage(convertedSubject, subject.externalId.getOrElse(""))
@@ -32,9 +35,9 @@ trait WriteService {
 
     def updateSubjectPage(
         id: Long,
-        subject: api.NewSubjectFrontPageDataDTO,
+        subject: api.NewSubjectPageDTO,
         language: String
-    ): Try[api.SubjectPageDataDTO] = {
+    ): Try[SubjectPageDTO] = {
       subjectPageRepository.exists(id) match {
         case Success(exists) if exists =>
           for {
@@ -50,10 +53,10 @@ trait WriteService {
 
     def updateSubjectPage(
         id: Long,
-        subject: api.UpdatedSubjectFrontPageDataDTO,
+        subject: api.UpdatedSubjectPageDTO,
         language: String,
         fallback: Boolean
-    ): Try[api.SubjectPageDataDTO] = {
+    ): Try[SubjectPageDTO] = {
       subjectPageRepository.withId(id) match {
         case Failure(ex) => Failure(ex)
         case Success(Some(existingSubject)) =>
@@ -64,21 +67,22 @@ trait WriteService {
           } yield converted
         case Success(None) =>
           newFromUpdatedSubjectPage(subject) match {
-            case None => Failure(ValidationException(s"Subjectpage can't be converted to NewSubjectFrontPageData"))
+            case None =>
+              Failure(ValidationException("subjectpage", s"Subjectpage can't be converted to NewSubjectFrontPageData"))
             case Some(newSubjectPage) => updateSubjectPage(id, newSubjectPage, language)
           }
       }
     }
 
     private def newFromUpdatedSubjectPage(
-        updatedSubjectPage: api.UpdatedSubjectFrontPageDataDTO
-    ): Option[api.NewSubjectFrontPageDataDTO] = {
+        updatedSubjectPage: api.UpdatedSubjectPageDTO
+    ): Option[api.NewSubjectPageDTO] = {
       for {
         name            <- updatedSubjectPage.name
         banner          <- updatedSubjectPage.banner
         about           <- updatedSubjectPage.about
         metaDescription <- updatedSubjectPage.metaDescription
-      } yield api.NewSubjectFrontPageDataDTO(
+      } yield api.NewSubjectPageDTO(
         name = name,
         externalId = updatedSubjectPage.externalId,
         banner = banner,
@@ -99,12 +103,47 @@ trait WriteService {
       } yield api
     }
 
-    def updateFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageDataDTO): Try[api.FilmFrontPageDataDTO] = {
+    def updateFilmFrontPage(page: api.NewOrUpdatedFilmFrontPageDTO): Try[api.FilmFrontPageDTO] = {
       val domainFilmFrontPageT = ConverterService.toDomainFilmFrontPage(page)
       for {
         domainFilmFrontPage <- domainFilmFrontPageT
         filmFrontPage       <- filmFrontPageRepository.newFilmFrontPage(domainFilmFrontPage)
       } yield ConverterService.toApiFilmFrontPage(filmFrontPage, None)
+    }
+
+    def deleteSubjectPageLanguage(id: Long, language: String): Try[SubjectPageDTO] = {
+      subjectPageRepository.withId(id) match {
+        case Success(Some(subjectPage)) =>
+          subjectPage.supportedLanguages.size match {
+            case 1 => Failure(OperationNotAllowedException("Only one language left"))
+            case _ =>
+              val about           = subjectPage.about.filter(_.language != language)
+              val metaDescription = subjectPage.metaDescription.filter(_.language != language)
+              subjectPageRepository
+                .updateSubjectPage(subjectPage.copy(about = about, metaDescription = metaDescription))
+                .flatMap(ConverterService.toApiSubjectPage(_, Language.NoLanguage, fallback = true))
+          }
+        case Success(None) => Failure(SubjectPageNotFoundException(id))
+        case Failure(ex)   => Failure(ex)
+      }
+    }
+
+    def deleteFilmFrontPageLanguage(language: String): Try[api.FilmFrontPageDTO] = {
+      filmFrontPageRepository.get match {
+        case Some(page) =>
+          page.supportedLanguages.size match {
+            case 1 => Failure(OperationNotAllowedException("Only one language left"))
+            case _ =>
+              val about = page.about.filter(_.language != language)
+              val movieThemes = page.movieThemes.map(movieTheme =>
+                movieTheme.copy(name = movieTheme.name.filter(_.language != language))
+              )
+              filmFrontPageRepository
+                .update(page.copy(about = about, movieThemes = movieThemes))
+                .map(ConverterService.toApiFilmFrontPage(_, None))
+          }
+        case None => Failure(NotFoundException("The film front page was not found"))
+      }
     }
   }
 

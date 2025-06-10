@@ -9,8 +9,7 @@
 package no.ndla.draftapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Environment.prop
-import no.ndla.common.configuration.{BaseProps, HasBaseProps}
+import no.ndla.common.configuration.{BaseProps, HasBaseProps, Prop}
 import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
@@ -50,8 +49,8 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
   def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "sub", "sup")
   def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p", "strong")
 
-  private def BrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
-  private def BrightcovePlayerId: String  = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
+  val BrightcoveAccountId: Prop[String] = prop("BRIGHTCOVE_ACCOUNT_ID")
+  val BrightcovePlayerId: Prop[String]  = prop("BRIGHTCOVE_PLAYER_ID")
 
   def BrightcoveVideoScriptUrl: String =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"
@@ -63,11 +62,9 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
   def DraftSearchIndex: String                   = propOrElse("SEARCH_INDEX_NAME", "draft-articles")
   def DraftTagSearchIndex: String                = propOrElse("TAG_SEARCH_INDEX_NAME", "draft-tags")
   def DraftGrepCodesSearchIndex: String          = propOrElse("GREP_CODES_SEARCH_INDEX_NAME", "draft-grepcodes")
-  def AgreementSearchIndex: String               = propOrElse("AGREEMENT_SEARCH_INDEX_NAME", "draft-agreements")
-  def DraftSearchDocument                        = "article-drafts"
-  def DraftTagSearchDocument                     = "article-drafts-tag"
-  def DraftGrepCodesSearchDocument               = "article-drafts-grepcodes"
-  def AgreementSearchDocument                    = "agreement-drafts"
+  def DraftSearchDocument                        = "draft"
+  def DraftTagSearchDocument                     = "tag"
+  def DraftGrepCodesSearchDocument               = "grepcode"
   def DefaultPageSize                            = 10
   def MaxPageSize                                = 10000
   def IndexBulkSize                              = 200
@@ -126,9 +123,9 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
     ".step"
   )
 
-  def multipartFileSizeThresholdBytes: Int = 1024 * 1024 * 30 // 30MB
-  def auth0ManagmentClientId: String       = prop("AUTH0_MANAGEMENT_CLIENT_ID")
-  def auth0ManagmentClientSecret: String   = prop("AUTH0_MANAGEMENT_CLIENT_SECRET")
+  def multipartFileSizeThresholdBytes: Int      = 1024 * 1024 * 30 // 30MB
+  val auth0ManagementClientId: Prop[String]     = prop("AUTH0_MANAGEMENT_CLIENT_ID")
+  val auth0ManagementClientSecret: Prop[String] = prop("AUTH0_MANAGEMENT_CLIENT_SECRET")
 
   override def MetaMigrationLocation: String      = "no/ndla/draftapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")

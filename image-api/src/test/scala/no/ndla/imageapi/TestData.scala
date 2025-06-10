@@ -10,12 +10,13 @@ package no.ndla.imageapi
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, Tag}
-import no.ndla.common.model.{api => commonApi}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag}
+import no.ndla.common.model.api as commonApi
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.api.ImageMetaInformationV2DTO
-import no.ndla.imageapi.model.domain._
+import no.ndla.imageapi.model.domain.*
 import no.ndla.mapping
+import no.ndla.mapping.License
 
 import java.awt.image.BufferedImage
 import java.io.InputStream
@@ -49,9 +50,9 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
-        List(Author("Redaksjonelt", "Kåre Knegg")),
-        List(Author("Leverandør", "Leverans Leveransensen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
+        List(Author(ContributorType.Editorial, "Kåre Knegg")),
+        List(Author(ContributorType.Supplier, "Leverans Leveransensen")),
         None,
         None,
         false
@@ -76,12 +77,12 @@ trait TestData {
       "image/jpeg",
       commonApi.CopyrightDTO(
         commonApi.LicenseDTO(
-          "by-nc-sa",
-          Some("Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic"),
-          Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
+          License.CC_BY_NC_SA.toString,
+          Some("Creative Commons Attribution-NonCommercial-ShareAlike 4.0 Generic"),
+          Some("https://creativecommons.org/licenses/by-nc-sa/4.0/")
         ),
         Some("http://www.scanpix.no"),
-        List(commonApi.AuthorDTO("Fotograf", "Test Testesen")),
+        List(commonApi.AuthorDTO(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -108,12 +109,12 @@ trait TestData {
       contentType = "image/jpeg",
       copyright = commonApi.CopyrightDTO(
         commonApi.LicenseDTO(
-          "by-nc-sa",
+          License.CC_BY_NC_SA.toString,
           Some("Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic"),
           Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
         ),
         Some("http://www.scanpix.no"),
-        List(commonApi.AuthorDTO("Fotograf", "Test Testesen")),
+        List(commonApi.AuthorDTO(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -150,7 +151,7 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -187,7 +188,7 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -224,7 +225,7 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -261,7 +262,7 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -298,7 +299,7 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -335,7 +336,7 @@ trait TestData {
       copyright = Copyright(
         ByNcSa,
         Some("http://www.scanpix.no"),
-        List(Author("Fotograf", "Test Testesen")),
+        List(Author(ContributorType.Photographer, "Test Testesen")),
         List(),
         List(),
         None,
@@ -382,7 +383,6 @@ trait TestData {
       page = None,
       pageSize = None,
       podcastFriendly = None,
-      includeCopyrighted = false,
       shouldScroll = false,
       modelReleased = Seq.empty,
       userFilter = List.empty

@@ -34,7 +34,7 @@ import no.ndla.imageapi.service.search.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
@@ -47,6 +47,7 @@ trait TestEnvironment
     with ImageSearchService
     with TagSearchService
     with SearchConverterService
+    with SearchLanguage
     with DataSource
     with ConverterService
     with ValidationService
@@ -71,8 +72,8 @@ trait TestEnvironment
     with DBMigrator
     with TestData
     with Random {
-  val props    = new ImageApiProperties
-  val TestData = new TestData
+  lazy val props = new ImageApiProperties
+  val TestData   = new TestData
 
   val migrator: DBMigrator   = mock[DBMigrator]
   val s3Client: NdlaS3Client = mock[NdlaS3Client]
@@ -106,4 +107,5 @@ trait TestEnvironment
   val random: Random     = mock[Random]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 }

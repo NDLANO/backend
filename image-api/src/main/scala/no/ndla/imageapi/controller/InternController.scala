@@ -30,19 +30,12 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: ImageRepository
-    with ReadService
-    with ConverterService
-    with ImageIndexService
-    with TagIndexService
-    with ImageRepository
-    with Props
-    with ErrorHandling
-    with TapirController =>
+  this: ImageRepository & ReadService & ConverterService & ImageIndexService & TagIndexService & ImageRepository &
+    Props & ErrorHandling & TapirController =>
   val internController: InternController
 
   class InternController extends TapirController with StrictLogging {
-    import ErrorHelpers._
+    import ErrorHelpers.*
 
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false

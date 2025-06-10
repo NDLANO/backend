@@ -10,11 +10,12 @@ package no.ndla.searchapi
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.database.DBUtility
+import no.ndla.common.configuration.BaseProps
+import no.ndla.database.{DBUtility, DatabaseProps, HasDatabaseProps}
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import no.ndla.searchapi.controller.parameters.GetSearchQueryParams
 import no.ndla.searchapi.controller.{InternController, SearchController}
 import no.ndla.searchapi.integration.*
@@ -23,6 +24,10 @@ import no.ndla.searchapi.service.search.*
 import no.ndla.searchapi.service.ConverterService
 import org.scalatestplus.mockito.MockitoSugar
 
+class TestProps extends SearchApiProperties with BaseProps with DatabaseProps {
+  override def MetaMigrationLocation: String = ???
+}
+
 trait TestEnvironment
     extends TapirApplication
     with ArticleApiClient
@@ -30,6 +35,8 @@ trait TestEnvironment
     with ArticleIndexService
     with MultiSearchService
     with DraftIndexService
+    with NodeIndexService
+    with FrontpageApiClient
     with DraftConceptApiClient
     with DraftConceptIndexService
     with MultiDraftSearchService
@@ -41,6 +48,7 @@ trait TestEnvironment
     with TaxonomyApiClient
     with DBUtility
     with IndexService
+    with SearchLanguage
     with BaseIndexService
     with StrictLogging
     with LearningPathApiClient
@@ -49,6 +57,7 @@ trait TestEnvironment
     with MyNDLAApiClient
     with SearchService
     with SearchController
+    with HasDatabaseProps
     with GetSearchQueryParams
     with GrepSearchService
     with LearningPathIndexService
@@ -59,10 +68,11 @@ trait TestEnvironment
     with Clock
     with GrepApiClient
     with Props {
-  override val props = new SearchApiProperties
+  override lazy val props: TestProps = new TestProps
 
-  val searchController: SearchController = mock[SearchController]
-  val internController: InternController = mock[InternController]
+  val searchController: SearchController      = mock[SearchController]
+  val internController: InternController      = mock[InternController]
+  val healthController: TapirHealthController = mock[TapirHealthController]
 
   val ndlaClient: NdlaClient   = mock[NdlaClient]
   var e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
@@ -78,7 +88,8 @@ trait TestEnvironment
   val draftConceptApiClient: DraftConceptApiClient = mock[DraftConceptApiClient]
   val feideApiClient: FeideApiClient               = mock[FeideApiClient]
   val redisClient: RedisClient                     = mock[RedisClient]
-  val DBUtil                                       = mock[DBUtility]
+  val frontpageApiClient: FrontpageApiClient       = mock[FrontpageApiClient]
+  val DBUtil: DBUtility                            = mock[DBUtility]
 
   val clock: SystemClock = mock[SystemClock]
 
@@ -92,8 +103,10 @@ trait TestEnvironment
   val draftIndexService: DraftIndexService               = mock[DraftIndexService]
   val draftConceptIndexService: DraftConceptIndexService = mock[DraftConceptIndexService]
   val grepIndexService: GrepIndexService                 = mock[GrepIndexService]
+  val nodeIndexService: NodeIndexService                 = mock[NodeIndexService]
 
   val multiDraftSearchService: MultiDraftSearchService = mock[MultiDraftSearchService]
 
   override def services: List[TapirController] = List()
+  val swagger: SwaggerController               = mock[SwaggerController]
 }

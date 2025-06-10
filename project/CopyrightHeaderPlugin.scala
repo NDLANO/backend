@@ -53,6 +53,11 @@ object CopyrightHeaderPlugin extends AutoPlugin {
 
   private val currentYear = java.time.Year.now.getValue.toString
 
+  private def insert[T](list: List[T], i: Int, value: T): List[T] = {
+    val (front, back) = list.splitAt(i)
+    front ++ List(value) ++ back
+  }
+
   def validateOrFixFile(submodule: Option[String], file: File, skipWrite: Boolean = false): Boolean = {
     val lines             = readLines(file)
     val copyrightLocation = locateCopyright(lines)
@@ -63,7 +68,12 @@ object CopyrightHeaderPlugin extends AutoPlugin {
         val module               = modulePattern.findFirstMatchIn(existingCopyright).map(_.group(1))
         val cop                  = copyrightTemplate(year.getOrElse(currentYear), submodule.orElse(module))
         val newCopyrightElements = cop.split("\n")
-        lines.patch(start, newCopyrightElements, end + 1)
+        val patched              = lines.patch(start, newCopyrightElements, end + 1)
+        val lineAfterCopyright   = patched(end + 1)
+        if (lineAfterCopyright.nonEmpty) {
+          insert(patched, end + 1, "")
+        } else
+          patched
       case None =>
         val cop = copyrightTemplate(currentYear, submodule)
         cop.split("\n").toList ++ lines

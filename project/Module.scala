@@ -1,12 +1,7 @@
 import Dependencies.versions.*
 import GithubWorkflowPlugin.autoImport.*
+import OpenApiTypescriptPlugin.autoImport.*
 import CopyrightHeaderPlugin.autoImport.*
-import com.scalatsi.plugin.ScalaTsiPlugin.autoImport.{
-  typescriptExports,
-  typescriptGenerationImports,
-  typescriptOutputFile,
-  typescriptTaggedUnionDiscriminator
-}
 import org.scalafmt.sbt.ScalafmtPlugin.autoImport.*
 import org.typelevel.sbt.tpolecat.TpolecatPlugin.autoImport.*
 import org.typelevel.scalacoptions.*
@@ -54,12 +49,13 @@ trait Module {
     scalaVersion        := ScalaV,
     javacOptions ++= Seq("-source", "21", "-target", "21"),
     ghGenerateEnable        := true,
+    openapiTSEnable         := this.MainClass.isDefined,
     ghGenerateEnableRelease := this.enableReleases,
     javaOptions ++= reflectiveAccessOptions,
     tpolecatScalacOptions ++= scalacOptions,
     tpolecatExcludeOptions ++= excludeOptions,
-    Compile / unmanagedResources += file("log4j2.yaml"),
-    Test / unmanagedResources += file("log4j2-test.yaml"),
+    Compile / unmanagedResources += (ThisBuild / baseDirectory).value / "log4j2.yaml",
+    Test / unmanagedResources += (ThisBuild / baseDirectory).value / "log4j2-test.yaml",
     Test / tpolecatExcludeOptions ++= testExcludeOptions,
     Test / parallelExecution := false,
     resolvers ++= scala.util.Properties
@@ -155,7 +151,7 @@ trait Module {
           s"java $$JAVA_OPTS ${reflectiveAccessOptions.mkString(" ")} -jar $artifactTargetPath"
 
         new Dockerfile {
-          from("eclipse-temurin:21-jdk")
+          from("eclipse-temurin:21-alpine")
           env("LOG_APPENDER", "Docker")
           add(artifact, artifactTargetPath)
           entryPointRaw(entry)
@@ -190,13 +186,4 @@ trait Module {
   }
 
   val fmtSettings: Seq[Def.Setting[Task[Unit]]] = Seq(checkfmtSetting, fmtSetting)
-
-  protected def typescriptSettings(imports: Seq[String], exports: Seq[String]) = {
-    Seq(
-      typescriptGenerationImports        := imports,
-      typescriptExports                  := exports,
-      typescriptOutputFile               := file("./typescript/types-backend") / s"${this.moduleName}.ts",
-      typescriptTaggedUnionDiscriminator := Some("typename")
-    )
-  }
 }

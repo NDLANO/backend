@@ -1,5 +1,4 @@
 import Dependencies.versions.*
-import com.scalatsi.plugin.ScalaTsiPlugin
 import sbt.*
 import sbt.Keys.*
 
@@ -17,6 +16,4 @@ object languagelib extends Module {
     libraryDependencies ++= dependencies
   ) ++
     commonSettings
-
-  override lazy val disablePlugins = Seq(ScalaTsiPlugin)
 }

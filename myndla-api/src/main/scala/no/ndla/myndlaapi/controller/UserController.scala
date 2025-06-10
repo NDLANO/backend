@@ -19,16 +19,10 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import no.ndla.common.model.api.myndla.{MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
 import no.ndla.myndlaapi.model.api.ExportedUserDataDTO
-import no.ndla.myndlaapi.service.{ArenaReadService, FolderReadService, FolderWriteService, UserService}
+import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService, UserService}
 
 trait UserController {
-  this: ErrorHandling
-    with UserService
-    with MyNDLAAuthHelpers
-    with FolderWriteService
-    with FolderReadService
-    with ArenaReadService
-    with TapirController =>
+  this: ErrorHandling & UserService & MyNDLAAuthHelpers & FolderWriteService & FolderReadService & TapirController =>
   val userController: UserController
 
   class UserController extends TapirController {
@@ -63,9 +57,9 @@ trait UserController {
       .in("delete-personal-data")
       .in(feideHeader)
       .errorOut(errorOutputsFor(401, 403))
-      .out(emptyOutput)
+      .out(noContent)
       .serverLogicPure { feideHeader =>
-        arenaReadService.deleteAllUserData(feideHeader)
+        userService.deleteAllUserData(feideHeader)
       }
 
     def exportUserData: ServerEndpoint[Any, Eff] = endpoint.get

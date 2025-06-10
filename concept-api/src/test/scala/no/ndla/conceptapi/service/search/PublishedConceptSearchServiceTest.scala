@@ -10,32 +10,21 @@ package no.ndla.conceptapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.DraftCopyright
-import no.ndla.common.model.domain.{Author, Tag, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.conceptapi.model.domain.*
 import no.ndla.conceptapi.model.search
 import no.ndla.conceptapi.*
 import no.ndla.language.Language
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
 import java.time.LocalDateTime
 import scala.util.Success
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.concept.{
-  Concept,
-  ConceptContent,
-  ConceptMetaImage,
-  ConceptType,
-  GlossData,
-  VisualElement,
-  WordClass
-}
-import no.ndla.conceptapi.integration.model.TaxonomyData
+import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptType, GlossData, VisualElement, WordClass}
+import no.ndla.mapping.License
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
-import org.mockito.Mockito.when
 
-class PublishedConceptSearchServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with TestEnvironment {
+class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   import props.{DefaultLanguage, DefaultPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
@@ -47,9 +36,9 @@ class PublishedConceptSearchServiceTest
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: DraftCopyright = DraftCopyright(
-    Some("by-nc-sa"),
+    Some(License.CC_BY_NC_SA.toString),
     Some("Gotham City"),
-    List(Author("Forfatter", "DC Comics")),
+    List(Author(ContributorType.Writer, "DC Comics")),
     List(),
     List(),
     None,
@@ -58,9 +47,9 @@ class PublishedConceptSearchServiceTest
   )
 
   val publicDomain: DraftCopyright = DraftCopyright(
-    Some("publicdomain"),
+    Some(License.PublicDomain.toString),
     Some("Metropolis"),
-    List(Author("Forfatter", "Bruce Wayne")),
+    List(Author(ContributorType.Writer, "Bruce Wayne")),
     List(),
     List(),
     None,
@@ -69,9 +58,9 @@ class PublishedConceptSearchServiceTest
   )
 
   val copyrighted: DraftCopyright = DraftCopyright(
-    Some("copyrighted"),
+    Some(License.Copyrighted.toString),
     Some("New York"),
-    List(Author("Forfatter", "Clark Kent")),
+    List(Author(ContributorType.Writer, "Clark Kent")),
     List(),
     List(),
     None,
@@ -150,7 +139,6 @@ class PublishedConceptSearchServiceTest
     title = List(Title("baldur har mareritt om Ragnarok", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     copyright = Some(byNcSa),
-    metaImage = Seq(ConceptMetaImage("test.image", "imagealt", "nb"), ConceptMetaImage("test.url2", "imagealt", "en")),
     tags = Seq(Tag(Seq("stor", "klovn"), "nb"))
   )
 
@@ -163,7 +151,7 @@ class PublishedConceptSearchServiceTest
     tags = Seq(Tag(Seq("cageowl"), "en"), Tag(Seq("burugle"), "nb")),
     visualElement = List(
       VisualElement(
-        s"""<$EmbedTagName data-resource="image" data-url="test.url" /><$EmbedTagName data-resource="brightcove" data-url="test.url2" data-videoid="test.id2" />""",
+        s"""<$EmbedTagName data-resource="image" data-url="test.url"></$EmbedTagName><$EmbedTagName data-resource="brightcove" data-url="test.url2" data-videoid="test.id2"></$EmbedTagName>""",
         "nb"
       )
     )
@@ -212,7 +200,6 @@ class PublishedConceptSearchServiceTest
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (elasticSearchContainer.isSuccess) {
-      when(taxonomyApiClient.getSubjects).thenReturn(Success(TaxonomyData.empty))
       publishedConceptIndexService.createIndexWithName(props.DraftConceptSearchIndex)
 
       publishedConceptIndexService.indexDocument(concept1)
@@ -569,22 +556,22 @@ class PublishedConceptSearchServiceTest
   test("that search on embedId matches meta image") {
     val Success(search) =
       publishedConceptSearchService.all(
-        searchSettings.copy(searchLanguage = Language.AllLanguages, embedId = Some("test.image"))
+        searchSettings.copy(searchLanguage = Language.AllLanguages, embedId = Some("test.url"))
       )
 
     search.totalCount should be(1)
-    search.results.head.id should be(9)
+    search.results.head.id should be(10)
   }
 
   test("that search on query parameter as embedId matches meta image") {
     val Success(search) =
       publishedConceptSearchService.matchingQuery(
-        "test.image",
+        "test.url",
         searchSettings.copy()
       )
 
     search.totalCount should be(1)
-    search.results.head.id should be(9)
+    search.results.head.id should be(10)
   }
 
   test("that search on query parameter as embedResource matches visual element") {
@@ -624,11 +611,11 @@ class PublishedConceptSearchServiceTest
     val Success(search) =
       publishedConceptSearchService.all(
         searchSettings
-          .copy(searchLanguage = Language.AllLanguages, embedResource = List("image"), embedId = Some("test.url2"))
+          .copy(searchLanguage = Language.AllLanguages, embedResource = List("image"), embedId = Some("test.url"))
       )
 
     search.totalCount should be(1)
-    search.results.head.id should be(9)
+    search.results.head.id should be(10)
   }
 
   test("That search on embed id supports embed with multiple id attributes") {
@@ -722,9 +709,9 @@ class PublishedConceptSearchServiceTest
       sumOtherDocCount = 0,
       docCountErrorUpperBound = 0,
       buckets = Seq(
-        Bucket("by-nc-sa", 7),
-        Bucket("copyrighted", 2),
-        Bucket("publicdomain", 2)
+        Bucket(License.CC_BY_NC_SA.toString, 7),
+        Bucket(License.Copyrighted.toString, 2),
+        Bucket(License.PublicDomain.toString, 2)
       )
     )
 

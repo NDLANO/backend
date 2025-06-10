@@ -1,31 +1,37 @@
 {
-    "name": "@ndla/types-backend",
-    "description": "Typescript type definitions for NDLA backend",
-    "license": "GPL-3.0",
-    "scripts": {
-        "build": "tsc",
-        "do-publish": "tsc"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/NDLANO/backend.git",
-        "directory": "typescript/types-backend"
-    },
-    "author": "ndla@knowit.no",
-    "files": [
-        "build",
-        "article-api",
-        "audio-api",
-        "concept-api",
-        "draft-api",
-        "frontpage-api",
-        "image-api",
-        "learningpath-api",
-        "myndla-api",
-        "search-api"
-    ],
-    "devDependencies": {
-        "typescript": "^5.3.3"
-    },
-    "version": "1.0.23"
+  "name": "@ndla/types-backend",
+  "description": "Typescript type definitions for NDLA backend",
+  "license": "GPL-3.0",
+  "scripts": {
+    "build": "tsc",
+    "do-publish": "tsc",
+    "generate-typescript": "tsx scripts/generate-openapi.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NDLANO/backend.git",
+    "directory": "typescript/types-backend"
+  },
+  "author": "ndla@knowit.no",
+  "files": [
+    "build",
+    "article-api",
+    "audio-api",
+    "concept-api",
+    "draft-api",
+    "frontpage-api",
+    "image-api",
+    "learningpath-api",
+    "myndla-api",
+    "oembed-proxy",
+    "search-api"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.13.16",
+    "openapi-typescript": "^7.6.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.3.3"
+  },
+  "version": "1.0.48",
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

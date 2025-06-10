@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import scala.util.{Failure, Success, Try}
 
 trait ImageStorageService {
-  this: NdlaS3Client with ReadService with Props =>
+  this: NdlaS3Client & ReadService & Props =>
   val imageStorage: AmazonImageStorageService
 
   class AmazonImageStorageService extends StrictLogging {

@@ -5,6 +5,7 @@
  * See LICENSE
  *
  */
+
 package no.ndla.conceptapi.controller
 
 import no.ndla.conceptapi.model.api.{ConceptSummaryDTO, NotFoundException}

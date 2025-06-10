@@ -11,16 +11,16 @@ package no.ndla.oembedproxy.model
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir._
+import no.ndla.network.tapir.*
 import no.ndla.oembedproxy.Props
 
 trait ErrorHandling extends TapirErrorHandling with StrictLogging {
-  this: Props with Clock =>
+  this: Props & Clock =>
 
-  import ErrorHelpers._
+  import ErrorHelpers.*
 
   private val statusCodesToPassAlong = List(401, 403, 404, 410)
-  def getRequestExceptionStatusCode(exception: HttpRequestException): Option[Int] =
+  private def getRequestExceptionStatusCode(exception: HttpRequestException): Option[Int] =
     exception.httpResponse.map(_.code.code) match {
       case Some(value) if statusCodesToPassAlong.contains(value) => Some(value)
       case _                                                     => None

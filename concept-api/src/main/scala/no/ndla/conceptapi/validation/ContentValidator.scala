@@ -8,9 +8,9 @@
 
 package no.ndla.conceptapi.validation
 
-import no.ndla.common.model.domain.{Author, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Title}
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptMetaImage, ConceptStatus, VisualElement}
+import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptStatus, VisualElement}
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.repository.DraftConceptRepository
@@ -33,7 +33,6 @@ trait ContentValidator {
       val validationErrors =
         concept.content.flatMap(c => validateConceptContent(c)) ++
           concept.visualElement.flatMap(ve => validateVisualElement(ve)) ++
-          concept.metaImage.flatMap(mi => validateMetaImage(mi)) ++
           validateTitles(concept.title) ++
           concept.copyright.map(co => validateCopyright(co)).getOrElse(Seq()) ++
           validateResponsible(concept) ++
@@ -54,10 +53,6 @@ trait ContentValidator {
           s"Responsible needs to be set if the status is not ${ConceptStatus.thatDoesNotRequireResponsible}"
         )
       }
-    }
-
-    private def validateMetaImage(metaImage: ConceptMetaImage): Seq[ValidationMessage] = {
-      validateMinimumLength(s"metaImage.id", metaImage.imageId, 1).toSeq
     }
 
     private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
@@ -93,8 +88,11 @@ trait ContentValidator {
       val licenseMessage            = copyright.license.map(validateLicense).toSeq.flatten
       val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
       val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
-      val contributorsMessages = copyright.creators.flatMap(validateAuthor) ++ copyright.processors
-        .flatMap(validateAuthor) ++ copyright.rightsholders.flatMap(validateAuthor)
+      val contributorsMessages =
+        copyright.creators.flatMap(a => validateAuthor(a, ContributorType.creators)) ++ copyright.processors
+          .flatMap(a => validateAuthor(a, ContributorType.processors)) ++ copyright.rightsholders.flatMap(a =>
+          validateAuthor(a, ContributorType.rightsholders)
+        )
       val originMessage =
         copyright.origin
           .map(origin => TextValidator.validate("copyright.origin", origin, Set.empty))
@@ -124,9 +122,22 @@ trait ContentValidator {
       }
     }
 
-    private def validateAuthor(author: Author): Seq[ValidationMessage] = {
-      TextValidator.validate("author.type", author.`type`, Set.empty).toList ++
-        TextValidator.validate("author.name", author.name, Set.empty).toList
+    private def validateAuthor(author: Author, allowedTypes: Seq[ContributorType]): Seq[ValidationMessage] = {
+      TextValidator.validate("author.name", author.name, Set.empty).toList ++
+        validateAuthorType("author.type", author.`type`, allowedTypes) ++
+        validateMinimumLength("author.name", author.name, 1)
+    }
+
+    private def validateAuthorType(
+        fieldPath: String,
+        `type`: ContributorType,
+        allowedTypes: Seq[ContributorType]
+    ): Option[ValidationMessage] = {
+      if (allowedTypes.contains(`type`)) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
+      }
     }
 
     private def validateLanguage(fieldPath: String, languageCode: String): Option[ValidationMessage] = {

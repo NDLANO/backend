@@ -9,10 +9,11 @@
 package no.ndla.integrationtests.searchapi.articleapi
 
 import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.article.Article
+import no.ndla.database.HasDatabaseProps
 import no.ndla.network.AuthUser
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.{TestData, UnitSuite}
@@ -24,9 +25,11 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success, Try}
 
 class ArticleApiClientTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true, EnablePostgresContainer = true)
+    extends ElasticsearchIntegrationSuite
+    with DatabaseIntegrationSuite
     with UnitSuite
-    with searchapi.TestEnvironment {
+    with searchapi.TestEnvironment
+    with HasDatabaseProps {
   override val ndlaClient             = new NdlaClient
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
@@ -35,14 +38,16 @@ class ArticleApiClientTest
   val pgc: PostgreSQLContainer[?] = postgresContainer.get
   val esHost: String              = elasticSearchHost.get
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
-    override def ApplicationPort: Int = articleApiPort
-    override def MetaServer: String   = pgc.getHost
-    override def MetaResource: String = pgc.getDatabaseName
-    override def MetaUserName: String = pgc.getUsername
-    override def MetaPassword: String = pgc.getPassword
-    override def MetaPort: Int        = pgc.getMappedPort(5432)
-    override def MetaSchema: String   = "testschema"
-    override def SearchServer: String = esHost
+    override def ApplicationPort: Int              = articleApiPort
+    override val MetaServer: Prop[String]          = propFromTestValue("META_SERVER", pgc.getHost)
+    override val MetaResource: Prop[String]        = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
+    override val MetaUserName: Prop[String]        = propFromTestValue("META_USER_NAME", pgc.getUsername)
+    override val MetaPassword: Prop[String]        = propFromTestValue("META_PASSWORD", pgc.getPassword)
+    override val MetaPort: Prop[Int]               = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
+    override val MetaSchema: Prop[String]          = propFromTestValue("META_SCHEMA", "testschema")
+    override val BrightcoveAccountId: Prop[String] = propFromTestValue("BRIGHTCOVE_ACCOUNT_ID", "123")
+    override val BrightcovePlayerId: Prop[String]  = propFromTestValue("BRIGHTCOVE_PLAYER_ID", "123")
+    override def SearchServer: String              = esHost
   }
 
   var articleApi: articleapi.MainClass = null
@@ -53,12 +58,13 @@ class ArticleApiClientTest
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     articleApi = new articleapi.MainClass(articleApiProperties)
-    Future { articleApi.run() }: Unit
+    Future { articleApi.run(Array.empty) }: Unit
 
     blockUntil(() => {
       import sttp.client3.quick.*
       val req = quickRequest.get(uri"$articleApiBaseUrl/health/readiness")
       val res = Try(simpleHttpClient.send(req))
+      println(res)
       res.map(_.code.code) == Success(200)
     })
   }
@@ -101,7 +107,7 @@ class ArticleApiClientTest
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
 
-    val chunks         = articleApiClient.getChunks[Article].toList
+    val chunks         = articleApiClient.getChunks.toList
     val fetchedArticle = chunks.head.get.head
     val searchable = searchConverterService
       .asSearchableArticle(

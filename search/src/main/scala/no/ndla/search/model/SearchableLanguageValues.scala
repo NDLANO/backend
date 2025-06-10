@@ -42,7 +42,7 @@ object SearchableLanguageValues {
     case c: FailedCursor if !c.incorrectFocus => Right(SearchableLanguageValues(Seq.empty))
     case c =>
       c.as[Map[String, String]].map { map =>
-        SearchableLanguageValues.from(map.toSeq: _*)
+        SearchableLanguageValues.from(map.toSeq*)
       }
   }
 
@@ -51,8 +51,8 @@ object SearchableLanguageValues {
   def fromFields(fields: Seq[LanguageField[String]]): SearchableLanguageValues =
     SearchableLanguageValues(fields.map(f => LanguageValue(f.language, f.value)))
 
-  def fromFieldsMap(fields: Seq[LanguageField[String]], func: String => String): SearchableLanguageValues =
-    SearchableLanguageValues(fields.map(f => LanguageValue(f.language, func(f.value))))
+  def fromFieldsMap[LF <: LanguageField[?]](fields: Seq[LF])(func: LF => String): SearchableLanguageValues =
+    SearchableLanguageValues(fields.map(f => LanguageValue(f.language, func(f))))
 
   def from(values: (String, String)*): SearchableLanguageValues = {
     val languageValues = values.map { case (language, value) => LanguageValue(language, value) }

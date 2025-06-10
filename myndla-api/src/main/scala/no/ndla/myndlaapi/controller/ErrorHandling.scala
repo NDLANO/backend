@@ -13,7 +13,6 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, InvalidStateException, NotFoundException, ValidationException}
 import no.ndla.database.DataSource
 import no.ndla.myndlaapi.Props
-import no.ndla.myndlaapi.model.arena.domain.TopicGoneException
 import no.ndla.myndlaapi.model.domain.InvalidStatusException
 import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHandling, ValidationErrorBody}
 import org.postgresql.util.PSQLException
@@ -24,8 +23,6 @@ trait ErrorHandling extends TapirErrorHandling with StrictLogging {
   import ErrorHelpers.*
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
-    case tge: TopicGoneException =>
-      ErrorBody(NOT_FOUND, tge.getMessage, clock.now(), 410)
     case nfe: NotFoundException =>
       ErrorBody(NOT_FOUND, nfe.getMessage, clock.now(), 404)
     case a: AccessDeniedException if a.unauthorized =>

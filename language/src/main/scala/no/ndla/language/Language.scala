@@ -5,9 +5,12 @@
  * See LICENSE
  *
  */
+
 package no.ndla.language
 
 import no.ndla.language.model.{LanguageField, LanguageTag, WithLanguage}
+
+import scala.util.Success
 
 object Language {
   val DefaultLanguage              = "nb"
@@ -55,6 +58,7 @@ object Language {
     "sv",
     "th",
     "tr",
+    "ukr",
     "und"
   )
 
@@ -88,6 +92,13 @@ object Language {
       case Some(x) if x == "unknown" => UnknownLanguage
       case Some(x)                   => LanguageTag(x)
       case None                      => UnknownLanguage
+    }
+  }
+
+  def languageOrParam(language: String): String = {
+    LanguageTag.withLanguage(language) match {
+      case Success(lt) => lt.toString
+      case _           => language
     }
   }
 

@@ -20,8 +20,10 @@ case class StatsDTO(
     @description("The total number of created tags") numberOfTags: Long,
     @description("The total number of favourited subjects") numberOfSubjects: Long,
     @description("The total number of shared folders") numberOfSharedFolders: Long,
+    @description("The total number of learning paths in My NDLA") numberOfMyNdlaLearningPaths: Long,
     @description("Stats for type resources") favouritedResources: List[ResourceStatsDTO],
-    @description("Stats for favourited resources") favourited: Map[String, Long]
+    @description("Stats for favourited resources") favourited: Map[String, Long],
+    @description("Stats for the users") users: UserStatsDTO
 )
 
 object StatsDTO {
@@ -37,4 +39,18 @@ case class ResourceStatsDTO(
 object ResourceStatsDTO {
   implicit def encoder: Encoder[ResourceStatsDTO] = deriveEncoder
   implicit def decoder: Decoder[ResourceStatsDTO] = deriveDecoder
+}
+
+case class UserStatsDTO(
+    @description("The total number of users") total: Long,
+    @description("The number of employees") employees: Long,
+    @description("The number of students") students: Long,
+    @description("The number of users with favourites") withFavourites: Long,
+    @description("The number of users with no favourites") noFavourites: Long,
+    @description("The number of users in the arena") arena: Long
+)
+
+object UserStatsDTO {
+  implicit def encoder: Encoder[UserStatsDTO] = deriveEncoder
+  implicit def decoder: Decoder[UserStatsDTO] = deriveDecoder
 }

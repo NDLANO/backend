@@ -16,7 +16,7 @@ case class MyNDLAUser(
     id: Long,
     feideId: String,
     favoriteSubjects: Seq[String],
-    userRole: UserRole.Value,
+    userRole: UserRole,
     lastUpdated: NDLADate,
     organization: String,
     groups: Seq[MyNDLAGroup],
@@ -25,7 +25,6 @@ case class MyNDLAUser(
     email: String,
     arenaEnabled: Boolean,
     arenaAccepted: Boolean,
-    arenaGroups: List[ArenaGroup],
     shareNameAccepted: Boolean
 ) {
   // Keeping FEIDE and our data in sync
@@ -33,7 +32,6 @@ case class MyNDLAUser(
 
   def isStudent: Boolean = userRole == UserRole.STUDENT
   def isTeacher: Boolean = userRole == UserRole.EMPLOYEE
-  def isAdmin: Boolean   = arenaGroups.contains(ArenaGroup.ADMIN)
 }
 
 object MyNDLAUser {

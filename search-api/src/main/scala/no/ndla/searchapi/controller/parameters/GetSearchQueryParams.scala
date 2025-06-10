@@ -9,6 +9,7 @@
 package no.ndla.searchapi.controller.parameters
 
 import no.ndla.common.model.api.CommaSeparatedList.CommaSeparatedList
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.Props
@@ -20,7 +21,7 @@ import sttp.tapir.ValidationResult.{Invalid, Valid}
 trait GetSearchQueryParams {
   this: Props =>
 
-  case class GetSearchQueryParams(
+  case class PaginationParams(
       @query("page")
       @description("The page number of the search hits to display.")
       @default(1)
@@ -28,7 +29,15 @@ trait GetSearchQueryParams {
       @query("page-size")
       @description("The number of search hits to display for each page.")
       @default(props.DefaultPageSize)
-      pageSize: Int,
+      pageSize: Int
+  )
+
+  case class GetParamsWrapper(
+      pagination: PaginationParams,
+      searchParams: GetSearchQueryParams
+  )
+
+  case class GetSearchQueryParams(
       @query("article-types")
       @description("A comma separated list of article-types the search should be filtered by.")
       articleTypes: CommaSeparatedList[String],
@@ -37,8 +46,8 @@ trait GetSearchQueryParams {
       contextTypes: CommaSeparatedList[String],
       @query("language")
       @description("The ISO 639-1 language code describing language.")
-      @default(Language.AllLanguages)
-      language: String,
+      @default(LanguageCode(Language.AllLanguages))
+      language: LanguageCode,
       @query("ids")
       @description(
         "Return only learning resources that have one of the provided ids. To provide multiple ids, separate by comma (,)."
@@ -97,14 +106,22 @@ trait GetSearchQueryParams {
       filterInactive: Boolean,
       @query("traits")
       @description("A comma separated list of traits the resources should be filtered by.")
-      traits: CommaSeparatedList[String]
+      traits: CommaSeparatedList[String],
+      @query("result-types")
+      @description("A comma separated list of indexes that should be searched.")
+      resultTypes: CommaSeparatedList[String],
+      @query("node-types")
+      @description("A comma separated list of node types the nodes should be filtered by.")
+      nodeTypeFilter: CommaSeparatedList[String]
   )
 
   object GetSearchQueryParams {
     implicit val schema: Schema[GetSearchQueryParams]            = Schema.derived[GetSearchQueryParams]
     implicit val schemaOpt: Schema[Option[GetSearchQueryParams]] = schema.asOption
-    def input = EndpointInput
-      .derived[GetSearchQueryParams]
+
+    def input2 = EndpointInput.derived[GetSearchQueryParams]
+    def input1 = EndpointInput
+      .derived[PaginationParams]
       .validate {
         Validator.custom {
           case q if q.page < 1 => Invalid("page must be greater than 0")
@@ -113,5 +130,7 @@ trait GetSearchQueryParams {
           case _ => Valid
         }
       }
+    def input = input1.and(input2).mapTo[GetParamsWrapper]
+
   }
 }

@@ -5,25 +5,91 @@
  * See LICENSE
  *
  */
+
 package no.ndla.common.configuration
 
+import com.typesafe.scalalogging.StrictLogging
 import sttp.client3.UriContext
 import sttp.model.Uri
 
+import scala.collection.mutable
 import scala.util.Properties.{propOrElse, propOrNone}
+import scala.util.{Failure, Success, Try}
 
-trait BaseProps {
+trait BaseProps extends StrictLogging {
+
+  /** Mutable variable to store state of properties, enables loading properties and crashing _optionally_ at startup.
+    * Since applications can start with configurations that doesn't require all required properties (ex: generating
+    * openapi documentation)
+    */
+  private val loadedProps: mutable.Map[String, Prop[?]] = mutable.Map.empty
+
+  def throwIfFailedProps(): Unit = {
+    val failedProps: List[FailedProp[?]] = {
+      loadedProps.values.toList.collect { case Prop(FailedProp(key, ex)) => FailedProp(key, ex) }
+    }
+
+    if (failedProps.nonEmpty) {
+      val failedKeys = failedProps
+        .map(failed => failed.key)
+        .mkString("[", ", ", "]")
+
+      val mainException = EnvironmentNotFoundException(s"Unable to load the following properties: $failedKeys")
+      failedProps.map { case FailedProp(_, ex) => mainException.addSuppressed(ex) }: Unit
+      throw mainException
+    }
+  }
+
   def intPropOrDefault(name: String, default: Int): Int = propOrNone(name).flatMap(_.toIntOption).getOrElse(default)
   def booleanPropOrNone(name: String): Option[Boolean]  = propOrNone(name).flatMap(_.toBooleanOption)
   def booleanPropOrElse(name: String, default: => Boolean): Boolean = booleanPropOrNone(name).getOrElse(default)
 
+  /** Test method to update props for tests */
+  def propFromTestValue[T](key: String, value: T): Prop[T] = {
+    val prop = Prop.successful[T](key, value)
+    loadedProps.get(key) match {
+      case Some(existing: Prop[T] @unchecked) => existing.setValue(value)
+      case Some(_)                            => throw new RuntimeException(s"Bad type when updating prop $key")
+      case None                               => loadedProps.put(key, prop): Unit
+    }
+    prop
+  }
+
+  def prop(key: String): Prop[String] = {
+    val propToAdd = propOrNone(key) match {
+      case Some(value) =>
+        Prop.successful(key, value)
+      case None =>
+        Prop.failed[String](key)
+    }
+    loadedProps.put(key, propToAdd): Unit
+    propToAdd
+  }
+
+  def propMap[T, R](prop: Prop[T])(f: T => R): Prop[R] = {
+    val newProp = prop.reference match {
+      case LoadedProp(k, v) =>
+        Try(f(v)) match {
+          case Failure(exception) =>
+            val nfe = EnvironmentNotFoundException.singleKey(k)
+            nfe.initCause(exception)
+            Prop(FailedProp[R](k, nfe))
+          case Success(result) => Prop(LoadedProp[R](k, result))
+        }
+      case FailedProp(k, e) => Prop(FailedProp[R](k, e))
+    }
+    loadedProps.put(prop.key, newProp): Unit
+    newProp
+  }
+
+  def booleanPropOrFalse(key: String): Boolean = {
+    propOrNone(key).flatMap(_.toBooleanOption).getOrElse(false)
+  }
+
   def ApplicationPort: Int
   def ApplicationName: String
 
-  private def setLogProperties(): Unit = {
-    System.setProperty("APPLICATION_NAME", ApplicationName): Unit
-  }
-
+  private def setLogProperties(): Unit = System.setProperty("APPLICATION_NAME", ApplicationName): Unit
   setLogProperties()
 
   def Environment: String = propOrElse("NDLA_ENVIRONMENT", "local")
@@ -57,6 +123,15 @@ trait BaseProps {
   def FrontpageApiUrl: String    = s"http://$FrontpageApiHost"
   def TaxonomyUrl: String        = s"http://$TaxonomyApiHost"
   def disableWarmup: Boolean     = booleanPropOrElse("DISABLE_WARMUP", default = false)
+
+  def SupportedLanguages: List[String] =
+    propOrElse("SUPPORTED_LANGUAGES", "nb,nn,en,sma,se,de,es,zh,ukr").split(",").toList
+
+  def ndlaFrontendUrl: String = Environment match {
+    case "local" => "http://localhost:30017"
+    case "prod"  => "https://ndla.no"
+    case _       => s"https://$Environment.ndla.no"
+  }
 
   def MAX_SEARCH_THREADS: Int    = intPropOrDefault("MAX_SEARCH_THREADS", 100)
   def SEARCH_INDEX_SHARDS: Int   = intPropOrDefault("SEARCH_INDEX_SHARDS", 1)

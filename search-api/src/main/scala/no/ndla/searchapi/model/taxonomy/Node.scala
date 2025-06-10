@@ -13,6 +13,8 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.search.SearchableTaxonomyResourceType
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.*
 
 sealed trait NodeType extends EnumEntry {}
 object NodeType extends Enum[NodeType] with CirceEnum[NodeType] {
@@ -23,6 +25,8 @@ object NodeType extends Enum[NodeType] with CirceEnum[NodeType] {
   case object PROGRAMME extends NodeType
 
   val values: IndexedSeq[NodeType] = findValues
+
+  implicit def schema: Schema[NodeType] = schemaForEnumEntry[NodeType]
 }
 
 case class Node(
@@ -35,6 +39,7 @@ case class Node(
     translations: List[TaxonomyTranslation],
     nodeType: NodeType,
     contextids: List[String],
+    context: Option[TaxonomyContext],
     var contexts: List[TaxonomyContext]
 )
 
@@ -51,12 +56,14 @@ object Node {
       translations <- c.downField("translations").as[List[TaxonomyTranslation]]
       nodeType     <- c.downField("nodeType").as[NodeType]
       contextids   <- c.downField("contextids").as[List[String]]
+      context      <- c.downField("context").as[Option[TaxonomyContext]]
       contexts     <- c.downField("contexts").as[List[TaxonomyContext]]
-    } yield Node(id, name, contentUri, path, url, metadata, translations, nodeType, contextids, contexts)
+    } yield Node(id, name, contentUri, path, url, metadata, translations, nodeType, contextids, context, contexts)
 
   })
 }
 
+// NOTE: This will need to match `TaxonomyContextDTO` in `taxonomy-api`
 case class TaxonomyContext(
     publicId: String,
     rootId: String,

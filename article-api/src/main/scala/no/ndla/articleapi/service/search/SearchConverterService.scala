@@ -13,12 +13,12 @@ import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, SearchResultV2DTO}
 import no.ndla.articleapi.model.search.*
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.common.model.domain.article.Article
-import no.ndla.search.SearchLanguage.languageAnalyzers
+import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import org.jsoup.Jsoup
 
 trait SearchConverterService {
-  this: ConverterService =>
+  this: ConverterService & SearchLanguage =>
   val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
@@ -26,7 +26,7 @@ trait SearchConverterService {
     def asSearchableArticle(ai: Article): SearchableArticle = {
       val defaultTitle = ai.title
         .sortBy(title => {
-          val languagePriority = languageAnalyzers.map(la => la.languageTag.toString).reverse
+          val languagePriority = SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString).reverse
           languagePriority.indexOf(title.language)
         })
         .lastOption

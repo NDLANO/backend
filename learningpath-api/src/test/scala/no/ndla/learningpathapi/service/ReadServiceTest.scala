@@ -19,8 +19,9 @@ import no.ndla.common.model.domain.learningpath.{
   StepStatus,
   StepType
 }
-import no.ndla.common.model.domain.{Author, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Title}
 import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
+import no.ndla.mapping.License
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.when
@@ -37,8 +38,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
   val PUBLISHED_OWNER: TokenUser       = TokenUser("published_owner", Set.empty, None)
   val PRIVATE_OWNER: TokenUser         = TokenUser("private_owner", Set.empty, None)
-  val cruz: Author                     = Author("author", "Lyin' Ted")
-  val license                          = "publicdomain"
+  val cruz: Author                     = Author(ContributorType.Writer, "Lyin' Ted")
+  val license: String                  = License.PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(cruz))
 
   val PUBLISHED_LEARNINGPATH: LearningPath = LearningPath(

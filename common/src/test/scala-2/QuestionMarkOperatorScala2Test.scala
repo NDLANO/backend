@@ -5,15 +5,16 @@
  * See LICENSE
  *
  */
+
 package no.ndla.common
 
-import no.ndla.scalatestsuite.UnitTestSuite
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
+import no.ndla.testbase.UnitTestSuiteBase
 
 import scala.util.{Failure, Success, Try}
 
 // TODO: Delete when we're on scala 3
-class QuestionMarkOperatorScala2Test extends UnitTestSuite {
+class QuestionMarkOperatorScala2Test extends UnitTestSuiteBase {
 
   val testException              = new RuntimeException("Bad method")
   def failingMethod: Try[Int]    = Failure(testException)

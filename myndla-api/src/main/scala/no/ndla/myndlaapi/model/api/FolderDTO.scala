@@ -9,7 +9,6 @@
 package no.ndla.myndlaapi.model.api
 
 import cats.implicits.toFunctorOps
-import com.scalatsi.{TSIType, TSNamedType, TSType}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
@@ -18,7 +17,7 @@ import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.model.domain.{CopyableFolder, CopyableResource}
 import sttp.tapir.Schema.annotations.description
 
-import scala.annotation.unused
+import java.util.UUID
 
 case class OwnerDTO(
     @description("Name of the owner") name: String
@@ -30,10 +29,10 @@ object OwnerDTO {
 }
 
 case class FolderDTO(
-    @description("UUID of the folder") id: String,
+    @description("UUID of the folder") id: UUID,
     @description("Folder name") name: String,
     @description("Folder status") status: String,
-    @description("UUID of parent folder") parentId: Option[String],
+    @description("UUID of parent folder") parentId: Option[UUID],
     @description("List of parent folders to resource") breadcrumbs: List[BreadcrumbDTO],
     @description("List of subfolders") subfolders: List[FolderDataDTO],
     @description("List of resources") resources: List[ResourceDTO],
@@ -45,19 +44,8 @@ case class FolderDTO(
     @description("Owner of the folder, if the owner have opted in to share their name") owner: Option[OwnerDTO]
 ) extends FolderDataDTO
     with CopyableFolder
-// format: on
 
-// 1: This object is needed for generating recursive Folder typescript type.
 object FolderDTO {
-  implicit val resource: TSIType[ResourceDTO] = TSType.fromCaseClass[ResourceDTO]
-  implicit val folderTSI: TSIType[FolderDTO] = {
-    @unused
-    // 2: We are saying here that there is no need for scala-tsi to generate IFolderData type automatically.
-    // We assure scala-tsi that we are getting IFolderData from external source. We point that source to FolderData.
-    implicit val folderData: TSNamedType[FolderDataDTO] = TSType.external[FolderDataDTO]("IFolderDataDTO")
-    TSType.fromCaseClass[FolderDTO]
-  }
-
   implicit val folderEncoder: Encoder[FolderDTO] = deriveEncoder
   implicit val folderDecoder: Decoder[FolderDTO] = deriveDecoder
 
@@ -72,10 +60,10 @@ object FolderDataDTO {
 //  implicit val decoder: Decoder[FolderData] = Decoder[Folder].widen
 
   def apply(
-      id: String,
+      id: UUID,
       name: String,
       status: String,
-      parentId: Option[String],
+      parentId: Option[UUID],
       breadcrumbs: List[BreadcrumbDTO],
       subfolders: List[FolderDataDTO],
       resources: List[ResourceDTO],
@@ -102,11 +90,6 @@ object FolderDataDTO {
       username.map(name => OwnerDTO(name))
     )
   }
-
-  // 3: After being redirected here from TSType.external we are manually making the union of FolderData,
-  // with Folder. After that we alias it as IFolderData so that scala-tsi can incorporate it.
-  implicit val folderDataAlias: TSNamedType[FolderDataDTO] =
-    TSType.alias[FolderDataDTO]("IFolderDataDTO", FolderDTO.folderTSI.get)
 }
 
 case class NewFolderDTO(
@@ -123,7 +106,7 @@ case class UpdatedFolderDTO(
 )
 
 case class ResourceDTO(
-    @description("Unique ID of the resource") id: String,
+    @description("Unique ID of the resource") id: UUID,
     @description("Type of the resource. (Article, Learningpath)") resourceType: ResourceType,
     @description("Relative path of this resource") path: String,
     @description("When the resource was created") created: NDLADate,

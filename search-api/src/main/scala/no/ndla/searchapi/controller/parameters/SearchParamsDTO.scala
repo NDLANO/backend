@@ -8,13 +8,13 @@
 
 package no.ndla.searchapi.controller.parameters
 
-import com.scalatsi.TypescriptType.{TSString, TSUndefined}
-import com.scalatsi.{TSIType, TSType}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.model.api.search.SearchTrait
+import no.ndla.common.model.api.LanguageCode
+import no.ndla.common.model.api.search.{SearchTrait, SearchType}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
+import no.ndla.searchapi.model.taxonomy.NodeType
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
@@ -37,7 +37,7 @@ case class SearchParamsDTO(
     @description("Fallback to existing language if language is specified.")
     fallback: Option[Boolean],
     @description("The ISO 639-1 language code describing language.")
-    language: Option[String],
+    language: Option[LanguageCode],
     @description("Return only results with provided license.")
     license: Option[String],
     @description("The sorting used on results.")
@@ -71,15 +71,15 @@ case class SearchParamsDTO(
     @description("Return only results with embed data-resource_id, data-videoid or data-url with the specified id.")
     embedId: Option[String],
     @description("Filter out inactive taxonomy contexts.")
-    filterInactive: Option[Boolean]
+    filterInactive: Option[Boolean],
+    @description("Which types the search request should return")
+    resultTypes: Option[List[SearchType]],
+    @description("Which node types the search request should return")
+    nodeTypeFilter: Option[List[NodeType]]
 )
 
 object SearchParamsDTO {
   implicit val encoder: Encoder[SearchParamsDTO] = deriveEncoder
   implicit val decoder: Decoder[SearchParamsDTO] = deriveDecoder
   implicit val schema: Schema[SearchParamsDTO]   = Schema.derived[SearchParamsDTO]
-
-  import com.scalatsi.dsl.*
-  implicit val tsType: TSIType[SearchParamsDTO] =
-    TSType.fromCaseClass[SearchParamsDTO] - "sort" + ("sort", TSString | TSUndefined)
 }

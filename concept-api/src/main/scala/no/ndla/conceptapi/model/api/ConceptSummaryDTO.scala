@@ -22,8 +22,6 @@ case class ConceptSummaryDTO(
     title: ConceptTitleDTO,
     @description("The content of the concept in available languages")
     content: ConceptContent,
-    @description("The metaImage of the concept")
-    metaImage: ConceptMetaImageDTO,
     @description("Search tags the concept is tagged with")
     tags: Option[ConceptTagsDTO],
     @description("All available languages of the current concept")

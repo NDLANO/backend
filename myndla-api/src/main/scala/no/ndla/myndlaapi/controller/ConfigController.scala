@@ -23,7 +23,7 @@ import no.ndla.myndlaapi.service.ConfigService
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 
 trait ConfigController {
-  this: ErrorHandling with ConfigService with TapirController =>
+  this: ErrorHandling & ConfigService & TapirController =>
 
   val configController: ConfigController
 

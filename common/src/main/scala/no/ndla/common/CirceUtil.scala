@@ -9,8 +9,12 @@
 package no.ndla.common
 
 import enumeratum.*
-import io.circe.syntax.*
 import io.circe.*
+import io.circe.generic.semiauto.deriveEncoder
+import io.circe.syntax.*
+import io.circe.generic.encoding.DerivedAsObjectEncoder
+import io.circe.{Decoder, Encoder}
+import shapeless.Lazy
 
 import scala.util.{Failure, Try}
 
@@ -25,13 +29,14 @@ object CirceUtil {
     }
   }
 
-  def tryParseAs[T](str: String)(implicit d: Decoder[T]): Try[T] = {
+  def tryParse(str: String): Try[Json] = {
     parser
       .parse(str)
       .toTry
-      .flatMap(_.as[T].toTry)
       .recoverWith { ex => Failure(CirceFailure(str, ex)) }
   }
+
+  def tryParseAs[T](str: String)(implicit d: Decoder[T]): Try[T] = tryParse(str).flatMap(_.as[T].toTry)
 
   /** This might throw an exception! Use with care, probably only use this in tests */
   def unsafeParseAs[T: Decoder](str: String): T = tryParseAs(str).get
@@ -39,8 +44,21 @@ object CirceUtil {
   def toJsonString[T: Encoder](obj: T): String = obj.asJson.noSpaces
 
   /** Helper to simplify making decoders with default values */
-  def getOrDefault[T: Decoder](cur: HCursor, key: String, default: T) = {
+  def getOrDefault[T: Decoder](cur: HCursor, key: String, default: T): Either[DecodingFailure, T] = {
     cur.downField(key).as[Option[T]].map(_.getOrElse(default))
+  }
+
+  def addTypenameDiscriminator(json: Json, clazz: Class[?]): Json = {
+    json.mapObject(_.add("typename", Json.fromString(clazz.getSimpleName)))
+  }
+
+  def deriveEncoderWithTypename[T](implicit encode: Lazy[DerivedAsObjectEncoder[T]]): Encoder[T] = {
+    val encoder = deriveEncoder[T]
+    Encoder.instance[T] { value =>
+      val json = encoder(value)
+
+      addTypenameDiscriminator(json, value.getClass)
+    }
   }
 
   private val stringDecoder = implicitly[Decoder[String]]

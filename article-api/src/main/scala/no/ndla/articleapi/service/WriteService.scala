@@ -9,7 +9,6 @@
 package no.ndla.articleapi.service
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.articleapi.integration.SearchApiClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.articleapi.repository.ArticleRepository
@@ -22,7 +21,10 @@ import no.ndla.language.Language
 import scalikejdbc.{AutoSession, DBSession}
 import cats.implicits.*
 import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.network.clients.SearchApiClient
 
+import java.util.concurrent.{ExecutorService, Executors}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
@@ -31,6 +33,9 @@ trait WriteService {
   val writeService: WriteService
 
   class WriteService extends StrictLogging {
+    private val executor: ExecutorService            = Executors.newSingleThreadExecutor
+    implicit val ec: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(executor)
+
     private def performArticleValidation(
         article: Article,
         externalIds: List[String],
@@ -88,7 +93,7 @@ trait WriteService {
       _ <- performArticleValidation(article, externalIds, useSoftValidation, skipValidation, useImportValidation)
       domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds)(session)
       _             <- articleIndexService.indexDocument(domainArticle)
-      _             <- Try(searchApiClient.indexArticle(domainArticle))
+      _             <- Try(searchApiClient.indexDocument("article", domainArticle, None))
     } yield domainArticle
 
     def partialUpdate(
@@ -143,7 +148,7 @@ trait WriteService {
 
       updated
         .flatMap(articleIndexService.deleteDocument)
-        .map(searchApiClient.deleteArticle)
+        .map(a => searchApiClient.deleteDocument(a, "article"))
         .map(api.ArticleIdV2DTO.apply)
     }
 
@@ -155,7 +160,7 @@ trait WriteService {
 
       deleted
         .flatMap(articleIndexService.deleteDocument)
-        .map(searchApiClient.deleteArticle)
+        .map(a => searchApiClient.deleteDocument(a, "article"))
         .map(api.ArticleIdV2DTO.apply)
     }
 

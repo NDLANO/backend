@@ -48,13 +48,13 @@ trait ArticleIndexService {
         keywordField("grepCodes"),
         ObjectField("status", properties = Seq(keywordField("current"), keywordField("other")))
       )
-      val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("content") ++
-        generateLanguageSupportedDynamicTemplates("visualElement") ++
-        generateLanguageSupportedDynamicTemplates("introduction") ++
-        generateLanguageSupportedDynamicTemplates("tags")
+      val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
+        generateLanguageSupportedFieldList("content") ++
+        generateLanguageSupportedFieldList("visualElement") ++
+        generateLanguageSupportedFieldList("introduction") ++
+        generateLanguageSupportedFieldList("tags")
 
-      properties(fields).dynamicTemplates(dynamics)
+      properties(fields ++ dynamics)
     }
   }
 

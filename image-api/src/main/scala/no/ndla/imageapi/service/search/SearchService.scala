@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi.service.search
 
-import com.sksamuel.elastic4s.ElasticDsl._
+import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.sort.FieldSort
 import com.typesafe.scalalogging.StrictLogging
@@ -21,14 +21,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-import cats.implicits._
+import cats.implicits.*
 
 trait SearchService {
-  this: Elastic4sClient with IndexService with SearchConverterService with Props =>
+  this: Elastic4sClient & IndexService & SearchConverterService & Props =>
 
   trait SearchService[T] extends StrictLogging {
     val searchIndex: String
-    val indexService: IndexService[_, _]
+    val indexService: IndexService[?, ?]
 
     def hitToApiModel(hit: String, language: String): Try[T]
 
@@ -128,7 +128,7 @@ trait SearchService {
       }
     }
 
-    def scheduleIndexDocuments(): Unit = {
+    private def scheduleIndexDocuments(): Unit = {
       val f = Future(indexService.indexDocuments(None))
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))

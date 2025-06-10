@@ -10,7 +10,7 @@ package no.ndla.imageapi.service.search
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, Tag}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag}
 import no.ndla.common.model.api as commonApi
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -19,7 +19,7 @@ import no.ndla.network.ApplicationUrl
 import no.ndla.network.model.NdlaHttpRequest
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.PrivateMethodTester
@@ -27,7 +27,7 @@ import org.scalatest.PrivateMethodTester
 import scala.util.Success
 
 class ImageSearchServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
+    extends ElasticsearchIntegrationSuite
     with UnitSuite
     with TestEnvironment
     with PrivateMethodTester {
@@ -53,7 +53,7 @@ class ImageSearchServiceTest
   val byNcSa: Copyright = Copyright(
     CC_BY_NC_SA.toString,
     Some("Gotham City"),
-    List(Author("Forfatter", "DC Comics")),
+    List(Author(ContributorType.Writer, "DC Comics")),
     List(),
     List(),
     None,
@@ -64,7 +64,7 @@ class ImageSearchServiceTest
   val publicDomain: Copyright = Copyright(
     PublicDomain.toString,
     Some("Metropolis"),
-    List(Author("Forfatter", "Bruce Wayne")),
+    List(Author(ContributorType.Writer, "Bruce Wayne")),
     List(),
     List(),
     None,
@@ -538,7 +538,7 @@ class ImageSearchServiceTest
   }
 
   test("That filtering for modelReleased works as expected") {
-    import ModelReleasedStatus._
+    import ModelReleasedStatus.*
     val Success(searchResult1) = imageSearchService.matchingQuery(
       searchSettings.copy(
         language = "*",

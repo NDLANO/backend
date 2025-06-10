@@ -73,7 +73,7 @@ object TestData {
   )
 
   val emptyApiFolder: api.FolderDTO = api.FolderDTO(
-    id = "",
+    id = UUID.randomUUID(),
     name = "",
     status = "",
     subfolders = List.empty,
@@ -101,7 +101,6 @@ object TestData {
     email = "",
     arenaEnabled = false,
     arenaAccepted = false,
-    arenaGroups = List.empty,
     shareNameAccepted = false
   )
 

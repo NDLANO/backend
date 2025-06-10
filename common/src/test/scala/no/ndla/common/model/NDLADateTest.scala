@@ -11,13 +11,13 @@ package no.ndla.common.model
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate.fromTimestampSeconds
 import no.ndla.common.model.domain.draft.NestedOptionalDate
-import no.ndla.scalatestsuite.UnitTestSuite
+import no.ndla.testbase.UnitTestSuiteBase
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
 import scala.annotation.unused
 import scala.util.Success
 
-class NDLADateTest extends UnitTestSuite {
+class NDLADateTest extends UnitTestSuiteBase {
 
   test("That parsing from string works as expected") {
     val timestamp = 1691042491L

@@ -8,18 +8,15 @@
 
 package no.ndla.audioapi.service.search
 
-import no.ndla.audioapi.model.domain._
+import no.ndla.audioapi.model.domain.*
 import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.common.model.{domain => common}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.common.model.domain as common
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
 import scala.util.Success
 
-class SeriesSearchServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class SeriesSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   override val seriesSearchService = new SeriesSearchService

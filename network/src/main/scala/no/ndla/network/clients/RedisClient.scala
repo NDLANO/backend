@@ -10,12 +10,14 @@ package no.ndla.network.clients
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
+import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.implicits.*
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 
 import scala.util.{Failure, Success, Try}
 
 trait RedisClient {
+  this: HasBaseProps =>
   val redisClient: RedisClient
   class RedisClient(
       host: String,
@@ -23,7 +25,7 @@ trait RedisClient {
       // default to 8 hours cache time
       cacheTimeSeconds: Long = 60 * 60 * 8
   ) extends StrictLogging {
-    val jedis                    = new ScalaJedis(host, port)
+    val jedis                    = new ScalaJedis(host, port, props.Environment)
     private val feideIdField     = "feideId"
     private val feideUserField   = "feideUser"
     private val feideGroupField  = "feideGroup"

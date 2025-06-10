@@ -27,17 +27,12 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 trait SeriesSearchService {
-  this: Elastic4sClient
-    with SeriesIndexService
-    with SearchConverterService
-    with SearchService
-    with ConverterService
-    with Props
-    with ErrorHandling =>
+  this: Elastic4sClient & SeriesIndexService & SearchConverterService & SearchService & ConverterService & Props &
+    ErrorHandling =>
   val seriesSearchService: SeriesSearchService
 
   class SeriesSearchService extends StrictLogging with SearchService[api.SeriesSummaryDTO] {
-    import props._
+    import props.*
 
     override val searchIndex: String = SeriesSearchIndex
 

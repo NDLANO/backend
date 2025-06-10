@@ -50,7 +50,7 @@ trait FolderConverterService {
       ): Try[FolderDTO] = folder.subfolders
         .traverse(folder => {
           val newCrumb = api.BreadcrumbDTO(
-            id = folder.id.toString,
+            id = folder.id,
             name = folder.name
           )
           val newCrumbs = crumbs :+ newCrumb
@@ -61,13 +61,13 @@ trait FolderConverterService {
             .traverse(r => toApiResource(r, isOwner))
             .map(resources => {
               api.FolderDTO(
-                id = folder.id.toString,
+                id = folder.id,
                 name = folder.name,
                 status = folder.status.toString,
                 subfolders = subFolders.sortBy(_.rank),
                 resources = resources.sortBy(_.rank),
                 breadcrumbs = crumbs,
-                parentId = folder.parentId.map(_.toString),
+                parentId = folder.parentId,
                 rank = folder.rank,
                 created = folder.created,
                 updated = folder.updated,
@@ -150,7 +150,7 @@ trait FolderConverterService {
 
       Success(
         api.ResourceDTO(
-          id = domainResource.id.toString,
+          id = domainResource.id,
           resourceType = resourceType,
           path = path,
           created = created,
@@ -189,12 +189,11 @@ trait FolderConverterService {
         email = domainUserData.email,
         displayName = domainUserData.displayName,
         favoriteSubjects = domainUserData.favoriteSubjects,
-        role = domainUserData.userRole.toString,
+        role = domainUserData.userRole,
         organization = domainUserData.organization,
         groups = domainUserData.groups.map(toApiGroup),
         arenaEnabled = domainUserData.arenaEnabled,
         arenaAccepted = domainUserData.arenaAccepted,
-        arenaGroups = domainUserData.arenaGroups,
         shareNameAccepted = domainUserData.shareNameAccepted
       )
     }
@@ -242,7 +241,7 @@ trait FolderConverterService {
         case _                          => domainUserData.arenaAccepted
       }
 
-      def getToken = feideToken.toTry(
+      def getToken: Try[FeideAccessToken] = feideToken.toTry(
         ValidationException(
           "arenaAccepted",
           "Tried to update arenaAccepted without a token connected to the feide user."
@@ -273,21 +272,17 @@ trait FolderConverterService {
         domainUserData: DomainMyNDLAUser,
         updatedUser: UpdatedMyNDLAUserDTO,
         updaterToken: Option[TokenUser],
-        updaterUser: Option[DomainMyNDLAUser],
         feideToken: Option[FeideAccessToken]
     ): Try[DomainMyNDLAUser] = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
       val arenaEnabled = {
-        if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN) || updaterUser.exists(_.isAdmin))
+        if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN))
           updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
         else
           domainUserData.arenaEnabled
       }
 
-      val arenaAccepted = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
-      val arenaGroups =
-        if (updaterUser.exists(_.isAdmin)) updatedUser.arenaGroups.getOrElse(domainUserData.arenaGroups)
-        else domainUserData.arenaGroups
+      val arenaAccepted     = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
       val shareNameAccepted = updatedUser.shareNameAccepted.getOrElse(domainUserData.shareNameAccepted)
 
       Success(
@@ -304,7 +299,6 @@ trait FolderConverterService {
           email = domainUserData.email,
           arenaEnabled = arenaEnabled,
           arenaAccepted = arenaAccepted,
-          arenaGroups = arenaGroups,
           shareNameAccepted = shareNameAccepted
         )
       )

@@ -11,6 +11,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
+import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
@@ -59,7 +60,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Success(updatedAndInserted))
 
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(updatedAndInserted))
-    when(searchApiClient.indexArticle(any[Article])).thenReturn(updatedAndInserted)
+    when(searchApiClient.indexDocument(any[String], any[Article], any[Option[TokenUser]])(any, any, any))
+      .thenReturn(updatedAndInserted)
 
     service.updateArticle(
       articleToUpdate,
@@ -73,7 +75,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val argCap2: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
 
     verify(articleIndexService, times(1)).indexDocument(argCap1.capture())
-    verify(searchApiClient, times(1)).indexArticle(argCap2.capture())
+    verify(searchApiClient, times(1)).indexDocument(any[String], argCap2.capture(), any[Option[TokenUser]])(
+      any,
+      any,
+      any
+    )
 
     val captured1 = argCap1.getValue
     captured1.copy(updated = today) should be(updatedAndInserted)
@@ -88,12 +94,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(articleRepository.unpublishMaxRevision(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
-    when(searchApiClient.deleteArticle(any[Long])).thenReturn(articleIdToUnpublish)
+    when(searchApiClient.deleteDocument(any[Long], any[String])).thenReturn(articleIdToUnpublish)
 
     service.unpublishArticle(articleIdToUnpublish, None)
 
     verify(articleIndexService, times(1)).deleteDocument(any[Long])
-    verify(searchApiClient, times(1)).deleteArticle(any[Long])
+    verify(searchApiClient, times(1)).deleteDocument(any[Long], any[String])
   }
 
   test("That deleteArticle removes article from indexes") {
@@ -102,11 +108,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(articleRepository.deleteMaxRevision(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
-    when(searchApiClient.deleteArticle(any[Long])).thenReturn(articleIdToUnpublish)
+    when(searchApiClient.deleteDocument(any[Long], any[String])).thenReturn(articleIdToUnpublish)
 
     service.deleteArticle(articleIdToUnpublish, None)
 
     verify(articleIndexService, times(1)).deleteDocument(any[Long])
-    verify(searchApiClient, times(1)).deleteArticle(any[Long])
+    verify(searchApiClient, times(1)).deleteDocument(any[Long], any[String])
   }
 }

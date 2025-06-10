@@ -9,9 +9,9 @@
 package no.ndla.imageapi.service
 
 import com.typesafe.scalalogging.StrictLogging
-import io.lemonlabs.uri.typesafe.dsl._
+import io.lemonlabs.uri.typesafe.dsl.*
 import io.lemonlabs.uri.UrlPath
-import no.ndla.common.model.{domain => commonDomain, api => commonApi}
+import no.ndla.common.model.{domain as commonDomain, api as commonApi}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{
   ImageFileData,
@@ -24,7 +24,7 @@ import no.ndla.imageapi.model.{ImageConversionException, api, domain}
 import no.ndla.language.Language
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.mapping.License.getLicense
-import cats.implicits._
+import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
@@ -32,7 +32,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with Props =>
+  this: Clock & Props =>
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
@@ -159,7 +159,8 @@ trait ConverterService {
 
     private def getImageFromMeta(meta: ImageMetaInformation, language: Option[String]): Try[ImageFileData] = {
       findByLanguageOrBestEffort(meta.images.getOrElse(Seq.empty), language) match {
-        case None        => Failure(ImageConversionException("Could not find image in meta, this is a bug."))
+        case None =>
+          Failure(ImageConversionException(s"Could not find image in meta with id '${meta.id}', this is a bug."))
         case Some(image) => Success(image)
       }
     }

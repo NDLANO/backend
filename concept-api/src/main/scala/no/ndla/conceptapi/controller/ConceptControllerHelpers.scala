@@ -9,6 +9,7 @@
 package no.ndla.conceptapi.controller
 
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.domain.concept.ConceptType
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.domain.Sort
@@ -61,10 +62,10 @@ trait ConceptControllerHelpers {
              The following are supported: ${Sort.values.mkString(",")}
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
         )
-    val language: EndpointInput.Query[String] =
-      query[String]("language")
+    val language: EndpointInput.Query[LanguageCode] =
+      query[LanguageCode]("language")
         .description("The ISO 639-1 language code describing language.")
-        .default(Language.AllLanguages)
+        .default(LanguageCode(Language.AllLanguages))
     val license: EndpointInput.Query[Option[String]] =
       query[Option[String]]("license")
         .description("Return only results with provided license.")

@@ -20,13 +20,14 @@ import no.ndla.common.model.domain.learningpath.{
 }
 import no.ndla.common.model.domain.Title
 import no.ndla.learningpathapi.*
+import no.ndla.mapping.License
 import org.mockito.Mockito.when
 
 class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   var validator: LearningStepValidator = _
 
-  val license = "publicdomain"
+  val license = License.PublicDomain.toString
 
   val ValidLearningStep: LearningStep = LearningStep(
     id = None,
@@ -105,8 +106,9 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
       ValidLearningStep.copy(
         description = List(
           Description("<strong>Gyldig</strong>", "nb"),
+          Description("<h2>Også gyldig</h2>", "nb"),
           Description("<h1>Ugyldig</h1>", "nb"),
-          Description("<h2>Også ugyldig</h2>", "nb")
+          Description("<h4>Også ugyldig</h4>", "nb")
         )
       ),
       false

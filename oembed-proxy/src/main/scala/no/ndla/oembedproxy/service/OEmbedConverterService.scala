@@ -10,7 +10,7 @@ package no.ndla.oembedproxy.service
 
 import io.lemonlabs.uri.Url
 import no.ndla.oembedproxy.model.OEmbedDTO
-import io.lemonlabs.uri.typesafe.dsl._
+import io.lemonlabs.uri.typesafe.dsl.*
 import org.jsoup.Jsoup
 
 object OEmbedConverterService {
@@ -28,7 +28,7 @@ object OEmbedConverterService {
             Option(document.select("iframe[src]").first)
               .foreach(element => {
                 val newUrl = element.attr("src").addParams(queryParamsToTransfer).toString
-                element.attr("src", newUrl.toString)
+                element.attr("src", newUrl)
               })
             document
               .body()

@@ -8,87 +8,190 @@
 
 package no.ndla.searchapi.service.search
 
+import cats.implicits.{catsSyntaxOptionId, toTraverseOps}
 import com.sksamuel.elastic4s.ElasticDsl.*
+import com.sksamuel.elastic4s.RequestSuccess
+import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.CirceUtil
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.api.search.SearchType
-import no.ndla.common.model.domain.{Availability, Content}
+import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
+import no.ndla.mapping.License
+import no.ndla.network.tapir.NonEmptyString
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.settings.SearchSettings
+import no.ndla.searchapi.model.taxonomy.NodeType
 
 import scala.util.{Failure, Success, Try}
 
 trait MultiSearchService {
   this: Elastic4sClient & SearchConverterService & SearchService & IndexService & ArticleIndexService &
-    LearningPathIndexService & Props & ErrorHandling =>
+    LearningPathIndexService & Props & ErrorHandling & NodeIndexService =>
 
   val multiSearchService: MultiSearchService
 
   class MultiSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
     import props.{ElasticSearchScrollKeepAlive, SearchIndex}
 
-    override val searchIndex: List[String] = List(SearchType.Articles, SearchType.LearningPaths).map(SearchIndex)
-    override val indexServices: List[IndexService[? <: Content]] = List(articleIndexService, learningPathIndexService)
+    override val searchIndex: List[String] =
+      List(SearchType.Articles, SearchType.LearningPaths, SearchType.Nodes).map(SearchIndex)
+    override val indexServices: List[BulkIndexingService] = List(
+      articleIndexService,
+      learningPathIndexService,
+      nodeIndexService
+    )
+
+    private def getIndexFilter(indexes: List[SearchType]): Query = {
+      val indexNames = indexes.map(SearchIndex)
+      termsQuery("_index", indexNames)
+    }
+
+    private def typeNameQuery(q: NonEmptyString): Query = {
+      constantScoreQuery(simpleStringQuery(q.underlying).field("typeName")).boost(400)
+    }
 
     def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
+      val contentSearch: Option[BoolQuery] = buildContentIndexesQuery(settings)
+      val nodeSearch: Option[BoolQuery]    = buildNodeIndexQuery(settings)
+      val indexFilterNode                  = getIndexFilter(List(SearchType.Nodes))
+      val indexFilterContent               = getIndexFilter(List(SearchType.Articles, SearchType.LearningPaths))
 
-      val contentSearch = settings.query.map(q => {
-        val langQueryFunc = (fieldName: String, boost: Double) =>
-          buildSimpleStringQueryForField(
-            q,
-            fieldName,
-            boost,
-            settings.language,
-            settings.fallback,
-            searchDecompounded = true
+      val boolQueries: List[BoolQuery] = List(
+        contentSearch.map(_.filter(indexFilterContent)),
+        nodeSearch.map(_.filter(indexFilterNode))
+      ).flatten
+
+      val contentFilter = boolQuery().must(getSearchFilters(settings)).filter(indexFilterContent)
+      val nodeFilter    = boolQuery().must(getNodeSearchFilters(settings)).filter(indexFilterNode)
+
+      val filteredSearch = boolQuery()
+        .should(boolQueries)
+        .minimumShouldMatch(Math.min(boolQueries.size, 1))
+        .filter(boolQuery().should(contentFilter, nodeFilter).minimumShouldMatch(1))
+
+      executeSearch(settings, filteredSearch)
+    }
+
+    private def buildNodeIndexQuery(settings: SearchSettings) = settings.query.map { q =>
+      val langQueryFunc = (fieldName: String, boost: Double) => {
+        List(
+          buildSimpleStringQuery(q, fieldName, boost, settings.language, settings.fallback, decompounded = true).some,
+          buildMatchQueryForField(q, fieldName, settings.language, settings.fallback, boost)
+        ).flatten
+      }
+
+      boolQuery()
+        .must(
+          boolQuery().should(
+            langQueryFunc("title", 100) ++
+              langQueryFunc("subjectPage.aboutTitle", 20) ++
+              langQueryFunc("subjectPage.aboutDescription", 1) ++
+              langQueryFunc("subjectPage.metaDescription", 1)
           )
-        boolQuery().must(
+        )
+        .should(typeNameQuery(q))
+    }
+
+    private def buildContentIndexesQuery(settings: SearchSettings) = settings.query.map(q => {
+      val langQueryFunc = (fieldName: String, boost: Double) =>
+        buildSimpleStringQuery(q, fieldName, boost, settings.language, settings.fallback, decompounded = true)
+
+      boolQuery()
+        .must(
           boolQuery().should(
             List(
-              langQueryFunc("title", 6),
-              langQueryFunc("introduction", 2),
-              langQueryFunc("metaDescription", 1),
-              langQueryFunc("content", 1),
-              langQueryFunc("tags", 1),
-              langQueryFunc("embedAttributes", 1),
-              simpleStringQuery(q.underlying).field("authors", 1),
-              simpleStringQuery(q.underlying).field("grepContexts.title", 1),
-              nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
-              termQuery("contextids", q.underlying),
-              idsQuery(q.underlying)
-            ) ++
+              buildMatchQueryForField(q, "title", settings.language, settings.fallback, 20),
+              buildBreadcrumbQuery(q, settings.language, settings.fallback, 1)
+            ).flatten ++
+              List(
+                langQueryFunc("title", 20),
+                langQueryFunc("introduction", 2),
+                langQueryFunc("metaDescription", 1),
+                langQueryFunc("content", 1),
+                langQueryFunc("tags", 1),
+                langQueryFunc("embedAttributes", 1),
+                simpleStringQuery(q.underlying).field("authors", 1),
+                simpleStringQuery(q.underlying).field("grepContexts.title", 1),
+                nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
+                termQuery("contextids", q.underlying),
+                idsQuery(q.underlying)
+              ) ++
               buildNestedEmbedField(List(q.underlying), None, settings.language, settings.fallback) ++
               buildNestedEmbedField(List.empty, Some(q.underlying), settings.language, settings.fallback)
           )
         )
-      })
+        .should(typeNameQuery(q))
+    })
 
-      val boolQueries: List[BoolQuery] = List(contentSearch).flatten
-      val fullQuery                    = boolQuery().must(boolQueries)
+    private def getSearchIndexes(settings: SearchSettings): Try[List[String]] = {
+      settings.resultTypes match {
+        case Some(list) if list.nonEmpty =>
+          val idxs = list.map { st =>
+            val index        = SearchIndex(st)
+            val isValidIndex = searchIndex.contains(index)
 
-      executeSearch(settings, fullQuery)
+            if (isValidIndex) Right(index)
+            else {
+              val validSearchTypes = searchIndex.traverse(props.indexToSearchType).getOrElse(List.empty)
+              val validTypesString = s"[${validSearchTypes.mkString("'", "','", "'")}]"
+              Left(
+                ValidationMessage(
+                  "resultTypes",
+                  s"Invalid result type for endpoint: '$st', expected one of: $validTypesString"
+                )
+              )
+            }
+          }
+
+          val errors = idxs.collect { case Left(e) => e }
+          if (errors.nonEmpty) Failure(new ValidationException(s"Got invalid `resultTypes` for endpoint", errors))
+          else Success(idxs.collect { case Right(i) => i })
+
+        case _ => Success(List(SearchType.Articles, SearchType.LearningPaths).map(SearchIndex))
+      }
     }
 
-    def executeSearch(settings: SearchSettings, baseQuery: BoolQuery): Try[SearchResult] = {
+    private def logShardErrors(response: RequestSuccess[SearchResponse]) = {
+      if (response.result.shards.failed > 0) {
+        response.body.map { body =>
+          CirceUtil.tryParse(body) match {
+            case Failure(ex) =>
+              logger.error(s"Got error parsing search response: $body", ex)
+            case Success(jsonBody) =>
+              val failures = jsonBody.hcursor.downField("_shards").downField("failures").focus.map(_.spaces2)
+              failures match {
+                case Some(shardFailure) =>
+                  logger.error(s"${response.result.shards.failed} failed shards in search response: \n$shardFailure")
+                case None =>
+                  logger.error(s"${response.result.shards.failed} failed shards in search response")
+              }
+          }
+        }
+      }
+    }
+
+    def executeSearch(settings: SearchSettings, filteredSearch: BoolQuery): Try[SearchResult] = {
       val searchLanguage = settings.language match {
         case lang if Iso639.get(lang).isSuccess && !settings.fallback => lang
         case _                                                        => AllLanguages
       }
 
-      val filteredSearch = baseQuery.filter(getSearchFilters(settings))
-
       getStartAtAndNumResults(settings.page, settings.pageSize).flatMap { pagination =>
         val aggregations = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
-
-        val searchToExecute = search(searchIndex)
+        val index        = getSearchIndexes(settings).?
+        val searchToExecute = search(index)
           .query(filteredSearch)
+          .explain(enableExplanations)
           .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
           .from(pagination.startAt)
           .trackTotalHits(true)
@@ -105,6 +208,8 @@ trait MultiSearchService {
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>
+            logShardErrors(response)
+            printExplanations(response)
             getHits(response.result, settings.language, settings.filterInactive).map(hits => {
               SearchResult(
                 totalCount = response.result.totalHits,
@@ -122,6 +227,37 @@ trait MultiSearchService {
       }
     }
 
+    private def getNodeTypeFilter(maybeTypes: List[NodeType]): Option[Query] = {
+      maybeTypes match {
+        case types if types.nonEmpty =>
+          boolQuery()
+            .should(
+              boolQuery().not(existsQuery("nodeType")),
+              boolQuery().must(
+                termsQuery("nodeType", types.map(_.entryName)),
+                nestedQuery("context", termQuery("context.isVisible", true))
+              )
+            )
+            .some
+        case _ => None
+      }
+    }
+
+    private def getNodeSearchFilters(settings: SearchSettings): List[Query] = {
+      val nodeTypeFilter       = getNodeTypeFilter(settings.nodeTypeFilter)
+      val contextSubjectFilter = subjectFilter(settings.subjects, settings.filterInactive)
+      val grepCodesFilter =
+        if (settings.grepCodes.nonEmpty)
+          Some(termsQuery("grepContexts.code", settings.grepCodes))
+        else None
+
+      List(
+        nodeTypeFilter,
+        contextSubjectFilter,
+        grepCodesFilter
+      ).flatten
+    }
+
     /** Returns a list of QueryDefinitions of different search filters depending on settings.
       *
       * @param settings
@@ -136,11 +272,14 @@ trait MultiSearchService {
         case _ => None
       }
 
+      val statusFilter = Some(boolQuery().should(termQuery("status", "PUBLISHED")))
+
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
 
       val licenseFilter = settings.license match {
-        case None      => Some(boolQuery().not(termQuery("license", "copyrighted")))
-        case Some(lic) => Some(termQuery("license", lic))
+        case Some("all") => None
+        case Some(lic)   => Some(termQuery("license", lic))
+        case None        => Some(boolQuery().not(termQuery("license", License.Copyrighted.toString)))
       }
 
       val grepCodesFilter =
@@ -179,6 +318,7 @@ trait MultiSearchService {
       List(
         licenseFilter,
         idFilter,
+        statusFilter,
         articleTypeFilter,
         learningResourceTypeFilter,
         languageFilter,

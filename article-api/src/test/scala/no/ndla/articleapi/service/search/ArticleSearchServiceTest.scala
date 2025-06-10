@@ -12,18 +12,15 @@ import no.ndla.articleapi.*
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
 import scala.util.Success
 
-class ArticleSearchServiceTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with UnitSuite
-    with TestEnvironment {
+class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   import TestData.testSettings
   import props.*
 
@@ -40,7 +37,7 @@ class ArticleSearchServiceTest
     Copyright(
       CC_BY_NC_SA.toString,
       Some("Gotham City"),
-      List(Author("Forfatter", "DC Comics")),
+      List(Author(ContributorType.Writer, "DC Comics")),
       List(),
       List(),
       None,
@@ -52,7 +49,7 @@ class ArticleSearchServiceTest
     Copyright(
       PublicDomain.toString,
       Some("Metropolis"),
-      List(Author("Forfatter", "Bruce Wayne")),
+      List(Author(ContributorType.Writer, "Bruce Wayne")),
       List(),
       List(),
       None,
@@ -64,7 +61,7 @@ class ArticleSearchServiceTest
     Copyright(
       Copyrighted.toString,
       Some("New York"),
-      List(Author("Forfatter", "Clark Kent")),
+      List(Author(ContributorType.Writer, "Clark Kent")),
       List(),
       List(),
       None,

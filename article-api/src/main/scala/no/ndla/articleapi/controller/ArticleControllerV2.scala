@@ -19,6 +19,7 @@ import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.Props
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.LanguageCode
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
@@ -48,9 +49,9 @@ trait ArticleControllerV2 {
     private val queryParam =
       query[Option[String]]("query").description("Return only articles with content matching the specified query.")
     private val language =
-      query[String]("language")
+      query[LanguageCode]("language")
         .description("The ISO 639-1 language code describing language.")
-        .default(AllLanguages)
+        .default(LanguageCode(AllLanguages))
     private val license = query[Option[String]]("license").description(
       "Return only results with provided license. Specifying 'all' gives all articles regardless of licence."
     )
@@ -147,7 +148,7 @@ trait ArticleControllerV2 {
               queryOrEmpty,
               parsedPageSize,
               parsedPageNo,
-              language
+              language.code
             )
             .asRight
         }
@@ -225,7 +226,7 @@ trait ArticleControllerV2 {
                 scrollId,
                 grepCodes
               ) =>
-            scrollSearchOr(scrollId, language) {
+            scrollSearchOr(scrollId, language.code) {
               val sort         = Sort.valueOf(maybeSort.getOrElse(""))
               val pageSize     = maybePageSize.getOrElse(DefaultPageSize)
               val page         = maybePageNo.getOrElse(1)
@@ -234,7 +235,7 @@ trait ArticleControllerV2 {
               search(
                 query,
                 sort,
-                language,
+                language.code,
                 license,
                 page,
                 pageSize,
@@ -275,7 +276,7 @@ trait ArticleControllerV2 {
         readService
           .getArticlesByIds(
             ids.values,
-            language,
+            language.code,
             fallback,
             page,
             pageSize,
@@ -293,10 +294,10 @@ trait ArticleControllerV2 {
       .out(jsonBody[SearchResultV2DTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .serverLogicPure { case (feideToken, searchParams) =>
-        val language = searchParams.language.getOrElse(AllLanguages)
+        val language = searchParams.language.getOrElse(LanguageCode(AllLanguages))
         val fallback = searchParams.fallback.getOrElse(false)
 
-        scrollSearchOr(searchParams.scrollId, language) {
+        scrollSearchOr(searchParams.scrollId, language.code) {
           val query              = searchParams.query
           val sort               = searchParams.sort
           val license            = searchParams.license
@@ -310,7 +311,7 @@ trait ArticleControllerV2 {
           search(
             query,
             sort,
-            language,
+            language.code,
             license,
             page,
             pageSize,
@@ -337,10 +338,10 @@ trait ArticleControllerV2 {
         val (articleId, revisionQuery, feideToken, language, fallback) = params
         (parseArticleIdAndRevision(articleId) match {
           case (Failure(_), _) =>
-            readService.getArticleBySlug(articleId, language, fallback)
+            readService.getArticleBySlug(articleId, language.code, fallback)
           case (Success(articleId), inlineRevision) =>
             val revision = inlineRevision.orElse(revisionQuery)
-            readService.withIdV2(articleId, language, fallback, revision, feideToken)
+            readService.withIdV2(articleId, language.code, fallback, revision, feideToken)
         }).map(_.Ok())
       }
 

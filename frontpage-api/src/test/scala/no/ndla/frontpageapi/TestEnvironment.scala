@@ -13,7 +13,7 @@ import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.frontpageapi.controller.{FilmPageController, FrontPageController, SubjectPageController}
 import no.ndla.frontpageapi.model.api.ErrorHandling
-import no.ndla.frontpageapi.model.domain.{DBFilmFrontPageData, DBFrontPageData, DBSubjectFrontPageData}
+import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.network.tapir.TapirApplication
@@ -33,13 +33,13 @@ trait TestEnvironment
     with WriteService
     with ConverterService
     with Props
-    with DBFilmFrontPageData
-    with DBSubjectFrontPageData
-    with DBFrontPageData
+    with DBFilmFrontPage
+    with DBSubjectPage
+    with DBFrontPage
     with ErrorHandling
     with Clock
     with DBMigrator {
-  override val props = new FrontpageApiProperties
+  override lazy val props = new FrontpageApiProperties
 
   override val clock: SystemClock           = mock[SystemClock]
   override val migrator: DBMigrator         = mock[DBMigrator]
@@ -51,6 +51,7 @@ trait TestEnvironment
   override val subjectPageRepository: SubjectPageRepository     = mock[SubjectPageRepository]
   override val frontPageRepository: FrontPageRepository         = mock[FrontPageRepository]
   override val filmFrontPageRepository: FilmFrontPageRepository = mock[FilmFrontPageRepository]
+  override val healthController: TapirHealthController          = mock[TapirHealthController]
   override val readService: ReadService                         = mock[ReadService]
   override val writeService: WriteService                       = mock[WriteService]
 
@@ -58,4 +59,5 @@ trait TestEnvironment
   override val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 }

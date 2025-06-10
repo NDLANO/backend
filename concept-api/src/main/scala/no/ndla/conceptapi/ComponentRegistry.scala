@@ -11,7 +11,6 @@ package no.ndla.conceptapi
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.controller.*
-import no.ndla.conceptapi.integration.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.conceptapi.model.api.ErrorHandling
 import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
@@ -19,11 +18,12 @@ import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.service.*
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.conceptapi.db.migrationwithdependencies.{V23__SubjectNameAsTags, V25__SubjectNameAsTagsPublished}
 import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.tapir.TapirApplication
 
 class ComponentRegistry(properties: ConceptApiProperties)
@@ -44,6 +44,7 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with DraftConceptSearchService
     with PublishedConceptSearchService
     with SearchService
+    with SearchLanguage
     with SearchConverterService
     with Elastic4sClient
     with DraftConceptIndexService
@@ -58,7 +59,6 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with ErrorHandling
     with SearchSettingsHelper
     with DraftSearchSettingsHelper
-    with TaxonomyApiClient
     with SwaggerDocControllerConfig
     with ConceptControllerHelpers {
   override val props: ConceptApiProperties = properties
@@ -67,8 +67,7 @@ class ComponentRegistry(properties: ConceptApiProperties)
     new V25__SubjectNameAsTagsPublished(props)
   )
 
-  override val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  DataSource.connectToDatabase()
+  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
   lazy val draftConceptRepository     = new DraftConceptRepository
   lazy val publishedConceptRepository = new PublishedConceptRepository
@@ -78,8 +77,6 @@ class ComponentRegistry(properties: ConceptApiProperties)
   lazy val draftConceptIndexService      = new DraftConceptIndexService
   lazy val publishedConceptIndexService  = new PublishedConceptIndexService
   lazy val publishedConceptSearchService = new PublishedConceptSearchService
-
-  lazy val taxonomyApiClient: TaxonomyApiClient = new TaxonomyApiClient
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
@@ -98,7 +95,7 @@ class ComponentRegistry(properties: ConceptApiProperties)
   lazy val healthController: TapirHealthController = new TapirHealthController
   lazy val internController                        = new InternController
 
-  private val swagger = new SwaggerController(
+  val swagger = new SwaggerController(
     List[TapirController](
       draftConceptController,
       publishedConceptController,

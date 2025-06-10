@@ -13,7 +13,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, StatusDTO}
 import no.ndla.common.model.domain.Responsible
-import no.ndla.common.model.domain.concept.{Concept, ConceptMetaImage}
+import no.ndla.common.model.domain.concept.Concept
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 case class SearchableConcept(
@@ -21,7 +21,6 @@ case class SearchableConcept(
     conceptType: String,
     title: SearchableLanguageValues,
     content: SearchableLanguageValues,
-    metaImage: Seq[ConceptMetaImage],
     defaultTitle: Option[String],
     tags: SearchableLanguageList,
     lastUpdated: NDLADate,
@@ -36,7 +35,8 @@ case class SearchableConcept(
     gloss: Option[String],
     domainObject: Concept,
     favorited: Long,
-    learningResourceType: LearningResourceType
+    learningResourceType: LearningResourceType,
+    typeName: List[String]
 )
 
 object SearchableConcept {

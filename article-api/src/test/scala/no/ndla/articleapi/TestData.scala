@@ -28,7 +28,7 @@ trait TestData {
       Copyright(
         License.CC_BY_NC_SA.toString,
         Some("Gotham City"),
-        List(Author("Writer", "DC Comics")),
+        List(Author(ContributorType.Writer, "DC Comics")),
         List(),
         List(),
         None,
@@ -39,7 +39,7 @@ trait TestData {
       Copyright(
         License.Copyrighted.toString,
         Some("New York"),
-        List(Author("Writer", "Clark Kent")),
+        List(Author(ContributorType.Writer, "Clark Kent")),
         List(),
         List(),
         None,
@@ -59,7 +59,7 @@ trait TestData {
       copyright = model.api.CopyrightDTO(
         model.api.LicenseDTO("licence", None, None),
         Some("origin"),
-        Seq(model.api.AuthorDTO("developer", "Per")),
+        Seq(model.api.AuthorDTO(ContributorType.Editorial, "Per")),
         List(),
         List(),
         None,
@@ -138,7 +138,7 @@ trait TestData {
       Seq(),
       Seq(
         VisualElement(
-          "<ndlaembed data-resource=\"image\" data-resource_id=\"1\" data-size=\"large\" data-align=\"center\" data-alt=\"alt\" />",
+          s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-size=\"large\" data-align=\"center\" data-alt=\"alt\"></$EmbedTagName>",
           "en"
         )
       ),
@@ -190,7 +190,7 @@ trait TestData {
       None,
       Seq(Title("test", "en")),
       Seq(ArticleContent("<article><div>test</div></article>", "en")),
-      Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None, false),
+      Copyright(License.PublicDomain.toString, None, Seq(), Seq(), Seq(), None, None, false),
       Seq(),
       Seq(),
       Seq(),
@@ -228,7 +228,7 @@ trait TestData {
           "en"
         )
       ),
-      Copyright("publicdomain", None, Seq(), Seq(), Seq(), None, None, false),
+      Copyright(License.PublicDomain.toString, None, Seq(), Seq(), Seq(), None, None, false),
       Seq(),
       Seq(),
       Seq(),
@@ -263,7 +263,16 @@ trait TestData {
         "en"
       ),
       model.api
-        .CopyrightDTO(model.api.LicenseDTO("publicdomain", None, None), None, Seq(), Seq(), Seq(), None, None, false),
+        .CopyrightDTO(
+          model.api.LicenseDTO(License.PublicDomain.toString, None, None),
+          None,
+          Seq(),
+          Seq(),
+          Seq(),
+          None,
+          None,
+          false
+        ),
       article.ArticleTagDTO(Seq.empty, "en"),
       Seq.empty,
       None,
@@ -289,7 +298,7 @@ trait TestData {
     val sampleTitle: Title = Title("title", "en")
 
     val visualElement: VisualElement = VisualElement(
-      s"""<$EmbedTagName  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" />""",
+      s"""<$EmbedTagName  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size=""></$EmbedTagName>""",
       "nb"
     )
 

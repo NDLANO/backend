@@ -8,9 +8,9 @@
 
 package no.ndla.network.tapir.auth
 
-import com.scalatsi.TypescriptType.TSEnum
-import com.scalatsi.{TSNamedType, TSType}
-import enumeratum._
+import enumeratum.*
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.schemaForEnumEntry
 
 import scala.collection.immutable.ListMap
 
@@ -37,14 +37,9 @@ object Permission extends Enum[Permission] with CirceEnum[Permission] {
 
   def fromString(s: String): Option[Permission]     = values.find(_.entryName == s)
   def fromStrings(s: List[String]): Set[Permission] = s.flatMap(fromString).toSet
+  implicit val schema: Schema[Permission]           = schemaForEnumEntry[Permission]
 
   def thatStartsWith(start: String): List[Permission] = values.filter(_.entryName.startsWith(start)).toList
   def toSwaggerMap(scopes: List[Permission]): ListMap[String, String] =
     ListMap.from(scopes.map(s => s.entryName -> s.entryName))
-
-  private val tsEnumValues: Seq[(String, String)] = values.map(e => e.toString -> e.entryName)
-  implicit val enumTsType: TSNamedType[Permission] = TSType.alias[Permission](
-    "Permission",
-    TSEnum.string("PermissionEnum", tsEnumValues: _*)
-  )
 }

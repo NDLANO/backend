@@ -8,10 +8,10 @@
 
 package no.ndla.draftapi.service.search
 
-import no.ndla.draftapi._
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.draftapi.*
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
-class GrepCodesIndexServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+class GrepCodesIndexServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 

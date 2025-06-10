@@ -145,7 +145,9 @@ trait Routes {
               latency = latency,
               responseCode = code
             )
-            logger.info(s)
+
+            if (code >= 500) logger.error(s)
+            else logger.info(s)
           }
 
           RequestInfo.clear()
@@ -163,8 +165,8 @@ trait Routes {
       ),
       forResponse = List(
         "status" -> {
-          case Right(r) => r.code.code.toString
-          case Left(_)  => "5xx"
+          case Right(r) => Some(r.code.code.toString)
+          case Left(_)  => Some("5xx")
         }
       )
     )

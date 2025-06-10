@@ -10,19 +10,18 @@ package no.ndla.conceptapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.domain.draft.DraftCopyright
-import no.ndla.common.model.domain.{Author, Responsible, Tag, Title, concept}
+import no.ndla.common.model.domain.{Author, ContributorType, Responsible, Tag, Title, concept}
 import no.ndla.conceptapi.*
 import no.ndla.conceptapi.model.domain.*
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.language.Language
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
 import scala.util.Success
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.concept.{
   Concept,
   ConceptContent,
-  ConceptMetaImage,
   ConceptStatus,
   ConceptType,
   GlossData,
@@ -30,12 +29,11 @@ import no.ndla.common.model.domain.concept.{
   VisualElement,
   WordClass
 }
-import no.ndla.conceptapi.integration.model.TaxonomyData
-import org.mockito.Mockito.when
+import no.ndla.mapping.License
 
 import java.util.UUID
 
-class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
+class DraftConceptSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   import props.{DefaultLanguage, DefaultPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
@@ -51,9 +49,9 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   override val searchConverterService = new SearchConverterService
 
   val byNcSa: DraftCopyright = DraftCopyright(
-    Some("by-nc-sa"),
+    Some(License.CC_BY_NC_SA.toString),
     Some("Gotham City"),
-    List(Author("Forfatter", "DC Comics")),
+    List(Author(ContributorType.Writer, "DC Comics")),
     List(),
     List(),
     None,
@@ -62,9 +60,9 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   )
 
   val publicDomain: DraftCopyright = DraftCopyright(
-    Some("publicdomain"),
+    Some(License.PublicDomain.toString),
     Some("Metropolis"),
-    List(Author("Forfatter", "Bruce Wayne")),
+    List(Author(ContributorType.Writer, "Bruce Wayne")),
     List(),
     List(),
     None,
@@ -73,9 +71,9 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   )
 
   val copyrighted: DraftCopyright = DraftCopyright(
-    Some("copyrighted"),
+    Some(License.Copyrighted.toString),
     Some("New York"),
-    List(Author("Forfatter", "Clark Kent")),
+    List(Author(ContributorType.Writer, "Clark Kent")),
     List(),
     List(),
     None,
@@ -161,10 +159,15 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     title = List(Title("Baldur har mareritt om Ragnarok", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     copyright = Some(byNcSa),
-    metaImage = Seq(ConceptMetaImage("test.image", "imagealt", "nb"), ConceptMetaImage("test.url2", "imagealt", "en")),
     tags = Seq(Tag(Seq("stor", "klovn"), "nb")),
     status = concept.Status(current = ConceptStatus.PUBLISHED, other = Set.empty),
-    responsible = Some(Responsible("test1", today))
+    responsible = Some(Responsible("test1", today)),
+    visualElement = Seq(
+      VisualElement(
+        s"""<$EmbedTagName data-resource="image" data-resource_id="test.image" data-url="test.url"></$EmbedTagName>""",
+        "nb"
+      )
+    )
   )
 
   val concept10: Concept = TestData.sampleConcept.copy(
@@ -178,7 +181,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     status = concept.Status(current = ConceptStatus.FOR_APPROVAL, other = Set(ConceptStatus.PUBLISHED)),
     visualElement = List(
       VisualElement(
-        s"""<$EmbedTagName data-resource="image" data-url="test.url" /><$EmbedTagName data-resource="brightcove" data-url="test.url2" data-videoid="test.id2" />""",
+        s"""<$EmbedTagName data-resource="image" data-url="test.url"></$EmbedTagName><$EmbedTagName data-resource="brightcove" data-url="test.url2" data-videoid="test.id2"></$EmbedTagName>""",
         "nb"
       )
     )
@@ -236,7 +239,6 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    when(taxonomyApiClient.getSubjects).thenReturn(Success(TaxonomyData.empty))
     if (elasticSearchContainer.isSuccess) {
       draftConceptIndexService.createIndexAndAlias().get
 
@@ -658,8 +660,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
         searchSettings.copy(searchLanguage = Language.AllLanguages, embedId = Some("test.url"))
       )
 
-    search.totalCount should be(1)
-    search.results.head.id should be(10)
+    search.totalCount should be(2)
+    search.results.map(_.id) should be(List(9, 10))
   }
 
   test("that search on embedResource matches visual element") {
@@ -672,7 +674,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     search.results.head.id should be(10)
   }
 
-  test("that search on embedId matches meta image") {
+  test("that search on embedId matches visual element image") {
     val Success(search) =
       draftConceptSearchService.all(
         searchSettings.copy(searchLanguage = Language.AllLanguages, embedId = Some("test.image"))
@@ -682,7 +684,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     search.results.head.id should be(9)
   }
 
-  test("that search on query parameter as embedId matches meta image") {
+  test("that search on query parameter as embedId matches visual element image") {
     val Success(search) =
       draftConceptSearchService.matchingQuery(
         "test.image",
@@ -711,8 +713,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
         searchSettings.copy()
       )
 
-    search.totalCount should be(1)
-    search.results.head.id should be(10)
+    search.totalCount should be(2)
+    search.results.map(_.id) should be(List(9, 10))
   }
 
   test("that search on query parameter matches on concept id") {
@@ -730,7 +732,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     val Success(search) =
       draftConceptSearchService.all(
         searchSettings
-          .copy(searchLanguage = Language.AllLanguages, embedResource = List("image"), embedId = Some("test.url2"))
+          .copy(searchLanguage = Language.AllLanguages, embedResource = List("image"), embedId = Some("test.image"))
       )
 
     search.totalCount should be(1)

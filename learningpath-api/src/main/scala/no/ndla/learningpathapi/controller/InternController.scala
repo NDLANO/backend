@@ -10,6 +10,7 @@ package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.model.api.CommaSeparatedList.*
+import no.ndla.common.model.api.learningpath as commonApi
 import no.ndla.common.model.domain.learningpath as commonDomain
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.{ErrorHandling, LearningPathDomainDumpDTO, LearningPathSummaryV2DTO}
@@ -44,7 +45,8 @@ trait InternController {
       dumpLearningpaths,
       dumpSingleLearningPath,
       postLearningPathDump,
-      containsArticle
+      containsArticle,
+      learningPathStats
     )
 
     private def getByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
@@ -68,7 +70,7 @@ trait InternController {
         searchIndexService.indexDocuments(numShards) match {
           case Success(reindexResult) =>
             val result =
-              s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
+              s"Completed indexing of ${reindexResult.totalIndexed} learningpaths in ${reindexResult.millisUsed} ms."
             logger.info(result)
             result.asRight
           case Failure(f) =>
@@ -145,6 +147,17 @@ trait InternController {
           case Success(result) => result.results.asRight
           case Failure(ex)     => returnLeftError(ex)
         }
+      }
+
+    private def learningPathStats: ServerEndpoint[Any, Eff] = endpoint.get
+      .in("stats")
+      .out(jsonBody[commonApi.LearningPathStatsDTO])
+      .serverLogicPure { _ =>
+        commonApi
+          .LearningPathStatsDTO(
+            learningPathRepository.myNdlaOwnerLearningPathCount
+          )
+          .asRight
       }
   }
 }

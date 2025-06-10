@@ -149,7 +149,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       user = None
     )
     val apiResource = api.ResourceDTO(
-      id = resourceUUID.toString,
+      id = resourceUUID,
       resourceType = ResourceType.Concept,
       tags = List("a", "b", "c"),
       created = created,
@@ -158,17 +158,17 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       rank = None
     )
     val apiData1 = FolderDTO(
-      id = subFolder1UUID.toString,
+      id = subFolder1UUID,
       name = "folderData1",
       status = "private",
       resources = List(apiResource),
       subfolders = List(),
       breadcrumbs = List(
-        api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder"),
-        api.BreadcrumbDTO(id = subFolder3UUID.toString, name = "folderData3"),
-        api.BreadcrumbDTO(id = subFolder1UUID.toString, name = "folderData1")
+        api.BreadcrumbDTO(id = mainFolderUUID, name = "mainFolder"),
+        api.BreadcrumbDTO(id = subFolder3UUID, name = "folderData3"),
+        api.BreadcrumbDTO(id = subFolder1UUID, name = "folderData1")
       ),
-      parentId = Some(subFolder3UUID.toString),
+      parentId = Some(subFolder3UUID),
       rank = 1,
       created = created,
       updated = created,
@@ -177,16 +177,16 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       owner = None
     )
     val apiData2 = api.FolderDTO(
-      id = subFolder2UUID.toString,
+      id = subFolder2UUID,
       name = "folderData2",
       status = "shared",
       resources = List.empty,
       subfolders = List.empty,
       breadcrumbs = List(
-        api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder"),
-        api.BreadcrumbDTO(id = subFolder2UUID.toString, name = "folderData2")
+        api.BreadcrumbDTO(id = mainFolderUUID, name = "mainFolder"),
+        api.BreadcrumbDTO(id = subFolder2UUID, name = "folderData2")
       ),
-      parentId = Some(mainFolderUUID.toString),
+      parentId = Some(mainFolderUUID),
       rank = 1,
       created = created,
       updated = created,
@@ -195,16 +195,16 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       owner = None
     )
     val apiData3 = api.FolderDTO(
-      id = subFolder3UUID.toString,
+      id = subFolder3UUID,
       name = "folderData3",
       status = "private",
       subfolders = List(apiData1),
       resources = List(),
       breadcrumbs = List(
-        api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder"),
-        api.BreadcrumbDTO(id = subFolder3UUID.toString, name = "folderData3")
+        api.BreadcrumbDTO(id = mainFolderUUID, name = "mainFolder"),
+        api.BreadcrumbDTO(id = subFolder3UUID, name = "folderData3")
       ),
-      parentId = Some(mainFolderUUID.toString),
+      parentId = Some(mainFolderUUID),
       rank = 1,
       created = created,
       updated = created,
@@ -213,13 +213,13 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       owner = None
     )
     val expected = api.FolderDTO(
-      id = mainFolderUUID.toString,
+      id = mainFolderUUID,
       name = "mainFolder",
       status = "shared",
       subfolders = List(apiData2, apiData3),
       resources = List(apiResource),
       breadcrumbs = List(
-        api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder")
+        api.BreadcrumbDTO(id = mainFolderUUID, name = "mainFolder")
       ),
       parentId = None,
       rank = 1,
@@ -233,7 +233,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     val Success(result) =
       service.toApiFolder(
         mainFolder,
-        List(api.BreadcrumbDTO(id = mainFolderUUID.toString, name = "mainFolder")),
+        List(api.BreadcrumbDTO(id = mainFolderUUID, name = "mainFolder")),
         None,
         true
       )
@@ -347,7 +347,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       )
     val expected =
       api.ResourceDTO(
-        id = folderUUID.toString,
+        id = folderUUID,
         resourceType = ResourceType.Article,
         path = "/subject/1/topic/1/resource/4",
         created = created,
@@ -400,9 +400,9 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     result should be(
       Success(
         List(
-          TestData.emptyApiFolder.copy(id = folder1UUID.toString, status = "private"),
-          TestData.emptyApiFolder.copy(id = folder2UUID.toString, status = "private"),
-          TestData.emptyApiFolder.copy(id = folder3UUID.toString, status = "private")
+          TestData.emptyApiFolder.copy(id = folder1UUID, status = "private"),
+          TestData.emptyApiFolder.copy(id = folder2UUID, status = "private"),
+          TestData.emptyApiFolder.copy(id = folder3UUID, status = "private")
         )
       )
     )
@@ -430,7 +430,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         email = "example@email.com",
         arenaEnabled = false,
         arenaAccepted = true,
-        arenaGroups = List.empty,
         shareNameAccepted = false
       )
     val expectedUserData =
@@ -441,12 +440,11 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         email = "example@email.com",
         displayName = "Feide",
         favoriteSubjects = Seq("a", "b"),
-        role = "student",
+        role = UserRole.STUDENT,
         organization = "oslo",
         groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
         arenaEnabled = false,
         arenaAccepted = true,
-        arenaGroups = List.empty,
         shareNameAccepted = false
       )
 
@@ -474,14 +472,12 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       arenaAccepted = true,
-      arenaGroups = List.empty,
       shareNameAccepted = false
     )
     val updatedUserData1 =
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = None,
         arenaEnabled = None,
-        arenaGroups = None,
         arenaAccepted = None,
         shareNameAccepted = None
       )
@@ -489,7 +485,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq.empty),
         arenaEnabled = None,
-        arenaGroups = None,
         arenaAccepted = None,
         shareNameAccepted = None
       )
@@ -497,7 +492,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("x", "y", "z")),
         arenaEnabled = None,
-        arenaGroups = None,
         arenaAccepted = None,
         shareNameAccepted = None
       )
@@ -522,7 +516,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       arenaAccepted = true,
-      arenaGroups = List.empty,
       shareNameAccepted = false
     )
     val expectedUserData2 = MyNDLAUser(
@@ -545,7 +538,6 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       arenaAccepted = true,
-      arenaGroups = List.empty,
       shareNameAccepted = false
     )
     val expectedUserData3 = MyNDLAUser(
@@ -568,17 +560,16 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       email = "example@email.com",
       arenaEnabled = false,
       arenaAccepted = true,
-      arenaGroups = List.empty,
       shareNameAccepted = false
     )
 
-    service.mergeUserData(domainUserData, updatedUserData1, None, None, None).get should be(
+    service.mergeUserData(domainUserData, updatedUserData1, None, None).get should be(
       expectedUserData1
     )
-    service.mergeUserData(domainUserData, updatedUserData2, None, None, None).get should be(
+    service.mergeUserData(domainUserData, updatedUserData2, None, None).get should be(
       expectedUserData2
     )
-    service.mergeUserData(domainUserData, updatedUserData3, None, None, None).get should be(
+    service.mergeUserData(domainUserData, updatedUserData3, None, None).get should be(
       expectedUserData3
     )
   }

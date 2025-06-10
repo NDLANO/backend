@@ -10,6 +10,7 @@ package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ObjectField
+import com.sksamuel.elastic4s.requests.common.VersionType.EXTERNAL_GTE
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
@@ -39,7 +40,11 @@ trait DraftIndexService {
     ): Try[IndexRequest] = {
       searchConverterService.asSearchableDraft(domainModel, indexingBundle).map { searchableDraft =>
         val source = CirceUtil.toJsonString(searchableDraft)
-        indexInto(indexName).doc(source).id(domainModel.id.get.toString)
+        indexInto(indexName)
+          .doc(source)
+          .id(domainModel.id.get.toString)
+          .versionType(EXTERNAL_GTE)
+          .version(domainModel.revision.map(_.toLong).get)
       }
     }
 
@@ -49,10 +54,12 @@ trait DraftIndexService {
         intField("id"),
         keywordField("draftStatus.current"),
         keywordField("draftStatus.other"),
+        keywordField("status"),
         dateField("lastUpdated"),
         dateField("published"),
         keywordField("license"),
         keywordField("defaultTitle"),
+        textField("typeName"),
         textField("authors"),
         keywordField("articleType"),
         keywordField("supportedLanguages"),
@@ -60,6 +67,7 @@ trait DraftIndexService {
         textField("previousVersionsNotes"),
         keywordField("users"),
         keywordField("grepContexts.code"),
+        keywordField("grepContexts.status"),
         textField("grepContexts.title"),
         keywordField("traits"),
         longField("favorited"),
@@ -99,29 +107,21 @@ trait DraftIndexService {
         keywordField("defaultRoot"),
         keywordField("defaultResourceTypeName")
       )
-      val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("metaDescription") ++
-        generateLanguageSupportedDynamicTemplates("content") ++
-        generateLanguageSupportedDynamicTemplates("visualElement") ++
-        generateLanguageSupportedDynamicTemplates("introduction") ++
-        generateLanguageSupportedDynamicTemplates("tags") ++
-        generateLanguageSupportedDynamicTemplates("embedAttributes") ++
-        generateLanguageSupportedDynamicTemplates("relevance") ++
-        generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
-        generateLanguageSupportedDynamicTemplates("name", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("contexts.root", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("parentTopicName", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("resourceTypeName", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("primaryRoot", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("context.root") ++
-        generateLanguageSupportedDynamicTemplates("context.relevance") ++
-        generateLanguageSupportedDynamicTemplates("context.resourceTypes.name") ++
-        generateLanguageSupportedDynamicTemplates("contexts.root") ++
-        generateLanguageSupportedDynamicTemplates("contexts.relevance") ++
-        generateLanguageSupportedDynamicTemplates("contexts.resourceTypes.name")
+      val dynamics =
+        languageValuesMapping("title", keepRaw = true) ++
+          languageValuesMapping("metaDescription") ++
+          languageValuesMapping("content") ++
+          languageValuesMapping("introduction") ++
+          languageValuesMapping("tags") ++
+          languageValuesMapping("embedAttributes") ++
+          languageValuesMapping("relevance") ++
+          languageValuesMapping("breadcrumbs") ++
+          languageValuesMapping("name", keepRaw = true) ++
+          languageValuesMapping("parentTopicName", keepRaw = true) ++
+          languageValuesMapping("resourceTypeName", keepRaw = true) ++
+          languageValuesMapping("primaryRoot", keepRaw = true)
 
-      properties(fields).dynamicTemplates(dynamics)
-
+      properties(fields ++ dynamics)
     }
   }
 

@@ -44,7 +44,6 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     email = "some@example.com",
     arenaEnabled = true,
     arenaAccepted = true,
-    arenaGroups = List.empty,
     shareNameAccepted = false
   )
 
@@ -65,7 +64,7 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     when(folderReadService.getSingleFolder(eqTo(someId), any, any, any)).thenReturn(
       Success(
         FolderDTO(
-          id = someId.toString,
+          id = someId,
           name = "folderName",
           status = "private",
           parentId = None,

@@ -9,11 +9,12 @@
 package no.ndla.network.tapir
 
 import cats.implicits.*
+import io.circe.Json
 import no.ndla.common.configuration.HasBaseProps
 import sttp.apispec.openapi.{Components, Contact, Info, License}
 import sttp.apispec.{OAuthFlow, OAuthFlows, SecurityScheme}
 import sttp.tapir.*
-import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
+import sttp.tapir.docs.openapi.{OpenAPIDocsInterpreter, OpenAPIDocsOptions}
 import sttp.tapir.server.ServerEndpoint
 
 import scala.collection.immutable.ListMap
@@ -60,12 +61,25 @@ trait SwaggerControllerConfig {
       openIdConnectUrl = None
     )
 
-    private val docs = {
-      val docs                = OpenAPIDocsInterpreter().serverEndpointsToOpenAPI(swaggerEndpoints, info)
+    private val docs: Json = {
+      val options             = OpenAPIDocsOptions.default
+      val docs                = OpenAPIDocsInterpreter(options).serverEndpointsToOpenAPI(swaggerEndpoints, info)
       val generatedComponents = docs.components.getOrElse(Components.Empty)
       val newComponents       = generatedComponents.copy(securitySchemes = ListMap("oauth2" -> Right(securityScheme)))
       val docsWithComponents  = docs.components(newComponents).asJson
       docsWithComponents.asJson
+    }
+
+    def saveSwagger(): Unit = {
+      import java.io.*
+      val swaggerLocation = new File(s"./typescript/types-backend/openapi")
+      val jsonFile        = new File(swaggerLocation, s"${props.ApplicationName}.json")
+
+      swaggerLocation.mkdir()
+
+      val pw = new PrintWriter(jsonFile)
+      pw.write(docs.noSpaces)
+      pw.close()
     }
 
     private def addCorsHeaders[A, I, X, O, R](end: Endpoint[A, I, X, O, R]) =

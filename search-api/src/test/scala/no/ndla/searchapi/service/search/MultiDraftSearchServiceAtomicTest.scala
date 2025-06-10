@@ -19,19 +19,18 @@ import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible}
 import no.ndla.network.tapir.NonEmptyString
-import no.ndla.scalatestsuite.IntegrationSuite
+import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment}
+import no.ndla.searchapi.SearchTestUtility.*
 
 import java.util.UUID
 import scala.util.{Success, Try}
 
-class MultiDraftSearchServiceAtomicTest
-    extends IntegrationSuite(EnableElasticsearchContainer = true)
-    with TestEnvironment {
+class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
   override val articleIndexService: ArticleIndexService = new ArticleIndexService {
@@ -46,9 +45,11 @@ class MultiDraftSearchServiceAtomicTest
   override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards = 1
   }
-  override val multiDraftSearchService = new MultiDraftSearchService
-  override val converterService        = new ConverterService
-  override val searchConverterService  = new SearchConverterService
+  override val multiDraftSearchService: MultiDraftSearchService = new MultiDraftSearchService {
+    override val enableExplanations = true
+  }
+  override val converterService       = new ConverterService
+  override val searchConverterService = new SearchConverterService
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
@@ -79,7 +80,7 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(1),
       content = Seq(
         ArticleContent(
-          s"""<section><div data-type="related-content"><$EmbedTagName data-article-id="3" data-resource="related-content"></div></section>""",
+          s"""<section><div data-type="related-content"><$EmbedTagName data-article-id="3" data-resource="related-content"></$EmbedTagName></div></section>""",
           "nb"
         )
       )
@@ -106,7 +107,7 @@ class MultiDraftSearchServiceAtomicTest
       )
 
     search1.totalCount should be(1)
-    search1.results.map(_.id) should be(List(2))
+    search1.summaryResults.map(_.id) should be(List(2))
 
     val Success(search2) =
       multiDraftSearchService.matchingQuery(
@@ -114,7 +115,7 @@ class MultiDraftSearchServiceAtomicTest
       )
 
     search2.totalCount should be(2)
-    search2.results.map(_.id) should be(List(1, 2))
+    search2.summaryResults.map(_.id) should be(List(1, 2))
   }
 
   test("That sorting by revision date sorts by the earliest 'needs-revision'") {
@@ -184,7 +185,7 @@ class MultiDraftSearchServiceAtomicTest
       )
 
     search1.totalCount should be(4)
-    search1.results.map(_.id) should be(List(3, 1, 2, 4))
+    search1.summaryResults.map(_.id) should be(List(3, 1, 2, 4))
 
     val Success(search2) =
       multiDraftSearchService.matchingQuery(
@@ -192,7 +193,7 @@ class MultiDraftSearchServiceAtomicTest
       )
 
     search2.totalCount should be(4)
-    search2.results.map(_.id) should be(List(1, 3, 2, 4))
+    search2.summaryResults.map(_.id) should be(List(1, 3, 2, 4))
   }
 
   test("Test that searching for note in revision meta works as expected") {
@@ -262,7 +263,7 @@ class MultiDraftSearchServiceAtomicTest
       )
 
     search1.totalCount should be(1)
-    search1.results.map(_.id) should be(List(3))
+    search1.summaryResults.map(_.id) should be(List(3))
   }
 
   test("Test that filtering revision dates works as expected") {
@@ -326,7 +327,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(1))
 
     multiDraftSearchService
@@ -337,7 +338,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(3))
 
     multiDraftSearchService
@@ -348,7 +349,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(1, 3))
   }
 
@@ -401,7 +402,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(2, 3))
 
     multiDraftSearchService
@@ -412,7 +413,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(1, 2, 3))
   }
 
@@ -442,7 +443,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(1, 2, 3))
 
     multiDraftSearchService
@@ -452,7 +453,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(1, 3))
 
     multiDraftSearchService
@@ -462,7 +463,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(2))
 
     multiDraftSearchService
@@ -472,7 +473,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(1, 2, 3))
   }
 
@@ -508,7 +509,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(1, 3, 2, 4))
 
     multiDraftSearchService
@@ -519,7 +520,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(2, 3, 1, 4))
   }
 
@@ -530,6 +531,23 @@ class MultiDraftSearchServiceAtomicTest
     val draft4 = TestData.draft1.copy(id = Some(4)) // T4
     val draft5 = TestData.draft1.copy(id = Some(5)) // R5 + R6
 
+    val context_1: TaxonomyContext = TaxonomyContext(
+      publicId = "urn:subject:1",
+      rootId = "urn:subject:1",
+      root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
+      path = "/subject:1",
+      breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
+      contextType = None,
+      relevanceId = core.id,
+      relevance = SearchableLanguageValues(Seq.empty),
+      resourceTypes = List.empty,
+      parentIds = List.empty,
+      isPrimary = true,
+      contextId = "",
+      isVisible = true,
+      isActive = true,
+      url = "/f/matte/asdf1256"
+    )
     val subject_1 = Node(
       "urn:subject:1",
       "Matte",
@@ -540,25 +558,8 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.SUBJECT,
       List("asdf1256"),
-      List(
-        TaxonomyContext(
-          publicId = "urn:subject:1",
-          rootId = "urn:subject:1",
-          root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
-          path = "/subject:1",
-          breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
-          contextType = None,
-          relevanceId = core.id,
-          relevance = SearchableLanguageValues(Seq.empty),
-          resourceTypes = List.empty,
-          parentIds = List.empty,
-          isPrimary = true,
-          contextId = "",
-          isVisible = true,
-          isActive = true,
-          url = "/f/matte/asdf1256"
-        )
-      )
+      Some(context_1),
+      List(context_1)
     )
     val topic_1 = Node(
       "urn:topic:1",
@@ -570,6 +571,7 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.TOPIC,
       List("asdf1257"),
+      None,
       List.empty
     )
     topic_1.contexts = generateContexts(
@@ -593,6 +595,7 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.TOPIC,
       List("asdf1258"),
+      None,
       List.empty
     )
     topic_2.contexts = generateContexts(
@@ -616,6 +619,7 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.TOPIC,
       List("asdf1259"),
+      None,
       List.empty
     )
     topic_3.contexts = generateContexts(
@@ -639,6 +643,7 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.TOPIC,
       List("asdf1260"),
+      None,
       List.empty
     )
     topic_4.contexts = generateContexts(
@@ -662,6 +667,7 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.RESOURCE,
       List("asdf1261"),
+      None,
       List.empty
     )
     resource_5.contexts = generateContexts(
@@ -696,6 +702,7 @@ class MultiDraftSearchServiceAtomicTest
       List.empty,
       NodeType.RESOURCE,
       List("asdf1262"),
+      None,
       List.empty
     )
     resource_6.contexts = generateContexts(
@@ -735,7 +742,7 @@ class MultiDraftSearchServiceAtomicTest
 
     val result = multiDraftSearchService.matchingQuery(multiDraftSearchSettings).get
 
-    def ctxsFor(id: Long): List[ApiTaxonomyContextDTO] = result.results.find(_.id == id).get.contexts
+    def ctxsFor(id: Long): List[ApiTaxonomyContextDTO] = result.summaryResults.find(_.id == id).get.contexts
     def ctxFor(id: Long): ApiTaxonomyContextDTO = {
       val ctxs = ctxsFor(id)
       ctxs.length should be(1)
@@ -783,7 +790,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(4, 3, 1, 2))
 
     multiDraftSearchService
@@ -794,7 +801,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(2, 1, 3, 4))
   }
 
@@ -834,7 +841,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(2, 3))
 
     multiDraftSearchService
@@ -844,7 +851,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(1, 4))
     multiDraftSearchService
       .matchingQuery(
@@ -853,7 +860,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(5))
 
     multiDraftSearchService
@@ -863,7 +870,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(1, 2, 3, 4, 5))
   }
 
@@ -873,7 +880,7 @@ class MultiDraftSearchServiceAtomicTest
       id = Some(1),
       content = Seq(
         ArticleContent(
-          s"""<section><div data-type="related-content"><$EmbedTagName data-resource="video" data-videoid="$videoId&amp;t=1"></div></section>""",
+          s"""<section><div data-type="related-content"><$EmbedTagName data-resource="video" data-videoid="$videoId&amp;t=1"></$EmbedTagName></div></section>""",
           "nb"
         )
       )
@@ -888,7 +895,7 @@ class MultiDraftSearchServiceAtomicTest
       )
 
     search1.totalCount should be(1)
-    search1.results.map(_.id) should be(List(1))
+    search1.summaryResults.map(_.id) should be(List(1))
   }
 
   test("That sorting on resource types works as expected") {
@@ -944,22 +951,24 @@ class MultiDraftSearchServiceAtomicTest
     indexService.indexDocument(TestData.draft1.copy(id = Some(3)), indexingBundle).get
 
     blockUntil(() => indexService.countDocuments == 3)
-    val searchService = new MultiDraftSearchService
+    val searchService: MultiDraftSearchService = new MultiDraftSearchService {
+      override val enableExplanations: Boolean = true
+    }
 
     val Success(search1) = searchService.matchingQuery(
       multiDraftSearchSettings.copy(sort = Sort.ByParentTopicNameAsc)
     )
-    search1.results.map(_.id) should be(List(1, 2, 3))
+    search1.summaryResults.map(_.id) should be(List(1, 2, 3))
 
     val Success(search2) = searchService.matchingQuery(
       multiDraftSearchSettings.copy(sort = Sort.ByPrimaryRootAsc)
     )
-    search2.results.map(_.id) should be(List(2, 3, 1))
+    search2.summaryResults.map(_.id) should be(List(2, 3, 1))
 
     val Success(search3) = searchService.matchingQuery(
       multiDraftSearchSettings.copy(sort = Sort.ByResourceTypeAsc)
     )
-    search3.results.map(_.id) should be(List(3, 1, 2))
+    search3.summaryResults.map(_.id) should be(List(3, 1, 2))
 
   }
 
@@ -997,7 +1006,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(1))
 
     multiDraftSearchService
@@ -1008,7 +1017,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(2, 3, 4))
 
     multiDraftSearchService
@@ -1019,7 +1028,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(1, 2, 3))
   }
 
@@ -1056,7 +1065,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(4, 2, 3, 1))
 
     multiDraftSearchService
@@ -1066,7 +1075,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(_.id) should be(Seq(1, 3, 2, 4))
   }
 
@@ -1102,7 +1111,7 @@ class MultiDraftSearchServiceAtomicTest
     multiDraftSearchService
       .matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByIdAsc))
       .get
-      .results
+      .summaryResults
       .map(r => r.id -> r.resultType) should be(
       Seq(
         1 -> SearchType.Drafts,
@@ -1120,7 +1129,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(r => r.id -> r.resultType) should be(
       Seq(
         1 -> SearchType.Concepts,
@@ -1168,7 +1177,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(r => r.id -> r.resultType) should be(
       Seq(2 -> SearchType.Concepts)
     )
@@ -1182,7 +1191,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-      .results
+      .summaryResults
       .map(r => r.id -> r.resultType) should be(
       Seq(1 -> SearchType.Concepts)
     )
@@ -1224,7 +1233,7 @@ class MultiDraftSearchServiceAtomicTest
           )
         )
         .get
-      search.results.map(_.id) should be(Seq(1))
+      search.summaryResults.map(_.id) should be(Seq(1))
     }
     {
       val search = multiDraftSearchService
@@ -1235,7 +1244,7 @@ class MultiDraftSearchServiceAtomicTest
           )
         )
         .get
-      search.results.map(_.id) should be(Seq(2))
+      search.summaryResults.map(_.id) should be(Seq(2))
     }
     {
       val search = multiDraftSearchService
@@ -1246,7 +1255,7 @@ class MultiDraftSearchServiceAtomicTest
           )
         )
         .get
-      search.results.map(_.id) should be(Seq(3))
+      search.summaryResults.map(_.id) should be(Seq(3))
     }
     {
       val search = multiDraftSearchService
@@ -1257,7 +1266,7 @@ class MultiDraftSearchServiceAtomicTest
           )
         )
         .get
-      search.results.map(_.id) should be(Seq(4))
+      search.summaryResults.map(_.id) should be(Seq(4))
     }
     {
       val search = multiDraftSearchService
@@ -1268,7 +1277,7 @@ class MultiDraftSearchServiceAtomicTest
           )
         )
         .get
-      search.results.map(_.id) should be(Seq(5))
+      search.summaryResults.map(_.id) should be(Seq(5))
     }
   }
 
@@ -1304,7 +1313,7 @@ class MultiDraftSearchServiceAtomicTest
         )
       )
       .get
-    search.results.map(_.id) should be(Seq(1, 3))
+    search.summaryResults.map(_.id) should be(Seq(1, 3))
   }
 
 }

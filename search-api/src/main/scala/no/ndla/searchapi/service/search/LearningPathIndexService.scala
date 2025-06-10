@@ -10,6 +10,7 @@ package no.ndla.searchapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ObjectField
+import com.sksamuel.elastic4s.requests.common.VersionType.EXTERNAL_GTE
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
@@ -39,7 +40,11 @@ trait LearningPathIndexService {
     ): Try[IndexRequest] = {
       searchConverterService.asSearchableLearningPath(domainModel, indexingBundle).map { searchableLearningPath =>
         val source = CirceUtil.toJsonString(searchableLearningPath)
-        indexInto(indexName).doc(source).id(domainModel.id.get.toString)
+        indexInto(indexName)
+          .doc(source)
+          .id(domainModel.id.get.toString)
+          .versionType(EXTERNAL_GTE)
+          .version(domainModel.revision.map(_.toLong).get)
       }
     }
 
@@ -49,7 +54,7 @@ trait LearningPathIndexService {
         textField("coverPhotoId"),
         intField("duration"),
         keywordField("learningResourceType"),
-        textField("status"),
+        keywordField("status"),
         textField("verificationStatus"),
         dateField("lastUpdated"),
         keywordField("defaultTitle"),
@@ -88,21 +93,16 @@ trait LearningPathIndexService {
         ),
         dateField("nextRevision.revisionDate") // This is needed for sorting, even if it is never used for learningpaths
       )
-      val dynamics = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("content") ++
-        generateLanguageSupportedDynamicTemplates("description") ++
-        generateLanguageSupportedDynamicTemplates("tags", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("relevance") ++
-        generateLanguageSupportedDynamicTemplates("breadcrumbs") ++
-        generateLanguageSupportedDynamicTemplates("name", keepRaw = true) ++
-        generateLanguageSupportedDynamicTemplates("context.root") ++
-        generateLanguageSupportedDynamicTemplates("context.relevance") ++
-        generateLanguageSupportedDynamicTemplates("context.resourceTypes.name") ++
-        generateLanguageSupportedDynamicTemplates("contexts.root") ++
-        generateLanguageSupportedDynamicTemplates("contexts.relevance") ++
-        generateLanguageSupportedDynamicTemplates("contexts.resourceTypes.name")
+      val dynamics =
+        languageValuesMapping("title", keepRaw = true) ++
+          languageValuesMapping("content") ++
+          languageValuesMapping("description") ++
+          languageValuesMapping("tags", keepRaw = true) ++
+          languageValuesMapping("relevance") ++
+          languageValuesMapping("breadcrumbs") ++
+          languageValuesMapping("name", keepRaw = true)
 
-      properties(fields).dynamicTemplates(dynamics)
+      properties(fields ++ dynamics)
     }
   }
 

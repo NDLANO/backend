@@ -9,13 +9,13 @@
 package no.ndla.frontpageapi.model.domain
 
 import io.circe.Encoder
-import io.circe.generic.semiauto._
-import io.circe.generic.auto._
-import io.circe.parser._
+import io.circe.generic.semiauto.*
+import io.circe.generic.auto.*
+import io.circe.parser.*
 import no.ndla.frontpageapi.Props
 import scalikejdbc.WrappedResultSet
-import scalikejdbc._
-import cats.implicits._
+import scalikejdbc.*
+import cats.implicits.*
 
 import scala.util.Try
 
@@ -34,12 +34,12 @@ object FrontPage {
   }
 }
 
-trait DBFrontPageData {
+trait DBFrontPage {
   this: Props =>
 
   object DBFrontPageData extends SQLSyntaxSupport[FrontPage] {
     override val tableName                  = "mainfrontpage"
-    override val schemaName: Option[String] = props.MetaSchema.some
+    override val schemaName: Option[String] = props.MetaSchema.toString.some
 
     def fromResultSet(lp: SyntaxProvider[FrontPage])(rs: WrappedResultSet): Try[FrontPage] =
       fromResultSet(lp.resultName)(rs)

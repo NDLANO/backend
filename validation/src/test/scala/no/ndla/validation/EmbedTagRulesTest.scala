@@ -75,7 +75,7 @@ class EmbedTagRulesTest extends UnitSuite {
         Seq(
           ValidationMessage(
             "test",
-            s"An $EmbedTagName HTML tag with data-resource=image and attribute data-resource_id= must have a valid numeric value."
+            s"Tag '$EmbedTagName' with data-resource=image and attribute data-resource_id= must have a valid numeric value."
           )
         )
       )
@@ -115,7 +115,7 @@ class EmbedTagRulesTest extends UnitSuite {
         Seq(
           ValidationMessage(
             "test",
-            s"An $EmbedTagName HTML tag with data-resource=key-figure and attribute data-is-decorative=wat must have a valid boolean value."
+            s"Tag '$EmbedTagName' with data-resource=key-figure and attribute data-is-decorative=wat must have a valid boolean value."
           )
         )
       )
@@ -236,7 +236,7 @@ class EmbedTagRulesTest extends UnitSuite {
         Seq(
           ValidationMessage(
             "test",
-            s"An $EmbedTagName HTML tag with data-resource=contact-block and data-email= must be a valid email address."
+            s"Tag '$EmbedTagName' with data-resource=contact-block and data-email= must be a valid email address."
           )
         )
       )
@@ -257,7 +257,7 @@ class EmbedTagRulesTest extends UnitSuite {
         Seq(
           ValidationMessage(
             "test",
-            s"An $EmbedTagName HTML tag with data-resource=contact-block and data-email=batman_at_gotham_dot_com must be a valid email address."
+            s"Tag '$EmbedTagName' with data-resource=contact-block and data-email=batman_at_gotham_dot_com must be a valid email address."
           )
         )
       )
@@ -279,7 +279,7 @@ class EmbedTagRulesTest extends UnitSuite {
         Seq(
           ValidationMessage(
             "test",
-            s"An $EmbedTagName HTML tag with data-resource=concept and attribute data-example-langs={nb} must be a string or list of strings."
+            s"Tag '$EmbedTagName' with data-resource=concept and attribute data-example-langs={nb} must be a string or list of strings."
           )
         )
       )
@@ -298,7 +298,7 @@ class EmbedTagRulesTest extends UnitSuite {
         Seq(
           ValidationMessage(
             "test",
-            s"An $EmbedTagName HTML tag with data-resource=concept and attribute data-example-langs=[nb] must be a string or list of strings."
+            s"Tag '$EmbedTagName' with data-resource=concept and attribute data-example-langs=[nb] must be a string or list of strings."
           )
         )
       )
@@ -374,7 +374,7 @@ class EmbedTagRulesTest extends UnitSuite {
         Seq(
           ValidationMessage(
             "test",
-            s"An $EmbedTagName HTML tag with data-resource=copyright and attribute data-copyright=No JSON here must be valid json."
+            s"Tag '$EmbedTagName' with data-resource=copyright and attribute data-copyright=No JSON here must be valid json."
           )
         )
       )
@@ -411,7 +411,7 @@ class EmbedTagRulesTest extends UnitSuite {
       Seq(
         ValidationMessage(
           "test",
-          s"An $EmbedTagName HTML tag with data-resource=external must contain all or none of the attributes in the optional attribute group: (data-caption (Missing: data-caption))"
+          s"Tag '$EmbedTagName' with data-resource=external must contain all or none of the attributes in the optional attribute group: (data-caption (Missing: data-caption))"
         )
       )
     )
@@ -433,7 +433,7 @@ class EmbedTagRulesTest extends UnitSuite {
       Seq(
         ValidationMessage(
           "test",
-          s"HTML tag '$EmbedTagName' contains attributes with HTML: data-alt"
+          s"Tag '$EmbedTagName' contains attributes with HTML: data-alt"
         )
       )
     )
@@ -451,6 +451,63 @@ class EmbedTagRulesTest extends UnitSuite {
     val result = TagValidator.validate("test", embedString)
     result should be(
       Seq.empty
+    )
+  }
+
+  test("Children is not ok for embed without children rule") {
+    val embedString =
+      s"""<$EmbedTagName
+         | data-resource="pitch"
+         | data-image-id="1"
+         | data-title="Hva skjer hos <span lang='en'>NDLA</span>"
+         | data-url="https://ndla.no">
+         | Some child
+         | </$EmbedTagName>""".stripMargin
+
+    val result = TagValidator.validate("test", embedString)
+    result should be(
+      Seq {
+        ValidationMessage("test", s"Tag '$EmbedTagName' with `data-resource=pitch` cannot have children.")
+      }
+    )
+  }
+
+  test("Symbol embed with plain text children and no attributes is ok") {
+    val embedString = s"""<$EmbedTagName data-resource="symbol">Symbol</$EmbedTagName>""".stripMargin
+
+    val result = TagValidator.validate("test", embedString)
+    result should be(
+      Seq.empty
+    )
+  }
+
+  test("Symbol embed with no children is not ok") {
+    val embedString =
+      s"""<$EmbedTagName data-resource="symbol"></$EmbedTagName>""".stripMargin
+
+    val result = TagValidator.validate("test", embedString)
+    result should be(
+      Seq(
+        ValidationMessage(
+          "test",
+          s"Tag '$EmbedTagName' with `data-resource=symbol` requires at least one child."
+        )
+      )
+    )
+  }
+
+  test("Symbol embed with html children is not ok") {
+    val embedString =
+      s"""<$EmbedTagName data-resource="symbol"><strong>Symbol</strong></$EmbedTagName>""".stripMargin
+
+    val result = TagValidator.validate("test", embedString)
+    result should be(
+      Seq(
+        ValidationMessage(
+          "test",
+          s"Tag '$EmbedTagName' with `data-resource=symbol` can only have plaintext children."
+        )
+      )
     )
   }
 

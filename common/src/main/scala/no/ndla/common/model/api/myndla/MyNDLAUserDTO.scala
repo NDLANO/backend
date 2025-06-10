@@ -10,7 +10,7 @@ package no.ndla.common.model.api.myndla
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.model.domain.myndla.ArenaGroup
+import no.ndla.common.model.domain.myndla.UserRole
 import sttp.tapir.Schema.annotations.description
 
 case class MyNDLAGroupDTO(
@@ -32,12 +32,11 @@ case class MyNDLAUserDTO(
     @description("Email address of the user") email: String,
     @description("Name of the user") displayName: String,
     @description("Favorite subjects of the user") favoriteSubjects: Seq[String],
-    @description("User role") role: String,
+    @description("User role") role: UserRole,
     @description("User root organization") organization: String,
     @description("User groups") groups: Seq[MyNDLAGroupDTO],
     @description("Whether arena is explicitly enabled for the user") arenaEnabled: Boolean,
     @description("Whether the user has accepted the use of arena") arenaAccepted: Boolean,
-    @description("Arena user groups") arenaGroups: List[ArenaGroup],
     @description("Whether the user has accepted the sharing of their name") shareNameAccepted: Boolean
 )
 
@@ -51,8 +50,6 @@ case class UpdatedMyNDLAUserDTO(
     favoriteSubjects: Option[Seq[String]],
     @description("Whether arena should explicitly be enabled for the user")
     arenaEnabled: Option[Boolean],
-    @description("Which arena groups the user should be in, only modifiable by admins")
-    arenaGroups: Option[List[ArenaGroup]],
     @description("Whether the user has accepted the use of arena")
     arenaAccepted: Option[Boolean],
     @description("Whether the user has accepted the sharing of their name")

@@ -10,7 +10,7 @@ package no.ndla.imageapi.service
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.imageapi.model.domain._
+import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
 

@@ -17,7 +17,7 @@ import no.ndla.common.errors.{NotFoundException, ValidationException}
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: AudioRepository with SeriesRepository with ConverterService with TagSearchService with SearchConverterService =>
+  this: AudioRepository & SeriesRepository & ConverterService & TagSearchService & SearchConverterService =>
   val readService: ReadService
 
   class ReadService {
@@ -27,7 +27,7 @@ trait ReadService {
         case Failure(ex) => Failure(ex)
         case Success(None) =>
           Failure(
-            new NotFoundException(
+            NotFoundException(
               s"The series with id '$seriesId' and language '${language.getOrElse("")}' was not found."
             )
           )

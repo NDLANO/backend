@@ -34,7 +34,8 @@ import no.ndla.searchapi.service.search.{
   DraftIndexService,
   GrepIndexService,
   IndexService,
-  LearningPathIndexService
+  LearningPathIndexService,
+  NodeIndexService
 }
 import sttp.model.StatusCode
 
@@ -49,7 +50,8 @@ import sttp.tapir.server.ServerEndpoint
 
 trait InternController {
   this: IndexService & ArticleIndexService & LearningPathIndexService & DraftIndexService & DraftConceptIndexService &
-    TaxonomyApiClient & GrepApiClient & GrepIndexService & Props & ErrorHandling & MyNDLAApiClient & TapirController =>
+    NodeIndexService & TaxonomyApiClient & GrepApiClient & GrepIndexService & Props & ErrorHandling & MyNDLAApiClient &
+    TapirController =>
   val internController: InternController
 
   class InternController extends TapirController with StrictLogging {
@@ -105,12 +107,13 @@ trait InternController {
       reindexDraft,
       reindexGrep,
       reindexLearningpath,
+      reindexNode,
       reindexConcept
     )
 
     def deleteDocument: ServerEndpoint[Any, Eff] = endpoint.delete
       .in(path[String]("type") / path[Long]("id"))
-      .out(emptyOutput)
+      .out(noContent)
       .errorOut(errorOutputsFor(400))
       .serverLogicPure { case (indexType, documentId) =>
         (indexType match {
@@ -151,7 +154,7 @@ trait InternController {
           oneOfVariant(jsonBody[Concept])
         )
       )
-      .errorOut(errorOutputsFor(400))
+      .errorOut(errorOutputsFor(400, 409))
       .serverLogicPure { case (indexType, body) =>
         indexType match {
           case articleIndexService.documentType      => indexRequestWithService(articleIndexService, body)
@@ -244,6 +247,21 @@ trait InternController {
         val grepIndex = Future {
           requestInfo.setThreadContextRequestInfo()
           ("greps", grepIndexService.indexDocuments(numShards, None))
+        }
+
+        resolveResultFutures(List(grepIndex))
+      }
+
+    def reindexNode: ServerEndpoint[Any, Eff] = endpoint.post
+      .in("index" / "node")
+      .in(query[Option[Int]]("numShards"))
+      .errorOut(stringInternalServerError)
+      .out(stringBody)
+      .serverLogicPure { numShards =>
+        val requestInfo = RequestInfo.fromThreadContext()
+        val grepIndex = Future {
+          requestInfo.setThreadContextRequestInfo()
+          ("nodes", nodeIndexService.indexDocuments(numShards))
         }
 
         resolveResultFutures(List(grepIndex))
@@ -384,6 +402,10 @@ trait InternController {
               Future {
                 requestInfo.setThreadContextRequestInfo()
                 ("greps", grepIndexService.indexDocuments(numShards, Some(grepBundle)))
+              },
+              Future {
+                requestInfo.setThreadContextRequestInfo()
+                ("nodes", nodeIndexService.indexDocuments(numShards, publishedIndexingBundle))
               }
             )
             if (runInBackground) {

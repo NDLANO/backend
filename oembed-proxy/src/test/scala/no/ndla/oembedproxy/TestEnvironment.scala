@@ -29,7 +29,7 @@ trait TestEnvironment
     with MemoizeHelpers
     with ErrorHandling
     with Clock {
-  override val props = new OEmbedProxyProperties
+  override lazy val props = new OEmbedProxyProperties
 
   val oEmbedService: OEmbedService                 = mock[OEmbedService]
   val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
@@ -40,6 +40,7 @@ trait TestEnvironment
   val clock: SystemClock                           = mock[SystemClock]
 
   def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 
   def resetMocks(): Unit = {
     reset(oEmbedService)

@@ -8,8 +8,7 @@
 
 package no.ndla.articleapi
 
-import no.ndla.common.Environment.prop
-import no.ndla.common.configuration.{BaseProps, HasBaseProps}
+import no.ndla.common.configuration.{BaseProps, HasBaseProps, Prop}
 import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
@@ -45,42 +44,6 @@ class ArticleApiProperties extends BaseProps with DatabaseProps {
   def RedisHost: String = propOrElse("REDIS_HOST", "redis")
   def RedisPort: Int    = propOrElse("REDIS_PORT", "6379").toInt
 
-  def oldCreatorTypes: List[String] = List(
-    "opphavsmann",
-    "fotograf",
-    "kunstner",
-    "forfatter",
-    "manusforfatter",
-    "innleser",
-    "oversetter",
-    "regissør",
-    "illustratør",
-    "medforfatter",
-    "komponist"
-  )
-
-  def creatorTypes: List[String] = List(
-    "originator",
-    "photographer",
-    "artist",
-    "writer",
-    "scriptwriter",
-    "reader",
-    "translator",
-    "director",
-    "illustrator",
-    "cowriter",
-    "composer"
-  )
-
-  def oldProcessorTypes: List[String] =
-    List("bearbeider", "tilrettelegger", "redaksjonelt", "språklig", "ide", "sammenstiller", "korrektur")
-  def processorTypes: List[String] =
-    List("processor", "facilitator", "editorial", "linguistic", "idea", "compiler", "correction")
-
-  def oldRightsholderTypes: List[String] = List("rettighetshaver", "forlag", "distributør", "leverandør")
-  def rightsholderTypes: List[String]    = List("rightsholder", "publisher", "distributor", "supplier")
-
   // When converting a content node, the converter may run several times over the content to make sure
   // everything is converted. This value defines a maximum number of times the converter runs on a node
   def maxConvertionRounds = 5
@@ -107,14 +70,8 @@ class ArticleApiProperties extends BaseProps with DatabaseProps {
     ).getOrElse(Environment, "https://h5p.ndla.no")
   )
 
-  def ndlaFrontendUrl: String = Environment match {
-    case "local" => "http://localhost:30017"
-    case "prod"  => "https://ndla.no"
-    case _       => s"https://$Environment.ndla.no"
-  }
-
-  private def BrightcoveAccountId: String = prop("NDLA_BRIGHTCOVE_ACCOUNT_ID")
-  private def BrightcovePlayerId: String  = prop("NDLA_BRIGHTCOVE_PLAYER_ID")
+  val BrightcoveAccountId: Prop[String] = prop("BRIGHTCOVE_ACCOUNT_ID")
+  val BrightcovePlayerId: Prop[String]  = prop("BRIGHTCOVE_PLAYER_ID")
 
   def BrightcoveVideoScriptUrl: String =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"

@@ -76,10 +76,10 @@ object TextValidator {
       allowedTags: Set[String]
   ): Seq[ValidationMessage] = {
 
-    val whiteList = new Safelist().addTags(allowedTags.toSeq: _*)
+    val whiteList = new Safelist().addTags(allowedTags.toSeq*)
     HtmlTagRules.allLegalTags
       .filter(tag => HtmlTagRules.legalAttributesForTag(tag).nonEmpty)
-      .foreach(tag => whiteList.addAttributes(tag, HtmlTagRules.legalAttributesForTag(tag).toSeq: _*))
+      .foreach(tag => whiteList.addAttributes(tag, HtmlTagRules.legalAttributesForTag(tag).toSeq*))
 
     if (text.isEmpty) {
       Seq.empty

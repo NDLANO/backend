@@ -13,6 +13,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, Status as CommonStatus}
+import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
@@ -33,8 +34,6 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
         LanguageValue("en", "I'm in my mums car wroomwroom")
       )
     )
-
-    val visualElements = SearchableLanguageValues(Seq(LanguageValue("nn", "image"), LanguageValue("nb", "image")))
 
     val introductions = SearchableLanguageValues(
       Seq(
@@ -86,12 +85,11 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       id = 100,
       title = titles,
       content = contents,
-      visualElement = visualElements,
       introduction = introductions,
       metaDescription = metaDescriptions,
       tags = tags,
       lastUpdated = TestData.today,
-      license = Some("by-sa"),
+      license = Some(License.CC_BY_SA.toString),
       authors = List("Jonas", "Papi"),
       articleType = LearningResourceType.Article.toString,
       defaultTitle = Some("Christian Tut"),
@@ -101,10 +99,13 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       contexts = searchableTaxonomyContexts,
       contextids = searchableTaxonomyContexts.map(_.contextId),
       draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
+      status = DraftStatus.PLANNED.toString,
       users = List("ndalId54321", "ndalId12345"),
       previousVersionsNotes = List("OldNote"),
-      grepContexts =
-        List(SearchableGrepContext("K123", Some("some title")), SearchableGrepContext("K456", Some("some title 2"))),
+      grepContexts = List(
+        SearchableGrepContext("K123", Some("some title"), "Published"),
+        SearchableGrepContext("K456", Some("some title 2"), "Published")
+      ),
       traits = List.empty,
       embedAttributes = embedAttrs,
       embedResourcesAndIds = embedResourcesAndIds,
@@ -134,7 +135,8 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       defaultResourceTypeName = titles.defaultValue,
       published = TestData.today,
       favorited = 0,
-      learningResourceType = LearningResourceType.Article
+      learningResourceType = LearningResourceType.Article,
+      typeName = List.empty
     )
 
     val json         = CirceUtil.toJsonString(original)

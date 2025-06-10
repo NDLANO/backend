@@ -5,14 +5,15 @@
  * See LICENSE
  *
  */
+
 package no.ndla.validation
 
-import com.scalatsi.TypescriptType.{TSLiteralString, TSUnion}
-import com.scalatsi.{TSNamedType, TSType}
 import enumeratum.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder, parser}
 import no.ndla.common.CirceUtil.getOrDefault
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.schemaForEnumEntry
 
 object TagRules {
   case class TagAttributeRules(
@@ -49,7 +50,7 @@ object TagRules {
       mustCoexistWith: List[TagAttribute] = List.empty
   )
 
-  object Validation {
+  private object Validation {
     implicit val encoder: Encoder[Validation] = deriveEncoder
     implicit val decoder: Decoder[Validation] = Decoder.instance { cur =>
       for {
@@ -87,9 +88,9 @@ object TagRules {
     implicit val encoder: Encoder[ParentTag] = deriveEncoder
     implicit val decoder: Decoder[ParentTag] = deriveDecoder
   }
-  case class ChildrenRule(required: Boolean, allowedChildren: List[String])
+  case class ChildrenRule(required: Boolean, allowedChildren: Option[List[String]])
   object ChildrenRule {
-    def default: ChildrenRule = ChildrenRule(required = false, allowedChildren = List.empty)
+    def default: ChildrenRule = ChildrenRule(required = false, allowedChildren = None)
 
     implicit val encoder: Encoder[ChildrenRule] = deriveEncoder
     implicit val decoder: Decoder[ChildrenRule] = deriveDecoder
@@ -132,8 +133,7 @@ sealed abstract class TagAttribute(override val entryName: String) extends EnumE
 object TagAttribute extends Enum[TagAttribute] with CirceEnum[TagAttribute] {
   val values: IndexedSeq[TagAttribute] = findValues
 
-  implicit val enumTsType: TSNamedType[TagAttribute] =
-    TSType.alias[TagAttribute]("TagAttribute", TSUnion(values.map(e => TSLiteralString(e.entryName))))
+  implicit val schema: Schema[TagAttribute] = schemaForEnumEntry[TagAttribute]
 
   case object Accent               extends TagAttribute("accent")
   case object AccentUnder          extends TagAttribute("accentunder")

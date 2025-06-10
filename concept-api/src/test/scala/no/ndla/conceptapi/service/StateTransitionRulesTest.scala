@@ -5,11 +5,12 @@
  * See LICENSE
  *
  */
+
 package no.ndla.conceptapi.service
 
 import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptStatus, ConceptType, Status}
 import no.ndla.common.model.domain.draft.DraftCopyright
-import no.ndla.common.model.domain.{Author, Responsible, Tag, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Responsible, Tag, Title}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.conceptapi.model.domain.StateTransition
 import org.mockito.ArgumentMatchers.any
@@ -30,7 +31,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
         DraftCopyright(
           license = Some("CC-BY-4.0"),
           origin = None,
-          creators = Seq(Author("writer", "Ape Katt")),
+          creators = Seq(Author(ContributorType.Writer, "Ape Katt")),
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
@@ -41,7 +42,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       created = TestData.today,
       updated = TestData.today,
       updatedBy = Seq("user"),
-      metaImage = Seq.empty,
       tags = Seq(Tag(Seq("Hei", "hå"), "nb")),
       status = Status(ConceptStatus.IN_PROGRESS, Set.empty),
       visualElement = Seq.empty,
@@ -76,7 +76,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
         DraftCopyright(
           license = Some("CC-BY-4.0"),
           origin = None,
-          creators = Seq(Author("writer", "Ape Katt")),
+          creators = Seq(Author(ContributorType.Writer, "Ape Katt")),
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
@@ -87,7 +87,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       created = TestData.today,
       updated = TestData.today,
       updatedBy = Seq("user"),
-      metaImage = Seq.empty,
       tags = Seq(Tag(Seq("Hei", "hå"), "nb")),
       status = Status(ConceptStatus.IN_PROGRESS, Set.empty),
       visualElement = Seq.empty,
@@ -122,7 +121,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
         DraftCopyright(
           license = Some("CC-BY-4.0"),
           origin = None,
-          creators = Seq(Author("writer", "Ape Katt")),
+          creators = Seq(Author(ContributorType.Writer, "Ape Katt")),
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
@@ -133,7 +132,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       created = TestData.today,
       updated = TestData.today,
       updatedBy = Seq("user"),
-      metaImage = Seq.empty,
       tags = Seq(Tag(Seq("Hei", "hå"), "nb")),
       status = Status(ConceptStatus.IN_PROGRESS, Set.empty),
       visualElement = Seq.empty,
@@ -167,7 +165,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
         DraftCopyright(
           license = Some("CC-BY-4.0"),
           origin = None,
-          creators = Seq(Author("writer", "Katronk")),
+          creators = Seq(Author(ContributorType.Writer, "Katronk")),
           processors = Seq.empty,
           rightsholders = Seq.empty,
           validFrom = None,
@@ -178,7 +176,6 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       created = TestData.today,
       updated = TestData.today,
       updatedBy = Seq("user"),
-      metaImage = Seq.empty,
       tags = Seq(Tag(Seq("Hei", "hå"), "nb")),
       status = Status(ConceptStatus.PUBLISHED, Set.empty),
       visualElement = Seq.empty,

@@ -19,6 +19,7 @@ import no.ndla.common.model.{NDLADate, api}
 import no.ndla.common.model.domain.config
 import scalikejdbc.*
 
+import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
 
 sealed trait ConfigMetaValue
@@ -27,7 +28,7 @@ case class StringListValue(value: List[String]) extends ConfigMetaValue
 
 object ConfigMetaValue {
 
-  import io.circe.{Decoder, Encoder}, io.circe.generic.auto._
+  import io.circe.{Decoder, Encoder}, io.circe.generic.auto.*
 
   implicit def encoder: Encoder[ConfigMetaValue] = Encoder.instance {
     case bool @ BooleanValue(_)       => bool.asJson
@@ -72,13 +73,14 @@ case class ConfigMeta(
         Failure(new ValidationException(s"Invalid config value specified.", Seq(validationMessage)))
     }
   }
-  private def validateStringListKey(orgs: ConfigKey): Try[ConfigMeta] = {
+  @unused // for now
+  private def validateStringListKey(configKey: ConfigKey): Try[ConfigMeta] = {
     value match {
       case StringListValue(_) => Success(this)
       case _ =>
         val validationMessage = ValidationMessage(
           "value",
-          s"Value of '${orgs.entryName}' must be a list of strings"
+          s"Value of '${configKey.entryName}' must be a list of strings"
         )
         Failure(new ValidationException(s"Invalid config value specified.", Seq(validationMessage)))
     }
@@ -87,9 +89,6 @@ case class ConfigMeta(
   def validate: Try[ConfigMeta] = key match {
     case ConfigKey.LearningpathWriteRestricted => validateBooleanKey(ConfigKey.LearningpathWriteRestricted)
     case ConfigKey.MyNDLAWriteRestricted       => validateBooleanKey(ConfigKey.MyNDLAWriteRestricted)
-    case ConfigKey.ArenaEnabledOrgs            => validateStringListKey(ConfigKey.ArenaEnabledOrgs)
-    case ConfigKey.ArenaEnabledUsers           => validateStringListKey(ConfigKey.ArenaEnabledUsers)
-    case ConfigKey.AiEnabledOrgs               => validateStringListKey(ConfigKey.AiEnabledOrgs)
   }
 }
 
@@ -98,7 +97,6 @@ object ConfigMeta extends SQLSyntaxSupport[ConfigMeta] with StrictLogging {
 
   def fromResultSet(c: SyntaxProvider[ConfigMeta])(rs: WrappedResultSet): Try[ConfigMeta] =
     fromResultSet(c.resultName)(rs)
-  import ConfigMetaValue._
 
   implicit val enc: Encoder[ConfigMeta] = deriveEncoder[ConfigMeta]
   implicit val dec: Decoder[ConfigMeta] = deriveDecoder[ConfigMeta]
