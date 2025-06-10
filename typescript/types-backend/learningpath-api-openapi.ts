@@ -2653,10 +2653,6 @@ export interface operations {
             };
             301: {
                 headers: {
-                    /**
-                     * @description null
-                     * @example null
-                     */
                     Location: string;
                     [name: string]: unknown;
                 };

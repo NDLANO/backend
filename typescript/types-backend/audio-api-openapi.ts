@@ -906,10 +906,6 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /**
-                     * @description null
-                     * @example null
-                     */
                     "search-context"?: string;
                     [name: string]: unknown;
                 };
@@ -1029,10 +1025,6 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /**
-                     * @description null
-                     * @example null
-                     */
                     "search-context"?: string;
                     [name: string]: unknown;
                 };
@@ -1451,10 +1443,6 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /**
-                     * @description null
-                     * @example null
-                     */
                     "search-context"?: string;
                     [name: string]: unknown;
                 };
@@ -1566,10 +1554,6 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /**
-                     * @description null
-                     * @example null
-                     */
                     "search-context"?: string;
                     [name: string]: unknown;
                 };
