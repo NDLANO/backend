@@ -8,27 +8,27 @@ object Dependencies {
 
   object versions {
     val ScalaV                = "2.13.16"
-    val HikariConnectionPoolV = "6.2.1"
+    val HikariConnectionPoolV = "6.3.0"
     val ScalaLoggingV         = "3.9.5"
     val ScalaTestV            = "3.2.19"
     val Log4JV                = "2.24.3"
-    val AwsSdkV               = "2.31.2"
+    val AwsSdkV               = "2.31.58"
     val MockitoV              = "1.17.30"
     val Elastic4sV            = "8.11.5"
-    val JacksonV              = "2.18.3"
-    val CatsEffectV           = "3.5.4"
-    val FlywayV               = "11.4.0"
-    val PostgresV             = "42.7.5"
+    val JacksonV              = "2.19.0"
+    val CatsEffectV           = "3.6.1"
+    val FlywayV               = "11.9.1"
+    val PostgresV             = "42.7.6"
     val Http4sV               = "0.23.30"
-    val TapirV                = "1.11.23"
-    val ApiSpecV              = "0.11.7"
-    val SttpV                 = "3.9.7"
-    val CirceV                = "0.14.12"
-    val ScalikeJDBCV          = "4.3.2"
-    val TestContainersV       = "1.20.6"
-    val JsoupV                = "1.19.1"
+    val TapirV                = "1.11.33"
+    val ApiSpecV              = "0.11.9"
+    val SttpV                 = "3.11.0"
+    val CirceV                = "0.14.13"
+    val ScalikeJDBCV          = "4.3.3"
+    val TestContainersV       = "1.21.1"
+    val JsoupV                = "1.20.1"
     val JavaMelodyV           = "2.5.0"
-    val EnumeratumV           = "1.7.5"
+    val EnumeratumV           = "1.9.0"
     val FlexmarkV             = "0.64.8"
 
     lazy val scalaUri = ("io.lemonlabs" %% "scala-uri" % "4.0.3").excludeAll("org.typelevel", "cats-parse")
@@ -90,7 +90,7 @@ object Dependencies {
       "org.http4s"    %% "http4s-dsl"          % Http4sV,
       "org.http4s"    %% "http4s-circe"        % Http4sV,
       "org.http4s"    %% "http4s-ember-server" % Http4sV,
-      "org.typelevel" %% "cats-parse"          % "1.0.0"
+      "org.typelevel" %% "cats-parse"          % "1.1.0"
     )
 
     lazy val tapir: Seq[ModuleID] = Seq(

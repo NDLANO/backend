@@ -623,10 +623,11 @@ class EmbedTagValidatorTest extends UnitSuite {
 
   test("validate should return error if related content doesnt contain either ids or url and title") {
     val validRelatedExternalEmbed =
-      s"""<$EmbedTagName data-resource="related-content" data-url="http://example.com" data-title="Eksempel tittel right here, yo" />"""
-    val validRelatedArticle   = s"""<$EmbedTagName data-resource="related-content" data-article-id="5" />"""
-    val invalidRelatedArticle = s"""<$EmbedTagName data-resource="related-content" data-url="http://example.com" />"""
-    val emptyAndInvalidEmbed  = s"""<$EmbedTagName data-resource="related-content" />"""
+      s"""<$EmbedTagName data-resource="related-content" data-url="http://example.com" data-title="Eksempel tittel right here, yo"></$EmbedTagName>"""
+    val validRelatedArticle = s"""<$EmbedTagName data-resource="related-content" data-article-id="5"></$EmbedTagName>"""
+    val invalidRelatedArticle =
+      s"""<$EmbedTagName data-resource="related-content" data-url="http://example.com"></$EmbedTagName>"""
+    val emptyAndInvalidEmbed = s"""<$EmbedTagName data-resource="related-content"></$EmbedTagName>"""
 
     val res = TagValidator.validate(
       "content",
@@ -643,7 +644,7 @@ class EmbedTagValidatorTest extends UnitSuite {
 
   test("validate should return error if related content is not wrapped in div with data-type='related-content'") {
     val validRelatedExternalEmbed =
-      s"""<$EmbedTagName data-resource="related-content" data-url="http://example.com" data-title="Eksempel tittel right here, yo" />"""
+      s"""<$EmbedTagName data-resource="related-content" data-url="http://example.com" data-title="Eksempel tittel right here, yo"></$EmbedTagName>"""
 
     val res = TagValidator.validate("content", s"""<div>$validRelatedExternalEmbed</div>""")
     res.size should be(1)
@@ -710,7 +711,33 @@ class EmbedTagValidatorTest extends UnitSuite {
 
   test("validate should should no longer allow single file embeds with multiple unrelated siblings") {
     val content =
-      s"""<section><$EmbedTagName data-alt="Øvingsark for teiknskriving for leksjon 1" data-path="files/147739/ovelsesark_for_tegnskriving_for_leksjon_1.pdf" data-resource="file" data-title="Øvelsesark for tegnskriving for leksjon 1" data-type="pdf" /><p><span data-size="large">你</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163943" /><p><span data-size="large">您</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163944" /><p><span data-size="large">好</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163946" /><p><span data-size="large">李</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163948" /><p><span data-size="large">美</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163950" /><p><span data-size="large">玉</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163952" /><p><span data-size="large">马</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163953" /><p><span data-size="large">红</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163956" /><p><span data-size="large">老</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163959" /><p><span data-size="large">师</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163960" /><p><span data-size="large">贵</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164025" /><p><span data-size="large">姓</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164029" /><p><span data-size="large">王</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164031" /><p><span data-size="large">们</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164032" /><p><span data-size="large">我</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164034" /><p><span data-size="large">叫</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164035" /><p><span data-size="large">什</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164036" /><p><span data-size="large">么</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164037" /><p><span data-size="large">名</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164038" /><p><span data-size="large">字</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164039" /><p><span data-size="large">呢</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164067" /><p><span data-size="large">认</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164069" /><p><span data-size="large">识</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164072" /><p><span data-size="large">很</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164077" /><p><span data-size="large">高</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164078" /><p><span data-size="large">兴</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164079" /></section>"""
+      s"""<section><$EmbedTagName data-alt="Øvingsark for teiknskriving for leksjon 1" data-path="files/147739/ovelsesark_for_tegnskriving_for_leksjon_1.pdf" data-resource="file" data-title="Øvelsesark for tegnskriving for leksjon 1" data-type="pdf"></$EmbedTagName>
+         |<p><span data-size="large">你</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163943"></$EmbedTagName>
+         |<p><span data-size="large">您</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163944"></$EmbedTagName>
+         |<p><span data-size="large">好</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163946"></$EmbedTagName>
+         |<p><span data-size="large">李</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163948"></$EmbedTagName>
+         |<p><span data-size="large">美</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163950"></$EmbedTagName>
+         |<p><span data-size="large">玉</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163952"></$EmbedTagName>
+         |<p><span data-size="large">马</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163953"></$EmbedTagName>
+         |<p><span data-size="large">红</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163956"></$EmbedTagName>
+         |<p><span data-size="large">老</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163959"></$EmbedTagName>
+         |<p><span data-size="large">师</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:163960"></$EmbedTagName>
+         |<p><span data-size="large">贵</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164025"></$EmbedTagName>
+         |<p><span data-size="large">姓</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164029"></$EmbedTagName>
+         |<p><span data-size="large">王</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164031"></$EmbedTagName>
+         |<p><span data-size="large">们</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164032"></$EmbedTagName>
+         |<p><span data-size="large">我</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164034"></$EmbedTagName>
+         |<p><span data-size="large">叫</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164035"></$EmbedTagName>
+         |<p><span data-size="large">什</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164036"></$EmbedTagName>
+         |<p><span data-size="large">么</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164037"></$EmbedTagName>
+         |<p><span data-size="large">名</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164038"></$EmbedTagName>
+         |<p><span data-size="large">字</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164039"></$EmbedTagName>
+         |<p><span data-size="large">呢</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164067"></$EmbedTagName>
+         |<p><span data-size="large">认</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164069"></$EmbedTagName>
+         |<p><span data-size="large">识</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164072"></$EmbedTagName>
+         |<p><span data-size="large">很</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164077"></$EmbedTagName>
+         |<p><span data-size="large">高</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164078"></$EmbedTagName>
+         |<p><span data-size="large">兴</span></p><$EmbedTagName data-account="4806596774001" data-caption="" data-player="BkLm8fT" data-resource="brightcove" data-videoid="ref:164079"></$EmbedTagName></section>""".stripMargin
 
     val res = TagValidator.validate("content", content)
     res should be(
@@ -731,19 +758,19 @@ class EmbedTagValidatorTest extends UnitSuite {
     }
     {
       val content =
-        s"""<section><p><$EmbedTagName type="a" data-resource="file" /><$EmbedTagName type="b" data-resource="file" /><$EmbedTagName type="c" data-resource="file" /><$EmbedTagName type="d" data-resource="file" /></p></section>"""
+        s"""<section><p><$EmbedTagName type="a" data-resource="file"></$EmbedTagName><$EmbedTagName type="b" data-resource="file"></$EmbedTagName><$EmbedTagName type="c" data-resource="file"></$EmbedTagName><$EmbedTagName type="d" data-resource="file"></$EmbedTagName></p></section>"""
       val embed = HtmlTagRules.stringToJsoupDocument(content).select(s"$EmbedTagName[type=b]").first()
       TagValidator.numDirectEqualSiblings(embed) should be(4)
     }
     {
       val content =
-        s"""<section><p><$EmbedTagName type="a" data-resource="file" />, <$EmbedTagName type="b" data-resource="file" />, <$EmbedTagName type="c" data-resource="file" />, <$EmbedTagName type="d" data-resource="file" /></p></section>"""
+        s"""<section><p><$EmbedTagName type="a" data-resource="file"></$EmbedTagName>, <$EmbedTagName type="b" data-resource="file"></$EmbedTagName>, <$EmbedTagName type="c" data-resource="file"></$EmbedTagName>, <$EmbedTagName type="d" data-resource="file"></$EmbedTagName></p></section>"""
       val embed = HtmlTagRules.stringToJsoupDocument(content).select(s"$EmbedTagName[type=d]").first()
       TagValidator.numDirectEqualSiblings(embed) should be(1)
     }
     {
       val content =
-        s"""<section><p><$EmbedTagName type="a" data-resource="file" />, <$EmbedTagName type="b" data-resource="file" />, <$EmbedTagName type="c" data-resource="file" /><$EmbedTagName type="d" data-resource="file" /></p></section>"""
+        s"""<section><p><$EmbedTagName type="a" data-resource="file"></$EmbedTagName>, <$EmbedTagName type="b" data-resource="file"></$EmbedTagName>, <$EmbedTagName type="c" data-resource="file"></$EmbedTagName><$EmbedTagName type="d" data-resource="file"></$EmbedTagName></p></section>"""
       val embed = HtmlTagRules.stringToJsoupDocument(content).select(s"$EmbedTagName[type=c]").first()
       TagValidator.numDirectEqualSiblings(embed) should be(2)
     }
@@ -753,16 +780,16 @@ class EmbedTagValidatorTest extends UnitSuite {
     val content =
       s"""<section>
           |<p>
-          |<$EmbedTagName type="a" data-resource="file" />awdk
-          |<$EmbedTagName type="b" data-resource="file" />
+          |<$EmbedTagName type="a" data-resource="file"></$EmbedTagName>awdk
+          |<$EmbedTagName type="b" data-resource="file"></$EmbedTagName>
           |
-          |<$EmbedTagName type="c" data-resource="file" />
-          |
-          |
+          |<$EmbedTagName type="c" data-resource="file"></$EmbedTagName>
           |
           |
           |
-          |<$EmbedTagName type="d" data-resource="file" />
+          |
+          |
+          |<$EmbedTagName type="d" data-resource="file"></$EmbedTagName>
           |</p>
           |</section>""".stripMargin
     val embed = HtmlTagRules.stringToJsoupDocument(content).select(s"$EmbedTagName[type=c]").first()
@@ -784,7 +811,7 @@ class EmbedTagValidatorTest extends UnitSuite {
       )
     )
 
-    val res = TagValidator.validate("content", s"""<$EmbedTagName $attrs />""")
+    val res = TagValidator.validate("content", s"""<$EmbedTagName $attrs></$EmbedTagName>""")
     res.headOption should be(None)
   }
 
@@ -802,7 +829,7 @@ class EmbedTagValidatorTest extends UnitSuite {
       )
     )
 
-    val res = TagValidator.validate("content", s"""<$EmbedTagName $attrs />""")
+    val res = TagValidator.validate("content", s"""<$EmbedTagName $attrs></$EmbedTagName>""")
     res.headOption should be(None)
   }
 }
