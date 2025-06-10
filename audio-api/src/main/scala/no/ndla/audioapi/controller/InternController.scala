@@ -60,9 +60,9 @@ trait InternController {
           ) match {
             case (Success(audioReindexResult), Success(tagReindexResult), Success(seriesReIndexResult)) =>
               val result =
-                s"""Completed indexing of ${audioReindexResult.totalIndexed} documents in ${audioReindexResult.millisUsed} (audios) ms.
-                   |Completed indexing of ${tagReindexResult.totalIndexed} documents in ${tagReindexResult.millisUsed} (tags) ms.
-                   |Completed indexing of ${seriesReIndexResult.totalIndexed} documents in ${seriesReIndexResult.millisUsed} (series) ms.""".stripMargin
+                s"""Completed indexing of ${audioReindexResult.totalIndexed} audios in ${audioReindexResult.millisUsed} ms.
+                   |Completed indexing of ${tagReindexResult.totalIndexed} tags in ${tagReindexResult.millisUsed} ms.
+                   |Completed indexing of ${seriesReIndexResult.totalIndexed} series in ${seriesReIndexResult.millisUsed} ms.""".stripMargin
               logger.info(result)
               result.asRight
             case (Failure(f), _, _) =>
