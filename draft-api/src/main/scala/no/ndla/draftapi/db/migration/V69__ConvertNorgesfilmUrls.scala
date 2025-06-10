@@ -18,8 +18,8 @@ class V69__ConvertNorgesfilmUrls extends HtmlMigration {
       .select("ndlaembed[data-resource='iframe']")
       .forEach(embed => {
         val url = embed.attr("data-url")
-        if (url.contains("ndla.filmiundervisning.no/film/ndlafilm.aspx?")) {
-          embed.attr("data-url", url.replace("/ndlafilm.aspx?", "/")): Unit
+        if (url.contains("ndla.filmiundervisning.no/film/ndlafilm.aspx?filmId=")) {
+          embed.attr("data-url", url.replace("/ndlafilm.aspx?filmId=", "/")): Unit
         }
       })
     doc
