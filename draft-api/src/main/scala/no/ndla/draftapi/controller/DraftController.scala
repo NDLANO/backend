@@ -639,5 +639,16 @@ trait DraftController {
       .serverLogicPure { user => _ =>
         writeService.migrateOutdatedGreps(user).handleErrorsOrOk
       }
+
+    def deleteCurrentRevision: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in(pathArticleId / "current-revision")
+      .summary("Delete the current revision of an article")
+      .description("Delete the current revision of an article")
+      .errorOut(errorOutputsFor(404, 422))
+      .out(jsonBody[Long])
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ => articleId =>
+        writeService.deleteCurrentRevision(articleId).handleErrorsOrOk
+      }
   }
 }

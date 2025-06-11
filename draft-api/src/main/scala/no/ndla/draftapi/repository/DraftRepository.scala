@@ -200,6 +200,12 @@ trait DraftRepository {
       }
     }
 
+    def deleteArticleRevision(articleId: Long, revision: Int)(implicit session: DBSession): Try[Long] =
+      Try(sql"delete from ${DBArticle.table} where article_id = $articleId and revision = $revision".update()).flatMap {
+        case 1 => Success(articleId)
+        case _ => Failure(NotFoundException(s"Article with id $articleId and revision $revision does not exist"))
+      }
+
     def getIdFromExternalId(externalId: String)(implicit session: DBSession): Option[Long] = {
       sql"select article_id from ${DBArticle.table} where ${externalId} = any (external_id) order by revision desc limit 1"
         .map(rs => rs.long("article_id"))
@@ -258,6 +264,11 @@ trait DraftRepository {
         .map(rs => rs.long("count"))
         .single()
         .getOrElse(0)
+    }
+
+    def revisionCountForArticleId(articleId: Long)(implicit session: DBSession): Try[Long] = {
+      Try(sql"select count(distinct revision) form ${DBArticle.table} where article_id = $articleId")
+        .map(sql => sql.map(rs => rs.long("count")).single().getOrElse(0))
     }
 
     def getArticlesByPage(pageSize: Int, offset: Int)(implicit session: DBSession): Seq[Draft] = {

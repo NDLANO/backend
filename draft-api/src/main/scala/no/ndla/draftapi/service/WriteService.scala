@@ -895,6 +895,26 @@ trait WriteService {
       }
     }
 
+    def deleteCurrentRevision(id: Long): Try[Long] = DBUtil.rollbackOnFailure { implicit session =>
+      draftRepository.withId(id) match {
+        case None => Failure(api.NotFoundException(s"No article with id $id"))
+        case Some(article) =>
+          article.revision match {
+            case None => Failure(api.NotFoundException(s"No revision found for article with id $id"))
+            case Some(revision) =>
+              article.status.current match {
+                case PUBLISHED => Failure(api.OperationNotAllowedException("Cannot delete a published revision"))
+                case _ =>
+                  draftRepository.revisionCountForArticleId(id) match {
+                    case Failure(ex)    => Failure(ex)
+                    case Success(0 | 1) => Failure(api.OperationNotAllowedException("Cannot delete the last revision"))
+                    case Success(_)     => draftRepository.deleteArticleRevision(id, revision)
+                  }
+              }
+          }
+      }
+    }
+
     private def setRevisions(entity: Node, revisions: Seq[common.draft.RevisionMeta]): Try[?] = {
       val updateResult = entity.contentUri match {
         case Some(contentUri) =>

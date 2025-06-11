@@ -1431,4 +1431,19 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result.status.current should be(PUBLISHED.toString)
     result.started should be(false)
   }
+
+  test("that deleting current revision fails if status is PUBLISHED") {
+    val existing = TestData.sampleDomainArticle.copy(status = TestData.statusWithPublished)
+    when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
+    val result = service.deleteCurrentRevision(existing.id.get)
+    result.isFailure should be(true)
+  }
+
+  test("that deleting current revision fails if number of revisions is 1 or less") {
+    val existing = TestData.sampleDomainArticle.copy(status = TestData.statusWithInProcess)
+    when(draftRepository.withId(eqTo(existing.id.get))(any)).thenReturn(Some(existing))
+    when(draftRepository.revisionCountForArticleId(eqTo(existing.id.get))(any)).thenReturn(Success(1))
+    val result = service.deleteCurrentRevision(existing.id.get)
+    result.isFailure should be(true)
+  }
 }
