@@ -13,6 +13,7 @@ import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.aggs.responses.{AggResult, AggSerde}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
+import com.sksamuel.elastic4s.requests.searches.term.TermsQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
@@ -390,12 +391,8 @@ trait MultiDraftSearchService {
       }
     }
 
-    private def boolUsersFilter(users: Seq[String]): Option[BoolQuery] =
-      if (users.isEmpty) None
-      else
-        Some(
-          boolQuery().should(users.map(simpleStringQuery(_).field("users", 1)))
-        )
+    private def boolUsersFilter(users: Seq[String]): Option[TermsQuery[String]] =
+      Option.when(users.nonEmpty)(termsQuery("users", users))
   }
 
 }
