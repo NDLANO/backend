@@ -22,7 +22,7 @@ Configuration:
   Loggers:
     Logger:
       name: "no.ndla"
-      level: info
+      level: debug
       additivity: false
       AppenderRef:
         - ref: ${env:LOG_APPENDER:-Console}
