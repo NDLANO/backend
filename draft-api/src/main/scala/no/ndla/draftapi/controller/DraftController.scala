@@ -645,7 +645,7 @@ trait DraftController {
       .summary("Delete the current revision of an article")
       .description("Delete the current revision of an article")
       .errorOut(errorOutputsFor(404, 422))
-      .out(jsonBody[Long])
+      .out(noContent)
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ => articleId =>
         writeService.deleteCurrentRevision(articleId).handleErrorsOrOk

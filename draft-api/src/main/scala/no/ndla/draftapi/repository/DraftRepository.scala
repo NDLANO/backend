@@ -200,9 +200,9 @@ trait DraftRepository {
       }
     }
 
-    def deleteArticleRevision(articleId: Long, revision: Int)(implicit session: DBSession): Try[Long] =
+    def deleteArticleRevision(articleId: Long, revision: Int)(implicit session: DBSession): Try[Unit] =
       Try(sql"delete from ${DBArticle.table} where article_id = $articleId and revision = $revision".update()).flatMap {
-        case 1 => Success(articleId)
+        case 1 => Success(())
         case _ => Failure(NotFoundException(s"Article with id $articleId and revision $revision does not exist"))
       }
 

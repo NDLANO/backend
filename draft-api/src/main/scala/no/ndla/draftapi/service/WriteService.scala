@@ -895,7 +895,7 @@ trait WriteService {
       }
     }
 
-    def deleteCurrentRevision(id: Long): Try[Long] = DBUtil.rollbackOnFailure { implicit session =>
+    def deleteCurrentRevision(id: Long): Try[Unit] = DBUtil.rollbackOnFailure { implicit session =>
       draftRepository.withId(id) match {
         case None => Failure(api.NotFoundException(s"No article with id $id"))
         case Some(article) =>
