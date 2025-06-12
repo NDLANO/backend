@@ -267,7 +267,7 @@ trait DraftRepository {
     }
 
     def revisionCountForArticleId(articleId: Long)(implicit session: DBSession): Try[Long] = {
-      Try(sql"select count(distinct revision) form ${DBArticle.table} where article_id = $articleId")
+      Try(sql"select count(distinct revision) from ${DBArticle.table} where article_id = $articleId")
         .map(sql => sql.map(rs => rs.long("count")).single().getOrElse(0))
     }
 
