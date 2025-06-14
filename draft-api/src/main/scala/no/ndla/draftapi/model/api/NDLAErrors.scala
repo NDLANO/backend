@@ -33,6 +33,7 @@ trait ErrorHandling extends TapirErrorHandling with StrictLogging {
     case rw: ResultWindowTooLargeException => ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422)
     case pf: ArticlePublishException       => ErrorBody(PUBLISH, pf.getMessage, clock.now(), 400)
     case st: IllegalStatusStateTransition  => ErrorBody(VALIDATION, st.getMessage, clock.now(), 400)
+    case ona: OperationNotAllowedException => ErrorBody(UNPROCESSABLE_ENTITY, ona.getMessage, clock.now(), 422)
     case _: FileTooBigException =>
       ErrorBody(
         FILE_TOO_BIG,
