@@ -119,7 +119,8 @@ trait DraftController {
       copyRevisionDates,
       getArticleBySlug,
       migrateOutdatedGreps,
-      addNotes
+      addNotes,
+      deleteCurrentRevision
     )
 
     /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
