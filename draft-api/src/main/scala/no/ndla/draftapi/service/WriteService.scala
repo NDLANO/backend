@@ -14,6 +14,7 @@ import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
+import no.ndla.common.TryUtil.failureIf
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{MissingIdException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
@@ -896,23 +897,16 @@ trait WriteService {
     }
 
     def deleteCurrentRevision(id: Long): Try[Unit] = DBUtil.rollbackOnFailure { implicit session =>
-      draftRepository.withId(id) match {
-        case None => Failure(api.NotFoundException(s"No article with id $id"))
-        case Some(article) =>
-          article.revision match {
-            case None => Failure(api.NotFoundException(s"No revision found for article with id $id"))
-            case Some(revision) =>
-              article.status.current match {
-                case PUBLISHED => Failure(api.OperationNotAllowedException("Cannot delete a published revision"))
-                case _ =>
-                  draftRepository.revisionCountForArticleId(id) match {
-                    case Failure(ex)    => Failure(ex)
-                    case Success(0 | 1) => Failure(api.OperationNotAllowedException("Cannot delete the last revision"))
-                    case Success(_)     => draftRepository.deleteArticleRevision(id, revision)
-                  }
-              }
-          }
-      }
+      lazy val publishedDeleteError = api.OperationNotAllowedException("Cannot delete a published revision")
+      lazy val lastRevisionError    = api.OperationNotAllowedException("Cannot delete the last revision")
+      for {
+        draft         <- Try(draftRepository.withId(id).toTry(api.NotFoundException(s"No article with id $id"))).flatten
+        revision      <- draft.revision.toTry(api.NotFoundException(s"No revision found for article with id $id"))
+        _             <- failureIf(draft.status.current == PUBLISHED, publishedDeleteError)
+        revisionCount <- draftRepository.revisionCountForArticleId(id)
+        _             <- failureIf(revisionCount <= 1, lastRevisionError)
+        result        <- draftRepository.deleteArticleRevision(id, revision)
+      } yield result
     }
 
     private def setRevisions(entity: Node, revisions: Seq[common.draft.RevisionMeta]): Try[?] = {
