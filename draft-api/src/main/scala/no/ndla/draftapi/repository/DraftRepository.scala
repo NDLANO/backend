@@ -206,6 +206,18 @@ trait DraftRepository {
         case _ => Failure(NotFoundException(s"Article with id $articleId and revision $revision does not exist"))
       }
 
+    def getCurrentAndPreviousRevision(articleId: Long)(implicit session: DBSession): Try[(Draft, Draft)] = {
+      val ar = DBArticle.syntax("ar")
+      Try(
+        sql"select ${ar.result.*} from ${DBArticle.as(ar)} where ar.article_id = $articleId order by revision desc limit 2"
+          .map(DBArticle.fromResultSet(ar))
+          .toList()
+      ).flatMap {
+        case List(current, previous) => Success((current, previous))
+        case _ => Failure(NotFoundException(s"Article with id $articleId has fewer than 2 revisions"))
+      }
+    }
+
     def getIdFromExternalId(externalId: String)(implicit session: DBSession): Option[Long] = {
       sql"select article_id from ${DBArticle.table} where ${externalId} = any (external_id) order by revision desc limit 1"
         .map(rs => rs.long("article_id"))
@@ -264,11 +276,6 @@ trait DraftRepository {
         .map(rs => rs.long("count"))
         .single()
         .getOrElse(0)
-    }
-
-    def revisionCountForArticleId(articleId: Long)(implicit session: DBSession): Try[Long] = {
-      Try(sql"select count(distinct revision) from ${DBArticle.table} where article_id = $articleId")
-        .map(sql => sql.map(rs => rs.long("count")).single().getOrElse(0))
     }
 
     def getArticlesByPage(pageSize: Int, offset: Int)(implicit session: DBSession): Seq[Draft] = {

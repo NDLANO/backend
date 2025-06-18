@@ -897,15 +897,16 @@ trait WriteService {
     }
 
     def deleteCurrentRevision(id: Long): Try[Unit] = DBUtil.rollbackOnFailure { implicit session =>
+      lazy val missingRevisionError = api.NotFoundException(s"No revision found for article with id $id")
+      lazy val partialPublishError =
+        api.OperationNotAllowedException("The previous revision has been partially published")
       lazy val publishedDeleteError = api.OperationNotAllowedException("Cannot delete a published revision")
-      lazy val lastRevisionError    = api.OperationNotAllowedException("Cannot delete the last revision")
       for {
-        draft         <- Try(draftRepository.withId(id).toTry(api.NotFoundException(s"No article with id $id"))).flatten
-        revision      <- draft.revision.toTry(api.NotFoundException(s"No revision found for article with id $id"))
-        _             <- failureIf(draft.status.current == PUBLISHED, publishedDeleteError)
-        revisionCount <- draftRepository.revisionCountForArticleId(id)
-        _             <- failureIf(revisionCount <= 1, lastRevisionError)
-        result        <- draftRepository.deleteArticleRevision(id, revision)
+        (current, previous) <- draftRepository.getCurrentAndPreviousRevision(id)
+        revision            <- current.revision.toTry(missingRevisionError)
+        _                   <- failureIf(shouldPartialPublish(Some(previous), current).nonEmpty, partialPublishError)
+        _                   <- failureIf(current.status.current == PUBLISHED, publishedDeleteError)
+        result              <- draftRepository.deleteArticleRevision(id, revision)
       } yield result
     }
 
