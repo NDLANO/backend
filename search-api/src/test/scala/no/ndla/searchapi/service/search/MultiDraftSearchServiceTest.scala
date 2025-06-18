@@ -801,7 +801,6 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("excluded drafts should only be returned if filtered by status") {
-    val query = Some(NonEmptyString.fromString("Slettet").get)
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.ARCHIVED))
