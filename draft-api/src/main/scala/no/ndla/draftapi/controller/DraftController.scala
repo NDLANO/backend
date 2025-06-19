@@ -107,6 +107,7 @@ trait DraftController {
       getArticlesByIds,
       getArticleById,
       getHistoricArticleById,
+      getArticleRevisionHistory,
       getInternalIdByExternalId,
       newArticle,
       updateArticle,
@@ -394,6 +395,21 @@ trait DraftController {
           readService
             .getArticles(articleId, language.code, fallback)
             .asRight
+        }
+      }
+
+    def getArticleRevisionHistory: ServerEndpoint[Any, Eff] = endpoint.get
+      .in(pathArticleId / "revision-history")
+      .summary("Get the revision history for an article")
+      .description("Get an object that describes the revision history for a specific article")
+      .in(language)
+      .in(fallback)
+      .out(jsonBody[ArticleRevisionHistoryDTO])
+      .errorOut(errorOutputsFor(400, 404))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ =>
+        { case (articleId, language, fallback) =>
+          readService.getArticleRevisionHistory(articleId, language.code, fallback)
         }
       }
 

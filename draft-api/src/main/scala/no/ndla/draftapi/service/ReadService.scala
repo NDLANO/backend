@@ -13,11 +13,12 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.common.model.domain.draft.DraftStatus.PUBLISHED
 import no.ndla.database.DBUtility
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.NotFoundException
+import no.ndla.draftapi.model.api.{ArticleRevisionHistoryDTO, NotFoundException}
 import no.ndla.draftapi.model.domain.ImportId
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{
@@ -182,6 +183,33 @@ trait ReadService {
           converterService.toApiArticle(addUrlsOnEmbedResources(article), language, fallback)
         )
       } yield api
+    }
+
+    def getArticleRevisionHistory(
+        articleId: Long,
+        language: String,
+        fallback: Boolean
+    ): Try[ArticleRevisionHistoryDTO] = {
+      val drafts = draftRepository
+        .articlesWithId(articleId)
+        .map(addUrlsOnEmbedResources)
+        .sortBy(
+          _.revision.getOrElse(
+            return Failure(api.NotFoundException(s"Revision was missing for draft of article with id $articleId"))
+          )
+        )
+        .reverse
+
+      val canDeleteCurrentRevision = drafts match {
+        case current :: _ :: _ if current.status.current != PUBLISHED => true
+        case _                                                        => false
+      }
+
+      val articles = drafts
+        .map(article => converterService.toApiArticle(article, language, fallback))
+        .collect { case Success(article) => article }
+
+      Success(ArticleRevisionHistoryDTO(articles, canDeleteCurrentRevision))
     }
   }
 }

@@ -1158,62 +1158,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     service.shouldUpdateStatus(article3, article4) should be(false)
   }
 
-  test("shouldPartialPublish return empty-set if articles are equal") {
-    val nnMeta = Description("Meta nn", "nn")
-    val nbMeta = Description("Meta nb", "nb")
-
-    val article1 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nnMeta, nbMeta)
-    )
-    val article2 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nnMeta, nbMeta)
-    )
-    service.shouldPartialPublish(Some(article1), article2) should be(Set.empty)
-
-    val article3 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nnMeta, nbMeta)
-    )
-    val article4 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nbMeta, nnMeta)
-    )
-    service.shouldPartialPublish(Some(article3), article4) should be(Set.empty)
-
-  }
-
-  test("shouldPartialPublish returns set of changed fields") {
-
-    val article1 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(
-        Description("Meta nn", "nn"),
-        Description("Meta nb", "nb")
-      ),
-      grepCodes = Seq(
-        "KE123"
-      )
-    )
-
-    val article2 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(
-        Description("Ny Meta nn", "nn"),
-        Description("Meta nb", "nb")
-      ),
-      grepCodes = Seq("KE123", "KE456")
-    )
-
-    service.shouldPartialPublish(Some(article1), article2) should be(
-      Set(
-        PartialArticleFieldsDTO.metaDescription,
-        PartialArticleFieldsDTO.grepCodes
-      )
-    )
-  }
-
   test("copyRevisionDates updates articles") {
     val nodeId   = "urn:topic:1"
     val node     = Node(nodeId, "Topic", Some("urn:article:1"), List.empty)

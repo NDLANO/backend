@@ -148,4 +148,28 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     verify(draftRepository, times(0)).withIds(any, any, any)(any)
   }
+
+  test("that getArticleRevisionHistory checks for possibility of deleting current revision") {
+    val draft1    = TestData.sampleDomainArticle.copy(status = TestData.statusWithInProcess)
+    val draft2    = draft1.copy(status = TestData.statusWithPublished, revision = Some(3))
+    val articleId = draft1.id.get
+    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(draft1, draft2))
+    when(draftRepository.getExternalIdsFromId(eqTo(articleId))(any)).thenReturn(List("123"))
+    val revisionHistory = readService.getArticleRevisionHistory(articleId, "no", fallback = true).failIfFailure
+    revisionHistory.revisions.map(_.revision) should contain allOf (draft1.revision.get, draft2.revision.get)
+    revisionHistory.canDeleteCurrentRevision should be(false)
+
+    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(draft1))
+    readService
+      .getArticleRevisionHistory(articleId, "no", fallback = true)
+      .failIfFailure
+      .canDeleteCurrentRevision should be(false)
+
+    val draft3 = draft1.copy(revision = Some(3))
+    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(draft1, draft3))
+    readService
+      .getArticleRevisionHistory(articleId, "no", fallback = true)
+      .failIfFailure
+      .canDeleteCurrentRevision should be(true)
+  }
 }
