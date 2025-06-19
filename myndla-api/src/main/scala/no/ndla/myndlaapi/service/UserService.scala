@@ -201,8 +201,8 @@ trait UserService {
           nodebbUserId <- nodebb.getUserId(feideToken)
           _            <- folderRepository.deleteAllUserFolders(feideId)(session)
           _            <- folderRepository.deleteAllUserResources(feideId)(session)
-          _            <- userRepository.deleteUser(feideId)(session)
           _            <- nodebb.deleteUser(nodebbUserId, feideToken)
+          _            <- userRepository.deleteUser(feideId)(session)
         } yield ()
       })
   }
