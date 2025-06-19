@@ -15,6 +15,7 @@ import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus.PUBLISHED
 import no.ndla.database.DBUtility
+import no.ndla.draftapi.DraftUtil.shouldPartialPublish
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.model.api
@@ -201,8 +202,10 @@ trait ReadService {
         .reverse
 
       val canDeleteCurrentRevision = drafts match {
-        case current :: _ :: _ if current.status.current != PUBLISHED => true
-        case _                                                        => false
+        case current :: previous :: _
+            if current.status.current != PUBLISHED && shouldPartialPublish(Some(previous), current).isEmpty =>
+          true
+        case _ => false
       }
 
       val articles = drafts

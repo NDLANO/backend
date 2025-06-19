@@ -10,7 +10,7 @@ package no.ndla.draftapi.service
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.{ArticleContent, VisualElement}
+import no.ndla.common.model.domain.{ArticleContent, Description, VisualElement}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ResourceType, TagAttribute}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -150,25 +150,36 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that getArticleRevisionHistory checks for possibility of deleting current revision") {
-    val draft1    = TestData.sampleDomainArticle.copy(status = TestData.statusWithInProcess)
-    val draft2    = draft1.copy(status = TestData.statusWithPublished, revision = Some(3))
-    val articleId = draft1.id.get
-    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(draft1, draft2))
+    val previousDraft  = TestData.sampleDomainArticle.copy(status = TestData.statusWithInProcess)
+    val currentDraft   = TestData.sampleDomainArticle.copy(revision = Some(42))
+    val publishedDraft = currentDraft.copy(status = TestData.statusWithPublished)
+    val articleId      = previousDraft.id.get
     when(draftRepository.getExternalIdsFromId(eqTo(articleId))(any)).thenReturn(List("123"))
-    val revisionHistory = readService.getArticleRevisionHistory(articleId, "no", fallback = true).failIfFailure
-    revisionHistory.revisions.map(_.revision) should contain allOf (draft1.revision.get, draft2.revision.get)
+
+    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(previousDraft, publishedDraft))
+    val revisionHistory = readService.getArticleRevisionHistory(articleId, "nb", fallback = true).failIfFailure
+    revisionHistory.revisions.map(
+      _.revision
+    ) should contain allOf (previousDraft.revision.get, publishedDraft.revision.get)
     revisionHistory.canDeleteCurrentRevision should be(false)
 
-    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(draft1))
+    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(previousDraft))
     readService
-      .getArticleRevisionHistory(articleId, "no", fallback = true)
+      .getArticleRevisionHistory(articleId, "nb", fallback = true)
       .failIfFailure
       .canDeleteCurrentRevision should be(false)
 
-    val draft3 = draft1.copy(revision = Some(3))
-    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(draft1, draft3))
+    val partialPublishDraft =
+      publishedDraft.copy(revision = Some(84), metaDescription = Seq(Description("new meta", "nb")))
+    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(publishedDraft, partialPublishDraft))
     readService
-      .getArticleRevisionHistory(articleId, "no", fallback = true)
+      .getArticleRevisionHistory(articleId, "nb", fallback = true)
+      .failIfFailure
+      .canDeleteCurrentRevision should be(false)
+
+    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(previousDraft, currentDraft))
+    readService
+      .getArticleRevisionHistory(articleId, "nb", fallback = true)
       .failIfFailure
       .canDeleteCurrentRevision should be(true)
   }

@@ -13,12 +13,11 @@ import no.ndla.common.model
 import no.ndla.common.model.api.{RelatedContentLinkDTO, UpdateWith}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTagDTO, PartialPublishArticleDTO}
-import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
+import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PUBLISHED}
 import no.ndla.common.model.domain.draft.*
 import no.ndla.common.model.{NDLADate, RelatedContentLink, domain, api as commonApi}
 import no.ndla.draftapi.integration.Node
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.PartialArticleFieldsDTO
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
