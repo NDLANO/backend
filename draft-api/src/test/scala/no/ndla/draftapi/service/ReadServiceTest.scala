@@ -10,7 +10,7 @@ package no.ndla.draftapi.service
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.domain.{ArticleContent, VisualElement}
+import no.ndla.common.model.domain.{ArticleContent, Description, VisualElement}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ResourceType, TagAttribute}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -147,5 +147,40 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     result.errors.head.message should be("Query parameter 'ids' is missing")
 
     verify(draftRepository, times(0)).withIds(any, any, any)(any)
+  }
+
+  test("that getArticleRevisionHistory checks for possibility of deleting current revision") {
+    val previousDraft  = TestData.sampleDomainArticle.copy(status = TestData.statusWithInProcess)
+    val currentDraft   = TestData.sampleDomainArticle.copy(revision = Some(42))
+    val publishedDraft = currentDraft.copy(status = TestData.statusWithPublished)
+    val articleId      = previousDraft.id.get
+    when(draftRepository.getExternalIdsFromId(eqTo(articleId))(any)).thenReturn(List("123"))
+
+    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(previousDraft, publishedDraft))
+    val revisionHistory = readService.getArticleRevisionHistory(articleId, "nb", fallback = true).failIfFailure
+    revisionHistory.revisions.map(
+      _.revision
+    ) should contain allOf (previousDraft.revision.get, publishedDraft.revision.get)
+    revisionHistory.canDeleteCurrentRevision should be(false)
+
+    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(previousDraft))
+    readService
+      .getArticleRevisionHistory(articleId, "nb", fallback = true)
+      .failIfFailure
+      .canDeleteCurrentRevision should be(false)
+
+    val partialPublishDraft =
+      publishedDraft.copy(revision = Some(84), metaDescription = Seq(Description("new meta", "nb")))
+    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(publishedDraft, partialPublishDraft))
+    readService
+      .getArticleRevisionHistory(articleId, "nb", fallback = true)
+      .failIfFailure
+      .canDeleteCurrentRevision should be(false)
+
+    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(previousDraft, currentDraft))
+    readService
+      .getArticleRevisionHistory(articleId, "nb", fallback = true)
+      .failIfFailure
+      .canDeleteCurrentRevision should be(true)
   }
 }

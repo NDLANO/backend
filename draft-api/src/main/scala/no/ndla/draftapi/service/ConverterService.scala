@@ -20,6 +20,7 @@ import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{RelatedContentLink, api as commonApi, domain as common}
 import no.ndla.common.{Clock, UUIDUtil, model}
+import no.ndla.draftapi.DraftUtil.getNextRevision
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{NewCommentDTO, NotFoundException, UpdatedArticleDTO, UpdatedCommentDTO}
@@ -562,10 +563,6 @@ trait ConverterService {
           )
       }
     }
-
-    def getNextRevision(draft: Draft): Option[common.draft.RevisionMeta] = getNextRevision(draft.revisionMeta)
-    def getNextRevision(revisions: Seq[common.draft.RevisionMeta]): Option[common.draft.RevisionMeta] =
-      revisions.filterNot(_.status == common.draft.RevisionStatus.Revised).sortBy(_.revisionDate).headOption
 
     def filterComments(content: Seq[ArticleContent]): Seq[ArticleContent] = {
       val contents = content.map(cont => {

@@ -107,6 +107,7 @@ trait DraftController {
       getArticlesByIds,
       getArticleById,
       getHistoricArticleById,
+      getArticleRevisionHistory,
       getInternalIdByExternalId,
       newArticle,
       updateArticle,
@@ -119,7 +120,8 @@ trait DraftController {
       copyRevisionDates,
       getArticleBySlug,
       migrateOutdatedGreps,
-      addNotes
+      addNotes,
+      deleteCurrentRevision
     )
 
     /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
@@ -396,6 +398,21 @@ trait DraftController {
         }
       }
 
+    def getArticleRevisionHistory: ServerEndpoint[Any, Eff] = endpoint.get
+      .in(pathArticleId / "revision-history")
+      .summary("Get the revision history for an article")
+      .description("Get an object that describes the revision history for a specific article")
+      .in(language)
+      .in(fallback)
+      .out(jsonBody[ArticleRevisionHistoryDTO])
+      .errorOut(errorOutputsFor(400, 404))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ =>
+        { case (articleId, language, fallback) =>
+          readService.getArticleRevisionHistory(articleId, language.code, fallback)
+        }
+      }
+
     def getInternalIdByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
       .in("external_id" / path[Long]("deprecated_node_id"))
       .summary("Get internal id of article for a specified ndla_node_id")
@@ -638,6 +655,17 @@ trait DraftController {
       .requirePermission(DRAFT_API_WRITE, ARTICLE_API_WRITE)
       .serverLogicPure { user => _ =>
         writeService.migrateOutdatedGreps(user).handleErrorsOrOk
+      }
+
+    def deleteCurrentRevision: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in(pathArticleId / "current-revision")
+      .summary("Delete the current revision of an article")
+      .description("Delete the current revision of an article")
+      .errorOut(errorOutputsFor(404, 422))
+      .out(noContent)
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ => articleId =>
+        writeService.deleteCurrentRevision(articleId).handleErrorsOrOk
       }
   }
 }

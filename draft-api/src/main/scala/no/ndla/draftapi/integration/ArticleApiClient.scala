@@ -24,6 +24,7 @@ import no.ndla.common.model.domain.article.{
   PartialPublishArticlesBulkDTO
 }
 import no.ndla.common.model.{NDLADate, domain as common}
+import no.ndla.draftapi.DraftUtil.getNextRevision
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.{ArticleApiValidationErrorDTO, ContentIdDTO}
 import no.ndla.draftapi.service.ConverterService
@@ -219,7 +220,7 @@ trait ArticleApiClient {
     def withAvailability(availability: Availability): PartialPublishArticleDTO =
       self.copy(availability = availability.some)
     def withEarliestRevisionDate(revisionMeta: Seq[common.draft.RevisionMeta]): PartialPublishArticleDTO = {
-      val earliestRevisionDate = converterService.getNextRevision(revisionMeta).map(_.revisionDate)
+      val earliestRevisionDate = getNextRevision(revisionMeta).map(_.revisionDate)
       val newRev = earliestRevisionDate match {
         case Some(value) => UpdateWith(value)
         case None        => Delete

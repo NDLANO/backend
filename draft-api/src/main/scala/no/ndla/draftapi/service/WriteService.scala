@@ -14,6 +14,7 @@ import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
+import no.ndla.common.TryUtil.failureIf
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{MissingIdException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
@@ -25,6 +26,7 @@ import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBL
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.database.DBUtility
+import no.ndla.draftapi.DraftUtil.shouldPartialPublish
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.{AddMultipleNotesDTO, AddNoteDTO, PartialArticleFieldsDTO}
@@ -489,51 +491,6 @@ trait WriteService {
       } yield output
     }
 
-    /** Compares articles to check whether earliest not-revised revision date has changed since that is the only one
-      * article-api cares about.
-      */
-    private def compareRevisionDates(oldArticle: Draft, newArticle: Draft): Boolean = {
-      converterService.getNextRevision(oldArticle) != converterService.getNextRevision(newArticle)
-    }
-
-    private def compareField(
-        field: api.PartialArticleFieldsDTO,
-        old: Draft,
-        changed: Draft
-    ): Option[api.PartialArticleFieldsDTO] = {
-      import api.PartialArticleFieldsDTO.*
-      val shouldInclude = field match {
-        case `availability`    => old.availability != changed.availability
-        case `grepCodes`       => old.grepCodes != changed.grepCodes
-        case `relatedContent`  => old.relatedContent != changed.relatedContent
-        case `tags`            => old.tags.sorted != changed.tags.sorted
-        case `metaDescription` => old.metaDescription.sorted != changed.metaDescription.sorted
-        case `license`         => old.copyright.flatMap(_.license) != changed.copyright.flatMap(_.license)
-        case `revisionDate`    => compareRevisionDates(old, changed)
-        case `published`       => old.published != changed.published
-      }
-
-      Option.when(shouldInclude)(field)
-    }
-
-    /** Returns fields to publish _if_ partial-publishing requirements are satisfied, otherwise returns empty set. */
-    private[service] def shouldPartialPublish(
-        existingArticle: Option[Draft],
-        changedArticle: Draft
-    ): Set[api.PartialArticleFieldsDTO] = {
-      val isPublished = changedArticle.status.current == PUBLISHED || changedArticle.status.other.contains(PUBLISHED)
-
-      if (isPublished) {
-        val changedFields = existingArticle
-          .map(e => api.PartialArticleFieldsDTO.values.flatMap(field => compareField(field, e, changedArticle)))
-          .getOrElse(api.PartialArticleFieldsDTO.values)
-
-        changedFields.toSet
-      } else {
-        Set.empty
-      }
-    }
-
     private[service] def updateStatusIfNeeded(
         convertedArticle: Draft,
         existingArticle: Draft,
@@ -893,6 +850,20 @@ trait WriteService {
             } yield ()
           } else Success(())
       }
+    }
+
+    def deleteCurrentRevision(id: Long): Try[Unit] = DBUtil.rollbackOnFailure { implicit session =>
+      lazy val missingRevisionError = api.NotFoundException(s"No revision found for article with id $id")
+      lazy val partialPublishError =
+        api.OperationNotAllowedException("The previous revision has been partially published")
+      lazy val publishedDeleteError = api.OperationNotAllowedException("Cannot delete a published revision")
+      for {
+        (current, previous) <- draftRepository.getCurrentAndPreviousRevision(id)
+        revision            <- current.revision.toTry(missingRevisionError)
+        _                   <- failureIf(shouldPartialPublish(Some(previous), current).nonEmpty, partialPublishError)
+        _                   <- failureIf(current.status.current == PUBLISHED, publishedDeleteError)
+        result              <- draftRepository.deleteArticleRevision(id, revision)
+      } yield result
     }
 
     private def setRevisions(entity: Node, revisions: Seq[common.draft.RevisionMeta]): Try[?] = {

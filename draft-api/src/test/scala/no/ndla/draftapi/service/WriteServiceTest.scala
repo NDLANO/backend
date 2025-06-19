@@ -13,12 +13,11 @@ import no.ndla.common.model
 import no.ndla.common.model.api.{RelatedContentLinkDTO, UpdateWith}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTagDTO, PartialPublishArticleDTO}
-import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
+import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PUBLISHED}
 import no.ndla.common.model.domain.draft.*
 import no.ndla.common.model.{NDLADate, RelatedContentLink, domain, api as commonApi}
 import no.ndla.draftapi.integration.Node
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.PartialArticleFieldsDTO
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
@@ -1158,62 +1157,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     service.shouldUpdateStatus(article3, article4) should be(false)
   }
 
-  test("shouldPartialPublish return empty-set if articles are equal") {
-    val nnMeta = Description("Meta nn", "nn")
-    val nbMeta = Description("Meta nb", "nb")
-
-    val article1 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nnMeta, nbMeta)
-    )
-    val article2 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nnMeta, nbMeta)
-    )
-    service.shouldPartialPublish(Some(article1), article2) should be(Set.empty)
-
-    val article3 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nnMeta, nbMeta)
-    )
-    val article4 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nbMeta, nnMeta)
-    )
-    service.shouldPartialPublish(Some(article3), article4) should be(Set.empty)
-
-  }
-
-  test("shouldPartialPublish returns set of changed fields") {
-
-    val article1 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(
-        Description("Meta nn", "nn"),
-        Description("Meta nb", "nb")
-      ),
-      grepCodes = Seq(
-        "KE123"
-      )
-    )
-
-    val article2 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(
-        Description("Ny Meta nn", "nn"),
-        Description("Meta nb", "nb")
-      ),
-      grepCodes = Seq("KE123", "KE456")
-    )
-
-    service.shouldPartialPublish(Some(article1), article2) should be(
-      Set(
-        PartialArticleFieldsDTO.metaDescription,
-        PartialArticleFieldsDTO.grepCodes
-      )
-    )
-  }
-
   test("copyRevisionDates updates articles") {
     val nodeId   = "urn:topic:1"
     val node     = Node(nodeId, "Topic", Some("urn:article:1"), List.empty)
@@ -1430,5 +1373,23 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     result.status.current should be(PUBLISHED.toString)
     result.started should be(false)
+  }
+
+  test("that deleting current revision fails if status is PUBLISHED") {
+    val previous = TestData.sampleDomainArticle.copy(status = TestData.statusWithInProcess)
+    val current  = previous.copy(status = TestData.statusWithPublished)
+    when(draftRepository.getCurrentAndPreviousRevision(eqTo(current.id.get))(any))
+      .thenReturn(Success((current, previous)))
+    val result = service.deleteCurrentRevision(current.id.get)
+    result.isFailure should be(true)
+  }
+
+  test("that deleting current revision fails if fields have been partially published") {
+    val previous = TestData.sampleDomainArticle.copy(status = TestData.statusWithInProcess)
+    val current  = previous.copy(metaDescription = Seq(Description("Some description", "en")))
+    when(draftRepository.getCurrentAndPreviousRevision(eqTo(current.id.get))(any))
+      .thenReturn(Success((current, previous)))
+    val result = service.deleteCurrentRevision(current.id.get)
+    result.isFailure should be(true)
   }
 }
