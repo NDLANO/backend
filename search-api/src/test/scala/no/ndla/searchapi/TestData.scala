@@ -942,6 +942,23 @@ object TestData {
     articleType = ArticleType.FrontpageArticle
   )
 
+  val draft17: Draft = TestData.sampleDraftWithPublicDomain.copy(
+    id = Option(17),
+    status = Status(DraftStatus.UNPUBLISHED, Set.empty),
+    title = List(Title("Engler og demoner", "nb")),
+    slug = Some("engler-og-demoner"),
+    introduction = List(Introduction("Religion", "nb")),
+    metaDescription = List(common.Description("metareligion", "nb")),
+    content = List(
+      ArticleContent("<section><p>Vanlig i gamle testamentet</p></section>", "nb")
+    ),
+    visualElement = List.empty,
+    tags = List(Tag(List("engel"), "nb")),
+    created = today.minusDays(10),
+    updated = today.minusDays(5),
+    articleType = ArticleType.TopicArticle
+  )
+
   val draftsToIndex: List[Draft] = List(
     draft1,
     draft2,
@@ -958,7 +975,8 @@ object TestData {
     draft13,
     draft14,
     draft15,
-    draft16
+    draft16,
+    draft17
   )
 
   val paul: Author                        = Author(ContributorType.Writer, "Truly Weird Rand Paul")

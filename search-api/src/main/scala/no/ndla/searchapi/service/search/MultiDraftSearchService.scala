@@ -378,7 +378,11 @@ trait MultiDraftSearchService {
     private def draftStatusFilter(statuses: Seq[DraftStatus], includeOthers: Boolean): Some[BoolQuery] = {
       if (statuses.isEmpty) {
         Some(
-          boolQuery().not(termQuery("draftStatus.current", DraftStatus.ARCHIVED.toString))
+          boolQuery()
+            .not(
+              termQuery("draftStatus.current", DraftStatus.ARCHIVED.toString),
+              termQuery("draftStatus.current", DraftStatus.UNPUBLISHED.toString)
+            )
         )
       } else {
         val draftStatuses =
