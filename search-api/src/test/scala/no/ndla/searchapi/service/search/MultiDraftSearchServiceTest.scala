@@ -72,7 +72,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     else {
       draftsToIndex.filter(_.title.map(_.language).contains(language))
     }
-    x.filterNot(_.status.current == DraftStatus.ARCHIVED)
+    x.filterNot(_.status.current == DraftStatus.ARCHIVED).filterNot(_.status.current == DraftStatus.UNPUBLISHED)
   }
 
   private def expectedAllPublicLearningPaths(language: String) = {
@@ -800,23 +800,26 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     search3.summaryResults.map(_.id) should be(Seq(1, 2, 3, 5))
   }
 
-  test("ARCHIVED drafts should only be returned if filtered by ARCHIVED") {
-    val query = Some(NonEmptyString.fromString("Slettet").get)
+  test("excluded drafts should only be returned if filtered by status") {
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = query, withIdIn = List(14), statusFilter = List(DraftStatus.ARCHIVED))
+        multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.ARCHIVED))
       )
     val Success(search2) =
       multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.UNPUBLISHED))
+      )
+    val Success(search3) =
+      multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(
-          query = query,
-          withIdIn = List(14),
+          withIdIn = List(14, 17), // 14 is archived, 17 is unpublished
           statusFilter = List.empty
         )
       )
 
     search1.summaryResults.map(_.id) should be(Seq(14))
-    search2.summaryResults.map(_.id) should be(Seq.empty)
+    search2.summaryResults.map(_.id) should be(Seq(17))
+    search3.summaryResults.map(_.id) should be(Seq.empty)
   }
 
   test("that search with query returns suggestion for query") {
