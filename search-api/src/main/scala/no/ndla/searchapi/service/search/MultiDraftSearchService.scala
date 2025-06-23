@@ -183,7 +183,6 @@ trait MultiDraftSearchService {
           langQueryFunc("tags", 1),
           langQueryFunc("embedAttributes", 1),
           simpleStringQuery(queryString.underlying).field("authors", 1),
-          simpleStringQuery(queryString.underlying).field("grepContexts.title", 1),
           nestedQuery("contexts", contextIdQuery).ignoreUnmapped(true),
           termQuery("contextids", queryString.underlying),
           idsQuery(queryString.underlying),
