@@ -1380,6 +1380,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val current  = previous.copy(revision = Some(84), status = TestData.statusWithPublished)
     when(draftRepository.getCurrentAndPreviousRevision(eqTo(current.id.get))(any))
       .thenReturn(Success((current, previous)))
+
     val result = service.deleteCurrentRevision(current.id.get)
     result.isFailure should be(true)
   }
@@ -1389,6 +1390,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val current  = previous.copy(revision = Some(84), metaDescription = Seq(Description("Some description", "en")))
     when(draftRepository.getCurrentAndPreviousRevision(eqTo(current.id.get))(any))
       .thenReturn(Success((current, previous)))
+
     val result = service.deleteCurrentRevision(current.id.get)
     result.isFailure should be(true)
   }
@@ -1400,6 +1402,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Success((current, previous)))
     when(draftRepository.deleteArticleRevision(eqTo(current.id.get), eqTo(current.revision.get))(any))
       .thenReturn(Success(()))
+
     service.deleteCurrentRevision(current.id.get).failIfFailure
     verify(draftRepository, times(1)).storeArticleAsNewVersion(any, any, any)(any)
   }
