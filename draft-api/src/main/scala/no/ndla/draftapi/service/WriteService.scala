@@ -862,8 +862,11 @@ trait WriteService {
         revision            <- current.revision.toTry(missingRevisionError)
         _                   <- failureIf(shouldPartialPublish(Some(previous), current).nonEmpty, partialPublishError)
         _                   <- failureIf(current.status.current == PUBLISHED, publishedDeleteError)
-        result              <- draftRepository.deleteArticleRevision(id, revision)
-      } yield result
+        _                   <- draftRepository.deleteArticleRevision(id, revision)
+        _ <-
+          if (previous.status.current == PUBLISHED) { draftRepository.storeArticleAsNewVersion(previous, None) }
+          else { Success(()) }
+      } yield ()
     }
 
     private def setRevisions(entity: Node, revisions: Seq[common.draft.RevisionMeta]): Try[?] = {
