@@ -1376,20 +1376,34 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that deleting current revision fails if status is PUBLISHED") {
-    val previous = TestData.sampleDomainArticle.copy(status = TestData.statusWithInProcess)
-    val current  = previous.copy(status = TestData.statusWithPublished)
+    val previous = TestData.sampleDomainArticle.copy(revision = Some(42), status = TestData.statusWithInProcess)
+    val current  = previous.copy(revision = Some(84), status = TestData.statusWithPublished)
     when(draftRepository.getCurrentAndPreviousRevision(eqTo(current.id.get))(any))
       .thenReturn(Success((current, previous)))
+
     val result = service.deleteCurrentRevision(current.id.get)
     result.isFailure should be(true)
   }
 
   test("that deleting current revision fails if fields have been partially published") {
-    val previous = TestData.sampleDomainArticle.copy(status = TestData.statusWithInProcess)
-    val current  = previous.copy(metaDescription = Seq(Description("Some description", "en")))
+    val previous = TestData.sampleDomainArticle.copy(revision = Some(42), status = TestData.statusWithInProcess)
+    val current  = previous.copy(revision = Some(84), metaDescription = Seq(Description("Some description", "en")))
     when(draftRepository.getCurrentAndPreviousRevision(eqTo(current.id.get))(any))
       .thenReturn(Success((current, previous)))
+
     val result = service.deleteCurrentRevision(current.id.get)
     result.isFailure should be(true)
+  }
+
+  test("that deleting current revision stores a new version if previous revision is PUBLISHED") {
+    val previous = TestData.sampleDomainArticle.copy(revision = Some(42), status = TestData.statusWithPublished)
+    val current  = previous.copy(revision = Some(84), status = TestData.statusWithInProcess)
+    when(draftRepository.getCurrentAndPreviousRevision(eqTo(current.id.get))(any))
+      .thenReturn(Success((current, previous)))
+    when(draftRepository.deleteArticleRevision(eqTo(current.id.get), eqTo(current.revision.get))(any))
+      .thenReturn(Success(()))
+
+    service.deleteCurrentRevision(current.id.get).failIfFailure
+    verify(draftRepository, times(1)).storeArticleAsNewVersion(any, any, any)(any)
   }
 }
