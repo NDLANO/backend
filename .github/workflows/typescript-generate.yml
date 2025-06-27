@@ -40,6 +40,7 @@ jobs:
           AWS_ECR_REPO: ${{ secrets.NDLA_AWS_ECR_REPO }}
           DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          RELEASE_ROLE: ${{ secrets.CI_RELEASE_ROLE }}
       - name: Generate typescript types
         run: sbt openapiTSGenerate
       - name: Verify typescript types
