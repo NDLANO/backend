@@ -425,9 +425,11 @@ export type components = {
          * @description Available titles for the concept
          */
         ConceptTitleDTO: {
-            /** @description The title of this concept */
+            /** @description The freetext title of this concept */
             title: string;
-            /** @description The language of this concept */
+            /** @description The freetext html title of this concept */
+            htmlTitle: string;
+            /** @description ISO 639-1 code that represents the language used in the title */
             language: string;
         };
         /**
