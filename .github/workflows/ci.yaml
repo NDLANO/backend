@@ -28,4 +28,4 @@ jobs:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           RELEASE_ROLE: ${{ secrets.CI_RELEASE_ROLE }}
       - name: Unit tests
-        run: sbt {{ inputs.subproject }}/test
+        run: sbt ${{ inputs.subproject }}/test
