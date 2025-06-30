@@ -49,7 +49,7 @@ object TestData {
   val sampleNbApiConcept: api.ConceptDTO = api.ConceptDTO(
     1.toLong,
     1,
-    api.ConceptTitleDTO("Tittel", "nb"),
+    api.ConceptTitleDTO("Tittel", "Tittel", "nb"),
     Some(api.ConceptContent("Innhold", "Innhold", "nb")),
     None,
     None,
@@ -155,7 +155,7 @@ object TestData {
   val sampleNnApiConcept: api.ConceptDTO = api.ConceptDTO(
     1.toLong,
     1,
-    api.ConceptTitleDTO("Tittelur", "nn"),
+    api.ConceptTitleDTO("Tittelur", "Tittelur", "nn"),
     Some(api.ConceptContent("Innhald", "Innhald", "nn")),
     None,
     None,
