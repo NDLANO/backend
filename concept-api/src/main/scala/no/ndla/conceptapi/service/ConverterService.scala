@@ -61,7 +61,7 @@ trait ConverterService {
       if (concept.supportedLanguages.contains(language) || fallback || isLanguageNeutral || language == AllLanguages) {
         val title = findByLanguageOrBestEffort(concept.title, language)
           .map(toApiConceptTitle)
-          .getOrElse(api.ConceptTitleDTO("", UnknownLanguage.toString))
+          .getOrElse(api.ConceptTitleDTO("", "", UnknownLanguage.toString))
         val content = findByLanguageOrBestEffort(concept.content, language)
           .map(toApiConceptContent)
           .getOrElse(api.ConceptContent("", "", UnknownLanguage.toString))
@@ -172,7 +172,7 @@ trait ConverterService {
       toMaybeApiLicense(shortLicense).getOrElse(commonApi.LicenseDTO("unknown", None, None))
 
     def toApiConceptTitle(title: Title): api.ConceptTitleDTO =
-      api.ConceptTitleDTO(title.title, title.language)
+      api.ConceptTitleDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
 
     def toApiConceptContent(content: ConceptContent): api.ConceptContent =
       api.ConceptContent(Jsoup.parseBodyFragment(content.content).body().text(), content.content, content.language)

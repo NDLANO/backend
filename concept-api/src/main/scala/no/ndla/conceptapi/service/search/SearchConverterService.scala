@@ -116,7 +116,7 @@ trait SearchConverterService {
 
       val title = findByLanguageOrBestEffort(titles, language)
         .map(converterService.toApiConceptTitle)
-        .getOrElse(api.ConceptTitleDTO("", UnknownLanguage.toString()))
+        .getOrElse(api.ConceptTitleDTO("", "", UnknownLanguage.toString()))
       val content = findByLanguageOrBestEffort(contents, language)
         .map(converterService.toApiConceptContent)
         .getOrElse(api.ConceptContent("", "", UnknownLanguage.toString()))

@@ -110,7 +110,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedApiConcept =
       api.UpdatedConceptDTO("nn", title = Some(newTitle), None, None, None, None, None, Missing, None, None)
     val expectedConcept = concept.copy(
-      title = api.ConceptTitleDTO(newTitle, "nn"),
+      title = api.ConceptTitleDTO(newTitle, newTitle, "nn"),
       updated = today,
       supportedLanguages = Set("nb", "nn"),
       editorNotes = Some(
@@ -151,7 +151,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     val expectedConcept = concept.copy(
-      title = api.ConceptTitleDTO(updatedTitle, "en"),
+      title = api.ConceptTitleDTO(updatedTitle, updatedTitle, "en"),
       content = Option(api.ConceptContent(updatedContent, updatedContent, "en")),
       copyright = Some(
         commonApi.DraftCopyrightDTO(
