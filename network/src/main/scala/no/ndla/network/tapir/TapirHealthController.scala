@@ -18,12 +18,16 @@ trait TapirHealthController {
   this: TapirController =>
   val healthController: TapirHealthController
   class TapirHealthController extends Warmup with TapirController {
-    override val enableSwagger: Boolean = false
-    val prefix: EndpointInput[Unit]     = "health"
+    @volatile private var isShuttingDown: Boolean = false
+    override val enableSwagger: Boolean           = false
+    val prefix: EndpointInput[Unit]               = "health"
+
+    def setShuttingDown(): Unit = { isShuttingDown = true }
 
     private def checkLiveness(): Either[String, String] = Right("Healthy")
     protected def checkReadiness(): Either[String, String] = {
-      if (isWarmedUp) Right("Ready")
+      if (isShuttingDown) Left("Service is shutting down")
+      else if (isWarmedUp) Right("Ready")
       else Left("Service is not ready")
     }
 

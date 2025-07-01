@@ -36,6 +36,7 @@ import sttp.tapir.{AttributeKey, EndpointInput, statusCode}
 
 import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
 import java.nio.charset.StandardCharsets.UTF_8
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors}
 
 trait Routes {
@@ -44,7 +45,8 @@ trait Routes {
   def services: List[TapirController]
 
   object Routes {
-    val logger: Logger = getLogger
+    val activeRequests: AtomicInteger = new AtomicInteger(0)
+    val logger: Logger                = getLogger
     private def failureResponse(error: String, exception: Option[Throwable]): ValuedEndpointOutput[?] = {
       val logMsg = s"Failure handler got: $error"
       exception match {
@@ -111,20 +113,26 @@ trait Routes {
         }
       }
 
-      private val beforeTime  = new AttributeKey[Long]("beforeTime")
-      private val requestBody = new AttributeKey[Array[Byte]]("requestBody")
+      private val beforeTime      = new AttributeKey[Long]("beforeTime")
+      private val activityTracked = new AttributeKey[Boolean]("activityTracked")
+      private val requestBody     = new AttributeKey[Array[Byte]]("requestBody")
+
       def before(req: ServerRequest): ServerRequest = {
         val requestInfo = RequestInfo.fromRequest(req)
         requestInfo.setThreadContextRequestInfo()
         setBeforeMDC(requestInfo, req)
         val startTime = System.currentTimeMillis()
 
-        if (shouldLogRequest(req)) {
+        val shouldLog = shouldLogRequest(req)
+        if (shouldLog) {
+          activeRequests.incrementAndGet()
           val s = RequestLogger.beforeRequestLogString(req)
           logger.info(s)
         }
 
-        bufferRequestBody(req).attribute(beforeTime, startTime)
+        bufferRequestBody(req)
+          .attribute(beforeTime, startTime)
+          .attribute(activityTracked, shouldLog)
       }
 
       private def combineBodyStream(data: Array[Byte], is: InputStream): InputStream = {
@@ -166,7 +174,7 @@ trait Routes {
           }
 
         def apply[B](req: ServerRequest, result: Identity[RequestResult[B]]): Identity[RequestResult[B]] = {
-          if (shouldLogRequest(req)) {
+          if (req.attribute(activityTracked).contains(true)) {
             val code: Int = result match {
               case RequestResult.Response(x) => x.code.code
               case RequestResult.Failure(_)  => -1
@@ -194,6 +202,8 @@ trait Routes {
 
             if (code >= 500) logger.error(s)
             else logger.info(s)
+
+            activeRequests.decrementAndGet()
           }
 
           RequestInfo.clear()
@@ -250,12 +260,6 @@ trait Routes {
       warmupFunc
 
       server
-    }
-
-    def startJdkServer(name: String, port: Int)(warmupFunc: => Unit): Unit = {
-      startJdkServerAsync(name, port)(warmupFunc): Unit
-      // NOTE: Since JdkHttpServer does not block, we need to block the main thread to keep the application alive
-      synchronized { wait() }
     }
   }
 }
