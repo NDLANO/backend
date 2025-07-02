@@ -189,7 +189,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That statusFor returns a LearningPathStatus when the status is PUBLISHED") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession]))
       .thenReturn(Some(PUBLISHED_LEARNINGPATH))
-    assertResult("PUBLISHED") {
+    assertResult(LearningPathStatus.PUBLISHED) {
       service.statusFor(PUBLISHED_ID, TokenUser.PublicUser.toCombined).map(_.status).get
     }
   }
@@ -212,7 +212,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That statusFor returns a LearningPathStatus when the status is PRIVATE and the user is the owner") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
-    assertResult("PRIVATE") {
+    assertResult(LearningPathStatus.PRIVATE) {
       service.statusFor(PRIVATE_ID, PRIVATE_OWNER.toCombined).map(_.status).get
     }
   }

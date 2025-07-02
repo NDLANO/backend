@@ -260,10 +260,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
 
   val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
-    UpdatedLearningPathV2DTO(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
+    UpdatedLearningPathV2DTO(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None, None)
 
   val UPDATED_PUBLISHED_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
-    UpdatedLearningPathV2DTO(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
+    UpdatedLearningPathV2DTO(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None, None)
 
   override def beforeEach(): Unit = {
     service = new UpdateService
@@ -1097,7 +1097,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val lpToUpdate = UpdatedLearningPathV2DTO(1, Some("YapThisUpdated"), "nb", None, None, None, None, None, None)
+    val lpToUpdate = UpdatedLearningPathV2DTO(1, Some("YapThisUpdated"), "nb", None, None, None, None, None, None, None)
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(
@@ -1348,7 +1348,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val lpToUpdate = UpdatedLearningPathV2DTO(1, None, "nb", None, None, None, None, None, Some(true))
+    val lpToUpdate = UpdatedLearningPathV2DTO(1, None, "nb", None, None, None, None, None, Some(true), None)
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(

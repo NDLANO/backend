@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.service
 
+import cats.implicits.toTraverseOps
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.*
@@ -108,7 +109,11 @@ trait UpdateService {
     ): Try[LearningPathV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       learningPathValidator.validate(learningPathToUpdate)
 
-      withId(id).flatMap(_.canEditLearningpath(owner)) match {
+      (for {
+        existing <- withId(id)
+        _        <- existing.canEditLearningpath(owner)
+        _        <- learningPathToUpdate.status.traverse(existing.canSetStatus(_, owner))
+      } yield existing) match {
         case Failure(ex) => Failure(ex)
         case Success(existing) =>
           val toUpdate = converterService.mergeLearningPaths(existing, learningPathToUpdate, owner)

@@ -10,6 +10,9 @@ package no.ndla.common.model.domain.learningpath
 
 import enumeratum.*
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import sttp.tapir.Codec.PlainCodec
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -24,6 +27,8 @@ object LearningPathStatus extends Enum[LearningPathStatus] with CirceEnum[Learni
   case object READY_FOR_SHARING extends LearningPathStatus
 
   override def values: IndexedSeq[LearningPathStatus] = findValues
+  implicit val schema: Schema[LearningPathStatus]     = schemaForEnumEntry[LearningPathStatus]
+  implicit val codec: PlainCodec[LearningPathStatus]  = plainCodecEnumEntry[LearningPathStatus]
 
   def valueOf(s: String): Option[LearningPathStatus] = {
     LearningPathStatus.values.find(_.toString == s.toUpperCase)

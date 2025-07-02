@@ -185,11 +185,15 @@ trait ConverterService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    private def mergeStatus(existing: LearningPath, user: CombinedUser): LearningPathStatus = {
-      existing.status match {
-        case LearningPathStatus.PUBLISHED if existing.canSetStatus(LearningPathStatus.PUBLISHED, user).isFailure =>
-          LearningPathStatus.UNLISTED
-        case existingStatus => existingStatus
+    private def mergeStatus(
+        existing: LearningPath,
+        maybeNewStatus: Option[LearningPathStatus],
+        user: CombinedUser
+    ): LearningPathStatus = {
+      val canPublish = existing.canSetStatus(LearningPathStatus.PUBLISHED, user)
+      maybeNewStatus.getOrElse(existing.status) match {
+        case LearningPathStatus.PUBLISHED if canPublish.isFailure => LearningPathStatus.UNLISTED
+        case newStatus                                            => newStatus
       }
     }
 
@@ -198,7 +202,7 @@ trait ConverterService {
         updated: UpdatedLearningPathV2DTO,
         userInfo: CombinedUser
     ): LearningPath = {
-      val status = mergeStatus(existing, userInfo)
+      val status = mergeStatus(existing, updated.status, userInfo)
 
       val titles = updated.title match {
         case None => Seq.empty
@@ -296,7 +300,7 @@ trait ConverterService {
         updatedStep: LearningStep,
         user: CombinedUserRequired
     ): LearningPath = {
-      val status                = mergeStatus(learningPath, user)
+      val status                = mergeStatus(learningPath, None, user)
       val existingLearningSteps = learningPath.learningsteps.getOrElse(Seq.empty).filterNot(_.id == updatedStep.id)
       val steps =
         if (StepStatus.ACTIVE == updatedStep.status) existingLearningSteps :+ updatedStep else existingLearningSteps

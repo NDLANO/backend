@@ -583,22 +583,18 @@ trait LearningpathControllerV2 {
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, updateLearningPathStatus) =>
-          learningpath.LearningPathStatus
-            .valueOfOrError(updateLearningPathStatus.status)
-            .flatMap(pathStatus => {
-              updateService
-                .updateLearningPathStatusV2(
-                  pathId,
-                  pathStatus,
-                  user,
-                  DefaultLanguage,
-                  updateLearningPathStatus.message
-                )
-                .map { learningPath =>
-                  logger.info(s"UPDATED status of LearningPath with ID = ${learningPath.id}")
-                  learningPath
-                }
-            })
+          updateService
+            .updateLearningPathStatusV2(
+              pathId,
+              updateLearningPathStatus.status,
+              user,
+              DefaultLanguage,
+              updateLearningPathStatus.message
+            )
+            .map { learningPath =>
+              logger.info(s"UPDATED status of LearningPath with ID = ${learningPath.id}")
+              learningPath
+            }
         }
       }
 
