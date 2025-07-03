@@ -42,6 +42,7 @@ class ConceptApiProperties extends BaseProps with DatabaseProps with StrictLoggi
   def ElasticSearchScrollKeepAlive        = "1m"
   def InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
 
+  def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "sub", "sup")
   def IntroductionHtmlTags: Set[String] = Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
 
   private def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
