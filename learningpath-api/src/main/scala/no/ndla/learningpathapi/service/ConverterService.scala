@@ -12,7 +12,8 @@ import cats.implicits.*
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.OptionImplicit
-import no.ndla.common.model.domain.{ContributorType, learningpath}
+import no.ndla.common.model.api.{Delete, UpdateWith}
+import no.ndla.common.model.domain.{ContributorType, Responsible, learningpath}
 import no.ndla.common.model.domain.learningpath.{
   Description,
   EmbedType,
@@ -99,6 +100,21 @@ trait ConverterService {
       learningpath.LearningpathCopyright(copyright.license.license, copyright.contributors.map(_.toDomain))
     }
 
+    private def getNewResponsible(toMergeInto: LearningPath, updated: UpdatedLearningPathV2DTO) =
+      (updated.responsibleId, toMergeInto.responsible) match {
+        case (Delete, _)                       => None
+        case (UpdateWith(responsibleId), None) => Some(Responsible(responsibleId, clock.now()))
+        case (UpdateWith(responsibleId), Some(existing)) if existing.responsibleId != responsibleId =>
+          Some(Responsible(responsibleId, clock.now()))
+        case (_, existing) => existing
+      }
+
+    private def asApiResponsible(responsible: Responsible): api.LearningpathResponsibleDTO =
+      api.LearningpathResponsibleDTO(
+        responsibleId = responsible.responsibleId,
+        lastUpdated = responsible.lastUpdated
+      )
+
     def asApiLearningpathV2(
         lp: LearningPath,
         language: String,
@@ -155,7 +171,8 @@ trait ConverterService {
             ownerId = owner,
             message = message,
             madeAvailable = lp.madeAvailable,
-            isMyNDLAOwner = lp.isMyNDLAOwner
+            isMyNDLAOwner = lp.isMyNDLAOwner,
+            responsible = lp.responsible.map(asApiResponsible)
           )
         )
       } else
@@ -220,7 +237,16 @@ trait ConverterService {
 
       val message = existing.message.filterNot(_ => updated.deleteMessage.getOrElse(false))
 
-      existing.copy(
+      LearningPath(
+        id = existing.id,
+        externalId = existing.externalId,
+        isBasedOn = existing.isBasedOn,
+        verificationStatus = existing.verificationStatus,
+        created = existing.created,
+        learningsteps = existing.learningsteps,
+        madeAvailable = existing.madeAvailable,
+        owner = existing.owner,
+        isMyNDLAOwner = existing.isMyNDLAOwner,
         revision = Some(updated.revision),
         title = mergeLanguageFields(existing.title, titles),
         description = mergeLanguageFields(existing.description, descriptions),
@@ -238,7 +264,8 @@ trait ConverterService {
             converterService.asCopyright(updated.copyright.get)
           else existing.copyright,
         lastUpdated = clock.now(),
-        message = message
+        message = message,
+        responsible = getNewResponsible(existing, updated)
       )
     }
 
@@ -435,7 +462,9 @@ trait ConverterService {
           isMyNDLAOwner = user.isMyNDLAUser,
           learningsteps = Some(Seq.empty),
           message = None,
-          madeAvailable = None
+          madeAvailable = None,
+          responsible = newLearningPath.responsibleId
+            .map(responsibleId => Responsible(responsibleId = responsibleId, lastUpdated = clock.now()))
         )
       }
     }

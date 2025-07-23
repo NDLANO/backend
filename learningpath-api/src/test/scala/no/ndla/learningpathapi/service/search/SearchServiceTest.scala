@@ -62,7 +62,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     tags = List(),
     owner = "owner",
     copyright = copyright,
-    isMyNDLAOwner = false
+    isMyNDLAOwner = false,
+    responsible = None
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(

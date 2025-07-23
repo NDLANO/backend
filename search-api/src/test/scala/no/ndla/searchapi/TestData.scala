@@ -1001,7 +1001,8 @@ object TestData {
     tags = List(),
     owner = "owner",
     copyright = copyright,
-    isMyNDLAOwner = false
+    isMyNDLAOwner = false,
+    responsible = None
   )
 
   val PenguinId   = 1L
