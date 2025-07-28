@@ -441,7 +441,7 @@ trait SearchConverterService {
     }
 
     def asSearchableConcept(c: Concept, indexingBundle: IndexingBundle): Try[SearchableConcept] = {
-      val title     = SearchableLanguageValues.fromFields(c.title)
+      val title     = model.SearchableLanguageValues(c.title.map(t => LanguageValue(t.language, toPlaintext(t.title))))
       val content   = SearchableLanguageValues.fromFieldsMap(c.content)(toPlaintext)
       val tags      = SearchableLanguageList.fromFields(c.tags)
       val favorited = getFavoritedCountFor(indexingBundle, c.id.get.toString, List(MyNDLAResourceType.Concept)).?
