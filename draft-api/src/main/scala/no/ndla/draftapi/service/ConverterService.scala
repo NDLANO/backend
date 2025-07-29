@@ -22,9 +22,9 @@ import no.ndla.common.model.api.{
   ResponsibleDTO,
   UpdateWith
 }
-import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
+import no.ndla.common.model.domain.{ArticleContent, Comment, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
-import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{RelatedContentLink, api as commonApi, domain as common}
 import no.ndla.common.{Clock, UUIDUtil, model}

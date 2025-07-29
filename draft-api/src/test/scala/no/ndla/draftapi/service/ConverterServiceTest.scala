@@ -14,7 +14,7 @@ import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.DraftStatus.*
-import no.ndla.common.model.domain.draft.{Comment, Draft, DraftCopyright, DraftStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.draftapi.model.api

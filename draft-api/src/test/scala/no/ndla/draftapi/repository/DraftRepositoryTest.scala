@@ -10,8 +10,8 @@ package no.ndla.draftapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
-import no.ndla.common.model.domain.{ArticleContent, EditorNote, Status}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.domain.{ArticleContent, Comment, EditorNote, Status}
 import no.ndla.draftapi.*
 import no.ndla.draftapi.model.domain.*
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
