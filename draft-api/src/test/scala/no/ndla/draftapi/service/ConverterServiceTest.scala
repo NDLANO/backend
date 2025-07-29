@@ -11,14 +11,13 @@ package no.ndla.draftapi.service
 import no.ndla.common
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
+import no.ndla.common.model.api.{Delete, Missing, NewCommentDTO, UpdateWith, UpdatedCommentDTO}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.{NewCommentDTO, UpdatedCommentDTO}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.tapir.auth.TokenUser

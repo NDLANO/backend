@@ -19,8 +19,10 @@ import no.ndla.common.model.api.{
   DisclaimerDTO,
   DraftCopyrightDTO,
   Missing,
+  NewCommentDTO,
   ResponsibleDTO,
-  UpdateWith
+  UpdateWith,
+  UpdatedCommentDTO
 }
 import no.ndla.common.model.domain.{ArticleContent, Comment, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
@@ -31,7 +33,7 @@ import no.ndla.common.{Clock, UUIDUtil, model}
 import no.ndla.draftapi.DraftUtil.getNextRevision
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{NewCommentDTO, NotFoundException, UpdatedArticleDTO, UpdatedCommentDTO}
+import no.ndla.draftapi.model.api.{NotFoundException, UpdatedArticleDTO}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
