@@ -17,7 +17,7 @@ There will be more detailed README's in the respective subdirectories.
 
 **Automatically format code files:** `sbt test-api/fmt`
 
-**Generate typescript files:** `sbt test-api/generateTypescript`
+**Generate typescript files:** `sbt test-api/openapiTSGenerate`
 
 You could run the sbt-tasks directly to execute the tasks for _all_ subprojects (IE: `sbt test`), this however can take a long time and in some cases even fail because of dependencies or jvm memory problems. We should improve upon this in the future, but for now it imposes no real problems.
 
