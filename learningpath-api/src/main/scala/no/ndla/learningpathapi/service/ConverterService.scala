@@ -12,7 +12,7 @@ import cats.implicits.*
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.OptionImplicit
-import no.ndla.common.model.api.{Delete, UpdateWith}
+import no.ndla.common.model.api.{Delete, ResponsibleDTO, UpdateWith}
 import no.ndla.common.model.domain.{ContributorType, Responsible, learningpath}
 import no.ndla.common.model.domain.learningpath.{
   Description,
@@ -109,8 +109,8 @@ trait ConverterService {
         case (_, existing) => existing
       }
 
-    private def asApiResponsible(responsible: Responsible): api.LearningpathResponsibleDTO =
-      api.LearningpathResponsibleDTO(
+    private def asApiResponsible(responsible: Responsible): ResponsibleDTO =
+      ResponsibleDTO(
         responsibleId = responsible.responsibleId,
         lastUpdated = responsible.lastUpdated
       )

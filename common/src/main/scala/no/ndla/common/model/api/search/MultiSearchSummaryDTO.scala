@@ -16,6 +16,7 @@ import no.ndla.common.CirceUtil.deriveEncoderWithTypename
 import no.ndla.common.SchemaImplicits
 import no.ndla.common.TapirUtil.withDiscriminator
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.ResponsibleDTO
 import no.ndla.common.model.api.draft.CommentDTO
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
@@ -107,7 +108,7 @@ case class MultiSearchSummaryDTO(
     @description("A list of revisions planned for the article")
     revisions: Seq[RevisionMetaDTO],
     @description("Responsible field")
-    responsible: Option[DraftResponsibleDTO],
+    responsible: Option[ResponsibleDTO],
     @description("Information about comments attached to the article")
     comments: Option[Seq[CommentDTO]],
     @description("If the article should be prioritized")

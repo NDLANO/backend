@@ -19,7 +19,6 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.draft.CommentDTO
 import no.ndla.common.model.api.search.{
   ApiTaxonomyContextDTO,
-  DraftResponsibleDTO,
   HighlightedFieldDTO,
   LearningResourceType,
   MetaDescriptionDTO,
@@ -35,7 +34,7 @@ import no.ndla.common.model.api.search.{
   TaxonomyResourceTypeDTO,
   TitleWithHtmlDTO
 }
-import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
+import no.ndla.common.model.api.{AuthorDTO, LicenseDTO, ResponsibleDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
@@ -839,7 +838,7 @@ trait SearchConverterService {
       val url                = s"${props.ExternalApiUrls("draft-api")}/${searchableDraft.id}"
       val revisions =
         searchableDraft.revisionMeta.map(m => RevisionMetaDTO(m.revisionDate, m.note, m.status.entryName))
-      val responsible = searchableDraft.responsible.map(r => DraftResponsibleDTO(r.responsibleId, r.lastUpdated))
+      val responsible = searchableDraft.responsible.map(r => ResponsibleDTO(r.responsibleId, r.lastUpdated))
       val comments =
         searchableDraft.domainObject.comments.map(c =>
           CommentDTO(c.id.toString, c.content, c.created, c.updated, c.isOpen, c.solved)
@@ -979,9 +978,8 @@ trait SearchConverterService {
         )
       val url = s"${props.ExternalApiUrls("concept-api")}/${searchableConcept.id}"
 
-      val responsible = searchableConcept.responsible.map(r =>
-        common.model.api.search.DraftResponsibleDTO(r.responsibleId, r.lastUpdated)
-      )
+      val responsible =
+        searchableConcept.responsible.map(r => common.model.api.ResponsibleDTO(r.responsibleId, r.lastUpdated))
       val metaDescription = findByLanguageOrBestEffort(content, language).getOrElse(
         common.model.api.search.MetaDescriptionDTO("", UnknownLanguage.toString)
       )
