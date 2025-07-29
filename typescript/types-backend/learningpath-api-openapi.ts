@@ -623,6 +623,7 @@ export type components = {
             madeAvailable?: string;
             /** @description Whether the owner of the learningpath is a MyNDLA user or not */
             isMyNDLAOwner: boolean;
+            responsible?: components["schemas"]["LearningpathResponsibleDTO"];
         };
         /**
          * LearningStepContainerSummaryDTO
@@ -719,6 +720,16 @@ export type components = {
             /** @description The supported languages of the learningstep */
             supportedLanguages: string[];
         };
+        /**
+         * LearningpathResponsibleDTO
+         * @description Object with data representing the editor responsible for this learningpath
+         */
+        LearningpathResponsibleDTO: {
+            /** @description NDLA ID of responsible editor */
+            responsibleId: string;
+            /** @description Date of when the responsible editor was last updated */
+            lastUpdated: string;
+        };
         /** LicenseDTO */
         LicenseDTO: {
             /** @description The name of the license */
@@ -783,6 +794,8 @@ export type components = {
             language: string;
             /** @description Describes the copyright information for the learningpath */
             copyright?: components["schemas"]["CopyrightDTO"];
+            /** @description NDLA ID representing the editor responsible for this learningpath */
+            responsibleId?: string;
         };
         /**
          * NewLearningStepV2DTO
@@ -935,6 +948,8 @@ export type components = {
             copyright?: components["schemas"]["CopyrightDTO"];
             /** @description Whether to delete a message connected to a learningpath by an administrator. */
             deleteMessage?: boolean;
+            /** @description NDLA ID representing the editor responsible for this learningpath */
+            responsibleId?: string | null;
         };
         /**
          * UpdatedLearningStepV2DTO
