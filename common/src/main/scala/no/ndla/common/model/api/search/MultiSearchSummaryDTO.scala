@@ -16,8 +16,7 @@ import no.ndla.common.CirceUtil.deriveEncoderWithTypename
 import no.ndla.common.SchemaImplicits
 import no.ndla.common.TapirUtil.withDiscriminator
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.ResponsibleDTO
-import no.ndla.common.model.api.draft.CommentDTO
+import no.ndla.common.model.api.{CommentDTO, ResponsibleDTO}
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 

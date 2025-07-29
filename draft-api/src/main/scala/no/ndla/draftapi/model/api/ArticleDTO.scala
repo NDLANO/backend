@@ -12,8 +12,8 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.draft.CommentDTO
 import no.ndla.common.model.api.{
+  CommentDTO,
   DisclaimerDTO,
   DraftCopyrightDTO,
   RelatedContent,

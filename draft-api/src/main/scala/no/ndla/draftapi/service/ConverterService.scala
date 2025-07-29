@@ -13,7 +13,15 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.common.model.api.{Delete, DisclaimerDTO, DraftCopyrightDTO, Missing, ResponsibleDTO, UpdateWith, draft}
+import no.ndla.common.model.api.{
+  CommentDTO,
+  Delete,
+  DisclaimerDTO,
+  DraftCopyrightDTO,
+  Missing,
+  ResponsibleDTO,
+  UpdateWith
+}
 import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
@@ -481,7 +489,7 @@ trait ConverterService {
       }
     }
 
-    private def toApiComment(comment: Comment): draft.CommentDTO = draft.CommentDTO(
+    private def toApiComment(comment: Comment): CommentDTO = model.api.CommentDTO(
       id = comment.id.toString,
       content = comment.content,
       created = comment.created,

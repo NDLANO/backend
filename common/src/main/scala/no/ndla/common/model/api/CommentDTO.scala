@@ -6,7 +6,7 @@
  *
  */
 
-package no.ndla.common.model.api.draft
+package no.ndla.common.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
