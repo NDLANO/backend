@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
+import no.ndla.common.model.api.Missing
 import no.ndla.common.model.domain.learningpath.*
 import no.ndla.common.model.domain.{Author, ContributorType, Title, learningpath}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
@@ -162,7 +163,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     isBasedOn = None,
     title = List(Title("Tittel", "nb")),
     description = List(Description("Beskrivelse", "nb")),
-    coverPhotoId = None,
+    coverPhotoId = Some("1234"),
     duration = Some(1),
     status = LearningPathStatus.PUBLISHED,
     verificationStatus = LearningPathVerificationStatus.EXTERNAL,
@@ -265,10 +266,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
 
   val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
-    UpdatedLearningPathV2DTO(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None, commonApi.Missing)
+    UpdatedLearningPathV2DTO(1, None, "nb", None, Missing, Some(1), None, Some(apiCopyright), None, commonApi.Missing)
 
   val UPDATED_PUBLISHED_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
-    UpdatedLearningPathV2DTO(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None, commonApi.Missing)
+    UpdatedLearningPathV2DTO(1, None, "nb", None, Missing, Some(1), None, Some(apiCopyright), None, commonApi.Missing)
 
   override def beforeEach(): Unit = {
     service = new UpdateService
@@ -1103,7 +1104,18 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val lpToUpdate =
-      UpdatedLearningPathV2DTO(1, Some("YapThisUpdated"), "nb", None, None, None, None, None, None, commonApi.Missing)
+      UpdatedLearningPathV2DTO(
+        1,
+        Some("YapThisUpdated"),
+        "nb",
+        None,
+        Missing,
+        None,
+        None,
+        None,
+        None,
+        commonApi.Missing
+      )
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(
@@ -1355,7 +1367,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val lpToUpdate =
-      UpdatedLearningPathV2DTO(1, None, "nb", None, None, None, None, None, Some(true), commonApi.Missing)
+      UpdatedLearningPathV2DTO(1, None, "nb", None, Missing, None, None, None, Some(true), commonApi.Missing)
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(
@@ -1375,6 +1387,20 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Success(readMock.tags)
     }
     verify(readMock, times(0)).tags
+  }
+
+  test("That an existing coverphoto can be removed") {
+    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.update(any[LearningPath])(any[DBSession]))
+      .thenReturn(PUBLISHED_LEARNINGPATH.copy(coverPhotoId = None))
+
+    assertResult(None) {
+      service
+        .updateLearningPathV2(PUBLISHED_ID, UPDATED_PUBLISHED_LEARNINGPATHV2, PUBLISHED_OWNER.toCombined)
+        .get
+        .coverPhoto
+    }
+
   }
 
 }
