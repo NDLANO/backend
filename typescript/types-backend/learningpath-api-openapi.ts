@@ -623,7 +623,7 @@ export type components = {
             madeAvailable?: string;
             /** @description Whether the owner of the learningpath is a MyNDLA user or not */
             isMyNDLAOwner: boolean;
-            responsible?: components["schemas"]["LearningpathResponsibleDTO"];
+            responsible?: components["schemas"]["ResponsibleDTO"];
         };
         /**
          * LearningStepContainerSummaryDTO
@@ -719,16 +719,6 @@ export type components = {
             status: string;
             /** @description The supported languages of the learningstep */
             supportedLanguages: string[];
-        };
-        /**
-         * LearningpathResponsibleDTO
-         * @description Object with data representing the editor responsible for this learningpath
-         */
-        LearningpathResponsibleDTO: {
-            /** @description NDLA ID of responsible editor */
-            responsibleId: string;
-            /** @description Date of when the responsible editor was last updated */
-            lastUpdated: string;
         };
         /** LicenseDTO */
         LicenseDTO: {
@@ -839,6 +829,16 @@ export type components = {
              * @description Numeric http status code
              */
             statusCode: number;
+        };
+        /**
+         * ResponsibleDTO
+         * @description Object with data representing the editor responsible for this learningpath
+         */
+        ResponsibleDTO: {
+            /** @description NDLA ID of responsible editor */
+            responsibleId: string;
+            /** @description Date of when the responsible editor was last updated */
+            lastUpdated: string;
         };
         /**
          * SearchParamsDTO

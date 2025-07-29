@@ -26,7 +26,7 @@ import no.ndla.common.model.domain.concept.{
 }
 import no.ndla.common.{Clock, model}
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.api.{Delete, UpdateWith}
+import no.ndla.common.model.api.{Delete, ResponsibleDTO, UpdateWith}
 import no.ndla.common.model.{api as commonApi, domain as commonDomain}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.{ConceptTagsDTO, NotFoundException}
@@ -180,8 +180,8 @@ trait ConverterService {
     def toApiVisualElement(visualElement: VisualElement): api.VisualElementDTO =
       api.VisualElementDTO(converterService.addUrlOnElement(visualElement.visualElement), visualElement.language)
 
-    private def toApiConceptResponsible(responsible: Responsible): api.ConceptResponsibleDTO =
-      api.ConceptResponsibleDTO(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
+    private def toApiConceptResponsible(responsible: Responsible): ResponsibleDTO =
+      ResponsibleDTO(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
 
     def toDomainGlossData(apiGlossData: Option[api.GlossDataDTO]): Try[Option[GlossData]] = {
       apiGlossData

@@ -191,16 +191,6 @@ export type components = {
             /** @description ISO 639-1 code that represents the language used in title */
             language: string;
         };
-        /**
-         * DraftResponsibleDTO
-         * @description Responsible field
-         */
-        DraftResponsibleDTO: {
-            /** @description NDLA ID of responsible editor */
-            responsibleId: string;
-            /** @description Date of when the responsible editor was last updated */
-            lastUpdated: string;
-        };
         /** DraftSearchParamsDTO */
         DraftSearchParamsDTO: {
             /**
@@ -634,7 +624,7 @@ export type components = {
             license?: string;
             /** @description A list of revisions planned for the article */
             revisions: components["schemas"]["RevisionMetaDTO"][];
-            responsible?: components["schemas"]["DraftResponsibleDTO"];
+            responsible?: components["schemas"]["ResponsibleDTO"];
             /** @description Information about comments attached to the article */
             comments?: components["schemas"]["CommentDTO"][];
             /** @description If the article should be prioritized */
@@ -728,6 +718,16 @@ export type components = {
              * @description Numeric http status code
              */
             statusCode: number;
+        };
+        /**
+         * ResponsibleDTO
+         * @description Responsible field
+         */
+        ResponsibleDTO: {
+            /** @description NDLA ID of responsible editor */
+            responsibleId: string;
+            /** @description Date of when the responsible editor was last updated */
+            lastUpdated: string;
         };
         /**
          * RevisionMetaDTO

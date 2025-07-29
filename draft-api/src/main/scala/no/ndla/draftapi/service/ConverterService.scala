@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.common.model.api.{Delete, DisclaimerDTO, DraftCopyrightDTO, Missing, UpdateWith, draft}
+import no.ndla.common.model.api.{Delete, DisclaimerDTO, DraftCopyrightDTO, Missing, ResponsibleDTO, UpdateWith, draft}
 import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
 import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
@@ -354,8 +354,8 @@ trait ConverterService {
     def updateStatus(status: DraftStatus, draft: Draft, user: TokenUser): Try[Draft] =
       StateTransitionRules.doTransition(draft, status, user)
 
-    private def toApiResponsible(responsible: Responsible): api.DraftResponsibleDTO =
-      api.DraftResponsibleDTO(
+    private def toApiResponsible(responsible: Responsible): ResponsibleDTO =
+      ResponsibleDTO(
         responsibleId = responsible.responsibleId,
         lastUpdated = responsible.lastUpdated
       )

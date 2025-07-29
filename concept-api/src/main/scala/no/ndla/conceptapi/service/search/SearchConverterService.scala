@@ -14,8 +14,9 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Tag, Title, concept}
 import no.ndla.common.model.api as commonApi
+import no.ndla.common.model.api.ResponsibleDTO
 import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptType, VisualElement}
-import no.ndla.conceptapi.model.api.{ConceptResponsibleDTO, ConceptSearchResultDTO}
+import no.ndla.conceptapi.model.api.{ConceptSearchResultDTO}
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.*
 import no.ndla.conceptapi.model.api
@@ -137,7 +138,7 @@ trait SearchConverterService {
         )
       })
 
-      val responsible = searchableConcept.responsible.map(r => ConceptResponsibleDTO(r.responsibleId, r.lastUpdated))
+      val responsible = searchableConcept.responsible.map(r => ResponsibleDTO(r.responsibleId, r.lastUpdated))
       val glossData   = converterService.toApiGlossData(searchableConcept.domainObject.glossData)
       val conceptTypeName = searchableConcept.sortableConceptType
         .getLanguageOrDefault(language)
