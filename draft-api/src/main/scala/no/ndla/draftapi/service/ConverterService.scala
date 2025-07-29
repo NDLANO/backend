@@ -13,17 +13,27 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.common.model.api.{Delete, DisclaimerDTO, DraftCopyrightDTO, Missing, ResponsibleDTO, UpdateWith, draft}
-import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
+import no.ndla.common.model.api.{
+  CommentDTO,
+  Delete,
+  DisclaimerDTO,
+  DraftCopyrightDTO,
+  Missing,
+  NewCommentDTO,
+  ResponsibleDTO,
+  UpdateWith,
+  UpdatedCommentDTO
+}
+import no.ndla.common.model.domain.{ArticleContent, Comment, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
-import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{RelatedContentLink, api as commonApi, domain as common}
 import no.ndla.common.{Clock, UUIDUtil, model}
 import no.ndla.draftapi.DraftUtil.getNextRevision
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{NewCommentDTO, NotFoundException, UpdatedArticleDTO, UpdatedCommentDTO}
+import no.ndla.draftapi.model.api.{NotFoundException, UpdatedArticleDTO}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
@@ -481,7 +491,7 @@ trait ConverterService {
       }
     }
 
-    private def toApiComment(comment: Comment): draft.CommentDTO = draft.CommentDTO(
+    private def toApiComment(comment: Comment): CommentDTO = model.api.CommentDTO(
       id = comment.id.toString,
       content = comment.content,
       created = comment.created,

@@ -12,7 +12,7 @@ import no.ndla.common.implicits.*
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{DraftCopyrightDTO, RelatedContentLinkDTO}
+import no.ndla.common.model.api.{DraftCopyrightDTO, NewCommentDTO, RelatedContentLinkDTO}
 import sttp.tapir.Schema.annotations.description
 
 // format: off

@@ -16,7 +16,6 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.MissingIdException
 import no.ndla.common.implicits.*
-import no.ndla.common.model.api.draft.CommentDTO
 import no.ndla.common.model.api.search.{
   ApiTaxonomyContextDTO,
   HighlightedFieldDTO,
@@ -34,7 +33,7 @@ import no.ndla.common.model.api.search.{
   TaxonomyResourceTypeDTO,
   TitleWithHtmlDTO
 }
-import no.ndla.common.model.api.{AuthorDTO, LicenseDTO, ResponsibleDTO}
+import no.ndla.common.model.api.{AuthorDTO, CommentDTO, LicenseDTO, ResponsibleDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
