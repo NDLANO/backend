@@ -172,7 +172,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     owner = PUBLISHED_OWNER.id,
     copyright = copyright,
     isMyNDLAOwner = false,
-    learningsteps = Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
+    learningsteps = Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil),
+    responsible = None
   )
 
   val PUBLISHED_LEARNINGPATH_NO_STEPS: LearningPath = LearningPath(
@@ -192,7 +193,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     owner = PUBLISHED_OWNER.id,
     copyright = copyright,
     isMyNDLAOwner = false,
-    learningsteps = None
+    learningsteps = None,
+    responsible = None
   )
 
   val PRIVATE_LEARNINGPATH: LearningPath = LearningPath(
@@ -212,7 +214,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     owner = PRIVATE_OWNER.id,
     copyright = copyright,
     isMyNDLAOwner = false,
-    learningsteps = Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
+    learningsteps = Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil),
+    responsible = None
   )
 
   val PRIVATE_LEARNINGPATH_NO_STEPS: LearningPath = LearningPath(
@@ -232,7 +235,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     owner = PRIVATE_OWNER.id,
     copyright = copyright,
     isMyNDLAOwner = false,
-    learningsteps = None
+    learningsteps = None,
+    responsible = None
   )
 
   val DELETED_LEARNINGPATH: LearningPath = LearningPath(
@@ -252,18 +256,19 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     owner = PRIVATE_OWNER.id,
     copyright = copyright,
     isMyNDLAOwner = false,
-    learningsteps = Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil)
+    learningsteps = Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil),
+    responsible = None
   )
   val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2DTO =
-    NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright))
+    NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright), None)
   val NEW_COPIED_LEARNINGPATHV2: NewCopyLearningPathV2DTO =
     NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
 
   val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
-    UpdatedLearningPathV2DTO(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
+    UpdatedLearningPathV2DTO(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None, commonApi.Missing)
 
   val UPDATED_PUBLISHED_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
-    UpdatedLearningPathV2DTO(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None)
+    UpdatedLearningPathV2DTO(1, None, "nb", None, None, Some(1), None, Some(apiCopyright), None, commonApi.Missing)
 
   override def beforeEach(): Unit = {
     service = new UpdateService
@@ -1097,7 +1102,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val lpToUpdate = UpdatedLearningPathV2DTO(1, Some("YapThisUpdated"), "nb", None, None, None, None, None, None)
+    val lpToUpdate =
+      UpdatedLearningPathV2DTO(1, Some("YapThisUpdated"), "nb", None, None, None, None, None, None, commonApi.Missing)
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(
@@ -1348,7 +1354,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val lpToUpdate = UpdatedLearningPathV2DTO(1, None, "nb", None, None, None, None, None, Some(true))
+    val lpToUpdate =
+      UpdatedLearningPathV2DTO(1, None, "nb", None, None, None, None, None, Some(true), commonApi.Missing)
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(

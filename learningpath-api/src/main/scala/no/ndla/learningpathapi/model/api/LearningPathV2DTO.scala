@@ -58,7 +58,10 @@ case class LearningPathV2DTO(
     @description("The date when this learningpath was made available to the public.")
     madeAvailable: Option[NDLADate],
     @description("Whether the owner of the learningpath is a MyNDLA user or not")
-    isMyNDLAOwner: Boolean
+    isMyNDLAOwner: Boolean,
+    @description("Object with data representing the editor responsible for this learningpath") responsible: Option[
+      LearningpathResponsibleDTO
+    ]
 )
 
 object LearningPathV2DTO {

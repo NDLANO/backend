@@ -58,7 +58,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     tags = List(),
     owner = PUBLISHED_OWNER.id,
     copyright = copyright,
-    isMyNDLAOwner = false
+    isMyNDLAOwner = false,
+    responsible = None
   )
 
   val PRIVATE_LEARNINGPATH: LearningPath = LearningPath(
@@ -77,7 +78,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     tags = List(),
     owner = PRIVATE_OWNER.id,
     copyright = copyright,
-    isMyNDLAOwner = false
+    isMyNDLAOwner = false,
+    responsible = None
   )
 
   val STEP1: LearningStep = LearningStep(
