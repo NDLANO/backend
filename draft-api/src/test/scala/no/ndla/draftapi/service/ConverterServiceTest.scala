@@ -11,12 +11,12 @@ package no.ndla.draftapi.service
 import no.ndla.common
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.api.{Delete, Missing, NewCommentDTO, UpdateWith, UpdatedCommentDTO}
+import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
-import no.ndla.common.model.{NDLADate, api as commonApi}
+import no.ndla.common.model.api as commonApi
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
@@ -664,31 +664,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     res3.grepCodes should be(Seq("a", "b", "c"))
   }
 
-  test("toDomainArticle(updateNullDocumentArticle) should convert grepCodes correctly") {
-
-    val Success(res1) = service.toDomainArticle(
-      1,
-      TestData.sampleApiUpdateArticle.copy(grepCodes = Some(Seq("a", "b"))),
-      TestData.userWithWriteAccess
-    )
-
-    val Success(res2) = service.toDomainArticle(
-      2,
-      TestData.sampleApiUpdateArticle.copy(grepCodes = Some(Seq.empty)),
-      TestData.userWithWriteAccess
-    )
-
-    val Success(res3) = service.toDomainArticle(
-      3,
-      TestData.sampleApiUpdateArticle.copy(grepCodes = None),
-      TestData.userWithWriteAccess
-    )
-
-    res1.grepCodes should be(Seq("a", "b"))
-    res2.grepCodes should be(Seq.empty)
-    res3.grepCodes should be(Seq.empty)
-  }
-
   test("toDomainArticle(UpdateArticle) should update metaImage correctly") {
 
     val beforeUpdate = TestData.sampleDomainArticle.copy(
@@ -717,31 +692,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     res1.metaImage should be(Seq(ArticleMetaImage("2", "Hej", "nn")))
     res2.metaImage should be(Seq(ArticleMetaImage("2", "Hej", "nn"), ArticleMetaImage("1", "Hola", "nb")))
     res3.metaImage should be(beforeUpdate.metaImage)
-  }
-
-  test("toDomainArticle(updateNullDocumentArticle) should update metaImage correctly") {
-
-    val Success(res1) = service.toDomainArticle(
-      1,
-      TestData.sampleApiUpdateArticle.copy(metaImage = Delete),
-      TestData.userWithWriteAccess
-    )
-
-    val Success(res2) = service.toDomainArticle(
-      2,
-      TestData.sampleApiUpdateArticle.copy(metaImage = UpdateWith(api.NewArticleMetaImageDTO("1", "Hola"))),
-      TestData.userWithWriteAccess
-    )
-
-    val Success(res3) = service.toDomainArticle(
-      3,
-      TestData.sampleApiUpdateArticle.copy(metaImage = Missing),
-      TestData.userWithWriteAccess
-    )
-
-    res1.metaImage should be(Seq.empty)
-    res2.metaImage should be(Seq(ArticleMetaImage("1", "Hola", "nb")))
-    res3.metaImage should be(Seq.empty)
   }
 
   test("toDomainArticle should clone files if existing files appear in new language") {
@@ -852,44 +802,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     res1.availability should be(Availability.teacher)
     res2.availability should be(Availability.everyone)
     res3.availability should be(Availability.teacher)
-  }
-
-  test("toDomainArticle(updateNullDocumentArticle) should convert availability correctly") {
-
-    val Success(res1) =
-      service.toDomainArticle(
-        1,
-        TestData.sampleApiUpdateArticle.copy(availability = Some(Availability.teacher.toString)),
-        TestData.userWithWriteAccess
-      )
-
-    val Success(res2) = service.toDomainArticle(
-      2,
-      TestData.sampleApiUpdateArticle.copy(availability = Some("Krutte go")),
-      TestData.userWithWriteAccess
-    )
-
-    val Success(res3) = service.toDomainArticle(
-      3,
-      TestData.sampleApiUpdateArticle.copy(availability = None),
-      TestData.userWithWriteAccess
-    )
-
-    res1.availability should be(Availability.teacher)
-    res2.availability should be(Availability.everyone)
-    res3.availability should be(Availability.everyone)
-  }
-
-  test("toDomainArticle should convert relatedContent correctly") {
-
-    val Success(res1) =
-      service.toDomainArticle(
-        1,
-        TestData.sampleApiUpdateArticle.copy(relatedContent = Some(List(Right(1)))),
-        TestData.userWithWriteAccess
-      )
-
-    res1.relatedContent should be(List(Right(1L)))
   }
 
   test("Changing responsible for article will add note") {
@@ -1038,84 +950,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val draft                                 = TestData.sampleDomainArticle.copy(copyright = None)
     val Failure(result1: ValidationException) = service.toArticleApiArticle(draft)
     result1.errors.head.message should be("Copyright must be present when publishing an article")
-  }
-
-  test("that updatedCommentToDomain creates and updates comments correctly") {
-    val uuid = UUID.randomUUID()
-    val now  = NDLADate.now()
-    when(clock.now()).thenReturn(now)
-    when(uuidUtil.randomUUID()).thenReturn(uuid)
-
-    val updatedComments =
-      List(
-        UpdatedCommentDTO(id = None, content = "hei", isOpen = Some(true), solved = Some(false)),
-        UpdatedCommentDTO(id = Some(uuid.toString), content = "yoo", isOpen = Some(false), solved = Some(false))
-      )
-    val existingComments =
-      Seq(Comment(id = uuid, created = now, updated = now, content = "nja", isOpen = true, solved = false))
-    val expectedComments = Seq(
-      Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true, solved = false),
-      Comment(id = uuid, created = now, updated = now, content = "yoo", isOpen = false, solved = false)
-    )
-    service.updatedCommentToDomain(updatedComments, existingComments) should be(expectedComments)
-  }
-
-  test("that updatedCommentToDomain only keeps updatedComments and deletes rest") {
-    val uuid  = UUID.randomUUID()
-    val uuid2 = UUID.randomUUID()
-    val uuid3 = UUID.randomUUID()
-    val now   = NDLADate.now()
-    when(clock.now()).thenReturn(now)
-
-    val updatedComments = List(
-      UpdatedCommentDTO(id = Some(uuid.toString), content = "updated keep", isOpen = Some(true), solved = Some(false))
-    )
-    val existingComments = Seq(
-      Comment(id = uuid, created = now, updated = now, content = "keep", isOpen = true, solved = false),
-      Comment(id = uuid2, created = now, updated = now, content = "delete", isOpen = true, solved = false),
-      Comment(id = uuid3, created = now, updated = now, content = "delete", isOpen = true, solved = false)
-    )
-    val expectedComments =
-      Seq(Comment(id = uuid, created = now, updated = now, content = "updated keep", isOpen = true, solved = false))
-    val result = service.updatedCommentToDomain(updatedComments, existingComments)
-    result should be(expectedComments)
-  }
-
-  test("that newCommentToDomain creates comments correctly") {
-    val uuid = UUID.randomUUID()
-    val now  = NDLADate.now()
-    when(clock.now()).thenReturn(now)
-
-    val newComments = List(NewCommentDTO(content = "hei", isOpen = None))
-    val expectedComment =
-      Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true, solved = false)
-    service.newCommentToDomain(newComments).head.copy(id = uuid) should be(expectedComment)
-  }
-
-  test("that updatedCommentToDomainNullDocument creates and updates comments correctly") {
-    val uuid = UUID.randomUUID()
-    val now  = NDLADate.now()
-    when(clock.now()).thenReturn(now)
-    when(uuidUtil.randomUUID()).thenReturn(uuid)
-
-    val updatedComments =
-      List(
-        UpdatedCommentDTO(id = None, content = "hei", isOpen = Some(true), solved = Some(false)),
-        UpdatedCommentDTO(id = Some(uuid.toString), content = "yoo", isOpen = None, solved = Some(false))
-      )
-    val expectedComments = Success(
-      Seq(
-        Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true, solved = false),
-        Comment(id = uuid, created = now, updated = now, content = "yoo", isOpen = true, solved = false)
-      )
-    )
-    service.updatedCommentToDomainNullDocument(updatedComments) should be(expectedComments)
-  }
-
-  test("that updatedCommentToDomainNullDocument fails if UUID is malformed") {
-    val updatedComments =
-      List(UpdatedCommentDTO(id = Some("malformed-UUID"), content = "yoo", isOpen = Some(true), solved = Some(false)))
-    service.updatedCommentToDomainNullDocument(updatedComments).isFailure should be(true)
   }
 
   test("filterComments should remove comments") {
