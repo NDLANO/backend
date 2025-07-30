@@ -41,6 +41,7 @@ import no.ndla.common.model.domain.concept.{
 }
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
+import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
 import no.ndla.common.model.domain.learningpath.{
   LearningPath,
   LearningPathStatus,
@@ -1010,6 +1011,7 @@ object TestData {
   val UnrelatedId = 4L
   val EnglandoId  = 5L
   val KekId       = 6L
+  val PrivateId   = 7L
 
   val learningPath1: LearningPath = DefaultLearningPath.copy(
     id = Some(PenguinId),
@@ -1069,13 +1071,25 @@ object TestData {
     tags = List()
   )
 
+  val learningPath7: LearningPath = DefaultLearningPath.copy(
+    id = Some(PrivateId),
+    title = List(Title("Private", "en")),
+    description = List(LPDescription("This is private", "en")),
+    duration = Some(1),
+    lastUpdated = today.minusDays(7),
+    tags = List(),
+    status = PRIVATE,
+    owner = "private"
+  )
+
   val learningPathsToIndex: List[LearningPath] = List(
     learningPath1,
     learningPath2,
     learningPath3,
     learningPath4,
     learningPath5,
-    learningPath6
+    learningPath6,
+    learningPath7
   )
 
   val core: Relevance = Relevance("urn:relevance:core", "Kjernestoff", List.empty)
@@ -1776,6 +1790,7 @@ object TestData {
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(
+    userId = Some("xxxyyy"),
     query = None,
     noteQuery = None,
     fallback = false,

@@ -16,6 +16,7 @@ import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
 
 case class MultiDraftSearchSettings(
+    userId: Option[String],
     query: Option[NonEmptyString],
     noteQuery: Option[NonEmptyString],
     fallback: Boolean,
@@ -56,6 +57,7 @@ case class MultiDraftSearchSettings(
 
 object MultiDraftSearchSettings {
   def default: MultiDraftSearchSettings = MultiDraftSearchSettings(
+    userId = None,
     query = None,
     noteQuery = None,
     fallback = false,

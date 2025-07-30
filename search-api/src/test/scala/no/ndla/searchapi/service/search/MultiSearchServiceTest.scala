@@ -12,6 +12,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO, SearchTrait}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.learningpath.LearningPath
+import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.language.Language.AllLanguages
 import no.ndla.mapping.License
@@ -106,7 +107,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     else {
       TestData.learningPathsToIndex.filter(_.title.map(_.language).contains(language))
     }
-    x.filter(_.copyright.license != License.Copyrighted.toString)
+    x.filter(_.status != PRIVATE).filter(_.copyright.license != License.Copyrighted.toString)
   }
 
   private def idsForLang(language: String) =
