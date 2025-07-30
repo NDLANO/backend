@@ -12,7 +12,7 @@ import cats.implicits.*
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.OptionImplicit
-import no.ndla.common.model.api.{Delete, ResponsibleDTO, UpdateWith}
+import no.ndla.common.model.api.{Delete, Missing, ResponsibleDTO, UpdateOrDelete, UpdateWith}
 import no.ndla.common.model.domain.{ContributorType, Responsible, learningpath}
 import no.ndla.common.model.domain.learningpath.{
   Description,
@@ -194,6 +194,19 @@ trait ConverterService {
       pattern.findFirstMatchIn(url.path.toString).map(_.group(1))
     }
 
+    private def updateImageId(existing: Option[String], url: UpdateOrDelete[String]): Option[String] = {
+      url match {
+        case Delete  => None
+        case Missing => existing
+        case UpdateWith(value) =>
+          (existing, extractImageId(value)) match {
+            case (None, Some(newId))                                    => Some(newId)
+            case (Some(existingId), Some(newId)) if existingId != newId => Some(newId)
+            case (existing, _)                                          => existing
+          }
+      }
+    }
+
     private def mergeLearningPathTags(
         existing: Seq[common.Tag],
         updated: Seq[common.Tag]
@@ -250,9 +263,7 @@ trait ConverterService {
         revision = Some(updated.revision),
         title = mergeLanguageFields(existing.title, titles),
         description = mergeLanguageFields(existing.description, descriptions),
-        coverPhotoId = updated.coverPhotoMetaUrl
-          .map(extractImageId)
-          .getOrElse(existing.coverPhotoId),
+        coverPhotoId = updateImageId(existing.coverPhotoId, updated.coverPhotoMetaUrl),
         duration =
           if (updated.duration.isDefined)
             updated.duration
