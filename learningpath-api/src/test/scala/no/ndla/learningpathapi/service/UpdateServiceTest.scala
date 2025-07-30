@@ -9,7 +9,6 @@
 package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
-import no.ndla.common.model.api.Missing
 import no.ndla.common.model.domain.learningpath.*
 import no.ndla.common.model.domain.{Author, ContributorType, Title, learningpath}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
@@ -174,7 +173,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright = copyright,
     isMyNDLAOwner = false,
     learningsteps = Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil),
-    responsible = None
+    responsible = None,
+    comments = Seq.empty
   )
 
   val PUBLISHED_LEARNINGPATH_NO_STEPS: LearningPath = LearningPath(
@@ -195,7 +195,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright = copyright,
     isMyNDLAOwner = false,
     learningsteps = None,
-    responsible = None
+    responsible = None,
+    comments = Seq.empty
   )
 
   val PRIVATE_LEARNINGPATH: LearningPath = LearningPath(
@@ -216,7 +217,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright = copyright,
     isMyNDLAOwner = false,
     learningsteps = Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil),
-    responsible = None
+    responsible = None,
+    comments = Seq.empty
   )
 
   val PRIVATE_LEARNINGPATH_NO_STEPS: LearningPath = LearningPath(
@@ -237,7 +239,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright = copyright,
     isMyNDLAOwner = false,
     learningsteps = None,
-    responsible = None
+    responsible = None,
+    comments = Seq.empty
   )
 
   val DELETED_LEARNINGPATH: LearningPath = LearningPath(
@@ -258,18 +261,43 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright = copyright,
     isMyNDLAOwner = false,
     learningsteps = Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil),
-    responsible = None
+    responsible = None,
+    comments = Seq.empty
   )
   val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2DTO =
-    NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright), None)
+    NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright), None, None)
   val NEW_COPIED_LEARNINGPATHV2: NewCopyLearningPathV2DTO =
     NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
 
   val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
-    UpdatedLearningPathV2DTO(1, None, "nb", None, Missing, Some(1), None, Some(apiCopyright), None, commonApi.Missing)
+    UpdatedLearningPathV2DTO(
+      1,
+      None,
+      "nb",
+      None,
+      commonApi.Missing,
+      Some(1),
+      None,
+      Some(apiCopyright),
+      None,
+      commonApi.Missing,
+      None
+    )
 
   val UPDATED_PUBLISHED_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
-    UpdatedLearningPathV2DTO(1, None, "nb", None, Missing, Some(1), None, Some(apiCopyright), None, commonApi.Missing)
+    UpdatedLearningPathV2DTO(
+      1,
+      None,
+      "nb",
+      None,
+      commonApi.Missing,
+      Some(1),
+      None,
+      Some(apiCopyright),
+      None,
+      commonApi.Missing,
+      None
+    )
 
   override def beforeEach(): Unit = {
     service = new UpdateService
@@ -1109,12 +1137,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         Some("YapThisUpdated"),
         "nb",
         None,
-        Missing,
+        commonApi.Missing,
         None,
         None,
         None,
         None,
-        commonApi.Missing
+        commonApi.Missing,
+        None
       )
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
@@ -1367,7 +1396,19 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val lpToUpdate =
-      UpdatedLearningPathV2DTO(1, None, "nb", None, Missing, None, None, None, Some(true), commonApi.Missing)
+      UpdatedLearningPathV2DTO(
+        1,
+        None,
+        "nb",
+        None,
+        commonApi.Missing,
+        None,
+        None,
+        None,
+        Some(true),
+        commonApi.Missing,
+        None
+      )
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(

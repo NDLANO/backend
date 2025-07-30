@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.ResponsibleDTO
+import no.ndla.common.model.api.{CommentDTO, ResponsibleDTO}
 import sttp.tapir.Schema.annotations.description
 
 @description("Meta information for a learningpath")
@@ -62,7 +62,8 @@ case class LearningPathV2DTO(
     isMyNDLAOwner: Boolean,
     @description("Object with data representing the editor responsible for this learningpath") responsible: Option[
       ResponsibleDTO
-    ]
+    ],
+    @description("Information about comments attached to the learningpath") comments: Seq[CommentDTO]
 )
 
 object LearningPathV2DTO {

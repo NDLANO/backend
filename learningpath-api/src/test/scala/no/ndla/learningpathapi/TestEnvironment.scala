@@ -9,7 +9,8 @@
 package no.ndla.learningpathapi
 
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.common.Clock
+import no.ndla.common.converter.CommonConverter
+import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.learningpathapi.controller.{InternController, LearningpathControllerV2, StatsController}
 import no.ndla.learningpathapi.integration.*
@@ -41,12 +42,14 @@ trait TestEnvironment
     with SearchApiClient
     with TaxonomyApiClient
     with NdlaClient
+    with CommonConverter
     with ConverterService
     with OembedProxyClient
     with Elastic4sClient
     with DataSource
     with MockitoSugar
     with Clock
+    with UUIDUtil
     with LanguageValidator
     with LearningPathValidator
     with LearningStepValidator
@@ -73,6 +76,7 @@ trait TestEnvironment
   val searchIndexService: SearchIndexService                           = mock[SearchIndexService]
   val converterService: ConverterService                               = org.mockito.Mockito.spy(new ConverterService)
   val clock: SystemClock                                               = mock[SystemClock]
+  val uuidUtil: UUIDUtil                                               = mock[UUIDUtil]
   val taxonomyApiClient: TaxonomyApiClient                             = mock[TaxonomyApiClient]
   val ndlaClient: NdlaClient                                           = mock[NdlaClient]
   val languageValidator: LanguageValidator                             = mock[LanguageValidator]

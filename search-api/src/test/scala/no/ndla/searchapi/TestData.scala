@@ -1002,7 +1002,8 @@ object TestData {
     owner = "owner",
     copyright = copyright,
     isMyNDLAOwner = false,
-    responsible = None
+    responsible = None,
+    comments = Seq.empty
   )
 
   val PenguinId   = 1L

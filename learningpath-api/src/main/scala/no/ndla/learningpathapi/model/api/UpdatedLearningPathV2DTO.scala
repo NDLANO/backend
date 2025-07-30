@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
-import no.ndla.common.model.api.UpdateOrDelete
+import no.ndla.common.model.api.{UpdateOrDelete, UpdatedCommentDTO}
 
 @description("Meta information for a new learningpath")
 case class UpdatedLearningPathV2DTO(
@@ -28,7 +28,8 @@ case class UpdatedLearningPathV2DTO(
     ],
     @description("NDLA ID representing the editor responsible for this learningpath") responsibleId: UpdateOrDelete[
       String
-    ]
+    ],
+    @description("Information about comments attached to the learningpath") comments: Option[List[UpdatedCommentDTO]]
 )
 
 object UpdatedLearningPathV2DTO {

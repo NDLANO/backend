@@ -54,7 +54,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     owner = "",
     copyright = copyright,
     isMyNDLAOwner = false,
-    responsible = None
+    responsible = None,
+    comments = Seq.empty
   )
 
   private def validMock() = {

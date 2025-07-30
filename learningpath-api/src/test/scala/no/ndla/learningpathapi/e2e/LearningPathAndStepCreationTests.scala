@@ -98,7 +98,8 @@ class LearningPathAndStepCreationTests
       tags = None,
       language = "nb",
       copyright = None,
-      responsibleId = None
+      responsibleId = None,
+      comments = None
     )
 
     val x = CirceUtil.toJsonString(dto)
