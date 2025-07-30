@@ -936,7 +936,7 @@ export type components = {
             /** @description The description of the learningpath */
             description?: string;
             /** @description Url to cover-photo in NDLA image-api. */
-            coverPhotoMetaUrl?: string;
+            coverPhotoMetaUrl?: string | null;
             /**
              * Format: int32
              * @description The duration of the learningpath in minutes. Must be greater than 0
