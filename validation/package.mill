@@ -1,0 +1,15 @@
+package build.validation
+
+import mill._, mill.scalalib._
+import build.modules.{BaseModule, SharedDependencies}
+
+object `package` extends BaseModule {
+  override def moduleName  = "validation"
+  override def isComponent = false
+  def mvnDeps: T[Seq[Dep]] = SharedDependencies.logging ++ Seq(
+    SharedDependencies.jsoup,
+    SharedDependencies.scalaUri
+  )
+  override def moduleDeps = Seq(build.common)
+  object test extends TestBase
+}

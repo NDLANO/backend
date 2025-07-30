@@ -1,0 +1,17 @@
+package build.network
+
+import mill.*
+import mill.scalalib.*
+import build.modules.{BaseModule, SharedDependencies}
+
+object `package` extends BaseModule {
+  override def moduleName           = "network"
+  override def isComponent: Boolean = false
+  def mvnDeps: T[Seq[Dep]]          = SharedDependencies.logging ++ SharedDependencies.enumeratum ++ Seq(
+    SharedDependencies.sttp,
+    SharedDependencies.jedis,
+    SharedDependencies.jwtCirce
+  ) ++ SharedDependencies.tapirHttp4sCirce
+  override def moduleDeps = Seq(build.common)
+  object test extends TestBase
+}

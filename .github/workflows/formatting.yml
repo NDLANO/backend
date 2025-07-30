@@ -14,8 +14,7 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ vars.JAVA_VERSION }}
-      - uses: sbt/setup-sbt@v1
       - name: Check all formatting
-        run: sbt scalafmtCheckAll scalafmtSbtCheck
+        run: ./checkfmt.sh
       - name: Check copyrights
-        run: sbt copyrightCheck
+        run: ./mill _.copyrightCheck

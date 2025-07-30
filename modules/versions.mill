@@ -1,0 +1,120 @@
+package build.modules
+
+import mill._, mill.scalalib._
+
+object SharedDependencies {
+  val ScalaVersion          = "2.13.16"
+  val HikariConnectionPoolV = "6.3.0"
+  val ScalaLoggingV         = "3.9.5"
+  val ScalaTestV            = "3.2.19"
+  val Log4JV                = "2.25.0"
+  val AwsSdkV               = "2.31.64"
+  val MockitoV              = "1.17.30"
+  val Elastic4sV            = "8.11.5"
+  val JacksonV              = "2.19.1"
+  val CatsEffectV           = "3.6.1"
+  val FlywayV               = "11.10.5"
+  val PostgresV             = "42.7.7"
+  val Http4sV               = "0.23.30"
+  val TapirV                = "1.11.34"
+  val ApiSpecV              = "0.11.9"
+  val SttpV                 = "3.11.0"
+  val CirceV                = "0.14.14"
+  val ScalikeJDBCV          = "4.3.4"
+  val TestContainersV       = "1.21.1"
+  val JsoupV                = "1.20.1"
+  val JavaMelodyV           = "2.5.0"
+  val EnumeratumV           = "1.9.0"
+  val FlexmarkV             = "0.64.8"
+
+  def logging: Seq[Dep] = Seq(
+    mvn"org.apache.logging.log4j:log4j-api:$Log4JV",
+    mvn"org.apache.logging.log4j:log4j-core:$Log4JV",
+    mvn"org.apache.logging.log4j:log4j-jul:$Log4JV",
+    mvn"org.apache.logging.log4j:log4j-slf4j2-impl:$Log4JV",
+    mvn"com.typesafe.scala-logging::scala-logging:$ScalaLoggingV",
+    mvn"org.slf4j:slf4j-api:2.0.17",
+    // We need jackson to load `log4j2.yaml`
+    mvn"com.fasterxml.jackson.core:jackson-core:$JacksonV",
+    mvn"com.fasterxml.jackson.core:jackson-databind:$JacksonV",
+    mvn"com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$JacksonV",
+    mvn"com.fasterxml.jackson.module::jackson-module-scala:$JacksonV"
+  )
+
+  def testing: Seq[Dep] = Seq(
+    mvn"org.scalatest::scalatest:$ScalaTestV",
+    mvn"org.scalatestplus::mockito-5-10:3.2.18.0",
+    mvn"org.testcontainers:elasticsearch:$TestContainersV",
+    mvn"org.testcontainers:testcontainers:$TestContainersV",
+    mvn"org.testcontainers:postgresql:$TestContainersV"
+  )
+
+  val scalikejdbc = mvn"org.scalikejdbc::scalikejdbc:$ScalikeJDBCV"
+  val postgres    = mvn"org.postgresql:postgresql:$PostgresV"
+  val hikari      = mvn"com.zaxxer:HikariCP:$HikariConnectionPoolV"
+
+  val flyway: Seq[Dep] = Seq(
+    mvn"org.flywaydb:flyway-core:$FlywayV",
+    mvn"org.flywaydb:flyway-database-postgresql:$FlywayV"
+  )
+
+  def database: Seq[Dep] = Seq(scalikejdbc, postgres, hikari) ++ flyway
+
+  def enumeratum: Seq[Dep] = Seq(
+    mvn"com.beachape::enumeratum:$EnumeratumV",
+    mvn"com.beachape::enumeratum-circe:$EnumeratumV"
+  )
+
+  val sttp          = mvn"com.softwaremill.sttp.client3::core:$SttpV"
+  val awsS3         = mvn"software.amazon.awssdk:s3:$AwsSdkV"
+  val awsTranscribe = mvn"software.amazon.awssdk:transcribe:$AwsSdkV"
+
+  val circe: Seq[Dep] = Seq(
+    mvn"io.circe::circe-generic:$CirceV",
+    mvn"io.circe::circe-literal:$CirceV",
+    mvn"io.circe::circe-parser:$CirceV"
+  )
+
+  val http4s: Seq[Dep] = Seq(
+    mvn"org.http4s::http4s-server:$Http4sV",
+    mvn"org.http4s::http4s-dsl:$Http4sV",
+    mvn"org.http4s::http4s-circe:$Http4sV",
+    mvn"org.http4s::http4s-ember-server:$Http4sV",
+    mvn"org.typelevel::cats-parse:1.1.0"
+  )
+
+  val tapirTesting: Dep = mvn"com.softwaremill.sttp.tapir::tapir-testing:$TapirV"
+  val tapir: Seq[Dep]   = Seq(
+    mvn"com.softwaremill.sttp.tapir::tapir-http4s-server:$TapirV",
+    mvn"com.softwaremill.sttp.tapir::tapir-swagger-ui-bundle:$TapirV",
+    mvn"com.softwaremill.sttp.tapir::tapir-enumeratum:$TapirV",
+    mvn"com.softwaremill.sttp.tapir::tapir-json-circe:$TapirV",
+    mvn"com.softwaremill.sttp.tapir::tapir-jdkhttp-server:$TapirV",
+    mvn"com.softwaremill.sttp.tapir::tapir-prometheus-metrics:$TapirV",
+    mvn"com.softwaremill.sttp.apispec::openapi-circe-yaml:$ApiSpecV",
+    tapirTesting // TODO: I think we can just remove this?
+  ).map {
+    // NOTE: tapir-jdkhttp-server includes some logback provider for slf4j
+    //       this conflicts with the existing provider, so lets exclude it.
+    _.exclude("ch.qos.logback" -> "logback-classic")
+      .exclude("ch.qos.logback" -> "logback-core")
+  }
+
+  val catsEffect: Dep = mvn"org.typelevel::cats-effect:$CatsEffectV"
+  val catsCore: Dep   = mvn"org.typelevel::cats-core:2.13.0"
+
+  val tapirHttp4sCirce: Seq[Dep] = circe ++ http4s ++ tapir :+ catsEffect
+
+  def jedis: Dep    = mvn"redis.clients:jedis:6.0.0"
+  def jwtCirce: Dep = mvn"com.github.jwt-scala::jwt-circe:10.0.4"
+
+  def jsoup: Dep    = mvn"org.jsoup:jsoup:$JsoupV"
+  def scalaUri: Dep = mvn"io.lemonlabs::scala-uri:4.0.3".exclude("org.typelevel" -> "cats-parse")
+
+  def elastic4s: Dep     = mvn"com.sksamuel.elastic4s::elastic4s-client-esjava:$Elastic4sV"
+  def elastic4sTest: Dep = mvn"com.sksamuel.elastic4s::elastic4s-testkit:$Elastic4sV"
+  def jave: Seq[Dep]     = Seq(
+    mvn"ws.schild:jave-core:3.5.0",
+    mvn"ws.schild:jave-all-deps:3.5.0"
+  )
+}

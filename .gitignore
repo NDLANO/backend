@@ -6,6 +6,7 @@ target/
 .bloop/
 .metals/
 .vscode/
+out/
 metals.sbt
 
 /typescript/**/node_modules

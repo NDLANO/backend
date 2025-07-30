@@ -1,0 +1,12 @@
+//| mill-version: 1.0.2
+//| mvnDeps: [
+//|   "com.lihaoyi::mill-contrib-docker:$MILL_VERSION",
+//|   "io.circe::circe-generic:0.14.9",
+//|   "io.circe::circe-literal:0.14.9",
+//|   "io.circe::circe-parser:0.14.9"
+//| ]
+
+package build
+import mill._, mill.scalalib._
+
+// Subproject build info is defined in their respective directories in `package.mill` files.
