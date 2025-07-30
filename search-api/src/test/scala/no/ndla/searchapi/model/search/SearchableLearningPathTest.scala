@@ -53,6 +53,7 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       coverPhotoId = Some("10"),
       duration = Some(10),
       status = LearningPathStatus.PUBLISHED.toString,
+      owner = "xxxyyy",
       verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA.toString,
       lastUpdated = TestData.today,
       defaultTitle = Some("Christian Tut"),

@@ -21,6 +21,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, SearchType}
 import no.ndla.common.model.domain.{Content, Priority}
 import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.learningpath.LearningPathStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
@@ -314,6 +315,16 @@ trait MultiDraftSearchService {
       val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
       val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
 
+      val onlyPrivateLearningathsForOwnersFilter = Some(
+        boolQuery().should(
+          boolQuery().not(termQuery("status", LearningPathStatus.PRIVATE.toString)),
+          boolQuery().must(
+            termQuery("status", LearningPathStatus.PRIVATE.toString),
+            termQuery("owner", settings.userId.get)
+          )
+        )
+      )
+
       List(
         licenseFilter,
         idFilter,
@@ -336,7 +347,8 @@ trait MultiDraftSearchService {
         responsibleIdFilter,
         prioritizedFilter,
         priorityFilter,
-        learningResourceType
+        learningResourceType,
+        onlyPrivateLearningathsForOwnersFilter
       ).flatten
     }
 

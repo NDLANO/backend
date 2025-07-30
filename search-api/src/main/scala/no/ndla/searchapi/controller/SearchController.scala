@@ -23,6 +23,7 @@ import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.{AllErrors, DynamicHeaders, NonEmptyString, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.searchapi.controller.parameters.{
   DraftSearchParamsDTO,
   GetSearchQueryParams,
@@ -339,7 +340,7 @@ trait SearchController {
       .out(EndpointOutput.derived[DynamicHeaders])
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure {
-        _ =>
+        userInfo =>
           { implicit queryParams =>
             val searchParams = Some(
               DraftSearchParamsDTO(
@@ -381,7 +382,7 @@ trait SearchController {
               )
             )
 
-            val settings = asDraftSettings(searchParams)
+            val settings = asDraftSettings(searchParams, userInfo)
             scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiDraftSearchService) {
               multiDraftSearchService.matchingQuery(settings).map { searchResult =>
                 val result  = searchConverterService.toApiMultiSearchResult(searchResult)
@@ -401,8 +402,8 @@ trait SearchController {
       .out(jsonBody[MultiSearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure { _ => searchParams =>
-        val settings = asDraftSettings(searchParams)
+      .serverLogicPure { userInfo => searchParams =>
+        val settings = asDraftSettings(searchParams, userInfo)
         scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiDraftSearchService) {
           multiDraftSearchService.matchingQuery(settings).map { searchResult =>
             val result  = searchConverterService.toApiMultiSearchResult(searchResult)
@@ -457,7 +458,7 @@ trait SearchController {
       }
     }
 
-    def asSettings(p: Option[SearchParamsDTO], availability: List[Availability]): SearchSettings = {
+    private def asSettings(p: Option[SearchParamsDTO], availability: List[Availability]): SearchSettings = {
       p match {
         case None => SearchSettings.default
         case Some(params) =>
@@ -494,12 +495,13 @@ trait SearchController {
 
     }
 
-    def asDraftSettings(p: Option[DraftSearchParamsDTO]): MultiDraftSearchSettings = {
+    private def asDraftSettings(p: Option[DraftSearchParamsDTO], user: TokenUser): MultiDraftSearchSettings = {
       p match {
         case None => MultiDraftSearchSettings.default
         case Some(params) =>
           val shouldScroll = params.scrollId.exists(InitialScrollContextKeywords.contains)
           MultiDraftSearchSettings(
+            userId = user.id.some,
             query = params.query,
             noteQuery = params.noteQuery,
             fallback = params.fallback.getOrElse(false),

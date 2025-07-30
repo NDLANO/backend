@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.Decoder
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.model.domain.learningpath.LearningPath
-import no.ndla.common.model.domain.learningpath.LearningPathStatus.{PUBLISHED, SUBMITTED, UNLISTED}
+import no.ndla.common.model.domain.learningpath.LearningPathStatus.DELETED
 import no.ndla.common.model.domain.learningpath.LearningPathVerificationStatus.CREATED_BY_NDLA
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
@@ -41,10 +41,7 @@ trait LearningPathApiClient {
       reqs.setThreadContextRequestInfo()
       get[DomainDumpResults[LearningPath]](dumpDomainPath, params, timeout = 120000) match {
         case Success(result) =>
-          val filtered =
-            result.results
-              .filter(r => List(PUBLISHED, UNLISTED, SUBMITTED).contains(r.status))
-              .filter(_.verificationStatus == CREATED_BY_NDLA)
+          val filtered = result.results.filter(r => DELETED != r.status).filter(_.verificationStatus == CREATED_BY_NDLA)
           logger.info(s"Fetched chunk of ${filtered.size} $name from ${baseUrl.addParams(params)}")
           Success(result.copy(results = filtered))
         case Failure(ex) =>
