@@ -428,6 +428,24 @@ export type components = {
             name: string;
         };
         /**
+         * CommentDTO
+         * @description Information about a comment attached to an article
+         */
+        CommentDTO: {
+            /** @description Id of the comment */
+            id: string;
+            /** @description Content of the comment */
+            content: string;
+            /** @description When the comment was created */
+            created: string;
+            /** @description When the comment was last updated */
+            updated: string;
+            /** @description If the comment is open or closed */
+            isOpen: boolean;
+            /** @description If the comment is solved or not */
+            solved: boolean;
+        };
+        /**
          * ContributorType
          * @description The description of the author. Eg. Photographer or Supplier
          * @enum {string}
@@ -624,6 +642,8 @@ export type components = {
             /** @description Whether the owner of the learningpath is a MyNDLA user or not */
             isMyNDLAOwner: boolean;
             responsible?: components["schemas"]["ResponsibleDTO"];
+            /** @description Information about comments attached to the learningpath */
+            comments: components["schemas"]["CommentDTO"][];
         };
         /**
          * LearningStepContainerSummaryDTO
@@ -740,6 +760,16 @@ export type components = {
             date: string;
         };
         /**
+         * NewCommentDTO
+         * @description Information about a comment attached to an article
+         */
+        NewCommentDTO: {
+            /** @description Content of the comment */
+            content: string;
+            /** @description If the comment is open or closed */
+            isOpen?: boolean;
+        };
+        /**
          * NewCopyLearningPathV2DTO
          * @description Meta information for a new learningpath based on a copy
          */
@@ -786,6 +816,8 @@ export type components = {
             copyright?: components["schemas"]["CopyrightDTO"];
             /** @description NDLA ID representing the editor responsible for this learningpath */
             responsibleId?: string;
+            /** @description Information about comments attached to the learningpath */
+            comments?: components["schemas"]["NewCommentDTO"][];
         };
         /**
          * NewLearningStepV2DTO
@@ -920,6 +952,20 @@ export type components = {
             message?: string;
         };
         /**
+         * UpdatedCommentDTO
+         * @description Information about a comment attached to an article
+         */
+        UpdatedCommentDTO: {
+            /** @description Id of the comment */
+            id?: string;
+            /** @description Content of the comment */
+            content: string;
+            /** @description If the comment is open or closed */
+            isOpen?: boolean;
+            /** @description If the comment is solved or not */
+            solved?: boolean;
+        };
+        /**
          * UpdatedLearningPathV2DTO
          * @description Meta information for a new learningpath
          */
@@ -950,6 +996,8 @@ export type components = {
             deleteMessage?: boolean;
             /** @description NDLA ID representing the editor responsible for this learningpath */
             responsibleId?: string | null;
+            /** @description Information about comments attached to the learningpath */
+            comments?: components["schemas"]["UpdatedCommentDTO"][];
         };
         /**
          * UpdatedLearningStepV2DTO
