@@ -11,9 +11,8 @@ package no.ndla.common.model.domain.learningpath
 import io.circe.generic.semiauto.*
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.{Content, Tag, Title}
+import no.ndla.common.model.domain.{Comment, Content, Responsible, Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
-import no.ndla.common.model.domain.Responsible
 
 case class LearningPath(
     id: Option[Long],
@@ -35,7 +34,8 @@ case class LearningPath(
     learningsteps: Option[Seq[LearningStep]] = None,
     message: Option[Message] = None,
     madeAvailable: Option[NDLADate] = None,
-    responsible: Option[Responsible]
+    responsible: Option[Responsible],
+    comments: Seq[Comment]
 ) extends Content {
 
   def supportedLanguages: Seq[String] = {

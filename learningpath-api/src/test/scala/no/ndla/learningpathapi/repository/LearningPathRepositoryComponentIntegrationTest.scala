@@ -66,7 +66,8 @@ class LearningPathRepositoryComponentIntegrationTest
     owner = "UNIT-TEST",
     copyright = copyright,
     isMyNDLAOwner = false,
-    responsible = None
+    responsible = None,
+    comments = Seq.empty
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(

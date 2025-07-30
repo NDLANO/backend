@@ -89,7 +89,8 @@ object TestData {
     copyright = LearningpathCopyright(CC_BY.toString, List.empty),
     isMyNDLAOwner = false,
     learningsteps = Some(List(domainLearningStep1, domainLearningStep2)),
-    responsible = None
+    responsible = None,
+    comments = Seq.empty
   )
 
   val searchSettings: SearchSettings = SearchSettings(

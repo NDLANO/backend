@@ -10,6 +10,7 @@ package no.ndla.learningpathapi.service
 
 import cats.implicits.*
 import io.lemonlabs.uri.typesafe.dsl.*
+import no.ndla.common.converter.CommonConverter
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.OptionImplicit
 import no.ndla.common.model.api.{Delete, Missing, ResponsibleDTO, UpdateOrDelete, UpdateWith}
@@ -45,7 +46,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
   this: LearningPathRepositoryComponent & LanguageValidator & LearningPathValidator & OembedProxyClient & Clock &
-    Props =>
+    CommonConverter & Props =>
 
   val converterService: ConverterService
 
@@ -172,7 +173,8 @@ trait ConverterService {
             message = message,
             madeAvailable = lp.madeAvailable,
             isMyNDLAOwner = lp.isMyNDLAOwner,
-            responsible = lp.responsible.map(asApiResponsible)
+            responsible = lp.responsible.map(asApiResponsible),
+            comments = lp.comments.map(CommonConverter.commentDomainToApi)
           )
         )
       } else
@@ -248,6 +250,10 @@ trait ConverterService {
           Seq(common.Tag(value, updated.language))
       }
 
+      val updatedComments = updated.comments
+        .map(comments => CommonConverter.mergeUpdatedCommentsWithExisting(comments, existing.comments))
+        .getOrElse(existing.comments)
+
       val message = existing.message.filterNot(_ => updated.deleteMessage.getOrElse(false))
 
       LearningPath(
@@ -276,7 +282,8 @@ trait ConverterService {
           else existing.copyright,
         lastUpdated = clock.now(),
         message = message,
-        responsible = getNewResponsible(existing, updated)
+        responsible = getNewResponsible(existing, updated),
+        comments = updatedComments
       )
     }
 
@@ -475,7 +482,10 @@ trait ConverterService {
           message = None,
           madeAvailable = None,
           responsible = newLearningPath.responsibleId
-            .map(responsibleId => Responsible(responsibleId = responsibleId, lastUpdated = clock.now()))
+            .map(responsibleId => Responsible(responsibleId = responsibleId, lastUpdated = clock.now())),
+          comments = newLearningPath.comments
+            .map(comments => comments.map(CommonConverter.newCommentApiToDomain))
+            .getOrElse(Seq.empty)
         )
       }
     }

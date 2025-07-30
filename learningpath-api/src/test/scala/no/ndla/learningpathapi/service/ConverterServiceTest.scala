@@ -63,7 +63,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     None,
     false,
-    None
+    None,
+    Seq.empty
   )
   val domainLearningStep: LearningStep =
     LearningStep(None, None, None, None, 1, List(), List(), List(), List(), StepType.INTRODUCTION, None)
@@ -104,7 +105,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright = LearningpathCopyright(CC_BY.toString, List.empty),
     isMyNDLAOwner = false,
     learningsteps = None,
-    responsible = None
+    responsible = None,
+    comments = Seq.empty
   )
 
   override def beforeEach(): Unit = {
@@ -143,7 +145,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         None,
         false,
-        None
+        None,
+        Seq.empty
       )
     )
     service.asApiLearningpathV2(
@@ -197,7 +200,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         None,
         false,
-        None
+        None,
+        Seq.empty
       )
     )
     service.asApiLearningpathV2(
@@ -480,7 +484,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val apiCopyright = api.CopyrightDTO(apiLicense, List(apiRubio))
 
     val newCopyLp = NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
-    val newLp = NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright), None)
+    val newLp =
+      NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright), None, None)
 
     service
       .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set.empty, None).toCombined)
@@ -536,5 +541,4 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     service.asDomainLearningStep(newLs, lp2).get.seqNo should be(0)
     service.asDomainLearningStep(newLs, lp3).get.seqNo should be(2)
   }
-
 }
