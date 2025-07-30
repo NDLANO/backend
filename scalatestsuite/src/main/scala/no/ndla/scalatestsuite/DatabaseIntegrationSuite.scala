@@ -21,7 +21,7 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
   this: HasBaseProps & HasDatabaseProps =>
 
   val EnablePostgresContainer: Boolean = true
-  val PostgresqlVersion: String        = "16.3"
+  val PostgresqlVersion: String        = "17.5"
   val schemaName: String               = "testschema"
 
   val postgresContainer: Try[PostgreSQLContainer[?]] = if (EnablePostgresContainer) {
