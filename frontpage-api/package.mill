@@ -1,4 +1,4 @@
-package build.`concept-api`
+package build.`frontpage-api`
 
 import mill._, mill.scalalib._
 import build.modules.{BaseModule, SharedDependencies}
@@ -10,13 +10,10 @@ object `package` extends BaseModule {
       SharedDependencies.tapirHttp4sCirce ++ 
       SharedDependencies.database ++ 
       Seq(
-        SharedDependencies.scalaUri,
         SharedDependencies.sttp,
-        SharedDependencies.jsoup,
-        SharedDependencies.catsEffect,
-        SharedDependencies.catsCore
+        SharedDependencies.catsEffect
       )
-  override def moduleDeps = Seq(build.common, build.network, build.mapping, build.language, build.search, build.database, build.validation)
+  override def moduleDeps = Seq(build.common, build.network, build.mapping, build.language, build.database)
   object test extends ScalaTester {
     override def moduleDeps = super.moduleDeps ++ Seq(build.tapirtesting, build.scalatestsuite)
   }
