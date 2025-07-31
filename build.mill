@@ -1,3 +1,5 @@
 //| mill-version: 1.0.2
 package build
 import mill._, mill.scalalib._
+
+// Subproject build info is defined in their respective directories in `package.mill` files.
