@@ -103,4 +103,7 @@ object SharedDependencies {
   def jedis: Dep = mvn"redis.clients:jedis:6.0.0"
   def jwtCirce: Dep = mvn"com.github.jwt-scala::jwt-circe:10.0.4"
 
+  def jsoup: Dep = mvn"org.jsoup:jsoup:$JsoupV"
+  def scalaUri: Dep = mvn"io.lemonlabs::scala-uri:4.0.3".exclude("org.typelevel" -> "cats-parse")
+
 }
