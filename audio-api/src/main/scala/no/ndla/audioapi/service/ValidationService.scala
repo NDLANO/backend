@@ -244,7 +244,7 @@ trait ValidationService {
       } else {
         meta.flatMap(m => {
           val introductionErrors = validateNonEmpty("podcastMeta.introduction", m.introduction).toSeq
-          val coverPhotoErrors = if (language.contains(m.language)) {
+          val coverPhotoErrors   = if (language.contains(m.language)) {
             validatePodcastCoverPhoto("podcastMeta.coverPhoto", m.coverPhoto)
           } else Seq.empty
 

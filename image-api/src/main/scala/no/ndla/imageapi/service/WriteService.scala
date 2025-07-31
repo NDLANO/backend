@@ -118,7 +118,7 @@ trait WriteService {
     def deleteImageAndFiles(imageId: Long): Try[Long] = {
       imageRepository.withId(imageId) match {
         case Some(toDelete) =>
-          val metaDeleted = imageRepository.delete(imageId)
+          val metaDeleted  = imageRepository.delete(imageId)
           val filesDeleted = toDelete.images
             .getOrElse(Seq.empty)
             .traverse(image => {
@@ -143,11 +143,11 @@ trait WriteService {
         user: TokenUser
     ): Try[ImageMetaInformation] = {
       imageRepository.withId(imageId) match {
-        case None => Failure(new ImageNotFoundException(s"Image with id $imageId was not found."))
+        case None           => Failure(new ImageNotFoundException(s"Image with id $imageId was not found."))
         case Some(existing) =>
           val now       = clock.now()
           val newTitles = existing.titles.map(t => t.copy(title = t.title + " (Kopi)"))
-          val toInsert = existing.copy(
+          val toInsert  = existing.copy(
             id = None,
             titles = newTitles,
             images = None,
@@ -248,8 +248,8 @@ trait WriteService {
       val userId = user.id
 
       val alttexts = toMerge.alttext match {
-        case Missing => existing.alttexts
-        case Delete  => existing.alttexts.filterNot(_.language == toMerge.language)
+        case Missing           => existing.alttexts
+        case Delete            => existing.alttexts.filterNot(_.language == toMerge.language)
         case UpdateWith(value) =>
           existing.alttexts
             .filterNot(_.language == toMerge.language) :+ converterService.asDomainAltText(value, toMerge.language)
@@ -274,7 +274,7 @@ trait WriteService {
 
       val existingLanguages = converterService.getSupportedLanguages(existing)
       val isNewLanguage     = !existingLanguages.contains(toMerge.language)
-      val newEditorNotes = {
+      val newEditorNotes    = {
         if (isNewLanguage)
           existing.editorNotes :+ domain.EditorNote(now, userId, s"Added new language '${toMerge.language}'.")
         else if (hasChangedMetadata(existing, newImageMeta))
@@ -359,7 +359,7 @@ trait WriteService {
           imageStorage.cloneObject(uploaded.fileName, existingImage.fileName).?
           Success(clonedImage)
         case Some(existingImage) => Success(imageFileFrom(existingImage))
-        case None =>
+        case None                =>
           val doc = converterService.toImageDocument(uploaded, language)
           imageRepository.insertImageFile(imageId, uploaded.fileName, doc)
       }).?
@@ -375,7 +375,7 @@ trait WriteService {
         user: TokenUser
     ): Try[domain.ImageMetaInformation] = {
       imageRepository.withId(imageId) match {
-        case None => Failure(new ImageNotFoundException(s"Image with id $imageId found"))
+        case None           => Failure(new ImageNotFoundException(s"Image with id $imageId found"))
         case Some(oldImage) =>
           val maybeOverwrittenImage = newFile match {
             case Some(file) =>
@@ -401,7 +401,7 @@ trait WriteService {
         user: TokenUser
     ): Try[ImageMetaInformationV2DTO] =
       for {
-        updated <- updateImageAndFile(imageId, updateMeta, newFile, user)
+        updated   <- updateImageAndFile(imageId, updateMeta, newFile, user)
         converted <- converterService.asApiImageMetaInformationWithDomainUrlV2(
           updated,
           updateMeta.language.some,
@@ -437,7 +437,7 @@ trait WriteService {
           logger.error("Something went wrong when getting imageDimensions", ex)
           Some(ImageDimensions(0, 0))
         case Success(Some(image)) => Some(ImageDimensions(image.getWidth, image.getHeight))
-        case Success(None) =>
+        case Success(None)        =>
           val isSVG = new String(bytes).toLowerCase.contains("<svg")
           // Since SVG are vector-images size doesn't make sense
           if (isSVG) None

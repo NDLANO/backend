@@ -71,7 +71,7 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with ImageApiClient
     with V55__SetHideBylineForImagesNotCopyrighted {
   override val props: ArticleApiProperties = properties
-  override val migrator: DBMigrator = DBMigrator(
+  override val migrator: DBMigrator        = DBMigrator(
     new R__SetArticleLanguageFromTaxonomy(props),
     new R__SetArticleTypeFromTaxonomy,
     new V8__CopyrightFormatUpdated,

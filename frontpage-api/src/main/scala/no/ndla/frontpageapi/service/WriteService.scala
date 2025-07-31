@@ -58,7 +58,7 @@ trait WriteService {
         fallback: Boolean
     ): Try[SubjectPageDTO] = {
       subjectPageRepository.withId(id) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)                    => Failure(ex)
         case Success(Some(existingSubject)) =>
           for {
             domainSubject <- ConverterService.toDomainSubjectPage(existingSubject, subject)
@@ -134,7 +134,7 @@ trait WriteService {
           page.supportedLanguages.size match {
             case 1 => Failure(OperationNotAllowedException("Only one language left"))
             case _ =>
-              val about = page.about.filter(_.language != language)
+              val about       = page.about.filter(_.language != language)
               val movieThemes = page.movieThemes.map(movieTheme =>
                 movieTheme.copy(name = movieTheme.name.filter(_.language != language))
               )

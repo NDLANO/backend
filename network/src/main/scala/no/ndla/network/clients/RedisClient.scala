@@ -50,7 +50,7 @@ trait RedisClient {
         case Some(feideUser) =>
           CirceUtil.tryParseAs[FeideExtendedUserInfo](feideUser) match {
             case Success(value) => Some(value)
-            case Failure(ex) =>
+            case Failure(ex)    =>
               logger.warn(s"Failed to deserialize cached value from field $feideUserField. Updating cache.", ex)
               None
           }
@@ -84,7 +84,7 @@ trait RedisClient {
         case Some(feideGroups) =>
           CirceUtil.tryParseAs[Seq[FeideGroup]](feideGroups) match {
             case Success(value) => Some(value)
-            case Failure(ex) =>
+            case Failure(ex)    =>
               logger.warn(s"Failed to deserialize cached value from field $feideGroupsField. Updating cache.", ex)
               None
           }

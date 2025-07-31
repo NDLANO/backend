@@ -134,7 +134,7 @@ trait WriteService {
             domainConcept <- converterService.toDomainConcept(existingConcept, updatedConcept, user)
             withStatus    <- updateStatusIfNeeded(existingConcept, domainConcept, updatedConcept.status, user)
             withNotes = updateNotes(existingConcept, updatedConcept, withStatus, user)
-            updated <- updateConcept(withNotes, user)
+            updated   <- updateConcept(withNotes, user)
             converted <- converterService.toApiConcept(
               updated,
               updatedConcept.language,
@@ -146,7 +146,7 @@ trait WriteService {
         case None if draftConceptRepository.exists(id) =>
           val concept = converterService.toDomainConcept(id, updatedConcept, user)
           for {
-            updated <- updateConcept(concept, user)
+            updated   <- updateConcept(concept, user)
             converted <- converterService.toApiConcept(
               updated,
               updatedConcept.language,
@@ -189,7 +189,7 @@ trait WriteService {
                     )
                   )
                 )
-                updated <- updateConcept(conceptWithUpdatedNotes, user)
+                updated   <- updateConcept(conceptWithUpdatedNotes, user)
                 converted <- converterService.toApiConcept(
                   updated,
                   Language.AllLanguages,
@@ -205,13 +205,13 @@ trait WriteService {
 
     def updateConceptStatus(status: ConceptStatus, id: Long, user: TokenUser): Try[api.ConceptDTO] = {
       draftConceptRepository.withId(id) match {
-        case None => Failure(NotFoundException(s"No article with id $id was found"))
+        case None        => Failure(NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
           for {
             convertedConcept <- converterService.updateStatus(status, draft, user)
             updatedConcept   <- updateConcept(convertedConcept, user)
             _                <- draftConceptIndexService.indexDocument(updatedConcept)
-            apiConcept <- converterService.toApiConcept(
+            apiConcept       <- converterService.toApiConcept(
               updatedConcept,
               Language.AllLanguages,
               fallback = true,

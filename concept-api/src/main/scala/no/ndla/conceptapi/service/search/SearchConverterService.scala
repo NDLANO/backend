@@ -54,11 +54,11 @@ trait SearchConverterService {
     }
 
     def asSearchableConcept(c: Concept): SearchableConcept = {
-      val title = SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title)))
+      val title   = SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title)))
       val content = SearchableLanguageValues(
         c.content.map(content => LanguageValue(content.language, Jsoup.parseBodyFragment(content.content).text()))
       )
-      val tags = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags)))
+      val tags          = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags)))
       val visualElement = SearchableLanguageValues(
         c.visualElement.map(element => LanguageValue(element.language, element.visualElement))
       )
@@ -110,7 +110,7 @@ trait SearchConverterService {
       val titles            = searchableConcept.title.languageValues.map(lv => Title(lv.value, lv.language))
       val contents          = searchableConcept.content.languageValues.map(lv => ConceptContent(lv.value, lv.language))
       val tags              = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))
-      val visualElements =
+      val visualElements    =
         searchableConcept.visualElement.languageValues.map(lv => concept.VisualElement(lv.value, lv.language))
 
       val supportedLanguages = getSupportedLanguages(titles, contents)
@@ -121,10 +121,10 @@ trait SearchConverterService {
       val content = findByLanguageOrBestEffort(contents, language)
         .map(converterService.toApiConceptContent)
         .getOrElse(api.ConceptContent("", "", UnknownLanguage.toString()))
-      val tag = findByLanguageOrBestEffort(tags, language).map(converterService.toApiTags)
+      val tag           = findByLanguageOrBestEffort(tags, language).map(converterService.toApiTags)
       val visualElement =
         findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
-      val license = converterService.toApiLicense(searchableConcept.license)
+      val license   = converterService.toApiLicense(searchableConcept.license)
       val copyright = searchableConcept.copyright.map(c => {
         commonApi.DraftCopyrightDTO(
           license = Some(license),
@@ -138,8 +138,8 @@ trait SearchConverterService {
         )
       })
 
-      val responsible = searchableConcept.responsible.map(r => ResponsibleDTO(r.responsibleId, r.lastUpdated))
-      val glossData   = converterService.toApiGlossData(searchableConcept.domainObject.glossData)
+      val responsible     = searchableConcept.responsible.map(r => ResponsibleDTO(r.responsibleId, r.lastUpdated))
+      val glossData       = converterService.toApiGlossData(searchableConcept.domainObject.glossData)
       val conceptTypeName = searchableConcept.sortableConceptType
         .getLanguageOrDefault(language)
         .getOrElse(searchableConcept.conceptType)

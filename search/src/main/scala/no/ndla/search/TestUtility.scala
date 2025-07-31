@@ -63,7 +63,7 @@ object TestUtility {
   }
 
   def getMappingFields(fields: Seq[ElasticField], prefix: Option[String]): Seq[String] = {
-    val pre = prefix.map(x => s"$x.").getOrElse("")
+    val pre   = prefix.map(x => s"$x.").getOrElse("")
     val names = fields.flatMap {
       case nf: NestedField =>
         val prefix = Some(s"$pre${nf.name}")

@@ -76,7 +76,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That update function updates only content properly") {
-    val newContent = "NewContentTest"
+    val newContent        = "NewContentTest"
     val updatedApiConcept =
       api.UpdatedConceptDTO(
         "en",
@@ -105,7 +105,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That update function updates only title properly") {
-    val newTitle = "NewTitleTest"
+    val newTitle          = "NewTitleTest"
     val updatedApiConcept =
       api.UpdatedConceptDTO("nn", title = Some(newTitle), None, None, None, None, None, Missing, None, None)
     val expectedConcept = concept.copy(
@@ -122,8 +122,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateConcept updates multiple fields properly") {
-    val updatedTitle   = "NyTittelTestJee"
-    val updatedContent = "NyContentTestYepp"
+    val updatedTitle     = "NyTittelTestJee"
+    val updatedContent   = "NyContentTestYepp"
     val updatedCopyright =
       commonApi.DraftCopyrightDTO(
         None,
@@ -237,7 +237,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That update function updates only responsible properly") {
-    val responsibleId = "ResponsibleId"
+    val responsibleId     = "ResponsibleId"
     val updatedApiConcept =
       api.UpdatedConceptDTO(
         language = "nb",

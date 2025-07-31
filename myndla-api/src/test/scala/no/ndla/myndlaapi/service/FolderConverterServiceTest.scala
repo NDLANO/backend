@@ -264,7 +264,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     )
     val updatedWithData =
       UpdatedFolderDTO(name = Some("newNamae"), status = Some("shared"), description = Some("halla"))
-    val updatedWithoutData = UpdatedFolderDTO(name = None, status = None, description = None)
+    val updatedWithoutData     = UpdatedFolderDTO(name = None, status = None, description = None)
     val updatedWithGarbageData =
       UpdatedFolderDTO(
         name = Some("huehueuheasdasd+++"),

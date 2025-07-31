@@ -13,8 +13,8 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 
 import scala.util.{Failure, Success, Try}
 
-sealed trait LearningPathStatus extends EnumEntry {}
-object LearningPathStatus extends Enum[LearningPathStatus] with CirceEnum[LearningPathStatus] {
+sealed trait LearningPathStatus extends EnumEntry                                                   {}
+object LearningPathStatus       extends Enum[LearningPathStatus] with CirceEnum[LearningPathStatus] {
 
   case object PUBLISHED         extends LearningPathStatus
   case object PRIVATE           extends LearningPathStatus
@@ -32,7 +32,7 @@ object LearningPathStatus extends Enum[LearningPathStatus] with CirceEnum[Learni
   def valueOfOrError(status: String): Try[LearningPathStatus] = {
     valueOf(status) match {
       case Some(status) => Success(status)
-      case None =>
+      case None         =>
         Failure(
           new ValidationException(
             errors = List(ValidationMessage("status", s"'$status' is not a valid publishingstatus."))

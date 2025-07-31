@@ -87,7 +87,7 @@ trait TapirController extends TapirErrorHandling {
         val newEndpoint = self.securityIn(AuthUtility.feideOauth())
         val authFunc: Option[String] => Either[AllErrors, Option[MyNDLAUserDTO]] = (maybeToken: Option[String]) => {
           maybeToken match {
-            case None => Right(None)
+            case None        => Right(None)
             case Some(token) =>
               myndlaApiClient.getUserWithFeideToken(token) match {
                 case Failure(ex: HttpRequestException) if ex.code == 401 =>

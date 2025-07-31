@@ -19,9 +19,9 @@ trait V16__MigrateResourcePaths {
   this: TaxonomyApiClient & NdlaClient =>
 
   class V16__MigrateResourcePaths extends TableMigration[ResourceRow] {
-    override val tableName: String                  = "resources"
-    override val whereClause: scalikejdbc.SQLSyntax = sqls"path is not null"
-    override val chunkSize: Int                     = 1000
+    override val tableName: String                                 = "resources"
+    override val whereClause: scalikejdbc.SQLSyntax                = sqls"path is not null"
+    override val chunkSize: Int                                    = 1000
     override def extractRowData(rs: WrappedResultSet): ResourceRow = ResourceRow(
       UUID.fromString(rs.string("id")),
       rs.string("resource_type"),

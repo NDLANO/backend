@@ -98,7 +98,7 @@ trait ConverterService {
     ): Try[api.ImageMetaInformationV3DTO] = {
       val metaUrl = props.ImageApiV3UrlBase + imageMeta.id.get
       val rawPath = props.RawImageUrlBase
-      val title = findByLanguageOrBestEffort(imageMeta.titles, language)
+      val title   = findByLanguageOrBestEffort(imageMeta.titles, language)
         .map(asApiImageTitle)
         .getOrElse(api.ImageTitleDTO("", DefaultLanguage))
       val alttext = findByLanguageOrBestEffort(imageMeta.alttexts, language)

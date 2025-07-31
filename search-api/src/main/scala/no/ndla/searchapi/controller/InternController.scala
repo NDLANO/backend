@@ -137,7 +137,7 @@ trait InternController {
     ): Either[AllErrors, T] = {
       parseBody[T](body).flatMap(x => indexService.indexDocument(x)) match {
         case Success(doc) => doc.asRight
-        case Failure(ex) =>
+        case Failure(ex)  =>
           logger.error("Could not index document...", ex)
           returnLeftError(ex)
       }
@@ -161,7 +161,7 @@ trait InternController {
           case draftIndexService.documentType        => indexRequestWithService(draftIndexService, body)
           case learningPathIndexService.documentType => indexRequestWithService(learningPathIndexService, body)
           case draftConceptIndexService.documentType => indexRequestWithService(draftConceptIndexService, body)
-          case _ =>
+          case _                                     =>
             badRequest(
               s"Bad type passed to POST /:type/, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}', '${draftConceptIndexService.documentType}'"
             ).asLeft
@@ -185,7 +185,7 @@ trait InternController {
           case draftIndexService.documentType        => draftIndexService.reindexDocument(id)
           case learningPathIndexService.documentType => learningPathIndexService.reindexDocument(id)
           case draftConceptIndexService.documentType => draftConceptIndexService.reindexDocument(id)
-          case _ =>
+          case _                                     =>
             badRequest(
               s"Bad type passed to POST /:type/:id, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}', '${draftConceptIndexService.documentType}'"
             ).asLeft
@@ -199,7 +199,7 @@ trait InternController {
       .out(stringBody)
       .serverLogicPure { numShards =>
         val requestInfo = RequestInfo.fromThreadContext()
-        val draftIndex = Future {
+        val draftIndex  = Future {
           requestInfo.setThreadContextRequestInfo()
           ("drafts", draftIndexService.indexDocuments(shouldUsePublishedTax = false, numShards))
         }
@@ -213,7 +213,7 @@ trait InternController {
       .errorOut(stringInternalServerError)
       .out(stringBody)
       .serverLogicPure { numShards =>
-        val requestInfo = RequestInfo.fromThreadContext()
+        val requestInfo  = RequestInfo.fromThreadContext()
         val conceptIndex = Future {
           requestInfo.setThreadContextRequestInfo()
           ("concepts", draftConceptIndexService.indexDocuments(shouldUsePublishedTax = false, numShards))
@@ -228,7 +228,7 @@ trait InternController {
       .errorOut(stringInternalServerError)
       .out(stringBody)
       .serverLogicPure { numShards =>
-        val requestInfo = RequestInfo.fromThreadContext()
+        val requestInfo  = RequestInfo.fromThreadContext()
         val articleIndex = Future {
           requestInfo.setThreadContextRequestInfo()
           ("articles", articleIndexService.indexDocuments(shouldUsePublishedTax = true, numShards))
@@ -244,7 +244,7 @@ trait InternController {
       .out(stringBody)
       .serverLogicPure { numShards =>
         val requestInfo = RequestInfo.fromThreadContext()
-        val grepIndex = Future {
+        val grepIndex   = Future {
           requestInfo.setThreadContextRequestInfo()
           ("greps", grepIndexService.indexDocuments(numShards, None))
         }
@@ -259,7 +259,7 @@ trait InternController {
       .out(stringBody)
       .serverLogicPure { numShards =>
         val requestInfo = RequestInfo.fromThreadContext()
-        val grepIndex = Future {
+        val grepIndex   = Future {
           requestInfo.setThreadContextRequestInfo()
           ("nodes", nodeIndexService.indexDocuments(numShards))
         }
@@ -273,7 +273,7 @@ trait InternController {
       .errorOut(stringInternalServerError)
       .out(stringBody)
       .serverLogicPure { numShards =>
-        val requestInfo = RequestInfo.fromThreadContext()
+        val requestInfo       = RequestInfo.fromThreadContext()
         val learningPathIndex = Future {
           requestInfo.setThreadContextRequestInfo()
           ("learningpaths", learningPathIndexService.indexDocuments(shouldUsePublishedTax = true, numShards))
@@ -360,7 +360,7 @@ trait InternController {
         val start = System.currentTimeMillis()
 
         bundles match {
-          case Failure(ex) => returnLeftError(ex)
+          case Failure(ex)                                                                       => returnLeftError(ex)
           case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)) =>
             logger.info("Cleaning up unreferenced indexes before reindexing...")
             learningPathIndexService.cleanupIndexes(): Unit
@@ -382,7 +382,7 @@ trait InternController {
             )
 
             val requestInfo = RequestInfo.fromThreadContext()
-            val indexes = List(
+            val indexes     = List(
               Future {
                 requestInfo.setThreadContextRequestInfo()
                 ("learningpaths", learningPathIndexService.indexDocuments(numShards, publishedIndexingBundle))

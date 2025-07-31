@@ -42,9 +42,9 @@ class ArticleApiClientTest
   @unused
   val WeNeedThisToMakeTheTestsWorkNoIdeaWhyReadTheComment: Set[String] = HtmlTagRules.PermittedHTML.tags
 
-  val articleApiPort: Int         = findFreePort
-  val pgc: PostgreSQLContainer[?] = postgresContainer.get
-  val esHost: String              = elasticSearchHost.get
+  val articleApiPort: Int                        = findFreePort
+  val pgc: PostgreSQLContainer[?]                = postgresContainer.get
+  val esHost: String                             = elasticSearchHost.get
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
     override def ApplicationPort: Int              = articleApiPort
     override val MetaServer: Prop[String]          = propFromTestValue("META_SERVER", pgc.getHost)
@@ -170,7 +170,7 @@ class ArticleApiClientTest
 
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
-    val response = articleApiClient.updateArticle(
+    val response         = articleApiClient.updateArticle(
       1,
       testArticle,
       List("1234"),
@@ -198,7 +198,7 @@ class ArticleApiClientTest
   test("that verifying an article returns 200 if valid") {
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
-    val result = converterService
+    val result          = converterService
       .toArticleApiArticle(testArticle)
       .flatMap(article => articleApiCient.validateArticle(article, importValidate = false, None))
     result.isSuccess should be(true)
@@ -207,7 +207,7 @@ class ArticleApiClientTest
   test("that verifying an article returns 400 if invalid") {
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
-    val result = converterService
+    val result          = converterService
       .toArticleApiArticle(testArticle.copy(title = Seq(common.Title("", "nb"))))
       .flatMap(article => articleApiCient.validateArticle(article, importValidate = false, None))
     result.isSuccess should be(false)
@@ -217,7 +217,7 @@ class ArticleApiClientTest
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     val invalidArticle  = testArticle.copy(metaDescription = Seq.empty)
-    val result = articleApiCient.updateArticle(
+    val result          = articleApiCient.updateArticle(
       id = 10,
       draft = invalidArticle,
       externalIds = List.empty,

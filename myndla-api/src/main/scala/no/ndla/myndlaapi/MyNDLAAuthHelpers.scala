@@ -22,7 +22,7 @@ trait MyNDLAAuthHelpers {
 
   object MyNDLAAuthHelpers {
     implicit class authlessEndpointFeideExtension[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
-      private type MaybeFeideToken = Option[FeideAccessToken]
+      private type MaybeFeideToken            = Option[FeideAccessToken]
       private type PartialFeideEndpoint[F[_]] =
         PartialServerEndpoint[MaybeFeideToken, MyNDLAUser, I, AllErrors, O, R, F]
       def requireMyNDLAUser[F[_]](

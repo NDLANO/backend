@@ -143,7 +143,7 @@ trait Routes {
         }
       }
 
-      private val requestBodyLoggingCutoff = 1 * 1024 * 1024 // 1 MB
+      private val requestBodyLoggingCutoff                                 = 1 * 1024 * 1024 // 1 MB
       private def bufferRequestBody(request: ServerRequest): ServerRequest = {
         val exchange = request.underlying.asInstanceOf[HttpExchange]
         val is       = exchange.getRequestBody
@@ -158,7 +158,7 @@ trait Routes {
       }
 
       class after extends RequestResultEffectTransform[Identity] {
-        private val sensitiveHeaders = SensitiveHeaders + "feideauthorization"
+        private val sensitiveHeaders                       = SensitiveHeaders + "feideauthorization"
         private def addHeaderMDC(req: ServerRequest): Unit =
           req.headers.foreach { header =>
             val value = if (HeaderNames.isSensitive(header, sensitiveHeaders)) "[REDACTED]" else header.value
@@ -214,7 +214,7 @@ trait Routes {
     }
 
     private val registry: PrometheusRegistry = new PrometheusRegistry()
-    private val metricLabels: MetricLabels = MetricLabels(
+    private val metricLabels: MetricLabels   = MetricLabels(
       forRequest = List(
         "path"   -> { case (ep, _) => ep.showPathTemplate(showQueryParam = None) },
         "method" -> { case (_, req) => req.method.method }

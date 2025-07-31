@@ -46,7 +46,7 @@ object SlugValidator {
   ): Option[ValidationMessage] = {
     validateSlugString(slug) match {
       case Some(error) => Some(error)
-      case None =>
+      case None        =>
         if (checkIfSlugExistsFunc(slug, articleId))
           Some(ValidationMessage("slug", "This field should be unique. The chosen path exist already."))
         else None

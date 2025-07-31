@@ -18,7 +18,7 @@ class GrepCodesSearchServiceTest extends ElasticsearchIntegrationSuite with Test
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val grepCodesSearchService = new GrepCodesSearchService
+  override val grepCodesSearchService                       = new GrepCodesSearchService
   override val grepCodesIndexService: GrepCodesIndexService = new GrepCodesIndexService {
     override val indexShards: Int = 1
   }

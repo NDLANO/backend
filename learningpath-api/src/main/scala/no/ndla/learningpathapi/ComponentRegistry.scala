@@ -81,7 +81,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with SwaggerDocControllerConfig
     with SearchLanguage {
   override val props: LearningpathApiProperties = properties
-  override val migrator: DBMigrator = DBMigrator(
+  override val migrator: DBMigrator             = DBMigrator(
     new V11__CreatedByNdlaStatusForOwnersWithRoles,
     new V13__StoreNDLAStepsAsIframeTypes,
     new V14__ConvertLanguageUnknown,

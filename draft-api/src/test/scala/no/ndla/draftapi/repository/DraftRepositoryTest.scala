@@ -239,7 +239,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
   test("published, then copied article keeps old notes in hidden field and notes is emptied") {
     val now = NDLADate.now().withNano(0)
     when(clock.now()).thenReturn(now)
-    val status = Status(DraftStatus.PLANNED, Set.empty)
+    val status     = Status(DraftStatus.PLANNED, Set.empty)
     val prevNotes1 = Seq(
       EditorNote("Note1", "SomeId", status, now),
       EditorNote("Note2", "SomeId", status, now),
@@ -328,7 +328,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
   test("Comments are kept on publishing topic-articles") {
     val now      = NDLADate.now().withNano(0)
     val comments = Seq(Comment(UUID.randomUUID(), now, now, "hei", isOpen = false, solved = true))
-    val article = TestData.sampleDomainArticle.copy(
+    val article  = TestData.sampleDomainArticle.copy(
       status = Status(DraftStatus.IN_PROGRESS, Set.empty),
       comments = comments,
       revision = Some(1)

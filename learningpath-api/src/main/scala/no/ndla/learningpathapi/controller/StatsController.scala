@@ -22,8 +22,8 @@ trait StatsController {
   val statsController: StatsController
 
   class StatsController extends TapirController {
-    override val serviceName: String         = "stats"
-    override val prefix: EndpointInput[Unit] = "learningpath-api" / "v1" / serviceName
+    override val serviceName: String                       = "stats"
+    override val prefix: EndpointInput[Unit]               = "learningpath-api" / "v1" / serviceName
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getStats
     )

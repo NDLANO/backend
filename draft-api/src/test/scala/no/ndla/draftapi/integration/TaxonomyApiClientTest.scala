@@ -35,7 +35,7 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
         Title("<strong>Engelsk</strong>", "en")
       )
     )
-    val id = article.id.get
+    val id   = article.id.get
     val node =
       Node("urn:resource:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))
 
@@ -62,7 +62,7 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
         Title("Engelsk", "en")
       )
     )
-    val id = article.id.get
+    val id   = article.id.get
     val node =
       Node("urn:resource:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))
     val node2 =
@@ -100,7 +100,7 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
         Title("Engelsk", "en")
       )
     )
-    val id = article.id.get
+    val id        = article.id.get
     val resource1 = Node(
       "urn:resource:1:12035",
       "Outdated res name",
@@ -153,7 +153,7 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
         Title("Engelsk", "en")
       )
     )
-    val id = article.id.get
+    val id        = article.id.get
     val resource1 = Node(
       "urn:resource:1:12035",
       "Outdated res name",
@@ -237,7 +237,7 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
         Title("Engelsk", "en")
       )
     )
-    val id = article.id.get
+    val id       = article.id.get
     val resource =
       Node("urn:resource:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))
 

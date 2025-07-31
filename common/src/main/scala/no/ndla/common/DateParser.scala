@@ -16,8 +16,8 @@ import java.time.format.DateTimeFormatter
 import scala.util.Try
 
 object DateParser {
-  private val formatter              = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-  private val formatterWithoutMillis = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+  private val formatter                      = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  private val formatterWithoutMillis         = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
   def fromString(str: String): LocalDateTime = Try(
     LocalDateTime.parse(str, formatterWithoutMillis)
   ).getOrElse(

@@ -91,7 +91,7 @@ trait StateTransitionRules {
 
               val taxonomyT   = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
               val articleUdpT = articleApiClient.updateArticle(id, article, externalIds, useSoftValidation, user)
-              val failures = Seq(taxonomyT, articleUdpT).collectFirst { case Failure(ex) =>
+              val failures    = Seq(taxonomyT, articleUdpT).collectFirst { case Failure(ex) =>
                 Failure(ex)
               }
               failures.getOrElse(articleUdpT)
@@ -104,7 +104,7 @@ trait StateTransitionRules {
 
     private val articleHasNotBeenPublished: Option[IgnoreFunction] = Some((maybeArticle, transition) => {
       maybeArticle match {
-        case None => true
+        case None      => true
         case Some(art) =>
           val hasBeenPublished          = art.status.current == PUBLISHED || art.status.other.contains(PUBLISHED)
           val isFromPublishedTransition = transition.from == PUBLISHED
@@ -114,7 +114,7 @@ trait StateTransitionRules {
 
     private val articleHasBeenPublished: Option[IgnoreFunction] = Some((maybeArticle, transition) => {
       maybeArticle match {
-        case None => false
+        case None      => false
         case Some(art) =>
           val hasBeenPublished          = art.status.current == PUBLISHED || art.status.other.contains(PUBLISHED)
           val isFromPublishedTransition = transition.from == PUBLISHED
@@ -206,7 +206,7 @@ trait StateTransitionRules {
     }
 
     private def validateTransition(draft: Draft, transition: StateTransition): Try[Unit] = {
-      val statusRequiresResponsible = DraftStatus.thatRequiresResponsible.contains(transition.to)
+      val statusRequiresResponsible       = DraftStatus.thatRequiresResponsible.contains(transition.to)
       val statusFromPublishedToInProgress =
         draft.status.current == PUBLISHED && transition.to == IN_PROGRESS
       if (statusRequiresResponsible && draft.responsible.isEmpty && !statusFromPublishedToInProgress) {
@@ -254,7 +254,7 @@ trait StateTransitionRules {
         case Some(t) =>
           validateTransition(current, t) match {
             case Failure(ex) => (Failure(ex), Seq.empty)
-            case Success(_) =>
+            case Success(_)  =>
               val currentToOther   = if (t.addCurrentStateToOthersOnTransition) Set(current.status.current) else Set()
               val other            = current.status.other.intersect(t.otherStatesToKeepOnTransition) ++ currentToOther
               val newStatus        = common.Status(to, other)
@@ -313,7 +313,7 @@ trait StateTransitionRules {
         searchApiClient.publishedWhereUsed(articleId, user),
         learningPathsUsingArticle(articleId, user)
       ) match {
-        case (Nil, Nil) => callback
+        case (Nil, Nil)                                 => callback
         case (publishedUsingArticle, pathsUsingArticle) =>
           val learningPathIds = pathsUsingArticle.map(lp => s"${lp.id} (${lp.title.title})")
           val publishedIds    = publishedUsingArticle.map(art => s"${art.id} (${art.title.title})")

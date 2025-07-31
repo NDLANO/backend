@@ -12,7 +12,7 @@ import no.ndla.articleapi.db.HtmlMigration
 import org.jsoup.nodes.Element
 
 class V52__ConvertBlogPostToPitch extends HtmlMigration {
-  override val convertVisualElement: Boolean = false
+  override val convertVisualElement: Boolean                        = false
   override def convertHtml(doc: Element, language: String): Element = {
     doc
       .select("ndlaembed[data-resource='blog-post']")

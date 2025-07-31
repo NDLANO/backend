@@ -119,7 +119,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticle should fail if trying to update language fields without language being set") {
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(language = None, title = Some("kakemonster"))
-    val res =
+    val res            =
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set())),
         updatedArticle,
@@ -134,7 +134,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticle should succeed if trying to update language fields with language being set") {
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(language = Some("nb"), title = Some("kakemonster"))
-    val Success(res) =
+    val Success(res)   =
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set())),
         updatedArticle,
@@ -158,7 +158,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("stateTransitionsToApi should allow all users to archive articles that have not been published") {
     val articleId: Long = 1
-    val article: Draft =
+    val article: Draft  =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.PLANNED, Set()))
     when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
@@ -176,7 +176,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("stateTransitionsToApi should not allow all users to archive articles that are currently published") {
 
     val articleId: Long = 1
-    val article: Draft =
+    val article: Draft  =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.PUBLISHED, Set()))
     when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
@@ -193,7 +193,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("stateTransitionsToApi should filter some transitions based on publishing status") {
-    val articleId: Long = 1
+    val articleId: Long    = 1
     val unpublished: Draft =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.IN_PROGRESS, Set()))
     when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(unpublished))
@@ -212,7 +212,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("stateTransitionsToApi should not allow all users to archive articles that have previously been published") {
 
-    val articleId = 1L
+    val articleId      = 1L
     val article: Draft =
       TestData.sampleArticleWithPublicDomain.copy(
         id = Some(articleId),
@@ -287,7 +287,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("Merging language fields of article should not delete not updated fields") {
     when(clock.now()).thenReturn(TestData.today)
     val status = Status(DraftStatus.PUBLISHED, other = Set.empty)
-    val art = Draft(
+    val art    = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,
@@ -335,7 +335,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("mergeArticleLanguageFields should replace every field correctly") {
     when(clock.now()).thenReturn(TestData.today)
     val status = Status(DraftStatus.PUBLISHED, other = Set.empty)
-    val art = Draft(
+    val art    = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,
@@ -436,7 +436,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("mergeArticleLanguageFields should merge every field correctly") {
     when(clock.now()).thenReturn(TestData.today)
     val status = Status(DraftStatus.PUBLISHED, other = Set.empty)
-    val art = Draft(
+    val art    = Draft(
       id = Some(3),
       revision = Some(4),
       status = status,
@@ -583,7 +583,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("Should not be able to go to ARCHIVED if published") {
-    val status = Status(DraftStatus.PLANNED, other = Set(DraftStatus.PUBLISHED))
+    val status  = Status(DraftStatus.PLANNED, other = Set(DraftStatus.PUBLISHED))
     val article =
       TestData.sampleDomainArticle.copy(status = status, responsible = Some(Responsible("hei", clock.now())))
     val Failure(res: IllegalStatusStateTransition) =
@@ -881,7 +881,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("that toArticleApiArticle transforms Draft to Article correctly") {
     when(clock.now()).thenReturn(TestData.today)
     val articleId = 42L
-    val draft = Draft(
+    val draft     = Draft(
       id = Some(articleId),
       revision = Some(3),
       status = Status(PLANNED, Set.empty),

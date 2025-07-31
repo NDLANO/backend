@@ -32,7 +32,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   val validDocument             = """<section><h1>heisann</h1><h2>heia</h2></section>"""
   val validIntroduction         = """<p>heisann <span lang="en">heia</span></p><p>hopp</p>"""
   val invalidDocument           = """<section><invalid></invalid></section>"""
-  val validDisclaimer =
+  val validDisclaimer           =
     """<p><strong>hallo!</strong><ndlaembed data-content-id="123" data-open-in="current-context" data-resource="content-link" data-content-type="article">test</ndlaembed></p>"""
 
   test("validateArticle does not throw an exception on a valid document") {
@@ -438,7 +438,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     res.errors.head.message should be("Meta image ID must be a number")
   }
   test("validation should fail if license is chosen and no copyright holders are provided") {
-    val copyright = Copyright(CC_BY_SA.toString, None, Seq(), Seq(), Seq(), None, None, false)
+    val copyright                         = Copyright(CC_BY_SA.toString, None, Seq(), Seq(), Seq(), None, None, false)
     val Failure(res: ValidationException) =
       contentValidator.validateArticle(TestData.sampleArticleWithByNcSa.copy(copyright = copyright), false)
     res.errors.length should be(1)

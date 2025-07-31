@@ -187,8 +187,8 @@ trait MultiSearchService {
       }
 
       getStartAtAndNumResults(settings.page, settings.pageSize).flatMap { pagination =>
-        val aggregations = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
-        val index        = getSearchIndexes(settings).?
+        val aggregations    = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
+        val index           = getSearchIndexes(settings).?
         val searchToExecute = search(index)
           .query(filteredSearch)
           .explain(enableExplanations)
@@ -246,7 +246,7 @@ trait MultiSearchService {
     private def getNodeSearchFilters(settings: SearchSettings): List[Query] = {
       val nodeTypeFilter       = getNodeTypeFilter(settings.nodeTypeFilter)
       val contextSubjectFilter = subjectFilter(settings.subjects, settings.filterInactive)
-      val grepCodesFilter =
+      val grepCodesFilter      =
         if (settings.grepCodes.nonEmpty)
           Some(termsQuery("grepContexts.code", settings.grepCodes))
         else None
@@ -310,7 +310,7 @@ trait MultiSearchService {
 
       val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
 
-      val availsToFilterOut = Availability.values.toSet -- (settings.availability.toSet + Availability.everyone)
+      val availsToFilterOut  = Availability.values.toSet -- (settings.availability.toSet + Availability.everyone)
       val availabilityFilter = Some(
         not(availsToFilterOut.toSeq.map(a => termQuery("availability", a.toString)))
       )

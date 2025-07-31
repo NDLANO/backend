@@ -31,7 +31,7 @@ import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   import props.DefaultLanguage
-  val clinton: commonApi.AuthorDTO = commonApi.AuthorDTO(ContributorType.Writer, "Crooked Hillary")
+  val clinton: commonApi.AuthorDTO  = commonApi.AuthorDTO(ContributorType.Writer, "Crooked Hillary")
   val license: commonApi.LicenseDTO =
     commonApi.LicenseDTO(
       License.PublicDomain.toString,
@@ -474,7 +474,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("New learningPaths get correct verification") {
-    val apiRubio = commonApi.AuthorDTO(ContributorType.Writer, "Little Marco")
+    val apiRubio   = commonApi.AuthorDTO(ContributorType.Writer, "Little Marco")
     val apiLicense =
       commonApi.LicenseDTO(
         License.PublicDomain.toString,
@@ -484,7 +484,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val apiCopyright = api.CopyrightDTO(apiLicense, List(apiRubio))
 
     val newCopyLp = NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
-    val newLp =
+    val newLp     =
       NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright), None, None)
 
     service
@@ -531,7 +531,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val lpId = 5591L
     val lp1  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = None)
     val lp2  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = Some(Seq.empty))
-    val lp3 = TestData.sampleDomainLearningPath.copy(
+    val lp3  = TestData.sampleDomainLearningPath.copy(
       id = Some(lpId),
       learningsteps =
         Some(Seq(TestData.domainLearningStep1.copy(seqNo = 0), TestData.domainLearningStep2.copy(seqNo = 1)))

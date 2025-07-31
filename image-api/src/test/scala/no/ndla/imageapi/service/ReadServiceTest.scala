@@ -47,9 +47,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That GET /<id> returns body with original copyright if agreement doesnt exist") {
-    val testUrl    = s"${props.Domain}/image-api/v2/images/1"
-    val testRawUrl = s"${props.Domain}/image-api/raw/Elg.jpg"
-    val dateString = TestData.updated().asString
+    val testUrl      = s"${props.Domain}/image-api/v2/images/1"
+    val testRawUrl   = s"${props.Domain}/image-api/raw/Elg.jpg"
+    val dateString   = TestData.updated().asString
     val expectedBody =
       s"""{
          |  "id":"1",
@@ -80,7 +80,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
          |}""".stripMargin
 
     val expectedObject: ImageMetaInformationV2DTO = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](expectedBody)
-    val imageElg = new ImageMetaInformation(
+    val imageElg                                  = new ImageMetaInformation(
       id = Some(1),
       titles = List(domain.ImageTitle("Elg i busk", "nb")),
       alttexts = List(domain.ImageAltText("Elg i busk", "nb")),

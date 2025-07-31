@@ -95,8 +95,8 @@ trait SearchConverterService {
           .forEach(embed => {
             val dataResource = embed.attr("data-resource")
             dataResource match {
-              case "h5p"                => traits += SearchTrait.H5p
-              case "brightcove" | "nrk" => traits += SearchTrait.Video
+              case "h5p"                 => traits += SearchTrait.H5p
+              case "brightcove" | "nrk"  => traits += SearchTrait.Video
               case "external" | "iframe" =>
                 val dataUrl = embed.attr("data-url")
                 if (
@@ -201,7 +201,7 @@ trait SearchConverterService {
     ): List[EmbedValues] = {
       val contentTuples       = content.flatMap(c => getEmbedValues(c.content, c.language))
       val visualElementTuples = visualElement.flatMap(v => getEmbedValues(v.resource, v.language))
-      val metaImageTuples =
+      val metaImageTuples     =
         metaImage.map(m => EmbedValues(id = List(m.imageId), resource = Some("image"), language = m.language))
       (contentTuples ++ visualElementTuples ++ metaImageTuples).toList
 
@@ -260,7 +260,7 @@ trait SearchConverterService {
         ai: Article,
         indexingBundle: IndexingBundle
     ): Try[SearchableArticle] = {
-      val articleId = ai.id.get
+      val articleId        = ai.id.get
       val taxonomyContexts = indexingBundle.taxonomyBundle match {
         case Some(bundle) =>
           Success(getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true, filterContexts = false))
@@ -385,7 +385,7 @@ trait SearchConverterService {
 
       val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
       val defaultTitle = lp.title.sortBy(title => ISO639.languagePriority.reverse.indexOf(title.language)).lastOption
-      val license = api.learningpath.CopyrightDTO(
+      val license      = api.learningpath.CopyrightDTO(
         asLearningPathApiLicense(lp.copyright.license),
         lp.copyright.contributors.map(c => AuthorDTO(c.`type`, c.name))
       )
@@ -431,7 +431,7 @@ trait SearchConverterService {
     ): Try[Long] = {
       indexingBundle.myndlaBundle match {
         case Some(value) => Success(value.getFavorites(id, resourceTypes))
-        case None =>
+        case None        =>
           myndlaApiClient
             .getStatsFor(id, resourceTypes)
             .map(_.map(_.favourites).sum)
@@ -727,7 +727,7 @@ trait SearchConverterService {
 
       val context  = searchableArticle.context.map(c => searchableContextToApiContext(c, language))
       val contexts = filterContexts(searchableArticle.contexts, language, filterInactive)
-      val titles = searchableArticle.domainObject.title.map(title =>
+      val titles   = searchableArticle.domainObject.title.map(title =>
         TitleWithHtmlDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
       )
       val introductions = searchableArticle.domainObject.introduction.map(intro =>
@@ -802,7 +802,7 @@ trait SearchConverterService {
 
       val context  = searchableDraft.context.map(c => searchableContextToApiContext(c, language))
       val contexts = filterContexts(searchableDraft.contexts, language, filterInactive)
-      val titles = searchableDraft.domainObject.title.map(title =>
+      val titles   = searchableDraft.domainObject.title.map(title =>
         common.model.api.search
           .TitleWithHtmlDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
       )
@@ -835,10 +835,10 @@ trait SearchConverterService {
       val metaImage          = findByLanguageOrBestEffort(metaImages, language)
       val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions, metaDescriptions)
       val url                = s"${props.ExternalApiUrls("draft-api")}/${searchableDraft.id}"
-      val revisions =
+      val revisions          =
         searchableDraft.revisionMeta.map(m => RevisionMetaDTO(m.revisionDate, m.note, m.status.entryName))
       val responsible = searchableDraft.responsible.map(r => ResponsibleDTO(r.responsibleId, r.lastUpdated))
-      val comments =
+      val comments    =
         searchableDraft.domainObject.comments.map(c =>
           CommentDTO(c.id.toString, c.content, c.created, c.updated, c.isOpen, c.solved)
         )
@@ -891,7 +891,7 @@ trait SearchConverterService {
 
       val context  = searchableLearningPath.context.map(c => searchableContextToApiContext(c, language))
       val contexts = filterContexts(searchableLearningPath.contexts, language, filterInactive)
-      val titles =
+      val titles   =
         searchableLearningPath.title.languageValues.map(lv =>
           common.model.api.search.TitleWithHtmlDTO(lv.value, lv.value, lv.language)
         )
@@ -913,7 +913,7 @@ trait SearchConverterService {
       val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
         common.model.api.search.MetaDescriptionDTO("", UnknownLanguage.toString)
       )
-      val url = s"${props.ExternalApiUrls("learningpath-api")}/${searchableLearningPath.id}"
+      val url       = s"${props.ExternalApiUrls("learningpath-api")}/${searchableLearningPath.id}"
       val metaImage =
         searchableLearningPath.coverPhotoId.map(id =>
           common.model.api.search.MetaImageDTO(
@@ -1113,7 +1113,7 @@ trait SearchConverterService {
         bundle: Option[GrepBundle]
     ): List[SearchableGrepContext] = {
       bundle match {
-        case None => List.empty
+        case None             => List.empty
         case Some(grepBundle) =>
           grepCodes.flatMap { grepCode =>
             grepBundle.grepContextByCode
@@ -1165,7 +1165,7 @@ trait SearchConverterService {
 
     private def asFrontPage(frontpage: Option[SubjectPage]): Try[Option[SearchableSubjectPage]] = {
       frontpage match {
-        case None => Success(None)
+        case None     => Success(None)
         case Some(fp) =>
           fp.id match {
             case None =>
@@ -1196,8 +1196,8 @@ trait SearchConverterService {
         indexingBundle: IndexingBundle
     ): Try[SearchableNode] = {
       asFrontPage(frontpage).map { frontpage =>
-        val context  = node.context.map(ctx => asSearchableTaxonomyContexts(List(ctx)).head)
-        val contexts = asSearchableTaxonomyContexts(node.contexts)
+        val context      = node.context.map(ctx => asSearchableTaxonomyContexts(List(ctx)).head)
+        val contexts     = asSearchableTaxonomyContexts(node.contexts)
         val grepContexts =
           node.metadata.map(meta => getGrepContexts(meta.grepCodes, indexingBundle.grepBundle)).getOrElse(List.empty)
 

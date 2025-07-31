@@ -24,7 +24,7 @@ trait ReadService {
 
     def seriesWithId(seriesId: Long, language: Option[String]): Try[api.SeriesDTO] = {
       seriesRepository.withId(seriesId) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)   => Failure(ex)
         case Success(None) =>
           Failure(
             NotFoundException(

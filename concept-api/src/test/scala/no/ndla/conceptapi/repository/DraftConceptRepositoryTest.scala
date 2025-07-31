@@ -82,17 +82,17 @@ class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite
     val insertedConcept2 = repository.insertwithListingId(concept2, 66666)
     val insertedConcept3 = repository.insertwithListingId(concept3, 77777)
 
-    val result1 = repository.withListingId(55555)
+    val result1   = repository.withListingId(55555)
     val expected1 =
       Some(concept1.copy(id = insertedConcept1.id, created = result1.get.created, updated = result1.get.updated))
     result1 should be(expected1)
 
-    val result2 = repository.withListingId(66666)
+    val result2   = repository.withListingId(66666)
     val expected2 =
       Some(concept2.copy(id = insertedConcept2.id, created = result2.get.created, updated = result2.get.updated))
     result2 should be(expected2)
 
-    val result3 = repository.withListingId(77777)
+    val result3   = repository.withListingId(77777)
     val expected3 =
       Some(concept3.copy(id = insertedConcept3.id, created = result3.get.created, updated = result3.get.updated))
     result3 should be(expected3)

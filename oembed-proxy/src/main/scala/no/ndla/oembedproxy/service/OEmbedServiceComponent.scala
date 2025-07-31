@@ -50,8 +50,8 @@ trait OEmbedServiceComponent {
           .readTimeout(remoteTimeout)
           .httpVersion(HttpVersion.HTTP_1_1)
       ) match {
-        case Success(oembed)                   => Success(oembed)
-        case Failure(ex: HttpRequestException) => Failure(ex)
+        case Success(oembed)                                   => Success(oembed)
+        case Failure(ex: HttpRequestException)                 => Failure(ex)
         case Failure(ex) if retryCount < MaxFetchOembedRetries =>
           logger.error(
             s"Failed to fetch oembed from provider ${provider.providerName} for url $url. Retrying ${retryCount + 1}/$MaxFetchOembedRetries.",

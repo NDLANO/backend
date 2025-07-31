@@ -74,7 +74,7 @@ trait NdlaTapirMain[T <: TapirApplication] {
     }
   }
 
-  private val gracefulShutdownTimeout = 30.seconds
+  private val gracefulShutdownTimeout   = 30.seconds
   private def setupShutdownHook(): Unit = sys.addShutdownHook {
     logger.info("Shutting down gracefully...")
     componentRegistry.healthController.setShuttingDown()

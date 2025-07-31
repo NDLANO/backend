@@ -95,7 +95,7 @@ object RobotDefinition extends SQLSyntaxSupport[RobotDefinition] {
     val id        = rs.get[Try[UUID]](colNameWrapper("id"))
     val feideId   = rs.string(colNameWrapper("feide_id"))
     val statusStr = rs.string(colNameWrapper("status"))
-    val status = RobotStatus
+    val status    = RobotStatus
       .withNameOption(statusStr)
       .toTry(new IllegalArgumentException(s"Invalid robot status: $statusStr"))
     val created       = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("created")))

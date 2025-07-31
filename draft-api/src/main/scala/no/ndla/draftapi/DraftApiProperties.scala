@@ -54,7 +54,7 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   def BrightcoveVideoScriptUrl: String =
     s"//players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayerId}_default/index.min.js"
-  def H5PResizerScriptUrl = "//h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js"
+  def H5PResizerScriptUrl            = "//h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js"
   def NRKVideoScriptUrl: Seq[String] =
     Seq("//www.nrk.no/serum/latest/js/video_embed.js", "//nrk.no/serum/latest/js/video_embed.js")
 

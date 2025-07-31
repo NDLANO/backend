@@ -29,10 +29,10 @@ trait TranscriptionController {
     override val serviceName: String         = "transcription"
     override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / serviceName
 
-    private val videoId   = path[String]("videoId").description("The video id to transcribe")
-    private val audioName = path[String]("audioName").description("The audio name to transcribe")
-    private val audioId   = path[Long]("audioId").description("The audio id to transcribe")
-    private val language  = path[String]("language").description("The language to run the transcription in")
+    private val videoId    = path[String]("videoId").description("The video id to transcribe")
+    private val audioName  = path[String]("audioName").description("The audio name to transcribe")
+    private val audioId    = path[Long]("audioId").description("The audio id to transcribe")
+    private val language   = path[String]("language").description("The language to run the transcription in")
     private val maxSpeaker =
       query[Int]("maxSpeaker").description("The maximum number of speakers in the video").default(2)
     private val format = query[String]("format").description("The format of the audio file").default("mp3")

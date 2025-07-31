@@ -18,7 +18,7 @@ class V39__MadeAvailableForThePublished extends DocumentMigration {
   override val tableName: String  = "learningpaths"
 
   def convertColumn(document: String): String = {
-    val oldLp = CirceUtil.unsafeParseAs[LearningPath](document)
+    val oldLp         = CirceUtil.unsafeParseAs[LearningPath](document)
     val madeAvailable = oldLp.status match {
       case UNLISTED | PUBLISHED => Some(oldLp.lastUpdated)
       case _                    => None

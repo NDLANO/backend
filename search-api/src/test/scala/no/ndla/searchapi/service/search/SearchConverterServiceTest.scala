@@ -124,7 +124,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asSearchableArticle converts titles with correct language") {
-    val article = TestData.sampleArticleWithByNcSa.copy(title = titles)
+    val article                    = TestData.sampleArticleWithByNcSa.copy(title = titles)
     val Success(searchableArticle) =
       searchConverterService.asSearchableArticle(
         article,
@@ -134,7 +134,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asSearchable converts articles with correct language") {
-    val article = TestData.sampleArticleWithByNcSa.copy(content = articles)
+    val article                    = TestData.sampleArticleWithByNcSa.copy(content = articles)
     val Success(searchableArticle) =
       searchConverterService.asSearchableArticle(
         article,
@@ -144,7 +144,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asSearchable converts tags with correct language") {
-    val article = TestData.sampleArticleWithByNcSa.copy(tags = articleTags)
+    val article                    = TestData.sampleArticleWithByNcSa.copy(tags = articleTags)
     val Success(searchableArticle) =
       searchConverterService.asSearchableArticle(
         article,
@@ -451,7 +451,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asSearchableArticle converts grepContexts correctly based on article grepCodes if grepBundle is empty") {
-    val article = TestData.emptyDomainArticle.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
+    val article      = TestData.emptyDomainArticle.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepContexts = List(
       SearchableGrepContext("KE12", None, ""),
       SearchableGrepContext("KM123", None, ""),
@@ -470,7 +470,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asSearchableArticle converts grepContexts correctly based on grepBundle if article has grepCodes") {
-    val article = TestData.emptyDomainArticle.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
+    val article      = TestData.emptyDomainArticle.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepContexts = List(
       SearchableGrepContext("KE12", Some("Utforsking og problemløysing"), "Published"),
       SearchableGrepContext(
@@ -501,7 +501,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asSearchableDraft converts grepContexts correctly based on draft grepCodes if grepBundle is empty") {
-    val draft = TestData.emptyDomainDraft.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
+    val draft        = TestData.emptyDomainDraft.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepContexts = List(
       SearchableGrepContext("KE12", None, ""),
       SearchableGrepContext("KM123", None, ""),
@@ -516,7 +516,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asSearchableDraft converts grepContexts correctly based on grepBundle if draft has grepCodes") {
-    val draft = TestData.emptyDomainDraft.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
+    val draft      = TestData.emptyDomainDraft.copy(id = Some(99), grepCodes = Seq("KE12", "KM123", "TT2"))
     val grepBundle = TestData.emptyGrepBundle.copy(
       kjerneelementer = List(
         GrepKjerneelement(
@@ -581,7 +581,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asSearchableDraft converts grepContexts correctly based on grepBundle if draft has no grepCodes") {
-    val draft = TestData.emptyDomainDraft.copy(id = Some(99), grepCodes = Seq.empty)
+    val draft      = TestData.emptyDomainDraft.copy(id = Some(99), grepCodes = Seq.empty)
     val grepBundle = TestData.emptyGrepBundle.copy(
       kjerneelementer = List(
         GrepKjerneelement(
@@ -711,7 +711,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asSearchableNode converts grepContexts correctly based on grepBundle if node has KV grepCode") {
-    val node = TestData.subject_1.copy(metadata = Some(Metadata(Seq("KV123"), visible = true, Map.empty)))
+    val node       = TestData.subject_1.copy(metadata = Some(Metadata(Seq("KV123"), visible = true, Map.empty)))
     val grepBundle = TestData.emptyGrepBundle.copy(
       kompetansemaalsett = List(
         GrepKompetansemaalSett(

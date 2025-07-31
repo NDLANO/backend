@@ -66,13 +66,13 @@ trait ArticleApiClient {
         user: TokenUser
     ): Try[Draft] = {
       val extParam = Option.when(externalIds.nonEmpty)("external-id" -> externalIds.mkString(","))
-      val params = List(
+      val params   = List(
         "use-import-validation" -> false.toString,
         "use-soft-validation"   -> useSoftValidation.toString
       ) ++ extParam.toSeq
       for {
         converted <- converterService.toArticleApiArticle(draft)
-        _ <- postWithData[common.article.Article, common.article.Article](
+        _         <- postWithData[common.article.Article, common.article.Article](
           s"$InternalEndpoint/article/$id",
           converted,
           Some(user),
@@ -221,7 +221,7 @@ trait ArticleApiClient {
       self.copy(availability = availability.some)
     def withEarliestRevisionDate(revisionMeta: Seq[common.draft.RevisionMeta]): PartialPublishArticleDTO = {
       val earliestRevisionDate = getNextRevision(revisionMeta).map(_.revisionDate)
-      val newRev = earliestRevisionDate match {
+      val newRev               = earliestRevisionDate match {
         case Some(value) => UpdateWith(value)
         case None        => Delete
       }

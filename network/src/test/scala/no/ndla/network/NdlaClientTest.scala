@@ -30,7 +30,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
     """.stripMargin
 
   val httpClientMock: SimpleHttpClient = mock[SimpleHttpClient]
-  val ndlaClient: NdlaClient = new NdlaClient {
+  val ndlaClient: NdlaClient           = new NdlaClient {
     override val client = httpClientMock
   }
 
@@ -40,7 +40,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
   }
 
   test("That a HttpRequestException is returned when receiving an http-error") {
-    val httpRequestMock = mock[NdlaRequest]
+    val httpRequestMock  = mock[NdlaRequest]
     val httpResponseMock = new Response(
       body = "body-with-error",
       code = StatusCode(123),
@@ -163,7 +163,7 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
   }
 
   test("That fetchRawWithForwardedAuth can handle empty bodies") {
-    val httpRequestMock = mock[NdlaRequest]
+    val httpRequestMock  = mock[NdlaRequest]
     val httpResponseMock = new Response(
       body = "",
       code = StatusCode(204),

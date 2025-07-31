@@ -33,8 +33,8 @@ class LearningPathAndStepCreationTests
     with UnitSuite
     with TestEnvironment {
 
-  val learningpathApiPort: Int    = findFreePort
-  val pgc: PostgreSQLContainer[_] = postgresContainer.get
+  val learningpathApiPort: Int                             = findFreePort
+  val pgc: PostgreSQLContainer[_]                          = postgresContainer.get
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int       = learningpathApiPort
     override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
@@ -132,7 +132,7 @@ class LearningPathAndStepCreationTests
       `type` = StepType.TEXT.toString,
       license = None
     )
-    val x = CirceUtil.toJsonString(dto)
+    val x   = CirceUtil.toJsonString(dto)
     val res = simpleHttpClient.send(
       quickRequest
         .post(uri"$learningpathApiLPUrl/$pathId/learningsteps")

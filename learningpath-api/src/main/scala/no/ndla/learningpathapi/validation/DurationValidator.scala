@@ -15,7 +15,7 @@ class DurationValidator {
 
   def validateRequired(durationOpt: Option[Int]): Option[ValidationMessage] = {
     durationOpt match {
-      case None => None
+      case None           => None
       case Some(duration) =>
         if (duration < 1) {
           Some(ValidationMessage("duration", DURATION_INVALID))

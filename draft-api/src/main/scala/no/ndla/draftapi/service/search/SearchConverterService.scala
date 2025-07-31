@@ -70,7 +70,7 @@ trait SearchConverterService {
     def hitAsArticleSummary(hitString: String, language: String): api.ArticleSummaryDTO = {
       val searchableArticle = CirceUtil.unsafeParseAs[SearchableArticle](hitString)
 
-      val titles = searchableArticle.title.languageValues.map(lv => common.Title(lv.value, lv.language))
+      val titles        = searchableArticle.title.languageValues.map(lv => common.Title(lv.value, lv.language))
       val introductions =
         searchableArticle.introduction.languageValues.map(lv => common.Introduction(lv.value, lv.language))
       val visualElements =
@@ -85,9 +85,9 @@ trait SearchConverterService {
         .map(converterService.toApiArticleTitle)
         .getOrElse(api.ArticleTitleDTO("", "", UnknownLanguage.toString))
       val visualElement = findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
-      val introduction =
+      val introduction  =
         findByLanguageOrBestEffort(introductions, language).map(converterService.toApiArticleIntroduction)
-      val tag = findByLanguageOrBestEffort(tags, language).map(converterService.toApiArticleTag)
+      val tag    = findByLanguageOrBestEffort(tags, language).map(converterService.toApiArticleTag)
       val status =
         api.StatusDTO(searchableArticle.status.current.toString, searchableArticle.status.other.map(_.toString).toSeq)
 

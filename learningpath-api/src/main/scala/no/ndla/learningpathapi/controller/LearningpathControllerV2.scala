@@ -90,7 +90,7 @@ trait LearningpathControllerV2 {
       .description("Create taxonomy resource if missing for learningPath")
       .default(false)
     private val learningPathStatus = path[String]("STATUS").description("Status of LearningPaths")
-    private val scrollId = query[Option[String]]("search-context")
+    private val scrollId           = query[Option[String]]("search-context")
       .description(
         s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
             .mkString("[", ",", "]")}.
@@ -424,7 +424,7 @@ trait LearningpathControllerV2 {
       .serverLogicPure { license =>
         val licenses: Seq[LicenseDefinition] =
           license match {
-            case None => mapping.License.getLicenses
+            case None         => mapping.License.getLicenses
             case Some(filter) =>
               mapping.License.getLicenses
                 .filter(_.license.toString.contains(filter))
@@ -442,7 +442,7 @@ trait LearningpathControllerV2 {
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user => newLearningPath =>
         updateService.addLearningPathV2(newLearningPath, user) match {
-          case Failure(ex) => returnLeftError(ex)
+          case Failure(ex)           => returnLeftError(ex)
           case Success(learningPath) =>
             logger.info(s"CREATED LearningPath with ID =  ${learningPath.id}")
             val headers = DynamicHeaders.fromValue("Location", learningPath.metaUrl)
@@ -626,7 +626,7 @@ trait LearningpathControllerV2 {
           DefaultLanguage
         ) match {
           case Failure(ex) => returnLeftError(ex)
-          case Success(_) =>
+          case Success(_)  =>
             logger.info(s"MARKED LearningPath with ID: $pathId as DELETED")
             ().asRight
         }
@@ -643,7 +643,7 @@ trait LearningpathControllerV2 {
         { case (pathId, stepId) =>
           updateService.updateLearningStepStatusV2(pathId, stepId, StepStatus.DELETED, user) match {
             case Failure(ex) => returnLeftError(ex)
-            case Success(_) =>
+            case Success(_)  =>
               logger.info(s"MARKED LearningStep with id: $stepId for LearningPath with id: $pathId as DELETED")
               ().asRight
           }
@@ -707,7 +707,7 @@ trait LearningpathControllerV2 {
       .out(jsonBody[Seq[LearningPathSummaryV2DTO]])
       .errorOut(errorOutputsFor(400, 500))
       .serverLogicPure { articleId =>
-        val nodes = taxonomyApiClient.queryNodes(articleId).getOrElse(List.empty).flatMap(_.paths)
+        val nodes      = taxonomyApiClient.queryNodes(articleId).getOrElse(List.empty).flatMap(_.paths)
         val plainPaths = List(
           s"/article-iframe/*/$articleId",
           s"/article-iframe/*/$articleId/",

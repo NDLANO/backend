@@ -15,7 +15,7 @@ class MainClass(val props: AudioApiProperties) extends NdlaTapirMain[ComponentRe
   val componentRegistry = new ComponentRegistry(props)
 
   private def warmupRequest = (path, params) => Warmup.warmupRequest(props.ApplicationPort, path, params)
-  def warmup(): Unit = {
+  def warmup(): Unit        = {
     warmupRequest("/audio-api/v1/audio", Map("query" -> "norge", "fallback" -> "true"))
     warmupRequest("/audio-api/v1/audio/1", Map("language" -> "nb"))
     warmupRequest("/audio-api/v1/series", Map("language" -> "nb"))

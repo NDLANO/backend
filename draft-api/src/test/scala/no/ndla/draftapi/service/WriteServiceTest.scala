@@ -134,7 +134,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateArticle updates only content properly") {
-    val newContent = "NyContentTest"
+    val newContent        = "NyContentTest"
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("en"),
@@ -157,7 +157,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateArticle updates only title properly") {
-    val newTitle = "NyTittelTest"
+    val newTitle          = "NyTittelTest"
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("en"),
@@ -186,7 +186,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedMetaAlt         = "HeheAlt"
     val newImageMeta           = api.NewArticleMetaImageDTO(updatedMetaId, updatedMetaAlt)
     val updatedVisualElement   = s"<$EmbedTagName something></$EmbedTagName>"
-    val updatedCopyright = model.api.DraftCopyrightDTO(
+    val updatedCopyright       = model.api.DraftCopyrightDTO(
       Some(commonApi.LicenseDTO("a", Some("b"), None)),
       Some("c"),
       Seq(commonApi.AuthorDTO(ContributorType.Originator, "Jonas")),
@@ -411,7 +411,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updated = yesterday,
       responsible = Some(Responsible("hei", TestData.today))
     )
-    val user = TokenUser("Pelle", Set(DRAFT_API_WRITE), None)
+    val user           = TokenUser("Pelle", Set(DRAFT_API_WRITE), None)
     val updatedArticle = converterService
       .updateStatus(DraftStatus.IN_PROGRESS, articleToUpdate, user)
       .get
@@ -449,7 +449,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
   test("That we only validate the given language") {
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(language = Some("nb"))
-    val article =
+    val article        =
       TestData.sampleDomainArticle.copy(
         id = Some(5),
         content =
@@ -577,7 +577,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("article status should not be updated if changes only affect notes") {
-    val existingTitle = "apekatter"
+    val existingTitle  = "apekatter"
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("nb"),
@@ -597,7 +597,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("article status should not be updated if any of the PartialArticleFields changes") {
-    val existingTitle = "tittel"
+    val existingTitle  = "tittel"
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("nb"),
@@ -652,7 +652,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("article status should change if any of the other fields changes") {
-    val existingTitle = "tittel"
+    val existingTitle  = "tittel"
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("nb"),
@@ -696,7 +696,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("article status should change if both the PartialArticleFields and other fields changes") {
-    val existingTitle = "tittel"
+    val existingTitle  = "tittel"
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("nb"),
@@ -1000,7 +1000,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
     val savedRevision = saved.get.revisions.head
 
-    val revised = revision.copy(id = savedRevision.id, status = RevisionStatus.Revised.entryName)
+    val revised           = revision.copy(id = savedRevision.id, status = RevisionStatus.Revised.entryName)
     val revisedApiArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       revisionMeta = Some(Seq(revised))
@@ -1021,7 +1021,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("partial publish notes should be updated before update function") {
-    val existingTitle = "tittel"
+    val existingTitle  = "tittel"
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("nb"),

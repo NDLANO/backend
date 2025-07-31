@@ -89,7 +89,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     with V57__MigrateSavedSearch
     with V66__SetHideBylineForImagesNotCopyrighted {
   override val props: DraftApiProperties = properties
-  override val migrator: DBMigrator = DBMigrator(
+  override val migrator: DBMigrator      = DBMigrator(
     new R__RemoveEmptyStringLanguageFields(props),
     new R__RemoveStatusPublishedArticles(props),
     new R__SetArticleLanguageFromTaxonomy(props),

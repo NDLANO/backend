@@ -17,7 +17,7 @@ class V22__SplitTagsTest extends UnitTestSuiteBase {
   test("That converting colon separated tags works") {
     val oldDocument =
       """{"tags":[{"tags":["tag1:tag2:tag3"],"language":"nb"},{"tags":["tag4:tag5:tag6"],"language":"en"}]}"""
-    val converted = migration.convertColumn(oldDocument)
+    val converted        = migration.convertColumn(oldDocument)
     val expectedDocument =
       """{"tags":[{"tags":["tag1","tag2","tag3"],"language":"nb"},{"tags":["tag4","tag5","tag6"],"language":"en"}]}"""
     converted should be(expectedDocument)

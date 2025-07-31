@@ -54,7 +54,7 @@ class TryMaybeTest extends UnitTestSuiteBase {
     tryMaybe should be(TryMaybe(Success(Some(3))))
 
     val error: Try[Option[Long]] = Failure(new RuntimeException("Bad"))
-    val tryMaybe2 = for {
+    val tryMaybe2                = for {
       a <- error.toTryMaybe
       b <- Success(Some(2)).toTryMaybe
     } yield a + b

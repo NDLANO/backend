@@ -49,7 +49,7 @@ object GithubWorkflowPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[?]] = Seq(
     ghGenerateEnable        := false,
     ghGenerateEnableRelease := false,
-    ghGenerate := {
+    ghGenerate              := {
       if (ghGenerateEnable.value) {
         val appName = name.value
 

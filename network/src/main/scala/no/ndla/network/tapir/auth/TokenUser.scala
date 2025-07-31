@@ -84,7 +84,7 @@ object TokenUser {
     def hasPermission(permission: Permission): Boolean = self.exists(user => user.hasPermission(permission))
   }
 
-  def encode(user: TokenUser): String = user.id
+  def encode(user: TokenUser): String            = user.id
   def decode(s: String): DecodeResult[TokenUser] = fromToken(s) match {
     case Failure(ex)    => DecodeResult.Error(s, ex)
     case Success(value) => DecodeResult.Value(value)
