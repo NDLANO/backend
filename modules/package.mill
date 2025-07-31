@@ -72,7 +72,6 @@ trait BaseModule extends ScalaModule {
     override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ SharedDependencies.testing
     override def sources: T[Seq[PathRef]] = Task.Sources ( "src/test/scala", "src/test/scala-2" )
     override def scalacOptions: T[Seq[String]] = super.scalacOptions().filterNot(scalacOptionsOnlyRun.contains)
-
     override def forkArgs: T[Seq[String]] = super.forkArgs() ++ testJavaOptions
   }
   override def moduleDir: Path = md
