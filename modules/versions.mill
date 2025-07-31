@@ -100,4 +100,7 @@ object SharedDependencies {
 
   val tapirHttp4sCirce: Seq[Dep] = circe ++ http4s ++ tapir :+ catsEffect
 
+  def jedis: Dep = mvn"redis.clients:jedis:6.0.0"
+  def jwtCirce: Dep = mvn"com.github.jwt-scala::jwt-circe:10.0.4"
+
 }
