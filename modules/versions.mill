@@ -28,64 +28,64 @@ object SharedDependencies {
   val FlexmarkV             = "0.64.8"
 
   def logging: Seq[Dep] = Seq(
-    mvn"org.apache.logging.log4j:log4j-api:${Log4JV}",
-    mvn"org.apache.logging.log4j:log4j-core:${Log4JV}",
-    mvn"org.apache.logging.log4j:log4j-jul:${Log4JV}",
-    mvn"org.apache.logging.log4j:log4j-slf4j2-impl:${Log4JV}",
-    mvn"com.typesafe.scala-logging::scala-logging:${ScalaLoggingV}",
+    mvn"org.apache.logging.log4j:log4j-api:$Log4JV",
+    mvn"org.apache.logging.log4j:log4j-core:$Log4JV",
+    mvn"org.apache.logging.log4j:log4j-jul:$Log4JV",
+    mvn"org.apache.logging.log4j:log4j-slf4j2-impl:$Log4JV",
+    mvn"com.typesafe.scala-logging::scala-logging:$ScalaLoggingV",
     mvn"org.slf4j:slf4j-api:2.0.17",
     // We need jackson to load `log4j2.yaml`
-    mvn"com.fasterxml.jackson.core:jackson-core:${JacksonV}",
-    mvn"com.fasterxml.jackson.core:jackson-databind:${JacksonV}",
-    mvn"com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${JacksonV}",
-    mvn"com.fasterxml.jackson.module::jackson-module-scala:${JacksonV}"
+    mvn"com.fasterxml.jackson.core:jackson-core:$JacksonV",
+    mvn"com.fasterxml.jackson.core:jackson-databind:$JacksonV",
+    mvn"com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$JacksonV",
+    mvn"com.fasterxml.jackson.module::jackson-module-scala:$JacksonV"
   )
 
   def testing: Seq[Dep] = Seq(
-    mvn"org.scalatest::scalatest:${ScalaTestV}",
+    mvn"org.scalatest::scalatest:$ScalaTestV",
     mvn"org.scalatestplus::mockito-5-10:3.2.18.0",
-    mvn"org.testcontainers:elasticsearch:${TestContainersV}",
-    mvn"org.testcontainers:testcontainers:${TestContainersV}",
-    mvn"org.testcontainers:postgresql:${TestContainersV}"
+    mvn"org.testcontainers:elasticsearch:$TestContainersV",
+    mvn"org.testcontainers:testcontainers:$TestContainersV",
+    mvn"org.testcontainers:postgresql:$TestContainersV"
   )
 
-  val scalikejdbc = mvn"org.scalikejdbc::scalikejdbc:${ScalikeJDBCV}"
-  val postgres = mvn"org.postgresql:postgresql:${PostgresV}"
-  val hikari = mvn"com.zaxxer:HikariCP:${HikariConnectionPoolV}"
+  val scalikejdbc = mvn"org.scalikejdbc::scalikejdbc:$ScalikeJDBCV"
+  val postgres = mvn"org.postgresql:postgresql:$PostgresV"
+  val hikari = mvn"com.zaxxer:HikariCP:$HikariConnectionPoolV"
 
   val flyway: Seq[Dep] = Seq(
-    mvn"org.flywaydb:flyway-core:${FlywayV}",
-    mvn"org.flywaydb:flyway-database-postgresql:${FlywayV}"
+    mvn"org.flywaydb:flyway-core:$FlywayV",
+    mvn"org.flywaydb:flyway-database-postgresql:$FlywayV"
   )
 
   def database: Seq[Dep] = Seq(scalikejdbc, postgres, hikari) ++ flyway
 
   def enumeratum: Seq[Dep] = Seq(
-    mvn"com.beachape::enumeratum:${EnumeratumV}",
-    mvn"com.beachape::enumeratum-circe:${EnumeratumV}"
+    mvn"com.beachape::enumeratum:$EnumeratumV",
+    mvn"com.beachape::enumeratum-circe:$EnumeratumV"
   )
 
-  val sttp = mvn"com.softwaremill.sttp.client3::core:${SttpV}"
-  val awsS3 = mvn"software.amazon.awssdk:s3:${AwsSdkV}"
-  val awsTranscribe = mvn"software.amazon.awssdk:transcribe:${AwsSdkV}"
+  val sttp = mvn"com.softwaremill.sttp.client3::core:$SttpV"
+  val awsS3 = mvn"software.amazon.awssdk:s3:$AwsSdkV"
+  val awsTranscribe = mvn"software.amazon.awssdk:transcribe:$AwsSdkV"
 
   val circe: Seq[Dep] = Seq(
-    mvn"io.circe::circe-generic:${CirceV}",
-    mvn"io.circe::circe-literal:${CirceV}",
-    mvn"io.circe::circe-parser:${CirceV}",
+    mvn"io.circe::circe-generic:$CirceV",
+    mvn"io.circe::circe-literal:$CirceV",
+    mvn"io.circe::circe-parser:$CirceV",
   )
 
   val http4s: Seq[Dep] = Seq(
-    mvn"org.http4s::http4s-server:${Http4sV}",
-    mvn"org.http4s::http4s-dsl:${Http4sV}",
-    mvn"org.http4s::http4s-circe:${Http4sV}",
-    mvn"org.http4s::http4s-ember-server:${Http4sV}",
+    mvn"org.http4s::http4s-server:$Http4sV",
+    mvn"org.http4s::http4s-dsl:$Http4sV",
+    mvn"org.http4s::http4s-circe:$Http4sV",
+    mvn"org.http4s::http4s-ember-server:$Http4sV",
     mvn"org.typelevel::cats-parse:1.1.0"
   )
 
   // TODO: In sbt we did some magic with removing logback in this
   //       i assume we need to do the same here, but lets get it working first
-  val tapir = Seq(
+  val tapir: Seq[Dep] = Seq(
     mvn"com.softwaremill.sttp.tapir::tapir-http4s-server:$TapirV",
     mvn"com.softwaremill.sttp.tapir::tapir-swagger-ui-bundle:$TapirV",
     mvn"com.softwaremill.sttp.tapir::tapir-enumeratum:$TapirV",
@@ -96,7 +96,7 @@ object SharedDependencies {
     mvn"com.softwaremill.sttp.tapir::tapir-testing:$TapirV" // TODO: Move this to testonly
   )
 
-  val catsEffect                = mvn"org.typelevel::cats-effect:$CatsEffectV"
+  val catsEffect: Dep = mvn"org.typelevel::cats-effect:$CatsEffectV"
 
   val tapirHttp4sCirce: Seq[Dep] = circe ++ http4s ++ tapir :+ catsEffect
 
