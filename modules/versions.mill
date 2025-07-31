@@ -115,4 +115,8 @@ object SharedDependencies {
 
   def elastic4s: Dep = mvn"com.sksamuel.elastic4s::elastic4s-client-esjava:$Elastic4sV"
   def elastic4sTest: Dep = mvn"com.sksamuel.elastic4s::elastic4s-testkit:$Elastic4sV"
+  def jave: Seq[Dep] = Seq(
+    mvn"ws.schild:jave-core:3.5.0",
+    mvn"ws.schild:jave-all-deps:3.5.0"
+  )
 }
