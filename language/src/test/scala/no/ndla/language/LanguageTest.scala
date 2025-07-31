@@ -23,10 +23,6 @@ class LanguageTest extends UnitSuite {
     Language.mergeLanguageFields(existing, Seq()) should equal(existing)
   }
 
-  def doStuff(): String = {
-    "Heisann"
-  }
-
   test("That mergeLanguageFields updated the english title only when specified") {
     val tittel1          = ArticleTitle("Tittel 1", "nb")
     val tittel2          = ArticleTitle("Tittel 2", "nn")
@@ -35,8 +31,6 @@ class LanguageTest extends UnitSuite {
 
     val existing = Seq(tittel1, tittel2, tittel3)
     val updated  = Seq(oppdatertTittel3)
-
-    doStuff()
 
     Language.mergeLanguageFields(existing, updated) should equal(Seq(tittel1, tittel2, oppdatertTittel3))
   }
