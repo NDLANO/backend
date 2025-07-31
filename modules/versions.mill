@@ -59,4 +59,45 @@ object SharedDependencies {
   )
 
   def database: Seq[Dep] = Seq(scalikejdbc, postgres, hikari) ++ flyway
+
+  def enumeratum: Seq[Dep] = Seq(
+    mvn"com.beachape::enumeratum:${EnumeratumV}",
+    mvn"com.beachape::enumeratum-circe:${EnumeratumV}"
+  )
+
+  val sttp = mvn"com.softwaremill.sttp.client3::core:${SttpV}"
+  val awsS3 = mvn"software.amazon.awssdk:s3:${AwsSdkV}"
+  val awsTranscribe = mvn"software.amazon.awssdk:transcribe:${AwsSdkV}"
+
+  val circe: Seq[Dep] = Seq(
+    mvn"io.circe::circe-generic:${CirceV}",
+    mvn"io.circe::circe-literal:${CirceV}",
+    mvn"io.circe::circe-parser:${CirceV}",
+  )
+
+  val http4s: Seq[Dep] = Seq(
+    mvn"org.http4s::http4s-server:${Http4sV}",
+    mvn"org.http4s::http4s-dsl:${Http4sV}",
+    mvn"org.http4s::http4s-circe:${Http4sV}",
+    mvn"org.http4s::http4s-ember-server:${Http4sV}",
+    mvn"org.typelevel::cats-parse:1.1.0"
+  )
+
+  // TODO: In sbt we did some magic with removing logback in this
+  //       i assume we need to do the same here, but lets get it working first
+  val tapir = Seq(
+    mvn"com.softwaremill.sttp.tapir::tapir-http4s-server:$TapirV",
+    mvn"com.softwaremill.sttp.tapir::tapir-swagger-ui-bundle:$TapirV",
+    mvn"com.softwaremill.sttp.tapir::tapir-enumeratum:$TapirV",
+    mvn"com.softwaremill.sttp.tapir::tapir-json-circe:$TapirV",
+    mvn"com.softwaremill.sttp.tapir::tapir-jdkhttp-server:$TapirV",
+    mvn"com.softwaremill.sttp.tapir::tapir-prometheus-metrics:$TapirV",
+    mvn"com.softwaremill.sttp.apispec::openapi-circe-yaml:$ApiSpecV",
+    mvn"com.softwaremill.sttp.tapir::tapir-testing:$TapirV" // TODO: Move this to testonly
+  )
+
+  val catsEffect                = mvn"org.typelevel::cats-effect:$CatsEffectV"
+
+  val tapirHttp4sCirce: Seq[Dep] = circe ++ http4s ++ tapir :+ catsEffect
+
 }
