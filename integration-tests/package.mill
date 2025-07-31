@@ -6,18 +6,18 @@ import build.modules.{BaseModule, SharedDependencies}
 object `package` extends BaseModule {
   def mvnDeps: T[Seq[Dep]] = SharedDependencies.logging
   object test extends ScalaTester {
-  override def moduleDeps = Seq(
-    build.scalatestsuite,
-    build.validation, 
-    build.validation.test, 
-    build.`article-api`,
-    build.`article-api`.test,
+    override def moduleDeps = Seq(
+      build.scalatestsuite,
+      build.validation,
+      build.validation.test,
+      build.`article-api`,
+      build.`article-api`.test,
       build.`draft-api`,
       build.`draft-api`.test,
       build.`learningpath-api`,
       build.`learningpath-api`.test,
       build.`search-api`,
-      build.`search-api`.test,
+      build.`search-api`.test
     )
   }
 }

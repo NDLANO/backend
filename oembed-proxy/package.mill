@@ -8,7 +8,7 @@ object `package` extends BaseModule {
     SharedDependencies.tapir ++ Seq(
       SharedDependencies.scalaUri,
       SharedDependencies.sttp,
-      SharedDependencies.jsoup,
+      SharedDependencies.jsoup
     )
   override def moduleDeps = Seq(build.common, build.network, build.scalatestsuite)
   object test extends ScalaTester {

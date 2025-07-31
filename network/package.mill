@@ -7,7 +7,7 @@ object `package` extends BaseModule {
   def mvnDeps: T[Seq[Dep]] = SharedDependencies.logging ++ SharedDependencies.enumeratum ++ Seq(
     SharedDependencies.sttp,
     SharedDependencies.jedis,
-    SharedDependencies.jwtCirce,
+    SharedDependencies.jwtCirce
   ) ++ SharedDependencies.tapirHttp4sCirce
   override def moduleDeps = Seq(build.common)
   object test extends ScalaTester

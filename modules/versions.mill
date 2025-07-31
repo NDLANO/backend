@@ -50,8 +50,8 @@ object SharedDependencies {
   )
 
   val scalikejdbc = mvn"org.scalikejdbc::scalikejdbc:$ScalikeJDBCV"
-  val postgres = mvn"org.postgresql:postgresql:$PostgresV"
-  val hikari = mvn"com.zaxxer:HikariCP:$HikariConnectionPoolV"
+  val postgres    = mvn"org.postgresql:postgresql:$PostgresV"
+  val hikari      = mvn"com.zaxxer:HikariCP:$HikariConnectionPoolV"
 
   val flyway: Seq[Dep] = Seq(
     mvn"org.flywaydb:flyway-core:$FlywayV",
@@ -65,14 +65,14 @@ object SharedDependencies {
     mvn"com.beachape::enumeratum-circe:$EnumeratumV"
   )
 
-  val sttp = mvn"com.softwaremill.sttp.client3::core:$SttpV"
-  val awsS3 = mvn"software.amazon.awssdk:s3:$AwsSdkV"
+  val sttp          = mvn"com.softwaremill.sttp.client3::core:$SttpV"
+  val awsS3         = mvn"software.amazon.awssdk:s3:$AwsSdkV"
   val awsTranscribe = mvn"software.amazon.awssdk:transcribe:$AwsSdkV"
 
   val circe: Seq[Dep] = Seq(
     mvn"io.circe::circe-generic:$CirceV",
     mvn"io.circe::circe-literal:$CirceV",
-    mvn"io.circe::circe-parser:$CirceV",
+    mvn"io.circe::circe-parser:$CirceV"
   )
 
   val http4s: Seq[Dep] = Seq(
@@ -96,7 +96,7 @@ object SharedDependencies {
     mvn"com.softwaremill.sttp.tapir::tapir-prometheus-metrics:$TapirV",
     mvn"com.softwaremill.sttp.apispec::openapi-circe-yaml:$ApiSpecV",
     tapirTesting // TODO: I think we can just remove this?
-  ).map{
+  ).map {
     // NOTE: tapir-jdkhttp-server includes some logback provider for slf4j
     //       this conflicts with the existing provider, so lets exclude it.
     _.exclude("ch.qos.logback" -> "logback-classic")
@@ -104,19 +104,19 @@ object SharedDependencies {
   }
 
   val catsEffect: Dep = mvn"org.typelevel::cats-effect:$CatsEffectV"
-  val catsCore: Dep = mvn"org.typelevel::cats-core:2.13.0"
+  val catsCore: Dep   = mvn"org.typelevel::cats-core:2.13.0"
 
   val tapirHttp4sCirce: Seq[Dep] = circe ++ http4s ++ tapir :+ catsEffect
 
-  def jedis: Dep = mvn"redis.clients:jedis:6.0.0"
+  def jedis: Dep    = mvn"redis.clients:jedis:6.0.0"
   def jwtCirce: Dep = mvn"com.github.jwt-scala::jwt-circe:10.0.4"
 
-  def jsoup: Dep = mvn"org.jsoup:jsoup:$JsoupV"
+  def jsoup: Dep    = mvn"org.jsoup:jsoup:$JsoupV"
   def scalaUri: Dep = mvn"io.lemonlabs::scala-uri:4.0.3".exclude("org.typelevel" -> "cats-parse")
 
-  def elastic4s: Dep = mvn"com.sksamuel.elastic4s::elastic4s-client-esjava:$Elastic4sV"
+  def elastic4s: Dep     = mvn"com.sksamuel.elastic4s::elastic4s-client-esjava:$Elastic4sV"
   def elastic4sTest: Dep = mvn"com.sksamuel.elastic4s::elastic4s-testkit:$Elastic4sV"
-  def jave: Seq[Dep] = Seq(
+  def jave: Seq[Dep]     = Seq(
     mvn"ws.schild:jave-core:3.5.0",
     mvn"ws.schild:jave-all-deps:3.5.0"
   )
