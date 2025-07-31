@@ -54,8 +54,8 @@ trait Module {
     javaOptions ++= reflectiveAccessOptions,
     tpolecatScalacOptions ++= scalacOptions,
     tpolecatExcludeOptions ++= excludeOptions,
-    Compile / unmanagedResources += (ThisBuild / baseDirectory).value / "log4j" / "log4j2.yaml",
-    Test / unmanagedResources += (ThisBuild / baseDirectory).value / "log4j" / "test" / "log4j2.yaml",
+    Compile / unmanagedResources += (ThisBuild / baseDirectory).value / "log4j" / "main" / "log4j2.yaml",
+    Test / unmanagedResources += (ThisBuild / baseDirectory).value / "log4j" / "test" / "log4j2-test.yaml",
     Test / tpolecatExcludeOptions ++= testExcludeOptions,
     Test / parallelExecution := false,
     resolvers ++= scala.util.Properties
