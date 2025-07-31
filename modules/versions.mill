@@ -96,7 +96,12 @@ object SharedDependencies {
     mvn"com.softwaremill.sttp.tapir::tapir-prometheus-metrics:$TapirV",
     mvn"com.softwaremill.sttp.apispec::openapi-circe-yaml:$ApiSpecV",
     tapirTesting // TODO: I think we can just remove this?
-  )
+  ).map{
+    // NOTE: tapir-jdkhttp-server includes some logback provider for slf4j
+    //       this conflicts with the existing provider, so lets exclude it.
+    _.exclude("ch.qos.logback" -> "logback-classic")
+      .exclude("ch.qos.logback" -> "logback-core")
+  }
 
   val catsEffect: Dep = mvn"org.typelevel::cats-effect:$CatsEffectV"
 
