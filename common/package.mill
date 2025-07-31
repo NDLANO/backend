@@ -11,9 +11,7 @@ object `package` extends BaseModule {
     SharedDependencies.awsTranscribe,
   ) ++ SharedDependencies.tapirHttp4sCirce
   override def moduleDeps = Seq(build.language)
-  override def sources: T[Seq[PathRef]] = Task.Sources ( "src/main/scala", "src/main/scala-2" )
   object test extends ScalaTester {
     override def moduleDeps = super.moduleDeps :+ build.testbase
-    override def sources: T[Seq[PathRef]] = Task.Sources ( "src/test/scala", "src/test/scala-2" )
   }
 }
