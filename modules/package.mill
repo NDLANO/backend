@@ -1,0 +1,17 @@
+package build.modules
+
+import mill._, mill.scalalib._
+
+trait BaseModule extends ScalaModule {
+  def scalaVersion = SharedDependencies.ScalaVersion
+  val md = super.moduleDir
+  override def moduleDir = md
+
+  trait ScalaTester extends ScalaTests, TestModule.ScalaTest {
+    override def moduleDir = md
+    override def scalaTestVersion = SharedDependencies.ScalaTestV
+    override def mvnDeps = super.mvnDeps() ++ SharedDependencies.testing
+    override def sources = Task.Sources { "src/test/scala" }
+  }
+}
+

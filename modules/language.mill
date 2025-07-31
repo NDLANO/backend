@@ -1,0 +1,12 @@
+package build.modules
+
+import mill._, mill.scalalib._
+import build.modules.BaseModule
+
+trait Language extends BaseModule {
+  def mvnDeps = SharedDependencies.logging
+  override def sources = Task.Sources { "src/main/scala" }
+  object test extends ScalaTester {
+  }
+}
+
