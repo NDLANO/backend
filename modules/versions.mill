@@ -83,6 +83,8 @@ object SharedDependencies {
     mvn"org.typelevel::cats-parse:1.1.0"
   )
 
+  val tapirTesting: Dep = mvn"com.softwaremill.sttp.tapir::tapir-testing:$TapirV"
+
   // TODO: In sbt we did some magic with removing logback in this
   //       i assume we need to do the same here, but lets get it working first
   val tapir: Seq[Dep] = Seq(
@@ -93,7 +95,7 @@ object SharedDependencies {
     mvn"com.softwaremill.sttp.tapir::tapir-jdkhttp-server:$TapirV",
     mvn"com.softwaremill.sttp.tapir::tapir-prometheus-metrics:$TapirV",
     mvn"com.softwaremill.sttp.apispec::openapi-circe-yaml:$ApiSpecV",
-    mvn"com.softwaremill.sttp.tapir::tapir-testing:$TapirV" // TODO: Move this to testonly
+    tapirTesting // TODO: I think we can just remove this?
   )
 
   val catsEffect: Dep = mvn"org.typelevel::cats-effect:$CatsEffectV"
