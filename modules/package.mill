@@ -1,6 +1,7 @@
 package build.modules
 
 import mill.*
+import mill.api.BuildCtx
 import mill.scalalib.*
 import os.Path
 
@@ -65,13 +66,14 @@ trait BaseModule extends ScalaModule {
 
   override def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ sharedScalacOptions ++ scalacOptionsOnlyRun
   override def sources: T[Seq[PathRef]]      = Task.Sources("src/main/scala", "src/main/scala-2")
-  override def resources: T[Seq[PathRef]]    = Task.Sources("src/main/resources", md / ".." / "log4j" / "main")
+
+  override def resources: T[Seq[PathRef]]    = Task.Sources("src/main/resources", BuildCtx.workspaceRoot / "log4j" / "main")
   trait ScalaTester extends ScalaTests, TestModule.ScalaTest {
     override def moduleDir: Path               = md
     override def scalaTestVersion: T[String]   = SharedDependencies.ScalaTestV
     override def mvnDeps: T[Seq[Dep]]          = super.mvnDeps() ++ SharedDependencies.testing
     override def sources: T[Seq[PathRef]]      = Task.Sources("src/test/scala", "src/test/scala-2")
-    override def resources: T[Seq[PathRef]]    = Task.Sources("src/test/resources", md / ".." / "log4j" / "test")
+    override def resources: T[Seq[PathRef]]    = Task.Sources("src/test/resources", BuildCtx.workspaceRoot / "log4j" / "test")
     override def scalacOptions: T[Seq[String]] = super.scalacOptions().filterNot(scalacOptionsOnlyRun.contains)
     override def forkArgs: T[Seq[String]]      = super.forkArgs() ++ testJavaOptions
   }
