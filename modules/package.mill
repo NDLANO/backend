@@ -4,9 +4,12 @@ import mill.*
 import mill.api.BuildCtx
 import mill.scalalib.*
 import os.Path
+import scala.util.{Failure, Success, Try}
+import scala.io.Source
 
 trait BaseModule extends ScalaModule {
   def scalaVersion: T[String] = SharedDependencies.ScalaVersion
+  def moduleName              = this.toString
   private val md              = super.moduleDir
 
   def sharedScalacOptions: Seq[String] = Seq(
@@ -64,16 +67,61 @@ trait BaseModule extends ScalaModule {
     "-Xshare:off"
   )
 
+  private def removeQuotes(value: String): String = value.trim match {
+    case quoted if quoted.startsWith("'") && quoted.endsWith("'")   => quoted.substring(1, quoted.length - 1)
+    case quoted if quoted.startsWith("\"") && quoted.endsWith("\"") => quoted.substring(1, quoted.length - 1)
+    case unquoted                                                   => unquoted
+  }
+
+  private val envFilePaths = Seq(
+    BuildCtx.workspaceRoot / ".env",
+    BuildCtx.workspaceRoot / s".env.$moduleName",
+    moduleDir / ".env"
+  )
+
+  private def loadVarMap = Task.Input {
+    println(s"Loading environment variables from: ${envFilePaths.mkString("[", ", ", "]")}")
+    envFilePaths
+      .map { filename =>
+        if (!os.exists(filename)) {
+          Map.empty
+        } else {
+          val source = os.read.lines(filename)
+          val envMap = source.foldLeft(Map.empty[String, String]) { case (acc, cur) =>
+            val withoutExport = cur.stripPrefix("export ")
+            val splitByEqual  = withoutExport.split("=")
+            if (withoutExport.strip().startsWith("#")) {
+              acc
+            } else if (splitByEqual.length > 1) {
+              val key   = splitByEqual.head
+              val value = removeQuotes(splitByEqual.tail.mkString("="))
+              acc + (key -> value)
+            } else {
+              acc
+            }
+          }
+          envMap
+        }
+      }
+      .reduce(_ ++ _)
+  }
+
+  override def forkEnv = Task {
+    super.forkEnv() ++ loadVarMap()
+  }
+
   override def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ sharedScalacOptions ++ scalacOptionsOnlyRun
   override def sources: T[Seq[PathRef]]      = Task.Sources("src/main/scala", "src/main/scala-2")
 
-  override def resources: T[Seq[PathRef]]    = Task.Sources("src/main/resources", BuildCtx.workspaceRoot / "log4j" / "main")
+  override def resources: T[Seq[PathRef]] =
+    Task.Sources("src/main/resources", BuildCtx.workspaceRoot / "log4j" / "main")
   trait ScalaTester extends ScalaTests, TestModule.ScalaTest {
-    override def moduleDir: Path               = md
-    override def scalaTestVersion: T[String]   = SharedDependencies.ScalaTestV
-    override def mvnDeps: T[Seq[Dep]]          = super.mvnDeps() ++ SharedDependencies.testing
-    override def sources: T[Seq[PathRef]]      = Task.Sources("src/test/scala", "src/test/scala-2")
-    override def resources: T[Seq[PathRef]]    = Task.Sources("src/test/resources", BuildCtx.workspaceRoot / "log4j" / "test")
+    override def moduleDir: Path             = md
+    override def scalaTestVersion: T[String] = SharedDependencies.ScalaTestV
+    override def mvnDeps: T[Seq[Dep]]        = super.mvnDeps() ++ SharedDependencies.testing
+    override def sources: T[Seq[PathRef]]    = Task.Sources("src/test/scala", "src/test/scala-2")
+    override def resources: T[Seq[PathRef]] =
+      Task.Sources("src/test/resources", BuildCtx.workspaceRoot / "log4j" / "test")
     override def scalacOptions: T[Seq[String]] = super.scalacOptions().filterNot(scalacOptionsOnlyRun.contains)
     override def forkArgs: T[Seq[String]]      = super.forkArgs() ++ testJavaOptions
   }
