@@ -534,6 +534,27 @@ trait LearningpathControllerV2 {
         }
       }
 
+    def deleteLearningStepLanguage(): ServerEndpoint[Any, Eff] = endpoint.delete
+      .summary("Delete given learningstep language")
+      .description("Deletes the given learningStep language")
+      .in(pathLearningpathId / "learningsteps" / pathLearningstepId / "language" / language)
+      .out(jsonBody[LearningStepV2DTO])
+      .errorOut(errorOutputsFor(400, 401, 403, 404, 502)) // TODO: Consider error codes
+      .withRequiredMyNDLAUserOrTokenUser
+      .serverLogicPure { user =>
+        { case (pathId, stepId, language) =>
+          updateService
+            .deleteLearningStepLanguage(pathId, stepId, language.code, user)
+            .map(learningStep => {
+              logger.info(
+                s"DELETED LearningStep language ${language.code} for LearningStep with ID = $stepId for LearningPath with ID $pathId"
+              )
+              learningStep
+            })
+            .handleErrorsOrOk
+        }
+      }
+
     private def updatedLearningstepSeqNo: ServerEndpoint[Any, Eff] = endpoint.put
       .summary("Store new sequence number for learningstep.")
       .description(
@@ -631,6 +652,23 @@ trait LearningpathControllerV2 {
             ().asRight
         }
       }
+
+    // private def deleteLearningpathLanguage(): ServerEndpoint[Any, Eff] = endpoint.delete
+    //   .summary("Delete given learningpath language")
+    //   .description("Deletes the given learningPath language")
+    //   .in(pathLearningpathId / "language" / language)
+    //   .out(jsonBody[LearningPathV2DTO])
+    //   .errorOut(errorOutputsFor(400, 401, 403, 404))
+    //   .withRequiredMyNdlaUserOrTokenUser
+    //   .serverLogicPure { user => pathId =>
+    //     updateService.updateLearningPathV2(pathLearningpathId, language.code, user) match {
+    //       case Failure(ex)           => returnLeftError(ex)
+    //       case Success(learningPath) =>
+    //         logger.info(s"DELETED language ${language.code} for LearningPath with ID: $pathId")
+    //         learningPath.asRight
+    //     }
+    //
+    //   }
 
     private def deleteLearningStep(): ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Delete given learningstep")
