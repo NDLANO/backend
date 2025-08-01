@@ -25,6 +25,7 @@ import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
+import no.ndla.database.DBUtility
 
 trait TestEnvironment
     extends TapirApplication
@@ -34,6 +35,7 @@ trait TestEnvironment
     with FeideApiClient
     with ReadService
     with UpdateService
+    with DBUtility
     with SearchConverterServiceComponent
     with SearchService
     with SearchLanguage
@@ -93,6 +95,7 @@ trait TestEnvironment
   val feideApiClient: FeideApiClient                                   = mock[FeideApiClient]
   val redisClient: RedisClient                                         = mock[RedisClient]
   val myndlaApiClient: MyNDLAApiClient                                 = mock[MyNDLAApiClient]
+  val DBUtil: DBUtility                                                = mock[DBUtility]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]
