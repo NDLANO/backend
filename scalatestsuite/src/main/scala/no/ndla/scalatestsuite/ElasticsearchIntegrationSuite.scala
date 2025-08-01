@@ -31,7 +31,7 @@ trait ElasticsearchIntegrationSuite extends UnitTestSuite with ContainerSuite {
       Success(esMock)
     } else {
       val imageFromEnv = env.get("SEARCH_ENGINE_IMAGE")
-      val imgName =
+      val imgName      =
         imageFromEnv.getOrElse(
           s"950645517739.dkr.ecr.eu-central-1.amazonaws.com/ndla/search-engine:$ElasticsearchImage"
         )

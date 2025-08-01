@@ -24,7 +24,7 @@ trait TapirHealthController {
 
     def setShuttingDown(): Unit = { isShuttingDown = true }
 
-    private def checkLiveness(): Either[String, String] = Right("Healthy")
+    private def checkLiveness(): Either[String, String]    = Right("Healthy")
     protected def checkReadiness(): Either[String, String] = {
       if (isShuttingDown) Left("Service is shutting down")
       else if (isWarmedUp) Right("Ready")

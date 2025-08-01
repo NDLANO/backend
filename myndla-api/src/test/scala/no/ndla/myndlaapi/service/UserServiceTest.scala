@@ -34,7 +34,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That updateUserData updates user if user exist") {
-    val feideId = "feide"
+    val feideId    = "feide"
     val userBefore = MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -116,7 +116,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That updateUserData fails if user does not exist") {
-    val feideId = "feide"
+    val feideId         = "feide"
     val updatedUserData =
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("r", "e")),
@@ -148,7 +148,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     }).when(DBUtil).rollbackOnFailure(any)
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(false))
 
-    val feideId = "feide"
+    val feideId     = "feide"
     val feideGroups =
       Seq(
         FeideGroup(
@@ -230,7 +230,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     }).when(DBUtil).rollbackOnFailure(any)
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
 
-    val feideId = "feide"
+    val feideId        = "feide"
     val domainUserData = MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -288,7 +288,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     }).when(DBUtil).rollbackOnFailure(any)
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
 
-    val feideId = "feide"
+    val feideId     = "feide"
     val feideGroups =
       Seq(
         FeideGroup(

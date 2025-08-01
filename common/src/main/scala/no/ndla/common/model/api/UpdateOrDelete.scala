@@ -35,7 +35,7 @@ object UpdateOrDelete {
   implicit def decodeUpdateOrDelete[A](implicit decodeA: Decoder[A]): Decoder[UpdateOrDelete[A]] =
     Decoder.withReattempt {
       case c: FailedCursor if !c.incorrectFocus => Right(Missing)
-      case c =>
+      case c                                    =>
         Decoder.decodeOption[A].tryDecode(c).map {
           case Some(a) => UpdateWith(a)
           case None    => Delete

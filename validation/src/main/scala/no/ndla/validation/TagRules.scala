@@ -116,7 +116,7 @@ object TagRules {
 }
 
 sealed abstract class AttributeType extends EnumEntry
-object AttributeType extends Enum[AttributeType] with CirceEnum[AttributeType] {
+object AttributeType                extends Enum[AttributeType] with CirceEnum[AttributeType] {
   val values: IndexedSeq[AttributeType] = findValues
   case object BOOLEAN extends AttributeType
   case object EMAIL   extends AttributeType

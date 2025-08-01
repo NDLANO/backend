@@ -45,7 +45,7 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
   override val searchConverterService = new SearchConverterService
 
   test("That mapping contains every field after serialization") {
-    val now = NDLADate.now()
+    val now         = NDLADate.now()
     val domainDraft = TestData.draft1.copy(
       content = Seq(
         ArticleContent(

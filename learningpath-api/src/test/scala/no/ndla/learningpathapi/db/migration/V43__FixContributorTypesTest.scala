@@ -13,7 +13,7 @@ import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class V43__FixContributorTypesTest extends UnitSuite with TestEnvironment {
   test("That copyright has correct contributor types") {
-    val migration = new V43__FixContributorTypes
+    val migration   = new V43__FixContributorTypes
     val oldDocument =
       """
         |{

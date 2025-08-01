@@ -61,7 +61,7 @@ object CopyrightHeaderPlugin extends AutoPlugin {
   def validateOrFixFile(submodule: Option[String], file: File, skipWrite: Boolean = false): Boolean = {
     val lines             = readLines(file)
     val copyrightLocation = locateCopyright(lines)
-    val output = copyrightLocation match {
+    val output            = copyrightLocation match {
       case Some((start, end)) =>
         val existingCopyright    = lines.slice(start, end + 1).mkString("\n")
         val year                 = yearPattern.findFirstMatchIn(existingCopyright).map(_.group(1))
@@ -89,7 +89,7 @@ object CopyrightHeaderPlugin extends AutoPlugin {
 
   override lazy val projectSettings: Seq[Setting[?]] = Seq(
     Compile / compile := (Compile / compile dependsOn copyrightGenerate).value,
-    copyrightCheck := {
+    copyrightCheck    := {
       val appName                = name.value
       val sourceFiles: Seq[File] = (Compile / sources).value
       val testFiles: Seq[File]   = (Test / sources).value

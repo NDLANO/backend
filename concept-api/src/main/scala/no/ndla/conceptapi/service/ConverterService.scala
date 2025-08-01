@@ -187,7 +187,7 @@ trait ConverterService {
       apiGlossData
         .map(glossData =>
           WordClass.valueOfOrError(glossData.wordClass) match {
-            case Failure(ex) => Failure(ex)
+            case Failure(ex)        => Failure(ex)
             case Success(wordClass) =>
               Success(
                 concept.GlossData(
@@ -209,7 +209,7 @@ trait ConverterService {
 
     def toDomainConcept(concept: api.NewConceptDTO, userInfo: TokenUser): Try[DomainConcept] = {
       val conceptType = ConceptType.valueOfOrError(concept.conceptType).getOrElse(ConceptType.CONCEPT)
-      val content = concept.content
+      val content     = concept.content
         .map(content => Seq(model.domain.concept.ConceptContent(content, concept.language)))
         .getOrElse(Seq.empty)
       val visualElement = concept.visualElement

@@ -16,8 +16,8 @@ import no.ndla.searchapi.model.search.SearchableTaxonomyResourceType
 import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
 
-sealed trait NodeType extends EnumEntry {}
-object NodeType extends Enum[NodeType] with CirceEnum[NodeType] {
+sealed trait NodeType extends EnumEntry                               {}
+object NodeType       extends Enum[NodeType] with CirceEnum[NodeType] {
   case object NODE      extends NodeType
   case object SUBJECT   extends NodeType
   case object TOPIC     extends NodeType

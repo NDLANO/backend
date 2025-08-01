@@ -275,7 +275,7 @@ trait FolderConverterService {
         feideToken: Option[FeideAccessToken]
     ): Try[DomainMyNDLAUser] = {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
-      val arenaEnabled = {
+      val arenaEnabled     = {
         if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN))
           updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
         else
@@ -316,7 +316,7 @@ trait FolderConverterService {
       val maybeUUID = maybeValue.map(value => Try(UUID.fromString(value)))
       maybeUUID match {
         case Some(Success(uuid)) => Success(uuid)
-        case _ =>
+        case _                   =>
           Failure(
             ValidationException(
               paramName,

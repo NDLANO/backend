@@ -36,7 +36,7 @@ trait NodeBBClient {
       val request = quickRequest
         .get(uri"$baseUrl/api/config")
         .header("FeideAuthorization", s"Bearer $feideToken")
-      val resp = doReq(request).?
+      val resp      = doReq(request).?
       val csrfToken = parse(resp.body)
         .flatMap(_.as[NodeBBApiConfig])
         .toTry
@@ -82,7 +82,7 @@ trait NodeBBClient {
 
     def deleteUser(userId: Option[Long], feideToken: FeideAccessToken): Try[Unit] = {
       userId match {
-        case None => Success(())
+        case None     => Success(())
         case Some(id) =>
           for {
             nodebbSession <- getCSRFToken(feideToken)

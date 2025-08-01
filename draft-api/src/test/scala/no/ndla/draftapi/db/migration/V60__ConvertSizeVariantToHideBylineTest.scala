@@ -14,7 +14,7 @@ import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 class V60__ConvertSizeVariantToHideBylineTest extends UnitSuite with TestEnvironment {
 
   test("Migrate size attribute to hide caption and byline") {
-    val migration = new V60__ConvertSizeVariantToHideByline
+    val migration  = new V60__ConvertSizeVariantToHideByline
     val oldArticle =
       """<section><ndlaembed data-resource="image" data-resource_id="1" data-align="left" data-caption="Caption" data-size="full--hide-byline"></ndlaembed></section>"""
     val newArticle =

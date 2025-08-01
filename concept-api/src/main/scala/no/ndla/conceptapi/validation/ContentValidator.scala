@@ -89,7 +89,7 @@ trait ContentValidator {
       val licenseMessage            = copyright.license.map(validateLicense).toSeq.flatten
       val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
       val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
-      val contributorsMessages =
+      val contributorsMessages      =
         copyright.creators.flatMap(a => validateAuthor(a, ContributorType.creators)) ++ copyright.processors
           .flatMap(a => validateAuthor(a, ContributorType.processors)) ++ copyright.rightsholders.flatMap(a =>
           validateAuthor(a, ContributorType.rightsholders)

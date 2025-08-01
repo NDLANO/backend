@@ -155,7 +155,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val articleType        = "topic-article"
     val supportedLanguages = Seq("nb", "en")
     val availability       = "everyone"
-    val hitString =
+    val hitString          =
       s"""{  "grepCodes": [], "availability": "everyone", "visualElement": {    "en": "$visualElement"  },  "introduction": {    "nb": "$introduction"  }, "metaImage": [{"imageId": "1", "altText": "$metaImageAlt", "language": "nb"}], "tags": {"nb": ["test"]},  "metaDescription": {    "nb": "$metaDescription"  },  "lastUpdated": "2017-12-29T07:18:27Z",  "tags.nb": [    "baldur"  ],  "license": "$license",  "id": $id,  "authors": [],  "content": {    "nb": "Bilde av Baldurs mareritt om Ragnarok."  },  "defaultTitle": "Baldur har mareritt",  "title": {    "nb": "Baldur har mareritt"  },  "articleType": "$articleType"}"""
 
     val result = service.hitAsArticleSummaryV2(hitString, "nb")
@@ -174,7 +174,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That updateExistingTags updates tags correctly") {
     val existingTags = Seq(Tag(Seq("nb-tag1", "nb-tag2"), "nb"), Tag(Seq("Guten", "Tag"), "de"))
-    val updatedTags = Seq(
+    val updatedTags  = Seq(
       Tag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"),
       Tag(Seq("new-nn-tag1"), "nn"),
       Tag(Seq("new-es-tag1", "new-es-tag2"), "es")
@@ -189,7 +189,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That updateExistingArticleMetaDescription updates metaDesc correctly") {
     val existingMetaDesc = Seq(Description("nb-content", "nb"), Description("en-content", "en"))
-    val updatedMetaDesc = Seq(
+    val updatedMetaDesc  = Seq(
       Description("new-nb-content", "nb"),
       Description("new-nn-content", "nn"),
       Description("new-es-content", "es")
@@ -261,7 +261,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       tags = Seq(Tag(Seq("Gluten", "Tag"), "de"))
     )
 
-    val revisionDate = NDLADate.now()
+    val revisionDate   = NDLADate.now()
     val partialArticle =
       article.PartialPublishArticleDTO(
         availability = Some(Availability.teacher),

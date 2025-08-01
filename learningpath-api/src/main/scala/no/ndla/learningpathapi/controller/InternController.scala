@@ -93,7 +93,7 @@ trait InternController {
               searchIndexService.deleteIndexWithName(Option(index))
             })
           }) match {
-          case Failure(ex) => ex.getMessage.asLeft
+          case Failure(ex)            => ex.getMessage.asLeft
           case Success(deleteResults) =>
             val (errors, successes) = deleteResults.partition(_.isFailure)
             if (errors.nonEmpty) {

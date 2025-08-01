@@ -34,7 +34,7 @@ trait UserService {
         feideAccessToken: Option[FeideAccessToken]
     ): Try[MyNDLAUser] = {
       for {
-        feideId <- feideApiClient.getFeideID(feideAccessToken)
+        feideId  <- feideApiClient.getFeideID(feideAccessToken)
         userData <- DBUtil.rollbackOnFailure(session =>
           getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
         )
@@ -44,7 +44,7 @@ trait UserService {
     def getArenaEnabledUser(feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
       for {
         userData <- getMyNdlaUserDataDomain(feideAccessToken)
-        user <-
+        user     <-
           if (userData.arenaEnabled) Success(userData) else Failure(AccessDeniedException("User is not arena enabled"))
       } yield user
     }
@@ -62,11 +62,11 @@ trait UserService {
     )(implicit session: DBSession): Try[MyNDLAUser] = {
       userRepository.reserveFeideIdIfNotExists(feideId)(session).flatMap {
         case false => createMyNDLAUser(feideId, feideAccessToken)(session)
-        case true =>
+        case true  =>
           userRepository.userWithFeideId(feideId)(session).flatMap {
             case None => Failure(new IllegalStateException(s"User with feide_id $feideId was not found."))
             case Some(userData) if userData.wasUpdatedLast24h => Success(userData)
-            case Some(userData) =>
+            case Some(userData)                               =>
               fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(session)
           }
       }
@@ -86,7 +86,7 @@ trait UserService {
     ): Try[myndla.MyNDLAUserDTO] =
       for {
         existingUser <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
-        newFavorites = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
+        newFavorites     = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
         updatedFeideUser = UpdatedMyNDLAUserDTO(
           favoriteSubjects = Some(newFavorites),
           arenaEnabled = None,
@@ -104,7 +104,7 @@ trait UserService {
       for {
         _ <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
         existingUserData <- getMyNDLAUserOrFail(feideId)
-        combined <- folderConverterService.mergeUserData(
+        combined         <- folderConverterService.mergeUserData(
           existingUserData,
           updatedUser,
           None,
@@ -147,7 +147,7 @@ trait UserService {
         organization          <- feideApiClient.getOrganization(feideAccessToken)
         feideGroups           <- feideApiClient.getFeideGroups(feideAccessToken)
         userRole = if (feideExtendedUserData.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT
-        newUser = MyNDLAUserDocument(
+        newUser  = MyNDLAUserDocument(
           favoriteSubjects = Seq.empty,
           userRole = userRole,
           lastUpdated = clock.now().plusDays(1),
@@ -171,10 +171,10 @@ trait UserService {
     )(implicit
         session: DBSession
     ): Try[MyNDLAUser] = {
-      val feideUser    = feideApiClient.getFeideExtendedUser(feideAccessToken).?
-      val organization = feideApiClient.getOrganization(feideAccessToken).?
-      val feideGroups  = feideApiClient.getFeideGroups(feideAccessToken).?
-      val userRole     = if (feideUser.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT
+      val feideUser         = feideApiClient.getFeideExtendedUser(feideAccessToken).?
+      val organization      = feideApiClient.getOrganization(feideAccessToken).?
+      val feideGroups       = feideApiClient.getFeideGroups(feideAccessToken).?
+      val userRole          = if (feideUser.isTeacher) UserRole.EMPLOYEE else UserRole.STUDENT
       val updatedMyNDLAUser = MyNDLAUser(
         id = userData.id,
         feideId = userData.feideId,

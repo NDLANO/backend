@@ -18,8 +18,8 @@ case class NotWanted[T]()      extends OptionalLanguageValue[T]
 
 object OptionalLanguageValue {
   type NotWantedKeyT = "__notwanted__"
-  final val NotWantedKey: NotWantedKeyT               = "__notwanted__"
-  implicit val NotWantedSchema: Schema[NotWantedKeyT] = Schema.string
+  final val NotWantedKey: NotWantedKeyT                                                         = "__notwanted__"
+  implicit val NotWantedSchema: Schema[NotWantedKeyT]                                           = Schema.string
   implicit def encoder[T](implicit valueEncoder: Encoder[T]): Encoder[OptionalLanguageValue[T]] = Encoder.instance {
     case Exists(value) => Json.obj("value" -> value.asJson)
     case NotWanted()   => Json.obj(NotWantedKey -> Json.True)
@@ -29,7 +29,7 @@ object OptionalLanguageValue {
     (c: HCursor) => {
       c.downField(NotWantedKey).as[Option[Boolean]].flatMap {
         case Some(true) => Right(NotWanted())
-        case _ =>
+        case _          =>
           val field  = c.downField("value")
           val parsed = field.as[T]
           parsed.map(value => Exists(value))

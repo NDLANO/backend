@@ -274,7 +274,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
   test("That validate returns error when copyright.license is invalid") {
     validMock()
-    val invalidLicense = "dummy license"
+    val invalidLicense   = "dummy license"
     val invalidCopyright =
       ValidLearningPath.copyright.copy(license = invalidLicense)
     val validationErrors = validator.validateLearningPath(ValidLearningPath.copy(copyright = invalidCopyright), false)

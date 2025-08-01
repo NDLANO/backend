@@ -62,7 +62,7 @@ trait ImageStorageService {
 
     def get(imageKey: String): Try[ImageStream] = {
       s3Client.getObject(imageKey).map(s3Object => NdlaImage(s3Object, imageKey)) match {
-        case Success(e) => Success(e)
+        case Success(e)                     => Success(e)
         case Failure(_: NoSuchKeyException) =>
           Failure(new ImageNotFoundException(s"Image $imageKey does not exist"))
         case Failure(ex) =>

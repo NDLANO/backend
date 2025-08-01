@@ -34,12 +34,12 @@ object EmbedType extends Enum[EmbedType] with CirceEnum[EmbedType] {
   case object IFrame   extends EmbedType("iframe")
   case object External extends EmbedType("external")
 
-  def valueOf(s: String): Option[EmbedType]  = EmbedType.values.find(_.entryName == s)
-  def valueOfOrDefault(s: String): EmbedType = valueOf(s).getOrElse(EmbedType.OEmbed)
+  def valueOf(s: String): Option[EmbedType]        = EmbedType.values.find(_.entryName == s)
+  def valueOfOrDefault(s: String): EmbedType       = valueOf(s).getOrElse(EmbedType.OEmbed)
   def valueOfOrError(embedType: String): EmbedType = {
     valueOf(embedType) match {
       case Some(s) => s
-      case None =>
+      case None    =>
         throw new ValidationException(
           errors = List(ValidationMessage("embedType", s"'$embedType' is not a valid embed type."))
         )

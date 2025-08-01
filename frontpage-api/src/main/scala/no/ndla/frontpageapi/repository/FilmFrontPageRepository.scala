@@ -51,12 +51,12 @@ trait FilmFrontPageRepository {
           .map(DBFilmFrontPageData.fromDb(fr))
           .single()
       ) match {
-        case Success(Some(Success(s))) => Some(s)
+        case Success(Some(Success(s)))  => Some(s)
         case Success(Some(Failure(ex))) =>
           logger.error(ex)("Error while decoding film front page")
           None
         case Success(None) => None
-        case Failure(ex) =>
+        case Failure(ex)   =>
           logger.error(ex)("Error while getting film front page from database")
           None
       }

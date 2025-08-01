@@ -29,9 +29,9 @@ object ApplicationUrl {
   def fromRequest(request: NdlaHttpRequest): String = {
     propOrNone("NDLA_ENVIRONMENT") match {
       case Some(environment) if environment.nonEmpty => s"${Domains.get(environment)}${request.servletPath}/"
-      case _ =>
+      case _                                         =>
         val xForwardedProtoHeaderProtocol = request.getHeader(X_FORWARDED_PROTO_HEADER)
-        val forwardedHeaderProtocol = request
+        val forwardedHeaderProtocol       = request
           .getHeader(FORWARDED_HEADER)
           .flatMap(
             _.replaceAll("\\s", "").split(";").find(_.contains(FORWARDED_PROTO)).map(_.dropWhile(c => c != '=').tail)

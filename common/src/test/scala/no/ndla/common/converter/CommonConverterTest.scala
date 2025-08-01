@@ -66,7 +66,7 @@ class CommonConverterTest extends UnitTestSuiteBase with CommonConverter with Cl
     val now  = NDLADate.now()
     when(clock.now()).thenReturn(now)
 
-    val newComments = NewCommentDTO(content = "hei", isOpen = None)
+    val newComments     = NewCommentDTO(content = "hei", isOpen = None)
     val expectedComment =
       Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true, solved = false)
     CommonConverter.newCommentApiToDomain(newComments).copy(id = uuid) should be(expectedComment)

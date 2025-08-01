@@ -78,7 +78,7 @@ trait SeriesSearchService {
 
       val (languageFilter, searchLanguage) = settings.language match {
         case None | Some(AllLanguages) => (None, "*")
-        case Some(lang) =>
+        case Some(lang)                =>
           if (settings.fallback) (None, lang)
           else (Some(existsQuery(s"titles.$lang")), lang)
       }

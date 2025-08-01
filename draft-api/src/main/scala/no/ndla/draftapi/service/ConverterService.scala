@@ -49,7 +49,7 @@ trait ConverterService {
     import props.externalApiUrls
 
     def toDomainArticle(newArticleId: Long, newArticle: api.NewArticleDTO, user: TokenUser): Try[Draft] = {
-      val domainTitles = Seq(common.Title(newArticle.title, newArticle.language))
+      val domainTitles  = Seq(common.Title(newArticle.title, newArticle.language))
       val domainContent = newArticle.content
         .map(content => common.ArticleContent(removeUnknownEmbedTagAttribute(content), newArticle.language))
         .toSeq
@@ -57,7 +57,7 @@ trait ConverterService {
       val status           = common.Status(PLANNED, Set.empty)
 
       val newAvailability = common.Availability.valueOf(newArticle.availability).getOrElse(common.Availability.everyone)
-      val revisionMeta = newArticle.revisionMeta match {
+      val revisionMeta    = newArticle.revisionMeta match {
         case Some(revs) if revs.nonEmpty =>
           newArticle.revisionMeta.map(_.map(toDomainRevisionMeta)).getOrElse(common.draft.RevisionMeta.default)
         case _ => common.draft.RevisionMeta.default
@@ -218,7 +218,7 @@ trait ConverterService {
     }
 
     def getEmbeddedConceptIds(article: Draft): Seq[Long] = {
-      val htmlElements = article.content.map(content => HtmlTagRules.stringToJsoupDocument(content.content))
+      val htmlElements  = article.content.map(content => HtmlTagRules.stringToJsoupDocument(content.content))
       val conceptEmbeds = htmlElements.flatMap(elem => {
         val conceptSelector = s"$EmbedTagName[${TagAttribute.DataResource}=${ResourceType.Concept}]"
         elem.select(conceptSelector).asScala.toSeq
@@ -469,7 +469,7 @@ trait ConverterService {
       val visualElement       = article.visualElement.filter(_.language != language)
       val disclaimers         = article.disclaimer.dropLanguage(language)
       newNotes(Seq(s"Slettet språkvariant '$language'."), userInfo, article.status) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)             => Failure(ex)
         case Success(newEditorNotes) =>
           Success(
             article.copy(
@@ -647,8 +647,8 @@ trait ConverterService {
       maybeLang
         .map(lang =>
           updatedArticle.metaImage match {
-            case Delete  => toMergeInto.metaImage.filterNot(_.language == lang)
-            case Missing => toMergeInto.metaImage
+            case Delete        => toMergeInto.metaImage.filterNot(_.language == lang)
+            case Missing       => toMergeInto.metaImage
             case UpdateWith(m) =>
               val domainMetaImage = Seq(common.ArticleMetaImage(m.id, m.alt, lang))
               mergeLanguageFields(toMergeInto.metaImage, domainMetaImage)
@@ -672,7 +672,7 @@ trait ConverterService {
       val newNotes           = getNewEditorialNotes(isNewLanguage, user, article, toMergeInto).?
       val newContent         = cloneFilesForOtherLanguages(article.content, toMergeInto.content, isNewLanguage).?
       val updatedRelatedCont = article.relatedContent.map(toDomainRelatedContent).getOrElse(toMergeInto.relatedContent)
-      val reqLibs =
+      val reqLibs            =
         article.requiredLibraries.map(_.map(toDomainRequiredLibraries)).getOrElse(toMergeInto.requiredLibraries)
       val updatedComments = article.comments
         .map(comments => CommonConverter.mergeUpdatedCommentsWithExisting(comments, toMergeInto.comments))
@@ -682,7 +682,7 @@ trait ConverterService {
 
       val maybeLang        = articleWithNewContent.language
       val updatedMetaImage = getNewMetaImage(toMergeInto, maybeLang, articleWithNewContent)
-      val updatedTitles = mergeLanguageFields(
+      val updatedTitles    = mergeLanguageFields(
         toMergeInto.title,
         maybeLang
           .traverse(lang => articleWithNewContent.title.toSeq.map(t => toDomainTitle(api.ArticleTitleDTO(t, t, lang))))

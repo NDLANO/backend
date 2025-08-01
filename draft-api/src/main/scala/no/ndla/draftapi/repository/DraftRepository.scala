@@ -47,7 +47,7 @@ trait DraftRepository {
         session: DBSession
     ): Try[Draft] = {
       article.id match {
-        case None => Failure(ArticleVersioningException("Duplication of article failed."))
+        case None            => Failure(ArticleVersioningException("Duplication of article failed."))
         case Some(articleId) =>
           val correctRevision = withId(articleId).exists(_.revision.getOrElse(0) == article.revision.getOrElse(0))
           if (!correctRevision) {
@@ -59,7 +59,7 @@ trait DraftRepository {
             val externalSubjectIds: Seq[String] = getExternalSubjectIdsFromId(articleId)
             val importId: Option[String]        = getImportIdFromId(articleId)
             val articleRevision                 = article.revision.getOrElse(0) + 1
-            val copiedArticle = article.copy(
+            val copiedArticle                   = article.copy(
               notes = user
                 .map(u => EditorNote("Artikkelen har blitt lagret som ny versjon", u.id, article.status, clock.now()))
                 .toList,
@@ -131,7 +131,7 @@ trait DraftRepository {
       val newRevision = article.revision.getOrElse(0) + 1
       val oldRevision = article.revision.getOrElse(0)
       val slug        = article.slug.map(_.toLowerCase)
-      val count =
+      val count       =
         sql"""
               update ${DBArticle.table}
               set document=$dataObject, revision=$newRevision, slug=$slug
@@ -398,7 +398,7 @@ trait DraftRepository {
         session: DBSession = ReadOnlyAutoSession
     ): Boolean = {
       val sq = articleId match {
-        case None => sql"select count(*) from ${DBArticle.table} where slug = ${slug.toLowerCase}"
+        case None     => sql"select count(*) from ${DBArticle.table} where slug = ${slug.toLowerCase}"
         case Some(id) =>
           sql"select count(*) from ${DBArticle.table} where slug = ${slug.toLowerCase} and article_id != $id"
       }

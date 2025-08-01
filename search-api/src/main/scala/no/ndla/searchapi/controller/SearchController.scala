@@ -107,7 +107,7 @@ trait SearchController {
       .errorOut(errorOutputsFor(401, 403))
       .serverLogicPure { case (q, includeMissingResourceTypeGroup, feideToken) =>
         getAvailability(feideToken) match {
-          case Failure(ex) => returnLeftError(ex)
+          case Failure(ex)           => returnLeftError(ex)
           case Success(availability) =>
             val searchParams = asSearchParamsDTO(q)
             val settings     = asSettings(searchParams.some, availability)
@@ -338,58 +338,57 @@ trait SearchController {
       .out(jsonBody[MultiSearchResultDTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure {
-        _ =>
-          { implicit queryParams =>
-            val searchParams = Some(
-              DraftSearchParamsDTO(
-                page = intParamOrNone("page"),
-                pageSize = intParamOrNone("page-size"),
-                articleTypes = stringListParam("article-types").some,
-                contextTypes = stringListParam("context-types").some,
-                language = stringParamOrNone("language"),
-                ids = longListParam("ids").some,
-                resourceTypes = stringListParam("resource-types").some,
-                license = stringParamOrNone("license"),
-                query = NonEmptyString.fromOptString(stringParamOrNone("query")),
-                noteQuery = NonEmptyString.fromOptString(stringParamOrNone("note-query")),
-                sort = stringParamOrNone("sort").flatMap(Sort.valueOf),
-                fallback = booleanParamOrNone("fallback"),
-                subjects = stringListParam("subjects").some,
-                languageFilter = stringListParam("language-filter").some,
-                relevance = stringListParam("relevance").some,
-                scrollId = stringParamOrNone("search-context"),
-                draftStatus = stringListParam("draft-status").some,
-                users = stringListParam("users").some,
-                grepCodes = stringListParam("grep-codes").some,
-                traits = stringListParam("traits").flatMap(SearchTrait.withNameOption).some,
-                aggregatePaths = stringListParam("aggregate-paths").some,
-                embedResource = stringListParam("embed-resource").some,
-                embedId = stringParamOrNone("embed-id"),
-                includeOtherStatuses = booleanParamOrNone("include-other-statuses"),
-                revisionDateFrom = dateParamOrNone("revision-date-from"),
-                revisionDateTo = dateParamOrNone("revision-date-to"),
-                excludeRevisionLog = booleanParamOrNone("exclude-revision-log"),
-                responsibleIds = stringListParam("responsible-ids").some,
-                filterInactive = booleanParamOrNone("filter-inactive"),
-                prioritized = booleanParamOrNone("prioritized"),
-                priority = stringListParam("priority").some,
-                topics = stringListParam("topics").some,
-                publishedDateFrom = dateParamOrNone("published-date-from"),
-                publishedDateTo = dateParamOrNone("published-date-to"),
-                resultTypes = stringListParam("result-types").flatMap(SearchType.withNameOption).some
-              )
+      .serverLogicPure { _ =>
+        { implicit queryParams =>
+          val searchParams = Some(
+            DraftSearchParamsDTO(
+              page = intParamOrNone("page"),
+              pageSize = intParamOrNone("page-size"),
+              articleTypes = stringListParam("article-types").some,
+              contextTypes = stringListParam("context-types").some,
+              language = stringParamOrNone("language"),
+              ids = longListParam("ids").some,
+              resourceTypes = stringListParam("resource-types").some,
+              license = stringParamOrNone("license"),
+              query = NonEmptyString.fromOptString(stringParamOrNone("query")),
+              noteQuery = NonEmptyString.fromOptString(stringParamOrNone("note-query")),
+              sort = stringParamOrNone("sort").flatMap(Sort.valueOf),
+              fallback = booleanParamOrNone("fallback"),
+              subjects = stringListParam("subjects").some,
+              languageFilter = stringListParam("language-filter").some,
+              relevance = stringListParam("relevance").some,
+              scrollId = stringParamOrNone("search-context"),
+              draftStatus = stringListParam("draft-status").some,
+              users = stringListParam("users").some,
+              grepCodes = stringListParam("grep-codes").some,
+              traits = stringListParam("traits").flatMap(SearchTrait.withNameOption).some,
+              aggregatePaths = stringListParam("aggregate-paths").some,
+              embedResource = stringListParam("embed-resource").some,
+              embedId = stringParamOrNone("embed-id"),
+              includeOtherStatuses = booleanParamOrNone("include-other-statuses"),
+              revisionDateFrom = dateParamOrNone("revision-date-from"),
+              revisionDateTo = dateParamOrNone("revision-date-to"),
+              excludeRevisionLog = booleanParamOrNone("exclude-revision-log"),
+              responsibleIds = stringListParam("responsible-ids").some,
+              filterInactive = booleanParamOrNone("filter-inactive"),
+              prioritized = booleanParamOrNone("prioritized"),
+              priority = stringListParam("priority").some,
+              topics = stringListParam("topics").some,
+              publishedDateFrom = dateParamOrNone("published-date-from"),
+              publishedDateTo = dateParamOrNone("published-date-to"),
+              resultTypes = stringListParam("result-types").flatMap(SearchType.withNameOption).some
             )
+          )
 
-            val settings = asDraftSettings(searchParams)
-            scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiDraftSearchService) {
-              multiDraftSearchService.matchingQuery(settings).map { searchResult =>
-                val result  = searchConverterService.toApiMultiSearchResult(searchResult)
-                val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
-                (result, headers)
-              }
+          val settings = asDraftSettings(searchParams)
+          scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiDraftSearchService) {
+            multiDraftSearchService.matchingQuery(settings).map { searchResult =>
+              val result  = searchConverterService.toApiMultiSearchResult(searchResult)
+              val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
+              (result, headers)
             }
           }
+        }
       }
 
     def searchDraftLearningResources: ServerEndpoint[Any, Eff] = endpoint.post
@@ -440,10 +439,10 @@ trait SearchController {
       */
     private def getAvailability(feideToken: Option[String]): Try[List[Availability]] = {
       feideToken match {
-        case None => Success(List.empty)
+        case None        => Success(List.empty)
         case Some(token) =>
           feideApiClient.getFeideExtendedUser(Some(token)) match {
-            case Success(user) => Success(user.availabilities.toList)
+            case Success(user)                      => Success(user.availabilities.toList)
             case Failure(ex: AccessDeniedException) =>
               logger.info(
                 s"Access denied when fetching user from feide with accessToken '$token': ${ex.getMessage}",
@@ -459,7 +458,7 @@ trait SearchController {
 
     def asSettings(p: Option[SearchParamsDTO], availability: List[Availability]): SearchSettings = {
       p match {
-        case None => SearchSettings.default
+        case None         => SearchSettings.default
         case Some(params) =>
           val shouldScroll = params.scrollId.exists(InitialScrollContextKeywords.contains)
           SearchSettings(
@@ -496,7 +495,7 @@ trait SearchController {
 
     def asDraftSettings(p: Option[DraftSearchParamsDTO]): MultiDraftSearchSettings = {
       p match {
-        case None => MultiDraftSearchSettings.default
+        case None         => MultiDraftSearchSettings.default
         case Some(params) =>
           val shouldScroll = params.scrollId.exists(InitialScrollContextKeywords.contains)
           MultiDraftSearchSettings(

@@ -99,7 +99,7 @@ trait V57__MigrateSavedSearch {
         ExecutionContext.fromExecutorService(Executors.newWorkStealingPool(10))
       val firstPage     = fetchAuth0UsersByQuery(managementToken, 0).?
       val numberOfPages = Math.ceil(firstPage.total.toDouble / firstPage.length.toDouble)
-      val users = (1 to numberOfPages.toInt).foldLeft(List[Future[Auth0Users]](Future(firstPage))) {
+      val users         = (1 to numberOfPages.toInt).foldLeft(List[Future[Auth0Users]](Future(firstPage))) {
         case (acc, pageNumber) =>
           val x = Future(fetchAuth0UsersByQuery(managementToken, pageNumber.toLong).?)
           acc :+ x
@@ -208,18 +208,18 @@ trait V57__MigrateSavedSearch {
       val searchPhrases = oldUserData.savedSearches
         .getOrElse(Seq.empty)
         .map(s => {
-          val parsed     = uri"$s"
-          val paramsMap  = parsed.paramsMap
-          val searchType = parsed.pathSegments.segments.last.v
+          val parsed       = uri"$s"
+          val paramsMap    = parsed.paramsMap
+          val searchType   = parsed.pathSegments.segments.last.v
           val searchPhrase = paramsMap.foldLeft("") {
-            case (acc, ("query", v)) => s"$acc + $v"
+            case (acc, ("query", v))    => s"$acc + $v"
             case (acc, ("subjects", v)) => {
               v match {
                 case "urn:favourites"  => s"$acc + Mine favorittfag"
                 case "urn:lmaSubjects" => s"$acc + Mine LMA-fag"
                 case "urn:daSubjects"  => s"$acc + Mine DA-fag"
                 case "urn:saSubjects"  => s"$acc + Mine SA-fag"
-                case _ =>
+                case _                 =>
                   getNode(v) match {
                     case Failure(_)    => acc
                     case Success(node) => s"$acc + ${node.name}"
@@ -230,7 +230,7 @@ trait V57__MigrateSavedSearch {
               v match {
                 case "topic-article"     => s"$acc + Emne"
                 case "frontpage-article" => s"$acc + Om-NDLA-artikkel"
-                case _ =>
+                case _                   =>
                   getResourceType(v) match {
                     case Failure(_)            => { acc }
                     case Success(resourceType) => s"$acc + ${resourceType.name}"
@@ -244,7 +244,7 @@ trait V57__MigrateSavedSearch {
               }
             }
             case (acc, ("draft-status", v)) => s"$acc + ${getStatusTranslation(v)}"
-            case (acc, ("users", v)) => {
+            case (acc, ("users", v))        => {
               auth0Editors.get(v) match {
                 case Some(user) => s"$acc + Bruker: ${user.name}"
                 case _          => acc
@@ -259,7 +259,7 @@ trait V57__MigrateSavedSearch {
               }
 
             }
-            case (acc, ("license", v)) => s"$acc + $v"
+            case (acc, ("license", v))    => s"$acc + $v"
             case (acc, ("audio-type", v)) => {
               v match {
                 case "standard" => s"$acc + Standard"
@@ -282,7 +282,7 @@ trait V57__MigrateSavedSearch {
                 case _         => acc
               }
             }
-            case (acc, ("status", v)) => s"$acc + ${getStatusTranslation(v)}"
+            case (acc, ("status", v))          => s"$acc + ${getStatusTranslation(v)}"
             case (acc, ("filter-inactive", v)) => {
               v match {
                 case "false" => s"$acc + Utgåtte fag inkludert"
@@ -298,7 +298,7 @@ trait V57__MigrateSavedSearch {
             case (acc, ("revision-date-from", _))     => acc
             case (acc, ("page", _))                   => acc
             case (acc, ("types", _))                  => acc
-            case (acc, (k, _)) =>
+            case (acc, (k, _))                        =>
               println(s"Unhandled key: $k")
               acc
           }

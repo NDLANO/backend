@@ -62,7 +62,7 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with SwaggerDocControllerConfig
     with ConceptControllerHelpers {
   override val props: ConceptApiProperties = properties
-  override val migrator: DBMigrator = DBMigrator(
+  override val migrator: DBMigrator        = DBMigrator(
     new V23__SubjectNameAsTags(props),
     new V25__SubjectNameAsTagsPublished(props)
   )

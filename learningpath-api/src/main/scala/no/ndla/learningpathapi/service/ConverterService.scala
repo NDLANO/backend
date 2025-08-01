@@ -198,8 +198,8 @@ trait ConverterService {
 
     private def updateImageId(existing: Option[String], url: UpdateOrDelete[String]): Option[String] = {
       url match {
-        case Delete  => None
-        case Missing => existing
+        case Delete            => None
+        case Missing           => existing
         case UpdateWith(value) =>
           (existing, extractImageId(value)) match {
             case (None, Some(newId))                                    => Some(newId)
@@ -233,19 +233,19 @@ trait ConverterService {
       val status = mergeStatus(existing, userInfo)
 
       val titles = updated.title match {
-        case None => Seq.empty
+        case None        => Seq.empty
         case Some(value) =>
           Seq(common.Title(value, updated.language))
       }
 
       val descriptions = updated.description match {
-        case None => Seq.empty
+        case None        => Seq.empty
         case Some(value) =>
           Seq(Description(value, updated.language))
       }
 
       val tags = updated.tags match {
-        case None => Seq.empty
+        case None        => Seq.empty
         case Some(value) =>
           Seq(common.Tag(value, updated.language))
       }
@@ -343,7 +343,7 @@ trait ConverterService {
     ): LearningPath = {
       val status                = mergeStatus(learningPath, user)
       val existingLearningSteps = learningPath.learningsteps.getOrElse(Seq.empty).filterNot(_.id == updatedStep.id)
-      val steps =
+      val steps                 =
         if (StepStatus.ACTIVE == updatedStep.status) existingLearningSteps :+ updatedStep else existingLearningSteps
 
       learningPath.copy(learningsteps = Some(steps), status = status, lastUpdated = clock.now())
@@ -351,25 +351,25 @@ trait ConverterService {
 
     def mergeLearningSteps(existing: LearningStep, updated: UpdatedLearningStepV2DTO): Try[LearningStep] = {
       val titles = updated.title match {
-        case None => existing.title
+        case None        => existing.title
         case Some(value) =>
           mergeLanguageFields(existing.title, Seq(common.Title(value, updated.language)))
       }
 
       val introductions = updated.introduction match {
-        case None => existing.introduction
+        case None        => existing.introduction
         case Some(value) =>
           mergeLanguageFields(existing.introduction, Seq(Introduction(value, updated.language)))
       }
 
       val descriptions = updated.description match {
-        case None => existing.description
+        case None        => existing.description
         case Some(value) =>
           mergeLanguageFields(existing.description, Seq(Description(value, updated.language)))
       }
 
       val embedUrlsT = updated.embedUrl match {
-        case None => Success(existing.embedUrl)
+        case None        => Success(existing.embedUrl)
         case Some(value) =>
           converterService
             .asDomainEmbedUrl(value, updated.language)
@@ -405,21 +405,21 @@ trait ConverterService {
       val oldTitle = Seq(common.Title(newLearningPath.title, newLearningPath.language))
 
       val oldDescription = newLearningPath.description match {
-        case None => Seq.empty
+        case None        => Seq.empty
         case Some(value) =>
           Seq(Description(value, newLearningPath.language))
       }
 
       val oldTags = newLearningPath.tags match {
-        case None => Seq.empty
+        case None        => Seq.empty
         case Some(value) =>
           Seq(common.Tag(value, newLearningPath.language))
       }
 
       user.id.toTry(AccessDeniedException("User id not found")).map { ownerId =>
-        val title       = mergeLanguageFields(existing.title, oldTitle)
-        val description = mergeLanguageFields(existing.description, oldDescription)
-        val tags        = converterService.mergeLearningPathTags(existing.tags, oldTags)
+        val title        = mergeLanguageFields(existing.title, oldTitle)
+        val description  = mergeLanguageFields(existing.description, oldDescription)
+        val tags         = converterService.mergeLearningPathTags(existing.tags, oldTags)
         val coverPhotoId = newLearningPath.coverPhotoMetaUrl
           .map(converterService.extractImageId)
           .getOrElse(existing.coverPhotoId)
@@ -671,7 +671,7 @@ trait ConverterService {
 
       if (languageIsSupported(supportedLanguages, language) || fallback) {
         val searchLanguage = getSearchLanguage(language, supportedLanguages)
-        val tags = allTags
+        val tags           = allTags
           .filter(_.language == searchLanguage)
           .flatMap(_.tags)
 
@@ -758,7 +758,7 @@ trait ConverterService {
     private def createEmbedUrl(embedUrlOrPath: EmbedUrlV2DTO): EmbedUrlV2DTO = {
       embedUrlOrPath.url.hostOption match {
         case Some(_) => embedUrlOrPath
-        case None =>
+        case None    =>
           embedUrlOrPath.copy(url = s"$NdlaFrontendProtocol://$NdlaFrontendHost${embedUrlOrPath.url}")
       }
     }

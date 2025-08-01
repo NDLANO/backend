@@ -171,7 +171,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
     def testRatio(ratio: Double, focalX: Double, focalY: Double, expectedWidth: Int, expectedHeight: Int): Unit = {
       implicit val doubleEquality: Equality[Double] = TolerantNumerics.tolerantDoubleEquality(0.01)
-      val croppedImage =
+      val croppedImage                              =
         service.dynamicCrop(TestData.ChildrensImage, PercentPoint(focalX, focalY), Some(100), Some(100), Some(ratio))
       val image           = ImageIO.read(croppedImage.get.stream)
       val calculatedRatio = image.getWidth.toDouble / image.getHeight.toDouble

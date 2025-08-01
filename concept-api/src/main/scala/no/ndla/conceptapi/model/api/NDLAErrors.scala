@@ -35,21 +35,21 @@ trait ErrorHandling extends TapirErrorHandling {
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       errorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, 400)
     case ona: OperationNotAllowedException => errorBody(OPERATION_NOT_ALLOWED, ona.getMessage, 400)
-    case psqle: PSQLException =>
+    case psqle: PSQLException              =>
       DataSource.connectToDatabase()
       logger.error("Something went wrong with database connections", psqle)
       errorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, 500)
     case h: HttpRequestException =>
       h.httpResponse match {
         case Some(resp) if resp.code.isClientError => errorBody(VALIDATION, resp.body, 400)
-        case _ =>
+        case _                                     =>
           logger.error(s"Problem with remote service: ${h.getMessage}")
           errorBody(GENERIC, GENERIC_DESCRIPTION, 502)
       }
   }
 
   object ConceptErrorHelpers {
-    val OPERATION_NOT_ALLOWED = "OPERATION_NOT_ALLOWED"
+    val OPERATION_NOT_ALLOWED                = "OPERATION_NOT_ALLOWED"
     val WINDOW_TOO_LARGE_DESCRIPTION: String =
       s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
 

@@ -59,8 +59,8 @@ trait MultiDraftSearchService {
     }
 
     private def aggregateFavorites(subjectId: String): Try[Long] = {
-      val filter       = nestedQuery("contexts", boolQuery().should(termQuery("contexts.rootId", subjectId)))
-      val aggregations = sumAgg("favoritedCount", "favorited")
+      val filter          = nestedQuery("contexts", boolQuery().should(termQuery("contexts.rootId", subjectId)))
+      val aggregations    = sumAgg("favoritedCount", "favorited")
       val searchToExecute = search(searchIndex)
         .query(filter)
         .trackTotalHits(true)
@@ -146,7 +146,7 @@ trait MultiDraftSearchService {
 
     def matchingQuery(settings: MultiDraftSearchSettings): Try[SearchResult] = {
       val contentSearch: Option[BoolQuery] = buildContentIndexesQuery(settings)
-      val noteSearch = settings.noteQuery.map(q => {
+      val noteSearch                       = settings.noteQuery.map(q => {
         boolQuery()
           .should(
             simpleStringQuery(q.underlying).field("notes", 1),
@@ -195,8 +195,8 @@ trait MultiDraftSearchService {
     })
 
     private def filteredCountSearch(settings: MultiDraftSearchSettings): Try[Long] = {
-      val filteredSearch = boolQuery().filter(getSearchFilters(settings))
-      val aggregations   = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
+      val filteredSearch  = boolQuery().filter(getSearchFilters(settings))
+      val aggregations    = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
       val searchToExecute = search(searchIndex)
         .query(filteredSearch)
         .trackTotalHits(true)
@@ -212,11 +212,11 @@ trait MultiDraftSearchService {
         case lang if Iso639.get(lang).isSuccess && !settings.fallback => lang
         case _                                                        => AllLanguages
       }
-      val filteredSearch = baseQuery.filter(getSearchFilters(settings))
-      val pagination     = getStartAtAndNumResults(settings.page, settings.pageSize).?
-      val aggregations   = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
-      val index          = getSearchIndexes(settings).?
-      val sort           = getSortDefinition(settings.sort, searchLanguage)
+      val filteredSearch  = baseQuery.filter(getSearchFilters(settings))
+      val pagination      = getStartAtAndNumResults(settings.page, settings.pageSize).?
+      val aggregations    = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
+      val index           = getSearchIndexes(settings).?
+      val sort            = getSortDefinition(settings.sort, searchLanguage)
       val searchToExecute = search(index)
         .query(filteredSearch)
         .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
@@ -285,13 +285,13 @@ trait MultiDraftSearchService {
       val embedResourceAndIdFilter =
         buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
-      val statusFilter = draftStatusFilter(settings.statusFilter, settings.includeOtherStatuses)
-      val usersFilter  = boolUsersFilter(settings.userFilter)
+      val statusFilter       = draftStatusFilter(settings.statusFilter, settings.includeOtherStatuses)
+      val usersFilter        = boolUsersFilter(settings.userFilter)
       val revisionDateFilter =
         dateRangeFilter("nextRevision.revisionDate", settings.revisionDateFilterFrom, settings.revisionDateFilterTo)
       val publishedDateFilter = dateRangeFilter("published", settings.publishedFilterFrom, settings.publishedFilterTo)
       val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
-      val responsibleIdFilter = Option.when(settings.responsibleIdFilter.nonEmpty) {
+      val responsibleIdFilter     = Option.when(settings.responsibleIdFilter.nonEmpty) {
         termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
       }
 

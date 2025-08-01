@@ -86,7 +86,7 @@ trait WriteService {
           )
           episode <- audioRepository.withId(id) match {
             case Some(ep) => Success(ep)
-            case None =>
+            case None     =>
               Failure(NotFoundException(s"Could not find episode with id '$id' when updating series connection."))
           }
           reindexed <- audioIndexService.indexDocument(episode)
@@ -95,17 +95,17 @@ trait WriteService {
 
     def deleteSeries(seriesId: Long): Try[Long] = {
       seriesRepository.withId(seriesId) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)   => Failure(ex)
         case Success(None) =>
           Failure(NotFoundException(s"Series with id $seriesId was not found, and could not be deleted."))
         case Success(Some(existingSeries)) =>
           val episodes = existingSeries.episodes.getOrElse(Seq.empty)
           freeEpisodes(episodes) match {
             case Failure(ex) => Failure(ex)
-            case Success(_) =>
+            case Success(_)  =>
               seriesRepository.deleteWithId(seriesId) match {
                 case Success(numRows) if numRows > 0 => seriesIndexService.deleteDocument(seriesId)
-                case Success(_) =>
+                case Success(_)                      =>
                   Failure(NotFoundException(s"Could not find series to delete with id: '$seriesId'"))
                 case Failure(ex) => Failure(ex)
               }
@@ -193,7 +193,7 @@ trait WriteService {
     ): Try[api.AudioMetaInformationDTO] = {
       validationService.validateAudioFile(file) match {
         case msgs if msgs.nonEmpty => Failure(new ValidationException(errors = msgs))
-        case _ =>
+        case _                     =>
           val audioFileMeta = uploadFile(file, newAudioMeta.language) match {
             case Failure(e)         => return Failure(e)
             case Success(audioMeta) => audioMeta
@@ -231,7 +231,7 @@ trait WriteService {
       audioRepository
         .withId(audioId) match {
         case Some(toDelete) =>
-          val metaDeleted = audioRepository.deleteAudio(audioId)
+          val metaDeleted  = audioRepository.deleteAudio(audioId)
           val filesDeleted = toDelete.filePaths.map(fileToDelete => {
             deleteFile(fileToDelete) match {
               case Failure(ex) =>
@@ -271,10 +271,10 @@ trait WriteService {
         user: TokenUser
     ): Try[api.AudioMetaInformationDTO] = {
       audioRepository.withId(id) match {
-        case None => Failure(NotFoundException("Audio not found"))
+        case None                   => Failure(NotFoundException("Audio not found"))
         case Some(existingMetadata) =>
           val metadataAndFile = fileOpt match {
-            case None => mergeAudioMeta(existingMetadata, metadataToUpdate, None, user)
+            case None       => mergeAudioMeta(existingMetadata, metadataToUpdate, None, user)
             case Some(file) =>
               val validationMessages = validationService.validateAudioFile(file)
               if (validationMessages.nonEmpty) {
@@ -282,7 +282,7 @@ trait WriteService {
               }
 
               uploadFile(file, metadataToUpdate.language) match {
-                case Failure(err) => Failure(err)
+                case Failure(err)          => Failure(err)
                 case Success(uploadedFile) =>
                   mergeAudioMeta(existingMetadata, metadataToUpdate, Some(uploadedFile), user)
               }
@@ -309,7 +309,7 @@ trait WriteService {
               // If old file in update language version is no longer in use, delete it
               val oldAudio = existingMetadata.filePaths.find(audio => audio.language == metadataToUpdate.language)
               oldAudio match {
-                case None => Success(())
+                case None      => Success(())
                 case Some(old) =>
                   if (
                     !existingMetadata.filePaths
@@ -361,7 +361,7 @@ trait WriteService {
           val maybeNewFilePath = findByLanguageOrBestEffort(existing.filePaths, toUpdate.language)
             .map(_.copy(language = toUpdate.language))
           converterService.mergeLanguageField(existing.filePaths, maybeNewFilePath, toUpdate.language)
-        case None => existing.filePaths
+        case None        => existing.filePaths
         case Some(audio) =>
           converterService.mergeLanguageField(
             existing.filePaths,

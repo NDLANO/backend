@@ -6,7 +6,7 @@ import sbtdocker.DockerPlugin
 object audioapi extends Module {
   override val MainClass: Option[String] = Some("no.ndla.audioapi.Main")
   override val moduleName: String        = "audio-api"
-  lazy val dependencies: Seq[ModuleID] = withLogging(
+  lazy val dependencies: Seq[ModuleID]   = withLogging(
     Seq(
       scalaUri,
       enumeratum,

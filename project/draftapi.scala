@@ -6,7 +6,7 @@ import sbtdocker.DockerPlugin
 object draftapi extends Module {
   override val moduleName: String        = "draft-api"
   override val MainClass: Option[String] = Some("no.ndla.draftapi.Main")
-  lazy val dependencies: Seq[ModuleID] = withLogging(
+  lazy val dependencies: Seq[ModuleID]   = withLogging(
     Seq(
       scalaUri,
       enumeratum,

@@ -83,7 +83,7 @@ trait ContentValidator {
 
     def validateArticle(oldArticle: Option[Draft], article: Draft): Try[Draft] = {
       val shouldValidateEntireArticle = !onlyUpdatedEditorialFields(oldArticle, article)
-      val regularValidationErrors =
+      val regularValidationErrors     =
         if (shouldValidateEntireArticle)
           article.content.flatMap(c => validateArticleContent(c)) ++
             article.introduction.flatMap(i => validateIntroduction(i)) ++
@@ -114,7 +114,7 @@ trait ContentValidator {
 
     private def onlyUpdatedEditorialFields(existingArticle: Option[Draft], changedArticle: Draft): Boolean = {
       existingArticle match {
-        case None => false
+        case None             => false
         case Some(oldArticle) =>
           val withComparableValues =
             (article: Draft) =>
@@ -136,7 +136,7 @@ trait ContentValidator {
 
     def validateArticleApiArticle(id: Long, importValidate: Boolean, user: TokenUser): Try[ContentIdDTO] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
-        case None => Failure(NotFoundException(s"Article with id $id does not exist"))
+        case None        => Failure(NotFoundException(s"Article with id $id does not exist"))
         case Some(draft) =>
           converterService
             .toArticleApiArticle(draft)
@@ -152,7 +152,7 @@ trait ContentValidator {
         user: TokenUser
     ): Try[ContentIdDTO] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
-        case None => Failure(NotFoundException(s"Article with id $id does not exist"))
+        case None           => Failure(NotFoundException(s"Article with id $id does not exist"))
         case Some(existing) =>
           converterService
             .toDomainArticle(existing, updatedArticle, user)
@@ -210,7 +210,7 @@ trait ContentValidator {
         rm.status == RevisionStatus.NeedsRevision && rm.revisionDate.isAfter(NDLADate.now())
       ) match {
         case Some(_) => Seq.empty
-        case None =>
+        case None    =>
           Seq(
             ValidationMessage(
               "revisionMeta",
@@ -250,7 +250,7 @@ trait ContentValidator {
     }
 
     private def validateCopyright(copyright: DraftCopyright): Seq[ValidationMessage] = {
-      val licenseMessage = copyright.license.map(validateLicense).toSeq.flatten
+      val licenseMessage       = copyright.license.map(validateLicense).toSeq.flatten
       val contributorsMessages =
         copyright.creators.flatMap(a => validateAuthor(a, ContributorType.creators)) ++ copyright.processors.flatMap(
           a => validateAuthor(a, ContributorType.processors)

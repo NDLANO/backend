@@ -20,7 +20,7 @@ class Memoize[T, R](f: T => R, maxAgeMs: Long) extends (T => R) {
   override def apply(value: T): R = {
     cache.get(value) match {
       case Some(cachedValue) if !cachedValue.isExpired => cachedValue.value
-      case _ =>
+      case _                                           =>
         cache = cache.updated(value, CacheValue(f(value), System.currentTimeMillis()))
         cache(value).value
     }

@@ -59,8 +59,8 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
     Some("<iframe src='http://ndla.no/en/node/128905/oembed' allowfullscreen></iframe>")
   )
 
-  override val oEmbedService = new OEmbedService(Some(List(ndlaProvider, youtubeProvider)))
-  val providerMemoize        = new Memoize(0, 0, () => List[OEmbedProvider](), false)
+  override val oEmbedService                    = new OEmbedService(Some(List(ndlaProvider, youtubeProvider)))
+  val providerMemoize                           = new Memoize(0, 0, () => List[OEmbedProvider](), false)
   override val providerService: ProviderService = new ProviderService {
     override val loadProviders: Memoize[List[OEmbedProvider]] = providerMemoize
   }

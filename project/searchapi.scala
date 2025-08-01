@@ -6,7 +6,7 @@ import sbtdocker.DockerPlugin
 object searchapi extends Module {
   override val moduleName: String        = "search-api"
   override val MainClass: Option[String] = Some("no.ndla.searchapi.Main")
-  lazy val dependencies: Seq[ModuleID] = withLogging(
+  lazy val dependencies: Seq[ModuleID]   = withLogging(
     Seq(
       scalaUri,
       enumeratum,

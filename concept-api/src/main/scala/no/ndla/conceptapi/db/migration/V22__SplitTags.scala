@@ -27,7 +27,7 @@ class V22__SplitTags extends DocumentMigration {
   override def convertColumn(document: String): String = {
     val oldDocument = parser.parse(document).toTry.get
     oldDocument.hcursor.downField("tags").as[Option[List[TagsObject]]].toTry.get match {
-      case None => document
+      case None       => document
       case Some(tags) =>
         val convertedTags = convertTags(tags).asJson
         val newDocument   = oldDocument.mapObject(_.remove("tags").add("tags", convertedTags))

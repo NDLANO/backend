@@ -13,8 +13,8 @@ import no.ndla.common.errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
 
-sealed trait ConceptStatus extends EnumEntry {}
-object ConceptStatus extends Enum[ConceptStatus] with CirceEnum[ConceptStatus] {
+sealed trait ConceptStatus extends EnumEntry                                         {}
+object ConceptStatus       extends Enum[ConceptStatus] with CirceEnum[ConceptStatus] {
   case object IN_PROGRESS       extends ConceptStatus
   case object EXTERNAL_REVIEW   extends ConceptStatus
   case object INTERNAL_REVIEW   extends ConceptStatus
@@ -31,7 +31,7 @@ object ConceptStatus extends Enum[ConceptStatus] with CirceEnum[ConceptStatus] {
   def valueOfOrError(s: String): Try[ConceptStatus] =
     valueOf(s) match {
       case Some(st) => Success(st)
-      case None =>
+      case None     =>
         val validStatuses = values.map(_.toString).mkString(", ")
         Failure(
           ValidationException(

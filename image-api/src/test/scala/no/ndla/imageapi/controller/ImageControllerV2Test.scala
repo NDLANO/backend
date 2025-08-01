@@ -41,7 +41,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
   val authHeaderWithWrongRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJzb21lOm90aGVyIl0sImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.u8o7-FXyVzWurle2tP1pngad8KRja6VjFdmy71T4m0k"
 
-  override val converterService = new ConverterService
+  override val converterService     = new ConverterService
   val controller: ImageControllerV2 = new ImageControllerV2 {
     override val maxImageFileSizeBytes: Int = 10
   }
@@ -52,7 +52,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     when(clock.now()).thenCallRealMethod()
   }
 
-  val fileBody: Array[Byte] = Array[Byte](-1, -40, -1)
+  val fileBody: Array[Byte]        = Array[Byte](-1, -40, -1)
   val sampleNewImageMetaV2: String =
     """
       |{
@@ -156,7 +156,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
   }
 
   test("That GET /<id> returns body and 200 when image exists") {
-    val testUrl = "http://test.test/1"
+    val testUrl      = "http://test.test/1"
     val expectedBody =
       s"""{"id":"1","metaUrl":"$testUrl","title":{"title":"Elg i busk","language":"nb"},"created":"2017-04-01T12:15:32Z","createdBy":"ndla124","modelRelease":"yes","alttext":{"alttext":"Elg i busk","language":"nb"},"imageUrl":"$testUrl","size":2865539,"contentType":"image/jpeg","copyright":{"license":{"license":"CC-BY-NC-SA-4.0","description":"Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International","url":"https://creativecommons.org/licenses/by-nc-sa/4.0/"},"origin":"http://www.scanpix.no","creators":[{"type":"photographer","name":"Test Testesen"}],"processors":[{"type":"editorial","name":"Kåre Knegg"}],"rightsholders":[{"type":"supplier","name":"Leverans Leveransensen"}],"processed":false},"tags":{"tags":["rovdyr","elg"],"language":"nb"},"caption":{"caption":"Elg i busk","language":"nb"},"supportedLanguages":["nb"]}"""
     val expectedObject = CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](expectedBody)
@@ -171,7 +171,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
   }
 
   test("That GET /<id> returns body with license and authors") {
-    val testUrl = "http://test.test/1"
+    val testUrl      = "http://test.test/1"
     val expectedBody =
       s"""
          |{

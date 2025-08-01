@@ -43,7 +43,7 @@ class MemoizeTest extends UnitTestSuiteBase {
     val cacheMaxAgeInMs = 20L
     val name            = "Rune Rudberg"
     val targetMock      = mock[Target]
-    val memoizedTarget =
+    val memoizedTarget  =
       Memoize[String, String](targetMock.targetMethod, cacheMaxAgeInMs)
 
     when(targetMock.targetMethod(name)).thenReturn("Hello from mock")

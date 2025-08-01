@@ -40,7 +40,7 @@ object SearchableLanguageValues {
   }
   implicit val decoder: Decoder[SearchableLanguageValues] = Decoder.withReattempt {
     case c: FailedCursor if !c.incorrectFocus => Right(SearchableLanguageValues(Seq.empty))
-    case c =>
+    case c                                    =>
       c.as[Map[String, String]].map { map =>
         SearchableLanguageValues.from(map.toSeq*)
       }
@@ -60,7 +60,7 @@ object SearchableLanguageValues {
   }
 
   def combine(values: Seq[SearchableLanguageValues]): SearchableLanguageValues = {
-    val allLanguages = values.flatMap(_.map(_.language)).distinct
+    val allLanguages   = values.flatMap(_.map(_.language)).distinct
     val languageValues = allLanguages.map { language =>
       val valuesForLanguage = values.map(_.getLanguageOrDefault(language).getOrElse(""))
       LanguageValue(language, valuesForLanguage.mkString(" - "))
@@ -98,7 +98,7 @@ object SearchableLanguageList {
 }
 
 case class SearchableLanguageList(languageValues: Seq[LanguageValue[Seq[String]]]) {
-  def map[T](f: LanguageValue[Seq[String]] => T): Seq[T] = languageValues.map(lv => f(lv))
+  def map[T](f: LanguageValue[Seq[String]] => T): Seq[T]                          = languageValues.map(lv => f(lv))
   def fromFields(fields: Seq[LanguageField[Seq[String]]]): SearchableLanguageList =
     SearchableLanguageList(fields.map(f => LanguageValue(f.language, f.value)))
 }

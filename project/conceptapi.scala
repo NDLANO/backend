@@ -7,7 +7,7 @@ import sbtdocker.DockerPlugin
 object conceptapi extends Module {
   override val moduleName: String        = "concept-api"
   override val MainClass: Option[String] = Some("no.ndla.conceptapi.Main")
-  lazy val dependencies: Seq[ModuleID] = withLogging(
+  lazy val dependencies: Seq[ModuleID]   = withLogging(
     Seq(
       scalaUri,
       enumeratum,

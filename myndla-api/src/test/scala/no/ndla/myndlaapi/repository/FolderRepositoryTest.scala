@@ -298,7 +298,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
   test("that getFolderResources works as expected") {
     val created = NDLADate.now()
-    val doc =
+    val doc     =
       NewFolderData(parentId = None, name = "some name", status = FolderStatus.SHARED, rank = 1, description = None)
 
     val folder1 = repository.insertFolder("feide", doc)
@@ -419,7 +419,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       description = Some("desc")
     )
 
-    val insertedMain = repository.insertFolder("feide", baseNewFolderData).failIfFailure
+    val insertedMain   = repository.insertFolder("feide", baseNewFolderData).failIfFailure
     val insertedChild1 =
       repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some)).failIfFailure
     val insertedChild2 =
@@ -594,7 +594,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       description = None
     )
 
-    val insertedMain = repository.insertFolder("feide", baseNewFolderData).failIfFailure
+    val insertedMain   = repository.insertFolder("feide", baseNewFolderData).failIfFailure
     val insertedChild1 =
       repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some)).failIfFailure
     val insertedChild2 =
@@ -752,9 +752,9 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that inserting in batches works as expected") {
-    val now = NDLADate.now().withNano(0)
-    val id1 = UUID.randomUUID()
-    val id2 = UUID.randomUUID()
+    val now     = NDLADate.now().withNano(0)
+    val id1     = UUID.randomUUID()
+    val id2     = UUID.randomUUID()
     val folder1 = Folder(
       id = id1,
       feideId = "feide1",
@@ -825,7 +825,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       favoritedDate = now
     )
 
-    val session = repository.getSession(false)
+    val session     = repository.getSession(false)
     val bulkInserts = BulkInserts(
       folders = List(folder1, folder2),
       resources = List(resource1, resource2, resource3),

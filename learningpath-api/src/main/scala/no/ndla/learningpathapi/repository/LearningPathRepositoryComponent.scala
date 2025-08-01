@@ -34,7 +34,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
   def inTransaction[A](work: DBSession => A)(implicit session: DBSession = null): A = {
     Option(session) match {
       case Some(x) => work(x)
-      case None =>
+      case None    =>
         DB localTx { implicit newSession =>
           work(newSession)
         }
@@ -127,7 +127,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       dataObject.setType("jsonb")
       dataObject.setValue(CirceUtil.toJsonString(learningpath))
 
-      val importIdUUID = Try(UUID.fromString(importId)).toOption
+      val importIdUUID         = Try(UUID.fromString(importId)).toOption
       val learningPathId: Long =
         sql"insert into learningpaths(external_id, document, revision, import_id) values(${learningpath.externalId}, $dataObject, $startRevision, $importIdUUID)"
           .updateAndReturnGeneratedKey()
@@ -175,7 +175,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       dataObject.setValue(CirceUtil.toJsonString(learningpath))
 
       val newRevision = learningpath.revision.getOrElse(0) + 1
-      val count =
+      val count       =
         sql"update learningpaths set document = $dataObject, revision = $newRevision where id = ${learningpath.id} and revision = ${learningpath.revision}"
           .update()
 
@@ -203,7 +203,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
 
       val importIdUUID = Try(UUID.fromString(importId)).toOption
       val newRevision  = learningpath.revision.getOrElse(0) + 1
-      val count =
+      val count        =
         sql"update learningpaths set document = $dataObject, revision = $newRevision, import_id = $importIdUUID where id = ${learningpath.id} and revision = ${learningpath.revision}"
           .update()
 
@@ -228,7 +228,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
       dataObject.setValue(CirceUtil.toJsonString(learningStep))
 
       val newRevision = learningStep.revision.getOrElse(0) + 1
-      val count =
+      val count       =
         sql"update learningsteps set document = $dataObject, revision = $newRevision where id = ${learningStep.id} and revision = ${learningStep.revision}"
           .update()
       if (count != 1) {

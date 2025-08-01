@@ -135,7 +135,7 @@ trait SearchService extends StrictLogging {
                 )
             )
         case None if searchLanguage == "*" => boolQuery()
-        case _ =>
+        case _                             =>
           val titleSearch = existsQuery(s"titles.$searchLanguage")
           val descSearch  = existsQuery(s"descriptions.$searchLanguage")
           boolQuery()
@@ -283,7 +283,7 @@ trait SearchService extends StrictLogging {
           fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
         case Sort.ByRelevanceAsc  => fieldSort("_score").order(SortOrder.Asc)
         case Sort.ByRelevanceDesc => fieldSort("_score").order(SortOrder.Desc)
-        case Sort.ByIdAsc =>
+        case Sort.ByIdAsc         =>
           fieldSort("id").order(SortOrder.Asc).missing("_last")
         case Sort.ByIdDesc =>
           fieldSort("id").order(SortOrder.Desc).missing("_last")
