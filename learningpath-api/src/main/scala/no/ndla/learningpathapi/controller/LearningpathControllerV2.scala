@@ -61,7 +61,9 @@ trait LearningpathControllerV2 {
       query[LanguageCode]("language")
         .description("The ISO 639-1 language code describing language.")
         .default(LanguageCode(Language.AllLanguages))
-    private val sort = query[Option[String]]("sort").description(
+    private val pathLanguage =
+      path[LanguageCode].description("The ISO 639-1 language describing language.")
+    val sort = query[Option[String]]("sort").description(
       s"""The sorting used on results.
              The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
@@ -538,7 +540,7 @@ trait LearningpathControllerV2 {
     def deleteLearningStepLanguage(): ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Delete given learningstep language")
       .description("Deletes the given learningStep language")
-      .in(pathLearningpathId / "learningsteps" / pathLearningstepId / "language" / language)
+      .in(pathLearningpathId / "learningsteps" / pathLearningstepId / "language" / pathLanguage)
       .out(jsonBody[LearningStepV2DTO])
       .errorOut(errorOutputsFor(400, 401, 403, 404, 502)) // TODO: Consider error codes
       .withRequiredMyNDLAUserOrTokenUser
