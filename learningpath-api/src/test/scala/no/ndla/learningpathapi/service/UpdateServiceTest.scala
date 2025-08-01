@@ -141,7 +141,17 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     )
 
   val UPDATED_STEPV2: UpdatedLearningStepV2DTO =
-    UpdatedLearningStepV2DTO(1, Option("Tittel"), None, "nb", Some("Beskrivelse"), None, Some(false), None, None)
+    UpdatedLearningStepV2DTO(
+      1,
+      Option("Tittel"),
+      commonApi.Missing,
+      "nb",
+      commonApi.UpdateWith("Beskrivelse"),
+      commonApi.Missing,
+      Some(false),
+      None,
+      None
+    )
 
   val rubio: Author                    = Author(ContributorType.Writer, "Little Marco")
   val license: String                  = License.PublicDomain.toString
@@ -1105,7 +1115,18 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val updatedLs = UpdatedLearningStepV2DTO(1, Some("Dårlig tittel"), None, "nb", None, None, None, None, None)
+    val updatedLs =
+      UpdatedLearningStepV2DTO(
+        1,
+        Some("Dårlig tittel"),
+        commonApi.Missing,
+        "nb",
+        commonApi.Missing,
+        commonApi.Missing,
+        None,
+        None,
+        None
+      )
     service.updateLearningStepV2(PUBLISHED_ID, STEP1.id.get, updatedLs, PUBLISHED_OWNER.toCombined)
     val updatedPath = PUBLISHED_LEARNINGPATH.copy(
       status = LearningPathStatus.UNLISTED,
@@ -1173,7 +1194,18 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
-    val updatedLs = UpdatedLearningStepV2DTO(1, Some("Dårlig tittel"), None, "nb", None, None, None, None, None)
+    val updatedLs =
+      UpdatedLearningStepV2DTO(
+        1,
+        Some("Dårlig tittel"),
+        commonApi.Missing,
+        "nb",
+        commonApi.Missing,
+        commonApi.Missing,
+        None,
+        None,
+        None
+      )
     service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, updatedLs, PRIVATE_OWNER.toCombined)
     val updatedPath = PRIVATE_LEARNINGPATH.copy(
       lastUpdated = newDate,
@@ -1200,7 +1232,18 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     )
     when(clock.now()).thenReturn(newDate)
 
-    val updatedLs = UpdatedLearningStepV2DTO(1, Some("Dårlig tittel"), None, "nb", None, None, None, None, None)
+    val updatedLs =
+      UpdatedLearningStepV2DTO(
+        1,
+        Some("Dårlig tittel"),
+        commonApi.Missing,
+        "nb",
+        commonApi.Missing,
+        commonApi.Missing,
+        None,
+        None,
+        None
+      )
     service.updateLearningStepV2(
       PUBLISHED_ID,
       STEP1.id.get,
@@ -1441,7 +1484,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .get
         .coverPhoto
     }
-
   }
 
 }

@@ -82,6 +82,25 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     StepType.INTRODUCTION,
     None
   )
+
+  val multiLanguageDomainStep = TestData.domainLearningStep2.copy(
+    title = Seq(
+      Title("Tittel på bokmål", "nb"),
+      Title("Tittel på nynorsk", "nn")
+    ),
+    introduction = Seq(
+      Introduction("Introduksjon på bokmål", "nb"),
+      Introduction("Introduksjon på nynorsk", "nn")
+    ),
+    description = Seq(
+      Description("Beskrivelse på bokmål", "nb"),
+      Description("Beskrivelse på nynorsk", "nn")
+    ),
+    embedUrl = Seq(
+      EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed),
+      EmbedUrl("https://www.ndla.no/456", "nn", EmbedType.OEmbed)
+    )
+  )
   val apiTags: List[api.LearningPathTagsDTO] = List(api.LearningPathTagsDTO(Seq("tag"), DefaultLanguage))
 
   val randomDate: NDLADate      = NDLADate.now()
@@ -540,5 +559,60 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     service.asDomainLearningStep(newLs, lp1).get.seqNo should be(0)
     service.asDomainLearningStep(newLs, lp2).get.seqNo should be(0)
     service.asDomainLearningStep(newLs, lp3).get.seqNo should be(2)
+  }
+
+  test("mergeLearningSteps correctly retains nullable fields") {
+    val updatedStep = api.UpdatedLearningStepV2DTO(
+      2,
+      None,
+      commonApi.Missing,
+      "nb",
+      commonApi.Missing,
+      commonApi.Missing,
+      None,
+      None,
+      None
+    )
+    val result = service.mergeLearningSteps(TestData.domainLearningStep2, updatedStep).get
+    result.introduction shouldEqual TestData.domainLearningStep2.introduction
+    result.description shouldEqual TestData.domainLearningStep2.description
+    result.embedUrl shouldEqual TestData.domainLearningStep2.embedUrl
+  }
+
+  test("mergeLearningSteps correctly deletes correct language version of nullable fields") {
+    val updatedStep = api.UpdatedLearningStepV2DTO(
+      2,
+      None,
+      commonApi.Delete,
+      "nn",
+      commonApi.Delete,
+      commonApi.Delete,
+      None,
+      None,
+      None
+    )
+    val result = service.mergeLearningSteps(multiLanguageDomainStep, updatedStep).get
+    result.introduction shouldEqual Seq(Introduction("Introduksjon på bokmål", "nb"))
+    result.description shouldEqual Seq(Description("Beskrivelse på bokmål", "nb"))
+    result.embedUrl shouldEqual Seq(EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed))
+  }
+
+  test("mergeLearningSteps correctly updates language fields") {
+    val updatedStep = api.UpdatedLearningStepV2DTO(
+      2,
+      Some("Tittel på bokmål oppdatert"),
+      commonApi.UpdateWith("Introduksjon på bokmål oppdatert"),
+      "nb",
+      commonApi.UpdateWith("Beskrivelse på bokmål oppdatert"),
+      commonApi.UpdateWith(api.EmbedUrlV2DTO("https://ndla.no/subjects/resource:1234?a=test", "iframe")),
+      None,
+      None,
+      None
+    )
+    val result = service.mergeLearningSteps(TestData.domainLearningStep2, updatedStep).get
+    result.title shouldEqual Seq(Title("Tittel på bokmål oppdatert", "nb"))
+    result.introduction shouldEqual Seq(Introduction("Introduksjon på bokmål oppdatert", "nb"))
+    result.description shouldEqual Seq(Description("Beskrivelse på bokmål oppdatert", "nb"))
+    result.embedUrl shouldEqual Seq(EmbedUrl("/subjects/resource:1234?a=test", "nb", EmbedType.IFrame))
   }
 }
