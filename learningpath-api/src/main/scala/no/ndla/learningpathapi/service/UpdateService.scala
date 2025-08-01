@@ -130,6 +130,46 @@ trait UpdateService {
       }
     }
 
+    def deleteLearningStepLanguage(
+        learningpathId: Long,
+        stepId: Long,
+        language: String,
+        owner: CombinedUserRequired
+    ): Try[LearningStepV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+      val result = for {
+        learningPath <- withId(learningpathId).flatMap(_.canEditLearningpath(owner))
+        learningStep <- learningPathRepository.learningStepWithId(learningpathId, stepId) match {
+          case None           => Failure(NotFoundException(s"Could not find learningpath with id '$learningpathId'."))
+          case Some(existing) =>
+            converterService
+              .deleteLearningStepLanguage(existing, language)
+              .flatMap(validated => learningStepValidator.validate(validated, allowUnknownLanguage = true))
+        }
+      } yield (learningPath, learningStep)
+
+      result match {
+        case Failure(ex)                           => Failure(ex)
+        case Success((learningPath, learningStep)) =>
+          val (updatedStep, updatedPath) = inTransaction { implicit session =>
+            val updatedStep  = learningPathRepository.updateLearningStep(learningStep)
+            val pathToUpdate = converterService.insertLearningStep(learningPath, updatedStep, owner)
+            val updatedPath  = learningPathRepository.update(pathToUpdate)
+
+            (updatedStep, updatedPath)
+          }
+
+          updateSearchAndTaxonomy(updatedPath, owner.tokenUser).flatMap(_ =>
+            converterService.asApiLearningStepV2(
+              updatedStep,
+              updatedPath,
+              language = updatedStep.supportedLanguages.head,
+              fallback = true,
+              owner
+            )
+          )
+      }
+    }
+
     private def updateSearchAndTaxonomy(learningPath: LearningPath, user: Option[TokenUser]) = {
       val sRes = searchIndexService.indexDocument(learningPath)
 
