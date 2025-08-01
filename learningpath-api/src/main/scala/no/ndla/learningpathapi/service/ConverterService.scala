@@ -225,14 +225,6 @@ trait ConverterService {
       }
     }
 
-    // def deleteLearningpathLanguage(learningpath: LearningPath, language: String): LearningPath = {
-    //   learningpath.copy(
-    //     title = learningpath.title.filterNot(_.language == language),
-    //     introduction = learningpath.introduction.filterNot(_.language == language),
-    //     description = learningpath.description.filterNot(_.language == language) embed
-    //   )
-    // }
-
     def mergeLearningPaths(
         existing: LearningPath,
         updated: UpdatedLearningPathV2DTO,
