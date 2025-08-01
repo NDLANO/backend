@@ -204,6 +204,7 @@ trait LearningpathControllerV2 {
       addLearningStep(),
       updateLearningStep(),
       updatedLearningstepSeqNo,
+      deleteLearningStepLanguage(),
       updateLearningStepStatus(),
       updateLearningPathStatus(),
       withStatus,
