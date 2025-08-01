@@ -136,23 +136,22 @@ trait UpdateService {
         language: String,
         owner: CombinedUserRequired
     ): Try[LearningStepV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
-      val learningPath = withId(learningpathId).flatMap(_.canEditLearningpath(owner)).?
-      learningPathRepository.learningStepWithId(learningpathId, stepId) match {
-        case None =>
-          Failure(
-            NotFoundException(
-              s"Could not find learningstep with id '$stepId' to update with learningpath id '$learningpathId'."
-            )
-          )
-        case Some(existing) =>
-          val toUpdate = converterService
-            .deleteLearningStepLanguage(existing, language)
-            .flatMap(validated => learningStepValidator.validate(validated, allowUnknownLanguage = true))
-            .?
+      val result = for {
+        learningPath <- withId(learningpathId).flatMap(_.canEditLearningpath(owner))
+        learningStep <- learningPathRepository.learningStepWithId(learningpathId, stepId) match {
+          case None           => Failure(NotFoundException(s"Could not find learningpath with id '$learningpathId'."))
+          case Some(existing) =>
+            converterService
+              .deleteLearningStepLanguage(existing, language)
+              .flatMap(validated => learningStepValidator.validate(validated, allowUnknownLanguage = true))
+        }
+      } yield (learningPath, learningStep)
 
-          learningStepValidator.validate(toUpdate, allowUnknownLanguage = true).??
+      result match {
+        case Failure(ex)                           => Failure(ex)
+        case Success((learningPath, learningStep)) =>
           val (updatedStep, updatedPath) = inTransaction { implicit session =>
-            val updatedStep  = learningPathRepository.updateLearningStep(toUpdate)
+            val updatedStep  = learningPathRepository.updateLearningStep(learningStep)
             val pathToUpdate = converterService.insertLearningStep(learningPath, updatedStep, owner)
             val updatedPath  = learningPathRepository.update(pathToUpdate)
 
@@ -162,10 +161,10 @@ trait UpdateService {
           updateSearchAndTaxonomy(updatedPath, owner.tokenUser).flatMap(_ =>
             converterService.asApiLearningStepV2(
               updatedStep,
-              learningPath,
-              updatedStep.supportedLanguages.head,
+              updatedPath,
+              language = updatedStep.supportedLanguages.head,
               fallback = true,
-              user = owner
+              owner
             )
           )
       }
