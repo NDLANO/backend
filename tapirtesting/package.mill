@@ -9,5 +9,5 @@ object `package` extends BaseModule {
     SharedDependencies.testing ++
     SharedDependencies.tapir :+ SharedDependencies.tapirTesting
   override def moduleDeps = Seq(build.common, build.network, build.scalatestsuite)
-  object test extends ScalaTester
+  object test extends TestBase
 }

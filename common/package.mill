@@ -11,7 +11,7 @@ object `package` extends BaseModule {
     SharedDependencies.awsTranscribe
   ) ++ SharedDependencies.tapirHttp4sCirce
   override def moduleDeps = Seq(build.language)
-  object test extends ScalaTester {
+  object test extends TestBase {
     override def moduleDeps = super.moduleDeps :+ build.testbase
   }
 }

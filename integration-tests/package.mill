@@ -5,7 +5,7 @@ import build.modules.{BaseModule, SharedDependencies}
 
 object `package` extends BaseModule {
   def mvnDeps: T[Seq[Dep]] = SharedDependencies.logging
-  object test extends ScalaTester {
+  object test extends TestBase {
     override def moduleDeps = Seq(
       build.scalatestsuite,
       build.validation,

@@ -15,7 +15,7 @@ object `package` extends BaseModule {
       )
   override def moduleDeps =
     Seq(build.common, build.network, build.mapping, build.language, build.search, build.database)
-  object test extends ScalaTester {
+  object test extends TestBase {
     override def moduleDeps = super.moduleDeps ++ Seq(build.tapirtesting, build.scalatestsuite)
   }
 }

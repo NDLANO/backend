@@ -11,7 +11,7 @@ object `package` extends BaseModule {
       SharedDependencies.jsoup
     )
   override def moduleDeps = Seq(build.common, build.network, build.scalatestsuite)
-  object test extends ScalaTester {
+  object test extends TestBase {
     override def moduleDeps = super.moduleDeps :+ build.tapirtesting
   }
 }

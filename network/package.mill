@@ -10,5 +10,5 @@ object `package` extends BaseModule {
     SharedDependencies.jwtCirce
   ) ++ SharedDependencies.tapirHttp4sCirce
   override def moduleDeps = Seq(build.common)
-  object test extends ScalaTester
+  object test extends TestBase
 }
