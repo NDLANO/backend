@@ -26,6 +26,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 import scala.util.{Failure, Success, Try}
+import no.ndla.common.errors.OperationNotAllowedException
 
 trait WriteService {
   this: DraftConceptRepository & PublishedConceptRepository & ConverterService & ContentValidator &
@@ -163,7 +164,7 @@ trait WriteService {
       draftConceptRepository.withId(id) match {
         case Some(existingConcept) =>
           existingConcept.title.size match {
-            case 1 => Failure(api.OperationNotAllowedException("Only one language left"))
+            case 1 => Failure(OperationNotAllowedException("Only one language left"))
             case _ =>
               val title         = existingConcept.title.filter(_.language != language)
               val content       = existingConcept.content.filter(_.language != language)

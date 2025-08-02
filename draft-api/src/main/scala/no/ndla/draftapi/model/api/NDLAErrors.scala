@@ -10,7 +10,12 @@ package no.ndla.draftapi.model.api
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, ValidationException}
+import no.ndla.common.errors.{
+  AccessDeniedException,
+  FileTooBigException,
+  ValidationException,
+  OperationNotAllowedException
+}
 import no.ndla.database.DataSource
 import no.ndla.draftapi.Props
 import no.ndla.network.model.HttpRequestException
@@ -80,8 +85,7 @@ case class NotFoundException(message: String, supportedLanguages: Seq[String] = 
 case class ArticlePublishException(message: String)    extends RuntimeException(message)
 case class ArticleVersioningException(message: String) extends RuntimeException(message)
 
-class ArticleStatusException(message: String)            extends RuntimeException(message)
-case class OperationNotAllowedException(message: String) extends RuntimeException(message)
-case class CloneFileException(message: String)           extends RuntimeException(message)
-case class H5PException(message: String)                 extends RuntimeException(message)
-case class GenerateIDException(message: String)          extends RuntimeException(message)
+class ArticleStatusException(message: String)   extends RuntimeException(message)
+case class CloneFileException(message: String)  extends RuntimeException(message)
+case class H5PException(message: String)        extends RuntimeException(message)
+case class GenerateIDException(message: String) extends RuntimeException(message)

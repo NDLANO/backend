@@ -28,3 +28,4 @@ case class TokenRetrievalException(message: String)       extends RuntimeExcepti
 case class TokenDecodingException(message: String)        extends RuntimeException(message)
 case class VideoSourceRetrievalException(message: String) extends RuntimeException(message)
 case class VideoSourceParsingException(message: String)   extends RuntimeException(message)
+case class OperationNotAllowedException(message: String)  extends RuntimeException(message)

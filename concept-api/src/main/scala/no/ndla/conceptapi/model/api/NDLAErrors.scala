@@ -9,7 +9,7 @@
 package no.ndla.conceptapi.model.api
 
 import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.errors.{AccessDeniedException, ValidationException, OperationNotAllowedException}
 import no.ndla.conceptapi.Props
 import no.ndla.database.DataSource
 import no.ndla.network.model.HttpRequestException
@@ -67,4 +67,3 @@ case class NotFoundException(message: String, supportedLanguages: Seq[String] = 
     extends RuntimeException(message)
 case class ConceptMissingIdException(message: String)     extends RuntimeException(message)
 case class ConceptExistsAlreadyException(message: String) extends RuntimeException(message)
-case class OperationNotAllowedException(message: String)  extends RuntimeException(message)
