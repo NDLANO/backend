@@ -357,20 +357,22 @@ trait ConverterService {
       }
 
       val introductions = updated.introduction match {
-        case None        => existing.introduction
-        case Some(value) =>
-          mergeLanguageFields(existing.introduction, Seq(Introduction(value, updated.language)))
+        case Missing           => existing.introduction
+        case Delete            => existing.introduction.filterNot(_.language == updated.language)
+        case UpdateWith(value) => mergeLanguageFields(existing.introduction, Seq(Introduction(value, updated.language)))
       }
 
       val descriptions = updated.description match {
-        case None        => existing.description
-        case Some(value) =>
+        case Missing           => existing.description
+        case Delete            => existing.description.filterNot(_.language == updated.language)
+        case UpdateWith(value) =>
           mergeLanguageFields(existing.description, Seq(Description(value, updated.language)))
       }
 
       val embedUrlsT = updated.embedUrl match {
-        case None        => Success(existing.embedUrl)
-        case Some(value) =>
+        case Missing           => Success(existing.embedUrl)
+        case Delete            => Success(existing.embedUrl.filterNot(_.language == updated.language))
+        case UpdateWith(value) =>
           converterService
             .asDomainEmbedUrl(value, updated.language)
             .map(newEmbedUrl => mergeLanguageFields(existing.embedUrl, Seq(newEmbedUrl)))
