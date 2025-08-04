@@ -583,12 +583,6 @@
           }
         },
         {
-          "name": "data-link-text",
-          "validation": {
-            "required": false
-          }
-        },
-        {
           "name": "data-example-ids",
           "validation": {
             "required": false,
@@ -602,7 +596,10 @@
             "dataType": "LIST"
           }
         }
-      ]
+      ],
+      "children": {
+        "required": true
+      }
     },
     "iframe": {
       "fields": [

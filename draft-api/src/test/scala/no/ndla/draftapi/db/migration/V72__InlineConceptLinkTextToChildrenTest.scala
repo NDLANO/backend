@@ -13,7 +13,7 @@ import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 class V72__InlineConceptLinkTextToChildrenTest extends UnitSuite with TestEnvironment {
   test("That data-link-text attributes are moved to the children of the ndlaembed") {
     val migration = new V72__InlineConceptLinkTextToChildren
-    val oldEmbed =
+    val oldEmbed  =
       """<ndlaembed data-content-id="4242" data-link-text="Foobar" data-resource="concept" data-type="inline"></ndlaembed>"""
     val newEmbed =
       """<ndlaembed data-content-id="4242" data-resource="concept" data-type="inline">Foobar</ndlaembed>"""
