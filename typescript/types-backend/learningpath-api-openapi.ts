@@ -1012,12 +1012,13 @@ export type components = {
             /** @description The title of the learningstep */
             title?: string;
             /** @description The introduction of the learningstep */
-            introduction?: string;
+            introduction?: string | null;
             /** @description The chosen language */
             language: string;
             /** @description The description of the learningstep */
-            description?: string;
-            embedUrl?: components["schemas"]["EmbedUrlV2DTO"];
+            description?: string | null;
+            /** @description The embed content for the learningstep */
+            embedUrl?: components["schemas"]["EmbedUrlV2DTO"] | null;
             /** @description Determines if the title of the step should be displayed in viewmode */
             showTitle?: boolean;
             /** @description The type of the step */
