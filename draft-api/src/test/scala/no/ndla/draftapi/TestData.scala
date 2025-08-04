@@ -41,7 +41,7 @@ object TestData {
   val userWithNoRoles: TokenUser       = TokenUser("unit test", Set.empty, None)
   val userWithWriteAccess: TokenUser   = TokenUser("unit test", Set(DRAFT_API_WRITE), None)
   val userWithPublishAccess: TokenUser = TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH), None)
-  val userWithAdminAccess: TokenUser =
+  val userWithAdminAccess: TokenUser   =
     TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH, DRAFT_API_ADMIN), None)
 
   val publicDomainCopyright: common.draft.DraftCopyright =

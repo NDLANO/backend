@@ -65,7 +65,7 @@ case class ConfigMeta(
   private def validateBooleanKey(configKey: ConfigKey): Try[ConfigMeta] = {
     value match {
       case BooleanValue(_) => Success(this)
-      case _ =>
+      case _               =>
         val validationMessage = ValidationMessage(
           "value",
           s"Value of '${configKey.entryName}' must be a boolean string ('true' or 'false')"
@@ -77,7 +77,7 @@ case class ConfigMeta(
   private def validateStringListKey(configKey: ConfigKey): Try[ConfigMeta] = {
     value match {
       case StringListValue(_) => Success(this)
-      case _ =>
+      case _                  =>
         val validationMessage = ValidationMessage(
           "value",
           s"Value of '${configKey.entryName}' must be a list of strings"

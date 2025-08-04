@@ -6,7 +6,7 @@ import sbtdocker.DockerPlugin
 object frontpageapi extends Module {
   override val moduleName: String        = "frontpage-api"
   override val MainClass: Option[String] = Some("no.ndla.frontpageapi.Main")
-  lazy val dependencies: Seq[ModuleID] = withLogging(
+  lazy val dependencies: Seq[ModuleID]   = withLogging(
     Seq(
       enumeratum,
       enumeratumCirce,

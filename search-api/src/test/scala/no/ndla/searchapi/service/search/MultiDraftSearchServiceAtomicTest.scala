@@ -743,7 +743,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     val result = multiDraftSearchService.matchingQuery(multiDraftSearchSettings).get
 
     def ctxsFor(id: Long): List[ApiTaxonomyContextDTO] = result.summaryResults.find(_.id == id).get.contexts
-    def ctxFor(id: Long): ApiTaxonomyContextDTO = {
+    def ctxFor(id: Long): ApiTaxonomyContextDTO        = {
       val ctxs = ctxsFor(id)
       ctxs.length should be(1)
       ctxs.head
@@ -876,7 +876,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
 
   test("That search on embed id supports video embed with timestamp resources") {
     val videoId = "66772123"
-    val draft1 = TestData.draft1.copy(
+    val draft1  = TestData.draft1.copy(
       id = Some(1),
       content = Seq(
         ArticleContent(
@@ -1283,7 +1283,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
 
   test("That responsible filtering works for concepts") {
     val responsible = Responsible("some-user", TestData.today)
-    val draft1 = TestData.draft1.copy(
+    val draft1      = TestData.draft1.copy(
       id = Some(1),
       articleType = ArticleType.Standard,
       responsible = Some(responsible)

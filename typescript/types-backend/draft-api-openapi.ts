@@ -589,7 +589,7 @@ export type components = {
             relatedContent: (components["schemas"]["RelatedContentLinkDTO"] | number)[];
             /** @description A list of revisions planned for the article */
             revisions: components["schemas"]["RevisionMetaDTO"][];
-            responsible?: components["schemas"]["DraftResponsibleDTO"];
+            responsible?: components["schemas"]["ResponsibleDTO"];
             /** @description The path to the frontpage article */
             slug?: string;
             /** @description Information about comments attached to the article */
@@ -833,16 +833,6 @@ export type components = {
             processed: boolean;
         };
         /**
-         * DraftResponsibleDTO
-         * @description Object with data representing the editor responsible for this article
-         */
-        DraftResponsibleDTO: {
-            /** @description NDLA ID of responsible editor */
-            responsibleId: string;
-            /** @description Date of when the responsible editor was last updated */
-            lastUpdated: string;
-        };
-        /**
          * EditorNoteDTO
          * @description Information about the editorial notes
          */
@@ -1078,6 +1068,16 @@ export type components = {
             name: string;
             /** @description The full url to where the library can be downloaded */
             url: string;
+        };
+        /**
+         * ResponsibleDTO
+         * @description Object with data representing the editor responsible for this article
+         */
+        ResponsibleDTO: {
+            /** @description NDLA ID of responsible editor */
+            responsibleId: string;
+            /** @description Date of when the responsible editor was last updated */
+            lastUpdated: string;
         };
         /**
          * RevisionMetaDTO

@@ -72,8 +72,8 @@ object OpenApiTypescriptPlugin extends AutoPlugin {
 
   override def trigger: PluginTrigger                    = AllRequirements
   override def projectConfigurations: Seq[Configuration] = super.projectConfigurations
-  override lazy val projectSettings: Seq[Setting[?]] = Seq(
-    openapiTSEnable := false,
+  override lazy val projectSettings: Seq[Setting[?]]     = Seq(
+    openapiTSEnable   := false,
     openapiTSGenerate := {
       if (openapiTSEnable.value) {
         // Runs application main class with --save-swagger flag

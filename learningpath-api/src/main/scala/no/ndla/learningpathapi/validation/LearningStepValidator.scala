@@ -85,7 +85,7 @@ trait LearningStepValidator {
 
     def validateLicense(licenseOpt: Option[String]): Option[ValidationMessage] = {
       licenseOpt match {
-        case None => None
+        case None          => None
         case Some(license) =>
           noHtmlTextValidator.validate("license", license)
       }

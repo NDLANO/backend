@@ -113,15 +113,15 @@ trait Module {
   }
 
   def assemblySettings() = Seq(
-    assembly / assemblyJarName := name.value + ".jar",
-    assembly / mainClass       := this.MainClass,
+    assembly / assemblyJarName       := name.value + ".jar",
+    assembly / mainClass             := this.MainClass,
     assembly / assemblyMergeStrategy := {
       case "module-info.class"                             => MergeStrategy.discard
       case "META-INF/FastDoubleParser-NOTICE"              => MergeStrategy.first
       case x if x.endsWith("/module-info.class")           => MergeStrategy.discard
       case x if x.endsWith("io.netty.versions.properties") => MergeStrategy.discard
       case "mime.types"                                    => MergeStrategy.filterDistinctLines
-      case x =>
+      case x                                               =>
         val oldStrategy = (assembly / assemblyMergeStrategy).value
         oldStrategy(x)
     }
@@ -142,7 +142,7 @@ trait Module {
 
   def dockerSettings(): Seq[Def.Setting[?]] = {
     Seq(
-      docker := (docker dependsOn assembly).value,
+      docker              := (docker dependsOn assembly).value,
       docker / dockerfile := {
         val artifact           = (assembly / assemblyOutputPath).value
         val artifactTargetPath = s"/app/${artifact.name}"

@@ -93,12 +93,12 @@ trait RawController {
       val nonResizableMimeTypes = List("image/gif", "image/svg", "image/svg+xml")
       imageStorage.get(imageName) match {
         case Success(img) if nonResizableMimeTypes.contains(img.contentType.toLowerCase) => Success(img)
-        case Success(img) =>
+        case Success(img)                                                                =>
           crop(img, imageParams)
             .flatMap(stream => dynamicCropOrResize(stream, imageParams))
             .recoverWith {
               case ex: ValidationException => Failure(ex)
-              case ex =>
+              case ex                      =>
                 logger.error(s"Could not crop or resize image '$imageName', got exception: '${ex.getMessage}'", ex)
                 Success(img)
             }
@@ -109,7 +109,7 @@ trait RawController {
     private def doubleInRange(paramName: String, double: Option[Double], from: Int, to: Int): Option[Double] = {
       double match {
         case Some(d) if d >= Math.min(from, to) && d <= Math.max(from, to) => Some(d)
-        case Some(d) =>
+        case Some(d)                                                       =>
           throw ValidationException(
             errors = Seq(
               ValidationMessage(paramName, s"Invalid value for $paramName. Must be in range $from-$to but was $d")

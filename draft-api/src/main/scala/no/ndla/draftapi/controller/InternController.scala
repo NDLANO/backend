@@ -121,8 +121,8 @@ trait InternController {
       } yield (articleIndex, tagIndex)
 
       val deleteResults: Seq[Try[?]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {
-        case (Failure(articleFail), _) => return articleFail.getMessage.asLeft
-        case (_, Failure(tagFail))     => return tagFail.getMessage.asLeft
+        case (Failure(articleFail), _)                      => return articleFail.getMessage.asLeft
+        case (_, Failure(tagFail))                          => return tagFail.getMessage.asLeft
         case (Success(articleIndexes), Success(tagIndexes)) =>
           val articleDeleteResults = articleIndexes.map(index => {
             logger.info(s"Deleting article index $index")

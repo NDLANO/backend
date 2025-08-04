@@ -180,7 +180,7 @@ trait ReadService {
           if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
           else Success(articleIds)
         domainArticles <- draftRepository.withIds(ids, offset, pageSize)
-        api <- domainArticles.traverse(article =>
+        api            <- domainArticles.traverse(article =>
           converterService.toApiArticle(addUrlsOnEmbedResources(article), language, fallback)
         )
       } yield api

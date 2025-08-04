@@ -31,9 +31,9 @@ import scala.util.Success
 
 class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with UnitSuite with TestEnvironment {
 
-  val myndlaApiPort: Int          = findFreePort
-  val pgc: PostgreSQLContainer[?] = postgresContainer.get
-  val redisPort: Int              = redisContainer.get.port
+  val myndlaApiPort: Int                    = findFreePort
+  val pgc: PostgreSQLContainer[?]           = postgresContainer.get
+  val redisPort: Int                        = redisContainer.get.port
   val myndlaproperties: MyNdlaApiProperties = new MyNdlaApiProperties {
     override def ApplicationPort: Int       = myndlaApiPort
     override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)

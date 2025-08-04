@@ -102,7 +102,7 @@ object TestData {
     )
   val today: NDLADate = NDLADate.now().withNano(0)
 
-  val sampleArticleTitle: ArticleApiTitle = ArticleApiTitle("tittell", "tittell", "nb")
+  val sampleArticleTitle: ArticleApiTitle                 = ArticleApiTitle("tittell", "tittell", "nb")
   val sampleArticleVisualElement: ArticleApiVisualElement =
     ArticleApiVisualElement(s"""<$EmbedTagName data-resource="image">""", "nb")
   val sampleArticleIntro: ArticleApiIntro = ArticleApiIntro("intro", "intro", "nb")
@@ -1002,7 +1002,9 @@ object TestData {
     tags = List(),
     owner = "owner",
     copyright = copyright,
-    isMyNDLAOwner = false
+    isMyNDLAOwner = false,
+    responsible = None,
+    comments = Seq.empty
   )
 
   val PenguinId   = 1L
@@ -1906,7 +1908,7 @@ object TestData {
 
   val searchableIntroductions: SearchableLanguageValues    = SearchableLanguageValues.from("en" -> "Wroom wroom")
   val searchableMetaDescriptions: SearchableLanguageValues = SearchableLanguageValues.from("nb" -> "Mammas bil")
-  val searchableTags: SearchableLanguageList = SearchableLanguageList.from("en" -> Seq("Mum", "Car", "Wroom"))
+  val searchableTags: SearchableLanguageList       = SearchableLanguageList.from("en" -> Seq("Mum", "Car", "Wroom"))
   val searchableEmbedAttrs: SearchableLanguageList = SearchableLanguageList.from(
     "nb" -> Seq("En norsk", "To norsk"),
     "en" -> Seq("One english")

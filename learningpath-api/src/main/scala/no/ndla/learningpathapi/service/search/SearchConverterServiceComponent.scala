@@ -33,7 +33,7 @@ trait SearchConverterServiceComponent {
         searchableLearningPath: SearchableLearningPath,
         language: String
     ): LearningPathSummaryV2DTO = {
-      val titles = searchableLearningPath.titles.languageValues.map(lv => api.TitleDTO(lv.value, lv.language))
+      val titles       = searchableLearningPath.titles.languageValues.map(lv => api.TitleDTO(lv.value, lv.language))
       val descriptions =
         searchableLearningPath.descriptions.languageValues.map(lv => api.DescriptionDTO(lv.value, lv.language))
       val introductions =

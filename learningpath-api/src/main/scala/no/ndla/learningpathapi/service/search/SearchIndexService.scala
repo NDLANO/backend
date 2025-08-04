@@ -36,7 +36,7 @@ trait SearchIndexService {
     override val searchIndex: String        = SearchIndex
     override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
 
-    def indexDocuments: Try[ReindexResult] = indexDocuments(None)
+    def indexDocuments: Try[ReindexResult]                         = indexDocuments(None)
     def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = synchronized {
       indexDocumentsInBulk(numShards)(sendToElastic)
     }
@@ -97,7 +97,7 @@ trait SearchIndexService {
         Success(0)
       } else {
         val searchables = learningPaths.map(searchConverterService.asSearchableLearningpath)
-        val requests = searchables.map(lp => {
+        val requests    = searchables.map(lp => {
           val source = CirceUtil.toJsonString(lp)
 
           indexInto(indexName)

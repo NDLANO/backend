@@ -11,19 +11,20 @@ package no.ndla.draftapi.service
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.converter.CommonConverter
+import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits.TryQuestionMark
-import no.ndla.common.model.api.{Delete, DisclaimerDTO, DraftCopyrightDTO, Missing, UpdateWith, draft}
+import no.ndla.common.model.api.{Delete, DisclaimerDTO, DraftCopyrightDTO, Missing, ResponsibleDTO, UpdateWith}
 import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
-import no.ndla.common.model.domain.draft.DraftStatus.{IMPORTED, PLANNED}
-import no.ndla.common.model.domain.draft.{Comment, Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.DraftStatus.PLANNED
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{RelatedContentLink, api as commonApi, domain as common}
 import no.ndla.common.{Clock, UUIDUtil, model}
 import no.ndla.draftapi.DraftUtil.getNextRevision
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{NewCommentDTO, NotFoundException, UpdatedArticleDTO, UpdatedCommentDTO}
+import no.ndla.draftapi.model.api.{NotFoundException, UpdatedArticleDTO}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
@@ -40,14 +41,15 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock & DraftRepository & ArticleApiClient & StateTransitionRules & WriteService & UUIDUtil & Props =>
+  this: Clock & DraftRepository & ArticleApiClient & StateTransitionRules & WriteService & UUIDUtil & CommonConverter &
+    Props =>
   val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
     import props.externalApiUrls
 
     def toDomainArticle(newArticleId: Long, newArticle: api.NewArticleDTO, user: TokenUser): Try[Draft] = {
-      val domainTitles = Seq(common.Title(newArticle.title, newArticle.language))
+      val domainTitles  = Seq(common.Title(newArticle.title, newArticle.language))
       val domainContent = newArticle.content
         .map(content => common.ArticleContent(removeUnknownEmbedTagAttribute(content), newArticle.language))
         .toSeq
@@ -55,7 +57,7 @@ trait ConverterService {
       val status           = common.Status(PLANNED, Set.empty)
 
       val newAvailability = common.Availability.valueOf(newArticle.availability).getOrElse(common.Availability.everyone)
-      val revisionMeta = newArticle.revisionMeta match {
+      val revisionMeta    = newArticle.revisionMeta match {
         case Some(revs) if revs.nonEmpty =>
           newArticle.revisionMeta.map(_.map(toDomainRevisionMeta)).getOrElse(common.draft.RevisionMeta.default)
         case _ => common.draft.RevisionMeta.default
@@ -113,52 +115,13 @@ trait ConverterService {
           revisionMeta = revisionMeta,
           responsible = responsible,
           slug = newArticle.slug,
-          comments = newCommentToDomain(newArticle.comments.getOrElse(List.empty)),
+          comments = newArticle.comments
+            .map(comments => comments.map(CommonConverter.newCommentApiToDomain))
+            .getOrElse(List.empty),
           priority = priority,
           started = false,
           qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation),
           disclaimer = domainDisclaimer
-        )
-      )
-    }
-
-    private[service] def updatedCommentToDomain(
-        updatedComments: List[UpdatedCommentDTO],
-        existingComments: Seq[Comment]
-    ): Seq[Comment] = {
-      updatedComments.map(updatedComment => {
-        existingComments.find(cc => updatedComment.id.contains(cc.id.toString)) match {
-          case Some(existingComment) =>
-            val isContentChanged = updatedComment.content != existingComment.content
-            val newUpdated       = if (isContentChanged) clock.now() else existingComment.updated
-            existingComment.copy(
-              updated = newUpdated,
-              content = updatedComment.content,
-              isOpen = updatedComment.isOpen.getOrElse(true),
-              solved = updatedComment.solved.getOrElse(false)
-            )
-          case None =>
-            Comment(
-              id = uuidUtil.randomUUID(),
-              created = clock.now(),
-              updated = clock.now(),
-              content = updatedComment.content,
-              isOpen = updatedComment.isOpen.getOrElse(true),
-              solved = updatedComment.solved.getOrElse(false)
-            )
-        }
-      })
-    }
-
-    private[service] def newCommentToDomain(newComment: List[NewCommentDTO]): Seq[Comment] = {
-      newComment.map(comment =>
-        Comment(
-          id = UUID.randomUUID(),
-          created = clock.now(),
-          updated = clock.now(),
-          content = comment.content,
-          isOpen = comment.isOpen.getOrElse(true),
-          solved = false
         )
       )
     }
@@ -175,37 +138,6 @@ trait ConverterService {
         introduction = article.introduction.sorted,
         metaImage = article.metaImage.sorted,
         title = article.title.sorted
-      )
-    }
-
-    private[service] def updatedCommentToDomainNullDocument(
-        updatedComments: List[UpdatedCommentDTO]
-    ): Try[Seq[Comment]] = {
-      updatedComments.traverse(comment =>
-        comment.id match {
-          case Some(uuid) =>
-            Try(UUID.fromString(uuid)).map(uuid =>
-              Comment(
-                id = uuid,
-                created = clock.now(),
-                updated = clock.now(),
-                content = comment.content,
-                isOpen = comment.isOpen.getOrElse(true),
-                solved = comment.solved.getOrElse(false)
-              )
-            )
-          case None =>
-            Success(
-              Comment(
-                id = uuidUtil.randomUUID(),
-                created = clock.now(),
-                updated = clock.now(),
-                content = comment.content,
-                isOpen = comment.isOpen.getOrElse(true),
-                solved = comment.solved.getOrElse(false)
-              )
-            )
-        }
       )
     }
 
@@ -286,7 +218,7 @@ trait ConverterService {
     }
 
     def getEmbeddedConceptIds(article: Draft): Seq[Long] = {
-      val htmlElements = article.content.map(content => HtmlTagRules.stringToJsoupDocument(content.content))
+      val htmlElements  = article.content.map(content => HtmlTagRules.stringToJsoupDocument(content.content))
       val conceptEmbeds = htmlElements.flatMap(elem => {
         val conceptSelector = s"$EmbedTagName[${TagAttribute.DataResource}=${ResourceType.Concept}]"
         elem.select(conceptSelector).asScala.toSeq
@@ -354,8 +286,8 @@ trait ConverterService {
     def updateStatus(status: DraftStatus, draft: Draft, user: TokenUser): Try[Draft] =
       StateTransitionRules.doTransition(draft, status, user)
 
-    private def toApiResponsible(responsible: Responsible): api.DraftResponsibleDTO =
-      api.DraftResponsibleDTO(
+    private def toApiResponsible(responsible: Responsible): ResponsibleDTO =
+      ResponsibleDTO(
         responsibleId = responsible.responsibleId,
         lastUpdated = responsible.lastUpdated
       )
@@ -407,7 +339,7 @@ trait ConverterService {
             revisions = revisionMetas,
             responsible = responsible,
             slug = article.slug,
-            comments = article.comments.map(toApiComment),
+            comments = article.comments.map(CommonConverter.commentDomainToApi),
             prioritized = article.priority == Priority.Prioritized,
             priority = article.priority.entryName,
             started = article.started,
@@ -481,15 +413,6 @@ trait ConverterService {
       }
     }
 
-    private def toApiComment(comment: Comment): draft.CommentDTO = draft.CommentDTO(
-      id = comment.id.toString,
-      content = comment.content,
-      created = comment.created,
-      updated = comment.updated,
-      isOpen = comment.isOpen,
-      solved = comment.solved
-    )
-
     private def toApiQualityEvaluation(
         qualityEvaluation: Option[common.draft.QualityEvaluation]
     ): Option[api.QualityEvaluationDTO] = {
@@ -546,7 +469,7 @@ trait ConverterService {
       val visualElement       = article.visualElement.filter(_.language != language)
       val disclaimers         = article.disclaimer.dropLanguage(language)
       newNotes(Seq(s"Slettet språkvariant '$language'."), userInfo, article.status) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)             => Failure(ex)
         case Success(newEditorNotes) =>
           Success(
             article.copy(
@@ -724,8 +647,8 @@ trait ConverterService {
       maybeLang
         .map(lang =>
           updatedArticle.metaImage match {
-            case Delete  => toMergeInto.metaImage.filterNot(_.language == lang)
-            case Missing => toMergeInto.metaImage
+            case Delete        => toMergeInto.metaImage.filterNot(_.language == lang)
+            case Missing       => toMergeInto.metaImage
             case UpdateWith(m) =>
               val domainMetaImage = Seq(common.ArticleMetaImage(m.id, m.alt, lang))
               mergeLanguageFields(toMergeInto.metaImage, domainMetaImage)
@@ -749,17 +672,17 @@ trait ConverterService {
       val newNotes           = getNewEditorialNotes(isNewLanguage, user, article, toMergeInto).?
       val newContent         = cloneFilesForOtherLanguages(article.content, toMergeInto.content, isNewLanguage).?
       val updatedRelatedCont = article.relatedContent.map(toDomainRelatedContent).getOrElse(toMergeInto.relatedContent)
-      val reqLibs =
+      val reqLibs            =
         article.requiredLibraries.map(_.map(toDomainRequiredLibraries)).getOrElse(toMergeInto.requiredLibraries)
       val updatedComments = article.comments
-        .map(comments => updatedCommentToDomain(comments, toMergeInto.comments))
+        .map(comments => CommonConverter.mergeUpdatedCommentsWithExisting(comments, toMergeInto.comments))
         .getOrElse(toMergeInto.comments)
 
       val articleWithNewContent = article.copy(content = newContent)
 
       val maybeLang        = articleWithNewContent.language
       val updatedMetaImage = getNewMetaImage(toMergeInto, maybeLang, articleWithNewContent)
-      val updatedTitles = mergeLanguageFields(
+      val updatedTitles    = mergeLanguageFields(
         toMergeInto.title,
         maybeLang
           .traverse(lang => articleWithNewContent.title.toSeq.map(t => toDomainTitle(api.ArticleTitleDTO(t, t, lang))))
@@ -838,83 +761,6 @@ trait ConverterService {
 
       Success(converted)
     }
-
-    def toDomainArticle(id: Long, article: api.UpdatedArticleDTO, user: TokenUser): Try[Draft] =
-      article.language match {
-        case None =>
-          val error = ValidationMessage("language", "This field must be specified when updating language fields")
-          Failure(new ValidationException(errors = Seq(error)))
-        case Some(lang) =>
-          val status      = common.Status(PLANNED, Set(IMPORTED))
-          val createdDate = clock.now()
-          val mergedNotes = article.notes.map(n => newNotes(n, user, status)) match {
-            case Some(Failure(ex))    => Failure(ex)
-            case Some(Success(notes)) => Success(notes)
-            case None                 => Success(Seq.empty)
-          }
-
-          val newMetaImage = article.metaImage match {
-            case UpdateWith(meta) => Seq(common.ArticleMetaImage(meta.id, meta.alt, lang))
-            case _                => Seq.empty
-          }
-
-          val updatedAvailability =
-            common.Availability.valueOf(article.availability).getOrElse(common.Availability.everyone)
-          val updatedRevisionMeta = article.revisionMeta.toSeq.flatMap(_.map(toDomainRevisionMeta))
-
-          val responsible = article.responsibleId match {
-            case Missing => None
-            case Delete  => None
-            case UpdateWith(responsibleId) =>
-              Some(Responsible(responsibleId = responsibleId, lastUpdated = clock.now()))
-          }
-
-          val articleType = article.articleType
-            .map(common.ArticleType.valueOfOrError)
-            .getOrElse(common.ArticleType.Standard)
-
-          val priority = common.Priority
-            .valueOfOrError(article.priority.getOrElse(Priority.Unspecified.entryName))
-            .getOrElse(common.Priority.Unspecified)
-
-          for {
-            comments <- updatedCommentToDomainNullDocument(article.comments.getOrElse(List.empty))
-            notes    <- mergedNotes
-          } yield Draft(
-            id = Some(id),
-            revision = Some(1),
-            status = status,
-            title = article.title.map(t => common.Title(t, lang)).toSeq,
-            content = article.content.map(c => common.ArticleContent(c, lang)).toSeq,
-            copyright = article.copyright.map(toDomainCopyright),
-            tags = article.tags.toSeq.map(tags => common.Tag(tags, lang)),
-            requiredLibraries = article.requiredLibraries.map(_.map(toDomainRequiredLibraries)).toSeq.flatten,
-            visualElement = article.visualElement.map(v => toDomainVisualElement(v, lang)).toSeq,
-            introduction = article.introduction.map(i => toDomainIntroduction(i, lang)).toSeq,
-            metaDescription = article.metaDescription.map(m => toDomainMetaDescription(m, lang)).toSeq,
-            metaImage = newMetaImage,
-            created = createdDate,
-            updated = createdDate,
-            published = article.published.getOrElse(clock.now()),
-            updatedBy = user.id,
-            articleType = articleType,
-            notes = notes,
-            previousVersionsNotes = Seq.empty,
-            editorLabels = article.editorLabels.getOrElse(Seq.empty),
-            grepCodes = article.grepCodes.getOrElse(Seq.empty),
-            conceptIds = article.conceptIds.getOrElse(Seq.empty),
-            availability = updatedAvailability,
-            relatedContent = article.relatedContent.map(toDomainRelatedContent).getOrElse(Seq.empty),
-            revisionMeta = updatedRevisionMeta,
-            responsible = responsible,
-            slug = article.slug,
-            comments = comments,
-            priority = priority,
-            started = false,
-            qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
-            disclaimer = OptLanguageFields.fromMaybeString(article.disclaimer, lang)
-          )
-      }
 
     private[service] def buildTransitionsMap(user: TokenUser, article: Option[Draft]): Map[String, List[String]] =
       StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>

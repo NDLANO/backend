@@ -84,7 +84,7 @@ object ModelReleasedStatus extends Enumeration {
   def valueOfOrError(s: String): Try[this.Value] =
     valueOf(s) match {
       case Some(st) => Success(st)
-      case None =>
+      case None     =>
         val validStatuses = values.map(_.toString).mkString(", ")
         Failure(
           new ValidationException(

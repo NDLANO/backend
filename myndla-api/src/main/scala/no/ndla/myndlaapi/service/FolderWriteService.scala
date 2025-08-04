@@ -77,7 +77,7 @@ trait FolderWriteService {
           Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
         else
           canWriteNow(myNDLAUser).flatMap {
-            case true => Success(())
+            case true  => Success(())
             case false =>
               Failure(AccessDeniedException("You do not have write access while write restriction is active."))
           }
@@ -341,11 +341,11 @@ trait FolderWriteService {
     def deleteFolder(id: UUID, feideAccessToken: Option[FeideAccessToken]): Try[UUID] = {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       for {
-        feideId <- feideApiClient.getFeideID(feideAccessToken)
-        _       <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
-        folder  <- folderRepository.folderWithId(id)
-        _       <- folder.isOwner(feideId)
-        parent  <- getFolderWithDirectChildren(folder.parentId, feideId)
+        feideId        <- feideApiClient.getFeideID(feideAccessToken)
+        _              <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        folder         <- folderRepository.folderWithId(id)
+        _              <- folder.isOwner(feideId)
+        parent         <- getFolderWithDirectChildren(folder.parentId, feideId)
         folderWithData <- folderReadService.getSingleFolderWithContent(
           id,
           includeSubfolders = true,
@@ -480,10 +480,10 @@ trait FolderWriteService {
 
     private def checkDepth(parentId: Option[UUID]): Try[Unit] = {
       parentId match {
-        case None => Success(())
+        case None      => Success(())
         case Some(pid) =>
           folderRepository.getFoldersDepth(pid) match {
-            case Failure(ex) => Failure(ex)
+            case Failure(ex)                                             => Failure(ex)
             case Success(currentDepth) if currentDepth >= MaxFolderDepth =>
               Failure(
                 ValidationException(
@@ -507,7 +507,7 @@ trait FolderWriteService {
           })
       case Some(parentId) =>
         folderRepository.folderWithFeideId(parentId, feideId) match {
-          case Failure(ex) => Failure(ex)
+          case Failure(ex)     => Failure(ex)
           case Success(parent) =>
             for {
               siblingFolders   <- folderRepository.foldersWithFeideAndParentID(parentId.some, feideId)
@@ -579,10 +579,10 @@ trait FolderWriteService {
         session: DBSession
     ): Try[domain.Folder] = {
 
-      val parentId      = getMaybeParentId(newFolder.parentId).?
-      val maybeSiblings = getFolderWithDirectChildren(parentId, feideId).?
-      val nextRank      = getNextRank(maybeSiblings.childrenFolders)
-      val withStatus    = changeStatusToSharedIfParentIsShared(newFolder, maybeSiblings.folder, isCloning)
+      val parentId       = getMaybeParentId(newFolder.parentId).?
+      val maybeSiblings  = getFolderWithDirectChildren(parentId, feideId).?
+      val nextRank       = getNextRank(maybeSiblings.childrenFolders)
+      val withStatus     = changeStatusToSharedIfParentIsShared(newFolder, maybeSiblings.folder, isCloning)
       val folderWithName =
         withStatus.copy(name = getFolderValidName(makeUniqueNamePostfix, newFolder.name, maybeSiblings))
       val validatedParentId = validateNewFolder(folderWithName.name, parentId, maybeSiblings).?
@@ -598,7 +598,7 @@ trait FolderWriteService {
         maybeParentAndSiblings: domain.FolderAndDirectChildren
     ): String = {
       makeUniqueNamePostfix match {
-        case None => folderName
+        case None          => folderName
         case Some(postfix) =>
           @tailrec
           def getCopyUntilValid(folderName: String): String =
@@ -715,7 +715,7 @@ trait FolderWriteService {
       getMyNDLAUser(feideId, feideAccessToken)
         .flatMap(myNDLAUser =>
           canWriteNow(myNDLAUser).flatMap {
-            case true => Success(())
+            case true  => Success(())
             case false =>
               Failure(AccessDeniedException("You do not have write access while write restriction is active."))
           }

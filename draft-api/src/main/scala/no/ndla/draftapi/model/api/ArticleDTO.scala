@@ -12,8 +12,14 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.draft.CommentDTO
-import no.ndla.common.model.api.{DisclaimerDTO, DraftCopyrightDTO, RelatedContent, RelatedContentLinkDTO}
+import no.ndla.common.model.api.{
+  CommentDTO,
+  DisclaimerDTO,
+  DraftCopyrightDTO,
+  RelatedContent,
+  RelatedContentLinkDTO,
+  ResponsibleDTO
+}
 import sttp.tapir.Schema.annotations.description
 
 // format: off
@@ -45,7 +51,7 @@ case class ArticleDTO(
     @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
     @description("A list of content related to the article") relatedContent: Seq[RelatedContent],
     @description("A list of revisions planned for the article") revisions: Seq[RevisionMetaDTO],
-    @description("Object with data representing the editor responsible for this article") responsible: Option[DraftResponsibleDTO],
+    @description("Object with data representing the editor responsible for this article") responsible: Option[ResponsibleDTO],
     @description("The path to the frontpage article") slug: Option[String],
     @description("Information about comments attached to the article") comments: Seq[CommentDTO],
     @description("If the article should be prioritized") prioritized: Boolean,

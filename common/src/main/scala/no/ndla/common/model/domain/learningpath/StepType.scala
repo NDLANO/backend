@@ -12,7 +12,7 @@ import enumeratum.*
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 
 sealed trait StepType extends EnumEntry
-object StepType extends Enum[StepType] with CirceEnum[StepType] {
+object StepType       extends Enum[StepType] with CirceEnum[StepType] {
   case object INTRODUCTION extends StepType
   case object TEXT         extends StepType
   case object QUIZ         extends StepType
@@ -27,7 +27,7 @@ object StepType extends Enum[StepType] with CirceEnum[StepType] {
   def valueOfOrError(s: String): StepType = {
     valueOf(s) match {
       case Some(stepType) => stepType
-      case None =>
+      case None           =>
         throw new ValidationException(errors = List(ValidationMessage("type", s"'$s' is not a valid steptype.")))
     }
   }

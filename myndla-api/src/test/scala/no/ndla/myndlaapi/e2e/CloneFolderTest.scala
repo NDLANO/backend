@@ -33,9 +33,9 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success}
 
 class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with UnitSuite with TestEnvironment {
-  val myndlaApiPort: Int          = findFreePort
-  val pgc: PostgreSQLContainer[?] = postgresContainer.get
-  val redisPort: Int              = redisContainer.get.port
+  val myndlaApiPort: Int                    = findFreePort
+  val pgc: PostgreSQLContainer[?]           = postgresContainer.get
+  val redisPort: Int                        = redisContainer.get.port
   val myndlaproperties: MyNdlaApiProperties = new MyNdlaApiProperties {
     override def ApplicationPort: Int       = myndlaApiPort
     override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
@@ -123,7 +123,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
 
   def prepareFolderToClone(): UUID = {
     val folderRepository = myndlaApi.componentRegistry.folderRepository
-    val parent =
+    val parent           =
       NewFolderData(
         parentId = None,
         name = "parent",
@@ -131,7 +131,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
         rank = 1,
         description = Some("samling 0")
       )
-    val pId = folderRepository.insertFolder(feideId, folderData = parent).get.id
+    val pId     = folderRepository.insertFolder(feideId, folderData = parent).get.id
     val pChild1 = NewFolderData(
       parentId = Some(pId),
       name = "p_child1",
@@ -517,7 +517,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
     val shareTime = NDLADate.now().withNano(0)
     when(testClock.now()).thenReturn(shareTime)
-    val folderRepository = myndlaApi.componentRegistry.folderRepository
+    val folderRepository  = myndlaApi.componentRegistry.folderRepository
     val destinationFolder =
       NewFolderData(
         parentId = None,
@@ -552,14 +552,14 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val parent =
       NewFolderData(parentId = None, name = "parent", status = FolderStatus.PRIVATE, rank = 1, description = None)
     val parentId = folderRepository.insertFolder(feideId, folderData = parent).get.id
-    val child = NewFolderData(
+    val child    = NewFolderData(
       parentId = Some(parentId),
       name = "child",
       status = FolderStatus.PRIVATE,
       rank = 1,
       description = None
     )
-    val childId = folderRepository.insertFolder(feideId, folderData = child).get.id
+    val childId    = folderRepository.insertFolder(feideId, folderData = child).get.id
     val childChild = NewFolderData(
       parentId = Some(childId),
       name = "childchild",
@@ -634,7 +634,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val updated = NDLADate.of(2024, 1, 1, 1, 59)
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(destinationFeideId))
     when(testClock.now()).thenReturn(created, updated)
-    val folderRepository = myndlaApi.componentRegistry.folderRepository
+    val folderRepository  = myndlaApi.componentRegistry.folderRepository
     val destinationFolder =
       NewFolderData(
         parentId = None,

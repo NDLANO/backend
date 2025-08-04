@@ -8,11 +8,17 @@
 
 package no.ndla.draftapi.model.api
 
-import no.ndla.common.implicits._
+import no.ndla.common.implicits.*
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{DraftCopyrightDTO, RelatedContent, RelatedContentLinkDTO, UpdateOrDelete}
+import no.ndla.common.model.api.{
+  DraftCopyrightDTO,
+  RelatedContent,
+  RelatedContentLinkDTO,
+  UpdateOrDelete,
+  UpdatedCommentDTO
+}
 import sttp.tapir.Schema.annotations.description
 
 // format: off

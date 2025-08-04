@@ -10,7 +10,7 @@ package no.ndla.draftapi.validation
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.*
-import no.ndla.common.model.domain.draft.{Comment, Draft, DraftCopyright, RevisionMeta}
+import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, RevisionMeta}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
@@ -24,7 +24,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   override val converterService: ConverterService = new ConverterService
   val validDocument                               = """<section><h1>heisann</h1><h2>heia</h2></section>"""
   val invalidDocument                             = """<section><invalid></invalid></section>"""
-  val validDisclaimer =
+  val validDisclaimer                             =
     """<p><strong>hallo!</strong><ndlaembed data-content-id="123" data-open-in="current-context" data-resource="content-link" data-content-type="article">test</ndlaembed></p>"""
 
   val articleToValidate: Draft =
@@ -69,7 +69,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       disclaimer = OptLanguageFields.withValue("<p><hallo>hei</hallo></p>", "nb")
     )
     val Failure(error: ValidationException) = contentValidator.validateArticle(article)
-    val expected = ValidationException(
+    val expected                            = ValidationException(
       "disclaimer.nb",
       "The content contains illegal tags and/or attributes. Allowed HTML tags are: h3, msgroup, a, article, sub, sup, mtext, msrow, tbody, mtd, pre, thead, figcaption, mover, msup, semantics, ol, span, mroot, munder, h4, mscarries, dt, nav, mtr, ndlaembed, li, br, mrow, merror, mphantom, u, audio, ul, maligngroup, mfenced, annotation, div, strong, section, i, mspace, malignmark, mfrac, code, h2, td, aside, em, mstack, button, dl, th, tfoot, math, tr, b, blockquote, msline, col, annotation-xml, mstyle, caption, mpadded, mo, mlongdiv, msubsup, p, munderover, maction, menclose, h1, details, mmultiscripts, msqrt, mscarry, mstac, mi, mglyph, mlabeledtr, mtable, mprescripts, summary, mn, msub, ms, table, colgroup, dd"
     )

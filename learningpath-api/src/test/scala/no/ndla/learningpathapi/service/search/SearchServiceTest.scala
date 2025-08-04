@@ -37,7 +37,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
   import props.{DefaultPageSize, MaxPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
   override val searchConverterService: SearchConverterService = new SearchConverterService
-  override val searchIndexService: SearchIndexService = new SearchIndexService {
+  override val searchIndexService: SearchIndexService         = new SearchIndexService {
     override val indexShards: Int = 1 // 1 shard for accurate scoring in tests
   }
   override val searchService: SearchService = new SearchService
@@ -62,7 +62,9 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     tags = List(),
     owner = "owner",
     copyright = copyright,
-    isMyNDLAOwner = false
+    isMyNDLAOwner = false,
+    responsible = None,
+    comments = Seq.empty
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(

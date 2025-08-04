@@ -428,6 +428,24 @@ export type components = {
             name: string;
         };
         /**
+         * CommentDTO
+         * @description Information about a comment attached to an article
+         */
+        CommentDTO: {
+            /** @description Id of the comment */
+            id: string;
+            /** @description Content of the comment */
+            content: string;
+            /** @description When the comment was created */
+            created: string;
+            /** @description When the comment was last updated */
+            updated: string;
+            /** @description If the comment is open or closed */
+            isOpen: boolean;
+            /** @description If the comment is solved or not */
+            solved: boolean;
+        };
+        /**
          * ContributorType
          * @description The description of the author. Eg. Photographer or Supplier
          * @enum {string}
@@ -623,6 +641,9 @@ export type components = {
             madeAvailable?: string;
             /** @description Whether the owner of the learningpath is a MyNDLA user or not */
             isMyNDLAOwner: boolean;
+            responsible?: components["schemas"]["ResponsibleDTO"];
+            /** @description Information about comments attached to the learningpath */
+            comments: components["schemas"]["CommentDTO"][];
         };
         /**
          * LearningStepContainerSummaryDTO
@@ -739,6 +760,16 @@ export type components = {
             date: string;
         };
         /**
+         * NewCommentDTO
+         * @description Information about a comment attached to an article
+         */
+        NewCommentDTO: {
+            /** @description Content of the comment */
+            content: string;
+            /** @description If the comment is open or closed */
+            isOpen?: boolean;
+        };
+        /**
          * NewCopyLearningPathV2DTO
          * @description Meta information for a new learningpath based on a copy
          */
@@ -783,6 +814,10 @@ export type components = {
             language: string;
             /** @description Describes the copyright information for the learningpath */
             copyright?: components["schemas"]["CopyrightDTO"];
+            /** @description NDLA ID representing the editor responsible for this learningpath */
+            responsibleId?: string;
+            /** @description Information about comments attached to the learningpath */
+            comments?: components["schemas"]["NewCommentDTO"][];
         };
         /**
          * NewLearningStepV2DTO
@@ -826,6 +861,16 @@ export type components = {
              * @description Numeric http status code
              */
             statusCode: number;
+        };
+        /**
+         * ResponsibleDTO
+         * @description Object with data representing the editor responsible for this learningpath
+         */
+        ResponsibleDTO: {
+            /** @description NDLA ID of responsible editor */
+            responsibleId: string;
+            /** @description Date of when the responsible editor was last updated */
+            lastUpdated: string;
         };
         /**
          * SearchParamsDTO
@@ -907,6 +952,20 @@ export type components = {
             message?: string;
         };
         /**
+         * UpdatedCommentDTO
+         * @description Information about a comment attached to an article
+         */
+        UpdatedCommentDTO: {
+            /** @description Id of the comment */
+            id?: string;
+            /** @description Content of the comment */
+            content: string;
+            /** @description If the comment is open or closed */
+            isOpen?: boolean;
+            /** @description If the comment is solved or not */
+            solved?: boolean;
+        };
+        /**
          * UpdatedLearningPathV2DTO
          * @description Meta information for a new learningpath
          */
@@ -923,7 +982,7 @@ export type components = {
             /** @description The description of the learningpath */
             description?: string;
             /** @description Url to cover-photo in NDLA image-api. */
-            coverPhotoMetaUrl?: string;
+            coverPhotoMetaUrl?: string | null;
             /**
              * Format: int32
              * @description The duration of the learningpath in minutes. Must be greater than 0
@@ -935,6 +994,10 @@ export type components = {
             copyright?: components["schemas"]["CopyrightDTO"];
             /** @description Whether to delete a message connected to a learningpath by an administrator. */
             deleteMessage?: boolean;
+            /** @description NDLA ID representing the editor responsible for this learningpath */
+            responsibleId?: string | null;
+            /** @description Information about comments attached to the learningpath */
+            comments?: components["schemas"]["UpdatedCommentDTO"][];
         };
         /**
          * UpdatedLearningStepV2DTO
@@ -949,12 +1012,13 @@ export type components = {
             /** @description The title of the learningstep */
             title?: string;
             /** @description The introduction of the learningstep */
-            introduction?: string;
+            introduction?: string | null;
             /** @description The chosen language */
             language: string;
             /** @description The description of the learningstep */
-            description?: string;
-            embedUrl?: components["schemas"]["EmbedUrlV2DTO"];
+            description?: string | null;
+            /** @description The embed content for the learningstep */
+            embedUrl?: components["schemas"]["EmbedUrlV2DTO"] | null;
             /** @description Determines if the title of the step should be displayed in viewmode */
             showTitle?: boolean;
             /** @description The type of the step */

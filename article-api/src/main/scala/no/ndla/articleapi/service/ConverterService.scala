@@ -100,7 +100,7 @@ trait ConverterService {
     def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2DTO = {
       val searchableArticle = CirceUtil.unsafeParseAs[SearchableArticle](hitString)
 
-      val titles = searchableArticle.title.languageValues.map(lv => Title(lv.value, lv.language))
+      val titles        = searchableArticle.title.languageValues.map(lv => Title(lv.value, lv.language))
       val introductions =
         searchableArticle.introduction.languageValues.map(lv => Introduction(lv.value, lv.language))
       val metaDescriptions =
@@ -259,13 +259,13 @@ trait ConverterService {
         val title = findByLanguageOrBestEffort(article.title, language)
           .map(toApiArticleTitle)
           .getOrElse(api.ArticleTitleDTO("", "", UnknownLanguage.toString))
-        val introduction  = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
-        val visualElement = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
+        val introduction   = findByLanguageOrBestEffort(article.introduction, language).map(toApiArticleIntroduction)
+        val visualElement  = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
         val articleContent = findByLanguageOrBestEffort(article.content, language)
           .map(toApiArticleContentV2)
           .getOrElse(api.ArticleContentV2DTO("", UnknownLanguage.toString))
-        val metaImage = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
-        val copyright = toApiCopyright(article.copyright)
+        val metaImage  = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
+        val copyright  = toApiCopyright(article.copyright)
         val disclaimer = article.disclaimer
           .findByLanguageOrBestEffort(language)
           .map(DisclaimerDTO.fromLanguageValue)

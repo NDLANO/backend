@@ -33,7 +33,7 @@ object AutoEnvPlugin extends AutoPlugin {
   }
 
   private def loadVarMap(filename: String): Map[String, String] = Try(Source.fromFile(filename)) match {
-    case Failure(_) => Map.empty
+    case Failure(_)      => Map.empty
     case Success(source) =>
       val envMap = source.getLines.foldLeft(Map.empty[String, String]) { case (acc, cur) =>
         val withoutExport = cur.stripPrefix("export ")
@@ -66,7 +66,7 @@ object AutoEnvPlugin extends AutoPlugin {
     ),
     disableEnvLoading            := false,
     disableSystemPropertyLoading := false,
-    envVars := {
+    envVars                      := {
       if (disableEnvLoading.value) {
         state.value.log.info("`disableEnvLoading` disabled, not overriding environment.")
         envVars.value

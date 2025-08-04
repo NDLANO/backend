@@ -10,9 +10,11 @@ package no.ndla.learningpathapi.service
 
 import cats.implicits.*
 import io.lemonlabs.uri.typesafe.dsl.*
+import no.ndla.common.converter.CommonConverter
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.OptionImplicit
-import no.ndla.common.model.domain.{ContributorType, learningpath}
+import no.ndla.common.model.api.{Delete, Missing, ResponsibleDTO, UpdateOrDelete, UpdateWith}
+import no.ndla.common.model.domain.{ContributorType, Responsible, learningpath}
 import no.ndla.common.model.domain.learningpath.{
   Description,
   EmbedType,
@@ -44,7 +46,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
   this: LearningPathRepositoryComponent & LanguageValidator & LearningPathValidator & OembedProxyClient & Clock &
-    Props =>
+    CommonConverter & Props =>
 
   val converterService: ConverterService
 
@@ -98,6 +100,21 @@ trait ConverterService {
     private def asCopyright(copyright: api.CopyrightDTO): learningpath.LearningpathCopyright = {
       learningpath.LearningpathCopyright(copyright.license.license, copyright.contributors.map(_.toDomain))
     }
+
+    private def getNewResponsible(toMergeInto: LearningPath, updated: UpdatedLearningPathV2DTO) =
+      (updated.responsibleId, toMergeInto.responsible) match {
+        case (Delete, _)                       => None
+        case (UpdateWith(responsibleId), None) => Some(Responsible(responsibleId, clock.now()))
+        case (UpdateWith(responsibleId), Some(existing)) if existing.responsibleId != responsibleId =>
+          Some(Responsible(responsibleId, clock.now()))
+        case (_, existing) => existing
+      }
+
+    private def asApiResponsible(responsible: Responsible): ResponsibleDTO =
+      ResponsibleDTO(
+        responsibleId = responsible.responsibleId,
+        lastUpdated = responsible.lastUpdated
+      )
 
     def asApiLearningpathV2(
         lp: LearningPath,
@@ -155,7 +172,9 @@ trait ConverterService {
             ownerId = owner,
             message = message,
             madeAvailable = lp.madeAvailable,
-            isMyNDLAOwner = lp.isMyNDLAOwner
+            isMyNDLAOwner = lp.isMyNDLAOwner,
+            responsible = lp.responsible.map(asApiResponsible),
+            comments = lp.comments.map(CommonConverter.commentDomainToApi)
           )
         )
       } else
@@ -175,6 +194,19 @@ trait ConverterService {
 
       val pattern = """.*/images/(\d+)""".r
       pattern.findFirstMatchIn(url.path.toString).map(_.group(1))
+    }
+
+    private def updateImageId(existing: Option[String], url: UpdateOrDelete[String]): Option[String] = {
+      url match {
+        case Delete            => None
+        case Missing           => existing
+        case UpdateWith(value) =>
+          (existing, extractImageId(value)) match {
+            case (None, Some(newId))                                    => Some(newId)
+            case (Some(existingId), Some(newId)) if existingId != newId => Some(newId)
+            case (existing, _)                                          => existing
+          }
+      }
     }
 
     private def mergeLearningPathTags(
@@ -201,32 +233,43 @@ trait ConverterService {
       val status = mergeStatus(existing, userInfo)
 
       val titles = updated.title match {
-        case None => Seq.empty
+        case None        => Seq.empty
         case Some(value) =>
           Seq(common.Title(value, updated.language))
       }
 
       val descriptions = updated.description match {
-        case None => Seq.empty
+        case None        => Seq.empty
         case Some(value) =>
           Seq(Description(value, updated.language))
       }
 
       val tags = updated.tags match {
-        case None => Seq.empty
+        case None        => Seq.empty
         case Some(value) =>
           Seq(common.Tag(value, updated.language))
       }
 
+      val updatedComments = updated.comments
+        .map(comments => CommonConverter.mergeUpdatedCommentsWithExisting(comments, existing.comments))
+        .getOrElse(existing.comments)
+
       val message = existing.message.filterNot(_ => updated.deleteMessage.getOrElse(false))
 
-      existing.copy(
+      LearningPath(
+        id = existing.id,
+        externalId = existing.externalId,
+        isBasedOn = existing.isBasedOn,
+        verificationStatus = existing.verificationStatus,
+        created = existing.created,
+        learningsteps = existing.learningsteps,
+        madeAvailable = existing.madeAvailable,
+        owner = existing.owner,
+        isMyNDLAOwner = existing.isMyNDLAOwner,
         revision = Some(updated.revision),
         title = mergeLanguageFields(existing.title, titles),
         description = mergeLanguageFields(existing.description, descriptions),
-        coverPhotoId = updated.coverPhotoMetaUrl
-          .map(extractImageId)
-          .getOrElse(existing.coverPhotoId),
+        coverPhotoId = updateImageId(existing.coverPhotoId, updated.coverPhotoMetaUrl),
         duration =
           if (updated.duration.isDefined)
             updated.duration
@@ -238,7 +281,9 @@ trait ConverterService {
             converterService.asCopyright(updated.copyright.get)
           else existing.copyright,
         lastUpdated = clock.now(),
-        message = message
+        message = message,
+        responsible = getNewResponsible(existing, updated),
+        comments = updatedComments
       )
     }
 
@@ -298,7 +343,7 @@ trait ConverterService {
     ): LearningPath = {
       val status                = mergeStatus(learningPath, user)
       val existingLearningSteps = learningPath.learningsteps.getOrElse(Seq.empty).filterNot(_.id == updatedStep.id)
-      val steps =
+      val steps                 =
         if (StepStatus.ACTIVE == updatedStep.status) existingLearningSteps :+ updatedStep else existingLearningSteps
 
       learningPath.copy(learningsteps = Some(steps), status = status, lastUpdated = clock.now())
@@ -306,26 +351,28 @@ trait ConverterService {
 
     def mergeLearningSteps(existing: LearningStep, updated: UpdatedLearningStepV2DTO): Try[LearningStep] = {
       val titles = updated.title match {
-        case None => existing.title
+        case None        => existing.title
         case Some(value) =>
           mergeLanguageFields(existing.title, Seq(common.Title(value, updated.language)))
       }
 
       val introductions = updated.introduction match {
-        case None => existing.introduction
-        case Some(value) =>
-          mergeLanguageFields(existing.introduction, Seq(Introduction(value, updated.language)))
+        case Missing           => existing.introduction
+        case Delete            => existing.introduction.filterNot(_.language == updated.language)
+        case UpdateWith(value) => mergeLanguageFields(existing.introduction, Seq(Introduction(value, updated.language)))
       }
 
       val descriptions = updated.description match {
-        case None => existing.description
-        case Some(value) =>
+        case Missing           => existing.description
+        case Delete            => existing.description.filterNot(_.language == updated.language)
+        case UpdateWith(value) =>
           mergeLanguageFields(existing.description, Seq(Description(value, updated.language)))
       }
 
       val embedUrlsT = updated.embedUrl match {
-        case None => Success(existing.embedUrl)
-        case Some(value) =>
+        case Missing           => Success(existing.embedUrl)
+        case Delete            => Success(existing.embedUrl.filterNot(_.language == updated.language))
+        case UpdateWith(value) =>
           converterService
             .asDomainEmbedUrl(value, updated.language)
             .map(newEmbedUrl => mergeLanguageFields(existing.embedUrl, Seq(newEmbedUrl)))
@@ -360,21 +407,21 @@ trait ConverterService {
       val oldTitle = Seq(common.Title(newLearningPath.title, newLearningPath.language))
 
       val oldDescription = newLearningPath.description match {
-        case None => Seq.empty
+        case None        => Seq.empty
         case Some(value) =>
           Seq(Description(value, newLearningPath.language))
       }
 
       val oldTags = newLearningPath.tags match {
-        case None => Seq.empty
+        case None        => Seq.empty
         case Some(value) =>
           Seq(common.Tag(value, newLearningPath.language))
       }
 
       user.id.toTry(AccessDeniedException("User id not found")).map { ownerId =>
-        val title       = mergeLanguageFields(existing.title, oldTitle)
-        val description = mergeLanguageFields(existing.description, oldDescription)
-        val tags        = converterService.mergeLearningPathTags(existing.tags, oldTags)
+        val title        = mergeLanguageFields(existing.title, oldTitle)
+        val description  = mergeLanguageFields(existing.description, oldDescription)
+        val tags         = converterService.mergeLearningPathTags(existing.tags, oldTags)
         val coverPhotoId = newLearningPath.coverPhotoMetaUrl
           .map(converterService.extractImageId)
           .getOrElse(existing.coverPhotoId)
@@ -435,7 +482,12 @@ trait ConverterService {
           isMyNDLAOwner = user.isMyNDLAUser,
           learningsteps = Some(Seq.empty),
           message = None,
-          madeAvailable = None
+          madeAvailable = None,
+          responsible = newLearningPath.responsibleId
+            .map(responsibleId => Responsible(responsibleId = responsibleId, lastUpdated = clock.now())),
+          comments = newLearningPath.comments
+            .map(comments => comments.map(CommonConverter.newCommentApiToDomain))
+            .getOrElse(Seq.empty)
         )
       }
     }
@@ -621,7 +673,7 @@ trait ConverterService {
 
       if (languageIsSupported(supportedLanguages, language) || fallback) {
         val searchLanguage = getSearchLanguage(language, supportedLanguages)
-        val tags = allTags
+        val tags           = allTags
           .filter(_.language == searchLanguage)
           .flatMap(_.tags)
 
@@ -708,7 +760,7 @@ trait ConverterService {
     private def createEmbedUrl(embedUrlOrPath: EmbedUrlV2DTO): EmbedUrlV2DTO = {
       embedUrlOrPath.url.hostOption match {
         case Some(_) => embedUrlOrPath
-        case None =>
+        case None    =>
           embedUrlOrPath.copy(url = s"$NdlaFrontendProtocol://$NdlaFrontendHost${embedUrlOrPath.url}")
       }
     }

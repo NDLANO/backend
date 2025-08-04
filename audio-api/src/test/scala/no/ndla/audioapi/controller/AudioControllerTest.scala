@@ -34,7 +34,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
     override val maxAudioFileSizeBytes: Int = 10
   }
 
-  val maxRetries = 5
+  val maxRetries                                        = 5
   def withFixture(test: NoArgTest, count: Int): Outcome = {
     val outcome = Try(super.withFixture(test))
     outcome match {

@@ -221,7 +221,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId              = "yee boiii"
     val favoriteUUID         = UUID.randomUUID()
     val favoriteDomainFolder = emptyDomainFolder.copy(id = favoriteUUID, name = "favorite")
-    val favoriteApiFolder =
+    val favoriteApiFolder    =
       emptyApiFolder.copy(
         id = favoriteUUID,
         name = "favorite",
@@ -248,7 +248,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId              = "yee boiii"
     val favoriteUUID         = UUID.randomUUID()
     val favoriteDomainFolder = emptyDomainFolder.copy(id = favoriteUUID, name = "favorite")
-    val favoriteApiFolder =
+    val favoriteApiFolder    =
       emptyApiFolder.copy(
         id = favoriteUUID,
         name = "favorite",
@@ -259,7 +259,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     val user               = emptyMyNDLAUser.copy(id = 1996, displayName = "hallois")
     val folderId           = UUID.randomUUID()
     val sharedFolderDomain = emptyDomainFolder.copy(id = folderId, name = "SharedFolder", status = FolderStatus.SHARED)
-    val savedFolderDomain =
+    val savedFolderDomain  =
       emptyDomainFolder.copy(id = folderId, name = "SharedFolder", status = FolderStatus.SHARED, user = Some(user))
     val sharedFolderApi = emptyApiFolder.copy(
       id = folderId,
@@ -326,7 +326,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
   test("That getSharedFolder returns a folder if the status is shared") {
     val folderUUID   = UUID.randomUUID()
     val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.SHARED)
-    val apiFolder =
+    val apiFolder    =
       emptyApiFolder.copy(
         id = folderUUID,
         name = "",
@@ -346,7 +346,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That getSharedFolder returns a folder with owner info if the owner wants to") {
-    val feideId = "feide"
+    val feideId        = "feide"
     val domainUserData = MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -372,7 +372,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
 
     val folderUUID   = UUID.randomUUID()
     val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.SHARED)
-    val apiFolder =
+    val apiFolder    =
       emptyApiFolder.copy(
         id = folderUUID,
         name = "",
@@ -443,7 +443,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId      = "feide"
     val folderUUID   = UUID.randomUUID()
     val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.PRIVATE, feideId = feideId)
-    val apiFolder =
+    val apiFolder    =
       emptyApiFolder.copy(
         id = folderUUID,
         name = "",
@@ -472,7 +472,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     val otherId      = "someOtherId"
     val folderUUID   = UUID.randomUUID()
     val resourceUUID = UUID.randomUUID()
-    val resource = emptyDomainResource.copy(
+    val resource     = emptyDomainResource.copy(
       id = resourceUUID,
       feideId = ownerId,
       tags = List("a", "b"),

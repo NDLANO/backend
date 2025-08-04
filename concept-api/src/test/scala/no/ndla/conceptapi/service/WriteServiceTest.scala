@@ -10,7 +10,6 @@ package no.ndla.conceptapi.service
 
 import no.ndla.common.model.domain.{ContributorType, Responsible, Tag, Title}
 import no.ndla.common.model.api as commonApi
-import no.ndla.conceptapi.model.api.ConceptResponsibleDTO
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
@@ -20,7 +19,7 @@ import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{Missing, UpdateWith}
+import no.ndla.common.model.api.{Missing, ResponsibleDTO, UpdateWith}
 import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptStatus, Status, VisualElement}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -40,7 +39,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       id = conceptId,
       updated = today,
       supportedLanguages = Set("nb"),
-      responsible = Some(ConceptResponsibleDTO("hei", TestData.today))
+      responsible = Some(ResponsibleDTO("hei", TestData.today))
     )
 
   val domainConcept: Concept =
@@ -77,7 +76,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That update function updates only content properly") {
-    val newContent = "NewContentTest"
+    val newContent        = "NewContentTest"
     val updatedApiConcept =
       api.UpdatedConceptDTO(
         "en",
@@ -106,7 +105,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That update function updates only title properly") {
-    val newTitle = "NewTitleTest"
+    val newTitle          = "NewTitleTest"
     val updatedApiConcept =
       api.UpdatedConceptDTO("nn", title = Some(newTitle), None, None, None, None, None, Missing, None, None)
     val expectedConcept = concept.copy(
@@ -123,8 +122,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateConcept updates multiple fields properly") {
-    val updatedTitle   = "NyTittelTestJee"
-    val updatedContent = "NyContentTestYepp"
+    val updatedTitle     = "NyTittelTestJee"
+    val updatedContent   = "NyContentTestYepp"
     val updatedCopyright =
       commonApi.DraftCopyrightDTO(
         None,
@@ -168,7 +167,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       source = Some("https://ndla.no"),
       tags = Some(api.ConceptTagsDTO(Seq("Nye", "Tags"), "en")),
       supportedLanguages = Set("nb", "en"),
-      responsible = Some(api.ConceptResponsibleDTO("123", today)),
+      responsible = Some(ResponsibleDTO("123", today)),
       editorNotes = Some(
         Seq(
           api.EditorNoteDTO("New language 'en' added", "", api.StatusDTO("IN_PROGRESS", Seq.empty), today),
@@ -238,7 +237,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That update function updates only responsible properly") {
-    val responsibleId = "ResponsibleId"
+    val responsibleId     = "ResponsibleId"
     val updatedApiConcept =
       api.UpdatedConceptDTO(
         language = "nb",
@@ -255,7 +254,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val expectedConcept = concept.copy(
       updated = today,
       supportedLanguages = Set("nb"),
-      responsible = Some(api.ConceptResponsibleDTO(responsibleId, today)),
+      responsible = Some(ResponsibleDTO(responsibleId, today)),
       editorNotes = Some(
         Seq(
           api.EditorNoteDTO("Responsible changed", "", api.StatusDTO("IN_PROGRESS", Seq.empty), today)

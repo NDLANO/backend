@@ -79,7 +79,7 @@ trait NdlaAWSTranscribeClient {
 
     def listTranscriptionJobs(status: Option[String] = None): Try[ListTranscriptionJobsResponse] = Try {
       val requestBuilder = ListTranscriptionJobsRequest.builder()
-      val request = status match {
+      val request        = status match {
         case Some(jobStatus) => requestBuilder.status(jobStatus).build()
         case None            => requestBuilder.build()
       }

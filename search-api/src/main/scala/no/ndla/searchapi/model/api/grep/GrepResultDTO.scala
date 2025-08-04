@@ -75,7 +75,7 @@ object GrepResultDTO {
 
     searchable.domainObject match {
       case core: GrepKjerneelement =>
-        val descriptionLvs = GrepTitle.convertTitles(core.beskrivelse.tekst.toSeq)
+        val descriptionLvs                       = GrepTitle.convertTitles(core.beskrivelse.tekst.toSeq)
         val descriptionLv: LanguageValue[String] =
           findByLanguageOrBestEffort(descriptionLvs, language).getOrElse(LanguageValue(Language.DefaultLanguage, ""))
         val description = DescriptionDTO(description = descriptionLv.value, language = descriptionLv.language)

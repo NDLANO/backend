@@ -81,7 +81,7 @@ trait ReadService {
 
     private def handleIdPathParts(pathParts: List[String]): Try[ImageMetaInformation] =
       Try(pathParts(3).toLong) match {
-        case Failure(_) => Failure(InvalidUrlException("Could not extract id from id url."))
+        case Failure(_)  => Failure(InvalidUrlException("Could not extract id from id url."))
         case Success(id) =>
           imageRepository.withId(id) match {
             case Some(image) => Success(image)
@@ -105,7 +105,7 @@ trait ReadService {
             .getOrElse(Seq.empty)
             .find(i => i.fileName.dropWhile(_ == '/') == path.dropWhile(_ == '/')) match {
             case Some(img) => Success(img)
-            case None =>
+            case None      =>
               Failure(
                 ImageConversionException(
                   s"Image path '$path' was found in database, but not found in metadata. This is a bug."
@@ -122,7 +122,7 @@ trait ReadService {
       val encodedPath = urlEncodePath(path)
       imageRepository.getImageFromFilePath(encodedPath) match {
         case Some(image) => Success(image)
-        case None =>
+        case None        =>
           Failure(new ImageNotFoundException(s"Extracted path '$encodedPath', but no image with that path was found"))
       }
     }

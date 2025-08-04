@@ -136,7 +136,7 @@ trait ConverterService {
 
     private def toApiVisualElement(visual: VisualElement): VisualElementDTO = {
       val url = visual.`type` match {
-        case VisualElementType.Image => createImageUrl(visual.id.toLong)
+        case VisualElementType.Image      => createImageUrl(visual.id.toLong)
         case VisualElementType.Brightcove =>
           s"https://players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayer}_default/index.html?videoId=${visual.id}"
       }

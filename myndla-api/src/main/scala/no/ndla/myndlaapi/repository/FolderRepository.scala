@@ -157,7 +157,7 @@ trait FolderRepository {
           .eq(column("feide_id"), feideId)
       }.update()
     } match {
-      case Failure(ex) => Failure(ex)
+      case Failure(ex)                  => Failure(ex)
       case Success(count) if count == 1 =>
         logger.info(s"Updated folder with id $id")
         Success(folder)
@@ -202,7 +202,7 @@ trait FolderRepository {
           where id=${resource.id}
       """.update()
     } match {
-      case Failure(ex) => Failure(ex)
+      case Failure(ex)                  => Failure(ex)
       case Success(count) if count == 1 =>
         logger.info(s"Updated resource with id ${resource.id}")
         Success(resource)
@@ -259,7 +259,7 @@ trait FolderRepository {
       Try(sql"delete from ${Folder.table} where id = $id".update()) match {
         case Failure(ex)                      => Failure(ex)
         case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"Folder with id $id does not exist"))
-        case Success(_) =>
+        case Success(_)                       =>
           logger.info(s"Deleted folder with id $id")
           Success(id)
       }
@@ -269,7 +269,7 @@ trait FolderRepository {
       Try(sql"delete from ${Resource.table} where id = $id".update()) match {
         case Failure(ex)                      => Failure(ex)
         case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"Resource with id $id does not exist"))
-        case Success(_) =>
+        case Success(_)                       =>
           logger.info(s"Deleted resource with id $id")
           Success(id)
       }
@@ -281,7 +281,7 @@ trait FolderRepository {
       Try(
         sql"delete from ${FolderResource.table} where folder_id=$folderId and resource_id=$resourceId".update()
       ) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)                      => Failure(ex)
         case Success(numRows) if numRows != 1 =>
           Failure(
             NotFoundException(
@@ -313,8 +313,8 @@ trait FolderRepository {
     def getRecentFavorited(size: Option[Int], excludeResourceTypes: List[ResourceType])(implicit
         session: DBSession = AutoSession
     ): Try[List[Resource]] = Try {
-      val fr = FolderResource.syntax("fr")
-      val r  = Resource.syntax("r")
+      val fr    = FolderResource.syntax("fr")
+      val r     = Resource.syntax("r")
       val where =
         if (excludeResourceTypes.nonEmpty) {
           sqls"""where ${r.resourceType} not in (${excludeResourceTypes.map(_.entryName)})"""
@@ -367,7 +367,7 @@ trait FolderRepository {
 
     def deleteAllUserFolders(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {
       Try(sql"delete from ${Folder.table} where feide_id = $feideId".update()) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)      => Failure(ex)
         case Success(numRows) =>
           logger.info(s"Deleted $numRows folders with feide_id = $feideId")
           Success(numRows)
@@ -376,7 +376,7 @@ trait FolderRepository {
 
     def deleteAllUserResources(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {
       Try(sql"delete from ${Resource.table} where feide_id = $feideId".update()) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)      => Failure(ex)
         case Success(numRows) =>
           logger.info(s"Deleted $numRows resources with feide_id = $feideId")
           Success(numRows)
@@ -429,12 +429,12 @@ trait FolderRepository {
         folders: List[Folder]
     ): Option[Folder] =
       folders match {
-        case Nil => None
+        case Nil          => None
         case allTheStuffs =>
           allTheStuffs.find(_.id == baseParentId) match {
-            case None => None
+            case None             => None
             case Some(mainParent) =>
-              val byPid = allTheStuffs.groupBy(_.parentId)
+              val byPid                                              = allTheStuffs.groupBy(_.parentId)
               def injectChildrenRecursively(current: Folder): Folder = byPid.get(current.id.some) match {
                 case Some(children) =>
                   val childrenWithTheirChildrenFolders =
@@ -692,7 +692,7 @@ trait FolderRepository {
       """
           .update()
       } match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)                  => Failure(ex)
         case Success(count) if count == 1 =>
           logger.info(s"Updated rank for folder with id $folderId")
           Success(())
@@ -710,7 +710,7 @@ trait FolderRepository {
       """
           .update()
       } match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)                  => Failure(ex)
         case Success(count) if count == 1 =>
           logger.info(s"Updated rank for shared folder with id $folderId and feideId $feideId")
           Success(())
@@ -727,7 +727,7 @@ trait FolderRepository {
           where folder_id=$folderId and resource_id=$resourceId
       """.update()
       } match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)                  => Failure(ex)
         case Success(count) if count == 1 =>
           logger.info(s"Updated rank for folder-resource connection with folderId $folderId and resourceId $resourceId")
           Success(())
@@ -893,7 +893,7 @@ trait FolderRepository {
           .in(column("folder_id"), folderIds)
       }.update()
     } match {
-      case Failure(ex) => Failure(ex)
+      case Failure(ex)      => Failure(ex)
       case Success(numRows) =>
         logger.info(s"Deleted $numRows shared folder user connections with folder ids (${folderIds.mkString(", ")})")
         Success(folderIds)
@@ -924,7 +924,7 @@ trait FolderRepository {
       Try(
         sql"DELETE FROM ${SavedSharedFolder.as(f)} WHERE $whereClause".update()
       ) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)      => Failure(ex)
         case Success(numRows) =>
           logger.info(s"Deleted $numRows from shared folder user connections")
           Success(numRows)

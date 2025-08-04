@@ -19,7 +19,7 @@ object commonlib extends Module {
     melody,
     tapirHttp4sCirce
   )
-  val commonTestExcludeOptions = Set(ScalacOptions.warnUnusedPatVars)
+  val commonTestExcludeOptions                    = Set(ScalacOptions.warnUnusedPatVars)
   override lazy val settings: Seq[Def.Setting[?]] = Seq(
     libraryDependencies ++= dependencies,
     tpolecatExcludeOptions ++= commonTestExcludeOptions ++ excludeOptions

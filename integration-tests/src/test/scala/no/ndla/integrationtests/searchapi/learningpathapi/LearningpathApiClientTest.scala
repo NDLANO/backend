@@ -36,9 +36,9 @@ class LearningpathApiClientTest
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val learningpathApiPort: Int    = findFreePort
-  val pgc: PostgreSQLContainer[?] = postgresContainer.get
-  val esHost: String              = elasticSearchHost.get
+  val learningpathApiPort: Int                             = findFreePort
+  val pgc: PostgreSQLContainer[?]                          = postgresContainer.get
+  val esHost: String                                       = elasticSearchHost.get
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int       = learningpathApiPort
     override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)

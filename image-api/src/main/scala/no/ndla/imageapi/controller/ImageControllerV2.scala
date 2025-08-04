@@ -39,8 +39,8 @@ trait ImageControllerV2 {
     import ErrorHelpers.*
     import props.*
 
-    override val serviceName: String         = "images V2"
-    override val prefix: EndpointInput[Unit] = "image-api" / "v2" / "images"
+    override val serviceName: String                       = "images V2"
+    override val prefix: EndpointInput[Unit]               = "image-api" / "v2" / "images"
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
       getImages,
       getTagsSearchable,
@@ -206,9 +206,9 @@ trait ImageControllerV2 {
           val license  = searchParams.license.orElse(Option.when(searchParams.includeCopyrighted.contains(true))("all"))
           val pageSize = searchParams.pageSize
           val page     = searchParams.page
-          val podcastFriendly = searchParams.podcastFriendly
-          val sort            = searchParams.sort
-          val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+          val podcastFriendly     = searchParams.podcastFriendly
+          val sort                = searchParams.sort
+          val shouldScroll        = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
           val modelReleasedStatus =
             searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
 
@@ -241,7 +241,7 @@ trait ImageControllerV2 {
         { case (imageId, language) =>
           readService.withId(imageId, language, user) match {
             case Success(Some(image)) => image.asRight
-            case Success(None) =>
+            case Success(None)        =>
               notFoundWithMsg(s"Image with id $imageId and language $language not found").asLeft
             case Failure(ex) => returnLeftError(ex)
           }
@@ -339,7 +339,7 @@ trait ImageControllerV2 {
       .out(jsonBody[TagsSearchResultDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .serverLogicPure { case (q, pageSizeParam, pageNoParam, language, sortStr) =>
-        val query = q.getOrElse("")
+        val query    = q.getOrElse("")
         val pageSize = pageSizeParam.getOrElse(props.DefaultPageSize) match {
           case tooSmall if tooSmall < 1 => props.DefaultPageSize
           case x                        => x
