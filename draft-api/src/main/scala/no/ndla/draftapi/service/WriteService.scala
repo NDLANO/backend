@@ -16,7 +16,7 @@ import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.TryUtil.failureIf
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.errors.{MissingIdException, NotFoundException, ValidationException}
+import no.ndla.common.errors.{MissingIdException, NotFoundException, ValidationException, OperationNotAllowedException}
 import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
 import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.api.UpdateWith
@@ -559,7 +559,7 @@ trait WriteService {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case Some(article) =>
           article.title.size match {
-            case 1 => Failure(api.OperationNotAllowedException("Only one language left"))
+            case 1 => Failure(OperationNotAllowedException("Only one language left"))
             case _ =>
               for {
                 newArticle <- converterService.deleteLanguage(article, language, userInfo)
@@ -855,8 +855,8 @@ trait WriteService {
     def deleteCurrentRevision(id: Long): Try[Unit] = DBUtil.rollbackOnFailure { implicit session =>
       lazy val missingRevisionError = api.NotFoundException(s"No revision found for article with id $id")
       lazy val partialPublishError  =
-        api.OperationNotAllowedException("The previous revision has been partially published")
-      lazy val publishedDeleteError = api.OperationNotAllowedException("Cannot delete a published revision")
+        OperationNotAllowedException("The previous revision has been partially published")
+      lazy val publishedDeleteError = OperationNotAllowedException("Cannot delete a published revision")
       for {
         (current, previous) <- draftRepository.getCurrentAndPreviousRevision(id)
         revision            <- current.revision.toTry(missingRevisionError)
