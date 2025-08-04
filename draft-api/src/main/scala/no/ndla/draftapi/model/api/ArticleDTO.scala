@@ -54,7 +54,6 @@ case class ArticleDTO(
     @description("Object with data representing the editor responsible for this article") responsible: Option[ResponsibleDTO],
     @description("The path to the frontpage article") slug: Option[String],
     @description("Information about comments attached to the article") comments: Seq[CommentDTO],
-    @description("If the article should be prioritized") prioritized: Boolean,
     @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: String,
     @description("If the article has been edited after last status or responsible change") started: Boolean,
     @description("The quality evaluation of the article. Consist of a score from 1 to 5 and a comment.") qualityEvaluation : Option[QualityEvaluationDTO],
