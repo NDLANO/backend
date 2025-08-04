@@ -598,7 +598,7 @@
         }
       ],
       "children": {
-        "required": true
+        "required": false
       }
     },
     "iframe": {
