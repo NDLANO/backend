@@ -32,6 +32,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.doReturn
 
 import scala.util.Success
+import no.ndla.common.model.domain.Priority
 
 class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   import props.{DefaultPageSize, MaxPageSize}
@@ -64,7 +65,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     copyright = copyright,
     isMyNDLAOwner = false,
     responsible = None,
-    comments = Seq.empty
+    comments = Seq.empty,
+    priority = Priority.Unspecified
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(

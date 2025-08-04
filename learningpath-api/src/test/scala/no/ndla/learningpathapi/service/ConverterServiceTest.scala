@@ -28,6 +28,7 @@ import org.mockito.ArgumentMatchers.eq as eqTo
 import org.mockito.Mockito.when
 
 import scala.util.{Failure, Success}
+import no.ndla.common.model.domain.Priority
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   import props.DefaultLanguage
@@ -64,7 +65,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     false,
     None,
-    Seq.empty
+    Seq.empty,
+    Priority.Unspecified
   )
   val domainLearningStep: LearningStep =
     LearningStep(None, None, None, None, 1, List(), List(), List(), List(), StepType.INTRODUCTION, None)
@@ -125,7 +127,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     isMyNDLAOwner = false,
     learningsteps = None,
     responsible = None,
-    comments = Seq.empty
+    comments = Seq.empty,
+    priority = Priority.Unspecified
   )
 
   override def beforeEach(): Unit = {
@@ -165,7 +168,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         false,
         None,
-        Seq.empty
+        Seq.empty,
+        Priority.Unspecified
       )
     )
     service.asApiLearningpathV2(
@@ -220,7 +224,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         false,
         None,
-        Seq.empty
+        Seq.empty,
+        Priority.Unspecified
       )
     )
     service.asApiLearningpathV2(
@@ -504,7 +509,18 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val newCopyLp = NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
     val newLp     =
-      NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright), None, None)
+      NewLearningPathV2DTO(
+        "Tittel",
+        Some("Beskrivelse"),
+        None,
+        Some(1),
+        None,
+        "nb",
+        Some(apiCopyright),
+        None,
+        None,
+        None
+      )
 
     service
       .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set.empty, None).toCombined)

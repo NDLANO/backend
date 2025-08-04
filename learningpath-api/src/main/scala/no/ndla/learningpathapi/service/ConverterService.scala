@@ -174,7 +174,8 @@ trait ConverterService {
             madeAvailable = lp.madeAvailable,
             isMyNDLAOwner = lp.isMyNDLAOwner,
             responsible = lp.responsible.map(asApiResponsible),
-            comments = lp.comments.map(CommonConverter.commentDomainToApi)
+            comments = lp.comments.map(CommonConverter.commentDomainToApi),
+            priority = lp.priority
           )
         )
       } else
@@ -283,7 +284,8 @@ trait ConverterService {
         lastUpdated = clock.now(),
         message = message,
         responsible = getNewResponsible(existing, updated),
-        comments = updatedComments
+        comments = updatedComments,
+        priority = updated.priority.getOrElse(existing.priority)
       )
     }
 
@@ -480,6 +482,8 @@ trait ConverterService {
       val description = newLearningPath.description.map(Description(_, newLearningPath.language)).toSeq
       val copyright   = newLearningPath.copyright.getOrElse(newDefaultCopyright(user))
 
+      val priority = newLearningPath.priority.getOrElse(common.Priority.Unspecified)
+
       user.id.toTry(AccessDeniedException("User id not found")).map { ownerId =>
         LearningPath(
           id = None,
@@ -505,7 +509,8 @@ trait ConverterService {
             .map(responsibleId => Responsible(responsibleId = responsibleId, lastUpdated = clock.now())),
           comments = newLearningPath.comments
             .map(comments => comments.map(CommonConverter.newCommentApiToDomain))
-            .getOrElse(Seq.empty)
+            .getOrElse(Seq.empty),
+          priority = priority
         )
       }
     }

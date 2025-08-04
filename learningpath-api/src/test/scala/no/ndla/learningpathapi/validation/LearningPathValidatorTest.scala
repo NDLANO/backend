@@ -20,6 +20,7 @@ import no.ndla.common.model.domain.learningpath.{
 import no.ndla.learningpathapi.*
 import no.ndla.mapping.License.PublicDomain
 import org.mockito.Mockito.when
+import no.ndla.common.model.domain.Priority
 
 class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
@@ -55,7 +56,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     copyright = copyright,
     isMyNDLAOwner = false,
     responsible = None,
-    comments = Seq.empty
+    comments = Seq.empty,
+    priority = Priority.Unspecified
   )
 
   private def validMock() = {

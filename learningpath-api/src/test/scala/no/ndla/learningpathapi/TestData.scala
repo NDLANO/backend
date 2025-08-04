@@ -90,7 +90,8 @@ object TestData {
     isMyNDLAOwner = false,
     learningsteps = Some(List(domainLearningStep1, domainLearningStep2)),
     responsible = None,
-    comments = Seq.empty
+    comments = Seq.empty,
+    priority = common.Priority.Unspecified
   )
 
   val searchSettings: SearchSettings = SearchSettings(
