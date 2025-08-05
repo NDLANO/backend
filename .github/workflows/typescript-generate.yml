@@ -29,7 +29,6 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ vars.JAVA_VERSION }}
-      - uses: sbt/setup-sbt@v1
       - uses: actions/setup-node@v3
         with:
           node-version: "22.15.0"
@@ -42,7 +41,7 @@ jobs:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           RELEASE_ROLE: ${{ secrets.CI_RELEASE_ROLE }}
       - name: Generate typescript types
-        run: sbt openapiTSGenerate
+        run: ./mill _.generateTypescript
       - name: Verify typescript types
         run: cd typescript/types-backend && yarn install && yarn tsc
       - name: Commit typescript changes

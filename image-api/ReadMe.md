@@ -9,11 +9,3 @@ To write data to the api, you need write role access.
 It also has as internal import routines for importing images from the old system to this database.
 
 For a more detailed documentation of the API, please refer to the [API documentation](https://api.ndla.no) (Staging: [API documentation](https://staging.api.ndla.no)).
-
-## Developer documentation
-
-**Compile:** sbt compile
-
-**Run tests:** sbt test
-
-**Create Docker Image:** sbt docker
