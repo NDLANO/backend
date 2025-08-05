@@ -1,9 +1,9 @@
 package build.`audio-api`
 
 import mill._, mill.scalalib._
-import build.modules.{BaseModule, SharedDependencies}
+import build.modules.{BaseModule, DockerComponent, SharedDependencies}
 
-object `package` extends BaseModule {
+object `package` extends BaseModule, DockerComponent {
   override def moduleName  = "audio-api"
   def mvnDeps: T[Seq[Dep]] =
     SharedDependencies.logging ++
