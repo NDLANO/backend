@@ -594,8 +594,6 @@ export type components = {
             slug?: string;
             /** @description Information about comments attached to the article */
             comments: components["schemas"]["CommentDTO"][];
-            /** @description If the article should be prioritized */
-            prioritized: boolean;
             /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
             priority: string;
             /** @description If the article has been edited after last status or responsible change */
@@ -969,8 +967,6 @@ export type components = {
             slug?: string;
             /** @description Information about a comment attached to an article */
             comments?: components["schemas"]["NewCommentDTO"][];
-            /** @description If the article should be prioritized */
-            prioritized?: boolean;
             /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
             priority?: string;
             qualityEvaluation?: components["schemas"]["QualityEvaluationDTO"];
@@ -1198,8 +1194,6 @@ export type components = {
             slug?: string;
             /** @description Information about a comment attached to an article */
             comments?: components["schemas"]["UpdatedCommentDTO"][];
-            /** @description If the article should be prioritized */
-            prioritized?: boolean;
             /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
             priority?: string;
             qualityEvaluation?: components["schemas"]["QualityEvaluationDTO"];
