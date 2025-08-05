@@ -16,11 +16,18 @@ trait BaseModule
       CopyrightHeaderPlugin {
   def moduleName: String
   def scalaVersion: T[String] = SharedDependencies.ScalaVersion
+  def isScala2: T[Boolean]    = Task { scalaVersion().startsWith("2.") }
+  def isScala3: T[Boolean]    = Task { scalaVersion().startsWith("3.") }
   private val baseModuleDir   = super.moduleDir
 
-  override def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ sharedScalacOptions ++ scalacOptionsOnlyRun
-  override def sources: T[Seq[PathRef]]      = Task.Sources("src/main/scala", "src/main/scala-2")
-  override def resources: T[Seq[PathRef]]    = Task.Sources(
+  override def scalacOptions: T[Seq[String]] = Task {
+    super.scalacOptions() ++ sharedScalacOptions() ++ scalacOptionsOnlyRun()
+  }
+
+  private def scala2Sources               = Task.Sources("src/main/scala", "src/main/scala-2")
+  private def scala3Sources               = Task.Sources("src/main/scala", "src/main/scala-3")
+  override def sources: T[Seq[PathRef]]   = Task { if (isScala2()) scala2Sources() else scala3Sources() }
+  override def resources: T[Seq[PathRef]] = Task.Sources(
     "src/main/resources",
     BuildCtx.workspaceRoot / "log4j" / "main"
   )
@@ -29,13 +36,20 @@ trait BaseModule
     override def moduleDir: Path             = baseModuleDir
     override def scalaTestVersion: T[String] = SharedDependencies.ScalaTestV
     override def mvnDeps: T[Seq[Dep]]        = super.mvnDeps() ++ SharedDependencies.testing
-    override def sources: T[Seq[PathRef]]    = Task.Sources("src/test/scala", "src/test/scala-2")
-    override def resources: T[Seq[PathRef]]  = Task.Sources(
+
+    private def scala2Sources               = Task.Sources("src/test/scala", "src/test/scala-2")
+    private def scala3Sources               = Task.Sources("src/test/scala", "src/test/scala-3")
+    override def sources: T[Seq[PathRef]]   = Task { if (isScala2()) scala2Sources() else scala3Sources() }
+    override def resources: T[Seq[PathRef]] = Task.Sources(
       "src/test/resources",
       BuildCtx.workspaceRoot / "log4j" / "test"
     )
-    override def scalacOptions: T[Seq[String]] = super.scalacOptions().filterNot(scalacOptionsOnlyRun.contains)
-    override def forkArgs: T[Seq[String]]      = super.forkArgs() ++ testJavaOptions
+
+    override def scalacOptions: T[Seq[String]] = Task {
+      super.scalacOptions().filterNot(scalacOptionsOnlyRun().contains)
+    }
+
+    override def forkArgs: T[Seq[String]] = Task { super.forkArgs() ++ testJavaOptions() }
   }
 
 }
