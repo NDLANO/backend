@@ -16,6 +16,8 @@ import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
 import no.ndla.language.Language.AllLanguages
 import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
+import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
@@ -440,7 +442,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchSettings.copy(
         resultTypes = Some(List(SearchType.LearningPaths)),
         fallback = true,
-        userId = Some("private")
+        user = TokenUser("private", Set(LEARNINGPATH_API_WRITE), None)
       )
     )
     search2.totalCount should equal(7)

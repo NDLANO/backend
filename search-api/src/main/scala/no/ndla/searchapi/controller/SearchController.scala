@@ -500,7 +500,7 @@ trait SearchController {
         case Some(params) =>
           val shouldScroll = params.scrollId.exists(InitialScrollContextKeywords.contains)
           MultiDraftSearchSettings(
-            userId = user.id.some,
+            user = user,
             query = params.query,
             noteQuery = params.noteQuery,
             fallback = params.fallback.getOrElse(false),

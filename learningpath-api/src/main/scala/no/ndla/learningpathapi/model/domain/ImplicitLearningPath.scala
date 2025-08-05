@@ -29,7 +29,7 @@ object ImplicitLearningPath {
     def canEditLearningpath(user: CombinedUser): Try[LearningPath] = {
       if (
         user.id.contains(learningpath.owner) ||
-        (user.isAdmin && !learningpath.isMyNDLAOwner) ||
+        user.isAdmin ||
         (user.isWriter && learningpath.verificationStatus == LearningPathVerificationStatus.CREATED_BY_NDLA)
       ) {
         Success(learningpath)

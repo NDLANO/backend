@@ -320,7 +320,7 @@ trait MultiDraftSearchService {
           boolQuery().not(termQuery("status", LearningPathStatus.PRIVATE.toString)),
           boolQuery().must(
             termQuery("status", LearningPathStatus.PRIVATE.toString),
-            termQuery("owner", settings.userId.get)
+            termQuery("owner", settings.user.id)
           )
         )
       )

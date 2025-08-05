@@ -52,6 +52,8 @@ import no.ndla.common.model.domain.learningpath.{
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.mapping.License
+import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
@@ -1792,7 +1794,7 @@ object TestData {
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(
-    userId = Some("xxxyyy"),
+    user = TokenUser("xxxyyy", Set(DRAFT_API_WRITE), None),
     query = None,
     noteQuery = None,
     fallback = false,
