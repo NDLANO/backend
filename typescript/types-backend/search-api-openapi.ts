@@ -264,7 +264,7 @@ export type components = {
             /** @description Filter out inactive taxonomy contexts. */
             filterInactive?: boolean;
             /** @description List of priority-levels to filter by. */
-            priority?: string[];
+            priority?: components["schemas"]["Priority"][];
             /** @description A list of parent topics the learning resources should be filtered by. */
             topics?: string[];
             /** @description Return only results having published date after this date. */
@@ -626,7 +626,7 @@ export type components = {
             /** @description Information about comments attached to the article */
             comments?: components["schemas"]["CommentDTO"][];
             /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
-            priority?: string;
+            priority?: components["schemas"]["Priority"];
             /** @description A combined resource type name if a standard article, otherwise the article type name */
             resourceTypeName?: string;
             /** @description Name of the parent topic if exists */
@@ -715,6 +715,11 @@ export type components = {
              */
             statusCode: number;
         };
+        /**
+         * Priority
+         * @enum {string}
+         */
+        Priority: "prioritized" | "on-hold" | "unspecified";
         /**
          * ResponsibleDTO
          * @description Responsible field

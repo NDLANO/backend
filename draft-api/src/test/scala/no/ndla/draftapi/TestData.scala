@@ -120,7 +120,7 @@ object TestData {
     responsible = None,
     None,
     Seq.empty,
-    priority = Priority.Unspecified.entryName,
+    priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
     disclaimer = None
@@ -239,7 +239,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    Priority.Unspecified.entryName,
+    Priority.Unspecified,
     false,
     None,
     None
@@ -292,7 +292,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    Priority.Unspecified.entryName,
+    Priority.Unspecified,
     false,
     None,
     None
@@ -554,7 +554,7 @@ object TestData {
     responsible = None,
     slug = None,
     comments = Seq.empty,
-    priority = Priority.Unspecified.entryName,
+    priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
     disclaimer = None

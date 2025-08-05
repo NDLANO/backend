@@ -837,7 +837,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          priority = List(Priority.Prioritized.entryName)
+          priority = List(Priority.Prioritized)
         )
       )
       .get
@@ -847,7 +847,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          priority = List(Priority.Unspecified.entryName)
+          priority = List(Priority.Unspecified)
         )
       )
       .get
@@ -856,7 +856,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          priority = List(Priority.OnHold.entryName)
+          priority = List(Priority.OnHold)
         )
       )
       .get

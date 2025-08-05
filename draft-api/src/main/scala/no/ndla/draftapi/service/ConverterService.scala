@@ -67,9 +67,7 @@ trait ConverterService {
         Responsible(responsibleId = responsibleId, lastUpdated = clock.now())
       )
 
-      val priority = newArticle.priority
-        .flatMap(x => common.Priority.valueOfOrError(x).toOption)
-        .getOrElse(Priority.Unspecified)
+      val priority  = newArticle.priority.getOrElse(Priority.Unspecified)
       val libraries = newArticle.requiredLibraries.getOrElse(Seq.empty)
       val now       = clock.now()
 
@@ -335,7 +333,7 @@ trait ConverterService {
             responsible = responsible,
             slug = article.slug,
             comments = article.comments.map(CommonConverter.commentDomainToApi),
-            priority = article.priority.entryName,
+            priority = article.priority,
             started = article.started,
             qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation),
             disclaimer = disclaimer
@@ -627,9 +625,7 @@ trait ConverterService {
       }
 
     private def getNewPriority(toMergeInto: Draft, article: UpdatedArticleDTO) =
-      article.priority
-        .map(v => common.Priority.valueOfOrError(v).getOrElse(toMergeInto.priority))
-        .getOrElse(Priority.Unspecified)
+      article.priority.getOrElse(toMergeInto.priority)
 
     private def getNewMetaImage(toMergeInto: Draft, maybeLang: Option[String], updatedArticle: UpdatedArticleDTO) =
       maybeLang

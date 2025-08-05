@@ -594,8 +594,7 @@ export type components = {
             slug?: string;
             /** @description Information about comments attached to the article */
             comments: components["schemas"]["CommentDTO"][];
-            /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
-            priority: string;
+            priority: components["schemas"]["Priority"];
             /** @description If the article has been edited after last status or responsible change */
             started: boolean;
             qualityEvaluation?: components["schemas"]["QualityEvaluationDTO"];
@@ -967,8 +966,7 @@ export type components = {
             slug?: string;
             /** @description Information about a comment attached to an article */
             comments?: components["schemas"]["NewCommentDTO"][];
-            /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
-            priority?: string;
+            priority?: components["schemas"]["Priority"];
             qualityEvaluation?: components["schemas"]["QualityEvaluationDTO"];
             /** @description The disclaimer of the article */
             disclaimer?: string;
@@ -1034,6 +1032,12 @@ export type components = {
             /** @description Error message */
             message: string;
         };
+        /**
+         * Priority
+         * @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified
+         * @enum {string}
+         */
+        Priority: "prioritized" | "on-hold" | "unspecified";
         /**
          * QualityEvaluationDTO
          * @description The quality evaluation of the article. Consist of a score from 1 to 5 and a comment.
@@ -1194,8 +1198,7 @@ export type components = {
             slug?: string;
             /** @description Information about a comment attached to an article */
             comments?: components["schemas"]["UpdatedCommentDTO"][];
-            /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
-            priority?: string;
+            priority?: components["schemas"]["Priority"];
             qualityEvaluation?: components["schemas"]["QualityEvaluationDTO"];
             /** @description The disclaimer of the article */
             disclaimer?: string;
