@@ -47,6 +47,18 @@ trait TestSuiteLoggingSetup extends AnyFunSuite with BeforeAndAfterEach with Bef
     super.afterEach()
   }
 
+  override def afterAll(): Unit = {
+    super.afterAll()
+    shutdownLogger()
+  }
+
+  private def shutdownLogger(): Unit = {
+    LoggerContext.getContext(false) match {
+      case context: LoggerContext => context.stop()
+      case _                      => println("No LoggerContext found, cannot stop logging context.")
+    }
+  }
+
   override def withFixture(test: NoArgTest): Outcome = {
     val result = super.withFixture(test)
     if (!result.isSucceeded) {
