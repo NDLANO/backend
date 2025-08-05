@@ -44,6 +44,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
+import no.ndla.database.DBUtility
 
 class ComponentRegistry(properties: LearningpathApiProperties)
     extends BaseComponentRegistry[LearningpathApiProperties]
@@ -54,6 +55,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with LearningPathRepositoryComponent
     with ReadService
     with UpdateService
+    with DBUtility
     with SearchConverterServiceComponent
     with SearchService
     with SearchIndexService
@@ -90,6 +92,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     new V33__AiDefaultEnabledOrgs
   )
   override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  override val DBUtil: DBUtility                 = new DBUtility
 
   lazy val learningPathRepository = new LearningPathRepository
   lazy val readService            = new ReadService

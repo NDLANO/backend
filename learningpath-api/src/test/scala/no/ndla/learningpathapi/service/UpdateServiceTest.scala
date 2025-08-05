@@ -20,11 +20,12 @@ import no.ndla.network.model.CombinedUser
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{never, times, verify, when}
+import org.mockito.Mockito.{doAnswer, never, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
+import org.mockito.ArgumentCaptor
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   var service: UpdateService = _
@@ -324,6 +325,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningStepValidator.validate(any[LearningStep], any[Boolean])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[LearningStep](0))
     )
+    doAnswer((i: InvocationOnMock) => {
+      val x = i.getArgument[DBSession => Try[?]](0)
+      x(mock[DBSession])
+    }).when(DBUtil).rollbackOnFailure(any)
   }
 
   test("That addLearningPathV2 inserts the given LearningPathV2") {
@@ -1484,6 +1489,36 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         .get
         .coverPhoto
     }
+  }
+
+  test("That delete learning step language should fail when only one language") {
+    when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(Some(PRIVATE_LEARNINGPATH))
+    when(learningPathRepository.learningStepWithId(eqTo(PRIVATE_ID), eqTo(STEP1.id.get))(any[DBSession]))
+      .thenReturn(Some(STEP1))
+    val Failure(result) =
+      service.deleteLearningStepLanguage(
+        PRIVATE_LEARNINGPATH.id.get,
+        STEP1.id.get,
+        "nb",
+        PRIVATE_OWNER.toCombined
+      )
+
+    result.getMessage should equal("Cannot delete last title for step with id 1")
+  }
+  test("That delete learning step removes language from all language fields") {
+    val step = STEP1.copy(
+      title = Seq(Title("Tittel", "nb"), Title("Title", "en"))
+    )
+
+    val lp = PRIVATE_LEARNINGPATH.copy(learningsteps = Some(Seq(step)))
+
+    val stepCaptor: ArgumentCaptor[LearningStep] = ArgumentCaptor.forClass(classOf[LearningStep])
+    when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(Some(lp))
+    when(learningPathRepository.learningStepWithId(eqTo(PRIVATE_ID), eqTo(step.id.get))(any[DBSession]))
+      .thenReturn(Some(step))
+    service.deleteLearningStepLanguage(lp.id.get, step.id.get, "en", PRIVATE_OWNER.toCombined)
+    verify(learningPathRepository).updateLearningStep(stepCaptor.capture())(any)
+    stepCaptor.getValue.title.length should be(1)
   }
 
 }

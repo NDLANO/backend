@@ -28,10 +28,12 @@ import no.ndla.network.tapir.auth.TokenUser
 
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
+import no.ndla.language.Language
+import no.ndla.database.DBUtility
 
 trait UpdateService {
   this: LearningPathRepositoryComponent & ReadService & ConverterService & SearchIndexService & Clock &
-    LearningStepValidator & LearningPathValidator & TaxonomyApiClient & SearchApiClient & Props =>
+    LearningStepValidator & LearningPathValidator & TaxonomyApiClient & SearchApiClient & DBUtility & Props =>
   val updateService: UpdateService
 
   class UpdateService {
@@ -129,6 +131,36 @@ trait UpdateService {
           )
       }
     }
+
+    def deleteLearningStepLanguage(
+        learningpathId: Long,
+        stepId: Long,
+        language: String,
+        owner: CombinedUserRequired
+    ): Try[LearningStepV2DTO] =
+      DBUtil.rollbackOnFailure { implicit session =>
+        writeDuringWriteRestrictionOrAccessDenied(owner) {
+          for {
+            learningPath <- withId(learningpathId).flatMap(_.canEditLearningpath(owner))
+            learningStep <- learningPathRepository
+              .learningStepWithId(learningpathId, stepId)
+              .toTry(NotFoundException(s"Could not find learningpath with id '$learningpathId'."))
+            withDeletedLanguage <- converterService.deleteLearningStepLanguage(learningStep, language)
+            validated           <- learningStepValidator.validate(withDeletedLanguage, allowUnknownLanguage = true)
+            updatedStep         <- Try(learningPathRepository.updateLearningStep(validated))
+            pathToUpdate        <- Try(converterService.insertLearningStep(learningPath, updatedStep, owner))
+            updatedPath         <- Try(learningPathRepository.update(pathToUpdate))
+            _                   <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
+            converted           <- converterService.asApiLearningStepV2(
+              updatedStep,
+              updatedPath,
+              language = Language.DefaultLanguage,
+              fallback = true,
+              owner
+            )
+          } yield converted
+        }
+      }
 
     private def updateSearchAndTaxonomy(learningPath: LearningPath, user: Option[TokenUser]) = {
       val sRes = searchIndexService.indexDocument(learningPath)
