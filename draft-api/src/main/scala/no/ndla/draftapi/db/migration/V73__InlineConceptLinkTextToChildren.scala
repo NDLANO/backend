@@ -11,7 +11,7 @@ package no.ndla.draftapi.db.migration
 import no.ndla.draftapi.db.HtmlMigration
 import org.jsoup.nodes.Element
 
-class V72__InlineConceptLinkTextToChildren extends HtmlMigration {
+class V73__InlineConceptLinkTextToChildren extends HtmlMigration {
   override def convertHtml(doc: Element, language: String): Element = {
     doc
       .select("ndlaembed[data-resource='concept'][data-link-text]")
