@@ -1,0 +1,15 @@
+package build.database
+
+import mill._, mill.scalalib._
+import build.modules.{BaseModule, SharedDependencies}
+
+object `package` extends BaseModule {
+  override def moduleName           = "database"
+  override def isComponent: Boolean = false
+  def mvnDeps: T[Seq[Dep]]          = SharedDependencies.logging ++ SharedDependencies.database ++ Seq(
+    SharedDependencies.jsoup,
+    SharedDependencies.scalaUri
+  )
+  override def moduleDeps: Seq[JavaModule] = Seq(build.common, build.network)
+  object test extends TestBase
+}

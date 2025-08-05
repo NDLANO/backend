@@ -1,0 +1,25 @@
+package build.modules
+
+import mill._, mill.scalalib._
+import contrib.docker.DockerModule
+
+trait DockerComponent extends ScalaModule, DockerModule {
+  def moduleName: String
+  object docker extends DockerConfig {
+    private val versionTag              = Option(System.getProperty("docker.tag")).getOrElse("SNAPSHOT")
+    def tags: T[Seq[String]]            = List(s"ndla/$moduleName:$versionTag")
+    def baseImage                       = "eclipse-temurin:21-alpine"
+    def envVars: T[Map[String, String]] = Map("LOG_APPENDER" -> "Docker")
+  }
+
+  override def assemblyRules: Seq[Assembly.Rule] = {
+    super.assemblyRules ++ Seq(
+      Assembly.Rule.Exclude("module-info.class"),
+      Assembly.Rule.Exclude("META-INF/FastDoubleParser-NOTICE"),
+      Assembly.Rule.ExcludePattern(".*/module-info.class"),
+      Assembly.Rule.ExcludePattern(".*/io.netty.versions.properties"),
+      Assembly.Rule.Append("META-INF/services/org.flywaydb.core.extensibility.Plugin", "\n"),
+      Assembly.Rule.Append("mime.types", "\n")
+    )
+  }
+}

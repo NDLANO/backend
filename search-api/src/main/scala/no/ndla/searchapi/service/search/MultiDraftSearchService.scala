@@ -19,7 +19,7 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, SearchType}
-import no.ndla.common.model.domain.{Content, Priority}
+import no.ndla.common.model.domain.{Content}
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
@@ -295,10 +295,6 @@ trait MultiDraftSearchService {
         termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
       }
 
-      val prioritizedFilter = settings.prioritized.map { priority =>
-        termQuery("priority", if (priority) Priority.Prioritized.entryName else Priority.Unspecified.entryName)
-      }
-
       val priorityFilter = Option.when(settings.priority.nonEmpty)(
         boolQuery().should(settings.priority.map(termQuery("priority", _)))
       )
@@ -334,7 +330,6 @@ trait MultiDraftSearchService {
         revisionDateFilter,
         publishedDateFilter,
         responsibleIdFilter,
-        prioritizedFilter,
         priorityFilter,
         learningResourceType
       ).flatten

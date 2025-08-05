@@ -349,6 +349,24 @@ trait ConverterService {
       learningPath.copy(learningsteps = Some(steps), status = status, lastUpdated = clock.now())
     }
 
+    def deleteLearningStepLanguage(step: LearningStep, language: String): Try[LearningStep] = {
+      step.title.size match {
+        case 1 =>
+          Failure(
+            errors.OperationNotAllowedException(s"Cannot delete last title for step with id ${step.id.getOrElse(-1)}")
+          )
+        case _ =>
+          Success(
+            step.copy(
+              title = step.title.filterNot(_.language == language),
+              introduction = step.introduction.filterNot(_.language == language),
+              description = step.description.filterNot(_.language == language),
+              embedUrl = step.embedUrl.filterNot(_.language == language)
+            )
+          )
+      }
+    }
+
     def mergeLearningSteps(existing: LearningStep, updated: UpdatedLearningStepV2DTO): Try[LearningStep] = {
       val titles = updated.title match {
         case None        => existing.title
