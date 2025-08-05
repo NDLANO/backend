@@ -69,12 +69,7 @@ trait ConverterService {
 
       val priority = newArticle.priority
         .flatMap(x => common.Priority.valueOfOrError(x).toOption)
-        .getOrElse(
-          newArticle.prioritized match {
-            case Some(true) => Priority.Prioritized
-            case _          => Priority.Unspecified
-          }
-        )
+        .getOrElse(Priority.Unspecified)
       val libraries = newArticle.requiredLibraries.getOrElse(Seq.empty)
       val now       = clock.now()
 
@@ -340,7 +335,6 @@ trait ConverterService {
             responsible = responsible,
             slug = article.slug,
             comments = article.comments.map(CommonConverter.commentDomainToApi),
-            prioritized = article.priority == Priority.Prioritized,
             priority = article.priority.entryName,
             started = article.started,
             qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation),
@@ -635,13 +629,7 @@ trait ConverterService {
     private def getNewPriority(toMergeInto: Draft, article: UpdatedArticleDTO) =
       article.priority
         .map(v => common.Priority.valueOfOrError(v).getOrElse(toMergeInto.priority))
-        .getOrElse(
-          article.prioritized match {
-            case Some(true)  => common.Priority.Prioritized
-            case Some(false) => common.Priority.Unspecified
-            case None        => toMergeInto.priority
-          }
-        )
+        .getOrElse(Priority.Unspecified)
 
     private def getNewMetaImage(toMergeInto: Draft, maybeLang: Option[String], updatedArticle: UpdatedArticleDTO) =
       maybeLang

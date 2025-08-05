@@ -122,7 +122,6 @@ object TestData {
     Seq.empty,
     priority = Priority.Unspecified.entryName,
     started = false,
-    prioritized = false,
     qualityEvaluation = None,
     disclaimer = None
   )
@@ -153,7 +152,6 @@ object TestData {
     responsibleId = Missing,
     slug = None,
     comments = None,
-    prioritized = None,
     priority = None,
     qualityEvaluation = None,
     disclaimer = None
@@ -241,7 +239,6 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
     Priority.Unspecified.entryName,
     false,
     None,
@@ -295,7 +292,6 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
     Priority.Unspecified.entryName,
     false,
     None,
@@ -445,7 +441,6 @@ object TestData {
     None,
     None,
     None,
-    None,
     None
   )
 
@@ -559,7 +554,6 @@ object TestData {
     responsible = None,
     slug = None,
     comments = Seq.empty,
-    prioritized = false,
     priority = Priority.Unspecified.entryName,
     started = false,
     qualityEvaluation = None,
