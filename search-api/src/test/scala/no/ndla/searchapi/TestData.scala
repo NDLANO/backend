@@ -1794,7 +1794,13 @@ object TestData {
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(
-    user = TokenUser("xxxyyy", Set(DRAFT_API_WRITE), None),
+    user = TokenUser(
+      "xxxyyy",
+      Set(DRAFT_API_WRITE),
+      Some(
+        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJkcmFmdHM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.5jpF98NxQZlkQQ5-rxVO3oTkNOQRQLDlAexyDnLiZFY"
+      )
+    ),
     query = None,
     noteQuery = None,
     fallback = false,
