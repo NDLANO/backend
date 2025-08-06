@@ -37,7 +37,7 @@ trait RedisClient {
       Success(newExpireTime)
     }
 
-    private def updateCache(accessToken: FeideAccessToken, field: String, data: String): Try[_] = {
+    private def updateCache(accessToken: FeideAccessToken, field: String, data: String): Try[?] = {
       for {
         newExpireTime <- getKeyExpireTime(accessToken)
         _             <- jedis.hset(accessToken, field, data)
