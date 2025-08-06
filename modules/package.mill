@@ -3,6 +3,8 @@ package build.modules
 import mill.*
 import mill.api.BuildCtx
 import mill.scalalib.*
+import mill.scalalib.scalafmt.ScalafmtModule
+import mill.util.Tasks
 import os.Path
 import scala.util.{Failure, Success, Try}
 import scala.io.Source
@@ -18,7 +20,8 @@ trait BaseModule
   def scalaVersion: T[String] = SharedDependencies.ScalaVersion
   def isScala2: T[Boolean]    = Task { scalaVersion().startsWith("2.") }
   def isScala3: T[Boolean]    = Task { scalaVersion().startsWith("3.") }
-  private val baseModuleDir   = super.moduleDir
+  def test: TestBase
+  private val baseModuleDir = super.moduleDir
 
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ sharedScalacOptions() ++ scalacOptionsOnlyRun()
@@ -31,6 +34,10 @@ trait BaseModule
     "src/main/resources",
     BuildCtx.workspaceRoot / "log4j" / "main"
   )
+
+  def fmt(): Task.Command[Unit] = Task.Command {
+    ScalafmtModule.reformatAll(Tasks(Seq(sources, test.sources)))()
+  }
 
   trait TestBase extends ScalaTests, TestModule.ScalaTest {
     override def moduleDir: Path             = baseModuleDir
