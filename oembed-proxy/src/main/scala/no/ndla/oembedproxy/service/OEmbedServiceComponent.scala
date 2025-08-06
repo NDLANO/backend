@@ -23,7 +23,7 @@ import scala.concurrent.duration.FiniteDuration
 
 trait OEmbedServiceComponent {
   this: NdlaClient & ProviderService =>
-  val oEmbedService: OEmbedService
+  lazy val oEmbedService: OEmbedService
 
   class OEmbedService(optionalProviders: Option[List[OEmbedProvider]] = None) extends StrictLogging {
     private val remoteTimeout: FiniteDuration = 10.seconds

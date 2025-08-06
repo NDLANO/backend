@@ -23,7 +23,7 @@ import scala.util.{Failure, Success}
 
 trait OEmbedProxyController {
   this: OEmbedServiceComponent & ErrorHandling & TapirController =>
-  val oEmbedProxyController: OEmbedProxyController
+  lazy val oEmbedProxyController: OEmbedProxyController
 
   class OEmbedProxyController extends TapirController {
     override val serviceName: String                       = "oembed"
@@ -38,6 +38,7 @@ trait OEmbedProxyController {
         .errorOut(errorOutputsFor(400, 401, 403, 404, 410, 422, 502))
         .out(jsonBody[OEmbedDTO])
         .serverLogicPure { case (url, maxWidth, maxHeight) =>
+          println("jeg bor her")
           oEmbedService.get(url, maxWidth, maxHeight) match {
             case Success(oembed) => oembed.asRight
             case Failure(ex)     => returnLeftError(ex)

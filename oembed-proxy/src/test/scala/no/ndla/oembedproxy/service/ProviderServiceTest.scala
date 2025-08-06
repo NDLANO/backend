@@ -39,7 +39,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
     )
   )
 
-  override val providerService = new ProviderService
+  override lazy val providerService = new ProviderService
 
   test("That loadProvidersFromRequest fails on invalid url/bad response") {
     val invalidUrl = "invalidUrl123"

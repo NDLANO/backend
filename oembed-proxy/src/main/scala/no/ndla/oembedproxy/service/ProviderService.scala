@@ -26,7 +26,7 @@ import sttp.client3.quick.*
 
 trait ProviderService {
   this: NdlaClient & Props & MemoizeHelpers =>
-  val providerService: ProviderService
+  lazy val providerService: ProviderService
 
   class ProviderService extends StrictLogging {
     val NdlaFrontendEndpoint: OEmbedEndpoint =
