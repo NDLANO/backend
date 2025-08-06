@@ -42,6 +42,6 @@ object TapirUtil {
     val variants             = variantsForCodes(codesToGetVariantFor)
     val err                  = variants :+ internalServerErrorDefaultVariant
 
-    oneOf[AllErrors](err.head, err.tail: _*)
+    oneOf[AllErrors](err.head, err.tail*)
   }
 }

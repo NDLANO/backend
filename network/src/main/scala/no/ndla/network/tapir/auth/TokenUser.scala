@@ -113,7 +113,7 @@ object TokenUser {
       .requiredScopes(permissions.map(_.entryName))
 
     EndpointInput.Auth(
-      input = sttp.tapir.header(HeaderNames.Authorization)(authCodec),
+      input = sttp.tapir.header(HeaderNames.Authorization)(using authCodec),
       challenge = WWWAuthenticateChallenge.bearer,
       authType = authType,
       info = AuthInfo.Empty.securitySchemeName("oauth2")
