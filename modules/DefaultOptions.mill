@@ -12,11 +12,7 @@ trait DefaultOptions extends ScalaModule {
 
   extension (opts: Seq[NDLAScalaOption])
     def filterByVersion(version: String): Seq[String] = opts
-      .filter { o =>
-        val matchesVersion = o.versionCheck(version)
-        println(s"Option ${o.name} matches version: $version $matchesVersion")
-        matchesVersion
-      }
+      .filter { o => o.versionCheck(version) }
       .map(_.name)
 
   case class NDLAScalaOption(name: String, versionCheck: VersionCheckFunc = _ => true)

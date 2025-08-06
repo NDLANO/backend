@@ -52,16 +52,16 @@ trait NdlaAWSTranscribeClient {
             .build()
         )
 
-      if (includeSubtitles) {
+      val toBuild = if (includeSubtitles) {
         requestBuilder.subtitles(
           Subtitles
             .builder()
             .formats(SubtitleFormat.valueOf(outputSubtitleFormat))
             .build()
         )
-      }
+      } else { requestBuilder }
 
-      client.startTranscriptionJob(requestBuilder.build())
+      client.startTranscriptionJob(toBuild.build())
     }
 
     def getTranscriptionJob(jobName: String): Try[GetTranscriptionJobResponse] = {

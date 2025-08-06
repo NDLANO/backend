@@ -82,7 +82,7 @@ trait NdlaS3Client {
       )
     }
 
-    def updateMetadata(key: String, metadata: java.util.Map[String, String]): Try[_] = Try {
+    def updateMetadata(key: String, metadata: java.util.Map[String, String]): Try[?] = Try {
       val cor =
         CopyObjectRequest
           .builder()

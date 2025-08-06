@@ -11,7 +11,7 @@ import io.circe.DecodingFailure.Reason
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, DecodingFailure, Encoder}
 
-import scala.reflect.ClassTag
+import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
 
 package object implicits {
@@ -39,7 +39,7 @@ package object implicits {
 
   case class ControlFlowException(returnValue: Throwable) extends RuntimeException()
 
-  def permitTry[A: ClassTag](f: PermittedTryContext ?=> Try[A]): Try[A] = {
+  def permitTry[A](f: PermittedTryContext ?=> Try[A]): Try[A] = {
     try {
       f(using PermittedTryContext())
     } catch {
@@ -48,8 +48,8 @@ package object implicits {
     }
   }
 
-  implicit class ctxctx[A: ClassTag](self: Try[A]) {
-    def ?(using PermittedTryContext): A = {
+  implicit class ctxctx[A](self: Try[A]) {
+    def ?(using @unused("This parameter is only to make sure we dont throw exceptions outside of a caught context") ctx: PermittedTryContext): A = {
       self match {
         case Failure(ex)    => throw ControlFlowException(ex)
         case Success(value) => value

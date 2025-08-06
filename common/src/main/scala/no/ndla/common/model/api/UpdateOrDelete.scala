@@ -42,8 +42,8 @@ object UpdateOrDelete {
         }
     }
 
-  private[this] val marker: String   = s"$$marker-${UUID.randomUUID()}-marker$$"
-  private[this] val markerJson: Json = Json.fromString(marker)
+  private val marker: String   = s"$$marker-${UUID.randomUUID()}-marker$$"
+  private val markerJson: Json = Json.fromString(marker)
 
   implicit def encodeUpdateOrDelete[A](implicit encodeA: Encoder[A]): Encoder[UpdateOrDelete[A]] = Encoder.instance {
     case UpdateWith(a) => encodeA(a)

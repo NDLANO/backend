@@ -10,7 +10,6 @@ package no.ndla.common
 
 import enumeratum.*
 import io.circe.*
-import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder}
 
