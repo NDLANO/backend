@@ -17,12 +17,13 @@ import com.sksamuel.elastic4s.requests.indexes.{CreateIndexRequest, IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.HasBaseProps
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, ReindexResult}
 
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import scala.util.{Failure, Success, Try}
+import scala.util.boundary
 
 trait BaseIndexService {
   this: Elastic4sClient & HasBaseProps & SearchLanguage =>
@@ -146,22 +147,24 @@ trait BaseIndexService {
     def createIndexWithGeneratedName: Try[String] =
       createIndexWithName(getNewIndexName())
 
-    def reindexWithShards(numShards: Int): Try[?] = {
-      logger.info(s"Internal reindexing $searchIndex with $numShards shards...")
-      val maybeAliasTarget = getAliasTarget.?
-      val currentIndex     = maybeAliasTarget match {
-        case Some(target) => target
-        case None         =>
-          logger.info(s"No existing $searchIndex index to reindex from")
-          return Success(())
-      }
+    def reindexWithShards(numShards: Int): Try[?] = boundary {
+      permitTry {
+        logger.info(s"Internal reindexing $searchIndex with $numShards shards...")
+        val maybeAliasTarget = getAliasTarget.?
+        val currentIndex     = maybeAliasTarget match {
+          case Some(target) => target
+          case None         =>
+            logger.info(s"No existing $searchIndex index to reindex from")
+            boundary.break(Success(()))
+        }
 
-      for {
-        newIndex <- createIndexWithGeneratedName(numShards.some)
-        _ = logger.info(s"Created index $newIndex for internal reindexing")
-        _ <- e4sClient.execute(reindex(currentIndex, newIndex))
-        _ <- updateAliasTarget(currentIndex.some, newIndex)
-      } yield ()
+        for {
+          newIndex <- createIndexWithGeneratedName(numShards.some)
+          _ = logger.info(s"Created index $newIndex for internal reindexing")
+          _ <- e4sClient.execute(reindex(currentIndex, newIndex))
+          _ <- updateAliasTarget(currentIndex.some, newIndex)
+        } yield ()
+      }
     }
 
     def createIndexIfNotExists(): Try[?] = getAliasTarget.flatMap {
