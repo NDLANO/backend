@@ -9,7 +9,6 @@
 package no.ndla.oembedproxy.controller
 
 import cats.implicits.*
-import io.circe.generic.auto.*
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -38,7 +37,6 @@ trait OEmbedProxyController {
         .errorOut(errorOutputsFor(400, 401, 403, 404, 410, 422, 502))
         .out(jsonBody[OEmbedDTO])
         .serverLogicPure { case (url, maxWidth, maxHeight) =>
-          println("jeg bor her")
           oEmbedService.get(url, maxWidth, maxHeight) match {
             case Success(oembed) => oembed.asRight
             case Failure(ex)     => returnLeftError(ex)

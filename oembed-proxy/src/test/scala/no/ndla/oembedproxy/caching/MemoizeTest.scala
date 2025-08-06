@@ -20,7 +20,7 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
 
   test("That an uncached value will do an actual call") {
     val targetMock     = mock[Target]
-    val memoizedTarget = new Memoize[String](Long.MaxValue, Long.MaxValue, targetMock.targetMethod _, false)
+    val memoizedTarget = new Memoize[String](Long.MaxValue, Long.MaxValue, targetMock.targetMethod, false)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
     memoizedTarget() should equal("Hello from mock")
@@ -29,7 +29,7 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
 
   test("That a cached value will not forward the call to the target") {
     val targetMock     = mock[Target]
-    val memoizedTarget = new Memoize[String](Long.MaxValue, Long.MaxValue, targetMock.targetMethod _, false)
+    val memoizedTarget = new Memoize[String](Long.MaxValue, Long.MaxValue, targetMock.targetMethod, false)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
     Seq(1 to 10).foreach(_ => {
@@ -42,7 +42,7 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
     val cacheMaxAgeInMs = 20L
     val cacheRetryInMs  = 20L
     val targetMock      = mock[Target]
-    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, cacheRetryInMs, targetMock.targetMethod _, false)
+    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, cacheRetryInMs, targetMock.targetMethod, false)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
 
@@ -59,7 +59,7 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
     val cacheMaxAgeInMs = 20L
     val cacheRetryInMs  = 20L
     val targetMock      = mock[Target]
-    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, cacheRetryInMs, targetMock.targetMethod _, false)
+    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, cacheRetryInMs, targetMock.targetMethod, false)
 
     when(targetMock.targetMethod())
       .thenReturn("Hello from mock")

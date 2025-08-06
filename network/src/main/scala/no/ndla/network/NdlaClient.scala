@@ -17,7 +17,6 @@ import sttp.client3.{Response, SimpleHttpClient}
 import sttp.client3.quick.*
 
 import scala.util.{Failure, Success, Try}
-import io.circe.Encoder
 
 trait NdlaClient {
   lazy val ndlaClient: NdlaClient
