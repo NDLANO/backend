@@ -263,8 +263,6 @@ export type components = {
             responsibleIds?: string[];
             /** @description Filter out inactive taxonomy contexts. */
             filterInactive?: boolean;
-            /** @description Set to true to only return prioritized articles */
-            prioritized?: boolean;
             /** @description List of priority-levels to filter by. */
             priority?: string[];
             /** @description A list of parent topics the learning resources should be filtered by. */
@@ -627,8 +625,6 @@ export type components = {
             responsible?: components["schemas"]["ResponsibleDTO"];
             /** @description Information about comments attached to the article */
             comments?: components["schemas"]["CommentDTO"][];
-            /** @description If the article should be prioritized */
-            prioritized?: boolean;
             /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
             priority?: string;
             /** @description A combined resource type name if a standard article, otherwise the article type name */

@@ -91,8 +91,6 @@ case class DraftSearchParamsDTO(
     responsibleIds: Option[List[String]],
     @description("Filter out inactive taxonomy contexts.")
     filterInactive: Option[Boolean],
-    @description("Set to true to only return prioritized articles")
-    prioritized: Option[Boolean],
     @description("List of priority-levels to filter by.")
     priority: Option[List[String]],
     @description("A list of parent topics the learning resources should be filtered by.")

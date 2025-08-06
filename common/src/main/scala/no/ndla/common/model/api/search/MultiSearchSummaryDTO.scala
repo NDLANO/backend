@@ -110,8 +110,6 @@ case class MultiSearchSummaryDTO(
     responsible: Option[ResponsibleDTO],
     @description("Information about comments attached to the article")
     comments: Option[Seq[CommentDTO]],
-    @description("If the article should be prioritized")
-    prioritized: Option[Boolean],
     @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified")
     priority: Option[String],
     @description("A combined resource type name if a standard article, otherwise the article type name")

@@ -351,6 +351,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/learningpath-api/v2/learningpaths/{learningpath_id}/learningsteps/{learningstep_id}/language/{p1}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete given learningstep language
+         * @description Deletes the given learningStep language
+         */
+        delete: operations["deleteLearningpath-apiV2LearningpathsLearningpath_idLearningstepsLearningstep_idLanguageP1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/learningpath-api/v2/learningpaths/status/{STATUS}": {
         parameters: {
             query?: never;
@@ -2552,6 +2572,88 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+        };
+    };
+    "deleteLearningpath-apiV2LearningpathsLearningpath_idLearningstepsLearningstep_idLanguageP1": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Id of the learningpath. */
+                learningpath_id: number;
+                /** @description Id of the learningstep. */
+                learningstep_id: number;
+                /** @description The ISO 639-1 language describing language. */
+                p1: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningStepV2DTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
