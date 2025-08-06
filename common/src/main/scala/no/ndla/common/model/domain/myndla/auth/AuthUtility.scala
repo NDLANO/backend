@@ -35,7 +35,7 @@ object AuthUtility {
       .requiredScopes(Seq.empty)
 
     EndpointInput.Auth(
-      input = sttp.tapir.header("FeideAuthorization")(feideTokenAuthCodec),
+      input = sttp.tapir.header("FeideAuthorization")(using feideTokenAuthCodec),
       challenge = WWWAuthenticateChallenge.bearer,
       authType = authType,
       info = AuthInfo.Empty.securitySchemeName("oauth2")

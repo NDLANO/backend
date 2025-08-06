@@ -53,10 +53,7 @@ trait TestSuiteLoggingSetup extends AnyFunSuite with BeforeAndAfterEach with Bef
   }
 
   private def shutdownLogger(): Unit = {
-    LoggerContext.getContext(false) match {
-      case context: LoggerContext => context.stop()
-      case _                      => println("No LoggerContext found, cannot stop logging context.")
-    }
+    LoggerContext.getContext(false).stop()
   }
 
   override def withFixture(test: NoArgTest): Outcome = {
