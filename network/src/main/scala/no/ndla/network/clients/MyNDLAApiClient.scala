@@ -23,7 +23,7 @@ import scala.util.{Failure, Success, Try}
 trait MyNDLAApiClient {
   this: HasBaseProps & NdlaClient =>
 
-  val myndlaApiClient: MyNDLAApiClient
+  lazy val myndlaApiClient: MyNDLAApiClient
 
   class MyNDLAApiClient {
     private val statsEndpoint = s"http://${props.MyNDLAApiHost}/myndla-api/v1/stats"

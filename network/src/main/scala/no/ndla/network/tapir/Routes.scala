@@ -247,6 +247,8 @@ trait Routes {
 
       val endpoints = services.flatMap(_.builtEndpoints)
 
+      logger.info(s"Starting $name on port $port")
+
       val server = JdkHttpServer()
         .options(options)
         .executor(executor)
@@ -254,8 +256,6 @@ trait Routes {
         .addEndpoint(prometheusMetrics.metricsEndpoint)
         .port(port)
         .start()
-
-      logger.info(s"Starting $name on port $port")
 
       warmupFunc
 
