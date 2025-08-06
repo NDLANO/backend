@@ -19,6 +19,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{CommentDTO, ResponsibleDTO}
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.model.domain.Priority
 
 @description("Object describing matched field with matching words emphasized")
 case class HighlightedFieldDTO(
@@ -111,7 +112,7 @@ case class MultiSearchSummaryDTO(
     @description("Information about comments attached to the article")
     comments: Option[Seq[CommentDTO]],
     @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified")
-    priority: Option[String],
+    priority: Option[Priority],
     @description("A combined resource type name if a standard article, otherwise the article type name")
     resourceTypeName: Option[String],
     @description("Name of the parent topic if exists")

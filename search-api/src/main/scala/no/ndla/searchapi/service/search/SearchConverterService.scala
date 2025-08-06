@@ -868,7 +868,7 @@ trait SearchConverterService {
           revisions = revisions,
           responsible = responsible,
           comments = Some(comments),
-          priority = Some(searchableDraft.priority.entryName),
+          priority = Some(searchableDraft.priority),
           resourceTypeName = resourceTypeName,
           parentTopicName = parentTopicName,
           primaryRootName = primaryRootName,

@@ -14,6 +14,7 @@ import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
+import no.ndla.common.model.domain.Priority
 
 case class MultiDraftSearchSettings(
     query: Option[NonEmptyString],
@@ -47,7 +48,7 @@ case class MultiDraftSearchSettings(
     responsibleIdFilter: List[String],
     articleTypes: List[String],
     filterInactive: Boolean,
-    priority: List[String],
+    priority: List[Priority],
     publishedFilterFrom: Option[NDLADate],
     publishedFilterTo: Option[NDLADate],
     resultTypes: Option[List[SearchType]]

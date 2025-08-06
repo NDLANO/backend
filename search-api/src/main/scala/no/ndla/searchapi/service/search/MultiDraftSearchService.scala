@@ -296,7 +296,7 @@ trait MultiDraftSearchService {
       }
 
       val priorityFilter = Option.when(settings.priority.nonEmpty)(
-        boolQuery().should(settings.priority.map(termQuery("priority", _)))
+        boolQuery().should(settings.priority.map(p => termQuery("priority", p.entryName)))
       )
 
       val articleTypeFilter = Some(

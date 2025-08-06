@@ -54,6 +54,7 @@ import scala.util.{Failure, Success, Try}
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
+import no.ndla.common.model.domain.Priority
 
 trait SearchController {
   this: SearchApiClient & MultiSearchService & SearchConverterService & SearchService & MultiDraftSearchService &
@@ -371,7 +372,7 @@ trait SearchController {
               excludeRevisionLog = booleanParamOrNone("exclude-revision-log"),
               responsibleIds = stringListParam("responsible-ids").some,
               filterInactive = booleanParamOrNone("filter-inactive"),
-              priority = stringListParam("priority").some,
+              priority = stringListParam("priority").flatMap(Priority.withNameOption).some,
               topics = stringListParam("topics").some,
               publishedDateFrom = dateParamOrNone("published-date-from"),
               publishedDateTo = dateParamOrNone("published-date-to"),
