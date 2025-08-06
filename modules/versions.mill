@@ -3,7 +3,7 @@ package build.modules
 import mill._, mill.scalalib._
 
 object SharedDependencies {
-  val ScalaVersion          = "2.13.16"
+  val ScalaVersion          = "3.7.2"
   val HikariConnectionPoolV = "6.3.0"
   val ScalaLoggingV         = "3.9.5"
   val ScalaTestV            = "3.2.19"

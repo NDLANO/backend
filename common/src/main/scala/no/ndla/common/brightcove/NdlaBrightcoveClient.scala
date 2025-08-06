@@ -8,8 +8,8 @@
 
 package no.ndla.common.brightcove
 
-import io.circe.Json
-import io.circe.generic.codec.DerivedAsObjectCodec.deriveCodec
+import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, Json}
 import io.circe.parser.*
 import sttp.client3.{HttpClientSyncBackend, UriContext, basicRequest}
 import no.ndla.common.configuration.HasBaseProps
@@ -23,6 +23,10 @@ import no.ndla.common.errors.{
 import scala.util.{Failure, Success, Try}
 
 case class TokenResponse(access_token: String, token_type: String, expires_in: Int)
+
+object TokenResponse {
+  implicit def decoder: Decoder[TokenResponse] = deriveDecoder[TokenResponse]
+}
 
 trait NdlaBrightcoveClient {
   this: HasBaseProps =>
