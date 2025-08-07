@@ -62,7 +62,7 @@ trait DefaultOptions extends ScalaModule {
       "-Wunused:imports",
       "-Wunused:locals",
       "-Wunused:params",
-      "-Wunused:patvars",
+      // "-Wunused:patvars",
       "-Wunused:privates",
       "-Wconf:src=src_managed/.*:silent",
       "-Yretain-trees"   -> scala3,

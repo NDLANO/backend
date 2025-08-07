@@ -21,7 +21,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ArticleRepository {
   this: DataSource & DBArticle =>
-  val articleRepository: ArticleRepository
+  lazy val articleRepository: ArticleRepository
 
   class ArticleRepository extends StrictLogging {
 
@@ -130,7 +130,7 @@ trait ArticleRepository {
               ORDER BY revision DESC
               LIMIT 1
               """
-      )(session)
+      )(using session)
 
     def withIdAndRevision(articleId: Long, revision: Int): Option[ArticleRow] = {
       articleWhere(
@@ -188,8 +188,8 @@ trait ArticleRepository {
 
     private def externalIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {
       Option(wrappedResultSet.array("external_id"))
-        .map(_.getArray.asInstanceOf[Array[String]])
-        .getOrElse(Array.empty)
+        .map(x => x.getArray.asInstanceOf[Array[String]])
+        .getOrElse(Array.empty[String])
         .toList
     }
 

@@ -21,8 +21,6 @@ import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import scala.util.Success
 
 class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
-  import props.{DefaultLanguage, DefaultPageSize, MaxPageSize}
-
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   override val articleSearchService                     = new ArticleSearchService

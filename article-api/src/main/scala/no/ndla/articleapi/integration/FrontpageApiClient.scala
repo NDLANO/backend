@@ -19,7 +19,7 @@ import scala.util.Try
 
 trait FrontpageApiClient {
   this: NdlaClient & ConverterService & Props =>
-  val frontpageApiClient: FrontpageApiClient
+  lazy val frontpageApiClient: FrontpageApiClient
 
   class FrontpageApiClient(FrontpageApiBaseUrl: String = props.FrontpageApiUrl) extends StrictLogging {
 

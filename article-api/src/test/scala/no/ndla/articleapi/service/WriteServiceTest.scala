@@ -21,7 +21,7 @@ import scalikejdbc.DBSession
 import scala.util.{Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override val converterService = new ConverterService
+  override lazy val converterService = new ConverterService
 
   val today: NDLADate     = NDLADate.now()
   val yesterday: NDLADate = NDLADate.now().minusDays(1)

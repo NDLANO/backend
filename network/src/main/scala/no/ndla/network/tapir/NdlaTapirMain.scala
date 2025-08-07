@@ -45,7 +45,7 @@ trait NdlaTapirMain[T <: TapirApplication] {
 
   private def performWarmup(): Unit = if (!props.disableWarmup) {
     import scala.concurrent.ExecutionContext.Implicits.global
-    Future {
+    val fut = Future {
       // Since we don't really have a good way to check whether server is ready lets just wait a bit
       Thread.sleep(500)
       val warmupStart = System.currentTimeMillis()
@@ -55,7 +55,9 @@ trait NdlaTapirMain[T <: TapirApplication] {
 
       val warmupTime = System.currentTimeMillis() - warmupStart
       logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
-    }: Unit
+    }
+
+    fut: Unit
   } else {
     componentRegistry.healthController.setWarmedUp()
   }

@@ -54,46 +54,47 @@ trait TestEnvironment
     with MemoizeHelpers
     with DBArticle
     with Props
-    with TestData
+    with TestDataT
     with DBMigrator
     with SearchLanguage
     with FrontpageApiClient
     with ImageApiClient {
-  lazy val props: ArticleApiProperties = new ArticleApiProperties {
+  override lazy val props: ArticleApiProperties = new ArticleApiProperties {
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
   }
-  val TestData: TestData   = new TestData
-  val migrator: DBMigrator = mock[DBMigrator]
-  val DBUtil: DBUtility    = mock[DBUtility]
 
-  val articleSearchService: ArticleSearchService = mock[ArticleSearchService]
-  val articleIndexService: ArticleIndexService   = mock[ArticleIndexService]
+  lazy val TestData: TestDataClass       = new TestDataClass
+  override lazy val migrator: DBMigrator = mock[DBMigrator]
+  override lazy val DBUtil: DBUtility    = mock[DBUtility]
 
-  val internController: InternController       = mock[InternController]
-  val articleControllerV2: ArticleControllerV2 = mock[ArticleControllerV2]
+  override lazy val articleSearchService: ArticleSearchService = mock[ArticleSearchService]
+  override lazy val articleIndexService: ArticleIndexService   = mock[ArticleIndexService]
 
-  val healthController: TapirHealthController = mock[TapirHealthController]
+  override lazy val internController: InternController       = mock[InternController]
+  override lazy val articleControllerV2: ArticleControllerV2 = mock[ArticleControllerV2]
 
-  val dataSource: HikariDataSource         = mock[HikariDataSource]
-  val articleRepository: ArticleRepository = mock[ArticleRepository]
+  override lazy val healthController: TapirHealthController = mock[TapirHealthController]
 
-  val converterService: ConverterService = mock[ConverterService]
-  val readService: ReadService           = mock[ReadService]
-  val writeService: WriteService         = mock[WriteService]
-  val contentValidator: ContentValidator = mock[ContentValidator]
+  override lazy val dataSource: HikariDataSource         = mock[HikariDataSource]
+  override lazy val articleRepository: ArticleRepository = mock[ArticleRepository]
 
-  val ndlaClient: NdlaClient                         = mock[NdlaClient]
-  val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
-  val searchConverterService: SearchConverterService = mock[SearchConverterService]
-  var e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
-  val searchApiClient: SearchApiClient               = mock[SearchApiClient]
-  val feideApiClient: FeideApiClient                 = mock[FeideApiClient]
-  val redisClient: RedisClient                       = mock[RedisClient]
-  val frontpageApiClient: FrontpageApiClient         = mock[FrontpageApiClient]
-  val imageApiClient: ImageApiClient                 = mock[ImageApiClient]
+  override lazy val converterService: ConverterService = mock[ConverterService]
+  override lazy val readService: ReadService           = mock[ReadService]
+  override lazy val writeService: WriteService         = mock[WriteService]
+  override lazy val contentValidator: ContentValidator = mock[ContentValidator]
 
-  val clock: SystemClock = mock[SystemClock]
+  override lazy val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  override lazy val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
+  override lazy val searchConverterService: SearchConverterService = mock[SearchConverterService]
+  var e4sClient: NdlaE4sClient                                     = mock[NdlaE4sClient]
+  override lazy val searchApiClient: SearchApiClient               = mock[SearchApiClient]
+  override lazy val feideApiClient: FeideApiClient                 = mock[FeideApiClient]
+  override lazy val redisClient: RedisClient                       = mock[RedisClient]
+  override lazy val frontpageApiClient: FrontpageApiClient         = mock[FrontpageApiClient]
+  override lazy val imageApiClient: ImageApiClient                 = mock[ImageApiClient]
+
+  override lazy val clock: SystemClock = mock[SystemClock]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]

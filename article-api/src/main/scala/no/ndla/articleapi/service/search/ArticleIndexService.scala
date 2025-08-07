@@ -19,9 +19,9 @@ import no.ndla.common.model.domain.article.Article
 
 trait ArticleIndexService {
   this: SearchConverterService & IndexService & ArticleRepository & Props =>
-  val articleIndexService: ArticleIndexService
+  lazy val articleIndexService: ArticleIndexService
 
-  class ArticleIndexService extends StrictLogging with IndexService {
+  class ArticleIndexService extends IndexService with StrictLogging {
     override val documentType: String = props.ArticleSearchDocument
     override val searchIndex: String  = props.ArticleSearchIndex
 

@@ -86,7 +86,7 @@ object FeideExtendedUserInfo {
 
 trait FeideApiClient {
   this: RedisClient =>
-  val feideApiClient: FeideApiClient
+  lazy val feideApiClient: FeideApiClient
 
   class FeideApiClient extends StrictLogging {
 

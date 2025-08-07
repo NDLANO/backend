@@ -18,7 +18,7 @@ import scala.util.{Failure, Success, Try}
 
 trait RedisClient {
   this: HasBaseProps =>
-  val redisClient: RedisClient
+  lazy val redisClient: RedisClient
   class RedisClient(
       host: String,
       port: Int,

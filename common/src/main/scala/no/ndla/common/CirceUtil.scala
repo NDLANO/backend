@@ -11,7 +11,6 @@ package no.ndla.common
 import enumeratum.*
 import io.circe.*
 import io.circe.syntax.*
-import io.circe.{Decoder, Encoder}
 
 import scala.util.{Failure, Try}
 
