@@ -42,12 +42,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val about         = TestData.apiNewSubjectPage.about.map(_.copy(visualElement = visualElement))
     val page          = TestData.apiNewSubjectPage.copy(about = about)
 
-    val Failure(res: ValidationException) = ConverterService.toDomainSubjectPage(page)
-    val expectedError                     = ValidationException(
+    val result        = ConverterService.toDomainSubjectPage(page)
+    val expectedError = ValidationException(
       "visualElement.type",
       "'not an image' is an invalid visual element type"
     )
-    res should be(expectedError)
+    result should be(Failure(expectedError))
   }
 
   test("toDomainSubjectPage should return a success if visual element type is valid") {

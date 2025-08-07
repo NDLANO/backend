@@ -20,7 +20,7 @@ import scala.util.Try
 
 trait FrontPageRepository {
   this: DataSource & DBFrontPage =>
-  val frontPageRepository: FrontPageRepository
+  lazy val frontPageRepository: FrontPageRepository
 
   class FrontPageRepository extends StrictLogging {
     import FrontPage._

@@ -8,7 +8,6 @@
 
 package no.ndla.frontpageapi.db.migration
 
-import io.circe.generic.auto.*
 import io.circe.generic.semiauto.*
 import io.circe.parser.parse
 import io.circe.syntax.*
@@ -22,10 +21,6 @@ import scalikejdbc.*
 import scala.util.{Failure, Success}
 
 class V4__add_language_to_about extends BaseJavaMigration {
-
-  implicit val decoder: Decoder[V1_DBFrontPageData] = deriveDecoder
-  implicit val encoder: Encoder[V1_DBFrontPageData] = deriveEncoder
-
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
@@ -90,4 +85,12 @@ case class V4_SubjectFrontPageData(
     latestContent: Option[List[String]],
     goTo: List[String]
 )
+object V4_SubjectFrontPageData {
+  implicit val encoder: Encoder[V4_SubjectFrontPageData] = deriveEncoder
+  implicit val decoder: Decoder[V4_SubjectFrontPageData] = deriveDecoder
+}
 case class V4_AboutSubject(title: String, description: String, language: String, visualElement: V2_VisualElement)
+object V4_AboutSubject {
+  implicit val encoder: Encoder[V4_AboutSubject] = deriveEncoder
+  implicit val decoder: Decoder[V4_AboutSubject] = deriveDecoder
+}

@@ -39,27 +39,27 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     with DBMigrator
     with ConverterService
     with SwaggerDocControllerConfig {
-  override val props: FrontpageApiProperties     = properties
-  override val migrator: DBMigrator              = DBMigrator()
-  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  override lazy val props: FrontpageApiProperties = properties
+  override lazy val migrator: DBMigrator          = DBMigrator()
+  override lazy val dataSource: HikariDataSource  = DataSource.getHikariDataSource
 
-  override val clock = new SystemClock
+  override lazy val clock = new SystemClock
 
-  override val subjectPageRepository   = new SubjectPageRepository
-  override val frontPageRepository     = new FrontPageRepository
-  override val filmFrontPageRepository = new FilmFrontPageRepository
+  override lazy val subjectPageRepository   = new SubjectPageRepository
+  override lazy val frontPageRepository     = new FrontPageRepository
+  override lazy val filmFrontPageRepository = new FilmFrontPageRepository
 
-  override val readService  = new ReadService
-  override val writeService = new WriteService
+  override lazy val readService  = new ReadService
+  override lazy val writeService = new WriteService
 
-  override val subjectPageController = new SubjectPageController
-  override val frontPageController   = new FrontPageController
-  override val filmPageController    = new FilmPageController
-  override val internController      = new InternController
-  val healthController               = new TapirHealthController
+  override lazy val subjectPageController = new SubjectPageController
+  override lazy val frontPageController   = new FrontPageController
+  override lazy val filmPageController    = new FilmPageController
+  override lazy val internController      = new InternController
+  override lazy val healthController      = new TapirHealthController
 
-  override val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
-  override val ndlaClient: NdlaClient           = new NdlaClient
+  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  override lazy val ndlaClient: NdlaClient           = new NdlaClient
 
   val swagger = new SwaggerController(
     List(

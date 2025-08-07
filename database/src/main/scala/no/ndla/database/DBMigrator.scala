@@ -18,7 +18,7 @@ import scala.jdk.CollectionConverters.*
 
 trait DBMigrator {
   this: DataSource & HasDatabaseProps =>
-  val migrator: DBMigrator
+  lazy val migrator: DBMigrator
 
   case class DBMigrator(migrations: JavaMigration*) extends StrictLogging {
     private def logMigrationResult(result: MigrateResult): Unit = {
