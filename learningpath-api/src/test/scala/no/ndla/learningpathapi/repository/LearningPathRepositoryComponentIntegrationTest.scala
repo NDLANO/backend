@@ -82,6 +82,7 @@ class LearningPathRepositoryComponentIntegrationTest
     List(Introduction("UNIT-TEST", "unknown")),
     List(Description("UNIT-TEST", "unknown")),
     List(EmbedUrl("http://www.vg.no", "unknown", EmbedType.OEmbed)),
+    Seq.empty,
     StepType.TEXT,
     None,
     showTitle = true,

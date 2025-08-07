@@ -53,6 +53,7 @@ object TestData {
     List.empty,
     List(Description("Step1Description", "nb")),
     List(),
+    Seq.empty,
     StepType.INTRODUCTION,
     None
   )
@@ -67,6 +68,7 @@ object TestData {
     List.empty,
     List(Description("Step2Description", "nb")),
     List(),
+    Seq.empty,
     learningpath.StepType.TEXT,
     None
   )
@@ -106,6 +108,7 @@ object TestData {
     fallback = false,
     verificationStatus = None,
     shouldScroll = false,
+    articleId = None,
     status = List(learningpath.LearningPathStatus.PUBLISHED)
   )
 }

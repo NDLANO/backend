@@ -22,5 +22,6 @@ case class SearchSettings(
     fallback: Boolean,
     verificationStatus: Option[String],
     shouldScroll: Boolean,
-    status: List[LearningPathStatus]
+    status: List[LearningPathStatus],
+    articleId: Option[Long]
 )

@@ -63,6 +63,7 @@ class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with Un
             introduction = Seq(),
             description = Seq(LPDescription("hei", "nb")),
             embedUrl = Seq(EmbedUrl("hei", "nb", EmbedType.OEmbed)),
+            article = Seq.empty,
             `type` = StepType.TEXT,
             license = Some("hei"),
             status = StepStatus.ACTIVE

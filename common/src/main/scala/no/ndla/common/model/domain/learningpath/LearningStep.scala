@@ -23,6 +23,7 @@ case class LearningStep(
     introduction: Seq[Introduction],
     description: Seq[Description],
     embedUrl: Seq[EmbedUrl],
+    article: Seq[LearningStepArticle],
     `type`: StepType,
     license: Option[String],
     showTitle: Boolean = false,

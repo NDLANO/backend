@@ -80,7 +80,7 @@ trait SearchService extends StrictLogging {
       searchConverterService.asApiLearningPathSummaryV2(searchable, language)
     }
 
-    def containsPath(paths: List[String]): Try[SearchResult] = {
+    def containsPath(paths: List[String], id: Long): Try[SearchResult] = {
       val settings = SearchSettings(
         query = None,
         withIdIn = List.empty,
@@ -91,6 +91,7 @@ trait SearchService extends StrictLogging {
         page = None,
         pageSize = None,
         fallback = false,
+        articleId = Some(id),
         verificationStatus = None,
         shouldScroll = false,
         status = List(
@@ -162,7 +163,7 @@ trait SearchService extends StrictLogging {
 
       val tagFilter: Option[Query] = settings.taggedWith.map(tag => termQuery(s"tags.$searchLanguage.raw", tag))
       val idFilter                 = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-      val pathFilter               = pathsFilterQuery(settings.withPaths)
+      val articlesFilter           = articlesFilterQuery(settings.withPaths, settings.articleId)
 
       val verificationStatusFilter = settings.verificationStatus.map(status => termQuery("verificationStatus", status))
 
@@ -171,7 +172,7 @@ trait SearchService extends StrictLogging {
       val filters = List(
         tagFilter,
         idFilter,
-        pathFilter,
+        articlesFilter,
         languageFilter,
         verificationStatusFilter,
         statusFilter
@@ -220,14 +221,16 @@ trait SearchService extends StrictLogging {
       }
     }
 
-    private def pathsFilterQuery(paths: List[String]): Option[NestedQuery] = {
+    private def articlesFilterQuery(paths: List[String], id: Option[Long]): Option[NestedQuery] = {
       if (paths.isEmpty) None
       else {
+        val nestedPathsQuery = paths.map(p => wildcardQuery("learningsteps.embedUrl", s"*$p"))
+        val articleQuery     = id.map(id => termQuery("learningsteps.article", id)).toSeq
         Some(
           nestedQuery(
             "learningsteps",
             boolQuery()
-              .should(paths.map(p => wildcardQuery("learningsteps.embedUrl", s"*$p")))
+              .should(nestedPathsQuery ++ articleQuery)
               .must(matchQuery("learningsteps.status", "ACTIVE"))
               .minimumShouldMatch(1)
           )

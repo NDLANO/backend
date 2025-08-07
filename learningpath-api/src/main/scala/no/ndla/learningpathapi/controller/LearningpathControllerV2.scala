@@ -157,6 +157,7 @@ trait LearningpathControllerV2 {
             fallback = fallback,
             verificationStatus = verificationStatus,
             shouldScroll = shouldScroll,
+            articleId = None,
             status = List(learningpath.LearningPathStatus.PUBLISHED)
           )
         case None =>
@@ -172,6 +173,7 @@ trait LearningpathControllerV2 {
             fallback = fallback,
             verificationStatus = verificationStatus,
             shouldScroll = shouldScroll,
+            articleId = None,
             status = List(learningpath.LearningPathStatus.PUBLISHED)
           )
       }
@@ -741,7 +743,7 @@ trait LearningpathControllerV2 {
         )
         val paths = nodes ++ plainPaths
 
-        searchService.containsPath(paths) match {
+        searchService.containsPath(paths, articleId) match {
           case Success(result) => result.results.asRight
           case Failure(ex)     => returnLeftError(ex)
         }
