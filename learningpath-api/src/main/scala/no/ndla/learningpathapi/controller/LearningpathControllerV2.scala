@@ -733,20 +733,7 @@ trait LearningpathControllerV2 {
       .out(jsonBody[Seq[LearningPathSummaryV2DTO]])
       .errorOut(errorOutputsFor(400, 500))
       .serverLogicPure { articleId =>
-        val nodes      = taxonomyApiClient.queryNodes(articleId).getOrElse(List.empty).flatMap(_.paths)
-        val plainPaths = List(
-          s"/article-iframe/*/$articleId",
-          s"/article-iframe/*/$articleId/",
-          s"/article-iframe/*/$articleId/\\?*",
-          s"/article-iframe/*/$articleId\\?*",
-          s"/article/$articleId"
-        )
-        val paths = nodes ++ plainPaths
-
-        searchService.containsPath(paths, articleId) match {
-          case Success(result) => result.results.asRight
-          case Failure(ex)     => returnLeftError(ex)
-        }
+        searchService.containsArticle(articleId).handleErrorsOrOk
       }
   }
 }

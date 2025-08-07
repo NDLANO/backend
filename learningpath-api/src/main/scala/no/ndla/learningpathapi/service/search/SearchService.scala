@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.service.search
 
+import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
@@ -29,9 +30,10 @@ import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchExcept
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
+import no.ndla.learningpathapi.integration.TaxonomyApiClient
 
 trait SearchService extends StrictLogging {
-  this: SearchIndexService & Elastic4sClient & SearchConverterServiceComponent & Props & ErrorHandling =>
+  this: SearchIndexService & Elastic4sClient & SearchConverterServiceComponent & TaxonomyApiClient & Props & ErrorHandling =>
   val searchService: SearchService
 
   class SearchService {
@@ -80,7 +82,17 @@ trait SearchService extends StrictLogging {
       searchConverterService.asApiLearningPathSummaryV2(searchable, language)
     }
 
-    def containsPath(paths: List[String], id: Long): Try[SearchResult] = {
+    def containsArticle(id: Long): Try[Seq[LearningPathSummaryV2DTO]] = {
+      val nodes      = taxonomyApiClient.queryNodes(id).getOrElse(List.empty).flatMap(_.paths)
+      val plainPaths = List(
+        s"/article-iframe/*/$id",
+        s"/article-iframe/*/$id/",
+        s"/article-iframe/*/$id/\\?*",
+        s"/article-iframe/*/$id\\?*",
+        s"/article/$id"
+      )
+      val paths = nodes ++ plainPaths
+
       val settings = SearchSettings(
         query = None,
         withIdIn = List.empty,
@@ -101,7 +113,7 @@ trait SearchService extends StrictLogging {
         )
       )
 
-      executeSearch(boolQuery(), settings)
+      executeSearch(boolQuery(), settings).map(_.results)
     }
 
     private def languageSpecificSearch(searchField: String, language: String, query: String, boost: Double): Query =
