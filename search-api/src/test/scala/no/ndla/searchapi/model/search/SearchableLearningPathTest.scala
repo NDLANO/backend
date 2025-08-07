@@ -18,6 +18,7 @@ import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLa
 import no.ndla.searchapi.model.api.learningpath.CopyrightDTO
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData.*
+import no.ndla.common.model.domain.Priority
 
 class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
 
@@ -71,7 +72,8 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       contextids = searchableTaxonomyContexts.map(_.contextId),
       favorited = 0,
       learningResourceType = LearningResourceType.LearningPath,
-      typeName = List.empty
+      typeName = List.empty,
+      priority = Priority.Unspecified
     )
 
     val json         = CirceUtil.toJsonString(original)

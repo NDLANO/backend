@@ -418,7 +418,8 @@ trait SearchConverterService {
             indexingBundle.taxonomyBundle.map(getTaxonomyContexids(lp.id.get, "learningpath", _)).getOrElse(List.empty),
           favorited = favorited,
           learningResourceType = LearningResourceType.LearningPath,
-          typeName = getTypeNames(LearningResourceType.LearningPath)
+          typeName = getTypeNames(LearningResourceType.LearningPath),
+          priority = lp.priority
         )
       )
     }

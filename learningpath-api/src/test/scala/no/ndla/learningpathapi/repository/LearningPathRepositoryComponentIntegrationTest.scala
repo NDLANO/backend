@@ -33,6 +33,7 @@ import org.mockito.Mockito.when
 import scalikejdbc.*
 
 import scala.util.Try
+import no.ndla.common.model.domain.Priority
 
 class LearningPathRepositoryComponentIntegrationTest
     extends DatabaseIntegrationSuite
@@ -67,7 +68,8 @@ class LearningPathRepositoryComponentIntegrationTest
     copyright = copyright,
     isMyNDLAOwner = false,
     responsible = None,
-    comments = Seq.empty
+    comments = Seq.empty,
+    priority = Priority.Unspecified
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(

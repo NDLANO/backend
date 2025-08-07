@@ -826,13 +826,38 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       id = Some(5),
       priority = Priority.OnHold
     )
+
+    val lp1 = TestData.learningPath1.copy(
+      id = Some(6),
+      priority = Priority.Prioritized
+    )
+    val lp2 = TestData.learningPath1.copy(
+      id = Some(7),
+      priority = Priority.Unspecified
+    )
+    val lp3 = TestData.learningPath1.copy(
+      id = Some(8),
+      priority = Priority.Prioritized
+    )
+    val lp4 = TestData.learningPath1.copy(
+      id = Some(9)
+    )
+    val lp5 = TestData.learningPath1.copy(
+      id = Some(10),
+      priority = Priority.OnHold
+    )
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
     draftIndexService.indexDocument(draft4, indexingBundle).get
     draftIndexService.indexDocument(draft5, indexingBundle).get
+    learningPathIndexService.indexDocument(lp1, indexingBundle).get
+    learningPathIndexService.indexDocument(lp2, indexingBundle).get
+    learningPathIndexService.indexDocument(lp3, indexingBundle).get
+    learningPathIndexService.indexDocument(lp4, indexingBundle).get
+    learningPathIndexService.indexDocument(lp5, indexingBundle).get
 
-    blockUntil(() => draftIndexService.countDocuments == 5)
+    blockUntil(() => draftIndexService.countDocuments == 5 && learningPathIndexService.countDocuments == 5)
 
     multiDraftSearchService
       .matchingQuery(
@@ -842,7 +867,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       )
       .get
       .summaryResults
-      .map(_.id) should be(Seq(2, 3))
+      .map(_.id) should be(Seq(2, 3, 6, 8))
 
     multiDraftSearchService
       .matchingQuery(
@@ -852,7 +877,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       )
       .get
       .summaryResults
-      .map(_.id) should be(Seq(1, 4))
+      .map(_.id) should be(Seq(1, 4, 7, 9))
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
@@ -861,7 +886,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       )
       .get
       .summaryResults
-      .map(_.id) should be(Seq(5))
+      .map(_.id) should be(Seq(5, 10))
 
     multiDraftSearchService
       .matchingQuery(
@@ -871,7 +896,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       )
       .get
       .summaryResults
-      .map(_.id) should be(Seq(1, 2, 3, 4, 5))
+      .map(_.id) should be(Seq(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
   }
 
   test("That search on embed id supports video embed with timestamp resources") {
