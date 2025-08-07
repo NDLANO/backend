@@ -25,7 +25,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   override lazy val articleSearchService                     = new ArticleSearchService
   override lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
-    val indexShards = 1
+    override val indexShards = 1
   }
   override lazy val converterService       = new ConverterService
   override lazy val searchConverterService = new SearchConverterService

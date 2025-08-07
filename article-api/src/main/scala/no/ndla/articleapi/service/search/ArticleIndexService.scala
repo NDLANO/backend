@@ -16,36 +16,46 @@ import no.ndla.articleapi.Props
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Article
-import scala.util.{Failure, Success, Try}
-import no.ndla.search.model.domain.{ReindexResult, BulkIndexResult}
 
 trait ArticleIndexService {
   this: SearchConverterService & IndexService & ArticleRepository & Props =>
   lazy val articleIndexService: ArticleIndexService
 
-  class ArticleIndexService extends StrictLogging {
-    val documentType: String = ???
-    val searchIndex: String  = ???
+  class ArticleIndexService extends StrictLogging with IndexService {
+    override val documentType: String = props.ArticleSearchDocument
+    override val searchIndex: String  = props.ArticleSearchIndex
 
-    def createIndexRequest(domainModel: Article, indexName: String): IndexRequest = {
-      ???
-      //   val searchable = searchConverterService.asSearchableArticle(domainModel)
-      //   val source     = CirceUtil.toJsonString(searchable)
-      //   indexInto(indexName).doc(source).id(domainModel.id.get.toString)
+    override def createIndexRequest(domainModel: Article, indexName: String): IndexRequest = {
+      val searchable = searchConverterService.asSearchableArticle(domainModel)
+      val source     = CirceUtil.toJsonString(searchable)
+      indexInto(indexName).doc(source).id(domainModel.id.get.toString)
     }
 
-    type SendToElastic = String => Try[BulkIndexResult]
-    def indexDocument(imported: Article): Try[Article] = ???
-    def indexDocumentsInBulk(numShards: Option[Int])(
-        sendToElasticFunction: SendToElastic
-    ): Try[ReindexResult] = ???
-    def createIndexAndAlias(): Try[String]                            = ???
-    def createIndexAndAlias(numberOfShards: Option[Int]): Try[String] = ???
-    def indexDocuments(numShards: Option[Int]): Try[ReindexResult]    = ???
-    def deleteDocument(contentId: Long): Try[Long]                    = ???
-    def findAllIndexes(indexName: String): Try[Seq[String]]           = ???
-    def deleteIndexWithName(optIndexName: Option[String]): Try[?]     = ???
-    def getMapping: MappingDefinition                                 = ???
+    def getMapping: MappingDefinition = {
+      val fields = List(
+        intField("id"),
+        keywordField("defaultTitle"),
+        dateField("lastUpdated"),
+        keywordField("license"),
+        keywordField("availability"),
+        textField("authors").fielddata(true),
+        textField("articleType").analyzer("keyword"),
+        nestedField("metaImage").fields(
+          keywordField("imageId"),
+          keywordField("altText"),
+          keywordField("language")
+        ),
+        keywordField("grepCodes")
+      )
+      val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
+        generateLanguageSupportedFieldList("content") ++
+        generateLanguageSupportedFieldList("visualElement") ++
+        generateLanguageSupportedFieldList("introduction") ++
+        generateLanguageSupportedFieldList("metaDescription") ++
+        generateLanguageSupportedFieldList("tags")
+
+      properties(fields ++ dynamics)
+    }
   }
 
 }
