@@ -664,6 +664,7 @@ export type components = {
             responsible?: components["schemas"]["ResponsibleDTO"];
             /** @description Information about comments attached to the learningpath */
             comments: components["schemas"]["CommentDTO"][];
+            priority: components["schemas"]["Priority"];
         };
         /**
          * LearningStepContainerSummaryDTO
@@ -838,6 +839,7 @@ export type components = {
             responsibleId?: string;
             /** @description Information about comments attached to the learningpath */
             comments?: components["schemas"]["NewCommentDTO"][];
+            priority?: components["schemas"]["Priority"];
         };
         /**
          * NewLearningStepV2DTO
@@ -882,6 +884,12 @@ export type components = {
              */
             statusCode: number;
         };
+        /**
+         * Priority
+         * @description If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified
+         * @enum {string}
+         */
+        Priority: "prioritized" | "on-hold" | "unspecified";
         /**
          * ResponsibleDTO
          * @description Object with data representing the editor responsible for this learningpath
@@ -1018,6 +1026,7 @@ export type components = {
             responsibleId?: string | null;
             /** @description Information about comments attached to the learningpath */
             comments?: components["schemas"]["UpdatedCommentDTO"][];
+            priority?: components["schemas"]["Priority"];
         };
         /**
          * UpdatedLearningStepV2DTO
