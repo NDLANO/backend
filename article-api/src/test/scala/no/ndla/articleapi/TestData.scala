@@ -21,7 +21,7 @@ import no.ndla.mapping.License
 trait TestData {
   this: Props =>
 
-  class TestData {
+  class TestDataClass {
     private val publicDomainCopyright =
       Copyright(License.PublicDomain.toString, None, List(), List(), List(), None, None, false)
     private val byNcSaCopyright =

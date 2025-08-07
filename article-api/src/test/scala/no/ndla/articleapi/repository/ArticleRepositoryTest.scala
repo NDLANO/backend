@@ -21,9 +21,9 @@ import java.net.Socket
 import scala.util.{Success, Try}
 
 class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override val dataSource: HikariDataSource = testDataSource.get
-  override val migrator                     = new DBMigrator
-  var repository: ArticleRepository         = _
+  override lazy val dataSource: HikariDataSource = testDataSource.get
+  override lazy val migrator                     = new DBMigrator
+  var repository: ArticleRepository              = _
 
   lazy val sampleArticle: Article = TestData.sampleArticleWithByNcSa
 

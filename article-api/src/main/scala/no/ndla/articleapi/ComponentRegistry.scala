@@ -100,13 +100,13 @@ class ComponentRegistry(properties: ArticleApiProperties)
   override lazy val readService            = new ReadService
   override lazy val writeService           = new WriteService
 
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
-  override lazy val searchApiClient     = new SearchApiClient
-  override lazy val feideApiClient      = new FeideApiClient
-  override lazy val myndlaApiClient     = new MyNDLAApiClient
-  override lazy val redisClient         = new RedisClient(props.RedisHost, props.RedisPort)
-  override lazy val frontpageApiClient  = new FrontpageApiClient
-  override lazy val imageApiClient      = new ImageApiClient
+  var e4sClient: NdlaE4sClient         = Elastic4sClientFactory.getClient(props.SearchServer)
+  override lazy val searchApiClient    = new SearchApiClient
+  override lazy val feideApiClient     = new FeideApiClient
+  override lazy val myndlaApiClient    = new MyNDLAApiClient
+  override lazy val redisClient        = new RedisClient(props.RedisHost, props.RedisPort)
+  override lazy val frontpageApiClient = new FrontpageApiClient
+  override lazy val imageApiClient     = new ImageApiClient
 
   lazy val clock = new SystemClock
 

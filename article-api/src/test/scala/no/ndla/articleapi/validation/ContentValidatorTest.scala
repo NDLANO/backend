@@ -28,11 +28,11 @@ import no.ndla.mapping.License.{CC_BY_SA, NA}
 import scala.util.Failure
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
-  override val contentValidator = new ContentValidator
-  val validDocument             = """<section><h1>heisann</h1><h2>heia</h2></section>"""
-  val validIntroduction         = """<p>heisann <span lang="en">heia</span></p><p>hopp</p>"""
-  val invalidDocument           = """<section><invalid></invalid></section>"""
-  val validDisclaimer           =
+  override lazy val contentValidator = new ContentValidator
+  val validDocument                  = """<section><h1>heisann</h1><h2>heia</h2></section>"""
+  val validIntroduction              = """<p>heisann <span lang="en">heia</span></p><p>hopp</p>"""
+  val invalidDocument                = """<section><invalid></invalid></section>"""
+  val validDisclaimer                =
     """<p><strong>hallo!</strong><ndlaembed data-content-id="123" data-open-in="current-context" data-resource="content-link" data-content-type="article">test</ndlaembed></p>"""
 
   test("validateArticle does not throw an exception on a valid document") {

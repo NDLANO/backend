@@ -16,8 +16,8 @@ import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
-  override val searchConverterService = new SearchConverterService
-  val sampleArticle: Article          = TestData.sampleArticleWithPublicDomain.copy()
+  override lazy val searchConverterService = new SearchConverterService
+  val sampleArticle: Article               = TestData.sampleArticleWithPublicDomain.copy()
 
   val titles: List[Title] = List(
     Title("Bokmål tittel", "nb"),

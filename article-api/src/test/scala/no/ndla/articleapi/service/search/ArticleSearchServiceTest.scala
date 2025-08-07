@@ -21,17 +21,14 @@ import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import scala.util.Success
 
 class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-  import TestData.testSettings
-  import props.*
-
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val articleSearchService                     = new ArticleSearchService
-  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
-    override val indexShards = 1
+  override lazy val articleSearchService                     = new ArticleSearchService
+  override lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
+    val indexShards = 1
   }
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
     Copyright(
@@ -250,70 +247,76 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    articleSearchService.getStartAtAndNumResults(0, 10001) should equal((0, MaxPageSize))
+    articleSearchService.getStartAtAndNumResults(0, 10001) should equal((0, props.MaxPageSize))
   }
 
   test(
     "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
   ) {
     val page            = 74
-    val expectedStartAt = (page - 1) * DefaultPageSize
-    articleSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal((expectedStartAt, DefaultPageSize))
+    val expectedStartAt = (page - 1) * props.DefaultPageSize
+    articleSearchService.getStartAtAndNumResults(page, props.DefaultPageSize) should equal(
+      (expectedStartAt, props.DefaultPageSize)
+    )
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
     val page            = 123
-    val expectedStartAt = (page - 1) * DefaultPageSize
-    articleSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal((expectedStartAt, DefaultPageSize))
+    val expectedStartAt = (page - 1) * props.DefaultPageSize
+    articleSearchService.getStartAtAndNumResults(page, props.DefaultPageSize) should equal(
+      (expectedStartAt, props.DefaultPageSize)
+    )
   }
 
   test("searching should return only articles of a given type if a type filter is specified") {
-    val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(articleTypes = Seq(ArticleType.TopicArticle.entryName)))
-    results.totalCount should be(3)
+    val results =
+      articleSearchService.matchingQuery(
+        TestData.testSettings.copy(articleTypes = Seq(ArticleType.TopicArticle.entryName))
+      )
+    results.map(_.totalCount) should be(Success(3))
 
-    val Success(results2) = articleSearchService.matchingQuery(testSettings.copy(articleTypes = Seq.empty))
-    results2.totalCount should be(10)
+    val results2 = articleSearchService.matchingQuery(TestData.testSettings.copy(articleTypes = Seq.empty))
+    results2.map(_.totalCount) should be(Success(10))
   }
 
   test("That searching without query returns all documents ordered by id ascending") {
     val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(query = None))
+      articleSearchService.matchingQuery(TestData.testSettings.copy(query = None))
     val hits = results.results
     results.totalCount should be(10)
     hits.map(_.id) should be(Seq(1, 2, 3, 5, 6, 7, 8, 9, 11, 13))
   }
 
   test("That searching returns all documents ordered by id descending") {
-    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByIdDesc))
+    val Success(results) = articleSearchService.matchingQuery(TestData.testSettings.copy(sort = Sort.ByIdDesc))
     val hits             = results.results
     results.totalCount should be(10)
     hits.map(_.id) should be(Seq(13, 11, 9, 8, 7, 6, 5, 3, 2, 1))
   }
 
   test("That searching returns all documents ordered by title ascending") {
-    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc))
+    val Success(results) = articleSearchService.matchingQuery(TestData.testSettings.copy(sort = Sort.ByTitleAsc))
     val hits             = results.results
     results.totalCount should be(10)
     hits.map(_.id) should be(Seq(8, 1, 3, 9, 5, 11, 6, 2, 7, 13))
   }
 
   test("That searching returns all documents ordered by title descending") {
-    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleDesc))
+    val Success(results) = articleSearchService.matchingQuery(TestData.testSettings.copy(sort = Sort.ByTitleDesc))
     val hits             = results.results
     results.totalCount should be(10)
     hits.map(_.id) should be(Seq(13, 7, 2, 6, 11, 5, 9, 3, 1, 8))
   }
 
   test("That searching returns all documents ordered by lastUpdated descending") {
-    val results = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedDesc))
+    val results = articleSearchService.matchingQuery(TestData.testSettings.copy(sort = Sort.ByLastUpdatedDesc))
     val hits    = results.get.results
     results.get.totalCount should be(10)
     hits.map(_.id) should be(Seq(3, 2, 1, 8, 9, 11, 13, 7, 6, 5))
   }
 
   test("That all returns all documents ordered by lastUpdated ascending") {
-    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByLastUpdatedAsc))
+    val Success(results) = articleSearchService.matchingQuery(TestData.testSettings.copy(sort = Sort.ByLastUpdatedAsc))
     val hits             = results.results
     results.totalCount should be(10)
     hits.map(_.id) should be(Seq(5, 6, 7, 8, 9, 11, 13, 1, 2, 3))
@@ -321,7 +324,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("That all filtering on license only returns documents with given license") {
     val Success(results) = articleSearchService.matchingQuery(
-      testSettings.copy(sort = Sort.ByTitleAsc, license = Some(PublicDomain.toString))
+      TestData.testSettings.copy(sort = Sort.ByTitleAsc, license = Some(PublicDomain.toString))
     )
     val hits = results.results
     results.totalCount should be(9)
@@ -329,7 +332,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   }
 
   test("That all filtered by id only returns documents with the given ids") {
-    val Success(results) = articleSearchService.matchingQuery(testSettings.copy(withIdIn = List(1, 3)))
+    val Success(results) = articleSearchService.matchingQuery(TestData.testSettings.copy(withIdIn = List(1, 3)))
     val hits             = results.results
     results.totalCount should be(2)
     hits.head.id should be(1)
@@ -338,9 +341,9 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("That paging returns only hits on current page and not more than page-size") {
     val Success(page1) =
-      articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc, page = 1, pageSize = 2))
+      articleSearchService.matchingQuery(TestData.testSettings.copy(sort = Sort.ByTitleAsc, page = 1, pageSize = 2))
     val Success(page2) =
-      articleSearchService.matchingQuery(testSettings.copy(sort = Sort.ByTitleAsc, page = 2, pageSize = 2))
+      articleSearchService.matchingQuery(TestData.testSettings.copy(sort = Sort.ByTitleAsc, page = 2, pageSize = 2))
 
     val hits1 = page1.results
     val hits2 = page2.results
@@ -358,13 +361,13 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("matchingQuery should filter results based on an article type filter") {
     val results = articleSearchService.matchingQuery(
-      testSettings
+      TestData.testSettings
         .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.TopicArticle.entryName))
     )
     results.get.totalCount should be(0)
 
     val results2 = articleSearchService.matchingQuery(
-      testSettings
+      TestData.testSettings
         .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.Standard.entryName))
     )
     results2.get.totalCount should be(3)
@@ -372,7 +375,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("That search matches title and html-content ordered by relevance descending") {
     val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("bil"), sort = Sort.ByRelevanceDesc))
+      articleSearchService.matchingQuery(TestData.testSettings.copy(query = Some("bil"), sort = Sort.ByRelevanceDesc))
     val hits = results.results
     results.totalCount should be(3)
     hits.map(_.id) should be(Seq(1, 5, 3))
@@ -380,7 +383,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {
     val Success(results) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("bil"), withIdIn = List(3), sort = Sort.ByRelevanceDesc)
+      TestData.testSettings.copy(query = Some("bil"), withIdIn = List(3), sort = Sort.ByRelevanceDesc)
     )
     val hits = results.results
     results.totalCount should be(1)
@@ -390,7 +393,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("That search matches title") {
     val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("Pingvinen"), sort = Sort.ByTitleAsc))
+      articleSearchService.matchingQuery(TestData.testSettings.copy(query = Some("Pingvinen"), sort = Sort.ByTitleAsc))
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(2)
@@ -398,7 +401,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("That search matches tags") {
     val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("and"), sort = Sort.ByTitleAsc))
+      articleSearchService.matchingQuery(TestData.testSettings.copy(query = Some("and"), sort = Sort.ByTitleAsc))
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(3)
@@ -406,13 +409,14 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("That search does not return superman since it has license copyrighted and license is not specified") {
     val Success(results) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("supermann"), sort = Sort.ByTitleAsc))
+      articleSearchService.matchingQuery(TestData.testSettings.copy(query = Some("supermann"), sort = Sort.ByTitleAsc))
     results.totalCount should be(0)
   }
 
   test("That search returns superman since license is specified as copyrighted") {
     val Success(results) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("supermann"), sort = Sort.ByTitleAsc, license = Some(Copyrighted.toString))
+      TestData.testSettings
+        .copy(query = Some("supermann"), sort = Sort.ByTitleAsc, license = Some(Copyrighted.toString))
     )
     val hits = results.results
     results.totalCount should be(1)
@@ -421,30 +425,36 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("Searching with logical AND only returns results with all terms") {
     val Success(search1) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("bilde + bil"), sort = Sort.ByTitleAsc))
+      articleSearchService.matchingQuery(
+        TestData.testSettings.copy(query = Some("bilde + bil"), sort = Sort.ByTitleAsc)
+      )
     val hits1 = search1.results
     hits1.map(_.id) should equal(Seq(1, 3, 5))
 
     val Success(search2) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("batmen + bil"), sort = Sort.ByTitleAsc))
+      articleSearchService.matchingQuery(
+        TestData.testSettings.copy(query = Some("batmen + bil"), sort = Sort.ByTitleAsc)
+      )
     val hits2 = search2.results
     hits2.map(_.id) should equal(Seq(1))
 
     val Success(search3) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("bil + bilde + -flaggermusmann"), sort = Sort.ByTitleAsc)
+      TestData.testSettings.copy(query = Some("bil + bilde + -flaggermusmann"), sort = Sort.ByTitleAsc)
     )
     val hits3 = search3.results
     hits3.map(_.id) should equal(Seq(3, 5))
 
     val Success(search4) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("bil + -hulken"), sort = Sort.ByTitleAsc))
+      articleSearchService.matchingQuery(
+        TestData.testSettings.copy(query = Some("bil + -hulken"), sort = Sort.ByTitleAsc)
+      )
     val hits4 = search4.results
     hits4.map(_.id) should equal(Seq(1, 3))
   }
 
   test("search in content should be ranked lower than introduction and title") {
     val Success(search) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("mareritt+ragnarok"), sort = Sort.ByRelevanceDesc)
+      TestData.testSettings.copy(query = Some("mareritt+ragnarok"), sort = Sort.ByRelevanceDesc)
     )
     val hits = search.results
     hits.map(_.id) should equal(Seq(9, 8))
@@ -452,14 +462,14 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("Search for all languages should return all articles in different languages") {
     val Success(search) = articleSearchService.matchingQuery(
-      testSettings.copy(language = Language.AllLanguages, pageSize = 100, sort = Sort.ByTitleAsc)
+      TestData.testSettings.copy(language = Language.AllLanguages, pageSize = 100, sort = Sort.ByTitleAsc)
     )
     search.totalCount should equal(11)
   }
 
   test("Search for all languages should return all articles in correct language") {
     val Success(search) =
-      articleSearchService.matchingQuery(testSettings.copy(language = Language.AllLanguages, pageSize = 100))
+      articleSearchService.matchingQuery(TestData.testSettings.copy(language = Language.AllLanguages, pageSize = 100))
     val hits = search.results
 
     search.totalCount should equal(11)
@@ -479,7 +489,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("Search for all languages should return all languages if copyrighted") {
     val Success(search) = articleSearchService.matchingQuery(
-      testSettings.copy(
+      TestData.testSettings.copy(
         language = Language.AllLanguages,
         license = Some(Copyrighted.toString),
         sort = Sort.ByTitleAsc,
@@ -494,10 +504,10 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("Searching with query for all languages should return language that matched") {
     val Success(searchEn) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("Cats"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
+      TestData.testSettings.copy(query = Some("Cats"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
     )
     val Success(searchNb) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("Katter"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
+      TestData.testSettings.copy(query = Some("Katter"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
     )
 
     searchEn.totalCount should equal(1)
@@ -513,7 +523,8 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("metadescription is searchable") {
     val Success(search) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("hurr dirr"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
+      TestData.testSettings
+        .copy(query = Some("hurr dirr"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
     )
 
     search.totalCount should equal(1)
@@ -525,7 +536,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   test("That searching with fallback parameter returns article in language priority even if doesnt match on language") {
     val Success(search) =
       articleSearchService.matchingQuery(
-        testSettings.copy(withIdIn = List(9, 10, 11), language = "en", fallback = true)
+        TestData.testSettings.copy(withIdIn = List(9, 10, 11), language = "en", fallback = true)
       )
 
     search.totalCount should equal(3)
@@ -539,7 +550,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("That searching for language not in analyzer works as expected") {
     val Success(search) =
-      articleSearchService.matchingQuery(testSettings.copy(language = "biz"))
+      articleSearchService.matchingQuery(TestData.testSettings.copy(language = "biz"))
 
     search.totalCount should equal(1)
     search.results.head.id should equal(11)
@@ -548,20 +559,21 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("That searching for language not in index works as expected") {
     val Success(search) =
-      articleSearchService.matchingQuery(testSettings.copy(language = "mix"))
+      articleSearchService.matchingQuery(TestData.testSettings.copy(language = "mix"))
 
     search.totalCount should equal(0)
   }
 
   test("That searching for not supported language does not break") {
     val Success(search) =
-      articleSearchService.matchingQuery(testSettings.copy(language = "asdf"))
+      articleSearchService.matchingQuery(TestData.testSettings.copy(language = "asdf"))
 
     search.totalCount should equal(0)
   }
 
   test("That metaImage altText is included in the search") {
-    val Success(search) = articleSearchService.matchingQuery(testSettings.copy(withIdIn = List(1), fallback = true))
+    val Success(search) =
+      articleSearchService.matchingQuery(TestData.testSettings.copy(withIdIn = List(1), fallback = true))
     search.totalCount should be(1)
     search.results.head.metaImage should be(
       Some(
@@ -576,7 +588,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
     val Success(initialSearch) =
       articleSearchService.matchingQuery(
-        testSettings.copy(
+        TestData.testSettings.copy(
           language = Language.AllLanguages,
           pageSize = pageSize,
           fallback = true,
@@ -601,7 +613,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   test("That highlighting works when scrolling") {
     val Success(initialSearch) =
       articleSearchService.matchingQuery(
-        testSettings.copy(
+        TestData.testSettings.copy(
           query = Some("about"),
           pageSize = 1,
           fallback = true,
@@ -621,26 +633,29 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("That filtering for grepCodes works as expected") {
 
-    val Success(search1) = articleSearchService.matchingQuery(testSettings.copy(grepCodes = Seq("KV123")))
+    val Success(search1) = articleSearchService.matchingQuery(TestData.testSettings.copy(grepCodes = Seq("KV123")))
     search1.totalCount should be(2)
     search1.results.map(_.id) should be(Seq(1, 2))
 
-    val Success(search2) = articleSearchService.matchingQuery(testSettings.copy(grepCodes = Seq("KV123", "KV456")))
+    val Success(search2) =
+      articleSearchService.matchingQuery(TestData.testSettings.copy(grepCodes = Seq("KV123", "KV456")))
     search2.totalCount should be(3)
     search2.results.map(_.id) should be(Seq(1, 2, 3))
 
-    val Success(search3) = articleSearchService.matchingQuery(testSettings.copy(grepCodes = Seq("KV456")))
+    val Success(search3) = articleSearchService.matchingQuery(TestData.testSettings.copy(grepCodes = Seq("KV456")))
     search3.totalCount should be(3)
     search3.results.map(_.id) should be(Seq(1, 2, 3))
   }
 
   test("That 'everyone' doesn't see teacher and student articles in search") {
     val Success(search1) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("availability"), availability = Seq(Availability.everyone))
+      TestData.testSettings.copy(query = Some("availability"), availability = Seq(Availability.everyone))
     )
 
     val Success(search2) =
-      articleSearchService.matchingQuery(testSettings.copy(query = Some("availability"), availability = Seq.empty))
+      articleSearchService.matchingQuery(
+        TestData.testSettings.copy(query = Some("availability"), availability = Seq.empty)
+      )
 
     search1.results.map(_.id) should be(Seq(13))
     search2.results.map(_.id) should be(Seq(13))
@@ -648,7 +663,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("That 'everyone' doesn't see teacher articles in search") {
     val Success(search1) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("availability"), availability = Seq(Availability.everyone))
+      TestData.testSettings.copy(query = Some("availability"), availability = Seq(Availability.everyone))
     )
 
     search1.results.map(_.id) should be(Seq(13))
@@ -656,7 +671,8 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("That 'teachers' sees teacher articles in search") {
     val Success(search1) = articleSearchService.matchingQuery(
-      testSettings.copy(query = Some("availability"), availability = Seq(Availability.teacher, Availability.everyone))
+      TestData.testSettings
+        .copy(query = Some("availability"), availability = Seq(Availability.teacher, Availability.everyone))
     )
 
     search1.results.map(_.id) should be(Seq(12, 13))

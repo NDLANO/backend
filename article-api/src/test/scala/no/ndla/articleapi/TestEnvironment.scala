@@ -63,37 +63,37 @@ trait TestEnvironment
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
   }
-  val TestData: TestData   = new TestData
-  val migrator: DBMigrator = mock[DBMigrator]
-  val DBUtil: DBUtility    = mock[DBUtility]
+  lazy val TestData: TestDataClass = new TestDataClass
+  lazy val migrator: DBMigrator    = mock[DBMigrator]
+  lazy val DBUtil: DBUtility       = mock[DBUtility]
 
-  val articleSearchService: ArticleSearchService = mock[ArticleSearchService]
-  val articleIndexService: ArticleIndexService   = mock[ArticleIndexService]
+  lazy val articleSearchService: ArticleSearchService = mock[ArticleSearchService]
+  lazy val articleIndexService: ArticleIndexService   = mock[ArticleIndexService]
 
-  val internController: InternController       = mock[InternController]
-  val articleControllerV2: ArticleControllerV2 = mock[ArticleControllerV2]
+  lazy val internController: InternController       = mock[InternController]
+  lazy val articleControllerV2: ArticleControllerV2 = mock[ArticleControllerV2]
 
-  val healthController: TapirHealthController = mock[TapirHealthController]
+  lazy val healthController: TapirHealthController = mock[TapirHealthController]
 
-  val dataSource: HikariDataSource         = mock[HikariDataSource]
-  val articleRepository: ArticleRepository = mock[ArticleRepository]
+  lazy val dataSource: HikariDataSource         = mock[HikariDataSource]
+  lazy val articleRepository: ArticleRepository = mock[ArticleRepository]
 
-  val converterService: ConverterService = mock[ConverterService]
-  val readService: ReadService           = mock[ReadService]
-  val writeService: WriteService         = mock[WriteService]
-  val contentValidator: ContentValidator = mock[ContentValidator]
+  lazy val converterService: ConverterService = mock[ConverterService]
+  lazy val readService: ReadService           = mock[ReadService]
+  lazy val writeService: WriteService         = mock[WriteService]
+  lazy val contentValidator: ContentValidator = mock[ContentValidator]
 
-  val ndlaClient: NdlaClient                         = mock[NdlaClient]
-  val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
-  val searchConverterService: SearchConverterService = mock[SearchConverterService]
-  var e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
-  val searchApiClient: SearchApiClient               = mock[SearchApiClient]
-  val feideApiClient: FeideApiClient                 = mock[FeideApiClient]
-  val redisClient: RedisClient                       = mock[RedisClient]
-  val frontpageApiClient: FrontpageApiClient         = mock[FrontpageApiClient]
-  val imageApiClient: ImageApiClient                 = mock[ImageApiClient]
+  lazy val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  lazy val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
+  lazy val searchConverterService: SearchConverterService = mock[SearchConverterService]
+  var e4sClient: NdlaE4sClient                            = mock[NdlaE4sClient]
+  lazy val searchApiClient: SearchApiClient               = mock[SearchApiClient]
+  lazy val feideApiClient: FeideApiClient                 = mock[FeideApiClient]
+  lazy val redisClient: RedisClient                       = mock[RedisClient]
+  lazy val frontpageApiClient: FrontpageApiClient         = mock[FrontpageApiClient]
+  lazy val imageApiClient: ImageApiClient                 = mock[ImageApiClient]
 
-  val clock: SystemClock = mock[SystemClock]
+  lazy val clock: SystemClock = mock[SystemClock]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]
