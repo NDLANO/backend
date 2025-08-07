@@ -41,22 +41,22 @@ trait TestEnvironment
     with DBMigrator {
   override lazy val props = new FrontpageApiProperties
 
-  override val clock: SystemClock           = mock[SystemClock]
-  override val migrator: DBMigrator         = mock[DBMigrator]
-  override val dataSource: HikariDataSource = mock[HikariDataSource]
+  override lazy val clock: SystemClock           = mock[SystemClock]
+  override lazy val migrator: DBMigrator         = mock[DBMigrator]
+  override lazy val dataSource: HikariDataSource = mock[HikariDataSource]
 
-  override val filmPageController: FilmPageController           = mock[FilmPageController]
-  override val subjectPageController: SubjectPageController     = mock[SubjectPageController]
-  override val frontPageController: FrontPageController         = mock[FrontPageController]
-  override val subjectPageRepository: SubjectPageRepository     = mock[SubjectPageRepository]
-  override val frontPageRepository: FrontPageRepository         = mock[FrontPageRepository]
-  override val filmFrontPageRepository: FilmFrontPageRepository = mock[FilmFrontPageRepository]
-  override val healthController: TapirHealthController          = mock[TapirHealthController]
-  override val readService: ReadService                         = mock[ReadService]
-  override val writeService: WriteService                       = mock[WriteService]
+  override lazy val filmPageController: FilmPageController           = mock[FilmPageController]
+  override lazy val subjectPageController: SubjectPageController     = mock[SubjectPageController]
+  override lazy val frontPageController: FrontPageController         = mock[FrontPageController]
+  override lazy val subjectPageRepository: SubjectPageRepository     = mock[SubjectPageRepository]
+  override lazy val frontPageRepository: FrontPageRepository         = mock[FrontPageRepository]
+  override lazy val filmFrontPageRepository: FilmFrontPageRepository = mock[FilmFrontPageRepository]
+  override lazy val healthController: TapirHealthController          = mock[TapirHealthController]
+  override lazy val readService: ReadService                         = mock[ReadService]
+  override lazy val writeService: WriteService                       = mock[WriteService]
 
-  override val ndlaClient: NdlaClient           = mock[NdlaClient]
-  override val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
+  override lazy val ndlaClient: NdlaClient           = mock[NdlaClient]
+  override lazy val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]

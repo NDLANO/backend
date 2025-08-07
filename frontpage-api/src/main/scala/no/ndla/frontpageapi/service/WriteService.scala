@@ -21,7 +21,7 @@ import scala.util.{Failure, Success, Try}
 
 trait WriteService {
   this: SubjectPageRepository & FrontPageRepository & FilmFrontPageRepository & Props & ConverterService =>
-  val writeService: WriteService
+  lazy val writeService: WriteService
 
   class WriteService {
 

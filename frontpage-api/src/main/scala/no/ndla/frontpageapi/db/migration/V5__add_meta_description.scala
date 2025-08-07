@@ -8,7 +8,6 @@
 
 package no.ndla.frontpageapi.db.migration
 
-import io.circe.generic.auto.*
 import io.circe.generic.semiauto.*
 import io.circe.parser.parse
 import io.circe.syntax.*
@@ -23,8 +22,16 @@ import scala.util.{Failure, Success}
 
 class V5__add_meta_description extends BaseJavaMigration {
 
-  implicit val decoder: Decoder[V1_DBFrontPageData] = deriveDecoder
-  implicit val encoder: Encoder[V1_DBFrontPageData] = deriveEncoder
+  implicit val decoder: Decoder[V1_DBFrontPageData]        = deriveDecoder
+  implicit val encoder: Encoder[V1_DBFrontPageData]        = deriveEncoder
+  implicit val v4decoder: Decoder[V4_SubjectFrontPageData] = deriveDecoder
+  implicit val v4encoder: Encoder[V4_SubjectFrontPageData] = deriveEncoder
+
+  implicit val v5decoder: Decoder[V5_SubjectFrontPageData] = deriveDecoder
+  implicit val v5encoder: Encoder[V5_SubjectFrontPageData] = deriveEncoder
+
+  implicit val v5MetaDescriptionDecoder: Decoder[V5_MetaDescription] = deriveDecoder
+  implicit val v5MetaDescriptionEncoder: Encoder[V5_MetaDescription] = deriveEncoder
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
@@ -73,6 +80,10 @@ class V5__add_meta_description extends BaseJavaMigration {
 }
 
 case class V5_MetaDescription(metaDescription: String, language: String)
+object V5_MetaDescription {
+  implicit val encoder: Encoder[V5_MetaDescription] = deriveEncoder
+  implicit val decoder: Decoder[V5_MetaDescription] = deriveDecoder
+}
 case class V5_SubjectFrontPageData(
     id: Option[Long],
     name: String,
@@ -89,3 +100,7 @@ case class V5_SubjectFrontPageData(
     latestContent: Option[List[String]],
     goTo: List[String]
 )
+object V5_SubjectFrontPageData {
+  implicit val encoder: Encoder[V5_SubjectFrontPageData] = deriveEncoder
+  implicit val decoder: Decoder[V5_SubjectFrontPageData] = deriveDecoder
+}

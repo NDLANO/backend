@@ -8,6 +8,10 @@
 
 package no.ndla.frontpageapi.model.api
 
+import io.circe.generic.semiauto.*
+import io.circe.Encoder
+import io.circe.Decoder
+
 case class NewSubjectPageDTO(
     name: String,
     externalId: Option[String],
@@ -19,3 +23,8 @@ case class NewSubjectPageDTO(
     buildsOn: Option[List[String]],
     leadsTo: Option[List[String]]
 )
+
+object NewSubjectPageDTO {
+  implicit val encoder: Encoder[NewSubjectPageDTO] = deriveEncoder
+  implicit val decoder: Decoder[NewSubjectPageDTO] = deriveDecoder
+}
