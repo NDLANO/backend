@@ -49,9 +49,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
   this: Clock & ArticleRepository & Props =>
-  val converterService: ConverterService
-
-  import props.*
+  lazy val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
 
@@ -374,7 +372,7 @@ trait ConverterService {
 
     private def toApiArticleMetaImage(metaImage: ArticleMetaImage): api.ArticleMetaImageDTO = {
       api.ArticleMetaImageDTO(
-        s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
+        s"${props.externalApiUrls("raw-image")}/${metaImage.imageId}",
         metaImage.altText,
         metaImage.language
       )

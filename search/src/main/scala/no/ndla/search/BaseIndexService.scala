@@ -29,7 +29,6 @@ trait BaseIndexService {
   this: Elastic4sClient & HasBaseProps & SearchLanguage =>
 
   trait BaseIndexService extends StrictLogging {
-    import SearchLanguage.NynorskLanguageAnalyzer
     val documentType: String
     val searchIndex: String
     val MaxResultWindowOption: Int
@@ -39,7 +38,7 @@ trait BaseIndexService {
 
     val analysis: Analysis =
       Analysis(
-        analyzers = List(NynorskLanguageAnalyzer),
+        analyzers = List(SearchLanguage.NynorskLanguageAnalyzer),
         tokenFilters = SearchLanguage.NynorskTokenFilters
       )
 

@@ -36,9 +36,7 @@ import scala.util.{Failure, Success, Try}
 trait ArticleControllerV2 {
   this: ReadService & WriteService & ArticleSearchService & SearchConverterService & ConverterService &
     ContentValidator & Props & ErrorHandling & TapirController =>
-  val articleControllerV2: ArticleControllerV2
-
-  import props.*
+  lazy val articleControllerV2: ArticleControllerV2
 
   class ArticleControllerV2 extends TapirController {
     protected val applicationDescription = "Services for accessing articles from NDLA."
@@ -79,11 +77,11 @@ trait ArticleControllerV2 {
     private val fallback         =
       query[Boolean]("fallback").description("Fallback to existing language if language is specified.").default(false)
     protected val scrollId: EndpointInput.Query[Option[String]] = query[Option[String]]("search-context").description(
-      s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
+      s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${props.InitialScrollContextKeywords
           .mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.name}' and '${this.fallback.name}'.
-         |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
-         |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
+         |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after ${props.ElasticSearchScrollKeepAlive}).
+         |If you are not paginating past ${props.ElasticSearchIndexMaxResultWindow} hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
          |""".stripMargin
     )
     private val grepCodes = listQuery[String]("grep-codes")
@@ -110,7 +108,7 @@ trait ArticleControllerV2 {
         orFunction: => Try[(SearchResultV2DTO, DynamicHeaders)]
     ): Try[(SearchResultV2DTO, DynamicHeaders)] =
       scrollId match {
-        case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
+        case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
           articleSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
               val body    = searchConverterService.asApiSearchResultV2(scrollResult)
@@ -134,8 +132,8 @@ trait ArticleControllerV2 {
         .errorOut(errorOutputsFor())
         .serverLogicPure { case (query, pageSize, pageNo, language) =>
           val queryOrEmpty   = query.getOrElse("")
-          val parsedPageSize = pageSize.getOrElse(DefaultPageSize) match {
-            case tooSmall if tooSmall < 1 => DefaultPageSize
+          val parsedPageSize = pageSize.getOrElse(props.DefaultPageSize) match {
+            case tooSmall if tooSmall < 1 => props.DefaultPageSize
             case x                        => x
           }
           val parsedPageNo = pageNo.getOrElse(1) match {
@@ -228,9 +226,9 @@ trait ArticleControllerV2 {
               ) =>
             scrollSearchOr(scrollId, language.code) {
               val sort         = Sort.valueOf(maybeSort.getOrElse(""))
-              val pageSize     = maybePageSize.getOrElse(DefaultPageSize)
+              val pageSize     = maybePageSize.getOrElse(props.DefaultPageSize)
               val page         = maybePageNo.getOrElse(1)
-              val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
+              val shouldScroll = scrollId.exists(props.InitialScrollContextKeywords.contains)
 
               search(
                 query,
@@ -301,12 +299,12 @@ trait ArticleControllerV2 {
           val query              = searchParams.query
           val sort               = searchParams.sort
           val license            = searchParams.license
-          val pageSize           = searchParams.pageSize.getOrElse(DefaultPageSize)
+          val pageSize           = searchParams.pageSize.getOrElse(props.DefaultPageSize)
           val page               = searchParams.page.getOrElse(1)
           val idList             = searchParams.ids.getOrElse(List.empty)
           val articleTypesFilter = searchParams.articleTypes.getOrElse(List.empty)
           val grepCodes          = searchParams.grepCodes.getOrElse(Seq.empty)
-          val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+          val shouldScroll       = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
 
           search(
             query,

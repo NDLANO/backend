@@ -30,14 +30,12 @@ import scala.util.{Failure, Success, Try}
 trait ArticleSearchService {
   this: Elastic4sClient & SearchConverterService & SearchService & ArticleIndexService & ConverterService & Props &
     ErrorHandling =>
-  val articleSearchService: ArticleSearchService
-
-  import props.*
+  lazy val articleSearchService: ArticleSearchService
 
   class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummaryV2DTO] {
     private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
-    override val searchIndex: String = ArticleSearchIndex
+    override val searchIndex: String = props.ArticleSearchIndex
 
     override def hitToApiModel(hit: String, language: String): api.ArticleSummaryV2DTO = {
       converterService.hitAsArticleSummaryV2(hit, language)
@@ -114,9 +112,9 @@ trait ArticleSearchService {
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.pageSize * settings.page
-      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+          s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
         )
         Failure(ArticleErrorHelpers.ResultWindowTooLargeException())
       } else {
@@ -132,7 +130,7 @@ trait ArticleSearchService {
         // Only add scroll param if it is first page
         val searchWithScroll =
           if (startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
+            searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
           } else { searchToExecute }
 
         e4sClient.execute(searchWithScroll) match {

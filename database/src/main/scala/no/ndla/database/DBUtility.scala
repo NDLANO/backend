@@ -18,7 +18,7 @@ import scalikejdbc.*
 import scala.util.{Failure, Success, Try}
 
 trait DBUtility {
-  val DBUtil: DBUtility
+  lazy val DBUtil: DBUtility
   class DBUtility extends StrictLogging {
     def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
       try {

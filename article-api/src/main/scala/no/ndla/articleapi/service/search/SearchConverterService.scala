@@ -19,7 +19,7 @@ import org.jsoup.Jsoup
 
 trait SearchConverterService {
   this: ConverterService & SearchLanguage =>
-  val searchConverterService: SearchConverterService
+  lazy val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
 

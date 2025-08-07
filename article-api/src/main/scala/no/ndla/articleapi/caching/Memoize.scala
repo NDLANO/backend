@@ -17,7 +17,7 @@ class Memoize[R](maxCacheAgeMs: Long, f: () => R, autoRefreshCache: Boolean) ext
     def isExpired: Boolean = lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
   }
 
-  private[this] var cache: Option[CacheValue] = None
+  private var cache: Option[CacheValue] = None
 
   private def renewCache(): Unit = {
     cache = Some(CacheValue(f(), System.currentTimeMillis()))
@@ -28,7 +28,7 @@ class Memoize[R](maxCacheAgeMs: Long, f: () => R, autoRefreshCache: Boolean) ext
     val task = new Runnable {
       def run(): Unit = renewCache()
     }
-    ex.scheduleAtFixedRate(task, 20, maxCacheAgeMs, TimeUnit.MILLISECONDS)
+    ex.scheduleAtFixedRate(task, 20, maxCacheAgeMs, TimeUnit.MILLISECONDS): Unit
   }
 
   def apply(): R = {
