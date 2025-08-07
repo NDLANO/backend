@@ -16,7 +16,7 @@ import no.ndla.validation.ResourceType
 import scala.util.Properties.*
 
 trait Props extends HasBaseProps with HasDatabaseProps {
-  val props: ArticleApiProperties
+  lazy val props: ArticleApiProperties
 }
 
 class ArticleApiProperties extends BaseProps with DatabaseProps {

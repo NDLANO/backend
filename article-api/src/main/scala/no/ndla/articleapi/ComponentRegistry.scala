@@ -70,8 +70,8 @@ class ComponentRegistry(properties: ArticleApiProperties)
     with FrontpageApiClient
     with ImageApiClient
     with V55__SetHideBylineForImagesNotCopyrighted {
-  override val props: ArticleApiProperties = properties
-  override val migrator: DBMigrator        = DBMigrator(
+  override lazy val props: ArticleApiProperties = properties
+  override lazy val migrator: DBMigrator        = DBMigrator(
     new R__SetArticleLanguageFromTaxonomy(props),
     new R__SetArticleTypeFromTaxonomy,
     new V8__CopyrightFormatUpdated,
@@ -81,32 +81,32 @@ class ComponentRegistry(properties: ArticleApiProperties)
     new V33__ConvertLanguageUnknown(props),
     new V55__SetHideBylineForImagesNotCopyrighted
   )
-  override val DBUtil: DBUtility = new DBUtility
+  override lazy val DBUtil: DBUtility = new DBUtility
 
-  lazy val dataSource: HikariDataSource            = DataSource.getHikariDataSource
-  lazy val internController                        = new InternController
-  lazy val articleControllerV2                     = new ArticleControllerV2
-  lazy val healthController: TapirHealthController = new TapirHealthController
+  override lazy val dataSource: HikariDataSource            = DataSource.getHikariDataSource
+  override lazy val internController                        = new InternController
+  override lazy val articleControllerV2                     = new ArticleControllerV2
+  override lazy val healthController: TapirHealthController = new TapirHealthController
 
-  lazy val articleRepository    = new ArticleRepository
-  lazy val articleSearchService = new ArticleSearchService
-  lazy val articleIndexService  = new ArticleIndexService
+  override lazy val articleRepository    = new ArticleRepository
+  override lazy val articleSearchService = new ArticleSearchService
+  override lazy val articleIndexService  = new ArticleIndexService
 
-  lazy val converterService = new ConverterService
-  lazy val contentValidator = new ContentValidator()
+  override lazy val converterService = new ConverterService
+  override lazy val contentValidator = new ContentValidator()
 
-  lazy val ndlaClient             = new NdlaClient
-  lazy val searchConverterService = new SearchConverterService
-  lazy val readService            = new ReadService
-  lazy val writeService           = new WriteService
+  override lazy val ndlaClient             = new NdlaClient
+  override lazy val searchConverterService = new SearchConverterService
+  override lazy val readService            = new ReadService
+  override lazy val writeService           = new WriteService
 
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
-  lazy val searchApiClient     = new SearchApiClient
-  lazy val feideApiClient      = new FeideApiClient
-  lazy val myndlaApiClient     = new MyNDLAApiClient
-  lazy val redisClient         = new RedisClient(props.RedisHost, props.RedisPort)
-  lazy val frontpageApiClient  = new FrontpageApiClient
-  lazy val imageApiClient      = new ImageApiClient
+  var e4sClient: NdlaE4sClient         = Elastic4sClientFactory.getClient(props.SearchServer)
+  override lazy val searchApiClient    = new SearchApiClient
+  override lazy val feideApiClient     = new FeideApiClient
+  override lazy val myndlaApiClient    = new MyNDLAApiClient
+  override lazy val redisClient        = new RedisClient(props.RedisHost, props.RedisPort)
+  override lazy val frontpageApiClient = new FrontpageApiClient
+  override lazy val imageApiClient     = new ImageApiClient
 
   lazy val clock = new SystemClock
 

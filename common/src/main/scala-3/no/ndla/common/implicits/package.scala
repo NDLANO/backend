@@ -65,6 +65,10 @@ package object implicits {
     def toTry(throwable: Throwable): Try[T] = Failure(throwable)
   }
 
+  extension [T](t: Try[T]) {
+    def unit: Try[Unit] = t.map(_ => ())
+  }
+
   implicit class StringOption(private val self: Option[String]) {
     def emptySomeToNone: Option[String] = StringUtil.emptySomeToNone(self)
   }

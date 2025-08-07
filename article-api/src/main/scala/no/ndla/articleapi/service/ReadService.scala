@@ -40,7 +40,7 @@ import scala.util.{Failure, Success, Try}
 trait ReadService {
   this: ArticleRepository & FeideApiClient & ConverterService & ArticleSearchService & SearchConverterService &
     MemoizeHelpers & Props & ErrorHandling & FrontpageApiClient =>
-  val readService: ReadService
+  lazy val readService: ReadService
 
   class ReadService extends StrictLogging {
     def getInternalIdByExternalId(externalId: String): Option[api.ArticleIdV2DTO] =
