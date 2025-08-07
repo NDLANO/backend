@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.service.search
 
+import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.RequestFailure
 import com.sksamuel.elastic4s.requests.searches.SearchResponse
@@ -29,9 +30,10 @@ import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchExcept
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
+import no.ndla.learningpathapi.integration.TaxonomyApiClient
 
 trait SearchService extends StrictLogging {
-  this: SearchIndexService & Elastic4sClient & SearchConverterServiceComponent & Props & ErrorHandling =>
+  this: SearchIndexService & Elastic4sClient & SearchConverterServiceComponent & TaxonomyApiClient & Props & ErrorHandling =>
   val searchService: SearchService
 
   class SearchService {
@@ -80,7 +82,17 @@ trait SearchService extends StrictLogging {
       searchConverterService.asApiLearningPathSummaryV2(searchable, language)
     }
 
-    def containsPath(paths: List[String]): Try[SearchResult] = {
+    def containsArticle(id: Long): Try[Seq[LearningPathSummaryV2DTO]] = {
+      val nodes      = taxonomyApiClient.queryNodes(id).getOrElse(List.empty).flatMap(_.paths)
+      val plainPaths = List(
+        s"/article-iframe/*/$id",
+        s"/article-iframe/*/$id/",
+        s"/article-iframe/*/$id/\\?*",
+        s"/article-iframe/*/$id\\?*",
+        s"/article/$id"
+      )
+      val paths = nodes ++ plainPaths
+
       val settings = SearchSettings(
         query = None,
         withIdIn = List.empty,
@@ -91,6 +103,7 @@ trait SearchService extends StrictLogging {
         page = None,
         pageSize = None,
         fallback = false,
+        articleId = Some(id),
         verificationStatus = None,
         shouldScroll = false,
         status = List(
@@ -100,7 +113,7 @@ trait SearchService extends StrictLogging {
         )
       )
 
-      executeSearch(boolQuery(), settings)
+      executeSearch(boolQuery(), settings).map(_.results)
     }
 
     private def languageSpecificSearch(searchField: String, language: String, query: String, boost: Double): Query =
@@ -162,7 +175,7 @@ trait SearchService extends StrictLogging {
 
       val tagFilter: Option[Query] = settings.taggedWith.map(tag => termQuery(s"tags.$searchLanguage.raw", tag))
       val idFilter                 = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-      val pathFilter               = pathsFilterQuery(settings.withPaths)
+      val articlesFilter           = articlesFilterQuery(settings.withPaths, settings.articleId)
 
       val verificationStatusFilter = settings.verificationStatus.map(status => termQuery("verificationStatus", status))
 
@@ -171,7 +184,7 @@ trait SearchService extends StrictLogging {
       val filters = List(
         tagFilter,
         idFilter,
-        pathFilter,
+        articlesFilter,
         languageFilter,
         verificationStatusFilter,
         statusFilter
@@ -220,14 +233,16 @@ trait SearchService extends StrictLogging {
       }
     }
 
-    private def pathsFilterQuery(paths: List[String]): Option[NestedQuery] = {
+    private def articlesFilterQuery(paths: List[String], id: Option[Long]): Option[NestedQuery] = {
       if (paths.isEmpty) None
       else {
+        val nestedPathsQuery = paths.map(p => wildcardQuery("learningsteps.embedUrl", s"*$p"))
+        val articleQuery     = id.map(id => termQuery("learningsteps.article", id)).toSeq
         Some(
           nestedQuery(
             "learningsteps",
             boolQuery()
-              .should(paths.map(p => wildcardQuery("learningsteps.embedUrl", s"*$p")))
+              .should(nestedPathsQuery ++ articleQuery)
               .must(matchQuery("learningsteps.status", "ACTIVE"))
               .minimumShouldMatch(1)
           )

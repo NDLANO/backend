@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.e2e
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.{EmbedType, LearningPath, StepType}
+import no.ndla.common.model.domain.learningpath.{LearningPath, StepType, EmbedType}
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.*
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
@@ -129,6 +129,7 @@ class LearningPathAndStepCreationTests
           embedType = EmbedType.External.entryName
         )
       ),
+      article = None,
       showTitle = false,
       `type` = StepType.TEXT.toString,
       license = None
