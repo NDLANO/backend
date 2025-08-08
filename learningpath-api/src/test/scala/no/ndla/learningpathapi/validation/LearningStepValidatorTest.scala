@@ -39,6 +39,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     introduction = List(Introduction("<p>Gyldig introduksjon</p>", "nb")),
     description = List(Description("<strong>Gyldig description</strong>", "nb")),
     embedUrl = List(EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed)),
+    article = None,
     `type` = StepType.TEXT,
     license = Some(license),
     showTitle = true,

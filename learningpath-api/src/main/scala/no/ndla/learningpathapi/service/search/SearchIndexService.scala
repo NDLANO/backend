@@ -137,7 +137,8 @@ trait SearchIndexService {
         nestedField("learningsteps").fields(
           textField("stepType"),
           keywordField("embedUrl"),
-          keywordField("status")
+          keywordField("status"),
+          intField("article")
         ),
         ObjectField(
           "copyright",

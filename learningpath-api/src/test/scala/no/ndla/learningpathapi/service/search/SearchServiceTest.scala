@@ -79,6 +79,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     introduction = List(),
     description = List(),
     embedUrl = List(),
+    article = None,
     `type` = StepType.INTRODUCTION,
     license = Some(license),
     status = StepStatus.ACTIVE

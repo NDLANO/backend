@@ -325,7 +325,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
       scrollId = Some("heiheihei")
     )
     when(taxonomyApiClient.queryNodes(any[Long])).thenReturn(Success(List[Node]()))
-    when(searchService.containsPath(any[List[String]])).thenReturn(Success(result))
+    when(searchService.containsArticle(any)).thenReturn(Success(result.results))
 
     val res = simpleHttpClient.send(
       quickRequest.get(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/contains-article/123")

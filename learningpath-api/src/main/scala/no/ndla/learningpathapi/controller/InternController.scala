@@ -9,11 +9,10 @@
 package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
-import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.learningpath as commonApi
 import no.ndla.common.model.domain.learningpath as commonDomain
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.{ErrorHandling, LearningPathDomainDumpDTO, LearningPathSummaryV2DTO}
+import no.ndla.learningpathapi.model.api.{ErrorHandling, LearningPathDomainDumpDTO}
 import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
 import no.ndla.learningpathapi.service.search.{SearchIndexService, SearchService}
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
@@ -45,7 +44,6 @@ trait InternController {
       dumpLearningpaths,
       dumpSingleLearningPath,
       postLearningPathDump,
-      containsArticle,
       learningPathStats
     )
 
@@ -135,18 +133,6 @@ trait InternController {
       .errorOut(errorOutputsFor(404))
       .serverLogicPure { dumpToInsert =>
         updateService.insertDump(dumpToInsert).asRight
-      }
-
-    private def containsArticle: ServerEndpoint[Any, Eff] = endpoint.get
-      .in("containsArticle")
-      .in(listQuery[String]("paths"))
-      .out(jsonBody[Seq[LearningPathSummaryV2DTO]])
-      .errorOut(errorOutputsFor(404))
-      .serverLogicPure { paths =>
-        searchService.containsPath(paths.values) match {
-          case Success(result) => result.results.asRight
-          case Failure(ex)     => returnLeftError(ex)
-        }
       }
 
     private def learningPathStats: ServerEndpoint[Any, Eff] = endpoint.get
