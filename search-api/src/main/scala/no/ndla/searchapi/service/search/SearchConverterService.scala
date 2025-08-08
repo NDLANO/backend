@@ -403,6 +403,7 @@ trait SearchConverterService {
           coverPhotoId = lp.coverPhotoId,
           duration = lp.duration,
           status = lp.status.toString,
+          owner = lp.owner,
           verificationStatus = lp.verificationStatus.toString,
           lastUpdated = lp.lastUpdated,
           defaultTitle = defaultTitle.map(_.title),

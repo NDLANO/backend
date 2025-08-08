@@ -165,10 +165,11 @@ trait UpdateService {
     private def updateSearchAndTaxonomy(learningPath: LearningPath, user: Option[TokenUser]) = {
       val sRes = searchIndexService.indexDocument(learningPath)
 
-      if (learningPath.isPublished) {
-        searchApiClient.indexLearningPathDocument(learningPath, user): Unit
-      } else if (learningPath.isDeleted) {
+      if (learningPath.isDeleted) {
         deleteIsBasedOnReference(learningPath): Unit
+        searchApiClient.deleteLearningPathDocument(learningPath.id.get, user): Unit
+      } else {
+        searchApiClient.indexLearningPathDocument(learningPath, user): Unit
       }
 
       sRes.flatMap(lp => taxonomyApiClient.updateTaxonomyForLearningPath(lp, createResourceIfMissing = false, user))

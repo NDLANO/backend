@@ -55,6 +55,7 @@ trait LearningPathIndexService {
         intField("duration"),
         keywordField("learningResourceType"),
         keywordField("status"),
+        keywordField("owner"),
         textField("verificationStatus"),
         dateField("lastUpdated"),
         keywordField("defaultTitle"),
