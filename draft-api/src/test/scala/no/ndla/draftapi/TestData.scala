@@ -358,7 +358,7 @@ object TestData {
     Seq.empty,
     common.Availability.everyone,
     Seq.empty,
-    common.draft.RevisionMeta.default,
+    common.RevisionMeta.default,
     None,
     None,
     Seq.empty,

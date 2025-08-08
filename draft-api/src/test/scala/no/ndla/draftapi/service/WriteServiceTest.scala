@@ -10,7 +10,7 @@ package no.ndla.draftapi.service
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
-import no.ndla.common.model.api.{RelatedContentLinkDTO, UpdateWith}
+import no.ndla.common.model.api.{RelatedContentLinkDTO, UpdateWith, RevisionMetaDTO}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTagDTO, PartialPublishArticleDTO}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PUBLISHED}
@@ -987,7 +987,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That updateArticle should get editor notes if RevisionMeta is added or updated") {
     when(uuidUtil.randomUUID()).thenCallRealMethod()
-    val revision = api.RevisionMetaDTO(None, NDLADate.now(), "Ny revision", RevisionStatus.NeedsRevision.entryName)
+    val revision =
+      RevisionMetaDTO(None, NDLADate.now(), "Ny revision", RevisionStatus.NeedsRevision.entryName)
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       revisionMeta = Some(Seq(revision))

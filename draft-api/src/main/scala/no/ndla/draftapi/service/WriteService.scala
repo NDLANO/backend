@@ -296,7 +296,7 @@ trait WriteService {
         .map(del => common.EditorNote(s"Slettet revisjon ${del.note}.", user.id, updatedArticle.status, clock.now()))
 
       val notes = updatedArticle.revisionMeta.flatMap {
-        case rm if !oldIds.contains(rm.id) && rm.status == common.draft.RevisionStatus.Revised =>
+        case rm if !oldIds.contains(rm.id) && rm.status == common.RevisionStatus.Revised =>
           common
             .EditorNote(
               s"Lagt til og fullført revisjon ${rm.note}.",
@@ -309,7 +309,7 @@ trait WriteService {
           common.EditorNote(s"Lagt til revisjon ${rm.note}.", user.id, updatedArticle.status, clock.now()).some
         case rm =>
           oldRevisions.find(_.id == rm.id) match {
-            case Some(old) if old.status != rm.status && rm.status == common.draft.RevisionStatus.Revised =>
+            case Some(old) if old.status != rm.status && rm.status == common.RevisionStatus.Revised =>
               common
                 .EditorNote(s"Fullført revisjon ${rm.note}.", user.id, updatedArticle.status, clock.now())
                 .some
@@ -821,7 +821,7 @@ trait WriteService {
       }
     }
 
-    private def getRevisionMetaForUrn(node: Node): Seq[common.draft.RevisionMeta] = {
+    private def getRevisionMetaForUrn(node: Node): Seq[common.RevisionMeta] = {
       node.contentUri match {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
@@ -869,7 +869,7 @@ trait WriteService {
       } yield ()
     }
 
-    private def setRevisions(entity: Node, revisions: Seq[common.draft.RevisionMeta]): Try[?] = {
+    private def setRevisions(entity: Node, revisions: Seq[common.RevisionMeta]): Try[?] = {
       val updateResult = entity.contentUri match {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
@@ -889,7 +889,7 @@ trait WriteService {
       })
     }
 
-    private def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.draft.RevisionMeta]): Try[?] = {
+    private def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.RevisionMeta]): Try[?] = {
       draftRepository
         .withId(articleId)(ReadOnlyAutoSession)
         .traverse(article => {

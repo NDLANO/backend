@@ -219,7 +219,7 @@ trait ArticleApiClient {
     }
     def withAvailability(availability: Availability): PartialPublishArticleDTO =
       self.copy(availability = availability.some)
-    def withEarliestRevisionDate(revisionMeta: Seq[common.draft.RevisionMeta]): PartialPublishArticleDTO = {
+    def withEarliestRevisionDate(revisionMeta: Seq[common.RevisionMeta]): PartialPublishArticleDTO = {
       val earliestRevisionDate = getNextRevision(revisionMeta).map(_.revisionDate)
       val newRev               = earliestRevisionDate match {
         case Some(value) => UpdateWith(value)

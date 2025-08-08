@@ -17,7 +17,8 @@ import no.ndla.common.model.api.{
   RelatedContent,
   RelatedContentLinkDTO,
   UpdateOrDelete,
-  UpdatedCommentDTO
+  UpdatedCommentDTO,
+  RevisionMetaDTO
 }
 import sttp.tapir.Schema.annotations.description
 import no.ndla.common.model.domain.Priority

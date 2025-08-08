@@ -36,7 +36,7 @@ import no.ndla.common.model.api.search.{
 import no.ndla.common.model.api.{AuthorDTO, CommentDTO, LicenseDTO, ResponsibleDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
-import no.ndla.common.model.domain.draft.{Draft, RevisionStatus}
+import no.ndla.common.model.domain.draft.{Draft}
 import no.ndla.common.model.domain.frontpage.{AboutSubject, SubjectPage}
 import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep}
 import no.ndla.common.model.domain.{
@@ -45,7 +45,8 @@ import no.ndla.common.model.domain.{
   ArticleType,
   Tag,
   VisualElement,
-  ResourceType as MyNDLAResourceType
+  ResourceType as MyNDLAResourceType,
+  RevisionStatus
 }
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.language.model.{Iso639, LanguageField}
@@ -526,7 +527,10 @@ trait SearchConverterService {
       val users: List[String] =
         List(draft.updatedBy) ++ draft.notes.map(_.user) ++ draft.previousVersionsNotes.map(_.user)
       val nextRevision =
-        draft.revisionMeta.filter(_.status == RevisionStatus.NeedsRevision).sortBy(_.revisionDate).headOption
+        draft.revisionMeta
+          .filter(_.status == RevisionStatus.NeedsRevision)
+          .sortBy(_.revisionDate)
+          .headOption
       val draftStatus = search.SearchableStatus(draft.status.current.toString, draft.status.other.map(_.toString).toSeq)
 
       val parentTopicName = SearchableLanguageValues(
