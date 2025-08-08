@@ -56,8 +56,8 @@ case class MultiDraftSearchSettings(
 )
 
 object MultiDraftSearchSettings {
-  def default: MultiDraftSearchSettings = MultiDraftSearchSettings(
-    user = TokenUser.PublicUser,
+  def default(user: TokenUser): MultiDraftSearchSettings = MultiDraftSearchSettings(
+    user = user,
     query = None,
     noteQuery = None,
     fallback = false,

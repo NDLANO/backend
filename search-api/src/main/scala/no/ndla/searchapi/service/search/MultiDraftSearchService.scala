@@ -19,11 +19,12 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, SearchType}
-import no.ndla.common.model.domain.{Content}
+import no.ndla.common.model.domain.Content
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.learningpath.LearningPathStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
@@ -72,35 +73,43 @@ trait MultiDraftSearchService {
       }
     }
 
-    def aggregateSubjects(subjects: List[String]): Try[SubjectAggregationsDTO] = {
+    def aggregateSubjects(subjects: List[String], user: TokenUser): Try[SubjectAggregationsDTO] = {
       val fiveYearsAgo        = NDLADate.now().minusYears(5)
       val inOneYear           = NDLADate.now().plusYears(1)
       val flowExcludeStatuses = List(DraftStatus.ARCHIVED, DraftStatus.PUBLISHED, DraftStatus.UNPUBLISHED)
       val flowStatuses        = DraftStatus.values.filterNot(s => flowExcludeStatuses.contains(s)).toList
       def aggregateSubject(subjectId: String): Try[SubjectAggregationDTO] = for {
         old <- filteredCountSearch(
-          MultiDraftSearchSettings.default.copy(
-            subjects = List(subjectId),
-            publishedFilterTo = Some(fiveYearsAgo)
-          )
+          MultiDraftSearchSettings
+            .default(user)
+            .copy(
+              subjects = List(subjectId),
+              publishedFilterTo = Some(fiveYearsAgo)
+            )
         )
         revisions <- filteredCountSearch(
-          MultiDraftSearchSettings.default.copy(
-            subjects = List(subjectId),
-            revisionDateFilterTo = Some(inOneYear)
-          )
+          MultiDraftSearchSettings
+            .default(user)
+            .copy(
+              subjects = List(subjectId),
+              revisionDateFilterTo = Some(inOneYear)
+            )
         )
         publishedArticles <- filteredCountSearch(
-          MultiDraftSearchSettings.default.copy(
-            subjects = List(subjectId),
-            statusFilter = List(DraftStatus.PUBLISHED)
-          )
+          MultiDraftSearchSettings
+            .default(user)
+            .copy(
+              subjects = List(subjectId),
+              statusFilter = List(DraftStatus.PUBLISHED)
+            )
         )
         inFlow <- filteredCountSearch(
-          MultiDraftSearchSettings.default.copy(
-            subjects = List(subjectId),
-            statusFilter = flowStatuses
-          )
+          MultiDraftSearchSettings
+            .default(user)
+            .copy(
+              subjects = List(subjectId),
+              statusFilter = flowStatuses
+            )
         )
         favorited <- aggregateFavorites(subjectId)
       } yield SubjectAggregationDTO(

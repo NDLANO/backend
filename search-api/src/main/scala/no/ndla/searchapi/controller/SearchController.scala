@@ -92,9 +92,9 @@ trait SearchController {
       .out(jsonBody[SubjectAggregationsDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure { _ => input =>
+      .serverLogicPure { userInfo => input =>
         val subjects = input.subjects.getOrElse(List.empty)
-        multiDraftSearchService.aggregateSubjects(subjects)
+        multiDraftSearchService.aggregateSubjects(subjects, userInfo)
       }
 
     def groupSearch: ServerEndpoint[Any, Eff] = endpoint.get
@@ -495,7 +495,7 @@ trait SearchController {
 
     private def asDraftSettings(p: Option[DraftSearchParamsDTO], user: TokenUser): MultiDraftSearchSettings = {
       p match {
-        case None         => MultiDraftSearchSettings.default
+        case None         => MultiDraftSearchSettings.default(user)
         case Some(params) =>
           val shouldScroll = params.scrollId.exists(InitialScrollContextKeywords.contains)
           MultiDraftSearchSettings(
