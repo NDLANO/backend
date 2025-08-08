@@ -10,6 +10,7 @@ package no.ndla.audioapi.model.api
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CopyrightDTO
+import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
@@ -47,4 +48,10 @@ case class AudioMetaInformationDTO(
 object AudioMetaInformationDTO {
   implicit val encoder: Encoder[AudioMetaInformationDTO] = deriveEncoder
   implicit val decoder: Decoder[AudioMetaInformationDTO] = deriveDecoder
+
+  val temporarySchema: Schema[AudioMetaInformationDTO] = {
+    import sttp.tapir.generic.auto.*
+    summon[Schema[AudioMetaInformationDTO]]
+  }
+  given Schema[AudioMetaInformationDTO] = temporarySchema
 }

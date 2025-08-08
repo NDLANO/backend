@@ -222,7 +222,7 @@ trait AudioController {
       .serverLogicPure { user => formData =>
         doWithStream(formData.file) { uploadedFile =>
           writeService.storeNewAudio(
-            formData.metadata.body,
+            formData.metadata,
             uploadedFile,
             user
           )
@@ -243,10 +243,10 @@ trait AudioController {
           formData.file match {
             case Some(f) =>
               doWithStream(f) { stream =>
-                writeService.updateAudio(id, formData.metadata.body, Some(stream), user)
+                writeService.updateAudio(id, formData.metadata, Some(stream), user)
               }
             case None =>
-              writeService.updateAudio(id, formData.metadata.body, None, user)
+              writeService.updateAudio(id, formData.metadata, None, user)
           }
         }
       }

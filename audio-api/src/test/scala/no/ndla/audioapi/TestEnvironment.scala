@@ -59,40 +59,40 @@ trait TestEnvironment
     with ErrorHandling {
   override lazy val props: AudioApiProperties = new AudioApiProperties
 
-  val dataSource: HikariDataSource       = mock[HikariDataSource]
-  val audioRepository: AudioRepository   = mock[AudioRepository]
-  val seriesRepository: SeriesRepository = mock[SeriesRepository]
+  override lazy val dataSource: HikariDataSource       = mock[HikariDataSource]
+  override lazy val audioRepository: AudioRepository   = mock[AudioRepository]
+  override lazy val seriesRepository: SeriesRepository = mock[SeriesRepository]
 
-  val s3Client: NdlaS3Client                    = mock[NdlaS3Client]
-  val brightcoveClient: NdlaBrightcoveClient    = mock[NdlaBrightcoveClient]
-  val transcribeClient: NdlaAWSTranscribeClient = mock[NdlaAWSTranscribeClient]
+  override lazy val s3Client: NdlaS3Client                    = mock[NdlaS3Client]
+  override lazy val brightcoveClient: NdlaBrightcoveClient    = mock[NdlaBrightcoveClient]
+  override lazy val transcribeClient: NdlaAWSTranscribeClient = mock[NdlaAWSTranscribeClient]
 
-  val ndlaClient: NdlaClient           = mock[NdlaClient]
-  val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
+  override lazy val ndlaClient: NdlaClient           = mock[NdlaClient]
+  override lazy val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
 
-  val readService: ReadService                   = mock[ReadService]
-  val writeService: WriteService                 = mock[WriteService]
-  val validationService: ValidationService       = mock[ValidationService]
-  val converterService: ConverterService         = mock[ConverterService]
-  val transcriptionService: TranscriptionService = mock[TranscriptionService]
-  val s3TranscribeClient: NdlaS3Client           = mock[NdlaS3Client]
+  override lazy val readService: ReadService                   = mock[ReadService]
+  override lazy val writeService: WriteService                 = mock[WriteService]
+  override lazy val validationService: ValidationService       = mock[ValidationService]
+  override lazy val converterService: ConverterService         = mock[ConverterService]
+  override lazy val transcriptionService: TranscriptionService = mock[TranscriptionService]
+  override lazy val s3TranscribeClient: NdlaS3Client           = mock[NdlaS3Client]
 
-  val internController: InternController  = mock[InternController]
-  val audioApiController: AudioController = mock[AudioController]
-  val healthController: HealthController  = mock[HealthController]
-  val seriesController: SeriesController  = mock[SeriesController]
+  override lazy val internController: InternController  = mock[InternController]
+  override lazy val audioApiController: AudioController = mock[AudioController]
+  override lazy val healthController: HealthController  = mock[HealthController]
+  override lazy val seriesController: SeriesController  = mock[SeriesController]
 
-  var e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
-  val audioSearchService: AudioSearchService         = mock[AudioSearchService]
-  val audioIndexService: AudioIndexService           = mock[AudioIndexService]
-  val seriesSearchService: SeriesSearchService       = mock[SeriesSearchService]
-  val seriesIndexService: SeriesIndexService         = mock[SeriesIndexService]
-  val tagSearchService: TagSearchService             = mock[TagSearchService]
-  val tagIndexService: TagIndexService               = mock[TagIndexService]
-  val searchConverterService: SearchConverterService = mock[SearchConverterService]
+  var e4sClient: NdlaE4sClient                                     = mock[NdlaE4sClient]
+  override lazy val audioSearchService: AudioSearchService         = mock[AudioSearchService]
+  override lazy val audioIndexService: AudioIndexService           = mock[AudioIndexService]
+  override lazy val seriesSearchService: SeriesSearchService       = mock[SeriesSearchService]
+  override lazy val seriesIndexService: SeriesIndexService         = mock[SeriesIndexService]
+  override lazy val tagSearchService: TagSearchService             = mock[TagSearchService]
+  override lazy val tagIndexService: TagIndexService               = mock[TagIndexService]
+  override lazy val searchConverterService: SearchConverterService = mock[SearchConverterService]
 
-  val clock: SystemClock              = mock[SystemClock]
-  def services: List[TapirController] = List.empty
-  val swagger: SwaggerController      = mock[SwaggerController]
+  override lazy val clock: SystemClock = mock[SystemClock]
+  def services: List[TapirController]  = List.empty
+  val swagger: SwaggerController       = mock[SwaggerController]
 
 }

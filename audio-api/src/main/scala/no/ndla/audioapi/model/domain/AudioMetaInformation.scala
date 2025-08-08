@@ -8,6 +8,7 @@
 
 package no.ndla.audioapi.model.domain
 
+import sttp.tapir.Schema
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
@@ -73,6 +74,12 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
 
   implicit val encoder: Encoder[AudioMetaInformation] = deriveEncoder
   implicit val decoder: Decoder[AudioMetaInformation] = deriveDecoder
+
+  val temporarySchema: Schema[AudioMetaInformation] = {
+    import sttp.tapir.generic.auto.*
+    summon[Schema[AudioMetaInformation]]
+  }
+  given Schema[AudioMetaInformation] = temporarySchema
 
   def fromResultSet(au: SyntaxProvider[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation =
     fromResultSet(au.resultName)(rs)

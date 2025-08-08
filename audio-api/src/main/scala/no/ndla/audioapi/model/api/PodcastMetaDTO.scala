@@ -20,6 +20,6 @@ case class PodcastMetaDTO(
 )
 
 object PodcastMetaDTO {
-  def encoder: Encoder[PodcastMetaDTO] = deriveEncoder
-  def decoder: Decoder[PodcastMetaDTO] = deriveDecoder
+  implicit def encoder: Encoder[PodcastMetaDTO] = deriveEncoder
+  implicit def decoder: Decoder[PodcastMetaDTO] = deriveDecoder
 }

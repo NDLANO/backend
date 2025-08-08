@@ -8,6 +8,7 @@
 
 package no.ndla.audioapi.model.api
 
+import sttp.tapir.Schema
 import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema.annotations.description
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
@@ -40,4 +41,10 @@ case class AudioSummaryDTO(
 object AudioSummaryDTO {
   implicit val encoder: Encoder[AudioSummaryDTO] = deriveEncoder
   implicit val decoder: Decoder[AudioSummaryDTO] = deriveDecoder
+
+  val temporarySchema: Schema[AudioSummaryDTO] = {
+    import sttp.tapir.generic.auto.*
+    summon[Schema[AudioSummaryDTO]]
+  }
+  given Schema[AudioSummaryDTO] = temporarySchema
 }

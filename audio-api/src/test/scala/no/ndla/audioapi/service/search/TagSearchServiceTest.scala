@@ -19,12 +19,12 @@ class TagSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnviro
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val tagSearchService                 = new TagSearchService
-  override val tagIndexService: TagIndexService = new TagIndexService {
+  override lazy val tagSearchService                 = new TagSearchService
+  override lazy val tagIndexService: TagIndexService = new TagIndexService {
     override val indexShards = 1
   }
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   val audio1: AudioMetaInformation = TestData.sampleAudio.copy(
     tags = Seq(

@@ -25,6 +25,6 @@ case class SeriesDTO(
 )
 
 object SeriesDTO {
-  def encoder: Encoder[SeriesDTO] = deriveEncoder
-  def decoder: Decoder[SeriesDTO] = deriveDecoder
+  implicit def encoder: Encoder[SeriesDTO] = deriveEncoder
+  implicit def decoder: Decoder[SeriesDTO] = deriveDecoder
 }

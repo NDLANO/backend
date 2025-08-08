@@ -30,8 +30,8 @@ import java.io.FileInputStream
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override val writeService            = new WriteService
-  override val converterService        = new ConverterService
+  override lazy val writeService       = new WriteService
+  override lazy val converterService   = new ConverterService
   val (newFileName1, newFileName2)     = ("AbCdeF.mp3", "GhijKl.mp3")
   val filePartMock: UploadedFile       = mock[UploadedFile]
   val s3ObjectMock: HeadObjectResponse = mock[HeadObjectResponse]
@@ -645,8 +645,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(passedEpisodes)
     })
 
-    when(validationService.validate(any[domain.Series])).thenAnswer((i: InvocationOnMock) => {
-      Success(i.getArgument[domain.Series](0))
+    when(validationService.validate(any[domain.SeriesWithoutId])).thenAnswer((i: InvocationOnMock) => {
+      Success(i.getArgument[domain.SeriesWithoutId](0))
     })
   }
 
@@ -663,7 +663,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val id = i.getArgument[Long](0)
       series.episodes.get.find(_.id.contains(id))
     })
-    when(seriesRepository.insert(any[domain.Series])(any[DBSession]))
+    when(seriesRepository.insert(any[domain.SeriesWithoutId])(any[DBSession]))
       .thenReturn(Failure(new RuntimeException("weird failure there buddy")))
 
     val updateSeries = api.NewSeriesDTO(
