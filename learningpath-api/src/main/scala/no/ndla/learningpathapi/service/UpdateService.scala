@@ -132,6 +132,28 @@ trait UpdateService {
       }
     }
 
+    def deleteLearningPathLanguage(
+        learningPathId: Long,
+        language: String,
+        owner: CombinedUserRequired
+    ): Try[LearningPathV2DTO] =
+      DBUtil.rollbackOnFailure { implicit session =>
+        writeDuringWriteRestrictionOrAccessDenied(owner) {
+          for {
+            learningPath        <- withId(learningPathId).flatMap(_.canEditLearningpath(owner))
+            withDeletedLanguage <- converterService.deleteLearningPathLanguage(learningPath, language)
+            updatedPath         <- Try(learningPathRepository.update(withDeletedLanguage))
+            _                   <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
+            converted           <- converterService.asApiLearningpathV2(
+              updatedPath,
+              language = Language.DefaultLanguage,
+              fallback = true,
+              owner
+            )
+          } yield converted
+        }
+      }
+
     def deleteLearningStepLanguage(
         learningpathId: Long,
         stepId: Long,
