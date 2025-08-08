@@ -21,13 +21,23 @@ import scala.concurrent.duration.{Duration, DurationInt}
 import scala.io.Source
 import scala.util.{Try, boundary}
 
-trait NdlaTapirMain[T <: TapirApplication] {
-  val logger: Logger = getLogger
+import no.ndla.common.Environment.setPropsFromEnv
+import no.ndla.common.configuration.BaseProps
+import no.ndla.common.logging.logTaskTime
+import org.apache.logging.log4j.core.LoggerContext
+import org.apache.logging.log4j.jul.Log4jBridgeHandler
+import org.log4s.{Logger, getLogger}
+import sttp.tapir.server.jdkhttp.HttpServer
+import scala.concurrent.Future
+import scala.concurrent.duration.{Duration, DurationInt}
+import scala.io.Source
+import scala.util.{Try, boundary}
 
-  val props: BaseProps
-  val componentRegistry: T
-  def warmup(): Unit
-  def beforeStart(): Unit
+class NdlaTapirMain[T <: TapirApplication](
+    val props: BaseProps,
+    val componentRegistry: T
+) {
+  val logger: Logger             = getLogger
   var server: Option[HttpServer] = None
 
   private def logCopyrightHeader(): Unit = {
@@ -42,6 +52,9 @@ trait NdlaTapirMain[T <: TapirApplication] {
     // NOTE: Since JdkHttpServer does not block, we need to block the main thread to keep the application alive
     synchronized { wait() }
   }
+
+  def warmup(): Unit      = ()
+  def beforeStart(): Unit = ()
 
   private def performWarmup(): Unit = if (!props.disableWarmup) {
     import scala.concurrent.ExecutionContext.Implicits.global
@@ -92,9 +105,6 @@ trait NdlaTapirMain[T <: TapirApplication] {
     shutdownLogger()
   }: Unit
 
-  /** We require shutting down logger context manually since we implement our own shutdown hook that logs for longer
-    * than the default logger shutdown handler will allow
-    */
   private def shutdownLogger(): Unit = {
     LoggerContext.getContext(false).stop()
   }

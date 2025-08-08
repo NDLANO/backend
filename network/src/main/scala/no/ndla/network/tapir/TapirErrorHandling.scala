@@ -16,9 +16,17 @@ import no.ndla.common.errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
 
-trait TapirErrorHandling extends StrictLogging {
-  this: HasBaseProps & Clock =>
+import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.Clock
+import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.errors.ValidationException
+import scala.util.{Failure, Success, Try}
+import cats.implicits.*
 
+class TapirErrorHandling(
+    props: HasBaseProps,
+    clock: Clock
+) extends StrictLogging {
   def logError(e: Throwable): Unit = {
     logger.error(e.getMessage, e)
   }
@@ -36,30 +44,16 @@ trait TapirErrorHandling extends StrictLogging {
   implicit class handleErrorOrOkClass[T](t: Try[T]) {
     import cats.implicits.*
 
-    /** Function to handle any error If the error is not defined in the default errorHandler [[returnError]] we fallback
-      * to a generic 500 error.
-      */
     def handleErrorsOrOk: Either[AllErrors, T] = t match {
       case Success(value) => value.asRight
       case Failure(ex)    => returnLeftError(ex)
     }
 
-    /** Function to override one or more of error responses:
-      * {{{
-      *     someMethodThatReturnsTry().partialOverride { case x: SomeExceptionToHandle =>
-      *         ErrorHelpers.unprocessableEntity("Cannot process")
-      *     }
-      * }}}
-      *
-      * If the error is not defined in the callback or in the default errorHandler [[returnError]] we fallback to a
-      * generic 500 error.
-      */
     def partialOverride(callback: PartialFunction[Throwable, ErrorBody]): Either[AllErrors, T] = t match {
       case Success(value)                          => value.asRight
       case Failure(ex) if callback.isDefinedAt(ex) => callback(ex).asLeft
       case Failure(ex)                             => returnLeftError(ex)
     }
-
   }
 
   object ErrorHelpers {

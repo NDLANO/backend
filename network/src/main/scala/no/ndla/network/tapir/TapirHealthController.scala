@@ -14,40 +14,44 @@ import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 
-trait TapirHealthController {
-  this: TapirController =>
-  lazy val healthController: TapirHealthController
-  class TapirHealthController extends Warmup with TapirController {
-    @volatile private var isShuttingDown: Boolean = false
-    override val enableSwagger: Boolean           = false
-    val prefix: EndpointInput[Unit]               = "health"
+import sttp.tapir.*
+import sttp.tapir.server.ServerEndpoint
+import sttp.model.StatusCode
+import no.ndla.common.Warmup
 
-    def setShuttingDown(): Unit = { isShuttingDown = true }
+class TapirHealthController(
+    tapirController: TapirController
+) extends Warmup
+    with TapirController {
+  @volatile private var isShuttingDown: Boolean = false
+  override val enableSwagger: Boolean           = false
+  val prefix: EndpointInput[Unit]               = "health"
 
-    private def checkLiveness(): Either[String, String]    = Right("Healthy")
-    protected def checkReadiness(): Either[String, String] = {
-      if (isShuttingDown) Left("Service is shutting down")
-      else if (isWarmedUp) Right("Ready")
-      else Left("Service is not ready")
-    }
+  def setShuttingDown(): Unit = { isShuttingDown = true }
 
-    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-      endpoint.get
-        .description("Readiness probe. Returns 200 if the service is ready to serve traffic.")
-        .in("readiness")
-        .out(stringBody)
-        .errorOut(statusCode(StatusCode.InternalServerError).and(stringBody))
-        .serverLogicPure(_ => checkReadiness()),
-      endpoint.get
-        .description("Liveness probe. Returns 200 if the service is alive, but not necessarily ready.")
-        .in("liveness")
-        .out(stringBody)
-        .errorOut(statusCode(StatusCode.InternalServerError).and(stringBody))
-        .serverLogicPure(_ => checkLiveness()),
-      endpoint.get
-        .out(stringBody)
-        .errorOut(statusCode(StatusCode.InternalServerError).and(stringBody))
-        .serverLogicPure(_ => checkLiveness())
-    )
+  private def checkLiveness(): Either[String, String]    = Right("Healthy")
+  protected def checkReadiness(): Either[String, String] = {
+    if (isShuttingDown) Left("Service is shutting down")
+    else if (isWarmedUp) Right("Ready")
+    else Left("Service is not ready")
   }
+
+  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+    endpoint.get
+      .description("Readiness probe. Returns 200 if the service is ready to serve traffic.")
+      .in("readiness")
+      .out(stringBody)
+      .errorOut(statusCode(StatusCode.InternalServerError).and(stringBody))
+      .serverLogicPure(_ => checkReadiness()),
+    endpoint.get
+      .description("Liveness probe. Returns 200 if the service is alive, but not necessarily ready.")
+      .in("liveness")
+      .out(stringBody)
+      .errorOut(statusCode(StatusCode.InternalServerError).and(stringBody))
+      .serverLogicPure(_ => checkLiveness()),
+    endpoint.get
+      .out(stringBody)
+      .errorOut(statusCode(StatusCode.InternalServerError).and(stringBody))
+      .serverLogicPure(_ => checkLiveness())
+  )
 }

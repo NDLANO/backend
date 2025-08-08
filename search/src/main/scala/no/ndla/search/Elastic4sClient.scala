@@ -1,3 +1,4 @@
+import no.ndla.common.configuration.BaseProps
 /*
  * Part of NDLA search
  * Copyright (C) 2022 NDLA
@@ -22,9 +23,8 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Futu
 import scala.util.{Failure, Success, Try}
 import scala.reflect.ClassTag
 
-trait Elastic4sClient {
-  this: HasBaseProps =>
-  var e4sClient: NdlaE4sClient
+class Elastic4sClient(using props: BaseProps) {
+  var e4sClient: NdlaE4sClient = NdlaE4sClient(props.SEARCH_SERVER)
 
   case class NdlaE4sClient(searchServer: String) {
     private var client: ElasticClient  = Elastic4sClientFactory.getNonSigningClient(searchServer)
