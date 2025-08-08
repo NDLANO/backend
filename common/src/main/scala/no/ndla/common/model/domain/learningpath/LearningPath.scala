@@ -14,6 +14,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Comment, Content, Responsible, Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.common.model.domain.Priority
+import no.ndla.common.model.domain.RevisionMeta
 
 case class LearningPath(
     id: Option[Long],
@@ -37,7 +38,8 @@ case class LearningPath(
     madeAvailable: Option[NDLADate] = None,
     responsible: Option[Responsible],
     comments: Seq[Comment],
-    priority: Priority
+    priority: Priority,
+    revisionMeta: Seq[RevisionMeta]
 ) extends Content {
 
   def supportedLanguages: Seq[String] = {
