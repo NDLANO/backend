@@ -10,12 +10,6 @@ package no.ndla.common
 
 import java.util.UUID
 
-trait UUIDUtil {
-  val uuidUtil: UUIDUtil
-
-  class UUIDUtil {
-    def randomUUID(): UUID = {
-      UUID.randomUUID()
-    }
-  }
+class UUIDUtil {
+  def randomUUID(): java.util.UUID = java.util.UUID.randomUUID()
 }

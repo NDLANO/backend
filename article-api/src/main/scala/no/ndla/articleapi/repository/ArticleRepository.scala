@@ -19,11 +19,10 @@ import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-trait ArticleRepository {
-  this: DataSource & DBArticle =>
-  lazy val articleRepository: ArticleRepository
-
-  class ArticleRepository extends StrictLogging {
+class ArticleRepository(
+  using dataSource: DataSource,
+  dbArticle: DBArticle
+) extends StrictLogging {
 
     def updateArticleFromDraftApi(article: Article, externalIds: List[String])(implicit
         session: DBSession = AutoSession
@@ -368,5 +367,3 @@ trait ArticleRepository {
     }
 
   }
-
-}

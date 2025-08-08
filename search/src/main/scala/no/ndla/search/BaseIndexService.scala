@@ -25,10 +25,7 @@ import java.util.Calendar
 import scala.util.{Failure, Success, Try}
 import scala.util.boundary
 
-trait BaseIndexService {
-  this: Elastic4sClient & HasBaseProps & SearchLanguage =>
-
-  trait BaseIndexService extends StrictLogging {
+  trait BaseIndexService(using e4sClient: Elastic4sClient, props: BaseProps, searchLanguage: SearchLanguage) extends StrictLogging {
     val documentType: String
     val searchIndex: String
     val MaxResultWindowOption: Int
@@ -38,7 +35,7 @@ trait BaseIndexService {
 
     val analysis: Analysis =
       Analysis(
-        analyzers = List(SearchLanguage.NynorskLanguageAnalyzer),
+        analyzers = List(searchLanguage.NynorskLanguageAnalyzer),
         tokenFilters = SearchLanguage.NynorskTokenFilters
       )
 
@@ -363,6 +360,4 @@ trait BaseIndexService {
           e4sClient.execute(bulk(reqs)).map(r => BulkIndexResult(r.result.successes.size, requests.size))
       }
     }
-
-  }
 }
