@@ -15,7 +15,7 @@ import no.ndla.search.model.SearchableLanguageValues
 case class SearchableLearningStep(
     stepType: String,
     embedUrl: List[String],
-    articles: List[Long],
+    article: Option[Long],
     status: String,
     titles: SearchableLanguageValues,
     descriptions: SearchableLanguageValues

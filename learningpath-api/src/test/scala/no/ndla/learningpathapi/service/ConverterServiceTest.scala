@@ -103,10 +103,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed),
       EmbedUrl("https://www.ndla.no/456", "nn", EmbedType.OEmbed)
     ),
-    article = Seq(
-      LearningStepArticle(123, "nb"),
-      LearningStepArticle(123, "nn")
-    )
+    article = 123
   )
   val apiTags: List[api.LearningPathTagsDTO] = List(api.LearningPathTagsDTO(Seq("tag"), DefaultLanguage))
 
@@ -610,7 +607,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       "nn",
       commonApi.Delete,
       commonApi.Delete,
-      commonApi.Delete,
+      commonApi.Missing,
       None,
       None,
       None
@@ -619,7 +616,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     result.introduction shouldEqual Seq(Introduction("Introduksjon på bokmål", "nb"))
     result.description shouldEqual Seq(Description("Beskrivelse på bokmål", "nb"))
     result.embedUrl shouldEqual Seq(EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed))
-    result.article shouldEqual Seq(LearningStepArticle(123, "nb"))
   }
 
   test("mergeLearningSteps correctly updates language fields") {
@@ -640,6 +636,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     result.introduction shouldEqual Seq(Introduction("Introduksjon på bokmål oppdatert", "nb"))
     result.description shouldEqual Seq(Description("Beskrivelse på bokmål oppdatert", "nb"))
     result.embedUrl shouldEqual Seq(EmbedUrl("/subjects/resource:1234?a=test", "nb", EmbedType.IFrame))
-    result.article shouldEqual Seq(LearningStepArticle(456, "nb"))
+    result.article shouldEqual 456
   }
 }
