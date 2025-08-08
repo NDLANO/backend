@@ -40,11 +40,13 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors}
 
 import no.ndla.common.configuration.BaseProps
+import no.ndla.common.Clock
 
-class Routes(
+class Routes(using
     tapirController: TapirController,
-    props: BaseProps
-) {
+    props: BaseProps,
+    clock: Clock
+) extends TapirErrorHandling(using props, clock) {
   val activeRequests: AtomicInteger   = new AtomicInteger(0)
   val logger: Logger                  = getLogger
   def services: List[TapirController] = List(tapirController)

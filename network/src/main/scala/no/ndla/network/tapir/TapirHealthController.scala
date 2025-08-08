@@ -19,10 +19,7 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.model.StatusCode
 import no.ndla.common.Warmup
 
-class TapirHealthController(
-    tapirController: TapirController
-) extends Warmup
-    with TapirController {
+class TapirHealthController(using tapirController: TapirController) extends Warmup with TapirController {
   @volatile private var isShuttingDown: Boolean = false
   override val enableSwagger: Boolean           = false
   val prefix: EndpointInput[Unit]               = "health"

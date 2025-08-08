@@ -18,13 +18,13 @@ import scala.util.{Failure, Success, Try}
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.errors.ValidationException
 import scala.util.{Failure, Success, Try}
 import cats.implicits.*
 
-class TapirErrorHandling(
-    props: HasBaseProps,
+class TapirErrorHandling(using
+    props: BaseProps,
     clock: Clock
 ) extends StrictLogging {
   def logError(e: Throwable): Unit = {

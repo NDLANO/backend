@@ -36,16 +36,16 @@ import scala.util.{Failure, Success}
 
 import no.ndla.common.configuration.BaseProps
 
-class TapirController(
-  props: BaseProps,
-  clock: Clock,
-  myndlaApiClient: MyNDLAApiClient
-) extends TapirErrorHandling with StrictLogging with SchemaImplicits {
+class TapirController(using
+    props: BaseProps,
+    clock: Clock,
+    myndlaApiClient: MyNDLAApiClient
+) extends TapirErrorHandling(using props, clock)
+    with StrictLogging
+    with SchemaImplicits {
   type Eff[A] = Identity[A]
   val enableSwagger: Boolean = true
   val serviceName: String    = this.getClass.getSimpleName
-  protected val prefix: EndpointInput[Unit] = ??? // must be provided by subclass
-  val endpoints: List[ServerEndpoint[Any, Eff]] = ??? // must be provided by subclass
 
   lazy val builtEndpoints: List[ServerEndpoint[Any, Eff]] = {
     this.endpoints.map(e => {
@@ -184,5 +184,4 @@ class TapirController(
 
   def emptyOutput: EndpointOutput[Unit] = sttp.tapir.emptyOutput.and(zeroNoContentHeader)
   def noContent: EndpointOutput[Unit]   = statusCode(StatusCode.NoContent)
-}
 }
