@@ -21,7 +21,6 @@ import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{RelatedContentLink, api as commonApi, domain as common}
 import no.ndla.common.{Clock, UUIDUtil, model}
-import no.ndla.draftapi.DraftUtil.getNextRevision
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{NotFoundException, UpdatedArticleDTO}
@@ -506,7 +505,7 @@ trait ConverterService {
               conceptIds = draft.conceptIds,
               availability = draft.availability,
               relatedContent = draft.relatedContent,
-              revisionDate = getNextRevision(draft.revisionMeta).map(_.revisionDate),
+              revisionDate = common.RevisionMeta.getNextRevision(draft.revisionMeta).map(_.revisionDate),
               slug = draft.slug,
               disclaimer = draft.disclaimer
             )
