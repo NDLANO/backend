@@ -120,11 +120,11 @@ class ArticleApiClientTest
     availability = common.Availability.everyone,
     relatedContent = Seq.empty,
     revisionMeta = Seq(
-      common.draft.RevisionMeta(
+      common.RevisionMeta(
         id = UUID.randomUUID(),
         note = "Revision",
         revisionDate = NDLADate.now(),
-        status = common.draft.RevisionStatus.NeedsRevision
+        status = common.RevisionStatus.NeedsRevision
       )
     ),
     responsible = None,
