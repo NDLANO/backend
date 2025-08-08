@@ -24,8 +24,8 @@ import scala.util.{Failure, Success, Try}
 
 trait TranscriptionService {
   this: NdlaS3Client & Props & NdlaBrightcoveClient & NdlaAWSTranscribeClient =>
-  val transcriptionService: TranscriptionService
-  val s3TranscribeClient: NdlaS3Client
+  lazy val transcriptionService: TranscriptionService
+  lazy val s3TranscribeClient: NdlaS3Client
 
   sealed trait TranscriptionResult
   case class TranscriptionComplete(transcription: String)             extends TranscriptionResult
@@ -92,7 +92,7 @@ trait TranscriptionService {
         val transcriptionJob       = transcriptionJobResponse.transcriptionJob()
         val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus()
 
-        if (transcriptionJobStatus == "COMPLETED") {
+        if (transcriptionJobStatus == TranscriptionJobStatus.COMPLETED) {
           val transcribeUri = s"transcription/$language/$videoId.vtt"
 
           getObjectFromS3(transcribeUri).map(TranscriptionComplete(_))

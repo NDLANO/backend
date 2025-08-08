@@ -27,7 +27,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
   this: ConverterService & Props =>
-  val validationService: ValidationService
+  lazy val validationService: ValidationService
 
   class ValidationService {
 
@@ -174,7 +174,7 @@ trait ValidationService {
       } else Seq.empty
     }
 
-    def validate[T <: domain.SeriesWithoutId](series: T): Try[T] = {
+    def validate(series: domain.SeriesWithoutId): Try[domain.SeriesWithoutId] = {
       val validationMessages = validateNonEmpty("title", series.title).toSeq ++
         series.title.flatMap(title => validateNonEmpty("title", title.language)) ++
         series.title.flatMap(title => validateTitle("title", title, Seq.empty)) ++

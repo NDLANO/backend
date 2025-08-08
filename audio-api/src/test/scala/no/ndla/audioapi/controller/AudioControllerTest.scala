@@ -356,7 +356,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
     val parsedBody = unsafeParseAs[List[api.AudioMetaInformationDTO]](response.body)
     parsedBody should be(expectedResult)
 
-    verify(readService, times(1)).getAudiosByIds(eqTo(List(1, 2, 3)), any)
+    verify(readService, times(1)).getAudiosByIds(eqTo(List(1L, 2L, 3L)), any)
   }
 
   test("That GET /?query= doesnt pass empty-string search parameter") {

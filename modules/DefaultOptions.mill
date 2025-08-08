@@ -33,6 +33,7 @@ trait DefaultOptions extends ScalaModule {
       "-language:higherKinds",
       "-language:implicitConversions",
       // TODO: "-Xfatal-warnings",
+      "-deprecation"                  -> scala2, // TODO: Add this to scala3 after we build all the stuff
       "-Xlint:adapted-args"           -> scala2,
       "-Xlint:constant"               -> scala2,
       "-Xlint:delayedinit-select"     -> scala2,

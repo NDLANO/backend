@@ -25,12 +25,11 @@ import scala.util.{Failure, Success, Try}
 trait SeriesIndexService {
   this: Elastic4sClient & SearchConverterService & IndexService & SeriesRepository & Props =>
 
-  val seriesIndexService: SeriesIndexService
+  lazy val seriesIndexService: SeriesIndexService
 
-  class SeriesIndexService extends StrictLogging with IndexService[Series, SearchableSeries] {
-    import props.*
-    override val documentType: String         = SeriesSearchDocument
-    override val searchIndex: String          = SeriesSearchIndex
+  class SeriesIndexService extends IndexService[Series, SearchableSeries] with StrictLogging {
+    override val documentType: String         = props.SeriesSearchDocument
+    override val searchIndex: String          = props.SeriesSearchIndex
     override val repository: SeriesRepository = seriesRepository
 
     override def createIndexRequests(domainModel: Series, indexName: String): Try[Seq[IndexRequest]] = {

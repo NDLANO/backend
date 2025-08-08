@@ -8,6 +8,8 @@
 
 package no.ndla.audioapi.model.api
 
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
 @description("Meta information about the series")
@@ -21,3 +23,8 @@ case class SeriesDTO(
     @description("A list of available languages for this series") supportedLanguages: Seq[String],
     @description("Specifies if this series generates rss-feed") hasRSS: Boolean
 )
+
+object SeriesDTO {
+  implicit def encoder: Encoder[SeriesDTO] = deriveEncoder
+  implicit def decoder: Decoder[SeriesDTO] = deriveDecoder
+}

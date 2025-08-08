@@ -23,18 +23,16 @@ import org.mockito.Mockito.when
 import scala.util.Success
 
 class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-  import props.*
-
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val audioSearchService                   = new AudioSearchService
-  override val audioIndexService: AudioIndexService = new AudioIndexService {
+  override lazy val audioSearchService                   = new AudioSearchService
+  override lazy val audioIndexService: AudioIndexService = new AudioIndexService {
     override val indexShards = 1
   }
-  override val seriesIndexService: SeriesIndexService = new SeriesIndexService {
+  override lazy val seriesIndexService: SeriesIndexService = new SeriesIndexService {
     override val indexShards = 1
   }
-  override val searchConverterService = new SearchConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
     Copyright(
@@ -254,28 +252,28 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   }
 
   test("That getStartAtAndNumResults returns default values for None-input") {
-    audioSearchService.getStartAtAndNumResults(None, None) should equal((0, DefaultPageSize))
+    audioSearchService.getStartAtAndNumResults(None, None) should equal((0, props.DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    audioSearchService.getStartAtAndNumResults(None, Some(10001)) should equal((0, MaxPageSize))
+    audioSearchService.getStartAtAndNumResults(None, Some(10001)) should equal((0, props.MaxPageSize))
   }
 
   test(
     "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
   ) {
     val page            = 74
-    val expectedStartAt = (page - 1) * DefaultPageSize
+    val expectedStartAt = (page - 1) * props.DefaultPageSize
     audioSearchService.getStartAtAndNumResults(Some(page), None) should equal(
-      (expectedStartAt, DefaultPageSize)
+      (expectedStartAt, props.DefaultPageSize)
     )
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
     val page            = 123
-    val expectedStartAt = (page - 1) * MaxPageSize
-    audioSearchService.getStartAtAndNumResults(Some(page), Some(MaxPageSize)) should equal(
-      (expectedStartAt, MaxPageSize)
+    val expectedStartAt = (page - 1) * props.MaxPageSize
+    audioSearchService.getStartAtAndNumResults(Some(page), Some(props.MaxPageSize)) should equal(
+      (expectedStartAt, props.MaxPageSize)
     )
   }
 

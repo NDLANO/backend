@@ -24,7 +24,7 @@ import scala.util.{Failure, Success, Try}
 trait IndexService {
   this: Elastic4sClient & BaseIndexService & SearchConverterService & AudioRepository & Props & SearchLanguage =>
 
-  trait IndexService[D, T] extends BaseIndexService with StrictLogging {
+  abstract class IndexService[D, T] extends BaseIndexService with StrictLogging {
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
     val documentType: String

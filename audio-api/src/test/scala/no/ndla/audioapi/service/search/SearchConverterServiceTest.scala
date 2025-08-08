@@ -20,7 +20,7 @@ import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
-  override val searchConverterService = new SearchConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
     Copyright(

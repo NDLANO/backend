@@ -21,7 +21,7 @@ import scala.util.{Failure, Success, Try}
 
 trait AudioRepository {
   this: DataSource & SeriesRepository & Props & ErrorHandling =>
-  val audioRepository: AudioRepository
+  lazy val audioRepository: AudioRepository
 
   class AudioRepository extends StrictLogging with Repository[AudioMetaInformation] {
     def audioCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
