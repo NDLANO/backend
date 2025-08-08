@@ -1006,7 +1006,8 @@ object TestData {
     isMyNDLAOwner = false,
     responsible = None,
     comments = Seq.empty,
-    priority = Priority.Unspecified
+    priority = Priority.Unspecified,
+    revisionMeta = RevisionMeta.default
   )
 
   val PenguinId   = 1L
