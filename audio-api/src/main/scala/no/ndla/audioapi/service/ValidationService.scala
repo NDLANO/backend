@@ -27,7 +27,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
   this: ConverterService & Props =>
-  val validationService: ValidationService
+  lazy val validationService: ValidationService
 
   class ValidationService {
 

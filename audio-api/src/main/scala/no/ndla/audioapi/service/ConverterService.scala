@@ -26,11 +26,9 @@ import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
   this: Clock & Props =>
-  val converterService: ConverterService
+  lazy val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
-    import props.*
-
     def updateSeries(existingSeries: domain.Series, updatedSeries: api.NewSeriesDTO): domain.Series = {
       val newTitle       = common.Title(updatedSeries.title, updatedSeries.language)
       val newDescription = domain.Description(updatedSeries.description, updatedSeries.language)
@@ -130,21 +128,27 @@ trait ConverterService {
     private def maybeToApiTitle(maybeTitle: Option[common.Title]): api.TitleDTO = {
       maybeTitle match {
         case Some(title) => toApiTitle(title)
-        case None        => api.TitleDTO("", DefaultLanguage)
+        case None        => api.TitleDTO("", props.DefaultLanguage)
       }
     }
 
     private def toApiTags(maybeTag: Option[common.Tag]): TagDTO = {
       maybeTag match {
         case Some(tag) => api.TagDTO(tag.tags, tag.language)
-        case None      => api.TagDTO(Seq(), DefaultLanguage)
+        case None      => api.TagDTO(Seq(), props.DefaultLanguage)
       }
     }
 
     def toApiAudio(audio: Option[domain.Audio]): api.AudioDTO = {
       audio match {
-        case Some(x) => api.AudioDTO(s"$Domain/$AudioFilesUrlSuffix/${x.filePath}", x.mimeType, x.fileSize, x.language)
-        case None    => api.AudioDTO("", "", 0, DefaultLanguage)
+        case Some(x) =>
+          api.AudioDTO(
+            s"${props.Domain}/${props.AudioFilesUrlSuffix}/${x.filePath}",
+            x.mimeType,
+            x.fileSize,
+            x.language
+          )
+        case None => api.AudioDTO("", "", 0, props.DefaultLanguage)
       }
     }
 
@@ -190,7 +194,7 @@ trait ConverterService {
       )
     }
 
-    def getPhotoUrl(meta: domain.CoverPhoto): String = s"$RawImageApiUrl/${meta.imageId}"
+    def getPhotoUrl(meta: domain.CoverPhoto): String = s"${props.RawImageApiUrl}/${meta.imageId}"
 
     def toApiCoverPhoto(meta: domain.CoverPhoto): api.CoverPhotoDTO = {
       api.CoverPhotoDTO(
@@ -253,7 +257,7 @@ trait ConverterService {
         fields: Seq[DomainType],
         language: Option[String]
     )(implicit mf: Manifest[DomainType]): Try[DomainType] = {
-      findByLanguageOrBestEffort(fields, language.getOrElse(DefaultLanguage)) match {
+      findByLanguageOrBestEffort(fields, language.getOrElse(props.DefaultLanguage)) match {
         case Some(field) => Success(field)
         case None        =>
           Failure(

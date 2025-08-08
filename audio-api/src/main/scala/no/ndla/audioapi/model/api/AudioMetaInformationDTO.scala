@@ -11,6 +11,8 @@ package no.ndla.audioapi.model.api
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CopyrightDTO
 import sttp.tapir.Schema.annotations.description
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 @description("Meta information about the audio object")
 case class AudioMetaInformationDTO(
@@ -41,3 +43,8 @@ case class AudioMetaInformationDTO(
     @description("The time of last update for the audio-file")
     updated: NDLADate
 )
+
+object AudioMetaInformationDTO {
+  implicit val encoder: Encoder[AudioMetaInformationDTO] = deriveEncoder
+  implicit val decoder: Decoder[AudioMetaInformationDTO] = deriveDecoder
+}

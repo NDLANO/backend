@@ -29,7 +29,7 @@ import scala.util.{Failure, Random, Success, Try}
 trait WriteService {
   this: ConverterService & ValidationService & AudioRepository & SeriesRepository & AudioIndexService &
     SeriesIndexService & TagIndexService & NdlaS3Client & ReadService & Clock =>
-  val writeService: WriteService
+  lazy val writeService: WriteService
 
   class WriteService extends StrictLogging {
 
@@ -49,10 +49,10 @@ trait WriteService {
               episodesToValidate.toSeq,
               Some(existingSeries.id)
             )
-            validatedSeries <- validationService.validate(merged)
-            updatedSeries   <- seriesRepository.update(validatedSeries)
+            validatedSeries <- validationService.validate(merged.withoutId)
+            updatedSeries   <- seriesRepository.update(merged)
             _               <- updateSeriesForEpisodes(None, episodesToDelete.toSeq)
-            _               <- updateSeriesForEpisodes(Some(validatedSeries.id), episodesToAdd.toSeq)
+            _               <- updateSeriesForEpisodes(Some(merged.id), episodesToAdd.toSeq)
             updatedWithEpisodes = updatedSeries.copy(episodes = Some(validatedEpisodes))
             _         <- seriesIndexService.indexDocument(updatedWithEpisodes)
             converted <- converterService.toApiSeries(updatedWithEpisodes, Some(toUpdateSeries.language))
@@ -166,8 +166,8 @@ trait WriteService {
             deleteSeries(seriesId).map(_ => None)
           else {
             for {
-              validated <- validationService.validate(newSeries)
-              updated   <- seriesRepository.update(validated)
+              validated <- validationService.validate(newSeries.withoutId)
+              updated   <- seriesRepository.update(newSeries)
               indexed   <- seriesIndexService.indexDocument(updated)
               converted <- converterService.toApiSeries(indexed, None)
               result = Some(converted)

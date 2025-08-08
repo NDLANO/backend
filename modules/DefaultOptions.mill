@@ -33,6 +33,7 @@ trait DefaultOptions extends ScalaModule {
       "-language:higherKinds",
       "-language:implicitConversions",
       // TODO: "-Xfatal-warnings",
+      "-deprecation"                  -> scala2, // TODO: Add this to scala3 after we build all the stuff
       "-Xlint:adapted-args"           -> scala2,
       "-Xlint:constant"               -> scala2,
       "-Xlint:delayedinit-select"     -> scala2,
@@ -65,8 +66,8 @@ trait DefaultOptions extends ScalaModule {
       // "-Wunused:patvars",
       "-Wunused:privates",
       "-Wconf:src=src_managed/.*:silent",
-      "-Yretain-trees"   -> scala3,
-      "-Xmax-inlines:50" -> scala3
+      "-Yretain-trees"    -> scala3,
+      "-Xmax-inlines:100" -> scala3
     ).filterByVersion(scalaVersion())
   }
 

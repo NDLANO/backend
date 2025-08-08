@@ -24,7 +24,7 @@ import scala.util.{Failure, Success, Try}
 
 trait SeriesRepository {
   this: DataSource & Props & ErrorHandling =>
-  val seriesRepository: SeriesRepository
+  lazy val seriesRepository: SeriesRepository
 
   class SeriesRepository extends StrictLogging with Repository[Series] {
 

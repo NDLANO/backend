@@ -23,7 +23,7 @@ import sttp.tapir.generic.auto.schemaForCaseClass
 import scala.util.{Failure, Success}
 trait TranscriptionController {
   this: Props & TapirController & ReadService & TranscriptionService =>
-  val transcriptionController: TranscriptionController
+  lazy val transcriptionController: TranscriptionController
   class TranscriptionController() extends TapirController {
 
     override val serviceName: String         = "transcription"

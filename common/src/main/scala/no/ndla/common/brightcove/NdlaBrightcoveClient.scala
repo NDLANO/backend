@@ -30,7 +30,7 @@ object TokenResponse {
 
 trait NdlaBrightcoveClient {
   this: HasBaseProps =>
-  val brightcoveClient: NdlaBrightcoveClient
+  lazy val brightcoveClient: NdlaBrightcoveClient
 
   class NdlaBrightcoveClient {
     private val backend = HttpClientSyncBackend()
