@@ -33,8 +33,8 @@ object DraftUtil {
     }
   }
 
-  def getNextRevision(revisions: Seq[common.draft.RevisionMeta]): Option[common.draft.RevisionMeta] =
-    revisions.filterNot(_.status == common.draft.RevisionStatus.Revised).sortBy(_.revisionDate).headOption
+  def getNextRevision(revisions: Seq[common.RevisionMeta]): Option[common.RevisionMeta] =
+    revisions.filterNot(_.status == common.RevisionStatus.Revised).sortBy(_.revisionDate).headOption
 
   private def compareField(
       field: api.PartialArticleFieldsDTO,

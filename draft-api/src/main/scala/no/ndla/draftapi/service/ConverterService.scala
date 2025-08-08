@@ -36,7 +36,6 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 
-import java.util.UUID
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
@@ -59,8 +58,10 @@ trait ConverterService {
       val newAvailability = common.Availability.valueOf(newArticle.availability).getOrElse(common.Availability.everyone)
       val revisionMeta    = newArticle.revisionMeta match {
         case Some(revs) if revs.nonEmpty =>
-          newArticle.revisionMeta.map(_.map(toDomainRevisionMeta)).getOrElse(common.draft.RevisionMeta.default)
-        case _ => common.draft.RevisionMeta.default
+          newArticle.revisionMeta
+            .map(_.map(CommonConverter.revisionMetaApiToDomain))
+            .getOrElse(common.RevisionMeta.default)
+        case _ => common.RevisionMeta.default
       }
 
       val responsible = newArticle.responsibleId.map(responsibleId =>
@@ -131,24 +132,6 @@ trait ConverterService {
         introduction = article.introduction.sorted,
         metaImage = article.metaImage.sorted,
         title = article.title.sorted
-      )
-    }
-
-    private def toDomainRevisionMeta(revisionMeta: api.RevisionMetaDTO): common.draft.RevisionMeta = {
-      common.draft.RevisionMeta(
-        id = revisionMeta.id.map(UUID.fromString).getOrElse(uuidUtil.randomUUID()),
-        revisionDate = revisionMeta.revisionDate,
-        note = revisionMeta.note,
-        status = common.draft.RevisionStatus.fromStringDefault(revisionMeta.status)
-      )
-    }
-
-    private def toApiRevisionMeta(revisionMeta: common.draft.RevisionMeta): api.RevisionMetaDTO = {
-      api.RevisionMetaDTO(
-        id = Some(revisionMeta.id.toString),
-        revisionDate = revisionMeta.revisionDate,
-        note = revisionMeta.note,
-        status = revisionMeta.status.entryName
       )
     }
 
@@ -298,7 +281,7 @@ trait ConverterService {
         val visualElement  = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
         val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContent)
         val metaImage      = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
-        val revisionMetas  = article.revisionMeta.map(toApiRevisionMeta)
+        val revisionMetas  = article.revisionMeta.map(CommonConverter.revisionMetaDomainToApi)
         val responsible    = article.responsible.map(toApiResponsible)
         val disclaimer = article.disclaimer.findByLanguageOrBestEffort(language).map(DisclaimerDTO.fromLanguageValue)
 
@@ -649,7 +632,8 @@ trait ConverterService {
       val updatedDate         = clock.now()
       val publishedDate       = article.published.getOrElse(toMergeInto.published)
       val updatedAvailability = common.Availability.valueOf(article.availability).getOrElse(toMergeInto.availability)
-      val updatedRevision    = article.revisionMeta.map(_.map(toDomainRevisionMeta)).getOrElse(toMergeInto.revisionMeta)
+      val updatedRevision     =
+        article.revisionMeta.map(_.map(CommonConverter.revisionMetaApiToDomain)).getOrElse(toMergeInto.revisionMeta)
       val responsible        = getNewResponsible(toMergeInto, article)
       val copyright          = article.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright)
       val priority           = getNewPriority(toMergeInto, article)

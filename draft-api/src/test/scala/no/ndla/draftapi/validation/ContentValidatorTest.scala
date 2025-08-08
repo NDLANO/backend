@@ -10,7 +10,7 @@ package no.ndla.draftapi.validation
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.*
-import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, RevisionMeta}
+import no.ndla.common.model.domain.draft.{Draft, DraftCopyright}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License

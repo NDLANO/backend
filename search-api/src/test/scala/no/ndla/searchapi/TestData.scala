@@ -26,7 +26,9 @@ import no.ndla.common.model.domain.{
   Tag,
   Title,
   VisualElement,
-  draft
+  draft,
+  RevisionMeta,
+  RevisionStatus
 }
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain.concept.{
@@ -39,7 +41,7 @@ import no.ndla.common.model.domain.concept.{
   GlossExample,
   WordClass
 }
-import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.domain.learningpath.{
   LearningPath,

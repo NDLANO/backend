@@ -10,7 +10,7 @@ package no.ndla.searchapi.service.search
 
 import io.circe.syntax.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.draft.{DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft.{DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.*
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.TestUtility.{getFields, getMappingFields}

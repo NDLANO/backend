@@ -1,17 +1,17 @@
 /*
- * Part of NDLA draft-api
+ * Part of NDLA common
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.draftapi.model.api
+package no.ndla.common.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.model.NDLADate
 
 @description("Information about the editorial notes")
 case class RevisionMetaDTO(

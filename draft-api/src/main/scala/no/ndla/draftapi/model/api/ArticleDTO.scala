@@ -18,7 +18,8 @@ import no.ndla.common.model.api.{
   DraftCopyrightDTO,
   RelatedContent,
   RelatedContentLinkDTO,
-  ResponsibleDTO
+  ResponsibleDTO,
+  RevisionMetaDTO
 }
 import sttp.tapir.Schema.annotations.description
 import no.ndla.common.model.domain.Priority

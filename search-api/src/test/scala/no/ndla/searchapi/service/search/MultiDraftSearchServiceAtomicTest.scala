@@ -16,8 +16,8 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{ApiTaxonomyContextDTO, LearningResourceType, SearchType}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus, RevisionMeta, RevisionStatus}
-import no.ndla.common.model.domain.{EditorNote, Priority, Responsible}
+import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, RevisionMeta, RevisionStatus}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
