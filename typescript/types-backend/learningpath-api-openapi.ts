@@ -746,6 +746,11 @@ export type components = {
             /** @description The description of the learningstep */
             description?: components["schemas"]["DescriptionDTO"];
             embedUrl?: components["schemas"]["EmbedUrlV2DTO"];
+            /**
+             * Format: int64
+             * @description The id of the article that this learningstep is associated with
+             */
+            article?: number;
             /** @description Determines if the title of the step should be displayed in viewmode */
             showTitle: boolean;
             /** @description The type of the step */
@@ -854,6 +859,11 @@ export type components = {
             description?: string;
             /** @description The chosen language */
             language: string;
+            /**
+             * Format: int64
+             * @description The article id this learningstep points to
+             */
+            article?: number;
             embedUrl?: components["schemas"]["EmbedUrlV2DTO"];
             /**
              * @description Determines if the title of the step should be displayed in viewmode.
@@ -1048,6 +1058,11 @@ export type components = {
             description?: string | null;
             /** @description The embed content for the learningstep */
             embedUrl?: components["schemas"]["EmbedUrlV2DTO"] | null;
+            /**
+             * Format: int64
+             * @description The article id this learningstep points to
+             */
+            article?: number | null;
             /** @description Determines if the title of the step should be displayed in viewmode */
             showTitle?: boolean;
             /** @description The type of the step */
