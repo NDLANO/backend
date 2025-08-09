@@ -94,8 +94,7 @@ trait AudioController {
     def getSearch: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Find audio files")
       .description("Shows all the audio files in the ndla.no database. You can search it too.")
-      // TODO: add search-context header output
-      .out(jsonBody[AudioSummarySearchResultDTO])
+      .out(EndpointOutput.derived[SummaryWithHeader])
       .in(queryString)
       .in(language)
       .in(license)
@@ -124,7 +123,7 @@ trait AudioController {
               seriesFilter,
               fallback.getOrElse(false)
             )
-          }.map(_.body).handleErrorsOrOk
+          }
       }
 
     def postSearch: ServerEndpoint[Any, Eff] = endpoint.post
@@ -132,8 +131,7 @@ trait AudioController {
       .description("Shows all the audio files in the ndla.no database. You can search it too.")
       .in("search")
       .in(jsonBody[SearchParamsDTO])
-      .out(jsonBody[AudioSummarySearchResultDTO])
-      // TODO: add search-context header output
+      .out(EndpointOutput.derived[SummaryWithHeader])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { searchParams =>
         val lang = searchParams.language.getOrElse(LanguageCode(Language.AllLanguages))
@@ -151,7 +149,7 @@ trait AudioController {
             searchParams.filterBySeries,
             searchParams.fallback.getOrElse(false)
           )
-        }.map(_.body).handleErrorsOrOk
+        }
       }
 
     def getSingle: ServerEndpoint[Any, Eff] = endpoint.get
