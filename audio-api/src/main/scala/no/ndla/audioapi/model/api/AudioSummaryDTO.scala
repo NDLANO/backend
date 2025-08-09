@@ -42,9 +42,6 @@ object AudioSummaryDTO {
   implicit val encoder: Encoder[AudioSummaryDTO] = deriveEncoder
   implicit val decoder: Decoder[AudioSummaryDTO] = deriveDecoder
 
-  val temporarySchema: Schema[AudioSummaryDTO] = {
-    import sttp.tapir.generic.auto.*
-    summon[Schema[AudioSummaryDTO]]
-  }
-  given Schema[AudioSummaryDTO] = temporarySchema
+  import sttp.tapir.generic.auto.*
+  implicit def schema: Schema[AudioSummaryDTO] = Schema.derived
 }

@@ -26,9 +26,6 @@ object SeriesSummaryDTO {
   implicit val encoder: Encoder[SeriesSummaryDTO] = deriveEncoder
   implicit val decoder: Decoder[SeriesSummaryDTO] = deriveDecoder
 
-  val temporarySchema: Schema[SeriesSummaryDTO] = {
-    import sttp.tapir.generic.auto.*
-    summon[Schema[SeriesSummaryDTO]]
-  }
-  given Schema[SeriesSummaryDTO] = temporarySchema
+  import sttp.tapir.generic.auto.*
+  implicit def schema: Schema[SeriesSummaryDTO] = Schema.derived
 }

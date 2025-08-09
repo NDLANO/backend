@@ -20,4 +20,5 @@ case class ManuscriptDTO(
 object ManuscriptDTO {
   implicit val encoder: Encoder[ManuscriptDTO] = deriveEncoder
   implicit val decoder: Decoder[ManuscriptDTO] = deriveDecoder
+
 }

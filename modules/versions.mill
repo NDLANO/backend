@@ -16,7 +16,7 @@ object SharedDependencies {
   val FlywayV               = "11.10.5"
   val PostgresV             = "42.7.7"
   val Http4sV               = "0.23.30"
-  val TapirV                = "1.11.34"
+  val TapirV                = "1.11.41"
   val ApiSpecV              = "0.11.9"
   val SttpV                 = "3.11.0"
   val CirceV                = "0.14.14"

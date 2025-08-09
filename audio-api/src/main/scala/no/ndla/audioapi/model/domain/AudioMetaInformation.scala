@@ -74,12 +74,8 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
 
   implicit val encoder: Encoder[AudioMetaInformation] = deriveEncoder
   implicit val decoder: Decoder[AudioMetaInformation] = deriveDecoder
-
-  val temporarySchema: Schema[AudioMetaInformation] = {
-    import sttp.tapir.generic.auto.*
-    summon[Schema[AudioMetaInformation]]
-  }
-  given Schema[AudioMetaInformation] = temporarySchema
+  import sttp.tapir.generic.auto.*
+  implicit def schema: Schema[AudioMetaInformation]   = Schema.derived
 
   def fromResultSet(au: SyntaxProvider[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation =
     fromResultSet(au.resultName)(rs)

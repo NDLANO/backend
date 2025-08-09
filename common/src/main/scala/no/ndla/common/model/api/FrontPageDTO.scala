@@ -43,30 +43,8 @@ object MenuDTO {
   implicit val encodeMenuData: Encoder[MenuDataDTO] = Encoder.instance { case menu: MenuDTO => menu.asJson }
   implicit val decodeMenuData: Decoder[MenuDataDTO] = Decoder[MenuDTO].widen
 
-  def getMenu(menu: List[MenuDataDTO]): List[MenuDTO] = {
-    menu.map { case m: MenuDTO => m }
-  }
-
-  // TODO : This schema is manually defined because of recursive type
-  //        figure out how we can derive this in scala 3 like we did in scala 2
-  implicit def menuDtoSchema: Schema[MenuDTO] = Schema(
-    SProduct(
-      List(
-        SchemaType.SProductField[MenuDTO, Long](FieldName("articleId"), Schema.schemaForLong, t => Some(t.articleId)),
-        SchemaType.SProductField[MenuDTO, List[String]](
-          FieldName("menu"),
-          Schema.string.asIterable,
-          _ => Some(List("string"))
-        ),
-        SchemaType
-          .SProductField[MenuDTO, Option[Boolean]](
-            FieldName("hideLevel"),
-            Schema.schemaForBoolean.asOption,
-            t => Option(t.hideLevel)
-          )
-      )
-    )
-  )
+  import sttp.tapir.generic.auto.*
+  implicit def schema: Schema[MenuDTO] = Schema.derivedSchema
 }
 
 sealed trait MenuDataDTO {}
