@@ -17,8 +17,8 @@ import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import scala.util.{Failure, Success}
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
-  override val converterService = new ConverterService
-  override val contentValidator = new ContentValidator
+  override lazy val converterService = new ConverterService
+  override lazy val contentValidator = new ContentValidator
 
   val baseConcept: Concept = TestData.domainConcept.copy(responsible = Some(Responsible("hei", TestData.today)))
 
@@ -26,7 +26,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
     val conceptToValidate = baseConcept.copy(title = Seq())
 
-    val Failure(exception: ValidationException) = contentValidator.validateConcept(conceptToValidate)
+    val Failure(exception: ValidationException) = contentValidator.validateConcept(conceptToValidate): @unchecked
     exception.errors should be(
       Seq(ValidationMessage("title", "The field does not have any entries, whereas at least one is required."))
     )
@@ -58,7 +58,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     val concept = baseConcept.copy(copyright =
       Some(DraftCopyright(Some("CC-BY-4.0"), None, Seq(), Seq(), Seq(), None, None, false))
     )
-    val Failure(exception: ValidationException) = contentValidator.validateConcept(concept)
+    val Failure(exception: ValidationException) = contentValidator.validateConcept(concept): @unchecked
     exception.errors should be(
       Seq(ValidationMessage("license.license", "At least one copyright holder is required when license is CC-BY-4.0"))
     )
