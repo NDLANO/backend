@@ -28,12 +28,11 @@ object OembedResponse {
 
 trait OembedProxyClient {
   this: NdlaClient & Props =>
-  val oembedProxyClient: OembedProxyClient
+  lazy val oembedProxyClient: OembedProxyClient
 
   class OembedProxyClient extends StrictLogging {
-    import props.ApiGatewayHost
     private val OembedProxyTimeout = 90.seconds
-    private val OembedProxyBaseUrl = s"http://$ApiGatewayHost/oembed-proxy/v1"
+    private val OembedProxyBaseUrl = s"http://${props.ApiGatewayHost}/oembed-proxy/v1"
 
     def getIframeUrl(url: String): Try[String] = {
       getOembed(url) match {

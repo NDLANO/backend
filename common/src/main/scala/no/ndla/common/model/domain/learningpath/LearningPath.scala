@@ -14,6 +14,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Comment, Content, Responsible, Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.common.model.domain.Priority
+import sttp.tapir.Schema
 
 case class LearningPath(
     id: Option[Long],
@@ -64,4 +65,7 @@ object LearningPath {
     if (learningsteps.succeeded) learningsteps.delete
     else obj
   }
+
+  import sttp.tapir.generic.auto.*
+  implicit def schema: Schema[LearningPath] = Schema.derivedSchema
 }

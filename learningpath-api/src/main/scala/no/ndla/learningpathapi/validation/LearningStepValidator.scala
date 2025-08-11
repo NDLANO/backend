@@ -15,7 +15,7 @@ import scala.util.{Failure, Success, Try}
 
 trait LearningStepValidator {
   this: TitleValidator & LanguageValidator & TextValidator & UrlValidator =>
-  val learningStepValidator: LearningStepValidator
+  lazy val learningStepValidator: LearningStepValidator
 
   class LearningStepValidator {
     val noHtmlTextValidator              = new TextValidator(allowHtml = false)

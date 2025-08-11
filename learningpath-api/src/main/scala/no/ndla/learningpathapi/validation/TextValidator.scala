@@ -17,10 +17,8 @@ trait TextValidator {
   this: Props =>
 
   class TextValidator(allowHtml: Boolean) {
-    import props.*
-
     val IllegalContentInBasicText: String =
-      s"The content contains illegal html-characters. Allowed characters are ${AllowedHtmlTags.mkString(", ")}"
+      s"The content contains illegal html-characters. Allowed characters are ${props.AllowedHtmlTags.mkString(", ")}"
 
     val IllegalContentInPlainText =
       "The content contains illegal html-characters. No HTML is allowed."

@@ -26,17 +26,16 @@ import scala.util.{Failure, Success, Try}
 
 trait SearchApiClient {
   this: NdlaClient & Props =>
-  val searchApiClient: SearchApiClient
+  lazy val searchApiClient: SearchApiClient
 
   class SearchApiClient extends StrictLogging {
-    import props.SearchApiHost
     private val IndexTimeout = 90.seconds
     @unused
-    private val SearchApiBaseUrl = s"http://$SearchApiHost"
+    private val SearchApiBaseUrl = s"http://${props.SearchApiHost}"
 
     def deleteLearningPathDocument(id: Long, user: Option[TokenUser]): Try[?] = {
       val req = quickRequest
-        .delete(uri"http://$SearchApiHost/intern/learningpath/$id")
+        .delete(uri"http://${props.SearchApiHost}/intern/learningpath/$id")
         .readTimeout(IndexTimeout)
 
       doRawRequest(req, user)
@@ -49,7 +48,7 @@ trait SearchApiClient {
         val body = CirceUtil.toJsonString(document)
 
         val req = quickRequest
-          .post(uri"http://$SearchApiHost/intern/learningpath/")
+          .post(uri"http://${props.SearchApiHost}/intern/learningpath/")
           .header("Content-Type", "application/json", replaceExisting = true)
           .body(body)
           .readTimeout(IndexTimeout)

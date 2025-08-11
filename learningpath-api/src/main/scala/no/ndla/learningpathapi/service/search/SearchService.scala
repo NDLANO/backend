@@ -33,16 +33,15 @@ import scala.util.{Failure, Success, Try}
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
 
 trait SearchService extends StrictLogging {
-  this: SearchIndexService & Elastic4sClient & SearchConverterServiceComponent & TaxonomyApiClient & Props & ErrorHandling =>
-  val searchService: SearchService
+  this: SearchIndexService & Elastic4sClient & SearchConverterServiceComponent & TaxonomyApiClient & Props &
+    ErrorHandling =>
+  lazy val searchService: SearchService
 
   class SearchService {
-    import props.{DefaultLanguage, ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
-
     def scroll(scrollId: String, language: String): Try[SearchResult] =
       e4sClient
         .execute {
-          searchScroll(scrollId, ElasticSearchScrollKeepAlive)
+          searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
         }
         .map(response => {
           val hits = getHitsV2(response.result, language)
@@ -194,9 +193,9 @@ trait SearchService extends StrictLogging {
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.page.getOrElse(1) * numResults
-      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+          s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
         )
         Failure(LearningpathHelpers.ResultWindowTooLargeException())
       } else {
@@ -211,7 +210,7 @@ trait SearchService extends StrictLogging {
         // Only add scroll param if it is first page
         val searchWithScroll =
           if (startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
+            searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
           } else { searchToExecute.explain(true) }
 
         e4sClient.execute(searchWithScroll) match {
@@ -263,7 +262,7 @@ trait SearchService extends StrictLogging {
 
     private def getSortDefinition(sort: Sort, language: String) = {
       val sortLanguage = language match {
-        case NoLanguage => DefaultLanguage
+        case NoLanguage => props.DefaultLanguage
         case _          => language
       }
 

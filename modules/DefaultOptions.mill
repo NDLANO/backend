@@ -68,7 +68,7 @@ trait DefaultOptions extends ScalaModule {
       "-Wconf:src=src_managed/.*:silent",
       "-Yretain-trees"   -> scala3,
       "-Xmax-inlines:50" -> scala3,
-      "-explain"         -> scala3
+      "-explain"         -> scala3,
 //      "-rewrite",
 //      "-source:3.2-migration"
     ).filterByVersion(scalaVersion())
