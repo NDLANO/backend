@@ -30,7 +30,7 @@ object DBLearningStep extends SQLSyntaxSupport[LearningStep] {
       meta.introduction,
       meta.description,
       meta.embedUrl,
-      meta.article,
+      meta.articleId,
       meta.`type`,
       meta.license,
       meta.showTitle,

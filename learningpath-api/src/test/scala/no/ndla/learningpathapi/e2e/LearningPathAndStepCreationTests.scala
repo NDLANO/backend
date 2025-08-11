@@ -129,7 +129,7 @@ class LearningPathAndStepCreationTests
           embedType = EmbedType.External.entryName
         )
       ),
-      article = None,
+      articleId = None,
       showTitle = false,
       `type` = StepType.TEXT.toString,
       license = None

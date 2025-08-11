@@ -237,7 +237,7 @@ trait SearchService extends StrictLogging {
       if (paths.isEmpty) None
       else {
         val nestedPathsQuery = paths.map(p => wildcardQuery("learningsteps.embedUrl", s"*$p"))
-        val articleQuery     = id.map(id => termQuery("learningsteps.article", id)).toSeq
+        val articleQuery     = id.map(id => termQuery("learningsteps.articleId", id)).toSeq
         Some(
           nestedQuery(
             "learningsteps",

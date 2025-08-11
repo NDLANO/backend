@@ -138,7 +138,7 @@ trait SearchIndexService {
           textField("stepType"),
           keywordField("embedUrl"),
           keywordField("status"),
-          intField("article")
+          intField("articleId")
         ),
         ObjectField(
           "copyright",
