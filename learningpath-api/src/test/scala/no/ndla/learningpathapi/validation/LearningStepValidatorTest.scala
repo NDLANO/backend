@@ -211,14 +211,17 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     validator.validateLearningStep(ValidLearningStep.copy(license = None), false) should equal(List())
   }
 
-  test("That error is returned when no descriptions or embedUrls are defined") {
+  test("That error is returned when no descriptions, embedUrls or articleId are defined") {
     validMock()
     val validationErrors =
-      validator.validateLearningStep(ValidLearningStep.copy(description = List(), embedUrl = Seq()), false)
+      validator.validateLearningStep(
+        ValidLearningStep.copy(description = List(), embedUrl = Seq(), articleId = None),
+        false
+      )
     validationErrors.size should be(1)
-    validationErrors.head.field should equal("description|embedUrl")
+    validationErrors.head.field should equal("description|embedUrl|articleId")
     validationErrors.head.message should equal(
-      "A learningstep is required to have either a description, embedUrl or both."
+      "A learningstep is required to have either a description, an embedUrl, or an articleId."
     )
   }
 
