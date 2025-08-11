@@ -643,7 +643,7 @@ trait LearningpathControllerV2 {
       .description("Delete the given language of a learning path")
       .in(pathLearningpathId / "language" / pathLanguage)
       .out(jsonBody[LearningPathV2DTO])
-      .errorOut(errorOutputsFor(400, 404, 500))
+      .errorOut(errorOutputsFor(400, 404, 422, 500))
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, language) =>
