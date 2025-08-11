@@ -212,7 +212,7 @@ trait LearningpathControllerV2 {
       updateLearningStepStatus(),
       updateLearningPathStatus(),
       withStatus,
-      deleteLearningPathLanguage,
+      deleteLearningPathLanguage(),
       deleteLearningpath(),
       deleteLearningStep(),
       updateLearningPathTaxonomy()
@@ -638,7 +638,7 @@ trait LearningpathControllerV2 {
       .withOptionalMyNDLAUserOrTokenUser
       .serverLogicPure { user => status => readService.learningPathWithStatus(status, user).handleErrorsOrOk }
 
-    private def deleteLearningPathLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
+    private def deleteLearningPathLanguage(): ServerEndpoint[Any, Eff] = endpoint.delete
       .summary("Delete the given language of a learning path")
       .description("Delete the given language of a learning path")
       .in(pathLearningpathId / "language" / pathLanguage)
@@ -647,12 +647,13 @@ trait LearningpathControllerV2 {
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user =>
         { case (pathId, language) =>
-          updateService.deleteLearningPathLanguage(pathId, language.code, user) match {
-            case Failure(ex) => returnLeftError(ex)
-            case Success(lp) =>
+          updateService
+            .deleteLearningPathLanguage(pathId, language.code, user)
+            .map { lp =>
               logger.info(s"DELETED LearningPath language ${language.code} for LearningPath with ID = $pathId")
-              lp.asRight
-          }
+              lp
+            }
+            .handleErrorsOrOk
         }
       }
 
