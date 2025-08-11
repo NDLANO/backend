@@ -20,16 +20,16 @@ class TagSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite 
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  val indexName                                   = "tags-testing"
-  override val tagSearchService: TagSearchService = new TagSearchService {
+  val indexName                                        = "tags-testing"
+  override lazy val tagSearchService: TagSearchService = new TagSearchService {
     override val searchIndex: String = indexName
   }
-  override val tagIndexService: TagIndexService = new TagIndexService {
+  override lazy val tagIndexService: TagIndexService = new TagIndexService {
     override val indexShards: Int    = 1
     override val searchIndex: String = indexName
   }
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   val image1: ImageMetaInformation = TestData.elg.copy(
     tags = Seq(
@@ -88,14 +88,14 @@ class TagSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite 
   }
 
   test("That searching for tags returns sensible results") {
-    val Success(result) = tagSearchService.matchingQuery("test", "nb", 1, 100, Sort.ByRelevanceDesc)
+    val Success(result) = tagSearchService.matchingQuery("test", "nb", 1, 100, Sort.ByRelevanceDesc): @unchecked
 
     result.totalCount should be(3)
     result.results should be(Seq("test", "testemer", "testing"))
   }
 
   test("That only prefixes are matched") {
-    val Success(result) = tagSearchService.matchingQuery("kylling", "nb", 1, 100, Sort.ByRelevanceDesc)
+    val Success(result) = tagSearchService.matchingQuery("kylling", "nb", 1, 100, Sort.ByRelevanceDesc): @unchecked
 
     result.totalCount should be(1)
     result.results should be(Seq("kyllingfilet"))

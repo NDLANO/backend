@@ -11,7 +11,6 @@ package no.ndla.imageapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
-import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageMetaInformation
@@ -20,9 +19,9 @@ import no.ndla.imageapi.repository.{ImageRepository, Repository}
 
 trait TagIndexService {
   this: SearchConverterService & IndexService & ImageRepository & Props =>
-  val tagIndexService: TagIndexService
+  lazy val tagIndexService: TagIndexService
 
-  class TagIndexService extends StrictLogging with IndexService[ImageMetaInformation, SearchableTag] {
+  class TagIndexService extends IndexService {
     override val documentType: String                         = props.TagSearchDocument
     override val searchIndex: String                          = props.TagSearchIndex
     override val repository: Repository[ImageMetaInformation] = imageRepository

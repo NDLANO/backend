@@ -26,8 +26,8 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   val imageGifName = "ndla_logo.gif"
   val imageSvgName = "logo.svg"
 
-  override val imageConverter   = new ImageConverter
-  val controller: RawController = new RawController
+  override lazy val imageConverter       = new ImageConverter
+  override val controller: RawController = new RawController
 
   val id    = 1L
   val idGif = 1L

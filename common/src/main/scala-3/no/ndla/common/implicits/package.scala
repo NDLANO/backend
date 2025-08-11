@@ -59,10 +59,24 @@ package object implicits {
         case Success(value) => value
       }
     }
+
+    def ??(using
+        @unused(
+          "This parameter is only to make sure we dont throw exceptions outside of a caught context"
+        ) ctx: PermittedTryContext
+    ): Unit = {
+      self match {
+        case Failure(ex) => throw ControlFlowException(ex)
+        case Success(_)  => ()
+      }
+    }
   }
 
   extension [T](opt: Option[T]) {
-    def toTry(throwable: Throwable): Try[T] = Failure(throwable)
+    def toTry(throwable: Throwable): Try[T] = opt match {
+      case Some(value) => Success(value)
+      case None        => Failure(throwable)
+    }
   }
 
   extension [T](t: Try[T]) {

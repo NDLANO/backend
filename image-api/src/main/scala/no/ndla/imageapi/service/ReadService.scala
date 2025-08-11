@@ -26,7 +26,7 @@ import scala.util.{Failure, Success, Try}
 trait ReadService {
   this: ConverterService & ValidationService & ImageRepository & ImageIndexService & ImageStorageService &
     TagSearchService & SearchConverterService =>
-  val readService: ReadService
+  lazy val readService: ReadService
 
   class ReadService extends StrictLogging {
 
