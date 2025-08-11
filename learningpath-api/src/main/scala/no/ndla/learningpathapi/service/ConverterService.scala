@@ -321,7 +321,7 @@ trait ConverterService {
           introduction,
           description,
           embedUrl,
-          newLearningStep.article,
+          newLearningStep.articleId,
           StepType.valueOfOrError(newLearningStep.`type`),
           newLearningStep.license,
           newLearningStep.showTitle
@@ -399,8 +399,8 @@ trait ConverterService {
             .map(newEmbedUrl => mergeLanguageFields(existing.embedUrl, Seq(newEmbedUrl)))
       }
 
-      val article = updated.article match {
-        case Missing           => existing.article
+      val articleId = updated.articleId match {
+        case Missing           => existing.articleId
         case Delete            => None
         case UpdateWith(value) => Some(value)
       }
@@ -412,7 +412,7 @@ trait ConverterService {
           introduction = introductions,
           description = descriptions,
           embedUrl = embedUrls,
-          article = article,
+          articleId = articleId,
           showTitle = updated.showTitle.getOrElse(existing.showTitle),
           `type` = updated.`type`
             .map(learningpath.StepType.valueOfOrError)
@@ -625,7 +625,7 @@ trait ConverterService {
             introduction,
             description,
             embedUrl,
-            ls.article,
+            ls.articleId,
             ls.showTitle,
             ls.`type`.toString,
             ls.license.map(asApiLicense),

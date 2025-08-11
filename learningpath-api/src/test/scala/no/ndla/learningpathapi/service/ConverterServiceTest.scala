@@ -103,7 +103,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed),
       EmbedUrl("https://www.ndla.no/456", "nn", EmbedType.OEmbed)
     ),
-    article = Some(123L)
+    articleId = Some(123L)
   )
   val apiTags: List[api.LearningPathTagsDTO] = List(api.LearningPathTagsDTO(Seq("tag"), DefaultLanguage))
 
@@ -638,6 +638,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     result.introduction shouldEqual Seq(Introduction("Introduksjon på bokmål oppdatert", "nb"))
     result.description shouldEqual Seq(Description("Beskrivelse på bokmål oppdatert", "nb"))
     result.embedUrl shouldEqual Seq(EmbedUrl("/subjects/resource:1234?a=test", "nb", EmbedType.IFrame))
-    result.article shouldEqual Some(456)
+    result.articleId shouldEqual Some(456)
   }
 }

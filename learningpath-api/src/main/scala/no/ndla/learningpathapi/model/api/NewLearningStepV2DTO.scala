@@ -18,7 +18,7 @@ case class NewLearningStepV2DTO(
     @description("The introduction of the learningstep") introduction: Option[String],
     @description("The descriptions of the learningstep") description: Option[String],
     @description("The chosen language") language: String,
-    @description("The article id this learningstep points to") article: Option[Long],
+    @description("The article id this learningstep points to") articleId: Option[Long],
     @description("The embed content for the learningstep") embedUrl: Option[EmbedUrlV2DTO],
     @description("Determines if the title of the step should be displayed in viewmode.") @default(
       false

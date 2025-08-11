@@ -23,7 +23,7 @@ case class LearningStepV2DTO(
                               @description("The introduction of the learningstep") introduction: Option[IntroductionDTO],
                               @description("The description of the learningstep") description: Option[DescriptionDTO],
                               @description("The embed content for the learningstep") embedUrl: Option[EmbedUrlV2DTO],
-                              @description("The id of the article that this learningstep is associated with") article: Option[Long],
+                              @description("The id of the article that this learningstep is associated with") articleId: Option[Long],
                               @description("Determines if the title of the step should be displayed in viewmode") showTitle: Boolean,
                               @description("The type of the step") `type`: String,
                               @description("Describes the copyright information for the learningstep") license: Option[LicenseDTO],
