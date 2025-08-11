@@ -31,11 +31,11 @@ import scala.util.{Failure, Success, Try}
 trait NodeIndexService {
   this: SearchConverterService & IndexService & Props & TaxonomyApiClient & ArticleApiClient & FrontpageApiClient &
     GrepApiClient =>
-  val nodeIndexService: NodeIndexService
-  class NodeIndexService extends StrictLogging with BulkIndexingService {
-    import props.SearchIndex
+  lazy val nodeIndexService: NodeIndexService
+
+  class NodeIndexService extends BulkIndexingService with StrictLogging {
     override val documentType: String       = "nodes"
-    override val searchIndex: String        = SearchIndex(SearchType.Nodes)
+    override val searchIndex: String        = props.SearchIndex(SearchType.Nodes)
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
     override def getMapping: MappingDefinition = {
@@ -118,7 +118,7 @@ trait NodeIndexService {
         .flatten
     }
 
-    def sendToElastic(indexingBundle: IndexingBundle, indexName: String): Try[BulkIndexResult] = {
+    def sendToElastic(indexingBundle: IndexingBundle, indexName: String): Try[BulkIndexResult] = permitTry {
       val taxBundle = indexingBundle.taxonomyBundle match {
         case None        => taxonomyApiClient.getTaxonomyBundle(true).?
         case Some(value) => value

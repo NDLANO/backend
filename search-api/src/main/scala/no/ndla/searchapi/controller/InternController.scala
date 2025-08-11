@@ -52,7 +52,7 @@ trait InternController {
   this: IndexService & ArticleIndexService & LearningPathIndexService & DraftIndexService & DraftConceptIndexService &
     NodeIndexService & TaxonomyApiClient & GrepApiClient & GrepIndexService & Props & ErrorHandling & MyNDLAApiClient &
     TapirController =>
-  val internController: InternController
+  lazy val internController: InternController
 
   class InternController extends TapirController with StrictLogging {
     import ErrorHelpers._

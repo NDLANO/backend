@@ -13,7 +13,7 @@ import no.ndla.network.NdlaClient
 
 trait DraftConceptApiClient {
   this: NdlaClient & SearchApiClient =>
-  val draftConceptApiClient: DraftConceptApiClient
+  lazy val draftConceptApiClient: DraftConceptApiClient
 
   class DraftConceptApiClient(val baseUrl: String) extends SearchApiClient[Concept] {
     override val searchPath     = "concept-api/v1/drafts"

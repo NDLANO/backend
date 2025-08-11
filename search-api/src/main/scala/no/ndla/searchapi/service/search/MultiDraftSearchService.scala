@@ -16,17 +16,16 @@ import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
 import com.sksamuel.elastic4s.requests.searches.term.TermsQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, SearchType}
-import no.ndla.common.model.domain.Content
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.learningpath.LearningPathStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{ErrorHandling, SubjectAggregationDTO, SubjectAggregationsDTO}
 import no.ndla.searchapi.model.domain.SearchResult
@@ -36,18 +35,17 @@ import scala.util.{Failure, Success, Try}
 
 trait MultiDraftSearchService {
   this: Elastic4sClient & SearchConverterService & IndexService & SearchService & DraftIndexService &
-    LearningPathIndexService & Props & ErrorHandling & DraftConceptIndexService =>
-  val multiDraftSearchService: MultiDraftSearchService
+    LearningPathIndexService & Props & ErrorHandling & DraftConceptIndexService & BaseIndexService =>
+  lazy val multiDraftSearchService: MultiDraftSearchService
 
   class MultiDraftSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
-    import props.{ElasticSearchScrollKeepAlive, SearchIndex}
     override val searchIndex: List[String] = List(
       SearchType.Drafts,
       SearchType.LearningPaths,
       SearchType.Concepts
-    ).map(SearchIndex)
+    ).map(props.SearchIndex)
 
-    override val indexServices: List[IndexService[? <: Content]] = List(
+    override val indexServices: List[BaseIndexService] = List(
       draftIndexService,
       learningPathIndexService,
       draftConceptIndexService
@@ -130,7 +128,7 @@ trait MultiDraftSearchService {
       settings.resultTypes match {
         case Some(list) if list.nonEmpty =>
           val idxs = list.map { st =>
-            val index        = SearchIndex(st)
+            val index        = props.SearchIndex(st)
             val isValidIndex = searchIndex.contains(index)
 
             if (isValidIndex) Right(index)
@@ -150,7 +148,7 @@ trait MultiDraftSearchService {
           if (errors.nonEmpty) Failure(new ValidationException(s"Got invalid `resultTypes` for endpoint", errors))
           else Success(idxs.collect { case Right(i) => i })
 
-        case _ => Success(List(SearchType.Drafts, SearchType.LearningPaths).map(SearchIndex))
+        case _ => Success(List(SearchType.Drafts, SearchType.LearningPaths).map(props.SearchIndex))
       }
     }
 
@@ -217,7 +215,7 @@ trait MultiDraftSearchService {
       e4sClient.execute(searchToExecute).map(_.result.totalHits)
     }
 
-    def executeSearch(settings: MultiDraftSearchSettings, baseQuery: BoolQuery): Try[SearchResult] = {
+    def executeSearch(settings: MultiDraftSearchSettings, baseQuery: BoolQuery): Try[SearchResult] = permitTry {
       val searchLanguage = settings.language match {
         case lang if Iso639.get(lang).isSuccess && !settings.fallback => lang
         case _                                                        => AllLanguages
@@ -240,7 +238,7 @@ trait MultiDraftSearchService {
       // Only add scroll param if it is first page
       val searchWithScroll =
         if (pagination.startAt == 0 && settings.shouldScroll) {
-          searchToExecute.scroll(ElasticSearchScrollKeepAlive)
+          searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
         } else { searchToExecute }
 
       e4sClient.execute(searchWithScroll) match {

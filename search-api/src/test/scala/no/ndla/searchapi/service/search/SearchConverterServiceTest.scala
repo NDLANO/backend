@@ -36,7 +36,7 @@ import scala.util.{Success, Try}
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
-  override val searchConverterService = new SearchConverterService
+  override lazy val searchConverterService = new SearchConverterService
   val sampleArticle: Article          = TestData.sampleArticleWithPublicDomain.copy()
 
   val titles: List[Title] = List(
@@ -129,7 +129,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       searchConverterService.asSearchableArticle(
         article,
         IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
-      )
+      ): @unchecked
     verifyTitles(searchableArticle)
   }
 
@@ -139,7 +139,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       searchConverterService.asSearchableArticle(
         article,
         IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
-      )
+      ): @unchecked
     verifyArticles(searchableArticle)
   }
 
@@ -149,7 +149,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       searchConverterService.asSearchableArticle(
         article,
         IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
-      )
+      ): @unchecked
     verifyTags(searchableArticle)
   }
 
@@ -159,7 +159,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       searchConverterService.asSearchableArticle(
         article,
         IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
-      )
+      ): @unchecked
 
     verifyTitles(searchableArticle)
     verifyArticles(searchableArticle)
@@ -175,7 +175,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(searchable4) =
       searchConverterService.asSearchableArticle(
         TestData.article4,
@@ -184,7 +184,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(searchable7) =
       searchConverterService.asSearchableArticle(
         TestData.article7,
@@ -193,7 +193,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
 
     searchable2.contexts.head.resourceTypeIds.sorted should be(
       Seq("urn:resourcetype:subjectMaterial", "urn:resourcetype:academicArticle").sorted
@@ -219,7 +219,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(searchable4) =
       searchConverterService.asSearchableArticle(
         TestData.article4,
@@ -228,7 +228,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(searchable6) =
       searchConverterService.asSearchableArticle(
         TestData.article6,
@@ -237,7 +237,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
 
     searchable1.contexts.size should be(2)
     searchable1.contexts.head.breadcrumbs.languageValues.map(_.value) should be(
@@ -289,7 +289,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(searchable4) =
       searchConverterService.asSearchableArticle(
         TestData.article4,
@@ -298,7 +298,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(searchable5) =
       searchConverterService.asSearchableArticle(
         TestData.article5,
@@ -307,7 +307,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
 
     searchable1.contexts.size should be(2)
     searchable1.contexts.map(_.domainObject.root.languageValues.map(_.value)) should be(
@@ -337,7 +337,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(taxonomyBundleInvisibleMetadata),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(searchable4) =
       searchConverterService.asSearchableArticle(
         TestData.article4,
@@ -346,7 +346,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(taxonomyBundleInvisibleMetadata),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(searchable5) =
       searchConverterService.asSearchableArticle(
         TestData.article5,
@@ -355,7 +355,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(taxonomyBundleInvisibleMetadata),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
 
     searchable1.contexts.size should be(0)
     searchable4.contexts.size should be(0)
@@ -377,7 +377,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(taxonomyBundleInvisibleMetadata),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(searchable4) =
       searchConverterService.asSearchableArticle(
         TestData.article4,
@@ -386,7 +386,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(taxonomyBundleInvisibleMetadata),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(searchable5) =
       searchConverterService.asSearchableArticle(
         TestData.article5,
@@ -395,7 +395,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(taxonomyBundleInvisibleMetadata),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
 
     searchable1.contexts.size should be(0)
     searchable4.contexts.size should be(0)
@@ -411,7 +411,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(searchable4) =
       searchConverterService.asSearchableArticle(
         TestData.article4,
@@ -420,7 +420,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(searchable5) =
       searchConverterService.asSearchableArticle(
         TestData.article5,
@@ -429,7 +429,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
 
     searchable1.contexts.size should be(2)
     searchable4.contexts.size should be(1)
@@ -445,7 +445,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
 
     searchable1.contexts.size should be(3)
   }
@@ -465,7 +465,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
           Some(emptyBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     searchableArticle.grepContexts should equal(grepContexts)
   }
 
@@ -484,7 +484,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       searchConverterService.asSearchableArticle(
         article,
         IndexingBundle(Some(TestData.grepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
-      )
+      ): @unchecked
     searchableArticle.grepContexts should equal(grepContexts)
   }
 
@@ -496,7 +496,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       searchConverterService.asSearchableArticle(
         article,
         IndexingBundle(Some(TestData.grepBundle), Some(emptyBundle), Some(TestData.myndlaTestBundle))
-      )
+      ): @unchecked
     searchableArticle.grepContexts should equal(grepContexts)
   }
 
@@ -511,7 +511,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       searchConverterService.asSearchableDraft(
         draft,
         IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), None)
-      )
+      ): @unchecked
     searchableArticle.grepContexts should equal(grepContexts)
   }
 
@@ -576,7 +576,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       SearchableGrepContext("TT2", Some("tittel2"), "Published")
     )
     val Success(searchableArticle) =
-      searchConverterService.asSearchableDraft(draft, IndexingBundle(Some(grepBundle), Some(emptyBundle), None))
+      searchConverterService.asSearchableDraft(draft, IndexingBundle(Some(grepBundle), Some(emptyBundle), None)): @unchecked
     searchableArticle.grepContexts should equal(grepContexts)
   }
 
@@ -626,7 +626,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     val grepContexts = List.empty
 
     val Success(searchableArticle) =
-      searchConverterService.asSearchableDraft(draft, IndexingBundle(Some(grepBundle), Some(emptyBundle), None))
+      searchConverterService.asSearchableDraft(draft, IndexingBundle(Some(grepBundle), Some(emptyBundle), None)): @unchecked
     searchableArticle.grepContexts should equal(grepContexts)
   }
 
@@ -647,7 +647,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       searchConverterService.asSearchableArticle(
         article,
         IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), None)
-      )
+      ): @unchecked
     searchableArticle.traits should equal(List(SearchTrait.H5p))
 
     val article2 =
@@ -673,7 +673,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       searchConverterService.asSearchableArticle(
         article2,
         IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), None)
-      )
+      ): @unchecked
     searchableArticle2.traits should equal(List(SearchTrait.H5p, SearchTrait.Video))
   }
 
@@ -754,7 +754,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       SearchableGrepContext("KV123", Some("tittel123"), "Published")
     )
     val Success(searchableNode) =
-      searchConverterService.asSearchableNode(node, None, IndexingBundle(Some(grepBundle), Some(emptyBundle), None))
+      searchConverterService.asSearchableNode(node, None, IndexingBundle(Some(grepBundle), Some(emptyBundle), None)): @unchecked
     searchableNode.grepContexts should equal(grepContexts)
   }
 
