@@ -10,6 +10,7 @@ trait DockerComponent extends ScalaModule, DockerModule {
     def tags: T[Seq[String]]            = List(s"ndla/$moduleName:$versionTag")
     def baseImage                       = "eclipse-temurin:21-alpine"
     def envVars: T[Map[String, String]] = Map("LOG_APPENDER" -> "Docker")
+    def jvmOptions: T[Seq[String]]      = Task { super.jvmOptions() ++ Seq("$JAVA_OPTS") }
   }
 
   override def assemblyRules: Seq[Assembly.Rule] = {
