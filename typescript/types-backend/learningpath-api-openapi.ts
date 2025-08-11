@@ -750,7 +750,7 @@ export type components = {
              * Format: int64
              * @description The id of the article that this learningstep is associated with
              */
-            article?: number;
+            articleId?: number;
             /** @description Determines if the title of the step should be displayed in viewmode */
             showTitle: boolean;
             /** @description The type of the step */
@@ -863,7 +863,7 @@ export type components = {
              * Format: int64
              * @description The article id this learningstep points to
              */
-            article?: number;
+            articleId?: number;
             embedUrl?: components["schemas"]["EmbedUrlV2DTO"];
             /**
              * @description Determines if the title of the step should be displayed in viewmode.
@@ -1062,7 +1062,7 @@ export type components = {
              * Format: int64
              * @description The article id this learningstep points to
              */
-            article?: number | null;
+            articleId?: number | null;
             /** @description Determines if the title of the step should be displayed in viewmode */
             showTitle?: boolean;
             /** @description The type of the step */
