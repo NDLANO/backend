@@ -44,7 +44,7 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
       ConfigKey.LearningpathWriteRestricted,
       ConfigMetaValueDTO(true),
       TokenUser("Kari", Set(LEARNINGPATH_API_PUBLISH), None)
-    )
+    ): @unchecked
     ex.isInstanceOf[AccessDeniedException] should be(true)
   }
 
@@ -55,7 +55,7 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
       ConfigKey.LearningpathWriteRestricted,
       ConfigMetaValueDTO(true),
       TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None)
-    )
+    ): @unchecked
   }
 
   test("That validation fails if IsWriteRestricted is not a boolean") {
@@ -65,7 +65,7 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
       ConfigKey.LearningpathWriteRestricted,
       ConfigMetaValueDTO(List("123")),
       TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None)
-    )
+    ): @unchecked
 
     ex.isInstanceOf[ValidationException] should be(true)
   }

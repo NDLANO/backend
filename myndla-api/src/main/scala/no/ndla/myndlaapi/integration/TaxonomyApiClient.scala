@@ -20,7 +20,7 @@ import scala.util.{Success, Try}
 trait TaxonomyApiClient {
   this: NdlaClient & Props =>
 
-  val taxonomyApiClient: TaxonomyApiClient
+  lazy val taxonomyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends StrictLogging {
     private val resolveEndpoint = s"${props.TaxonomyUrl}/v1/url/resolve"

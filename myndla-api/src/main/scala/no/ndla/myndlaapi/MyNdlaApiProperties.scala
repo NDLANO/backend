@@ -15,7 +15,7 @@ import no.ndla.network.AuthUser
 import scala.util.Properties.*
 
 trait Props extends HasBaseProps with HasDatabaseProps {
-  val props: MyNdlaApiProperties
+  lazy val props: MyNdlaApiProperties
 }
 
 class MyNdlaApiProperties extends BaseProps with DatabaseProps {

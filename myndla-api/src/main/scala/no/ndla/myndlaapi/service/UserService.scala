@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.service
 
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.common.model.api.myndla
 import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
@@ -27,7 +27,7 @@ trait UserService {
   this: FeideApiClient & FolderConverterService & ConfigService & UserRepository & Clock & FolderWriteService &
     NodeBBClient & FolderRepository & DBUtility =>
 
-  val userService: UserService
+  lazy val userService: UserService
 
   class UserService {
     def getMyNdlaUserDataDomain(
@@ -170,7 +170,7 @@ trait UserService {
         userData: MyNDLAUser
     )(implicit
         session: DBSession
-    ): Try[MyNDLAUser] = {
+    ): Try[MyNDLAUser] = permitTry {
       val feideUser         = feideApiClient.getFeideExtendedUser(feideAccessToken).?
       val organization      = feideApiClient.getOrganization(feideAccessToken).?
       val feideGroups       = feideApiClient.getFeideGroups(feideAccessToken).?

@@ -15,6 +15,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.myndlaapi.model.domain.{CopyableFolder, CopyableResource}
+import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
 import java.util.UUID
@@ -48,6 +49,8 @@ case class FolderDTO(
 object FolderDTO {
   implicit val folderEncoder: Encoder[FolderDTO] = deriveEncoder
   implicit val folderDecoder: Decoder[FolderDTO] = deriveDecoder
+  import sttp.tapir.generic.auto.*
+  implicit def schema: Schema[FolderDTO] = Schema.derivedSchema
 
   implicit val folderDataEncoder: Encoder[FolderDataDTO] = Encoder.instance { case folder: FolderDTO => folder.asJson }
   implicit val folderDataDecoder: Decoder[FolderDataDTO] = Decoder[FolderDTO].widen

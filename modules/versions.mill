@@ -9,7 +9,6 @@ object SharedDependencies {
   val ScalaTestV            = "3.2.19"
   val Log4JV                = "2.25.0"
   val AwsSdkV               = "2.31.64"
-  val MockitoV              = "1.17.30"
   val Elastic4sV            = "8.11.5"
   val JacksonV              = "2.19.1"
   val CatsEffectV           = "3.6.1"
@@ -43,7 +42,7 @@ object SharedDependencies {
 
   def testing: Seq[Dep] = Seq(
     mvn"org.scalatest::scalatest:$ScalaTestV",
-    mvn"org.scalatestplus::mockito-5-10:3.2.18.0",
+    mvn"org.scalatestplus::mockito-5-18:3.2.19.0",
     mvn"org.testcontainers:elasticsearch:$TestContainersV",
     mvn"org.testcontainers:testcontainers:$TestContainersV",
     mvn"org.testcontainers:postgresql:$TestContainersV"

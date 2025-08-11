@@ -28,10 +28,9 @@ object SavedSharedFolder extends SQLSyntaxSupport[SavedSharedFolder] {
 
   override val tableName = "saved_shared_folder"
 
-  def fromResultSet(sp: SyntaxProvider[SavedSharedFolder])(rs: WrappedResultSet): Try[SavedSharedFolder] =
+  def fromResultSet(sp: SyntaxProvider[SavedSharedFolder], rs: WrappedResultSet): Try[SavedSharedFolder] = {
     fromResultSet((s: String) => sp.resultName.c(s))(rs)
-
-  def fromResultSet(rs: WrappedResultSet): Try[SavedSharedFolder] = fromResultSet((s: String) => s)(rs)
+  }
 
   def fromResultSet(colNameWrapper: String => String)(rs: WrappedResultSet): Try[SavedSharedFolder] = {
     import no.ndla.myndlaapi.uuidBinder

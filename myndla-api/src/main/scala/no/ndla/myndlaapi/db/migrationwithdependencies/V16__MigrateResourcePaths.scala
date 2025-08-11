@@ -20,7 +20,7 @@ trait V16__MigrateResourcePaths {
 
   class V16__MigrateResourcePaths extends TableMigration[ResourceRow] {
     override val tableName: String                                 = "resources"
-    override val whereClause: scalikejdbc.SQLSyntax                = sqls"path is not null"
+    override lazy val whereClause: scalikejdbc.SQLSyntax           = sqls"path is not null"
     override val chunkSize: Int                                    = 1000
     override def extractRowData(rs: WrappedResultSet): ResourceRow = ResourceRow(
       UUID.fromString(rs.string("id")),

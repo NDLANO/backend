@@ -71,37 +71,36 @@ class ComponentRegistry(properties: MyNdlaApiProperties)
     with LearningPathApiClient
     with V16__MigrateResourcePaths
     with NdlaClient {
-  override val props: MyNdlaApiProperties = properties
+  override lazy val props: MyNdlaApiProperties                     = properties
+  override lazy val healthController: TapirHealthController        = new TapirHealthController
+  override lazy val clock: SystemClock                             = new SystemClock
+  override lazy val folderController: FolderController             = new FolderController
+  override lazy val robotController: RobotController               = new RobotController
+  override lazy val feideApiClient: FeideApiClient                 = new FeideApiClient
+  override lazy val redisClient                                    = new RedisClient(props.RedisHost, props.RedisPort)
+  override lazy val folderRepository: FolderRepository             = new FolderRepository
+  override lazy val folderConverterService: FolderConverterService = new FolderConverterService
+  override lazy val folderReadService: FolderReadService           = new FolderReadService
+  override lazy val folderWriteService: FolderWriteService         = new FolderWriteService
+  override lazy val userRepository: UserRepository                 = new UserRepository
+  override lazy val robotRepository: RobotRepository               = new RobotRepository
+  override lazy val robotService: RobotService                     = new RobotService
+  override lazy val userService: UserService                       = new UserService
+  override lazy val userController: UserController                 = new UserController
+  override lazy val configRepository: ConfigRepository             = new ConfigRepository
+  override lazy val configService: ConfigService                   = new ConfigService
+  override lazy val configController: ConfigController             = new ConfigController
+  lazy val statsController: StatsController                        = new StatsController
+  override lazy val nodebb: NodeBBClient                           = new NodeBBClient
+  override lazy val searchApiClient: SearchApiClient               = new SearchApiClient
+  override lazy val taxonomyApiClient: TaxonomyApiClient           = new TaxonomyApiClient
+  override lazy val learningPathApiClient: LearningPathApiClient   = new LearningPathApiClient
+  override lazy val ndlaClient: NdlaClient                         = new NdlaClient
+  override lazy val myndlaApiClient: MyNDLAApiClient               = new MyNDLAApiClient
+  lazy val v16__MigrateResourcePaths: V16__MigrateResourcePaths    = new V16__MigrateResourcePaths
+  override lazy val DBUtil                                         = new DBUtility
 
-  lazy val healthController: TapirHealthController              = new TapirHealthController
-  lazy val clock: SystemClock                                   = new SystemClock
-  lazy val folderController: FolderController                   = new FolderController
-  lazy val robotController: RobotController                     = new RobotController
-  lazy val feideApiClient: FeideApiClient                       = new FeideApiClient
-  lazy val redisClient                                          = new RedisClient(props.RedisHost, props.RedisPort)
-  lazy val folderRepository: FolderRepository                   = new FolderRepository
-  lazy val folderConverterService: FolderConverterService       = new FolderConverterService
-  lazy val folderReadService: FolderReadService                 = new FolderReadService
-  lazy val folderWriteService: FolderWriteService               = new FolderWriteService
-  lazy val userRepository: UserRepository                       = new UserRepository
-  lazy val robotRepository: RobotRepository                     = new RobotRepository
-  lazy val robotService: RobotService                           = new RobotService
-  lazy val userService: UserService                             = new UserService
-  lazy val userController: UserController                       = new UserController
-  lazy val configRepository: ConfigRepository                   = new ConfigRepository
-  lazy val configService: ConfigService                         = new ConfigService
-  lazy val configController: ConfigController                   = new ConfigController
-  lazy val statsController: StatsController                     = new StatsController
-  lazy val nodebb: NodeBBClient                                 = new NodeBBClient
-  lazy val searchApiClient: SearchApiClient                     = new SearchApiClient
-  lazy val taxonomyApiClient: TaxonomyApiClient                 = new TaxonomyApiClient
-  lazy val learningPathApiClient: LearningPathApiClient         = new LearningPathApiClient
-  lazy val ndlaClient: NdlaClient                               = new NdlaClient
-  lazy val myndlaApiClient: MyNDLAApiClient                     = new MyNDLAApiClient
-  lazy val v16__MigrateResourcePaths: V16__MigrateResourcePaths = new V16__MigrateResourcePaths
-  lazy val DBUtil                                               = new DBUtility
-
-  override val migrator: DBMigrator              = DBMigrator(v16__MigrateResourcePaths)
+  override lazy val migrator: DBMigrator         = DBMigrator(v16__MigrateResourcePaths)
   override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
   val swagger = new SwaggerController(
