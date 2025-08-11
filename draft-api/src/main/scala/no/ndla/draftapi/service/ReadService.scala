@@ -34,14 +34,12 @@ import scalikejdbc.ReadOnlyAutoSession
 
 import scala.jdk.CollectionConverters.*
 import scala.math.max
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Try, boundary}
 
 trait ReadService {
   this: DraftRepository & ConverterService & ArticleSearchService & TagSearchService & GrepCodesSearchService &
     SearchConverterService & UserDataRepository & WriteService & Props & MemoizeHelpers & DBUtility =>
-  val readService: ReadService
-
-  import props.*
+  lazy val readService: ReadService
 
   class ReadService {
 
@@ -141,7 +139,7 @@ trait ReadService {
 
       typeAndPathOption match {
         case Some((resourceType, path)) =>
-          val baseUrl   = Url.parse(externalApiUrls(resourceType))
+          val baseUrl   = Url.parse(props.externalApiUrls(resourceType))
           val pathParts = Path.parse(path).parts
 
           embedTag.attr(
@@ -190,13 +188,15 @@ trait ReadService {
         articleId: Long,
         language: String,
         fallback: Boolean
-    ): Try[ArticleRevisionHistoryDTO] = {
+    ): Try[ArticleRevisionHistoryDTO] = boundary {
       val drafts = draftRepository
         .articlesWithId(articleId)
         .map(addUrlsOnEmbedResources)
         .sortBy(
           _.revision.getOrElse(
-            return Failure(api.NotFoundException(s"Revision was missing for draft of article with id $articleId"))
+            boundary.break(
+              Failure(api.NotFoundException(s"Revision was missing for draft of article with id $articleId"))
+            )
           )
         )
         .reverse

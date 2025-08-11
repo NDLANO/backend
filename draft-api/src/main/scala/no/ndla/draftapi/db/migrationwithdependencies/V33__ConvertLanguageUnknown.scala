@@ -12,6 +12,6 @@ import no.ndla.draftapi.{DraftApiProperties, Props}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 
 class V33__ConvertLanguageUnknown(properties: DraftApiProperties) extends BaseJavaMigration with Props {
-  override val props: DraftApiProperties       = properties
+  override lazy val props: DraftApiProperties  = properties
   override def migrate(context: Context): Unit = {}
 }

@@ -37,7 +37,7 @@ import scala.util.{Success, Try}
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override lazy val searchConverterService = new SearchConverterService
-  val sampleArticle: Article          = TestData.sampleArticleWithPublicDomain.copy()
+  val sampleArticle: Article               = TestData.sampleArticleWithPublicDomain.copy()
 
   val titles: List[Title] = List(
     Title("Bokmål tittel", "nb"),
@@ -576,7 +576,10 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       SearchableGrepContext("TT2", Some("tittel2"), "Published")
     )
     val Success(searchableArticle) =
-      searchConverterService.asSearchableDraft(draft, IndexingBundle(Some(grepBundle), Some(emptyBundle), None)): @unchecked
+      searchConverterService.asSearchableDraft(
+        draft,
+        IndexingBundle(Some(grepBundle), Some(emptyBundle), None)
+      ): @unchecked
     searchableArticle.grepContexts should equal(grepContexts)
   }
 
@@ -626,7 +629,10 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     val grepContexts = List.empty
 
     val Success(searchableArticle) =
-      searchConverterService.asSearchableDraft(draft, IndexingBundle(Some(grepBundle), Some(emptyBundle), None)): @unchecked
+      searchConverterService.asSearchableDraft(
+        draft,
+        IndexingBundle(Some(grepBundle), Some(emptyBundle), None)
+      ): @unchecked
     searchableArticle.grepContexts should equal(grepContexts)
   }
 
@@ -754,7 +760,11 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       SearchableGrepContext("KV123", Some("tittel123"), "Published")
     )
     val Success(searchableNode) =
-      searchConverterService.asSearchableNode(node, None, IndexingBundle(Some(grepBundle), Some(emptyBundle), None)): @unchecked
+      searchConverterService.asSearchableNode(
+        node,
+        None,
+        IndexingBundle(Some(grepBundle), Some(emptyBundle), None)
+      ): @unchecked
     searchableNode.grepContexts should equal(grepContexts)
   }
 

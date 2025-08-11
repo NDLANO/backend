@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.domain
 import no.ndla.common.model.domain.ContributorType
+import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
 @description("Information about an author")
@@ -30,4 +31,5 @@ case class AuthorDTO(
 object AuthorDTO {
   implicit def encoder: Encoder[AuthorDTO] = deriveEncoder[AuthorDTO]
   implicit def decoder: Decoder[AuthorDTO] = deriveDecoder[AuthorDTO]
+  implicit def schema: Schema[AuthorDTO]   = Schema.derived[AuthorDTO]
 }

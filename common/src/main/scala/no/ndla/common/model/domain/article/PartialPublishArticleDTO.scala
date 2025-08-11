@@ -36,4 +36,6 @@ object PartialPublishArticleDTO {
   implicit def eitherDec: Decoder[Either[RelatedContentLinkDTO, Long]] = eitherDecoder[RelatedContentLinkDTO, Long]
   implicit val encoder: Encoder.AsObject[PartialPublishArticleDTO] = UpdateOrDelete.filterMarkers(deriveEncoder[PartialPublishArticleDTO])
   implicit val decoder: Decoder[PartialPublishArticleDTO] = deriveDecoder[PartialPublishArticleDTO]
+  import sttp.tapir.generic.auto.*
+  implicit def schema: sttp.tapir.Schema[PartialPublishArticleDTO] = sttp.tapir.Schema.derivedSchema
 }

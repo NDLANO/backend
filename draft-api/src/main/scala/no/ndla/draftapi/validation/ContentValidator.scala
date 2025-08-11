@@ -32,11 +32,10 @@ import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
   this: DraftRepository & ConverterService & ArticleApiClient & Props =>
-  val contentValidator: ContentValidator
-  val importValidator: ContentValidator
+  lazy val contentValidator: ContentValidator
+  lazy val importValidator: ContentValidator
 
   class ContentValidator {
-    import props.{BrightcoveVideoScriptUrl, H5PResizerScriptUrl, NRKVideoScriptUrl}
     private val inlineHtmlTags       = props.InlineHtmlTags
     private val introductionHtmlTags = props.IntroductionHtmlTags
 
@@ -294,7 +293,7 @@ trait ContentValidator {
     }
 
     private def validateRequiredLibrary(requiredLibrary: RequiredLibrary): Option[ValidationMessage] = {
-      val permittedLibraries = Seq(BrightcoveVideoScriptUrl, H5PResizerScriptUrl) ++ NRKVideoScriptUrl
+      val permittedLibraries = Seq(props.BrightcoveVideoScriptUrl, props.H5PResizerScriptUrl) ++ props.NRKVideoScriptUrl
       if (permittedLibraries.contains(requiredLibrary.url)) {
         None
       } else {

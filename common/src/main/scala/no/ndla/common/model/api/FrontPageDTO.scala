@@ -48,3 +48,7 @@ object MenuDTO {
 }
 
 sealed trait MenuDataDTO {}
+
+object MenuDataDTO {
+  implicit def schema: Schema[MenuDataDTO] = MenuDTO.schema.as
+}

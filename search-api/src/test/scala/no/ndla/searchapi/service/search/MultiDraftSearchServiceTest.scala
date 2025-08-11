@@ -108,29 +108,33 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That all returns all documents ordered by id ascending") {
-    val Success(results) = multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByIdAsc)): @unchecked
-    val expected         = idsForLang("nb").sorted
+    val Success(results) =
+      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByIdAsc)): @unchecked
+    val expected = idsForLang("nb").sorted
     results.totalCount should be(expected.size)
     results.summaryResults.map(_.id) should be(expected)
   }
 
   test("That all returns all documents ordered by id descending") {
-    val Success(results) = multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByIdDesc)): @unchecked
-    val expected         = idsForLang("nb").sorted.reverse
+    val Success(results) =
+      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByIdDesc)): @unchecked
+    val expected = idsForLang("nb").sorted.reverse
     results.totalCount should be(expected.size)
     results.summaryResults.map(_.id) should be(expected)
   }
 
   test("That all returns all documents ordered by title ascending") {
-    val Success(results) = multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByTitleAsc)): @unchecked
-    val expected         = titlesForLang("nb").sorted
+    val Success(results) =
+      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByTitleAsc)): @unchecked
+    val expected = titlesForLang("nb").sorted
     results.totalCount should be(expected.size)
     results.summaryResults.map(_.title.title) should be(expected)
   }
 
   test("That all returns all documents ordered by title descending") {
-    val Success(results) = multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByTitleDesc)): @unchecked
-    val expected         = titlesForLang("nb").sorted.reverse
+    val Success(results) =
+      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByTitleDesc)): @unchecked
+    val expected = titlesForLang("nb").sorted.reverse
     results.totalCount should be(expected.size)
     results.summaryResults.map(_.title.title) should be(expected)
   }
@@ -156,9 +160,13 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That paging returns only hits on current page and not more than page-size") {
     val Success(page1) =
-      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(page = 1, pageSize = 2, sort = Sort.ByIdAsc)): @unchecked
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(page = 1, pageSize = 2, sort = Sort.ByIdAsc)
+      ): @unchecked
     val Success(page2) =
-      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(page = 2, pageSize = 2, sort = Sort.ByIdAsc)): @unchecked
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(page = 2, pageSize = 2, sort = Sort.ByIdAsc)
+      ): @unchecked
     val expected = idsForLang("nb")
     val hits1    = page1.summaryResults
     val hits2    = page2.summaryResults
@@ -321,7 +329,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("Search for all languages should return all articles in correct language") {
     val Success(search) =
-      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(language = AllLanguages, pageSize = 100)): @unchecked
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(language = AllLanguages, pageSize = 100)
+      ): @unchecked
     val hits = search.summaryResults
 
     search.totalCount should equal(idsForLang("*").size)
@@ -626,7 +636,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That meta image are returned when searching") {
     val Success(search) =
-      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(language = "en", withIdIn = List(10))): @unchecked
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(language = "en", withIdIn = List(10))
+      ): @unchecked
 
     search.totalCount should be(1)
     search.summaryResults.head.id should be(10)
@@ -978,7 +990,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That search on embed data-url matches") {
     val Success(results) =
-      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(embedId = Some("http://test.test"))): @unchecked
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(embedId = Some("http://test.test"))
+      ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(12)
@@ -1024,7 +1038,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That search on embed id with language filter does only return correct language") {
     val Success(results) =
-      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(language = "en", embedId = Some("222"))): @unchecked
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(language = "en", embedId = Some("222"))
+      ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(13)
@@ -1032,7 +1048,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That search on embed id with language filter=all matches") {
     val Success(results) =
-      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(language = "*", embedId = Some("222"))): @unchecked
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(language = "*", embedId = Some("222"))
+      ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(2)
     hits.map(_.id) should be(Seq(12, 13))
@@ -1048,7 +1066,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That search on meta image url matches ") {
     val Success(results) =
-      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(language = "*", embedId = Some("123"))): @unchecked
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(language = "*", embedId = Some("123"))
+      ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.map(_.id) should be(Seq(10))

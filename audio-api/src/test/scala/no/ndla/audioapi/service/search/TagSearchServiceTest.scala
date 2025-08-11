@@ -82,14 +82,14 @@ class TagSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnviro
   }
 
   test("That searching for tags returns sensible results") {
-    val Success(result) = tagSearchService.matchingQuery("test", "nb", 1, 100)
+    val Success(result) = tagSearchService.matchingQuery("test", "nb", 1, 100): @unchecked
 
     result.totalCount should be(3)
     result.results should be(Seq("test", "testemer", "testing"))
   }
 
   test("That only prefixes are matched") {
-    val Success(result) = tagSearchService.matchingQuery("kylling", "nb", 1, 100)
+    val Success(result) = tagSearchService.matchingQuery("kylling", "nb", 1, 100): @unchecked
 
     result.totalCount should be(1)
     result.results should be(Seq("kyllingfilet"))

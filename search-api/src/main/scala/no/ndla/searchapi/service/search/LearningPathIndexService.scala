@@ -28,8 +28,8 @@ trait LearningPathIndexService {
   lazy val learningPathIndexService: LearningPathIndexService
 
   class LearningPathIndexService extends StrictLogging with IndexService[LearningPath] {
-    override val documentType: String             = "learningpath"
-    override val searchIndex: String              = props.SearchIndex(SearchType.LearningPaths)
+    override val documentType: String                     = "learningpath"
+    override val searchIndex: String                      = props.SearchIndex(SearchType.LearningPaths)
     override val apiClient: SearchApiClient[LearningPath] = learningPathApiClient
 
     override def createIndexRequest(

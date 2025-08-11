@@ -48,7 +48,7 @@ case class Series(
     hasRSS: Boolean
 ) {
   lazy val supportedLanguages: Seq[String] = getSupportedLanguages(title, description)
-  def withoutId: SeriesWithoutId = SeriesWithoutId(
+  def withoutId: SeriesWithoutId           = SeriesWithoutId(
     title = title,
     coverPhoto = coverPhoto,
     episodes = episodes,

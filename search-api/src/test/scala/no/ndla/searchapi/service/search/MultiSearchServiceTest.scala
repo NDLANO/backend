@@ -162,16 +162,18 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   }
 
   test("That all returns all documents ordered by lastUpdated descending") {
-    val Success(results) = multiSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedDesc)): @unchecked
-    val hits             = results.summaryResults
+    val Success(results) =
+      multiSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedDesc)): @unchecked
+    val hits = results.summaryResults
     results.totalCount should be(idsForLang("nb").size)
     hits.head.id should be(3)
     hits.last.id should be(5)
   }
 
   test("That all returns all documents ordered by lastUpdated ascending") {
-    val Success(results) = multiSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedAsc)): @unchecked
-    val hits             = results.summaryResults
+    val Success(results) =
+      multiSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedAsc)): @unchecked
+    val hits = results.summaryResults
     results.totalCount should be(idsForLang("nb").size)
     hits.head.id should be(5)
     hits(1).id should be(1)
@@ -421,7 +423,9 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering for subjects works as expected") {
     val Success(search) =
-      multiSearchService.matchingQuery(searchSettings.copy(language = "*", subjects = List("urn:subject:2"))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(language = "*", subjects = List("urn:subject:2"))
+      ): @unchecked
     search.totalCount should be(7)
     search.summaryResults.head.contexts.length should be(2)
     search.summaryResults.head.contexts
@@ -431,7 +435,9 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering for subjects returns all resources with any of listed subjects") {
     val Success(search) =
-      multiSearchService.matchingQuery(searchSettings.copy(subjects = List("urn:subject:2", "urn:subject:1"))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(subjects = List("urn:subject:2", "urn:subject:1"))
+      ): @unchecked
     search.totalCount should be(14)
     search.summaryResults.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 5, 6, 7, 8, 9, 11, 12))
   }
@@ -444,17 +450,23 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering for resource-types works as expected") {
     val Success(search) =
-      multiSearchService.matchingQuery(searchSettings.copy(resourceTypes = List("urn:resourcetype:academicArticle"))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(resourceTypes = List("urn:resourcetype:academicArticle"))
+      ): @unchecked
     search.totalCount should be(2)
     search.summaryResults.map(_.id) should be(Seq(2, 5))
 
     val Success(search2) =
-      multiSearchService.matchingQuery(searchSettings.copy(resourceTypes = List("urn:resourcetype:subjectMaterial"))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(resourceTypes = List("urn:resourcetype:subjectMaterial"))
+      ): @unchecked
     search2.totalCount should be(7)
     search2.summaryResults.map(_.id) should be(Seq(1, 2, 3, 5, 6, 7, 12))
 
     val Success(search3) =
-      multiSearchService.matchingQuery(searchSettings.copy(resourceTypes = List("urn:resourcetype:learningpath"))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(resourceTypes = List("urn:resourcetype:learningpath"))
+      ): @unchecked
     search3.totalCount should be(4)
     search3.summaryResults.map(_.id) should be(Seq(1, 2, 3, 4))
   }
@@ -560,7 +572,9 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     search.summaryResults.map(_.id) should be(Seq(2, 3, 4, 5, 6, 10, 11, 12))
 
     val Success(search2) =
-      multiSearchService.matchingQuery(searchSettings.copy(language = "*", supportedLanguages = List("en", "nb"))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(language = "*", supportedLanguages = List("en", "nb"))
+      ): @unchecked
     search2.totalCount should be(18)
     search2.summaryResults.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 7, 8, 9, 10, 11, 12, 14))
 
@@ -572,7 +586,9 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering on supportedLanguages should still prioritize the selected language") {
     val Success(search) =
-      multiSearchService.matchingQuery(searchSettings.copy(language = "nb", supportedLanguages = List("en"))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(language = "nb", supportedLanguages = List("en"))
+      ): @unchecked
 
     search.totalCount should be(5)
     search.summaryResults.map(_.id) should be(Seq(2, 3, 4, 11, 12))
@@ -580,7 +596,8 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   }
 
   test("That meta image are returned when searching") {
-    val Success(search) = multiSearchService.matchingQuery(searchSettings.copy(language = "en", withIdIn = List(10))): @unchecked
+    val Success(search) =
+      multiSearchService.matchingQuery(searchSettings.copy(language = "en", withIdIn = List(10))): @unchecked
 
     search.totalCount should be(1)
     search.summaryResults.head.id should be(10)
@@ -667,9 +684,13 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering on context-types works") {
     val Success(search) =
-      multiSearchService.matchingQuery(searchSettings.copy(resourceTypes = List("urn:resourcetype:academicArticle"))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(resourceTypes = List("urn:resourcetype:academicArticle"))
+      ): @unchecked
     val Success(search2) =
-      multiSearchService.matchingQuery(searchSettings.copy(resourceTypes = List("urn:resourcetype:movieAndClip"))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(resourceTypes = List("urn:resourcetype:movieAndClip"))
+      ): @unchecked
 
     search.totalCount should be(2)
     search.summaryResults.map(_.id) should be(Seq(2, 5))
@@ -698,7 +719,9 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That search result has traits if content has embeds") {
     val Success(search) =
-      multiSearchService.matchingQuery(searchSettings.copy(query = Some(NonEmptyString.fromString("Ekstrastoff").get))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(query = Some(NonEmptyString.fromString("Ekstrastoff").get))
+      ): @unchecked
     search.totalCount should be(1)
     search.summaryResults.head.id should be(12)
     search.summaryResults.head.traits should be(List(SearchTrait.H5p))
@@ -756,7 +779,9 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That searches for embedResource does not partial match") {
     val Success(results) =
-      multiSearchService.matchingQuery(searchSettings.copy(embedResource = List("vid"), embedId = Some("55"))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(embedResource = List("vid"), embedId = Some("55"))
+      ): @unchecked
     results.totalCount should be(0)
   }
 
@@ -821,7 +846,9 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That search on query as embed data-resource_id matches") {
     val Success(results) =
-      multiSearchService.matchingQuery(searchSettings.copy(query = Some(NonEmptyString.fromString("77").get))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(query = Some(NonEmptyString.fromString("77").get))
+      ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(12)
@@ -829,7 +856,9 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That search on query as embed data-resouce matches") {
     val Success(results) =
-      multiSearchService.matchingQuery(searchSettings.copy(query = Some(NonEmptyString.fromString("video").get))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(query = Some(NonEmptyString.fromString("video").get))
+      ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(12)
@@ -837,7 +866,9 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That search on query as article id matches") {
     val Success(results) =
-      multiSearchService.matchingQuery(searchSettings.copy(query = Some(NonEmptyString.fromString("11").get))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(query = Some(NonEmptyString.fromString("11").get))
+      ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(11)
@@ -845,7 +876,9 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That search on query as deleted context id matches") {
     val Success(results) =
-      multiSearchService.matchingQuery(searchSettings.copy(query = Some(NonEmptyString.fromString("asdf1255").get))): @unchecked
+      multiSearchService.matchingQuery(
+        searchSettings.copy(query = Some(NonEmptyString.fromString("asdf1255").get))
+      ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(12)

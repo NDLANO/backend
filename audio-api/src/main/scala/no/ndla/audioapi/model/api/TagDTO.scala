@@ -12,7 +12,6 @@ import sttp.tapir.Schema.annotations.description
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 
-
 @description("Description of the tags of the audio")
 case class TagDTO(
     @description("The searchable tag.") tags: Seq[String],

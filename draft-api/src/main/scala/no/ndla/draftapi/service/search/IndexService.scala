@@ -25,7 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait IndexService {
   this: Elastic4sClient & BaseIndexService & Props & SearchLanguage =>
 
-  trait IndexService[D, T <: AnyRef] extends BaseIndexService with StrictLogging {
+  abstract class IndexService[D, T <: AnyRef] extends BaseIndexService with StrictLogging {
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
     val repository: Repository[D]
 

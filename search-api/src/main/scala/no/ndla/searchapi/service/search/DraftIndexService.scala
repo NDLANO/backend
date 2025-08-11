@@ -28,8 +28,8 @@ trait DraftIndexService {
   lazy val draftIndexService: DraftIndexService
 
   class DraftIndexService extends StrictLogging with IndexService[Draft] {
-    override val documentType: String      = "draft"
-    override val searchIndex: String       = props.SearchIndex(SearchType.Drafts)
+    override val documentType: String              = "draft"
+    override val searchIndex: String               = props.SearchIndex(SearchType.Drafts)
     override val apiClient: SearchApiClient[Draft] = draftApiClient
 
     override def createIndexRequest(

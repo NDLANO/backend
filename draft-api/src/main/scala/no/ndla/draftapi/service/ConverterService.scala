@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.converter.CommonConverter
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Delete, DisclaimerDTO, DraftCopyrightDTO, Missing, ResponsibleDTO, UpdateWith}
 import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.PLANNED
@@ -42,11 +42,9 @@ import scala.util.{Failure, Success, Try}
 trait ConverterService {
   this: Clock & DraftRepository & ArticleApiClient & StateTransitionRules & WriteService & UUIDUtil & CommonConverter &
     Props =>
-  val converterService: ConverterService
+  lazy val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
-    import props.externalApiUrls
-
     def toDomainArticle(newArticleId: Long, newArticle: api.NewArticleDTO, user: TokenUser): Try[Draft] = {
       val domainTitles  = Seq(common.Title(newArticle.title, newArticle.language))
       val domainContent = newArticle.content
@@ -356,7 +354,7 @@ trait ConverterService {
 
     private def toApiArticleMetaImage(metaImage: common.ArticleMetaImage): api.ArticleMetaImageDTO = {
       api.ArticleMetaImageDTO(
-        s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
+        s"${props.externalApiUrls("raw-image")}/${metaImage.imageId}",
         metaImage.altText,
         metaImage.language
       )
@@ -623,9 +621,9 @@ trait ConverterService {
         )
         .getOrElse(toMergeInto.metaImage)
 
-    def toDomainArticle(toMergeInto: Draft, article: api.UpdatedArticleDTO, user: TokenUser): Try[Draft] = {
+    def toDomainArticle(toMergeInto: Draft, article: api.UpdatedArticleDTO, user: TokenUser): Try[Draft] = permitTry {
       if (article.language.isEmpty && languageFieldIsDefined(article))
-        return Failure(ValidationException("language", "This field must be specified when updating language fields"))
+        Failure(ValidationException("language", "This field must be specified when updating language fields")).?
 
       val isNewLanguage       = article.language.exists(l => !toMergeInto.supportedLanguages.contains(l))
       val createdDate         = toMergeInto.created

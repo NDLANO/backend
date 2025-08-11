@@ -28,9 +28,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.ReadOnlyAutoSession
 import sttp.model.StatusCode
 import sttp.tapir.server.ServerEndpoint
-import io.circe.generic.auto.*
 import no.ndla.search.model.domain.ReindexResult
-import sttp.tapir.generic.auto.*
 
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.annotation.{tailrec, unused}
@@ -41,11 +39,9 @@ import scala.util.{Failure, Success, Try}
 trait InternController {
   this: ReadService & WriteService & ConverterService & DraftRepository & IndexService & ArticleIndexService &
     TagIndexService & GrepCodesIndexService & ArticleApiClient & TapirController & Props =>
-  val internController: InternController
+  lazy val internController: InternController
 
   class InternController extends TapirController with StrictLogging {
-    import props.{DraftSearchIndex, DraftTagSearchIndex}
-
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
     private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
@@ -116,8 +112,8 @@ trait InternController {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
 
       val indexes = for {
-        articleIndex <- Future { articleIndexService.findAllIndexes(DraftSearchIndex) }
-        tagIndex     <- Future { tagIndexService.findAllIndexes(DraftTagSearchIndex) }
+        articleIndex <- Future { articleIndexService.findAllIndexes(props.DraftSearchIndex) }
+        tagIndex     <- Future { tagIndexService.findAllIndexes(props.DraftTagSearchIndex) }
       } yield (articleIndex, tagIndex)
 
       val deleteResults: Seq[Try[?]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {

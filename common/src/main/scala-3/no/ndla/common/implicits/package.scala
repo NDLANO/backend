@@ -3,6 +3,8 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
+
  */
 
 package no.ndla.common
