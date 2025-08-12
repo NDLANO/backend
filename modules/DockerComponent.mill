@@ -13,10 +13,11 @@ trait DockerComponent extends ScalaModule, DockerModule {
 
     // Customize entrypoint so we can expand JAVA_OPTS from environment variables
     override def dockerfile: T[String] = Task {
-      val oldFile       = super.dockerfile()
-      val jarName       = assembly().path.last
-      val cmd           = List("java") ++ jvmOptions() ++ List("$JAVA_OPTS", "-jar", s"/$jarName")
-      val newEntryPoint = s"ENTRYPOINT ${cmd.mkString(" ")}"
+      val oldFile              = super.dockerfile()
+      val jarName              = assembly().path.last
+      val cmd                  = List("exec", "java") ++ jvmOptions() ++ List("$JAVA_OPTS", "-jar", s"/$jarName")
+      val quotedEntryPointArgs = Seq("sh", "-c", cmd.mkString(" ")).map(arg => s"\"$arg\"").mkString(", ")
+      val newEntryPoint        = s"ENTRYPOINT [$quotedEntryPointArgs]"
 
       oldFile.linesIterator.toList match {
         case init :+ _ => (init :+ newEntryPoint).mkString("\n")
