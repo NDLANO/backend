@@ -293,8 +293,6 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
   }
 
   test("That deleting language returns audio if exists") {
-    import io.circe.generic.auto.*
-
     when(writeService.deleteAudioLanguageVersion(1, "nb"))
       .thenReturn(Success(Some(TestData.DefaultApiImageMetaInformation)))
 
@@ -352,7 +350,6 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
         .get(uri"http://localhost:$serverPort/audio-api/v1/audio/ids/?ids=1,2,3")
     )
     response.code.code should be(200)
-    import io.circe.generic.auto.*
     val parsedBody = unsafeParseAs[List[api.AudioMetaInformationDTO]](response.body)
     parsedBody should be(expectedResult)
 

@@ -18,8 +18,8 @@ import org.mockito.Mockito.when
 import java.util.UUID
 
 class CommonConverterTest extends UnitTestSuiteBase with CommonConverter with Clock with UUIDUtil {
-  val clock: SystemClock = mock[SystemClock]
-  val uuidUtil: UUIDUtil = mock[UUIDUtil]
+  override lazy val clock: SystemClock = mock[SystemClock]
+  override lazy val uuidUtil: UUIDUtil = mock[UUIDUtil]
   test("that mergeUpdatedCommentsWithExisting creates and updates comments correctly") {
     val uuid = UUID.randomUUID()
     val now  = NDLADate.now()

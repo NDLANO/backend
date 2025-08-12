@@ -4,7 +4,6 @@
  *
  * See LICENSE
  *
-
  */
 
 package no.ndla.common

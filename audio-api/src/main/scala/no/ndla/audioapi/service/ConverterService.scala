@@ -22,6 +22,7 @@ import no.ndla.language.model.WithLanguage
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.tapir.auth.TokenUser
 
+import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -256,13 +257,13 @@ trait ConverterService {
     def findAndConvertDomainToApiField[DomainType <: WithLanguage](
         fields: Seq[DomainType],
         language: Option[String]
-    )(implicit mf: Manifest[DomainType]): Try[DomainType] = {
+    )(implicit ct: ClassTag[DomainType]): Try[DomainType] = {
       findByLanguageOrBestEffort(fields, language.getOrElse(props.DefaultLanguage)) match {
         case Some(field) => Success(field)
         case None        =>
           Failure(
             CouldNotFindLanguageException(
-              s"Could not find value for '${mf.runtimeClass.getName}' field. This is a data inconsistency or a bug."
+              s"Could not find value for '${ct.runtimeClass.getName}' field. This is a data inconsistency or a bug."
             )
           )
       }

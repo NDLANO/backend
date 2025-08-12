@@ -61,11 +61,11 @@ trait Elastic4sClient {
 
     def executeBlocking[T, U](
         request: T
-    )(implicit handler: Handler[T, U], mf: Manifest[U], ec: ExecutionContext): Try[RequestSuccess[U]] = {
+    )(implicit handler: Handler[T, U], ct: ClassTag[U], ec: ExecutionContext): Try[RequestSuccess[U]] = {
       Try(Await.result(this.executeAsync(request), elasticTimeout)).flatten
     }
 
-    def execute[T, U](request: T)(implicit handler: Handler[T, U], mf: Manifest[U]): Try[RequestSuccess[U]] = {
+    def execute[T, U](request: T)(implicit handler: Handler[T, U], ct: ClassTag[U]): Try[RequestSuccess[U]] = {
       implicit val ec: ExecutionContextExecutor = clientExecutionContext
 
       val future = this.executeAsync(request)

@@ -14,8 +14,6 @@ import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain as common
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
-import scala.util.Success
-
 class SeriesSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 

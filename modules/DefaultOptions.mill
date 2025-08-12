@@ -32,8 +32,8 @@ trait DefaultOptions extends ScalaModule {
       "-language:experimental.macros",
       "-language:higherKinds",
       "-language:implicitConversions",
-      // TODO: "-Xfatal-warnings",
-      "-deprecation"                  -> scala2, // TODO: Add this to scala3 after we build all the stuff
+      "-Xfatal-warnings",
+      "-deprecation",
       "-Xlint:adapted-args"           -> scala2,
       "-Xlint:constant"               -> scala2,
       "-Xlint:delayedinit-select"     -> scala2,
@@ -63,15 +63,10 @@ trait DefaultOptions extends ScalaModule {
       "-Wunused:imports",
       "-Wunused:locals",
       "-Wunused:params",
-      // "-Wunused:patvars",
       "-Wunused:privates",
       "-Wconf:src=src_managed/.*:silent",
       "-Yretain-trees"   -> scala3,
       "-Xmax-inlines:50" -> scala3
-//      "-verbose",
-//      "-Vprofile"
-//      "-explain"         -> scala3
-
     ).filterByVersion(scalaVersion())
   }
 
