@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.service
 
+import cats.implicits.toTraverseOps
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.*
@@ -30,6 +31,7 @@ import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 import no.ndla.language.Language
 import no.ndla.database.DBUtility
+import scalikejdbc.DBSession
 
 trait UpdateService {
   this: LearningPathRepositoryComponent & ReadService & ConverterService & SearchIndexService & Clock &
@@ -140,12 +142,16 @@ trait UpdateService {
       DBUtil.rollbackOnFailure { implicit session =>
         writeDuringWriteRestrictionOrAccessDenied(owner) {
           for {
-            learningPath        <- withId(learningPathId).flatMap(_.canEditLearningpath(owner))
-            withDeletedLanguage <- converterService.deleteLearningPathLanguage(learningPath, language)
+            learningPath <- withId(learningPathId).flatMap(_.canEditLearningpath(owner))
+            updatedSteps <- learningPath.learningsteps
+              .getOrElse(Seq.empty)
+              .traverse(step => deleteLanguageFromStep(step, language))
+            withUpdatedSteps    <- Try(converterService.insertLearningSteps(learningPath, updatedSteps, owner))
+            withDeletedLanguage <- converterService.deleteLearningPathLanguage(withUpdatedSteps, language)
             updatedPath         <- Try(learningPathRepository.update(withDeletedLanguage))
             _                   <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
             converted           <- converterService.asApiLearningpathV2(
-              updatedPath,
+              withDeletedLanguage,
               language = Language.DefaultLanguage,
               fallback = true,
               owner
@@ -155,7 +161,7 @@ trait UpdateService {
       }
 
     def deleteLearningStepLanguage(
-        learningpathId: Long,
+        learningPathId: Long,
         stepId: Long,
         language: String,
         owner: CombinedUserRequired
@@ -163,17 +169,15 @@ trait UpdateService {
       DBUtil.rollbackOnFailure { implicit session =>
         writeDuringWriteRestrictionOrAccessDenied(owner) {
           for {
-            learningPath <- withId(learningpathId).flatMap(_.canEditLearningpath(owner))
+            learningPath <- withId(learningPathId).flatMap(_.canEditLearningpath(owner))
             learningStep <- learningPathRepository
-              .learningStepWithId(learningpathId, stepId)
-              .toTry(NotFoundException(s"Could not find learningpath with id '$learningpathId'."))
-            withDeletedLanguage <- converterService.deleteLearningStepLanguage(learningStep, language)
-            validated           <- learningStepValidator.validate(withDeletedLanguage, allowUnknownLanguage = true)
-            updatedStep         <- Try(learningPathRepository.updateLearningStep(validated))
-            pathToUpdate        <- Try(converterService.insertLearningStep(learningPath, updatedStep, owner))
-            updatedPath         <- Try(learningPathRepository.update(pathToUpdate))
-            _                   <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
-            converted           <- converterService.asApiLearningStepV2(
+              .learningStepWithId(learningPathId, stepId)
+              .toTry(NotFoundException(s"Could not find learningpath with id '$learningPathId'."))
+            updatedStep  <- deleteLanguageFromStep(learningStep, language)
+            pathToUpdate <- Try(converterService.insertLearningStep(learningPath, updatedStep, owner))
+            updatedPath  <- Try(learningPathRepository.update(pathToUpdate))
+            _            <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
+            converted    <- converterService.asApiLearningStepV2(
               updatedStep,
               updatedPath,
               language = Language.DefaultLanguage,
@@ -183,6 +187,19 @@ trait UpdateService {
           } yield converted
         }
       }
+
+    private def deleteLanguageFromStep(
+        learningStep: LearningStep,
+        language: String
+    )(implicit
+        session: DBSession
+    ): Try[LearningStep] = {
+      for {
+        withDeletedLanguage <- converterService.deleteLearningStepLanguage(learningStep, language)
+        validated           <- learningStepValidator.validate(withDeletedLanguage, allowUnknownLanguage = true)
+        updatedStep         <- Try(learningPathRepository.updateLearningStep(validated))
+      } yield updatedStep
+    }
 
     private def updateSearchAndTaxonomy(learningPath: LearningPath, user: Option[TokenUser]) = {
       val sRes = searchIndexService.indexDocument(learningPath)

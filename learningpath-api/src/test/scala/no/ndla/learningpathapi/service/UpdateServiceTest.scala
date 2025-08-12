@@ -1547,7 +1547,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That delete learning path language should fail when only one language") {
-    when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(Some(PRIVATE_LEARNINGPATH))
+    when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
+      .thenReturn(Some(PRIVATE_LEARNINGPATH_NO_STEPS))
     val res = service.deleteLearningPathLanguage(PRIVATE_ID, "nb", PRIVATE_OWNER.toCombined)
     res should be(
       Failure(
@@ -1556,5 +1557,21 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         )
       )
     )
+  }
+
+  test("That delete learning path language should also delete from all paths") {
+    val learningPath = PRIVATE_LEARNINGPATH.copy(
+      title = PRIVATE_LEARNINGPATH.title :+ Title("Tittel", "nn"),
+      description = PRIVATE_LEARNINGPATH.description :+ Description("Beskrivelse", "nn"),
+      learningsteps =
+        Some(PRIVATE_LEARNINGPATH.learningsteps.get.map(step => step.copy(title = step.title :+ Title("Tittel", "nn"))))
+    )
+    when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(Some(learningPath))
+    when(learningPathRepository.updateLearningStep(any)(any[DBSession])).thenAnswer(_.getArgument(0))
+    when(learningPathRepository.update(any)(any[DBSession])).thenAnswer(_.getArgument(0))
+
+    val res = service.deleteLearningPathLanguage(PRIVATE_ID, "nb", PRIVATE_OWNER.toCombined).failIfFailure
+    verify(learningPathRepository, times(PRIVATE_LEARNINGPATH.learningsteps.get.size)).updateLearningStep(any)(any)
+    res.supportedLanguages should be(Seq("nn"))
   }
 }
