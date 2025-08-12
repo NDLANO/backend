@@ -43,6 +43,7 @@ import no.ndla.common.model.domain.concept.{
 }
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
+import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
 import no.ndla.common.model.domain.learningpath.{
   LearningPath,
   LearningPathStatus,
@@ -53,6 +54,8 @@ import no.ndla.common.model.domain.learningpath.{
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.mapping.License
+import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
@@ -1015,6 +1018,7 @@ object TestData {
   val UnrelatedId = 4L
   val EnglandoId  = 5L
   val KekId       = 6L
+  val PrivateId   = 7L
 
   val learningPath1: LearningPath = DefaultLearningPath.copy(
     id = Some(PenguinId),
@@ -1074,13 +1078,25 @@ object TestData {
     tags = List()
   )
 
+  val learningPath7: LearningPath = DefaultLearningPath.copy(
+    id = Some(PrivateId),
+    title = List(Title("Private", "en")),
+    description = List(LPDescription("This is private", "en")),
+    duration = Some(1),
+    lastUpdated = today.minusDays(7),
+    tags = List(),
+    status = PRIVATE,
+    owner = "private"
+  )
+
   val learningPathsToIndex: List[LearningPath] = List(
     learningPath1,
     learningPath2,
     learningPath3,
     learningPath4,
     learningPath5,
-    learningPath6
+    learningPath6,
+    learningPath7
   )
 
   val core: Relevance = Relevance("urn:relevance:core", "Kjernestoff", List.empty)
@@ -1781,6 +1797,13 @@ object TestData {
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(
+    user = TokenUser(
+      "xxxyyy",
+      Set(DRAFT_API_WRITE),
+      Some(
+        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJkcmFmdHM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.5jpF98NxQZlkQQ5-rxVO3oTkNOQRQLDlAexyDnLiZFY"
+      )
+    ),
     query = None,
     noteQuery = None,
     fallback = false,

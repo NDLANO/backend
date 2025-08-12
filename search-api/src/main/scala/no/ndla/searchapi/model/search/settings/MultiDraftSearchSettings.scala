@@ -13,10 +13,12 @@ import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait, Searc
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.common.model.domain.Priority
 
 case class MultiDraftSearchSettings(
+    user: TokenUser,
     query: Option[NonEmptyString],
     noteQuery: Option[NonEmptyString],
     fallback: Boolean,
@@ -55,7 +57,8 @@ case class MultiDraftSearchSettings(
 )
 
 object MultiDraftSearchSettings {
-  def default: MultiDraftSearchSettings = MultiDraftSearchSettings(
+  def default(user: TokenUser): MultiDraftSearchSettings = MultiDraftSearchSettings(
+    user = user,
     query = None,
     noteQuery = None,
     fallback = false,

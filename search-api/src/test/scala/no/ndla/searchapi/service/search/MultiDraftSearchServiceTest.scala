@@ -9,12 +9,15 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO}
+import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO, SearchType}
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
 import no.ndla.language.Language.AllLanguages
 import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
+import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
@@ -80,7 +83,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     else {
       learningPathsToIndex.filter(_.title.map(_.language).contains(language))
     }
-    x.filter(_.copyright.license != License.Copyrighted.toString)
+    x.filter(_.status != PRIVATE).filter(_.copyright.license != License.Copyrighted.toString)
   }
 
   private def idsForLang(language: String) =
@@ -424,6 +427,25 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     search.summaryResults(1).title.language should equal("en")
     search.summaryResults(2).id should equal(11)
     search.summaryResults(2).title.language should equal("en")
+  }
+
+  test("That private learningpaths are only returned if user is owner") {
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        resultTypes = Some(List(SearchType.LearningPaths)),
+        fallback = true
+      )
+    )
+    search.totalCount should equal(6)
+
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        resultTypes = Some(List(SearchType.LearningPaths)),
+        fallback = true,
+        user = TokenUser("private", Set(LEARNINGPATH_API_WRITE), None)
+      )
+    )
+    search2.totalCount should equal(7)
   }
 
   test("That filtering for subjects works as expected") {
