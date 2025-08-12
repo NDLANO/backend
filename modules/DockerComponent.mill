@@ -10,7 +10,19 @@ trait DockerComponent extends ScalaModule, DockerModule {
     def tags: T[Seq[String]]            = List(s"ndla/$moduleName:$versionTag")
     def baseImage                       = "eclipse-temurin:21-alpine"
     def envVars: T[Map[String, String]] = Map("LOG_APPENDER" -> "Docker")
-    def jvmOptions: T[Seq[String]]      = Task { super.jvmOptions() ++ Seq("$JAVA_OPTS") }
+
+    // Customize entrypoint so we can expand JAVA_OPTS from environment variables
+    override def dockerfile: T[String] = Task {
+      val oldFile       = super.dockerfile()
+      val jarName       = assembly().path.last
+      val cmd           = List("java") ++ jvmOptions() ++ List("$JAVA_OPTS", "-jar", s"/$jarName")
+      val newEntryPoint = s"ENTRYPOINT ${cmd.mkString(" ")}"
+
+      oldFile.linesIterator.toList match {
+        case init :+ _ => (init :+ newEntryPoint).mkString("\n")
+        case _         => throw new RuntimeException("Bad dockerfile generated. Look at DockerComponent.mill")
+      }
+    }
   }
 
   override def assemblyRules: Seq[Assembly.Rule] = {
