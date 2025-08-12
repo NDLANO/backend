@@ -68,8 +68,7 @@ trait SeriesController {
     def getSeriesSearch: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Find series")
       .description("Shows all the series. Also searchable.")
-      // TODO: add search-context header output
-      .out(jsonBody[SeriesSummarySearchResultDTO])
+      .out(EndpointOutput.derived[SummaryWithHeader])
       .in(queryString)
       .in(language)
       .in(sort)
@@ -83,7 +82,7 @@ trait SeriesController {
         scrollSearchOr(scrollId, lang) {
           val shouldScroll = scrollId.exists(props.InitialScrollContextKeywords.contains)
           search(query, lang, Sort.valueOf(sort), pageSize, page, shouldScroll, fallback.getOrElse(false))
-        }.map(_.body).handleErrorsOrOk
+        }.handleErrorsOrOk
       }
 
     def postSeriesSearch: ServerEndpoint[Any, Eff] = endpoint.post
@@ -91,8 +90,7 @@ trait SeriesController {
       .description("Shows all the series. Also searchable.")
       .in("search")
       .in(jsonBody[SeriesSearchParamsDTO])
-      // TODO: add search-context header output
-      .out(jsonBody[SeriesSummarySearchResultDTO])
+      .out(EndpointOutput.derived[SummaryWithHeader])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { searchParams =>
         val language = searchParams.language.getOrElse(LanguageCode(Language.AllLanguages))
@@ -105,7 +103,7 @@ trait SeriesController {
           val fallback     = searchParams.fallback.getOrElse(false)
 
           search(query, language.code, sort, pageSize, page, shouldScroll, fallback)
-        }.map(_.body).handleErrorsOrOk
+        }.handleErrorsOrOk
       }
 
     def getSingleSeries: ServerEndpoint[Any, Eff] = endpoint.get
