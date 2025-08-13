@@ -36,6 +36,9 @@ object RevisionMeta {
       RevisionStatus.NeedsRevision
     )
   )
+
+  def getNextRevision(revisions: Seq[RevisionMeta]): Option[RevisionMeta] =
+    revisions.filterNot(_.status == RevisionStatus.Revised).sortBy(_.revisionDate).headOption
 }
 
 sealed abstract class RevisionStatus(override val entryName: String) extends EnumEntry

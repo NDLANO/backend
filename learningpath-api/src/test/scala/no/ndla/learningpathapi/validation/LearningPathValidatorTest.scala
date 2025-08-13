@@ -21,6 +21,7 @@ import no.ndla.learningpathapi.*
 import no.ndla.mapping.License.PublicDomain
 import org.mockito.Mockito.when
 import no.ndla.common.model.domain.Priority
+import no.ndla.common.model.domain.RevisionMeta
 
 class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
@@ -57,7 +58,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     isMyNDLAOwner = false,
     responsible = None,
     comments = Seq.empty,
-    priority = Priority.Unspecified
+    priority = Priority.Unspecified,
+    revisionMeta = RevisionMeta.default
   )
 
   private def validMock() = {
@@ -300,5 +302,21 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   test("That validate returns no errors when copyright.contributors contains no html") {
     validMock()
     validator.validateLearningPath(ValidLearningPath, false).isEmpty should be(true)
+  }
+
+  test("That revision validation does not kick in when learning path is created in My NDLA") {
+    validMock()
+    validator
+      .validateLearningPath(ValidLearningPath.copy(revisionMeta = Seq.empty, isMyNDLAOwner = true), false)
+      .isEmpty should be(true)
+  }
+
+  test("That revision validation should fail if revisionMeta does not have unplanned revisions") {
+    validMock()
+    val invalidLp = ValidLearningPath.copy(revisionMeta = Seq.empty)
+    val res       = validator.validateLearningPath(invalidLp, false)
+
+    res.size should be(1)
+    res.head.field should equal("revisionMeta")
   }
 }

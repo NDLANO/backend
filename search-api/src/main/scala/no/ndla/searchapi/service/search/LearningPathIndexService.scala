@@ -65,6 +65,12 @@ trait LearningPathIndexService {
         nestedField("learningsteps").fields(
           textField("stepType")
         ),
+        nestedField("revisionMeta").fields(
+          keywordField("id"),
+          dateField("revisionDate"),
+          keywordField("note"),
+          keywordField("status")
+        ),
         ObjectField(
           "copyright",
           properties = Seq(
@@ -92,9 +98,12 @@ trait LearningPathIndexService {
           keywordField("id"),
           keywordField("language")
         ),
+        keywordField("nextRevision.id"),
+        keywordField("nextRevision.status"),
+        textField("nextRevision.note"),
         dateField(
           "nextRevision.revisionDate"
-        ), // This is needed for sorting, even if it is never used for learningpaths
+        ),
         keywordField("priority")
       )
       val dynamics =

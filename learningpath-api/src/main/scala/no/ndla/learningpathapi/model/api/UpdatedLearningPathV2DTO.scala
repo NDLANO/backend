@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
-import no.ndla.common.model.api.{UpdateOrDelete, UpdatedCommentDTO}
+import no.ndla.common.model.api.{UpdateOrDelete, UpdatedCommentDTO, RevisionMetaDTO}
 import no.ndla.common.model.domain.Priority
 
 @description("Meta information for a new learningpath")
@@ -33,7 +33,8 @@ case class UpdatedLearningPathV2DTO(
     @description("Information about comments attached to the learningpath") comments: Option[List[UpdatedCommentDTO]],
     @description(
       "If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified"
-    ) priority: Option[Priority]
+    ) priority: Option[Priority],
+    @description("A list of all revisions of the learningpath") revisionMeta: Option[Seq[RevisionMetaDTO]]
 )
 
 object UpdatedLearningPathV2DTO {
