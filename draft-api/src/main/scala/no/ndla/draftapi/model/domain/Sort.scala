@@ -37,6 +37,6 @@ object Sort extends Enum[Sort] with CirceEnum[Sort] {
     }
   }
 
-  implicit val schema: Schema[Sort]    = schemaForEnumEntry[Sort]
-  implicit val codec: PlainCodec[Sort] = plainCodecEnumEntry[Sort]
+  implicit def schema: Schema[Sort]    = schemaForEnumEntry[Sort]
+  implicit def codec: PlainCodec[Sort] = plainCodecEnumEntry[Sort]
 }

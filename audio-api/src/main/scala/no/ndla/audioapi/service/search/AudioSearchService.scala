@@ -28,12 +28,10 @@ import scala.util.{Failure, Success, Try}
 
 trait AudioSearchService {
   this: Elastic4sClient & AudioIndexService & SearchConverterService & SearchService & Props & ErrorHandling =>
-  val audioSearchService: AudioSearchService
+  lazy val audioSearchService: AudioSearchService
 
   class AudioSearchService extends StrictLogging with SearchService[api.AudioSummaryDTO] {
-    import props.*
-
-    override val searchIndex: String = SearchIndex
+    override val searchIndex: String = props.SearchIndex
 
     override def hitToApiModel(hitString: String, language: String): Try[api.AudioSummaryDTO] = {
       for {
@@ -106,9 +104,9 @@ trait AudioSearchService {
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.page.getOrElse(1) * numResults
-      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+          s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
         )
         Failure(new Helpers.ResultWindowTooLargeException())
       } else {
@@ -125,7 +123,7 @@ trait AudioSearchService {
         // Only add scroll param if it is first page
         val searchWithScroll =
           if (startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
+            searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
           } else { searchToExecute }
 
         e4sClient.execute(searchWithScroll) match {

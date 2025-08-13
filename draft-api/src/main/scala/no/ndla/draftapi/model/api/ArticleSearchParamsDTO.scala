@@ -43,4 +43,6 @@ case class ArticleSearchParamsDTO(
 object ArticleSearchParamsDTO {
   implicit def encoder: Encoder[ArticleSearchParamsDTO] = deriveEncoder
   implicit def decoder: Decoder[ArticleSearchParamsDTO] = deriveDecoder
+  import sttp.tapir.generic.auto.*
+  implicit def schema: sttp.tapir.Schema[ArticleSearchParamsDTO] = sttp.tapir.Schema.derivedSchema
 }

@@ -10,6 +10,9 @@ package no.ndla.common.model.domain.learningpath
 
 import enumeratum.*
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import sttp.tapir.Codec.PlainCodec
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -22,6 +25,9 @@ object LearningPathStatus       extends Enum[LearningPathStatus] with CirceEnum[
   case object UNLISTED          extends LearningPathStatus
   case object SUBMITTED         extends LearningPathStatus
   case object READY_FOR_SHARING extends LearningPathStatus
+
+  implicit val schema: Schema[LearningPathStatus]    = schemaForEnumEntry[LearningPathStatus]
+  implicit val codec: PlainCodec[LearningPathStatus] = plainCodecEnumEntry[LearningPathStatus]
 
   override def values: IndexedSeq[LearningPathStatus] = findValues
 

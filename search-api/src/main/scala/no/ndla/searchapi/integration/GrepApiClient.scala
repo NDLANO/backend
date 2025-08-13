@@ -12,7 +12,7 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Decoder
 import no.ndla.common.CirceUtil
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.NDLADate
 import no.ndla.network.NdlaClient
@@ -30,11 +30,10 @@ import scala.util.{Failure, Success, Try, Using}
 
 trait GrepApiClient {
   this: NdlaClient & Props =>
-  val grepApiClient: GrepApiClient
+  lazy val grepApiClient: GrepApiClient
 
   class GrepApiClient extends StrictLogging {
-    import props.GrepApiUrl
-    private val grepDumpUrl = s"$GrepApiUrl/kl06/v201906/dump/json"
+    private val grepDumpUrl = s"${props.GrepApiUrl}/kl06/v201906/dump/json"
 
     private def readFile(file: File): Try[String] = Try {
       Using.resource(scala.io.Source.fromFile(file)) { source =>
@@ -58,12 +57,16 @@ trait GrepApiClient {
 
     private def getKjerneelementerLK20(dump: File): Try[List[GrepKjerneelement]] =
       readGrepJsonFiles[GrepKjerneelement](dump, "kjerneelementer-lk20")
+
     private def getKompetansemaalLK20(dump: File): Try[List[GrepKompetansemaal]] =
       readGrepJsonFiles[GrepKompetansemaal](dump, "kompetansemaal-lk20")
+
     private def getKompetansemaalsettLK20(dump: File): Try[List[GrepKompetansemaalSett]] =
       readGrepJsonFiles[GrepKompetansemaalSett](dump, "kompetansemaalsett-lk20")
+
     private def getTverrfagligeTemaerLK20(dump: File): Try[List[GrepTverrfagligTema]] =
       readGrepJsonFiles[GrepTverrfagligTema](dump, "tverrfaglige-temaer-lk20")
+
     private def getLaereplanerLK20(dump: File): Try[List[GrepLaererplan]] =
       readGrepJsonFiles[GrepLaererplan](dump, "laereplaner-lk20")
 
@@ -91,18 +94,22 @@ trait GrepApiClient {
         }
         f.delete(): Unit
       }
+
       def release(resource: File): Unit = deleteDirectory(resource)
     }
 
-    private def getGrepBundleUncached: Try[GrepBundle] = logTaskTime("Fetching grep bundle", 30.seconds) {
-      val date        = NDLADate.now().toUTCEpochSecond
-      val tempDirPath = Try(Files.createTempDirectory(s"grep-dump-$date")).?
-      Using(tempDirPath.toFile) { tempDir =>
-        val zippedDump   = fetchDump(tempDir).?
-        val unzippedDump = ZipUtil.unzip(zippedDump, tempDir, deleteArchive = true).?
-        getBundleFromDump(unzippedDump).?
+    private def getGrepBundleUncached: Try[GrepBundle] =
+      logTaskTime("Fetching grep bundle", 30.seconds) {
+        permitTry {
+          val date        = NDLADate.now().toUTCEpochSecond
+          val tempDirPath = Try(Files.createTempDirectory(s"grep-dump-$date")).?
+          Using(tempDirPath.toFile) { tempDir =>
+            val zippedDump   = fetchDump(tempDir).?
+            val unzippedDump = ZipUtil.unzip(zippedDump, tempDir, deleteArchive = true).?
+            getBundleFromDump(unzippedDump).?
+          }
+        }
       }
-    }
 
     case class GrepDumpDownloadException(message: String) extends RuntimeException(message) {
       def withCause(cause: Throwable): GrepDumpDownloadException = {

@@ -77,7 +77,7 @@ import scala.util.{Failure, Success, Try}
 
 trait SearchConverterService {
   this: DraftApiClient & TaxonomyApiClient & ConverterService & Props & MyNDLAApiClient & SearchLanguage =>
-  val searchConverterService: SearchConverterService
+  lazy val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
 
@@ -119,7 +119,7 @@ trait SearchConverterService {
       })
     }
 
-    def nodeHitAsMultiSummary(hit: SearchHit, language: String): Try[NodeHitDTO] = {
+    def nodeHitAsMultiSummary(hit: SearchHit, language: String): Try[NodeHitDTO] = permitTry {
       val searchableNode = CirceUtil.tryParseAs[SearchableNode](hit.sourceAsString).?
       val title          = searchableNode.title.getLanguageOrDefault(language).getOrElse("")
       val url            = searchableNode.url.map(urlPath => s"${props.ndlaFrontendUrl}$urlPath")
@@ -368,63 +368,68 @@ trait SearchConverterService {
       )
     }
 
-    def asSearchableLearningPath(lp: LearningPath, indexingBundle: IndexingBundle): Try[SearchableLearningPath] = {
-      val taxonomyContexts = indexingBundle.taxonomyBundle match {
-        case Some(bundle) =>
-          Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true, filterContexts = false))
-        case None =>
-          taxonomyApiClient.getTaxonomyContext(
-            s"urn:learningpath:${lp.id.get}",
-            filterVisibles = true,
-            filterContexts = false,
-            shouldUsePublishedTax = true
-          )
-      }
+    def asSearchableLearningPath(lp: LearningPath, indexingBundle: IndexingBundle): Try[SearchableLearningPath] =
+      permitTry {
+        val taxonomyContexts = indexingBundle.taxonomyBundle match {
+          case Some(bundle) =>
+            Success(
+              getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true, filterContexts = false)
+            )
+          case None =>
+            taxonomyApiClient.getTaxonomyContext(
+              s"urn:learningpath:${lp.id.get}",
+              filterVisibles = true,
+              filterContexts = false,
+              shouldUsePublishedTax = true
+            )
+        }
 
-      val favorited = getFavoritedCountFor(indexingBundle, lp.id.get.toString, List(MyNDLAResourceType.Learningpath)).?
+        val favorited =
+          getFavoritedCountFor(indexingBundle, lp.id.get.toString, List(MyNDLAResourceType.Learningpath)).?
 
-      val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
-      val defaultTitle = lp.title.sortBy(title => ISO639.languagePriority.reverse.indexOf(title.language)).lastOption
-      val license      = api.learningpath.CopyrightDTO(
-        asLearningPathApiLicense(lp.copyright.license),
-        lp.copyright.contributors.map(c => AuthorDTO(c.`type`, c.name))
-      )
-      val contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
-
-      Success(
-        SearchableLearningPath(
-          id = lp.id.get,
-          title = model.SearchableLanguageValues(lp.title.map(t => LanguageValue(t.language, t.title))),
-          content = model.SearchableLanguageValues(
-            lp.title.map(t => LanguageValue(t.language, "*"))
-          ),
-          description =
-            model.SearchableLanguageValues(lp.description.map(d => LanguageValue(d.language, d.description))),
-          coverPhotoId = lp.coverPhotoId,
-          duration = lp.duration,
-          status = lp.status.toString,
-          owner = lp.owner,
-          verificationStatus = lp.verificationStatus.toString,
-          lastUpdated = lp.lastUpdated,
-          defaultTitle = defaultTitle.map(_.title),
-          tags = SearchableLanguageList(lp.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-          learningsteps = lp.learningsteps.getOrElse(Seq.empty).map(asSearchableLearningStep).toList,
-          license = lp.copyright.license,
-          copyright = license,
-          isBasedOn = lp.isBasedOn,
-          supportedLanguages = supportedLanguages,
-          authors = lp.copyright.contributors.map(_.name).toList,
-          context = contexts.find(_.isPrimary),
-          contexts = contexts,
-          contextids =
-            indexingBundle.taxonomyBundle.map(getTaxonomyContexids(lp.id.get, "learningpath", _)).getOrElse(List.empty),
-          favorited = favorited,
-          learningResourceType = LearningResourceType.LearningPath,
-          typeName = getTypeNames(LearningResourceType.LearningPath),
-          priority = lp.priority
+        val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
+        val defaultTitle = lp.title.sortBy(title => ISO639.languagePriority.reverse.indexOf(title.language)).lastOption
+        val license      = api.learningpath.CopyrightDTO(
+          asLearningPathApiLicense(lp.copyright.license),
+          lp.copyright.contributors.map(c => AuthorDTO(c.`type`, c.name))
         )
-      )
-    }
+        val contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
+
+        Success(
+          SearchableLearningPath(
+            id = lp.id.get,
+            title = model.SearchableLanguageValues(lp.title.map(t => LanguageValue(t.language, t.title))),
+            content = model.SearchableLanguageValues(
+              lp.title.map(t => LanguageValue(t.language, "*"))
+            ),
+            description =
+              model.SearchableLanguageValues(lp.description.map(d => LanguageValue(d.language, d.description))),
+            coverPhotoId = lp.coverPhotoId,
+            duration = lp.duration,
+            status = lp.status.toString,
+            owner = lp.owner,
+            verificationStatus = lp.verificationStatus.toString,
+            lastUpdated = lp.lastUpdated,
+            defaultTitle = defaultTitle.map(_.title),
+            tags = SearchableLanguageList(lp.tags.map(tag => LanguageValue(tag.language, tag.tags))),
+            learningsteps = lp.learningsteps.getOrElse(Seq.empty).map(asSearchableLearningStep).toList,
+            license = lp.copyright.license,
+            copyright = license,
+            isBasedOn = lp.isBasedOn,
+            supportedLanguages = supportedLanguages,
+            authors = lp.copyright.contributors.map(_.name).toList,
+            context = contexts.find(_.isPrimary),
+            contexts = contexts,
+            contextids = indexingBundle.taxonomyBundle
+              .map(getTaxonomyContexids(lp.id.get, "learningpath", _))
+              .getOrElse(List.empty),
+            favorited = favorited,
+            learningResourceType = LearningResourceType.LearningPath,
+            typeName = getTypeNames(LearningResourceType.LearningPath),
+            priority = lp.priority
+          )
+        )
+      }
 
     private def getFavoritedCountFor(
         indexingBundle: IndexingBundle,
@@ -440,7 +445,7 @@ trait SearchConverterService {
       }
     }
 
-    def asSearchableConcept(c: Concept, indexingBundle: IndexingBundle): Try[SearchableConcept] = {
+    def asSearchableConcept(c: Concept, indexingBundle: IndexingBundle): Try[SearchableConcept] = permitTry {
       val title     = model.SearchableLanguageValues(c.title.map(t => LanguageValue(t.language, toPlaintext(t.title))))
       val content   = SearchableLanguageValues.fromFieldsMap(c.content)(toPlaintext)
       val tags      = SearchableLanguageList.fromFields(c.tags)
@@ -483,7 +488,7 @@ trait SearchConverterService {
       )
     }
 
-    def asSearchableDraft(draft: Draft, indexingBundle: IndexingBundle): Try[SearchableDraft] = {
+    def asSearchableDraft(draft: Draft, indexingBundle: IndexingBundle): Try[SearchableDraft] = permitTry {
       val taxonomyContexts = {
         val draftId = draft.id.get
         indexingBundle.taxonomyBundle match {
@@ -727,7 +732,7 @@ trait SearchConverterService {
         hit: SearchHit,
         language: String,
         filterInactive: Boolean
-    ): Try[MultiSearchSummaryDTO] = {
+    ): Try[MultiSearchSummaryDTO] = permitTry {
       val searchableArticle = CirceUtil.tryParseAs[SearchableArticle](hit.sourceAsString).?
 
       val context  = searchableArticle.context.map(c => searchableContextToApiContext(c, language))
@@ -801,7 +806,7 @@ trait SearchConverterService {
         hit: SearchHit,
         language: String,
         filterInactive: Boolean
-    ): Try[MultiSearchSummaryDTO] = {
+    ): Try[MultiSearchSummaryDTO] = permitTry {
       val searchableDraft = CirceUtil.tryParseAs[SearchableDraft](hit.sourceAsString).?
 
       val context  = searchableDraft.context.map(c => searchableContextToApiContext(c, language))
@@ -889,7 +894,7 @@ trait SearchConverterService {
         hit: SearchHit,
         language: String,
         filterInactive: Boolean
-    ): Try[MultiSearchSummaryDTO] = {
+    ): Try[MultiSearchSummaryDTO] = permitTry {
       val searchableLearningPath = CirceUtil.tryParseAs[SearchableLearningPath](hit.sourceAsString).?
 
       val context  = searchableLearningPath.context.map(c => searchableContextToApiContext(c, language))
@@ -958,7 +963,7 @@ trait SearchConverterService {
       )
     }
 
-    def conceptHitAsMultiSummary(hit: SearchHit, language: String): Try[MultiSearchSummaryDTO] = {
+    def conceptHitAsMultiSummary(hit: SearchHit, language: String): Try[MultiSearchSummaryDTO] = permitTry {
       val searchableConcept = CirceUtil.tryParseAs[SearchableConcept](hit.sourceAsString).?
 
       val titles =

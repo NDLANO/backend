@@ -21,13 +21,11 @@ import scala.util.{Success, Try}
 
 trait TagIndexService {
   this: SearchConverterService & IndexService & AudioRepository & Props =>
-  val tagIndexService: TagIndexService
+  lazy val tagIndexService: TagIndexService
 
-  class TagIndexService extends StrictLogging with IndexService[AudioMetaInformation, SearchableTag] {
-    import props.*
-
-    override val documentType: String                         = AudioTagSearchDocument
-    override val searchIndex: String                          = AudioTagSearchIndex
+  class TagIndexService extends IndexService[AudioMetaInformation, SearchableTag] with StrictLogging {
+    override val documentType: String                         = props.AudioTagSearchDocument
+    override val searchIndex: String                          = props.AudioTagSearchIndex
     override val repository: Repository[AudioMetaInformation] = audioRepository
 
     override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Try[Seq[IndexRequest]] = {

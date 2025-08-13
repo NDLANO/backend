@@ -9,7 +9,6 @@
 package no.ndla.common.model.domain.myndla
 
 import enumeratum.*
-import enumeratum.{CirceEnum, EnumEntry}
 import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
 

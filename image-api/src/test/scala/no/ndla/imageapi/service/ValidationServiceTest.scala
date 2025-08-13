@@ -18,7 +18,7 @@ import no.ndla.mapping.License.CC_BY
 import org.mockito.Mockito.{reset, when}
 
 class ValidationServiceTest extends UnitSuite with TestEnvironment {
-  override val validationService = new ValidationService
+  override lazy val validationService = new ValidationService
 
   val fileMock: UploadedFile = mock[UploadedFile]
   def updated(): NDLADate    = NDLADate.of(2017, 4, 1, 12, 15, 32)
@@ -67,7 +67,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   test("validateImageFile returns a validation message if file has an unknown extension") {
     val fileName = "image.asdf"
     when(fileMock.fileName).thenReturn(Some(fileName))
-    val Some(result) = validationService.validateImageFile(fileMock)
+    val Some(result) = validationService.validateImageFile(fileMock): @unchecked
 
     result.message.contains(s"The file $fileName does not have a known file extension") should be(true)
   }
@@ -76,7 +76,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
     val fileName = "image.jpg"
     when(fileMock.fileName).thenReturn(Some(fileName))
     when(fileMock.contentType).thenReturn(Some("text/html"))
-    val Some(result) = validationService.validateImageFile(fileMock)
+    val Some(result) = validationService.validateImageFile(fileMock): @unchecked
 
     result.message.contains(s"The file $fileName is not a valid image file.") should be(true)
   }

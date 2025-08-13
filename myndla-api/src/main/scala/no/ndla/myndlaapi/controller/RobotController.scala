@@ -23,7 +23,7 @@ import java.util.UUID
 
 trait RobotController {
   this: ErrorHandling & TapirController & RobotService =>
-  val robotController: RobotController
+  lazy val robotController: RobotController
 
   class RobotController extends TapirController {
     override val serviceName: String         = "robots"

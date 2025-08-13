@@ -35,7 +35,7 @@ private[caching] class Memoize[R](
     val task = new Runnable {
       def run(): Unit = renewCache()
     }
-    ex.scheduleAtFixedRate(task, 20, maxCacheAgeMs, TimeUnit.MILLISECONDS)
+    ex.scheduleAtFixedRate(task, 20, maxCacheAgeMs, TimeUnit.MILLISECONDS): Unit
   }
 
   def apply(): Option[R] = {
@@ -51,17 +51,15 @@ private[caching] class Memoize[R](
 }
 trait MemoizeHelpers {
   this: Props =>
-  import props.ApiClientsCacheAgeInMs
-
   object Memoize {
 
     def apply[R](f: () => R, shouldCacheResult: R => Boolean = (_: R) => true) =
-      new Memoize(ApiClientsCacheAgeInMs, f, autoRefreshCache = false, shouldCacheResult)
+      new Memoize(props.ApiClientsCacheAgeInMs, f, autoRefreshCache = false, shouldCacheResult)
   }
 
   object MemoizeAutoRenew {
 
     def apply[R](f: () => R, shouldCacheResult: R => Boolean = (_: R) => true) =
-      new Memoize(ApiClientsCacheAgeInMs, f, autoRefreshCache = true, shouldCacheResult)
+      new Memoize(props.ApiClientsCacheAgeInMs, f, autoRefreshCache = true, shouldCacheResult)
   }
 }

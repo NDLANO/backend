@@ -23,16 +23,15 @@ trait SwaggerControllerConfig {
   this: HasBaseProps & TapirController =>
 
   class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInfo) extends TapirController {
-    import props.*
-
     def getServices(): List[TapirController] = services :+ this
 
     val info: Info = Info(
       title = props.ApplicationName,
       version = "1.0",
       description = swaggerInfo.description.some,
-      termsOfService = TermsUrl.some,
-      contact = Contact(name = ContactName.some, url = ContactUrl.some, email = ContactEmail.some).some,
+      termsOfService = props.TermsUrl.some,
+      contact =
+        Contact(name = props.ContactName.some, url = props.ContactUrl.some, email = props.ContactEmail.some).some,
       license = License("GPL v3.0", "https://www.gnu.org/licenses/gpl-3.0.en.html".some).some
     )
 

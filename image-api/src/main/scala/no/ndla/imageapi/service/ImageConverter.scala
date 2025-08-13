@@ -24,7 +24,7 @@ import scala.util.{Success, Try}
 
 trait ImageConverter {
   this: Props =>
-  val imageConverter: ImageConverter
+  lazy val imageConverter: ImageConverter
   case class PixelPoint(x: Int, y: Int) // A point given with pixles
   case class PercentPoint(x: Double, y: Double) { // A point given with values from MinValue to MaxValue. MinValue,MinValue is top-left, MaxValue,MaxValue is bottom-right
     import PercentPoint.*

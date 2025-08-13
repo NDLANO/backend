@@ -26,7 +26,7 @@ import scala.util.{Failure, Success, Try}
 trait SearchApiClient {
   this: HasBaseProps & NdlaClient =>
 
-  val searchApiClient: SearchApiClient
+  lazy val searchApiClient: SearchApiClient
 
   class SearchApiClient(SearchApiBaseUrl: String = s"http://${props.SearchApiHost}") extends StrictLogging {
     private val InternalEndpoint        = s"$SearchApiBaseUrl/intern"

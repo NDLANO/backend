@@ -22,7 +22,7 @@ import scala.util.{Failure, Success, Try}
 
 trait LearningPathApiClient {
   this: NdlaClient & StrictLogging & SearchApiClient =>
-  val learningPathApiClient: LearningPathApiClient
+  lazy val learningPathApiClient: LearningPathApiClient
 
   class LearningPathApiClient(val baseUrl: String) extends SearchApiClient[LearningPath] {
     override val searchPath     = "learningpath-api/v2/learningpaths"

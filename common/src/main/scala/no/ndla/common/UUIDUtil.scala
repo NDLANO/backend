@@ -11,7 +11,7 @@ package no.ndla.common
 import java.util.UUID
 
 trait UUIDUtil {
-  val uuidUtil: UUIDUtil
+  lazy val uuidUtil: UUIDUtil
 
   class UUIDUtil {
     def randomUUID(): UUID = {

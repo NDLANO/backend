@@ -21,7 +21,7 @@ import scala.util.Try
 
 trait LearningpathApiClient {
   this: NdlaClient with ConverterService with Props =>
-  val learningpathApiClient: LearningpathApiClient
+  lazy val learningpathApiClient: LearningpathApiClient
 
   class LearningpathApiClient {
     private val Endpoint = s"http://${props.LearningpathApiHost}/learningpath-api/v2/learningpaths"

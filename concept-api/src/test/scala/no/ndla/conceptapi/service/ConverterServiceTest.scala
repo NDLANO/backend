@@ -23,8 +23,8 @@ import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
-  override val converterService = new ConverterService
-  val userInfo: TokenUser       = TokenUser("", Set(CONCEPT_API_WRITE, CONCEPT_API_ADMIN), None)
+  override lazy val converterService = new ConverterService
+  val userInfo: TokenUser            = TokenUser("", Set(CONCEPT_API_WRITE, CONCEPT_API_ADMIN), None)
 
   test("toApiConcept converts a domain.Concept to an api.Concept with defined language") {
     converterService.toApiConcept(TestData.domainConcept, "nn", fallback = false, Some(userInfo)) should be(
@@ -387,7 +387,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       )
     val newConcept = TestData.emptyApiNewConcept.copy(conceptType = "gloss", glossData = Some(newGlossData))
 
-    val Failure(result1) = converterService.toDomainConcept(newConcept, TestData.userWithWriteAccess)
+    val Failure(result1) = converterService.toDomainConcept(newConcept, TestData.userWithWriteAccess): @unchecked
     result1.getMessage should include("'ikke' is not a valid gloss type")
 
 //    val newConcept2 =
@@ -464,7 +464,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val existingConcept = TestData.domainConcept.copy(conceptType = concept.ConceptType.CONCEPT, glossData = None)
 
     val Failure(result) =
-      converterService.toDomainConcept(existingConcept, updatedConcept, TestData.userWithWriteAccess)
+      converterService.toDomainConcept(existingConcept, updatedConcept, TestData.userWithWriteAccess): @unchecked
     result.getMessage should include("'ikke eksisterende' is not a valid gloss type")
   }
 
@@ -556,7 +556,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         )
       )
 
-    val Failure(result) = converterService.toDomainGlossData(apiGlossData)
+    val Failure(result) = converterService.toDomainGlossData(apiGlossData): @unchecked
     result.getMessage should include("'nonexistent' is not a valid gloss type")
   }
 

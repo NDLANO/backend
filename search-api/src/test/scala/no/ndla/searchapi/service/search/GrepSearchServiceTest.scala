@@ -20,12 +20,12 @@ import no.ndla.searchapi.model.grep.*
 class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
-  override val grepIndexService: GrepIndexService = new GrepIndexService {
+  override lazy val grepIndexService: GrepIndexService = new GrepIndexService {
     override val indexShards = 1
   }
-  override val grepSearchService      = new GrepSearchService
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val grepSearchService      = new GrepSearchService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {

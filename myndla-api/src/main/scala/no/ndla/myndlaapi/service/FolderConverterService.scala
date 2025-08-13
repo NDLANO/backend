@@ -12,7 +12,7 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.{Clock, model}
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
+import no.ndla.common.implicits.*
 import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla
 import no.ndla.common.model.domain.myndla.{
@@ -34,7 +34,7 @@ import scala.util.{Failure, Success, Try}
 trait FolderConverterService {
   this: Clock & NodeBBClient =>
 
-  val folderConverterService: FolderConverterService
+  lazy val folderConverterService: FolderConverterService
 
   class FolderConverterService extends StrictLogging {
     def toApiFolder(
@@ -273,7 +273,7 @@ trait FolderConverterService {
         updatedUser: UpdatedMyNDLAUserDTO,
         updaterToken: Option[TokenUser],
         feideToken: Option[FeideAccessToken]
-    ): Try[DomainMyNDLAUser] = {
+    ): Try[DomainMyNDLAUser] = permitTry {
       val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
       val arenaEnabled     = {
         if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN))

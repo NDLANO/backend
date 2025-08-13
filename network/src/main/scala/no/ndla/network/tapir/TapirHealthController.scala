@@ -16,7 +16,7 @@ import sttp.tapir.*
 
 trait TapirHealthController {
   this: TapirController =>
-  val healthController: TapirHealthController
+  lazy val healthController: TapirHealthController
   class TapirHealthController extends Warmup with TapirController {
     @volatile private var isShuttingDown: Boolean = false
     override val enableSwagger: Boolean           = false

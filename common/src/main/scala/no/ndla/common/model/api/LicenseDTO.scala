@@ -20,6 +20,7 @@ case class LicenseDTO(
 )
 
 object LicenseDTO {
-  implicit def encoder: Encoder[LicenseDTO] = deriveEncoder[LicenseDTO]
-  implicit def decoder: Decoder[LicenseDTO] = deriveDecoder[LicenseDTO]
+  implicit def encoder: Encoder[LicenseDTO]          = deriveEncoder[LicenseDTO]
+  implicit def decoder: Decoder[LicenseDTO]          = deriveDecoder[LicenseDTO]
+  implicit def schema: sttp.tapir.Schema[LicenseDTO] = sttp.tapir.Schema.derived
 }

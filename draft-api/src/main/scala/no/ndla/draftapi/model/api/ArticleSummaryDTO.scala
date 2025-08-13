@@ -29,3 +29,14 @@ case class ArticleSummaryDTO(
     @description("The status of this article") status: StatusDTO,
     @description("When the article was last updated") updated: NDLADate
 )
+
+object ArticleSummaryDTO {
+  import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+  import io.circe.{Decoder, Encoder}
+
+  implicit val encoder: Encoder[ArticleSummaryDTO] = deriveEncoder
+  implicit val decoder: Decoder[ArticleSummaryDTO] = deriveDecoder
+
+  import sttp.tapir.generic.auto.*
+  implicit def schema: sttp.tapir.Schema[ArticleSummaryDTO] = sttp.tapir.Schema.derivedSchema
+}

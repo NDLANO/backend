@@ -8,8 +8,11 @@
 
 package no.ndla.audioapi.model.api
 
+import sttp.tapir.Schema
 import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema.annotations.description
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 
 @description("Short summary of information about the audio")
 case class AudioSummaryDTO(
@@ -34,3 +37,11 @@ case class AudioSummaryDTO(
     @description("The time and date of last update")
     lastUpdated: NDLADate
 )
+
+object AudioSummaryDTO {
+  implicit val encoder: Encoder[AudioSummaryDTO] = deriveEncoder
+  implicit val decoder: Decoder[AudioSummaryDTO] = deriveDecoder
+
+  import sttp.tapir.generic.auto.*
+  implicit def schema: Schema[AudioSummaryDTO] = Schema.derived
+}

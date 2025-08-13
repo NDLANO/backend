@@ -31,7 +31,7 @@ class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with Un
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
-  override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+  override lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
     override val indexShards = 1
   }
 
@@ -46,8 +46,8 @@ class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with Un
     when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
 
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   test("That mapping contains every field after serialization") {
     val domainLearningPath = TestData.learningPath1.copy(

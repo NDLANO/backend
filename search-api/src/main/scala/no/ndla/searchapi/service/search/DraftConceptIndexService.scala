@@ -17,21 +17,20 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.DraftConceptApiClient
+import no.ndla.searchapi.integration.{DraftConceptApiClient, SearchApiClient}
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.common.model.domain.concept.Concept
 
 import scala.util.Try
 
 trait DraftConceptIndexService {
-  this: SearchConverterService & IndexService & DraftConceptApiClient & Props =>
-  val draftConceptIndexService: DraftConceptIndexService
+  this: SearchConverterService & IndexService & DraftConceptApiClient & Props & SearchApiClient =>
+  lazy val draftConceptIndexService: DraftConceptIndexService
 
-  class DraftConceptIndexService extends StrictLogging with IndexService[Concept] {
-    import props.SearchIndex
-    override val documentType: String             = "concept"
-    override val searchIndex: String              = SearchIndex(SearchType.Concepts)
-    override val apiClient: DraftConceptApiClient = draftConceptApiClient
+  class DraftConceptIndexService extends IndexService[Concept] with StrictLogging {
+    override val documentType: String                = "concept"
+    override val searchIndex: String                 = props.SearchIndex(SearchType.Concepts)
+    override val apiClient: SearchApiClient[Concept] = draftConceptApiClient
 
     override def createIndexRequest(
         domainModel: Concept,

@@ -18,7 +18,7 @@ import scala.util.Try
 
 trait FileStorageService {
   this: NdlaS3Client with Props =>
-  val fileStorage: FileStorageService
+  lazy val fileStorage: FileStorageService
 
   class FileStorageService extends StrictLogging {
     val resourceDirectory = "resources"

@@ -40,7 +40,7 @@ import java.util.UUID
 
 trait FolderController {
   this: FolderReadService & FolderWriteService & ErrorHandling & TapirController =>
-  val folderController: FolderController
+  lazy val folderController: FolderController
 
   class FolderController extends TapirController {
     override val serviceName: String = "folders"

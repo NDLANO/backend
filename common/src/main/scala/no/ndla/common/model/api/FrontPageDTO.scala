@@ -13,6 +13,10 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
+import sttp.tapir.Schema
+import sttp.tapir.SchemaType.SProduct
+import sttp.tapir.FieldName
+import sttp.tapir.SchemaType
 
 @description("The Menu object")
 case class MenuDTO(
@@ -38,6 +42,13 @@ object MenuDTO {
 
   implicit val encodeMenuData: Encoder[MenuDataDTO] = Encoder.instance { case menu: MenuDTO => menu.asJson }
   implicit val decodeMenuData: Decoder[MenuDataDTO] = Decoder[MenuDTO].widen
+
+  import sttp.tapir.generic.auto.*
+  implicit def schema: Schema[MenuDTO] = Schema.derivedSchema
 }
 
 sealed trait MenuDataDTO {}
+
+object MenuDataDTO {
+  implicit def schema: Schema[MenuDataDTO] = MenuDTO.schema.as
+}

@@ -17,7 +17,6 @@ import no.ndla.common.model.api.search.{ApiTaxonomyContextDTO, LearningResourceT
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, RevisionMeta, RevisionStatus}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
@@ -33,23 +32,23 @@ import scala.util.{Success, Try}
 class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
-  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
+  override lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
     override val indexShards = 1
   }
-  override val draftIndexService: DraftIndexService = new DraftIndexService {
+  override lazy val draftIndexService: DraftIndexService = new DraftIndexService {
     override val indexShards = 1
   }
-  override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+  override lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
     override val indexShards = 1
   }
-  override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
+  override lazy val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards = 1
   }
-  override val multiDraftSearchService: MultiDraftSearchService = new MultiDraftSearchService {
+  override lazy val multiDraftSearchService: MultiDraftSearchService = new MultiDraftSearchService {
     override val enableExplanations = true
   }
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
@@ -104,7 +103,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(embedId = Some("3"), embedResource = List("content-link"))
-      )
+      ): @unchecked
 
     search1.totalCount should be(1)
     search1.summaryResults.map(_.id) should be(List(2))
@@ -112,7 +111,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     val Success(search2) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(embedId = Some("3"), embedResource = List("content-link", "related-content"))
-      )
+      ): @unchecked
 
     search2.totalCount should be(2)
     search2.summaryResults.map(_.id) should be(List(1, 2))
@@ -182,7 +181,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(sort = Sort.ByRevisionDateAsc)
-      )
+      ): @unchecked
 
     search1.totalCount should be(4)
     search1.summaryResults.map(_.id) should be(List(3, 1, 2, 4))
@@ -190,7 +189,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     val Success(search2) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(sort = Sort.ByRevisionDateDesc)
-      )
+      ): @unchecked
 
     search2.totalCount should be(4)
     search2.summaryResults.map(_.id) should be(List(1, 3, 2, 4))
@@ -260,7 +259,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("trylleformel").get))
-      )
+      ): @unchecked
 
     search1.totalCount should be(1)
     search1.summaryResults.map(_.id) should be(List(3))
@@ -917,7 +916,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(embedId = Some(videoId), embedResource = List("video"))
-      )
+      ): @unchecked
 
     search1.totalCount should be(1)
     search1.summaryResults.map(_.id) should be(List(1))
@@ -982,17 +981,17 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
 
     val Success(search1) = searchService.matchingQuery(
       multiDraftSearchSettings.copy(sort = Sort.ByParentTopicNameAsc)
-    )
+    ): @unchecked
     search1.summaryResults.map(_.id) should be(List(1, 2, 3))
 
     val Success(search2) = searchService.matchingQuery(
       multiDraftSearchSettings.copy(sort = Sort.ByPrimaryRootAsc)
-    )
+    ): @unchecked
     search2.summaryResults.map(_.id) should be(List(2, 3, 1))
 
     val Success(search3) = searchService.matchingQuery(
       multiDraftSearchSettings.copy(sort = Sort.ByResourceTypeAsc)
-    )
+    ): @unchecked
     search3.summaryResults.map(_.id) should be(List(3, 1, 2))
 
   }

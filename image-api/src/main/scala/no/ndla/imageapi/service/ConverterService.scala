@@ -33,11 +33,9 @@ import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
   this: Clock & Props =>
-  val converterService: ConverterService
+  lazy val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
-    import props.DefaultLanguage
-
     def asApiAuthor(domainAuthor: commonDomain.Author): commonApi.AuthorDTO = {
       commonApi.AuthorDTO(domainAuthor.`type`, domainAuthor.name)
     }
@@ -100,16 +98,16 @@ trait ConverterService {
       val rawPath = props.RawImageUrlBase
       val title   = findByLanguageOrBestEffort(imageMeta.titles, language)
         .map(asApiImageTitle)
-        .getOrElse(api.ImageTitleDTO("", DefaultLanguage))
+        .getOrElse(api.ImageTitleDTO("", props.DefaultLanguage))
       val alttext = findByLanguageOrBestEffort(imageMeta.alttexts, language)
         .map(asApiImageAltText)
-        .getOrElse(api.ImageAltTextDTO("", DefaultLanguage))
+        .getOrElse(api.ImageAltTextDTO("", props.DefaultLanguage))
       val tags = findByLanguageOrBestEffort(imageMeta.tags, language)
         .map(asApiImageTag)
-        .getOrElse(api.ImageTagDTO(Seq(), DefaultLanguage))
+        .getOrElse(api.ImageTagDTO(Seq(), props.DefaultLanguage))
       val caption = findByLanguageOrBestEffort(imageMeta.captions, language)
         .map(asApiCaption)
-        .getOrElse(api.ImageCaptionDTO("", DefaultLanguage))
+        .getOrElse(api.ImageCaptionDTO("", props.DefaultLanguage))
 
       getImageFromMeta(imageMeta, language).flatMap(image => {
         val apiUrl       = asApiUrl(image.fileName, rawPath.some)
@@ -174,16 +172,16 @@ trait ConverterService {
     ): Try[api.ImageMetaInformationV2DTO] = {
       val title = findByLanguageOrBestEffort(imageMeta.titles, language)
         .map(asApiImageTitle)
-        .getOrElse(api.ImageTitleDTO("", DefaultLanguage))
+        .getOrElse(api.ImageTitleDTO("", props.DefaultLanguage))
       val alttext = findByLanguageOrBestEffort(imageMeta.alttexts, language)
         .map(asApiImageAltText)
-        .getOrElse(api.ImageAltTextDTO("", DefaultLanguage))
+        .getOrElse(api.ImageAltTextDTO("", props.DefaultLanguage))
       val tags = findByLanguageOrBestEffort(imageMeta.tags, language)
         .map(asApiImageTag)
-        .getOrElse(api.ImageTagDTO(Seq(), DefaultLanguage))
+        .getOrElse(api.ImageTagDTO(Seq(), props.DefaultLanguage))
       val caption = findByLanguageOrBestEffort(imageMeta.captions, language)
         .map(asApiCaption)
-        .getOrElse(api.ImageCaptionDTO("", DefaultLanguage))
+        .getOrElse(api.ImageCaptionDTO("", props.DefaultLanguage))
 
       getImageFromMeta(imageMeta, language).flatMap(image => {
         val apiUrl          = asApiUrl(image.fileName, rawBaseUrl)

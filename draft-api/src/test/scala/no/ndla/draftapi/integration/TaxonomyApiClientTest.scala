@@ -21,7 +21,7 @@ import scala.util.{Failure, Success}
 
 class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
 
-  override val taxonomyApiClient: TaxonomyApiClient = spy(new TaxonomyApiClient)
+  override lazy val taxonomyApiClient: TaxonomyApiClient = spy(new TaxonomyApiClient)
 
   override def beforeEach(): Unit = {
     // Since we use spy, we reset the mock before each test allowing verify to be accurate

@@ -236,7 +236,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         List(api.BreadcrumbDTO(id = mainFolderUUID, name = "mainFolder")),
         None,
         true
-      )
+      ): @unchecked
     result should be(expected)
   }
 

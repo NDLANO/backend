@@ -39,7 +39,7 @@ import scala.util.{Failure, Try}
 
 trait ArticleApiClient {
   this: NdlaClient & ConverterService & Props =>
-  val articleApiClient: ArticleApiClient
+  lazy val articleApiClient: ArticleApiClient
 
   class ArticleApiClient(ArticleBaseUrl: String = s"http://${props.ArticleApiHost}") {
     private val InternalEndpoint = s"$ArticleBaseUrl/intern"

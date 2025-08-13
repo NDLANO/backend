@@ -16,8 +16,8 @@ import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.TryUtil.failureIf
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.errors.{MissingIdException, NotFoundException, ValidationException, OperationNotAllowedException}
-import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
+import no.ndla.common.errors.{MissingIdException, NotFoundException, OperationNotAllowedException, ValidationException}
+import no.ndla.common.implicits.*
 import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.article.PartialPublishArticleDTO
@@ -48,13 +48,13 @@ import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.jdk.CollectionConverters.*
 import scala.math.max
-import scala.util.{Failure, Random, Success, Try}
+import scala.util.{Failure, Random, Success, Try, boundary}
 
 trait WriteService {
   this: DraftRepository & UserDataRepository & ConverterService & ContentValidator & ArticleIndexService &
     TagIndexService & GrepCodesIndexService & Clock & ReadService & ArticleApiClient & SearchApiClient &
     FileStorageService & TaxonomyApiClient & Props & DBUtility =>
-  val writeService: WriteService
+  lazy val writeService: WriteService
 
   class WriteService extends StrictLogging {
 
@@ -75,9 +75,9 @@ trait WriteService {
       article.id match {
         case None => Failure(new IllegalStateException("No id found for article when indexing. This is a bug."))
         case Some(articleId) =>
-          searchApiClient.indexDocument("draft", article, Some(user)): Unit
-          articleIndexService.indexAsync(articleId, article): Unit
-          tagIndexService.indexAsync(articleId, article): Unit
+          val _ = searchApiClient.indexDocument("draft", article, Some(user))
+          val _ = articleIndexService.indexAsync(articleId, article)
+          val _ = tagIndexService.indexAsync(articleId, article)
           Success(())
       }
 
@@ -221,23 +221,25 @@ trait WriteService {
     private def migrateOutdatedGrepForDraft(
         draft: Draft,
         user: TokenUser
-    )(session: DBSession): Try[Option[(Long, PartialPublishArticleDTO)]] = {
-      val articleId = draft.id.getOrElse(-1L)
-      logger.info(s"Migrating grep codes for article $articleId")
-      if (draft.grepCodes.isEmpty) { return Success(None) }
-      val newGrepCodeMapping = searchApiClient.convertGrepCodes(draft.grepCodes, user).?
-      val updatedGrepCodes   = newGrepCodeMapping.values.toSeq
-      if (draft.grepCodes.sorted == updatedGrepCodes.sorted) { return Success(None) }
-      val grepCodeNote = getGrepCodeNote(newGrepCodeMapping, draft, user)
-      val newDraft     = draft.copy(grepCodes = updatedGrepCodes, notes = draft.notes :+ grepCodeNote)
-      val updated      = draftRepository.updateArticle(newDraft)(session).?
-      val partialPart  = partialArticleFieldsUpdate(updated, grepFieldsToPublish, Language.AllLanguages)
-      logger.info(
-        s"Migrated grep codes for article $articleId from [${draft.grepCodes.mkString(",")}] to [${updatedGrepCodes.mkString(",")}]"
-      )
-      lazy val idException = MissingIdException("Article id was missing after updating grep codes. This is a bug.")
-      val id               = updated.id.toTry(idException).?
-      Success(Some((id, partialPart)))
+    )(session: DBSession): Try[Option[(Long, PartialPublishArticleDTO)]] = permitTry {
+      boundary {
+        val articleId = draft.id.getOrElse(-1L)
+        logger.info(s"Migrating grep codes for article $articleId")
+        if (draft.grepCodes.isEmpty) { boundary.break(Success(None)) }
+        val newGrepCodeMapping = searchApiClient.convertGrepCodes(draft.grepCodes, user).?
+        val updatedGrepCodes   = newGrepCodeMapping.values.toSeq
+        if (draft.grepCodes.sorted == updatedGrepCodes.sorted) { boundary.break(Success(None)) }
+        val grepCodeNote = getGrepCodeNote(newGrepCodeMapping, draft, user)
+        val newDraft     = draft.copy(grepCodes = updatedGrepCodes, notes = draft.notes :+ grepCodeNote)
+        val updated      = draftRepository.updateArticle(newDraft)(session).?
+        val partialPart  = partialArticleFieldsUpdate(updated, grepFieldsToPublish, Language.AllLanguages)
+        logger.info(
+          s"Migrated grep codes for article $articleId from [${draft.grepCodes.mkString(",")}] to [${updatedGrepCodes.mkString(",")}]"
+        )
+        lazy val idException = MissingIdException("Article id was missing after updating grep codes. This is a bug.")
+        val id               = updated.id.toTry(idException).?
+        Success(Some((id, partialPart)))
+      }
     }
 
     def migrateOutdatedGreps(user: TokenUser): Try[Unit] = logTaskTime("Migrate outdated grep codes") {
@@ -497,16 +499,17 @@ trait WriteService {
         updatedApiArticle: api.UpdatedArticleDTO,
         user: TokenUser,
         shouldNotAutoUpdateStatus: Boolean
-    ): Try[Draft] = {
+    ): Try[Draft] = permitTry {
       val newManualStatus = updatedApiArticle.status.traverse(DraftStatus.valueOfOrError).?
-      if (shouldNotAutoUpdateStatus && newManualStatus.isEmpty)
-        return Success(convertedArticle)
+      if (shouldNotAutoUpdateStatus && newManualStatus.isEmpty) {
+        Success(convertedArticle)
+      } else {
+        val oldStatus            = existingArticle.status.current
+        val newStatusIfUndefined = if (oldStatus == PUBLISHED) IN_PROGRESS else oldStatus
+        val newStatus            = newManualStatus.getOrElse(newStatusIfUndefined)
 
-      val oldStatus            = existingArticle.status.current
-      val newStatusIfUndefined = if (oldStatus == PUBLISHED) IN_PROGRESS else oldStatus
-      val newStatus            = newManualStatus.getOrElse(newStatusIfUndefined)
-
-      converterService.updateStatus(newStatus, convertedArticle, user)
+        converterService.updateStatus(newStatus, convertedArticle, user)
+      }
     }
 
     def updateArticle(articleId: Long, updatedApiArticle: api.UpdatedArticleDTO, user: TokenUser): Try[api.ArticleDTO] =
@@ -884,7 +887,7 @@ trait WriteService {
             taxonomyApiClient
               .getChildResources(id)
               .flatMap(resources => resources.traverse(setRevisions(_, revisions)))
-          case _ => Success(())
+          case null => Success(())
         }
       })
     }

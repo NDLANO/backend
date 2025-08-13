@@ -29,8 +29,8 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
       |}
     """.stripMargin
 
-  val httpClientMock: SimpleHttpClient = mock[SimpleHttpClient]
-  val ndlaClient: NdlaClient           = new NdlaClient {
+  val httpClientMock: SimpleHttpClient     = mock[SimpleHttpClient]
+  override lazy val ndlaClient: NdlaClient = new NdlaClient {
     override val client = httpClientMock
   }
 

@@ -28,5 +28,5 @@ trait DatabaseProps {
 }
 
 trait HasDatabaseProps {
-  val props: DatabaseProps
+  lazy val props: DatabaseProps
 }

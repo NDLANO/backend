@@ -18,7 +18,7 @@ import scala.util.Success
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
-  override val converterService = new ConverterService
+  override lazy val converterService = new ConverterService
 
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
@@ -77,13 +77,21 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("That asApiImageMetaInformationWithDomainUrl returns links with domain urls") {
     {
       val Success(apiImage) =
-        converterService.asApiImageMetaInformationWithDomainUrlV2(DefaultImageMetaInformation, Some("nb"), None)
+        converterService.asApiImageMetaInformationWithDomainUrlV2(
+          DefaultImageMetaInformation,
+          Some("nb"),
+          None
+        ): @unchecked
       apiImage.metaUrl should equal(s"${props.ImageApiV2UrlBase}1")
       apiImage.imageUrl should equal(s"${props.RawImageUrlBase}/123.png")
     }
     {
       val Success(apiImage) =
-        converterService.asApiImageMetaInformationWithDomainUrlV2(WantingImageMetaInformation, Some("nb"), None)
+        converterService.asApiImageMetaInformationWithDomainUrlV2(
+          WantingImageMetaInformation,
+          Some("nb"),
+          None
+        ): @unchecked
       apiImage.metaUrl should equal(s"${props.ImageApiV2UrlBase}1")
       apiImage.imageUrl should equal(s"${props.RawImageUrlBase}/123.png")
     }
@@ -91,14 +99,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That asApiImageMetaInformationWithApplicationUrlAndSingleLanguage returns links with applicationUrl") {
     val Success(apiImage) =
-      converterService.asApiImageMetaInformationWithApplicationUrlV2(DefaultImageMetaInformation, None, None)
+      converterService.asApiImageMetaInformationWithApplicationUrlV2(
+        DefaultImageMetaInformation,
+        None,
+        None
+      ): @unchecked
     apiImage.metaUrl should equal(s"${props.Domain}/image-api/v2/images/1")
     apiImage.imageUrl should equal(s"${props.Domain}/image-api/raw/123.png")
   }
 
   test("That asApiImageMetaInformationWithDomainUrlAndSingleLanguage returns links with domain urls") {
     val Success(apiImage) =
-      converterService.asApiImageMetaInformationWithDomainUrlV2(DefaultImageMetaInformation, None, None)
+      converterService.asApiImageMetaInformationWithDomainUrlV2(DefaultImageMetaInformation, None, None): @unchecked
     apiImage.metaUrl should equal("http://api-gateway.ndla-local/image-api/v2/images/1")
     apiImage.imageUrl should equal("http://api-gateway.ndla-local/image-api/raw/123.png")
   }
@@ -110,7 +122,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       DefaultImageMetaInformation,
       Some("RandomLangauge"),
       None
-    )
+    ): @unchecked
 
     apiImage.metaUrl should equal(s"${props.Domain}/image-api/v2/images/1")
     apiImage.imageUrl should equal(s"${props.Domain}/image-api/raw/123.png")
@@ -122,28 +134,32 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         DefaultImageMetaInformation,
         Some("RandomLangauge"),
         None
-      )
+      ): @unchecked
     apiImage.metaUrl should equal("http://api-gateway.ndla-local/image-api/v2/images/1")
     apiImage.imageUrl should equal("http://api-gateway.ndla-local/image-api/raw/123.png")
   }
 
   test("that asImageMetaInformationV2 properly") {
-    val Success(result1) = converterService.asImageMetaInformationV2(MultiLangImage, Some("nb"), "", None, None)
+    val Success(result1) =
+      converterService.asImageMetaInformationV2(MultiLangImage, Some("nb"), "", None, None): @unchecked
     result1.id should be("2")
     result1.title.language should be("nn")
 
-    val Success(result2) = converterService.asImageMetaInformationV2(MultiLangImage, Some("en"), "", None, None)
+    val Success(result2) =
+      converterService.asImageMetaInformationV2(MultiLangImage, Some("en"), "", None, None): @unchecked
     result2.id should be("2")
     result2.title.language should be("en")
 
-    val Success(result3) = converterService.asImageMetaInformationV2(MultiLangImage, Some("nn"), "", None, None)
+    val Success(result3) =
+      converterService.asImageMetaInformationV2(MultiLangImage, Some("nn"), "", None, None): @unchecked
     result3.id should be("2")
     result3.title.language should be("nn")
 
   }
 
   test("that asImageMetaInformationV2 returns sorted supportedLanguages") {
-    val Success(result) = converterService.asImageMetaInformationV2(MultiLangImage, Some("nb"), "", None, None)
+    val Success(result) =
+      converterService.asImageMetaInformationV2(MultiLangImage, Some("nb"), "", None, None): @unchecked
     result.supportedLanguages should be(Seq("nn", "en", "und"))
   }
 

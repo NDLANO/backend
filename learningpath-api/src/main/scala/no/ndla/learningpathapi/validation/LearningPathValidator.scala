@@ -17,7 +17,7 @@ import no.ndla.mapping.License.getLicense
 
 trait LearningPathValidator {
   this: LanguageValidator & TitleValidator & TextValidator =>
-  val learningPathValidator: LearningPathValidator
+  lazy val learningPathValidator: LearningPathValidator
 
   class LearningPathValidator(descriptionRequired: Boolean = false) {
 

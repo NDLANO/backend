@@ -26,7 +26,7 @@ import scala.util.{Failure, Success, Try}
 trait RawController {
   this: ImageStorageService & ImageConverter & ImageRepository & ErrorHandling & Props & ReadService &
     TapirController =>
-  val rawController: RawController
+  lazy val rawController: RawController
 
   class RawController extends TapirController {
     override val serviceName: String         = "raw"

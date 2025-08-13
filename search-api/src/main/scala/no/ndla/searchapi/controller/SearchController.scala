@@ -60,11 +60,9 @@ import no.ndla.common.model.domain.Priority
 trait SearchController {
   this: SearchApiClient & MultiSearchService & SearchConverterService & SearchService & MultiDraftSearchService &
     FeideApiClient & Props & ErrorHandling & TapirController & GrepSearchService & GetSearchQueryParams =>
-  val searchController: SearchController
+  lazy val searchController: SearchController
 
   class SearchController extends TapirController {
-    import props.*
-
     override val serviceName: String         = "search"
     override val prefix: EndpointInput[Unit] = "search-api" / "v1" / serviceName
 
@@ -199,7 +197,7 @@ trait SearchController {
         orFunction: => Try[(MultiSearchResultDTO, DynamicHeaders)]
     ): Try[(MultiSearchResultDTO, DynamicHeaders)] = {
       scrollId match {
-        case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
+        case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
           for {
             scrollResult <- scroller.scroll(scroll, language.code)
             body    = searchConverterService.toApiMultiSearchResult(scrollResult)
@@ -461,7 +459,7 @@ trait SearchController {
       p match {
         case None         => SearchSettings.default
         case Some(params) =>
-          val shouldScroll = params.scrollId.exists(InitialScrollContextKeywords.contains)
+          val shouldScroll = params.scrollId.exists(props.InitialScrollContextKeywords.contains)
           SearchSettings(
             query = params.query,
             fallback = params.fallback.getOrElse(false),
@@ -498,7 +496,7 @@ trait SearchController {
       p match {
         case None         => MultiDraftSearchSettings.default(user)
         case Some(params) =>
-          val shouldScroll = params.scrollId.exists(InitialScrollContextKeywords.contains)
+          val shouldScroll = params.scrollId.exists(props.InitialScrollContextKeywords.contains)
           MultiDraftSearchSettings(
             user = user,
             query = params.query,

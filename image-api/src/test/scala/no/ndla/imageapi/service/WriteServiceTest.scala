@@ -28,10 +28,10 @@ import java.io.ByteArrayInputStream
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override val writeService     = new WriteService
-  override val converterService = new ConverterService
-  val newFileName               = "AbCdeF.mp3"
-  val fileMock1: UploadedFile   = mock[UploadedFile]
+  override lazy val writeService     = new WriteService
+  override lazy val converterService = new ConverterService
+  val newFileName                    = "AbCdeF.mp3"
+  val fileMock1: UploadedFile        = mock[UploadedFile]
 
   val newImageMeta: NewImageMetaInformationV2DTO = NewImageMetaInformationV2DTO(
     "title",
@@ -85,7 +85,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(fileMock1.contentType).thenReturn(Some("image/jpeg"))
     val bytes = TestData.NdlaLogoImage.stream.readAllBytes()
     when(fileMock1.stream).thenReturn(new ByteArrayInputStream(bytes))
-    when(fileMock1.fileSize).thenReturn(1024)
+    when(fileMock1.fileSize).thenReturn(1024L)
     when(fileMock1.fileName).thenReturn(Some("file.jpg"))
     when(random.string(any)).thenCallRealMethod()
 
@@ -94,7 +94,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(imageStorage)
     reset(tagIndexService)
     when(imageRepository.insert(any[ImageMetaInformation])(any[DBSession]))
-      .thenReturn(domainImageMeta.copy(id = Some(1)))
+      .thenReturn(domainImageMeta.copy(id = Some(1L)))
   }
 
   test("randomFileName should return a random filename with a given length and extension") {
@@ -185,16 +185,17 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Success(newFileName))
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Failure(new RuntimeException))
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
-    when(imageRepository.insert(any)(any)).thenReturn(domainImageMeta.copy(id = Some(100)))
-    when(imageRepository.insertImageFile(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageRepository.insert(any)(using any)).thenReturn(domainImageMeta.copy(id = Some(100L)))
+    when(imageRepository.insertImageFile(any, any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       val imageId  = i.getArgument[Long](0)
       val fileName = i.getArgument[String](1)
       val document = i.getArgument[ImageFileDataDocument](2)
-      Success(document.toFull(1, fileName, imageId))
+      Success(document.toFull(1L, fileName, imageId))
     })
 
-    writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
-    verify(imageRepository, times(1)).insert(any[ImageMetaInformation])(any[DBSession])
+    val result = writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser)
+    result.isFailure should be(true)
+    verify(imageRepository, times(1)).insert(any[ImageMetaInformation])(using any[DBSession])
     verify(imageStorage, times(1)).deleteObject(any[String])
   }
 
@@ -578,7 +579,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(fileMock.fileName).thenReturn(Some("someupload.jpg"))
     when(fileMock.contentType).thenReturn(Some("image/jpg"))
     when(fileMock.stream).thenReturn(TestData.NdlaLogoImage.stream)
-    when(fileMock.fileSize).thenReturn(1337)
+    when(fileMock.fileSize).thenReturn(1337L)
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
@@ -671,7 +672,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(fileMock.fileName).thenReturn(Some("someupload.jpg"))
     when(fileMock.contentType).thenReturn(Some("image/jpg"))
     when(fileMock.stream).thenReturn(TestData.NdlaLogoImage.stream)
-    when(fileMock.fileSize).thenReturn(1337)
+    when(fileMock.fileSize).thenReturn(1337L)
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))

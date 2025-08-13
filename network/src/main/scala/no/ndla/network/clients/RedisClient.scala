@@ -18,7 +18,7 @@ import scala.util.{Failure, Success, Try}
 
 trait RedisClient {
   this: HasBaseProps =>
-  val redisClient: RedisClient
+  lazy val redisClient: RedisClient
   class RedisClient(
       host: String,
       port: Int,
@@ -37,7 +37,7 @@ trait RedisClient {
       Success(newExpireTime)
     }
 
-    private def updateCache(accessToken: FeideAccessToken, field: String, data: String): Try[_] = {
+    private def updateCache(accessToken: FeideAccessToken, field: String, data: String): Try[?] = {
       for {
         newExpireTime <- getKeyExpireTime(accessToken)
         _             <- jedis.hset(accessToken, field, data)

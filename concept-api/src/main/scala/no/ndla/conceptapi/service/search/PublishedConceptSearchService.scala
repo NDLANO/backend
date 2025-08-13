@@ -29,11 +29,10 @@ import scala.util.{Failure, Success, Try}
 trait PublishedConceptSearchService {
   this: Elastic4sClient & SearchService & PublishedConceptIndexService & ConverterService & SearchConverterService &
     Props & ErrorHandling & SearchSettingsHelper =>
-  val publishedConceptSearchService: PublishedConceptSearchService
+  lazy val publishedConceptSearchService: PublishedConceptSearchService
 
   class PublishedConceptSearchService extends StrictLogging with SearchService[api.ConceptSummaryDTO] {
-    import props.*
-    override val searchIndex: String = PublishedConceptSearchIndex
+    override val searchIndex: String = props.PublishedConceptSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummaryDTO =
       searchConverterService.hitAsConceptSummary(hitString, language)
@@ -94,9 +93,9 @@ trait PublishedConceptSearchService {
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.pageSize * settings.page
-      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+          s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
         )
         Failure(new ResultWindowTooLargeException())
       } else {
@@ -113,7 +112,7 @@ trait PublishedConceptSearchService {
 
         val searchWithScroll =
           if (startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
+            searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
           } else { searchToExecute }
 
         e4sClient.execute(searchWithScroll) match {

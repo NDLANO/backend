@@ -25,7 +25,7 @@ import scala.util.{Failure, Success}
 
 trait InternController {
   this: ReadService & WriteService & Props & ErrorHandling & TapirController =>
-  val internController: InternController
+  lazy val internController: InternController
 
   class InternController extends TapirController {
     override val prefix: EndpointInput[Unit] = "intern"

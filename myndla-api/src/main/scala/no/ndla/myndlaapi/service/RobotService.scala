@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.service
 
 import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
-import no.ndla.common.implicits.OptionImplicit
+import no.ndla.common.implicits.*
 import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.model.api.robot.{CreateRobotDefinitionDTO, ListOfRobotDefinitionsDTO, RobotDefinitionDTO}
 import no.ndla.myndlaapi.model.domain.{RobotConfiguration, RobotDefinition, RobotStatus}
@@ -24,7 +24,7 @@ import scala.util.Try
 trait RobotService {
   this: RobotRepository & DBUtility & Clock & FeideApiClient & FolderWriteService =>
 
-  val robotService: RobotService
+  lazy val robotService: RobotService
 
   class RobotService {
 

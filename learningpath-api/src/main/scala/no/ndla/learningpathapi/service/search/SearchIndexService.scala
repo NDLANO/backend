@@ -28,13 +28,12 @@ import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, R
 trait SearchIndexService {
   this: Elastic4sClient & SearchConverterServiceComponent & LearningPathRepositoryComponent & SearchApiClient &
     BaseIndexService & Props & SearchLanguage =>
-  val searchIndexService: SearchIndexService
+  lazy val searchIndexService: SearchIndexService
 
   class SearchIndexService extends BaseIndexService with StrictLogging {
-    import props.{SearchDocument, SearchIndex, ElasticSearchIndexMaxResultWindow}
-    override val documentType: String       = SearchDocument
-    override val searchIndex: String        = SearchIndex
-    override val MaxResultWindowOption: Int = ElasticSearchIndexMaxResultWindow
+    override val documentType: String       = props.SearchDocument
+    override val searchIndex: String        = props.SearchIndex
+    override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
     def indexDocuments: Try[ReindexResult]                         = indexDocuments(None)
     def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = synchronized {

@@ -30,12 +30,10 @@ import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
   this: NdlaClient & Props =>
-  val taxonomyApiClient: TaxonomyApiClient
+  lazy val taxonomyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends StrictLogging {
-    import props.TaxonomyUrl
-
-    private val TaxonomyApiEndpoint                                             = s"$TaxonomyUrl/v1"
+    private val TaxonomyApiEndpoint                                             = s"${props.TaxonomyUrl}/v1"
     private val timeoutSeconds                                                  = 600.seconds
     private def getNodes(shouldUsePublishedTax: Boolean): Try[ListBuffer[Node]] =
       get[ListBuffer[Node]](

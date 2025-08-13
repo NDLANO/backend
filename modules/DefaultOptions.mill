@@ -10,6 +10,11 @@ trait DefaultOptions extends ScalaModule {
   private def scala3: VersionCheckFunc     = version => version.startsWith("3.")
   private def scala3and2: VersionCheckFunc = version => scala2(version) && scala3(version)
 
+  extension (opts: Seq[NDLAScalaOption])
+    def filterByVersion(version: String): Seq[String] = opts
+      .filter { o => o.versionCheck(version) }
+      .map(_.name)
+
   case class NDLAScalaOption(name: String, versionCheck: VersionCheckFunc = _ => true)
 
   given Conversion[String, NDLAScalaOption] =
@@ -28,6 +33,7 @@ trait DefaultOptions extends ScalaModule {
       "-language:higherKinds",
       "-language:implicitConversions",
       "-Xfatal-warnings",
+      "-deprecation",
       "-Xlint:adapted-args"           -> scala2,
       "-Xlint:constant"               -> scala2,
       "-Xlint:delayedinit-select"     -> scala2,
@@ -57,10 +63,11 @@ trait DefaultOptions extends ScalaModule {
       "-Wunused:imports",
       "-Wunused:locals",
       "-Wunused:params",
-      "-Wunused:patvars",
       "-Wunused:privates",
-      "-Wconf:src=src_managed/.*:silent"
-    ).filter(_.versionCheck(scalaVersion())).map(_.name)
+      "-Wconf:src=src_managed/.*:silent",
+      "-Yretain-trees"   -> scala3,
+      "-Xmax-inlines:50" -> scala3
+    ).filterByVersion(scalaVersion())
   }
 
   def scalacOptionsOnlyRun: T[Seq[String]] = Task {
@@ -68,13 +75,13 @@ trait DefaultOptions extends ScalaModule {
       "-Wdead-code" -> scala2,
       "-Wvalue-discard",
       "-Wnonunit-statement"
-    ).filter(_.versionCheck(scalaVersion())).map(_.name)
+    ).filterByVersion(scalaVersion())
   }
 
   def testJavaOptions: T[Seq[String]] = Task {
     Seq[NDLAScalaOption](
       "-XX:+EnableDynamicAgentLoading",
       "-Xshare:off"
-    ).filter(_.versionCheck(scalaVersion())).map(_.name)
+    ).filterByVersion(scalaVersion())
   }
 }

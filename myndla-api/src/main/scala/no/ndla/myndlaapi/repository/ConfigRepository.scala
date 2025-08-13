@@ -19,7 +19,7 @@ import sqls.count
 import scala.util.{Success, Try}
 
 trait ConfigRepository {
-  val configRepository: ConfigRepository
+  lazy val configRepository: ConfigRepository
 
   import ConfigMeta.*
 
@@ -51,12 +51,12 @@ trait ConfigRepository {
 
       if (updatedCount != 1) {
         logger.info(s"No existing value for ${config.key}, inserting the value.")
-        withSQL {
+        val _ = withSQL {
           insertInto(ConfigMeta).namedValues(
             ConfigMeta.column.c("configkey") -> config.key.entryName,
             ConfigMeta.column.c("value")     -> config
           )
-        }.update(): Unit
+        }.update()
         Success(config)
       } else {
         logger.info(s"Value for ${config.key} updated.")

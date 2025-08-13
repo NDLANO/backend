@@ -56,7 +56,7 @@ trait FolderWriteService {
   this: FolderReadService & Clock & FeideApiClient & FolderRepository & FolderConverterService & UserRepository &
     ConfigService & UserService & SearchApiClient & DBUtility =>
 
-  val folderWriteService: FolderWriteService
+  lazy val folderWriteService: FolderWriteService
 
   class FolderWriteService extends StrictLogging {
     val MaxFolderDepth = 5L
@@ -323,9 +323,9 @@ trait FolderWriteService {
         session: DBSession
     ): Try[UUID] = {
       folderRepository.folderResourceConnectionCount(resourceId) match {
-        case Failure(exception)           => Failure(exception)
-        case Success(count) if count == 1 => folderRepository.deleteResource(resourceId)
-        case Success(_)                   => folderRepository.deleteFolderResourceConnection(folderId, resourceId)
+        case Failure(exception)            => Failure(exception)
+        case Success(count) if count == 1L => folderRepository.deleteResource(resourceId)
+        case Success(_)                    => folderRepository.deleteFolderResourceConnection(folderId, resourceId)
       }
     }
 
@@ -466,7 +466,7 @@ trait FolderWriteService {
         folderSortObject: domain.FolderSortObject,
         sortRequest: api.FolderSortRequestDTO,
         feideAccessToken: Option[FeideAccessToken]
-    ): Try[Unit] = {
+    ): Try[Unit] = permitTry {
       implicit val session: DBSession = folderRepository.getSession(readOnly = false)
       val feideId                     = feideApiClient.getFeideID(feideAccessToken).?
       canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken).??
@@ -577,8 +577,7 @@ trait FolderWriteService {
         isCloning: Boolean
     )(implicit
         session: DBSession
-    ): Try[domain.Folder] = {
-
+    ): Try[domain.Folder] = permitTry {
       val parentId       = getMaybeParentId(newFolder.parentId).?
       val maybeSiblings  = getFolderWithDirectChildren(parentId, feideId).?
       val nextRank       = getNextRank(maybeSiblings.childrenFolders)

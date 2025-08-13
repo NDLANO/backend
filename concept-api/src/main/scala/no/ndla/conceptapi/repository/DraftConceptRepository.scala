@@ -23,7 +23,7 @@ import scala.util.{Failure, Success, Try}
 
 trait DraftConceptRepository {
   this: DataSource & Props & ErrorHandling =>
-  val draftConceptRepository: DraftConceptRepository
+  lazy val draftConceptRepository: DraftConceptRepository
 
   class DraftConceptRepository extends StrictLogging with Repository[Concept] {
     def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
@@ -229,7 +229,7 @@ trait DraftConceptRepository {
         s"${DBConcept.schemaName.getOrElse(props.MetaSchema)}.${DBConcept.tableName}_id_seq"
       )
 
-      sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate(): Unit
+      val _ = sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate()
     }
 
     def getTags(input: String, pageSize: Int, offset: Int, language: String)(implicit

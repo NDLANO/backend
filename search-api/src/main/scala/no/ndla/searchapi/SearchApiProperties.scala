@@ -17,7 +17,7 @@ import scala.util.Properties.*
 import scala.util.{Failure, Success, Try}
 
 trait Props extends HasBaseProps {
-  val props: SearchApiProperties
+  lazy val props: SearchApiProperties
 }
 
 class SearchApiProperties extends BaseProps with StrictLogging {

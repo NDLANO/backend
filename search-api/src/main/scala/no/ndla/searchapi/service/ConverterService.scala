@@ -31,11 +31,9 @@ import no.ndla.searchapi.model.domain.*
 
 trait ConverterService {
   this: Props =>
-  val converterService: ConverterService
+  lazy val converterService: ConverterService
 
   class ConverterService {
-    import props.Domain
-
     def searchResultToApiModel(searchResults: ApiSearchResults): SearchResultsDTO = {
       searchResults match {
         case a: ArticleApiSearchResults      => articleSearchResultsToApi(a)
@@ -101,7 +99,7 @@ trait ConverterService {
 
     private def imageSearchResultToApi(image: ImageApiSearchResult): ImageResultDTO = {
       val scheme = ApplicationUrl.get.schemeOption.getOrElse("https://")
-      val host   = ApplicationUrl.get.hostOption.map(_.toString).getOrElse(Domain)
+      val host   = ApplicationUrl.get.hostOption.map(_.toString).getOrElse(props.Domain)
 
       val previewUrl = image.previewUrl.withHost(host).withScheme(scheme)
       val metaUrl    = image.metaUrl.withHost(host).withScheme(scheme)
@@ -129,7 +127,7 @@ trait ConverterService {
 
     private def audioSearchResultToApi(audio: AudioApiSearchResult): AudioResultDTO = {
       val scheme = ApplicationUrl.get.schemeOption.getOrElse("https://")
-      val host   = ApplicationUrl.get.hostOption.map(_.toString).getOrElse(Domain)
+      val host   = ApplicationUrl.get.hostOption.map(_.toString).getOrElse(props.Domain)
 
       val url = audio.url.withHost(host).withScheme(scheme).toString
       AudioResultDTO(

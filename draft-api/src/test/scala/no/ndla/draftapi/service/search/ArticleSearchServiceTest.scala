@@ -21,16 +21,14 @@ import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import scala.util.Success
 
 class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
-  import props.{DefaultLanguage, DefaultPageSize, MaxPageSize}
-
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val articleSearchService                     = new ArticleSearchService
-  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
+  override lazy val articleSearchService                     = new ArticleSearchService
+  override lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
     override val indexShards = 1
   }
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   val byNcSa: DraftCopyright = DraftCopyright(
     Some(License.CC_BY_NC_SA.toString),
@@ -232,21 +230,25 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    articleSearchService.getStartAtAndNumResults(0, 10001) should equal((0, MaxPageSize))
+    articleSearchService.getStartAtAndNumResults(0, 10001) should equal((0, props.MaxPageSize))
   }
 
   test(
     "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
   ) {
     val page            = 74
-    val expectedStartAt = (page - 1) * DefaultPageSize
-    articleSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal((expectedStartAt, DefaultPageSize))
+    val expectedStartAt = (page - 1) * props.DefaultPageSize
+    articleSearchService.getStartAtAndNumResults(page, props.DefaultPageSize) should equal(
+      (expectedStartAt, props.DefaultPageSize)
+    )
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
     val page            = 123
-    val expectedStartAt = (page - 1) * DefaultPageSize
-    articleSearchService.getStartAtAndNumResults(page, DefaultPageSize) should equal((expectedStartAt, DefaultPageSize))
+    val expectedStartAt = (page - 1) * props.DefaultPageSize
+    articleSearchService.getStartAtAndNumResults(page, props.DefaultPageSize) should equal(
+      (expectedStartAt, props.DefaultPageSize)
+    )
   }
 
   test("all should return only articles of a given type if a type filter is specified") {
@@ -254,16 +256,16 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
       searchSettings.copy(
         articleTypes = Seq(ArticleType.TopicArticle.entryName)
       )
-    )
+    ): @unchecked
     results.totalCount should be(3)
     results.results.map(_.id) should be(Seq(8, 9, 11))
 
     val Success(results2) = articleSearchService.matchingQuery(
       searchSettings.copy(
-        searchLanguage = DefaultLanguage,
+        searchLanguage = props.DefaultLanguage,
         articleTypes = ArticleType.all
       )
-    )
+    ): @unchecked
     results2.totalCount should be(9)
   }
 
@@ -272,7 +274,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
       searchSettings.copy(
         sort = Sort.ByIdAsc
       )
-    )
+    ): @unchecked
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(1)
@@ -291,7 +293,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
       searchSettings.copy(
         sort = Sort.ByIdDesc
       )
-    )
+    ): @unchecked
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(11)
@@ -303,7 +305,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
       searchSettings.copy(
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(8)
@@ -322,7 +324,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
       searchSettings.copy(
         sort = Sort.ByTitleDesc
       )
-    )
+    ): @unchecked
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(7)
@@ -341,7 +343,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
       searchSettings.copy(
         sort = Sort.ByLastUpdatedDesc
       )
-    )
+    ): @unchecked
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(3)
@@ -353,7 +355,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
       searchSettings.copy(
         sort = Sort.ByLastUpdatedAsc
       )
-    )
+    ): @unchecked
     val hits = results.results
     results.totalCount should be(9)
     hits.map(_.id) should be(Seq(5, 6, 7, 8, 9, 11, 1, 2, 3))
@@ -365,7 +367,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         license = Some(License.PublicDomain.toString),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits = results.results
     results.totalCount should be(8)
     hits.map(_.id) should be(Seq(8, 9, 3, 5, 11, 6, 2, 7))
@@ -376,7 +378,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
       searchSettings.copy(
         withIdIn = List(1, 3)
       )
-    )
+    ): @unchecked
     val hits = results.results
     results.totalCount should be(2)
     hits.head.id should be(1)
@@ -390,7 +392,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         pageSize = 2,
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits1 = page1.results
     page1.totalCount should be(9)
     page1.page.get should be(1)
@@ -404,7 +406,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         pageSize = 2,
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
 
     val hits2 = page2.results
     page2.totalCount should be(9)
@@ -421,7 +423,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         sort = Sort.ByRelevanceDesc,
         articleTypes = Seq(ArticleType.TopicArticle.entryName)
       )
-    )
+    ): @unchecked
     results.totalCount should be(0)
 
     val Success(results2) = articleSearchService.matchingQuery(
@@ -430,7 +432,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         sort = Sort.ByRelevanceDesc,
         articleTypes = Seq(ArticleType.Standard.entryName)
       )
-    )
+    ): @unchecked
 
     results2.totalCount should be(3)
   }
@@ -441,7 +443,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         query = Some("bil"),
         sort = Sort.ByRelevanceDesc
       )
-    )
+    ): @unchecked
 
     val hits = results.results
     results.totalCount should be(3)
@@ -455,7 +457,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         withIdIn = List(3),
         sort = Sort.ByRelevanceDesc
       )
-    )
+    ): @unchecked
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(3)
@@ -467,7 +469,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         query = Some("Pingvinen"),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(2)
@@ -479,7 +481,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         query = Some("and"),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(3)
@@ -491,7 +493,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         query = Some("supermann"),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     results.totalCount should be(0)
   }
 
@@ -502,7 +504,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         license = Some(License.Copyrighted.toString),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(4)
@@ -514,7 +516,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         query = Some("bilde + bil"),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits1 = search1.results
     hits1.map(_.id) should equal(Seq(1, 3, 5))
 
@@ -523,7 +525,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         query = Some("batmen + bil"),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits2 = search2.results
     hits2.map(_.id) should equal(Seq(1))
 
@@ -532,7 +534,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         query = Some("bil + bilde - flaggermusmann"),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits3 = search3.results
     hits3.map(_.id) should equal(Seq(1, 3, 5))
 
@@ -541,7 +543,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         query = Some("bil - hulken"),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits4 = search4.results
     hits4.map(_.id) should equal(Seq(1, 3, 5))
   }
@@ -552,7 +554,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         query = Some("mareritt + ragnarok"),
         sort = Sort.ByRelevanceDesc
       )
-    )
+    ): @unchecked
     val hits = search.results
     hits.map(_.id) should equal(Seq(9, 8))
   }
@@ -563,7 +565,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         query = Some("kakemonster"),
         sort = Sort.ByRelevanceDesc
       )
-    )
+    ): @unchecked
     search.totalCount should be(1)
     search.results.head.id should be(5)
   }
@@ -575,7 +577,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         sort = Sort.ByIdAsc,
         pageSize = 100
       )
-    )
+    ): @unchecked
     val hits = search.results
 
     search.totalCount should equal(10)
@@ -601,7 +603,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         sort = Sort.ByTitleAsc,
         pageSize = 100
       )
-    )
+    ): @unchecked
     val hits = search.results
 
     search.totalCount should equal(1)
@@ -615,14 +617,14 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         searchLanguage = Language.AllLanguages,
         sort = Sort.ByRelevanceDesc
       )
-    )
+    ): @unchecked
     val Success(searchNb) = articleSearchService.matchingQuery(
       searchSettings.copy(
         query = Some("Store"),
         searchLanguage = Language.AllLanguages,
         sort = Sort.ByRelevanceDesc
       )
-    )
+    ): @unchecked
 
     searchEn.totalCount should equal(1)
     searchEn.results.head.id should equal(11)
@@ -642,7 +644,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         searchLanguage = "en",
         fallback = true
       )
-    )
+    ): @unchecked
 
     search.totalCount should equal(3)
     search.results.head.id should equal(9)
@@ -654,7 +656,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
   }
 
   test("That searching for language not in analyzers works as expected") {
-    val Success(search) = articleSearchService.matchingQuery(searchSettings.copy(searchLanguage = "biz"))
+    val Success(search) = articleSearchService.matchingQuery(searchSettings.copy(searchLanguage = "biz")): @unchecked
 
     search.totalCount should equal(1)
     search.results.head.id should equal(11)
@@ -662,13 +664,13 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
   }
 
   test("That searching for language not in index works as expected") {
-    val Success(search) = articleSearchService.matchingQuery(searchSettings.copy(searchLanguage = "mix"))
+    val Success(search) = articleSearchService.matchingQuery(searchSettings.copy(searchLanguage = "mix")): @unchecked
 
     search.totalCount should equal(0)
   }
 
   test("That searching for unsupported language code works as expected") {
-    val Success(search) = articleSearchService.matchingQuery(searchSettings.copy(searchLanguage = "asdf"))
+    val Success(search) = articleSearchService.matchingQuery(searchSettings.copy(searchLanguage = "asdf")): @unchecked
 
     search.totalCount should equal(0)
   }
@@ -684,13 +686,13 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         pageSize = pageSize,
         shouldScroll = true
       )
-    )
+    ): @unchecked
 
-    val Success(scroll1) = articleSearchService.scroll(initialSearch.scrollId.get, "*")
-    val Success(scroll2) = articleSearchService.scroll(scroll1.scrollId.get, "*")
-    val Success(scroll3) = articleSearchService.scroll(scroll2.scrollId.get, "*")
-    val Success(scroll4) = articleSearchService.scroll(scroll3.scrollId.get, "*")
-    val Success(scroll5) = articleSearchService.scroll(scroll4.scrollId.get, "*")
+    val Success(scroll1) = articleSearchService.scroll(initialSearch.scrollId.get, "*"): @unchecked
+    val Success(scroll2) = articleSearchService.scroll(scroll1.scrollId.get, "*"): @unchecked
+    val Success(scroll3) = articleSearchService.scroll(scroll2.scrollId.get, "*"): @unchecked
+    val Success(scroll4) = articleSearchService.scroll(scroll3.scrollId.get, "*"): @unchecked
+    val Success(scroll5) = articleSearchService.scroll(scroll4.scrollId.get, "*"): @unchecked
 
     initialSearch.results.map(_.id) should be(expectedIds.head)
     scroll1.results.map(_.id) should be(expectedIds(1))
@@ -709,8 +711,8 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         pageSize = 1,
         shouldScroll = true
       )
-    )
-    val Success(scroll) = articleSearchService.scroll(initialSearch.scrollId.get, "*")
+    ): @unchecked
+    val Success(scroll) = articleSearchService.scroll(initialSearch.scrollId.get, "*"): @unchecked
 
     initialSearch.results.size should be(1)
     initialSearch.results.head.id should be(10)
@@ -727,7 +729,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         query = Some("kyllingkanon"),
         sort = Sort.ByRelevanceDesc
       )
-    )
+    ): @unchecked
 
     search.totalCount should be(1)
     search.results.head.id should be(5)
@@ -741,7 +743,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         sort = Sort.ByRelevanceDesc,
         fallback = true
       )
-    )
+    ): @unchecked
 
     search.results.map(_.id) should be(Seq(10))
   }
@@ -754,7 +756,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         fallback = true,
         grepCodes = Seq("KM1234")
       )
-    )
+    ): @unchecked
     search.totalCount should be(1)
     search.results.head.id should be(5)
   }

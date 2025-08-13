@@ -26,12 +26,11 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorServic
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 import sttp.tapir.*
-import sttp.tapir.generic.auto.*
 
 trait InternController {
   this: IndexService & DraftConceptIndexService & PublishedConceptIndexService & ConverterService & ReadService &
     DraftConceptRepository & PublishedConceptRepository & ErrorHandling & TapirController =>
-  val internController: InternController
+  lazy val internController: InternController
 
   class InternController extends TapirController {
     override val prefix: EndpointInput[Unit] = "intern"

@@ -35,13 +35,12 @@ import scala.util.Success
 import no.ndla.common.model.domain.Priority
 
 class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-  import props.{DefaultPageSize, MaxPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
-  override val searchConverterService: SearchConverterService = new SearchConverterService
-  override val searchIndexService: SearchIndexService         = new SearchIndexService {
+  override lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  override lazy val searchIndexService: SearchIndexService         = new SearchIndexService {
     override val indexShards: Int = 1 // 1 shard for accurate scoring in tests
   }
-  override val searchService: SearchService = new SearchService
+  override lazy val searchService: SearchService = new SearchService
 
   val paul: Author                     = Author(ContributorType.Writer, "Truly Weird Rand Paul")
   val license: String                  = License.PublicDomain.toString
@@ -206,7 +205,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         fallback = true,
         sort = Sort.ByIdDesc
       )
-    )
+    ): @unchecked
     res.results.length should be(res.totalCount)
     res.totalCount should be(5)
   }
@@ -219,25 +218,25 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         fallback = false,
         sort = Sort.ByIdDesc
       )
-    )
+    ): @unchecked
     res.results.length should be(res.totalCount)
     res.totalCount should be(0)
   }
 
   test("That getStartAtAndNumResults returns default values for None-input") {
-    searchService.getStartAtAndNumResults(None, None) should equal((0, DefaultPageSize))
+    searchService.getStartAtAndNumResults(None, None) should equal((0, props.DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    searchService.getStartAtAndNumResults(None, Some(10001)) should equal((0, MaxPageSize))
+    searchService.getStartAtAndNumResults(None, Some(10001)) should equal((0, props.MaxPageSize))
   }
 
   test(
     "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
   ) {
     val page            = 74
-    val expectedStartAt = (page - 1) * DefaultPageSize
-    searchService.getStartAtAndNumResults(Some(page), None) should equal((expectedStartAt, DefaultPageSize))
+    val expectedStartAt = (page - 1) * props.DefaultPageSize
+    searchService.getStartAtAndNumResults(Some(page), None) should equal((expectedStartAt, props.DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
@@ -252,7 +251,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         sort = Sort.ByTitleDesc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
     searchResult.totalCount should be(4)
 
@@ -268,7 +267,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -283,7 +282,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         sort = Sort.ByIdDesc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -299,7 +298,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         sort = Sort.ByIdAsc,
         language = Some("*")
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(5)
@@ -315,7 +314,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         sort = Sort.ByDurationDesc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -327,7 +326,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         sort = Sort.ByDurationAsc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -339,7 +338,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         sort = Sort.ByLastUpdatedDesc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -352,7 +351,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         sort = Sort.ByLastUpdatedAsc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -367,7 +366,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         sort = Sort.ByTitleAsc,
         language = Some(Language.AllLanguages)
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(2)
@@ -383,7 +382,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         language = Some("en"),
         fallback = true
       )
-    )
+    ): @unchecked
 
     searchResult.totalCount should be(1)
   }
@@ -396,7 +395,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         language = Some("en"),
         fallback = false
       )
-    )
+    ): @unchecked
 
     searchResult.totalCount should be(0)
   }
@@ -407,7 +406,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         query = Some("heltene"),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -422,7 +421,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         sort = Sort.ByTitleAsc,
         language = Some(Language.AllLanguages)
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -436,7 +435,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         sort = Sort.ByTitleAsc,
         language = Some("en")
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -450,7 +449,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         sort = Sort.ByTitleAsc,
         language = Some("djb")
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -463,7 +462,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         sort = Sort.ByTitleAsc,
         language = Some("kra")
       )
-    )
+    ): @unchecked
 
     searchResult.totalCount should be(0)
   }
@@ -475,7 +474,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         taggedWith = Some("superhelt"),
         language = Some("nb")
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(2)
@@ -492,7 +491,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         taggedWith = Some("kanfly"),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -505,7 +504,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         query = Some("tøff rar"),
         sort = Sort.ByRelevanceDesc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(2)
@@ -521,7 +520,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         query = Some("and flaggermus fugl"),
         sort = Sort.ByRelevanceDesc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(3)
@@ -539,7 +538,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         taggedWith = Some("kanfly"),
         sort = Sort.ByRelevanceDesc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(2)
@@ -553,7 +552,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         query = Some("and flaggremsu"),
         sort = Sort.ByRelevanceDesc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -566,7 +565,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         query = Some("kjeltring + batman"),
         sort = Sort.ByRelevanceAsc
       )
-    )
+    ): @unchecked
     searchResult1.totalCount should be(0)
 
     val Success(searchResult2) = searchService.matchingQuery(
@@ -574,7 +573,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         query = Some("tøff + morsom + -and"),
         sort = Sort.ByRelevanceAsc
       )
-    )
+    ): @unchecked
     val hits2 = searchResult2.results
 
     searchResult2.totalCount should be(1)
@@ -585,7 +584,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         query = Some("tøff | morsom | kjeltring"),
         sort = Sort.ByIdAsc
       )
-    )
+    ): @unchecked
     val hits3 = searchResult3.results
 
     searchResult3.totalCount should be(3)
@@ -599,14 +598,14 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         language = Some(Language.AllLanguages),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val Success(searchEn) = searchService.matchingQuery(
       searchSettings.copy(
         query = Some("Unrelated"),
         language = Some(Language.AllLanguages),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
 
     searchEn.totalCount should be(1)
     searchEn.results.head.id should be(UnrelatedId)
@@ -629,7 +628,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         sort = Sort.ByTitleAsc,
         language = Some(Language.AllLanguages)
       )
-    )
+    ): @unchecked
 
     search.totalCount should be(5)
     search.results.head.id should be(BatmanId)
@@ -648,7 +647,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         sort = Sort.ByTitleAsc,
         language = Some(Language.AllLanguages)
       )
-    )
+    ): @unchecked
     search.results.head.supportedLanguages should be(Seq("nb", "en"))
   }
 
@@ -658,7 +657,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         language = Some("en"),
         fallback = true
       )
-    )
+    ): @unchecked
 
     search.totalCount should be(5)
     search.results.head.id should be(PenguinId)
@@ -682,11 +681,11 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         fallback = true,
         shouldScroll = true
       )
-    )
+    ): @unchecked
 
-    val Success(scroll1) = searchService.scroll(initialSearch.scrollId.get, "all")
-    val Success(scroll2) = searchService.scroll(scroll1.scrollId.get, "all")
-    val Success(scroll3) = searchService.scroll(scroll2.scrollId.get, "all")
+    val Success(scroll1) = searchService.scroll(initialSearch.scrollId.get, "all"): @unchecked
+    val Success(scroll2) = searchService.scroll(scroll1.scrollId.get, "all"): @unchecked
+    val Success(scroll3) = searchService.scroll(scroll2.scrollId.get, "all"): @unchecked
 
     initialSearch.results.map(_.id) should be(expectedIds.head)
     scroll1.results.map(_.id) should be(expectedIds(1))
@@ -704,7 +703,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         verificationStatus = Some("EXTERNAL"),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -720,7 +719,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         verificationStatus = Some("CREATED_BY_NDLA"),
         sort = Sort.ByTitleAsc
       )
-    )
+    ): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -733,7 +732,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages)
       )
-    )
+    ): @unchecked
 
     searchResult.totalCount should be(5)
     searchResult.results.map(_.id) should be(Seq(1, 2, 3, 4, 5))
@@ -746,7 +745,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         language = Some(Language.AllLanguages),
         status = List(learningpath.LearningPathStatus.PUBLISHED, learningpath.LearningPathStatus.UNLISTED)
       )
-    )
+    ): @unchecked
 
     searchResult.totalCount should be(6)
     searchResult.results.map(_.id) should be(Seq(1, 2, 3, 4, 5, 6))
@@ -757,7 +756,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         language = Some(Language.AllLanguages),
         status = List(learningpath.LearningPathStatus.UNLISTED)
       )
-    )
+    ): @unchecked
 
     searchResult2.totalCount should be(1)
     searchResult2.results.map(_.id) should be(Seq(6))
@@ -770,7 +769,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         language = Some(Language.AllLanguages),
         withPaths = List("https://ndla.no/article/1", "https://ndla.no/article/2")
       )
-    )
+    ): @unchecked
 
     searchResult.totalCount should be(2)
     searchResult.results.map(_.id) should be(Seq(1, 2))
@@ -781,7 +780,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         language = Some(Language.AllLanguages),
         withPaths = List("https://ndla.no/article/2")
       )
-    )
+    ): @unchecked
 
     searchResult2.totalCount should be(0)
   }

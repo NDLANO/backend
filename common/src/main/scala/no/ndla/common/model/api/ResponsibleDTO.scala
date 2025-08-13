@@ -20,6 +20,7 @@ case class ResponsibleDTO(
 )
 
 object ResponsibleDTO {
-  implicit def encoder: Encoder[ResponsibleDTO] = deriveEncoder
-  implicit def decoder: Decoder[ResponsibleDTO] = deriveDecoder
+  implicit def encoder: Encoder[ResponsibleDTO]          = deriveEncoder
+  implicit def decoder: Decoder[ResponsibleDTO]          = deriveDecoder
+  implicit def schema: sttp.tapir.Schema[ResponsibleDTO] = sttp.tapir.Schema.derived[ResponsibleDTO]
 }

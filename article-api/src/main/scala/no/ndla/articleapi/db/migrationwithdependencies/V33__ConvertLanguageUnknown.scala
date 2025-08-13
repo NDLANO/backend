@@ -12,6 +12,6 @@ import no.ndla.articleapi.{ArticleApiProperties, Props}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 
 class V33__ConvertLanguageUnknown(properties: ArticleApiProperties) extends BaseJavaMigration with Props {
-  override val props: ArticleApiProperties     = properties
-  override def migrate(context: Context): Unit = {}
+  override lazy val props: ArticleApiProperties = properties
+  override def migrate(context: Context): Unit  = {}
 }

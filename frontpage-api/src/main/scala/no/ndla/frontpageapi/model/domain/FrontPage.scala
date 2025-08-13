@@ -8,9 +8,8 @@
 
 package no.ndla.frontpageapi.model.domain
 
-import io.circe.Encoder
+import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.*
-import io.circe.generic.auto.*
 import io.circe.parser.*
 import no.ndla.frontpageapi.Props
 import scalikejdbc.WrappedResultSet
@@ -20,6 +19,10 @@ import cats.implicits.*
 import scala.util.Try
 
 case class Menu(articleId: Long, menu: List[Menu], hideLevel: Boolean)
+object Menu {
+  implicit val encoder: Encoder[Menu] = deriveEncoder[Menu]
+  implicit val decoder: Decoder[Menu] = deriveDecoder[Menu]
+}
 
 case class FrontPage(
     articleId: Long,
@@ -28,6 +31,7 @@ case class FrontPage(
 
 object FrontPage {
   implicit val encoder: Encoder[FrontPage] = deriveEncoder[FrontPage]
+  implicit val decoder: Decoder[FrontPage] = deriveDecoder[FrontPage]
 
   private[domain] def decodeJson(document: String): Try[FrontPage] = {
     parse(document).flatMap(_.as[FrontPage]).toTry

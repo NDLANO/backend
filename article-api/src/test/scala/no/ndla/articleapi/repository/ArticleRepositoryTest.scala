@@ -16,14 +16,15 @@ import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.article.Article
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.AutoSession
+import org.scalatest.EitherValues.convertEitherToValuable
 
 import java.net.Socket
 import scala.util.{Success, Try}
 
 class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override val dataSource: HikariDataSource = testDataSource.get
-  override val migrator                     = new DBMigrator
-  var repository: ArticleRepository         = _
+  override lazy val dataSource: HikariDataSource = testDataSource.get
+  override lazy val migrator                     = new DBMigrator
+  var repository: ArticleRepository              = _
 
   lazy val sampleArticle: Article = TestData.sampleArticleWithByNcSa
 
@@ -86,7 +87,7 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
     val externalIds            = List("123", "456")
     val sampleArticle: Article =
       TestData.sampleDomainArticle.copy(id = Some(5), revision = Some(42))
-    val Success(res: Article) = repository.updateArticleFromDraftApi(sampleArticle, externalIds)
+    val res = repository.updateArticleFromDraftApi(sampleArticle, externalIds).get
 
     res.id.isDefined should be(true)
     repository.withId(res.id.get)(AutoSession).get.article.get should be(sampleArticle)
@@ -226,7 +227,7 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
       List("6000", "10")
     )
 
-    val Right(relatedId) = repository.withId(1)(AutoSession).toArticle.get.relatedContent.head
+    val relatedId = repository.withId(1)(AutoSession).toArticle.get.relatedContent.head.value
     relatedId should be(2L)
   }
 

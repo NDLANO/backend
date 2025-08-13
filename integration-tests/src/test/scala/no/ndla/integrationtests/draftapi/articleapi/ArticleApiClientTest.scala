@@ -34,7 +34,7 @@ class ArticleApiClientTest
     with DatabaseIntegrationSuite
     with UnitSuite
     with draftapi.TestEnvironment {
-  override val ndlaClient = new NdlaClient
+  override lazy val ndlaClient = new NdlaClient
 
   // NOTE: There is some weirdness with loading the resources in validation library if this isn't called.
   //       For some reason this fixes that.
@@ -80,8 +80,8 @@ class ArticleApiClientTest
     super.afterAll()
   }
 
-  val idResponse: ContentIdDTO  = ContentIdDTO(1)
-  override val converterService = new ConverterService
+  val idResponse: ContentIdDTO       = ContentIdDTO(1)
+  override lazy val converterService = new ConverterService
 
   val testCopyright: common.draft.DraftCopyright = common.draft.DraftCopyright(
     Some("CC-BY-SA-4.0"),
@@ -141,9 +141,9 @@ class ArticleApiClientTest
   val authHeaderMap: Map[String, String] = Map("Authorization" -> s"Bearer $exampleToken")
   val authUser: TokenUser                = TokenUser.SystemUser.copy(originalToken = Some(exampleToken))
 
-  class LocalArticleApiTestData extends articleapi.Props with articleapi.TestData {
-    override val props: ArticleApiProperties = articleApiProperties
-    val td                                   = new TestData
+  class LocalArticleApiTestData extends articleapi.Props with articleapi.TestDataT {
+    override lazy val props: ArticleApiProperties = articleApiProperties
+    val td                                        = new TestDataClass
 
     def setupArticles(): Try[Boolean] =
       (1L to 10)

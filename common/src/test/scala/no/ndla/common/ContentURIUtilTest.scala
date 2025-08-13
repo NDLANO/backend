@@ -21,10 +21,12 @@ class ContentURIUtilTest extends UnitTestSuiteBase {
     ContentURIUtil.parseArticleIdAndRevision("15") should be((Success(15), None))
     ContentURIUtil.parseArticleIdAndRevision("15#100") should be((Success(15), Some(100)))
 
-    val (failed, Some(100)) = ContentURIUtil.parseArticleIdAndRevision("#100")
-    failed.isFailure should be(true)
-    val (failed2, None) = ContentURIUtil.parseArticleIdAndRevision("")
+    val (id1, rev1) = ContentURIUtil.parseArticleIdAndRevision("#100")
+    id1.isFailure should be(true)
+    rev1 should be(Some(100))
+    val (failed2, rev2) = ContentURIUtil.parseArticleIdAndRevision("")
     failed2.isFailure should be(true)
+    rev2 should be(None)
   }
 
   test("That non-matching idString will fail and not throw exception") {

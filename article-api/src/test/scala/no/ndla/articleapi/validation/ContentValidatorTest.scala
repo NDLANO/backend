@@ -25,15 +25,23 @@ import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.mapping.License.{CC_BY_SA, NA}
 
-import scala.util.Failure
+import scala.util.{Failure, Try}
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
-  override val contentValidator = new ContentValidator
-  val validDocument             = """<section><h1>heisann</h1><h2>heia</h2></section>"""
-  val validIntroduction         = """<p>heisann <span lang="en">heia</span></p><p>hopp</p>"""
-  val invalidDocument           = """<section><invalid></invalid></section>"""
-  val validDisclaimer           =
+  override lazy val contentValidator = new ContentValidator
+  val validDocument                  = """<section><h1>heisann</h1><h2>heia</h2></section>"""
+  val validIntroduction              = """<p>heisann <span lang="en">heia</span></p><p>hopp</p>"""
+  val invalidDocument                = """<section><invalid></invalid></section>"""
+  val validDisclaimer                =
     """<p><strong>hallo!</strong><ndlaembed data-content-id="123" data-open-in="current-context" data-resource="content-link" data-content-type="article">test</ndlaembed></p>"""
+
+  extension (t: Try[?])
+    def asValidationError: ValidationException = {
+      t match {
+        case Failure(exception: ValidationException) => exception
+        case other                                   => fail(s"Expected a ValidationException, but got: $other")
+      }
+    }
 
   test("validateArticle does not throw an exception on a valid document") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent(validDocument, "nb")))
@@ -87,7 +95,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       disclaimer = OptLanguageFields.withValue("<p><hallo>hei</hallo></p>", "nb")
     )
 
-    val Failure(error: ValidationException) = contentValidator.validateArticle(article, false)
+    val error = contentValidator.validateArticle(article, false).asValidationError
     error should be(
       ValidationException(
         "disclaimer.nb",
@@ -145,9 +153,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle should fail if the title exceeds 256 bytes") {
-    val article                          = TestData.sampleArticleWithByNcSa.copy(title = Seq(Title("A" * 257, "nb")))
-    val Failure(ex: ValidationException) = contentValidator.validateArticle(article, false)
-
+    val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(Title("A" * 257, "nb")))
+    val ex      = contentValidator.validateArticle(article, false).asValidationError
     ex.errors.length should be(1)
     ex.errors.head.message should be("This field exceeds the maximum permitted length of 256 characters")
   }
@@ -325,7 +332,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validation should fail if metaImage altText contains html") {
     val article =
       TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("1234", "<b>Ikke krutte god<b>", "nb")))
-    val Failure(res1: ValidationException) = contentValidator.validateArticle(article, false)
+    val res1 = contentValidator.validateArticle(article, false).failed.get.asInstanceOf[ValidationException]
     res1.errors should be(
       Seq(ValidationMessage("metaImage.alt", "The content contains illegal html-characters. No HTML is allowed"))
     )
@@ -335,34 +342,40 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validation should fail if not imported and tags are < 3") {
-    val Failure(res0: ValidationException) = contentValidator.validateArticle(
-      TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("a", "b"), "nb"))),
-      false
-    )
+    val res0 = contentValidator
+      .validateArticle(
+        TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("a", "b"), "nb"))),
+        false
+      )
+      .asValidationError
 
     res0.errors should be(
       Seq(ValidationMessage("tags.nb", s"Invalid amount of tags. Articles needs 3 or more tags to be valid."))
     )
 
-    val Failure(res1: ValidationException) =
-      contentValidator.validateArticle(
-        TestData.sampleArticleWithByNcSa.copy(
-          tags = Seq(Tag(Seq("a", "b", "c"), "nb"), Tag(Seq("a", "b"), "en"))
-        ),
-        false
-      )
+    val res1 =
+      contentValidator
+        .validateArticle(
+          TestData.sampleArticleWithByNcSa.copy(
+            tags = Seq(Tag(Seq("a", "b", "c"), "nb"), Tag(Seq("a", "b"), "en"))
+          ),
+          false
+        )
+        .asValidationError
 
     res1.errors should be(
       Seq(ValidationMessage("tags.en", s"Invalid amount of tags. Articles needs 3 or more tags to be valid."))
     )
 
-    val Failure(res2: ValidationException) =
-      contentValidator.validateArticle(
-        TestData.sampleArticleWithByNcSa.copy(
-          tags = Seq(Tag(Seq("a"), "en"), Tag(Seq("a"), "nb"), Tag(Seq("a", "b", "c"), "nn"))
-        ),
-        false
-      )
+    val res2 =
+      contentValidator
+        .validateArticle(
+          TestData.sampleArticleWithByNcSa.copy(
+            tags = Seq(Tag(Seq("a"), "en"), Tag(Seq("a"), "nb"), Tag(Seq("a", "b", "c"), "nn"))
+          ),
+          false
+        )
+        .asValidationError
     res2.errors.sortBy(_.field) should be(
       Seq(
         ValidationMessage("tags.en", s"Invalid amount of tags. Articles needs 3 or more tags to be valid."),
@@ -396,11 +409,13 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       )
     res1.isSuccess should be(true)
 
-    val Failure(res2: ValidationException) =
-      contentValidator.validateArticle(
-        TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("<strong>a</strong>", "b", "c"), "nn"))),
-        isImported = true
-      )
+    val res2 =
+      contentValidator
+        .validateArticle(
+          TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("<strong>a</strong>", "b", "c"), "nn"))),
+          isImported = true
+        )
+        .asValidationError
     res2.errors should be(
       Seq(
         ValidationMessage("tags.nn", s"The content contains illegal html-characters. No HTML is allowed")
@@ -417,30 +432,34 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validation should fail if there are no tags for any languages") {
-    val Failure(res: ValidationException) =
-      contentValidator.validateArticle(TestData.sampleArticleWithByNcSa.copy(tags = Seq()), false)
+    val res =
+      contentValidator.validateArticle(TestData.sampleArticleWithByNcSa.copy(tags = Seq()), false).asValidationError
     res.errors.length should be(1)
     res.errors.head.field should equal("tags")
     res.errors.head.message should equal("The article must have at least one set of tags")
   }
 
   test("validation should fail if metaImageId is an empty string") {
-    val Failure(res: ValidationException) =
-      contentValidator.validateArticle(
-        TestData.sampleArticleWithByNcSa.copy(
-          metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))
-        ),
-        false
-      )
+    val res =
+      contentValidator
+        .validateArticle(
+          TestData.sampleArticleWithByNcSa.copy(
+            metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))
+          ),
+          false
+        )
+        .asValidationError
 
     res.errors.length should be(1)
     res.errors.head.field should be("metaImageId")
     res.errors.head.message should be("Meta image ID must be a number")
   }
   test("validation should fail if license is chosen and no copyright holders are provided") {
-    val copyright                         = Copyright(CC_BY_SA.toString, None, Seq(), Seq(), Seq(), None, None, false)
-    val Failure(res: ValidationException) =
-      contentValidator.validateArticle(TestData.sampleArticleWithByNcSa.copy(copyright = copyright), false)
+    val copyright = Copyright(CC_BY_SA.toString, None, Seq(), Seq(), Seq(), None, None, false)
+    val res       =
+      contentValidator
+        .validateArticle(TestData.sampleArticleWithByNcSa.copy(copyright = copyright), false)
+        .asValidationError
     res.errors.length should be(1)
     res.errors.head.field should be("license.license")
     res.errors.head.message should be("At least one copyright holder is required when license is CC-BY-SA-4.0")
@@ -460,10 +479,12 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("softvalidation is more lenient than strictvalidation") {
-    val Failure(strictRes: ValidationException) = contentValidator.validateArticle(
-      TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))),
-      false
-    )
+    val strictRes = contentValidator
+      .validateArticle(
+        TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))),
+        false
+      )
+      .asValidationError
 
     val softRes = contentValidator.softValidateArticle(
       TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))),

@@ -23,7 +23,7 @@ import sttp.tapir.server.ServerEndpoint
 
 trait FilmPageController {
   this: ReadService & WriteService & ErrorHandling & TapirController =>
-  val filmPageController: FilmPageController
+  lazy val filmPageController: FilmPageController
 
   class FilmPageController extends TapirController {
     override val serviceName: String         = "filmfrontpage"

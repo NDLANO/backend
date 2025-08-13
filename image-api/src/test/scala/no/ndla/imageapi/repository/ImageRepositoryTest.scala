@@ -18,8 +18,8 @@ import scala.util.{Success, Try}
 import scalikejdbc.*
 
 class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override val dataSource         = testDataSource.get
-  override val migrator           = new DBMigrator
+  override lazy val dataSource    = testDataSource.get
+  override lazy val migrator      = new DBMigrator
   var repository: ImageRepository = _
 
   this.setDatabaseEnvironment()

@@ -17,7 +17,7 @@ import org.mockito.Mockito.when
 import scala.util.Success
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
-  override val readService: ReadService = new ReadService
+  override lazy val readService: ReadService = new ReadService
 
   test("That all subjectpages does not fail on 404 because of language") {
     val norwegianSubjectPage = TestData.domainSubjectPage.copy(
@@ -39,7 +39,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       )
     )
 
-    when(subjectPageRepository.all(any, any)(any)).thenReturn(Success(List(norwegianSubjectPage, englishSubjectPage)))
+    when(subjectPageRepository.all(any, any)(using any))
+      .thenReturn(Success(List(norwegianSubjectPage, englishSubjectPage)))
 
     val result = readService.subjectPages(1, 10, "en", fallback = false)
     result.get.map(_.id) should be(List(2))

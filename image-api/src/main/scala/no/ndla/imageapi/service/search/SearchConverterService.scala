@@ -31,7 +31,7 @@ import scala.util.{Failure, Success, Try}
 
 trait SearchConverterService {
   this: ConverterService & Props & SearchLanguage =>
-  val searchConverterService: SearchConverterService
+  lazy val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
 

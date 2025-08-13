@@ -12,7 +12,7 @@ import no.ndla.draftapi.{DraftApiProperties, Props}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 
 class R__SetArticleTypeFromTaxonomy(properties: DraftApiProperties) extends BaseJavaMigration with Props {
-  override val props: DraftApiProperties       = properties
+  override lazy val props: DraftApiProperties  = properties
   override def getChecksum: Integer            = 0
   override def migrate(context: Context): Unit = {}
 }

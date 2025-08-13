@@ -23,8 +23,8 @@ import scalikejdbc.DBSession
 import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
-  override val readService      = new ReadService
-  override val converterService = new ConverterService
+  override lazy val readService      = new ReadService
+  override lazy val converterService = new ConverterService
 
   test("That path to id conversion works as expected for id paths") {
     val id                = 1234L

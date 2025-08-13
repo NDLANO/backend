@@ -21,7 +21,7 @@ import scala.util.{Failure, Success, Try}
 trait SearchApiClient {
   this: NdlaClient & Props =>
 
-  val searchApiClient: SearchApiClient
+  lazy val searchApiClient: SearchApiClient
 
   class SearchApiClient extends StrictLogging {
     private val internEndpoint = s"${props.SearchApiUrl}/intern"

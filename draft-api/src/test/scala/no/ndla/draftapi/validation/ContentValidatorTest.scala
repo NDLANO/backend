@@ -20,11 +20,11 @@ import java.util.UUID
 import scala.util.Failure
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
-  override val contentValidator                   = new ContentValidator()
-  override val converterService: ConverterService = new ConverterService
-  val validDocument                               = """<section><h1>heisann</h1><h2>heia</h2></section>"""
-  val invalidDocument                             = """<section><invalid></invalid></section>"""
-  val validDisclaimer                             =
+  override lazy val contentValidator                   = new ContentValidator()
+  override lazy val converterService: ConverterService = new ConverterService
+  val validDocument                                    = """<section><h1>heisann</h1><h2>heia</h2></section>"""
+  val invalidDocument                                  = """<section><invalid></invalid></section>"""
+  val validDisclaimer                                  =
     """<p><strong>hallo!</strong><ndlaembed data-content-id="123" data-open-in="current-context" data-resource="content-link" data-content-type="article">test</ndlaembed></p>"""
 
   val articleToValidate: Draft =
@@ -68,7 +68,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       content = Seq(ArticleContent(validDocument, "nb")),
       disclaimer = OptLanguageFields.withValue("<p><hallo>hei</hallo></p>", "nb")
     )
-    val Failure(error: ValidationException) = contentValidator.validateArticle(article)
+    val Failure(error: ValidationException) = contentValidator.validateArticle(article): @unchecked
     val expected                            = ValidationException(
       "disclaimer.nb",
       "The content contains illegal tags and/or attributes. Allowed HTML tags are: h3, msgroup, a, article, sub, sup, mtext, msrow, tbody, mtd, pre, thead, figcaption, mover, msup, semantics, ol, span, mroot, munder, h4, mscarries, dt, nav, mtr, ndlaembed, li, br, mrow, merror, mphantom, u, audio, ul, maligngroup, mfenced, annotation, div, strong, section, i, mspace, malignmark, mfrac, code, h2, td, aside, em, mstack, button, dl, th, tfoot, math, tr, b, blockquote, msline, col, annotation-xml, mstyle, caption, mpadded, mo, mlongdiv, msubsup, p, munderover, maction, menclose, h1, details, mmultiscripts, msqrt, mscarry, mstac, mi, mglyph, mlabeledtr, mtable, mprescripts, summary, mn, msub, ms, table, colgroup, dd"
@@ -127,7 +127,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle should fail if the title exceeds 256 bytes") {
     val article                          = articleToValidate.copy(title = Seq(Title("A" * 257, "nb")))
-    val Failure(ex: ValidationException) = contentValidator.validateArticle(article)
+    val Failure(ex: ValidationException) = contentValidator.validateArticle(article): @unchecked
 
     ex.errors.length should be(1)
     ex.errors.head.message should be("This field exceeds the maximum permitted length of 256 characters")
@@ -135,7 +135,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle should fail if the title is empty") {
     val article                          = articleToValidate.copy(title = Seq(Title("", "nb")))
-    val Failure(ex: ValidationException) = contentValidator.validateArticle(article)
+    val Failure(ex: ValidationException) = contentValidator.validateArticle(article): @unchecked
 
     ex.errors.length should be(1)
     ex.errors.head.message should be("This field does not meet the minimum length requirement of 1 characters")
@@ -143,7 +143,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle should fail if the title is whitespace") {
     val article                          = articleToValidate.copy(title = Seq(Title("  ", "nb")))
-    val Failure(ex: ValidationException) = contentValidator.validateArticle(article)
+    val Failure(ex: ValidationException) = contentValidator.validateArticle(article): @unchecked
 
     ex.errors.length should be(1)
     ex.errors.head.message should be("This field does not meet the minimum length requirement of 1 characters")
@@ -317,7 +317,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validation should fail if metaImage altText contains html") {
     val article =
       articleToValidate.copy(metaImage = Seq(ArticleMetaImage("1234", "<b>Ikke krutte god<b>", "nb")))
-    val Failure(res1: ValidationException) = contentValidator.validateArticle(article)
+    val Failure(res1: ValidationException) = contentValidator.validateArticle(article): @unchecked
     res1.errors should be(
       Seq(ValidationMessage("metaImage.alt", "The content contains illegal html-characters. No HTML is allowed"))
     )
@@ -332,7 +332,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         articleToValidate.copy(
           metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))
         )
-      )
+      ): @unchecked
 
     res.errors.length should be(1)
     res.errors.head.field should be("metaImageId")
@@ -345,7 +345,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         articleToValidate.copy(
           revisionMeta = Seq.empty
         )
-      )
+      ): @unchecked
 
     res.errors.length should be(1)
     res.errors.head.field should be("revisionMeta")
@@ -359,7 +359,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           articleType = ArticleType.TopicArticle,
           slug = Some("pepe")
         )
-      )
+      ): @unchecked
 
     res.errors.length should be(1)
     res.errors.head.field should be("articleType")
@@ -375,7 +375,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           articleType = ArticleType.FrontpageArticle,
           slug = None
         )
-      )
+      ): @unchecked
 
     res.errors.length should be(1)
     res.errors.head.field should be("slug")
@@ -391,7 +391,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           articleType = ArticleType.FrontpageArticle,
           slug = Some("ugyldig slug")
         )
-      )
+      ): @unchecked
 
     res.errors.length should be(1)
     res.errors.head.field should be("slug")
@@ -409,7 +409,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       )
 
     contentValidator.validateArticleOnLanguage(article, Some("nb")).failIfFailure
-    val Failure(error: ValidationException) = contentValidator.validateArticle(article)
+    val Failure(error: ValidationException) = contentValidator.validateArticle(article): @unchecked
     val Seq(err1, err2)                     = error.errors
     err1.message.contains("The content contains illegal tags and/or attributes.") should be(true)
     err2.message should be("An article must consist of one or more <section> blocks. Illegal tag(s) are div ")
@@ -469,7 +469,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
     val result = contentValidator.validateArticleOnLanguage(Some(oldArticle), article, Some("nb"))
     result.isFailure should be(true)
-    val Failure(validationError: ValidationException) = result
+    val Failure(validationError: ValidationException) = result: @unchecked
     validationError.errors.length should be(1)
     validationError.errors.head.message should be("An article must contain at least one planned revision date")
   }

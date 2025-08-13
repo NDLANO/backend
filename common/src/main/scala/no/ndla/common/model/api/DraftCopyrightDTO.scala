@@ -11,6 +11,7 @@ package no.ndla.common.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
+import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
 @description("Description of copyright information")
@@ -28,4 +29,5 @@ case class DraftCopyrightDTO(
 object DraftCopyrightDTO {
   implicit def encoder: Encoder[DraftCopyrightDTO] = deriveEncoder[DraftCopyrightDTO]
   implicit def decoder: Decoder[DraftCopyrightDTO] = deriveDecoder[DraftCopyrightDTO]
+  implicit def schema: Schema[DraftCopyrightDTO]   = Schema.derived[DraftCopyrightDTO]
 }

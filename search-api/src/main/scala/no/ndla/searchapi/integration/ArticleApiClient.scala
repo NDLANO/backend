@@ -13,7 +13,7 @@ import no.ndla.network.NdlaClient
 
 trait ArticleApiClient {
   this: NdlaClient & SearchApiClient =>
-  val articleApiClient: ArticleApiClient
+  lazy val articleApiClient: ArticleApiClient
 
   class ArticleApiClient(val baseUrl: String) extends SearchApiClient[Article] {
     override val searchPath     = "article-api/v2/articles"

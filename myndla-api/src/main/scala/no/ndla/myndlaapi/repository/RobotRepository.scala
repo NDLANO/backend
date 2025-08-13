@@ -23,7 +23,7 @@ import scala.util.{Failure, Success, Try}
 
 trait RobotRepository {
   this: Clock & DBUtility =>
-  val robotRepository: RobotRepository
+  lazy val robotRepository: RobotRepository
 
   class RobotRepository extends StrictLogging {
     def getSession(readOnly: Boolean): DBSession =
@@ -36,7 +36,7 @@ trait RobotRepository {
     def updateRobotDefinition(robot: RobotDefinition)(implicit session: DBSession): Try[Unit] = Try {
       val column = RobotDefinition.column.c _
 
-      withSQL {
+      val _ = withSQL {
         update(RobotDefinition)
           .set(
             column("status")        -> robot.status.entryName,
@@ -47,7 +47,7 @@ trait RobotRepository {
           .where
           .eq(column("id"), robot.id)
       }
-        .update(): Unit
+        .update()
 
       logger.info(s"Updted robot definition with ID: ${robot.id}")
     }

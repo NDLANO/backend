@@ -18,7 +18,7 @@ import scala.util.{Failure, Try}
 
 trait ReadService {
   this: DraftConceptRepository & PublishedConceptRepository & ConverterService =>
-  val readService: ReadService
+  lazy val readService: ReadService
 
   class ReadService {
 

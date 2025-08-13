@@ -25,7 +25,7 @@ import scala.util.Success
 class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
+  override lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
     override val indexShards = 1
   }
 
@@ -35,8 +35,8 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
     articleIndexService.createIndexWithGeneratedName
   }
 
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   test("That articles are indexed correctly") {
     articleIndexService
@@ -74,7 +74,7 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
 
     val Success(response) = e4sClient.execute {
       search(articleIndexService.searchIndex)
-    }
+    }: @unchecked
 
     val sources  = response.result.hits.hits.map(_.sourceAsString)
     val articles = sources.map(source => CirceUtil.unsafeParseAs[SearchableArticle](source))
@@ -87,7 +87,7 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(expectedArticle6) =
       searchConverterService.asSearchableArticle(
         article6,
@@ -96,7 +96,7 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
     val Success(expectedArticle7) =
       searchConverterService.asSearchableArticle(
         article7,
@@ -105,11 +105,11 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
           Some(TestData.taxonomyTestBundle),
           Some(TestData.myndlaTestBundle)
         )
-      )
+      ): @unchecked
 
-    val Some(actualArticle5) = articles.find(p => p.id == article5.id.get)
-    val Some(actualArticle6) = articles.find(p => p.id == article6.id.get)
-    val Some(actualArticle7) = articles.find(p => p.id == article7.id.get)
+    val Some(actualArticle5) = articles.find(p => p.id == article5.id.get): @unchecked
+    val Some(actualArticle6) = articles.find(p => p.id == article6.id.get): @unchecked
+    val Some(actualArticle7) = articles.find(p => p.id == article7.id.get): @unchecked
 
     actualArticle5 should be(expectedArticle5)
     actualArticle6 should be(expectedArticle6)

@@ -11,6 +11,7 @@ package no.ndla.conceptapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
+import sttp.tapir.Schema
 
 @description("Information about tags-search-results")
 case class TagsSearchResultDTO(
@@ -24,4 +25,5 @@ case class TagsSearchResultDTO(
 object TagsSearchResultDTO {
   implicit val encoder: Encoder[TagsSearchResultDTO] = deriveEncoder
   implicit val decoder: Decoder[TagsSearchResultDTO] = deriveDecoder
+  implicit def schema: Schema[TagsSearchResultDTO]   = Schema.derived
 }

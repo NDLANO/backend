@@ -9,6 +9,7 @@
 package no.ndla.network.tapir
 
 import no.ndla.network.UnitSuite
+import org.scalatest.EitherValues.convertEitherToValuable
 
 class NonEmptyStringTest extends UnitSuite {
 
@@ -42,27 +43,27 @@ class NonEmptyStringTest extends UnitSuite {
     import io.circe.generic.auto._
     case class SomeObject(cantbeempty: Option[NonEmptyString])
 
-    val jsonString           = """{"cantbeempty": ""}"""
-    val Right(Right(result)) = io.circe.parser.parse(jsonString).map(_.as[SomeObject])
-    result.cantbeempty should be(None)
+    val jsonString = """{"cantbeempty": ""}"""
+    val result     = io.circe.parser.parse(jsonString).map(_.as[SomeObject])
+    result should be(Right(Right(SomeObject(None))))
   }
 
   test("That decoding a json-string returns Some(str) if valid string is passed") {
     import io.circe.generic.auto._
     case class SomeObject(cantbeempty: Option[NonEmptyString])
 
-    val jsonString           = """{"cantbeempty": "spirrevipp"}"""
-    val Right(Right(result)) = io.circe.parser.parse(jsonString).map(_.as[SomeObject])
-    result.cantbeempty.get.underlying should be("spirrevipp")
+    val jsonString = """{"cantbeempty": "spirrevipp"}"""
+    val result     = io.circe.parser.parse(jsonString).map(_.as[SomeObject])
+    result.value.value.cantbeempty.get.underlying should be("spirrevipp")
   }
 
   test("That decoding missing field returns None for optionals") {
     import io.circe.generic.auto._
     case class SomeObject(cantbeempty: Option[NonEmptyString])
 
-    val jsonString           = """{}"""
-    val Right(Right(result)) = io.circe.parser.parse(jsonString).map(_.as[SomeObject])
-    result.cantbeempty should be(None)
+    val jsonString = """{}"""
+    val result     = io.circe.parser.parse(jsonString).map(_.as[SomeObject])
+    result.value.value.cantbeempty should be(None)
   }
 
   test("That encoding json simply makes a normal string :^)") {
@@ -85,13 +86,13 @@ class NonEmptyStringTest extends UnitSuite {
     import io.circe.generic.auto._
     case class SomeObject(cantbeempty: NonEmptyString)
 
-    val jsonString1           = """{"cantbeempty": "spirrevipp"}"""
-    val Right(Right(result1)) = io.circe.parser.parse(jsonString1).map(_.as[SomeObject])
-    result1.cantbeempty.underlying should be("spirrevipp")
+    val jsonString1 = """{"cantbeempty": "spirrevipp"}"""
+    val result1     = io.circe.parser.parse(jsonString1).map(_.as[SomeObject])
+    result1.value.value.cantbeempty.underlying should be("spirrevipp")
 
-    val jsonString           = """{"cantbeempty": ""}"""
-    val Right(Left(failure)) = io.circe.parser.parse(jsonString).map(_.as[SomeObject])
-    failure.message should be(NonEmptyString.parseErrorMessage)
+    val jsonString = """{"cantbeempty": ""}"""
+    val failure    = io.circe.parser.parse(jsonString).map(_.as[SomeObject])
+    failure.value.swap.value.message should be(NonEmptyString.parseErrorMessage)
   }
 
   test("That comparisons works as expected") {

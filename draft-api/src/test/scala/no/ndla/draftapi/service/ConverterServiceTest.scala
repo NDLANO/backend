@@ -110,7 +110,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     when(clock.now()).thenReturn(expectedTime)
 
-    val Success(result) = service.toDomainArticle(1, apiArticle, TestData.userWithWriteAccess)
+    val Success(result) = service.toDomainArticle(1, apiArticle, TestData.userWithWriteAccess): @unchecked
     result.content.head.content should equal(expectedContent)
     result.visualElement.head.resource should equal(expectedVisualElement)
     result.created should equal(expectedTime)
@@ -139,20 +139,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set())),
         updatedArticle,
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
     res.title.find(_.language == "nb").get.title should equal("kakemonster")
   }
 
   test("updateStatus should return an IO[Failure] if the status change is illegal") {
     val Failure(res: IllegalStatusStateTransition) =
-      service.updateStatus(PUBLISHED, TestData.sampleArticleWithByNcSa, TestData.userWithWriteAccess)
+      service.updateStatus(PUBLISHED, TestData.sampleArticleWithByNcSa, TestData.userWithWriteAccess): @unchecked
     res.getMessage should equal(
       s"Cannot go to PUBLISHED when article is ${TestData.sampleArticleWithByNcSa.status.current}"
     )
   }
 
   test("stateTransitionsToApi should return only disabled entries if user has no roles") {
-    val Success(res) = service.stateTransitionsToApi(TestData.userWithNoRoles, None)
+    val Success(res) = service.stateTransitionsToApi(TestData.userWithNoRoles, None): @unchecked
     res.forall { case (_, to) => to.isEmpty } should be(true)
   }
 
@@ -161,7 +161,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val article: Draft  =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.PLANNED, Set()))
     when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(article))
-    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
+    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
     noTrans(PLANNED.toString) should contain(DraftStatus.ARCHIVED.toString)
     noTrans(IN_PROGRESS.toString) should contain(DraftStatus.ARCHIVED.toString)
     noTrans(EXTERNAL_REVIEW.toString) should contain(DraftStatus.ARCHIVED.toString)
@@ -179,7 +179,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val article: Draft  =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.PUBLISHED, Set()))
     when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(article))
-    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
+    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
 
     noTrans(PLANNED.toString) should not contain (DraftStatus.ARCHIVED.toString)
     noTrans(IN_PROGRESS.toString) should not contain (DraftStatus.ARCHIVED.toString)
@@ -197,7 +197,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val unpublished: Draft =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.IN_PROGRESS, Set()))
     when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(unpublished))
-    val Success(transOne) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
+    val Success(transOne) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
     transOne(IN_PROGRESS.toString) should not contain (DraftStatus.LANGUAGE.toString)
 
     val published: Draft =
@@ -206,7 +206,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         status = Status(DraftStatus.IN_PROGRESS, Set(DraftStatus.PUBLISHED))
       )
     when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(published))
-    val Success(transTwo) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId))
+    val Success(transTwo) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
     transTwo(IN_PROGRESS.toString) should contain(DraftStatus.LANGUAGE.toString)
   }
 
@@ -219,7 +219,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         status = Status(DraftStatus.PLANNED, Set(DraftStatus.PUBLISHED))
       )
     when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(article))
-    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None)
+    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None): @unchecked
 
     noTrans(PLANNED.toString) should not contain (DraftStatus.ARCHIVED)
     noTrans(IN_PROGRESS.toString) should not contain (DraftStatus.ARCHIVED)
@@ -233,8 +233,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("stateTransitionsToApi should return different number of transitions based on access") {
-    val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None)
-    val Success(writeTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None)
+    val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None): @unchecked
+    val Success(writeTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None): @unchecked
 
     // format: off
     writeTrans(PLANNED.toString).length should be(adminTrans(PLANNED.toString).length)
@@ -250,12 +250,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("stateTransitionsToApi should have transitions from all statuses if admin") {
-    val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None)
+    val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None): @unchecked
     adminTrans.size should be(DraftStatus.values.size - 1)
   }
 
   test("stateTransitionsToApi should have transitions in inserted order") {
-    val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None)
+    val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None): @unchecked
     adminTrans(LANGUAGE.toString) should be(
       Seq(
         IN_PROGRESS.toString,
@@ -555,25 +555,25 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithoutNotes,
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
     val Success(res2) =
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = Seq.empty),
         updatedArticleWithoutNotes,
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
     val Success(res3) =
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithNotes,
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
     val Success(res4) =
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = Seq.empty),
         updatedArticleWithNotes,
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
 
     res1.notes should be(existingNotes)
     res2.notes should be(Seq.empty)
@@ -587,7 +587,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val article =
       TestData.sampleDomainArticle.copy(status = status, responsible = Some(Responsible("hei", clock.now())))
     val Failure(res: IllegalStatusStateTransition) =
-      service.updateStatus(ARCHIVED, article, TestData.userWithPublishAccess)
+      service.updateStatus(ARCHIVED, article, TestData.userWithPublishAccess): @unchecked
 
     res.getMessage should equal(s"Cannot go to ARCHIVED when article contains ${status.other}")
   }
@@ -603,19 +603,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithNotes.copy(language = Some("sna")),
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
     val Success(res2) =
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithNotes.copy(language = Some("nb")),
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
     val Success(res3) =
       service.toDomainArticle(
         TestData.sampleDomainArticle.copy(status = Status(PLANNED, Set()), notes = existingNotes),
         updatedArticleWithoutNotes.copy(language = Some("sna")),
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
 
     res1.notes.map(_.note) should be(Seq("swoop", "fleibede", s"Ny språkvariant 'sna' ble lagt til."))
     res2.notes.map(_.note) should be(Seq("swoop", "fleibede"))
@@ -628,13 +628,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       1,
       TestData.newArticle.copy(grepCodes = Some(Seq("a", "b"))),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     val Success(res2) = service.toDomainArticle(
       1,
       TestData.newArticle.copy(grepCodes = None),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     res1.grepCodes should be(Seq("a", "b"))
     res2.grepCodes should be(Seq.empty)
@@ -645,19 +645,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       TestData.sampleDomainArticle.copy(grepCodes = Seq("a", "b", "c")),
       TestData.sampleApiUpdateArticle.copy(grepCodes = Some(Seq("x", "y"))),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     val Success(res2) = service.toDomainArticle(
       TestData.sampleDomainArticle.copy(grepCodes = Seq("a", "b", "c")),
       TestData.sampleApiUpdateArticle.copy(grepCodes = Some(Seq.empty)),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     val Success(res3) = service.toDomainArticle(
       TestData.sampleDomainArticle.copy(grepCodes = Seq("a", "b", "c")),
       TestData.sampleApiUpdateArticle.copy(grepCodes = None),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     res1.grepCodes should be(Seq("x", "y"))
     res2.grepCodes should be(Seq.empty)
@@ -674,20 +674,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       beforeUpdate,
       TestData.sampleApiUpdateArticle.copy(language = Some("nb"), metaImage = Delete),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     val Success(res2) = service.toDomainArticle(
       beforeUpdate,
       TestData.sampleApiUpdateArticle
         .copy(language = Some("nb"), metaImage = UpdateWith(api.NewArticleMetaImageDTO("1", "Hola"))),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     val Success(res3) = service.toDomainArticle(
       beforeUpdate,
       TestData.sampleApiUpdateArticle.copy(language = Some("nb"), metaImage = Missing),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     res1.metaImage should be(Seq(ArticleMetaImage("2", "Hej", "nn")))
     res2.metaImage should be(Seq(ArticleMetaImage("2", "Hej", "nn"), ArticleMetaImage("1", "Hola", "nb")))
@@ -717,7 +717,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       existingArticle,
       apiArticle,
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
   }
 
@@ -759,19 +759,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         1,
         TestData.newArticle.copy(availability = Some(Availability.teacher.toString)),
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
 
     val Success(res2) = service.toDomainArticle(
       1,
       TestData.newArticle.copy(availability = None),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     val Success(res3) = service.toDomainArticle(
       1,
       TestData.newArticle.copy(availability = Some("Krutte go")),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     res1.availability should be(Availability.teacher)
     res1.availability should not be (Availability.everyone)
@@ -785,19 +785,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       TestData.sampleDomainArticle.copy(availability = Availability.everyone),
       TestData.sampleApiUpdateArticle.copy(availability = Some(Availability.teacher.toString)),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     val Success(res2) = service.toDomainArticle(
       TestData.sampleDomainArticle.copy(availability = Availability.everyone),
       TestData.sampleApiUpdateArticle.copy(availability = Some("Krutte go")),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     val Success(res3) = service.toDomainArticle(
       TestData.sampleDomainArticle.copy(availability = Availability.teacher),
       TestData.sampleApiUpdateArticle.copy(availability = None),
       TestData.userWithWriteAccess
-    )
+    ): @unchecked
 
     res1.availability should be(Availability.teacher)
     res2.availability should be(Availability.everyone)
@@ -819,7 +819,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = Some(existingRepsonsible)),
         updatedArticleWithNotes.copy(language = Some("nb"), responsibleId = UpdateWith("nyid")),
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
 
     val Success(res2) =
       service.toDomainArticle(
@@ -827,14 +827,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = None),
         updatedArticleWithNotes.copy(language = Some("nb"), responsibleId = UpdateWith("nyid")),
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
     val Success(res3) =
       service.toDomainArticle(
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), notes = existingNotes, responsible = Some(existingRepsonsible)),
         updatedArticleWithNotes.copy(language = Some("nb")),
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
 
     res1.notes.map(_.note) should be(Seq("swoop", "fleibede", "Ansvarlig endret."))
     res2.notes.map(_.note) should be(Seq("swoop", "fleibede", "Ansvarlig endret."))
@@ -854,21 +854,21 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           .copy(status = Status(PLANNED, Set()), responsible = Some(existingRepsonsible)),
         updatedArticle.copy(language = Some("nb"), responsibleId = UpdateWith("nyid")),
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
     val Success(res2) =
       service.toDomainArticle(
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), responsible = None),
         updatedArticle.copy(language = Some("nb"), responsibleId = UpdateWith("nyid")),
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
     val Success(res3) =
       service.toDomainArticle(
         TestData.sampleDomainArticle
           .copy(status = Status(PLANNED, Set()), responsible = Some(existingRepsonsible)),
         updatedArticle.copy(language = Some("nb"), responsibleId = UpdateWith("oldId")),
         TestData.userWithWriteAccess
-      )
+      ): @unchecked
 
     res1.responsible.get.responsibleId should be("nyid")
     res1.responsible.get.lastUpdated should not be (yesterday)
@@ -948,7 +948,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("that toArticleApiArticle fails if copyright is not present") {
     val draft                                 = TestData.sampleDomainArticle.copy(copyright = None)
-    val Failure(result1: ValidationException) = service.toArticleApiArticle(draft)
+    val Failure(result1: ValidationException) = service.toArticleApiArticle(draft): @unchecked
     result1.errors.head.message should be("Copyright must be present when publishing an article")
   }
 

@@ -9,7 +9,6 @@
 package no.ndla.frontpageapi.model.api.FrontPageTest
 
 import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
-import io.circe.generic.auto.*
 import io.circe.syntax.*
 import io.circe.parser.*
 import no.ndla.common.model.api.{FrontPageDTO, MenuDTO}

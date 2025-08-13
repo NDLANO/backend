@@ -32,9 +32,9 @@ class DraftApiClientTest
     with UnitSuite
     with searchapi.TestEnvironment
     with HasDatabaseProps {
-  override val ndlaClient             = new NdlaClient
-  override val searchConverterService = new SearchConverterService
-  override val DBUtil                 = new DBUtility
+  override lazy val ndlaClient             = new NdlaClient
+  override lazy val searchConverterService = new SearchConverterService
+  override lazy val DBUtil                 = new DBUtility
 
   val draftApiPort: Int                      = findFreePort
   val pgc: PostgreSQLContainer[?]            = postgresContainer.get

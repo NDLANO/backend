@@ -18,6 +18,7 @@ case class StatusDTO(
 )
 
 object StatusDTO {
-  implicit def encoder: Encoder[StatusDTO] = deriveEncoder
-  implicit def decoder: Decoder[StatusDTO] = deriveDecoder
+  implicit def encoder: Encoder[StatusDTO]          = deriveEncoder
+  implicit def decoder: Decoder[StatusDTO]          = deriveDecoder
+  implicit def schema: sttp.tapir.Schema[StatusDTO] = sttp.tapir.Schema.derived[StatusDTO]
 }

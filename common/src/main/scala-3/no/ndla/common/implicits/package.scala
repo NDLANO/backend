@@ -3,6 +3,7 @@
  * Copyright (C) 2024 NDLA
  *
  * See LICENSE
+ *
  */
 
 package no.ndla.common
@@ -11,7 +12,7 @@ import io.circe.DecodingFailure.Reason
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, DecodingFailure, Encoder}
 
-import scala.reflect.ClassTag
+import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
 
 package object implicits {
@@ -39,7 +40,7 @@ package object implicits {
 
   case class ControlFlowException(returnValue: Throwable) extends RuntimeException()
 
-  def permitTry[A: ClassTag](f: PermittedTryContext ?=> Try[A]): Try[A] = {
+  def permitTry[A](f: PermittedTryContext ?=> Try[A]): Try[A] = {
     try {
       f(using PermittedTryContext())
     } catch {
@@ -48,17 +49,39 @@ package object implicits {
     }
   }
 
-  implicit class ctxctx[A: ClassTag](self: Try[A]) {
-    def ?(using PermittedTryContext): A = {
+  implicit class ctxctx[A](self: Try[A]) {
+    def ?(using
+        @unused(
+          "This parameter is only to make sure we dont throw exceptions outside of a caught context"
+        ) ctx: PermittedTryContext
+    ): A = {
       self match {
         case Failure(ex)    => throw ControlFlowException(ex)
         case Success(value) => value
       }
     }
+
+    def ??(using
+        @unused(
+          "This parameter is only to make sure we dont throw exceptions outside of a caught context"
+        ) ctx: PermittedTryContext
+    ): Unit = {
+      self match {
+        case Failure(ex) => throw ControlFlowException(ex)
+        case Success(_)  => ()
+      }
+    }
   }
 
   extension [T](opt: Option[T]) {
-    def toTry(throwable: Throwable): Try[T] = Failure(throwable)
+    def toTry(throwable: Throwable): Try[T] = opt match {
+      case Some(value) => Success(value)
+      case None        => Failure(throwable)
+    }
+  }
+
+  extension [T](t: Try[T]) {
+    def unit: Try[Unit] = t.map(_ => ())
   }
 
   implicit class StringOption(private val self: Option[String]) {
@@ -73,7 +96,7 @@ package object implicits {
   implicit def eitherDecoder[A: Decoder, B: Decoder]: Decoder[Either[A, B]] = Decoder.instance { c =>
     c.value.as[B] match {
       case Right(value) => Right(Right(value))
-      case Left(_) =>
+      case Left(_)      =>
         c.value.as[A] match {
           case Right(value) => Right(Left(value))
           case Left(_) => Left(DecodingFailure(Reason.CustomReason(s"Could not match ${c.value} to Either type"), c))

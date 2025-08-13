@@ -15,6 +15,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{Routes, TapirController, TapirErrorHandling}
 import no.ndla.scalatestsuite.UnitTestSuite
+import scala.compiletime.uninitialized
 
 trait TapirControllerTest
     extends UnitTestSuite
@@ -29,7 +30,7 @@ trait TapirControllerTest
   val controller: TapirController
   override def services: List[TapirController] = List(controller)
 
-  var server: HttpServer = _
+  var server: HttpServer = uninitialized
 
   override def beforeAll(): Unit = {
     super.beforeAll()

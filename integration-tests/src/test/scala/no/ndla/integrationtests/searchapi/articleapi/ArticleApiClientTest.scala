@@ -30,9 +30,9 @@ class ArticleApiClientTest
     with UnitSuite
     with searchapi.TestEnvironment
     with HasDatabaseProps {
-  override val ndlaClient             = new NdlaClient
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val ndlaClient             = new NdlaClient
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   val articleApiPort: Int                        = findFreePort
   val pgc: PostgreSQLContainer[?]                = postgresContainer.get
@@ -77,9 +77,9 @@ class ArticleApiClientTest
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjogInh4eHl5eSIsICJpc3MiOiAiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCAic3ViIjogInh4eHl5eUBjbGllbnRzIiwgImF1ZCI6ICJuZGxhX3N5c3RlbSIsICJpYXQiOiAxNTEwMzA1NzczLCAiZXhwIjogMTUxMDM5MjE3MywgInNjb3BlIjogImFydGljbGVzLXRlc3Q6cHVibGlzaCBkcmFmdHMtdGVzdDp3cml0ZSBkcmFmdHMtdGVzdDpzZXRfdG9fcHVibGlzaCBhcnRpY2xlcy10ZXN0OndyaXRlIiwgImd0eSI6ICJjbGllbnQtY3JlZGVudGlhbHMifQ.gsM-U84ykgaxMSbL55w6UYIIQUouPIB6YOmJuj1KhLFnrYctu5vwYBo80zyr1je9kO_6L-rI7SUnrHVao9DFBZJmfFfeojTxIT3CE58hoCdxZQZdPUGePjQzROWRWeDfG96iqhRcepjbVF9pMhKp6FNqEVOxkX00RZg9vFT8iMM"
   val authHeaderMap: Map[String, String] = Map("Authorization" -> s"Bearer $exampleToken")
 
-  class LocalArticleApiTestData extends articleapi.Props with articleapi.TestData {
-    override val props: ArticleApiProperties = articleApiProperties
-    val td                                   = new TestData
+  class LocalArticleApiTestData extends articleapi.Props with articleapi.TestDataT {
+    override lazy val props: ArticleApiProperties = articleApiProperties
+    val td                                        = new TestDataClass
 
     def setupArticles(): Try[Boolean] =
       (1L to 10)

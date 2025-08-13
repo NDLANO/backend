@@ -18,20 +18,19 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.article.Article
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.ArticleApiClient
+import no.ndla.searchapi.integration.{ArticleApiClient, SearchApiClient}
 import no.ndla.searchapi.model.domain.IndexingBundle
 
 import scala.util.Try
 
 trait ArticleIndexService {
-  this: SearchConverterService & IndexService & ArticleApiClient & Props =>
-  val articleIndexService: ArticleIndexService
+  this: SearchConverterService & IndexService & ArticleApiClient & Props & SearchApiClient =>
+  lazy val articleIndexService: ArticleIndexService
 
   class ArticleIndexService extends StrictLogging with IndexService[Article] {
-    import props.SearchIndex
-    override val documentType: String        = "article"
-    override val searchIndex: String         = SearchIndex(SearchType.Articles)
-    override val apiClient: ArticleApiClient = articleApiClient
+    override val documentType: String                = "article"
+    override val searchIndex: String                 = props.SearchIndex(SearchType.Articles)
+    override val apiClient: SearchApiClient[Article] = articleApiClient
 
     override def createIndexRequest(
         domainModel: Article,

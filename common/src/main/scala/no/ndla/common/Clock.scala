@@ -11,7 +11,7 @@ package no.ndla.common
 import no.ndla.common.model.NDLADate
 
 trait Clock {
-  val clock: SystemClock
+  lazy val clock: SystemClock
 
   class SystemClock {
 

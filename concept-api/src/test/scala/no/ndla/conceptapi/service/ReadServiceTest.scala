@@ -18,7 +18,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
-  override val converterService = new ConverterService
+  override lazy val converterService = new ConverterService
 
   val service             = new ReadService()
   val userInfo: TokenUser = TokenUser("", Set(CONCEPT_API_WRITE), None)

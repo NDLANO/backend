@@ -11,7 +11,7 @@ package no.ndla.searchapi.model.api.grep
 import enumeratum.*
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.implicits.OptionImplicit
+import no.ndla.common.implicits.*
 import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
 

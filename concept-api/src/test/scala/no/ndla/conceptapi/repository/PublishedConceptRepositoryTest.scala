@@ -22,9 +22,9 @@ import scala.util.{Success, Try}
 
 class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
 
-  override val dataSource: HikariDataSource  = testDataSource.get
-  override val migrator                      = new DBMigrator
-  var repository: PublishedConceptRepository = _
+  override lazy val dataSource: HikariDataSource = testDataSource.get
+  override lazy val migrator                     = new DBMigrator
+  var repository: PublishedConceptRepository     = _
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
@@ -203,9 +203,9 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
       updated = NDLADate.fromUnixTime(0)
     )
 
-    val Success(ins1) = repository.insertOrUpdate(con1)
-    val Success(ins2) = repository.insertOrUpdate(con2)
-    val Success(ins3) = repository.insertOrUpdate(con3)
+    val Success(ins1) = repository.insertOrUpdate(con1): @unchecked
+    val Success(ins2) = repository.insertOrUpdate(con2): @unchecked
+    val Success(ins3) = repository.insertOrUpdate(con3): @unchecked
 
     repository.getByPage(10, 0).sortBy(_.id.get) should be(Seq(ins1, ins2, ins3))
   }

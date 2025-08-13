@@ -14,7 +14,7 @@ import software.amazon.awssdk.services.transcribe.{TranscribeClient, TranscribeC
 import scala.util.{Failure, Try}
 
 trait NdlaAWSTranscribeClient {
-  val transcribeClient: NdlaAWSTranscribeClient
+  lazy val transcribeClient: NdlaAWSTranscribeClient
 
   class NdlaAWSTranscribeClient(region: Option[String]) {
 
@@ -52,16 +52,16 @@ trait NdlaAWSTranscribeClient {
             .build()
         )
 
-      if (includeSubtitles) {
+      val toBuild = if (includeSubtitles) {
         requestBuilder.subtitles(
           Subtitles
             .builder()
             .formats(SubtitleFormat.valueOf(outputSubtitleFormat))
             .build()
         )
-      }
+      } else { requestBuilder }
 
-      client.startTranscriptionJob(requestBuilder.build())
+      client.startTranscriptionJob(toBuild.build())
     }
 
     def getTranscriptionJob(jobName: String): Try[GetTranscriptionJobResponse] = {

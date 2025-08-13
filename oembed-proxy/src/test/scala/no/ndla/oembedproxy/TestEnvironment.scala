@@ -31,13 +31,13 @@ trait TestEnvironment
     with Clock {
   override lazy val props = new OEmbedProxyProperties
 
-  val oEmbedService: OEmbedService                 = mock[OEmbedService]
-  val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
-  val ndlaClient: NdlaClient                       = mock[NdlaClient]
-  val myndlaApiClient: MyNDLAApiClient             = mock[MyNDLAApiClient]
-  val providerService: ProviderService             = mock[ProviderService]
-  val healthController: TapirHealthController      = mock[TapirHealthController]
-  val clock: SystemClock                           = mock[SystemClock]
+  lazy val oEmbedService: OEmbedService                 = mock[OEmbedService]
+  lazy val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
+  lazy val ndlaClient: NdlaClient                       = mock[NdlaClient]
+  lazy val myndlaApiClient: MyNDLAApiClient             = mock[MyNDLAApiClient]
+  lazy val providerService: ProviderService             = mock[ProviderService]
+  lazy val healthController: TapirHealthController      = mock[TapirHealthController]
+  lazy val clock: SystemClock                           = mock[SystemClock]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]

@@ -8,7 +8,6 @@
 
 package no.ndla.frontpageapi.db.migration
 
-import io.circe.generic.auto.*
 import io.circe.generic.semiauto.*
 import io.circe.parser.parse
 import io.circe.syntax.*
@@ -22,10 +21,6 @@ import scalikejdbc.*
 import scala.util.{Failure, Success}
 
 class V8__add_subject_links extends BaseJavaMigration {
-
-  implicit val decoder: Decoder[V1_DBFrontPageData] = deriveDecoder
-  implicit val encoder: Encoder[V1_DBFrontPageData] = deriveEncoder
-
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
@@ -78,3 +73,7 @@ case class V8_SubjectFrontPageData(
     buildsOn: List[String],
     leadsTo: List[String]
 )
+object V8_SubjectFrontPageData {
+  implicit val encoder: Encoder[V8_SubjectFrontPageData] = deriveEncoder
+  implicit val decoder: Decoder[V8_SubjectFrontPageData] = deriveDecoder
+}

@@ -21,12 +21,11 @@ import scala.util.Try
 trait LearningPathApiClient {
   this: NdlaClient & Props =>
 
-  val learningPathApiClient: LearningPathApiClient
+  lazy val learningPathApiClient: LearningPathApiClient
   class LearningPathApiClient extends StrictLogging {
-    import props.LearningpathApiUrl
     private val learningPathTimeout = 20.seconds
 
-    def getStats: Try[LearningPathStatsDTO] = get[LearningPathStatsDTO](s"$LearningpathApiUrl/intern/stats")
+    def getStats: Try[LearningPathStatsDTO] = get[LearningPathStatsDTO](s"${props.LearningpathApiUrl}/intern/stats")
 
     private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {
       val request = quickRequest.get(uri"$url".withParams(params*)).readTimeout(learningPathTimeout)

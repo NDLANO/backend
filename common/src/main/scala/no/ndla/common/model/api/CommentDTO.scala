@@ -24,6 +24,7 @@ case class CommentDTO(
 )
 
 object CommentDTO {
-  implicit def encoder: Encoder[CommentDTO] = deriveEncoder
-  implicit def decoder: Decoder[CommentDTO] = deriveDecoder
+  implicit def encoder: Encoder[CommentDTO]          = deriveEncoder
+  implicit def decoder: Decoder[CommentDTO]          = deriveDecoder
+  implicit def schema: sttp.tapir.Schema[CommentDTO] = sttp.tapir.Schema.derived[CommentDTO]
 }

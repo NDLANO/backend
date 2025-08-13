@@ -22,7 +22,7 @@ import scala.util.{Failure, Success, Try}
 
 trait UserRepository {
   this: DBUtility =>
-  val userRepository: UserRepository
+  lazy val userRepository: UserRepository
 
   class UserRepository extends StrictLogging {
 
@@ -148,11 +148,11 @@ trait UserRepository {
     }
 
     def deleteAllUsers(implicit session: DBSession): Try[Unit] = Try {
-      sql"delete from ${DBMyNDLAUser.table}".execute(): Unit
+      val _ = sql"delete from ${DBMyNDLAUser.table}".execute()
     }
 
     def resetSequences(implicit session: DBSession): Try[Unit] = Try {
-      sql"alter sequence my_ndla_users_id_seq restart with 1".execute(): Unit
+      val _ = sql"alter sequence my_ndla_users_id_seq restart with 1".execute()
     }
 
     def userWithFeideId(feideId: FeideID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[MyNDLAUser]] =

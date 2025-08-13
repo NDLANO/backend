@@ -11,7 +11,7 @@ package no.ndla.myndlaapi.service
 import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.common.model.api.SingleResourceStatsDTO
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.TryMaybe.*
@@ -35,7 +35,7 @@ trait FolderReadService {
   this: FolderConverterService & FolderRepository & UserRepository & FeideApiClient & Clock & ConfigService &
     UserService & DBUtility & LearningPathApiClient & RobotRepository =>
 
-  val folderReadService: FolderReadService
+  lazy val folderReadService: FolderReadService
 
   class FolderReadService {
     private def getSubFoldersAndResources(
@@ -345,7 +345,7 @@ trait FolderReadService {
     def getFavouriteStatsForResource(
         resourceIds: List[String],
         resourceTypes: List[String]
-    ): Try[List[SingleResourceStatsDTO]] = {
+    ): Try[List[SingleResourceStatsDTO]] = permitTry {
       implicit val session: DBSession = folderRepository.getSession(true)
 
       val result =

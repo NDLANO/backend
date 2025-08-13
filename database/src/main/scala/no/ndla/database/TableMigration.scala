@@ -13,7 +13,7 @@ import scalikejdbc.*
 
 abstract class TableMigration[ROW_DATA] extends BaseJavaMigration {
   val tableName: String
-  val whereClause: SQLSyntax
+  lazy val whereClause: SQLSyntax
   val chunkSize: Int = 1000
   def extractRowData(rs: WrappedResultSet): ROW_DATA
   def updateRow(rowData: ROW_DATA)(implicit session: DBSession): Int
@@ -33,7 +33,7 @@ abstract class TableMigration[ROW_DATA] extends BaseJavaMigration {
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
-    .withinTx { session => migrateRows(session) }
+    .withinTx { session => migrateRows(using session) }
 
   private def migrateRows(implicit session: DBSession): Unit = {
     val count        = countAllRows.get

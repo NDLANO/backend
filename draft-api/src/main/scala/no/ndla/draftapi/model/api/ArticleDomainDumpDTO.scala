@@ -18,3 +18,14 @@ case class ArticleDomainDumpDTO(
     @description("The number of results per page") pageSize: Int,
     @description("The search results") results: Seq[draft.Draft]
 )
+
+object ArticleDomainDumpDTO {
+  import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+  import io.circe.{Decoder, Encoder}
+  import sttp.tapir.generic.auto.*
+  import sttp.tapir.Schema
+
+  implicit val encoder: Encoder[ArticleDomainDumpDTO] = deriveEncoder
+  implicit val decoder: Decoder[ArticleDomainDumpDTO] = deriveDecoder
+  implicit def schema: Schema[ArticleDomainDumpDTO]   = Schema.derivedSchema
+}

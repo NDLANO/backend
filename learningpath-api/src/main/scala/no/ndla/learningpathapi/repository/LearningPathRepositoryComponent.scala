@@ -29,7 +29,7 @@ import scala.util.Try
 
 trait LearningPathRepositoryComponent extends StrictLogging {
   this: DataSource & Props =>
-  val learningPathRepository: LearningPathRepository
+  lazy val learningPathRepository: LearningPathRepository
 
   def inTransaction[A](work: DBSession => A)(implicit session: DBSession = null): A = {
     Option(session) match {

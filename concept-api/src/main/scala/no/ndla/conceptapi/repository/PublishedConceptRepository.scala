@@ -22,7 +22,7 @@ import scala.util.{Failure, Success, Try}
 
 trait PublishedConceptRepository {
   this: DataSource =>
-  val publishedConceptRepository: PublishedConceptRepository
+  lazy val publishedConceptRepository: PublishedConceptRepository
 
   class PublishedConceptRepository extends StrictLogging with Repository[Concept] {
     def insertOrUpdate(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {

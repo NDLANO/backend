@@ -35,11 +35,9 @@ import scala.util.{Failure, Success, Try}
 trait DraftConceptController {
   this: WriteService & ReadService & DraftConceptSearchService & SearchConverterService & ConverterService & Props &
     ConceptControllerHelpers & ErrorHandling & TapirController =>
-  val draftConceptController: DraftConceptController
+  lazy val draftConceptController: DraftConceptController
 
   class DraftConceptController extends TapirController {
-    import props.*
-
     override val serviceName: String         = "drafts"
     override val prefix: EndpointInput[Unit] = "concept-api" / "v1" / serviceName
 
@@ -68,7 +66,7 @@ trait DraftConceptController {
         orFunction: => Try[(ConceptSearchResultDTO, DynamicHeaders)]
     ): Try[(ConceptSearchResultDTO, DynamicHeaders)] =
       scrollId match {
-        case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
+        case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
           draftConceptSearchService.scroll(scroll, language.code) match {
             case Success(scrollResult) =>
               val body    = searchConverterService.asApiConceptSearchResult(scrollResult)
@@ -191,7 +189,7 @@ trait DraftConceptController {
             ) =>
           scrollSearchOr(scrollId, language) {
             val sort         = Sort.valueOf(sortStr)
-            val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
+            val shouldScroll = scrollId.exists(props.InitialScrollContextKeywords.contains)
 
             search(
               query,
@@ -240,20 +238,20 @@ trait DraftConceptController {
       .errorOut(errorOutputsFor(400, 403, 404))
       .serverLogicPure { searchParams =>
         val scrollId = searchParams.scrollId
-        val lang     = searchParams.language.getOrElse(LanguageCode(DefaultLanguage))
+        val lang     = searchParams.language.getOrElse(LanguageCode(props.DefaultLanguage))
 
         scrollSearchOr(scrollId, lang) {
           val query          = searchParams.query
           val sort           = searchParams.sort
           val language       = searchParams.language.getOrElse(LanguageCode(AllLanguages))
-          val pageSize       = searchParams.pageSize.getOrElse(DefaultPageSize)
+          val pageSize       = searchParams.pageSize.getOrElse(props.DefaultPageSize)
           val page           = searchParams.page.getOrElse(1)
           val idList         = searchParams.ids
           val fallback       = searchParams.fallback.getOrElse(false)
           val tagsToFilterBy = searchParams.tags
           val statusFilter   = searchParams.status
           val userFilter     = searchParams.users
-          val shouldScroll   = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+          val shouldScroll   = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
           val embedResource  = searchParams.embedResource.getOrElse(List.empty)
           val embedId        = searchParams.embedId
           val responsibleId  = searchParams.responsibleIds

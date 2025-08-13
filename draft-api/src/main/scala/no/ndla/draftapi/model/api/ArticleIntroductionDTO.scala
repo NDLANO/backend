@@ -14,14 +14,16 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Description of the article introduction")
 case class ArticleIntroductionDTO(
-    @description("The introduction content") introduction: String,
-    @description("The html introduction content") htmlIntroduction: String,
-    @description(
-      "The ISO 639-1 language code describing which article translation this introduction belongs to"
-    ) language: String
+    @description("The introduction content")
+    introduction: String,
+    @description("The html introduction content")
+    htmlIntroduction: String,
+    @description("The ISO 639-1 language code describing which article translation this introduction belongs to")
+    language: String
 )
 
 object ArticleIntroductionDTO {
-  implicit def encoder: Encoder[ArticleIntroductionDTO] = deriveEncoder
-  implicit def decoder: Decoder[ArticleIntroductionDTO] = deriveDecoder
+  implicit def encoder: Encoder[ArticleIntroductionDTO]          = deriveEncoder
+  implicit def decoder: Decoder[ArticleIntroductionDTO]          = deriveDecoder
+  implicit def schema: sttp.tapir.Schema[ArticleIntroductionDTO] = sttp.tapir.Schema.derived[ArticleIntroductionDTO]
 }

@@ -18,12 +18,12 @@ class GrepCodesSearchServiceTest extends ElasticsearchIntegrationSuite with Test
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val grepCodesSearchService                       = new GrepCodesSearchService
-  override val grepCodesIndexService: GrepCodesIndexService = new GrepCodesIndexService {
+  override lazy val grepCodesSearchService                       = new GrepCodesSearchService
+  override lazy val grepCodesIndexService: GrepCodesIndexService = new GrepCodesIndexService {
     override val indexShards: Int = 1
   }
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   val article1: Draft = TestData.sampleDomainArticle.copy(
     grepCodes = Seq("KE101", "KE115", "TT555")
@@ -57,31 +57,31 @@ class GrepCodesSearchServiceTest extends ElasticsearchIntegrationSuite with Test
   }
 
   test("That searching for grepcodes returns sensible results") {
-    val Success(result) = grepCodesSearchService.matchingQuery("KE", 1, 100)
+    val Success(result) = grepCodesSearchService.matchingQuery("KE", 1, 100): @unchecked
 
     result.totalCount should be(3)
     result.results should be(Seq("KE101", "KE115", "KE105"))
 
-    val Success(result2) = grepCodesSearchService.matchingQuery("KE115", 1, 100)
+    val Success(result2) = grepCodesSearchService.matchingQuery("KE115", 1, 100): @unchecked
 
     result2.totalCount should be(1)
     result2.results should be(Seq("KE115"))
   }
 
   test("That searching for grepcodes returns sensible results even if lowercase") {
-    val Success(result) = grepCodesSearchService.matchingQuery("ke", 1, 100)
+    val Success(result) = grepCodesSearchService.matchingQuery("ke", 1, 100): @unchecked
 
     result.totalCount should be(3)
     result.results should be(Seq("KE101", "KE115", "KE105"))
 
-    val Success(result2) = grepCodesSearchService.matchingQuery("ke115", 1, 100)
+    val Success(result2) = grepCodesSearchService.matchingQuery("ke115", 1, 100): @unchecked
 
     result2.totalCount should be(1)
     result2.results should be(Seq("KE115"))
   }
 
   test("That only prefixes are matched with grepcodes") {
-    val Success(result) = grepCodesSearchService.matchingQuery("TT", 1, 100)
+    val Success(result) = grepCodesSearchService.matchingQuery("TT", 1, 100): @unchecked
 
     result.totalCount should be(1)
     result.results should be(Seq("TT555"))

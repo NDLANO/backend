@@ -33,12 +33,10 @@ import scala.util.{Failure, Success, Try}
 trait ImageControllerV2 {
   this: ImageRepository & ImageSearchService & ConverterService & ReadService & WriteService & SearchConverterService &
     Props & ErrorHandling & BaseImageController & TapirController =>
-  val imageControllerV2: ImageControllerV2
+  lazy val imageControllerV2: ImageControllerV2
 
   class ImageControllerV2 extends TapirController with BaseImageController {
     import ErrorHelpers.*
-    import props.*
-
     override val serviceName: String                       = "images V2"
     override val prefix: EndpointInput[Unit]               = "image-api" / "v2" / "images"
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
@@ -65,7 +63,7 @@ trait ImageControllerV2 {
         orFunction: => Try[(SearchResultDTO, DynamicHeaders)]
     ): Try[(SearchResultDTO, DynamicHeaders)] =
       scrollId match {
-        case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
+        case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
           imageSearchService.scrollV2(scroll, language.code, user) match {
             case Success(scrollResult) =>
               val body    = searchConverterService.asApiSearchResult(scrollResult)
@@ -167,7 +165,7 @@ trait ImageControllerV2 {
               ) =>
             scrollSearchOr(scrollId, language, user) {
               val sort                = Sort.valueOf(sortStr)
-              val shouldScroll        = scrollId.exists(InitialScrollContextKeywords.contains)
+              val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
               val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
 
               search(
@@ -208,7 +206,7 @@ trait ImageControllerV2 {
           val page     = searchParams.page
           val podcastFriendly     = searchParams.podcastFriendly
           val sort                = searchParams.sort
-          val shouldScroll        = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+          val shouldScroll        = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
           val modelReleasedStatus =
             searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
 

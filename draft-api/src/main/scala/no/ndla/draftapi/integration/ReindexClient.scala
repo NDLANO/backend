@@ -17,28 +17,26 @@ import sttp.client3.quick._
 
 trait ReindexClient {
   this: Props =>
-  val reindexClient: ReindexClient
+  lazy val reindexClient: ReindexClient
 
   class ReindexClient extends StrictLogging {
-    import props.internalApiUrls
-
     private def reindexArticles() = {
-      val req = quickRequest.post(uri"${internalApiUrls("article-api")}/index")
+      val req = quickRequest.post(uri"${props.internalApiUrls("article-api")}/index")
       simpleHttpClient.send(req)
     }
 
     private def reindexAudios() = {
-      val req = quickRequest.post(uri"${internalApiUrls("audio-api")}/index")
+      val req = quickRequest.post(uri"${props.internalApiUrls("audio-api")}/index")
       simpleHttpClient.send(req)
     }
 
     private def reindexDrafts() = {
-      val req = quickRequest.post(uri"${internalApiUrls("draft-api")}/index")
+      val req = quickRequest.post(uri"${props.internalApiUrls("draft-api")}/index")
       simpleHttpClient.send(req)
     }
 
     private def reindexImages() = {
-      val req = quickRequest.post(uri"${internalApiUrls("image-api")}/index")
+      val req = quickRequest.post(uri"${props.internalApiUrls("image-api")}/index")
       simpleHttpClient.send(req)
     }
 

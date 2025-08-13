@@ -12,7 +12,7 @@ import cats.implicits.*
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.converter.CommonConverter
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
-import no.ndla.common.implicits.OptionImplicit
+import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Delete, Missing, ResponsibleDTO, UpdateOrDelete, UpdateWith}
 import no.ndla.common.model.domain.{ContributorType, Responsible, learningpath}
 import no.ndla.common.model.domain.learningpath.{
@@ -48,11 +48,9 @@ trait ConverterService {
   this: LearningPathRepositoryComponent & LanguageValidator & LearningPathValidator & OembedProxyClient & Clock &
     CommonConverter & Props =>
 
-  val converterService: ConverterService
+  lazy val converterService: ConverterService
 
   class ConverterService {
-    import props.*
-
     def asEmbedUrlV2(embedUrl: api.EmbedUrlV2DTO, language: String): EmbedUrl = {
       learningpath.EmbedUrl(embedUrl.url, language, EmbedType.valueOfOrError(embedUrl.embedType))
     }
@@ -748,7 +746,7 @@ trait ConverterService {
       )
 
       hostOpt match {
-        case Some(host) if NdlaFrontendHostNames.contains(host.toString) =>
+        case Some(host) if props.NdlaFrontendHostNames.contains(host.toString) =>
           oembedProxyClient
             .getIframeUrl(embedUrl.url)
             .map(newUrl => {
@@ -775,25 +773,25 @@ trait ConverterService {
     }
 
     def createUrlToLearningPath(lp: LearningPath): String = {
-      s"$Domain$LearningpathControllerPath${lp.id.get}"
+      s"${props.Domain}${props.LearningpathControllerPath}${lp.id.get}"
     }
 
     def createUrlToLearningPath(lp: api.LearningPathV2DTO): String = {
-      s"$Domain$LearningpathControllerPath${lp.id}"
+      s"${props.Domain}${props.LearningpathControllerPath}${lp.id}"
     }
 
     private def createUrlToImageApi(imageId: String): String = {
-      s"${ExternalApiUrls.ImageApiUrl}/$imageId"
+      s"${props.ExternalApiUrls.ImageApiUrl}/$imageId"
     }
     private def createUrlToImageApiRaw(imageId: String): String = {
-      s"${ExternalApiUrls.ImageApiRawUrl}/id/$imageId"
+      s"${props.ExternalApiUrls.ImageApiRawUrl}/id/$imageId"
     }
 
     private def createEmbedUrl(embedUrlOrPath: EmbedUrlV2DTO): EmbedUrlV2DTO = {
       embedUrlOrPath.url.hostOption match {
         case Some(_) => embedUrlOrPath
         case None    =>
-          embedUrlOrPath.copy(url = s"$NdlaFrontendProtocol://$NdlaFrontendHost${embedUrlOrPath.url}")
+          embedUrlOrPath.copy(url = s"${props.NdlaFrontendProtocol}://${props.NdlaFrontendHost}${embedUrlOrPath.url}")
       }
     }
 

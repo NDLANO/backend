@@ -22,29 +22,28 @@ import scala.util.{Failure, Success, Try}
 
 trait ValidationService {
   this: Props =>
-  val validationService: ValidationService
+  lazy val validationService: ValidationService
 
   class ValidationService {
-    import props.{ValidFileExtensions, ValidMimeTypes}
 
     def validateImageFile(imageFile: UploadedFile): Option[ValidationMessage] = {
       val fn = imageFile.fileName.getOrElse("").stripPrefix("\"").stripSuffix("\"")
-      if (!hasValidFileExtension(fn, ValidFileExtensions))
+      if (!hasValidFileExtension(fn, props.ValidFileExtensions))
         return Some(
           ValidationMessage(
             "file",
-            s"The file $fn does not have a known file extension. Must be one of ${ValidFileExtensions
+            s"The file $fn does not have a known file extension. Must be one of ${props.ValidFileExtensions
                 .mkString(",")}"
           )
         )
 
       val actualMimeType = imageFile.contentType.getOrElse("")
 
-      if (!ValidMimeTypes.contains(actualMimeType))
+      if (!props.ValidMimeTypes.contains(actualMimeType))
         return Some(
           ValidationMessage(
             "file",
-            s"The file $fn is not a valid image file. Only valid type is '${ValidMimeTypes.mkString(",")}', but was '$actualMimeType'"
+            s"The file $fn is not a valid image file. Only valid type is '${props.ValidMimeTypes.mkString(",")}', but was '$actualMimeType'"
           )
         )
 

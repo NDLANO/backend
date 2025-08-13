@@ -20,7 +20,7 @@ import scala.util.Try
 
 trait ImageApiClient {
   this: NdlaClient & ConverterService & Props =>
-  val imageApiClient: ImageApiClient
+  lazy val imageApiClient: ImageApiClient
 
   class ImageApiClient {
     private val Endpoint = s"http://${props.ImageApiHost}/image-api/v3/images"

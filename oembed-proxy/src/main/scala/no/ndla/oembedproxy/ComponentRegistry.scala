@@ -29,7 +29,7 @@ class ComponentRegistry(properties: OEmbedProxyProperties)
     with ErrorHandling
     with Clock
     with SwaggerDocControllerConfig {
-  override val props: OEmbedProxyProperties = properties
+  override lazy val props: OEmbedProxyProperties = properties
 
   lazy val providerService                         = new ProviderService
   lazy val oEmbedService                           = new OEmbedService

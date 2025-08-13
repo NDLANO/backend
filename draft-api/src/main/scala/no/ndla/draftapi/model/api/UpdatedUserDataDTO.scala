@@ -17,3 +17,13 @@ case class UpdatedUserDataDTO(
     @description("User's last edited concepts") latestEditedConcepts: Option[Seq[String]],
     @description("User's favorite subjects") favoriteSubjects: Option[Seq[String]]
 )
+
+object UpdatedUserDataDTO {
+  import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+  import io.circe.{Decoder, Encoder}
+  import sttp.tapir.generic.auto.*
+
+  implicit val encoder: Encoder[UpdatedUserDataDTO]          = deriveEncoder
+  implicit val decoder: Decoder[UpdatedUserDataDTO]          = deriveDecoder
+  implicit def schema: sttp.tapir.Schema[UpdatedUserDataDTO] = sttp.tapir.Schema.derivedSchema
+}

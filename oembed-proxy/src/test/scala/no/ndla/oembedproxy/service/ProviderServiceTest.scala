@@ -39,11 +39,11 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
     )
   )
 
-  override val providerService = new ProviderService
+  override lazy val providerService = new ProviderService
 
   test("That loadProvidersFromRequest fails on invalid url/bad response") {
     val invalidUrl = "invalidUrl123"
-    when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(any))
+    when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(using any))
       .thenReturn(Failure(new HttpRequestException("An error occured")))
     intercept[DoNotUpdateMemoizeException] {
       providerService.loadProvidersFromRequest(quickRequest.get(uri"$invalidUrl"))
@@ -51,7 +51,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That loadProvidersFromRequest does not return an incomplete provider") {
-    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(any))
+    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(using any))
       .thenReturn(Success(List(IncompleteProvider)))
 
     val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])
@@ -59,7 +59,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That loadProvidersFromRequest works for a single provider") {
-    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(any))
+    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(using any))
       .thenReturn(Success(List(CompleteProvider)))
 
     val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])
@@ -67,7 +67,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That loadProvidersFromRequest only returns the complete provider") {
-    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(any))
+    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(using any))
       .thenReturn(Success(List(IncompleteProvider, CompleteProvider)))
 
     val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])

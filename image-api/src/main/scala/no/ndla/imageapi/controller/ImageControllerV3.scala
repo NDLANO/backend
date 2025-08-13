@@ -33,12 +33,10 @@ import scala.util.{Failure, Success, Try}
 trait ImageControllerV3 {
   this: ImageRepository & ImageSearchService & ConverterService & ReadService & WriteService & SearchConverterService &
     Props & ErrorHandling & BaseImageController & TapirController =>
-  val imageControllerV3: ImageControllerV3
+  lazy val imageControllerV3: ImageControllerV3
 
   class ImageControllerV3 extends TapirController with BaseImageController {
     import ErrorHelpers.*
-    import props.*
-
     override val serviceName: String         = "images V3"
     override val prefix: EndpointInput[Unit] = "image-api" / "v3" / "images"
 
@@ -56,7 +54,7 @@ trait ImageControllerV3 {
         user: Option[TokenUser]
     )(orFunction: => Try[(SearchResultV3DTO, DynamicHeaders)]): Try[(SearchResultV3DTO, DynamicHeaders)] =
       scrollId match {
-        case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
+        case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
           for {
             scrollResult <- imageSearchService.scroll(scroll, language)
             body         <- searchConverterService.asApiSearchResultV3(scrollResult, language, user)
@@ -162,7 +160,7 @@ trait ImageControllerV3 {
               ) =>
             scrollSearchOr(scrollId, language.code, user) {
               val sort                = Sort.valueOf(sortStr)
-              val shouldScroll        = scrollId.exists(InitialScrollContextKeywords.contains)
+              val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
               val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
               val licenseOpt          = license.orElse(Option.when(includeCopyrighted)("all"))
 
@@ -209,7 +207,7 @@ trait ImageControllerV3 {
             val page                = searchParams.page
             val podcastFriendly     = searchParams.podcastFriendly
             val sort                = searchParams.sort
-            val shouldScroll        = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+            val shouldScroll        = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
             val modelReleasedStatus =
               searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
             val userFilter = searchParams.users.getOrElse(List.empty)

@@ -20,6 +20,7 @@ case class ArticleTitleDTO(
 )
 
 object ArticleTitleDTO {
-  implicit def encoder: Encoder[ArticleTitleDTO] = deriveEncoder
-  implicit def decoder: Decoder[ArticleTitleDTO] = deriveDecoder
+  implicit def encoder: Encoder[ArticleTitleDTO]          = deriveEncoder
+  implicit def decoder: Decoder[ArticleTitleDTO]          = deriveDecoder
+  implicit def schema: sttp.tapir.Schema[ArticleTitleDTO] = sttp.tapir.Schema.derived[ArticleTitleDTO]
 }

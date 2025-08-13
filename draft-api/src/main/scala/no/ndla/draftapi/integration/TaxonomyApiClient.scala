@@ -28,11 +28,10 @@ import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
   this: NdlaClient with Props =>
-  val taxonomyApiClient: TaxonomyApiClient
-  import props.{DefaultLanguage, TaxonomyUrl, TaxonomyVersionHeader}
+  lazy val taxonomyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends StrictLogging {
-    private val TaxonomyApiEndpoint = s"$TaxonomyUrl/v1"
+    private val TaxonomyApiEndpoint = s"${props.TaxonomyUrl}/v1"
     private val taxonomyTimeout     = 20.seconds
 
     def updateTaxonomyIfExists(articleId: Long, article: Draft, user: TokenUser): Try[Long] = {
@@ -54,7 +53,7 @@ trait TaxonomyApiClient {
       *   List of Resources or Topics that were updated if none failed.
       */
     private def updateTaxonomy(nodes: Seq[Node], titles: Seq[Title], user: TokenUser): Try[List[Node]] = {
-      Language.findByLanguageOrBestEffort(titles, DefaultLanguage) match {
+      Language.findByLanguageOrBestEffort(titles, props.DefaultLanguage) match {
         case Some(title) =>
           val updated = nodes.map(updateTitleAndTranslations(_, title, titles, user))
           updated
@@ -147,7 +146,7 @@ trait TaxonomyApiClient {
         quickRequest
           .get(uri"$url".withParams(params: _*))
           .readTimeout(taxonomyTimeout)
-          .header(TaxonomyVersionHeader, TaxonomyData.get),
+          .header(props.TaxonomyVersionHeader, TaxonomyData.get),
         None
       )
     }
@@ -183,7 +182,7 @@ trait TaxonomyApiClient {
         .put(uri)
         .body(CirceUtil.toJsonString(data))
         .readTimeout(taxonomyTimeout)
-        .header(TaxonomyVersionHeader, TaxonomyData.get)
+        .header(props.TaxonomyVersionHeader, TaxonomyData.get)
         .header("Content-Type", "application/json", replaceExisting = true)
       ndlaClient.fetchRawWithForwardedAuth(request, Some(user)) match {
         case Success(_)  => Success(data)

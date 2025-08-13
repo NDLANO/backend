@@ -8,7 +8,6 @@
 
 package no.ndla.frontpageapi.controller
 
-import io.circe.generic.auto.*
 import no.ndla.common.model.api.FrontPageDTO
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
@@ -22,7 +21,7 @@ import sttp.tapir.server.ServerEndpoint
 
 trait FrontPageController {
   this: ReadService & WriteService & ErrorHandling & TapirController =>
-  val frontPageController: FrontPageController
+  lazy val frontPageController: FrontPageController
 
   class FrontPageController() extends TapirController {
     override val serviceName: String         = "frontpage"

@@ -21,7 +21,7 @@ import scala.util.{Success, Try}
 
 trait ImageRepository {
   this: DataSource & ConverterService =>
-  val imageRepository: ImageRepository
+  lazy val imageRepository: ImageRepository
 
   class ImageRepository extends StrictLogging with Repository[ImageMetaInformation] {
     def imageCount(implicit session: DBSession = ReadOnlyAutoSession): Long =

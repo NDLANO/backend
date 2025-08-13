@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.Title
 
 trait TitleValidator {
   this: LanguageValidator & TextValidator =>
-  val titleValidator: TitleValidator
+  lazy val titleValidator: TitleValidator
 
   class TitleValidator(titleRequired: Boolean = true) {
     private val MISSING_TITLE = "At least one title is required."

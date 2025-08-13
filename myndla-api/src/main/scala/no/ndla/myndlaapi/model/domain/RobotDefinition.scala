@@ -12,7 +12,7 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
-import no.ndla.common.implicits.OptionImplicit
+import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
 import no.ndla.myndlaapi.model.api.robot.RobotConfigurationDTO
 import no.ndla.network.model.FeideID

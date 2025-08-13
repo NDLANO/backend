@@ -16,7 +16,7 @@ import scala.util.Success
 
 class SearchServiceTest extends UnitSuite with TestEnvironment {
 
-  override val imageSearchService = new ImageSearchService
+  override lazy val imageSearchService = new ImageSearchService
 
   test("That createEmptyIndexIfNoIndexesExist never creates empty index if an index already exists") {
     when(imageIndexService.findAllIndexes(any[String])).thenReturn(Success(Seq("index1")))

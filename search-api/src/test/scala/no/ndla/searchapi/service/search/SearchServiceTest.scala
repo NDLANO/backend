@@ -13,10 +13,10 @@ import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 
 class SearchServiceTest extends UnitSuite with TestEnvironment {
 
-  override val draftIndexService: DraftIndexService = new DraftIndexService {
+  override lazy val draftIndexService: DraftIndexService = new DraftIndexService {
     override val indexShards = 1
   }
-  override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+  override lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
     override val indexShards = 1
   }
 

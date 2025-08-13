@@ -24,4 +24,6 @@ case class ConceptDomainDump(
 object ConceptDomainDump {
   implicit val encoder: Encoder[ConceptDomainDump] = deriveEncoder
   implicit val decoder: Decoder[ConceptDomainDump] = deriveDecoder
+  import sttp.tapir.generic.auto.*
+  implicit def schema: sttp.tapir.Schema[ConceptDomainDump] = sttp.tapir.Schema.derivedSchema
 }

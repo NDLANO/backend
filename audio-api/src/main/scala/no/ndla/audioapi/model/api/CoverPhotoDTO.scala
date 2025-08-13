@@ -16,3 +16,8 @@ case class CoverPhotoDTO(
     @description("Url to the coverPhoto") url: String,
     @description("Alttext for the coverPhoto") altText: String
 )
+
+object CoverPhotoDTO {
+  implicit val encoder: io.circe.Encoder[CoverPhotoDTO] = io.circe.generic.semiauto.deriveEncoder
+  implicit val decoder: io.circe.Decoder[CoverPhotoDTO] = io.circe.generic.semiauto.deriveDecoder
+}

@@ -32,11 +32,10 @@ trait GrepCodesSearchService {
     with SearchConverterService
     with Props
     with ErrorHandling =>
-  val grepCodesSearchService: GrepCodesSearchService
+  lazy val grepCodesSearchService: GrepCodesSearchService
 
   class GrepCodesSearchService extends StrictLogging with BasicSearchService[String] {
-    import props._
-    override val searchIndex: String = DraftGrepCodesSearchIndex
+    override val searchIndex: String = props.DraftGrepCodesSearchIndex
 
     def getHits(response: SearchResponse): Seq[String] = {
       response.hits.hits.toList.map(hit => CirceUtil.unsafeParseAs[SearchableGrepCode](hit.sourceAsString).grepCode)
@@ -62,9 +61,9 @@ trait GrepCodesSearchService {
     ): Try[LanguagelessSearchResult[String]] = {
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val requestedResultWindow = pageSize * page
-      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+          s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
         )
         Failure(new ResultWindowTooLargeException())
       } else {
@@ -77,7 +76,7 @@ trait GrepCodesSearchService {
 
         val searchWithScroll =
           if (startAt != 0) { searchToExecute }
-          else { searchToExecute.scroll(ElasticSearchScrollKeepAlive) }
+          else { searchToExecute.scroll(props.ElasticSearchScrollKeepAlive) }
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>

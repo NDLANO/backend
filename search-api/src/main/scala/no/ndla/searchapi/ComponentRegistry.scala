@@ -61,41 +61,40 @@ class ComponentRegistry(properties: SearchApiProperties)
     with Props
     with SwaggerDocControllerConfig
     with GrepSearchService {
-  override val props: SearchApiProperties = properties
-  import props._
+  override lazy val props: SearchApiProperties = properties
 
-  lazy val ndlaClient          = new NdlaClient
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(SearchServer)
+  override lazy val ndlaClient = new NdlaClient
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
-  lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
 
-  lazy val taxonomyApiClient = new TaxonomyApiClient
-  lazy val grepApiClient     = new GrepApiClient
+  override lazy val taxonomyApiClient = new TaxonomyApiClient
+  override lazy val grepApiClient     = new GrepApiClient
 
-  lazy val draftApiClient        = new DraftApiClient(DraftApiUrl)
-  lazy val draftConceptApiClient = new DraftConceptApiClient(ConceptApiUrl)
-  lazy val learningPathApiClient = new LearningPathApiClient(LearningpathApiUrl)
-  lazy val articleApiClient      = new ArticleApiClient(ArticleApiUrl)
-  lazy val feideApiClient        = new FeideApiClient
-  lazy val redisClient           = new RedisClient(props.RedisHost, props.RedisPort)
-  lazy val frontpageApiClient    = new FrontpageApiClient
+  override lazy val draftApiClient        = new DraftApiClient(props.DraftApiUrl)
+  override lazy val draftConceptApiClient = new DraftConceptApiClient(props.ConceptApiUrl)
+  override lazy val learningPathApiClient = new LearningPathApiClient(props.LearningpathApiUrl)
+  override lazy val articleApiClient      = new ArticleApiClient(props.ArticleApiUrl)
+  override lazy val feideApiClient        = new FeideApiClient
+  override lazy val redisClient           = new RedisClient(props.RedisHost, props.RedisPort)
+  override lazy val frontpageApiClient    = new FrontpageApiClient
 
-  lazy val converterService         = new ConverterService
-  lazy val searchConverterService   = new SearchConverterService
-  lazy val multiSearchService       = new MultiSearchService
-  lazy val articleIndexService      = new ArticleIndexService
-  lazy val draftConceptIndexService = new DraftConceptIndexService
-  lazy val learningPathIndexService = new LearningPathIndexService
-  lazy val draftIndexService        = new DraftIndexService
-  lazy val multiDraftSearchService  = new MultiDraftSearchService
-  lazy val grepIndexService         = new GrepIndexService
-  lazy val grepSearchService        = new GrepSearchService
-  lazy val nodeIndexService         = new NodeIndexService
+  override lazy val converterService         = new ConverterService
+  override lazy val searchConverterService   = new SearchConverterService
+  override lazy val multiSearchService       = new MultiSearchService
+  override lazy val articleIndexService      = new ArticleIndexService
+  override lazy val draftConceptIndexService = new DraftConceptIndexService
+  override lazy val learningPathIndexService = new LearningPathIndexService
+  override lazy val draftIndexService        = new DraftIndexService
+  override lazy val multiDraftSearchService  = new MultiDraftSearchService
+  override lazy val grepIndexService         = new GrepIndexService
+  override lazy val grepSearchService        = new GrepSearchService
+  override lazy val nodeIndexService         = new NodeIndexService
 
-  lazy val searchController                        = new SearchController
-  lazy val healthController: TapirHealthController = new TapirHealthController
-  lazy val internController                        = new InternController
-  lazy val clock: SystemClock                      = new SystemClock
+  override lazy val searchController                        = new SearchController
+  override lazy val healthController: TapirHealthController = new TapirHealthController
+  override lazy val internController                        = new InternController
+  override lazy val clock: SystemClock                      = new SystemClock
 
   val swagger = new SwaggerController(
     List[TapirController](

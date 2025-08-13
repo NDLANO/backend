@@ -74,56 +74,57 @@ trait TestEnvironment
     with MemoizeHelpers
     with DBMigrator
     with Props
-    with V57__MigrateSavedSearch {
+    with V57__MigrateSavedSearch
+    with ImageApiClient {
   lazy val props: DraftApiProperties = new DraftApiProperties {
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
   }
-  val migrator: DBMigrator = mock[DBMigrator]
-  val DBUtil: DBUtility    = mock[DBUtility]
+  override lazy val migrator: DBMigrator = mock[DBMigrator]
+  override lazy val DBUtil: DBUtility    = mock[DBUtility]
 
-  val articleSearchService: ArticleSearchService     = mock[ArticleSearchService]
-  val articleIndexService: ArticleIndexService       = mock[ArticleIndexService]
-  val tagSearchService: TagSearchService             = mock[TagSearchService]
-  val tagIndexService: TagIndexService               = mock[TagIndexService]
-  val grepCodesSearchService: GrepCodesSearchService = mock[GrepCodesSearchService]
-  val grepCodesIndexService: GrepCodesIndexService   = mock[GrepCodesIndexService]
+  override lazy val articleSearchService: ArticleSearchService     = mock[ArticleSearchService]
+  override lazy val articleIndexService: ArticleIndexService       = mock[ArticleIndexService]
+  override lazy val tagSearchService: TagSearchService             = mock[TagSearchService]
+  override lazy val tagIndexService: TagIndexService               = mock[TagIndexService]
+  override lazy val grepCodesSearchService: GrepCodesSearchService = mock[GrepCodesSearchService]
+  override lazy val grepCodesIndexService: GrepCodesIndexService   = mock[GrepCodesIndexService]
 
-  val internController: InternController      = mock[InternController]
-  val draftController: DraftController        = mock[DraftController]
-  val fileController: FileController          = mock[FileController]
-  val userDataController: UserDataController  = mock[UserDataController]
-  val healthController: TapirHealthController = mock[TapirHealthController]
+  override lazy val internController: InternController      = mock[InternController]
+  override lazy val draftController: DraftController        = mock[DraftController]
+  override lazy val fileController: FileController          = mock[FileController]
+  override lazy val userDataController: UserDataController  = mock[UserDataController]
+  override lazy val healthController: TapirHealthController = mock[TapirHealthController]
 
-  val dataSource: HikariDataSource           = mock[HikariDataSource]
-  val draftRepository: DraftRepository       = mock[DraftRepository]
-  val userDataRepository: UserDataRepository = mock[UserDataRepository]
+  override lazy val dataSource: HikariDataSource           = mock[HikariDataSource]
+  override lazy val draftRepository: DraftRepository       = mock[DraftRepository]
+  override lazy val userDataRepository: UserDataRepository = mock[UserDataRepository]
 
-  val converterService: ConverterService = mock[ConverterService]
+  override lazy val converterService: ConverterService = mock[ConverterService]
 
-  val readService: ReadService           = mock[ReadService]
-  val writeService: WriteService         = mock[WriteService]
-  val contentValidator: ContentValidator = mock[ContentValidator]
-  val importValidator: ContentValidator  = mock[ContentValidator]
-  val reindexClient: ReindexClient       = mock[ReindexClient]
+  override lazy val readService: ReadService           = mock[ReadService]
+  override lazy val writeService: WriteService         = mock[WriteService]
+  override lazy val contentValidator: ContentValidator = mock[ContentValidator]
+  override lazy val importValidator: ContentValidator  = mock[ContentValidator]
+  override lazy val reindexClient: ReindexClient       = mock[ReindexClient]
 
-  lazy val fileStorage: FileStorageService = mock[FileStorageService]
-  val s3Client: NdlaS3Client               = mock[NdlaS3Client]
+  override lazy val fileStorage: FileStorageService = mock[FileStorageService]
+  override lazy val s3Client: NdlaS3Client          = mock[NdlaS3Client]
 
-  val ndlaClient: NdlaClient                                = mock[NdlaClient]
-  val myndlaApiClient: MyNDLAApiClient                      = mock[MyNDLAApiClient]
-  val searchConverterService: SearchConverterService        = mock[SearchConverterService]
-  var e4sClient: NdlaE4sClient                              = mock[NdlaE4sClient]
-  override val learningpathApiClient: LearningpathApiClient = mock[LearningpathApiClient]
+  override lazy val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  override lazy val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
+  override lazy val searchConverterService: SearchConverterService = mock[SearchConverterService]
+  var e4sClient: NdlaE4sClient                                     = mock[NdlaE4sClient]
+  override lazy val learningpathApiClient: LearningpathApiClient   = mock[LearningpathApiClient]
 
-  val clock: SystemClock = mock[SystemClock]
-  val uuidUtil: UUIDUtil = mock[UUIDUtil]
+  override lazy val clock: SystemClock = mock[SystemClock]
+  override lazy val uuidUtil: UUIDUtil = mock[UUIDUtil]
 
-  val articleApiClient: ArticleApiClient   = mock[ArticleApiClient]
-  val searchApiClient: SearchApiClient     = mock[SearchApiClient]
-  val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
-  val h5pApiClient: H5PApiClient           = mock[H5PApiClient]
-  val imageApiClient: ImageApiClient       = mock[ImageApiClient]
+  override lazy val articleApiClient: ArticleApiClient   = mock[ArticleApiClient]
+  override lazy val searchApiClient: SearchApiClient     = mock[SearchApiClient]
+  override lazy val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
+  override lazy val h5pApiClient: H5PApiClient           = mock[H5PApiClient]
+  override lazy val imageApiClient: ImageApiClient       = mock[ImageApiClient]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]

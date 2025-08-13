@@ -8,7 +8,6 @@
 
 package no.ndla.frontpageapi.db.migration
 
-import no.ndla.frontpageapi.db.migration.{V2_DBSubjectPage, V8__add_subject_links}
 import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
 
 class V8__AddSubjectLinksTest extends UnitSuite with TestEnvironment {

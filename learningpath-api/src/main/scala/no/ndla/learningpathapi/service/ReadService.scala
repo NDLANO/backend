@@ -27,7 +27,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ReadService {
   this: LearningPathRepositoryComponent & ConverterService & Clock & MyNDLAApiClient =>
-  val readService: ReadService
+  lazy val readService: ReadService
 
   class ReadService {
 
