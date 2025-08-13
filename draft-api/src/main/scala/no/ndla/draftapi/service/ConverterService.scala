@@ -352,7 +352,10 @@ trait ConverterService {
       api.ArticleTitleDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)
 
     private def toApiArticleContent(content: common.ArticleContent): api.ArticleContentDTO =
-      api.ArticleContentDTO(content.content, content.language)
+      api.ArticleContentDTO(
+        content.content.replaceAll(". </p>", ".</p>"),
+        content.language
+      ) // avoid making editor dirty
 
     private def toApiArticleMetaImage(metaImage: common.ArticleMetaImage): api.ArticleMetaImageDTO = {
       api.ArticleMetaImageDTO(
