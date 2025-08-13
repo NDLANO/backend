@@ -3,10 +3,3 @@
 
 Depends on the other modules and implements integration-tests between them :^)
 
-
-## Developer documentation
-
-**Compile**: sbt integration-tests/compile
-
-**Run tests:** sbt integration-tests/test
-

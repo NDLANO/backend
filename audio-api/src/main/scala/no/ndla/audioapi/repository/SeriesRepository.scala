@@ -69,7 +69,7 @@ trait SeriesRepository {
            """
           .update()
       ) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)                  => Failure(ex)
         case Success(count) if count != 1 =>
           val message =
             s"Found revision mismatch when attempting to update series with id '${series.id}' (rev: ${series.revision})"

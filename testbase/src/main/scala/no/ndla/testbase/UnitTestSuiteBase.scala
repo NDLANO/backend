@@ -73,7 +73,7 @@ trait UnitTestSuiteBase
   // and return the result if it is a `Success`
   implicit class failableTry[T](result: Try[T]) {
     def failIfFailure: T = result match {
-      case Success(r) => r
+      case Success(r)  => r
       case Failure(ex) =>
         fail(
           """Failure gotten when Success was expected :^)

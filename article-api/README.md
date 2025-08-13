@@ -89,12 +89,3 @@ The following tags may contain extra attributes which conveys information about 
   * **data-type** - Specifies how the aside should be viewed
 * `embed` resource=concept
   * **data-type** - Specifies type of concept embed. Either inline or as block
-
-## Developer documentation
-
-**Compile**: sbt compile
-
-**Run tests:** sbt test
-
-**Create Docker Image:** sbt docker
-

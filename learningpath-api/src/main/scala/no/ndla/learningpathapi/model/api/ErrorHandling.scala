@@ -18,6 +18,7 @@ import no.ndla.network.tapir.{AllErrors, TapirErrorHandling}
 import no.ndla.search.model.domain.ElasticIndexingException
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
+import no.ndla.common.errors.OperationNotAllowedException
 
 trait ErrorHandling extends TapirErrorHandling {
   this: Props with Clock with DataSource =>
@@ -48,6 +49,7 @@ trait ErrorHandling extends TapirErrorHandling {
       errorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, 500)
     case mse: InvalidLpStatusException =>
       errorBody(MISSING_STATUS, mse.getMessage, 400)
+    case one: OperationNotAllowedException => errorBody(UNPROCESSABLE_ENTITY, one.getMessage, 422)
     case NdlaSearchException(_, Some(rf), _, _)
         if rf.error.rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>

@@ -24,7 +24,7 @@ object ExceptionLogHandler {
     try {
       f match {
         case Failure(ex) => handleException(ex)
-        case _           =>
+        case _           => System.exit(0)
       }
     } catch {
       case ex: Throwable => handleException(ex)

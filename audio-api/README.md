@@ -21,11 +21,3 @@ To write data to the api, you need write role access.
 - `PUT /audio-api/v1/series/<id>` - Update the *podcast series* provided with metadata.
 
 For a more detailed documentation of the API, please refer to the [API documentation](https://api.ndla.no) (Staging: [API documentation](https://staging.api.ndla.no)).
-
-## Developer documentation
-
-**Compile:** sbt compile
-
-**Run tests:** sbt test
-
-**Create Docker Image:**./build.sh

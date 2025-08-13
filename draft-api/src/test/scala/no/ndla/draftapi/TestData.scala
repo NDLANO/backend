@@ -41,7 +41,7 @@ object TestData {
   val userWithNoRoles: TokenUser       = TokenUser("unit test", Set.empty, None)
   val userWithWriteAccess: TokenUser   = TokenUser("unit test", Set(DRAFT_API_WRITE), None)
   val userWithPublishAccess: TokenUser = TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH), None)
-  val userWithAdminAccess: TokenUser =
+  val userWithAdminAccess: TokenUser   =
     TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH, DRAFT_API_ADMIN), None)
 
   val publicDomainCopyright: common.draft.DraftCopyright =
@@ -120,9 +120,8 @@ object TestData {
     responsible = None,
     None,
     Seq.empty,
-    priority = Priority.Unspecified.entryName,
+    priority = Priority.Unspecified,
     started = false,
-    prioritized = false,
     qualityEvaluation = None,
     disclaimer = None
   )
@@ -153,7 +152,6 @@ object TestData {
     responsibleId = Missing,
     slug = None,
     comments = None,
-    prioritized = None,
     priority = None,
     qualityEvaluation = None,
     disclaimer = None
@@ -241,8 +239,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
-    Priority.Unspecified.entryName,
+    Priority.Unspecified,
     false,
     None,
     None
@@ -295,8 +292,7 @@ object TestData {
     None,
     None,
     Seq.empty,
-    false,
-    Priority.Unspecified.entryName,
+    Priority.Unspecified,
     false,
     None,
     None
@@ -362,7 +358,7 @@ object TestData {
     Seq.empty,
     common.Availability.everyone,
     Seq.empty,
-    common.draft.RevisionMeta.default,
+    common.RevisionMeta.default,
     None,
     None,
     Seq.empty,
@@ -438,7 +434,6 @@ object TestData {
     None,
     None,
     availability = None,
-    None,
     None,
     None,
     None,
@@ -559,8 +554,7 @@ object TestData {
     responsible = None,
     slug = None,
     comments = Seq.empty,
-    prioritized = false,
-    priority = Priority.Unspecified.entryName,
+    priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
     disclaimer = None

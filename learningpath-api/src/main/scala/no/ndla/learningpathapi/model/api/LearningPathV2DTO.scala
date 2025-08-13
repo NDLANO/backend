@@ -11,7 +11,9 @@ package no.ndla.learningpathapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.{CommentDTO, ResponsibleDTO}
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.model.domain.Priority
 
 @description("Meta information for a learningpath")
 case class LearningPathV2DTO(
@@ -58,7 +60,14 @@ case class LearningPathV2DTO(
     @description("The date when this learningpath was made available to the public.")
     madeAvailable: Option[NDLADate],
     @description("Whether the owner of the learningpath is a MyNDLA user or not")
-    isMyNDLAOwner: Boolean
+    isMyNDLAOwner: Boolean,
+    @description("Object with data representing the editor responsible for this learningpath") responsible: Option[
+      ResponsibleDTO
+    ],
+    @description("Information about comments attached to the learningpath") comments: Seq[CommentDTO],
+    @description(
+      "If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified"
+    ) priority: Priority
 )
 
 object LearningPathV2DTO {

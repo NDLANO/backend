@@ -58,13 +58,12 @@ trait FileController {
       .out(jsonBody[api.UploadedFileDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure {
-        _ =>
-          { formData =>
-            doWithStream(formData.file) { uploadedFile =>
-              writeService.storeFile(uploadedFile)
-            }
+      .serverLogicPure { _ =>
+        { formData =>
+          doWithStream(formData.file) { uploadedFile =>
+            writeService.storeFile(uploadedFile)
           }
+        }
       }
 
     def deleteFile: ServerEndpoint[Any, Eff] = endpoint.delete

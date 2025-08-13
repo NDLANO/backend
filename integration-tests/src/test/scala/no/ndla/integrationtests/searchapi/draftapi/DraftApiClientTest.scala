@@ -36,17 +36,17 @@ class DraftApiClientTest
   override val searchConverterService = new SearchConverterService
   override val DBUtil                 = new DBUtility
 
-  val draftApiPort: Int           = findFreePort
-  val pgc: PostgreSQLContainer[?] = postgresContainer.get
-  val esHost: String              = elasticSearchHost.get
+  val draftApiPort: Int                      = findFreePort
+  val pgc: PostgreSQLContainer[?]            = postgresContainer.get
+  val esHost: String                         = elasticSearchHost.get
   val draftApiProperties: DraftApiProperties = new DraftApiProperties {
-    override def ApplicationPort: Int       = draftApiPort
-    override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
-    override val MetaResource: Prop[String] = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
-    override val MetaUserName: Prop[String] = propFromTestValue("META_USER_NAME", pgc.getUsername)
-    override val MetaPassword: Prop[String] = propFromTestValue("META_PASSWORD", pgc.getPassword)
-    override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
-    override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", "testschema")
+    override def ApplicationPort: Int                  = draftApiPort
+    override val MetaServer: Prop[String]              = propFromTestValue("META_SERVER", pgc.getHost)
+    override val MetaResource: Prop[String]            = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
+    override val MetaUserName: Prop[String]            = propFromTestValue("META_USER_NAME", pgc.getUsername)
+    override val MetaPassword: Prop[String]            = propFromTestValue("META_PASSWORD", pgc.getPassword)
+    override val MetaPort: Prop[Int]                   = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
+    override val MetaSchema: Prop[String]              = propFromTestValue("META_SCHEMA", "testschema")
     override val auth0ManagementClientId: Prop[String] =
       propFromTestValue("AUTH0_MANAGEMENT_CLIENT_ID", "auth0_test_id")
     override val auth0ManagementClientSecret: Prop[String] =
@@ -107,7 +107,7 @@ class DraftApiClientTest
 
     val chunks       = draftApiClient.getChunks.toList
     val fetchedDraft = chunks.head.get.head
-    val searchable = searchConverterService
+    val searchable   = searchConverterService
       .asSearchableDraft(
         fetchedDraft,
         IndexingBundle(

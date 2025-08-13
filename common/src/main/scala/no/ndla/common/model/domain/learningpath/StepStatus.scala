@@ -12,7 +12,7 @@ import enumeratum.*
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 
 sealed abstract class StepStatus(override val entryName: String) extends EnumEntry
-object StepStatus extends Enum[StepStatus] with CirceEnum[StepStatus] {
+object StepStatus                                                extends Enum[StepStatus] with CirceEnum[StepStatus] {
 
   case object ACTIVE  extends StepStatus("ACTIVE")
   case object DELETED extends StepStatus("DELETED")
@@ -26,7 +26,7 @@ object StepStatus extends Enum[StepStatus] with CirceEnum[StepStatus] {
   def valueOfOrError(status: String): StepStatus = {
     valueOf(status) match {
       case Some(s) => s
-      case None =>
+      case None    =>
         throw new ValidationException(errors = List(ValidationMessage("status", s"'$status' is not a valid status.")))
     }
   }

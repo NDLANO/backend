@@ -53,13 +53,13 @@ trait ImageSearchService {
         case Sort.ByTitleAsc =>
           sortLanguage match {
             case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Asc).missing("_last")
-            case _ =>
+            case _   =>
               fieldSort(s"titles.$sortLanguage.raw").sortOrder(SortOrder.Asc).missing("_last").unmappedType("long")
           }
         case Sort.ByTitleDesc =>
           sortLanguage match {
             case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Desc).missing("_last")
-            case _ =>
+            case _   =>
               fieldSort(s"titles.$sortLanguage.raw").sortOrder(SortOrder.Desc).missing("_last").unmappedType("long")
           }
         case Sort.ByRelevanceAsc    => fieldSort("_score").sortOrder(SortOrder.Asc)
@@ -77,7 +77,7 @@ trait ImageSearchService {
     ): Try[SearchResult[ImageMetaSummaryDTO]] =
       for {
         searchResult <- result
-        summaries <- searchResult.results.traverse { case (image, language) =>
+        summaries    <- searchResult.results.traverse { case (image, language) =>
           searchConverterService.asImageMetaSummary(image, language, user)
         }
         convertedResult = searchResult.copy(results = summaries)
@@ -100,7 +100,7 @@ trait ImageSearchService {
         user: Option[TokenUser]
     ): Try[SearchResult[(SearchableImage, MatchedLanguage)]] = {
       val fullSearch = settings.query.emptySomeToNone match {
-        case None => boolQuery()
+        case None        => boolQuery()
         case Some(query) =>
           val language = if (settings.fallback) "*" else settings.language
 

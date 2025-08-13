@@ -34,9 +34,9 @@ class ArticleApiClientTest
   override val converterService       = new ConverterService
   override val searchConverterService = new SearchConverterService
 
-  val articleApiPort: Int         = findFreePort
-  val pgc: PostgreSQLContainer[?] = postgresContainer.get
-  val esHost: String              = elasticSearchHost.get
+  val articleApiPort: Int                        = findFreePort
+  val pgc: PostgreSQLContainer[?]                = postgresContainer.get
+  val esHost: String                             = elasticSearchHost.get
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
     override def ApplicationPort: Int              = articleApiPort
     override val MetaServer: Prop[String]          = propFromTestValue("META_SERVER", pgc.getHost)
@@ -109,7 +109,7 @@ class ArticleApiClientTest
 
     val chunks         = articleApiClient.getChunks.toList
     val fetchedArticle = chunks.head.get.head
-    val searchable = searchConverterService
+    val searchable     = searchConverterService
       .asSearchableArticle(
         fetchedArticle,
         IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), None)

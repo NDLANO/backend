@@ -14,7 +14,7 @@ import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
 
 sealed trait RobotStatus extends EnumEntry
-object RobotStatus extends Enum[RobotStatus] with CirceEnum[RobotStatus] {
+object RobotStatus       extends Enum[RobotStatus] with CirceEnum[RobotStatus] {
   override def values: IndexedSeq[RobotStatus] = findValues
   case object PRIVATE extends RobotStatus
   case object SHARED  extends RobotStatus

@@ -15,7 +15,7 @@ class SearchConverterTest extends UnitTestSuiteBase {
 
   test("That extracting imageids works") {
     val imageId = "123"
-    val html =
+    val html    =
       s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="image" data-resource_id="$imageId"></ndlaembed>"""
 
     val expected = List(
@@ -33,7 +33,7 @@ class SearchConverterTest extends UnitTestSuiteBase {
   test("That extracting videoids from html strips timestamps") {
     val videoId        = "2398472394"
     val videoIdAndData = s"$videoId&amp;t="
-    val html =
+    val html           =
       s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="video" data-videoid="$videoIdAndData"></ndlaembed>"""
 
     val expected = List(

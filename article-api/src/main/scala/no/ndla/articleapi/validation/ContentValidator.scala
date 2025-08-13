@@ -149,7 +149,7 @@ trait ContentValidator {
         allowEmpty: Boolean
     ): Seq[ValidationMessage] = {
       val nonEmptyValidation = if (allowEmpty) None else validateNonEmpty("metaDescription", contents)
-      val validations = contents.flatMap(content => {
+      val validations        = contents.flatMap(content => {
         val field = s"metaDescription.${content.language}"
         TextValidator.validate(field, content.content, Set.empty).toList ++
           validateLanguage("metaDescription.language", content.language)
@@ -170,7 +170,7 @@ trait ContentValidator {
       val licenseMessage            = validateLicense(copyright.license)
       val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
       val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
-      val contributorsMessages =
+      val contributorsMessages      =
         copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", ContributorType.creators)) ++
           copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", ContributorType.processors)) ++
           copyright.rightsholders.flatMap(a =>

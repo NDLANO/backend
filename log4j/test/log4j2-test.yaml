@@ -1,0 +1,10 @@
+Configuration:
+  status: warn
+  shutdownHook: disable
+
+  Loggers:
+    Logger:
+      name: "no.ndla"
+      level: debug
+    Root:
+      level: warn

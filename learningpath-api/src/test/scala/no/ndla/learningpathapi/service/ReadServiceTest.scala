@@ -28,6 +28,7 @@ import org.mockito.Mockito.when
 import scalikejdbc.DBSession
 
 import scala.util.Failure
+import no.ndla.common.model.domain.Priority
 
 class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
@@ -58,7 +59,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     tags = List(),
     owner = PUBLISHED_OWNER.id,
     copyright = copyright,
-    isMyNDLAOwner = false
+    isMyNDLAOwner = false,
+    responsible = None,
+    comments = Seq.empty,
+    priority = Priority.Unspecified
   )
 
   val PRIVATE_LEARNINGPATH: LearningPath = LearningPath(
@@ -77,7 +81,10 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     tags = List(),
     owner = PRIVATE_OWNER.id,
     copyright = copyright,
-    isMyNDLAOwner = false
+    isMyNDLAOwner = false,
+    responsible = None,
+    comments = Seq.empty,
+    priority = Priority.Unspecified
   )
 
   val STEP1: LearningStep = LearningStep(
@@ -90,6 +97,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     List(),
     List(),
     List(),
+    None,
     StepType.TEXT,
     None,
     showTitle = true,
@@ -106,6 +114,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     List(),
     List(),
     List(),
+    None,
     StepType.TEXT,
     None,
     showTitle = false,
@@ -122,6 +131,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     List(),
     List(),
     List(),
+    None,
     StepType.TEXT,
     None,
     showTitle = false,

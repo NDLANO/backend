@@ -118,7 +118,7 @@ trait FeideApiClient {
     private def parseResponse[T: Decoder](response: Response[String]): Try[T] = {
       CirceUtil.tryParseAs[T](response.body) match {
         case Success(extracted) => Success(extracted)
-        case Failure(ex) =>
+        case Failure(ex)        =>
           logger.error("Could not parse response from feide.", ex)
           Failure(new HttpRequestException(s"Could not parse response ${response.body}", Some(response)))
       }
@@ -144,7 +144,7 @@ trait FeideApiClient {
       val fallback           = feideGroups.headOption
       maybePrimaryGroup.orElse(fallback) match {
         case Some(value) => Success(value.displayName)
-        case None =>
+        case None        =>
           logger.error(
             "Can not determine organization. It is impossible to distinguish between the old and the current organization."
           )
@@ -184,8 +184,8 @@ trait FeideApiClient {
 
     def getFeideID(feideAccessToken: Option[FeideAccessToken]): Try[FeideID] = {
       for {
-        accessToken  <- getFeideAccessTokenOrFail(feideAccessToken)
-        maybeFeideId <- redisClient.getFeideIdFromCache(accessToken)
+        accessToken   <- getFeideAccessTokenOrFail(feideAccessToken)
+        maybeFeideId  <- redisClient.getFeideIdFromCache(accessToken)
         feideOpenUser <- maybeFeideId match {
           case Some(feideId) => Success(FeideOpenIdUserInfo(feideId))
           case None          => getFeideDataOrFail[FeideOpenIdUserInfo](this.fetchOpenIdUser(accessToken))
@@ -195,8 +195,8 @@ trait FeideApiClient {
     }
 
     def getFeideExtendedUser(feideAccessToken: Option[FeideAccessToken]): Try[FeideExtendedUserInfo] = permitTry {
-      val accessToken    = getFeideAccessTokenOrFail(feideAccessToken).?
-      val maybeFeideUser = redisClient.getFeideUserFromCache(accessToken).?
+      val accessToken       = getFeideAccessTokenOrFail(feideAccessToken).?
+      val maybeFeideUser    = redisClient.getFeideUserFromCache(accessToken).?
       val feideExtendedUser = (maybeFeideUser match {
         case Some(feideUser) => Success(feideUser)
         case None            => getFeideDataOrFail[FeideExtendedUserInfo](this.fetchFeideExtendedUser(accessToken))
@@ -207,7 +207,7 @@ trait FeideApiClient {
     def getFeideGroups(feideAccessToken: Option[FeideAccessToken]): Try[Seq[FeideGroup]] = permitTry {
       val accessToken      = getFeideAccessTokenOrFail(feideAccessToken).?
       val maybeFeideGroups = redisClient.getGroupsFromCache(accessToken).?
-      val feideGroups = (maybeFeideGroups match {
+      val feideGroups      = (maybeFeideGroups match {
         case Some(groups) => Success(groups)
         case None         => getFeideDataOrFail[Seq[FeideGroup]](this.fetchFeideGroupInfo(accessToken))
       }).?
@@ -217,9 +217,9 @@ trait FeideApiClient {
     def getOrganization(feideAccessToken: Option[FeideAccessToken]): Try[String] = permitTry {
       val accessToken       = getFeideAccessTokenOrFail(feideAccessToken).?
       val maybeOrganization = redisClient.getOrganizationFromCache(accessToken).?
-      val organization = (maybeOrganization match {
+      val organization      = (maybeOrganization match {
         case Some(organization) => Success(organization)
-        case None =>
+        case None               =>
           getFeideDataOrFail[Seq[FeideGroup]](this.fetchFeideGroupInfo(accessToken)).flatMap(findOrganization)
       }).?
       redisClient.updateCacheAndReturnOrganization(accessToken, organization)

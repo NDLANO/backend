@@ -23,9 +23,9 @@ object Layout {
 
 class BufferedLogAppender
     extends AbstractAppender("BufferedAppender", null, Layout.prebuiltLayout, false, Array.empty) {
-  private val logQueue  = ListBuffer.empty[String]
-  def clear(): Unit     = logQueue.clear()
-  def printLogs(): Unit = logQueue.foreach(print)
+  private val logQueue              = ListBuffer.empty[String]
+  def clear(): Unit                 = logQueue.clear()
+  def printLogs(): Unit             = logQueue.foreach(print)
   def getAndClearLogs: List[String] = {
     val toReturn = logQueue.toList
     logQueue.clear()

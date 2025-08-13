@@ -32,7 +32,7 @@ trait UserRepository {
       val u = DBMyNDLAUser.syntax("u")
 
       val teacherClause = Option.when(filterTeachers)(sqls"u.document->>'userRole' = ${UserRole.EMPLOYEE.toString}")
-      val queryClause = query.map(q => {
+      val queryClause   = query.map(q => {
         val qString = s"%$q%"
         sqls"u.document->>'displayName' ilike $qString or u.document->>'username' ilike $qString"
       })
@@ -100,7 +100,7 @@ trait UserRepository {
         where id=$userId
         """.update()
       } match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)                  => Failure(ex)
         case Success(count) if count == 1 =>
           logger.info(s"Updated user with user_id $userId")
           Success(user)
@@ -123,7 +123,7 @@ trait UserRepository {
                   where feide_id=$feideId
         """.update()
       } match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)                  => Failure(ex)
         case Success(count) if count == 1 =>
           logger.info(s"Updated user with feide_id $feideId")
           Success(user)
@@ -138,7 +138,7 @@ trait UserRepository {
 
     def deleteUser(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[FeideID] = {
       Try(sql"delete from ${DBMyNDLAUser.table} where feide_id = $feideId".update()) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)                      => Failure(ex)
         case Success(numRows) if numRows != 1 =>
           Failure(NotFoundException(s"User with feide_id $feideId does not exist"))
         case Success(_) =>

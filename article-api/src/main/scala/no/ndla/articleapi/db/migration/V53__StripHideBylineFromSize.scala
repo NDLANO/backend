@@ -13,7 +13,7 @@ import org.jsoup.nodes.Element
 
 class V53__StripHideBylineFromSize extends HtmlMigration {
 
-  override val convertVisualElement: Boolean = true
+  override val convertVisualElement: Boolean                        = true
   override def convertHtml(doc: Element, language: String): Element = {
     doc
       .select("ndlaembed[data-resource='image']")

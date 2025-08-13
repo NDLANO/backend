@@ -11,7 +11,7 @@ package no.ndla.conceptapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.DraftCopyrightDTO
+import no.ndla.common.model.api.{DraftCopyrightDTO, ResponsibleDTO}
 import sttp.tapir.Schema.annotations.description
 
 @description("Information about the concept")
@@ -43,7 +43,7 @@ case class ConceptDTO(
     @description("A visual element for the concept")
     visualElement: Option[VisualElementDTO],
     @description("Object with data representing the editor responsible for this concept")
-    responsible: Option[ConceptResponsibleDTO],
+    responsible: Option[ResponsibleDTO],
     @description("Type of concept. 'concept', or 'gloss'")
     conceptType: String,
     @description("Information about the gloss")

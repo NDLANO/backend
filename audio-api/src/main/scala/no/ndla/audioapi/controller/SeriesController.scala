@@ -42,7 +42,7 @@ trait SeriesController {
       .description("Return only results with titles or tags matching the specified query.")
     private val language =
       query[Option[LanguageCode]]("language").description("The ISO 639-1 language code describing language.")
-    private val pageNo = query[Option[Int]]("page").description("The page number of the search hits to display.")
+    private val pageNo   = query[Option[Int]]("page").description("The page number of the search hits to display.")
     private val pageSize = query[Option[Int]]("page-size").description(
       s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
     )

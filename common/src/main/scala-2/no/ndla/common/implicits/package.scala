@@ -119,7 +119,7 @@ package object implicits {
   implicit def eitherDecoder[A: Decoder, B: Decoder]: Decoder[Either[A, B]] = Decoder.instance { c =>
     c.value.as[B] match {
       case Right(value) => Right(Right(value))
-      case Left(_) =>
+      case Left(_)      =>
         c.value.as[A] match {
           case Right(value) => Right(Left(value))
           case Left(_) => Left(DecodingFailure(Reason.CustomReason(s"Could not match ${c.value} to Either type"), c))

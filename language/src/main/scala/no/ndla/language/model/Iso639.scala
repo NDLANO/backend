@@ -28,7 +28,7 @@ object Iso639 {
   }
 
   private def findAlpha3(code: String): Option[Iso639] = {
-    val foundId: Option[Iso639] = iso639Definitions.find(iso => iso.id.equalsIgnoreCase(code))
+    val foundId: Option[Iso639]     = iso639Definitions.find(iso => iso.id.equalsIgnoreCase(code))
     val found639_2t: Option[Iso639] = foundId match {
       case Some(x) => Some(x)
       case None    => iso639Definitions.find(_.part2t.getOrElse("").equalsIgnoreCase(code))

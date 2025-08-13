@@ -54,7 +54,7 @@ trait TaxonomyApiClient {
               Failure(TaxonomyUpdateException("Can't update taxonomy resource when learningpath is missing titles."))
             case Some(mainTitle) =>
               queryNodes(contentUri, user) match {
-                case Failure(ex) => Failure(ex)
+                case Failure(ex)                                                        => Failure(ex)
                 case Success(resources) if resources.isEmpty && createResourceIfMissing =>
                   createAndUpdateResource(learningPath, contentUri, mainTitle, user)
                 case Success(resources) =>
@@ -77,7 +77,7 @@ trait TaxonomyApiClient {
         contentUri = contentUri
       )
       createNode(newResource, user) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)          => Failure(ex)
         case Success(newLocation) =>
           newLocation.split('/').lastOption match {
             case None =>
@@ -240,7 +240,7 @@ trait TaxonomyApiClient {
 
     def updateNode(node: Node, user: Option[TokenUser]): Try[Node] = {
       put[String, Node](s"$TaxonomyApiEndpoint/nodes/${node.id}", node, user) match {
-        case Success(_) => Success(node)
+        case Success(_)                                                               => Success(node)
         case Failure(ex: HttpRequestException) if ex.httpResponse.exists(_.isSuccess) =>
           Success(node)
         case Failure(ex) => Failure(ex)

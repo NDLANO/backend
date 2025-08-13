@@ -14,8 +14,9 @@ import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
+import no.ndla.common.TryUtil.failureIf
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.errors.{MissingIdException, NotFoundException, ValidationException}
+import no.ndla.common.errors.{MissingIdException, NotFoundException, ValidationException, OperationNotAllowedException}
 import no.ndla.common.implicits.{OptionImplicit, TryQuestionMark}
 import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.api.UpdateWith
@@ -25,6 +26,7 @@ import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBL
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.database.DBUtility
+import no.ndla.draftapi.DraftUtil.shouldPartialPublish
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.{AddMultipleNotesDTO, AddNoteDTO, PartialArticleFieldsDTO}
@@ -102,7 +104,7 @@ trait WriteService {
               )
               newTitles = if (usePostFix) article.title.map(t => t.copy(title = t.title + " (Kopi)")) else article.title
               newContents <- contentWithClonedFiles(article.content.toList)
-              newResponsible = Some(Responsible(userInfo.id, clock.now()))
+              newResponsible  = Some(Responsible(userInfo.id, clock.now()))
               articleToInsert = article.copy(
                 id = Some(newId),
                 title = newTitles,
@@ -160,7 +162,7 @@ trait WriteService {
     def newArticle(newArticle: api.NewArticleDTO, user: TokenUser): Try[api.ArticleDTO] = {
       val newNotes      = Some("Opprettet artikkel" +: newArticle.notes.getOrElse(Seq.empty))
       val visualElement = newArticle.visualElement.filter(_.nonEmpty)
-      val withNotes = newArticle.copy(
+      val withNotes     = newArticle.copy(
         notes = newNotes,
         visualElement = visualElement
       )
@@ -178,7 +180,7 @@ trait WriteService {
 
     def updateArticleStatus(status: DraftStatus, id: Long, user: TokenUser): Try[api.ArticleDTO] = {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
-        case None => Failure(api.NotFoundException(s"No article with id $id was found"))
+        case None        => Failure(api.NotFoundException(s"No article with id $id was found"))
         case Some(draft) =>
           for {
             convertedArticle <- converterService.updateStatus(status, draft, user)
@@ -254,7 +256,7 @@ trait WriteService {
           })
 
         result.flatMap { futures =>
-          val fut = Future.sequence(futures)
+          val fut     = Future.sequence(futures)
           val awaited = Try(
             Await
               .result(fut, 1.hour)
@@ -289,12 +291,12 @@ trait WriteService {
       val oldRevisions = oldArticle.map(a => a.revisionMeta).getOrElse(Seq.empty)
       val oldIds       = oldRevisions.map(rm => rm.id).toSet
       val newIds       = updatedArticle.revisionMeta.map(rm => rm.id).toSet
-      val deleted = oldRevisions
+      val deleted      = oldRevisions
         .filterNot(old => newIds.contains(old.id))
         .map(del => common.EditorNote(s"Slettet revisjon ${del.note}.", user.id, updatedArticle.status, clock.now()))
 
       val notes = updatedArticle.revisionMeta.flatMap {
-        case rm if !oldIds.contains(rm.id) && rm.status == common.draft.RevisionStatus.Revised =>
+        case rm if !oldIds.contains(rm.id) && rm.status == common.RevisionStatus.Revised =>
           common
             .EditorNote(
               s"Lagt til og fullført revisjon ${rm.note}.",
@@ -307,7 +309,7 @@ trait WriteService {
           common.EditorNote(s"Lagt til revisjon ${rm.note}.", user.id, updatedArticle.status, clock.now()).some
         case rm =>
           oldRevisions.find(_.id == rm.id) match {
-            case Some(old) if old.status != rm.status && rm.status == common.draft.RevisionStatus.Revised =>
+            case Some(old) if old.status != rm.status && rm.status == common.RevisionStatus.Revised =>
               common
                 .EditorNote(s"Fullført revisjon ${rm.note}.", user.id, updatedArticle.status, clock.now())
                 .some
@@ -327,7 +329,7 @@ trait WriteService {
         oldDraft: Option[Draft]
     ): Boolean = {
       draft.responsible match {
-        case None => false
+        case None              => false
         case Some(responsible) =>
           val oldResponsibleId  = oldDraft.flatMap(_.responsible).map(_.responsibleId)
           val hasNewResponsible = !oldResponsibleId.contains(responsible.responsibleId)
@@ -400,7 +402,7 @@ trait WriteService {
       val fieldsToPartialPublish = shouldPartialPublish(oldArticle, toUpdate)
       val withPartialPublishNote = addPartialPublishNote(toUpdate, user, fieldsToPartialPublish)
       val withRevisionDateNotes  = addRevisionDateNotes(user, withPartialPublishNote, oldArticle)
-      val withStarted = updateStartedField(
+      val withStarted            = updateStartedField(
         withRevisionDateNotes,
         oldArticle,
         statusWasUpdated,
@@ -489,51 +491,6 @@ trait WriteService {
       } yield output
     }
 
-    /** Compares articles to check whether earliest not-revised revision date has changed since that is the only one
-      * article-api cares about.
-      */
-    private def compareRevisionDates(oldArticle: Draft, newArticle: Draft): Boolean = {
-      converterService.getNextRevision(oldArticle) != converterService.getNextRevision(newArticle)
-    }
-
-    private def compareField(
-        field: api.PartialArticleFieldsDTO,
-        old: Draft,
-        changed: Draft
-    ): Option[api.PartialArticleFieldsDTO] = {
-      import api.PartialArticleFieldsDTO.*
-      val shouldInclude = field match {
-        case `availability`    => old.availability != changed.availability
-        case `grepCodes`       => old.grepCodes != changed.grepCodes
-        case `relatedContent`  => old.relatedContent != changed.relatedContent
-        case `tags`            => old.tags.sorted != changed.tags.sorted
-        case `metaDescription` => old.metaDescription.sorted != changed.metaDescription.sorted
-        case `license`         => old.copyright.flatMap(_.license) != changed.copyright.flatMap(_.license)
-        case `revisionDate`    => compareRevisionDates(old, changed)
-        case `published`       => old.published != changed.published
-      }
-
-      Option.when(shouldInclude)(field)
-    }
-
-    /** Returns fields to publish _if_ partial-publishing requirements are satisfied, otherwise returns empty set. */
-    private[service] def shouldPartialPublish(
-        existingArticle: Option[Draft],
-        changedArticle: Draft
-    ): Set[api.PartialArticleFieldsDTO] = {
-      val isPublished = changedArticle.status.current == PUBLISHED || changedArticle.status.other.contains(PUBLISHED)
-
-      if (isPublished) {
-        val changedFields = existingArticle
-          .map(e => api.PartialArticleFieldsDTO.values.flatMap(field => compareField(field, e, changedArticle)))
-          .getOrElse(api.PartialArticleFieldsDTO.values)
-
-        changedFields.toSet
-      } else {
-        Set.empty
-      }
-    }
-
     private[service] def updateStatusIfNeeded(
         convertedArticle: Draft,
         existingArticle: Draft,
@@ -602,7 +559,7 @@ trait WriteService {
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case Some(article) =>
           article.title.size match {
-            case 1 => Failure(api.OperationNotAllowedException("Only one language left"))
+            case 1 => Failure(OperationNotAllowedException("Only one language left"))
             case _ =>
               for {
                 newArticle <- converterService.deleteLanguage(article, language, userInfo)
@@ -806,7 +763,7 @@ trait WriteService {
             ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))
           val partialArticle = partialArticleFieldsUpdate(article, fieldsToPublish, language)
           val requestInfo    = RequestInfo.fromThreadContext()
-          val fut = Future {
+          val fut            = Future {
             requestInfo.setThreadContextRequestInfo()
             articleApiClient.partialPublishArticle(id, partialArticle, user)
           }
@@ -850,7 +807,7 @@ trait WriteService {
 
         case Success(res) =>
           val successes = res.collect { case (id, Success(_)) => id }
-          val failures = res.collect { case (id, Failure(ex)) =>
+          val failures  = res.collect { case (id, Failure(ex)) =>
             logger.error(s"Partial publishing $id failed with ${ex.getMessage}", ex)
             api.PartialPublishFailureDTO(id, ex.getMessage)
           }
@@ -864,7 +821,7 @@ trait WriteService {
       }
     }
 
-    private def getRevisionMetaForUrn(node: Node): Seq[common.draft.RevisionMeta] = {
+    private def getRevisionMetaForUrn(node: Node): Seq[common.RevisionMeta] = {
       node.contentUri match {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
@@ -881,7 +838,7 @@ trait WriteService {
 
     def copyRevisionDates(publicId: String): Try[Unit] = {
       taxonomyApiClient.getNode(publicId) match {
-        case Failure(_) => Failure(api.NotFoundException(s"No topics with id $publicId"))
+        case Failure(_)     => Failure(api.NotFoundException(s"No topics with id $publicId"))
         case Success(topic) =>
           val revisionMeta = getRevisionMetaForUrn(topic)
           if (revisionMeta.nonEmpty) {
@@ -895,7 +852,24 @@ trait WriteService {
       }
     }
 
-    private def setRevisions(entity: Node, revisions: Seq[common.draft.RevisionMeta]): Try[?] = {
+    def deleteCurrentRevision(id: Long): Try[Unit] = DBUtil.rollbackOnFailure { implicit session =>
+      lazy val missingRevisionError = api.NotFoundException(s"No revision found for article with id $id")
+      lazy val partialPublishError  =
+        OperationNotAllowedException("The previous revision has been partially published")
+      lazy val publishedDeleteError = OperationNotAllowedException("Cannot delete a published revision")
+      for {
+        (current, previous) <- draftRepository.getCurrentAndPreviousRevision(id)
+        revision            <- current.revision.toTry(missingRevisionError)
+        _                   <- failureIf(shouldPartialPublish(Some(previous), current).nonEmpty, partialPublishError)
+        _                   <- failureIf(current.status.current == PUBLISHED, publishedDeleteError)
+        _                   <- draftRepository.deleteArticleRevision(id, revision)
+        _                   <-
+          if (previous.status.current == PUBLISHED) { draftRepository.storeArticleAsNewVersion(previous, None) }
+          else { Success(()) }
+      } yield ()
+    }
+
+    private def setRevisions(entity: Node, revisions: Seq[common.RevisionMeta]): Try[?] = {
       val updateResult = entity.contentUri match {
         case Some(contentUri) =>
           parseArticleIdAndRevision(contentUri) match {
@@ -915,7 +889,7 @@ trait WriteService {
       })
     }
 
-    private def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.draft.RevisionMeta]): Try[?] = {
+    private def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.RevisionMeta]): Try[?] = {
       draftRepository
         .withId(articleId)(ReadOnlyAutoSession)
         .traverse(article => {

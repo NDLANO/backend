@@ -34,7 +34,7 @@ trait ConverterService {
     def updateSeries(existingSeries: domain.Series, updatedSeries: api.NewSeriesDTO): domain.Series = {
       val newTitle       = common.Title(updatedSeries.title, updatedSeries.language)
       val newDescription = domain.Description(updatedSeries.description, updatedSeries.language)
-      val coverPhoto = domain.CoverPhoto(
+      val coverPhoto     = domain.CoverPhoto(
         imageId = updatedSeries.coverPhotoId,
         altText = updatedSeries.coverPhotoAltText
       )
@@ -151,7 +151,7 @@ trait ConverterService {
     def toApiLicence(licenseAbbrevation: String): commonApi.LicenseDTO = {
       getLicense(licenseAbbrevation) match {
         case Some(license) => commonApi.LicenseDTO(license.license.toString, Option(license.description), license.url)
-        case None =>
+        case None          =>
           logger.warn("Could not retrieve license information for {}", licenseAbbrevation)
           commonApi.LicenseDTO("unknown", None, None)
       }
@@ -255,7 +255,7 @@ trait ConverterService {
     )(implicit mf: Manifest[DomainType]): Try[DomainType] = {
       findByLanguageOrBestEffort(fields, language.getOrElse(DefaultLanguage)) match {
         case Some(field) => Success(field)
-        case None =>
+        case None        =>
           Failure(
             CouldNotFindLanguageException(
               s"Could not find value for '${mf.runtimeClass.getName}' field. This is a data inconsistency or a bug."

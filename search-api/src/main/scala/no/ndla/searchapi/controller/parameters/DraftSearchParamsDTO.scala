@@ -16,6 +16,7 @@ import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.model.domain.Priority
 
 case class DraftSearchParamsDTO(
     @description("The page number of the search hits to display.")
@@ -91,10 +92,8 @@ case class DraftSearchParamsDTO(
     responsibleIds: Option[List[String]],
     @description("Filter out inactive taxonomy contexts.")
     filterInactive: Option[Boolean],
-    @description("Set to true to only return prioritized articles")
-    prioritized: Option[Boolean],
     @description("List of priority-levels to filter by.")
-    priority: Option[List[String]],
+    priority: Option[List[Priority]],
     @description("A list of parent topics the learning resources should be filtered by.")
     topics: Option[List[String]],
     @description("Return only results having published date after this date.")

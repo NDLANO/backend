@@ -149,9 +149,9 @@ trait BaseIndexService {
     def reindexWithShards(numShards: Int): Try[?] = {
       logger.info(s"Internal reindexing $searchIndex with $numShards shards...")
       val maybeAliasTarget = getAliasTarget.?
-      val currentIndex = maybeAliasTarget match {
+      val currentIndex     = maybeAliasTarget match {
         case Some(target) => target
-        case None =>
+        case None         =>
           logger.info(s"No existing $searchIndex index to reindex from")
           return Success(())
       }
@@ -169,7 +169,7 @@ trait BaseIndexService {
       case None        => createIndexAndAlias(indexShards.some)
     }
 
-    def createIndexAndAlias(): Try[String] = createIndexAndAlias(None)
+    def createIndexAndAlias(): Try[String]                            = createIndexAndAlias(None)
     def createIndexAndAlias(numberOfShards: Option[Int]): Try[String] = for {
       newIndex <- createIndexWithGeneratedName(numberOfShards)
       _        <- updateAliasTarget(None, newIndex)
@@ -188,7 +188,7 @@ trait BaseIndexService {
     }
 
     def updateReplicaNumber(overrideReplicaNumber: Int): Try[?] = getAliasTarget.flatMap {
-      case None => Success(())
+      case None            => Success(())
       case Some(indexName) =>
         updateReplicaNumber(indexName, overrideReplicaNumber.some)
     }
@@ -246,8 +246,8 @@ trait BaseIndexService {
     def cleanupIndexes(indexName: String = searchIndex): Try[String] = {
       e4sClient.execute(getAliases()) match {
         case Success(s) =>
-          val indexes             = s.result.mappings.filter(_._1.name.startsWith(indexName))
-          val unreferencedIndexes = indexes.filter(_._2.isEmpty).map(_._1.name).toList
+          val indexes                             = s.result.mappings.filter(_._1.name.startsWith(indexName))
+          val unreferencedIndexes                 = indexes.filter(_._2.isEmpty).map(_._1.name).toList
           val (aliasTarget, aliasIndexesToDelete) = indexes.filter(_._2.nonEmpty).map(_._1.name) match {
             case head :: tail =>
               (head, tail)
@@ -282,8 +282,8 @@ trait BaseIndexService {
 
     def deleteAlias(): Try[Option[String]] = {
       getAliasTarget match {
-        case Failure(ex)   => Failure(ex)
-        case Success(None) => Success(None)
+        case Failure(ex)             => Failure(ex)
+        case Success(None)           => Success(None)
         case Success(Some(toDelete)) =>
           e4sClient.execute(removeAlias(searchIndex, toDelete)) match {
             case Failure(ex) => Failure(ex)
@@ -301,7 +301,7 @@ trait BaseIndexService {
 
     def deleteIndexWithName(optIndexName: Option[String]): Try[?] = {
       optIndexName match {
-        case None => Success(optIndexName)
+        case None            => Success(optIndexName)
         case Some(indexName) =>
           if (!indexWithNameExists(indexName).getOrElse(false)) {
             Failure(new IllegalArgumentException(s"No such index: $indexName"))

@@ -105,7 +105,7 @@ trait StateTransitionRules {
         .filter(t => user.hasPermissions(t.requiredPermissions))
 
     private def validateTransition(current: DomainConcept, transition: StateTransition): Try[Unit] = {
-      val statusRequiresResponsible = ConceptStatus.thatRequiresResponsible.contains(transition.to)
+      val statusRequiresResponsible       = ConceptStatus.thatRequiresResponsible.contains(transition.to)
       val statusFromPublishedToInProgress =
         current.status.current == PUBLISHED && transition.to == IN_PROGRESS
       if (statusRequiresResponsible && current.responsible.isEmpty && !statusFromPublishedToInProgress) {
@@ -150,7 +150,7 @@ trait StateTransitionRules {
         case Some(t) =>
           validateTransition(current, t) match {
             case Failure(ex) => (Failure(ex), Seq.empty)
-            case Success(_) =>
+            case Success(_)  =>
               val currentToOther =
                 if (t.addCurrentStateToOthersOnTransition) Set(current.status.current)
                 else Set.empty

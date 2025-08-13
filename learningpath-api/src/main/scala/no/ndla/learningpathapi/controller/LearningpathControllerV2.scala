@@ -61,7 +61,9 @@ trait LearningpathControllerV2 {
       query[LanguageCode]("language")
         .description("The ISO 639-1 language code describing language.")
         .default(LanguageCode(Language.AllLanguages))
-    private val sort = query[Option[String]]("sort").description(
+    private val pathLanguage =
+      path[LanguageCode].description("The ISO 639-1 language describing language.")
+    val sort = query[Option[String]]("sort").description(
       s"""The sorting used on results.
              The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
@@ -90,7 +92,7 @@ trait LearningpathControllerV2 {
       .description("Create taxonomy resource if missing for learningPath")
       .default(false)
     private val learningPathStatus = path[String]("STATUS").description("Status of LearningPaths")
-    private val scrollId = query[Option[String]]("search-context")
+    private val scrollId           = query[Option[String]]("search-context")
       .description(
         s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
             .mkString("[", ",", "]")}.
@@ -155,6 +157,7 @@ trait LearningpathControllerV2 {
             fallback = fallback,
             verificationStatus = verificationStatus,
             shouldScroll = shouldScroll,
+            articleId = None,
             status = List(learningpath.LearningPathStatus.PUBLISHED)
           )
         case None =>
@@ -170,6 +173,7 @@ trait LearningpathControllerV2 {
             fallback = fallback,
             verificationStatus = verificationStatus,
             shouldScroll = shouldScroll,
+            articleId = None,
             status = List(learningpath.LearningPathStatus.PUBLISHED)
           )
       }
@@ -204,6 +208,7 @@ trait LearningpathControllerV2 {
       addLearningStep(),
       updateLearningStep(),
       updatedLearningstepSeqNo,
+      deleteLearningStepLanguage(),
       updateLearningStepStatus(),
       updateLearningPathStatus(),
       withStatus,
@@ -424,7 +429,7 @@ trait LearningpathControllerV2 {
       .serverLogicPure { license =>
         val licenses: Seq[LicenseDefinition] =
           license match {
-            case None => mapping.License.getLicenses
+            case None         => mapping.License.getLicenses
             case Some(filter) =>
               mapping.License.getLicenses
                 .filter(_.license.toString.contains(filter))
@@ -442,7 +447,7 @@ trait LearningpathControllerV2 {
       .withRequiredMyNDLAUserOrTokenUser
       .serverLogicPure { user => newLearningPath =>
         updateService.addLearningPathV2(newLearningPath, user) match {
-          case Failure(ex) => returnLeftError(ex)
+          case Failure(ex)           => returnLeftError(ex)
           case Success(learningPath) =>
             logger.info(s"CREATED LearningPath with ID =  ${learningPath.id}")
             val headers = DynamicHeaders.fromValue("Location", learningPath.metaUrl)
@@ -528,6 +533,27 @@ trait LearningpathControllerV2 {
             .updateLearningStepV2(pathId, stepId, updatedLearningStep, user)
             .map(learningStep => {
               logger.info(s"UPDATED LearningStep with ID = $stepId for LearningPath with ID = $pathId")
+              learningStep
+            })
+            .handleErrorsOrOk
+        }
+      }
+
+    def deleteLearningStepLanguage(): ServerEndpoint[Any, Eff] = endpoint.delete
+      .summary("Delete given learningstep language")
+      .description("Deletes the given learningStep language")
+      .in(pathLearningpathId / "learningsteps" / pathLearningstepId / "language" / pathLanguage)
+      .out(jsonBody[LearningStepV2DTO])
+      .errorOut(errorOutputsFor(400, 401, 403, 404, 422, 502))
+      .withRequiredMyNDLAUserOrTokenUser
+      .serverLogicPure { user =>
+        { case (pathId, stepId, language) =>
+          updateService
+            .deleteLearningStepLanguage(pathId, stepId, language.code, user)
+            .map(learningStep => {
+              logger.info(
+                s"DELETED LearningStep language ${language.code} for LearningStep with ID = $stepId for LearningPath with ID $pathId"
+              )
               learningStep
             })
             .handleErrorsOrOk
@@ -626,7 +652,7 @@ trait LearningpathControllerV2 {
           DefaultLanguage
         ) match {
           case Failure(ex) => returnLeftError(ex)
-          case Success(_) =>
+          case Success(_)  =>
             logger.info(s"MARKED LearningPath with ID: $pathId as DELETED")
             ().asRight
         }
@@ -643,7 +669,7 @@ trait LearningpathControllerV2 {
         { case (pathId, stepId) =>
           updateService.updateLearningStepStatusV2(pathId, stepId, StepStatus.DELETED, user) match {
             case Failure(ex) => returnLeftError(ex)
-            case Success(_) =>
+            case Success(_)  =>
               logger.info(s"MARKED LearningStep with id: $stepId for LearningPath with id: $pathId as DELETED")
               ().asRight
           }
@@ -707,20 +733,7 @@ trait LearningpathControllerV2 {
       .out(jsonBody[Seq[LearningPathSummaryV2DTO]])
       .errorOut(errorOutputsFor(400, 500))
       .serverLogicPure { articleId =>
-        val nodes = taxonomyApiClient.queryNodes(articleId).getOrElse(List.empty).flatMap(_.paths)
-        val plainPaths = List(
-          s"/article-iframe/*/$articleId",
-          s"/article-iframe/*/$articleId/",
-          s"/article-iframe/*/$articleId/\\?*",
-          s"/article-iframe/*/$articleId\\?*",
-          s"/article/$articleId"
-        )
-        val paths = nodes ++ plainPaths
-
-        searchService.containsPath(paths) match {
-          case Success(result) => result.results.asRight
-          case Failure(ex)     => returnLeftError(ex)
-        }
+        searchService.containsArticle(articleId).handleErrorsOrOk
       }
   }
 }

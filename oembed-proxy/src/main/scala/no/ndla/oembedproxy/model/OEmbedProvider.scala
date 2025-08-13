@@ -41,7 +41,7 @@ case class OEmbedProvider(
         val embedUrl = endpoint.url.replace("{format}", "json") // Some providers have {format} instead of ?format=
         val width    = maxWidth.map(("maxwidth", _)).toList
         val height   = maxHeight.map(("maxheight", _)).toList
-        val params = List(("url", url), ("format", "json")) ++ endpoint.mandatoryQueryParams.getOrElse(
+        val params   = List(("url", url), ("format", "json")) ++ endpoint.mandatoryQueryParams.getOrElse(
           List.empty
         ) ++ width ++ height
         Url.parse(embedUrl).addParams(params).toString

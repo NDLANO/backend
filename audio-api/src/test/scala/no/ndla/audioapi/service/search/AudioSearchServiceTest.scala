@@ -27,7 +27,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val audioSearchService = new AudioSearchService
+  override val audioSearchService                   = new AudioSearchService
   override val audioIndexService: AudioIndexService = new AudioIndexService {
     override val indexShards = 1
   }
@@ -440,7 +440,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val license            = "gnu"
     val tag                = "synge"
     val supportedLanguages = Seq("nb")
-    val hitString =
+    val hitString          =
       s"""{"podcastMeta":[],"filePaths":[],"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","audioType":"$audioType", "authors":["DC Comics"], "lastUpdated": "2018-12-07T17:35:51Z"}"""
 
     val result = audioSearchService.hitToApiModel(hitString, "nb")

@@ -67,7 +67,7 @@ trait IndexService {
 
     private def sendToElastic(indexName: String): Try[BulkIndexResult] = {
       for {
-        ranges <- getRanges
+        ranges  <- getRanges
         indexed <- ranges.traverse { case (start, end) =>
           val toIndex = repository.documentsWithIdBetween(start, end)
           indexDocuments(toIndex, indexName).map(numIndexed => (numIndexed, toIndex.size))

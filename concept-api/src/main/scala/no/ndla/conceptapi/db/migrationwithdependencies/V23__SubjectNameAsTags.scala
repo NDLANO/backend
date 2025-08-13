@@ -38,7 +38,7 @@ class V23__SubjectNameAsTags(
 
   lazy val subjects: List[TaxonomySubject] = prefetchedSubjects match {
     case Some(value) => value
-    case None =>
+    case None        =>
       val request  = quickRequest.get(uri"${properties.TaxonomyUrl}/v1/nodes?nodeType=SUBJECT")
       val response = simpleHttpClient.send(request)
       CirceUtil.unsafeParseAs[List[TaxonomySubject]](response.body)

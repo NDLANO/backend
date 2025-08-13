@@ -1,0 +1,56 @@
+package build.modules
+
+import mill.*
+import mill.api.BuildCtx
+import mill.scalalib.*
+import os.Path
+import scala.util.{Failure, Success, Try}
+import scala.io.Source
+
+trait AutoEnvLoading extends ScalaModule {
+  def moduleName: String
+
+  private def removeQuotes(value: String): String = value.trim match {
+    case quoted if quoted.startsWith("'") && quoted.endsWith("'")   => quoted.substring(1, quoted.length - 1)
+    case quoted if quoted.startsWith("\"") && quoted.endsWith("\"") => quoted.substring(1, quoted.length - 1)
+    case unquoted                                                   => unquoted
+  }
+
+  private val envFilePaths = Seq(
+    BuildCtx.workspaceRoot / ".env",
+    BuildCtx.workspaceRoot / s".env.$moduleName",
+    BuildCtx.workspaceRoot / moduleName / ".env"
+  )
+
+  private def envFileLines = Task.Input {
+    println(s"Loading environment variables from: ${envFilePaths.mkString("[", ", ", "]")}")
+    envFilePaths
+      .flatMap { filename =>
+        if (!os.exists(filename)) {
+          Seq.empty
+        } else {
+          os.read.lines(filename)
+        }
+      }
+  }
+
+  private def loadedEnvMap = Task {
+    envFileLines().foldLeft(Map.empty[String, String]) { case (acc, cur) =>
+      val withoutExport = cur.stripPrefix("export ")
+      val splitByEqual  = withoutExport.split("=")
+      if (withoutExport.strip().startsWith("#")) {
+        acc
+      } else if (splitByEqual.length > 1) {
+        val key   = splitByEqual.head
+        val value = removeQuotes(splitByEqual.tail.mkString("="))
+        acc + (key -> value)
+      } else {
+        acc
+      }
+    }
+  }
+
+  override def forkEnv = Task {
+    super.forkEnv() ++ loadedEnvMap()
+  }
+}

@@ -1,0 +1,25 @@
+package build.`draft-api`
+
+import mill._, mill.scalalib._
+import build.modules.{BaseModule, SharedDependencies, DockerComponent}
+
+object `package` extends BaseModule, DockerComponent {
+  override def moduleName  = "draft-api"
+  def mvnDeps: T[Seq[Dep]] =
+    SharedDependencies.logging ++
+      SharedDependencies.enumeratum ++
+      SharedDependencies.tapirHttp4sCirce ++
+      SharedDependencies.database ++
+      Seq(
+        SharedDependencies.scalaUri,
+        SharedDependencies.sttp,
+        SharedDependencies.jsoup,
+        SharedDependencies.catsEffect,
+        SharedDependencies.awsS3
+      )
+  override def moduleDeps =
+    Seq(build.common, build.network, build.mapping, build.language, build.validation, build.search, build.database)
+  object test extends TestBase {
+    override def moduleDeps = super.moduleDeps ++ Seq(build.tapirtesting, build.scalatestsuite)
+  }
+}

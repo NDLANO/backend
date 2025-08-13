@@ -1,0 +1,11 @@
+package build.mapping
+
+import mill._, mill.scalalib._
+import build.modules.{BaseModule, SharedDependencies}
+
+object `package` extends BaseModule {
+  override def moduleName           = "mapping"
+  override def isComponent: Boolean = false
+  def mvnDeps: T[Seq[Dep]]          = SharedDependencies.logging
+  object test extends TestBase
+}

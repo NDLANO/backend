@@ -39,7 +39,7 @@ trait LearningPathValidator {
 
     def validate(updateLearningPath: UpdatedLearningPathV2DTO): Unit = {
       languageValidator.validate("language", updateLearningPath.language, allowUnknownLanguage = true) match {
-        case None =>
+        case None                    =>
         case Some(validationMessage) =>
           throw new ValidationException(errors = Seq(validationMessage))
       }
@@ -62,7 +62,7 @@ trait LearningPathValidator {
     ): Seq[ValidationMessage] = {
       (descriptionRequired, descriptions.isEmpty) match {
         case (false, true) => List()
-        case (true, true) =>
+        case (true, true)  =>
           List(ValidationMessage("description", MISSING_DESCRIPTION))
         case (_, false) =>
           descriptions.flatMap(description => {

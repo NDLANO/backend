@@ -79,7 +79,7 @@ trait InternController {
         val articleIndex = Future { articleIndexService.findAllIndexes(props.ArticleSearchIndex) }
 
         Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
-          case Failure(articleFail) => Left(articleFail.getMessage)
+          case Failure(articleFail)    => Left(articleFail.getMessage)
           case Success(articleIndexes) =>
             val deleteResults = articleIndexes.map(index => {
               logger.info(s"Deleting article index $index")

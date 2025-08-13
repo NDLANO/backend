@@ -51,7 +51,7 @@ object TagValidator {
     val tagAttributeRules = HtmlTagRules.tagAttributesForTagType(html.tagName).getOrElse(TagAttributeRules.empty)
 
     val missingAttributes = getMissingAttributes(tagAttributeRules.required, legalAttributesUsed.keys.toSet)
-    val missingErrors = missingAttributes
+    val missingErrors     = missingAttributes
       .map(missingAttributes =>
         ValidationMessage(
           fieldName,
@@ -120,7 +120,7 @@ object TagValidator {
       )
     }
 
-    val resourceType = ResourceType.withNameOption(attributes(TagAttribute.DataResource)).get
+    val resourceType         = ResourceType.withNameOption(attributes(TagAttribute.DataResource)).get
     val attributeRulesForTag = EmbedTagRules
       .attributesForResourceType(resourceType)
       .withOptionalRequired(requiredToOptional.getOrElse(resourceType.toString, Seq.empty))
@@ -141,7 +141,7 @@ object TagValidator {
         .getOrElse(Right(true))
 
       if (parentEither.getOrElse(true)) {
-        val parent = embed.parent()
+        val parent                             = embed.parent()
         val expectedButMissingParentAttributes = parentRule.requiredAttr.filterNot { case (attrKey, attrVal) =>
           parent.attr(attrKey) == attrVal
         }
@@ -305,7 +305,7 @@ object TagValidator {
     val legalAttributesForTag = HtmlTagRules.tagAttributesForTagType(tagName).getOrElse(TagAttributeRules.empty)
 
     val illegalAttributesUsed: Set[String] = attributes.keySet.diff(legalAttributeKeys)
-    val legalOptionalAttributesUsed =
+    val legalOptionalAttributesUsed        =
       attributes.keySet.intersect(legalAttributesForTag.optional.map(_.name.entryName))
 
     val illegalTagsError = if (illegalAttributesUsed.nonEmpty) {
@@ -435,7 +435,7 @@ object TagValidator {
         .map(tag => {
           val optionalField = attrsRules.optional.filter(_.name.eq(tag))
           val optionGroup   = optionalField.flatMap(f => f.validation.mustCoexistWith :+ f.name)
-          val groupErrors =
+          val groupErrors   =
             s"${optionGroup.mkString(", ")} (Missing: ${optionGroup.diff(usedOptionals).mkString(", ")})"
           ValidationMessage(
             fieldName,
@@ -477,7 +477,7 @@ object TagValidator {
     value.toBooleanOption match {
       case Some(_)                                             => None
       case None if !field.validation.required && value.isEmpty => None
-      case None =>
+      case None                                                =>
         Some(
           ValidationMessage(
             fieldName,
@@ -499,7 +499,7 @@ object TagValidator {
     value.matches(emailRegex) match {
       case true                                                 => None
       case false if !field.validation.required && value.isEmpty => None
-      case false =>
+      case false                                                =>
         Some(
           ValidationMessage(
             fieldName,
@@ -519,7 +519,7 @@ object TagValidator {
   ): Option[ValidationMessage] = parser.parse(value) match {
     case Right(_)                                         => None
     case _ if !field.validation.required && value.isEmpty => None
-    case _ =>
+    case _                                                =>
       Some(
         ValidationMessage(
           fieldName,
@@ -539,7 +539,7 @@ object TagValidator {
     value.matches(listRegex) match {
       case true                                                 => None
       case false if !field.validation.required && value.isEmpty => None
-      case false =>
+      case false                                                =>
         Some(
           ValidationMessage(
             fieldName,
@@ -560,7 +560,7 @@ object TagValidator {
     value.toDoubleOption match {
       case Some(_)                                             => None
       case None if !field.validation.required && value.isEmpty => None
-      case None =>
+      case None                                                =>
         Some(
           ValidationMessage(
             fieldName,

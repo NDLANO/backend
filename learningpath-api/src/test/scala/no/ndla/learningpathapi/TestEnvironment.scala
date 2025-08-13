@@ -9,7 +9,8 @@
 package no.ndla.learningpathapi
 
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.common.Clock
+import no.ndla.common.converter.CommonConverter
+import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.learningpathapi.controller.{InternController, LearningpathControllerV2, StatsController}
 import no.ndla.learningpathapi.integration.*
@@ -24,6 +25,7 @@ import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
+import no.ndla.database.DBUtility
 
 trait TestEnvironment
     extends TapirApplication
@@ -33,6 +35,7 @@ trait TestEnvironment
     with FeideApiClient
     with ReadService
     with UpdateService
+    with DBUtility
     with SearchConverterServiceComponent
     with SearchService
     with SearchLanguage
@@ -41,12 +44,14 @@ trait TestEnvironment
     with SearchApiClient
     with TaxonomyApiClient
     with NdlaClient
+    with CommonConverter
     with ConverterService
     with OembedProxyClient
     with Elastic4sClient
     with DataSource
     with MockitoSugar
     with Clock
+    with UUIDUtil
     with LanguageValidator
     with LearningPathValidator
     with LearningStepValidator
@@ -73,6 +78,7 @@ trait TestEnvironment
   val searchIndexService: SearchIndexService                           = mock[SearchIndexService]
   val converterService: ConverterService                               = org.mockito.Mockito.spy(new ConverterService)
   val clock: SystemClock                                               = mock[SystemClock]
+  val uuidUtil: UUIDUtil                                               = mock[UUIDUtil]
   val taxonomyApiClient: TaxonomyApiClient                             = mock[TaxonomyApiClient]
   val ndlaClient: NdlaClient                                           = mock[NdlaClient]
   val languageValidator: LanguageValidator                             = mock[LanguageValidator]
@@ -89,6 +95,7 @@ trait TestEnvironment
   val feideApiClient: FeideApiClient                                   = mock[FeideApiClient]
   val redisClient: RedisClient                                         = mock[RedisClient]
   val myndlaApiClient: MyNDLAApiClient                                 = mock[MyNDLAApiClient]
+  val DBUtil: DBUtility                                                = mock[DBUtility]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]

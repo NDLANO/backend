@@ -52,18 +52,3 @@ The following files are the used as input to this library:
 To update this library, download the above mentioned files, and run ./generator/generate.py
 
 This will regenerate the content of CodeLists and adjacent files.
-
-## Compile
-    sbt compile
-
-## Run tests
-    sbt test
-
-## Publish component locally for testing with other components
-    sbt publishLocal
-
-## Build
-    ./build.sh
-
-## Publish
-    ./release.sh

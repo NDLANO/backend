@@ -30,7 +30,7 @@ abstract class HtmlMigration extends DocumentMigration {
   }
 
   def convertColumn(document: String): String = {
-    val oldArticle = parser.parse(document).flatMap(_.as[Draft]).toTry.get
+    val oldArticle       = parser.parse(document).flatMap(_.as[Draft]).toTry.get
     val convertedContent = oldArticle.content.map(c => {
       val converted = convertContent(c.content, c.language)
       c.copy(content = converted)

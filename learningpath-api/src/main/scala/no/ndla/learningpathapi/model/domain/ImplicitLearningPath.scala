@@ -48,7 +48,7 @@ object ImplicitLearningPath {
 
     def canEdit(userInfo: CombinedUser): Boolean = canEditLearningpath(userInfo).isSuccess
 
-    private def lsLength: Int = learningpath.learningsteps.map(_.length).getOrElse(0)
+    private def lsLength: Int           = learningpath.learningsteps.map(_.length).getOrElse(0)
     def validateSeqNo(seqNo: Int): Unit = {
       if (seqNo < 0 || seqNo > lsLength - 1) {
         throw new ValidationException(

@@ -19,7 +19,7 @@ trait ErrorHandling extends TapirErrorHandling with StrictLogging {
 
   import ErrorHelpers.*
 
-  private val statusCodesToPassAlong = List(401, 403, 404, 410)
+  private val statusCodesToPassAlong                                                      = List(401, 403, 404, 410)
   private def getRequestExceptionStatusCode(exception: HttpRequestException): Option[Int] =
     exception.httpResponse.map(_.code.code) match {
       case Some(value) if statusCodesToPassAlong.contains(value) => Some(value)

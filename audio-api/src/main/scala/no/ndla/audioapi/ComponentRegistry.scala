@@ -62,7 +62,7 @@ class ComponentRegistry(properties: AudioApiProperties)
     with NdlaAWSTranscribeClient
     with NdlaBrightcoveClient {
   override val props: AudioApiProperties = properties
-  override val migrator: DBMigrator = DBMigrator(
+  override val migrator: DBMigrator      = DBMigrator(
     new V5__AddAgreementToAudio,
     new V6__TranslateUntranslatedAuthors
   )

@@ -114,7 +114,7 @@ trait ImageControllerV3 {
       }
       for {
         searchResult <- imageSearchService.matchingQueryV3(settings, user)
-        output <- searchConverterService.asApiSearchResultV3(
+        output       <- searchConverterService.asApiSearchResultV3(
           searchResult,
           language,
           user
@@ -194,44 +194,43 @@ trait ImageControllerV3 {
       .out(jsonBody[SearchResultV3DTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .withOptionalUser
-      .serverLogicPure {
-        user =>
-          { searchParams =>
-            val language = searchParams.language.getOrElse(LanguageCode(Language.AllLanguages))
-            val fallback = searchParams.fallback.getOrElse(false)
+      .serverLogicPure { user =>
+        { searchParams =>
+          val language = searchParams.language.getOrElse(LanguageCode(Language.AllLanguages))
+          val fallback = searchParams.fallback.getOrElse(false)
 
-            scrollSearchOr(searchParams.scrollId, language.code, user) {
-              val minimumSize = searchParams.minimumSize
-              val query       = searchParams.query
-              val license = searchParams.license.orElse {
-                Option.when(searchParams.includeCopyrighted.contains(true))("all")
-              }
-              val pageSize        = searchParams.pageSize
-              val page            = searchParams.page
-              val podcastFriendly = searchParams.podcastFriendly
-              val sort            = searchParams.sort
-              val shouldScroll    = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
-              val modelReleasedStatus =
-                searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
-              val userFilter = searchParams.users.getOrElse(List.empty)
+          scrollSearchOr(searchParams.scrollId, language.code, user) {
+            val minimumSize = searchParams.minimumSize
+            val query       = searchParams.query
+            val license     = searchParams.license.orElse {
+              Option.when(searchParams.includeCopyrighted.contains(true))("all")
+            }
+            val pageSize            = searchParams.pageSize
+            val page                = searchParams.page
+            val podcastFriendly     = searchParams.podcastFriendly
+            val sort                = searchParams.sort
+            val shouldScroll        = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+            val modelReleasedStatus =
+              searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
+            val userFilter = searchParams.users.getOrElse(List.empty)
 
-              searchV3(
-                minimumSize,
-                query,
-                language.code,
-                fallback,
-                license,
-                sort,
-                pageSize,
-                page,
-                podcastFriendly,
-                shouldScroll,
-                modelReleasedStatus,
-                user,
-                userFilter
-              )
-            }.handleErrorsOrOk
-          }
+            searchV3(
+              minimumSize,
+              query,
+              language.code,
+              fallback,
+              license,
+              sort,
+              pageSize,
+              page,
+              podcastFriendly,
+              shouldScroll,
+              modelReleasedStatus,
+              user,
+              userFilter
+            )
+          }.handleErrorsOrOk
+        }
       }
 
     def findByImageIdV3: ServerEndpoint[Any, Eff] = endpoint.get
@@ -361,7 +360,7 @@ trait ImageControllerV3 {
       .out(jsonBody[TagsSearchResultDTO])
       .errorOut(errorOutputsFor(400, 401, 403))
       .serverLogicPure { case (q, pageSizeParam, pageNoParam, language, sortStr) =>
-        val query = q.getOrElse("")
+        val query    = q.getOrElse("")
         val pageSize = pageSizeParam.getOrElse(props.DefaultPageSize) match {
           case tooSmall if tooSmall < 1 => props.DefaultPageSize
           case x                        => x

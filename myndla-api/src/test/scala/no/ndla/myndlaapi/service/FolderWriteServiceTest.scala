@@ -46,7 +46,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("that a user without access cannot delete a folder") {
-    val id = UUID.randomUUID()
+    val id                 = UUID.randomUUID()
     val folderWithChildren =
       emptyDomainFolder.copy(
         id = id,
@@ -76,7 +76,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val subFolder1Id = UUID.randomUUID()
     val subFolder2Id = UUID.randomUUID()
     val resourceId   = UUID.randomUUID()
-    val folder =
+    val folder       =
       emptyDomainFolder.copy(id = mainFolderId, feideId = "FEIDE", resources = List.empty, subfolders = List.empty)
     val folderWithChildren =
       folder.copy(
@@ -126,7 +126,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val subFolder1Id = UUID.randomUUID()
     val subFolder2Id = UUID.randomUUID()
     val resourceId   = UUID.randomUUID()
-    val folder =
+    val folder       =
       emptyDomainFolder.copy(id = mainFolderId, feideId = "FEIDE", resources = List.empty, subfolders = List.empty)
     val folderWithChildren =
       folder.copy(
@@ -291,7 +291,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val folderId     = UUID.randomUUID()
     val resourceId   = UUID.randomUUID()
     val resourcePath = "/subject/1/topic/2/resource/3"
-    val newResource =
+    val newResource  =
       NewResourceDTO(resourceType = ResourceType.Article, path = resourcePath, tags = None, resourceId = "1")
     val resource =
       Resource(
@@ -358,7 +358,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val folderId     = UUID.randomUUID()
     val resourceId   = UUID.randomUUID()
     val resourcePath = "/subject/1/topic/2/resource/3"
-    val newResource =
+    val newResource  =
       NewResourceDTO(resourceType = ResourceType.Article, path = resourcePath, tags = None, resourceId = "1")
     val resource =
       Resource(
@@ -420,7 +420,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val resource1   = emptyDomainResource.copy(id = resource1Id, feideId = "FEIDEF")
     val resource2   = emptyDomainResource.copy(id = resource2Id, feideId = "FEIDEF")
     val resource3   = emptyDomainResource.copy(id = resource3Id, feideId = "FEIDEF")
-    val folder3 = emptyDomainFolder.copy(
+    val folder3     = emptyDomainFolder.copy(
       id = folder3Id,
       feideId = "FEIDEF",
       resources = List(resource2, resource3),
@@ -522,11 +522,11 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("that folder is created if depth count is below the limit") {
-    val created   = clock.now()
-    val feideId   = "FEIDE"
-    val folderId  = UUID.randomUUID()
-    val parentId  = UUID.randomUUID()
-    val newFolder = NewFolderDTO(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
+    val created      = clock.now()
+    val feideId      = "FEIDE"
+    val folderId     = UUID.randomUUID()
+    val parentId     = UUID.randomUUID()
+    val newFolder    = NewFolderDTO(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
     val domainFolder = domain.Folder(
       id = folderId,
       feideId = feideId,
@@ -581,11 +581,11 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("that folder is not created if name already exists as a sibling") {
-    val created   = clock.now()
-    val feideId   = "FEIDE"
-    val folderId  = UUID.randomUUID()
-    val parentId  = UUID.randomUUID()
-    val newFolder = NewFolderDTO(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
+    val created      = clock.now()
+    val feideId      = "FEIDE"
+    val folderId     = UUID.randomUUID()
+    val parentId     = UUID.randomUUID()
+    val newFolder    = NewFolderDTO(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
     val domainFolder = domain.Folder(
       id = folderId,
       feideId = feideId,
@@ -726,7 +726,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       description = None,
       user = None
     )
-    val mergedFolder = existingFolder.copy(status = FolderStatus.SHARED)
+    val mergedFolder  = existingFolder.copy(status = FolderStatus.SHARED)
     val siblingFolder = domain.Folder(
       id = UUID.randomUUID(),
       feideId = feideId,

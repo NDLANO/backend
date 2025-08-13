@@ -281,7 +281,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val date     = NDLADate.now()
     val user     = "ndla124"
     val existing = TestData.elg.copy(updated = date, updatedBy = user)
-    val image = domain.ImageFileData(
+    val image    = domain.ImageFileData(
       id = 123,
       fileName = "Elg.jpg",
       size = 2865539,
@@ -398,7 +398,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val date    = NDLADate.now()
     val imageId = 1L
     val user    = "ndla124"
-    val image = domain.ImageFileData(
+    val image   = domain.ImageFileData(
       id = 1,
       fileName = "yo.jpg",
       size = 123,
@@ -446,7 +446,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(imageIndexService)
     reset(tagIndexService)
 
-    val imageId = 4444.toLong
+    val imageId         = 4444.toLong
     val domainWithImage = domainImageMeta.copy(
       images = Some(
         Seq(
@@ -482,8 +482,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(clock.now()).thenReturn(date)
 
-    val imageId = 5555.toLong
-    val image   = multiLangImage.copy(id = Some(imageId))
+    val imageId       = 5555.toLong
+    val image         = multiLangImage.copy(id = Some(imageId))
     val expectedImage =
       image.copy(
         titles = List(domain.ImageTitle("english", "en"), domain.ImageTitle("norsk", "und")),
@@ -513,7 +513,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(tagIndexService)
 
     val imageId = 6666.toLong
-    val image = multiLangImage.copy(
+    val image   = multiLangImage.copy(
       id = Some(imageId),
       titles = List(domain.ImageTitle("english", "en")),
       captions = List(domain.ImageCaption("english", "en")),
@@ -544,7 +544,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(imageStorage)
     val imageId  = 100L
     val coolDate = NDLADate.now()
-    val upd = UpdateImageMetaInformationDTO(
+    val upd      = UpdateImageMetaInformationDTO(
       language = "nb",
       title = Some("new title"),
       alttext = Missing,
@@ -638,7 +638,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(imageStorage)
     val imageId  = 100L
     val coolDate = NDLADate.now()
-    val upd = UpdateImageMetaInformationDTO(
+    val upd      = UpdateImageMetaInformationDTO(
       language = "nb",
       title = Some("new title"),
       alttext = Missing,

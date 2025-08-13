@@ -26,7 +26,9 @@ import no.ndla.common.model.domain.{
   Tag,
   Title,
   VisualElement,
-  draft
+  draft,
+  RevisionMeta,
+  RevisionStatus
 }
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain.concept.{
@@ -39,8 +41,9 @@ import no.ndla.common.model.domain.concept.{
   GlossExample,
   WordClass
 }
-import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
+import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
 import no.ndla.common.model.domain.learningpath.{
   LearningPath,
   LearningPathStatus,
@@ -51,6 +54,8 @@ import no.ndla.common.model.domain.learningpath.{
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.mapping.License
+import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
@@ -101,7 +106,7 @@ object TestData {
     )
   val today: NDLADate = NDLADate.now().withNano(0)
 
-  val sampleArticleTitle: ArticleApiTitle = ArticleApiTitle("tittell", "tittell", "nb")
+  val sampleArticleTitle: ArticleApiTitle                 = ArticleApiTitle("tittell", "tittell", "nb")
   val sampleArticleVisualElement: ArticleApiVisualElement =
     ArticleApiVisualElement(s"""<$EmbedTagName data-resource="image">""", "nb")
   val sampleArticleIntro: ArticleApiIntro = ArticleApiIntro("intro", "intro", "nb")
@@ -942,6 +947,23 @@ object TestData {
     articleType = ArticleType.FrontpageArticle
   )
 
+  val draft17: Draft = TestData.sampleDraftWithPublicDomain.copy(
+    id = Option(17),
+    status = Status(DraftStatus.UNPUBLISHED, Set.empty),
+    title = List(Title("Engler og demoner", "nb")),
+    slug = Some("engler-og-demoner"),
+    introduction = List(Introduction("Religion", "nb")),
+    metaDescription = List(common.Description("metareligion", "nb")),
+    content = List(
+      ArticleContent("<section><p>Vanlig i gamle testamentet</p></section>", "nb")
+    ),
+    visualElement = List.empty,
+    tags = List(Tag(List("engel"), "nb")),
+    created = today.minusDays(10),
+    updated = today.minusDays(5),
+    articleType = ArticleType.TopicArticle
+  )
+
   val draftsToIndex: List[Draft] = List(
     draft1,
     draft2,
@@ -958,7 +980,8 @@ object TestData {
     draft13,
     draft14,
     draft15,
-    draft16
+    draft16,
+    draft17
   )
 
   val paul: Author                        = Author(ContributorType.Writer, "Truly Weird Rand Paul")
@@ -983,7 +1006,10 @@ object TestData {
     tags = List(),
     owner = "owner",
     copyright = copyright,
-    isMyNDLAOwner = false
+    isMyNDLAOwner = false,
+    responsible = None,
+    comments = Seq.empty,
+    priority = Priority.Unspecified
   )
 
   val PenguinId   = 1L
@@ -992,6 +1018,7 @@ object TestData {
   val UnrelatedId = 4L
   val EnglandoId  = 5L
   val KekId       = 6L
+  val PrivateId   = 7L
 
   val learningPath1: LearningPath = DefaultLearningPath.copy(
     id = Some(PenguinId),
@@ -1051,13 +1078,25 @@ object TestData {
     tags = List()
   )
 
+  val learningPath7: LearningPath = DefaultLearningPath.copy(
+    id = Some(PrivateId),
+    title = List(Title("Private", "en")),
+    description = List(LPDescription("This is private", "en")),
+    duration = Some(1),
+    lastUpdated = today.minusDays(7),
+    tags = List(),
+    status = PRIVATE,
+    owner = "private"
+  )
+
   val learningPathsToIndex: List[LearningPath] = List(
     learningPath1,
     learningPath2,
     learningPath3,
     learningPath4,
     learningPath5,
-    learningPath6
+    learningPath6,
+    learningPath7
   )
 
   val core: Relevance = Relevance("urn:relevance:core", "Kjernestoff", List.empty)
@@ -1758,6 +1797,13 @@ object TestData {
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(
+    user = TokenUser(
+      "xxxyyy",
+      Set(DRAFT_API_WRITE),
+      Some(
+        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJkcmFmdHM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.5jpF98NxQZlkQQ5-rxVO3oTkNOQRQLDlAexyDnLiZFY"
+      )
+    ),
     query = None,
     noteQuery = None,
     fallback = false,
@@ -1789,7 +1835,6 @@ object TestData {
     responsibleIdFilter = List.empty,
     articleTypes = List.empty,
     filterInactive = false,
-    prioritized = None,
     priority = List.empty,
     publishedFilterFrom = None,
     publishedFilterTo = None,
@@ -1873,7 +1918,7 @@ object TestData {
 
   val searchableIntroductions: SearchableLanguageValues    = SearchableLanguageValues.from("en" -> "Wroom wroom")
   val searchableMetaDescriptions: SearchableLanguageValues = SearchableLanguageValues.from("nb" -> "Mammas bil")
-  val searchableTags: SearchableLanguageList = SearchableLanguageList.from("en" -> Seq("Mum", "Car", "Wroom"))
+  val searchableTags: SearchableLanguageList       = SearchableLanguageList.from("en" -> Seq("Mum", "Car", "Wroom"))
   val searchableEmbedAttrs: SearchableLanguageList = SearchableLanguageList.from(
     "nb" -> Seq("En norsk", "To norsk"),
     "en" -> Seq("One english")

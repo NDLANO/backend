@@ -45,7 +45,7 @@ class Memoize[I, R](maxCacheAgeMs: Long, f: I => R) extends StrictLogging {
   def apply(input: I): R = {
     cache.get(input) match {
       case Some(cachedValue) if !cachedValue.isExpired => cachedValue.value
-      case _ =>
+      case _                                           =>
         val fut = isUpdating.get(input) match {
           case Some(value) => value
           case None        => scheduleRenewCache(input)

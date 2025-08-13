@@ -1,0 +1,22 @@
+package build.`myndla-api`
+
+import mill.*
+import mill.scalalib.*
+import build.modules.{BaseModule, DockerComponent, SharedDependencies}
+
+object `package` extends BaseModule, DockerComponent {
+  override def moduleName  = "myndla-api"
+  def mvnDeps: T[Seq[Dep]] =
+    SharedDependencies.logging ++
+      SharedDependencies.enumeratum ++
+      SharedDependencies.tapirHttp4sCirce ++
+      SharedDependencies.database ++
+      Seq(
+        SharedDependencies.sttp,
+        SharedDependencies.scalaUri
+      )
+  override def moduleDeps = Seq(build.common, build.network, build.mapping, build.language, build.database)
+  object test extends TestBase {
+    override def moduleDeps = super.moduleDeps ++ Seq(build.tapirtesting, build.scalatestsuite)
+  }
+}

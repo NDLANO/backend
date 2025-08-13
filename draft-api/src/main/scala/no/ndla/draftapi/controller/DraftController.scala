@@ -51,22 +51,22 @@ trait DraftController {
         .description("The ID of the article to generate a status state machine for")
     private val pathArticleId = path[Long]("article_id").description("Id of the article that is to be fetched")
     private val pathNodeId    = path[String]("node_id").description("Id of the taxonomy node to process")
-    private val articleTypes = listQuery[String]("articleTypes")
+    private val articleTypes  = listQuery[String]("articleTypes")
       .description("Return only articles of specific type(s). To provide multiple types, separate by comma (,).")
     private val articleIds = listQuery[Long]("ids")
       .description(
         "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."
       )
-    private val filter     = query[Option[String]]("filter").description("A filter to include a specific entry")
-    private val filterNot  = query[Option[String]]("filterNot").description("A filter to remove a specific entry")
-    private val pathStatus = path[String]("STATUS").description("An article status")
+    private val filter          = query[Option[String]]("filter").description("A filter to include a specific entry")
+    private val filterNot       = query[Option[String]]("filterNot").description("A filter to remove a specific entry")
+    private val pathStatus      = path[String]("STATUS").description("An article status")
     private val copiedTitleFlag = query[Boolean]("copied-title-postfix")
       .description("Add a string to the title marking this article as a copy, defaults to 'true'.")
       .default(true)
     private val grepCodes = listQuery[String]("grep-codes")
       .description("A comma separated list of codes from GREP API the resources should be filtered by.")
     private val articleSlug = path[String]("slug").description("Slug of the article that is to be fetched.")
-    private val pageNo = query[Int]("page")
+    private val pageNo      = query[Int]("page")
       .description("The page number of the search hits to display.")
       .default(1)
       .validate(Validator.min(1))
@@ -84,7 +84,7 @@ trait DraftController {
       .default(LanguageCode(Language.AllLanguages))
     private val pathLanguage =
       path[LanguageCode]("language").description("The ISO 639-1 language code describing language.")
-    private val license = query[Option[String]]("license").description("Return only results with provided license.")
+    private val license  = query[Option[String]]("license").description("Return only results with provided license.")
     private val fallback = query[Boolean]("fallback")
       .description("Fallback to existing language if language is specified.")
       .default(false)
@@ -107,6 +107,7 @@ trait DraftController {
       getArticlesByIds,
       getArticleById,
       getHistoricArticleById,
+      getArticleRevisionHistory,
       getInternalIdByExternalId,
       newArticle,
       updateArticle,
@@ -119,7 +120,8 @@ trait DraftController {
       copyRevisionDates,
       getArticleBySlug,
       migrateOutdatedGreps,
-      addNotes
+      addNotes,
+      deleteCurrentRevision
     )
 
     /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
@@ -396,6 +398,21 @@ trait DraftController {
         }
       }
 
+    def getArticleRevisionHistory: ServerEndpoint[Any, Eff] = endpoint.get
+      .in(pathArticleId / "revision-history")
+      .summary("Get the revision history for an article")
+      .description("Get an object that describes the revision history for a specific article")
+      .in(language)
+      .in(fallback)
+      .out(jsonBody[ArticleRevisionHistoryDTO])
+      .errorOut(errorOutputsFor(400, 404))
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ =>
+        { case (articleId, language, fallback) =>
+          readService.getArticleRevisionHistory(articleId, language.code, fallback)
+        }
+      }
+
     def getInternalIdByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
       .in("external_id" / path[Long]("deprecated_node_id"))
       .summary("Get internal id of article for a specified ndla_node_id")
@@ -403,14 +420,13 @@ trait DraftController {
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[ContentIdDTO])
       .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure {
-        _ =>
-          { externalId =>
-            readService.getInternalArticleIdByExternalId(externalId) match {
-              case Some(id) => id.asRight
-              case None     => ErrorHelpers.notFoundWithMsg(s"No article with id $externalId").asLeft
-            }
+      .serverLogicPure { _ =>
+        { externalId =>
+          readService.getInternalArticleIdByExternalId(externalId) match {
+            case Some(id) => id.asRight
+            case None     => ErrorHelpers.notFoundWithMsg(s"No article with id $externalId").asLeft
           }
+        }
       }
 
     def getLicenses: ServerEndpoint[Any, Eff] = endpoint.get
@@ -495,17 +511,16 @@ trait DraftController {
       .errorOut(errorOutputsFor(400, 401, 403, 404))
       .out(jsonBody[ContentIdDTO])
       .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure {
-        user =>
-          { params =>
-            val (articleId, importValidate, updateArticle) = params
-            val result = updateArticle match {
-              case Some(art) => contentValidator.validateArticleApiArticle(articleId, art, importValidate, user)
-              case None      => contentValidator.validateArticleApiArticle(articleId, importValidate, user)
-            }
-
-            result
+      .serverLogicPure { user =>
+        { params =>
+          val (articleId, importValidate, updateArticle) = params
+          val result                                     = updateArticle match {
+            case Some(art) => contentValidator.validateArticleApiArticle(articleId, art, importValidate, user)
+            case None      => contentValidator.validateArticleApiArticle(articleId, importValidate, user)
           }
+
+          result
+        }
       }
 
     def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -529,11 +544,10 @@ trait DraftController {
       .out(jsonBody[Map[String, List[String]]])
       .errorOut(errorOutputsFor(401, 403, 404))
       .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure {
-        user =>
-          { id =>
-            converterService.stateTransitionsToApi(user, id)
-          }
+      .serverLogicPure { user =>
+        { id =>
+          converterService.stateTransitionsToApi(user, id)
+        }
       }
 
     def cloneArticle: ServerEndpoint[Any, Eff] = endpoint.post
@@ -638,6 +652,17 @@ trait DraftController {
       .requirePermission(DRAFT_API_WRITE, ARTICLE_API_WRITE)
       .serverLogicPure { user => _ =>
         writeService.migrateOutdatedGreps(user).handleErrorsOrOk
+      }
+
+    def deleteCurrentRevision: ServerEndpoint[Any, Eff] = endpoint.delete
+      .in(pathArticleId / "current-revision")
+      .summary("Delete the current revision of an article")
+      .description("Delete the current revision of an article")
+      .errorOut(errorOutputsFor(404, 422))
+      .out(noContent)
+      .requirePermission(DRAFT_API_WRITE)
+      .serverLogicPure { _ => articleId =>
+        writeService.deleteCurrentRevision(articleId).handleErrorsOrOk
       }
   }
 }

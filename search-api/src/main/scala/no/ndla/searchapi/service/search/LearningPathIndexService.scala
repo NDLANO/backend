@@ -55,6 +55,7 @@ trait LearningPathIndexService {
         intField("duration"),
         keywordField("learningResourceType"),
         keywordField("status"),
+        keywordField("owner"),
         textField("verificationStatus"),
         dateField("lastUpdated"),
         keywordField("defaultTitle"),
@@ -91,7 +92,10 @@ trait LearningPathIndexService {
           keywordField("id"),
           keywordField("language")
         ),
-        dateField("nextRevision.revisionDate") // This is needed for sorting, even if it is never used for learningpaths
+        dateField(
+          "nextRevision.revisionDate"
+        ), // This is needed for sorting, even if it is never used for learningpaths
+        keywordField("priority")
       )
       val dynamics =
         languageValuesMapping("title", keepRaw = true) ++

@@ -49,7 +49,7 @@ class TextValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That TextValidator does not allow any html in plain text") {
-    val textWithHtml = "<strong>This is text with html</strong>"
+    val textWithHtml      = "<strong>This is text with html</strong>"
     val validationMessage =
       noHtmlValidator.validate("path1.path2", textWithHtml)
     validationMessage.isDefined should be(right = true)

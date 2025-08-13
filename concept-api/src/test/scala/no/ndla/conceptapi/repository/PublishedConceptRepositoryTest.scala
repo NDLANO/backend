@@ -58,7 +58,7 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
 
   test("That inserting and updating works") {
     val consistentDate = NDLADate.fromUnixTime(0)
-    val concept1 = TestData.domainConcept.copy(
+    val concept1       = TestData.domainConcept.copy(
       id = Some(10),
       title = Seq(common.Title("Yes", "nb")),
       created = consistentDate,
@@ -89,7 +89,7 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
 
   test("That deletion works as expected") {
     val consistentDate = NDLADate.fromUnixTime(0)
-    val concept1 = TestData.domainConcept.copy(
+    val concept1       = TestData.domainConcept.copy(
       id = Some(10),
       title = Seq(common.Title("Yes", "nb")),
       created = consistentDate,

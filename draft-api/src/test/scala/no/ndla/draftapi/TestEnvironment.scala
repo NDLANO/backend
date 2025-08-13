@@ -11,6 +11,7 @@ package no.ndla.draftapi
 import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.aws.NdlaS3Client
+import no.ndla.common.converter.CommonConverter
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.caching.MemoizeHelpers
@@ -52,6 +53,7 @@ trait TestEnvironment
     with DraftRepository
     with UserDataRepository
     with MockitoSugar
+    with CommonConverter
     with ConverterService
     with StateTransitionRules
     with LearningpathApiClient

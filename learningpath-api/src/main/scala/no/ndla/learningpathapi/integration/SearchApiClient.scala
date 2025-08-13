@@ -45,7 +45,7 @@ trait SearchApiClient {
     def indexLearningPathDocument(document: LearningPath, user: Option[TokenUser]): Future[Try[?]] = {
       val idString                              = document.id.map(_.toString).getOrElse("<missing id>")
       implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(1))
-      val future = Future {
+      val future                                = Future {
         val body = CirceUtil.toJsonString(document)
 
         val req = quickRequest

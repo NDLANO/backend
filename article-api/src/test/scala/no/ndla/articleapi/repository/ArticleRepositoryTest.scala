@@ -83,7 +83,7 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
 
   test("updateArticleFromDraftApi should update all columns with data from draft-api") {
 
-    val externalIds = List("123", "456")
+    val externalIds            = List("123", "456")
     val sampleArticle: Article =
       TestData.sampleDomainArticle.copy(id = Some(5), revision = Some(42))
     val Success(res: Article) = repository.updateArticleFromDraftApi(sampleArticle, externalIds)

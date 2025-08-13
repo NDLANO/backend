@@ -24,7 +24,7 @@ trait TitleValidator {
       (titleRequired, titles.isEmpty) match {
         case (false, true) => List()
         case (true, true)  => List(ValidationMessage("title", MISSING_TITLE))
-        case (_, false) =>
+        case (_, false)    =>
           titles.flatMap(title => validate(title, allowUnknownLanguage))
       }
     }

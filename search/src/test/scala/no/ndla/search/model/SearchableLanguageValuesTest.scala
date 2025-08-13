@@ -79,7 +79,7 @@ class SearchableLanguageValuesTest extends UnitTestSuiteBase {
       )
     )
 
-    val json = searchableLanguageList.asJson.noSpaces
+    val json         = searchableLanguageList.asJson.noSpaces
     val expectedJson =
       """{"nb":["Norsk","Norskere","Norskest"],"nn":["Nynorsk","Nynorskere","Nynorskest"],"en":["English","Englisher","Englishest"]}"""
     json should be(expectedJson)

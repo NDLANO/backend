@@ -103,7 +103,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That toApiLicense converts to an api.License") {
     val licenseAbbr = CC_BY_SA.toString
-    val license = commonApi.LicenseDTO(
+    val license     = commonApi.LicenseDTO(
       licenseAbbr,
       Some("Creative Commons Attribution-ShareAlike 4.0 International"),
       Some("https://creativecommons.org/licenses/by-sa/4.0/")

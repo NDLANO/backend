@@ -124,7 +124,7 @@ trait TaxonomyApiClient {
       for {
         nodes                      <- queryNodes(articleId)
         existingNodeMetadataWithId <- nodes.traverse(res => getMetadata(res.id).map((res.id, _)))
-        _ <- existingNodeMetadataWithId.traverse { case (resId, existingMeta) =>
+        _                          <- existingNodeMetadataWithId.traverse { case (resId, existingMeta) =>
           updateMetadata(resId, existingMeta.copy(visible = visible), user)
         }
       } yield articleId

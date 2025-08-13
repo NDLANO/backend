@@ -100,7 +100,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("addUrlOnResource adds url attribute on file embeds") {
     val filePath = "files/lel/fileste.pdf"
-    val content =
+    val content  =
       s"""<div data-type="file"><$EmbedTagName $resourceAttr="${ResourceType.File}" ${TagAttribute.DataPath}="$filePath" ${TagAttribute.Title}="This fancy pdf"></$EmbedTagName><$EmbedTagName $resourceAttr="${ResourceType.File}" ${TagAttribute.DataPath}="$filePath" ${TagAttribute.Title}="This fancy pdf"></$EmbedTagName></div>"""
     val expectedResult =
       s"""<div data-type="file"><$EmbedTagName $resourceAttr="${ResourceType.File}" ${TagAttribute.DataPath}="$filePath" ${TagAttribute.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath"></$EmbedTagName><$EmbedTagName $resourceAttr="${ResourceType.File}" ${TagAttribute.DataPath}="$filePath" ${TagAttribute.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath"></$EmbedTagName></div>"""
@@ -295,7 +295,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That xml is generated correctly for frontpage articles") {
-    val date = NDLADate.now()
+    val date          = NDLADate.now()
     val parentArticle = TestData.sampleDomainArticle.copy(
       id = Some(1),
       title = Seq(Title("Parent title", "nb")),

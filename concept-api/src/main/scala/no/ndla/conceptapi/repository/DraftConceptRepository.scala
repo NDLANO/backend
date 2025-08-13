@@ -127,7 +127,7 @@ trait DraftConceptRepository {
       dataObject.setValue(CirceUtil.toJsonString(concept))
 
       concept.id match {
-        case None => Failure(NotFoundException("Can not update "))
+        case None            => Failure(NotFoundException("Can not update "))
         case Some(conceptId) =>
           val newRevision = concept.revision.getOrElse(0) + 1
           val oldRevision = concept.revision
@@ -144,7 +144,7 @@ trait DraftConceptRepository {
             """.update()
           ) match {
             case Success(updatedRows) => failIfRevisionMismatch(updatedRows, concept, newRevision)
-            case Failure(ex) =>
+            case Failure(ex)          =>
               logger.warn(s"Failed to update concept with id ${concept.id}: ${ex.getMessage}")
               Failure(ex)
           }
@@ -224,7 +224,7 @@ trait DraftConceptRepository {
     }
 
     def updateIdCounterToHighestId()(implicit session: DBSession = AutoSession): Unit = {
-      val idToStartAt = SQLSyntax.createUnsafely((getHighestId() + 1).toString)
+      val idToStartAt  = SQLSyntax.createUnsafely((getHighestId() + 1).toString)
       val sequenceName = SQLSyntax.createUnsafely(
         s"${DBConcept.schemaName.getOrElse(props.MetaSchema)}.${DBConcept.tableName}_id_seq"
       )

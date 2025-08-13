@@ -19,7 +19,7 @@ class TagSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnviro
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val tagSearchService = new TagSearchService
+  override val tagSearchService                 = new TagSearchService
   override val tagIndexService: TagIndexService = new TagIndexService {
     override val indexShards = 1
   }

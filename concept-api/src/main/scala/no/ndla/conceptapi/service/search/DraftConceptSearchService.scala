@@ -108,7 +108,7 @@ trait DraftConceptSearchService {
         )
         Failure(new ResultWindowTooLargeException())
       } else {
-        val aggregations = buildTermsAggregation(settings.aggregatePaths, List(draftConceptIndexService.getMapping))
+        val aggregations    = buildTermsAggregation(settings.aggregatePaths, List(draftConceptIndexService.getMapping))
         val searchToExecute =
           search(searchIndex)
             .size(numResults)

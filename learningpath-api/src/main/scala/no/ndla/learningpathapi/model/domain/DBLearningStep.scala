@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.learningpath.LearningStep
 import scalikejdbc.*
 
 object DBLearningStep extends SQLSyntaxSupport[LearningStep] {
-  override val tableName = "learningsteps"
+  override val tableName                                                                  = "learningsteps"
   def fromResultSet(ls: SyntaxProvider[LearningStep])(rs: WrappedResultSet): LearningStep =
     fromResultSet(ls.resultName)(rs)
 
@@ -30,6 +30,7 @@ object DBLearningStep extends SQLSyntaxSupport[LearningStep] {
       meta.introduction,
       meta.description,
       meta.embedUrl,
+      meta.articleId,
       meta.`type`,
       meta.license,
       meta.showTitle,

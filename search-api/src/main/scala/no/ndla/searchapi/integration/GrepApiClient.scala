@@ -119,7 +119,7 @@ trait GrepApiClient {
         .response(asFile(outputFile))
       Try(simpleHttpClient.send(request)) match {
         case Success(response) if response.isSuccess => Success(outputFile)
-        case Success(response) =>
+        case Success(response)                       =>
           Failure(GrepDumpDownloadException(s"Failed to fetch grep dump: ${response.statusText}"))
         case Failure(ex) =>
           Failure(GrepDumpDownloadException(s"Failed to fetch grep dump: ${ex.getMessage}").withCause(ex))

@@ -43,7 +43,7 @@ trait DraftConceptController {
     override val serviceName: String         = "drafts"
     override val prefix: EndpointInput[Unit] = "concept-api" / "v1" / serviceName
 
-    private val pathStatus = path[String]("STATUS").description("Concept status")
+    private val pathStatus   = path[String]("STATUS").description("Concept status")
     private val statusFilter = listQuery[String]("status")
       .description(
         s"""List of statuses to filter by.

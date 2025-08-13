@@ -24,6 +24,7 @@ import no.ndla.common.model.domain.article.{
   PartialPublishArticlesBulkDTO
 }
 import no.ndla.common.model.{NDLADate, domain as common}
+import no.ndla.draftapi.DraftUtil.getNextRevision
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.{ArticleApiValidationErrorDTO, ContentIdDTO}
 import no.ndla.draftapi.service.ConverterService
@@ -65,13 +66,13 @@ trait ArticleApiClient {
         user: TokenUser
     ): Try[Draft] = {
       val extParam = Option.when(externalIds.nonEmpty)("external-id" -> externalIds.mkString(","))
-      val params = List(
+      val params   = List(
         "use-import-validation" -> false.toString,
         "use-soft-validation"   -> useSoftValidation.toString
       ) ++ extParam.toSeq
       for {
         converted <- converterService.toArticleApiArticle(draft)
-        _ <- postWithData[common.article.Article, common.article.Article](
+        _         <- postWithData[common.article.Article, common.article.Article](
           s"$InternalEndpoint/article/$id",
           converted,
           Some(user),
@@ -218,9 +219,9 @@ trait ArticleApiClient {
     }
     def withAvailability(availability: Availability): PartialPublishArticleDTO =
       self.copy(availability = availability.some)
-    def withEarliestRevisionDate(revisionMeta: Seq[common.draft.RevisionMeta]): PartialPublishArticleDTO = {
-      val earliestRevisionDate = converterService.getNextRevision(revisionMeta).map(_.revisionDate)
-      val newRev = earliestRevisionDate match {
+    def withEarliestRevisionDate(revisionMeta: Seq[common.RevisionMeta]): PartialPublishArticleDTO = {
+      val earliestRevisionDate = getNextRevision(revisionMeta).map(_.revisionDate)
+      val newRev               = earliestRevisionDate match {
         case Some(value) => UpdateWith(value)
         case None        => Delete
       }

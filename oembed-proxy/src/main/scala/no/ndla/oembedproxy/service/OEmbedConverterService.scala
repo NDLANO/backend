@@ -21,7 +21,7 @@ object OEmbedConverterService {
 
     queryParamsToTransfer match {
       case Vector() => oembed
-      case _ =>
+      case _        =>
         val newHtml = oembed.html
           .map(Jsoup.parseBodyFragment)
           .map(document => {

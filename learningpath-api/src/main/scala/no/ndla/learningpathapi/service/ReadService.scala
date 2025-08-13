@@ -117,7 +117,7 @@ trait ReadService {
             .learningStepWithId(learningPathId, learningStepId)
             .map(ls => converterService.asApiLearningStepV2(ls, lp, language, fallback, user)) match {
             case Some(value) => value
-            case None =>
+            case None        =>
               Failure(
                 NotFoundException(
                   s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"

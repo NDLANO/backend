@@ -29,7 +29,7 @@ trait ErrorHandling extends TapirErrorHandling {
     case i: ImageNotFoundException => notFoundWithMsg(i.getMessage)
     case b: ImportException        => errorBody(IMPORT_FAILED, b.getMessage, 422)
     case iu: InvalidUrlException   => errorBody(INVALID_URL, iu.getMessage, 400)
-    case s: ImageStorageException =>
+    case s: ImageStorageException  =>
       errorBody(GATEWAY_TIMEOUT, s.getMessage, 504)
     case rw: ResultWindowTooLargeException =>
       errorBody(WINDOW_TOO_LARGE, rw.getMessage, 422)

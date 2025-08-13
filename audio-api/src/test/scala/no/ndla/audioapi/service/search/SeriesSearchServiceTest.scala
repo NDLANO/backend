@@ -19,7 +19,7 @@ import scala.util.Success
 class SeriesSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val seriesSearchService = new SeriesSearchService
+  override val seriesSearchService                    = new SeriesSearchService
   override val seriesIndexService: SeriesIndexService = new SeriesIndexService {
     override val indexShards = 1
   }

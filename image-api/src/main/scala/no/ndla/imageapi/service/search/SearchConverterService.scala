@@ -119,7 +119,7 @@ trait SearchConverterService {
         user: Option[TokenUser]
     ): Try[ImageMetaSummaryDTO] = {
       val apiToRawRegex = "/v\\d+/images/".r
-      val title = Language
+      val title         = Language
         .findByLanguageOrBestEffort(searchableImage.titles.languageValues, Some(language))
         .map(res => ImageTitleDTO(res.value, res.language))
         .getOrElse(ImageTitleDTO("", props.DefaultLanguage))

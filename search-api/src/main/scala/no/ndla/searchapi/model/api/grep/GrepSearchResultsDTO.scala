@@ -27,7 +27,7 @@ case class GrepSearchResultsDTO(
 object GrepSearchResultsDTO extends SchemaImplicits {
   implicit val encoder: Encoder[GrepSearchResultsDTO] = deriveEncoder
   implicit val decoder: Decoder[GrepSearchResultsDTO] = deriveDecoder
-  implicit val schema: Schema[GrepSearchResultsDTO] = {
+  implicit val schema: Schema[GrepSearchResultsDTO]   = {
     implicit val s1: Schema["GrepLaererplanDTO"]         = stringLiteralSchema("GrepLaererplanDTO")
     implicit val s2: Schema["GrepTverrfagligTemaDTO"]    = stringLiteralSchema("GrepTverrfagligTemaDTO")
     implicit val s3: Schema["GrepKompetansemaalSettDTO"] = stringLiteralSchema("GrepKompetansemaalSettDTO")

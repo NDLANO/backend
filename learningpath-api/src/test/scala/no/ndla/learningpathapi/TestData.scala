@@ -53,6 +53,7 @@ object TestData {
     List.empty,
     List(Description("Step1Description", "nb")),
     List(),
+    None,
     StepType.INTRODUCTION,
     None
   )
@@ -67,6 +68,7 @@ object TestData {
     List.empty,
     List(Description("Step2Description", "nb")),
     List(),
+    None,
     learningpath.StepType.TEXT,
     None
   )
@@ -88,7 +90,10 @@ object TestData {
     owner = "me",
     copyright = LearningpathCopyright(CC_BY.toString, List.empty),
     isMyNDLAOwner = false,
-    learningsteps = Some(List(domainLearningStep1, domainLearningStep2))
+    learningsteps = Some(List(domainLearningStep1, domainLearningStep2)),
+    responsible = None,
+    comments = Seq.empty,
+    priority = common.Priority.Unspecified
   )
 
   val searchSettings: SearchSettings = SearchSettings(
@@ -103,6 +108,7 @@ object TestData {
     fallback = false,
     verificationStatus = None,
     shouldScroll = false,
+    articleId = None,
     status = List(learningpath.LearningPathStatus.PUBLISHED)
   )
 }

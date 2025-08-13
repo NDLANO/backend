@@ -188,6 +188,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/draft-api/v1/drafts/{article_id}/revision-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the revision history for an article
+         * @description Get an object that describes the revision history for a specific article
+         */
+        get: operations["getDraft-apiV1DraftsArticle_idRevision-history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/draft-api/v1/drafts/external_id/{deprecated_node_id}": {
         parameters: {
             query?: never;
@@ -408,6 +428,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/draft-api/v1/drafts/{article_id}/current-revision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete the current revision of an article
+         * @description Delete the current revision of an article
+         */
+        delete: operations["deleteDraft-apiV1DraftsArticle_idCurrent-revision"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/draft-api/v1/files": {
         parameters: {
             query?: never;
@@ -549,15 +589,12 @@ export type components = {
             relatedContent: (components["schemas"]["RelatedContentLinkDTO"] | number)[];
             /** @description A list of revisions planned for the article */
             revisions: components["schemas"]["RevisionMetaDTO"][];
-            responsible?: components["schemas"]["DraftResponsibleDTO"];
+            responsible?: components["schemas"]["ResponsibleDTO"];
             /** @description The path to the frontpage article */
             slug?: string;
             /** @description Information about comments attached to the article */
             comments: components["schemas"]["CommentDTO"][];
-            /** @description If the article should be prioritized */
-            prioritized: boolean;
-            /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
-            priority: string;
+            priority: components["schemas"]["Priority"];
             /** @description If the article has been edited after last status or responsible change */
             started: boolean;
             qualityEvaluation?: components["schemas"]["QualityEvaluationDTO"];
@@ -596,6 +633,16 @@ export type components = {
             alt: string;
             /** @description The ISO 639-1 language code describing which article translation this meta image belongs to */
             language: string;
+        };
+        /**
+         * ArticleRevisionHistoryDTO
+         * @description Information about article revision history
+         */
+        ArticleRevisionHistoryDTO: {
+            /** @description The revisions of an article, with the latest revision being the first in the list */
+            revisions: components["schemas"]["ArticleDTO"][];
+            /** @description Whether or not the current revision is safe to delete */
+            canDeleteCurrentRevision: boolean;
         };
         /**
          * ArticleSearchParamsDTO
@@ -783,16 +830,6 @@ export type components = {
             processed: boolean;
         };
         /**
-         * DraftResponsibleDTO
-         * @description Object with data representing the editor responsible for this article
-         */
-        DraftResponsibleDTO: {
-            /** @description NDLA ID of responsible editor */
-            responsibleId: string;
-            /** @description Date of when the responsible editor was last updated */
-            lastUpdated: string;
-        };
-        /**
          * EditorNoteDTO
          * @description Information about the editorial notes
          */
@@ -929,10 +966,7 @@ export type components = {
             slug?: string;
             /** @description Information about a comment attached to an article */
             comments?: components["schemas"]["NewCommentDTO"][];
-            /** @description If the article should be prioritized */
-            prioritized?: boolean;
-            /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
-            priority?: string;
+            priority?: components["schemas"]["Priority"];
             qualityEvaluation?: components["schemas"]["QualityEvaluationDTO"];
             /** @description The disclaimer of the article */
             disclaimer?: string;
@@ -999,6 +1033,12 @@ export type components = {
             message: string;
         };
         /**
+         * Priority
+         * @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified
+         * @enum {string}
+         */
+        Priority: "prioritized" | "on-hold" | "unspecified";
+        /**
          * QualityEvaluationDTO
          * @description The quality evaluation of the article. Consist of a score from 1 to 5 and a comment.
          */
@@ -1028,6 +1068,16 @@ export type components = {
             name: string;
             /** @description The full url to where the library can be downloaded */
             url: string;
+        };
+        /**
+         * ResponsibleDTO
+         * @description Object with data representing the editor responsible for this article
+         */
+        ResponsibleDTO: {
+            /** @description NDLA ID of responsible editor */
+            responsibleId: string;
+            /** @description Date of when the responsible editor was last updated */
+            lastUpdated: string;
         };
         /**
          * RevisionMetaDTO
@@ -1148,10 +1198,7 @@ export type components = {
             slug?: string;
             /** @description Information about a comment attached to an article */
             comments?: components["schemas"]["UpdatedCommentDTO"][];
-            /** @description If the article should be prioritized */
-            prioritized?: boolean;
-            /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
-            priority?: string;
+            priority?: components["schemas"]["Priority"];
             qualityEvaluation?: components["schemas"]["QualityEvaluationDTO"];
             /** @description The disclaimer of the article */
             disclaimer?: string;
@@ -2038,6 +2085,57 @@ export interface operations {
             };
         };
     };
+    "getDraft-apiV1DraftsArticle_idRevision-history": {
+        parameters: {
+            query?: {
+                /** @description The ISO 639-1 language code describing language. */
+                language?: string;
+                /** @description Fallback to existing language if language is specified. */
+                fallback?: boolean;
+            };
+            header?: never;
+            path: {
+                /** @description Id of the article that is to be fetched */
+                article_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArticleRevisionHistoryDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     "getDraft-apiV1DraftsExternal_idDeprecated_node_id": {
         parameters: {
             query?: never;
@@ -2713,6 +2811,58 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "deleteDraft-apiV1DraftsArticle_idCurrent-revision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Id of the article that is to be fetched */
+                article_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

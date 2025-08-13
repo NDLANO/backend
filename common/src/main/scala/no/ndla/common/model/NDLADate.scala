@@ -173,7 +173,7 @@ object NDLADate {
 
   implicit def optDecoder: Decoder[Option[NDLADate]] = Decoder.withReattempt {
     case c: FailedCursor if !c.incorrectFocus => Right(None)
-    case c =>
+    case c                                    =>
       Decoder
         .instanceTry(cur => {
           cur.value.asString match {

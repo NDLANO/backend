@@ -27,7 +27,7 @@ trait ErrorHandling extends TapirErrorHandling {
     case _: IndexNotFoundException         => errorBody(INDEX_MISSING, INDEX_MISSING_DESCRIPTION, 503)
     case _: InvalidIndexBodyException      => errorBody(INVALID_BODY, INVALID_BODY_DESCRIPTION, 400)
     case te: TaxonomyException             => errorBody(TAXONOMY_FAILURE, te.getMessage, 500)
-    case v: ValidationException =>
+    case v: ValidationException            =>
       ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = v.errors.some, 400)
     case ade: AccessDeniedException   => forbiddenMsg(ade.getMessage)
     case _: DocumentConflictException => indexConflict

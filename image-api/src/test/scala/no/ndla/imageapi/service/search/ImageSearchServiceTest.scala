@@ -36,8 +36,8 @@ class ImageSearchServiceTest
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val searchConverterService = new SearchConverterService
-  override val converterService       = new ConverterService
+  override val searchConverterService               = new SearchConverterService
+  override val converterService                     = new ConverterService
   override val imageIndexService: ImageIndexService = new ImageIndexService {
     override val indexShards = 1
   }
@@ -45,8 +45,8 @@ class ImageSearchServiceTest
 
   val getStartAtAndNumResults: PrivateMethod[(Int, Int)] = PrivateMethod[(Int, Int)](Symbol("getStartAtAndNumResults"))
 
-  val largeImage: ImageFileData = ImageFileData(1, "large-full-url", 10000, "jpg", None, "und", 4)
-  val smallImage: ImageFileData = ImageFileData(2, "small-full-url", 100, "jpg", None, "und", 6)
+  val largeImage: ImageFileData   = ImageFileData(1, "large-full-url", 10000, "jpg", None, "und", 4)
+  val smallImage: ImageFileData   = ImageFileData(2, "small-full-url", 100, "jpg", None, "und", 6)
   val podcastImage: ImageFileData =
     ImageFileData(3, "podcast-full-url", 100, "jpg", Some(ImageDimensions(width = 1400, height = 1400)), "und", 6)
 

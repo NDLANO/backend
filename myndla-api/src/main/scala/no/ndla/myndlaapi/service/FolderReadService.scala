@@ -48,7 +48,7 @@ trait FolderReadService {
         withFavorite <- mergeWithFavorite(topFolders, feideId)
         withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)(session)
         feideUser    <- userRepository.userWithFeideId(feideId)(session)
-        apiFolders <- folderConverterService.domainToApiModel(
+        apiFolders   <- folderConverterService.domainToApiModel(
           withData,
           v =>
             folderConverterService.toApiFolder(
@@ -108,20 +108,20 @@ trait FolderReadService {
     def getSharedFolder(id: UUID, maybeFeideToken: Option[FeideAccessToken]): Try[FolderDTO] = {
       implicit val session: DBSession = folderRepository.getSession(true)
       for {
-        feideId <- maybeFeideToken.traverse(token => feideApiClient.getFeideID(Some(token)))
+        feideId             <- maybeFeideToken.traverse(token => feideApiClient.getFeideID(Some(token)))
         folderWithResources <- folderRepository.getFolderAndChildrenSubfoldersWithResources(
           id,
           FolderStatus.SHARED,
           feideId
         )
         folderWithContent <- getWith404IfNone(id, Success(folderWithResources))
-        _ <-
+        _                 <-
           if (folderWithContent.isShared || feideId.contains(folderWithContent.feideId)) Success(())
           else Failure(NotFoundException("Folder does not exist"))
         folderAsTopFolder = folderWithContent.copy(parentId = None)
         breadcrumbs <- getBreadcrumbs(folderAsTopFolder)
         feideUser   <- userRepository.userWithFeideId(folderWithContent.feideId)
-        converted <- folderConverterService.toApiFolder(
+        converted   <- folderConverterService.toApiFolder(
           folderAsTopFolder,
           breadcrumbs,
           feideUser,
@@ -195,11 +195,11 @@ trait FolderReadService {
       @tailrec
       def getParentRecursively(folder: domain.Folder, crumbs: List[api.BreadcrumbDTO]): Try[List[api.BreadcrumbDTO]] = {
         folder.parentId match {
-          case None => Success(crumbs)
+          case None           => Success(crumbs)
           case Some(parentId) =>
             folderRepository.folderWithId(parentId) match {
               case Failure(ex) => Failure(ex)
-              case Success(p) =>
+              case Success(p)  =>
                 val newCrumb = api.BreadcrumbDTO(
                   id = p.id,
                   name = p.name
@@ -210,7 +210,7 @@ trait FolderReadService {
       }
 
       getParentRecursively(folder, List.empty) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)    => Failure(ex)
         case Success(value) =>
           val newCrumb = api.BreadcrumbDTO(
             id = folder.id,
@@ -233,7 +233,7 @@ trait FolderReadService {
         _                 <- folderWithContent.isOwner(feideId)
         feideUser         <- userRepository.userWithFeideId(folderWithContent.feideId)
         breadcrumbs       <- getBreadcrumbs(folderWithContent)
-        converted <- folderConverterService.toApiFolder(
+        converted         <- folderConverterService.toApiFolder(
           folderWithContent,
           breadcrumbs,
           feideUser,
@@ -247,8 +247,8 @@ trait FolderReadService {
         feideAccessToken: Option[FeideAccessToken] = None
     ): Try[List[ResourceDTO]] = {
       for {
-        feideId   <- feideApiClient.getFeideID(feideAccessToken)
-        resources <- folderRepository.resourcesWithFeideId(feideId, size)
+        feideId            <- feideApiClient.getFeideID(feideAccessToken)
+        resources          <- folderRepository.resourcesWithFeideId(feideId, size)
         convertedResources <- folderConverterService.domainToApiModel(
           resources,
           resource => folderConverterService.toApiResource(resource, isOwner = true)

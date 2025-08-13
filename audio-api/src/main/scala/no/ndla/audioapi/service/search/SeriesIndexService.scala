@@ -35,7 +35,7 @@ trait SeriesIndexService {
 
     override def createIndexRequests(domainModel: Series, indexName: String): Try[Seq[IndexRequest]] = {
       searchConverterService.asSearchableSeries(domainModel) match {
-        case Failure(exception) => Failure(exception)
+        case Failure(exception)  => Failure(exception)
         case Success(searchable) =>
           val source = CirceUtil.toJsonString(searchable)
           Success(Seq(indexInto(indexName).doc(source).id(domainModel.id.toString)))

@@ -13,18 +13,3 @@ To interact with the api, you need valid security credentials; see [Access Token
 To write data to the api, you need write role access. This is only accessible in [learningpath-frontend](https://learningpath-frontend.staging.api.ndla.no) today.
 
 For a more detailed documentation of the API, please refer to the [API documentation](https://api.ndla.no) (Staging: [API documentation](https://staging.api.ndla.no)).
-
-## Developer documentation
-
-
-**Compile:** sbt compile
-
-**Run tests:** sbt test
-
-**Run integration tests:** sbt it:test
-
-**Create Docker Image:** ./build.sh
-
-
-## Create Docker Image
-    ./build.sh

@@ -72,7 +72,7 @@ class OEmbedProviderTest extends UnitTestSuiteBase {
   }
 
   test("That maxwidth is appended correctly") {
-    val endpoint = youtubeEndpoint.copy(url = "https://youtube.com/oembed")
+    val endpoint   = youtubeEndpoint.copy(url = "https://youtube.com/oembed")
     val requestUrl = youtubeProvider
       .copy(endpoints = List(endpoint))
       .requestUrl("https://www.youtube.com/v/ABC", Some("100"), None)
@@ -80,7 +80,7 @@ class OEmbedProviderTest extends UnitTestSuiteBase {
   }
 
   test("That maxheight is appended correctly") {
-    val endpoint = youtubeEndpoint.copy(url = "https://youtube.com/oembed")
+    val endpoint   = youtubeEndpoint.copy(url = "https://youtube.com/oembed")
     val requestUrl = youtubeProvider
       .copy(endpoints = List(endpoint))
       .requestUrl("https://www.youtube.com/v/ABC", None, Some("100"))
@@ -88,7 +88,7 @@ class OEmbedProviderTest extends UnitTestSuiteBase {
   }
 
   test("That both maxwidth and maxheight are appended correctly") {
-    val endpoint = youtubeEndpoint.copy(url = "https://youtube.com/oembed")
+    val endpoint   = youtubeEndpoint.copy(url = "https://youtube.com/oembed")
     val requestUrl = youtubeProvider
       .copy(endpoints = List(endpoint))
       .requestUrl("https://www.youtube.com/v/ABC", Some("100"), Some("200"))

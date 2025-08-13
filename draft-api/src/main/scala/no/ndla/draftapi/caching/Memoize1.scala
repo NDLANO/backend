@@ -31,7 +31,7 @@ private[caching] class Memoize[R](
   }
 
   if (autoRefreshCache) {
-    val ex = new ScheduledThreadPoolExecutor(1)
+    val ex   = new ScheduledThreadPoolExecutor(1)
     val task = new Runnable {
       def run(): Unit = renewCache()
     }
@@ -42,7 +42,7 @@ private[caching] class Memoize[R](
     cache match {
       case Some(cachedValue) if autoRefreshCache       => Some(cachedValue.value)
       case Some(cachedValue) if !cachedValue.isExpired => Some(cachedValue.value)
-      case _ =>
+      case _                                           =>
         renewCache()
         cache.map(_.value)
     }

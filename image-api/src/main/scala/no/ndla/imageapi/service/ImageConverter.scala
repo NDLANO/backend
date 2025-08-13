@@ -68,7 +68,7 @@ trait ImageConverter {
       val imageOutputStream = ImageIO.createImageOutputStream(outputStream)
       val writerIter        = ImageIO.getImageWritersByMIMEType(originalImage.contentType)
 
-      val onlyOpaqueTypes = Seq("image/jpeg", "image/jpg")
+      val onlyOpaqueTypes          = Seq("image/jpeg", "image/jpg")
       val shouldRemoveTransparency = onlyOpaqueTypes.contains(originalImage.contentType) &&
         bufferedImage.getColorModel.getTransparency != Transparency.OPAQUE
 
@@ -97,7 +97,7 @@ trait ImageConverter {
       val sourceImage = originalImage.sourceImage
       val minWidth    = min(targetWidth, sourceImage.getWidth)
       val minHeight   = min(targetHeight, sourceImage.getHeight)
-      val method =
+      val method      =
         if (minWidth >= props.ImageScalingUltraMinSize && minWidth <= props.ImageScalingUltraMaxSize)
           Scalr.Method.ULTRA_QUALITY
         else Scalr.Method.AUTOMATIC
@@ -107,7 +107,7 @@ trait ImageConverter {
 
     private def resize(originalImage: ImageStream, mode: Mode, targetSize: Int): Try[ImageStream] = {
       val sourceImage = originalImage.sourceImage
-      val method =
+      val method      =
         if (targetSize >= props.ImageScalingUltraMinSize && targetSize <= props.ImageScalingUltraMaxSize)
           Scalr.Method.ULTRA_QUALITY
         else Scalr.Method.AUTOMATIC
@@ -166,7 +166,7 @@ trait ImageConverter {
         case (_, _, Some(ratio))   => minimalCropSizesToPreserveRatio(imageWidth, imageHeight, ratio)
         case (None, None, _)       => return Success(image)
         case (Some(w), Some(h), _) => (min(w, imageWidth), min(h, imageHeight))
-        case (Some(w), None, _) =>
+        case (Some(w), None, _)    =>
           val actualTargetWidth             = min(imageWidth, w)
           val widthReductionPercent: Double = actualTargetWidth.toDouble / imageWidth.toDouble
           (w, (imageHeight * widthReductionPercent).toInt)

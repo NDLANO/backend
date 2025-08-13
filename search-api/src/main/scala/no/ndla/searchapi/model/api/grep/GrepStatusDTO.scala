@@ -18,7 +18,7 @@ import sttp.tapir.codec.enumeratum.*
 import scala.util.Try
 
 sealed abstract class GrepStatusDTO(val urlData: String) extends EnumEntry
-object GrepStatusDTO extends Enum[GrepStatusDTO] {
+object GrepStatusDTO                                     extends Enum[GrepStatusDTO] {
   val values: IndexedSeq[GrepStatusDTO] = findValues
 
   // https://data.udir.no/kl06/v201906/status/

@@ -38,7 +38,7 @@ trait ErrorHandling extends TapirErrorHandling with StrictLogging {
       ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = v.errors.some, 400)
     case _: IndexNotFoundException =>
       ErrorBody(INDEX_MISSING, INDEX_MISSING, clock.now(), 500)
-    case NotFoundException(message, sl) if sl.isEmpty => notFoundWithMsg(message)
+    case NotFoundException(message, sl) if sl.isEmpty   => notFoundWithMsg(message)
     case NotFoundException(message, supportedLanguages) =>
       NotFoundWithSupportedLanguages(NOT_FOUND, message, clock.now(), supportedLanguages, 404)
     case rw: ArticleErrorHelpers.ResultWindowTooLargeException =>

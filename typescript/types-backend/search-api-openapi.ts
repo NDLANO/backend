@@ -191,16 +191,6 @@ export type components = {
             /** @description ISO 639-1 code that represents the language used in title */
             language: string;
         };
-        /**
-         * DraftResponsibleDTO
-         * @description Responsible field
-         */
-        DraftResponsibleDTO: {
-            /** @description NDLA ID of responsible editor */
-            responsibleId: string;
-            /** @description Date of when the responsible editor was last updated */
-            lastUpdated: string;
-        };
         /** DraftSearchParamsDTO */
         DraftSearchParamsDTO: {
             /**
@@ -273,10 +263,8 @@ export type components = {
             responsibleIds?: string[];
             /** @description Filter out inactive taxonomy contexts. */
             filterInactive?: boolean;
-            /** @description Set to true to only return prioritized articles */
-            prioritized?: boolean;
             /** @description List of priority-levels to filter by. */
-            priority?: string[];
+            priority?: components["schemas"]["Priority"][];
             /** @description A list of parent topics the learning resources should be filtered by. */
             topics?: string[];
             /** @description Return only results having published date after this date. */
@@ -634,13 +622,11 @@ export type components = {
             license?: string;
             /** @description A list of revisions planned for the article */
             revisions: components["schemas"]["RevisionMetaDTO"][];
-            responsible?: components["schemas"]["DraftResponsibleDTO"];
+            responsible?: components["schemas"]["ResponsibleDTO"];
             /** @description Information about comments attached to the article */
             comments?: components["schemas"]["CommentDTO"][];
-            /** @description If the article should be prioritized */
-            prioritized?: boolean;
             /** @description If the article should be prioritized. Possible values are prioritized, on-hold, unspecified */
-            priority?: string;
+            priority?: components["schemas"]["Priority"];
             /** @description A combined resource type name if a standard article, otherwise the article type name */
             resourceTypeName?: string;
             /** @description Name of the parent topic if exists */
@@ -728,6 +714,21 @@ export type components = {
              * @description Numeric http status code
              */
             statusCode: number;
+        };
+        /**
+         * Priority
+         * @enum {string}
+         */
+        Priority: "prioritized" | "on-hold" | "unspecified";
+        /**
+         * ResponsibleDTO
+         * @description Responsible field
+         */
+        ResponsibleDTO: {
+            /** @description NDLA ID of responsible editor */
+            responsibleId: string;
+            /** @description Date of when the responsible editor was last updated */
+            lastUpdated: string;
         };
         /**
          * RevisionMetaDTO

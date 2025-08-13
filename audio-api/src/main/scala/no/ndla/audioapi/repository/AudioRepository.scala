@@ -56,7 +56,7 @@ trait AudioRepository {
       dataObject.setValue(CirceUtil.toJsonString(audioMetaInformation))
 
       val startRevision = 1
-      val audioId =
+      val audioId       =
         sql"insert into audiodata (document, revision) values ($dataObject, $startRevision)"
           .updateAndReturnGeneratedKey()
       audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision))
@@ -69,7 +69,7 @@ trait AudioRepository {
 
       DB localTx { implicit session =>
         val startRevision = 1
-        val audioId =
+        val audioId       =
           sql"insert into audiodata(external_id, document, revision) values($externalId, $dataObject, $startRevision)"
             .updateAndReturnGeneratedKey()
         Success(audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision)))

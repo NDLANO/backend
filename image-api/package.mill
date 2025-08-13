@@ -1,0 +1,31 @@
+package build.`image-api`
+
+import mill.*
+import mill.scalalib.*
+import build.modules.{BaseModule, DockerComponent, SharedDependencies}
+
+object `package` extends BaseModule, DockerComponent {
+  override def moduleName  = "image-api"
+  def mvnDeps: T[Seq[Dep]] =
+    SharedDependencies.logging ++
+      SharedDependencies.enumeratum ++
+      SharedDependencies.tapirHttp4sCirce ++
+      SharedDependencies.database ++
+      Seq(
+        SharedDependencies.sttp,
+        SharedDependencies.catsEffect,
+        SharedDependencies.scalaUri,
+        SharedDependencies.awsS3,
+        SharedDependencies.jsoup,
+        mvn"org.imgscalr:imgscalr-lib:4.2",
+        // These are not strictly needed, for most cases, but offers better handling of loading images with encoding issues
+        mvn"com.twelvemonkeys.imageio:imageio-core:3.12.0",
+        mvn"com.twelvemonkeys.imageio:imageio-jpeg:3.12.0",
+        mvn"commons-io:commons-io:2.19.0"
+      )
+  override def moduleDeps =
+    Seq(build.common, build.network, build.mapping, build.language, build.search, build.database)
+  object test extends TestBase {
+    override def moduleDeps = super.moduleDeps ++ Seq(build.tapirtesting, build.scalatestsuite)
+  }
+}

@@ -38,7 +38,7 @@ object DraftStatus extends Enum[DraftStatus] with CirceEnum[DraftStatus] {
   def valueOfOrError(s: String): Try[DraftStatus] =
     valueOf(s) match {
       case Some(st) => Success(st)
-      case None =>
+      case None     =>
         val validStatuses = values.map(_.toString).mkString(", ")
         Failure(
           ValidationException("status", s"'$s' is not a valid article status. Must be one of $validStatuses")

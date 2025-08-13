@@ -40,7 +40,7 @@ trait ErrorHandling extends TapirErrorHandling {
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case a: AccessDeniedException => ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403)
-    case v: ValidationException =>
+    case v: ValidationException   =>
       new ValidationErrorBody(VALIDATION, "Validation Error", clock.now(), Some(v.errors), 400)
     case hre: HttpRequestException         => ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502)
     case rw: ResultWindowTooLargeException => ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422)
@@ -48,7 +48,7 @@ trait ErrorHandling extends TapirErrorHandling {
     case nfe: NotFoundException            => notFoundWithMsg(nfe.getMessage)
     case o: OptimisticLockException        => ErrorBody(RESOURCE_OUTDATED, o.getMessage, clock.now(), 409)
     case _: FileTooBigException            => ErrorBody(FILE_TOO_BIG, fileTooBigDescription, clock.now(), 413)
-    case _: PSQLException =>
+    case _: PSQLException                  =>
       DataSource.connectToDatabase()
       ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)
     case NdlaSearchException(_, Some(rf), _, _)

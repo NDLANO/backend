@@ -57,12 +57,12 @@ trait FolderController {
         .description("Choose if sub-folders should be included in the response")
         .default(false)
 
-    private val pathFolderId   = path[UUID]("folder-id").description("The UUID of the folder")
-    private val sourceFolderId = path[UUID]("source-folder-id").description("Source UUID of the folder.")
+    private val pathFolderId        = path[UUID]("folder-id").description("The UUID of the folder")
+    private val sourceFolderId      = path[UUID]("source-folder-id").description("Source UUID of the folder.")
     private val destinationFolderId = query[Option[UUID]]("destination-folder-id")
       .description("Destination UUID of the folder. If None it will be cloned as a root folder.")
-    private val pathResourceId = path[UUID]("resource-id").description("The UUID of the resource")
-    private val queryFolderId  = query[Option[UUID]]("folder-id").description("The UUID of the folder")
+    private val pathResourceId  = path[UUID]("resource-id").description("The UUID of the resource")
+    private val queryFolderId   = query[Option[UUID]]("folder-id").description("The UUID of the folder")
     private val queryRecentSize =
       query[Option[Int]]("size")
         .description("How many latest favorited resources to return")
@@ -135,7 +135,7 @@ trait FolderController {
         folderWriteService.deleteFolder(folderId, feideHeader).map(_ => ())
       }
 
-    private val defaultSize: Int = 5
+    private val defaultSize: Int       = 5
     val size: EndpointInput.Query[Int] = query[Int]("size")
       .description("Limit the number of results to this many elements")
       .default(defaultSize)

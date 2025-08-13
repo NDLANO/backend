@@ -148,7 +148,7 @@ trait GrepSearchService {
     }
 
     def getCodesById(codes: List[String]): Try[List[SearchableGrepElement]] = {
-      val filter = termsQuery("code", codes)
+      val filter          = termsQuery("code", codes)
       val searchToExecute = search(searchIndex)
         .query(boolQuery().filter(filter))
         .from(0)
@@ -190,7 +190,7 @@ trait GrepSearchService {
     }
 
     def getReuseOf(code: String): Try[List[SearchableGrepElement]] = {
-      val filter = termQuery("gjenbrukAv", code)
+      val filter          = termQuery("gjenbrukAv", code)
       val searchToExecute = search(searchIndex)
         .query(boolQuery().filter(filter))
         .from(0)
@@ -214,27 +214,27 @@ trait GrepSearchService {
     }
 
     private def getCoreElementReplacement(core: GrepKjerneelement): Try[String] = {
-      val lpCode = core.`tilhoerer-laereplan`.kode
+      val lpCode  = core.`tilhoerer-laereplan`.kode
       val foundLp = getSingleCodeById(lpCode) match {
         case Success(Some(lp)) => lp
         case Failure(ex)       => return Failure(ex)
-        case Success(None) =>
+        case Success(None)     =>
           logger.warn(s"Could not find læreplan for core element: ${core.kode} (LP: $lpCode)")
           return Success(core.kode)
       }
 
       val domainObject = foundLp.domainObject match {
         case lp: GrepLaererplan => lp
-        case _ =>
+        case _                  =>
           val msg =
             s"Got unexpected domain object when looking up læreplan (${foundLp.code}) for replacement for core element (${core.kode})"
           logger.error(msg)
           return Failure(new RuntimeException(msg))
       }
       getLaererplanReplacement(domainObject) match {
-        case None => Success(core.kode)
+        case None                  => Success(core.kode)
         case Some(replacementPlan) =>
-          val elementsInPlan = elementsWithLpCode(replacementPlan).?
+          val elementsInPlan   = elementsWithLpCode(replacementPlan).?
           val foundReplacement = elementsInPlan.find { x =>
             core.tittel.tekst == x.domainObject.getTitle
           }
@@ -243,7 +243,7 @@ trait GrepSearchService {
     }
 
     private def elementsWithLpCode(code: String): Try[List[SearchableGrepElement]] = {
-      val filter = termQuery("laereplanCode", code)
+      val filter          = termQuery("laereplanCode", code)
       val searchToExecute = search(searchIndex)
         .query(boolQuery().filter(filter))
         .from(0)

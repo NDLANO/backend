@@ -359,7 +359,7 @@ trait ArticleRepository {
         session: DBSession = ReadOnlyAutoSession
     ): Boolean = {
       val sq = articleId match {
-        case None => sql"select count(*) from ${Article.table} where slug = ${slug.toLowerCase}"
+        case None     => sql"select count(*) from ${Article.table} where slug = ${slug.toLowerCase}"
         case Some(id) =>
           sql"select count(*) from ${Article.table} where slug = ${slug.toLowerCase} and article_id != $id"
       }

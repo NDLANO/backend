@@ -1,0 +1,104 @@
+package build.modules
+
+import mill.*
+import mill.scalalib.*
+
+import scala.util.matching.Regex
+
+trait CopyrightHeaderPlugin extends ScalaModule {
+  def moduleName: String
+
+  def copyrightCheck(): Task.Command[Unit] = Task.Command {
+    validateOrFixFiles(false)()
+  }
+
+  def copyrightFix(): Task.Command[Unit] = Task.Command {
+    validateOrFixFiles(true)()
+  }
+
+  private def copyrightTemplate(year: String, submodule: Option[String]): String = {
+    s"""/*
+       | * Part of NDLA ${submodule.getOrElse("backend")}
+       | * Copyright (C) $year NDLA
+       | *
+       | * See LICENSE
+       | *
+       | */""".stripMargin
+  }
+
+  private def locateCopyright(lines: Seq[String]): Option[(Int, Int)] = {
+    val x     = lines.slice(0, 20)
+    val start = x.indexOf("/*")
+    val end   = x.indexOf(" */")
+
+    if (start != -1 && end != -1) Some((start, end))
+    else None
+  }
+  private val yearPattern: Regex   = """Copyright \(C\) (\d{4})""".r
+  private val modulePattern: Regex = """Part of NDLA (.*)""".r
+
+  private val currentYear = java.time.Year.now.getValue.toString
+
+  private def insert[T](list: List[T], i: Int, value: T): List[T] = {
+    val (front, back) = list.splitAt(i)
+    front ++ List(value) ++ back
+  }
+
+  private def addLastLineIfMissing(lines: List[String]): List[String] = {
+    if (lines.nonEmpty && lines.last.nonEmpty) {
+      lines :+ ""
+    } else {
+      lines
+    }
+  }
+
+  private def validateOrFixFiles(shouldWrite: Boolean) = Task.Anon {
+    val results = allSourceFiles().map { pathRef =>
+      val lines             = addLastLineIfMissing(os.read.lines(pathRef.path).toList)
+      val copyrightLocation = locateCopyright(lines)
+      val output            = copyrightLocation match {
+        case Some((start, end)) => handleExistingCopyright(lines, start, end)
+        case None               => handleMissingCopyright(lines)
+      }
+
+      val outputWithLine = addLastLineIfMissing(output)
+      val mismatch       = outputWithLine != lines
+      if (mismatch) {
+        println(s"COPYRIGHT ERROR: ${pathRef.path}")
+        if (shouldWrite) {
+          val str = outputWithLine.mkString("\n")
+          os.write.over(pathRef.path, str)
+        }
+      }
+      mismatch
+    }
+
+    if (!shouldWrite && results.distinct.contains(true)) {
+      Task.fail(
+        "Copyright headers are missing or incorrect in some files. Please run the `./mill _.copyrightFix` to fix them."
+      )
+    }
+  }
+
+  private def handleMissingCopyright(lines: List[String]) = {
+    val cop                 = copyrightTemplate(currentYear, Some(moduleName))
+    val copyrightLines      = cop.split("\n").toList
+    val linesAfterCopyright = if (lines.headOption.contains("")) List.empty else List("")
+    copyrightLines ++ linesAfterCopyright ++ lines
+  }
+
+  private def handleExistingCopyright(lines: List[String], start: Int, end: Int) = {
+    val existingCopyright    = lines.slice(start, end + 1).mkString("\n")
+    val year                 = yearPattern.findFirstMatchIn(existingCopyright).map(_.group(1))
+    val module               = modulePattern.findFirstMatchIn(existingCopyright).map(_.group(1))
+    val cop                  = copyrightTemplate(year.getOrElse(currentYear), Some(moduleName))
+    val newCopyrightElements = cop.split("\n")
+    val patched              = lines.patch(start, newCopyrightElements, end + 1)
+    val lineAfterCopyright   = patched(end + 1)
+    if (lineAfterCopyright.nonEmpty) {
+      insert(patched, end + 1, "")
+    } else {
+      patched
+    }
+  }
+}

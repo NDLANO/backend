@@ -26,7 +26,7 @@ object GrepTitle extends StrictLogging {
         case Some(convertedLanguage) =>
           Some(LanguageValue(language = convertedLanguage, value = gt.verdi.trim))
         case None if gt.spraak == "default" => None
-        case None =>
+        case None                           =>
           logger.warn(s"Could not convert language code '${gt.spraak}'")
           None
       }

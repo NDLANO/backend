@@ -32,12 +32,13 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.doReturn
 
 import scala.util.Success
+import no.ndla.common.model.domain.Priority
 
 class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   import props.{DefaultPageSize, MaxPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
   override val searchConverterService: SearchConverterService = new SearchConverterService
-  override val searchIndexService: SearchIndexService = new SearchIndexService {
+  override val searchIndexService: SearchIndexService         = new SearchIndexService {
     override val indexShards: Int = 1 // 1 shard for accurate scoring in tests
   }
   override val searchService: SearchService = new SearchService
@@ -62,7 +63,10 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     tags = List(),
     owner = "owner",
     copyright = copyright,
-    isMyNDLAOwner = false
+    isMyNDLAOwner = false,
+    responsible = None,
+    comments = Seq.empty,
+    priority = Priority.Unspecified
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(
@@ -75,6 +79,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     introduction = List(),
     description = List(),
     embedUrl = List(),
+    articleId = None,
     `type` = StepType.INTRODUCTION,
     license = Some(license),
     status = StepStatus.ACTIVE

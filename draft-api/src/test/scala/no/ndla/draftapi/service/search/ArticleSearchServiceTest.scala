@@ -25,7 +25,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val articleSearchService = new ArticleSearchService
+  override val articleSearchService                     = new ArticleSearchService
   override val articleIndexService: ArticleIndexService = new ArticleIndexService {
     override val indexShards = 1
   }

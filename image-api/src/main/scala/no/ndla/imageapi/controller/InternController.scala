@@ -67,7 +67,7 @@ trait InternController {
         Await.result(indexResults, Duration(60, TimeUnit.MINUTES)) match {
           case (Success(imageIndex), Success(tagIndex)) =>
             val indexTime = math.max(tagIndex.millisUsed, imageIndex.millisUsed)
-            val result =
+            val result    =
               s"Completed indexing of ${imageIndex.totalIndexed} images in $indexTime ms."
             logger.info(result)
             result.asRight
@@ -88,7 +88,7 @@ trait InternController {
       .errorOut(stringInternalServerError)
       .serverLogicPure { _ =>
         imageIndexService.findAllIndexes(props.SearchIndex) match {
-          case Failure(f) => f.getMessage.asLeft
+          case Failure(f)       => f.getMessage.asLeft
           case Success(indexes) =>
             val deleteResults = indexes.map(index => {
               logger.info(s"Deleting index $index")
@@ -121,7 +121,7 @@ trait InternController {
       }
 
     val urlQueryParam: EndpointInput.Query[Option[String]] = query[Option[String]]("url")
-    def getDomainImageFromUrl: ServerEndpoint[Any, Eff] = endpoint.get
+    def getDomainImageFromUrl: ServerEndpoint[Any, Eff]    = endpoint.get
       .in("domain_image_from_url")
       .in(urlQueryParam)
       .out(jsonBody[ImageMetaInformation])

@@ -13,9 +13,12 @@ import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait, Searc
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.searchapi.model.domain.Sort
+import no.ndla.common.model.domain.Priority
 
 case class MultiDraftSearchSettings(
+    user: TokenUser,
     query: Option[NonEmptyString],
     noteQuery: Option[NonEmptyString],
     fallback: Boolean,
@@ -47,15 +50,15 @@ case class MultiDraftSearchSettings(
     responsibleIdFilter: List[String],
     articleTypes: List[String],
     filterInactive: Boolean,
-    prioritized: Option[Boolean],
-    priority: List[String],
+    priority: List[Priority],
     publishedFilterFrom: Option[NDLADate],
     publishedFilterTo: Option[NDLADate],
     resultTypes: Option[List[SearchType]]
 )
 
 object MultiDraftSearchSettings {
-  def default: MultiDraftSearchSettings = MultiDraftSearchSettings(
+  def default(user: TokenUser): MultiDraftSearchSettings = MultiDraftSearchSettings(
+    user = user,
     query = None,
     noteQuery = None,
     fallback = false,
@@ -87,7 +90,6 @@ object MultiDraftSearchSettings {
     responsibleIdFilter = List.empty,
     articleTypes = List.empty,
     filterInactive = false,
-    prioritized = None,
     priority = List.empty,
     publishedFilterTo = None,
     publishedFilterFrom = None,

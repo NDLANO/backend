@@ -39,7 +39,7 @@ object FolderStatus extends Enumeration {
     }
   }
 
-  implicit val schema: Schema[FolderStatus.Value] = Schema.string
+  implicit val schema: Schema[FolderStatus.Value]                                                      = Schema.string
   implicit val queryParamCodec: Codec[List[String], Option[FolderStatus.Value], CodecFormat.TextPlain] = {
     Codec
       .id[List[String], TextPlain](TextPlain(), Schema.string)

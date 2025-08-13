@@ -14,8 +14,8 @@ import sttp.client3.quick._
 import scala.concurrent.duration.DurationInt
 
 trait Warmup {
-  var isWarmedUp: Boolean = false
-  def setWarmedUp(): Unit = this.isWarmedUp = true
+  @volatile var isWarmedUp: Boolean = false
+  def setWarmedUp(): Unit           = this.isWarmedUp = true
 }
 
 object Warmup extends StrictLogging {

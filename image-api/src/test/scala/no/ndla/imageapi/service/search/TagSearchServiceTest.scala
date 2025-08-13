@@ -20,7 +20,7 @@ class TagSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite 
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  val indexName = "tags-testing"
+  val indexName                                   = "tags-testing"
   override val tagSearchService: TagSearchService = new TagSearchService {
     override val searchIndex: String = indexName
   }

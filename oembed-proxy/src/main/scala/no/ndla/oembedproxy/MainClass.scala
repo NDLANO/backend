@@ -14,7 +14,7 @@ import no.ndla.network.tapir.NdlaTapirMain
 class MainClass(override val props: OEmbedProxyProperties) extends NdlaTapirMain[ComponentRegistry] {
   val componentRegistry = new ComponentRegistry(props)
 
-  private def warmupRequest = (path, params) => Warmup.warmupRequest(props.ApplicationPort, path, params)
+  private def warmupRequest   = (path, params) => Warmup.warmupRequest(props.ApplicationPort, path, params)
   override def warmup(): Unit = {
     warmupRequest("/oembed-proxy/v1/oembed", Map("url" -> "https://ndla.no/article/1"))
     warmupRequest("/health", Map.empty)

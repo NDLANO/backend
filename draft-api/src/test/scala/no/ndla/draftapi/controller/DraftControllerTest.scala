@@ -88,7 +88,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
 
   test("That GET /licenses/ with filter not specified returns all licenses") {
     val allLicenses = getLicenses.map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url)).toSet
-    val resp = simpleHttpClient.send(
+    val resp        = simpleHttpClient.send(
       quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/licenses")
     )
     resp.code.code should be(200)
@@ -142,7 +142,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     when(writeService.newArticle(any[api.NewArticleDTO], any[TokenUser]))
       .thenReturn(Success(TestData.sampleArticleV2))
     val bodyStr = CirceUtil.toJsonString(TestData.newArticle)
-    val resp = simpleHttpClient.send(
+    val resp    = simpleHttpClient.send(
       quickRequest
         .post(uri"http://localhost:$serverPort/draft-api/v1/drafts/")
         .body(bodyStr)

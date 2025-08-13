@@ -37,7 +37,7 @@ trait OembedProxyClient {
 
     def getIframeUrl(url: String): Try[String] = {
       getOembed(url) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)     => Failure(ex)
         case Success(oembed) =>
           val soup = Jsoup.parse(oembed.html)
           val elem = Option(soup.selectFirst("iframe"))

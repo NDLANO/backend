@@ -112,7 +112,7 @@ trait IndexService {
     def indexDocument(imported: D): Try[D] = {
       val grepBundle = grepApiClient.getGrepBundle() match {
         case Success(bundle) => Some(bundle)
-        case Failure(_) =>
+        case Failure(_)      =>
           logger.error(
             s"GREP could not be fetched when indexing $documentType ${imported.id.map(id => s"with id: '$id'").getOrElse("")}"
           )
@@ -160,7 +160,7 @@ trait IndexService {
         _       <- createIndexIfNotExists()
         toIndex <- apiClient.getSingle(id)
         request <- createIndexRequest(toIndex, searchIndex, indexingBundle)
-        _ <- e4sClient.execute {
+        _       <- e4sClient.execute {
           request
         }
       } yield toIndex
@@ -184,7 +184,7 @@ trait IndexService {
         d: Decoder[D]
     ): Try[BulkIndexResult] = {
 
-      val chunks = apiClient.getChunks
+      val chunks  = apiClient.getChunks
       val results = chunks
         .map({
           case Failure(ex) =>

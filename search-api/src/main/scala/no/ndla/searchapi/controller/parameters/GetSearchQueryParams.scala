@@ -124,7 +124,7 @@ trait GetSearchQueryParams {
       .derived[PaginationParams]
       .validate {
         Validator.custom {
-          case q if q.page < 1 => Invalid("page must be greater than 0")
+          case q if q.page < 1                                       => Invalid("page must be greater than 0")
           case q if q.pageSize < 1 || q.pageSize > props.MaxPageSize =>
             Invalid(s"page-size must be between 1 and ${props.MaxPageSize}")
           case _ => Valid

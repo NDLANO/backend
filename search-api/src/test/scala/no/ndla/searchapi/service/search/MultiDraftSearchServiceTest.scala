@@ -9,12 +9,15 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO}
+import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO, SearchType}
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
 import no.ndla.language.Language.AllLanguages
 import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
+import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_WRITE
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
@@ -72,7 +75,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     else {
       draftsToIndex.filter(_.title.map(_.language).contains(language))
     }
-    x.filterNot(_.status.current == DraftStatus.ARCHIVED)
+    x.filterNot(_.status.current == DraftStatus.ARCHIVED).filterNot(_.status.current == DraftStatus.UNPUBLISHED)
   }
 
   private def expectedAllPublicLearningPaths(language: String) = {
@@ -80,7 +83,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     else {
       learningPathsToIndex.filter(_.title.map(_.language).contains(language))
     }
-    x.filter(_.copyright.license != License.Copyrighted.toString)
+    x.filter(_.status != PRIVATE).filter(_.copyright.license != License.Copyrighted.toString)
   }
 
   private def idsForLang(language: String) =
@@ -424,6 +427,25 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     search.summaryResults(1).title.language should equal("en")
     search.summaryResults(2).id should equal(11)
     search.summaryResults(2).title.language should equal("en")
+  }
+
+  test("That private learningpaths are only returned if user is owner") {
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        resultTypes = Some(List(SearchType.LearningPaths)),
+        fallback = true
+      )
+    )
+    search.totalCount should equal(6)
+
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        resultTypes = Some(List(SearchType.LearningPaths)),
+        fallback = true,
+        user = TokenUser("private", Set(LEARNINGPATH_API_WRITE), None)
+      )
+    )
+    search2.totalCount should equal(7)
   }
 
   test("That filtering for subjects works as expected") {
@@ -800,23 +822,26 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     search3.summaryResults.map(_.id) should be(Seq(1, 2, 3, 5))
   }
 
-  test("ARCHIVED drafts should only be returned if filtered by ARCHIVED") {
-    val query = Some(NonEmptyString.fromString("Slettet").get)
+  test("excluded drafts should only be returned if filtered by status") {
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = query, withIdIn = List(14), statusFilter = List(DraftStatus.ARCHIVED))
+        multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.ARCHIVED))
       )
     val Success(search2) =
       multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.UNPUBLISHED))
+      )
+    val Success(search3) =
+      multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(
-          query = query,
-          withIdIn = List(14),
+          withIdIn = List(14, 17), // 14 is archived, 17 is unpublished
           statusFilter = List.empty
         )
       )
 
     search1.summaryResults.map(_.id) should be(Seq(14))
-    search2.summaryResults.map(_.id) should be(Seq.empty)
+    search2.summaryResults.map(_.id) should be(Seq(17))
+    search3.summaryResults.map(_.id) should be(Seq.empty)
   }
 
   test("that search with query returns suggestion for query") {

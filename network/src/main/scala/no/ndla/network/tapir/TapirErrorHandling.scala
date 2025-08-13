@@ -97,9 +97,9 @@ trait TapirErrorHandling extends StrictLogging {
     val DATABASE_UNAVAILABLE_DESCRIPTION: String = s"Database seems to be unavailable, retrying connection."
     val UNAUTHORIZED_DESCRIPTION                 = "Missing user/client-id or role"
     val FORBIDDEN_DESCRIPTION                    = "You do not have the required permissions to access that resource"
-    val RESOURCE_OUTDATED_DESCRIPTION  = "The resource is outdated. Please try fetching before submitting again."
-    val METHOD_NOT_ALLOWED_DESCRIPTION = "You requested a unsupported method on this endpoint."
-    val VALIDATION_DESCRIPTION         = "Validation Error"
+    val RESOURCE_OUTDATED_DESCRIPTION      = "The resource is outdated. Please try fetching before submitting again."
+    val METHOD_NOT_ALLOWED_DESCRIPTION     = "You requested a unsupported method on this endpoint."
+    val VALIDATION_DESCRIPTION             = "Validation Error"
     val INVALID_SEARCH_CONTEXT_DESCRIPTION =
       "The search-context specified was not expected. Please create one by searching from page 1."
     val INDEX_MISSING_DESCRIPTION: String =
@@ -117,7 +117,7 @@ trait TapirErrorHandling extends StrictLogging {
     def forbiddenMsg(msg: String): ErrorBody    = ErrorBody(FORBIDDEN, msg, clock.now(), 403)
     def conflict(msg: String): ErrorBody        = ErrorBody(CONFLICT, msg, clock.now(), 409)
     def unprocessableEntity(msg: String): ErrorBody = ErrorBody(UNPROCESSABLE_ENTITY, msg, clock.now(), 422)
-    def invalidSearchContext: ErrorBody =
+    def invalidSearchContext: ErrorBody             =
       ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400)
     def methodNotAllowed: ErrorBody = ErrorBody(METHOD_NOT_ALLOWED, METHOD_NOT_ALLOWED_DESCRIPTION, clock.now(), 405)
     def indexConflict: ErrorBody    = ErrorBody(CONFLICT, INDEX_CONFLICT_DESCRIPTION, clock.now(), 409)

@@ -13,15 +13,18 @@ import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.aggs.responses.{AggResult, AggSerde}
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{Query, RangeQuery}
+import com.sksamuel.elastic4s.requests.searches.term.TermsQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, SearchType}
-import no.ndla.common.model.domain.{Content, Priority}
+import no.ndla.common.model.domain.Content
 import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.learningpath.LearningPathStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
+import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.Elastic4sClient
 import no.ndla.searchapi.Props
@@ -58,8 +61,8 @@ trait MultiDraftSearchService {
     }
 
     private def aggregateFavorites(subjectId: String): Try[Long] = {
-      val filter       = nestedQuery("contexts", boolQuery().should(termQuery("contexts.rootId", subjectId)))
-      val aggregations = sumAgg("favoritedCount", "favorited")
+      val filter          = nestedQuery("contexts", boolQuery().should(termQuery("contexts.rootId", subjectId)))
+      val aggregations    = sumAgg("favoritedCount", "favorited")
       val searchToExecute = search(searchIndex)
         .query(filter)
         .trackTotalHits(true)
@@ -70,35 +73,43 @@ trait MultiDraftSearchService {
       }
     }
 
-    def aggregateSubjects(subjects: List[String]): Try[SubjectAggregationsDTO] = {
+    def aggregateSubjects(subjects: List[String], user: TokenUser): Try[SubjectAggregationsDTO] = {
       val fiveYearsAgo        = NDLADate.now().minusYears(5)
       val inOneYear           = NDLADate.now().plusYears(1)
       val flowExcludeStatuses = List(DraftStatus.ARCHIVED, DraftStatus.PUBLISHED, DraftStatus.UNPUBLISHED)
       val flowStatuses        = DraftStatus.values.filterNot(s => flowExcludeStatuses.contains(s)).toList
       def aggregateSubject(subjectId: String): Try[SubjectAggregationDTO] = for {
         old <- filteredCountSearch(
-          MultiDraftSearchSettings.default.copy(
-            subjects = List(subjectId),
-            publishedFilterTo = Some(fiveYearsAgo)
-          )
+          MultiDraftSearchSettings
+            .default(user)
+            .copy(
+              subjects = List(subjectId),
+              publishedFilterTo = Some(fiveYearsAgo)
+            )
         )
         revisions <- filteredCountSearch(
-          MultiDraftSearchSettings.default.copy(
-            subjects = List(subjectId),
-            revisionDateFilterTo = Some(inOneYear)
-          )
+          MultiDraftSearchSettings
+            .default(user)
+            .copy(
+              subjects = List(subjectId),
+              revisionDateFilterTo = Some(inOneYear)
+            )
         )
         publishedArticles <- filteredCountSearch(
-          MultiDraftSearchSettings.default.copy(
-            subjects = List(subjectId),
-            statusFilter = List(DraftStatus.PUBLISHED)
-          )
+          MultiDraftSearchSettings
+            .default(user)
+            .copy(
+              subjects = List(subjectId),
+              statusFilter = List(DraftStatus.PUBLISHED)
+            )
         )
         inFlow <- filteredCountSearch(
-          MultiDraftSearchSettings.default.copy(
-            subjects = List(subjectId),
-            statusFilter = flowStatuses
-          )
+          MultiDraftSearchSettings
+            .default(user)
+            .copy(
+              subjects = List(subjectId),
+              statusFilter = flowStatuses
+            )
         )
         favorited <- aggregateFavorites(subjectId)
       } yield SubjectAggregationDTO(
@@ -145,7 +156,7 @@ trait MultiDraftSearchService {
 
     def matchingQuery(settings: MultiDraftSearchSettings): Try[SearchResult] = {
       val contentSearch: Option[BoolQuery] = buildContentIndexesQuery(settings)
-      val noteSearch = settings.noteQuery.map(q => {
+      val noteSearch                       = settings.noteQuery.map(q => {
         boolQuery()
           .should(
             simpleStringQuery(q.underlying).field("notes", 1),
@@ -182,7 +193,6 @@ trait MultiDraftSearchService {
           langQueryFunc("tags", 1),
           langQueryFunc("embedAttributes", 1),
           simpleStringQuery(queryString.underlying).field("authors", 1),
-          simpleStringQuery(queryString.underlying).field("grepContexts.title", 1),
           nestedQuery("contexts", contextIdQuery).ignoreUnmapped(true),
           termQuery("contextids", queryString.underlying),
           idsQuery(queryString.underlying),
@@ -195,8 +205,8 @@ trait MultiDraftSearchService {
     })
 
     private def filteredCountSearch(settings: MultiDraftSearchSettings): Try[Long] = {
-      val filteredSearch = boolQuery().filter(getSearchFilters(settings))
-      val aggregations   = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
+      val filteredSearch  = boolQuery().filter(getSearchFilters(settings))
+      val aggregations    = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
       val searchToExecute = search(searchIndex)
         .query(filteredSearch)
         .trackTotalHits(true)
@@ -212,11 +222,11 @@ trait MultiDraftSearchService {
         case lang if Iso639.get(lang).isSuccess && !settings.fallback => lang
         case _                                                        => AllLanguages
       }
-      val filteredSearch = baseQuery.filter(getSearchFilters(settings))
-      val pagination     = getStartAtAndNumResults(settings.page, settings.pageSize).?
-      val aggregations   = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
-      val index          = getSearchIndexes(settings).?
-      val sort           = getSortDefinition(settings.sort, searchLanguage)
+      val filteredSearch  = baseQuery.filter(getSearchFilters(settings))
+      val pagination      = getStartAtAndNumResults(settings.page, settings.pageSize).?
+      val aggregations    = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
+      val index           = getSearchIndexes(settings).?
+      val sort            = getSortDefinition(settings.sort, searchLanguage)
       val searchToExecute = search(index)
         .query(filteredSearch)
         .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
@@ -285,22 +295,18 @@ trait MultiDraftSearchService {
       val embedResourceAndIdFilter =
         buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
-      val statusFilter = draftStatusFilter(settings.statusFilter, settings.includeOtherStatuses)
-      val usersFilter  = boolUsersFilter(settings.userFilter)
+      val statusFilter       = draftStatusFilter(settings.statusFilter, settings.includeOtherStatuses)
+      val usersFilter        = boolUsersFilter(settings.userFilter)
       val revisionDateFilter =
         dateRangeFilter("nextRevision.revisionDate", settings.revisionDateFilterFrom, settings.revisionDateFilterTo)
       val publishedDateFilter = dateRangeFilter("published", settings.publishedFilterFrom, settings.publishedFilterTo)
       val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
-      val responsibleIdFilter = Option.when(settings.responsibleIdFilter.nonEmpty) {
+      val responsibleIdFilter     = Option.when(settings.responsibleIdFilter.nonEmpty) {
         termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
       }
 
-      val prioritizedFilter = settings.prioritized.map { priority =>
-        termQuery("priority", if (priority) Priority.Prioritized.entryName else Priority.Unspecified.entryName)
-      }
-
       val priorityFilter = Option.when(settings.priority.nonEmpty)(
-        boolQuery().should(settings.priority.map(termQuery("priority", _)))
+        boolQuery().should(settings.priority.map(p => termQuery("priority", p.entryName)))
       )
 
       val articleTypeFilter = Some(
@@ -313,6 +319,16 @@ trait MultiDraftSearchService {
       val taxonomyTopicFilter         = topicFilter(settings.topics, settings.filterInactive)
       val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
       val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
+
+      val onlyPrivateLearningathsForOwnersFilter = Some(
+        boolQuery().should(
+          boolQuery().not(termQuery("status", LearningPathStatus.PRIVATE.toString)),
+          boolQuery().must(
+            termQuery("status", LearningPathStatus.PRIVATE.toString),
+            termQuery("owner", settings.user.id)
+          )
+        )
+      )
 
       List(
         licenseFilter,
@@ -334,9 +350,9 @@ trait MultiDraftSearchService {
         revisionDateFilter,
         publishedDateFilter,
         responsibleIdFilter,
-        prioritizedFilter,
         priorityFilter,
-        learningResourceType
+        learningResourceType,
+        onlyPrivateLearningathsForOwnersFilter
       ).flatten
     }
 
@@ -377,7 +393,11 @@ trait MultiDraftSearchService {
     private def draftStatusFilter(statuses: Seq[DraftStatus], includeOthers: Boolean): Some[BoolQuery] = {
       if (statuses.isEmpty) {
         Some(
-          boolQuery().not(termQuery("draftStatus.current", DraftStatus.ARCHIVED.toString))
+          boolQuery()
+            .not(
+              termQuery("draftStatus.current", DraftStatus.ARCHIVED.toString),
+              termQuery("draftStatus.current", DraftStatus.UNPUBLISHED.toString)
+            )
         )
       } else {
         val draftStatuses =
@@ -390,12 +410,8 @@ trait MultiDraftSearchService {
       }
     }
 
-    private def boolUsersFilter(users: Seq[String]): Option[BoolQuery] =
-      if (users.isEmpty) None
-      else
-        Some(
-          boolQuery().should(users.map(simpleStringQuery(_).field("users", 1)))
-        )
+    private def boolUsersFilter(users: Seq[String]): Option[TermsQuery[String]] =
+      Option.when(users.nonEmpty)(termsQuery("users", users))
   }
 
 }

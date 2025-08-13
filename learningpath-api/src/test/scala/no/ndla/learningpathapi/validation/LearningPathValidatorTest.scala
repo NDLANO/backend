@@ -20,6 +20,7 @@ import no.ndla.common.model.domain.learningpath.{
 import no.ndla.learningpathapi.*
 import no.ndla.mapping.License.PublicDomain
 import org.mockito.Mockito.when
+import no.ndla.common.model.domain.Priority
 
 class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
@@ -53,7 +54,10 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     lastUpdated = clock.now(),
     owner = "",
     copyright = copyright,
-    isMyNDLAOwner = false
+    isMyNDLAOwner = false,
+    responsible = None,
+    comments = Seq.empty,
+    priority = Priority.Unspecified
   )
 
   private def validMock() = {
@@ -272,7 +276,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
   test("That validate returns error when copyright.license is invalid") {
     validMock()
-    val invalidLicense = "dummy license"
+    val invalidLicense   = "dummy license"
     val invalidCopyright =
       ValidLearningPath.copyright.copy(license = invalidLicense)
     val validationErrors = validator.validateLearningPath(ValidLearningPath.copy(copyright = invalidCopyright), false)

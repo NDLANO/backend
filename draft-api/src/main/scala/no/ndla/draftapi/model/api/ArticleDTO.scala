@@ -12,9 +12,17 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.draft.CommentDTO
-import no.ndla.common.model.api.{DisclaimerDTO, DraftCopyrightDTO, RelatedContent, RelatedContentLinkDTO}
+import no.ndla.common.model.api.{
+  CommentDTO,
+  DisclaimerDTO,
+  DraftCopyrightDTO,
+  RelatedContent,
+  RelatedContentLinkDTO,
+  ResponsibleDTO,
+  RevisionMetaDTO
+}
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.model.domain.Priority
 
 // format: off
 @description("Information about the article")
@@ -45,11 +53,10 @@ case class ArticleDTO(
     @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher") availability: String,
     @description("A list of content related to the article") relatedContent: Seq[RelatedContent],
     @description("A list of revisions planned for the article") revisions: Seq[RevisionMetaDTO],
-    @description("Object with data representing the editor responsible for this article") responsible: Option[DraftResponsibleDTO],
+    @description("Object with data representing the editor responsible for this article") responsible: Option[ResponsibleDTO],
     @description("The path to the frontpage article") slug: Option[String],
     @description("Information about comments attached to the article") comments: Seq[CommentDTO],
-    @description("If the article should be prioritized") prioritized: Boolean,
-    @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: String,
+    @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Priority,
     @description("If the article has been edited after last status or responsible change") started: Boolean,
     @description("The quality evaluation of the article. Consist of a score from 1 to 5 and a comment.") qualityEvaluation : Option[QualityEvaluationDTO],
     @description("The disclaimer of the article") disclaimer: Option[DisclaimerDTO]

@@ -30,7 +30,7 @@ trait TranscriptionService {
   sealed trait TranscriptionResult
   case class TranscriptionComplete(transcription: String)             extends TranscriptionResult
   case class TranscriptionNonComplete(status: TranscriptionJobStatus) extends TranscriptionResult
-  class TranscriptionService extends StrictLogging {
+  class TranscriptionService                                          extends StrictLogging {
 
     def transcribeVideo(videoId: String, language: String, maxSpeakers: Int): Try[Unit] = {
       getVideoTranscription(videoId, language) match {
@@ -170,7 +170,7 @@ trait TranscriptionService {
 
     def extractAudioFromVideo(videoId: String, language: String): Try[Unit] = {
       val accountId = props.BrightcoveAccountId
-      val videoUrl = getVideo(accountId, videoId) match {
+      val videoUrl  = getVideo(accountId, videoId) match {
         case Success(sources) if sources.nonEmpty => sources.head
         case Success(_)  => return Failure(new RuntimeException(s"No video sources found for videoId: $videoId"))
         case Failure(ex) => return Failure(new RuntimeException(s"Failed to get video sources: $ex"))

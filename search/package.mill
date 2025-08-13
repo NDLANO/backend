@@ -1,0 +1,22 @@
+package build.search
+
+import mill._, mill.scalalib._
+import build.modules.{BaseModule, SharedDependencies}
+
+object `package` extends BaseModule {
+  override def moduleName           = "search"
+  override def isComponent: Boolean = false
+  def mvnDeps: T[Seq[Dep]]          = SharedDependencies.logging ++ Seq(
+    SharedDependencies.scalaUri,
+    SharedDependencies.catsEffect,
+    SharedDependencies.jsoup,
+    SharedDependencies.elastic4s
+  )
+  override def moduleDeps = Seq(build.language, build.common, build.mapping)
+  object test extends TestBase {
+    override def moduleDeps           = super.moduleDeps :+ build.scalatestsuite
+    override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+      SharedDependencies.elastic4sTest
+    )
+  }
+}

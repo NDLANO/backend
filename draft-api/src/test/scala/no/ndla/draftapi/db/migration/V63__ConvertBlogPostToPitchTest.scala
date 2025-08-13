@@ -12,7 +12,7 @@ import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 
 class V63__ConvertBlogPostToPitchTest extends UnitSuite with TestEnvironment {
   test("Migration should convert blog-post to pitch embeds") {
-    val migration = new V63__ConvertBlogPostToPitch
+    val migration  = new V63__ConvertBlogPostToPitch
     val oldArticle =
       """<section><ndlaembed data-resource="blog-post" data-title="Whatabout this" data-author="Some Author" data-size="normal" data-image-id="123" data-url="https://somewebsite.com" data-alt="Alternative"></ndlaembed></section>"""
     val newArticle =

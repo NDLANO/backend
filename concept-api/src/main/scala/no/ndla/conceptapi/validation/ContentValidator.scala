@@ -28,6 +28,7 @@ trait ContentValidator {
   val contentValidator: ContentValidator
 
   class ContentValidator {
+    private val inlineHtmlTags = props.InlineHtmlTags
 
     def validateConcept(concept: Concept): Try[Concept] = {
       val validationErrors =
@@ -78,7 +79,7 @@ trait ContentValidator {
     }
 
     private def validateTitle(title: String, language: String): Seq[ValidationMessage] = {
-      TextValidator.validate(s"title.$language", title, Set.empty).toList ++
+      TextValidator.validate(s"title.$language", title, inlineHtmlTags).toList ++
         validateLanguage("language", language) ++
         validateLength(s"title.$language", title, 256) ++
         validateMinimumLength(s"title.$language", title, 1)
@@ -88,7 +89,7 @@ trait ContentValidator {
       val licenseMessage            = copyright.license.map(validateLicense).toSeq.flatten
       val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
       val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
-      val contributorsMessages =
+      val contributorsMessages      =
         copyright.creators.flatMap(a => validateAuthor(a, ContributorType.creators)) ++ copyright.processors
           .flatMap(a => validateAuthor(a, ContributorType.processors)) ++ copyright.rightsholders.flatMap(a =>
           validateAuthor(a, ContributorType.rightsholders)

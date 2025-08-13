@@ -58,13 +58,13 @@ trait ArticleControllerV2 {
     private val sort = query[Option[String]]("sort").description(s"""The sorting used on results.
              The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and id (asc) when query is empty.""".stripMargin)
-    private val pageNo = query[Option[Int]]("page").description("The page number of the search hits to display.")
+    private val pageNo   = query[Option[Int]]("page").description("The page number of the search hits to display.")
     private val pageSize =
       query[Option[Int]]("page-size")
         .description("The number of search hits to display for each page.")
     private val articleId = path[String]("article_id").description("Id or slug of the article that is to be fetched.")
     private val articleIdLong = path[Long]("article_id").description("Id or slug of the article that is to be fetched.")
-    private val revision =
+    private val revision      =
       query[Option[Int]]("revision")
         .description("Revision of article to fetch. If not provided the current revision is returned.")
     private val articleTypes = listQuery[String]("articleTypes")
@@ -76,7 +76,7 @@ trait ArticleControllerV2 {
         "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."
       )
     private val deprecatedNodeId = path[String]("deprecated_node_id").description("Id of deprecated NDLA node")
-    private val fallback =
+    private val fallback         =
       query[Boolean]("fallback").description("Fallback to existing language if language is specified.").default(false)
     protected val scrollId: EndpointInput.Query[Option[String]] = query[Option[String]]("search-context").description(
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
@@ -133,7 +133,7 @@ trait ArticleControllerV2 {
         .out(jsonBody[TagsSearchResultDTO])
         .errorOut(errorOutputsFor())
         .serverLogicPure { case (query, pageSize, pageNo, language) =>
-          val queryOrEmpty = query.getOrElse("")
+          val queryOrEmpty   = query.getOrElse("")
           val parsedPageSize = pageSize.getOrElse(DefaultPageSize) match {
             case tooSmall if tooSmall < 1 => DefaultPageSize
             case x                        => x

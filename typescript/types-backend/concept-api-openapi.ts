@@ -289,22 +289,12 @@ export type components = {
             /** @description Status information of the concept */
             status: components["schemas"]["StatusDTO"];
             visualElement?: components["schemas"]["VisualElementDTO"];
-            responsible?: components["schemas"]["ConceptResponsibleDTO"];
+            responsible?: components["schemas"]["ResponsibleDTO"];
             /** @description Type of concept. 'concept', or 'gloss' */
             conceptType: string;
             glossData?: components["schemas"]["GlossDataDTO"];
             /** @description Describes the changes made to the concept, only visible to editors */
             editorNotes?: components["schemas"]["EditorNoteDTO"][];
-        };
-        /**
-         * ConceptResponsibleDTO
-         * @description Object with data representing the editor responsible for this concept
-         */
-        ConceptResponsibleDTO: {
-            /** @description NDLA ID of responsible editor */
-            responsibleId: string;
-            /** @description Date of when the responsible editor was last updated */
-            lastUpdated: string;
         };
         /**
          * ConceptSearchParamsDTO
@@ -403,7 +393,7 @@ export type components = {
             visualElement?: components["schemas"]["VisualElementDTO"];
             /** @description URL for the source of the concept */
             source?: string;
-            responsible?: components["schemas"]["ConceptResponsibleDTO"];
+            responsible?: components["schemas"]["ResponsibleDTO"];
             /** @description Type of concept. 'concept', or 'gloss' */
             conceptType: string;
             glossData?: components["schemas"]["GlossDataDTO"];
@@ -425,9 +415,11 @@ export type components = {
          * @description Available titles for the concept
          */
         ConceptTitleDTO: {
-            /** @description The title of this concept */
+            /** @description The freetext title of this concept */
             title: string;
-            /** @description The language of this concept */
+            /** @description The freetext html title of this concept */
+            htmlTitle: string;
+            /** @description ISO 639-1 code that represents the language used in the title */
             language: string;
         };
         /**
@@ -637,6 +629,16 @@ export type components = {
              * @description Numeric http status code
              */
             statusCode: number;
+        };
+        /**
+         * ResponsibleDTO
+         * @description Object with data representing the editor responsible for this concept
+         */
+        ResponsibleDTO: {
+            /** @description NDLA ID of responsible editor */
+            responsibleId: string;
+            /** @description Date of when the responsible editor was last updated */
+            lastUpdated: string;
         };
         /**
          * Sort

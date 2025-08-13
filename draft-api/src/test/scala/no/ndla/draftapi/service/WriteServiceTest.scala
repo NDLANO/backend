@@ -10,15 +10,14 @@ package no.ndla.draftapi.service
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
-import no.ndla.common.model.api.{RelatedContentLinkDTO, UpdateWith}
+import no.ndla.common.model.api.{RelatedContentLinkDTO, UpdateWith, RevisionMetaDTO}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTagDTO, PartialPublishArticleDTO}
-import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
+import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PUBLISHED}
 import no.ndla.common.model.domain.draft.*
 import no.ndla.common.model.{NDLADate, RelatedContentLink, domain, api as commonApi}
 import no.ndla.draftapi.integration.Node
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.PartialArticleFieldsDTO
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
@@ -135,7 +134,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateArticle updates only content properly") {
-    val newContent = "NyContentTest"
+    val newContent        = "NyContentTest"
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("en"),
@@ -158,7 +157,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateArticle updates only title properly") {
-    val newTitle = "NyTittelTest"
+    val newTitle          = "NyTittelTest"
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("en"),
@@ -187,7 +186,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedMetaAlt         = "HeheAlt"
     val newImageMeta           = api.NewArticleMetaImageDTO(updatedMetaId, updatedMetaAlt)
     val updatedVisualElement   = s"<$EmbedTagName something></$EmbedTagName>"
-    val updatedCopyright = model.api.DraftCopyrightDTO(
+    val updatedCopyright       = model.api.DraftCopyrightDTO(
       Some(commonApi.LicenseDTO("a", Some("b"), None)),
       Some("c"),
       Seq(commonApi.AuthorDTO(ContributorType.Originator, "Jonas")),
@@ -412,7 +411,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updated = yesterday,
       responsible = Some(Responsible("hei", TestData.today))
     )
-    val user = TokenUser("Pelle", Set(DRAFT_API_WRITE), None)
+    val user           = TokenUser("Pelle", Set(DRAFT_API_WRITE), None)
     val updatedArticle = converterService
       .updateStatus(DraftStatus.IN_PROGRESS, articleToUpdate, user)
       .get
@@ -450,7 +449,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
   test("That we only validate the given language") {
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(language = Some("nb"))
-    val article =
+    val article        =
       TestData.sampleDomainArticle.copy(
         id = Some(5),
         content =
@@ -578,7 +577,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("article status should not be updated if changes only affect notes") {
-    val existingTitle = "apekatter"
+    val existingTitle  = "apekatter"
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("nb"),
@@ -598,7 +597,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("article status should not be updated if any of the PartialArticleFields changes") {
-    val existingTitle = "tittel"
+    val existingTitle  = "tittel"
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("nb"),
@@ -653,7 +652,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("article status should change if any of the other fields changes") {
-    val existingTitle = "tittel"
+    val existingTitle  = "tittel"
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("nb"),
@@ -697,7 +696,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("article status should change if both the PartialArticleFields and other fields changes") {
-    val existingTitle = "tittel"
+    val existingTitle  = "tittel"
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("nb"),
@@ -988,7 +987,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That updateArticle should get editor notes if RevisionMeta is added or updated") {
     when(uuidUtil.randomUUID()).thenCallRealMethod()
-    val revision = api.RevisionMetaDTO(None, NDLADate.now(), "Ny revision", RevisionStatus.NeedsRevision.entryName)
+    val revision =
+      RevisionMetaDTO(None, NDLADate.now(), "Ny revision", RevisionStatus.NeedsRevision.entryName)
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       revisionMeta = Some(Seq(revision))
@@ -1001,7 +1001,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
     val savedRevision = saved.get.revisions.head
 
-    val revised = revision.copy(id = savedRevision.id, status = RevisionStatus.Revised.entryName)
+    val revised           = revision.copy(id = savedRevision.id, status = RevisionStatus.Revised.entryName)
     val revisedApiArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       revisionMeta = Some(Seq(revised))
@@ -1022,7 +1022,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("partial publish notes should be updated before update function") {
-    val existingTitle = "tittel"
+    val existingTitle  = "tittel"
     val updatedArticle = TestData.blankUpdatedArticle.copy(
       revision = 1,
       language = Some("nb"),
@@ -1156,62 +1156,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val article3 = TestData.sampleDomainArticle.copy(comments = Seq(comment1, comment2, comment3))
     val article4 = TestData.sampleDomainArticle.copy(comments = Seq.empty)
     service.shouldUpdateStatus(article3, article4) should be(false)
-  }
-
-  test("shouldPartialPublish return empty-set if articles are equal") {
-    val nnMeta = Description("Meta nn", "nn")
-    val nbMeta = Description("Meta nb", "nb")
-
-    val article1 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nnMeta, nbMeta)
-    )
-    val article2 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nnMeta, nbMeta)
-    )
-    service.shouldPartialPublish(Some(article1), article2) should be(Set.empty)
-
-    val article3 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nnMeta, nbMeta)
-    )
-    val article4 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nbMeta, nnMeta)
-    )
-    service.shouldPartialPublish(Some(article3), article4) should be(Set.empty)
-
-  }
-
-  test("shouldPartialPublish returns set of changed fields") {
-
-    val article1 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(
-        Description("Meta nn", "nn"),
-        Description("Meta nb", "nb")
-      ),
-      grepCodes = Seq(
-        "KE123"
-      )
-    )
-
-    val article2 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(
-        Description("Ny Meta nn", "nn"),
-        Description("Meta nb", "nb")
-      ),
-      grepCodes = Seq("KE123", "KE456")
-    )
-
-    service.shouldPartialPublish(Some(article1), article2) should be(
-      Set(
-        PartialArticleFieldsDTO.metaDescription,
-        PartialArticleFieldsDTO.grepCodes
-      )
-    )
   }
 
   test("copyRevisionDates updates articles") {
@@ -1430,5 +1374,37 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     result.status.current should be(PUBLISHED.toString)
     result.started should be(false)
+  }
+
+  test("that deleting current revision fails if status is PUBLISHED") {
+    val previous = TestData.sampleDomainArticle.copy(revision = Some(42), status = TestData.statusWithInProcess)
+    val current  = previous.copy(revision = Some(84), status = TestData.statusWithPublished)
+    when(draftRepository.getCurrentAndPreviousRevision(eqTo(current.id.get))(any))
+      .thenReturn(Success((current, previous)))
+
+    val result = service.deleteCurrentRevision(current.id.get)
+    result.isFailure should be(true)
+  }
+
+  test("that deleting current revision fails if fields have been partially published") {
+    val previous = TestData.sampleDomainArticle.copy(revision = Some(42), status = TestData.statusWithInProcess)
+    val current  = previous.copy(revision = Some(84), metaDescription = Seq(Description("Some description", "en")))
+    when(draftRepository.getCurrentAndPreviousRevision(eqTo(current.id.get))(any))
+      .thenReturn(Success((current, previous)))
+
+    val result = service.deleteCurrentRevision(current.id.get)
+    result.isFailure should be(true)
+  }
+
+  test("that deleting current revision stores a new version if previous revision is PUBLISHED") {
+    val previous = TestData.sampleDomainArticle.copy(revision = Some(42), status = TestData.statusWithPublished)
+    val current  = previous.copy(revision = Some(84), status = TestData.statusWithInProcess)
+    when(draftRepository.getCurrentAndPreviousRevision(eqTo(current.id.get))(any))
+      .thenReturn(Success((current, previous)))
+    when(draftRepository.deleteArticleRevision(eqTo(current.id.get), eqTo(current.revision.get))(any))
+      .thenReturn(Success(()))
+
+    service.deleteCurrentRevision(current.id.get).failIfFailure
+    verify(draftRepository, times(1)).storeArticleAsNewVersion(any, any, any)(any)
   }
 }

@@ -24,7 +24,7 @@ case class LanguageFields[T](internal: Map[String, T]) {
 }
 
 object LanguageFields {
-  def empty[T]: LanguageFields[T] = LanguageFields(Map.empty)
+  def empty[T]: LanguageFields[T]                                            = LanguageFields(Map.empty)
   def fromFields[T](fields: Seq[WithLanguageAndValue[T]]): LanguageFields[T] = {
     val underlyingMap = fields.map(f => f.language -> f.value).toMap
     LanguageFields(underlyingMap)

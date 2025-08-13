@@ -83,7 +83,7 @@ trait InternController {
         .serverLogicPure { _ =>
           def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
           audioIndexService.findAllIndexes(props.SearchIndex) match {
-            case Failure(f) => f.getMessage.asLeft
+            case Failure(f)       => f.getMessage.asLeft
             case Success(indexes) =>
               val deleteResults = indexes.map(index => {
                 logger.info(s"Deleting index $index")

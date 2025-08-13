@@ -272,7 +272,7 @@ class EmbedTagRulesTest extends UnitSuite {
            | data-content-id="1"
            | data-type="gloss"
            | data-example-langs="{nb}"
-           |/>""".stripMargin
+           |>gloss</$EmbedTagName>""".stripMargin
 
       val result = TagValidator.validate("test", embedString)
       result should be(
@@ -291,7 +291,7 @@ class EmbedTagRulesTest extends UnitSuite {
            | data-content-id="1"
            | data-type="gloss"
            | data-example-langs="[nb]"
-           |/>""".stripMargin
+           |>gloss</$EmbedTagName>""".stripMargin
 
       val result = TagValidator.validate("test", embedString)
       result should be(
@@ -310,7 +310,7 @@ class EmbedTagRulesTest extends UnitSuite {
            | data-content-id="1"
            | data-type="gloss"
            | data-example-langs="nb-NO"
-           |/>""".stripMargin
+           |>gloss</$EmbedTagName>""".stripMargin
 
       val result = TagValidator.validate("test", embedString)
       result should be(
@@ -324,7 +324,7 @@ class EmbedTagRulesTest extends UnitSuite {
            | data-content-id="1"
            | data-type="gloss"
            | data-example-langs="nb,nn,en-UK"
-           |/>""".stripMargin
+           |>gloss</$EmbedTagName>""".stripMargin
 
       val result = TagValidator.validate("test", embedString)
       result should be(
@@ -338,7 +338,7 @@ class EmbedTagRulesTest extends UnitSuite {
            | data-content-id="1"
            | data-type="gloss"
            | data-example-ids="0,2"
-           |/>""".stripMargin
+           |>gloss</$EmbedTagName>""".stripMargin
 
       val result = TagValidator.validate("test", embedString)
       result should be(

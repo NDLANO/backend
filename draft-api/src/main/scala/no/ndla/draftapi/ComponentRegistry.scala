@@ -13,6 +13,7 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.common.converter.CommonConverter
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
@@ -44,6 +45,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     with DataSource
     with InternController
     with ConverterService
+    with CommonConverter
     with StateTransitionRules
     with LearningpathApiClient
     with TaxonomyApiClient
@@ -87,7 +89,7 @@ class ComponentRegistry(properties: DraftApiProperties)
     with V57__MigrateSavedSearch
     with V66__SetHideBylineForImagesNotCopyrighted {
   override val props: DraftApiProperties = properties
-  override val migrator: DBMigrator = DBMigrator(
+  override val migrator: DBMigrator      = DBMigrator(
     new R__RemoveEmptyStringLanguageFields(props),
     new R__RemoveStatusPublishedArticles(props),
     new R__SetArticleLanguageFromTaxonomy(props),

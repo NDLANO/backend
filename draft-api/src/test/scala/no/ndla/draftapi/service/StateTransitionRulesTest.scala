@@ -37,7 +37,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   val InProcessStatus: Status            = common.Status(IN_PROGRESS, Set.empty)
   val ArchivedStatus: Status             = common.Status(ARCHIVED, Set(PUBLISHED))
   val responsible: Responsible           = common.Responsible("someid", TestData.today)
-  val InProcessArticle: Draft =
+  val InProcessArticle: Draft            =
     TestData.sampleArticleWithByNcSa.copy(status = InProcessStatus, responsible = Some(responsible))
   val PublishedArticle: Draft =
     TestData.sampleArticleWithByNcSa.copy(status = PublishedStatus, responsible = Some(responsible))
@@ -45,7 +45,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     TestData.sampleArticleWithByNcSa.copy(status = UnpublishedStatus, responsible = Some(responsible))
 
   test("doTransition should succeed when performing a legal transition") {
-    val expected = common.Status(PUBLISHED, Set.empty)
+    val expected          = common.Status(PUBLISHED, Set.empty)
     val (Success(res), _) =
       doTransitionWithoutSideEffect(InProcessArticle, PUBLISHED, TestData.userWithAdminAccess)
 
@@ -53,7 +53,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("doTransition should keep some states when performing a legal transition") {
-    val expected = common.Status(EXTERNAL_REVIEW, Set(IN_PROGRESS))
+    val expected          = common.Status(EXTERNAL_REVIEW, Set(IN_PROGRESS))
     val (Success(res), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = ExternalReviewStatus),
@@ -62,7 +62,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res.status should equal(expected)
 
-    val expected2 = common.Status(IN_PROGRESS, Set(PUBLISHED))
+    val expected2          = common.Status(IN_PROGRESS, Set(PUBLISHED))
     val (Success(res2), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = PublishedStatus),
@@ -74,7 +74,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("doTransition every state change to Archived should succeed") {
-    val expected1 = common.Status(ARCHIVED, Set.empty)
+    val expected1          = common.Status(ARCHIVED, Set.empty)
     val (Success(res1), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = PublishedStatus),
@@ -83,7 +83,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res1.status should equal(expected1)
 
-    val expected2 = common.Status(ARCHIVED, Set.empty)
+    val expected2          = common.Status(ARCHIVED, Set.empty)
     val (Success(res2), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = UnpublishedStatus),
@@ -92,7 +92,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res2.status should equal(expected2)
 
-    val expected3 = common.Status(ARCHIVED, Set.empty)
+    val expected3          = common.Status(ARCHIVED, Set.empty)
     val (Success(res3), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = InProcessStatus),
@@ -101,7 +101,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res3.status should equal(expected3)
 
-    val expected4 = common.Status(ARCHIVED, Set.empty)
+    val expected4          = common.Status(ARCHIVED, Set.empty)
     val (Success(res4), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = ExternalReviewStatus),
@@ -110,7 +110,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res4.status should equal(expected4)
 
-    val expected5 = common.Status(ARCHIVED, Set.empty)
+    val expected5          = common.Status(ARCHIVED, Set.empty)
     val (Success(res5), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = PlannedStatus),
@@ -119,7 +119,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     res5.status should equal(expected5)
 
-    val expected6 = common.Status(ARCHIVED, Set.empty)
+    val expected6          = common.Status(ARCHIVED, Set.empty)
     val (Success(res6), _) =
       doTransitionWithoutSideEffect(
         InProcessArticle.copy(status = PublishedStatus),
@@ -207,15 +207,15 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("user without required roles should not be permitted to perform the status transition") {
-    val proposalArticle = TestData.sampleArticleWithByNcSa.copy(status = InProcessStatus)
+    val proposalArticle                                = TestData.sampleArticleWithByNcSa.copy(status = InProcessStatus)
     val (Failure(ex: IllegalStatusStateTransition), _) =
       doTransitionWithoutSideEffect(proposalArticle, PUBLISHED, TestData.userWithWriteAccess)
     ex.getMessage should equal("Cannot go to PUBLISHED when article is IN_PROGRESS")
   }
 
   test("PUBLISHED should be removed when transitioning to UNPUBLISHED") {
-    val expected         = common.Status(UNPUBLISHED, Set())
-    val publishedArticle = InProcessArticle.copy(status = common.Status(current = PUBLISHED, other = Set()))
+    val expected          = common.Status(UNPUBLISHED, Set())
+    val publishedArticle  = InProcessArticle.copy(status = common.Status(current = PUBLISHED, other = Set()))
     val (Success(res), _) =
       doTransitionWithoutSideEffect(publishedArticle, UNPUBLISHED, TestData.userWithAdminAccess)
 
@@ -318,7 +318,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle should be called when transitioning to END_CONTROL") {
     val articleId = 7L
-    val draft = Draft(
+    val draft     = Draft(
       id = Some(articleId),
       revision = None,
       status = common.Status(PLANNED, Set.empty),
@@ -439,7 +439,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   test("That publishing article results in responsibleId being reset") {
     val articleId         = 100L
     val beforeResponsible = Responsible("heisann", clock.now())
-    val draft = Draft(
+    val draft             = Draft(
       id = Some(articleId),
       revision = None,
       status = common.Status(PLANNED, Set.empty),
@@ -484,7 +484,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     })
     for (t <- transitionsToTest) {
       val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
-      val result = StateTransitionRules
+      val result    = StateTransitionRules
         .doTransition(fromDraft, PUBLISHED, TestData.userWithAdminAccess)
 
       if (result.get.responsible.isDefined) {
@@ -496,7 +496,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   test("That archiving article results in responsibleId being reset") {
     val articleId         = 100L
     val beforeResponsible = Responsible("heisann", clock.now())
-    val draft = Draft(
+    val draft             = Draft(
       id = Some(articleId),
       revision = None,
       status = common.Status(PLANNED, Set.empty),
@@ -545,7 +545,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     )
     for (t <- transitionsToTest) {
       val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
-      val result = StateTransitionRules
+      val result    = StateTransitionRules
         .doTransition(fromDraft, ARCHIVED, TestData.userWithAdminAccess)
 
       if (result.get.responsible.isDefined) {
@@ -557,7 +557,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   test("That unpublishing article results in responsibleId being reset") {
     val articleId         = 100L
     val beforeResponsible = Responsible("heisann", clock.now())
-    val draft = Draft(
+    val draft             = Draft(
       id = Some(articleId),
       revision = None,
       status = common.Status(PLANNED, Set.empty),
@@ -608,7 +608,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
     for (t <- transitionsToTest) {
       val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
-      val result = StateTransitionRules
+      val result    = StateTransitionRules
         .doTransition(fromDraft, UNPUBLISHED, TestData.userWithAdminAccess)
 
       if (result.get.responsible.isDefined) {
@@ -619,7 +619,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
   test("That responsibleId is updated at status change from published to in progress") {
     val articleId = 100L
-    val draft = Draft(
+    val draft     = Draft(
       id = Some(articleId),
       revision = None,
       status = common.Status(PUBLISHED, Set.empty),
@@ -670,7 +670,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(searchApiClient.publishedWhereUsed(eqTo(100L), any)).thenReturn(Seq())
 
     val fromDraft = draft.copy(status = status.copy(current = transitionToTest.from))
-    val result = StateTransitionRules
+    val result    = StateTransitionRules
       .doTransition(fromDraft, IN_PROGRESS, TestData.userWithAdminAccess)
 
     result.get.responsible.get.responsibleId should be(expected)

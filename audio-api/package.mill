@@ -1,0 +1,25 @@
+package build.`audio-api`
+
+import mill._, mill.scalalib._
+import build.modules.{BaseModule, DockerComponent, SharedDependencies}
+
+object `package` extends BaseModule, DockerComponent {
+  override def moduleName  = "audio-api"
+  def mvnDeps: T[Seq[Dep]] =
+    SharedDependencies.logging ++
+      SharedDependencies.enumeratum ++
+      SharedDependencies.tapirHttp4sCirce ++
+      SharedDependencies.database ++
+      SharedDependencies.jave ++
+      Seq(
+        SharedDependencies.scalaUri,
+        SharedDependencies.sttp,
+        SharedDependencies.jsoup,
+        SharedDependencies.catsEffect
+      )
+  override def moduleDeps =
+    Seq(build.common, build.network, build.mapping, build.language, build.search, build.database)
+  object test extends TestBase {
+    override def moduleDeps = super.moduleDeps ++ Seq(build.tapirtesting, build.scalatestsuite)
+  }
+}

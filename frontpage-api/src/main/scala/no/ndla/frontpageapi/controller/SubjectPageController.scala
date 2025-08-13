@@ -33,7 +33,7 @@ trait SubjectPageController {
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 
     private val pathSubjectPageId = path[Long]("subjectpage-id").description("The subjectpage id")
-    private val pathLanguage = path[LanguageCode]("language")
+    private val pathLanguage      = path[LanguageCode]("language")
       .description("The ISO 639-1 language code describing language.")
     private val pageNo = query[Int]("page")
       .description("The page number of the search hits to display.")

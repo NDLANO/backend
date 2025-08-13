@@ -351,6 +351,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/learningpath-api/v2/learningpaths/{learningpath_id}/learningsteps/{learningstep_id}/language/{p1}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete given learningstep language
+         * @description Deletes the given learningStep language
+         */
+        delete: operations["deleteLearningpath-apiV2LearningpathsLearningpath_idLearningstepsLearningstep_idLanguageP1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/learningpath-api/v2/learningpaths/status/{STATUS}": {
         parameters: {
             query?: never;
@@ -426,6 +446,24 @@ export type components = {
             type: components["schemas"]["ContributorType"];
             /** @description The name of the of the author */
             name: string;
+        };
+        /**
+         * CommentDTO
+         * @description Information about a comment attached to an article
+         */
+        CommentDTO: {
+            /** @description Id of the comment */
+            id: string;
+            /** @description Content of the comment */
+            content: string;
+            /** @description When the comment was created */
+            created: string;
+            /** @description When the comment was last updated */
+            updated: string;
+            /** @description If the comment is open or closed */
+            isOpen: boolean;
+            /** @description If the comment is solved or not */
+            solved: boolean;
         };
         /**
          * ContributorType
@@ -623,6 +661,10 @@ export type components = {
             madeAvailable?: string;
             /** @description Whether the owner of the learningpath is a MyNDLA user or not */
             isMyNDLAOwner: boolean;
+            responsible?: components["schemas"]["ResponsibleDTO"];
+            /** @description Information about comments attached to the learningpath */
+            comments: components["schemas"]["CommentDTO"][];
+            priority: components["schemas"]["Priority"];
         };
         /**
          * LearningStepContainerSummaryDTO
@@ -704,6 +746,11 @@ export type components = {
             /** @description The description of the learningstep */
             description?: components["schemas"]["DescriptionDTO"];
             embedUrl?: components["schemas"]["EmbedUrlV2DTO"];
+            /**
+             * Format: int64
+             * @description The id of the article that this learningstep is associated with
+             */
+            articleId?: number;
             /** @description Determines if the title of the step should be displayed in viewmode */
             showTitle: boolean;
             /** @description The type of the step */
@@ -737,6 +784,16 @@ export type components = {
             message: string;
             /** @description When the message was left */
             date: string;
+        };
+        /**
+         * NewCommentDTO
+         * @description Information about a comment attached to an article
+         */
+        NewCommentDTO: {
+            /** @description Content of the comment */
+            content: string;
+            /** @description If the comment is open or closed */
+            isOpen?: boolean;
         };
         /**
          * NewCopyLearningPathV2DTO
@@ -783,6 +840,11 @@ export type components = {
             language: string;
             /** @description Describes the copyright information for the learningpath */
             copyright?: components["schemas"]["CopyrightDTO"];
+            /** @description NDLA ID representing the editor responsible for this learningpath */
+            responsibleId?: string;
+            /** @description Information about comments attached to the learningpath */
+            comments?: components["schemas"]["NewCommentDTO"][];
+            priority?: components["schemas"]["Priority"];
         };
         /**
          * NewLearningStepV2DTO
@@ -797,6 +859,11 @@ export type components = {
             description?: string;
             /** @description The chosen language */
             language: string;
+            /**
+             * Format: int64
+             * @description The article id this learningstep points to
+             */
+            articleId?: number;
             embedUrl?: components["schemas"]["EmbedUrlV2DTO"];
             /**
              * @description Determines if the title of the step should be displayed in viewmode.
@@ -826,6 +893,22 @@ export type components = {
              * @description Numeric http status code
              */
             statusCode: number;
+        };
+        /**
+         * Priority
+         * @description If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified
+         * @enum {string}
+         */
+        Priority: "prioritized" | "on-hold" | "unspecified";
+        /**
+         * ResponsibleDTO
+         * @description Object with data representing the editor responsible for this learningpath
+         */
+        ResponsibleDTO: {
+            /** @description NDLA ID of responsible editor */
+            responsibleId: string;
+            /** @description Date of when the responsible editor was last updated */
+            lastUpdated: string;
         };
         /**
          * SearchParamsDTO
@@ -907,6 +990,20 @@ export type components = {
             message?: string;
         };
         /**
+         * UpdatedCommentDTO
+         * @description Information about a comment attached to an article
+         */
+        UpdatedCommentDTO: {
+            /** @description Id of the comment */
+            id?: string;
+            /** @description Content of the comment */
+            content: string;
+            /** @description If the comment is open or closed */
+            isOpen?: boolean;
+            /** @description If the comment is solved or not */
+            solved?: boolean;
+        };
+        /**
          * UpdatedLearningPathV2DTO
          * @description Meta information for a new learningpath
          */
@@ -923,7 +1020,7 @@ export type components = {
             /** @description The description of the learningpath */
             description?: string;
             /** @description Url to cover-photo in NDLA image-api. */
-            coverPhotoMetaUrl?: string;
+            coverPhotoMetaUrl?: string | null;
             /**
              * Format: int32
              * @description The duration of the learningpath in minutes. Must be greater than 0
@@ -935,6 +1032,11 @@ export type components = {
             copyright?: components["schemas"]["CopyrightDTO"];
             /** @description Whether to delete a message connected to a learningpath by an administrator. */
             deleteMessage?: boolean;
+            /** @description NDLA ID representing the editor responsible for this learningpath */
+            responsibleId?: string | null;
+            /** @description Information about comments attached to the learningpath */
+            comments?: components["schemas"]["UpdatedCommentDTO"][];
+            priority?: components["schemas"]["Priority"];
         };
         /**
          * UpdatedLearningStepV2DTO
@@ -949,12 +1051,18 @@ export type components = {
             /** @description The title of the learningstep */
             title?: string;
             /** @description The introduction of the learningstep */
-            introduction?: string;
+            introduction?: string | null;
             /** @description The chosen language */
             language: string;
             /** @description The description of the learningstep */
-            description?: string;
-            embedUrl?: components["schemas"]["EmbedUrlV2DTO"];
+            description?: string | null;
+            /** @description The embed content for the learningstep */
+            embedUrl?: components["schemas"]["EmbedUrlV2DTO"] | null;
+            /**
+             * Format: int64
+             * @description The article id this learningstep points to
+             */
+            articleId?: number | null;
             /** @description Determines if the title of the step should be displayed in viewmode */
             showTitle?: boolean;
             /** @description The type of the step */
@@ -2488,6 +2596,88 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+        };
+    };
+    "deleteLearningpath-apiV2LearningpathsLearningpath_idLearningstepsLearningstep_idLanguageP1": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Id of the learningpath. */
+                learningpath_id: number;
+                /** @description Id of the learningstep. */
+                learningstep_id: number;
+                /** @description The ISO 639-1 language describing language. */
+                p1: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningStepV2DTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -11,8 +11,15 @@ package no.ndla.searchapi.model.search
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.LearningResourceType
-import no.ndla.common.model.domain.draft.{DraftStatus, RevisionMeta, RevisionStatus}
-import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, Status as CommonStatus}
+import no.ndla.common.model.domain.draft.{DraftStatus}
+import no.ndla.common.model.domain.{
+  EditorNote,
+  Priority,
+  Responsible,
+  Status as CommonStatus,
+  RevisionMeta,
+  RevisionStatus
+}
 import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}

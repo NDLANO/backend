@@ -12,8 +12,9 @@ import no.ndla.common.implicits.*
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{DraftCopyrightDTO, RelatedContentLinkDTO}
+import no.ndla.common.model.api.{DraftCopyrightDTO, NewCommentDTO, RelatedContentLinkDTO, RevisionMetaDTO}
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.model.domain.Priority
 
 // format: off
 @description("Information about the article")
@@ -40,8 +41,7 @@ case class NewArticleDTO(
     @description("NDLA ID representing the editor responsible for this article") responsibleId: Option[String],
     @description("The path to the frontpage article") slug: Option[String],
     @description("Information about a comment attached to an article") comments: Option[List[NewCommentDTO]],
-    @description("If the article should be prioritized") prioritized: Option[Boolean],
-    @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[String],
+    @description("If the article should be prioritized. Possible values are prioritized, on-hold, unspecified") priority: Option[Priority],
     @description("The quality evaluation of the article. Consist of a score from 1 to 5 and a comment.") qualityEvaluation : Option[QualityEvaluationDTO],
     @description("The disclaimer of the article") disclaimer: Option[String]
 )

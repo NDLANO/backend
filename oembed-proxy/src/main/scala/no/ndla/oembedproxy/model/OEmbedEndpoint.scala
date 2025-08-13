@@ -21,7 +21,7 @@ case class OEmbedEndpoint(
 
   def supports(url: String): Boolean = {
     schemes match {
-      case None => false
+      case None              => false
       case Some(schemesList) =>
         schemesList.exists(scheme => matches(scheme, url))
     }

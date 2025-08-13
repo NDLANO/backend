@@ -13,6 +13,7 @@ import sttp.client3.UriContext
 import sttp.model.Uri
 
 import scala.collection.mutable
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.Properties.{propOrElse, propOrNone}
 import scala.util.{Failure, Success, Try}
 
@@ -139,10 +140,12 @@ trait BaseProps extends StrictLogging {
 
   def TAPIR_THREADS: Int = intPropOrDefault("TAPIR_THREADS", 100)
 
-  def BrightCoveAuthUri: String = s"https://oauth.brightcove.com/v4/access_token"
+  def BrightCoveAuthUri: String                                   = s"https://oauth.brightcove.com/v4/access_token"
   def BrightCoveVideoUri(accountId: String, videoId: String): Uri =
     uri"https://cms.api.brightcove.com/v1/accounts/$accountId/videos/$videoId/sources"
 
   def DisableLicense: Boolean = booleanPropOrElse("DISABLE_LICENSE", default = false)
+
+  def ReadinessProbeDetectionTimeoutSeconds: Duration = intPropOrDefault("READINESS_PROBE_DETECTION_SECONDS", 7).seconds
 
 }

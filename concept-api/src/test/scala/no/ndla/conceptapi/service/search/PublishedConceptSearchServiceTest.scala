@@ -28,7 +28,7 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
   import props.{DefaultLanguage, DefaultPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val publishedConceptSearchService = new PublishedConceptSearchService
+  override val publishedConceptSearchService                              = new PublishedConceptSearchService
   override val publishedConceptIndexService: PublishedConceptIndexService = new PublishedConceptIndexService {
     override val indexShards = 1
   }

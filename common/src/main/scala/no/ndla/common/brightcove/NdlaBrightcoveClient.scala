@@ -40,7 +40,7 @@ trait NdlaBrightcoveClient {
         case Success(Right(jsonString)) =>
           decode[TokenResponse](jsonString) match {
             case Right(tokenResponse) => Success(tokenResponse.access_token)
-            case Left(error) =>
+            case Left(error)          =>
               Failure(new TokenDecodingException(s"Failed to decode token response: ${error.getMessage}"))
           }
         case Success(Left(error)) => Failure(new TokenRetrievalException(s"Failed to get token: ${error}"))
@@ -51,7 +51,7 @@ trait NdlaBrightcoveClient {
     def getVideoSource(accountId: String, videoId: String, bearerToken: String): Try[Vector[Json]] = {
 
       val videoSourceUrl = props.BrightCoveVideoUri(accountId, videoId)
-      val request = basicRequest
+      val request        = basicRequest
         .header("Authorization", s"Bearer $bearerToken")
         .get(videoSourceUrl)
 

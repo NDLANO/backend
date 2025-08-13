@@ -522,7 +522,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(audioIndexService)
 
     val audioId = 5555.toLong
-    val audio = multiLangAudio.copy(
+    val audio   = multiLangAudio.copy(
       id = Some(audioId),
       titles = List(
         common.Title("Donald Duck kjører bil", "nb"),
@@ -608,7 +608,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(audioIndexService)
 
     val audioId = 5555.toLong
-    val audio = multiLangAudio.copy(
+    val audio   = multiLangAudio.copy(
       id = Some(audioId),
       titles = List(
         common.Title("Donald Duck drives a car", "en")
@@ -885,7 +885,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(audioIndexService)
 
     val audioId = 5555.toLong
-    val audio = multiLangAudio.copy(
+    val audio   = multiLangAudio.copy(
       id = Some(audioId),
       titles = List(
         common.Title("Donald Duck kjører bil", "nb"),
@@ -934,7 +934,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(audioIndexService)
 
     val audioId = 5555.toLong
-    val audio = multiLangAudio.copy(
+    val audio   = multiLangAudio.copy(
       id = Some(audioId),
       titles = List(
         common.Title("Donald Duck kjører bil", "nb"),
@@ -981,7 +981,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(audioIndexService)
 
     val audioId = 5555.toLong
-    val audio = multiLangAudio.copy(
+    val audio   = multiLangAudio.copy(
       id = Some(audioId),
       titles = List(
         common.Title("Donald Duck kjører bil", "nb"),

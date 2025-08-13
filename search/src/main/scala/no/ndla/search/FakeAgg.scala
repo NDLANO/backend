@@ -65,7 +65,7 @@ object FakeAgg {
   def seqAggsToSubAggs(aggs: Seq[FakeAgg]): Option[FakeAgg] =
     aggs.reverse.foldLeft(None: Option[FakeAgg])((acc, cur) => {
       acc match {
-        case None => Some(cur)
+        case None       => Some(cur)
         case Some(subs) =>
           val x = cur.addSubAggs(subs)
           Some(x)
@@ -77,7 +77,7 @@ case class FakeTermAgg(name: String, subAggregations: Seq[FakeAgg] = Seq.empty, 
   def field(path: String): FakeTermAgg = this.copy(field = path)
 
   override def withSubs(subs: Seq[FakeAgg]): FakeAgg = this.copy(subAggregations = subs)
-  override def convertToReal(): Aggregation = {
+  override def convertToReal(): Aggregation          = {
     val subs = this.subAggregations.map(_.convertToReal())
     termsAgg(this.name, this.field).subAggregations(subs).size(50)
   }
@@ -85,7 +85,7 @@ case class FakeTermAgg(name: String, subAggregations: Seq[FakeAgg] = Seq.empty, 
 
 case class FakeNestedAgg(name: String, path: String, subAggregations: Seq[FakeAgg] = Seq.empty) extends FakeAgg {
   override def withSubs(subs: Seq[FakeAgg]): FakeAgg = this.copy(subAggregations = subs)
-  override def convertToReal(): Aggregation = {
+  override def convertToReal(): Aggregation          = {
     val subs = this.subAggregations.map(_.convertToReal())
     nestedAggregation(name, path).subAggregations(subs)
   }

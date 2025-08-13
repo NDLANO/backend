@@ -18,7 +18,7 @@ class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMai
     componentRegistry.migrator.migrate()
   }
 
-  private def warmupRequest = (path: String) => Warmup.warmupRequest(props.ApplicationPort, path, Map.empty)
+  private def warmupRequest   = (path: String) => Warmup.warmupRequest(props.ApplicationPort, path, Map.empty)
   override def warmup(): Unit = {
     warmupRequest("/frontpage-api/v1/frontpage")
     warmupRequest("/frontpage-api/v1/subjectpage/1")

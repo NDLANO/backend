@@ -31,7 +31,7 @@ abstract class LanguageFieldMigration extends DocumentMigration {
     oldDocument.hcursor.downField(fieldName).focus match {
       case None                => addEmptyLanguageField(oldDocument)
       case Some(f) if f.isNull => addEmptyLanguageField(oldDocument)
-      case Some(values) =>
+      case Some(values)        =>
         val valueVector = values.asArray.get
         val converted   = convertOldLanguageField(valueVector)
         val newArticle  = oldDocument.withObject(_.remove(fieldName).add(fieldName, converted).toJson)

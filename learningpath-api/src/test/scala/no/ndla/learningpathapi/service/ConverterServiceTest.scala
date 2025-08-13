@@ -28,10 +28,11 @@ import org.mockito.ArgumentMatchers.eq as eqTo
 import org.mockito.Mockito.when
 
 import scala.util.{Failure, Success}
+import no.ndla.common.model.domain.Priority
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   import props.DefaultLanguage
-  val clinton: commonApi.AuthorDTO = commonApi.AuthorDTO(ContributorType.Writer, "Crooked Hillary")
+  val clinton: commonApi.AuthorDTO  = commonApi.AuthorDTO(ContributorType.Writer, "Crooked Hillary")
   val license: commonApi.LicenseDTO =
     commonApi.LicenseDTO(
       License.PublicDomain.toString,
@@ -62,10 +63,13 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     None,
     None,
-    false
+    false,
+    None,
+    Seq.empty,
+    Priority.Unspecified
   )
   val domainLearningStep: LearningStep =
-    LearningStep(None, None, None, None, 1, List(), List(), List(), List(), StepType.INTRODUCTION, None)
+    LearningStep(None, None, None, None, 1, List(), List(), List(), List(), None, StepType.INTRODUCTION, None)
 
   val domainLearningStep2: LearningStep = LearningStep(
     Some(1),
@@ -77,8 +81,29 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     List(),
     List(Description("deskripsjon", "nb")),
     List(),
+    None,
     StepType.INTRODUCTION,
     None
+  )
+
+  val multiLanguageDomainStep = TestData.domainLearningStep2.copy(
+    title = Seq(
+      Title("Tittel på bokmål", "nb"),
+      Title("Tittel på nynorsk", "nn")
+    ),
+    introduction = Seq(
+      Introduction("Introduksjon på bokmål", "nb"),
+      Introduction("Introduksjon på nynorsk", "nn")
+    ),
+    description = Seq(
+      Description("Beskrivelse på bokmål", "nb"),
+      Description("Beskrivelse på nynorsk", "nn")
+    ),
+    embedUrl = Seq(
+      EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed),
+      EmbedUrl("https://www.ndla.no/456", "nn", EmbedType.OEmbed)
+    ),
+    articleId = Some(123L)
   )
   val apiTags: List[api.LearningPathTagsDTO] = List(api.LearningPathTagsDTO(Seq("tag"), DefaultLanguage))
 
@@ -102,7 +127,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     owner = "me",
     copyright = LearningpathCopyright(CC_BY.toString, List.empty),
     isMyNDLAOwner = false,
-    learningsteps = None
+    learningsteps = None,
+    responsible = None,
+    comments = Seq.empty,
+    priority = Priority.Unspecified
   )
 
   override def beforeEach(): Unit = {
@@ -140,7 +168,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         None,
         None,
-        false
+        false,
+        None,
+        Seq.empty,
+        Priority.Unspecified
       )
     )
     service.asApiLearningpathV2(
@@ -193,7 +224,10 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         None,
         None,
-        false
+        false,
+        None,
+        Seq.empty,
+        Priority.Unspecified
       )
     )
     service.asApiLearningpathV2(
@@ -248,6 +282,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Some(api.DescriptionDTO("deskripsjon", DefaultLanguage)),
         None,
+        None,
         showTitle = false,
         "INTRODUCTION",
         None,
@@ -293,6 +328,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         api.TitleDTO("tittel", DefaultLanguage),
         None,
         Some(api.DescriptionDTO("deskripsjon", DefaultLanguage)),
+        None,
         None,
         showTitle = false,
         "INTRODUCTION",
@@ -466,7 +502,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("New learningPaths get correct verification") {
-    val apiRubio = commonApi.AuthorDTO(ContributorType.Writer, "Little Marco")
+    val apiRubio   = commonApi.AuthorDTO(ContributorType.Writer, "Little Marco")
     val apiLicense =
       commonApi.LicenseDTO(
         License.PublicDomain.toString,
@@ -476,7 +512,19 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val apiCopyright = api.CopyrightDTO(apiLicense, List(apiRubio))
 
     val newCopyLp = NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
-    val newLp     = NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright))
+    val newLp     =
+      NewLearningPathV2DTO(
+        "Tittel",
+        Some("Beskrivelse"),
+        None,
+        Some(1),
+        None,
+        "nb",
+        Some(apiCopyright),
+        None,
+        None,
+        None
+      )
 
     service
       .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set.empty, None).toCombined)
@@ -514,6 +562,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         Some("Beskrivelse"),
         None,
         "nb",
+        None,
         Some(api.EmbedUrlV2DTO("", "oembed")),
         true,
         "TEXT",
@@ -522,7 +571,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val lpId = 5591L
     val lp1  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = None)
     val lp2  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = Some(Seq.empty))
-    val lp3 = TestData.sampleDomainLearningPath.copy(
+    val lp3  = TestData.sampleDomainLearningPath.copy(
       id = Some(lpId),
       learningsteps =
         Some(Seq(TestData.domainLearningStep1.copy(seqNo = 0), TestData.domainLearningStep2.copy(seqNo = 1)))
@@ -533,4 +582,62 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     service.asDomainLearningStep(newLs, lp3).get.seqNo should be(2)
   }
 
+  test("mergeLearningSteps correctly retains nullable fields") {
+    val updatedStep = api.UpdatedLearningStepV2DTO(
+      2,
+      None,
+      commonApi.Missing,
+      "nb",
+      commonApi.Missing,
+      commonApi.Missing,
+      commonApi.Missing,
+      None,
+      None,
+      None
+    )
+    val result = service.mergeLearningSteps(TestData.domainLearningStep2, updatedStep).get
+    result.introduction shouldEqual TestData.domainLearningStep2.introduction
+    result.description shouldEqual TestData.domainLearningStep2.description
+    result.embedUrl shouldEqual TestData.domainLearningStep2.embedUrl
+  }
+
+  test("mergeLearningSteps correctly deletes correct language version of nullable fields") {
+    val updatedStep = api.UpdatedLearningStepV2DTO(
+      2,
+      None,
+      commonApi.Delete,
+      "nn",
+      commonApi.Delete,
+      commonApi.Delete,
+      commonApi.Missing,
+      None,
+      None,
+      None
+    )
+    val result = service.mergeLearningSteps(multiLanguageDomainStep, updatedStep).get
+    result.introduction shouldEqual Seq(Introduction("Introduksjon på bokmål", "nb"))
+    result.description shouldEqual Seq(Description("Beskrivelse på bokmål", "nb"))
+    result.embedUrl shouldEqual Seq(EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed))
+  }
+
+  test("mergeLearningSteps correctly updates language fields") {
+    val updatedStep = api.UpdatedLearningStepV2DTO(
+      2,
+      Some("Tittel på bokmål oppdatert"),
+      commonApi.UpdateWith("Introduksjon på bokmål oppdatert"),
+      "nb",
+      commonApi.UpdateWith("Beskrivelse på bokmål oppdatert"),
+      commonApi.UpdateWith(api.EmbedUrlV2DTO("https://ndla.no/subjects/resource:1234?a=test", "iframe")),
+      commonApi.UpdateWith(456),
+      None,
+      None,
+      None
+    )
+    val result = service.mergeLearningSteps(TestData.domainLearningStep2, updatedStep).get
+    result.title shouldEqual Seq(Title("Tittel på bokmål oppdatert", "nb"))
+    result.introduction shouldEqual Seq(Introduction("Introduksjon på bokmål oppdatert", "nb"))
+    result.description shouldEqual Seq(Description("Beskrivelse på bokmål oppdatert", "nb"))
+    result.embedUrl shouldEqual Seq(EmbedUrl("/subjects/resource:1234?a=test", "nb", EmbedType.IFrame))
+    result.articleId shouldEqual Some(456)
+  }
 }

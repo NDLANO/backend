@@ -13,11 +13,13 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.common.model.domain.draft.DraftStatus.PUBLISHED
 import no.ndla.database.DBUtility
+import no.ndla.draftapi.DraftUtil.shouldPartialPublish
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.NotFoundException
+import no.ndla.draftapi.model.api.{ArticleRevisionHistoryDTO, NotFoundException}
 import no.ndla.draftapi.model.domain.ImportId
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.search.{
@@ -178,10 +180,39 @@ trait ReadService {
           if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
           else Success(articleIds)
         domainArticles <- draftRepository.withIds(ids, offset, pageSize)
-        api <- domainArticles.traverse(article =>
+        api            <- domainArticles.traverse(article =>
           converterService.toApiArticle(addUrlsOnEmbedResources(article), language, fallback)
         )
       } yield api
+    }
+
+    def getArticleRevisionHistory(
+        articleId: Long,
+        language: String,
+        fallback: Boolean
+    ): Try[ArticleRevisionHistoryDTO] = {
+      val drafts = draftRepository
+        .articlesWithId(articleId)
+        .map(addUrlsOnEmbedResources)
+        .sortBy(
+          _.revision.getOrElse(
+            return Failure(api.NotFoundException(s"Revision was missing for draft of article with id $articleId"))
+          )
+        )
+        .reverse
+
+      val canDeleteCurrentRevision = drafts match {
+        case current :: previous :: _
+            if current.status.current != PUBLISHED && shouldPartialPublish(Some(previous), current).isEmpty =>
+          true
+        case _ => false
+      }
+
+      val articles = drafts
+        .map(article => converterService.toApiArticle(article, language, fallback))
+        .collect { case Success(article) => article }
+
+      Success(ArticleRevisionHistoryDTO(articles, canDeleteCurrentRevision))
     }
   }
 }

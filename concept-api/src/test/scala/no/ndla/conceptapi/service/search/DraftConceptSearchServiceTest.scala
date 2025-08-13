@@ -37,7 +37,7 @@ class DraftConceptSearchServiceTest extends ElasticsearchIntegrationSuite with T
   import props.{DefaultLanguage, DefaultPageSize}
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  val indexName: String = UUID.randomUUID().toString
+  val indexName: String                                             = UUID.randomUUID().toString
   override val draftConceptSearchService: DraftConceptSearchService = new DraftConceptSearchService {
     override val searchIndex: String = indexName
   }
@@ -608,7 +608,7 @@ class DraftConceptSearchServiceTest extends ElasticsearchIntegrationSuite with T
   }
 
   test("ARCHIVED concepts should only be returned if filtered by ARCHIVED") {
-    val query = "slettet"
+    val query            = "slettet"
     val Success(search1) =
       draftConceptSearchService.matchingQuery(
         query = query,

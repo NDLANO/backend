@@ -120,7 +120,7 @@ trait ReadService {
         fallback: Boolean
     ): api.ArticleDumpDTO = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-      val results = articleRepository
+      val results                    = articleRepository
         .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
         .flatMap(article => converterService.toApiArticleV2(article, lang, fallback).toOption)
 
@@ -129,7 +129,7 @@ trait ReadService {
 
     def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDumpDTO = {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-      val results =
+      val results                    =
         articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize).map(addUrlsOnEmbedResources)
 
       api.ArticleDomainDumpDTO(articleRepository.articleCount, pageNo, pageSize, results)
@@ -196,7 +196,7 @@ trait ReadService {
         feideAccessToken: Option[String]
     ): Try[Cachable[SearchResult[ArticleSummaryV2DTO]]] = {
       val availabilities = feideApiClient.getFeideExtendedUser(feideAccessToken) match {
-        case Success(user) => user.availabilities
+        case Success(user)                     => user.availabilities
         case Failure(_: AccessDeniedException) =>
           logger.info("User is not authenticated with Feide, assuming non-user")
           Seq.empty
@@ -254,7 +254,7 @@ trait ReadService {
 
     private def applyAvailabilityFilter(feideAccessToken: Option[String], articles: Seq[Article]): Seq[Article] = {
       val availabilityFilter = getAvailabilityFilter(feideAccessToken)
-      val filteredArticles = availabilityFilter
+      val filteredArticles   = availabilityFilter
         .map(avaFilter => articles.filter(article => article.availability == avaFilter))
         .getOrElse(articles)
       filteredArticles
@@ -270,7 +270,7 @@ trait ReadService {
     ): Try[Seq[api.ArticleV2DTO]] = {
       if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
       else {
-        val offset = (page - 1) * pageSize
+        val offset         = (page - 1) * pageSize
         val domainArticles =
           articleRepository.withIds(articleIds, offset, pageSize).toArticles.map(addUrlsOnEmbedResources)
         val isFeideNeeded = domainArticles.exists(article => article.availability == Availability.teacher)
@@ -285,7 +285,7 @@ trait ReadService {
       else
         menus.find(_.articleId == article.id) match {
           case Some(value) => Success(value)
-          case None =>
+          case None        =>
             val submenus = menus.flatMap(m => m.menu.map { case x: MenuDTO => x })
             findArticleMenu(article, submenus)
         }
@@ -293,7 +293,7 @@ trait ReadService {
 
     private def getArticlesForRSSFeed(menu: MenuDTO): Try[Cachable[List[api.ArticleV2DTO]]] = {
       val articleIds = menu.menu.map { case x: MenuDTO => x.articleId }
-      val articles =
+      val articles   =
         articleIds.traverse(id =>
           withIdV2(id, Language.DefaultLanguage, fallback = true, revision = None, feideAccessToken = None)
         )

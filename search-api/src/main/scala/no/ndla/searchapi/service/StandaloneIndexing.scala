@@ -102,7 +102,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
     val start = System.currentTimeMillis()
 
     val reindexResult = bundles match {
-      case Failure(ex) => Seq(Failure(ex))
+      case Failure(ex)                                                                       => Seq(Failure(ex))
       case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)) =>
         implicit val ec: ExecutionContextExecutorService =
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(SearchType.values.size))
@@ -125,7 +125,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
                 s"Completed indexing of ${reindexResult.totalIndexed} ${indexService.searchIndex} in ${reindexResult.millisUsed} ms."
               )
             case Success(Failure(ex)) => logger.warn(ex.getMessage, ex)
-            case Failure(ex) =>
+            case Failure(ex)          =>
               logger.warn(s"Unable to create index '${indexService.searchIndex}': " + ex.getMessage, ex)
           }
 

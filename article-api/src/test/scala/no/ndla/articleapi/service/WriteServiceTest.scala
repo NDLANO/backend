@@ -51,7 +51,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("That updateArticle indexes the updated article") {
     reset(articleIndexService, searchApiClient)
 
-    val articleToUpdate = TestData.sampleDomainArticle.copy(id = Some(10), updated = yesterday)
+    val articleToUpdate    = TestData.sampleDomainArticle.copy(id = Some(10), updated = yesterday)
     val updatedAndInserted = articleToUpdate
       .copy(revision = articleToUpdate.revision.map(_ + 1), updated = today)
 

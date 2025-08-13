@@ -9,8 +9,9 @@
 package no.ndla.learningpathapi
 
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.common.Clock
+import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.configuration.BaseComponentRegistry
+import no.ndla.common.converter.CommonConverter
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.learningpathapi.controller.{
   InternController,
@@ -43,6 +44,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
+import no.ndla.database.DBUtility
 
 class ComponentRegistry(properties: LearningpathApiProperties)
     extends BaseComponentRegistry[LearningpathApiProperties]
@@ -53,17 +55,20 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with LearningPathRepositoryComponent
     with ReadService
     with UpdateService
+    with DBUtility
     with SearchConverterServiceComponent
     with SearchService
     with SearchIndexService
     with BaseIndexService
     with TaxonomyApiClient
     with NdlaClient
+    with CommonConverter
     with ConverterService
     with OembedProxyClient
     with Elastic4sClient
     with DataSource
     with Clock
+    with UUIDUtil
     with MyNDLAApiClient
     with LanguageValidator
     with LearningPathValidator
@@ -78,7 +83,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     with SwaggerDocControllerConfig
     with SearchLanguage {
   override val props: LearningpathApiProperties = properties
-  override val migrator: DBMigrator = DBMigrator(
+  override val migrator: DBMigrator             = DBMigrator(
     new V11__CreatedByNdlaStatusForOwnersWithRoles,
     new V13__StoreNDLAStepsAsIframeTypes,
     new V14__ConvertLanguageUnknown,
@@ -87,6 +92,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     new V33__AiDefaultEnabledOrgs
   )
   override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  override val DBUtil: DBUtility                 = new DBUtility
 
   lazy val learningPathRepository = new LearningPathRepository
   lazy val readService            = new ReadService
@@ -96,6 +102,7 @@ class ComponentRegistry(properties: LearningpathApiProperties)
   lazy val searchIndexService     = new SearchIndexService
   lazy val converterService       = new ConverterService
   lazy val clock                  = new SystemClock
+  lazy val uuidUtil               = new UUIDUtil
   lazy val taxonomyApiClient      = new TaxonomyApiClient
   lazy val ndlaClient             = new NdlaClient
   lazy val languageValidator      = new LanguageValidator

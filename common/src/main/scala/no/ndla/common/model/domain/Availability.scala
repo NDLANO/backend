@@ -11,7 +11,7 @@ package no.ndla.common.model.domain
 import enumeratum.*
 
 sealed trait Availability extends EnumEntry
-object Availability extends Enum[Availability] with CirceEnum[Availability] {
+object Availability       extends Enum[Availability] with CirceEnum[Availability] {
   case object everyone extends Availability
   case object teacher  extends Availability
 

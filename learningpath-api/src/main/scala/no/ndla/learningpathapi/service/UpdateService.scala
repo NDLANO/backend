@@ -28,10 +28,12 @@ import no.ndla.network.tapir.auth.TokenUser
 
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
+import no.ndla.language.Language
+import no.ndla.database.DBUtility
 
 trait UpdateService {
   this: LearningPathRepositoryComponent & ReadService & ConverterService & SearchIndexService & Clock &
-    LearningStepValidator & LearningPathValidator & TaxonomyApiClient & SearchApiClient & Props =>
+    LearningStepValidator & LearningPathValidator & TaxonomyApiClient & SearchApiClient & DBUtility & Props =>
   val updateService: UpdateService
 
   class UpdateService {
@@ -75,8 +77,8 @@ trait UpdateService {
     ): Try[LearningPathV2DTO] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         learningPathRepository.withId(id).map(_.isOwnerOrPublic(owner)) match {
-          case None              => Failure(NotFoundException("Could not find learningpath to copy."))
-          case Some(Failure(ex)) => Failure(ex)
+          case None                    => Failure(NotFoundException("Could not find learningpath to copy."))
+          case Some(Failure(ex))       => Failure(ex)
           case Some(Success(existing)) =>
             for {
               toInsert <- converterService.newFromExistingLearningPath(existing, newLearningPath, owner)
@@ -109,7 +111,7 @@ trait UpdateService {
       learningPathValidator.validate(learningPathToUpdate)
 
       withId(id).flatMap(_.canEditLearningpath(owner)) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)       => Failure(ex)
         case Success(existing) =>
           val toUpdate = converterService.mergeLearningPaths(existing, learningPathToUpdate, owner)
 
@@ -130,13 +132,44 @@ trait UpdateService {
       }
     }
 
+    def deleteLearningStepLanguage(
+        learningpathId: Long,
+        stepId: Long,
+        language: String,
+        owner: CombinedUserRequired
+    ): Try[LearningStepV2DTO] =
+      DBUtil.rollbackOnFailure { implicit session =>
+        writeDuringWriteRestrictionOrAccessDenied(owner) {
+          for {
+            learningPath <- withId(learningpathId).flatMap(_.canEditLearningpath(owner))
+            learningStep <- learningPathRepository
+              .learningStepWithId(learningpathId, stepId)
+              .toTry(NotFoundException(s"Could not find learningpath with id '$learningpathId'."))
+            withDeletedLanguage <- converterService.deleteLearningStepLanguage(learningStep, language)
+            validated           <- learningStepValidator.validate(withDeletedLanguage, allowUnknownLanguage = true)
+            updatedStep         <- Try(learningPathRepository.updateLearningStep(validated))
+            pathToUpdate        <- Try(converterService.insertLearningStep(learningPath, updatedStep, owner))
+            updatedPath         <- Try(learningPathRepository.update(pathToUpdate))
+            _                   <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
+            converted           <- converterService.asApiLearningStepV2(
+              updatedStep,
+              updatedPath,
+              language = Language.DefaultLanguage,
+              fallback = true,
+              owner
+            )
+          } yield converted
+        }
+      }
+
     private def updateSearchAndTaxonomy(learningPath: LearningPath, user: Option[TokenUser]) = {
       val sRes = searchIndexService.indexDocument(learningPath)
 
-      if (learningPath.isPublished) {
-        searchApiClient.indexLearningPathDocument(learningPath, user): Unit
-      } else if (learningPath.isDeleted) {
+      if (learningPath.isDeleted) {
         deleteIsBasedOnReference(learningPath): Unit
+        searchApiClient.deleteLearningPathDocument(learningPath.id.get, user): Unit
+      } else {
+        searchApiClient.indexLearningPathDocument(learningPath, user): Unit
       }
 
       sRes.flatMap(lp => taxonomyApiClient.updateTaxonomyForLearningPath(lp, createResourceIfMissing = false, user))
@@ -213,7 +246,7 @@ trait UpdateService {
     ): Try[LearningStepV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       optimisticLockRetries(10) {
         withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
-          case Failure(ex) => Failure(ex)
+          case Failure(ex)           => Failure(ex)
           case Success(learningPath) =>
             val validated = for {
               newStep   <- converterService.asDomainLearningStep(newLearningStep, learningPath)
@@ -221,7 +254,7 @@ trait UpdateService {
             } yield validated
 
             validated match {
-              case Failure(ex) => Failure(ex)
+              case Failure(ex)      => Failure(ex)
               case Success(newStep) =>
                 val (insertedStep, updatedPath) = inTransaction { implicit session =>
                   val insertedStep =
@@ -254,7 +287,7 @@ trait UpdateService {
         owner: CombinedUserRequired
     ): Try[LearningStepV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
-        case Failure(ex) => Failure(ex)
+        case Failure(ex)           => Failure(ex)
         case Success(learningPath) =>
           learningPathRepository.learningStepWithId(learningPathId, learningStepId) match {
             case None =>
@@ -270,7 +303,7 @@ trait UpdateService {
               } yield validated
 
               validated match {
-                case Failure(ex) => Failure(ex)
+                case Failure(ex)       => Failure(ex)
                 case Success(toUpdate) =>
                   learningStepValidator.validate(toUpdate, allowUnknownLanguage = true).??
 
@@ -310,7 +343,7 @@ trait UpdateService {
       val (_, updatedStep, newLearningSteps) =
         stepsToChange.sortBy(_.seqNo).foldLeft((0, stepToUpdate, Seq.empty[LearningStep])) {
           case ((seqNo, foundStep, steps), curr) =>
-            val isChangedStep = curr.id.contains(learningStepId)
+            val isChangedStep         = curr.id.contains(learningStepId)
             val (mainStep, stepToAdd) =
               if (isChangedStep) (curr.copy(status = newStatus), curr.copy(status = newStatus))
               else (foundStep, curr)
@@ -335,10 +368,10 @@ trait UpdateService {
     ): Try[LearningStepV2DTO] =
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
-          case Failure(ex) => Failure(ex)
+          case Failure(ex)           => Failure(ex)
           case Success(learningPath) =>
             val stepsToChange = learningPathRepository.learningStepsFor(learningPathId)
-            val stepToUpdate = stepsToChange.find(_.id.contains(learningStepId)) match {
+            val stepToUpdate  = stepsToChange.find(_.id.contains(learningStepId)) match {
               case Some(ls) if ls.status == DELETED && newStatus == DELETED =>
                 val msg = s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"
                 return Failure(NotFoundException(msg))
@@ -373,7 +406,7 @@ trait UpdateService {
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         optimisticLockRetries(10) {
           withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
-            case Failure(ex) => Failure(ex)
+            case Failure(ex)           => Failure(ex)
             case Success(learningPath) =>
               learningPathRepository.learningStepWithId(learningPathId, learningStepId) match {
                 case None =>
@@ -383,8 +416,8 @@ trait UpdateService {
                 case Some(learningStep) =>
                   learningPath.validateSeqNo(seqNo)
 
-                  val from = learningStep.seqNo
-                  val to   = seqNo
+                  val from     = learningStep.seqNo
+                  val to       = seqNo
                   val toUpdate = learningPath.learningsteps
                     .getOrElse(Seq.empty)
                     .filter(step => rangeToUpdate(from, to).contains(step.seqNo))
