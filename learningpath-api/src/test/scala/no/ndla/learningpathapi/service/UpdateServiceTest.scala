@@ -1559,7 +1559,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     )
   }
 
-  test("That delete learning path language should also delete from all paths") {
+  test("That delete learning path language should also delete from all steps") {
     val learningPath = PRIVATE_LEARNINGPATH.copy(
       title = PRIVATE_LEARNINGPATH.title :+ Title("Tittel", "nn"),
       description = PRIVATE_LEARNINGPATH.description :+ Description("Beskrivelse", "nn"),
