@@ -20,6 +20,7 @@ import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
+import scala.reflect.ClassTag
 
 trait Elastic4sClient {
   this: HasBaseProps =>
@@ -35,14 +36,19 @@ trait Elastic4sClient {
     private val clientExecutionContext: ExecutionContextExecutor =
       ExecutionContext.fromExecutor(Executors.newWorkStealingPool(props.MAX_SEARCH_THREADS))
 
-    def executeAsync[T, U](
+    def executeAsync[T, U: ClassTag](
         request: T
-    )(implicit handler: Handler[T, U], mf: Manifest[U], ec: ExecutionContext): Future[Try[RequestSuccess[U]]] = {
-      val result = client.execute(request).map {
-        case failure: RequestFailure if failure.status == 409 =>
-          Failure(DocumentConflictException(failure.error.reason))
-        case failure: RequestFailure   => Failure(NdlaSearchException(request, failure))
-        case result: RequestSuccess[U] => Success(result)
+    )(implicit
+        handler: Handler[T, U],
+        ec: ExecutionContext
+    ): Future[Try[RequestSuccess[U]]] = {
+      val response = client.execute(request)
+      val result   = response.map {
+        case RequestSuccess(status, body, headers, result) =>
+          Success(RequestSuccess[U](status, body, headers, result))
+        case RequestFailure(status, _, _, error) if status == 409 =>
+          Failure(DocumentConflictException(error.reason))
+        case failure: RequestFailure => Failure(NdlaSearchException(request, failure))
       }
 
       result.onComplete {
@@ -55,11 +61,11 @@ trait Elastic4sClient {
 
     def executeBlocking[T, U](
         request: T
-    )(implicit handler: Handler[T, U], mf: Manifest[U], ec: ExecutionContext): Try[RequestSuccess[U]] = {
+    )(implicit handler: Handler[T, U], ct: ClassTag[U], ec: ExecutionContext): Try[RequestSuccess[U]] = {
       Try(Await.result(this.executeAsync(request), elasticTimeout)).flatten
     }
 
-    def execute[T, U](request: T)(implicit handler: Handler[T, U], mf: Manifest[U]): Try[RequestSuccess[U]] = {
+    def execute[T, U](request: T)(implicit handler: Handler[T, U], ct: ClassTag[U]): Try[RequestSuccess[U]] = {
       implicit val ec: ExecutionContextExecutor = clientExecutionContext
 
       val future = this.executeAsync(request)

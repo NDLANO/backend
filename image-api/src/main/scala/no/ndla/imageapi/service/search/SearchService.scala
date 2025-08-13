@@ -26,9 +26,9 @@ import cats.implicits.*
 trait SearchService {
   this: Elastic4sClient & IndexService & SearchConverterService & Props =>
 
-  trait SearchService[T] extends StrictLogging {
+  abstract class SearchService[T] extends StrictLogging {
     val searchIndex: String
-    val indexService: IndexService[?, ?]
+    val indexService: IndexService
 
     def hitToApiModel(hit: String, language: String): Try[T]
 
@@ -95,7 +95,7 @@ trait SearchService {
       }
     }
 
-    protected def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {
+    def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {
       val numResults = pageSize match {
         case Some(num) =>
           if (num > 0) num.min(props.MaxPageSize) else props.DefaultPageSize

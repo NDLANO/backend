@@ -24,7 +24,7 @@ import scala.util.{Failure, Success, Try}
 
 trait DraftRepository {
   this: DataSource & ErrorHandling & Clock =>
-  val draftRepository: DraftRepository
+  lazy val draftRepository: DraftRepository
 
   class DraftRepository extends StrictLogging with Repository[Draft] {
     def insert(article: Draft)(implicit session: DBSession): Draft = {
@@ -227,7 +227,7 @@ trait DraftRepository {
     private def externalIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {
       Option(wrappedResultSet.array("external_id"))
         .map(_.getArray.asInstanceOf[Array[String]])
-        .getOrElse(Array.empty)
+        .getOrElse(Array.empty[String])
         .toList
         .flatMap(Option(_))
     }
@@ -242,7 +242,7 @@ trait DraftRepository {
     private def externalSubjectIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {
       Option(wrappedResultSet.array("external_subject_id"))
         .map(_.getArray.asInstanceOf[Array[String]])
-        .getOrElse(Array.empty)
+        .getOrElse(Array.empty[String])
         .toList
         .flatMap(Option(_))
     }

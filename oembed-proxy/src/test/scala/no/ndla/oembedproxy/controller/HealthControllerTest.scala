@@ -13,7 +13,7 @@ import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick._
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  lazy val controller: TapirHealthController = new TapirHealthController
+  val controller: TapirHealthController = new TapirHealthController
   controller.setWarmedUp()
 
   test("That /health returns 200 ok") {

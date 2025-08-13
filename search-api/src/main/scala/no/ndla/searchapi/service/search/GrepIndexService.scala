@@ -9,7 +9,7 @@
 package no.ndla.searchapi.service.search
 
 import cats.implicits.toTraverseOps
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
@@ -26,12 +26,11 @@ import scala.util.{Success, Try}
 
 trait GrepIndexService {
   this: SearchConverterService & IndexService & Props & GrepApiClient =>
-  val grepIndexService: GrepIndexService
+  lazy val grepIndexService: GrepIndexService
 
   class GrepIndexService extends BulkIndexingService with StrictLogging {
-    import props.SearchIndex
     override val documentType: String       = "grep"
-    override val searchIndex: String        = SearchIndex(SearchType.Grep)
+    override val searchIndex: String        = props.SearchIndex(SearchType.Grep)
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
     override def getMapping: MappingDefinition = {
@@ -55,7 +54,7 @@ trait GrepIndexService {
       }
     }
 
-    def createIndexRequest(grepElement: GrepElement, indexName: String): Try[IndexRequest] = {
+    def createIndexRequest(grepElement: GrepElement, indexName: String): Try[IndexRequest] = permitTry {
       val searchable = searchConverterService.asSearchableGrep(grepElement).?
       val source     = CirceUtil.toJsonString(searchable)
       Success(indexInto(indexName).doc(source).id(grepElement.kode))
@@ -68,7 +67,7 @@ trait GrepIndexService {
         .flatten
     }
 
-    def sendToElastic(grepBundle: Option[GrepBundle], indexName: String): Try[BulkIndexResult] = {
+    def sendToElastic(grepBundle: Option[GrepBundle], indexName: String): Try[BulkIndexResult] = permitTry {
       val bundle = (grepBundle match {
         case Some(value) => Success(value)
         case None        => grepApiClient.getGrepBundle()

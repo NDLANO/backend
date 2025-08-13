@@ -17,3 +17,13 @@ case class AddNoteDTO(
     @description("Notes to add to the draft")
     notes: List[String]
 )
+
+object AddNoteDTO {
+  import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+  import io.circe.{Decoder, Encoder}
+  import sttp.tapir.generic.auto.*
+
+  implicit val encoder: Encoder[AddNoteDTO]          = deriveEncoder
+  implicit val decoder: Decoder[AddNoteDTO]          = deriveDecoder
+  implicit def schema: sttp.tapir.Schema[AddNoteDTO] = sttp.tapir.Schema.derivedSchema
+}

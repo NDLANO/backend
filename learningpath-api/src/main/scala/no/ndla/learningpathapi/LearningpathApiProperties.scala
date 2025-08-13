@@ -16,7 +16,7 @@ import no.ndla.network.{AuthUser, Domains}
 import scala.util.Properties.*
 
 trait Props extends HasBaseProps with HasDatabaseProps {
-  val props: LearningpathApiProperties
+  lazy val props: LearningpathApiProperties
 }
 
 class LearningpathApiProperties extends BaseProps with DatabaseProps with StrictLogging {

@@ -28,7 +28,7 @@ trait IndexService {
   this: Elastic4sClient & SearchApiClient & BaseIndexService & TaxonomyApiClient & GrepApiClient & Props &
     MyNDLAApiClient & SearchLanguage =>
 
-  trait BulkIndexingService extends BaseIndexService {
+  abstract class BulkIndexingService extends BaseIndexService {
 
     protected def languageValuesMapping(name: String, keepRaw: Boolean = false): Seq[ElasticField] = {
       val subfields = List(

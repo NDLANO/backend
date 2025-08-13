@@ -22,28 +22,20 @@ import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.scalatest.PrivateMethodTester
 
 import scala.util.Success
 
-class ImageSearchServiceTest
-    extends ElasticsearchIntegrationSuite
-    with UnitSuite
-    with TestEnvironment
-    with PrivateMethodTester {
+class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   import TestData.searchSettings
-  import props.{DefaultPageSize, MaxPageSize}
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val searchConverterService               = new SearchConverterService
-  override val converterService                     = new ConverterService
-  override val imageIndexService: ImageIndexService = new ImageIndexService {
+  override lazy val searchConverterService               = new SearchConverterService
+  override lazy val converterService                     = new ConverterService
+  override lazy val imageIndexService: ImageIndexService = new ImageIndexService {
     override val indexShards = 1
   }
-  override val imageSearchService = new ImageSearchService
-
-  val getStartAtAndNumResults: PrivateMethod[(Int, Int)] = PrivateMethod[(Int, Int)](Symbol("getStartAtAndNumResults"))
+  override lazy val imageSearchService = new ImageSearchService
 
   val largeImage: ImageFileData   = ImageFileData(1, "large-full-url", 10000, "jpg", None, "und", 4)
   val smallImage: ImageFileData   = ImageFileData(2, "small-full-url", 100, "jpg", None, "und", 6)
@@ -191,20 +183,20 @@ class ImageSearchServiceTest
   }
 
   test("That getStartAtAndNumResults returns default values for None-input") {
-    imageSearchService invokePrivate getStartAtAndNumResults(None, None) should equal((0, DefaultPageSize))
+    imageSearchService.getStartAtAndNumResults(None, None) should equal((0, props.DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    imageSearchService invokePrivate getStartAtAndNumResults(None, Some(10001)) should equal((0, MaxPageSize))
+    imageSearchService.getStartAtAndNumResults(None, Some(10001)) should equal((0, props.MaxPageSize))
   }
 
   test(
     "That getStartAtAndNumResults returns the correct calculated start at for page and page-size with default page-size"
   ) {
     val page            = 74
-    val expectedStartAt = (page - 1) * DefaultPageSize
-    imageSearchService invokePrivate getStartAtAndNumResults(Some(page), None) should equal(
-      (expectedStartAt, DefaultPageSize)
+    val expectedStartAt = (page - 1) * props.DefaultPageSize
+    imageSearchService.getStartAtAndNumResults(Some(page), None) should equal(
+      (expectedStartAt, props.DefaultPageSize)
     )
   }
 
@@ -212,7 +204,7 @@ class ImageSearchServiceTest
     val page            = 123
     val pageSize        = 43
     val expectedStartAt = (page - 1) * pageSize
-    imageSearchService invokePrivate getStartAtAndNumResults(Some(page), Some(pageSize)) should equal(
+    imageSearchService.getStartAtAndNumResults(Some(page), Some(pageSize)) should equal(
       (expectedStartAt, pageSize)
     )
   }
@@ -227,7 +219,8 @@ class ImageSearchServiceTest
   }
 
   test("That all filtering on minimumsize only returns images larger than minimumsize") {
-    val Success(searchResult) = imageSearchService.matchingQuery(searchSettings.copy(minimumSize = Some(500)), None)
+    val Success(searchResult) =
+      imageSearchService.matchingQuery(searchSettings.copy(minimumSize = Some(500)), None): @unchecked
     searchResult.totalCount should be(2)
     searchResult.results.size should be(2)
     searchResult.results.head.id should be("1")
@@ -236,7 +229,7 @@ class ImageSearchServiceTest
 
   test("That all filtering on license only returns images with given license") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(license = Some(PublicDomain.toString)), None)
+      imageSearchService.matchingQuery(searchSettings.copy(license = Some(PublicDomain.toString)), None): @unchecked
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("2")
@@ -244,9 +237,9 @@ class ImageSearchServiceTest
 
   test("That paging returns only hits on current page and not more than page-size") {
     val Success(searchResultPage1) =
-      imageSearchService.matchingQuery(searchSettings.copy(page = Some(1), pageSize = Some(2)), None)
+      imageSearchService.matchingQuery(searchSettings.copy(page = Some(1), pageSize = Some(2)), None): @unchecked
     val Success(searchResultPage2) =
-      imageSearchService.matchingQuery(searchSettings.copy(page = Some(2), pageSize = Some(2)), None)
+      imageSearchService.matchingQuery(searchSettings.copy(page = Some(2), pageSize = Some(2)), None): @unchecked
     searchResultPage1.totalCount should be(5)
     searchResultPage1.page.get should be(1)
     searchResultPage1.pageSize should be(2)
@@ -267,7 +260,7 @@ class ImageSearchServiceTest
       imageSearchService.matchingQuery(
         searchSettings.copy(minimumSize = Some(500), license = Some(PublicDomain.toString)),
         None
-      )
+      ): @unchecked
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("2")
@@ -275,7 +268,7 @@ class ImageSearchServiceTest
 
   test("That search matches title and alttext ordered by relevance") {
     val res                   = imageSearchService.matchingQuery(searchSettings.copy(query = Some("bil")), None)
-    val Success(searchResult) = res
+    val Success(searchResult) = res: @unchecked
     searchResult.totalCount should be(2)
     searchResult.results.size should be(2)
     searchResult.results.head.id should be("1")
@@ -284,7 +277,10 @@ class ImageSearchServiceTest
 
   test("That search matches title") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(query = Some("Pingvinen"), language = "nb"), None)
+      imageSearchService.matchingQuery(
+        searchSettings.copy(query = Some("Pingvinen"), language = "nb"),
+        None
+      ): @unchecked
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("2")
@@ -292,14 +288,15 @@ class ImageSearchServiceTest
 
   test("That search matches id search") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(query = Some("1"), language = "nb"), None)
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("1"), language = "nb"), None): @unchecked
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("1")
   }
 
   test("That search on author matches corresponding author on image") {
-    val Success(searchResult) = imageSearchService.matchingQuery(searchSettings.copy(query = Some("Bruce Wayne")), None)
+    val Success(searchResult) =
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("Bruce Wayne")), None): @unchecked
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("2")
@@ -307,7 +304,7 @@ class ImageSearchServiceTest
 
   test("That search matches tags") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(query = Some("and"), language = "nb"), None)
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("and"), language = "nb"), None): @unchecked
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("3")
@@ -315,7 +312,7 @@ class ImageSearchServiceTest
 
   test("That search defaults to nb if no language is specified") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(query = Some("Bilde av en and")), None)
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("Bilde av en and")), None): @unchecked
     searchResult.totalCount should be(4)
     searchResult.results.size should be(4)
     searchResult.results.head.id should be("1")
@@ -325,7 +322,8 @@ class ImageSearchServiceTest
   }
 
   test("That search matches title with unknown language analyzed in Norwegian") {
-    val Success(searchResult) = imageSearchService.matchingQuery(searchSettings.copy(query = Some("blomstene")), None)
+    val Success(searchResult) =
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("blomstene")), None): @unchecked
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("4")
@@ -341,7 +339,7 @@ class ImageSearchServiceTest
           pageSize = Some(10)
         ),
         None
-      )
+      ): @unchecked
     search1.results.map(_.id) should equal(Seq("1", "3"))
 
     val Success(search2) = imageSearchService.matchingQuery(
@@ -352,7 +350,7 @@ class ImageSearchServiceTest
         pageSize = Some(10)
       ),
       None
-    )
+    ): @unchecked
     search2.results.map(_.id) should equal(Seq("1", "2"))
 
     val Success(search3) = imageSearchService.matchingQuery(
@@ -363,7 +361,7 @@ class ImageSearchServiceTest
         pageSize = Some(10)
       ),
       None
-    )
+    ): @unchecked
     search3.results.map(_.id) should equal(Seq("2", "3"))
 
     val Success(search4) = imageSearchService.matchingQuery(
@@ -374,7 +372,7 @@ class ImageSearchServiceTest
         pageSize = Some(10)
       ),
       None
-    )
+    ): @unchecked
     search4.results.map(_.id) should equal(Seq("1"))
   }
 
@@ -385,7 +383,7 @@ class ImageSearchServiceTest
         language = "*"
       ),
       None
-    )
+    ): @unchecked
     searchResult1.totalCount should be(1)
     searchResult1.results.size should be(1)
     searchResult1.results.head.id should be("5")
@@ -399,7 +397,7 @@ class ImageSearchServiceTest
         sort = Sort.ByTitleDesc
       ),
       None
-    )
+    ): @unchecked
     searchResult2.totalCount should be(1)
     searchResult2.results.size should be(1)
     searchResult2.results.head.id should be("5")
@@ -413,7 +411,7 @@ class ImageSearchServiceTest
         language = "ait" // Arikem
       ),
       None
-    )
+    ): @unchecked
     searchResult1.totalCount should be(0)
   }
 
@@ -424,7 +422,7 @@ class ImageSearchServiceTest
         language = "en"
       ),
       None
-    )
+    ): @unchecked
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("5")
@@ -437,7 +435,7 @@ class ImageSearchServiceTest
         language = "nn"
       ),
       None
-    )
+    ): @unchecked
     searchResult2.totalCount should be(1)
     searchResult2.results.size should be(1)
     searchResult2.results.head.id should be("5")
@@ -452,7 +450,7 @@ class ImageSearchServiceTest
         language = "nn"
       ),
       None
-    )
+    ): @unchecked
     result.totalCount should be(1)
     result.results.size should be(1)
 
@@ -469,11 +467,11 @@ class ImageSearchServiceTest
         shouldScroll = true
       ),
       None
-    )
+    ): @unchecked
 
-    val Success(scroll1) = imageSearchService.scrollV2(initialSearch.scrollId.get, "*", None)
-    val Success(scroll2) = imageSearchService.scrollV2(scroll1.scrollId.get, "*", None)
-    val Success(scroll3) = imageSearchService.scrollV2(scroll2.scrollId.get, "*", None)
+    val Success(scroll1) = imageSearchService.scrollV2(initialSearch.scrollId.get, "*", None): @unchecked
+    val Success(scroll2) = imageSearchService.scrollV2(scroll1.scrollId.get, "*", None): @unchecked
+    val Success(scroll3) = imageSearchService.scrollV2(scroll2.scrollId.get, "*", None): @unchecked
 
     initialSearch.results.map(_.id) should be(expectedIds.head)
     scroll1.results.map(_.id) should be(expectedIds(1))
@@ -491,11 +489,11 @@ class ImageSearchServiceTest
         shouldScroll = true
       ),
       None
-    )
+    ): @unchecked
 
-    val Success(scroll1) = imageSearchService.scroll(initialSearch.scrollId.get, "*")
-    val Success(scroll2) = imageSearchService.scroll(scroll1.scrollId.get, "*")
-    val Success(scroll3) = imageSearchService.scroll(scroll2.scrollId.get, "*")
+    val Success(scroll1) = imageSearchService.scroll(initialSearch.scrollId.get, "*"): @unchecked
+    val Success(scroll2) = imageSearchService.scroll(scroll1.scrollId.get, "*"): @unchecked
+    val Success(scroll3) = imageSearchService.scroll(scroll2.scrollId.get, "*"): @unchecked
 
     initialSearch.results.map(_._1.id) should be(expectedIds.head)
     scroll1.results.map(_._1.id) should be(expectedIds(1))
@@ -510,7 +508,7 @@ class ImageSearchServiceTest
         sort = Sort.ByTitleDesc
       ),
       None
-    )
+    ): @unchecked
 
     searchResult1.results.map(_.id) should be(Seq("2", "3", "1"))
   }
@@ -522,7 +520,7 @@ class ImageSearchServiceTest
         language = "*"
       ),
       None
-    )
+    ): @unchecked
 
     searchResult1.results.map(_.id) should be(Seq())
 
@@ -532,7 +530,7 @@ class ImageSearchServiceTest
         language = "*"
       ),
       Some(TokenUser("someeditor", Set(IMAGE_API_WRITE), None))
-    )
+    ): @unchecked
 
     searchResult2.results.map(_.id) should be(Seq("2"))
   }
@@ -545,7 +543,7 @@ class ImageSearchServiceTest
         modelReleased = Seq(NO)
       ),
       None
-    )
+    ): @unchecked
 
     searchResult1.results.map(_.id) should be(Seq("1"))
 
@@ -555,7 +553,7 @@ class ImageSearchServiceTest
         modelReleased = Seq(NOT_APPLICABLE)
       ),
       None
-    )
+    ): @unchecked
 
     searchResult2.results.map(_.id) should be(Seq("2"))
 
@@ -565,7 +563,7 @@ class ImageSearchServiceTest
         modelReleased = Seq(YES)
       ),
       None
-    )
+    ): @unchecked
 
     searchResult3.results.map(_.id) should be(Seq("3", "4", "5"))
 
@@ -575,7 +573,7 @@ class ImageSearchServiceTest
         modelReleased = Seq.empty
       ),
       None
-    )
+    ): @unchecked
 
     searchResult4.results.map(_.id) should be(Seq("1", "2", "3", "4", "5"))
 
@@ -585,7 +583,7 @@ class ImageSearchServiceTest
         modelReleased = Seq(NO, NOT_APPLICABLE)
       ),
       None
-    )
+    ): @unchecked
 
     searchResult5.results.map(_.id) should be(Seq("1", "2"))
 
@@ -593,7 +591,7 @@ class ImageSearchServiceTest
 
   test("That search result includes updatedBy field") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(query = Some("1"), language = "nb"), None)
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("1"), language = "nb"), None): @unchecked
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.lastUpdated should be(updated)
@@ -607,7 +605,7 @@ class ImageSearchServiceTest
         language = "und"
       ),
       None
-    )
+    ): @unchecked
     searchResult1.totalCount should be(1)
     searchResult1.results.size should be(1)
     searchResult1.results.head.id should be("5")
@@ -620,7 +618,7 @@ class ImageSearchServiceTest
         language = "en"
       ),
       None
-    )
+    ): @unchecked
     searchResult2.totalCount should be(1)
     searchResult2.results.size should be(1)
     searchResult2.results.head.id should be("5")
@@ -635,7 +633,7 @@ class ImageSearchServiceTest
         podcastFriendly = Some(true)
       ),
       None
-    )
+    ): @unchecked
 
     searchResult1.results.map(_.id) should be(Seq("5"))
   }

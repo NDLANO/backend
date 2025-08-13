@@ -31,7 +31,7 @@ import org.jsoup.Jsoup
 
 trait SearchConverterService {
   this: ConverterService =>
-  val searchConverterService: SearchConverterService
+  lazy val searchConverterService: SearchConverterService
 
   class SearchConverterService extends StrictLogging {
     private def getEmbedResourcesAndIdsToIndex(

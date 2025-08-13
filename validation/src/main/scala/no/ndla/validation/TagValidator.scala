@@ -9,6 +9,7 @@
 package no.ndla.validation
 
 import io.circe.parser
+import cats.implicits.*
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
@@ -266,19 +267,19 @@ object TagValidator {
         )
       )
     }
-    tagRules.children.map(childrenRule => {
+    tagRules.children.flatMap(childrenRule => {
       if (childrenRule.required && embed.childNodeSize() == 0) {
         ValidationMessage(
           fieldName,
           s"Tag '$EmbedTagName' with `data-resource=$resourceType` requires at least one child."
-        )
+        ).some
       } else {
         val childrenTagNames = embed.children().asScala.toList.map(_.tagName())
         if (childrenRule.allowedChildren.isEmpty && childrenTagNames.nonEmpty) {
           ValidationMessage(
             fieldName,
             s"Tag '$EmbedTagName' with `data-resource=$resourceType` can only have plaintext children."
-          )
+          ).some
         } else {
           val onlyValidChildren = childrenTagNames.forall(tag => childrenRule.allowedChildren.get.contains(tag))
           if (!onlyValidChildren) {
@@ -287,9 +288,9 @@ object TagValidator {
               s"Tag '$EmbedTagName' with `data-resource=$resourceType` can only have the following children tags: [${childrenRule.allowedChildren
                   .getOrElse(List.empty)
                   .mkString(", ")}]."
-            )
+            ).some
           } else {
-            return None
+            None
           }
         }
       }

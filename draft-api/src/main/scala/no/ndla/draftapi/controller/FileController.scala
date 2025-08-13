@@ -19,10 +19,8 @@ import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import sttp.model.Part
 import sttp.tapir.EndpointInput
 import sttp.tapir.*
-import io.circe.generic.auto.*
 import no.ndla.common.model.domain
 import no.ndla.network.tapir.TapirController
-import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import java.io.File
@@ -30,7 +28,7 @@ import scala.util.{Failure, Success, Try}
 
 trait FileController {
   this: WriteService & ErrorHandling & Props & TapirController =>
-  val fileController: FileController
+  lazy val fileController: FileController
 
   class FileController extends TapirController {
     override val serviceName: String         = "files"
@@ -42,8 +40,6 @@ trait FileController {
       uploadFile,
       deleteFile
     )
-
-    case class FileForm(file: Part[File])
 
     def doWithStream[T](filePart: Part[File])(f: domain.UploadedFile => Try[T]): Try[T] = {
       val file = domain.UploadedFile.fromFilePart(filePart)

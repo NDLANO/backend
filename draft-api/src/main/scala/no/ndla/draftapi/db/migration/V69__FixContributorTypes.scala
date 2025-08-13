@@ -9,7 +9,6 @@
 package no.ndla.draftapi.db.migration
 
 import io.circe.syntax.EncoderOps
-import io.circe.generic.auto.*
 import io.circe.{ACursor, parser}
 import no.ndla.common.model.domain.{Author, ContributorType}
 import no.ndla.database.DocumentMigration
@@ -57,3 +56,9 @@ class V69__FixContributorTypes extends DocumentMigration {
 }
 
 case class OldAuthor(`type`: String, name: String)
+object OldAuthor {
+  import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+  import io.circe.{Decoder, Encoder}
+  implicit val encoder: Encoder[OldAuthor] = deriveEncoder
+  implicit val decoder: Decoder[OldAuthor] = deriveDecoder
+}

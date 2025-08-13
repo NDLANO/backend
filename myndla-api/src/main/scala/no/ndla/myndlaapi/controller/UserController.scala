@@ -23,7 +23,7 @@ import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService, UserSer
 
 trait UserController {
   this: ErrorHandling & UserService & MyNDLAAuthHelpers & FolderWriteService & FolderReadService & TapirController =>
-  val userController: UserController
+  lazy val userController: UserController
 
   class UserController extends TapirController {
     override val serviceName: String = "users"

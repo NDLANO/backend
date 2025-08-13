@@ -19,7 +19,7 @@ import org.mockito.Mockito.{doReturn, reset, spy, when}
 import java.awt.image.BufferedImage
 
 class ValidationServiceTest extends UnitSuite with TestEnvironment {
-  override val validationService: ValidationService = spy(new ValidationService)
+  override lazy val validationService: ValidationService = spy(new ValidationService)
 
   override def beforeEach(): Unit = {
     reset(validationService)

@@ -8,7 +8,6 @@
 
 package no.ndla.frontpageapi
 
-import io.circe.generic.auto.*
 import io.circe.syntax.*
 import no.ndla.common.model
 import no.ndla.common.model.api.frontpage.{AboutSubjectDTO, BannerImageDTO, SubjectPageDTO, VisualElementDTO}

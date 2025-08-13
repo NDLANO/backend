@@ -39,7 +39,7 @@ import scala.util.{Failure, Success, Try}
 
 trait FolderRepository {
   this: Clock & DBUtility =>
-  val folderRepository: FolderRepository
+  lazy val folderRepository: FolderRepository
 
   class FolderRepository extends StrictLogging {
     def getSession(readOnly: Boolean): DBSession =
@@ -60,7 +60,7 @@ trait FolderRepository {
         val shared  = if (folderData.status == FolderStatus.SHARED) Some(created) else None
 
         val column = Folder.column.c _
-        withSQL {
+        val _      = withSQL {
           insert
             .into(Folder)
             .namedValues(
@@ -75,7 +75,7 @@ trait FolderRepository {
               column("shared")      -> shared,
               column("description") -> folderData.description
             )
-        }.update(): Unit
+        }.update()
 
         logger.info(s"Inserted new folder with id: $newId")
         folderData.toFullFolder(
@@ -100,7 +100,7 @@ trait FolderRepository {
       val newId  = UUID.randomUUID()
       val column = Resource.column.c _
 
-      withSQL {
+      val _ = withSQL {
         insert
           .into(Resource)
           .namedValues(
@@ -111,7 +111,7 @@ trait FolderRepository {
             column("created")       -> created,
             column("document")      -> DBUtil.asJsonb(document)
           )
-      }.update(): Unit
+      }.update()
 
       logger.info(s"Inserted new resource with id: $newId")
       document.toFullResource(newId, path, resourceType, feideId, created, None)
@@ -123,7 +123,7 @@ trait FolderRepository {
         rank: Int,
         favoritedDate: NDLADate
     )(implicit session: DBSession = AutoSession): Try[FolderResource] = Try {
-      withSQL {
+      val _ = withSQL {
         insert
           .into(FolderResource)
           .namedValues(
@@ -132,7 +132,7 @@ trait FolderRepository {
             FolderResource.column.rank          -> rank,
             FolderResource.column.favoritedDate -> favoritedDate
           )
-      }.update(): Unit
+      }.update()
       logger.info(s"Inserted new folder-resource connection with folder id $folderId and resource id $resourceId")
 
       FolderResource(folderId = folderId, resourceId = resourceId, rank = rank, favoritedDate = favoritedDate)
@@ -527,7 +527,7 @@ trait FolderRepository {
         .toManies(
           rs => Resource.fromResultSetSyntaxProviderWithConnection(r, fr)(rs).sequence,
           rs => Try(DBMyNDLAUser.fromResultSet(u)(rs)).toOption,
-          rs => Try(SavedSharedFolder.fromResultSet(sfu)(rs)).toOption
+          rs => Try(SavedSharedFolder.fromResultSet(sfu, rs)).toOption
         )
         .map((folder, resources, user, savedSharedFolder) => {
           toCompileFolder(folder, resources.toList, user.toList, savedSharedFolder.toList)
@@ -762,9 +762,7 @@ trait FolderRepository {
           )
         }
 
-        insertSql
-          .batch(batchParams*)
-          .apply(): Unit
+        val _ = insertSql.batch(batchParams*).apply()
       }
     }
 
@@ -808,9 +806,9 @@ trait FolderRepository {
         }
 
         batchParams.map { params =>
-          insertSql
+          val _ = insertSql
             .batch(params*)
-            .apply(): Unit
+            .apply()
         }
       }.flatten
     }
@@ -836,9 +834,7 @@ trait FolderRepository {
         )
       }
 
-      insertSql
-        .batch(batchParams*)
-        .apply(): Unit
+      val _ = insertSql.batch(batchParams*).apply()
     }
 
     def numberOfResources()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] = Try {
@@ -868,7 +864,7 @@ trait FolderRepository {
     def createFolderUserConnection(folderId: UUID, feideId: FeideID, rank: Int)(implicit
         session: DBSession = AutoSession
     ): Try[SavedSharedFolder] = Try {
-      withSQL {
+      val _ = withSQL {
         insert
           .into(SavedSharedFolder)
           .namedValues(
@@ -876,7 +872,7 @@ trait FolderRepository {
             SavedSharedFolder.column.feideId  -> feideId,
             SavedSharedFolder.column.rank     -> rank
           )
-      }.update(): Unit
+      }.update()
       logger.info(s"Inserted new sharedFolder-user connection with folder id $folderId and feide id $feideId")
 
       SavedSharedFolder(folderId = folderId, feideId = feideId, rank = rank)

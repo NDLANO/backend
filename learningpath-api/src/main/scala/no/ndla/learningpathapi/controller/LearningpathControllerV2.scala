@@ -38,17 +38,11 @@ trait LearningpathControllerV2 {
 
   this: ReadService & UpdateService & SearchService & LanguageValidator & ConverterService & TaxonomyApiClient &
     SearchConverterServiceComponent & Props & ErrorHandling & TapirController =>
-  val learningpathControllerV2: LearningpathControllerV2
+  lazy val learningpathControllerV2: LearningpathControllerV2
 
   class LearningpathControllerV2 extends TapirController {
 
     import ErrorHelpers.*
-    import props.{
-      DefaultLanguage,
-      ElasticSearchIndexMaxResultWindow,
-      ElasticSearchScrollKeepAlive,
-      InitialScrollContextKeywords
-    }
 
     override val serviceName: String         = "learningpaths"
     override val prefix: EndpointInput[Unit] = "learningpath-api" / "v2" / serviceName
@@ -94,11 +88,11 @@ trait LearningpathControllerV2 {
     private val learningPathStatus = path[String]("STATUS").description("Status of LearningPaths")
     private val scrollId           = query[Option[String]]("search-context")
       .description(
-        s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
+        s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${props.InitialScrollContextKeywords
             .mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.name}' and '${this.fallback.name}'.
-         |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
-         |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
+         |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after ${props.ElasticSearchScrollKeepAlive}).
+         |If you are not paginating past ${props.ElasticSearchIndexMaxResultWindow} hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
          |""".stripMargin
       )
     private val verificationStatus = query[Option[String]]("verificationStatus")
@@ -120,7 +114,7 @@ trait LearningpathControllerV2 {
         orFunction: => Try[(SearchResultV2DTO, DynamicHeaders)]
     ): Try[(SearchResultV2DTO, DynamicHeaders)] =
       scrollId match {
-        case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
+        case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
           searchService.scroll(scroll, language.code) match {
             case Success(scrollResult) =>
               val body    = searchConverterService.asApiSearchResult(scrollResult)
@@ -236,7 +230,7 @@ trait LearningpathControllerV2 {
       .serverLogicPure {
         case (query, tag, idList, language, pageNo, pageSize, sortStr, fallback, scrollId, verificationStatus) =>
           scrollSearchOr(scrollId, language) {
-            val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
+            val shouldScroll = scrollId.exists(props.InitialScrollContextKeywords.contains)
             search(
               query,
               language.code,
@@ -263,7 +257,7 @@ trait LearningpathControllerV2 {
       .serverLogicPure { searchParams =>
         val language = searchParams.language.getOrElse(LanguageCode(AllLanguages))
         scrollSearchOr(searchParams.scrollId, language) {
-          val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+          val shouldScroll = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
           search(
             query = searchParams.query,
             searchLanguage = language.code,
@@ -402,7 +396,7 @@ trait LearningpathControllerV2 {
             .learningStepStatusForV2(
               pathId,
               stepId,
-              DefaultLanguage,
+              props.DefaultLanguage,
               fallback,
               user
             )
@@ -417,7 +411,7 @@ trait LearningpathControllerV2 {
       .out(jsonBody[List[LearningPathV2DTO]])
       .errorOut(errorOutputsFor(401, 403, 404))
       .withRequiredMyNDLAUserOrTokenUser
-      .serverLogicPure { user => _ => readService.withOwnerV2(user, DefaultLanguage, true).asRight }
+      .serverLogicPure { user => _ => readService.withOwnerV2(user, props.DefaultLanguage, true).asRight }
 
     def getLicenses: ServerEndpoint[Any, Eff] = endpoint.get
       .summary("Show all valid licenses")
@@ -617,7 +611,7 @@ trait LearningpathControllerV2 {
                   pathId,
                   pathStatus,
                   user,
-                  DefaultLanguage,
+                  props.DefaultLanguage,
                   updateLearningPathStatus.message
                 )
                 .map { learningPath =>
@@ -649,7 +643,7 @@ trait LearningpathControllerV2 {
           pathId,
           learningpath.LearningPathStatus.DELETED,
           user,
-          DefaultLanguage
+          props.DefaultLanguage
         ) match {
           case Failure(ex) => returnLeftError(ex)
           case Success(_)  =>

@@ -26,12 +26,11 @@ import scala.util.{Failure, Try}
 trait AudioIndexService {
   this: Elastic4sClient & SearchConverterService & IndexService & SeriesIndexService & AudioRepository & Props =>
 
-  val audioIndexService: AudioIndexService
+  lazy val audioIndexService: AudioIndexService
 
-  class AudioIndexService extends StrictLogging with IndexService[AudioMetaInformation, SearchableAudioInformation] {
-    import props.*
-    override val documentType: String        = SearchDocument
-    override val searchIndex: String         = SearchIndex
+  class AudioIndexService extends IndexService[AudioMetaInformation, SearchableAudioInformation] with StrictLogging {
+    override val documentType: String        = props.SearchDocument
+    override val searchIndex: String         = props.SearchIndex
     override val repository: AudioRepository = audioRepository
 
     override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Try[Seq[IndexRequest]] = {

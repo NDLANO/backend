@@ -25,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 
 trait H5PApiClient {
   this: NdlaClient with Props =>
-  val h5pApiClient: H5PApiClient
+  lazy val h5pApiClient: H5PApiClient
 
   class H5PApiClient extends StrictLogging {
     private val H5PApi     = s"${props.H5PAddress}/v1"

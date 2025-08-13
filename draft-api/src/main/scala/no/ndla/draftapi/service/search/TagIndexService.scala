@@ -20,9 +20,9 @@ import no.ndla.draftapi.repository.{DraftRepository, Repository}
 
 trait TagIndexService {
   this: SearchConverterService with IndexService with DraftRepository with Props =>
-  val tagIndexService: TagIndexService
+  lazy val tagIndexService: TagIndexService
 
-  class TagIndexService extends StrictLogging with IndexService[Draft, SearchableTag] {
+  class TagIndexService extends IndexService[Draft, SearchableTag] with StrictLogging {
     override val documentType: String          = props.DraftTagSearchDocument
     override val searchIndex: String           = props.DraftTagSearchIndex
     override val repository: Repository[Draft] = draftRepository

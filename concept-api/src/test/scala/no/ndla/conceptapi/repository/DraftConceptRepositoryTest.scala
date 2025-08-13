@@ -22,9 +22,9 @@ import scala.util.{Failure, Success, Try}
 
 class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
 
-  override val dataSource: HikariDataSource = testDataSource.get
-  override val migrator                     = new DBMigrator
-  var repository: DraftConceptRepository    = _
+  override lazy val dataSource: HikariDataSource = testDataSource.get
+  override lazy val migrator                     = new DBMigrator
+  var repository: DraftConceptRepository         = _
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {

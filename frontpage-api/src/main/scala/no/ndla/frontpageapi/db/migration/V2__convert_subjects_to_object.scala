@@ -8,7 +8,6 @@
 
 package no.ndla.frontpageapi.db.migration
 
-import io.circe.generic.auto.*
 import io.circe.generic.semiauto.*
 import io.circe.parser.*
 import io.circe.syntax.*
@@ -21,10 +20,6 @@ import scalikejdbc.*
 import scala.util.{Failure, Success}
 
 class V2__convert_subjects_to_object extends BaseJavaMigration {
-
-  implicit val decoder: Decoder[V1_DBFrontPageData] = deriveDecoder
-  implicit val encoder: Encoder[V1_DBFrontPageData] = deriveEncoder
-
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
@@ -60,9 +55,33 @@ class V2__convert_subjects_to_object extends BaseJavaMigration {
 }
 
 case class V2_FrontPageData(topical: List[String], categories: List[V2_SubjectCollection])
+object V2_FrontPageData {
+  implicit val decoder: Decoder[V2_FrontPageData] = deriveDecoder
+  implicit val encoder: Encoder[V2_FrontPageData] = deriveEncoder
+}
 case class V2_SubjectCollection(name: String, subjects: List[V2_SubjectFilters])
+object V2_SubjectCollection {
+  implicit val decoder: Decoder[V2_SubjectCollection] = deriveDecoder
+  implicit val encoder: Encoder[V2_SubjectCollection] = deriveEncoder
+}
 case class V2_SubjectFilters(id: String, filters: List[String])
+object V2_SubjectFilters {
+  implicit val decoder: Decoder[V2_SubjectFilters] = deriveDecoder
+  implicit val encoder: Encoder[V2_SubjectFilters] = deriveEncoder
+}
 
 case class V1_DBFrontPage(id: Long, document: String)
+object V1_DBFrontPage {
+  implicit val decoder: Decoder[V1_DBFrontPage] = deriveDecoder
+  implicit val encoder: Encoder[V1_DBFrontPage] = deriveEncoder
+}
 case class V1_DBFrontPageData(topical: List[String], categories: List[V1_DBSubjectCollection])
+object V1_DBFrontPageData {
+  implicit val decoder: Decoder[V1_DBFrontPageData] = deriveDecoder
+  implicit val encoder: Encoder[V1_DBFrontPageData] = deriveEncoder
+}
 case class V1_DBSubjectCollection(name: String, subjects: List[String])
+object V1_DBSubjectCollection {
+  implicit val decoder: Decoder[V1_DBSubjectCollection] = deriveDecoder
+  implicit val encoder: Encoder[V1_DBSubjectCollection] = deriveEncoder
+}

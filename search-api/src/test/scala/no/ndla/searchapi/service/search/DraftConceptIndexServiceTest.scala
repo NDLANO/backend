@@ -21,7 +21,7 @@ import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 class DraftConceptIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-  override val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
+  override lazy val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards = 1
   }
 
@@ -31,8 +31,8 @@ class DraftConceptIndexServiceTest extends ElasticsearchIntegrationSuite with Un
     articleIndexService.createIndexWithGeneratedName
   }
 
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   test("That mapping contains every field after serialization") {
     val languageValues = SearchableLanguageValues(Seq(LanguageValue("nb", "hei"), LanguageValue("en", "hå")))

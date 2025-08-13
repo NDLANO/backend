@@ -30,13 +30,13 @@ import no.ndla.search.Elastic4sClient
 import scala.util.{Failure, Success, Try}
 
 trait ImageSearchService {
-  this: Elastic4sClient & ImageIndexService & SearchService & SearchConverterService & Props & ErrorHandling =>
-  val imageSearchService: ImageSearchService
-  class ImageSearchService extends StrictLogging with SearchService[(SearchableImage, MatchedLanguage)] {
-    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
-    private val noCopyright                      = boolQuery().not(termQuery("license", License.Copyrighted.toString))
-    override val searchIndex: String             = props.SearchIndex
-    override val indexService: ImageIndexService = imageIndexService
+  this: Elastic4sClient & ImageIndexService & SearchService & SearchConverterService & Props & ErrorHandling &
+    IndexService =>
+  lazy val imageSearchService: ImageSearchService
+  class ImageSearchService extends SearchService[(SearchableImage, MatchedLanguage)] with StrictLogging {
+    private val noCopyright                 = boolQuery().not(termQuery("license", License.Copyrighted.toString))
+    override val searchIndex: String        = props.SearchIndex
+    override val indexService: IndexService = imageIndexService
 
     def hitToApiModel(hit: String, matchedLanguage: String): Try[(SearchableImage, MatchedLanguage)] = {
       val searchableImage = CirceUtil.tryParseAs[SearchableImage](hit)
@@ -170,9 +170,9 @@ trait ImageSearchService {
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.page.getOrElse(1) * numResults
-      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+          s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
         )
         Failure(new ResultWindowTooLargeException(ImageErrorHelpers.WINDOW_TOO_LARGE_DESCRIPTION))
       } else {
@@ -188,7 +188,7 @@ trait ImageSearchService {
         // Only add scroll param if it is first page
         val searchWithScroll =
           if (startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
+            searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
           } else { searchToExecute }
 
         e4sClient.execute(searchWithScroll) match {

@@ -12,7 +12,7 @@ import cats.implicits.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
-import no.ndla.common.implicits.OptionImplicit
+import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.network.model.FeideID

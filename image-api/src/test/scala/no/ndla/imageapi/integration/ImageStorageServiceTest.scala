@@ -18,11 +18,11 @@ import scala.util.{Failure, Success}
 
 class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
 
-  val ImageStorageName      = props.StorageName
-  val ImageWithNoThumb      = TestData.nonexistingWithoutThumb
-  val Content               = "content"
-  val ContentType           = "image/jpeg"
-  override val imageStorage = new AmazonImageStorageService
+  val ImageStorageName           = props.StorageName
+  val ImageWithNoThumb           = TestData.nonexistingWithoutThumb
+  val Content                    = "content"
+  val ContentType                = "image/jpeg"
+  override lazy val imageStorage = new AmazonImageStorageService
 
   override def beforeEach(): Unit = {
     reset(s3Client)

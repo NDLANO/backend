@@ -88,8 +88,8 @@ class ComponentRegistry(properties: DraftApiProperties)
     with SearchLanguage
     with V57__MigrateSavedSearch
     with V66__SetHideBylineForImagesNotCopyrighted {
-  override val props: DraftApiProperties = properties
-  override val migrator: DBMigrator      = DBMigrator(
+  override lazy val props: DraftApiProperties = properties
+  override lazy val migrator: DBMigrator      = DBMigrator(
     new R__RemoveEmptyStringLanguageFields(props),
     new R__RemoveStatusPublishedArticles(props),
     new R__SetArticleLanguageFromTaxonomy(props),
@@ -101,50 +101,50 @@ class ComponentRegistry(properties: DraftApiProperties)
     new V66__SetHideBylineForImagesNotCopyrighted
   )
   override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  override val DBUtil: DBUtility                 = new DBUtility
+  override lazy val DBUtil: DBUtility            = new DBUtility
 
-  lazy val draftRepository    = new DraftRepository
-  lazy val userDataRepository = new UserDataRepository
+  override lazy val draftRepository    = new DraftRepository
+  override lazy val userDataRepository = new UserDataRepository
 
-  lazy val articleSearchService   = new ArticleSearchService
-  lazy val articleIndexService    = new ArticleIndexService
-  lazy val tagSearchService       = new TagSearchService
-  lazy val tagIndexService        = new TagIndexService
-  lazy val grepCodesSearchService = new GrepCodesSearchService
-  lazy val grepCodesIndexService  = new GrepCodesIndexService
+  override lazy val articleSearchService   = new ArticleSearchService
+  override lazy val articleIndexService    = new ArticleIndexService
+  override lazy val tagSearchService       = new TagSearchService
+  override lazy val tagIndexService        = new TagIndexService
+  override lazy val grepCodesSearchService = new GrepCodesSearchService
+  override lazy val grepCodesIndexService  = new GrepCodesIndexService
 
-  lazy val converterService = new ConverterService
-  lazy val contentValidator = new ContentValidator()
-  lazy val importValidator  = new ContentValidator()
+  override lazy val converterService = new ConverterService
+  override lazy val contentValidator = new ContentValidator()
+  override lazy val importValidator  = new ContentValidator()
 
-  lazy val ndlaClient                       = new NdlaClient
-  lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
-  lazy val searchConverterService           = new SearchConverterService
-  lazy val readService                      = new ReadService
-  lazy val writeService                     = new WriteService
-  lazy val reindexClient                    = new ReindexClient
+  override lazy val ndlaClient                       = new NdlaClient
+  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  override lazy val searchConverterService           = new SearchConverterService
+  override lazy val readService                      = new ReadService
+  override lazy val writeService                     = new WriteService
+  override lazy val reindexClient                    = new ReindexClient
 
-  lazy val fileStorage = new FileStorageService
+  override lazy val fileStorage = new FileStorageService
 
-  lazy val s3Client = new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
+  override lazy val s3Client = new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
-  lazy val clock    = new SystemClock
-  lazy val uuidUtil = new UUIDUtil
+  override lazy val clock    = new SystemClock
+  override lazy val uuidUtil = new UUIDUtil
 
-  lazy val articleApiClient      = new ArticleApiClient
-  lazy val searchApiClient       = new SearchApiClient
-  lazy val taxonomyApiClient     = new TaxonomyApiClient
-  lazy val learningpathApiClient = new LearningpathApiClient
-  lazy val h5pApiClient          = new H5PApiClient
-  lazy val imageApiClient        = new ImageApiClient
+  override lazy val articleApiClient      = new ArticleApiClient
+  override lazy val searchApiClient       = new SearchApiClient
+  override lazy val taxonomyApiClient     = new TaxonomyApiClient
+  override lazy val learningpathApiClient = new LearningpathApiClient
+  override lazy val h5pApiClient          = new H5PApiClient
+  override lazy val imageApiClient        = new ImageApiClient
 
-  lazy val internController                        = new InternController
-  lazy val draftController                         = new DraftController
-  lazy val fileController                          = new FileController
-  lazy val userDataController                      = new UserDataController
-  lazy val healthController: TapirHealthController = new TapirHealthController
+  override lazy val internController                        = new InternController
+  override lazy val draftController                         = new DraftController
+  override lazy val fileController                          = new FileController
+  override lazy val userDataController                      = new UserDataController
+  override lazy val healthController: TapirHealthController = new TapirHealthController
 
   val swagger = new SwaggerController(
     List[TapirController](

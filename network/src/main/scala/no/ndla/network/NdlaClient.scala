@@ -19,13 +19,13 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success, Try}
 
 trait NdlaClient {
-  val ndlaClient: NdlaClient
+  lazy val ndlaClient: NdlaClient
 
   class NdlaClient {
     val client: SimpleHttpClient                 = simpleHttpClient
     private val ResponseErrorBodyCharacterCutoff = 1000
 
-    def fetch[A: Decoder](request: NdlaRequest): Try[A] = {
+    def fetch[A](request: NdlaRequest)(implicit decoder: Decoder[A]): Try[A] = {
       doFetch(addCorrelationId(request))
     }
 

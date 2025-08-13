@@ -26,7 +26,7 @@ import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.stubbing.OngoingStubbing
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override val converterService = new ConverterService
+  override lazy val converterService = new ConverterService
 
   val today: NDLADate     = NDLADate.now()
   val yesterday: NDLADate = NDLADate.now().minusDays(1)
@@ -181,7 +181,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That delete concept should fail when only one language") {
-    val Failure(result) = service.deleteLanguage(concept.id, "nb", userInfo)
+    val Failure(result) = service.deleteLanguage(concept.id, "nb", userInfo): @unchecked
 
     result.getMessage should equal("Only one language left")
   }

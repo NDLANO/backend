@@ -25,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
   this: DraftConceptRepository & ConverterService & Props =>
-  val contentValidator: ContentValidator
+  lazy val contentValidator: ContentValidator
 
   class ContentValidator {
     private val inlineHtmlTags = props.InlineHtmlTags

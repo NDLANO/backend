@@ -23,7 +23,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ReadService {
   this: SubjectPageRepository & FrontPageRepository & FilmFrontPageRepository & ConverterService =>
-  val readService: ReadService
+  lazy val readService: ReadService
 
   class ReadService {
 
@@ -47,7 +47,7 @@ trait ReadService {
       }
     }
 
-    def subjectPage(id: Long, language: String, fallback: Boolean): Try[SubjectPageDTO] = {
+    def subjectPage(id: Long, language: String, fallback: Boolean): Try[SubjectPageDTO] = permitTry {
       val maybeSubject = subjectPageRepository.withId(id).?
       val converted    = maybeSubject.traverse(ConverterService.toApiSubjectPage(_, language, fallback)).?
       converted.toTry(SubjectPageNotFoundException(id))
@@ -58,7 +58,7 @@ trait ReadService {
         pageSize: Int,
         language: String,
         fallback: Boolean
-    ): Try[List[SubjectPageDTO]] = {
+    ): Try[List[SubjectPageDTO]] = permitTry {
       val offset    = pageSize * (page - 1)
       val data      = subjectPageRepository.all(offset, pageSize).?
       val converted = data.map(ConverterService.toApiSubjectPage(_, language, fallback))

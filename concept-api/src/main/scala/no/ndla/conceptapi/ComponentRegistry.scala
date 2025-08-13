@@ -61,34 +61,34 @@ class ComponentRegistry(properties: ConceptApiProperties)
     with DraftSearchSettingsHelper
     with SwaggerDocControllerConfig
     with ConceptControllerHelpers {
-  override val props: ConceptApiProperties = properties
-  override val migrator: DBMigrator        = DBMigrator(
+  override lazy val props: ConceptApiProperties = properties
+  override lazy val migrator: DBMigrator        = DBMigrator(
     new V23__SubjectNameAsTags(props),
     new V25__SubjectNameAsTagsPublished(props)
   )
 
   override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
-  lazy val draftConceptRepository     = new DraftConceptRepository
-  lazy val publishedConceptRepository = new PublishedConceptRepository
+  override lazy val draftConceptRepository     = new DraftConceptRepository
+  override lazy val publishedConceptRepository = new PublishedConceptRepository
 
-  lazy val draftConceptSearchService     = new DraftConceptSearchService
-  lazy val searchConverterService        = new SearchConverterService
-  lazy val draftConceptIndexService      = new DraftConceptIndexService
-  lazy val publishedConceptIndexService  = new PublishedConceptIndexService
-  lazy val publishedConceptSearchService = new PublishedConceptSearchService
+  override lazy val draftConceptSearchService     = new DraftConceptSearchService
+  override lazy val searchConverterService        = new SearchConverterService
+  override lazy val draftConceptIndexService      = new DraftConceptIndexService
+  override lazy val publishedConceptIndexService  = new PublishedConceptIndexService
+  override lazy val publishedConceptSearchService = new PublishedConceptSearchService
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
-  lazy val ndlaClient                       = new NdlaClient
-  lazy val searchApiClient                  = new SearchApiClient
-  lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  override lazy val ndlaClient                       = new NdlaClient
+  override lazy val searchApiClient                  = new SearchApiClient
+  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
 
-  lazy val writeService     = new WriteService
-  lazy val readService      = new ReadService
-  lazy val converterService = new ConverterService
-  lazy val clock            = new SystemClock
-  lazy val contentValidator = new ContentValidator
+  override lazy val writeService     = new WriteService
+  override lazy val readService      = new ReadService
+  override lazy val converterService = new ConverterService
+  override lazy val clock            = new SystemClock
+  override lazy val contentValidator = new ContentValidator
 
   lazy val draftConceptController                  = new DraftConceptController
   lazy val publishedConceptController              = new PublishedConceptController

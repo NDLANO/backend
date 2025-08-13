@@ -9,7 +9,6 @@
 package no.ndla.draftapi.controller
 
 import cats.implicits.*
-import io.circe.generic.auto.*
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.{LanguageCode, LicenseDTO}
 import no.ndla.common.model.domain.ArticleType
@@ -29,7 +28,6 @@ import no.ndla.network.tapir.auth.Permission.{ARTICLE_API_WRITE, DRAFT_API_WRITE
 import no.ndla.network.tapir.{DynamicHeaders, TapirController}
 import sttp.model.StatusCode
 import sttp.tapir.*
-import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
@@ -37,10 +35,9 @@ import scala.util.{Failure, Success, Try}
 trait DraftController {
   this: ReadService & WriteService & ArticleSearchService & SearchConverterService & ConverterService &
     ContentValidator & Props & ErrorHandling & TapirController =>
-  val draftController: DraftController
+  lazy val draftController: DraftController
 
   class DraftController extends TapirController {
-    import props.{DefaultPageSize, InitialScrollContextKeywords}
     override val serviceName: String         = "drafts"
     override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
 
@@ -72,7 +69,7 @@ trait DraftController {
       .validate(Validator.min(1))
     private val pageSize = query[Int]("page-size")
       .description("The number of search hits to display for each page.")
-      .default(DefaultPageSize)
+      .default(props.DefaultPageSize)
       .validate(Validator.min(0))
     private val sort = query[Option[String]]("sort").description(
       """The sorting used on results.
@@ -89,7 +86,7 @@ trait DraftController {
       .description("Fallback to existing language if language is specified.")
       .default(false)
     private val scrollId = query[Option[String]]("search-context").description(
-      s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
+      s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${props.InitialScrollContextKeywords
           .mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.name}' and '${this.fallback.name}'.
          |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after ${props.ElasticSearchScrollKeepAlive}).
@@ -136,7 +133,7 @@ trait DraftController {
         orFunction: => Try[(ArticleSearchResultDTO, DynamicHeaders)]
     ): Try[(ArticleSearchResultDTO, DynamicHeaders)] = {
       scrollId match {
-        case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
+        case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
           articleSearchService.scroll(scroll, language.code) match {
             case Success(scrollResult) =>
               val body    = searchConverterService.asApiSearchResult(scrollResult)
@@ -228,8 +225,8 @@ trait DraftController {
       .in(pageSize)
       .in(pageNo)
       .errorOut(errorOutputsFor(401, 403))
-      .requirePermission(DRAFT_API_WRITE)
       .out(jsonBody[GrepCodesSearchResultDTO])
+      .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
         { case (maybeQuery, pageSize, pageNo) =>
           val query = maybeQuery.getOrElse("")
@@ -274,7 +271,7 @@ trait DraftController {
               val sort               = Sort.valueOf(maybeSort.getOrElse(""))
               val idList             = articleIds.values
               val articleTypesFilter = articleTypes.values
-              val shouldScroll       = scrollId.exists(InitialScrollContextKeywords.contains)
+              val shouldScroll       = scrollId.exists(props.InitialScrollContextKeywords.contains)
 
               search(
                 maybeQuery,
@@ -308,13 +305,13 @@ trait DraftController {
           val query              = searchParams.query
           val sort               = searchParams.sort
           val license            = searchParams.license
-          val pageSize           = searchParams.pageSize.getOrElse(DefaultPageSize)
+          val pageSize           = searchParams.pageSize.getOrElse(props.DefaultPageSize)
           val page               = searchParams.page.getOrElse(1)
           val idList             = searchParams.ids
           val articleTypesFilter = searchParams.articleTypes
           val fallback           = searchParams.fallback.getOrElse(false)
           val grepCodes          = searchParams.grepCodes
-          val shouldScroll       = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+          val shouldScroll       = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
 
           search(
             query,
@@ -357,14 +354,14 @@ trait DraftController {
       .in("ids")
       .summary("Fetch articles that matches ids parameter.")
       .description("Returns articles that matches ids parameter.")
-      .out(jsonBody[Seq[ArticleDTO]])
-      .errorOut(errorOutputsFor(400, 401, 403))
-      .requirePermission(DRAFT_API_WRITE)
       .in(articleIds)
       .in(fallback)
       .in(language)
       .in(pageSize)
       .in(pageNo)
+      .out(jsonBody[Seq[ArticleDTO]])
+      .errorOut(errorOutputsFor(400, 401, 403))
+      .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { _ =>
         { case (articleIds, fallback, language, pageSize, page) =>
           readService
@@ -375,7 +372,6 @@ trait DraftController {
               page.toLong,
               pageSize.toLong
             )
-
         }
       }
 

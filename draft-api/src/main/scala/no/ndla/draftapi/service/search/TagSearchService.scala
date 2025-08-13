@@ -32,11 +32,10 @@ trait TagSearchService {
     with SearchConverterService
     with Props
     with ErrorHandling =>
-  val tagSearchService: TagSearchService
+  lazy val tagSearchService: TagSearchService
 
   class TagSearchService extends StrictLogging with SearchService[String] {
-    import props._
-    override val searchIndex: String = DraftTagSearchIndex
+    override val searchIndex: String = props.DraftTagSearchIndex
 
     override def hitToApiModel(hit: String, language: String): String = {
       val searchableTag = CirceUtil.unsafeParseAs[SearchableTag](hit)
@@ -83,9 +82,9 @@ trait TagSearchService {
 
       val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
       val requestedResultWindow = pageSize * page
-      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+          s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
         )
         Failure(new ResultWindowTooLargeException())
       } else {
@@ -98,7 +97,7 @@ trait TagSearchService {
 
         val searchWithScroll =
           if (startAt != 0) { searchToExecute }
-          else { searchToExecute.scroll(ElasticSearchScrollKeepAlive) }
+          else { searchToExecute.scroll(props.ElasticSearchScrollKeepAlive) }
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>

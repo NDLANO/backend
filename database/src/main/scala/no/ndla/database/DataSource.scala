@@ -15,19 +15,17 @@ import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 trait DataSource {
   this: HasDatabaseProps =>
 
-  import props.*
-
-  val dataSource: HikariDataSource
+  lazy val dataSource: HikariDataSource
 
   object DataSource extends StrictLogging {
     def getHikariDataSource: HikariDataSource = {
       val dataSourceConfig = new HikariConfig()
-      dataSourceConfig.setUsername(MetaUserName)
-      dataSourceConfig.setPassword(MetaPassword)
-      dataSourceConfig.setJdbcUrl(s"jdbc:postgresql://$MetaServer:$MetaPort/$MetaResource")
+      dataSourceConfig.setUsername(props.MetaUserName)
+      dataSourceConfig.setPassword(props.MetaPassword)
+      dataSourceConfig.setJdbcUrl(s"jdbc:postgresql://${props.MetaServer}:${props.MetaPort}/${props.MetaResource}")
       dataSourceConfig.setDriverClassName("org.postgresql.Driver")
-      dataSourceConfig.setSchema(MetaSchema)
-      dataSourceConfig.setMaximumPoolSize(MetaMaxConnections)
+      dataSourceConfig.setSchema(props.MetaSchema)
+      dataSourceConfig.setMaximumPoolSize(props.MetaMaxConnections)
       new HikariDataSource(dataSourceConfig)
     }
 

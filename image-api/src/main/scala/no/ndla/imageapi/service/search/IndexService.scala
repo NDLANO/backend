@@ -12,6 +12,7 @@ import cats.implicits.*
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
+import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 import no.ndla.search.{BaseIndexService, Elastic4sClient}
@@ -21,13 +22,13 @@ import scala.util.{Failure, Success, Try}
 trait IndexService {
   this: Elastic4sClient & ImageRepository & BaseIndexService & Props =>
 
-  trait IndexService[D, T <: AnyRef] extends BaseIndexService with StrictLogging {
+  abstract class IndexService extends BaseIndexService with StrictLogging {
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
-    val repository: Repository[D]
+    val repository: Repository[ImageMetaInformation]
 
-    def createIndexRequests(domainModel: D, indexName: String): Seq[IndexRequest]
+    def createIndexRequests(domainModel: ImageMetaInformation, indexName: String): Seq[IndexRequest]
 
-    def indexDocument(imported: D): Try[D] = {
+    def indexDocument(imported: ImageMetaInformation): Try[ImageMetaInformation] = {
       for {
         _ <- createIndexIfNotExists()
         requests = createIndexRequests(imported, searchIndex)
@@ -61,7 +62,7 @@ trait IndexService {
       }
     }
 
-    def indexDocuments(contents: Seq[D], indexName: String): Try[BulkIndexResult] = {
+    def indexDocuments(contents: Seq[ImageMetaInformation], indexName: String): Try[BulkIndexResult] = {
       if (contents.isEmpty) {
         Success(BulkIndexResult.empty)
       } else {

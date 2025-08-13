@@ -169,7 +169,7 @@ trait Routes {
           req.attribute(requestBody).foreach { body =>
             if (body.nonEmpty) {
               val requestBodyStr = new String(body, UTF_8)
-              MDC.put("requestBody", requestBodyStr)
+              MDC.put("requestBody", requestBodyStr): Unit
             }
           }
 
@@ -203,7 +203,7 @@ trait Routes {
             if (code >= 500) logger.error(s)
             else logger.info(s)
 
-            activeRequests.decrementAndGet()
+            activeRequests.decrementAndGet(): Unit
           }
 
           RequestInfo.clear()
@@ -247,6 +247,8 @@ trait Routes {
 
       val endpoints = services.flatMap(_.builtEndpoints)
 
+      logger.info(s"Starting $name on port $port")
+
       val server = JdkHttpServer()
         .options(options)
         .executor(executor)
@@ -254,8 +256,6 @@ trait Routes {
         .addEndpoint(prometheusMetrics.metricsEndpoint)
         .port(port)
         .start()
-
-      logger.info(s"Starting $name on port $port")
 
       warmupFunc
 

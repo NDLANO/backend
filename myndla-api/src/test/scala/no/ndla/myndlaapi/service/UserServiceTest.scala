@@ -25,8 +25,8 @@ import scala.util.{Failure, Success, Try}
 
 class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
-  val service: UserService                                    = spy(new UserService)
-  override val folderConverterService: FolderConverterService = spy(new FolderConverterService)
+  val service: UserService                                         = spy(new UserService)
+  override lazy val folderConverterService: FolderConverterService = spy(new FolderConverterService)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -145,7 +145,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    }).when(DBUtil).rollbackOnFailure(any)
+    }).when(DBUtil).rollbackOnFailure(any())
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(false))
 
     val feideId     = "feide"
@@ -227,7 +227,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    }).when(DBUtil).rollbackOnFailure(any)
+    }).when(DBUtil).rollbackOnFailure(any())
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
 
     val feideId        = "feide"
@@ -285,7 +285,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    }).when(DBUtil).rollbackOnFailure(any)
+    }).when(DBUtil).rollbackOnFailure(any())
     when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
 
     val feideId     = "feide"

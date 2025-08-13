@@ -21,6 +21,7 @@ case class EditorNoteDTO(
 )
 
 object EditorNoteDTO {
-  implicit def encoder: Encoder[EditorNoteDTO] = deriveEncoder
-  implicit def decoder: Decoder[EditorNoteDTO] = deriveDecoder
+  implicit def encoder: Encoder[EditorNoteDTO]          = deriveEncoder
+  implicit def decoder: Decoder[EditorNoteDTO]          = deriveDecoder
+  implicit def schema: sttp.tapir.Schema[EditorNoteDTO] = sttp.tapir.Schema.derived[EditorNoteDTO]
 }

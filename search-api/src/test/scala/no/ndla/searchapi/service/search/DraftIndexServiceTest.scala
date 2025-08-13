@@ -26,7 +26,7 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
-  override val draftIndexService: DraftIndexService = new DraftIndexService {
+  override lazy val draftIndexService: DraftIndexService = new DraftIndexService {
     override val indexShards = 1
   }
 
@@ -41,8 +41,8 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
     when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
 
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   test("That mapping contains every field after serialization") {
     val now         = NDLADate.now()

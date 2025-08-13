@@ -11,8 +11,6 @@ package no.ndla.learningpathapi.validation
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class TextValidatorTest extends UnitSuite with TestEnvironment {
-  import props.AllowedHtmlTags
-
   var allowedHtmlValidator: TextValidator = _
   var noHtmlValidator: TextValidator      = _
 
@@ -22,7 +20,7 @@ class TextValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That TextValidator allows all tags in AllowedHtmlTags tags") {
-    AllowedHtmlTags.foreach(tag => {
+    props.AllowedHtmlTags.foreach(tag => {
       val starttext = s"<$tag>This is text with $tag"
       val text      = starttext + (if (tag.equals("br")) "" else s"</$tag>")
       allowedHtmlValidator.validate("path1.path2", text) should equal(None)
@@ -38,7 +36,7 @@ class TextValidatorTest extends UnitSuite with TestEnvironment {
 
   test("That TextValidator does not allow tags outside BasicHtmlTags") {
     val illegalTag = "aside"
-    AllowedHtmlTags.contains(illegalTag) should be(right = false)
+    props.AllowedHtmlTags.contains(illegalTag) should be(right = false)
 
     val text = s"<$illegalTag>This is text with $illegalTag</$illegalTag>"
 

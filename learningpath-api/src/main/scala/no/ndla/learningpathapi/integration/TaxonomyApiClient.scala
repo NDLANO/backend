@@ -30,12 +30,11 @@ import scala.util.{Failure, Success, Try}
 
 trait TaxonomyApiClient {
   this: NdlaClient & Props =>
-  val taxonomyApiClient: TaxonomyApiClient
+  lazy val taxonomyApiClient: TaxonomyApiClient
 
   class TaxonomyApiClient extends StrictLogging {
-    import props.{TaxonomyUrl, DefaultLanguage}
     private val taxonomyTimeout            = 20.seconds
-    private val TaxonomyApiEndpoint        = s"$TaxonomyUrl/v1"
+    private val TaxonomyApiEndpoint        = s"${props.TaxonomyUrl}/v1"
     private val LearningPathResourceTypeId = "urn:resourcetype:learningPath"
 
     def updateTaxonomyForLearningPath(
@@ -49,7 +48,7 @@ trait TaxonomyApiClient {
         case Some(learningPathId) =>
           val contentUri = s"urn:learningpath:$learningPathId"
 
-          Language.findByLanguageOrBestEffort(learningPath.title, DefaultLanguage) match {
+          Language.findByLanguageOrBestEffort(learningPath.title, props.DefaultLanguage) match {
             case None =>
               Failure(TaxonomyUpdateException("Can't update taxonomy resource when learningpath is missing titles."))
             case Some(mainTitle) =>

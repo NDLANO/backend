@@ -38,7 +38,7 @@ import scala.util.{Failure, Success}
 trait InternController {
   this: ReadService & WriteService & ConverterService & ArticleRepository & IndexService & ArticleIndexService &
     ContentValidator & Props & DBArticle & TapirController =>
-  val internController: InternController
+  lazy val internController: InternController
 
   class InternController extends TapirController with StrictLogging {
     override val prefix: EndpointInput[Unit] = "intern"

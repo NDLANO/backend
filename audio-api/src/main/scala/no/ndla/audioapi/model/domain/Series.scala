@@ -19,14 +19,14 @@ import scalikejdbc.*
 import scala.util.Try
 
 /** Base series without database generated fields */
-class SeriesWithoutId(
-    val title: Seq[Title],
-    val coverPhoto: CoverPhoto,
-    val episodes: Option[Seq[AudioMetaInformation]],
-    val updated: NDLADate,
-    val created: NDLADate,
-    val description: Seq[Description],
-    val hasRSS: Boolean
+case class SeriesWithoutId(
+    title: Seq[Title],
+    coverPhoto: CoverPhoto,
+    episodes: Option[Seq[AudioMetaInformation]],
+    updated: NDLADate,
+    created: NDLADate,
+    description: Seq[Description],
+    hasRSS: Boolean
 )
 object SeriesWithoutId {
   implicit val encoder: Encoder[SeriesWithoutId] = deriveEncoder
@@ -39,15 +39,24 @@ object SeriesWithoutId {
 case class Series(
     id: Long,
     revision: Int,
-    override val episodes: Option[Seq[AudioMetaInformation]],
-    override val title: Seq[Title],
-    override val coverPhoto: CoverPhoto,
-    override val updated: NDLADate,
-    override val created: NDLADate,
-    override val description: Seq[Description],
-    override val hasRSS: Boolean
-) extends SeriesWithoutId(title, coverPhoto, episodes, updated, created, description, hasRSS) {
+    episodes: Option[Seq[AudioMetaInformation]],
+    title: Seq[Title],
+    coverPhoto: CoverPhoto,
+    updated: NDLADate,
+    created: NDLADate,
+    description: Seq[Description],
+    hasRSS: Boolean
+) {
   lazy val supportedLanguages: Seq[String] = getSupportedLanguages(title, description)
+  def withoutId: SeriesWithoutId           = SeriesWithoutId(
+    title = title,
+    coverPhoto = coverPhoto,
+    episodes = episodes,
+    updated = updated,
+    created = created,
+    description = description,
+    hasRSS = hasRSS
+  )
 }
 
 object Series extends SQLSyntaxSupport[Series] {

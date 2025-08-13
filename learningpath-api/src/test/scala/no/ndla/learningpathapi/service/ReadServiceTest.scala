@@ -145,7 +145,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That withIdV2 returns None when id does not exist") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(None)
-    val Failure(ex) = service.withIdV2(PUBLISHED_ID, "nb", fallback = false, TokenUser.PublicUser.toCombined)
+    val Failure(ex) =
+      service.withIdV2(PUBLISHED_ID, "nb", fallback = false, TokenUser.PublicUser.toCombined): @unchecked
     ex.isInstanceOf[NotFoundException]
   }
 
@@ -170,14 +171,14 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That withId throws an AccessDeniedException when the status is PRIVATE and no user") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
-    val Failure(ex) = service.withIdV2(PRIVATE_ID, "nb", fallback = false, TokenUser.PublicUser.toCombined)
+    val Failure(ex) = service.withIdV2(PRIVATE_ID, "nb", fallback = false, TokenUser.PublicUser.toCombined): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
   test("That withId throws an AccessDeniedException when the status is PRIVATE and user is not the owner") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
-    val Failure(ex) = service.withIdV2(PRIVATE_ID, "nb", fallback = false, PUBLISHED_OWNER.toCombined)
+    val Failure(ex) = service.withIdV2(PRIVATE_ID, "nb", fallback = false, PUBLISHED_OWNER.toCombined): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -192,7 +193,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That statusFor returns None when id does not exist") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(None)
-    val Failure(ex) = service.statusFor(PUBLISHED_ID, TokenUser.PublicUser.toCombined)
+    val Failure(ex) = service.statusFor(PUBLISHED_ID, TokenUser.PublicUser.toCombined): @unchecked
     ex.isInstanceOf[NotFoundException]
   }
 
@@ -208,14 +209,14 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
 
-    val Failure(ex) = service.statusFor(2, TokenUser.PublicUser.toCombined)
+    val Failure(ex) = service.statusFor(2, TokenUser.PublicUser.toCombined): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
   test("That statusFor throws an AccessDeniedException when the status is PRIVATE and user is not the owner") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
-    val Failure(ex) = service.statusFor(2, PUBLISHED_OWNER.toCombined)
+    val Failure(ex) = service.statusFor(2, PUBLISHED_OWNER.toCombined): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -235,7 +236,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       "nb",
       fallback = false,
       TokenUser.PublicUser.toCombined
-    )
+    ): @unchecked
     ex.isInstanceOf[NotFoundException]
   }
 
@@ -250,7 +251,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       "nb",
       fallback = false,
       TokenUser.PublicUser.toCombined
-    )
+    ): @unchecked
     ex.isInstanceOf[NotFoundException]
   }
 
@@ -299,7 +300,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         "nb",
         fallback = false,
         TokenUser.PublicUser.toCombined
-      )
+      ): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -313,7 +314,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
         "nb",
         fallback = false,
         PUBLISHED_OWNER.toCombined
-      )
+      ): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -336,7 +337,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That learningstepV2For returns None when the learningPath does not exist") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(None)
     val Failure(ex) =
-      service.learningstepV2For(PUBLISHED_ID, STEP1.id.get, "nb", fallback = false, TokenUser.PublicUser.toCombined)
+      service.learningstepV2For(
+        PUBLISHED_ID,
+        STEP1.id.get,
+        "nb",
+        fallback = false,
+        TokenUser.PublicUser.toCombined
+      ): @unchecked
     ex.isInstanceOf[NotFoundException]
   }
 
@@ -346,7 +353,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(any[DBSession]))
       .thenReturn(None)
     val Failure(ex) =
-      service.learningstepV2For(PUBLISHED_ID, STEP1.id.get, "nb", fallback = false, TokenUser.PublicUser.toCombined)
+      service.learningstepV2For(
+        PUBLISHED_ID,
+        STEP1.id.get,
+        "nb",
+        fallback = false,
+        TokenUser.PublicUser.toCombined
+      ): @unchecked
     ex.isInstanceOf[NotFoundException]
   }
 
@@ -380,7 +393,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
     val Failure(ex) =
-      service.learningstepV2For(PRIVATE_ID, STEP1.id.get, "nb", fallback = false, TokenUser.PublicUser.toCombined)
+      service.learningstepV2For(
+        PRIVATE_ID,
+        STEP1.id.get,
+        "nb",
+        fallback = false,
+        TokenUser.PublicUser.toCombined
+      ): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -388,7 +407,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
     val Failure(ex) =
-      service.learningstepV2For(PRIVATE_ID, STEP1.id.get, "nb", fallback = false, PUBLISHED_OWNER.toCombined)
+      service.learningstepV2For(
+        PRIVATE_ID,
+        STEP1.id.get,
+        "nb",
+        fallback = false,
+        PUBLISHED_OWNER.toCombined
+      ): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 

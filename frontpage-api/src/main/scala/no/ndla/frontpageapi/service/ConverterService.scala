@@ -34,8 +34,6 @@ trait ConverterService {
   this: Props =>
 
   object ConverterService {
-    import props.{BrightcoveAccountId, BrightcovePlayer, RawImageApiUrl}
-
     private def toApiMenu(menu: domain.Menu): model.api.MenuDTO =
       model.api.MenuDTO(menu.articleId, menu.menu.map(toApiMenu), Some(menu.hideLevel))
 
@@ -138,7 +136,7 @@ trait ConverterService {
       val url = visual.`type` match {
         case VisualElementType.Image      => createImageUrl(visual.id.toLong)
         case VisualElementType.Brightcove =>
-          s"https://players.brightcove.net/$BrightcoveAccountId/${BrightcovePlayer}_default/index.html?videoId=${visual.id}"
+          s"https://players.brightcove.net/${props.BrightcoveAccountId}/${props.BrightcovePlayer}_default/index.html?videoId=${visual.id}"
       }
       VisualElementDTO(visual.`type`.entryName, url, visual.alt)
     }
@@ -236,6 +234,6 @@ trait ConverterService {
     }
 
     private def createImageUrl(id: Long): String   = createImageUrl(id.toString)
-    private def createImageUrl(id: String): String = s"$RawImageApiUrl/id/$id"
+    private def createImageUrl(id: String): String = s"${props.RawImageApiUrl}/id/$id"
   }
 }

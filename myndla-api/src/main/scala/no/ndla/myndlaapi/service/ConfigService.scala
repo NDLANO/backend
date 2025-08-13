@@ -22,7 +22,7 @@ import scala.util.{Failure, Success, Try}
 trait ConfigService {
   this: ConfigRepository & Clock =>
 
-  val configService: ConfigService
+  lazy val configService: ConfigService
 
   class ConfigService {
 

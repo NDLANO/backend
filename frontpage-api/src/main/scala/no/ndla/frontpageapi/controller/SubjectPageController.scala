@@ -8,7 +8,6 @@
 
 package no.ndla.frontpageapi.controller
 
-import io.circe.generic.auto.*
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
@@ -26,7 +25,7 @@ import sttp.tapir.server.ServerEndpoint
 
 trait SubjectPageController {
   this: ReadService & WriteService & Props & ErrorHandling & TapirController =>
-  val subjectPageController: SubjectPageController
+  lazy val subjectPageController: SubjectPageController
 
   class SubjectPageController extends TapirController {
     override val serviceName: String         = "subjectpage"
