@@ -17,11 +17,10 @@ class V74__StripWhitespaceAfterPeriod extends HtmlMigration {
       .select("p")
       .forEach(paragraph => {
         val html = paragraph.html()
-        val text = paragraph.text()
-        if (text.matches(""".*\.\s$""")) {
+        if (html.matches(""".*\.\s$""")) {
           // Remove whitespace after the last period in the HTML, only if it's at the end
           val updatedHtml = html.replaceFirst("""(\.\s+)(</?\w+.*?>)*\s*$""", ".$2")
-          paragraph.text(updatedHtml): Unit
+          paragraph.html(updatedHtml): Unit
         }
       })
     doc

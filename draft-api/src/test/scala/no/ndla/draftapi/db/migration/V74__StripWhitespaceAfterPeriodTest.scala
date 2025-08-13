@@ -1,14 +1,12 @@
 package no.ndla.draftapi.db.migration
 
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
-import org.jsoup.Jsoup
 
 class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment {
   val migration = new V74__StripWhitespaceAfterPeriod()
 
   val originalArticle: String =
-    """
-      |<section>
+    """<section>
       |    <h2>Generelt om vurdering av eksamen</h2>
       |    <p>Skriftlig eksamen i fremmedspråk består av to deler: lesing og skriving. Kandidaten får poeng for hver oppgave, og summen av disse poengene gir den endelige karakteren.</p>
       |    <p>Lesing teller 35 prosent av totalkarakteren, mens skriving teller 65 prosent. NB! Kandidaten må bestå både lesedelen og skrivedelen for å bestå hele eksamen (dvs. få minst karakteren 2 i begge).</p>
@@ -29,38 +27,38 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |        <caption>Tabell A: poengskala for del 1</caption>
       |        <thead>
       |            <tr>
-      |                <th scope=\"col\" data-align=\"center\">
+      |                <th scope="col" data-align="center">
       |                    <p>Antall poeng</p>
       |                </th>
-      |                <th scope=\"col\" data-align=\"center\">
+      |                <th scope="col" data-align="center">
       |                    <p>Karakter</p>
       |                </th>
       |            </tr>
       |        </thead>
       |        <tbody>
       |            <tr>
-      |                <td data-align=\"center\">28–30</td>
-      |                <td data-align=\"center\">6</td>
+      |                <td data-align="center">28–30</td>
+      |                <td data-align="center">6</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">23–27</td>
-      |                <td data-align=\"center\">5</td>
+      |                <td data-align="center">23–27</td>
+      |                <td data-align="center">5</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">18–22</td>
-      |                <td data-align=\"center\">4</td>
+      |                <td data-align="center">18–22</td>
+      |                <td data-align="center">4</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">14–17</td>
-      |                <td data-align=\"center\">3</td>
+      |                <td data-align="center">14–17</td>
+      |                <td data-align="center">3</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">10–13</td>
-      |                <td data-align=\"center\">2</td>
+      |                <td data-align="center">10–13</td>
+      |                <td data-align="center">2</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">0–9</td>
-      |                <td data-align=\"center\">1</td>
+      |                <td data-align="center">0–9</td>
+      |                <td data-align="center">1</td>
       |            </tr>
       |        </tbody>
       |    </table>
@@ -99,61 +97,61 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |        <caption>Tabell b: vurdering av hver enkelt skriveoppgave (maks 5 poeng per oppgave)</caption>
       |        <thead>
       |            <tr>
-      |                <th scope=\"col\" id=\"00\"></th>
-      |                <th scope=\"col\" id=\"01\" data-align=\"right\">
+      |                <th scope="col" id="00"></th>
+      |                <th scope="col" id="01" data-align="right">
       |                    <p>4 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"02\" data-align=\"right\">
+      |                <th scope="col" id="02" data-align="right">
       |                    <p>3 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"03\" data-align=\"right\">
+      |                <th scope="col" id="03" data-align="right">
       |                    <p>2 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"04\" data-align=\"right\">
+      |                <th scope="col" id="04" data-align="right">
       |                    <p>1 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"05\" data-align=\"right\">
+      |                <th scope="col" id="05" data-align="right">
       |                    <p>0 poeng</p>
       |                </th>
       |            </tr>
       |        </thead>
       |        <tbody>
       |            <tr>
-      |                <th scope=\"row\" id=\"r1\">
+      |                <th scope="row" id="r1">
       |                    <p>Svarer teksten på oppgaven?</p>
       |                </th>
-      |                <td headers=\"01 r1\"></td>
-      |                <td headers=\"02 r1\"></td>
-      |                <td headers=\"03 r1\"></td>
-      |                <td headers=\"04 r1\">Teksten svarer på alt i oppgavebestillinga.</td>
-      |                <td headers=\"05 r1\">Teksten svarer ikke på alt i oppgavebestillinga, eller teksten mangler.</td>
+      |                <td headers="01 r1"></td>
+      |                <td headers="02 r1"></td>
+      |                <td headers="03 r1"></td>
+      |                <td headers="04 r1">Teksten svarer på alt i oppgavebestillinga.</td>
+      |                <td headers="05 r1">Teksten svarer ikke på alt i oppgavebestillinga, eller teksten mangler.</td>
       |            </tr>
       |            <tr>
-      |                <th scope=\"row\" id=\"r2\">
+      |                <th scope="row" id="r2">
       |                    <p>Kommunikasjon*</p>
       |                </th>
-      |                <td headers=\"01 r2\">
+      |                <td headers="01 r2">
       |                    <p>Kommunikasjonen er tydelig.</p>
       |                    <p>Teksten er ikke feilfri, men er svært enkel å forstå.</p>
       |                </td>
-      |                <td headers=\"02 r2\">
+      |                <td headers="02 r2">
       |                    <p>Kommunikasjonen er stort sett tydelig. </p>
       |                    <p>Teksten har noen feil, men er stort sett lett å forstå og har god flyt.</p>
       |                </td>
-      |                <td headers=\"03 r2\">
+      |                <td headers="03 r2">
       |                    <p>Kommunikasjonen er delvis tydelig.</p>
       |                    <p>Teksten er delvis vanskelig å forstå på grunn av feil.</p>
       |                </td>
-      |                <td headers=\"04 r2\">
+      |                <td headers="04 r2">
       |                    <p>Kommunikasjonen er kun noen ganger tydelig. </p>
       |                    <p>Teksten er oppstykka og/eller usammenhengende, og den er vanskelig å forstå.</p>
       |                </td>
-      |                <td headers=\"05 r2\">Besvarelsen kommuniserer ikke godt nok** til å få uttelling.</td>
+      |                <td headers="05 r2">Besvarelsen kommuniserer ikke godt nok** til å få uttelling.</td>
       |            </tr>
       |        </tbody>
       |    </table>
       |    <p><em>*Kommunikasjon handler om i hvilken grad teksten formidler et relevant innhold på en forståelig måte. Dersom kandidaten ikke svarer på alle ledd i oppgavebestillingen, vil ikke kandidaten kunne få full uttelling. </em></p>
-      |    <p><em>** Noen få setninger kommuniserer på en enkel måte og inneholder \"relevante\" enkeltord. De fleste setninger gir ikke mening eller er ufullstendige. </em></p>
+      |    <p><em>** Noen få setninger kommuniserer på en enkel måte og inneholder "relevante" enkeltord. De fleste setninger gir ikke mening eller er ufullstendige. </em></p>
       |    <h3>Helhetsvurdering av skriftlig kompetanse</h3>
       |    <p>Her blir elevens skrivekompetanse vurdert i sin helhet. Det gis poeng for grammatikk, setningsstruktur, vokabular, rettskriving og evne til å utføre språkhandlinger: </p>
       |    <ul>
@@ -178,79 +176,79 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |        <caption>Tabell c: helhetlig skrivekompetanse (maks 17 poeng)</caption>
       |        <thead>
       |            <tr>
-      |                <th scope=\"col\" id=\"00\"></th>
-      |                <th scope=\"col\" id=\"01\" data-align=\"right\">
+      |                <th scope="col" id="00"></th>
+      |                <th scope="col" id="01" data-align="right">
       |                    <p>4 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"02\" data-align=\"right\">
+      |                <th scope="col" id="02" data-align="right">
       |                    <p>3 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"03\" data-align=\"right\">
+      |                <th scope="col" id="03" data-align="right">
       |                    <p>2 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"04\" data-align=\"right\">
+      |                <th scope="col" id="04" data-align="right">
       |                    <p>1 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"05\" data-align=\"right\">
+      |                <th scope="col" id="05" data-align="right">
       |                    <p>0 poeng</p>
       |                </th>
       |            </tr>
       |        </thead>
       |        <tbody>
       |            <tr>
-      |                <th scope=\"row\" id=\"r1\">
+      |                <th scope="row" id="r1">
       |                    <p>Grammatikk*</p>
       |                </th>
-      |                <td headers=\"01 r1\">---</td>
-      |                <td headers=\"02 r1\">Grammatikken er stort sett korrekt.</td>
-      |                <td headers=\"03 r1\">Grammatikken er delvis korrekt.</td>
-      |                <td headers=\"04 r1\">Grammatikken er ofte ukorrekt.</td>
-      |                <td headers=\"05 r1\">Grammatikken i besvarelsen ligger under det nivået som kan forventes på nivå II.</td>
+      |                <td headers="01 r1">---</td>
+      |                <td headers="02 r1">Grammatikken er stort sett korrekt.</td>
+      |                <td headers="03 r1">Grammatikken er delvis korrekt.</td>
+      |                <td headers="04 r1">Grammatikken er ofte ukorrekt.</td>
+      |                <td headers="05 r1">Grammatikken i besvarelsen ligger under det nivået som kan forventes på nivå II.</td>
       |            </tr>
       |            <tr>
-      |                <th scope=\"row\" id=\"r2\">
+      |                <th scope="row" id="r2">
       |                    <p>Setningsstruktur</p>
       |                </th>
-      |                <td headers=\"01 r2\">Setningsstrukturen er korrekt. </td>
-      |                <td headers=\"02 r2\">Setningsstrukturen er stort sett korrekt.</td>
-      |                <td headers=\"03 r2\">Flere setninger har ukorrekt struktur.</td>
-      |                <td headers=\"04 r2\">Mange setninger har ukorrekt struktur.</td>
-      |                <td headers=\"05 r2\">Setningsstrukturen i besvarelsen ligger under det nivået som kan forventes på nivå II.</td>
+      |                <td headers="01 r2">Setningsstrukturen er korrekt. </td>
+      |                <td headers="02 r2">Setningsstrukturen er stort sett korrekt.</td>
+      |                <td headers="03 r2">Flere setninger har ukorrekt struktur.</td>
+      |                <td headers="04 r2">Mange setninger har ukorrekt struktur.</td>
+      |                <td headers="05 r2">Setningsstrukturen i besvarelsen ligger under det nivået som kan forventes på nivå II.</td>
       |            </tr>
       |            <tr>
-      |                <th scope=\"row\" id=\"r3\">
+      |                <th scope="row" id="r3">
       |                    <p>Vokabular</p>
       |                </th>
-      |                <td headers=\"01 r3\">Vokabularet er variert og passer godt inn i sammenhengen.**</td>
-      |                <td headers=\"02 r3\">---</td>
-      |                <td headers=\"03 r3\">Vokabularet er mindre variert og/eller passer ikke alltid godt inn i sammenhengen.</td>
-      |                <td headers=\"04 r3\">Vokabularet er upresist og passer ofte dårlig inn i sammenhengen.</td>
-      |                <td headers=\"05 r3\">Vokabularet i besvarelsen ligger under det nivået som kan forventes på nivå II.</td>
+      |                <td headers="01 r3">Vokabularet er variert og passer godt inn i sammenhengen.**</td>
+      |                <td headers="02 r3">---</td>
+      |                <td headers="03 r3">Vokabularet er mindre variert og/eller passer ikke alltid godt inn i sammenhengen.</td>
+      |                <td headers="04 r3">Vokabularet er upresist og passer ofte dårlig inn i sammenhengen.</td>
+      |                <td headers="05 r3">Vokabularet i besvarelsen ligger under det nivået som kan forventes på nivå II.</td>
       |            </tr>
       |            <tr>
-      |                <th scope=\"row\" id=\"r4\">
+      |                <th scope="row" id="r4">
       |                    <p>Rettskriving</p>
       |                </th>
-      |                <td headers=\"01 r4\">---</td>
-      |                <td headers=\"02 r4\">---</td>
-      |                <td headers=\"03 r4\">Rettskrivingen er korrekt.</td>
-      |                <td headers=\"04 r4\">Rettskrivingen inneholder få feil.</td>
-      |                <td headers=\"05 r4\">Rettskrivingen i besvarelsen ligger under det som kan forventes på nivå II.</td>
+      |                <td headers="01 r4">---</td>
+      |                <td headers="02 r4">---</td>
+      |                <td headers="03 r4">Rettskrivingen er korrekt.</td>
+      |                <td headers="04 r4">Rettskrivingen inneholder få feil.</td>
+      |                <td headers="05 r4">Rettskrivingen i besvarelsen ligger under det som kan forventes på nivå II.</td>
       |            </tr>
       |            <tr>
-      |                <th scope=\"row\" id=\"r5\">
+      |                <th scope="row" id="r5">
       |                    <p>Språkhandlinger</p>
       |                </th>
-      |                <td headers=\"01 r5\">Informerer, forteller, beskriver og begrunner på en selvstendig måte.</td>
-      |                <td headers=\"02 r5\">Informerer, forteller, beskriver og begrunner på en god måte.</td>
-      |                <td headers=\"03 r5\">Informerer, forteller, beskriver og begrunner på en enkel måte.</td>
-      |                <td headers=\"04 r5\">Informerer, forteller, beskriver og begrunner på en svært enkel måte.</td>
-      |                <td headers=\"05 r5\">Svaret gir ikke tilstrekkelig grunnlag for å vurdere språkhandlinger.</td>
+      |                <td headers="01 r5">Informerer, forteller, beskriver og begrunner på en selvstendig måte.</td>
+      |                <td headers="02 r5">Informerer, forteller, beskriver og begrunner på en god måte.</td>
+      |                <td headers="03 r5">Informerer, forteller, beskriver og begrunner på en enkel måte.</td>
+      |                <td headers="04 r5">Informerer, forteller, beskriver og begrunner på en svært enkel måte.</td>
+      |                <td headers="05 r5">Svaret gir ikke tilstrekkelig grunnlag for å vurdere språkhandlinger.</td>
       |            </tr>
       |        </tbody>
       |    </table>
       |    <p><em>* Med grammatikk menes for eksempel verbbruk i person og tid som er relevant med tanke på oppgavene og nivå, adjektiv, kasus, </em>
-      |        <ndlaembed data-content-id=\"8561\" data-link-text=\"register\" data-resource=\"concept\" data-type=\"inline\"></ndlaembed><em>, morfologi osv. </em>
+      |        <ndlaembed data-content-id="8561" data-link-text="register" data-resource="concept" data-type="inline"></ndlaembed><em>, morfologi osv. </em>
       |    </p>
       |    <p><em>** For å få 4 poeng for vokabularet må begge kriterier oppfylles.</em></p>
       |    <h2>Eksempel på karaktersetting</h2>
@@ -281,38 +279,38 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |        <caption>Tabell D: poengskala for Del 2</caption>
       |        <thead>
       |            <tr>
-      |                <th scope=\"col\">
+      |                <th scope="col">
       |                    <p>Sum av poeng for skriving</p>
       |                </th>
-      |                <th scope=\"col\">
+      |                <th scope="col">
       |                    <p>Karakter</p>
       |                </th>
       |            </tr>
       |        </thead>
       |        <tbody>
       |            <tr>
-      |                <td data-align=\"center\">30–32</td>
-      |                <td data-align=\"center\">6</td>
+      |                <td data-align="center">30–32</td>
+      |                <td data-align="center">6</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">25–29</td>
-      |                <td data-align=\"center\">5</td>
+      |                <td data-align="center">25–29</td>
+      |                <td data-align="center">5</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">20–24</td>
-      |                <td data-align=\"center\">4</td>
+      |                <td data-align="center">20–24</td>
+      |                <td data-align="center">4</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">14–19</td>
-      |                <td data-align=\"center\">3</td>
+      |                <td data-align="center">14–19</td>
+      |                <td data-align="center">3</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">10–13</td>
-      |                <td data-align=\"center\">2</td>
+      |                <td data-align="center">10–13</td>
+      |                <td data-align="center">2</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">0–9</td>
-      |                <td data-align=\"center\">1</td>
+      |                <td data-align="center">0–9</td>
+      |                <td data-align="center">1</td>
       |            </tr>
       |        </tbody>
       |    </table>
@@ -324,38 +322,38 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |        <caption>tabell E: samla karakter på del 1 og del 2</caption>
       |        <thead>
       |            <tr>
-      |                <th scope=\"col\" data-align=\"center\">
+      |                <th scope="col" data-align="center">
       |                    <p>Totalsum</p>
       |                </th>
-      |                <th scope=\"col\" data-align=\"center\">
+      |                <th scope="col" data-align="center">
       |                    <p>Karakter</p>
       |                </th>
       |            </tr>
       |        </thead>
       |        <tbody>
       |            <tr>
-      |                <td data-align=\"center\">17–18</td>
-      |                <td data-align=\"center\">6</td>
+      |                <td data-align="center">17–18</td>
+      |                <td data-align="center">6</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">14–16</td>
-      |                <td data-align=\"center\">5</td>
+      |                <td data-align="center">14–16</td>
+      |                <td data-align="center">5</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">11–13</td>
-      |                <td data-align=\"center\">4</td>
+      |                <td data-align="center">11–13</td>
+      |                <td data-align="center">4</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">8–10</td>
-      |                <td data-align=\"center\">3</td>
+      |                <td data-align="center">8–10</td>
+      |                <td data-align="center">3</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">6–7</td>
-      |                <td data-align=\"center\">2</td>
+      |                <td data-align="center">6–7</td>
+      |                <td data-align="center">2</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">0–5</td>
-      |                <td data-align=\"center\">1</td>
+      |                <td data-align="center">0–5</td>
+      |                <td data-align="center">1</td>
       |            </tr>
       |        </tbody>
       |    </table>
@@ -363,11 +361,10 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |        <summary>
       |            <h2>Kilder</h2>
       |        </summary>
-      |        <p>Utdanningsdirektoratet. (2024, 3. april). <em>Forberede og ta eksamen</em>. <a href=\"https://www.udir.no/eksamen-og-prover/eksamen/forberede-og-ta-eksamen/\">https://www.udir.no/eksamen-og-prover/eksamen/forberede-og-ta-eksamen/ </a> </p> <p>Utdanningsdirektoratet. (u.å.). <em>Eksamensveiledning for fremmedspråk I og II, 2025</em>. Tilgjengelig via <a href=\"https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020\">https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020 </a></p>
-      |        <p>Utdanningsdirektoratet. (u.å.). <em>Veiledning for sensur av oppgaver i spansk I, II og III etter LK20, 2024</em>. Tilgjengelig via <em>Eksamensveiledning for fremmedspråk I og II, 2024</em> fra <a href=\"https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020\">https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020</a></p>
+      |        <p>Utdanningsdirektoratet. (2024, 3. april). <em>Forberede og ta eksamen</em>. <a href="https://www.udir.no/eksamen-og-prover/eksamen/forberede-og-ta-eksamen/">https://www.udir.no/eksamen-og-prover/eksamen/forberede-og-ta-eksamen/ </a> </p> <p>Utdanningsdirektoratet. (u.å.). <em>Eksamensveiledning for fremmedspråk I og II, 2025</em>. Tilgjengelig via <a href="https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020">https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020 </a></p>
+      |        <p>Utdanningsdirektoratet. (u.å.). <em>Veiledning for sensur av oppgaver i spansk I, II og III etter LK20, 2024</em>. Tilgjengelig via <em>Eksamensveiledning for fremmedspråk I og II, 2024</em> fra <a href="https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020">https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020</a></p>
       |	   </details>
-      |</section>
-      |""".stripMargin
+      |</section>""".stripMargin
 
   val migratedArticle: String =
     """<section>
@@ -391,38 +388,38 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |        <caption>Tabell A: poengskala for del 1</caption>
       |        <thead>
       |            <tr>
-      |                <th scope=\"col\" data-align=\"center\">
+      |                <th scope="col" data-align="center">
       |                    <p>Antall poeng</p>
       |                </th>
-      |                <th scope=\"col\" data-align=\"center\">
+      |                <th scope="col" data-align="center">
       |                    <p>Karakter</p>
       |                </th>
       |            </tr>
       |        </thead>
       |        <tbody>
       |            <tr>
-      |                <td data-align=\"center\">28–30</td>
-      |                <td data-align=\"center\">6</td>
+      |                <td data-align="center">28–30</td>
+      |                <td data-align="center">6</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">23–27</td>
-      |                <td data-align=\"center\">5</td>
+      |                <td data-align="center">23–27</td>
+      |                <td data-align="center">5</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">18–22</td>
-      |                <td data-align=\"center\">4</td>
+      |                <td data-align="center">18–22</td>
+      |                <td data-align="center">4</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">14–17</td>
-      |                <td data-align=\"center\">3</td>
+      |                <td data-align="center">14–17</td>
+      |                <td data-align="center">3</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">10–13</td>
-      |                <td data-align=\"center\">2</td>
+      |                <td data-align="center">10–13</td>
+      |                <td data-align="center">2</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">0–9</td>
-      |                <td data-align=\"center\">1</td>
+      |                <td data-align="center">0–9</td>
+      |                <td data-align="center">1</td>
       |            </tr>
       |        </tbody>
       |    </table>
@@ -461,61 +458,61 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |        <caption>Tabell b: vurdering av hver enkelt skriveoppgave (maks 5 poeng per oppgave)</caption>
       |        <thead>
       |            <tr>
-      |                <th scope=\"col\" id=\"00\"></th>
-      |                <th scope=\"col\" id=\"01\" data-align=\"right\">
+      |                <th scope="col" id="00"></th>
+      |                <th scope="col" id="01" data-align="right">
       |                    <p>4 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"02\" data-align=\"right\">
+      |                <th scope="col" id="02" data-align="right">
       |                    <p>3 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"03\" data-align=\"right\">
+      |                <th scope="col" id="03" data-align="right">
       |                    <p>2 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"04\" data-align=\"right\">
+      |                <th scope="col" id="04" data-align="right">
       |                    <p>1 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"05\" data-align=\"right\">
+      |                <th scope="col" id="05" data-align="right">
       |                    <p>0 poeng</p>
       |                </th>
       |            </tr>
       |        </thead>
       |        <tbody>
       |            <tr>
-      |                <th scope=\"row\" id=\"r1\">
+      |                <th scope="row" id="r1">
       |                    <p>Svarer teksten på oppgaven?</p>
       |                </th>
-      |                <td headers=\"01 r1\"></td>
-      |                <td headers=\"02 r1\"></td>
-      |                <td headers=\"03 r1\"></td>
-      |                <td headers=\"04 r1\">Teksten svarer på alt i oppgavebestillinga.</td>
-      |                <td headers=\"05 r1\">Teksten svarer ikke på alt i oppgavebestillinga, eller teksten mangler.</td>
+      |                <td headers="01 r1"></td>
+      |                <td headers="02 r1"></td>
+      |                <td headers="03 r1"></td>
+      |                <td headers="04 r1">Teksten svarer på alt i oppgavebestillinga.</td>
+      |                <td headers="05 r1">Teksten svarer ikke på alt i oppgavebestillinga, eller teksten mangler.</td>
       |            </tr>
       |            <tr>
-      |                <th scope=\"row\" id=\"r2\">
+      |                <th scope="row" id="r2">
       |                    <p>Kommunikasjon*</p>
       |                </th>
-      |                <td headers=\"01 r2\">
+      |                <td headers="01 r2">
       |                    <p>Kommunikasjonen er tydelig.</p>
       |                    <p>Teksten er ikke feilfri, men er svært enkel å forstå.</p>
       |                </td>
-      |                <td headers=\"02 r2\">
+      |                <td headers="02 r2">
       |                    <p>Kommunikasjonen er stort sett tydelig.</p>
       |                    <p>Teksten har noen feil, men er stort sett lett å forstå og har god flyt.</p>
       |                </td>
-      |                <td headers=\"03 r2\">
+      |                <td headers="03 r2">
       |                    <p>Kommunikasjonen er delvis tydelig.</p>
       |                    <p>Teksten er delvis vanskelig å forstå på grunn av feil.</p>
       |                </td>
-      |                <td headers=\"04 r2\">
+      |                <td headers="04 r2">
       |                    <p>Kommunikasjonen er kun noen ganger tydelig.</p>
       |                    <p>Teksten er oppstykka og/eller usammenhengende, og den er vanskelig å forstå.</p>
       |                </td>
-      |                <td headers=\"05 r2\">Besvarelsen kommuniserer ikke godt nok** til å få uttelling.</td>
+      |                <td headers="05 r2">Besvarelsen kommuniserer ikke godt nok** til å få uttelling.</td>
       |            </tr>
       |        </tbody>
       |    </table>
       |    <p><em>*Kommunikasjon handler om i hvilken grad teksten formidler et relevant innhold på en forståelig måte. Dersom kandidaten ikke svarer på alle ledd i oppgavebestillingen, vil ikke kandidaten kunne få full uttelling. </em></p>
-      |    <p><em>** Noen få setninger kommuniserer på en enkel måte og inneholder \"relevante\" enkeltord. De fleste setninger gir ikke mening eller er ufullstendige. </em></p>
+      |    <p><em>** Noen få setninger kommuniserer på en enkel måte og inneholder "relevante" enkeltord. De fleste setninger gir ikke mening eller er ufullstendige. </em></p>
       |    <h3>Helhetsvurdering av skriftlig kompetanse</h3>
       |    <p>Her blir elevens skrivekompetanse vurdert i sin helhet. Det gis poeng for grammatikk, setningsstruktur, vokabular, rettskriving og evne til å utføre språkhandlinger: </p>
       |    <ul>
@@ -540,79 +537,79 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |        <caption>Tabell c: helhetlig skrivekompetanse (maks 17 poeng)</caption>
       |        <thead>
       |            <tr>
-      |                <th scope=\"col\" id=\"00\"></th>
-      |                <th scope=\"col\" id=\"01\" data-align=\"right\">
+      |                <th scope="col" id="00"></th>
+      |                <th scope="col" id="01" data-align="right">
       |                    <p>4 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"02\" data-align=\"right\">
+      |                <th scope="col" id="02" data-align="right">
       |                    <p>3 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"03\" data-align=\"right\">
+      |                <th scope="col" id="03" data-align="right">
       |                    <p>2 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"04\" data-align=\"right\">
+      |                <th scope="col" id="04" data-align="right">
       |                    <p>1 poeng</p>
       |                </th>
-      |                <th scope=\"col\" id=\"05\" data-align=\"right\">
+      |                <th scope="col" id="05" data-align="right">
       |                    <p>0 poeng</p>
       |                </th>
       |            </tr>
       |        </thead>
       |        <tbody>
       |            <tr>
-      |                <th scope=\"row\" id=\"r1\">
+      |                <th scope="row" id="r1">
       |                    <p>Grammatikk*</p>
       |                </th>
-      |                <td headers=\"01 r1\">---</td>
-      |                <td headers=\"02 r1\">Grammatikken er stort sett korrekt.</td>
-      |                <td headers=\"03 r1\">Grammatikken er delvis korrekt.</td>
-      |                <td headers=\"04 r1\">Grammatikken er ofte ukorrekt.</td>
-      |                <td headers=\"05 r1\">Grammatikken i besvarelsen ligger under det nivået som kan forventes på nivå II.</td>
+      |                <td headers="01 r1">---</td>
+      |                <td headers="02 r1">Grammatikken er stort sett korrekt.</td>
+      |                <td headers="03 r1">Grammatikken er delvis korrekt.</td>
+      |                <td headers="04 r1">Grammatikken er ofte ukorrekt.</td>
+      |                <td headers="05 r1">Grammatikken i besvarelsen ligger under det nivået som kan forventes på nivå II.</td>
       |            </tr>
       |            <tr>
-      |                <th scope=\"row\" id=\"r2\">
+      |                <th scope="row" id="r2">
       |                    <p>Setningsstruktur</p>
       |                </th>
-      |                <td headers=\"01 r2\">Setningsstrukturen er korrekt. </td>
-      |                <td headers=\"02 r2\">Setningsstrukturen er stort sett korrekt.</td>
-      |                <td headers=\"03 r2\">Flere setninger har ukorrekt struktur.</td>
-      |                <td headers=\"04 r2\">Mange setninger har ukorrekt struktur.</td>
-      |                <td headers=\"05 r2\">Setningsstrukturen i besvarelsen ligger under det nivået som kan forventes på nivå II.</td>
+      |                <td headers="01 r2">Setningsstrukturen er korrekt. </td>
+      |                <td headers="02 r2">Setningsstrukturen er stort sett korrekt.</td>
+      |                <td headers="03 r2">Flere setninger har ukorrekt struktur.</td>
+      |                <td headers="04 r2">Mange setninger har ukorrekt struktur.</td>
+      |                <td headers="05 r2">Setningsstrukturen i besvarelsen ligger under det nivået som kan forventes på nivå II.</td>
       |            </tr>
       |            <tr>
-      |                <th scope=\"row\" id=\"r3\">
+      |                <th scope="row" id="r3">
       |                    <p>Vokabular</p>
       |                </th>
-      |                <td headers=\"01 r3\">Vokabularet er variert og passer godt inn i sammenhengen.**</td>
-      |                <td headers=\"02 r3\">---</td>
-      |                <td headers=\"03 r3\">Vokabularet er mindre variert og/eller passer ikke alltid godt inn i sammenhengen.</td>
-      |                <td headers=\"04 r3\">Vokabularet er upresist og passer ofte dårlig inn i sammenhengen.</td>
-      |                <td headers=\"05 r3\">Vokabularet i besvarelsen ligger under det nivået som kan forventes på nivå II.</td>
+      |                <td headers="01 r3">Vokabularet er variert og passer godt inn i sammenhengen.**</td>
+      |                <td headers="02 r3">---</td>
+      |                <td headers="03 r3">Vokabularet er mindre variert og/eller passer ikke alltid godt inn i sammenhengen.</td>
+      |                <td headers="04 r3">Vokabularet er upresist og passer ofte dårlig inn i sammenhengen.</td>
+      |                <td headers="05 r3">Vokabularet i besvarelsen ligger under det nivået som kan forventes på nivå II.</td>
       |            </tr>
       |            <tr>
-      |                <th scope=\"row\" id=\"r4\">
+      |                <th scope="row" id="r4">
       |                    <p>Rettskriving</p>
       |                </th>
-      |                <td headers=\"01 r4\">---</td>
-      |                <td headers=\"02 r4\">---</td>
-      |                <td headers=\"03 r4\">Rettskrivingen er korrekt.</td>
-      |                <td headers=\"04 r4\">Rettskrivingen inneholder få feil.</td>
-      |                <td headers=\"05 r4\">Rettskrivingen i besvarelsen ligger under det som kan forventes på nivå II.</td>
+      |                <td headers="01 r4">---</td>
+      |                <td headers="02 r4">---</td>
+      |                <td headers="03 r4">Rettskrivingen er korrekt.</td>
+      |                <td headers="04 r4">Rettskrivingen inneholder få feil.</td>
+      |                <td headers="05 r4">Rettskrivingen i besvarelsen ligger under det som kan forventes på nivå II.</td>
       |            </tr>
       |            <tr>
-      |                <th scope=\"row\" id=\"r5\">
+      |                <th scope="row" id="r5">
       |                    <p>Språkhandlinger</p>
       |                </th>
-      |                <td headers=\"01 r5\">Informerer, forteller, beskriver og begrunner på en selvstendig måte.</td>
-      |                <td headers=\"02 r5\">Informerer, forteller, beskriver og begrunner på en god måte.</td>
-      |                <td headers=\"03 r5\">Informerer, forteller, beskriver og begrunner på en enkel måte.</td>
-      |                <td headers=\"04 r5\">Informerer, forteller, beskriver og begrunner på en svært enkel måte.</td>
-      |                <td headers=\"05 r5\">Svaret gir ikke tilstrekkelig grunnlag for å vurdere språkhandlinger.</td>
+      |                <td headers="01 r5">Informerer, forteller, beskriver og begrunner på en selvstendig måte.</td>
+      |                <td headers="02 r5">Informerer, forteller, beskriver og begrunner på en god måte.</td>
+      |                <td headers="03 r5">Informerer, forteller, beskriver og begrunner på en enkel måte.</td>
+      |                <td headers="04 r5">Informerer, forteller, beskriver og begrunner på en svært enkel måte.</td>
+      |                <td headers="05 r5">Svaret gir ikke tilstrekkelig grunnlag for å vurdere språkhandlinger.</td>
       |            </tr>
       |        </tbody>
       |    </table>
       |    <p><em>* Med grammatikk menes for eksempel verbbruk i person og tid som er relevant med tanke på oppgavene og nivå, adjektiv, kasus, </em>
-      |        <ndlaembed data-content-id=\"8561\" data-link-text=\"register\" data-resource=\"concept\" data-type=\"inline\"></ndlaembed><em>, morfologi osv. </em>
+      |        <ndlaembed data-content-id="8561" data-link-text="register" data-resource="concept" data-type="inline"></ndlaembed><em>, morfologi osv. </em>
       |    </p>
       |    <p><em>** For å få 4 poeng for vokabularet må begge kriterier oppfylles.</em></p>
       |    <h2>Eksempel på karaktersetting</h2>
@@ -643,38 +640,38 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |        <caption>Tabell D: poengskala for Del 2</caption>
       |        <thead>
       |            <tr>
-      |                <th scope=\"col\">
+      |                <th scope="col">
       |                    <p>Sum av poeng for skriving</p>
       |                </th>
-      |                <th scope=\"col\">
+      |                <th scope="col">
       |                    <p>Karakter</p>
       |                </th>
       |            </tr>
       |        </thead>
       |        <tbody>
       |            <tr>
-      |                <td data-align=\"center\">30–32</td>
-      |                <td data-align=\"center\">6</td>
+      |                <td data-align="center">30–32</td>
+      |                <td data-align="center">6</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">25–29</td>
-      |                <td data-align=\"center\">5</td>
+      |                <td data-align="center">25–29</td>
+      |                <td data-align="center">5</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">20–24</td>
-      |                <td data-align=\"center\">4</td>
+      |                <td data-align="center">20–24</td>
+      |                <td data-align="center">4</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">14–19</td>
-      |                <td data-align=\"center\">3</td>
+      |                <td data-align="center">14–19</td>
+      |                <td data-align="center">3</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">10–13</td>
-      |                <td data-align=\"center\">2</td>
+      |                <td data-align="center">10–13</td>
+      |                <td data-align="center">2</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">0–9</td>
-      |                <td data-align=\"center\">1</td>
+      |                <td data-align="center">0–9</td>
+      |                <td data-align="center">1</td>
       |            </tr>
       |        </tbody>
       |    </table>
@@ -686,38 +683,38 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |        <caption>tabell E: samla karakter på del 1 og del 2</caption>
       |        <thead>
       |            <tr>
-      |                <th scope=\"col\" data-align=\"center\">
+      |                <th scope="col" data-align="center">
       |                    <p>Totalsum</p>
       |                </th>
-      |                <th scope=\"col\" data-align=\"center\">
+      |                <th scope="col" data-align="center">
       |                    <p>Karakter</p>
       |                </th>
       |            </tr>
       |        </thead>
       |        <tbody>
       |            <tr>
-      |                <td data-align=\"center\">17–18</td>
-      |                <td data-align=\"center\">6</td>
+      |                <td data-align="center">17–18</td>
+      |                <td data-align="center">6</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">14–16</td>
-      |                <td data-align=\"center\">5</td>
+      |                <td data-align="center">14–16</td>
+      |                <td data-align="center">5</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">11–13</td>
-      |                <td data-align=\"center\">4</td>
+      |                <td data-align="center">11–13</td>
+      |                <td data-align="center">4</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">8–10</td>
-      |                <td data-align=\"center\">3</td>
+      |                <td data-align="center">8–10</td>
+      |                <td data-align="center">3</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">6–7</td>
-      |                <td data-align=\"center\">2</td>
+      |                <td data-align="center">6–7</td>
+      |                <td data-align="center">2</td>
       |            </tr>
       |            <tr>
-      |                <td data-align=\"center\">0–5</td>
-      |                <td data-align=\"center\">1</td>
+      |                <td data-align="center">0–5</td>
+      |                <td data-align="center">1</td>
       |            </tr>
       |        </tbody>
       |    </table>
@@ -725,14 +722,14 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |        <summary>
       |            <h2>Kilder</h2>
       |        </summary>
-      |        <p>Utdanningsdirektoratet. (2024, 3. april). <em>Forberede og ta eksamen</em>. <a href=\"https://www.udir.no/eksamen-og-prover/eksamen/forberede-og-ta-eksamen/\">https://www.udir.no/eksamen-og-prover/eksamen/forberede-og-ta-eksamen/ </a> </p> <p>Utdanningsdirektoratet. (u.å.). <em>Eksamensveiledning for fremmedspråk I og II, 2025</em>. Tilgjengelig via <a href=\"https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020\">https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020 </a></p>
-      |        <p>Utdanningsdirektoratet. (u.å.). <em>Veiledning for sensur av oppgaver i spansk I, II og III etter LK20, 2024</em>. Tilgjengelig via <em>Eksamensveiledning for fremmedspråk I og II, 2024</em> fra <a href=\"https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020\">https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020</a></p>
+      |        <p>Utdanningsdirektoratet. (2024, 3. april). <em>Forberede og ta eksamen</em>. <a href="https://www.udir.no/eksamen-og-prover/eksamen/forberede-og-ta-eksamen/">https://www.udir.no/eksamen-og-prover/eksamen/forberede-og-ta-eksamen/ </a> </p> <p>Utdanningsdirektoratet. (u.å.). <em>Eksamensveiledning for fremmedspråk I og II, 2025</em>. Tilgjengelig via <a href="https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020">https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020 </a></p>
+      |        <p>Utdanningsdirektoratet. (u.å.). <em>Veiledning for sensur av oppgaver i spansk I, II og III etter LK20, 2024</em>. Tilgjengelig via <em>Eksamensveiledning for fremmedspråk I og II, 2024</em> fra <a href="https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020">https://sokeresultat.udir.no/eksamensoppgaver.html?start=1&amp;query=fremmedspr%C3%A5k%20I%20og%20II&amp;ExKL=Kunnskapsl%C3%B8ftet%202020</a></p>
       |	   </details>
       |</section>""".stripMargin
 
   test("should strip whitespace after period in content") {
-    val doc = migration.convertHtml(Jsoup.parseBodyFragment(originalArticle), "nb")
-    Jsoup.parseBodyFragment(migratedArticle).html() should equal(doc.html())
+    val doc = migration.convertContent(originalArticle, "nb")
+    doc should equal(migratedArticle)
   }
 
 }
