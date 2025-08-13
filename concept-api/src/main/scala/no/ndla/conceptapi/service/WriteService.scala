@@ -31,7 +31,7 @@ import no.ndla.common.errors.OperationNotAllowedException
 trait WriteService {
   this: DraftConceptRepository & PublishedConceptRepository & ConverterService & ContentValidator &
     DraftConceptIndexService & PublishedConceptIndexService & StrictLogging & SearchApiClient & Clock =>
-  val writeService: WriteService
+  lazy val writeService: WriteService
 
   class WriteService {
 
@@ -125,7 +125,7 @@ trait WriteService {
       implicit val ec: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(executor)
 
       draftConceptIndexService.indexDocument(toIndex): Unit
-      searchApiClient.indexDocument("concept", toIndex, Some(user)): Unit
+      val _ = searchApiClient.indexDocument("concept", toIndex, Some(user))
     }
 
     def updateConcept(id: Long, updatedConcept: api.UpdatedConceptDTO, user: TokenUser): Try[api.ConceptDTO] = {

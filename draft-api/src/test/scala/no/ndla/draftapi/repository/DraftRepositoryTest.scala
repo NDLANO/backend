@@ -24,10 +24,10 @@ import java.util.UUID
 import scala.util.{Success, Try}
 
 class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
-  override val dataSource: HikariDataSource = testDataSource.get
-  override val migrator: DBMigrator         = new DBMigrator
-  var repository: DraftRepository           = _
-  val sampleArticle: Draft                  = TestData.sampleArticleWithByNcSa
+  override lazy val dataSource: HikariDataSource = testDataSource.get
+  override lazy val migrator: DBMigrator         = new DBMigrator
+  var repository: DraftRepository                = _
+  val sampleArticle: Draft                       = TestData.sampleArticleWithByNcSa
 
   def emptyTestDatabase(): Unit = DB autoCommit (implicit session => {
     sql"delete from articledata;".execute()(session)
@@ -312,7 +312,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
   test("withId parse relatedContent correctly") {
     repository.insert(sampleArticle.copy(id = Some(1), relatedContent = Seq(Right(2))))(AutoSession)
 
-    val Right(relatedId) = repository.withId(1)(ReadOnlyAutoSession).get.relatedContent.head
+    val Right(relatedId) = repository.withId(1)(ReadOnlyAutoSession).get.relatedContent.head: @unchecked
     relatedId should be(2L)
 
   }

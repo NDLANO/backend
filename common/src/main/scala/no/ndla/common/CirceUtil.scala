@@ -10,11 +10,7 @@ package no.ndla.common
 
 import enumeratum.*
 import io.circe.*
-import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax.*
-import io.circe.generic.encoding.DerivedAsObjectEncoder
-import io.circe.{Decoder, Encoder}
-import shapeless.Lazy
 
 import scala.util.{Failure, Try}
 
@@ -52,14 +48,11 @@ object CirceUtil {
     json.mapObject(_.add("typename", Json.fromString(clazz.getSimpleName)))
   }
 
-  def deriveEncoderWithTypename[T](implicit encode: Lazy[DerivedAsObjectEncoder[T]]): Encoder[T] = {
-    val encoder = deriveEncoder[T]
+  inline def deriveEncoderWithTypename[T](using encoder: Encoder[T]): Encoder[T] =
     Encoder.instance[T] { value =>
-      val json = encoder(value)
-
+      val json = encoder.apply(value)
       addTypenameDiscriminator(json, value.getClass)
     }
-  }
 
   private val stringDecoder = implicitly[Decoder[String]]
 

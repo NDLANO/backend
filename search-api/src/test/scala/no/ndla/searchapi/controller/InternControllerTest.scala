@@ -12,6 +12,6 @@ import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  override val converterService    = new ConverterService
-  val controller: InternController = new InternController
+  override lazy val converterService        = new ConverterService
+  override val controller: InternController = new InternController
 }

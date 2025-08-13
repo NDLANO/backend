@@ -13,7 +13,6 @@ import org.log4s.{Logger, getLogger}
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 import io.circe.syntax.*
-import io.circe.generic.auto.*
 import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.database.DataSource
 import no.ndla.frontpageapi.model.domain.DBSubjectPage
@@ -22,7 +21,7 @@ import scala.util.{Failure, Success, Try}
 
 trait SubjectPageRepository {
   this: DataSource & DBSubjectPage =>
-  val subjectPageRepository: SubjectPageRepository
+  lazy val subjectPageRepository: SubjectPageRepository
 
   class SubjectPageRepository {
     val logger: Logger = getLogger

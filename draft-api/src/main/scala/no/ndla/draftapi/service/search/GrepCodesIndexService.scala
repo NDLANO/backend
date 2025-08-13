@@ -20,9 +20,9 @@ import no.ndla.draftapi.repository.{DraftRepository, Repository}
 
 trait GrepCodesIndexService {
   this: SearchConverterService with IndexService with DraftRepository with Props =>
-  val grepCodesIndexService: GrepCodesIndexService
+  lazy val grepCodesIndexService: GrepCodesIndexService
 
-  class GrepCodesIndexService extends StrictLogging with IndexService[Draft, SearchableGrepCode] {
+  class GrepCodesIndexService extends IndexService[Draft, SearchableGrepCode] with StrictLogging {
     override val documentType: String          = props.DraftGrepCodesSearchDocument
     override val searchIndex: String           = props.DraftGrepCodesSearchIndex
     override val repository: Repository[Draft] = draftRepository

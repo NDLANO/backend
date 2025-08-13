@@ -31,11 +31,9 @@ trait ArticleSearchService {
     with SearchConverterService
     with Props
     with ErrorHandling =>
-  val articleSearchService: ArticleSearchService
+  lazy val articleSearchService: ArticleSearchService
 
   class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummaryDTO] {
-    import props.{ElasticSearchIndexMaxResultWindow, ElasticSearchScrollKeepAlive}
-
     private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
     override val searchIndex: String = props.DraftSearchIndex
@@ -106,9 +104,9 @@ trait ArticleSearchService {
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.pageSize * settings.page
-      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+          s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
         )
         Failure(new ResultWindowTooLargeException())
       } else {
@@ -122,7 +120,7 @@ trait ArticleSearchService {
 
         val searchWithScroll =
           if (startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
+            searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
           } else { searchToExecute }
 
         e4sClient.execute(searchWithScroll) match {

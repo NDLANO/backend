@@ -66,40 +66,40 @@ class ComponentRegistry(properties: ImageApiProperties)
     with Random
     with NdlaS3Client
     with SwaggerDocControllerConfig {
-  override val props: ImageApiProperties = properties
+  override lazy val props: ImageApiProperties = properties
 
-  override val migrator: DBMigrator = DBMigrator(
+  override lazy val migrator: DBMigrator = DBMigrator(
     new V6__AddAgreementToImages,
     new V7__TranslateUntranslatedAuthors
   )
   override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
 
-  lazy val s3Client = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  override lazy val s3Client = new NdlaS3Client(props.StorageName, props.StorageRegion)
 
-  lazy val imageIndexService                = new ImageIndexService
-  lazy val imageSearchService               = new ImageSearchService
-  lazy val tagIndexService                  = new TagIndexService
-  lazy val tagSearchService                 = new TagSearchService
-  lazy val imageRepository                  = new ImageRepository
-  lazy val readService                      = new ReadService
-  lazy val writeService                     = new WriteService
-  lazy val validationService                = new ValidationService
-  lazy val imageStorage                     = new AmazonImageStorageService
-  lazy val ndlaClient                       = new NdlaClient
-  lazy val converterService                 = new ConverterService
-  var e4sClient: NdlaE4sClient              = Elastic4sClientFactory.getClient(props.SearchServer)
-  lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
-  lazy val searchConverterService           = new SearchConverterService
+  override lazy val imageIndexService                = new ImageIndexService
+  override lazy val imageSearchService               = new ImageSearchService
+  override lazy val tagIndexService                  = new TagIndexService
+  override lazy val tagSearchService                 = new TagSearchService
+  override lazy val imageRepository                  = new ImageRepository
+  override lazy val readService                      = new ReadService
+  override lazy val writeService                     = new WriteService
+  override lazy val validationService                = new ValidationService
+  override lazy val imageStorage                     = new AmazonImageStorageService
+  override lazy val ndlaClient                       = new NdlaClient
+  override lazy val converterService                 = new ConverterService
+  var e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
+  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  override lazy val searchConverterService           = new SearchConverterService
 
-  lazy val imageConverter = new ImageConverter
-  lazy val clock          = new SystemClock
-  lazy val random         = new Random
+  override lazy val imageConverter = new ImageConverter
+  override lazy val clock          = new SystemClock
+  override lazy val random         = new Random
 
-  lazy val imageControllerV2 = new ImageControllerV2
-  lazy val imageControllerV3 = new ImageControllerV3
-  lazy val rawController     = new RawController
-  lazy val internController  = new InternController
-  lazy val healthController  = new HealthController
+  override lazy val imageControllerV2 = new ImageControllerV2
+  override lazy val imageControllerV3 = new ImageControllerV3
+  override lazy val rawController     = new RawController
+  override lazy val internController  = new InternController
+  override lazy val healthController  = new HealthController
 
   val swagger = new SwaggerController(
     List[TapirController](

@@ -12,8 +12,17 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Information about article revision history")
 case class ArticleRevisionHistoryDTO(
-    @description("The revisions of an article, with the latest revision being the first in the list") revisions: Seq[
-      ArticleDTO
-    ],
-    @description("Whether or not the current revision is safe to delete") canDeleteCurrentRevision: Boolean
+    @description("The revisions of an article, with the latest revision being the first in the list")
+    revisions: Seq[ArticleDTO],
+    @description("Whether or not the current revision is safe to delete")
+    canDeleteCurrentRevision: Boolean
 )
+
+object ArticleRevisionHistoryDTO {
+  import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+  import io.circe.{Decoder, Encoder}
+
+  implicit val encoder: Encoder[ArticleRevisionHistoryDTO]          = deriveEncoder
+  implicit val decoder: Decoder[ArticleRevisionHistoryDTO]          = deriveDecoder
+  implicit def schema: sttp.tapir.Schema[ArticleRevisionHistoryDTO] = sttp.tapir.Schema.derived
+}

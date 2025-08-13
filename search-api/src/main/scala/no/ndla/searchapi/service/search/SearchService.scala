@@ -46,7 +46,6 @@ trait SearchService {
     ErrorHandling & SearchLanguage =>
 
   trait SearchService {
-    import props.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
     val searchIndex: List[String]
     val indexServices: List[BaseIndexService]
 
@@ -232,7 +231,7 @@ trait SearchService {
       query
         .map(q => {
           val searchLanguage =
-            if (language == Language.AllLanguages || fallback) DefaultLanguage else language
+            if (language == Language.AllLanguages || fallback) props.DefaultLanguage else language
           Seq(
             suggestion(q, "title", searchLanguage),
             suggestion(q, "content", searchLanguage)
@@ -278,7 +277,7 @@ trait SearchService {
     def scroll(scrollId: String, language: String): Try[SearchResult] = {
       e4sClient
         .execute {
-          searchScroll(scrollId, ElasticSearchScrollKeepAlive)
+          searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
         }
         .flatMap(response => {
           getHits(response.result, language, filterInactive = false).map(hits => {
@@ -305,7 +304,7 @@ trait SearchService {
 
     protected def defaultSort(default: String, withLanguage: String, order: SortOrder, language: String): FieldSort = {
       val sortLanguage = language match {
-        case Language.NoLanguage => DefaultLanguage
+        case Language.NoLanguage => props.DefaultLanguage
         case _                   => language
       }
 
@@ -355,7 +354,7 @@ trait SearchService {
 
     private val maxResultWindow = props.ElasticSearchIndexMaxResultWindow
     def getStartAtAndNumResults(page: Int, pageSize: Int): Try[SearchPagination] = {
-      val safePageSize = max(pageSize.min(MaxPageSize), 0)
+      val safePageSize = max(pageSize.min(props.MaxPageSize), 0)
       val safePage     = page.max(1)
       val startAt      = (safePage - 1) * safePageSize
       val resultWindow = startAt + safePageSize

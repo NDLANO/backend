@@ -37,7 +37,7 @@ class IndexServiceTest extends ElasticsearchIntegrationSuite with TestEnvironmen
 
     searchIndexService.cleanupIndexes(s"${testIndexPrefix}_article")
 
-    val Success(response) = e4sClient.execute(getAliases())
+    val Success(response) = e4sClient.execute(getAliases()): @unchecked
     val result            = response.result.mappings
     val indexNames        = result.map(_._1.name)
 

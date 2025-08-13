@@ -11,6 +11,8 @@ package no.ndla.audioapi.model.api
 import no.ndla.audioapi.model.Sort
 import no.ndla.common.model.api.LanguageCode
 import sttp.tapir.Schema.annotations.description
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 
 @description("The search parameters")
 case class SearchParamsDTO(
@@ -37,3 +39,8 @@ case class SearchParamsDTO(
     @description("Return all matched audios whether they exist on selected language or not.")
     fallback: Option[Boolean]
 )
+
+object SearchParamsDTO {
+  implicit val encoder: Encoder[SearchParamsDTO] = deriveEncoder
+  implicit val decoder: Decoder[SearchParamsDTO] = deriveDecoder
+}

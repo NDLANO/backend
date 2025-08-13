@@ -32,9 +32,9 @@ class LearningpathApiClientTest
     with UnitSuite
     with searchapi.TestEnvironment
     with HasDatabaseProps {
-  override val ndlaClient             = new NdlaClient
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val ndlaClient             = new NdlaClient
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   val learningpathApiPort: Int                             = findFreePort
   val pgc: PostgreSQLContainer[?]                          = postgresContainer.get

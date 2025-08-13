@@ -29,12 +29,10 @@ import scala.util.{Failure, Success, Try}
 trait SeriesSearchService {
   this: Elastic4sClient & SeriesIndexService & SearchConverterService & SearchService & ConverterService & Props &
     ErrorHandling =>
-  val seriesSearchService: SeriesSearchService
+  lazy val seriesSearchService: SeriesSearchService
 
   class SeriesSearchService extends StrictLogging with SearchService[api.SeriesSummaryDTO] {
-    import props.*
-
-    override val searchIndex: String = SeriesSearchIndex
+    override val searchIndex: String = props.SeriesSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): Try[api.SeriesSummaryDTO] = {
       for {
@@ -88,9 +86,9 @@ trait SeriesSearchService {
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
       val requestedResultWindow = settings.page.getOrElse(1) * numResults
-      if (requestedResultWindow > ElasticSearchIndexMaxResultWindow) {
+      if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
         logger.info(
-          s"Max supported results are $ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+          s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
         )
         Failure(new Helpers.ResultWindowTooLargeException())
       } else {
@@ -107,7 +105,7 @@ trait SeriesSearchService {
         // Only add scroll param if it is first page
         val searchWithScroll =
           if (startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
+            searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
           } else { searchToExecute }
 
         e4sClient.execute(searchWithScroll) match {

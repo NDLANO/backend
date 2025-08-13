@@ -20,7 +20,7 @@ import scala.util.{Success, Try}
 
 trait UserDataRepository {
   this: DataSource =>
-  val userDataRepository: UserDataRepository
+  lazy val userDataRepository: UserDataRepository
 
   class UserDataRepository extends StrictLogging {
     def insert(userData: UserData)(implicit session: DBSession = AutoSession): Try[UserData] = {
@@ -44,11 +44,11 @@ trait UserDataRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(CirceUtil.toJsonString(userData))
 
-      sql"""
+      val _ = sql"""
           update ${UserData.table}
           set document=$dataObject
           where user_id=${userData.userId}
-      """.update(): Unit
+      """.update()
 
       logger.info(s"Updated user data ${userData.userId}")
       Success(userData)

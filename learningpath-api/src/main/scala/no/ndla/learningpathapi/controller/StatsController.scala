@@ -19,7 +19,7 @@ import sttp.tapir.server.ServerEndpoint
 
 trait StatsController {
   this: ReadService & Props & ErrorHandling & TapirController =>
-  val statsController: StatsController
+  lazy val statsController: StatsController
 
   class StatsController extends TapirController {
     override val serviceName: String                       = "stats"

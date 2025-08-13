@@ -46,7 +46,7 @@ import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
   this: Clock & DraftConceptRepository & StateTransitionRules & Props =>
-  val converterService: ConverterService
+  lazy val converterService: ConverterService
 
   class ConverterService extends StrictLogging {
 

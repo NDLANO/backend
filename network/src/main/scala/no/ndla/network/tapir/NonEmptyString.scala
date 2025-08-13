@@ -28,6 +28,9 @@ class NonEmptyString private (val underlying: String) {
 object NonEmptyString {
   def apply(underlying: String): Option[NonEmptyString] = fromString(underlying)
 
+  given CanEqual[NonEmptyString, String] = CanEqual.derived
+  given CanEqual[String, NonEmptyString] = CanEqual.derived
+
   private def validateString(underlying: String): Boolean = underlying.trim.nonEmpty
 
   def fromOptString(s: Option[String]): Option[NonEmptyString] =

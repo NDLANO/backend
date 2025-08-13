@@ -27,9 +27,6 @@ trait BaseImageController {
 
   /** Base class for sharing code between Image controllers. */
   trait BaseImageController {
-
-    import props.*
-
     val queryParam: EndpointInput.Query[Option[String]] =
       query[Option[String]]("query")
         .description("Return only images with titles, alt-texts or tags matching the specified query.")
@@ -66,7 +63,7 @@ trait BaseImageController {
         .description("The page number of the search hits to display.")
     val pageSize: EndpointInput.Query[Option[Int]] = query[Option[Int]]("page-size")
       .description(
-        s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
+        s"The number of search hits to display for each page. Defaults to ${props.DefaultPageSize} and max is ${props.MaxPageSize}."
       )
 
     val pathImageId: EndpointInput.PathCapture[Long] =
@@ -77,11 +74,11 @@ trait BaseImageController {
       path[String]("external_id").description("External node id of the image that needs to be fetched.")
 
     val scrollId: EndpointInput.Query[Option[String]] = query[Option[String]]("search-context").description(
-      s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
+      s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${props.InitialScrollContextKeywords
           .mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.name}'.
-         |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
-         |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
+         |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after ${props.ElasticSearchScrollKeepAlive}).
+         |If you are not paginating past ${props.ElasticSearchIndexMaxResultWindow} hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
          |""".stripMargin
     )
 
@@ -106,7 +103,7 @@ trait BaseImageController {
       query[Option[Boolean]]("podcast-friendly")
         .description("Filter images that are podcast friendly. Width==heigth and between 1400 and 3000.")
 
-    val maxImageFileSizeBytes: Int = MaxImageFileSizeBytes
+    val maxImageFileSizeBytes: Int = props.MaxImageFileSizeBytes
 
     def doWithStream[T](filePart: Part[File])(f: UploadedFile => Try[T]): Try[T] = {
       val file = UploadedFile.fromFilePart(filePart)

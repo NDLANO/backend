@@ -26,13 +26,12 @@ import scala.util.{Failure, Success, Try}
 
 trait ImageStorageService {
   this: NdlaS3Client & ReadService & Props =>
-  val imageStorage: AmazonImageStorageService
+  lazy val imageStorage: AmazonImageStorageService
 
   class AmazonImageStorageService extends StrictLogging {
-    import props.ValidMimeTypes
     case class NdlaImage(s3Object: NdlaS3Object, fileName: String) extends ImageStream {
-      lazy val imageContent: Array[Byte]      = s3Object.stream.readAllBytes()
-      override val sourceImage: BufferedImage = ImageIO.read(stream)
+      lazy val imageContent: Array[Byte]           = s3Object.stream.readAllBytes()
+      override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
 
       override def contentType: String = {
         val s3ContentType = s3Object.contentType
@@ -42,7 +41,7 @@ trait ImageStorageService {
               logger.warn(s"Couldn't get meta for $fileName so using s3 content-type of '$s3ContentType'", ex)
               s3ContentType
             case Success(meta)
-                if meta.contentType != "" && meta.contentType != "binary/octet-stream" && ValidMimeTypes.contains(
+                if meta.contentType != "" && meta.contentType != "binary/octet-stream" && props.ValidMimeTypes.contains(
                   meta.contentType
                 ) =>
               updateContentType(s3Object.key, meta.contentType) match {

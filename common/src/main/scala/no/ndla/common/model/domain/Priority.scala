@@ -38,6 +38,6 @@ object Priority extends Enum[Priority] with CirceEnum[Priority] {
         )
     }
 
-  implicit val schema: Schema[Priority]    = schemaForEnumEntry[Priority]
-  implicit val codec: PlainCodec[Priority] = plainCodecEnumEntry[Priority]
+  implicit def schema: Schema[Priority]    = schemaForEnumEntry[Priority]
+  implicit def codec: PlainCodec[Priority] = plainCodecEnumEntry[Priority]
 }

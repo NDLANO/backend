@@ -31,14 +31,12 @@ trait SearchService {
   this: Elastic4sClient & SearchConverterService & StrictLogging & Props =>
 
   trait SearchService[T] {
-    import props.*
-
     val searchIndex: String
 
     def scroll(scrollId: String, language: String): Try[SearchResult[T]] =
       e4sClient
         .execute {
-          searchScroll(scrollId, ElasticSearchScrollKeepAlive)
+          searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
         }
         .map(response => {
           val hits = getHits(response.result, language)
@@ -129,7 +127,7 @@ trait SearchService {
 
     def getSortDefinition(sort: Sort, language: String): FieldSort = {
       val sortLanguage = language match {
-        case NoLanguage => DefaultLanguage
+        case NoLanguage => props.DefaultLanguage
         case _          => language
       }
 
@@ -193,7 +191,7 @@ trait SearchService {
     }
 
     def getStartAtAndNumResults(page: Int, pageSize: Int): (Int, Int) = {
-      val numResults = max(pageSize.min(MaxPageSize), 0)
+      val numResults = max(pageSize.min(props.MaxPageSize), 0)
       val startAt    = (page - 1).max(0) * numResults
 
       (startAt, numResults)

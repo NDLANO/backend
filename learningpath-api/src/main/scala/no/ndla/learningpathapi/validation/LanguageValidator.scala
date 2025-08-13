@@ -12,7 +12,7 @@ import no.ndla.common.errors.ValidationMessage
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 
 trait LanguageValidator {
-  val languageValidator: LanguageValidator
+  lazy val languageValidator: LanguageValidator
 
   class LanguageValidator {
     private def languageCodeSupported6391(languageCode: String, allowUnknownLanguage: Boolean): Boolean = {

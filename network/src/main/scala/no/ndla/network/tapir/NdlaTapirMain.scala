@@ -19,7 +19,7 @@ import sttp.tapir.server.jdkhttp.HttpServer
 import scala.concurrent.Future
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.io.Source
-import scala.util.Try
+import scala.util.{Try, boundary}
 
 trait NdlaTapirMain[T <: TapirApplication] {
   val logger: Logger = getLogger
@@ -45,7 +45,7 @@ trait NdlaTapirMain[T <: TapirApplication] {
 
   private def performWarmup(): Unit = if (!props.disableWarmup) {
     import scala.concurrent.ExecutionContext.Implicits.global
-    Future {
+    val fut = Future {
       // Since we don't really have a good way to check whether server is ready lets just wait a bit
       Thread.sleep(500)
       val warmupStart = System.currentTimeMillis()
@@ -55,19 +55,21 @@ trait NdlaTapirMain[T <: TapirApplication] {
 
       val warmupTime = System.currentTimeMillis() - warmupStart
       logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
-    }: Unit
+    }
+
+    fut: Unit
   } else {
     componentRegistry.healthController.setWarmedUp()
   }
 
-  private def waitForActiveRequests(timeout: Duration): Unit = {
+  private def waitForActiveRequests(timeout: Duration): Unit = boundary {
     val startTime      = System.currentTimeMillis()
     val activeRequests = componentRegistry.Routes.activeRequests.get()
     logTaskTime(s"Waiting for $activeRequests active requests to finish...", timeout, logTaskStart = true) {
       while (componentRegistry.Routes.activeRequests.get() > 0) {
         if (System.currentTimeMillis() - startTime > timeout.toMillis) {
           logger.warn(s"Timeout of $timeout reached while waiting for active requests to finish.")
-          return
+          boundary.break()
         }
         Thread.sleep(100)
       }
@@ -96,10 +98,7 @@ trait NdlaTapirMain[T <: TapirApplication] {
     * than the default logger shutdown handler will allow
     */
   private def shutdownLogger(): Unit = {
-    LoggerContext.getContext(false) match {
-      case context: LoggerContext => context.stop()
-      case _                      => println("No LoggerContext found, cannot stop logging context.")
-    }
+    LoggerContext.getContext(false).stop()
   }
 
   private def runServer(): Try[Unit] = {

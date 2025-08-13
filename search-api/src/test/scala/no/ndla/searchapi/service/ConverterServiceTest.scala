@@ -14,7 +14,7 @@ import no.ndla.searchapi.model.api
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
   ApplicationUrl.applicationUrl.set("https://unit-test")
-  override val converterService = new ConverterService
+  override lazy val converterService = new ConverterService
 
   test("searchResultToApiModel should return the api model of the corresponding input domain model") {
     converterService.searchResultToApiModel(TestData.sampleArticleSearch).isInstanceOf[api.ArticleResultsDTO]

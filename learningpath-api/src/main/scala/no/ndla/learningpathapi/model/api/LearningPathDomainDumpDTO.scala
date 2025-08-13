@@ -11,6 +11,7 @@ package no.ndla.learningpathapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep}
+import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
 @description("Information about learningpaths")
@@ -24,6 +25,8 @@ case class LearningPathDomainDumpDTO(
 object LearningPathDomainDumpDTO {
   implicit val encoder: Encoder[LearningPathDomainDumpDTO] = deriveEncoder
   implicit val decoder: Decoder[LearningPathDomainDumpDTO] = deriveDecoder
+  import sttp.tapir.generic.auto.*
+  implicit def schema: Schema[LearningPathDomainDumpDTO] = Schema.derivedSchema
 }
 
 @description("Information about learningsteps")

@@ -12,7 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder, parser}
 import no.ndla.common.CirceUtil
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.draftapi.integration.{Node, TaxonomyApiClient}
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.Props
@@ -31,11 +31,9 @@ import scala.concurrent.duration.DurationInt
 trait V57__MigrateSavedSearch {
   this: TaxonomyApiClient with NdlaClient with Props =>
 
-  import props.{TaxonomyUrl, TaxonomyVersionHeader, Environment, auth0ManagementClientId, auth0ManagementClientSecret}
-
   class V57__MigrateSavedSearch extends BaseJavaMigration {
 
-    val auth0Domain   = AuthUser.getAuth0HostForEnv(Environment)
+    val auth0Domain   = AuthUser.getAuth0HostForEnv(props.Environment)
     val managementUri = uri"https://$auth0Domain/oauth/token"
     val auth0Audience = s"https://$auth0Domain/api/v2/"
 
@@ -63,8 +61,8 @@ trait V57__MigrateSavedSearch {
 
     def getManagementToken(): Try[String] = {
       val inputBody = GetTokenBody(
-        client_id = auth0ManagementClientId,
-        client_secret = auth0ManagementClientSecret,
+        client_id = props.auth0ManagementClientId,
+        client_secret = props.auth0ManagementClientSecret,
         audience = auth0Audience,
         grant_type = "client_credentials"
       )
@@ -94,7 +92,7 @@ trait V57__MigrateSavedSearch {
       }
     }
 
-    def getEditors(managementToken: String): Try[Map[String, Auth0UserObject]] = {
+    def getEditors(managementToken: String): Try[Map[String, Auth0UserObject]] = permitTry {
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newWorkStealingPool(10))
       val firstPage     = fetchAuth0UsersByQuery(managementToken, 0).?
@@ -117,7 +115,7 @@ trait V57__MigrateSavedSearch {
     lazy val managementToken = getManagementToken().get
     lazy val auth0Editors    = getEditors(managementToken).get
 
-    private val TaxonomyApiEndpoint = s"$TaxonomyUrl/v1"
+    private val TaxonomyApiEndpoint = s"${props.TaxonomyUrl}/v1"
     private val taxonomyTimeout     = 20.seconds
 
     def countAllRows(implicit session: DBSession): Option[Long] = {
@@ -165,7 +163,7 @@ trait V57__MigrateSavedSearch {
         quickRequest
           .get(uri"$url".withParams(params: _*))
           .readTimeout(taxonomyTimeout)
-          .header(TaxonomyVersionHeader, TaxonomyData.get),
+          .header(props.TaxonomyVersionHeader, TaxonomyData.get),
         None
       )
     }

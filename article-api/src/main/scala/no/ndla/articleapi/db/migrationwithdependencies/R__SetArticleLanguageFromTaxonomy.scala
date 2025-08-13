@@ -16,8 +16,8 @@ class R__SetArticleLanguageFromTaxonomy(properties: ArticleApiProperties)
     extends BaseJavaMigration
     with Props
     with DBArticle {
-  override val props: ArticleApiProperties = properties
-  override def getChecksum: Integer        = 1 // Change this to something else if you want to repeat migration
+  override lazy val props: ArticleApiProperties = properties
+  override def getChecksum: Integer             = 1 // Change this to something else if you want to repeat migration
 
   override def migrate(context: Context): Unit = {}
 }

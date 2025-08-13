@@ -18,20 +18,19 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.LearningPathApiClient
+import no.ndla.searchapi.integration.{LearningPathApiClient, SearchApiClient}
 import no.ndla.searchapi.model.domain.IndexingBundle
 
 import scala.util.Try
 
 trait LearningPathIndexService {
-  this: SearchConverterService & IndexService & LearningPathApiClient & Props =>
-  import props.SearchIndex
-  val learningPathIndexService: LearningPathIndexService
+  this: SearchConverterService & IndexService & LearningPathApiClient & Props & SearchApiClient =>
+  lazy val learningPathIndexService: LearningPathIndexService
 
   class LearningPathIndexService extends StrictLogging with IndexService[LearningPath] {
-    override val documentType: String             = "learningpath"
-    override val searchIndex: String              = SearchIndex(SearchType.LearningPaths)
-    override val apiClient: LearningPathApiClient = learningPathApiClient
+    override val documentType: String                     = "learningpath"
+    override val searchIndex: String                      = props.SearchIndex(SearchType.LearningPaths)
+    override val apiClient: SearchApiClient[LearningPath] = learningPathApiClient
 
     override def createIndexRequest(
         domainModel: LearningPath,

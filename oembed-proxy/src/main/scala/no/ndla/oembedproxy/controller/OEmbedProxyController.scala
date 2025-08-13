@@ -9,7 +9,6 @@
 package no.ndla.oembedproxy.controller
 
 import cats.implicits.*
-import io.circe.generic.auto.*
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -23,7 +22,7 @@ import scala.util.{Failure, Success}
 
 trait OEmbedProxyController {
   this: OEmbedServiceComponent & ErrorHandling & TapirController =>
-  val oEmbedProxyController: OEmbedProxyController
+  lazy val oEmbedProxyController: OEmbedProxyController
 
   class OEmbedProxyController extends TapirController {
     override val serviceName: String                       = "oembed"

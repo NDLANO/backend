@@ -17,7 +17,7 @@ import com.sksamuel.elastic4s.requests.searches.sort.SortOrder.{Asc, Desc}
 import com.sksamuel.elastic4s.requests.searches.{SearchHit, SearchRequest, SearchResponse}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
@@ -35,15 +35,14 @@ import no.ndla.searchapi.model.grep.{
 }
 import no.ndla.searchapi.model.search.SearchableGrepElement
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Try, boundary}
 
 trait GrepSearchService {
   this: Props & SearchService & GrepIndexService & BaseIndexService & Elastic4sClient & SearchConverterService =>
-  val grepSearchService: GrepSearchService
+  lazy val grepSearchService: GrepSearchService
 
   class GrepSearchService extends SearchService with StrictLogging {
-    import props.SearchIndex
-    override val searchIndex: List[String]             = List(SearchType.Grep).map(SearchIndex)
+    override val searchIndex: List[String]             = List(SearchType.Grep).map(props.SearchIndex)
     override val indexServices: List[BaseIndexService] = List(grepIndexService)
 
     def grepSortDefinition(maybeSort: Option[GrepSortDTO], language: String): FieldSort = maybeSort match {
@@ -158,7 +157,7 @@ trait GrepSearchService {
       executeAsSearchableGreps(searchToExecute)
     }
 
-    def searchGreps(input: GrepSearchInputDTO): Try[GrepSearchResultsDTO] = {
+    def searchGreps(input: GrepSearchInputDTO): Try[GrepSearchResultsDTO] = permitTry {
       val searchLanguage = input.language match {
         case Some(lang) if Iso639.get(lang).isSuccess => lang
         case _                                        => AllLanguages
@@ -204,7 +203,7 @@ trait GrepSearchService {
       CirceUtil.tryParseAs[SearchableGrepElement](jsonString)
     }
 
-    private def hitToResult(hit: SearchHit, language: String): Try[GrepResultDTO] = {
+    private def hitToResult(hit: SearchHit, language: String): Try[GrepResultDTO] = permitTry {
       val searchable = hitToSearchable(hit).?
       GrepResultDTO.fromSearchable(searchable, language)
     }
@@ -213,32 +212,35 @@ trait GrepSearchService {
       response.result.hits.hits.toList.traverse { hit => f(hit) }
     }
 
-    private def getCoreElementReplacement(core: GrepKjerneelement): Try[String] = {
-      val lpCode  = core.`tilhoerer-laereplan`.kode
-      val foundLp = getSingleCodeById(lpCode) match {
-        case Success(Some(lp)) => lp
-        case Failure(ex)       => return Failure(ex)
-        case Success(None)     =>
-          logger.warn(s"Could not find læreplan for core element: ${core.kode} (LP: $lpCode)")
-          return Success(core.kode)
-      }
+    private def getCoreElementReplacement(core: GrepKjerneelement): Try[String] = permitTry {
+      boundary {
+        val lpCode  = core.`tilhoerer-laereplan`.kode
+        val foundLp = getSingleCodeById(lpCode) match {
+          case Success(Some(lp)) => lp
+          case Failure(ex)       => boundary.break(Failure(ex))
+          case Success(None)     =>
+            logger.warn(s"Could not find læreplan for core element: ${core.kode} (LP: $lpCode)")
+            boundary.break(Success(core.kode))
+        }
 
-      val domainObject = foundLp.domainObject match {
-        case lp: GrepLaererplan => lp
-        case _                  =>
-          val msg =
-            s"Got unexpected domain object when looking up læreplan (${foundLp.code}) for replacement for core element (${core.kode})"
-          logger.error(msg)
-          return Failure(new RuntimeException(msg))
-      }
-      getLaererplanReplacement(domainObject) match {
-        case None                  => Success(core.kode)
-        case Some(replacementPlan) =>
-          val elementsInPlan   = elementsWithLpCode(replacementPlan).?
-          val foundReplacement = elementsInPlan.find { x =>
-            core.tittel.tekst == x.domainObject.getTitle
-          }
-          Success(foundReplacement.map(_.code).getOrElse(core.kode))
+        val domainObject = foundLp.domainObject match {
+          case lp: GrepLaererplan => lp
+          case _                  =>
+            val msg =
+              s"Got unexpected domain object when looking up læreplan (${foundLp.code}) for replacement for core element (${core.kode})"
+            logger.error(msg)
+            boundary.break(Failure(new RuntimeException(msg)))
+        }
+
+        getLaererplanReplacement(domainObject) match {
+          case None                  => Success(core.kode)
+          case Some(replacementPlan) =>
+            val elementsInPlan   = elementsWithLpCode(replacementPlan).?
+            val foundReplacement = elementsInPlan.find { x =>
+              core.tittel.tekst == x.domainObject.getTitle
+            }
+            Success(foundReplacement.map(_.code).getOrElse(core.kode))
+        }
       }
     }
 
@@ -252,7 +254,7 @@ trait GrepSearchService {
       executeAsSearchableGreps(searchToExecute)
     }
 
-    def getKompetansemaalReplacement(goal: GrepKompetansemaal): Try[String] = {
+    def getKompetansemaalReplacement(goal: GrepKompetansemaal): Try[String] = permitTry {
       val reuseOf = getReuseOf(goal.kode).?
       reuseOf match {
         case head :: Nil =>
@@ -289,7 +291,7 @@ trait GrepSearchService {
       result.map(r => code.code -> r)
     }
 
-    def getReplacements(codes: List[String]): Try[Map[String, String]] = {
+    def getReplacements(codes: List[String]): Try[Map[String, String]] = permitTry {
       val foundOldCodes = getCodesById(codes).?
       val foundAllCodes = foundOldCodes.map(_.code).toSet
       val missingCodes  = codes.toSet.diff(foundAllCodes)

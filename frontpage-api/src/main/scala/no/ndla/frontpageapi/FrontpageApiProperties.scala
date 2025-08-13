@@ -15,7 +15,7 @@ import no.ndla.database.{DatabaseProps, HasDatabaseProps}
 import scala.util.Properties.*
 
 trait Props extends HasBaseProps with HasDatabaseProps {
-  val props: FrontpageApiProperties
+  lazy val props: FrontpageApiProperties
 }
 
 class FrontpageApiProperties extends BaseProps with DatabaseProps {

@@ -26,7 +26,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
   var validator: LearningPathValidator = _
 
-  override val clock = new SystemClock
+  override lazy val clock = new SystemClock
 
   override def beforeEach(): Unit = {
     validator = new LearningPathValidator

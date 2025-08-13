@@ -40,7 +40,7 @@ import scala.util.{Failure, Success, Try}
 trait WriteService {
   this: ConverterService & ValidationService & ImageRepository & ImageIndexService & ImageStorageService &
     TagIndexService & Clock & Props & Random =>
-  val writeService: WriteService
+  lazy val writeService: WriteService
 
   class WriteService extends StrictLogging {
 
@@ -87,7 +87,6 @@ trait WriteService {
         case None =>
           logger.warn("Deleting language for image without imagefile. This is weird.")
           Success(())
-        case _ => Success(())
       }
     }
 
@@ -95,7 +94,7 @@ trait WriteService {
         imageId: Long,
         language: String,
         user: TokenUser
-    ): Try[Option[ImageMetaInformation]] =
+    ): Try[Option[ImageMetaInformation]] = permitTry {
       imageRepository.withId(imageId) match {
         case Some(existing) if converterService.getSupportedLanguages(existing).contains(language) =>
           val newImage = converterService.withoutLanguage(existing, language, user)
@@ -114,6 +113,7 @@ trait WriteService {
         case None =>
           Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
       }
+    }
 
     def deleteImageAndFiles(imageId: Long): Try[Long] = {
       imageRepository.withId(imageId) match {
@@ -167,11 +167,11 @@ trait WriteService {
         file: UploadedFile,
         copiedFrom: Option[ImageMetaInformation],
         language: String
-    ): Try[ImageMetaInformation] = {
-      validationService.validateImageFile(file) match {
-        case Some(validationMessage) => return Failure(new ValidationException(errors = Seq(validationMessage)))
-        case _                       =>
-      }
+    ): Try[ImageMetaInformation] = permitTry {
+      (validationService.validateImageFile(file) match {
+        case Some(validationMessage) => Failure(new ValidationException(errors = Seq(validationMessage)))
+        case _                       => Success(())
+      }).?
 
       validationService.validate(toInsert, copiedFrom).??
       val insertedMeta       = Try(imageRepository.insert(toInsert)).?
@@ -213,7 +213,7 @@ trait WriteService {
         newImage: NewImageMetaInformationV2DTO,
         file: UploadedFile,
         user: TokenUser
-    ): Try[ImageMetaInformation] = {
+    ): Try[ImageMetaInformation] = permitTry {
       val toInsert = converterService.asDomainImageMetaInformationV2(newImage, user).?
       insertAndStoreImage(toInsert, file, None, newImage.language)
     }
@@ -334,7 +334,7 @@ trait WriteService {
         oldImage: ImageMetaInformation,
         language: String,
         user: TokenUser
-    ): Try[ImageMetaInformation] = {
+    ): Try[ImageMetaInformation] = permitTry {
       val imageForLang  = oldImage.images.getOrElse(Seq.empty).find(_.language == language)
       val allOtherPaths = oldImage.images.getOrElse(Seq.empty).filterNot(_.language == language).map(_.fileName)
 

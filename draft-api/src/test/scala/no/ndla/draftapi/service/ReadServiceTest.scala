@@ -20,9 +20,7 @@ import scalikejdbc.DBSession
 import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
-  import props.externalApiUrls
-
-  val externalImageApiUrl: String = externalApiUrls("image")
+  val externalImageApiUrl: String = props.externalApiUrls("image")
   val resourceIdAttr: String      = s"${TagAttribute.DataResource_Id}"
   val resourceAttr: String        = s"${TagAttribute.DataResource}"
   val imageType: String           = s"${ResourceType.Image}"
@@ -42,8 +40,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   val articleContent2: ArticleContent = ArticleContent(content2, "und")
 
-  override val readService      = new ReadService
-  override val converterService = new ConverterService
+  override lazy val readService      = new ReadService
+  override lazy val converterService = new ConverterService
 
   test("withId adds urls and ids on embed resources") {
     val visualElementBefore =
@@ -128,7 +126,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         fallback = true,
         page = 1,
         pageSize = 10
-      )
+      ): @unchecked
     result.length should be(3)
 
     verify(draftRepository, times(1)).withIds(any, any, any)(any)
@@ -143,7 +141,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         fallback = true,
         page = 1,
         pageSize = 10
-      )
+      ): @unchecked
     result.errors.head.message should be("Query parameter 'ids' is missing")
 
     verify(draftRepository, times(0)).withIds(any, any, any)(any)

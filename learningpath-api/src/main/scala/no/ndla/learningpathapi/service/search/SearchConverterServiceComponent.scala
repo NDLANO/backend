@@ -24,11 +24,9 @@ import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLa
 
 trait SearchConverterServiceComponent {
   this: ConverterService & Props & SearchLanguage =>
-  val searchConverterService: SearchConverterService
+  lazy val searchConverterService: SearchConverterService
 
   class SearchConverterService {
-    import props.DefaultLanguage
-
     def asApiLearningPathSummaryV2(
         searchableLearningPath: SearchableLearningPath,
         language: String
@@ -48,11 +46,11 @@ trait SearchConverterServiceComponent {
         searchableLearningPath.id,
         revision = None,
         findByLanguageOrBestEffort(titles, language)
-          .getOrElse(api.TitleDTO("", DefaultLanguage)),
+          .getOrElse(api.TitleDTO("", props.DefaultLanguage)),
         findByLanguageOrBestEffort(descriptions, language)
-          .getOrElse(api.DescriptionDTO("", DefaultLanguage)),
+          .getOrElse(api.DescriptionDTO("", props.DefaultLanguage)),
         findByLanguageOrBestEffort(introductions, language)
-          .getOrElse(api.IntroductionDTO("", DefaultLanguage)),
+          .getOrElse(api.IntroductionDTO("", props.DefaultLanguage)),
         createUrlToLearningPath(searchableLearningPath.id),
         searchableLearningPath.coverPhotoUrl,
         searchableLearningPath.duration,
@@ -60,7 +58,7 @@ trait SearchConverterServiceComponent {
         searchableLearningPath.created,
         searchableLearningPath.lastUpdated,
         findByLanguageOrBestEffort(tags, language)
-          .getOrElse(api.LearningPathTagsDTO(Seq(), DefaultLanguage)),
+          .getOrElse(api.LearningPathTagsDTO(Seq(), props.DefaultLanguage)),
         searchableLearningPath.copyright,
         supportedLanguages,
         searchableLearningPath.isBasedOn,

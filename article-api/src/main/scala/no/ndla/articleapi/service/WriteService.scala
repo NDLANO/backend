@@ -20,7 +20,6 @@ import no.ndla.database.DBUtility
 import no.ndla.language.Language
 import scalikejdbc.{AutoSession, DBSession}
 import cats.implicits.*
-import no.ndla.common.implicits.TryQuestionMark
 import no.ndla.network.clients.SearchApiClient
 
 import java.util.concurrent.{ExecutorService, Executors}
@@ -30,7 +29,7 @@ import scala.util.{Failure, Success, Try}
 trait WriteService {
   this: ArticleRepository & ConverterService & ContentValidator & ArticleIndexService & ReadService & SearchApiClient &
     DBUtility =>
-  val writeService: WriteService
+  lazy val writeService: WriteService
 
   class WriteService extends StrictLogging {
     private val executor: ExecutorService            = Executors.newSingleThreadExecutor
@@ -91,7 +90,7 @@ trait WriteService {
         skipValidation: Boolean
     )(session: DBSession = AutoSession): Try[Article] = for {
       _ <- performArticleValidation(article, externalIds, useSoftValidation, skipValidation, useImportValidation)
-      domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds)(session)
+      domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds)(using session)
       _             <- articleIndexService.indexDocument(domainArticle)
       _             <- Try(searchApiClient.indexDocument("article", domainArticle, None))
     } yield domainArticle
@@ -107,7 +106,7 @@ trait WriteService {
         case None => Failure(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
         case Some(existingArticle) =>
           val newArticle  = converterService.updateArticleFields(existingArticle, partialArticle)
-          val externalIds = articleRepository.getExternalIdsFromId(articleId)(session)
+          val externalIds = articleRepository.getExternalIdsFromId(articleId)(using session)
           for {
             insertedArticle <- updateArticle(
               newArticle,
@@ -122,22 +121,24 @@ trait WriteService {
     }
 
     def partialUpdateBulk(bulkInput: PartialPublishArticlesBulkDTO): Try[Unit] = {
-      DBUtil.rollbackOnFailure { session =>
-        bulkInput.idTo.toList.traverse { case (id, ppa) =>
-          val updateResult = partialUpdate(
-            id,
-            ppa,
-            Language.AllLanguages,
-            fallback = true,
-            isInBulk = true
-          )(session).unit
+      DBUtil
+        .rollbackOnFailure { session =>
+          bulkInput.idTo.toList.traverse { case (id, ppa) =>
+            val updateResult = partialUpdate(
+              id,
+              ppa,
+              Language.AllLanguages,
+              fallback = true,
+              isInBulk = true
+            )(session).map(_ => ())
 
-          updateResult.recoverWith { case _: NotFoundException =>
-            logger.warn(s"Article with id '$id' was not found when bulk partial publishing")
-            Success(())
+            updateResult.recoverWith { case _: NotFoundException =>
+              logger.warn(s"Article with id '$id' was not found when bulk partial publishing")
+              Success(())
+            }
           }
         }
-      }.unit
+        .map(_ => ())
     }
 
     def unpublishArticle(id: Long, revision: Option[Int]): Try[api.ArticleIdV2DTO] = {

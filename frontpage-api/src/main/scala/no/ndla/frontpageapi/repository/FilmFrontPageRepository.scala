@@ -19,7 +19,7 @@ import scala.util.{Failure, Success, Try}
 
 trait FilmFrontPageRepository {
   this: DataSource & DBFilmFrontPage =>
-  val filmFrontPageRepository: FilmFrontPageRepository
+  lazy val filmFrontPageRepository: FilmFrontPageRepository
 
   class FilmFrontPageRepository {
     val logger: Logger = org.log4s.getLogger

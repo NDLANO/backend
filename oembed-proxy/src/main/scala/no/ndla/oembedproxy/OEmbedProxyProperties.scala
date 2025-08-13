@@ -14,7 +14,7 @@ import no.ndla.network.{AuthUser, Domains}
 import scala.util.Properties.propOrElse
 
 trait Props extends HasBaseProps {
-  val props: OEmbedProxyProperties
+  lazy val props: OEmbedProxyProperties
 }
 
 class OEmbedProxyProperties extends BaseProps {

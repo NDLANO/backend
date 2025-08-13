@@ -34,17 +34,15 @@ import scala.util.{Failure, Success, Try}
 trait SeriesController {
   this: ReadService & WriteService & SeriesSearchService & SearchConverterService & ConverterService & Props &
     ErrorHandling & TapirController =>
-  val seriesController: SeriesController
+  lazy val seriesController: SeriesController
   class SeriesController extends TapirController {
-    import props.*
-
     private val queryString = query[Option[String]]("query")
       .description("Return only results with titles or tags matching the specified query.")
     private val language =
       query[Option[LanguageCode]]("language").description("The ISO 639-1 language code describing language.")
     private val pageNo   = query[Option[Int]]("page").description("The page number of the search hits to display.")
     private val pageSize = query[Option[Int]]("page-size").description(
-      s"The number of search hits to display for each page. Defaults to $DefaultPageSize and max is $MaxPageSize."
+      s"The number of search hits to display for each page. Defaults to ${props.DefaultPageSize} and max is ${props.MaxPageSize}."
     )
     private val sort = query[Option[String]]("sort").description(
       s"""The sorting used on results.
@@ -52,11 +50,11 @@ trait SeriesController {
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
     )
     private val scrollId = query[Option[String]]("search-context").description(
-      s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
+      s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${props.InitialScrollContextKeywords
           .mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.name}'.
-         |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
-         |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
+         |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after ${props.ElasticSearchScrollKeepAlive}).
+         |If you are not paginating past ${props.ElasticSearchIndexMaxResultWindow} hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
          |""".stripMargin
     )
     private val fallback =
@@ -82,9 +80,9 @@ trait SeriesController {
       .serverLogicPure { case (query, language, sort, page, pageSize, scrollId, fallback) =>
         val lang = language.getOrElse(LanguageCode(Language.AllLanguages)).code
         scrollSearchOr(scrollId, lang) {
-          val shouldScroll = scrollId.exists(InitialScrollContextKeywords.contains)
+          val shouldScroll = scrollId.exists(props.InitialScrollContextKeywords.contains)
           search(query, lang, Sort.valueOf(sort), pageSize, page, shouldScroll, fallback.getOrElse(false))
-        }
+        }.handleErrorsOrOk
       }
 
     def postSeriesSearch: ServerEndpoint[Any, Eff] = endpoint.post
@@ -101,11 +99,11 @@ trait SeriesController {
           val sort         = searchParams.sort
           val pageSize     = searchParams.pageSize
           val page         = searchParams.page
-          val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+          val shouldScroll = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
           val fallback     = searchParams.fallback.getOrElse(false)
 
           search(query, language.code, sort, pageSize, page, shouldScroll, fallback)
-        }
+        }.handleErrorsOrOk
       }
 
     def getSingleSeries: ServerEndpoint[Any, Eff] = endpoint.get
@@ -237,7 +235,7 @@ trait SeriesController {
         orFunction: => Try[SummaryWithHeader]
     ): Try[SummaryWithHeader] =
       scrollId match {
-        case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
+        case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
           seriesSearchService.scroll(scroll, language).map { scrollResult =>
             SummaryWithHeader(
               body = searchConverterService.asApiSeriesSummarySearchResult(scrollResult),

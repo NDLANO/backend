@@ -18,7 +18,7 @@ import scala.util.Try
 
 trait FrontpageApiClient {
   this: HasBaseProps & NdlaClient =>
-  val frontpageApiClient: FrontpageApiClient
+  lazy val frontpageApiClient: FrontpageApiClient
 
   class FrontpageApiClient {
     val timeout: FiniteDuration = 15.seconds

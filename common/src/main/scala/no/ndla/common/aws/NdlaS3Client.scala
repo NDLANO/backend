@@ -17,7 +17,7 @@ import software.amazon.awssdk.services.s3.{S3Client, S3ClientBuilder}
 import scala.util.Try
 
 trait NdlaS3Client {
-  val s3Client: NdlaS3Client
+  lazy val s3Client: NdlaS3Client
 
   class NdlaS3Client(bucket: String, region: Option[String]) {
 
@@ -82,7 +82,7 @@ trait NdlaS3Client {
       )
     }
 
-    def updateMetadata(key: String, metadata: java.util.Map[String, String]): Try[_] = Try {
+    def updateMetadata(key: String, metadata: java.util.Map[String, String]): Try[?] = Try {
       val cor =
         CopyObjectRequest
           .builder()

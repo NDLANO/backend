@@ -10,6 +10,7 @@ package no.ndla.draftapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
 @description("Information about a library required to render the article")
@@ -22,4 +23,5 @@ case class RequiredLibraryDTO(
 object RequiredLibraryDTO {
   implicit def encoder: Encoder[RequiredLibraryDTO] = deriveEncoder[RequiredLibraryDTO]
   implicit def decoder: Decoder[RequiredLibraryDTO] = deriveDecoder[RequiredLibraryDTO]
+  implicit def schema: Schema[RequiredLibraryDTO]   = Schema.derived[RequiredLibraryDTO]
 }

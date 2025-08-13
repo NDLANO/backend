@@ -30,23 +30,23 @@ import scala.util.Success
 class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
-  override val articleIndexService: ArticleIndexService = new ArticleIndexService {
+  override lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
     override val indexShards = 1
   }
-  override val draftIndexService: DraftIndexService = new DraftIndexService {
+  override lazy val draftIndexService: DraftIndexService = new DraftIndexService {
     override val indexShards = 1
   }
-  override val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+  override lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
     override val indexShards = 1
   }
-  override val nodeIndexService: NodeIndexService = new NodeIndexService {
+  override lazy val nodeIndexService: NodeIndexService = new NodeIndexService {
     override val indexShards = 1
   }
-  override val multiSearchService = new MultiSearchService {
+  override lazy val multiSearchService = new MultiSearchService {
     override val enableExplanations = true
   }
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
@@ -98,7 +98,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     val Success(search1) =
       multiSearchService.matchingQuery(
         TestData.searchSettings.copy(embedId = Some("3"), embedResource = List("content-link"))
-      )
+      ): @unchecked
 
     search1.totalCount should be(1)
     search1.summaryResults.map(_.id) should be(List(2))
@@ -106,7 +106,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     val Success(search2) =
       multiSearchService.matchingQuery(
         TestData.searchSettings.copy(embedId = Some("3"), embedResource = List("content-link", "related-content"))
-      )
+      ): @unchecked
 
     search2.totalCount should be(2)
     search2.summaryResults.map(_.id) should be(List(1, 2))

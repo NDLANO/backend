@@ -22,6 +22,5 @@ case class PartialPublishArticlesBulkDTO(
 object PartialPublishArticlesBulkDTO {
   implicit val encoder: Encoder[PartialPublishArticlesBulkDTO] = deriveEncoder
   implicit val decoder: Decoder[PartialPublishArticlesBulkDTO] = deriveDecoder
-
-  implicit val schema: Schema[PartialPublishArticlesBulkDTO] = Schema.any[PartialPublishArticlesBulkDTO]
+  implicit def schema: Schema[PartialPublishArticlesBulkDTO]   = Schema.any[PartialPublishArticlesBulkDTO]
 }

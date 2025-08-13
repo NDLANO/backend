@@ -25,7 +25,7 @@ import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 trait ConfigController {
   this: ErrorHandling & ConfigService & TapirController =>
 
-  val configController: ConfigController
+  lazy val configController: ConfigController
 
   class ConfigController extends TapirController {
     override val serviceName: String = "config"

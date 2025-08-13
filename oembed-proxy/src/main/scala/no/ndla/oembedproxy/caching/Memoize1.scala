@@ -23,7 +23,7 @@ class Memoize[R](maxCacheAgeMs: Long, retryTimeInMs: Long, f: () => R, autoRefre
       lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
   }
 
-  private[this] var cache: Option[CacheValue] = None
+  private var cache: Option[CacheValue] = None
 
   private def renewCache(): Unit = {
     try {
@@ -44,7 +44,7 @@ class Memoize[R](maxCacheAgeMs: Long, retryTimeInMs: Long, f: () => R, autoRefre
     val task = new Runnable {
       def run(): Unit = renewCache()
     }
-    ex.scheduleAtFixedRate(task, 20, maxCacheAgeMs, TimeUnit.MILLISECONDS)
+    ex.scheduleAtFixedRate(task, 20, maxCacheAgeMs, TimeUnit.MILLISECONDS): Unit
   }
 
   def apply(): R = {
@@ -59,17 +59,14 @@ class Memoize[R](maxCacheAgeMs: Long, retryTimeInMs: Long, f: () => R, autoRefre
 }
 trait MemoizeHelpers {
   this: Props =>
-  import props.{ProviderListRetryTimeInMs, ProviderListCacheAgeInMs}
-
   object Memoize {
-
     def apply[R](f: () => R) =
-      new Memoize(ProviderListCacheAgeInMs, ProviderListRetryTimeInMs, f, autoRefreshCache = false)
+      new Memoize(props.ProviderListCacheAgeInMs, props.ProviderListRetryTimeInMs, f, autoRefreshCache = false)
   }
 
   object MemoizeAutoRenew {
 
     def apply[R](f: () => R) =
-      new Memoize(ProviderListCacheAgeInMs, ProviderListRetryTimeInMs, f, autoRefreshCache = true)
+      new Memoize(props.ProviderListCacheAgeInMs, props.ProviderListRetryTimeInMs, f, autoRefreshCache = true)
   }
 }

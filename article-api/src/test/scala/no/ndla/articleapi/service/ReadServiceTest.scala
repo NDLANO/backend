@@ -56,8 +56,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   val articleContent2: ArticleContent = ArticleContent(content2, "und")
 
-  override val readService      = new ReadService
-  override val converterService = new ConverterService
+  override lazy val readService      = new ReadService
+  override lazy val converterService = new ConverterService
 
   override def beforeEach(): Unit = {
     reset(feideApiClient)
@@ -182,15 +182,17 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
 
-    val Success(result) =
-      readService.getArticlesByIds(
-        articleIds = ids,
-        language = "nb",
-        fallback = true,
-        page = 1,
-        pageSize = 10,
-        feideAccessToken = None
-      )
+    val result =
+      readService
+        .getArticlesByIds(
+          articleIds = ids,
+          language = "nb",
+          fallback = true,
+          page = 1,
+          pageSize = 10,
+          feideAccessToken = None
+        )
+        .get
     result.length should be(3)
 
     verify(feideApiClient, times(0)).getFeideExtendedUser(Some(feideId))
@@ -209,15 +211,17 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
 
-    val Success(result) =
-      readService.getArticlesByIds(
-        articleIds = ids,
-        language = "nb",
-        fallback = true,
-        page = 1,
-        pageSize = 10,
-        feideAccessToken = Some(feideId)
-      )
+    val result =
+      readService
+        .getArticlesByIds(
+          articleIds = ids,
+          language = "nb",
+          fallback = true,
+          page = 1,
+          pageSize = 10,
+          feideAccessToken = Some(feideId)
+        )
+        .get
     result.length should be(3)
 
     verify(feideApiClient, times(1)).getFeideExtendedUser(Some(feideId))
@@ -236,15 +240,17 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
 
-    val Success(result) =
-      readService.getArticlesByIds(
-        articleIds = ids,
-        language = "nb",
-        fallback = true,
-        page = 1,
-        pageSize = 10,
-        feideAccessToken = Some(feideId)
-      )
+    val result =
+      readService
+        .getArticlesByIds(
+          articleIds = ids,
+          language = "nb",
+          fallback = true,
+          page = 1,
+          pageSize = 10,
+          feideAccessToken = Some(feideId)
+        )
+        .get
     result.length should be(2)
     result.map(res => res.availability).contains("teacher") should be(false)
 
@@ -263,15 +269,17 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new RuntimeException))
 
-    val Success(result) =
-      readService.getArticlesByIds(
-        articleIds = ids,
-        language = "nb",
-        fallback = true,
-        page = 1,
-        pageSize = 10,
-        feideAccessToken = None
-      )
+    val result =
+      readService
+        .getArticlesByIds(
+          articleIds = ids,
+          language = "nb",
+          fallback = true,
+          page = 1,
+          pageSize = 10,
+          feideAccessToken = None
+        )
+        .get
     result.length should be(2)
     result.map(res => res.availability).contains("teacher") should be(false)
 
@@ -280,16 +288,21 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("that getArticlesByIds fails if no ids were given") {
     reset(articleRepository)
-    val Failure(result: ValidationException) =
-      readService.getArticlesByIds(
-        articleIds = List.empty,
-        language = "nb",
-        fallback = true,
-        page = 1,
-        pageSize = 10,
-        feideAccessToken = None
-      )
-    result.errors.head.message should be("Query parameter 'ids' is missing")
+    val result =
+      readService
+        .getArticlesByIds(
+          articleIds = List.empty,
+          language = "nb",
+          fallback = true,
+          page = 1,
+          pageSize = 10,
+          feideAccessToken = None
+        )
+    result.failed.get
+      .asInstanceOf[ValidationException]
+      .errors
+      .head
+      .message should be("Query parameter 'ids' is missing")
 
     verify(articleRepository, times(0)).withIds(any, any, any)(any)
   }

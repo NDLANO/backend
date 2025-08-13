@@ -29,8 +29,8 @@ import scala.util.{Failure, Success, Try}
 
 class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
 
-  val service                                                 = new FolderReadService
-  override val folderConverterService: FolderConverterService = org.mockito.Mockito.spy(new FolderConverterService)
+  val service                                                      = new FolderReadService
+  override lazy val folderConverterService: FolderConverterService = org.mockito.Mockito.spy(new FolderConverterService)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -40,7 +40,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     doAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
-    }).when(DBUtil).rollbackOnFailure(any)
+    }).when(DBUtil).rollbackOnFailure(any())
   }
 
   test("That getSingleFolder returns folder and its data when user is the owner") {
@@ -403,23 +403,23 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     )
       .thenReturn(Success(Some(folderWithId)))
 
-    val Failure(result: NotFoundException) = service.getSharedFolder(folderUUID, None)
+    val Failure(result: NotFoundException) = service.getSharedFolder(folderUUID, None): @unchecked
     result.message should be("Folder does not exist")
   }
 
   test("That getting stats fetches stats for my ndla usage") {
-    when(userRepository.usersGrouped()(any)).thenReturn(Success(Map(UserRole.EMPLOYEE -> 2, UserRole.STUDENT -> 3)))
-    when(folderRepository.numberOfFolders()(any)).thenReturn(Success(Some(10)))
-    when(folderRepository.numberOfResources()(any)).thenReturn(Success(Some(20)))
-    when(folderRepository.numberOfTags()(any)).thenReturn(Success(Some(10)))
-    when(userRepository.numberOfFavouritedSubjects()(any)).thenReturn(Success(Some(15)))
-    when(folderRepository.numberOfSharedFolders()(any)).thenReturn(Success(Some(5)))
-    when(learningPathApiClient.getStats).thenReturn(Success(LearningPathStatsDTO(25)))
+    when(userRepository.usersGrouped()(any)).thenReturn(Success(Map(UserRole.EMPLOYEE -> 2L, UserRole.STUDENT -> 3L)))
+    when(folderRepository.numberOfFolders()(any)).thenReturn(Success(Some(10L)))
+    when(folderRepository.numberOfResources()(any)).thenReturn(Success(Some(20L)))
+    when(folderRepository.numberOfTags()(any)).thenReturn(Success(Some(10L)))
+    when(userRepository.numberOfFavouritedSubjects()(any)).thenReturn(Success(Some(15L)))
+    when(folderRepository.numberOfSharedFolders()(any)).thenReturn(Success(Some(5L)))
+    when(learningPathApiClient.getStats).thenReturn(Success(LearningPathStatsDTO(25L)))
     when(folderRepository.numberOfResourcesGrouped()(any))
-      .thenReturn(Success(List((1, "article"), (2, "learningpath"), (3, "video"))))
-    when(folderRepository.numberOfUsersWithFavourites(any)).thenReturn(Success(Some(3)))
-    when(folderRepository.numberOfUsersWithoutFavourites(any)).thenReturn(Success(Some(2)))
-    when(userRepository.numberOfUsersInArena(any)).thenReturn(Success(Some(4)))
+      .thenReturn(Success(List((1L, "article"), (2L, "learningpath"), (3L, "video"))))
+    when(folderRepository.numberOfUsersWithFavourites(any)).thenReturn(Success(Some(3L)))
+    when(folderRepository.numberOfUsersWithoutFavourites(any)).thenReturn(Success(Some(2L)))
+    when(userRepository.numberOfUsersInArena(any)).thenReturn(Success(Some(4L)))
 
     service.getStats.unsafeGet should be(
       api.StatsDTO(

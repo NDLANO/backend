@@ -32,7 +32,9 @@ object ZipUtil {
     zis.close()
     fis.close()
 
-    if (deleteArchive) zipFile.delete()
+    if (deleteArchive) {
+      val _ = zipFile.delete()
+    }
 
     targetDir
   }

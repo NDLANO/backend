@@ -70,41 +70,41 @@ trait TestEnvironment
     with Props
     with ErrorHandling
     with DBMigrator
-    with TestData
+    with TestDataTrait
     with Random {
-  lazy val props = new ImageApiProperties
-  val TestData   = new TestData
+  override lazy val props     = new ImageApiProperties
+  val TestData: TestDataClass = new TestDataClass
 
-  val migrator: DBMigrator   = mock[DBMigrator]
-  val s3Client: NdlaS3Client = mock[NdlaS3Client]
+  override lazy val migrator: DBMigrator   = mock[DBMigrator]
+  override lazy val s3Client: NdlaS3Client = mock[NdlaS3Client]
 
-  val dataSource: HikariDataSource           = mock[HikariDataSource]
-  val imageIndexService: ImageIndexService   = mock[ImageIndexService]
-  val imageSearchService: ImageSearchService = mock[ImageSearchService]
+  override lazy val dataSource: HikariDataSource           = mock[HikariDataSource]
+  override lazy val imageIndexService: ImageIndexService   = mock[ImageIndexService]
+  override lazy val imageSearchService: ImageSearchService = mock[ImageSearchService]
 
-  val tagIndexService: TagIndexService   = mock[TagIndexService]
-  val tagSearchService: TagSearchService = mock[TagSearchService]
+  override lazy val tagIndexService: TagIndexService   = mock[TagIndexService]
+  override lazy val tagSearchService: TagSearchService = mock[TagSearchService]
 
-  val imageRepository: ImageRepository        = mock[ImageRepository]
-  val readService: ReadService                = mock[ReadService]
-  val writeService: WriteService              = mock[WriteService]
-  val imageStorage: AmazonImageStorageService = mock[AmazonImageStorageService]
+  override lazy val imageRepository: ImageRepository        = mock[ImageRepository]
+  override lazy val readService: ReadService                = mock[ReadService]
+  override lazy val writeService: WriteService              = mock[WriteService]
+  override lazy val imageStorage: AmazonImageStorageService = mock[AmazonImageStorageService]
 
-  val ndlaClient: NdlaClient                         = mock[NdlaClient]
-  val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
-  val rawController: RawController                   = mock[RawController]
-  val healthController: HealthController             = mock[HealthController]
-  val internController: InternController             = mock[InternController]
-  val imageControllerV2: ImageControllerV2           = mock[ImageControllerV2]
-  val imageControllerV3: ImageControllerV3           = mock[ImageControllerV3]
-  val converterService: ConverterService             = mock[ConverterService]
-  val validationService: ValidationService           = mock[ValidationService]
-  var e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
-  val searchConverterService: SearchConverterService = mock[SearchConverterService]
-  val imageConverter: ImageConverter                 = mock[ImageConverter]
+  override lazy val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  override lazy val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
+  override lazy val rawController: RawController                   = mock[RawController]
+  override lazy val healthController: HealthController             = mock[HealthController]
+  override lazy val internController: InternController             = mock[InternController]
+  override lazy val imageControllerV2: ImageControllerV2           = mock[ImageControllerV2]
+  override lazy val imageControllerV3: ImageControllerV3           = mock[ImageControllerV3]
+  override lazy val converterService: ConverterService             = mock[ConverterService]
+  override lazy val validationService: ValidationService           = mock[ValidationService]
+  var e4sClient: NdlaE4sClient                                     = mock[NdlaE4sClient]
+  override lazy val searchConverterService: SearchConverterService = mock[SearchConverterService]
+  override lazy val imageConverter: ImageConverter                 = mock[ImageConverter]
 
-  val clock: SystemClock = mock[SystemClock]
-  val random: Random     = mock[Random]
+  override lazy val clock: SystemClock = mock[SystemClock]
+  override lazy val random: Random     = mock[Random]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]

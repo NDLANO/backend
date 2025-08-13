@@ -10,6 +10,7 @@ package no.ndla.common.model.api.frontpage
 
 import io.circe.*
 import io.circe.generic.semiauto.*
+import sttp.tapir.Schema
 
 case class SubjectPageDTO(
     id: Long,
@@ -27,4 +28,6 @@ case class SubjectPageDTO(
 object SubjectPageDTO {
   implicit def encoder: Encoder[SubjectPageDTO] = deriveEncoder[SubjectPageDTO]
   implicit def decoder: Decoder[SubjectPageDTO] = deriveDecoder[SubjectPageDTO]
+  import sttp.tapir.generic.auto.*
+  implicit def schema: Schema[SubjectPageDTO] = Schema.derivedSchema
 }

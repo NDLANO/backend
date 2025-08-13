@@ -69,4 +69,6 @@ object Draft {
   implicit def eitherDec: Decoder[Either[RelatedContentLink, Long]] = eitherDecoder[RelatedContentLink, Long]
   implicit val encoder: Encoder[Draft]                              = deriveEncoder
   implicit val decoder: Decoder[Draft]                              = deriveDecoder
+  import sttp.tapir.generic.auto.*
+  implicit def schema: sttp.tapir.Schema[Draft] = sttp.tapir.Schema.derivedSchema
 }

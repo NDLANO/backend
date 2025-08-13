@@ -18,9 +18,9 @@ import scalikejdbc.*
 import scala.util.Success
 
 class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override val schemaName: String           = "myndlaapi_test"
-  override val dataSource: HikariDataSource = testDataSource.get
-  override val migrator                     = new DBMigrator
+  override val schemaName: String                = "myndlaapi_test"
+  override lazy val dataSource: HikariDataSource = testDataSource.get
+  override lazy val migrator                     = new DBMigrator
 
   var repository: ConfigRepository = _
 

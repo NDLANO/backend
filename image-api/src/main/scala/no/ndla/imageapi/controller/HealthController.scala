@@ -15,7 +15,7 @@ import no.ndla.network.tapir.TapirHealthController
 
 trait HealthController {
   this: ImageStorageService & ImageRepository & Props & TapirHealthController =>
-  val healthController: HealthController
+  lazy val healthController: HealthController
 
   class HealthController extends TapirHealthController {
 

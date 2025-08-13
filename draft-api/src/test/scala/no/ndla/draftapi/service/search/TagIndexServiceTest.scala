@@ -15,11 +15,11 @@ class TagIndexServiceTest extends ElasticsearchIntegrationSuite with TestEnviron
 
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override val tagIndexService: TagIndexService = new TagIndexService {
+  override lazy val tagIndexService: TagIndexService = new TagIndexService {
     override val indexShards = 1
   }
-  override val converterService       = new ConverterService
-  override val searchConverterService = new SearchConverterService
+  override lazy val converterService       = new ConverterService
+  override lazy val searchConverterService = new SearchConverterService
 
   test("That indexing does not fail if no tags are present") {
     tagIndexService.createIndexAndAlias()

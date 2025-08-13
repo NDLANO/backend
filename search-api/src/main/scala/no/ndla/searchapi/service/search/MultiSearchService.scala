@@ -17,7 +17,7 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.implicits.TryQuestionMark
+import no.ndla.common.implicits.*
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
@@ -25,7 +25,7 @@ import no.ndla.language.model.Iso639
 import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.{BaseIndexService, Elastic4sClient}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.model.domain.SearchResult
@@ -36,23 +36,21 @@ import scala.util.{Failure, Success, Try}
 
 trait MultiSearchService {
   this: Elastic4sClient & SearchConverterService & SearchService & IndexService & ArticleIndexService &
-    LearningPathIndexService & Props & ErrorHandling & NodeIndexService =>
+    LearningPathIndexService & Props & ErrorHandling & NodeIndexService & BaseIndexService =>
 
-  val multiSearchService: MultiSearchService
+  lazy val multiSearchService: MultiSearchService
 
-  class MultiSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
-    import props.{ElasticSearchScrollKeepAlive, SearchIndex}
-
+  class MultiSearchService extends SearchService with StrictLogging with TaxonomyFiltering {
     override val searchIndex: List[String] =
-      List(SearchType.Articles, SearchType.LearningPaths, SearchType.Nodes).map(SearchIndex)
-    override val indexServices: List[BulkIndexingService] = List(
+      List(SearchType.Articles, SearchType.LearningPaths, SearchType.Nodes).map(props.SearchIndex)
+    override val indexServices: List[BaseIndexService] = List(
       articleIndexService,
       learningPathIndexService,
       nodeIndexService
     )
 
     private def getIndexFilter(indexes: List[SearchType]): Query = {
-      val indexNames = indexes.map(SearchIndex)
+      val indexNames = indexes.map(props.SearchIndex)
       termsQuery("_index", indexNames)
     }
 
@@ -137,7 +135,7 @@ trait MultiSearchService {
       settings.resultTypes match {
         case Some(list) if list.nonEmpty =>
           val idxs = list.map { st =>
-            val index        = SearchIndex(st)
+            val index        = props.SearchIndex(st)
             val isValidIndex = searchIndex.contains(index)
 
             if (isValidIndex) Right(index)
@@ -157,13 +155,13 @@ trait MultiSearchService {
           if (errors.nonEmpty) Failure(new ValidationException(s"Got invalid `resultTypes` for endpoint", errors))
           else Success(idxs.collect { case Right(i) => i })
 
-        case _ => Success(List(SearchType.Articles, SearchType.LearningPaths).map(SearchIndex))
+        case _ => Success(List(SearchType.Articles, SearchType.LearningPaths).map(props.SearchIndex))
       }
     }
 
-    private def logShardErrors(response: RequestSuccess[SearchResponse]) = {
+    private def logShardErrors(response: RequestSuccess[SearchResponse]): Unit = {
       if (response.result.shards.failed > 0) {
-        response.body.map { body =>
+        val _ = response.body.map { body =>
           CirceUtil.tryParse(body) match {
             case Failure(ex) =>
               logger.error(s"Got error parsing search response: $body", ex)
@@ -180,7 +178,7 @@ trait MultiSearchService {
       }
     }
 
-    def executeSearch(settings: SearchSettings, filteredSearch: BoolQuery): Try[SearchResult] = {
+    def executeSearch(settings: SearchSettings, filteredSearch: BoolQuery): Try[SearchResult] = permitTry {
       val searchLanguage = settings.language match {
         case lang if Iso639.get(lang).isSuccess && !settings.fallback => lang
         case _                                                        => AllLanguages
@@ -203,7 +201,7 @@ trait MultiSearchService {
         // Only add scroll param if it is first page
         val searchWithScroll =
           if (pagination.startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(ElasticSearchScrollKeepAlive)
+            searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
           } else { searchToExecute }
 
         e4sClient.execute(searchWithScroll) match {
