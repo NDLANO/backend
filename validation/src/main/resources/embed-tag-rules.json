@@ -598,7 +598,15 @@
         }
       ],
       "children": {
-        "required": false
+        "required": false,
+        "allowedChildren": [
+          "code",
+          "em",
+          "span",
+          "strong",
+          "sub",
+          "sup"
+        ]
       }
     },
     "iframe": {

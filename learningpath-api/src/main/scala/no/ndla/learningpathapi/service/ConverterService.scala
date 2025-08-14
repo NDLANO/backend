@@ -368,6 +368,25 @@ trait ConverterService {
       }
     }
 
+    def deleteLearningPathLanguage(learningPath: LearningPath, language: String): Try[LearningPath] = {
+      learningPath.title.size match {
+        case 1 =>
+          Failure(
+            errors.OperationNotAllowedException(
+              s"Cannot delete last language for learning path with id ${learningPath.id.getOrElse(-1)}"
+            )
+          )
+        case _ =>
+          Success(
+            learningPath.copy(
+              title = learningPath.title.filterNot(_.language == language),
+              description = learningPath.description.filterNot(_.language == language),
+              tags = learningPath.tags.filterNot(_.language == language)
+            )
+          )
+      }
+    }
+
     def mergeLearningSteps(existing: LearningStep, updated: UpdatedLearningStepV2DTO): Try[LearningStep] = {
       val titles = updated.title match {
         case None        => existing.title

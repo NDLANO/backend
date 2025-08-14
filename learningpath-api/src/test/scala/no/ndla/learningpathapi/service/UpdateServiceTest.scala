@@ -8,7 +8,12 @@
 
 package no.ndla.learningpathapi.service
 
-import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
+import no.ndla.common.errors.{
+  AccessDeniedException,
+  NotFoundException,
+  OperationNotAllowedException,
+  ValidationException
+}
 import no.ndla.common.model.domain.learningpath.*
 import no.ndla.common.model.domain.{Author, ContributorType, Title, learningpath}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
@@ -1575,4 +1580,32 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     stepCaptor.getValue.title.length should be(1)
   }
 
+  test("That delete learning path language should fail when only one language") {
+    when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession]))
+      .thenReturn(Some(PRIVATE_LEARNINGPATH_NO_STEPS))
+    val res = service.deleteLearningPathLanguage(PRIVATE_ID, "nb", PRIVATE_OWNER.toCombined)
+    res should be(
+      Failure(
+        OperationNotAllowedException(
+          s"Cannot delete last language for learning path with id $PRIVATE_ID"
+        )
+      )
+    )
+  }
+
+  test("That delete learning path language should also delete from all steps") {
+    val learningPath = PRIVATE_LEARNINGPATH.copy(
+      title = PRIVATE_LEARNINGPATH.title :+ Title("Tittel", "nn"),
+      description = PRIVATE_LEARNINGPATH.description :+ Description("Beskrivelse", "nn"),
+      learningsteps =
+        Some(PRIVATE_LEARNINGPATH.learningsteps.get.map(step => step.copy(title = step.title :+ Title("Tittel", "nn"))))
+    )
+    when(learningPathRepository.withId(eqTo(PRIVATE_ID))(any[DBSession])).thenReturn(Some(learningPath))
+    when(learningPathRepository.updateLearningStep(any)(any[DBSession])).thenAnswer(_.getArgument(0))
+    when(learningPathRepository.update(any)(any[DBSession])).thenAnswer(_.getArgument(0))
+
+    val res = service.deleteLearningPathLanguage(PRIVATE_ID, "nb", PRIVATE_OWNER.toCombined).failIfFailure
+    verify(learningPathRepository, times(PRIVATE_LEARNINGPATH.learningsteps.get.size)).updateLearningStep(any)(any)
+    res.supportedLanguages should be(Seq("nn"))
+  }
 }
