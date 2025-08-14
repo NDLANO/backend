@@ -732,4 +732,10 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
     doc should equal(migratedArticle)
   }
 
+  test("should strip whitespace after period in title") {
+    // Need to wrap title in <p> tags to match the migration logic
+    val doc = migration.convertContent("<p>Eksamensveiledning for fremmedspråk I og II, 2025. </p>", "nb")
+    doc should equal("<p>Eksamensveiledning for fremmedspråk I og II, 2025.</p>")
+  }
+
 }
