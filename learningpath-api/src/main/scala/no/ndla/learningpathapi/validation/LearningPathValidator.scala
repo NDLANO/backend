@@ -17,11 +17,16 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.common.model.domain.RevisionStatus
 import no.ndla.common.model.NDLADate
 
+import scala.util.{Failure, Success, Try}
+
 trait LearningPathValidator {
   this: LanguageValidator & TitleValidator & TextValidator =>
   lazy val learningPathValidator: LearningPathValidator
 
   class LearningPathValidator(descriptionRequired: Boolean = false) {
+
+    private val INVALID_LANGUAGES_MY_NDLA =
+      "A learning path created in MyNDLA must have exactly one supported language."
 
     private val MISSING_DESCRIPTION = "At least one description is required."
 
@@ -31,19 +36,18 @@ trait LearningPathValidator {
     val noHtmlTextValidator       = new TextValidator(allowHtml = false)
     private val durationValidator = new DurationValidator
 
-    def validate(newLearningPath: LearningPath, allowUnknownLanguage: Boolean = false): Unit = {
+    def validate(newLearningPath: LearningPath, allowUnknownLanguage: Boolean = false): Try[LearningPath] = {
       validateLearningPath(newLearningPath, allowUnknownLanguage) match {
         case head :: tail =>
-          throw new ValidationException(errors = head :: tail)
-        case _ =>
+          Failure(ValidationException(errors = head :: tail))
+        case _ => Success(newLearningPath)
       }
     }
 
-    def validate(updateLearningPath: UpdatedLearningPathV2DTO): Unit = {
+    def validate(updateLearningPath: UpdatedLearningPathV2DTO): Try[UpdatedLearningPathV2DTO] = {
       languageValidator.validate("language", updateLearningPath.language, allowUnknownLanguage = true) match {
-        case None                    =>
-        case Some(validationMessage) =>
-          throw new ValidationException(errors = Seq(validationMessage))
+        case None                    => Success(updateLearningPath)
+        case Some(validationMessage) => Failure(ValidationException(errors = Seq(validationMessage)))
       }
     }
 
@@ -51,13 +55,21 @@ trait LearningPathValidator {
         newLearningPath: LearningPath,
         allowUnknownLanguage: Boolean
     ): Seq[ValidationMessage] = {
-      titleValidator.validate(newLearningPath.title, allowUnknownLanguage) ++
+      validateSupportedLanguages(newLearningPath) ++
+        titleValidator.validate(newLearningPath.title, allowUnknownLanguage) ++
         validateDescription(newLearningPath.description, allowUnknownLanguage) ++
         validateDuration(newLearningPath.duration).toList ++
         validateTags(newLearningPath.tags, allowUnknownLanguage) ++
         validateCopyright(newLearningPath.copyright) ++
         validateRevisionMeta(newLearningPath)
     }
+
+    private def validateSupportedLanguages(learningPath: LearningPath) =
+      (learningPath.supportedLanguages.size, learningPath.isMyNDLAOwner) match {
+        case (1, true)  => List()
+        case (_, true)  => List(ValidationMessage("supportedLanguages", INVALID_LANGUAGES_MY_NDLA))
+        case (_, false) => List()
+      }
 
     private def validateDescription(
         descriptions: Seq[Description],

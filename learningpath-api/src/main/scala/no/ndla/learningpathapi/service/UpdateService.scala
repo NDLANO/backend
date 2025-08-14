@@ -83,10 +83,11 @@ trait UpdateService {
           case Some(Failure(ex))       => Failure(ex)
           case Some(Success(existing)) =>
             for {
-              toInsert <- converterService.newFromExistingLearningPath(existing, newLearningPath, owner)
-              _ = learningPathValidator.validate(toInsert, allowUnknownLanguage = true)
+              toInsert  <- converterService.newFromExistingLearningPath(existing, newLearningPath, owner)
+              validated <- learningPathValidator.validate(toInsert, allowUnknownLanguage = true)
+              inserted  <- Try(learningPathRepository.insert(validated))
               converted <- converterService.asApiLearningpathV2(
-                learningPathRepository.insert(toInsert),
+                inserted,
                 newLearningPath.language,
                 fallback = true,
                 owner
@@ -99,8 +100,8 @@ trait UpdateService {
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         for {
           learningPath <- converterService.newLearningPath(newLearningPath, owner)
-          _        = learningPathValidator.validate(learningPath)
-          inserted = learningPathRepository.insert(learningPath)
+          validated    <- learningPathValidator.validate(learningPath)
+          inserted     <- Try(learningPathRepository.insert(validated))
           converted <- converterService.asApiLearningpathV2(inserted, newLearningPath.language, fallback = true, owner)
         } yield converted
       }
@@ -110,28 +111,22 @@ trait UpdateService {
         learningPathToUpdate: UpdatedLearningPathV2DTO,
         owner: CombinedUser
     ): Try[LearningPathV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
-      learningPathValidator.validate(learningPathToUpdate)
-
-      withId(id).flatMap(_.canEditLearningpath(owner)) match {
-        case Failure(ex)       => Failure(ex)
-        case Success(existing) =>
-          val toUpdate = converterService.mergeLearningPaths(existing, learningPathToUpdate, owner)
-
-          // Imported learningpaths may contain fields with language=unknown.
-          // We should still be able to update it, but not add new fields with language=unknown.
-          learningPathValidator.validate(toUpdate, allowUnknownLanguage = true)
-
-          val updatedLearningPath = learningPathRepository.update(toUpdate)
-
-          updateSearchAndTaxonomy(updatedLearningPath, owner.tokenUser).flatMap(_ =>
-            converterService.asApiLearningpathV2(
-              updatedLearningPath,
-              learningPathToUpdate.language,
-              fallback = true,
-              owner
-            )
-          )
-      }
+      for {
+        existing        <- withId(id).flatMap(_.canEditLearningpath(owner))
+        validatedUpdate <- learningPathValidator.validate(learningPathToUpdate)
+        mergedPath = converterService.mergeLearningPaths(existing, validatedUpdate, owner)
+        // Imported learningpaths may contain fields with language=unknown.
+        // We should still be able to update it, but not add new fields with language=unknown.
+        validatedMergedPath <- learningPathValidator.validate(mergedPath, allowUnknownLanguage = true)
+        updatedLearningPath <- Try(learningPathRepository.update(validatedMergedPath))
+        _                   <- updateSearchAndTaxonomy(updatedLearningPath, owner.tokenUser)
+        converted           <- converterService.asApiLearningpathV2(
+          updatedLearningPath,
+          learningPathToUpdate.language,
+          fallback = true,
+          owner
+        )
+      } yield converted
     }
 
     def deleteLearningPathLanguage(
