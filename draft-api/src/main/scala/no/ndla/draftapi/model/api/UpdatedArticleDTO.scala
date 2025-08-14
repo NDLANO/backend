@@ -23,6 +23,7 @@ import no.ndla.common.model.api.{
 import sttp.tapir.Schema.annotations.description
 import no.ndla.common.model.domain.Priority
 import sttp.tapir.Schema
+import no.ndla.common.DeriveHelpers
 
 @description("Information about the article")
 case class UpdatedArticleDTO(
@@ -92,5 +93,5 @@ object UpdatedArticleDTO {
 
   implicit def encoder: Encoder[UpdatedArticleDTO] = deriveEncoder[UpdatedArticleDTO]
   implicit def decoder: Decoder[UpdatedArticleDTO] = deriveDecoder[UpdatedArticleDTO]
-  implicit def schema: Schema[UpdatedArticleDTO]   = Schema.derived
+  implicit def schema: Schema[UpdatedArticleDTO]   = DeriveHelpers.getSchema
 }

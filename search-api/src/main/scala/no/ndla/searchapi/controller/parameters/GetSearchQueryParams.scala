@@ -17,6 +17,7 @@ import sttp.tapir.*
 import sttp.tapir.EndpointIO.annotations.query
 import sttp.tapir.Schema.annotations.{default, description}
 import sttp.tapir.ValidationResult.{Invalid, Valid}
+import no.ndla.common.DeriveHelpers
 
 trait GetSearchQueryParams {
   this: Props =>
@@ -116,7 +117,7 @@ trait GetSearchQueryParams {
   )
 
   object GetSearchQueryParams {
-    implicit val schema: Schema[GetSearchQueryParams]            = Schema.derived[GetSearchQueryParams]
+    implicit val schema: Schema[GetSearchQueryParams]            = DeriveHelpers.getSchema[GetSearchQueryParams]
     implicit val schemaOpt: Schema[Option[GetSearchQueryParams]] = schema.asOption
 
     def input2 = EndpointInput.derived[GetSearchQueryParams]

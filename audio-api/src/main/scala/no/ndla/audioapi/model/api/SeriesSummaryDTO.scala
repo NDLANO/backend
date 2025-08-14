@@ -12,6 +12,7 @@ import sttp.tapir.Schema.annotations.description
 import sttp.tapir.Schema
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.DeriveHelpers
 
 @description("Short summary of information about the series")
 case class SeriesSummaryDTO(
@@ -27,5 +28,5 @@ object SeriesSummaryDTO {
   implicit val decoder: Decoder[SeriesSummaryDTO] = deriveDecoder
 
   import sttp.tapir.generic.auto.*
-  implicit def schema: Schema[SeriesSummaryDTO] = Schema.derived
+  implicit def schema: Schema[SeriesSummaryDTO] = DeriveHelpers.getSchema
 }

@@ -13,6 +13,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.domain.draft.Grade
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Quality evaluation of the article")
 case class QualityEvaluationDTO(
@@ -23,5 +24,5 @@ case class QualityEvaluationDTO(
 object QualityEvaluationDTO {
   implicit def encoder: Encoder[QualityEvaluationDTO] = deriveEncoder
   implicit def decoder: Decoder[QualityEvaluationDTO] = deriveDecoder
-  implicit def schema: Schema[QualityEvaluationDTO]   = Schema.derived
+  implicit def schema: Schema[QualityEvaluationDTO]   = DeriveHelpers.getSchema
 }

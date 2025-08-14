@@ -13,6 +13,7 @@ import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema.annotations.description
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.DeriveHelpers
 
 @description("Short summary of information about the audio")
 case class AudioSummaryDTO(
@@ -43,5 +44,5 @@ object AudioSummaryDTO {
   implicit val decoder: Decoder[AudioSummaryDTO] = deriveDecoder
 
   import sttp.tapir.generic.auto.*
-  implicit def schema: Schema[AudioSummaryDTO] = Schema.derived
+  implicit def schema: Schema[AudioSummaryDTO] = DeriveHelpers.getSchema
 }

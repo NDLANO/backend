@@ -11,6 +11,7 @@ package no.ndla.draftapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Description of a visual element")
 case class VisualElementDTO(
@@ -23,5 +24,5 @@ case class VisualElementDTO(
 object VisualElementDTO {
   implicit def encoder: Encoder[VisualElementDTO]          = deriveEncoder
   implicit def decoder: Decoder[VisualElementDTO]          = deriveDecoder
-  implicit def schema: sttp.tapir.Schema[VisualElementDTO] = sttp.tapir.Schema.derived[VisualElementDTO]
+  implicit def schema: sttp.tapir.Schema[VisualElementDTO] = DeriveHelpers.getSchema[VisualElementDTO]
 }

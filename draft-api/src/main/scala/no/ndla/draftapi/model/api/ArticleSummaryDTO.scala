@@ -10,6 +10,7 @@ package no.ndla.draftapi.model.api
 
 import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 // format: off
 @description("Short summary of information about the article")
@@ -38,5 +39,5 @@ object ArticleSummaryDTO {
   implicit val decoder: Decoder[ArticleSummaryDTO] = deriveDecoder
 
   import sttp.tapir.generic.auto.*
-  implicit def schema: sttp.tapir.Schema[ArticleSummaryDTO] = sttp.tapir.Schema.derivedSchema
+  implicit def schema: sttp.tapir.Schema[ArticleSummaryDTO] = DeriveHelpers.getSchema
 }

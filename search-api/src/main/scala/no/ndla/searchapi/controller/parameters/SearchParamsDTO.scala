@@ -17,6 +17,7 @@ import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.taxonomy.NodeType
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 case class SearchParamsDTO(
     @description("The page number of the search hits to display.")
@@ -81,5 +82,5 @@ case class SearchParamsDTO(
 object SearchParamsDTO {
   implicit val encoder: Encoder[SearchParamsDTO] = deriveEncoder
   implicit val decoder: Decoder[SearchParamsDTO] = deriveDecoder
-  implicit val schema: Schema[SearchParamsDTO]   = Schema.derived[SearchParamsDTO]
+  implicit val schema: Schema[SearchParamsDTO]   = DeriveHelpers.getSchema[SearchParamsDTO]
 }
