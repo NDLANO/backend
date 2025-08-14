@@ -37,12 +37,12 @@ abstract class HtmlMigration extends DocumentMigration {
     })
 
     val convertedTitle = oldArticle.title.map(t => {
-      val converted = convertContent(s"<p>${t.title}</p>", t.language)
+      val converted = convertContent(t.title, t.language)
       t.copy(title = converted)
     })
 
     val convertedIntroduction = oldArticle.introduction.map(i => {
-      val converted = convertContent(s"<p>${i.introduction}</p>", i.language)
+      val converted = convertContent(i.introduction, i.language)
       i.copy(introduction = converted)
     })
 

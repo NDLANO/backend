@@ -733,13 +733,11 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
   }
 
   test("should strip whitespace after period in title") {
-    // Need to wrap title in <p> tags to match the migration logic
-    val doc = migration.convertContent("<p>Eksamensveiledning for fremmedspråk I og II, 2025. </p>", "nb")
-    doc should equal("<p>Eksamensveiledning for fremmedspråk I og II, 2025.</p>")
+    val doc = migration.convertContent("Eksamensveiledning for fremmedspråk I og II, 2025. ", "nb")
+    doc should equal("Eksamensveiledning for fremmedspråk I og II, 2025.")
   }
 
   test("should strip whitespace after period in introduction with html, unless wrapped in other tag") {
-    // Need to wrap title in <p> tags to match the migration logic
     val doc = migration.convertContent(
       "<p>Kravene til <em>åpenhet og ansvarlighet</em> for store virksomheter har blitt strengere etter at åpenhetsloven trådde i kraft. </p><p>Målet er at loven skal bidra til å forebygge menneskerettighetsbrudd og <em>uanstendige arbeidsforhold. </em></p>",
       "nb"
