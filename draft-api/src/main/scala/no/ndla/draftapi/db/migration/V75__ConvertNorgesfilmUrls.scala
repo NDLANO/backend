@@ -11,7 +11,7 @@ package no.ndla.draftapi.db.migration
 import no.ndla.draftapi.db.HtmlMigration
 import org.jsoup.nodes.Element
 
-class V72__ConvertNorgesfilmUrls extends HtmlMigration {
+class V75__ConvertNorgesfilmUrls extends HtmlMigration {
   override val convertVisualElement: Boolean                        = true
   override def convertHtml(doc: Element, language: String): Element = {
     doc
