@@ -206,12 +206,10 @@ export type components = {
              */
             articleId: number;
             /** @description List of submenu objects */
-            menu: components["schemas"]["MenuDataDTO"][];
+            menu: components["schemas"]["MenuDTO"][];
             /** @description Hide this level in menu */
             hideLevel?: boolean;
         };
-        /** MenuDataDTO */
-        MenuDataDTO: components["schemas"]["MenuDTO"];
         /** MovieThemeDTO */
         MovieThemeDTO: {
             name: components["schemas"]["MovieThemeNameDTO"][];
