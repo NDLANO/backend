@@ -1007,8 +1007,11 @@ export type components = {
              */
             statusCode: number;
         };
-        /** PartialArticleFieldsDTO */
-        PartialArticleFieldsDTO: components["schemas"]["availability"] | components["schemas"]["grepCodes"] | components["schemas"]["license"] | components["schemas"]["metaDescription"] | components["schemas"]["published"] | components["schemas"]["relatedContent"] | components["schemas"]["revisionDate"] | components["schemas"]["tags"];
+        /**
+         * PartialArticleFieldsDTO
+         * @enum {string}
+         */
+        PartialArticleFieldsDTO: "availability" | "grepCodes" | "license" | "metaDescription" | "relatedContent" | "tags" | "revisionDate" | "published";
         /**
          * PartialBulkArticlesDTO
          * @description Partial data about articles to publish in bulk
@@ -1300,22 +1303,6 @@ export type components = {
             /** @description The ISO 639-1 language code describing which article translation this visual element belongs to */
             language: string;
         };
-        /** availability */
-        availability: Record<string, never>;
-        /** grepCodes */
-        grepCodes: Record<string, never>;
-        /** license */
-        license: Record<string, never>;
-        /** metaDescription */
-        metaDescription: Record<string, never>;
-        /** published */
-        published: Record<string, never>;
-        /** relatedContent */
-        relatedContent: Record<string, never>;
-        /** revisionDate */
-        revisionDate: Record<string, never>;
-        /** tags */
-        tags: Record<string, never>;
     };
     responses: never;
     parameters: never;

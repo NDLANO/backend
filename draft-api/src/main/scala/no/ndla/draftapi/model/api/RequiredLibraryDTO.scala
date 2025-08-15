@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Information about a library required to render the article")
 case class RequiredLibraryDTO(
@@ -23,5 +24,5 @@ case class RequiredLibraryDTO(
 object RequiredLibraryDTO {
   implicit def encoder: Encoder[RequiredLibraryDTO] = deriveEncoder[RequiredLibraryDTO]
   implicit def decoder: Decoder[RequiredLibraryDTO] = deriveDecoder[RequiredLibraryDTO]
-  implicit def schema: Schema[RequiredLibraryDTO]   = Schema.derived[RequiredLibraryDTO]
+  implicit def schema: Schema[RequiredLibraryDTO]   = DeriveHelpers.getSchema[RequiredLibraryDTO]
 }

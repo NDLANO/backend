@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.domain.concept.Concept as DomainConcept
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Information about articles")
 case class ConceptDomainDump(
@@ -25,5 +26,5 @@ object ConceptDomainDump {
   implicit val encoder: Encoder[ConceptDomainDump] = deriveEncoder
   implicit val decoder: Decoder[ConceptDomainDump] = deriveDecoder
   import sttp.tapir.generic.auto.*
-  implicit def schema: sttp.tapir.Schema[ConceptDomainDump] = sttp.tapir.Schema.derivedSchema
+  implicit def schema: sttp.tapir.Schema[ConceptDomainDump] = DeriveHelpers.getSchema
 }

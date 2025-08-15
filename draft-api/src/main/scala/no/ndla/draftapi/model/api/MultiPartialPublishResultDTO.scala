@@ -10,6 +10,7 @@ package no.ndla.draftapi.model.api
 
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Single failed result")
 case class PartialPublishFailureDTO(
@@ -23,7 +24,7 @@ object PartialPublishFailureDTO {
 
   implicit def encoder: Encoder[PartialPublishFailureDTO] = deriveEncoder
   implicit def decoder: Decoder[PartialPublishFailureDTO] = deriveDecoder
-  implicit def schema: Schema[PartialPublishFailureDTO]   = Schema.derived[PartialPublishFailureDTO]
+  implicit def schema: Schema[PartialPublishFailureDTO]   = DeriveHelpers.getSchema[PartialPublishFailureDTO]
 }
 
 @description("A list of articles that were partial published to article-api")
@@ -38,5 +39,5 @@ object MultiPartialPublishResultDTO {
 
   implicit def encoder: Encoder[MultiPartialPublishResultDTO] = deriveEncoder
   implicit def decoder: Decoder[MultiPartialPublishResultDTO] = deriveDecoder
-  implicit def schema: Schema[MultiPartialPublishResultDTO]   = Schema.derived[MultiPartialPublishResultDTO]
+  implicit def schema: Schema[MultiPartialPublishResultDTO]   = DeriveHelpers.getSchema[MultiPartialPublishResultDTO]
 }

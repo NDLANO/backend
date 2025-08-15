@@ -14,6 +14,7 @@ import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.common.DeriveHelpers
 
 @description("Meta information about the audio object")
 case class AudioMetaInformationDTO(
@@ -50,5 +51,5 @@ object AudioMetaInformationDTO {
   implicit val decoder: Decoder[AudioMetaInformationDTO] = deriveDecoder
 
   import sttp.tapir.generic.auto.*
-  implicit def schema: Schema[AudioMetaInformationDTO] = Schema.derived
+  implicit def schema: Schema[AudioMetaInformationDTO] = DeriveHelpers.getSchema
 }

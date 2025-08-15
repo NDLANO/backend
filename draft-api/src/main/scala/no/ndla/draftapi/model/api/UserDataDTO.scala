@@ -9,6 +9,7 @@
 package no.ndla.draftapi.model.api
 
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Information about user data")
 case class UserDataDTO(
@@ -26,5 +27,5 @@ object UserDataDTO {
 
   implicit val encoder: Encoder[UserDataDTO]          = deriveEncoder
   implicit val decoder: Decoder[UserDataDTO]          = deriveDecoder
-  implicit def schema: sttp.tapir.Schema[UserDataDTO] = sttp.tapir.Schema.derivedSchema
+  implicit def schema: sttp.tapir.Schema[UserDataDTO] = DeriveHelpers.getSchema
 }

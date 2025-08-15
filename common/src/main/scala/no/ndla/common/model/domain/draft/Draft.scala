@@ -15,6 +15,7 @@ import no.ndla.common.model.{NDLADate, RelatedContentLink}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.language.Language.getSupportedLanguages
+import no.ndla.common.DeriveHelpers
 
 case class Draft(
     id: Option[Long],
@@ -70,5 +71,5 @@ object Draft {
   implicit val encoder: Encoder[Draft]                              = deriveEncoder
   implicit val decoder: Decoder[Draft]                              = deriveDecoder
   import sttp.tapir.generic.auto.*
-  implicit def schema: sttp.tapir.Schema[Draft] = sttp.tapir.Schema.derivedSchema
+  implicit def schema: sttp.tapir.Schema[Draft] = DeriveHelpers.getSchema
 }

@@ -115,7 +115,7 @@ trait NdlaTapirMain[T <: TapirApplication] {
   def run(args: Array[String]): Try[Unit] = {
     setPropsFromEnv()
     Log4jBridgeHandler.install(true, null, true)
-    if (args.contains("--save-swagger")) {
+    if (args.contains("--generate-openapi")) {
       Try(componentRegistry.swagger.saveSwagger())
     } else {
       props.throwIfFailedProps()

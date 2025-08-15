@@ -391,6 +391,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/learningpath-api/v2/learningpaths/{learningpath_id}/language/{p1}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete the given language of a learning path
+         * @description Delete the given language of a learning path
+         */
+        delete: operations["deleteLearningpath-apiV2LearningpathsLearningpath_idLanguageP1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/learningpath-api/v2/learningpaths/{learningpath_id}/update-taxonomy": {
         parameters: {
             query?: never;
@@ -2748,6 +2768,62 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"] | components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "deleteLearningpath-apiV2LearningpathsLearningpath_idLanguageP1": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Id of the learningpath. */
+                learningpath_id: number;
+                /** @description The ISO 639-1 language describing language. */
+                p1: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningPathV2DTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -10,6 +10,7 @@ package no.ndla.draftapi.model.api
 
 import no.ndla.common.model.domain.draft
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Information about articles")
 case class ArticleDomainDumpDTO(
@@ -27,5 +28,5 @@ object ArticleDomainDumpDTO {
 
   implicit val encoder: Encoder[ArticleDomainDumpDTO] = deriveEncoder
   implicit val decoder: Decoder[ArticleDomainDumpDTO] = deriveDecoder
-  implicit def schema: Schema[ArticleDomainDumpDTO]   = Schema.derivedSchema
+  implicit def schema: Schema[ArticleDomainDumpDTO]   = DeriveHelpers.getSchema
 }

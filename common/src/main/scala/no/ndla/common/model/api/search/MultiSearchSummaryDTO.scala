@@ -20,6 +20,7 @@ import no.ndla.common.model.api.{CommentDTO, ResponsibleDTO}
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 import no.ndla.common.model.domain.Priority
+import no.ndla.common.DeriveHelpers
 
 @description("Object describing matched field with matching words emphasized")
 case class HighlightedFieldDTO(
@@ -66,7 +67,7 @@ object NodeHitDTO extends SchemaImplicits {
   implicit val decoder: Decoder[NodeHitDTO] = deriveDecoder
   implicit def schema: Schema[NodeHitDTO]   = {
     import sttp.tapir.generic.auto.*
-    def nodeHitSchema: Schema[NodeHitDTO] = Schema.derived[NodeHitDTO]
+    def nodeHitSchema: Schema[NodeHitDTO] = DeriveHelpers.getSchema[NodeHitDTO]
     withDiscriminator(nodeHitSchema)
   }
 }
@@ -132,7 +133,7 @@ object MultiSearchSummaryDTO extends SchemaImplicits {
   implicit val decoder: Decoder[MultiSearchSummaryDTO] = deriveDecoder
   implicit def schema: Schema[MultiSearchSummaryDTO]   = {
     import sttp.tapir.generic.auto.*
-    def multiSearchSummary: Schema[MultiSearchSummaryDTO] = Schema.derived[MultiSearchSummaryDTO]
+    def multiSearchSummary: Schema[MultiSearchSummaryDTO] = DeriveHelpers.getSchema[MultiSearchSummaryDTO]
     withDiscriminator(multiSearchSummary)
   }
 }

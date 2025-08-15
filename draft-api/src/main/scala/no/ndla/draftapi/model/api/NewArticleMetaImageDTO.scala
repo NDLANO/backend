@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 case class NewArticleMetaImageDTO(
     @description("The image-api id of the meta image") id: String,
@@ -19,7 +20,7 @@ case class NewArticleMetaImageDTO(
 )
 
 object NewArticleMetaImageDTO {
-  implicit def schema: Schema[NewArticleMetaImageDTO]   = Schema.derived
+  implicit def schema: Schema[NewArticleMetaImageDTO]   = DeriveHelpers.getSchema
   implicit def encoder: Encoder[NewArticleMetaImageDTO] = deriveEncoder[NewArticleMetaImageDTO]
   implicit def decoder: Decoder[NewArticleMetaImageDTO] = deriveDecoder[NewArticleMetaImageDTO]
 }

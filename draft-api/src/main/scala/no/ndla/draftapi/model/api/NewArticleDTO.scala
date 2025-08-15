@@ -16,6 +16,7 @@ import no.ndla.common.model.api.{DraftCopyrightDTO, NewCommentDTO, RelatedConten
 import sttp.tapir.Schema.annotations.description
 import no.ndla.common.model.domain.Priority
 import sttp.tapir.Schema
+import no.ndla.common.DeriveHelpers
 
 // format: off
 @description("Information about the article")
@@ -53,5 +54,5 @@ object NewArticleDTO {
   implicit def eitherDec: Decoder[Either[RelatedContentLinkDTO, Long]] = eitherDecoder[RelatedContentLinkDTO, Long]
   implicit def encoder: Encoder[NewArticleDTO]                         = deriveEncoder
   implicit def decoder: Decoder[NewArticleDTO]                         = deriveDecoder
-  implicit def schema: Schema[NewArticleDTO]                           = Schema.derived
+  implicit def schema: Schema[NewArticleDTO]                           = DeriveHelpers.getSchema
 }
