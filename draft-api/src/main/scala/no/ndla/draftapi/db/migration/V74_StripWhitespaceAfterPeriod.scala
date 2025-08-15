@@ -1,17 +1,19 @@
 /*
- * Part of NDLA article-api
+ * Part of NDLA draft-api
  * Copyright (C) 2025 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.articleapi.db.migration
+package no.ndla.draftapi.db.migration
 
-import no.ndla.articleapi.db.HtmlMigration
+import no.ndla.draftapi.db.HtmlMigration
 import org.jsoup.nodes.Element
 
-class V61__StripWhitespaceAfterPeriod extends HtmlMigration {
+/** This migration is renamed to avoid running it before behaviour is changed in editor.
+  */
+class V74_StripWhitespaceAfterPeriod extends HtmlMigration {
   override def convertHtml(doc: Element, language: String): Element = {
     if (doc.select("body").text() == doc.text()) {
       stripWhitespaceAfterPeriod(doc)

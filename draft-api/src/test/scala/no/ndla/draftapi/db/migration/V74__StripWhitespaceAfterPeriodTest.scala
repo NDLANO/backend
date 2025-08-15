@@ -3,7 +3,7 @@ package no.ndla.draftapi.db.migration
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 
 class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment {
-  val migration = new V74__StripWhitespaceAfterPeriod()
+  val migration = new V74_StripWhitespaceAfterPeriod()
 
   val originalArticle: String =
     """<section>
