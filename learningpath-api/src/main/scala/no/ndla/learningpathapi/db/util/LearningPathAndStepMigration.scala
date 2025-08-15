@@ -8,7 +8,6 @@
 
 package no.ndla.learningpathapi.db.util
 
-import no.ndla.database.TableMigration
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -44,7 +43,7 @@ abstract class LearningPathAndStepMigration extends BaseJavaMigration {
   }
 
   private def getStepDatas(learningPathId: Long)(using session: DBSession): List[StepDocumentRow] = {
-    sql"select id, document from learningsteps where document is not null order by id"
+    sql"select id, document from learningsteps where learning_path_id = $learningPathId and document is not null order by id"
       .map(rs => StepDocumentRow(rs.long("id"), rs.string("document")))
       .list()
   }
@@ -102,7 +101,5 @@ abstract class LearningPathAndStepMigration extends BaseJavaMigration {
       numPagesLeft -= 1
       offset += 1
     }
-  }
-
   }
 }
