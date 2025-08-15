@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.ValidationMessage
+import no.ndla.common.model.api as commonApi
 import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.common.model.domain.learningpath.{
   Description,
@@ -22,6 +23,8 @@ import no.ndla.mapping.License.PublicDomain
 import org.mockito.Mockito.when
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.RevisionMeta
+import no.ndla.learningpathapi.model.api.UpdatedLearningPathV2DTO
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 
 class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
@@ -61,6 +64,23 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     priority = Priority.Unspecified,
     revisionMeta = RevisionMeta.default
   )
+
+  val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
+    UpdatedLearningPathV2DTO(
+      revision = 1,
+      title = None,
+      language = "nb",
+      description = None,
+      coverPhotoMetaUrl = commonApi.Missing,
+      duration = Some(1),
+      tags = None,
+      copyright = None,
+      deleteMessage = None,
+      responsibleId = commonApi.Missing,
+      comments = None,
+      priority = None,
+      revisionMeta = None
+    )
 
   private def validMock() = {
     when(languageValidator.validate("description.language", "nb", false))
@@ -318,5 +338,29 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
     res.size should be(1)
     res.head.field should equal("revisionMeta")
+  }
+
+  test("That validate returns error when MyNDLA path supports multiple languages") {
+    val learningPath =
+      ValidLearningPath.copy(isMyNDLAOwner = true, title = ValidLearningPath.title :+ Title("Tittel", "nn"))
+    when(languageValidator.validate(any[String], any[String], any[Boolean])).thenReturn(None)
+    when(titleValidator.validate(any[Seq[Title]], any[Boolean])).thenReturn(Seq.empty)
+    validator.validateLearningPath(learningPath, true) should be(
+      Seq(
+        ValidationMessage(
+          "supportedLanguages",
+          "A learning path created in MyNDLA must have exactly one supported language."
+        )
+      )
+    )
+  }
+
+  test("That validate reurns error when MyNDLA path is updated with wrong language") {
+    val updated  = UPDATED_PRIVATE_LEARNINGPATHV2.copy(title = Some("Tittel"), language = "nn")
+    val existing = ValidLearningPath.copy(isMyNDLAOwner = true)
+    when(languageValidator.validate(eqTo("language"), eqTo(updated.language), any[Boolean])).thenReturn(None)
+    validator.validateLearningPathUpdate(updated, existing) should be(
+      Seq(ValidationMessage("language", "A learning path created in MyNDLA must have exactly one supported language."))
+    )
   }
 }

@@ -113,7 +113,7 @@ trait UpdateService {
     ): Try[LearningPathV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
       for {
         existing        <- withId(id).flatMap(_.canEditLearningpath(owner))
-        validatedUpdate <- learningPathValidator.validate(learningPathToUpdate)
+        validatedUpdate <- learningPathValidator.validate(learningPathToUpdate, existing)
         mergedPath = converterService.mergeLearningPaths(existing, validatedUpdate, owner)
         // Imported learningpaths may contain fields with language=unknown.
         // We should still be able to update it, but not add new fields with language=unknown.

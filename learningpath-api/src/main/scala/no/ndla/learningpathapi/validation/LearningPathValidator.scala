@@ -25,7 +25,10 @@ trait LearningPathValidator {
 
   class LearningPathValidator(descriptionRequired: Boolean = false) {
 
-    private val INVALID_LANGUAGES_MY_NDLA =
+    private val MY_NDLA_LANGUAGE_MISMATCH =
+      "A learning path created in MyNDLA must have exactly one supported language."
+
+    private val MY_NDLA_INVALID_LANGUAGES =
       "A learning path created in MyNDLA must have exactly one supported language."
 
     private val MISSING_DESCRIPTION = "At least one description is required."
@@ -44,10 +47,13 @@ trait LearningPathValidator {
       }
     }
 
-    def validate(updateLearningPath: UpdatedLearningPathV2DTO): Try[UpdatedLearningPathV2DTO] = {
-      languageValidator.validate("language", updateLearningPath.language, allowUnknownLanguage = true) match {
-        case None                    => Success(updateLearningPath)
-        case Some(validationMessage) => Failure(ValidationException(errors = Seq(validationMessage)))
+    def validate(
+        updatedLearningPath: UpdatedLearningPathV2DTO,
+        existing: LearningPath
+    ): Try[UpdatedLearningPathV2DTO] = {
+      validateLearningPathUpdate(updatedLearningPath, existing) match {
+        case head :: tail => Failure(ValidationException(errors = head :: tail))
+        case _            => Success(updatedLearningPath)
       }
     }
 
@@ -64,10 +70,21 @@ trait LearningPathValidator {
         validateRevisionMeta(newLearningPath)
     }
 
+    private[validation] def validateLearningPathUpdate(
+        updatedLearningPath: UpdatedLearningPathV2DTO,
+        existing: LearningPath
+    ): Seq[ValidationMessage] =
+      validateUpdateLanguage(updatedLearningPath, existing) ++
+        languageValidator.validate(
+          "language",
+          updatedLearningPath.language,
+          allowUnknownLanguage = true
+        )
+
     private def validateSupportedLanguages(learningPath: LearningPath) =
       (learningPath.supportedLanguages.size, learningPath.isMyNDLAOwner) match {
         case (1, true)  => List()
-        case (_, true)  => List(ValidationMessage("supportedLanguages", INVALID_LANGUAGES_MY_NDLA))
+        case (_, true)  => List(ValidationMessage("supportedLanguages", MY_NDLA_INVALID_LANGUAGES))
         case (_, false) => List()
       }
 
@@ -154,6 +171,15 @@ trait LearningPathValidator {
         }
     }
 
+    private def validateUpdateLanguage(
+        updatedLearningPath: UpdatedLearningPathV2DTO,
+        existing: LearningPath
+    ): Seq[ValidationMessage] = {
+      if (existing.isMyNDLAOwner && updatedLearningPath.language != existing.supportedLanguages.head) {
+        Seq(ValidationMessage("language", MY_NDLA_LANGUAGE_MISMATCH))
+      } else {
+        Seq.empty
+      }
+    }
   }
-
 }
