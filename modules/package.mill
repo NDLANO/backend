@@ -10,7 +10,7 @@ import scala.util.{Failure, Success, Try}
 import scala.io.Source
 
 trait BaseModule
-    extends ScalaModule,
+    extends SbtModule,
       DefaultOptions,
       AutoEnvLoading,
       OpenAPITSPlugin,
@@ -18,8 +18,6 @@ trait BaseModule
       CopyrightHeaderPlugin {
   def moduleName: String
   def scalaVersion: T[String] = SharedDependencies.ScalaVersion
-  def isScala2: T[Boolean]    = Task { scalaVersion().startsWith("2.") }
-  def isScala3: T[Boolean]    = Task { scalaVersion().startsWith("3.") }
   def test: TestBase
   private val baseModuleDir = super.moduleDir
 
@@ -27,9 +25,7 @@ trait BaseModule
     super.scalacOptions() ++ sharedScalacOptions() ++ scalacOptionsOnlyRun()
   }
 
-  private def scala2Sources               = Task.Sources("src/main/scala", "src/main/scala-2")
-  private def scala3Sources               = Task.Sources("src/main/scala", "src/main/scala-3")
-  override def sources: T[Seq[PathRef]]   = Task { if (isScala2()) scala2Sources() else scala3Sources() }
+  override def sources: T[Seq[PathRef]]   = Task.Sources("src/main/scala", "src/main/scala-3")
   override def resources: T[Seq[PathRef]] = Task.Sources(
     "src/main/resources",
     BuildCtx.workspaceRoot / "log4j" / "main"
@@ -39,14 +35,11 @@ trait BaseModule
     ScalafmtModule.reformatAll(Tasks(Seq(sources, test.sources)))()
   }
 
-  trait TestBase extends ScalaTests, TestModule.ScalaTest {
-    override def moduleDir: Path             = baseModuleDir / "src" / "test"
+  trait TestBase extends SbtTests, TestModule.ScalaTest {
     override def scalaTestVersion: T[String] = SharedDependencies.ScalaTestV
     override def mvnDeps: T[Seq[Dep]]        = super.mvnDeps() ++ SharedDependencies.testing
 
-    private def scala2Sources               = Task.Sources("scala", "scala-2")
-    private def scala3Sources               = Task.Sources("scala", "scala-3")
-    override def sources: T[Seq[PathRef]]   = Task { if (isScala2()) scala2Sources() else scala3Sources() }
+    override def sources: T[Seq[PathRef]]   = Task.Sources("src/test/scala", "src/test/scala-3")
     override def resources: T[Seq[PathRef]] = Task.Sources(
       "src/test/resources",
       BuildCtx.workspaceRoot / "log4j" / "test"
