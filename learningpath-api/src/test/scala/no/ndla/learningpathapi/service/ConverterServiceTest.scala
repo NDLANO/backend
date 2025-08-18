@@ -29,6 +29,7 @@ import org.mockito.Mockito.when
 
 import scala.util.{Failure, Success}
 import no.ndla.common.model.domain.Priority
+import no.ndla.common.model.domain.RevisionMeta
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   val clinton: commonApi.AuthorDTO  = commonApi.AuthorDTO(ContributorType.Writer, "Crooked Hillary")
@@ -129,7 +130,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     learningsteps = None,
     responsible = None,
     comments = Seq.empty,
-    priority = Priority.Unspecified
+    priority = Priority.Unspecified,
+    revisionMeta = RevisionMeta.default
   )
 
   override def beforeEach(): Unit = {
@@ -522,6 +524,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         "nb",
         Some(apiCopyright),
+        None,
         None,
         None,
         None

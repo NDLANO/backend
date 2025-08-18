@@ -171,28 +171,83 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       id = Some(4),
       revisionMeta = Seq()
     )
+
+    val lp1 = TestData.learningPath1.copy(
+      id = Some(5),
+      revisionMeta = Seq(
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          today,
+          note = "note",
+          status = RevisionStatus.NeedsRevision
+        ),
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          tomorrow,
+          note = "note",
+          status = RevisionStatus.NeedsRevision
+        ),
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          yesterday,
+          note = "note",
+          status = RevisionStatus.Revised
+        )
+      )
+    )
+    val lp2 = TestData.learningPath1.copy(
+      id = Some(6),
+      revisionMeta = Seq(
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          yesterday.minusDays(10),
+          note = "note",
+          status = RevisionStatus.Revised
+        )
+      )
+    )
+    val lp3 = TestData.learningPath1.copy(
+      id = Some(7),
+      revisionMeta = Seq(
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          yesterday,
+          note = "note",
+          status = RevisionStatus.NeedsRevision
+        )
+      )
+    )
+    val lp4 = TestData.learningPath1.copy(
+      id = Some(8),
+      revisionMeta = Seq()
+    )
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
     draftIndexService.indexDocument(draft4, indexingBundle).get
 
-    blockUntil(() => draftIndexService.countDocuments == 4)
+    learningPathIndexService.indexDocument(lp1, indexingBundle).get
+    learningPathIndexService.indexDocument(lp2, indexingBundle).get
+    learningPathIndexService.indexDocument(lp3, indexingBundle).get
+    learningPathIndexService.indexDocument(lp4, indexingBundle).get
+
+    blockUntil(() => draftIndexService.countDocuments == 4 && learningPathIndexService.countDocuments == 4)
 
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(sort = Sort.ByRevisionDateAsc)
       ): @unchecked
 
-    search1.totalCount should be(4)
-    search1.summaryResults.map(_.id) should be(List(3, 1, 2, 4))
+    search1.totalCount should be(8)
+    search1.summaryResults.map(_.id) should be(List(3, 7, 1, 5, 2, 4, 6, 8))
 
     val Success(search2) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(sort = Sort.ByRevisionDateDesc)
       ): @unchecked
 
-    search2.totalCount should be(4)
-    search2.summaryResults.map(_.id) should be(List(1, 3, 2, 4))
+    search2.totalCount should be(8)
+    search2.summaryResults.map(_.id) should be(List(1, 5, 3, 7, 2, 4, 6, 8))
   }
 
   test("Test that searching for note in revision meta works as expected") {
@@ -249,20 +304,44 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       id = Some(4),
       revisionMeta = Seq()
     )
+    val lp1 = TestData.learningPath1.copy(
+      id = Some(5),
+      revisionMeta = Seq(
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          yesterday.minusDays(10),
+          note = "pudding",
+          status = RevisionStatus.Revised
+        )
+      )
+    )
+    val lp2 = TestData.learningPath1.copy(
+      id = Some(6),
+      revisionMeta = Seq(
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          yesterday,
+          note = "trylleformel",
+          status = RevisionStatus.NeedsRevision
+        )
+      )
+    )
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
     draftIndexService.indexDocument(draft4, indexingBundle).get
+    learningPathIndexService.indexDocument(lp1, indexingBundle).get
+    learningPathIndexService.indexDocument(lp2, indexingBundle).get
 
-    blockUntil(() => draftIndexService.countDocuments == 4)
+    blockUntil(() => draftIndexService.countDocuments == 4 && learningPathIndexService.countDocuments == 2)
 
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("trylleformel").get))
       ): @unchecked
 
-    search1.totalCount should be(1)
-    search1.summaryResults.map(_.id) should be(List(3))
+    search1.totalCount should be(2)
+    search1.summaryResults.map(_.id) should be(List(3, 6))
   }
 
   test("Test that filtering revision dates works as expected") {

@@ -14,7 +14,7 @@ import no.ndla.common.converter.CommonConverter
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Delete, Missing, ResponsibleDTO, UpdateOrDelete, UpdateWith}
-import no.ndla.common.model.domain.{ContributorType, Responsible, learningpath}
+import no.ndla.common.model.domain.{ContributorType, Responsible, learningpath, RevisionMeta}
 import no.ndla.common.model.domain.learningpath.{
   Description,
   EmbedType,
@@ -255,6 +255,9 @@ trait ConverterService {
 
       val message = existing.message.filterNot(_ => updated.deleteMessage.getOrElse(false))
 
+      val updatedRevision =
+        updated.revisionMeta.map(_.map(CommonConverter.revisionMetaApiToDomain)).getOrElse(existing.revisionMeta)
+
       LearningPath(
         id = existing.id,
         externalId = existing.externalId,
@@ -283,7 +286,8 @@ trait ConverterService {
         message = message,
         responsible = getNewResponsible(existing, updated),
         comments = updatedComments,
-        priority = updated.priority.getOrElse(existing.priority)
+        priority = updated.priority.getOrElse(existing.priority),
+        revisionMeta = updatedRevision
       )
     }
 
@@ -509,6 +513,14 @@ trait ConverterService {
 
       val priority = newLearningPath.priority.getOrElse(common.Priority.Unspecified)
 
+      val revisionMeta = newLearningPath.revisionMeta match {
+        case Some(revs) if revs.nonEmpty =>
+          newLearningPath.revisionMeta
+            .map(_.map(CommonConverter.revisionMetaApiToDomain))
+            .getOrElse(RevisionMeta.default)
+        case _ => RevisionMeta.default
+      }
+
       user.id.toTry(AccessDeniedException("User id not found")).map { ownerId =>
         LearningPath(
           id = None,
@@ -535,7 +547,8 @@ trait ConverterService {
           comments = newLearningPath.comments
             .map(comments => comments.map(CommonConverter.newCommentApiToDomain))
             .getOrElse(Seq.empty),
-          priority = priority
+          priority = priority,
+          revisionMeta = revisionMeta
         )
       }
     }

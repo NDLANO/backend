@@ -199,7 +199,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     learningsteps = Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil),
     responsible = None,
     comments = Seq.empty,
-    priority = common.Priority.Unspecified
+    priority = common.Priority.Unspecified,
+    revisionMeta = common.RevisionMeta.default
   )
 
   val PUBLISHED_LEARNINGPATH_NO_STEPS: LearningPath = LearningPath(
@@ -222,7 +223,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     learningsteps = None,
     responsible = None,
     comments = Seq.empty,
-    priority = common.Priority.Unspecified
+    priority = common.Priority.Unspecified,
+    revisionMeta = common.RevisionMeta.default
   )
 
   val PRIVATE_LEARNINGPATH: LearningPath = LearningPath(
@@ -245,7 +247,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     learningsteps = Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil),
     responsible = None,
     comments = Seq.empty,
-    priority = common.Priority.Unspecified
+    priority = common.Priority.Unspecified,
+    revisionMeta = common.RevisionMeta.default
   )
 
   val PRIVATE_LEARNINGPATH_NO_STEPS: LearningPath = LearningPath(
@@ -268,7 +271,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     learningsteps = None,
     responsible = None,
     comments = Seq.empty,
-    priority = common.Priority.Unspecified
+    priority = common.Priority.Unspecified,
+    revisionMeta = common.RevisionMeta.default
   )
 
   val DELETED_LEARNINGPATH: LearningPath = LearningPath(
@@ -291,10 +295,23 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     learningsteps = Some(STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil),
     responsible = None,
     comments = Seq.empty,
-    priority = common.Priority.Unspecified
+    priority = common.Priority.Unspecified,
+    revisionMeta = common.RevisionMeta.default
   )
   val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2DTO =
-    NewLearningPathV2DTO("Tittel", Some("Beskrivelse"), None, Some(1), None, "nb", Some(apiCopyright), None, None, None)
+    NewLearningPathV2DTO(
+      "Tittel",
+      Some("Beskrivelse"),
+      None,
+      Some(1),
+      None,
+      "nb",
+      Some(apiCopyright),
+      None,
+      None,
+      None,
+      None
+    )
   val NEW_COPIED_LEARNINGPATHV2: NewCopyLearningPathV2DTO =
     NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
 
@@ -311,6 +328,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       None,
       commonApi.Missing,
       None,
+      None,
       None
     )
 
@@ -326,6 +344,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Some(apiCopyright),
       None,
       commonApi.Missing,
+      None,
       None,
       None
     )
@@ -1224,6 +1243,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         commonApi.Missing,
         None,
+        None,
         None
       )
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
@@ -1513,6 +1533,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Some(true),
         commonApi.Missing,
+        None,
         None,
         None
       )
