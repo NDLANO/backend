@@ -16,6 +16,8 @@ on:
       - validation/**
       - search/**
       - database/**
+      - modules/**
+      - build.mill
 jobs:
   release:
     uses: ndlano/reusable-workflows/.github/workflows/release.yaml@main

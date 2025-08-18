@@ -9,11 +9,15 @@ on:
       - database/**
       - common/**
       - network/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - database/**
       - common/**
       - network/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

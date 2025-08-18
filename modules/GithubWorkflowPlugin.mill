@@ -26,8 +26,10 @@ trait GithubWorkflowPlugin extends ScalaModule {
     Seq(s"$name/**")
   }
 
+  def sharedBuildFiles(): Seq[String] = Seq("modules/**", "build.mill")
+
   def getPaths(name: String, deps: Seq[String]): Seq[String] = {
-    pathsFor(name) ++ deps.flatMap(pathsFor)
+    pathsFor(name) ++ deps.flatMap(pathsFor) ++ sharedBuildFiles()
   }
 
   def getPathsList(name: String, deps: Seq[String]): String = {
