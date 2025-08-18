@@ -14,6 +14,8 @@ import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.common.model.domain.learningpath.{Description, LearningPath, LearningpathCopyright}
 import no.ndla.learningpathapi.model.api.UpdatedLearningPathV2DTO
 import no.ndla.mapping.License.getLicense
+import no.ndla.common.model.domain.RevisionStatus
+import no.ndla.common.model.NDLADate
 
 trait LearningPathValidator {
   this: LanguageValidator & TitleValidator & TextValidator =>
@@ -53,7 +55,8 @@ trait LearningPathValidator {
         validateDescription(newLearningPath.description, allowUnknownLanguage) ++
         validateDuration(newLearningPath.duration).toList ++
         validateTags(newLearningPath.tags, allowUnknownLanguage) ++
-        validateCopyright(newLearningPath.copyright)
+        validateCopyright(newLearningPath.copyright) ++
+        validateRevisionMeta(newLearningPath)
     }
 
     private def validateDescription(
@@ -126,6 +129,19 @@ trait LearningPathValidator {
     private def validateAuthor(author: Author): Seq[ValidationMessage] = {
       noHtmlTextValidator.validate("author.name", author.name).toList
     }
+
+    private def validateRevisionMeta(lp: LearningPath): Seq[ValidationMessage] = lp.isMyNDLAOwner match {
+      case true  => Seq.empty
+      case false =>
+        lp.revisionMeta.find(rm =>
+          rm.status == RevisionStatus.NeedsRevision && rm.revisionDate.isAfter(NDLADate.now())
+        ) match {
+          case None =>
+            Seq(ValidationMessage("revisionMeta", "An article must contain at least one planned revision date"))
+          case _ => Seq.empty
+        }
+    }
+
   }
 
 }

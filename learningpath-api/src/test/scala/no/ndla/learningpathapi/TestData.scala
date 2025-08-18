@@ -93,7 +93,8 @@ object TestData {
     learningsteps = Some(List(domainLearningStep1, domainLearningStep2)),
     responsible = None,
     comments = Seq.empty,
-    priority = common.Priority.Unspecified
+    priority = common.Priority.Unspecified,
+    revisionMeta = common.RevisionMeta.default
   )
 
   val searchSettings: SearchSettings = SearchSettings(

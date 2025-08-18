@@ -34,6 +34,7 @@ import scalikejdbc.*
 
 import scala.util.Try
 import no.ndla.common.model.domain.Priority
+import no.ndla.common.model.domain.RevisionMeta
 
 class LearningPathRepositoryComponentIntegrationTest
     extends DatabaseIntegrationSuite
@@ -69,7 +70,8 @@ class LearningPathRepositoryComponentIntegrationTest
     isMyNDLAOwner = false,
     responsible = None,
     comments = Seq.empty,
-    priority = Priority.Unspecified
+    priority = Priority.Unspecified,
+    revisionMeta = RevisionMeta.default
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(

@@ -16,6 +16,7 @@ import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.common.model.domain.Priority
 import sttp.tapir.Schema
 import no.ndla.common.DeriveHelpers
+import no.ndla.common.model.domain.RevisionMeta
 
 case class LearningPath(
     id: Option[Long],
@@ -39,7 +40,8 @@ case class LearningPath(
     madeAvailable: Option[NDLADate] = None,
     responsible: Option[Responsible],
     comments: Seq[Comment],
-    priority: Priority
+    priority: Priority,
+    revisionMeta: Seq[RevisionMeta]
 ) extends Content {
 
   def supportedLanguages: Seq[String] = {

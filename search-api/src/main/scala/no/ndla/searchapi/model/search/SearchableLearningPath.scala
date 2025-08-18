@@ -15,6 +15,7 @@ import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.learningpath.CopyrightDTO
 import no.ndla.common.model.domain.Priority
+import no.ndla.common.model.domain.RevisionMeta
 
 case class SearchableLearningPath(
     id: Long,
@@ -41,7 +42,9 @@ case class SearchableLearningPath(
     favorited: Long,
     learningResourceType: LearningResourceType,
     typeName: List[String],
-    priority: Priority
+    priority: Priority,
+    revisionMeta: List[RevisionMeta],
+    nextRevision: Option[RevisionMeta]
 )
 
 object SearchableLearningPath {

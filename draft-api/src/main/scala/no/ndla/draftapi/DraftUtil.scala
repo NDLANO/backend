@@ -8,10 +8,10 @@
 
 package no.ndla.draftapi
 
-import no.ndla.common.model.domain as common
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus.PUBLISHED
 import no.ndla.draftapi.model.api
+import no.ndla.common.model.domain.getNextRevision
 
 object DraftUtil {
 
@@ -32,9 +32,6 @@ object DraftUtil {
       Set.empty
     }
   }
-
-  def getNextRevision(revisions: Seq[common.RevisionMeta]): Option[common.RevisionMeta] =
-    revisions.filterNot(_.status == common.RevisionStatus.Revised).sortBy(_.revisionDate).headOption
 
   private def compareField(
       field: api.PartialArticleFieldsDTO,
@@ -60,6 +57,6 @@ object DraftUtil {
     * article-api cares about.
     */
   private def compareRevisionDates(oldArticle: Draft, newArticle: Draft): Boolean = {
-    getNextRevision(oldArticle.revisionMeta) != getNextRevision(newArticle.revisionMeta)
+    oldArticle.revisionMeta.getNextRevision != newArticle.revisionMeta.getNextRevision
   }
 }

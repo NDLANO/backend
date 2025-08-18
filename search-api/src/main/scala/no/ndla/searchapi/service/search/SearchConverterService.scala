@@ -45,8 +45,7 @@ import no.ndla.common.model.domain.{
   ArticleType,
   Tag,
   VisualElement,
-  ResourceType as MyNDLAResourceType,
-  RevisionStatus
+  ResourceType as MyNDLAResourceType
 }
 import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
 import no.ndla.language.model.{Iso639, LanguageField}
@@ -74,6 +73,7 @@ import org.jsoup.nodes.Entities.EscapeMode
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
+import no.ndla.common.model.domain.getNextRevision
 
 trait SearchConverterService {
   this: DraftApiClient & TaxonomyApiClient & ConverterService & Props & MyNDLAApiClient & SearchLanguage =>
@@ -426,7 +426,9 @@ trait SearchConverterService {
             favorited = favorited,
             learningResourceType = LearningResourceType.LearningPath,
             typeName = getTypeNames(LearningResourceType.LearningPath),
-            priority = lp.priority
+            priority = lp.priority,
+            revisionMeta = lp.revisionMeta.toList,
+            nextRevision = lp.revisionMeta.getNextRevision
           )
         )
       }
@@ -532,11 +534,7 @@ trait SearchConverterService {
       val notes: List[String] = draft.notes.map(_.note).toList
       val users: List[String] =
         List(draft.updatedBy) ++ draft.notes.map(_.user) ++ draft.previousVersionsNotes.map(_.user)
-      val nextRevision =
-        draft.revisionMeta
-          .filter(_.status == RevisionStatus.NeedsRevision)
-          .sortBy(_.revisionDate)
-          .headOption
+      val nextRevision = draft.revisionMeta.getNextRevision
       val draftStatus = search.SearchableStatus(draft.status.current.toString, draft.status.other.map(_.toString).toSeq)
 
       val parentTopicName = SearchableLanguageValues(

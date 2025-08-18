@@ -29,6 +29,7 @@ import scalikejdbc.DBSession
 
 import scala.util.Failure
 import no.ndla.common.model.domain.Priority
+import no.ndla.common.model.domain.RevisionMeta
 
 class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
@@ -62,7 +63,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     isMyNDLAOwner = false,
     responsible = None,
     comments = Seq.empty,
-    priority = Priority.Unspecified
+    priority = Priority.Unspecified,
+    revisionMeta = RevisionMeta.default
   )
 
   val PRIVATE_LEARNINGPATH: LearningPath = LearningPath(
@@ -84,7 +86,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     isMyNDLAOwner = false,
     responsible = None,
     comments = Seq.empty,
-    priority = Priority.Unspecified
+    priority = Priority.Unspecified,
+    revisionMeta = RevisionMeta.default
   )
 
   val STEP1: LearningStep = LearningStep(
