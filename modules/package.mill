@@ -10,7 +10,7 @@ import scala.util.{Failure, Success, Try}
 import scala.io.Source
 
 trait BaseModule
-    extends SbtModule,
+    extends ScalaModule,
       DefaultOptions,
       AutoEnvLoading,
       OpenAPITSPlugin,
@@ -35,15 +35,13 @@ trait BaseModule
     ScalafmtModule.reformatAll(Tasks(Seq(sources, test.sources)))()
   }
 
-  trait TestBase extends SbtTests, TestModule.ScalaTest {
+  trait TestBase extends ScalaTests, TestModule.ScalaTest {
+    override def moduleDir: Path             = baseModuleDir / "src" / "test"
     override def scalaTestVersion: T[String] = SharedDependencies.ScalaTestV
     override def mvnDeps: T[Seq[Dep]]        = super.mvnDeps() ++ SharedDependencies.testing
 
-    override def sources: T[Seq[PathRef]]   = Task.Sources("src/test/scala", "src/test/scala-3")
-    override def resources: T[Seq[PathRef]] = Task.Sources(
-      "src/test/resources",
-      BuildCtx.workspaceRoot / "log4j" / "test"
-    )
+    override def sources: T[Seq[PathRef]]   = Task.Sources("scala", "scala-3")
+    override def resources: T[Seq[PathRef]] = Task.Sources("resources", BuildCtx.workspaceRoot / "log4j" / "test")
 
     override def scalacOptions: T[Seq[String]] = Task {
       super.scalacOptions().filterNot(scalacOptionsOnlyRun().contains)
