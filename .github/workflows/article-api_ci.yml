@@ -14,6 +14,8 @@ on:
       - validation/**
       - search/**
       - database/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - article-api/**
@@ -24,6 +26,8 @@ on:
       - validation/**
       - search/**
       - database/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

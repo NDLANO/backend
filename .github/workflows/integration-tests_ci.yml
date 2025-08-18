@@ -7,9 +7,13 @@ on:
   push:
     paths:
       - integration-tests/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - integration-tests/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

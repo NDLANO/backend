@@ -10,12 +10,16 @@ on:
       - language/**
       - common/**
       - mapping/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - search/**
       - language/**
       - common/**
       - mapping/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

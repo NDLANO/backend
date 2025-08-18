@@ -12,6 +12,8 @@ on:
       - mapping/**
       - language/**
       - database/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - frontpage-api/**
@@ -20,6 +22,8 @@ on:
       - mapping/**
       - language/**
       - database/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

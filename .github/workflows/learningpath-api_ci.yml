@@ -13,6 +13,8 @@ on:
       - language/**
       - search/**
       - database/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - learningpath-api/**
@@ -22,6 +24,8 @@ on:
       - language/**
       - search/**
       - database/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml
