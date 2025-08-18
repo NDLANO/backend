@@ -143,8 +143,9 @@ trait DraftRepository {
       failIfRevisionMismatch(count, article, newRevision)
     }
 
-    def withId(articleId: Long)(implicit session: DBSession): Option[Draft] =
+    def withId(articleId: Long, updateLock: Boolean = false)(implicit session: DBSession): Option[Draft] =
       articleWhere(
+        updateLock,
         sqls"""
               ar.article_id=${articleId.toInt}
               ORDER BY revision
@@ -362,9 +363,13 @@ trait DraftRepository {
         .list()
     }
 
-    private def articleWhere(whereClause: SQLSyntax)(implicit session: DBSession): Option[Draft] = {
-      val ar = DBArticle.syntax("ar")
-      sql"select ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL and $whereClause"
+    private def articleWhere(
+        updateLock: Boolean,
+        whereClause: SQLSyntax
+    )(implicit session: DBSession): Option[Draft] = {
+      val ar         = DBArticle.syntax("ar")
+      val lockClause = if (updateLock) sqls"FOR UPDATE" else sqls""
+      sql"select @$lockClause ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL and $whereClause"
         .map(DBArticle.fromResultSet(ar))
         .single()
     }
@@ -390,9 +395,8 @@ trait DraftRepository {
         .single()
     }
 
-    def withSlug(slug: String)(implicit session: DBSession): Option[Draft] = articleWhere(
-      sqls"ar.slug=${slug.toLowerCase} ORDER BY revision DESC LIMIT 1"
-    )
+    def withSlug(slug: String, updateLock: Boolean = false)(implicit session: DBSession): Option[Draft] =
+      articleWhere(updateLock, sqls"ar.slug=${slug.toLowerCase} ORDER BY revision DESC LIMIT 1")
 
     def slugExists(slug: String, articleId: Option[Long])(implicit
         session: DBSession = ReadOnlyAutoSession
