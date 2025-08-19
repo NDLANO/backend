@@ -13,7 +13,7 @@ import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.domain.{ArticleContent, Description, VisualElement}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.validation.{ResourceType, TagAttribute}
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.ArgumentMatchers.{any, anyBoolean, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}
 import scalikejdbc.DBSession
 
@@ -53,7 +53,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       visualElement = Seq(VisualElement(visualElementBefore, "nb"))
     )
 
-    when(draftRepository.withId(eqTo(1L))(any)).thenReturn(Option(article))
+    when(draftRepository.withId(eqTo(1L), anyBoolean())(any)).thenReturn(Option(article))
     when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("54321"))
 
     val expectedResult = converterService
