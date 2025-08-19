@@ -864,6 +864,8 @@ export type components = {
             responsibleId?: string;
             /** @description Information about comments attached to the learningpath */
             comments?: components["schemas"]["NewCommentDTO"][];
+            /** @description A list of all revisions of the learningpath */
+            revisionMeta?: components["schemas"]["RevisionMetaDTO"][];
             priority?: components["schemas"]["Priority"];
         };
         /**
@@ -929,6 +931,20 @@ export type components = {
             responsibleId: string;
             /** @description Date of when the responsible editor was last updated */
             lastUpdated: string;
+        };
+        /**
+         * RevisionMetaDTO
+         * @description Information about the editorial notes
+         */
+        RevisionMetaDTO: {
+            /** @description An unique uuid of the revision. If none supplied, one is generated. */
+            id?: string;
+            /** @description A date on which the article would need to be revised */
+            revisionDate: string;
+            /** @description Notes to keep track of what needs to happen before revision */
+            note: string;
+            /** @description Status of a revision, either 'revised' or 'needs-revision' */
+            status: string;
         };
         /**
          * SearchParamsDTO
@@ -1057,6 +1073,8 @@ export type components = {
             /** @description Information about comments attached to the learningpath */
             comments?: components["schemas"]["UpdatedCommentDTO"][];
             priority?: components["schemas"]["Priority"];
+            /** @description A list of all revisions of the learningpath */
+            revisionMeta?: components["schemas"]["RevisionMetaDTO"][];
         };
         /**
          * UpdatedLearningStepV2DTO
