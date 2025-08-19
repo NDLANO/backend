@@ -173,7 +173,8 @@ trait ConverterService {
             isMyNDLAOwner = lp.isMyNDLAOwner,
             responsible = lp.responsible.map(asApiResponsible),
             comments = lp.comments.map(CommonConverter.commentDomainToApi),
-            priority = lp.priority
+            priority = lp.priority,
+            revisions = lp.revisionMeta.map(CommonConverter.revisionMetaDomainToApi)
           )
         )
       } else
