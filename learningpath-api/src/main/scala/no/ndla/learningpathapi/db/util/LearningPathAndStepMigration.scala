@@ -14,16 +14,19 @@ import scalikejdbc.*
 
 case class LpDocumentRow(
     learningPathId: Long,
-    learningPathDocument: String,
+    learningPathDocument: String
 )
 
 case class StepDocumentRow(
     learningStepId: Long,
-    learningStepDocument: String,
+    learningStepDocument: String
 )
 
 abstract class LearningPathAndStepMigration extends BaseJavaMigration {
-  def convertPathAndSteps(lpData: LpDocumentRow, stepDatas: List[StepDocumentRow]): (LpDocumentRow, List[StepDocumentRow])
+  def convertPathAndSteps(
+      lpData: LpDocumentRow,
+      stepDatas: List[StepDocumentRow]
+  ): (LpDocumentRow, List[StepDocumentRow])
   val chunkSize: Int = 1000
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
@@ -48,10 +51,9 @@ abstract class LearningPathAndStepMigration extends BaseJavaMigration {
       .list()
   }
 
-
   private def updateLp(existingRow: LpDocumentRow, newRow: LpDocumentRow)(using session: DBSession): Unit = {
-    if(existingRow == newRow) return
-    if(existingRow.learningPathId != newRow.learningPathId) {
+    if (existingRow == newRow) return
+    if (existingRow.learningPathId != newRow.learningPathId) {
       throw new RuntimeException(s"Learning path id mismatch: $existingRow -> $newRow")
     }
 
@@ -59,12 +61,12 @@ abstract class LearningPathAndStepMigration extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(newRow.learningPathDocument)
     val updated = sql"update learningpaths set document = $dataObject where id = ${newRow.learningPathId}".update()
-    if(updated != 1) throw new RuntimeException(s"Failed to update learning path document $existingRow -> $newRow")
+    if (updated != 1) throw new RuntimeException(s"Failed to update learning path document $existingRow -> $newRow")
   }
 
   private def updateStep(existingStep: StepDocumentRow, newStep: StepDocumentRow)(using session: DBSession): Unit = {
-    if(existingStep == newStep) return
-    if(existingStep.learningStepId != newStep.learningStepId) {
+    if (existingStep == newStep) return
+    if (existingStep.learningStepId != newStep.learningStepId) {
       throw new RuntimeException(s"Cannot update learning step with different IDs: $existingStep -> $newStep")
     }
 
@@ -72,9 +74,8 @@ abstract class LearningPathAndStepMigration extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(newStep.learningStepDocument)
     val updated = sql"update learningsteps set document = $dataObject where id = ${newStep.learningStepId}".update()
-    if(updated != 1) throw new RuntimeException(s"Failed to update learning step document $existingStep -> $newStep")
+    if (updated != 1) throw new RuntimeException(s"Failed to update learning step document $existingStep -> $newStep")
   }
-
 
   private def updateRow(path: LpDocumentRow, steps: List[StepDocumentRow])(using session: DBSession): Unit = {
     val (newPath, newSteps) = convertPathAndSteps(path, steps)
