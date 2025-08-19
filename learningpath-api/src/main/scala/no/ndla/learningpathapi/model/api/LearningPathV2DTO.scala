@@ -14,6 +14,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{CommentDTO, ResponsibleDTO}
 import sttp.tapir.Schema.annotations.description
 import no.ndla.common.model.domain.Priority
+import no.ndla.common.model.api.RevisionMetaDTO
 
 @description("Meta information for a learningpath")
 case class LearningPathV2DTO(
@@ -67,7 +68,9 @@ case class LearningPathV2DTO(
     @description("Information about comments attached to the learningpath") comments: Seq[CommentDTO],
     @description(
       "If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified"
-    ) priority: Priority
+    ) priority: Priority,
+    @description("A list of revisions planned for the learningpath")
+    revisions: Seq[RevisionMetaDTO]
 )
 
 object LearningPathV2DTO {

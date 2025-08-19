@@ -66,7 +66,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     false,
     None,
     Seq.empty,
-    Priority.Unspecified
+    Priority.Unspecified,
+    Seq.empty
   )
   val domainLearningStep: LearningStep =
     LearningStep(None, None, None, None, 1, List(), List(), List(), List(), None, StepType.INTRODUCTION, None)
@@ -110,6 +111,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   val randomDate: NDLADate      = NDLADate.now()
   var service: ConverterService = _
 
+  val revisionMeta = RevisionMeta.default
+
   val domainLearningPath: LearningPath = LearningPath(
     id = Some(1L),
     revision = Some(1),
@@ -131,7 +134,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default
+    revisionMeta = revisionMeta
   )
 
   override def beforeEach(): Unit = {
@@ -172,7 +175,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         false,
         None,
         Seq.empty,
-        Priority.Unspecified
+        Priority.Unspecified,
+        revisionMeta.map(CommonConverter.revisionMetaDomainToApi)
       )
     )
     service.asApiLearningpathV2(
@@ -228,7 +232,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         false,
         None,
         Seq.empty,
-        Priority.Unspecified
+        Priority.Unspecified,
+        revisionMeta.map(CommonConverter.revisionMetaDomainToApi)
       )
     )
     service.asApiLearningpathV2(
