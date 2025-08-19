@@ -369,7 +369,7 @@ trait DraftRepository {
     )(implicit session: DBSession): Option[Draft] = {
       val ar         = DBArticle.syntax("ar")
       val lockClause = if (updateLock) sqls"FOR UPDATE" else sqls""
-      sql"select @$lockClause ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL and $whereClause"
+      sql"select ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL and $whereClause $lockClause"
         .map(DBArticle.fromResultSet(ar))
         .single()
     }
