@@ -685,6 +685,8 @@ export type components = {
             /** @description Information about comments attached to the learningpath */
             comments: components["schemas"]["CommentDTO"][];
             priority: components["schemas"]["Priority"];
+            /** @description A list of revisions planned for the learningpath */
+            revisions: components["schemas"]["RevisionMetaDTO"][];
         };
         /**
          * LearningStepContainerSummaryDTO
