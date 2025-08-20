@@ -658,6 +658,7 @@ trait WriteService {
             savedSearches = None,
             latestEditedArticles = None,
             latestEditedConcepts = None,
+            latestEditedLearningpaths = None,
             favoriteSubjects = None
           )
         )
@@ -674,6 +675,7 @@ trait WriteService {
             savedSearches = updatedUserData.savedSearches,
             latestEditedArticles = updatedUserData.latestEditedArticles,
             latestEditedConcepts = updatedUserData.latestEditedConcepts,
+            latestEditedLearningpaths = updatedUserData.latestEditedLearningpaths,
             favoriteSubjects = updatedUserData.favoriteSubjects
           )
           userDataRepository.insert(newUserData).map(converterService.toApiUserData)
@@ -683,6 +685,7 @@ trait WriteService {
             savedSearches = updatedUserData.savedSearches.orElse(existing.savedSearches),
             latestEditedArticles = updatedUserData.latestEditedArticles.orElse(existing.latestEditedArticles),
             latestEditedConcepts = updatedUserData.latestEditedConcepts.orElse(existing.latestEditedConcepts),
+            latestEditedLearningpaths = existing.latestEditedLearningpaths,
             favoriteSubjects = updatedUserData.favoriteSubjects.orElse(existing.favoriteSubjects)
           )
           userDataRepository.update(toUpdate).map(converterService.toApiUserData)
