@@ -10,6 +10,7 @@ on:
       - common/**
       - network/**
       - scalatestsuite/**
+      - tapirtesting/**
       - modules/**
       - build.mill
   pull_request:
@@ -18,6 +19,7 @@ on:
       - common/**
       - network/**
       - scalatestsuite/**
+      - tapirtesting/**
       - modules/**
       - build.mill
 jobs:

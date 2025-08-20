@@ -13,6 +13,8 @@ on:
       - language/**
       - search/**
       - database/**
+      - tapirtesting/**
+      - scalatestsuite/**
       - modules/**
       - build.mill
   pull_request:
@@ -24,6 +26,8 @@ on:
       - language/**
       - search/**
       - database/**
+      - tapirtesting/**
+      - scalatestsuite/**
       - modules/**
       - build.mill
 jobs:
