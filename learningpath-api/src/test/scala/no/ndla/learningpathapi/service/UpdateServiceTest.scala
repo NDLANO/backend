@@ -1507,7 +1507,21 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       owner = PRIVATE_OWNER.id,
       lastUpdated = now,
       learningsteps = PUBLISHED_LEARNINGPATH.learningsteps.map(
-        _.map(_.copy(id = None, revision = None, externalId = None, learningPathId = None))
+        _.map { step =>
+          val stepCopyright = step.`type` match {
+            case StepType.TEXT if step.copyright.isEmpty => Some(PUBLISHED_LEARNINGPATH.copyright)
+            case StepType.TEXT                           => step.copyright
+            case _                                       => None
+
+          }
+          step.copy(
+            id = None,
+            revision = None,
+            externalId = None,
+            learningPathId = None,
+            copyright = stepCopyright
+          )
+        }
       )
     )
 

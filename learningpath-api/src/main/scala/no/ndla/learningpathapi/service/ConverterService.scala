@@ -495,6 +495,26 @@ trait ConverterService {
           .map(converterService.asCopyright)
           .getOrElse(existing.copyright)
 
+        val existingPathCopyright = existing.copyright.some
+
+        val steps = existing.learningsteps
+          .map(ls =>
+            ls.map { step =>
+              val stepCopyright = step.`type` match {
+                case StepType.TEXT => step.copyright.orElse(existingPathCopyright)
+                case _             => step.copyright
+              }
+
+              step.copy(
+                id = None,
+                revision = None,
+                externalId = None,
+                learningPathId = None,
+                copyright = stepCopyright
+              )
+            }
+          )
+
         existing.copy(
           id = None,
           revision = None,
@@ -508,8 +528,7 @@ trait ConverterService {
           madeAvailable = None,
           owner = ownerId,
           copyright = copyright,
-          learningsteps = existing.learningsteps
-            .map(ls => ls.map(_.copy(id = None, revision = None, externalId = None, learningPathId = None))),
+          learningsteps = steps,
           tags = tags,
           coverPhotoId = coverPhotoId,
           duration = duration

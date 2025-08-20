@@ -243,7 +243,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     val license            = "<strong>ugyldig</strong>"
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(copyright = Some(LearningpathCopyright(license, Seq.empty))),
-      ValidLearningPath, false
+      ValidLearningPath,
+      false
     )
     validationMessages.size should be(1)
     validationMessages.head.field should equal("license")
