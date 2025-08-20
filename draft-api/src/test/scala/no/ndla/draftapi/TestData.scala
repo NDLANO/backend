@@ -574,8 +574,9 @@ object TestData {
       userId = "",
       savedSearches = None,
       latestEditedArticles = None,
-      favoriteSubjects = None,
-      latestEditedConcepts = None
+      latestEditedConcepts = None,
+      latestEditedLearningpaths = None,
+      favoriteSubjects = None
     )
 
   val emptyApiUserData: api.UserDataDTO =
