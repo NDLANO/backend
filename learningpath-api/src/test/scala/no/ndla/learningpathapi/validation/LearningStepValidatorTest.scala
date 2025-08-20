@@ -14,20 +14,25 @@ import no.ndla.common.model.domain.learningpath.{
   EmbedType,
   EmbedUrl,
   Introduction,
+  LearningPath,
+  LearningPathStatus,
+  LearningPathVerificationStatus,
   LearningStep,
+  LearningpathCopyright,
   StepStatus,
   StepType
 }
-import no.ndla.common.model.domain.Title
+import no.ndla.common.model.domain.{Author, ContributorType, Priority, RevisionMeta, Tag, Title}
 import no.ndla.learningpathapi.*
-import no.ndla.mapping.License
+import no.ndla.mapping.License.PublicDomain
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 
 class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   var validator: LearningStepValidator = _
 
-  val license = License.PublicDomain.toString
+  val license = PublicDomain.toString
 
   val ValidLearningStep: LearningStep = LearningStep(
     id = None,
@@ -46,6 +51,32 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     status = StepStatus.ACTIVE
   )
 
+  val trump: Author                    = Author(ContributorType.Writer, "Donald Drumpf")
+  val copyright: LearningpathCopyright = LearningpathCopyright(license, List(trump))
+
+  val ValidLearningPath: LearningPath = LearningPath(
+    id = None,
+    title = List(Title("Gyldig tittel", "nb")),
+    description = List(Description("Gyldig beskrivelse", "nb")),
+    coverPhotoId = Some(s"http://api.ndla.no/image-api/v2/images/1"),
+    duration = Some(180),
+    tags = List(Tag(Seq("Gyldig tag"), "nb")),
+    revision = None,
+    externalId = None,
+    isBasedOn = None,
+    status = LearningPathStatus.PRIVATE,
+    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+    created = clock.now(),
+    lastUpdated = clock.now(),
+    owner = "",
+    copyright = copyright,
+    isMyNDLAOwner = false,
+    responsible = None,
+    comments = Seq.empty,
+    priority = Priority.Unspecified,
+    revisionMeta = RevisionMeta.default
+  )
+
   override def beforeEach(): Unit = {
     validator = new LearningStepValidator
     resetMocks()
@@ -58,7 +89,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   test("That a valid learningstep does not give an error") {
     validMock()
-    validator.validateLearningStep(ValidLearningStep, false) should equal(List())
+    validator.validateLearningStep(ValidLearningStep, ValidLearningPath, false) should equal(List())
   }
 
   test("That validate returns error message when description contains illegal html") {
@@ -66,6 +97,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     val validationErrors =
       validator.validateLearningStep(
         ValidLearningStep.copy(description = List(Description("<h1>Ugyldig</h1>", "nb"))),
+        ValidLearningPath,
         false
       )
     validationErrors.size should be(1)
@@ -80,6 +112,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     when(languageValidator.validate("language", "nb", false)).thenReturn(None)
     val validationErrors = validator.validateLearningStep(
       ValidLearningStep.copy(description = List(Description("<strong>Gyldig beskrivelse</strong>", "bergensk"))),
+      ValidLearningPath,
       false
     )
     validationErrors.size should be(1)
@@ -94,6 +127,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     when(languageValidator.validate("language", "nb", false)).thenReturn(None)
     val validationErrors = validator.validateLearningStep(
       ValidLearningStep.copy(description = List(Description("<h1>Ugyldig</h1>", "bergensk"))),
+      ValidLearningPath,
       false
     )
     validationErrors.size should be(2)
@@ -112,6 +146,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
           Description("<h4>Også ugyldig</h4>", "nb")
         )
       ),
+      ValidLearningPath,
       false
     )
 
@@ -124,6 +159,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     validMock()
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(embedUrl = List(EmbedUrl("<strong>ikke gyldig</strong>", "nb", EmbedType.OEmbed))),
+      ValidLearningPath,
       false
     )
     validationMessages.size should be(1)
@@ -139,6 +175,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
       .thenReturn(Some(ValidationMessage("language", "Error")))
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(embedUrl = List(EmbedUrl("https://www.ndla.no/123", "bergensk", EmbedType.OEmbed))),
+      ValidLearningPath,
       false
     )
     validationMessages.size should be(1)
@@ -154,6 +191,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(embedUrl = List(EmbedUrl("<h1>Ugyldig</h1>", "bergensk", EmbedType.OEmbed))),
+      ValidLearningPath,
       false
     )
     validationMessages.size should be(2)
@@ -176,6 +214,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
           EmbedUrl("https://www.ndla.no/123", "bergensk", EmbedType.OEmbed)
         )
       ),
+      ValidLearningPath,
       false
     )
     validationMessages.size should be(2)
@@ -193,6 +232,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
         embedUrl =
           List(EmbedUrl("/subjects/subject:9/topic:1:179373/topic:1:170165/resource:1:16145", "nb", EmbedType.OEmbed))
       ),
+      ValidLearningPath,
       false
     )
     validationMessages.size should be(0)
@@ -201,14 +241,17 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
   test("That html-code in license returns an error") {
     validMock()
     val license            = "<strong>ugyldig</strong>"
-    val validationMessages = validator.validateLearningStep(ValidLearningStep.copy(license = Some(license)), false)
+    val validationMessages =
+      validator.validateLearningStep(ValidLearningStep.copy(license = Some(license)), ValidLearningPath, false)
     validationMessages.size should be(1)
     validationMessages.head.field should equal("license")
   }
 
   test("That None-license doesn't give an error") {
     validMock()
-    validator.validateLearningStep(ValidLearningStep.copy(license = None), false) should equal(List())
+    validator.validateLearningStep(ValidLearningStep.copy(license = None), ValidLearningPath, false) should equal(
+      List()
+    )
   }
 
   test("That error is returned when no descriptions, embedUrls or articleId are defined") {
@@ -216,6 +259,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     val validationErrors =
       validator.validateLearningStep(
         ValidLearningStep.copy(description = List(), embedUrl = Seq(), articleId = None),
+        ValidLearningPath,
         false
       )
     validationErrors.size should be(1)
@@ -227,11 +271,30 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   test("That no error is returned when a description is present, but no embedUrls") {
     validMock()
-    validator.validateLearningStep(ValidLearningStep.copy(embedUrl = Seq()), false) should equal(Seq())
+    validator.validateLearningStep(ValidLearningStep.copy(embedUrl = Seq()), ValidLearningPath, false) should equal(
+      Seq()
+    )
   }
 
   test("That no error is returned when an embedUrl is present, but no descriptions") {
     validMock()
-    validator.validateLearningStep(ValidLearningStep.copy(description = List()), false) should equal(List())
+    validator.validateLearningStep(ValidLearningStep.copy(description = List()), ValidLearningPath, false) should equal(
+      List()
+    )
+  }
+
+  test("That error is returned if step in My NDLA path is created/updated with multiple languages") {
+    validMock()
+    when(titleValidator.validate(any[Seq[Title]], any[Boolean])).thenReturn(List())
+    val newStep      = ValidLearningStep.copy(title = ValidLearningStep.title :+ Title("Tittel", "nn"))
+    val learningPath = ValidLearningPath.copy(isMyNDLAOwner = true)
+    validator.validateLearningStep(newStep, learningPath, false) should be(
+      Seq(
+        ValidationMessage(
+          "supportedLanguages",
+          "A learning step created in MyNDLA must have exactly one supported language."
+        )
+      )
+    )
   }
 }

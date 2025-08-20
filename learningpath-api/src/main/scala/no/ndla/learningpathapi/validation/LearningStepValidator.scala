@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.domain.learningpath.{Description, EmbedUrl, Introduction, LearningStep}
+import no.ndla.common.model.domain.learningpath.{Description, EmbedUrl, Introduction, LearningPath, LearningStep}
 
 import scala.util.{Failure, Success, Try}
 
@@ -22,24 +22,43 @@ trait LearningStepValidator {
     private val allowedHtmlTextValidator = new TextValidator(allowHtml = true)
     private val urlValidator             = new UrlValidator()
 
+    private val MY_NDLA_INVALID_LANGUAGES =
+      "A learning step created in MyNDLA must have exactly one supported language."
+
     private val MISSING_DESCRIPTION_OR_EMBED_URL_OR_ARTICLE_ID =
       "A learningstep is required to have either a description, an embedUrl, or an articleId."
 
-    def validate(newLearningStep: LearningStep, allowUnknownLanguage: Boolean = false): Try[LearningStep] = {
-      validateLearningStep(newLearningStep, allowUnknownLanguage) match {
+    def validate(
+        newLearningStep: LearningStep,
+        learningPath: LearningPath,
+        allowUnknownLanguage: Boolean = false
+    ): Try[LearningStep] = {
+      validateLearningStep(newLearningStep, learningPath, allowUnknownLanguage) match {
         case head :: tail => Failure(new ValidationException(errors = head :: tail))
         case _            => Success(newLearningStep)
       }
     }
 
-    def validateLearningStep(newLearningStep: LearningStep, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      titleValidator.validate(newLearningStep.title, allowUnknownLanguage) ++
+    def validateLearningStep(
+        newLearningStep: LearningStep,
+        learningPath: LearningPath,
+        allowUnknownLanguage: Boolean
+    ): Seq[ValidationMessage] = {
+      validateSupportedLanguages(newLearningStep, learningPath) ++
+        titleValidator.validate(newLearningStep.title, allowUnknownLanguage) ++
         validateIntroduction(newLearningStep.introduction, allowUnknownLanguage) ++
         validateDescription(newLearningStep.description, allowUnknownLanguage) ++
         validateEmbedUrl(newLearningStep.embedUrl, allowUnknownLanguage) ++
         validateLicense(newLearningStep.license).toList ++
         validateThatDescriptionOrEmbedUrlOrArticleIdIsDefined(newLearningStep).toList
     }
+
+    private def validateSupportedLanguages(learningStep: LearningStep, learningPath: LearningPath) =
+      (learningStep.supportedLanguages.size, learningPath.isMyNDLAOwner) match {
+        case (1, true)  => List()
+        case (_, true)  => List(ValidationMessage("supportedLanguages", MY_NDLA_INVALID_LANGUAGES))
+        case (_, false) => List()
+      }
 
     def validateIntroduction(
         introductions: Seq[Introduction],

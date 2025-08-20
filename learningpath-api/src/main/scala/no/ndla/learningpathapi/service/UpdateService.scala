@@ -140,7 +140,7 @@ trait UpdateService {
             learningPath <- withId(learningPathId).flatMap(_.canEditLearningpath(owner))
             updatedSteps <- learningPath.learningsteps
               .getOrElse(Seq.empty)
-              .traverse(step => deleteLanguageFromStep(step, language))
+              .traverse(step => deleteLanguageFromStep(step, language, learningPath))
             withUpdatedSteps    <- Try(converterService.insertLearningSteps(learningPath, updatedSteps, owner))
             withDeletedLanguage <- converterService.deleteLearningPathLanguage(withUpdatedSteps, language)
             updatedPath         <- Try(learningPathRepository.update(withDeletedLanguage))
@@ -168,7 +168,7 @@ trait UpdateService {
             learningStep <- learningPathRepository
               .learningStepWithId(learningPathId, stepId)
               .toTry(NotFoundException(s"Could not find learningpath with id '$learningPathId'."))
-            updatedStep  <- deleteLanguageFromStep(learningStep, language)
+            updatedStep  <- deleteLanguageFromStep(learningStep, language, learningPath)
             pathToUpdate <- Try(converterService.insertLearningStep(learningPath, updatedStep, owner))
             updatedPath  <- Try(learningPathRepository.update(pathToUpdate))
             _            <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
@@ -185,14 +185,15 @@ trait UpdateService {
 
     private def deleteLanguageFromStep(
         learningStep: LearningStep,
-        language: String
+        language: String,
+        learningPath: LearningPath
     )(implicit
         session: DBSession
     ): Try[LearningStep] = {
       for {
         withDeletedLanguage <- converterService.deleteLearningStepLanguage(learningStep, language)
-        validated           <- learningStepValidator.validate(withDeletedLanguage, allowUnknownLanguage = true)
-        updatedStep         <- Try(learningPathRepository.updateLearningStep(validated))
+        validated   <- learningStepValidator.validate(withDeletedLanguage, learningPath, allowUnknownLanguage = true)
+        updatedStep <- Try(learningPathRepository.updateLearningStep(validated))
       } yield updatedStep
     }
 
@@ -284,7 +285,7 @@ trait UpdateService {
           case Success(learningPath) =>
             val validated = for {
               newStep   <- converterService.asDomainLearningStep(newLearningStep, learningPath)
-              validated <- learningStepValidator.validate(newStep)
+              validated <- learningStepValidator.validate(newStep, learningPath)
             } yield validated
 
             validated match {
@@ -334,14 +335,12 @@ trait UpdateService {
               case Some(existing) =>
                 val validated = for {
                   toUpdate  <- converterService.mergeLearningSteps(existing, learningStepToUpdate)
-                  validated <- learningStepValidator.validate(toUpdate, allowUnknownLanguage = true)
+                  validated <- learningStepValidator.validate(toUpdate, learningPath, allowUnknownLanguage = true)
                 } yield validated
 
                 validated match {
                   case Failure(ex)       => Failure(ex)
                   case Success(toUpdate) =>
-                    learningStepValidator.validate(toUpdate, allowUnknownLanguage = true).??
-
                     val (updatedStep, updatedPath) = inTransaction { implicit session =>
                       val updatedStep =
                         learningPathRepository.updateLearningStep(toUpdate)
