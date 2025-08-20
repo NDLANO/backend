@@ -8,7 +8,9 @@
 
 package no.ndla.learningpathapi.db.util
 
+import com.typesafe.scalalogging.StrictLogging
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
+import org.log4s.MDC
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
@@ -22,7 +24,7 @@ case class StepDocumentRow(
     learningStepDocument: String
 )
 
-abstract class LearningPathAndStepMigration extends BaseJavaMigration {
+abstract class LearningPathAndStepMigration extends BaseJavaMigration with StrictLogging {
   def convertPathAndSteps(
       lpData: LpDocumentRow,
       stepDatas: List[StepDocumentRow]
@@ -65,6 +67,7 @@ abstract class LearningPathAndStepMigration extends BaseJavaMigration {
   }
 
   private def updateStep(existingStep: StepDocumentRow, newStep: StepDocumentRow)(using session: DBSession): Unit = {
+
     if (existingStep == newStep) return
     if (existingStep.learningStepId != newStep.learningStepId) {
       throw new RuntimeException(s"Cannot update learning step with different IDs: $existingStep -> $newStep")
@@ -77,15 +80,50 @@ abstract class LearningPathAndStepMigration extends BaseJavaMigration {
     if (updated != 1) throw new RuntimeException(s"Failed to update learning step document $existingStep -> $newStep")
   }
 
+  private def deleteStep(stepId: Long)(using session: DBSession): Unit = {
+    logger.info(s"Deleting learning step with id: $stepId")
+    val deleted = sql"delete from learningsteps where id = $stepId".update()
+    if (deleted != 1) throw new RuntimeException(s"Failed to delete learning step with id $stepId")
+  }
+
+  private def createStep(row: StepDocumentRow, learningPath: LpDocumentRow)(using session: DBSession): Unit = {
+    logger.info(s"Creating new learning step for learningpath: ${learningPath.learningPathId}")
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    dataObject.setValue(row.learningStepDocument)
+
+    val created = sql"""
+      insert into learningsteps (document, learning_path_id, revision)
+      values ($dataObject, ${learningPath.learningPathId}, 1)
+    """.update()
+
+    if (created != 1) throw new RuntimeException(s"Failed to create learning step with id ${row.learningStepId}")
+  }
+
   private def updateRow(path: LpDocumentRow, steps: List[StepDocumentRow])(using session: DBSession): Unit = {
     val (newPath, newSteps) = convertPathAndSteps(path, steps)
     updateLp(path, newPath)(using session)
-    newSteps.foreach { step =>
+
+    val existingStepIds = steps.map(_.learningStepId)
+    val newStepIds      = newSteps.map(_.learningStepId)
+    val stepsToDelete   = steps.filterNot(es => newStepIds.contains(es.learningStepId))
+    val changedSteps    = newSteps.filter(ns => existingStepIds.contains(ns.learningStepId))
+    val stepsToCreate   = newSteps.filter(ns => !existingStepIds.contains(ns.learningStepId))
+
+    changedSteps.foreach { step =>
       val existingStep = steps.find(_.learningStepId == step.learningStepId)
       existingStep match {
         case Some(existing) => updateStep(existing, step)(using session)
         case None => throw new RuntimeException(s"Step with id ${step.learningStepId} not found in existing steps")
       }
+    }
+
+    stepsToDelete.foreach { step =>
+      deleteStep(step.learningStepId)(using session)
+    }
+
+    stepsToCreate.foreach { step =>
+      createStep(step, newPath)(using session)
     }
   }
 
@@ -94,6 +132,7 @@ abstract class LearningPathAndStepMigration extends BaseJavaMigration {
     var numPagesLeft = (count / chunkSize) + 1
     var offset       = 0L
 
+    MDC.put("migrationName", this.getClass.getSimpleName): Unit
     while (numPagesLeft > 0) {
       allLearningPaths(offset * chunkSize).map { lpData =>
         val stepDatas = getStepDatas(lpData.learningPathId)(using session)
@@ -102,5 +141,6 @@ abstract class LearningPathAndStepMigration extends BaseJavaMigration {
       numPagesLeft -= 1
       offset += 1
     }
+    MDC.remove("migrationName"): Unit
   }
 }
