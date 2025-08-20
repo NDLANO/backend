@@ -361,8 +361,12 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     )
     when(taxonomyApiClient.updateTaxonomyForLearningPath(any[LearningPath], any[Boolean], any))
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[LearningPath](0)))
-    when(learningStepValidator.validate(any[LearningStep], any[Boolean])).thenAnswer((i: InvocationOnMock) =>
-      Success(i.getArgument[LearningStep](0))
+    when(learningPathValidator.validate(any[LearningPath], any[Boolean])).thenAnswer(i => Success(i.getArgument(0)))
+    when(learningPathValidator.validate(any[UpdatedLearningPathV2DTO], any[LearningPath])).thenAnswer(i =>
+      Success(i.getArgument(0))
+    )
+    when(learningStepValidator.validate(any[LearningStep], any[LearningPath], any[Boolean])).thenAnswer(
+      (i: InvocationOnMock) => Success(i.getArgument[LearningStep](0))
     )
     doAnswer((i: InvocationOnMock) => {
       val x = i.getArgument[DBSession => Try[?]](0)

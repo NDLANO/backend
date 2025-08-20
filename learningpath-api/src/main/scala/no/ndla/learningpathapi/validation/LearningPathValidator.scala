@@ -17,11 +17,19 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.common.model.domain.RevisionStatus
 import no.ndla.common.model.NDLADate
 
+import scala.util.{Failure, Success, Try}
+
 trait LearningPathValidator {
   this: LanguageValidator & TitleValidator & TextValidator =>
   lazy val learningPathValidator: LearningPathValidator
 
   class LearningPathValidator(descriptionRequired: Boolean = false) {
+
+    private val MY_NDLA_LANGUAGE_MISMATCH =
+      "A learning path created in MyNDLA must have exactly one supported language."
+
+    private val MY_NDLA_INVALID_LANGUAGES =
+      "A learning path created in MyNDLA must have exactly one supported language."
 
     private val MISSING_DESCRIPTION = "At least one description is required."
 
@@ -31,19 +39,21 @@ trait LearningPathValidator {
     val noHtmlTextValidator       = new TextValidator(allowHtml = false)
     private val durationValidator = new DurationValidator
 
-    def validate(newLearningPath: LearningPath, allowUnknownLanguage: Boolean = false): Unit = {
+    def validate(newLearningPath: LearningPath, allowUnknownLanguage: Boolean = false): Try[LearningPath] = {
       validateLearningPath(newLearningPath, allowUnknownLanguage) match {
         case head :: tail =>
-          throw new ValidationException(errors = head :: tail)
-        case _ =>
+          Failure(ValidationException(errors = head :: tail))
+        case _ => Success(newLearningPath)
       }
     }
 
-    def validate(updateLearningPath: UpdatedLearningPathV2DTO): Unit = {
-      languageValidator.validate("language", updateLearningPath.language, allowUnknownLanguage = true) match {
-        case None                    =>
-        case Some(validationMessage) =>
-          throw new ValidationException(errors = Seq(validationMessage))
+    def validate(
+        updatedLearningPath: UpdatedLearningPathV2DTO,
+        existing: LearningPath
+    ): Try[UpdatedLearningPathV2DTO] = {
+      validateLearningPathUpdate(updatedLearningPath, existing) match {
+        case head :: tail => Failure(ValidationException(errors = head :: tail))
+        case _            => Success(updatedLearningPath)
       }
     }
 
@@ -51,13 +61,32 @@ trait LearningPathValidator {
         newLearningPath: LearningPath,
         allowUnknownLanguage: Boolean
     ): Seq[ValidationMessage] = {
-      titleValidator.validate(newLearningPath.title, allowUnknownLanguage) ++
+      validateSupportedLanguages(newLearningPath) ++
+        titleValidator.validate(newLearningPath.title, allowUnknownLanguage) ++
         validateDescription(newLearningPath.description, allowUnknownLanguage) ++
         validateDuration(newLearningPath.duration).toList ++
         validateTags(newLearningPath.tags, allowUnknownLanguage) ++
         validateCopyright(newLearningPath.copyright) ++
         validateRevisionMeta(newLearningPath)
     }
+
+    private[validation] def validateLearningPathUpdate(
+        updatedLearningPath: UpdatedLearningPathV2DTO,
+        existing: LearningPath
+    ): Seq[ValidationMessage] =
+      validateUpdateLanguage(updatedLearningPath, existing) ++
+        languageValidator.validate(
+          "language",
+          updatedLearningPath.language,
+          allowUnknownLanguage = true
+        )
+
+    private def validateSupportedLanguages(learningPath: LearningPath) =
+      (learningPath.supportedLanguages.size, learningPath.isMyNDLAOwner) match {
+        case (1, true)  => List()
+        case (_, true)  => List(ValidationMessage("supportedLanguages", MY_NDLA_INVALID_LANGUAGES))
+        case (_, false) => List()
+      }
 
     private def validateDescription(
         descriptions: Seq[Description],
@@ -142,6 +171,15 @@ trait LearningPathValidator {
         }
     }
 
+    private def validateUpdateLanguage(
+        updatedLearningPath: UpdatedLearningPathV2DTO,
+        existing: LearningPath
+    ): Seq[ValidationMessage] = {
+      if (existing.isMyNDLAOwner && updatedLearningPath.language != existing.supportedLanguages.head) {
+        Seq(ValidationMessage("language", MY_NDLA_LANGUAGE_MISMATCH))
+      } else {
+        Seq.empty
+      }
+    }
   }
-
 }
