@@ -292,6 +292,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         showTitle = false,
         "INTRODUCTION",
         None,
+        None,
         "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1",
         canEdit = true,
         "ACTIVE",
@@ -338,6 +339,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         showTitle = false,
         "INTRODUCTION",
+        None,
         None,
         "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1",
         canEdit = true,
@@ -575,6 +577,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         Some(api.EmbedUrlV2DTO("", "oembed")),
         true,
         "TEXT",
+        None,
         None
       )
     val lpId = 5591L
@@ -602,7 +605,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       commonApi.Missing,
       None,
       None,
-      None
+      None,
+      commonApi.Missing
     )
     val result = service.mergeLearningSteps(TestData.domainLearningStep2, updatedStep).get
     result.introduction shouldEqual TestData.domainLearningStep2.introduction
@@ -621,7 +625,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       commonApi.Missing,
       None,
       None,
-      None
+      None,
+      commonApi.Missing
     )
     val result = service.mergeLearningSteps(multiLanguageDomainStep, updatedStep).get
     result.introduction shouldEqual Seq(Introduction("Introduksjon på bokmål", "nb"))
@@ -640,7 +645,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       commonApi.UpdateWith(456),
       None,
       None,
-      None
+      None,
+      commonApi.Missing
     )
     val result = service.mergeLearningSteps(TestData.domainLearningStep2, updatedStep).get
     result.title shouldEqual Seq(Title("Tittel på bokmål oppdatert", "nb"))

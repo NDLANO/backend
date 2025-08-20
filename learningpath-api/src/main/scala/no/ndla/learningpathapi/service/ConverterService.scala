@@ -14,7 +14,7 @@ import no.ndla.common.converter.CommonConverter
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Delete, Missing, ResponsibleDTO, UpdateOrDelete, UpdateWith}
-import no.ndla.common.model.domain.{ContributorType, Responsible, learningpath, RevisionMeta}
+import no.ndla.common.model.domain.{ContributorType, Responsible, RevisionMeta, learningpath}
 import no.ndla.common.model.domain.learningpath.{
   Description,
   EmbedType,
@@ -24,6 +24,7 @@ import no.ndla.common.model.domain.learningpath.{
   LearningPathStatus,
   LearningPathVerificationStatus,
   LearningStep,
+  LearningpathCopyright,
   StepStatus,
   StepType
 }
@@ -313,21 +314,26 @@ trait ConverterService {
         if (listOfLearningSteps.isEmpty) 0
         else listOfLearningSteps.map(_.seqNo).max + 1
 
+      val copyright = newLearningStep.copyright match {
+        case Some(copyright) => Some(asCopyright(copyright))
+        case None            => newLearningStep.license.map(l => LearningpathCopyright(l, Seq.empty))
+      }
+
       embedUrlT.map(embedUrl =>
         LearningStep(
-          None,
-          None,
-          None,
-          learningPath.id,
-          newSeqNo,
-          Seq(common.Title(newLearningStep.title, newLearningStep.language)),
-          introduction,
-          description,
-          embedUrl,
-          newLearningStep.articleId,
-          StepType.valueOfOrError(newLearningStep.`type`),
-          newLearningStep.license,
-          newLearningStep.showTitle
+          id = None,
+          revision = None,
+          externalId = None,
+          learningPathId = learningPath.id,
+          seqNo = newSeqNo,
+          title = Seq(common.Title(newLearningStep.title, newLearningStep.language)),
+          introduction = introduction,
+          description = description,
+          embedUrl = embedUrl,
+          articleId = newLearningStep.articleId,
+          `type` = StepType.valueOfOrError(newLearningStep.`type`),
+          copyright = copyright,
+          showTitle = newLearningStep.showTitle
         )
       )
     }
@@ -427,6 +433,15 @@ trait ConverterService {
         case UpdateWith(value) => Some(value)
       }
 
+      val stepType = updated.`type`.map(learningpath.StepType.valueOfOrError).getOrElse(existing.`type`)
+
+      val copyright = (updated.copyright, updated.license) match {
+        case (Missing, Some(license)) => LearningpathCopyright(license, Seq.empty).some
+        case (Missing, _)             => existing.copyright
+        case (Delete, _)              => None
+        case (UpdateWith(value), _)   => Some(converterService.asCopyright(value))
+      }
+
       embedUrlsT.map(embedUrls =>
         existing.copy(
           revision = Some(updated.revision),
@@ -436,10 +451,8 @@ trait ConverterService {
           embedUrl = embedUrls,
           articleId = articleId,
           showTitle = updated.showTitle.getOrElse(existing.showTitle),
-          `type` = updated.`type`
-            .map(learningpath.StepType.valueOfOrError)
-            .getOrElse(existing.`type`),
-          license = updated.license
+          `type` = stepType,
+          copyright = copyright
         )
       )
     }
@@ -647,23 +660,26 @@ trait ConverterService {
           .map(asApiEmbedUrlV2)
           .map(createEmbedUrl)
 
+        val copyright = ls.copyright.map(asApiCopyright)
+
         Success(
           api.LearningStepV2DTO(
-            ls.id.get,
-            ls.revision.get,
-            ls.seqNo,
-            title,
-            introduction,
-            description,
-            embedUrl,
-            ls.articleId,
-            ls.showTitle,
-            ls.`type`.toString,
-            ls.license.map(asApiLicense),
-            createUrlToLearningStep(ls, lp),
-            lp.canEdit(user),
-            ls.status.entryName,
-            supportedLanguages
+            id = ls.id.get,
+            revision = ls.revision.get,
+            seqNo = ls.seqNo,
+            title = title,
+            introduction = introduction,
+            description = description,
+            embedUrl = embedUrl,
+            articleId = ls.articleId,
+            showTitle = ls.showTitle,
+            `type` = ls.`type`.toString,
+            license = copyright.map(_.license),
+            copyright = copyright,
+            metaUrl = createUrlToLearningStep(ls, lp),
+            canEdit = lp.canEdit(user),
+            status = ls.status.entryName,
+            supportedLanguages = supportedLanguages
           )
         )
       } else {

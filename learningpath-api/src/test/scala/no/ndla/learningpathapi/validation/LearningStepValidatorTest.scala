@@ -46,7 +46,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     embedUrl = List(EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed)),
     articleId = None,
     `type` = StepType.TEXT,
-    license = Some(license),
+    copyright = Some(LearningpathCopyright(license, Seq.empty)),
     showTitle = true,
     status = StepStatus.ACTIVE
   )
@@ -241,15 +241,17 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
   test("That html-code in license returns an error") {
     validMock()
     val license            = "<strong>ugyldig</strong>"
-    val validationMessages =
-      validator.validateLearningStep(ValidLearningStep.copy(license = Some(license)), ValidLearningPath, false)
+    val validationMessages = validator.validateLearningStep(
+      ValidLearningStep.copy(copyright = Some(LearningpathCopyright(license, Seq.empty))),
+      ValidLearningPath, false
+    )
     validationMessages.size should be(1)
     validationMessages.head.field should equal("license")
   }
 
   test("That None-license doesn't give an error") {
     validMock()
-    validator.validateLearningStep(ValidLearningStep.copy(license = None), ValidLearningPath, false) should equal(
+    validator.validateLearningStep(ValidLearningStep.copy(copyright = None), ValidLearningPath, false) should equal(
       List()
     )
   }
