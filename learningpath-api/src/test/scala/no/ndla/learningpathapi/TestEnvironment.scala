@@ -23,7 +23,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
-import org.mockito.Mockito.reset
+import org.mockito.Mockito.{reset, spy}
 import org.scalatestplus.mockito.MockitoSugar
 import no.ndla.database.DBUtility
 
@@ -75,19 +75,19 @@ trait TestEnvironment
   override lazy val searchConverterService: SearchConverterService     = mock[SearchConverterService]
   override lazy val searchService: SearchService                       = mock[SearchService]
   override lazy val searchIndexService: SearchIndexService             = mock[SearchIndexService]
-  override lazy val converterService: ConverterService                 = org.mockito.Mockito.spy(new ConverterService)
+  override lazy val converterService: ConverterService                 = spy(new ConverterService)
   override lazy val clock: SystemClock                                 = mock[SystemClock]
   override lazy val uuidUtil: UUIDUtil                                 = mock[UUIDUtil]
   override lazy val taxonomyApiClient: TaxonomyApiClient               = mock[TaxonomyApiClient]
   override lazy val ndlaClient: NdlaClient                             = mock[NdlaClient]
-  override lazy val languageValidator: LanguageValidator               = mock[LanguageValidator]
+  override lazy val languageValidator: LanguageValidator               = spy(new LanguageValidator)
   override lazy val learningpathControllerV2: LearningpathControllerV2 = mock[LearningpathControllerV2]
   override lazy val statsController: StatsController                   = mock[StatsController]
   override lazy val internController: InternController                 = mock[InternController]
   override lazy val healthController: TapirHealthController            = mock[TapirHealthController]
   override lazy val learningStepValidator: LearningStepValidator       = mock[LearningStepValidator]
   override lazy val learningPathValidator: LearningPathValidator       = mock[LearningPathValidator]
-  override lazy val titleValidator: TitleValidator                     = mock[TitleValidator]
+  override lazy val titleValidator: TitleValidator                     = spy(new TitleValidator)
   var e4sClient: NdlaE4sClient                                         = mock[NdlaE4sClient]
   override lazy val searchApiClient: SearchApiClient                   = mock[SearchApiClient]
   override lazy val oembedProxyClient: OembedProxyClient               = mock[OembedProxyClient]
