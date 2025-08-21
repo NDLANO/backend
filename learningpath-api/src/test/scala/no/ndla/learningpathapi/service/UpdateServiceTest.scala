@@ -188,6 +188,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     isBasedOn = None,
     title = List(Title("Tittel", "nb")),
     description = List(Description("Beskrivelse", "nb")),
+    introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
     coverPhotoId = Some("1234"),
     duration = Some(1),
     status = LearningPathStatus.PUBLISHED,
@@ -212,6 +213,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     isBasedOn = None,
     title = List(Title("Tittel", "nb")),
     description = List(Description("Beskrivelse", "nb")),
+    introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
     coverPhotoId = None,
     duration = Some(1),
     status = learningpath.LearningPathStatus.PUBLISHED,
@@ -236,6 +238,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     isBasedOn = None,
     title = List(Title("Tittel", "nb")),
     description = List(Description("Beskrivelse", "nb")),
+    introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
     coverPhotoId = None,
     duration = Some(1),
     status = learningpath.LearningPathStatus.PRIVATE,
@@ -260,6 +263,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     isBasedOn = None,
     title = List(Title("Tittel", "nb")),
     description = List(Description("Beskrivelse", "nb")),
+    introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
     coverPhotoId = None,
     duration = Some(1),
     status = learningpath.LearningPathStatus.PRIVATE,
@@ -284,6 +288,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     isBasedOn = None,
     title = List(Title("Tittel", "nb")),
     description = List(Description("Beskrivelse", "nb")),
+    introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
     coverPhotoId = None,
     duration = Some(1),
     status = learningpath.LearningPathStatus.DELETED,
@@ -312,10 +317,20 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       None,
       None,
       None,
+      None,
       None
     )
   val NEW_COPIED_LEARNINGPATHV2: NewCopyLearningPathV2DTO =
-    NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
+    NewCopyLearningPathV2DTO(
+      "Tittel",
+      Some("<section><p>Introduksjon</p></section>"),
+      Some("Beskrivelse"),
+      "nb",
+      None,
+      Some(1),
+      None,
+      None
+    )
 
   val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
     UpdatedLearningPathV2DTO(
@@ -329,6 +344,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Some(apiCopyright),
       None,
       commonApi.Missing,
+      None,
       None,
       None,
       None
@@ -346,6 +362,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Some(apiCopyright),
       None,
       commonApi.Missing,
+      None,
       None,
       None,
       None
@@ -1168,7 +1185,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(learningpathWithUnknownLang)
 
     val newCopy =
-      NewCopyLearningPathV2DTO("hehe", None, "nb", None, None, None, None)
+      NewCopyLearningPathV2DTO("hehe", None, None, "nb", None, None, None, None)
     service
       .newFromExistingV2(learningpathWithUnknownLang.id.get, newCopy, TokenUser("me", Set.empty, None).toCombined)
       .isSuccess should be(true)
@@ -1249,6 +1266,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         None,
         commonApi.Missing,
+        None,
         None,
         None,
         None
@@ -1556,6 +1574,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Some(true),
         commonApi.Missing,
+        None,
         None,
         None,
         None

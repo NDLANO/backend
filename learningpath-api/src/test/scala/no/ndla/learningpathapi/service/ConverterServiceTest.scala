@@ -67,7 +67,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     Seq.empty,
     Priority.Unspecified,
-    Seq.empty
+    Seq.empty,
+    api.IntroductionDTO("<section><p>Introduksjon</p></section>", "nb")
   )
   val domainLearningStep: LearningStep =
     LearningStep(None, None, None, None, 1, List(), List(), List(), List(), None, StepType.INTRODUCTION, None)
@@ -120,6 +121,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     isBasedOn = None,
     title = List(Title("tittel", props.DefaultLanguage)),
     description = List(Description("deskripsjon", props.DefaultLanguage)),
+    introduction = List(Introduction("<section><p>introduction</p></section>", props.DefaultLanguage)),
     coverPhotoId = None,
     duration = Some(60),
     status = LearningPathStatus.PRIVATE,
@@ -176,7 +178,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        revisionMeta.map(CommonConverter.revisionMetaDomainToApi)
+        revisionMeta.map(CommonConverter.revisionMetaDomainToApi),
+        api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage)
       )
     )
     service.asApiLearningpathV2(
@@ -233,7 +236,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        revisionMeta.map(CommonConverter.revisionMetaDomainToApi)
+        revisionMeta.map(CommonConverter.revisionMetaDomainToApi),
+        api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage)
       )
     )
     service.asApiLearningpathV2(
@@ -251,7 +255,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         Some(1),
         api.TitleDTO("tittel", props.DefaultLanguage),
         api.DescriptionDTO("deskripsjon", props.DefaultLanguage),
-        api.IntroductionDTO("", props.DefaultLanguage),
+        api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
         "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1",
         None,
         Some(60),
@@ -521,8 +525,18 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     val apiCopyright = api.CopyrightDTO(apiLicense, List(apiRubio))
 
-    val newCopyLp = NewCopyLearningPathV2DTO("Tittel", Some("Beskrivelse"), "nb", None, Some(1), None, None)
-    val newLp     =
+    val newCopyLp =
+      NewCopyLearningPathV2DTO(
+        "Tittel",
+        Some("<section><p>Introduksjon</p></section>"),
+        Some("Beskrivelse"),
+        "nb",
+        None,
+        Some(1),
+        None,
+        None
+      )
+    val newLp =
       NewLearningPathV2DTO(
         "Tittel",
         Some("Beskrivelse"),
@@ -534,7 +548,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         None,
         None,
-        None
+        None,
+        Some("<section><p>Introduksjon</p></section>")
       )
 
     service

@@ -36,6 +36,14 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       )
     )
 
+    val introductions = SearchableLanguageValues(
+      Seq(
+        LanguageValue("nb", "<section><p>Dette er en introduksjon</p></section>"),
+        LanguageValue("nn", "<section><p>Dette er ein introduksjon</p></section>"),
+        LanguageValue("en", "<section><p>This is an introduction</p></section>")
+      )
+    )
+
     val tags = SearchableLanguageList(
       Seq(
         LanguageValue("en", Seq("Mum", "Car", "Wroom"))
@@ -52,6 +60,7 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       id = 101,
       title = titles,
       content = SearchableLanguageValues(Seq.empty),
+      introduction = introductions,
       description = descriptions,
       coverPhotoId = Some("10"),
       duration = Some(10),

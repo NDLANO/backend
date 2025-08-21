@@ -133,7 +133,9 @@ trait ConverterService {
           findByLanguageOrBestEffort(lp.description, language)
             .map(asApiDescription)
             .getOrElse(api.DescriptionDTO("", DefaultLanguage))
-
+        val introduction = findByLanguageOrBestEffort(lp.introduction, language)
+          .map(asApiIntroduction)
+          .getOrElse(api.IntroductionDTO("", DefaultLanguage))
         val tags = findByLanguageOrBestEffort(lp.tags, language)
           .map(asApiLearningPathTags)
           .getOrElse(api.LearningPathTagsDTO(Seq(), DefaultLanguage))
@@ -175,7 +177,8 @@ trait ConverterService {
             responsible = lp.responsible.map(asApiResponsible),
             comments = lp.comments.map(CommonConverter.commentDomainToApi),
             priority = lp.priority,
-            revisions = lp.revisionMeta.map(CommonConverter.revisionMetaDomainToApi)
+            revisions = lp.revisionMeta.map(CommonConverter.revisionMetaDomainToApi),
+            introduction = introduction
           )
         )
       } else
@@ -245,6 +248,11 @@ trait ConverterService {
           Seq(Description(value, updated.language))
       }
 
+      val introductions = updated.introduction match {
+        case None        => Seq.empty
+        case Some(value) => Seq(Introduction(value, updated.language))
+      }
+
       val tags = updated.tags match {
         case None        => Seq.empty
         case Some(value) =>
@@ -273,6 +281,7 @@ trait ConverterService {
         revision = Some(updated.revision),
         title = mergeLanguageFields(existing.title, titles),
         description = mergeLanguageFields(existing.description, descriptions),
+        introduction = mergeLanguageFields(existing.introduction, introductions),
         coverPhotoId = updateImageId(existing.coverPhotoId, updated.coverPhotoMetaUrl),
         duration =
           if (updated.duration.isDefined)
@@ -541,8 +550,10 @@ trait ConverterService {
         if (newLearningPath.tags.isEmpty) Seq.empty
         else
           Seq(common.Tag(newLearningPath.tags.getOrElse(List()), newLearningPath.language))
-      val description = newLearningPath.description.map(Description(_, newLearningPath.language)).toSeq
-      val copyright   = newLearningPath.copyright.getOrElse(newDefaultCopyright(user))
+      val description  = newLearningPath.description.map(Description(_, newLearningPath.language)).toSeq
+      val introduction = newLearningPath.introduction.map(Introduction(_, newLearningPath.language)).toSeq
+
+      val copyright = newLearningPath.copyright.getOrElse(newDefaultCopyright(user))
 
       val priority = newLearningPath.priority.getOrElse(common.Priority.Unspecified)
 
@@ -581,7 +592,8 @@ trait ConverterService {
             .map(comments => comments.map(CommonConverter.newCommentApiToDomain))
             .getOrElse(Seq.empty),
           priority = priority,
-          revisionMeta = revisionMeta
+          revisionMeta = revisionMeta,
+          introduction = introduction
         )
       }
     }
@@ -623,8 +635,10 @@ trait ConverterService {
         .map(asApiLearningPathTags)
         .getOrElse(api.LearningPathTagsDTO(Seq(), DefaultLanguage))
       val introduction =
-        findByLanguageOrBestEffort(getApiIntroduction(learningpath.learningsteps.getOrElse(Seq.empty)), AllLanguages)
-          .getOrElse(api.IntroductionDTO("", DefaultLanguage))
+        findByLanguageOrBestEffort(learningpath.introduction.map(asApiIntroduction), AllLanguages).getOrElse(
+          findByLanguageOrBestEffort(getApiIntroduction(learningpath.learningsteps.getOrElse(Seq.empty)), AllLanguages)
+            .getOrElse(api.IntroductionDTO("", DefaultLanguage))
+        )
 
       val message = learningpath.message.filter(_ => learningpath.canEdit(user)).map(_.message)
 

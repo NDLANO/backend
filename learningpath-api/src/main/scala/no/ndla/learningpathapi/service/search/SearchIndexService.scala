@@ -159,6 +159,7 @@ trait SearchIndexService {
         intField("isBasedOn")
       )
       val dynamics = generateLanguageSupportedFieldList("titles", keepRaw = true) ++
+        generateLanguageSupportedFieldList("introductions") ++
         generateLanguageSupportedFieldList("descriptions") ++
         generateLanguageSupportedFieldList("tags", keepRaw = true)
 

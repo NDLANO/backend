@@ -58,6 +58,7 @@ class LearningPathRepositoryComponentIntegrationTest
     isBasedOn = None,
     title = List(Title("UNIT-TEST-1", "unknown")),
     description = List(Description("UNIT-TEST", "unknown")),
+    introduction = List(Introduction("<section><p>UNIT-TEST</p></section>", "unknown")),
     coverPhotoId = None,
     duration = None,
     status = LearningPathStatus.PRIVATE,

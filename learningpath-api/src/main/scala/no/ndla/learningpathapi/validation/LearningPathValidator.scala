@@ -16,6 +16,9 @@ import no.ndla.learningpathapi.model.api.UpdatedLearningPathV2DTO
 import no.ndla.mapping.License.getLicense
 import no.ndla.common.model.domain.RevisionStatus
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.learningpath.Introduction
+import no.ndla.validation.HtmlTagRules.{stringToJsoupDocument}
+import scala.jdk.CollectionConverters.*
 
 import scala.util.{Failure, Success, Try}
 
@@ -36,8 +39,9 @@ trait LearningPathValidator {
     private val INVALID_COVER_PHOTO =
       "The url to the coverPhoto must point to an image in NDLA Image API."
 
-    val noHtmlTextValidator       = new TextValidator(allowHtml = false)
-    private val durationValidator = new DurationValidator
+    val noHtmlTextValidator              = new TextValidator(allowHtml = false)
+    private val allowedHtmlTextValidator = new TextValidator(allowHtml = true)
+    private val durationValidator        = new DurationValidator
 
     def validate(newLearningPath: LearningPath, allowUnknownLanguage: Boolean = false): Try[LearningPath] = {
       validateLearningPath(newLearningPath, allowUnknownLanguage) match {
@@ -63,6 +67,8 @@ trait LearningPathValidator {
     ): Seq[ValidationMessage] = {
       validateSupportedLanguages(newLearningPath) ++
         titleValidator.validate(newLearningPath.title, allowUnknownLanguage) ++
+        titleValidator.validate(newLearningPath.title, allowUnknownLanguage) ++
+        validateIntroduction(newLearningPath.introduction, allowUnknownLanguage) ++
         validateDescription(newLearningPath.description, allowUnknownLanguage) ++
         validateDuration(newLearningPath.duration).toList ++
         validateTags(newLearningPath.tags, allowUnknownLanguage) ++
@@ -87,6 +93,33 @@ trait LearningPathValidator {
         case (_, true)  => List(ValidationMessage("supportedLanguages", MY_NDLA_INVALID_LANGUAGES))
         case (_, false) => List()
       }
+
+    def validateIntroduction(
+        introductions: Seq[Introduction],
+        allowUnknownLanguage: Boolean
+    ): Seq[ValidationMessage] = {
+      introductions.flatMap(introduction => {
+        allowedHtmlTextValidator.validate("introduction", introduction.introduction).toList ++
+          validateIntroductionRoot("introduction.introduction", introduction.introduction).toList ++
+          languageValidator.validate("introduction.language", introduction.language, allowUnknownLanguage).toList
+
+      })
+    }
+
+    def validateIntroductionRoot(field: String, html: String): Option[ValidationMessage] = {
+      val legalTopLevelTag = "section"
+      val topLevelTags = stringToJsoupDocument(html).children().asScala.map(_.tagName()).filter(_ == legalTopLevelTag)
+      topLevelTags.size match {
+        case 1 => None
+        case _ =>
+          Some(
+            ValidationMessage(
+              field,
+              s"A learningpath introduction must be a single <section> block. Found ${topLevelTags.size} top-level blocks."
+            )
+          )
+      }
+    }
 
     private def validateDescription(
         descriptions: Seq[Description],

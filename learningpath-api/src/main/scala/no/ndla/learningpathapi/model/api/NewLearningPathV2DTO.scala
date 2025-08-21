@@ -38,7 +38,9 @@ case class NewLearningPathV2DTO(
     @description("A list of all revisions of the learningpath")
     revisionMeta: Option[Seq[RevisionMetaDTO]],
     @description("If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified")
-    priority: Option[Priority]
+    priority: Option[Priority],
+    @description("An introduction")
+    introduction: Option[String]
 )
 
 object NewLearningPathV2DTO {

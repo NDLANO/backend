@@ -25,6 +25,7 @@ import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.RevisionMeta
 import no.ndla.learningpathapi.model.api.UpdatedLearningPathV2DTO
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import no.ndla.common.model.domain.learningpath.Introduction
 
 class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
@@ -46,6 +47,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     id = None,
     title = List(Title("Gyldig tittel", "nb")),
     description = List(Description("Gyldig beskrivelse", "nb")),
+    introduction = List(Introduction("<section><h2>Gyldig introduksjon</h2></section>", "nb")),
     coverPhotoId = Some(s"http://api.ndla.no/image-api/v2/images/1"),
     duration = Some(180),
     tags = List(Tag(Seq("Gyldig tag"), "nb")),
@@ -79,7 +81,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
       responsibleId = commonApi.Missing,
       comments = None,
       priority = None,
-      revisionMeta = None
+      revisionMeta = None,
+      introduction = None
     )
 
   private def validMock() = {
@@ -87,6 +90,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
       .thenReturn(None)
     when(titleValidator.validate(ValidLearningPath.title, false))
       .thenReturn(List())
+    when(languageValidator.validate("introduction.language", "nb", false)).thenReturn(None)
     when(languageValidator.validate("tags.language", "nb", false))
       .thenReturn(None)
   }
@@ -152,6 +156,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   test("That validate returns error when description has an illegal language") {
     when(languageValidator.validate("description.language", "bergensk", false))
       .thenReturn(Some(ValidationMessage("description.language", "Error")))
+    when(languageValidator.validate("introduction.language", "nb", false))
+      .thenReturn(None)
     when(titleValidator.validate(ValidLearningPath.title, false))
       .thenReturn(List())
     when(languageValidator.validate("tags.language", "nb", false))
@@ -176,6 +182,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   test("That validate returns error when description has an illegal language even if description is not required") {
     when(languageValidator.validate("description.language", "bergensk", false))
       .thenReturn(Some(ValidationMessage("description.language", "Error")))
+    when(languageValidator.validate("introduction.language", "nb", false))
+      .thenReturn(None)
     when(titleValidator.validate(ValidLearningPath.title, false))
       .thenReturn(List())
     when(languageValidator.validate("tags.language", "nb", false))
@@ -192,6 +200,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   test("That DescriptionValidator validates both description text and language") {
     when(languageValidator.validate("description.language", "bergensk", false))
       .thenReturn(Some(ValidationMessage("description.language", "Error")))
+    when(languageValidator.validate("introduction.language", "nb", false))
+      .thenReturn(None)
     when(titleValidator.validate(ValidLearningPath.title, false))
       .thenReturn(List())
     when(languageValidator.validate("tags.language", "nb", false))
@@ -250,6 +260,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   test("That validate returns error when tag language is invalid") {
     when(languageValidator.validate("description.language", "nb", false))
       .thenReturn(None)
+    when(languageValidator.validate("introduction.language", "nb", false))
+      .thenReturn(None)
     when(titleValidator.validate(ValidLearningPath.title, false))
       .thenReturn(List())
     when(languageValidator.validate("tags.language", "bergensk", false))
@@ -266,6 +278,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
   test("That returns error for both tag text and tag language") {
     when(languageValidator.validate("description.language", "nb", false))
+      .thenReturn(None)
+    when(languageValidator.validate("introduction.language", "nb", false))
       .thenReturn(None)
     when(titleValidator.validate(ValidLearningPath.title, false))
       .thenReturn(List())
@@ -362,5 +376,35 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     validator.validateLearningPathUpdate(updated, existing) should be(
       Seq(ValidationMessage("language", "A learning path created in MyNDLA must have exactly one supported language."))
     )
+  }
+  test("That validate returns error when introduction.introduction does not contain valid html") {
+    validMock()
+    val invalid = ValidLearningPath.copy(introduction = List(Introduction("Ugyldig introduksjon", "nb")))
+    val errors  = validator.validateLearningPath(invalid, false)
+    errors.size should be(1)
+  }
+
+  test("That validate returns error when introduction.introduction is not wrapped in a section tag") {
+    validMock()
+    val invalid = ValidLearningPath.copy(introduction = List(Introduction("<p>Ugyldig introduksjon</p>", "nb")))
+    val errors  = validator.validateLearningPath(invalid, false)
+    errors.size should be(1)
+  }
+
+  test("That validate returns error when introduction.introduction contains several section tags") {
+    validMock()
+    val invalid = ValidLearningPath.copy(introduction =
+      List(Introduction("<section>Ugyldig introduksjon</section><section>hello</section>", "nb"))
+    )
+    val errors = validator.validateLearningPath(invalid, false)
+    errors.size should be(1)
+  }
+
+  test("That validate returns error when introduction.introduction contains illegal html") {
+    validMock()
+    val invalid =
+      ValidLearningPath.copy(introduction = List(Introduction("<section><aside>Hallo</aside></section>", "nb")))
+    val errors = validator.validateLearningPath(invalid, false)
+    errors.size should be(1)
   }
 }

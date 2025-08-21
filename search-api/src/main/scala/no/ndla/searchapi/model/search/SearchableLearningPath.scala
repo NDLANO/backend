@@ -22,6 +22,7 @@ case class SearchableLearningPath(
     title: SearchableLanguageValues,
     content: SearchableLanguageValues,
     description: SearchableLanguageValues,
+    introduction: SearchableLanguageValues,
     coverPhotoId: Option[String],
     duration: Option[Int],
     status: String,

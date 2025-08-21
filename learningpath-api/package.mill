@@ -22,6 +22,7 @@ object `package` extends BaseModule, DockerComponent {
     build.network,
     build.mapping,
     build.language,
+    build.validation,
     build.search,
     build.database
   )

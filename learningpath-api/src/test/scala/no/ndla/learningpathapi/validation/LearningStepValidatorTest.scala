@@ -58,6 +58,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     id = None,
     title = List(Title("Gyldig tittel", "nb")),
     description = List(Description("Gyldig beskrivelse", "nb")),
+    introduction = List(Introduction("<section><p>Gyldig introduksjon</p></section>", "nb")),
     coverPhotoId = Some(s"http://api.ndla.no/image-api/v2/images/1"),
     duration = Some(180),
     tags = List(Tag(Seq("Gyldig tag"), "nb")),

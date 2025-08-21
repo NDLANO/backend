@@ -404,6 +404,9 @@ trait SearchConverterService {
             ),
             description =
               model.SearchableLanguageValues(lp.description.map(d => LanguageValue(d.language, d.description))),
+            introduction = model.SearchableLanguageValues(
+              lp.introduction.map(i => LanguageValue(i.language, i.introduction))
+            ),
             coverPhotoId = lp.coverPhotoId,
             duration = lp.duration,
             status = lp.status.toString,

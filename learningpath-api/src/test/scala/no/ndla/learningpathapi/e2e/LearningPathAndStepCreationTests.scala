@@ -93,6 +93,7 @@ class LearningPathAndStepCreationTests
     val dto = NewLearningPathV2DTO(
       title = title,
       description = None,
+      introduction = None,
       coverPhotoMetaUrl = None,
       duration = None,
       tags = None,
