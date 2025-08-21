@@ -25,7 +25,7 @@ case class LearningStep(
     embedUrl: Seq[EmbedUrl],
     articleId: Option[Long],
     `type`: StepType,
-    license: Option[String],
+    copyright: Option[LearningpathCopyright],
     showTitle: Boolean = false,
     status: StepStatus = StepStatus.ACTIVE
 ) {

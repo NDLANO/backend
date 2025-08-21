@@ -150,6 +150,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Some(api.EmbedUrlV2DTO("", "oembed")),
       true,
       "TEXT",
+      None,
       None
     )
 
@@ -164,7 +165,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       commonApi.Missing,
       Some(false),
       None,
-      None
+      None,
+      commonApi.Missing
     )
 
   val rubio: Author                    = Author(ContributorType.Writer, "Little Marco")
@@ -1207,7 +1209,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         commonApi.Missing,
         None,
         None,
-        None
+        None,
+        commonApi.Missing
       )
     service.updateLearningStepV2(PUBLISHED_ID, STEP1.id.get, updatedLs, PUBLISHED_OWNER.toCombined)
     val updatedPath = PUBLISHED_LEARNINGPATH.copy(
@@ -1289,7 +1292,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         commonApi.Missing,
         None,
         None,
-        None
+        None,
+        commonApi.Missing
       )
     service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, updatedLs, PRIVATE_OWNER.toCombined)
     val updatedPath = PRIVATE_LEARNINGPATH.copy(
@@ -1328,7 +1332,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         commonApi.Missing,
         None,
         None,
-        None
+        None,
+        commonApi.Missing
       )
     service.updateLearningStepV2(
       PUBLISHED_ID,
@@ -1502,7 +1507,21 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       owner = PRIVATE_OWNER.id,
       lastUpdated = now,
       learningsteps = PUBLISHED_LEARNINGPATH.learningsteps.map(
-        _.map(_.copy(id = None, revision = None, externalId = None, learningPathId = None))
+        _.map { step =>
+          val stepCopyright = step.`type` match {
+            case StepType.TEXT if step.copyright.isEmpty => Some(PUBLISHED_LEARNINGPATH.copyright)
+            case StepType.TEXT                           => step.copyright
+            case _                                       => None
+
+          }
+          step.copy(
+            id = None,
+            revision = None,
+            externalId = None,
+            learningPathId = None,
+            copyright = stepCopyright
+          )
+        }
       )
     )
 

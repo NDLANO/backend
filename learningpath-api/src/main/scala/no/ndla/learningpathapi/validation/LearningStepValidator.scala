@@ -49,7 +49,7 @@ trait LearningStepValidator {
         validateIntroduction(newLearningStep.introduction, allowUnknownLanguage) ++
         validateDescription(newLearningStep.description, allowUnknownLanguage) ++
         validateEmbedUrl(newLearningStep.embedUrl, allowUnknownLanguage) ++
-        validateLicense(newLearningStep.license).toList ++
+        validateLicense(newLearningStep.copyright.map(_.license)).toList ++
         validateThatDescriptionOrEmbedUrlOrArticleIdIsDefined(newLearningStep).toList
     }
 

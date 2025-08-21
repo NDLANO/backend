@@ -16,6 +16,8 @@ on:
       - search/**
       - database/**
       - validation/**
+      - tapirtesting/**
+      - scalatestsuite/**
       - modules/**
       - build.mill
 jobs:

@@ -14,6 +14,7 @@ import no.ndla.common.model.domain.learningpath.{
   EmbedType,
   EmbedUrl,
   LearningStep,
+  LearningpathCopyright,
   StepStatus,
   StepType,
   Description as LPDescription
@@ -65,7 +66,12 @@ class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with Un
             embedUrl = Seq(EmbedUrl("hei", "nb", EmbedType.OEmbed)),
             articleId = None,
             `type` = StepType.TEXT,
-            license = Some("hei"),
+            copyright = Some(
+              LearningpathCopyright(
+                license = "hei",
+                contributors = Seq.empty
+              )
+            ),
             status = StepStatus.ACTIVE
           )
         )

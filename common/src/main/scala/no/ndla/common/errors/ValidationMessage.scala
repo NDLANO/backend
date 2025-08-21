@@ -13,7 +13,6 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import sttp.tapir.Schema.annotations.description
 
 @description("A message describing a validation error on a specific field")
-@description("A message describing a validation error on a specific field")
 case class ValidationMessage(
     @description("The field the error occured in")
     field: String,

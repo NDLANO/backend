@@ -15,7 +15,7 @@ import io.circe.syntax.EncoderOps
 import no.ndla.common.CirceUtil
 import no.ndla.learningpathapi.db.util.{LearningPathAndStepMigration, LpDocumentRow, StepDocumentRow}
 
-class V48__FixLanguageMyNDLALearningPath extends LearningPathAndStepMigration, StrictLogging {
+class V49__FixLanguageMyNDLALearningPath extends LearningPathAndStepMigration, StrictLogging {
 
   private class LanguageField(val language: String)
   private case class Title(title: String, override val language: String)               extends LanguageField(language)

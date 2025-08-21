@@ -133,7 +133,8 @@ class LearningPathAndStepCreationTests
       articleId = None,
       showTitle = false,
       `type` = StepType.TEXT.toString,
-      license = None
+      license = None,
+      copyright = None
     )
     val x   = CirceUtil.toJsonString(dto)
     val res = simpleHttpClient.send(
