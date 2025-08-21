@@ -92,13 +92,15 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   }
 
   test("That GET /stats returns statistics for learning paths") {
-    val count = 42L
-    when(learningPathRepository.myNdlaOwnerLearningPathCount(any)).thenReturn(count)
+    val count  = 42L
+    val owners = 2L
+    when(learningPathRepository.myNdlaLearningPathCount(any)).thenReturn(count)
+    when(learningPathRepository.myNdlaLearningPathOwnerCount(any)).thenReturn(owners)
     val res = simpleHttpClient.send(
       quickRequest.get(uri"http://localhost:$serverPort/intern/stats")
     )
     res.code.code should be(200)
     val convertedBody = CirceUtil.unsafeParseAs[LearningPathStatsDTO](res.body)
-    convertedBody should be(LearningPathStatsDTO(count))
+    convertedBody should be(LearningPathStatsDTO(count, owners))
   }
 }

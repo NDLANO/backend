@@ -57,7 +57,7 @@ trait LearningpathControllerV2 {
         .default(LanguageCode(Language.AllLanguages))
     private val pathLanguage =
       path[LanguageCode].description("The ISO 639-1 language describing language.")
-    val sort = query[Option[String]]("sort").description(
+    private val sort = query[Option[String]]("sort").description(
       s"""The sorting used on results.
              The following are supported: ${Sort.all.mkString(", ")}.
              Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin

@@ -141,7 +141,8 @@ trait InternController {
       .serverLogicPure { _ =>
         commonApi
           .LearningPathStatsDTO(
-            learningPathRepository.myNdlaOwnerLearningPathCount
+            learningPathRepository.myNdlaLearningPathCount,
+            learningPathRepository.myNdlaLearningPathOwnerCount
           )
           .asRight
       }
