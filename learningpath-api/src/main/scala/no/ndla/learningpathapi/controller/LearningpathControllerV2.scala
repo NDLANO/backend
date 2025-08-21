@@ -152,7 +152,8 @@ trait LearningpathControllerV2 {
             verificationStatus = verificationStatus,
             shouldScroll = shouldScroll,
             articleId = None,
-            status = List(learningpath.LearningPathStatus.PUBLISHED)
+            status = List(learningpath.LearningPathStatus.PUBLISHED),
+            grepCodes = List.empty
           )
         case None =>
           SearchSettings(
@@ -168,7 +169,8 @@ trait LearningpathControllerV2 {
             verificationStatus = verificationStatus,
             shouldScroll = shouldScroll,
             articleId = None,
-            status = List(learningpath.LearningPathStatus.PUBLISHED)
+            status = List(learningpath.LearningPathStatus.PUBLISHED),
+            grepCodes = List.empty
           )
       }
 

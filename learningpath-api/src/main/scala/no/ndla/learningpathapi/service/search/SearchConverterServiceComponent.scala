@@ -66,7 +66,8 @@ trait SearchConverterServiceComponent {
         searchableLearningPath.copyright,
         supportedLanguages,
         searchableLearningPath.isBasedOn,
-        message = None
+        message = None,
+        grepCodes = searchableLearningPath.grepCodes
       )
     }
 
@@ -98,7 +99,8 @@ trait SearchConverterServiceComponent {
         SearchableLanguageList(learningPath.tags.map(tags => LanguageValue(tags.language, tags.tags))),
         learningPath.learningsteps.getOrElse(Seq.empty).map(asSearchableLearningStep).toList,
         converterService.asApiCopyright(learningPath.copyright),
-        learningPath.isBasedOn
+        learningPath.isBasedOn,
+        learningPath.grepCodes
       )
     }
 

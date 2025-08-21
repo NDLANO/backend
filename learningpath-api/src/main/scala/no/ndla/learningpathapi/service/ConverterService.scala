@@ -178,7 +178,8 @@ trait ConverterService {
             comments = lp.comments.map(CommonConverter.commentDomainToApi),
             priority = lp.priority,
             revisions = lp.revisionMeta.map(CommonConverter.revisionMetaDomainToApi),
-            introduction = introduction
+            introduction = introduction,
+            grepCodes = lp.grepCodes
           )
         )
       } else
@@ -298,7 +299,8 @@ trait ConverterService {
         responsible = getNewResponsible(existing, updated),
         comments = updatedComments,
         priority = updated.priority.getOrElse(existing.priority),
-        revisionMeta = updatedRevision
+        revisionMeta = updatedRevision,
+        grepCodes = updated.grepCodes.getOrElse(existing.grepCodes)
       )
     }
 
@@ -593,7 +595,8 @@ trait ConverterService {
             .getOrElse(Seq.empty),
           priority = priority,
           revisionMeta = revisionMeta,
-          introduction = introduction
+          introduction = introduction,
+          grepCodes = newLearningPath.grepCodes.getOrElse(Seq.empty)
         )
       }
     }
@@ -659,7 +662,8 @@ trait ConverterService {
           asApiCopyright(learningpath.copyright),
           supportedLanguages,
           learningpath.isBasedOn,
-          message
+          message,
+          learningpath.grepCodes
         )
       )
     }

@@ -75,7 +75,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default
+    revisionMeta = RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   override def beforeEach(): Unit = {
