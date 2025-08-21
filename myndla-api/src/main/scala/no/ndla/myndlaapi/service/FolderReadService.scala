@@ -13,6 +13,7 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.SingleResourceStatsDTO
+import no.ndla.common.model.api.learningpath.LearningPathStatsDTO
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.TryMaybe.*
 import no.ndla.common.model.domain.{ResourceType, TryMaybe, myndla}
@@ -279,7 +280,7 @@ trait FolderReadService {
         )
       } yield folderConverterService.toApiUserData(user)
 
-    private def getUserStats(session: DBSession): Try[Option[UserStatsDTO]] = {
+    private def getUserStats(numberOfUsersWithLearningpath: Long, session: DBSession): Try[Option[UserStatsDTO]] = {
       for {
         numberOfUsersWithFavourites    <- folderRepository.numberOfUsersWithFavourites(session).toTryMaybe
         numberOfUsersWithoutFavourites <- folderRepository.numberOfUsersWithoutFavourites(session).toTryMaybe
@@ -294,6 +295,7 @@ trait FolderReadService {
         numberOfStudents,
         numberOfUsersWithFavourites,
         numberOfUsersWithoutFavourites,
+        numberOfUsersWithLearningpath,
         numberOfUsersInArena
       )
     }.value
@@ -304,13 +306,13 @@ trait FolderReadService {
         groupedResources <- folderRepository.numberOfResourcesGrouped().toTrySome
         favouritedResources = groupedResources.map(gr => api.ResourceStatsDTO(gr._2, gr._1))
         favourited          = groupedResources.map(gr => gr._2 -> gr._1).toMap
-        learningPathStats     <- learningPathApiClient.getStats.toTrySome
+        learningPathStats   = learningPathApiClient.getStats.getOrElse(LearningPathStatsDTO(0, 0))
         numberOfFolders       <- folderRepository.numberOfFolders().toTryMaybe
         numberOfResources     <- folderRepository.numberOfResources().toTryMaybe
         numberOfTags          <- folderRepository.numberOfTags().toTryMaybe
         numberOfSubjects      <- userRepository.numberOfFavouritedSubjects().toTryMaybe
         numberOfSharedFolders <- folderRepository.numberOfSharedFolders().toTryMaybe
-        userStats             <- getUserStats(session).toTryMaybe
+        userStats             <- getUserStats(learningPathStats.numberOfMyNdlaLearningPathOwners, session).toTryMaybe
       } yield StatsDTO(
         userStats.total,
         numberOfFolders,
