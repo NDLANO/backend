@@ -34,11 +34,15 @@ trait SearchConverterServiceComponent {
       val titles       = searchableLearningPath.titles.languageValues.map(lv => api.TitleDTO(lv.value, lv.language))
       val descriptions =
         searchableLearningPath.descriptions.languageValues.map(lv => api.DescriptionDTO(lv.value, lv.language))
-      val introductions =
-        searchableLearningPath.learningsteps.find(_.stepType == StepType.INTRODUCTION.toString) match {
-          case Some(step) => step.descriptions.languageValues.map(lv => api.IntroductionDTO(lv.value, lv.language))
-          case _          => Seq.empty
-        }
+      val introductions = searchableLearningPath.introductions.languageValues.size match {
+        case 0 =>
+          searchableLearningPath.learningsteps
+            .find(_.stepType == StepType.INTRODUCTION.toString)
+            .map(step => step.descriptions.languageValues.map(lv => api.IntroductionDTO(lv.value, lv.language)))
+            .getOrElse(Seq.empty)
+        case _ =>
+          searchableLearningPath.introductions.languageValues.map(lv => api.IntroductionDTO(lv.value, lv.language))
+      }
       val tags = searchableLearningPath.tags.languageValues.map(lv => api.LearningPathTagsDTO(lv.value, lv.language))
       val supportedLanguages = getSupportedLanguages(titles, descriptions, introductions, tags)
 
@@ -79,6 +83,9 @@ trait SearchConverterServiceComponent {
         learningPath.id.get,
         SearchableLanguageValues(learningPath.title.map(title => LanguageValue(title.language, title.title))),
         SearchableLanguageValues(learningPath.description.map(desc => LanguageValue(desc.language, desc.description))),
+        SearchableLanguageValues(
+          learningPath.introduction.map(intro => LanguageValue(intro.language, intro.introduction))
+        ),
         learningPath.coverPhotoId
           .flatMap(converterService.asCoverPhoto)
           .map(_.url),

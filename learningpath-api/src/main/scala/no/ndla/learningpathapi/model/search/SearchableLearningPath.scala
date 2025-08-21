@@ -18,6 +18,7 @@ case class SearchableLearningPath(
     id: Long,
     titles: SearchableLanguageValues,
     descriptions: SearchableLanguageValues,
+    introductions: SearchableLanguageValues,
     coverPhotoUrl: Option[String],
     duration: Option[Int],
     status: String,

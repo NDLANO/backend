@@ -41,7 +41,8 @@ case class LearningPath(
     responsible: Option[Responsible],
     comments: Seq[Comment],
     priority: Priority,
-    revisionMeta: Seq[RevisionMeta]
+    revisionMeta: Seq[RevisionMeta],
+    introduction: Seq[Introduction]
 ) extends Content {
 
   def supportedLanguages: Seq[String] = {

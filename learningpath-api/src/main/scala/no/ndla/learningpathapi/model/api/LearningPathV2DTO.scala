@@ -70,7 +70,8 @@ case class LearningPathV2DTO(
       "If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified"
     ) priority: Priority,
     @description("A list of revisions planned for the learningpath")
-    revisions: Seq[RevisionMetaDTO]
+    revisions: Seq[RevisionMetaDTO],
+    @description("An introduction for the learningpath") introduction: IntroductionDTO
 )
 
 object LearningPathV2DTO {

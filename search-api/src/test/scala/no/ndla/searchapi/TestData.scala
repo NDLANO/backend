@@ -997,6 +997,7 @@ object TestData {
     isBasedOn = None,
     title = List(),
     description = List(),
+    introduction = List(),
     coverPhotoId = None,
     duration = Some(0),
     status = LearningPathStatus.PUBLISHED,

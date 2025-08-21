@@ -22,6 +22,7 @@ import no.ndla.language.Language.DefaultLanguage
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.learningpathapi.model.domain.{SearchSettings, Sort}
+import common.learningpath.Introduction
 
 object TestData {
 
@@ -80,6 +81,7 @@ object TestData {
     isBasedOn = None,
     title = List(common.Title("tittel", DefaultLanguage)),
     description = List(Description("deskripsjon", DefaultLanguage)),
+    introduction = List(Introduction("<section><p>introduction</p></section>", DefaultLanguage)),
     coverPhotoId = None,
     duration = Some(60),
     status = LearningPathStatus.PUBLISHED,
