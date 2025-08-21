@@ -1,12 +1,20 @@
+/*
+ * Part of NDLA learningpath-api
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.learningpathapi.db.migration
 
 import no.ndla.common.CirceUtil
 import no.ndla.learningpathapi.db.util.{LpDocumentRow, StepDocumentRow}
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
-class V48__FixLanguageMyNDLALearningPathTest extends UnitSuite, TestEnvironment {
+class V49__FixLanguageMyNDLALearningPathTest extends UnitSuite, TestEnvironment {
   test("that all other languages than nb are removed if learning path is from My NDLA") {
-    val migration       = new V48__FixLanguageMyNDLALearningPath
+    val migration       = new V49__FixLanguageMyNDLALearningPath
     val oldPathDocument = """
         |{
         |  "tags": [
@@ -165,7 +173,7 @@ class V48__FixLanguageMyNDLALearningPathTest extends UnitSuite, TestEnvironment 
   }
 
   test("that learning paths from My NDLA with single language are unmodified") {
-    val migration    = new V48__FixLanguageMyNDLALearningPath
+    val migration    = new V49__FixLanguageMyNDLALearningPath
     val pathDocument = """
         |{
         |  "title": [
@@ -194,7 +202,7 @@ class V48__FixLanguageMyNDLALearningPathTest extends UnitSuite, TestEnvironment 
   }
 
   test("that learning paths not from My NDLA retain languages") {
-    val migration    = new V48__FixLanguageMyNDLALearningPath
+    val migration    = new V49__FixLanguageMyNDLALearningPath
     val pathDocument = """
         |{
         |  "title": [

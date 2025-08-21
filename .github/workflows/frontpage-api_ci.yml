@@ -12,6 +12,8 @@ on:
       - mapping/**
       - language/**
       - database/**
+      - tapirtesting/**
+      - scalatestsuite/**
       - modules/**
       - build.mill
   pull_request:
@@ -22,6 +24,8 @@ on:
       - mapping/**
       - language/**
       - database/**
+      - tapirtesting/**
+      - scalatestsuite/**
       - modules/**
       - build.mill
 jobs:

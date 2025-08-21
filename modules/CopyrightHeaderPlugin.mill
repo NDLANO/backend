@@ -7,6 +7,7 @@ import scala.util.matching.Regex
 
 trait CopyrightHeaderPlugin extends ScalaModule {
   def moduleName: String
+  def test: ScalaTests
 
   def copyrightCheck(): Task.Command[Unit] = Task.Command {
     validateOrFixFiles(false)()
@@ -53,7 +54,8 @@ trait CopyrightHeaderPlugin extends ScalaModule {
   }
 
   private def validateOrFixFiles(shouldWrite: Boolean) = Task.Anon {
-    val results = allSourceFiles().map { pathRef =>
+    val sources = allSourceFiles() ++ test.allSourceFiles()
+    val results = sources.map { pathRef =>
       val lines             = addLastLineIfMissing(os.read.lines(pathRef.path).toList)
       val copyrightLocation = locateCopyright(lines)
       val output            = copyrightLocation match {
@@ -64,10 +66,12 @@ trait CopyrightHeaderPlugin extends ScalaModule {
       val outputWithLine = addLastLineIfMissing(output)
       val mismatch       = outputWithLine != lines
       if (mismatch) {
-        println(s"COPYRIGHT ERROR: ${pathRef.path}")
         if (shouldWrite) {
+          println(s"Fixed copyright header in: ${pathRef.path}")
           val str = outputWithLine.mkString("\n")
           os.write.over(pathRef.path, str)
+        } else {
+          println(s"COPYRIGHT ERROR: ${pathRef.path}")
         }
       }
       mismatch

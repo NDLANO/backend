@@ -82,7 +82,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     embedUrl = List(),
     articleId = None,
     `type` = StepType.INTRODUCTION,
-    license = Some(license),
+    copyright = Some(LearningpathCopyright(license, Seq.empty)),
     status = StepStatus.ACTIVE
   )
 

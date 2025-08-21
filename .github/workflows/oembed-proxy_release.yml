@@ -12,6 +12,7 @@ on:
       - common/**
       - network/**
       - scalatestsuite/**
+      - tapirtesting/**
       - modules/**
       - build.mill
 jobs:

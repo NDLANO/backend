@@ -35,7 +35,7 @@ abstract class TableMigration[ROW_DATA] extends BaseJavaMigration {
     .autoClose(false)
     .withinTx { session => migrateRows(using session) }
 
-  private def migrateRows(implicit session: DBSession): Unit = {
+  protected def migrateRows(implicit session: DBSession): Unit = {
     val count        = countAllRows.get
     var numPagesLeft = (count / chunkSize) + 1
     var offset       = 0L

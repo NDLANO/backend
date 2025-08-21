@@ -8,12 +8,14 @@ on:
     paths:
       - common/**
       - language/**
+      - testbase/**
       - modules/**
       - build.mill
   pull_request:
     paths:
       - common/**
       - language/**
+      - testbase/**
       - modules/**
       - build.mill
 jobs:

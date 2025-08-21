@@ -149,9 +149,8 @@ trait LearningPathValidator {
 
     private def validateLicense(license: String): Seq[ValidationMessage] = {
       getLicense(license) match {
-        case None =>
-          Seq(new ValidationMessage("license.license", s"$license is not a valid license"))
-        case _ => Seq()
+        case None => Seq(ValidationMessage("license.license", s"$license is not a valid license"))
+        case _    => Seq()
       }
     }
 
