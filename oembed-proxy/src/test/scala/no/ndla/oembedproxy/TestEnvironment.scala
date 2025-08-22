@@ -25,11 +25,12 @@ import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment extends TapirApplication[OEmbedProxyProperties] with MockitoSugar {
-  implicit lazy val props: OEmbedProxyProperties                 = new OEmbedProxyProperties
-  implicit lazy val clock: Clock                                 = mock[Clock]
-  implicit lazy val errorHelpers: ErrorHelpers                   = new ErrorHelpers
+  implicit lazy val props: OEmbedProxyProperties = new OEmbedProxyProperties
+
   implicit lazy val services: List[TapirController]              = List.empty
-  implicit lazy val routes: Routes                               = new Routes
+  implicit lazy val clock: Clock                                 = mock[Clock]
+  implicit lazy val errorHelpers: ErrorHelpers                   = mock[ErrorHelpers]
+  implicit lazy val routes: Routes                               = mock[Routes]
   implicit lazy val oEmbedService: OEmbedService                 = mock[OEmbedService]
   implicit lazy val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
   implicit lazy val ndlaClient: NdlaClient                       = mock[NdlaClient]
@@ -39,9 +40,16 @@ trait TestEnvironment extends TapirApplication[OEmbedProxyProperties] with Mocki
   implicit lazy val swagger: SwaggerController                   = mock[SwaggerController]
 
   def resetMocks(): Unit = {
-    reset(oEmbedService)
-    reset(oEmbedProxyController)
-    reset(ndlaClient)
-    reset(providerService)
+    reset(
+      oEmbedService,
+      oEmbedProxyController,
+      ndlaClient,
+      providerService,
+      oEmbedService,
+      healthController,
+      swagger,
+      routes,
+      errorHelpers
+    )
   }
 }
