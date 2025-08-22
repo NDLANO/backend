@@ -10,24 +10,24 @@ package no.ndla.tapirtesting
 
 import com.sun.net.httpserver.HttpServer
 import no.ndla.common.configuration.BaseProps
-import no.ndla.network.tapir.{Routes, TapirController}
+import no.ndla.network.tapir.{Routes, TapirController, TapirErrorHandling}
 import no.ndla.scalatestsuite.UnitTestSuite
 
 import scala.compiletime.uninitialized
 
 trait TapirControllerTest extends UnitTestSuite {
-  val serverPort: Int = findFreePort
   val controller: TapirController
-
-  override given props: BaseProps
-  given routes: Routes
-  def services: List[TapirController] = List(controller)
+  val serverPort: Int = findFreePort
+  implicit val props: BaseProps
+  implicit val errorHandling: TapirErrorHandling
+  implicit val services: List[TapirController] = List(controller)
+  implicit val routes: Routes                  = new Routes
 
   var server: HttpServer = uninitialized
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    server = routes.Routes.startJdkServerAsync(s"TapirControllerTest:${this.getClass.getName}", serverPort) {}
+    server = routes.startJdkServerAsync(s"TapirControllerTest:${this.getClass.getName}", serverPort) {}
     Thread.sleep(1000)
   }
 

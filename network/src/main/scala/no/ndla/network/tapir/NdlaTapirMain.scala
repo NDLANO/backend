@@ -37,7 +37,7 @@ trait NdlaTapirMain[T <: TapirApplication[?]] {
   }
 
   def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit = {
-    val server = componentRegistry.routes.Routes.startJdkServerAsync(name, port)(warmupFunc)
+    val server = componentRegistry.routes.startJdkServerAsync(name, port)(warmupFunc)
     this.server = Some(server)
     // NOTE: Since JdkHttpServer does not block, we need to block the main thread to keep the application alive
     synchronized { wait() }
@@ -64,9 +64,9 @@ trait NdlaTapirMain[T <: TapirApplication[?]] {
 
   private def waitForActiveRequests(timeout: Duration): Unit = boundary {
     val startTime      = System.currentTimeMillis()
-    val activeRequests = componentRegistry.routes.Routes.activeRequests.get()
+    val activeRequests = componentRegistry.routes.activeRequests.get()
     logTaskTime(s"Waiting for $activeRequests active requests to finish...", timeout, logTaskStart = true) {
-      while (componentRegistry.routes.Routes.activeRequests.get() > 0) {
+      while (componentRegistry.routes.activeRequests.get() > 0) {
         if (System.currentTimeMillis() - startTime > timeout.toMillis) {
           logger.warn(s"Timeout of $timeout reached while waiting for active requests to finish.")
           boundary.break()

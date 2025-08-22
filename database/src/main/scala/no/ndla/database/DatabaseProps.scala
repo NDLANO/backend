@@ -13,13 +13,15 @@ import no.ndla.common.secrets.PropertyKeys
 
 import scala.util.Properties.propOrElse
 
-abstract class DatabaseProps(using baseProps: BaseProps) {
-  val MetaUserName: Prop[String] = baseProps.prop(PropertyKeys.MetaUserNameKey)
-  val MetaPassword: Prop[String] = baseProps.prop(PropertyKeys.MetaPasswordKey)
-  val MetaResource: Prop[String] = baseProps.prop(PropertyKeys.MetaResourceKey)
-  val MetaServer: Prop[String]   = baseProps.prop(PropertyKeys.MetaServerKey)
-  val MetaPort: Prop[Int]        = baseProps.propMap(baseProps.prop(PropertyKeys.MetaPortKey))(_.toInt)
-  val MetaSchema: Prop[String]   = baseProps.prop(PropertyKeys.MetaSchemaKey)
+trait DatabaseProps {
+  this: BaseProps =>
+
+  val MetaUserName: Prop[String] = prop(PropertyKeys.MetaUserNameKey)
+  val MetaPassword: Prop[String] = prop(PropertyKeys.MetaPasswordKey)
+  val MetaResource: Prop[String] = prop(PropertyKeys.MetaResourceKey)
+  val MetaServer: Prop[String]   = prop(PropertyKeys.MetaServerKey)
+  val MetaPort: Prop[Int]        = propMap(prop(PropertyKeys.MetaPortKey))(_.toInt)
+  val MetaSchema: Prop[String]   = prop(PropertyKeys.MetaSchemaKey)
   val MetaMaxConnections: Int    = propOrElse(PropertyKeys.MetaMaxConnections, "10").toInt
 
   def MetaMigrationLocation: String
