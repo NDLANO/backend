@@ -21,9 +21,9 @@ import org.postgresql.util.PSQLException
 import no.ndla.common.errors.OperationNotAllowedException
 
 class ErrorHandling(using
-  props: Props,
-  clock: Clock,
-  dataSource: DataSource
+    props: Props,
+    clock: Clock,
+    dataSource: DataSource
 ) extends TapirErrorHandling {
 
   import ErrorHelpers._

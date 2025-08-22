@@ -17,8 +17,8 @@ import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
 
 class ErrorHandling(using
-  props: Props,
-  clock: Clock
+    props: Props,
+    clock: Clock
 ) extends TapirErrorHandling {
 
   import ErrorHelpers.*

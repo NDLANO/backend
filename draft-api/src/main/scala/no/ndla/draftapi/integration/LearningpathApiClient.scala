@@ -20,22 +20,22 @@ import sttp.client3.quick.*
 import scala.util.Try
 
 class LearningpathApiClient(using
-  ndlaClient: NdlaClient,
-  converterService: ConverterService,
-  props: Props
+    ndlaClient: NdlaClient,
+    converterService: ConverterService,
+    props: Props
 ) {
-    private val Endpoint = s"http://${props.LearningpathApiHost}/learningpath-api/v2/learningpaths"
+  private val Endpoint = s"http://${props.LearningpathApiHost}/learningpath-api/v2/learningpaths"
 
-    def getLearningpathsWithId(articleId: Long, user: TokenUser): Try[Seq[LearningPath]] = {
-      get[Seq[LearningPath]](s"$Endpoint/contains-article/$articleId", user)
-    }
-
-    private def get[A: Decoder](endpointUrl: String, user: TokenUser, params: (String, String)*): Try[A] = {
-      val request = quickRequest.get(uri"$endpointUrl".withParams(params: _*))
-      ndlaClient.fetchWithForwardedAuth[A](request, Some(user))
-    }
-
+  def getLearningpathsWithId(articleId: Long, user: TokenUser): Try[Seq[LearningPath]] = {
+    get[Seq[LearningPath]](s"$Endpoint/contains-article/$articleId", user)
   }
+
+  private def get[A: Decoder](endpointUrl: String, user: TokenUser, params: (String, String)*): Try[A] = {
+    val request = quickRequest.get(uri"$endpointUrl".withParams(params: _*))
+    ndlaClient.fetchWithForwardedAuth[A](request, Some(user))
+  }
+
+}
 case class LearningPath(id: Long, title: Title)
 
 object LearningPath {

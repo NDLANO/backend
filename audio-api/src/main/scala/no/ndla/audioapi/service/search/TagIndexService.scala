@@ -20,32 +20,33 @@ import no.ndla.common.CirceUtil
 import scala.util.{Success, Try}
 
 class TagIndexService(using
-  searchConverterService: SearchConverterService,
-  indexService: IndexService,
-  audioRepository: AudioRepository,
-  props: Props
-) extends IndexService[AudioMetaInformation, SearchableTag] with StrictLogging {
-    override val documentType: String                         = props.AudioTagSearchDocument
-    override val searchIndex: String                          = props.AudioTagSearchIndex
-    override val repository: Repository[AudioMetaInformation] = audioRepository
+    searchConverterService: SearchConverterService,
+    indexService: IndexService,
+    audioRepository: AudioRepository,
+    props: Props
+) extends IndexService[AudioMetaInformation, SearchableTag]
+    with StrictLogging {
+  override val documentType: String                         = props.AudioTagSearchDocument
+  override val searchIndex: String                          = props.AudioTagSearchIndex
+  override val repository: Repository[AudioMetaInformation] = audioRepository
 
-    override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Try[Seq[IndexRequest]] = {
-      val tags = searchConverterService.asSearchableTags(domainModel)
+  override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Try[Seq[IndexRequest]] = {
+    val tags = searchConverterService.asSearchableTags(domainModel)
 
-      Success(
-        tags.map(t => {
-          val source = CirceUtil.toJsonString(t)
-          indexInto(indexName).doc(source).id(s"${t.language}.${t.tag}")
-        })
-      )
-    }
-
-    def getMapping: MappingDefinition = {
-      properties(
-        List(
-          textField("tag"),
-          keywordField("language")
-        )
-      )
-    }
+    Success(
+      tags.map(t => {
+        val source = CirceUtil.toJsonString(t)
+        indexInto(indexName).doc(source).id(s"${t.language}.${t.tag}")
+      })
+    )
   }
+
+  def getMapping: MappingDefinition = {
+    properties(
+      List(
+        textField("tag"),
+        keywordField("language")
+      )
+    )
+  }
+}

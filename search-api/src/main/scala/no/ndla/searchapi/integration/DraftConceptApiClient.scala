@@ -12,10 +12,10 @@ import no.ndla.common.model.domain.concept.Concept
 import no.ndla.network.NdlaClient
 
 class DraftConceptApiClient(
-  val baseUrl: String
-)(using 
-  ndlaClient: NdlaClient,
-  searchApiClient: SearchApiClient
+    val baseUrl: String
+)(using
+    ndlaClient: NdlaClient,
+    searchApiClient: SearchApiClient
 ) extends SearchApiClient[Concept] {
   override val searchPath     = "concept-api/v1/drafts"
   override val name           = "concepts"

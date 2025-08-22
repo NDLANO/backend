@@ -29,9 +29,9 @@ import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration.DurationInt
 
 class V57__MigrateSavedSearch(using
-  taxonomyApiClient: TaxonomyApiClient,
-  ndlaClient: NdlaClient,
-  props: Props
+    taxonomyApiClient: TaxonomyApiClient,
+    ndlaClient: NdlaClient,
+    props: Props
 ) {
 
   class V57__MigrateSavedSearch extends BaseJavaMigration {

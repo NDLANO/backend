@@ -29,21 +29,21 @@ case class SearchSettings(
 )
 
 class SearchSettingsHelper(using props: Props) {
-    def empty: SearchSettings = {
-      new SearchSettings(
-        withIdIn = List.empty,
-        searchLanguage = AllLanguages,
-        page = 1,
-        pageSize = props.MaxPageSize,
-        sort = Sort.ByRelevanceDesc,
-        fallback = false,
-        tagsToFilterBy = Set.empty,
-        exactTitleMatch = false,
-        shouldScroll = false,
-        embedResource = List.empty,
-        embedId = None,
-        conceptType = None,
-        aggregatePaths = List.empty
-      )
-    }
+  def empty: SearchSettings = {
+    new SearchSettings(
+      withIdIn = List.empty,
+      searchLanguage = AllLanguages,
+      page = 1,
+      pageSize = props.MaxPageSize,
+      sort = Sort.ByRelevanceDesc,
+      fallback = false,
+      tagsToFilterBy = Set.empty,
+      exactTitleMatch = false,
+      shouldScroll = false,
+      embedResource = List.empty,
+      embedId = None,
+      conceptType = None,
+      aggregatePaths = List.empty
+    )
   }
+}

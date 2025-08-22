@@ -49,11 +49,11 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
     new V55__SetHideBylineForImagesNotCopyrighted
   )
 
-  given ErrorHandling                = new ErrorHandling
-  given DBUtil: DBUtility            = new DBUtility
-  given dataSource: DataSource = DataSource.getDataSource
-  given clock: SystemClock           = new SystemClock
-  given e4sClient: NdlaE4sClient     = Elastic4sClientFactory.getClient(props.SearchServer)
+  given ErrorHandling            = new ErrorHandling
+  given DBUtil: DBUtility        = new DBUtility
+  given dataSource: DataSource   = DataSource.getDataSource
+  given clock: SystemClock       = new SystemClock
+  given e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
   // Infrastructure clients
   given ndlaClient: NdlaClient                 = new NdlaClient

@@ -21,36 +21,36 @@ import no.ndla.searchapi.model.domain.DomainDumpResults
 import scala.util.{Failure, Success, Try}
 
 class LearningPathApiClient(
-  val baseUrl: String
-)(using 
-  ndlaClient: NdlaClient,
-  strictLogging: StrictLogging,
-  searchApiClient: SearchApiClient
+    val baseUrl: String
+)(using
+    ndlaClient: NdlaClient,
+    strictLogging: StrictLogging,
+    searchApiClient: SearchApiClient
 ) extends SearchApiClient[LearningPath] {
-    override val searchPath     = "learningpath-api/v2/learningpaths"
-    override val name           = "learningpaths"
-    override val dumpDomainPath = "intern/dump/learningpath"
+  override val searchPath     = "learningpath-api/v2/learningpaths"
+  override val name           = "learningpaths"
+  override val dumpDomainPath = "intern/dump/learningpath"
 
-    override protected def getChunk(page: Int, pageSize: Int)(implicit
-        d: Decoder[LearningPath]
-    ): Try[DomainDumpResults[LearningPath]] = {
-      val params = Map(
-        "page"           -> page.toString,
-        "page-size"      -> pageSize.toString,
-        "only-published" -> "false"
-      )
-      val reqs = RequestInfo.fromThreadContext()
-      reqs.setThreadContextRequestInfo()
-      get[DomainDumpResults[LearningPath]](dumpDomainPath, params, timeout = 120000) match {
-        case Success(result) =>
-          val filtered = result.results.filter(r => DELETED != r.status).filter(_.verificationStatus == CREATED_BY_NDLA)
-          logger.info(s"Fetched chunk of ${filtered.size} $name from ${baseUrl.addParams(params)}")
-          Success(result.copy(results = filtered))
-        case Failure(ex) =>
-          logger.error(
-            s"Could not fetch chunk on page: '$page', with pageSize: '$pageSize' from '$baseUrl/$dumpDomainPath'"
-          )
-          Failure(ex)
-      }
+  override protected def getChunk(page: Int, pageSize: Int)(implicit
+      d: Decoder[LearningPath]
+  ): Try[DomainDumpResults[LearningPath]] = {
+    val params = Map(
+      "page"           -> page.toString,
+      "page-size"      -> pageSize.toString,
+      "only-published" -> "false"
+    )
+    val reqs = RequestInfo.fromThreadContext()
+    reqs.setThreadContextRequestInfo()
+    get[DomainDumpResults[LearningPath]](dumpDomainPath, params, timeout = 120000) match {
+      case Success(result) =>
+        val filtered = result.results.filter(r => DELETED != r.status).filter(_.verificationStatus == CREATED_BY_NDLA)
+        logger.info(s"Fetched chunk of ${filtered.size} $name from ${baseUrl.addParams(params)}")
+        Success(result.copy(results = filtered))
+      case Failure(ex) =>
+        logger.error(
+          s"Could not fetch chunk on page: '$page', with pageSize: '$pageSize' from '$baseUrl/$dumpDomainPath'"
+        )
+        Failure(ex)
     }
   }
+}

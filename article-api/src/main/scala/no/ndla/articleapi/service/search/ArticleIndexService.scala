@@ -18,42 +18,43 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Article
 
 class ArticleIndexService(using
-  searchConverterService: SearchConverterService,
-  articleRepository: ArticleRepository,
-  props: Props
-) extends IndexService with StrictLogging {
-    override val documentType: String = props.ArticleSearchDocument
-    override val searchIndex: String  = props.ArticleSearchIndex
+    searchConverterService: SearchConverterService,
+    articleRepository: ArticleRepository,
+    props: Props
+) extends IndexService
+    with StrictLogging {
+  override val documentType: String = props.ArticleSearchDocument
+  override val searchIndex: String  = props.ArticleSearchIndex
 
-    override def createIndexRequest(domainModel: Article, indexName: String): IndexRequest = {
-      val searchable = searchConverterService.asSearchableArticle(domainModel)
-      val source     = CirceUtil.toJsonString(searchable)
-      indexInto(indexName).doc(source).id(domainModel.id.get.toString)
-    }
+  override def createIndexRequest(domainModel: Article, indexName: String): IndexRequest = {
+    val searchable = searchConverterService.asSearchableArticle(domainModel)
+    val source     = CirceUtil.toJsonString(searchable)
+    indexInto(indexName).doc(source).id(domainModel.id.get.toString)
+  }
 
-    def getMapping: MappingDefinition = {
-      val fields = List(
-        intField("id"),
-        keywordField("defaultTitle"),
-        dateField("lastUpdated"),
-        keywordField("license"),
-        keywordField("availability"),
-        textField("authors").fielddata(true),
-        textField("articleType").analyzer("keyword"),
-        nestedField("metaImage").fields(
-          keywordField("imageId"),
-          keywordField("altText"),
-          keywordField("language")
-        ),
-        keywordField("grepCodes")
-      )
-      val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
-        generateLanguageSupportedFieldList("content") ++
-        generateLanguageSupportedFieldList("visualElement") ++
-        generateLanguageSupportedFieldList("introduction") ++
-        generateLanguageSupportedFieldList("metaDescription") ++
-        generateLanguageSupportedFieldList("tags")
+  def getMapping: MappingDefinition = {
+    val fields = List(
+      intField("id"),
+      keywordField("defaultTitle"),
+      dateField("lastUpdated"),
+      keywordField("license"),
+      keywordField("availability"),
+      textField("authors").fielddata(true),
+      textField("articleType").analyzer("keyword"),
+      nestedField("metaImage").fields(
+        keywordField("imageId"),
+        keywordField("altText"),
+        keywordField("language")
+      ),
+      keywordField("grepCodes")
+    )
+    val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
+      generateLanguageSupportedFieldList("content") ++
+      generateLanguageSupportedFieldList("visualElement") ++
+      generateLanguageSupportedFieldList("introduction") ++
+      generateLanguageSupportedFieldList("metaDescription") ++
+      generateLanguageSupportedFieldList("tags")
 
-      properties(fields ++ dynamics)
-    }
+    properties(fields ++ dynamics)
+  }
 }

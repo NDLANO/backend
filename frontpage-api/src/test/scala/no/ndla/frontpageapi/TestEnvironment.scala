@@ -19,9 +19,7 @@ import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService
 import no.ndla.network.tapir.TapirApplication
 import org.scalatestplus.mockito.MockitoSugar
 
-trait TestEnvironment
-    extends TapirApplication
-    with MockitoSugar {
+trait TestEnvironment extends TapirApplication with MockitoSugar {
   given props = new FrontpageApiProperties
 
   given clock: SystemClock           = mock[SystemClock]

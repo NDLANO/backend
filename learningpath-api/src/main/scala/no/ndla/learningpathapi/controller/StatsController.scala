@@ -18,20 +18,20 @@ import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 class StatsController(using
-  readService: ReadService,
-  props: Props,
-  errorHandling: ErrorHandling
+    readService: ReadService,
+    props: Props,
+    errorHandling: ErrorHandling
 ) extends TapirController {
-    override val serviceName: String                       = "stats"
-    override val prefix: EndpointInput[Unit]               = "learningpath-api" / "v1" / serviceName
-    override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-      getStats
-    )
+  override val serviceName: String                       = "stats"
+  override val prefix: EndpointInput[Unit]               = "learningpath-api" / "v1" / serviceName
+  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+    getStats
+  )
 
-    private def getStats: ServerEndpoint[Any, Eff] = endpoint.get
-      .summary("Get stats for my-ndla usage.")
-      .description("Get stats for my-ndla usage.")
-      .deprecated()
-      .errorOut(statusCode(StatusCode.MovedPermanently).and(header("Location", "/myndla-api/v1/stats")))
-      .serverLogicPure(_ => Left(()))
-  }
+  private def getStats: ServerEndpoint[Any, Eff] = endpoint.get
+    .summary("Get stats for my-ndla usage.")
+    .description("Get stats for my-ndla usage.")
+    .deprecated()
+    .errorOut(statusCode(StatusCode.MovedPermanently).and(header("Location", "/myndla-api/v1/stats")))
+    .serverLogicPure(_ => Left(()))
+}

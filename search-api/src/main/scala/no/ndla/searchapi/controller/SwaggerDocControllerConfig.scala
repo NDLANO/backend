@@ -14,8 +14,8 @@ import no.ndla.searchapi.Props
 import sttp.tapir.*
 
 class SwaggerDocControllerConfig(using
-  props: Props,
-  swaggerControllerConfig: SwaggerControllerConfig
+    props: Props,
+    swaggerControllerConfig: SwaggerControllerConfig
 ) {
 
   object SwaggerDocControllerConfig {

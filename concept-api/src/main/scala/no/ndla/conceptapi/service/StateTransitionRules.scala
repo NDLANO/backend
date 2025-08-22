@@ -25,14 +25,14 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 class StateTransitionRules(using
-  writeService: WriteService,
-  draftConceptRepository: DraftConceptRepository,
-  publishedConceptRepository: PublishedConceptRepository,
-  converterService: ConverterService,
-  contentValidator: ContentValidator,
-  draftConceptIndexService: DraftConceptIndexService,
-  errorHandling: ErrorHandling,
-  clock: Clock
+    writeService: WriteService,
+    draftConceptRepository: DraftConceptRepository,
+    publishedConceptRepository: PublishedConceptRepository,
+    converterService: ConverterService,
+    contentValidator: ContentValidator,
+    draftConceptIndexService: DraftConceptIndexService,
+    errorHandling: ErrorHandling,
+    clock: Clock
 ) {
 
   object StateTransitionRules {

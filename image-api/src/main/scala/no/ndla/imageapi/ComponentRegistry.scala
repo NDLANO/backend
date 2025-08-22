@@ -31,7 +31,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
-class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication [ImageApiProperties] {
+class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication[ImageApiProperties] {
   given props: ImageApiProperties = properties
 
   given migrator: DBMigrator = DBMigrator(
@@ -53,7 +53,7 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given imageStorage                     = new AmazonImageStorageService
   given ndlaClient                       = new NdlaClient
   given converterService                 = new ConverterService
-  var e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
+  var e4sClient: NdlaE4sClient           = Elastic4sClientFactory.getClient(props.SearchServer)
   given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
   given searchConverterService           = new SearchConverterService
 

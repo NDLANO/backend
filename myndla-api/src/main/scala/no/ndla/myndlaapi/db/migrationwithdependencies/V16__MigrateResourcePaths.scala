@@ -16,8 +16,8 @@ import scalikejdbc.{DBSession, WrappedResultSet, scalikejdbcSQLInterpolationImpl
 import java.util.UUID
 
 class V16__MigrateResourcePaths(using
-  taxonomyApiClient: TaxonomyApiClient,
-  ndlaClient: NdlaClient
+    taxonomyApiClient: TaxonomyApiClient,
+    ndlaClient: NdlaClient
 ) {
 
   class V16__MigrateResourcePaths extends TableMigration[ResourceRow] {

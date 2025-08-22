@@ -23,9 +23,7 @@ import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
-trait TestEnvironment
-    extends TapirApplication
-    with MockitoSugar {
+trait TestEnvironment extends TapirApplication with MockitoSugar {
   given props: AudioApiProperties = new AudioApiProperties
 
   given dataSource: HikariDataSource       = mock[HikariDataSource]
@@ -51,7 +49,7 @@ trait TestEnvironment
   given healthController: HealthController  = mock[HealthController]
   given seriesController: SeriesController  = mock[SeriesController]
 
-  given e4sClient: NdlaE4sClient                                     = mock[NdlaE4sClient]
+  given e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
   given audioSearchService: AudioSearchService         = mock[AudioSearchService]
   given audioIndexService: AudioIndexService           = mock[AudioIndexService]
   given seriesSearchService: SeriesSearchService       = mock[SeriesSearchService]
@@ -60,8 +58,8 @@ trait TestEnvironment
   given tagIndexService: TagIndexService               = mock[TagIndexService]
   given searchConverterService: SearchConverterService = mock[SearchConverterService]
 
-  given clock: SystemClock = mock[SystemClock]
-  def services: List[TapirController]  = List.empty
-  val swagger: SwaggerController       = mock[SwaggerController]
+  given clock: SystemClock            = mock[SystemClock]
+  def services: List[TapirController] = List.empty
+  val swagger: SwaggerController      = mock[SwaggerController]
 
 }

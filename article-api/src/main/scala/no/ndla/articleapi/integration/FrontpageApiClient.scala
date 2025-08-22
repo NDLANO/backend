@@ -18,15 +18,16 @@ import sttp.client3.quick.*
 import scala.util.Try
 
 class FrontpageApiClient(using
-  ndlaClient: NdlaClient,
-  converterService: ConverterService,
-  props: Props
-)(FrontpageApiBaseUrl: String = props.FrontpageApiUrl) extends StrictLogging {
+    ndlaClient: NdlaClient,
+    converterService: ConverterService,
+    props: Props
+)(FrontpageApiBaseUrl: String = props.FrontpageApiUrl)
+    extends StrictLogging {
 
-    private val frontpageApiBaseUrl = s"$FrontpageApiBaseUrl/frontpage-api/v1/frontpage"
+  private val frontpageApiBaseUrl = s"$FrontpageApiBaseUrl/frontpage-api/v1/frontpage"
 
-    def getFrontpage: Try[FrontPageDTO] = {
-      val req = quickRequest.get(uri"$frontpageApiBaseUrl")
-      ndlaClient.fetch[FrontPageDTO](req)
-    }
+  def getFrontpage: Try[FrontPageDTO] = {
+    val req = quickRequest.get(uri"$frontpageApiBaseUrl")
+    ndlaClient.fetch[FrontPageDTO](req)
+  }
 }

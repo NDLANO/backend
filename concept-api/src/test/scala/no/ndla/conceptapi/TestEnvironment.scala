@@ -30,10 +30,7 @@ import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
-trait TestEnvironment
-    extends TapirApplication
-    with MockitoSugar
-    with StrictLogging {
+trait TestEnvironment extends TapirApplication with MockitoSugar with StrictLogging {
   given props: ConceptApiProperties = new ConceptApiProperties {
     override def IntroductionHtmlTags: Set[String] = Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
   }
@@ -53,8 +50,8 @@ trait TestEnvironment
   given publishedConceptIndexService: PublishedConceptIndexService   = mock[PublishedConceptIndexService]
   given publishedConceptSearchService: PublishedConceptSearchService = mock[PublishedConceptSearchService]
 
-  var e4sClient: NdlaE4sClient                         = mock[NdlaE4sClient]
-  val mockitoSugar: MockitoSugar                       = mock[MockitoSugar]
+  var e4sClient: NdlaE4sClient             = mock[NdlaE4sClient]
+  val mockitoSugar: MockitoSugar           = mock[MockitoSugar]
   given dataSource: HikariDataSource       = mock[HikariDataSource]
   given writeService: WriteService         = mock[WriteService]
   given readService: ReadService           = mock[ReadService]

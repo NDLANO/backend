@@ -25,10 +25,11 @@ import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
 class ErrorHandling(using
-  props: Props,
-  clock: Clock,
-  dataSource: DataSource
-) extends TapirErrorHandling with StrictLogging {
+    props: Props,
+    clock: Clock,
+    dataSource: DataSource
+) extends TapirErrorHandling
+    with StrictLogging {
 
   import ErrorHelpers.*
 

@@ -19,23 +19,23 @@ import sttp.client3.quick.*
 import scala.util.Try
 
 class ImageApiClient(using
-  ndlaClient: NdlaClient,
-  converterService: ConverterService,
-  props: Props
+    ndlaClient: NdlaClient,
+    converterService: ConverterService,
+    props: Props
 ) {
-    private val Endpoint = s"http://${props.ImageApiHost}/image-api/v3/images"
+  private val Endpoint = s"http://${props.ImageApiHost}/image-api/v3/images"
 
-    def getImagesWithIds(ids: Seq[String]): Try[Seq[ImageWithCopyright]] = {
-      val idsParam = ids.mkString(",")
-      get[Seq[ImageWithCopyright]](s"$Endpoint/ids", "ids" -> idsParam)
-    }
-
-    private def get[A: Decoder](endpointUrl: String, params: (String, String)*): Try[A] = {
-      val request = quickRequest.get(uri"$endpointUrl".withParams(params*))
-      ndlaClient.fetch[A](request)
-    }
-
+  def getImagesWithIds(ids: Seq[String]): Try[Seq[ImageWithCopyright]] = {
+    val idsParam = ids.mkString(",")
+    get[Seq[ImageWithCopyright]](s"$Endpoint/ids", "ids" -> idsParam)
   }
+
+  private def get[A: Decoder](endpointUrl: String, params: (String, String)*): Try[A] = {
+    val request = quickRequest.get(uri"$endpointUrl".withParams(params*))
+    ndlaClient.fetch[A](request)
+  }
+
+}
 case class ImageWithCopyright(id: String, copyright: CopyrightDTO)
 
 object ImageWithCopyright {

@@ -23,8 +23,8 @@ import scala.util.{Success, Try}
 
 class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
   override lazy val dataSource: DataSource = testDataSource.get
-  override lazy val migrator                     = new DBMigrator
-  var repository: ArticleRepository              = _
+  override lazy val migrator               = new DBMigrator
+  var repository: ArticleRepository        = _
 
   lazy val sampleArticle: Article = TestData.sampleArticleWithByNcSa
 

@@ -25,14 +25,14 @@ import no.ndla.searchapi.model.domain.IndexingBundle
 import scala.util.{Failure, Success, Try}
 
 class IndexService(using
-  e4sClient: Elastic4sClient,
-  searchApiClient: SearchApiClient,
-  baseIndexService: BaseIndexService,
-  taxonomyApiClient: TaxonomyApiClient,
-  grepApiClient: GrepApiClient,
-  props: Props,
-  myNDLAApiClient: MyNDLAApiClient,
-  searchLanguage: SearchLanguage
+    e4sClient: Elastic4sClient,
+    searchApiClient: SearchApiClient,
+    baseIndexService: BaseIndexService,
+    taxonomyApiClient: TaxonomyApiClient,
+    grepApiClient: GrepApiClient,
+    props: Props,
+    myNDLAApiClient: MyNDLAApiClient,
+    searchLanguage: SearchLanguage
 ) {
 
   abstract class BulkIndexingService extends BaseIndexService {

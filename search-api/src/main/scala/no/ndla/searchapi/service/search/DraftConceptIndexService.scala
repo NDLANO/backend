@@ -24,66 +24,67 @@ import no.ndla.common.model.domain.concept.Concept
 import scala.util.Try
 
 class DraftConceptIndexService(using
-  searchConverterService: SearchConverterService,
-  indexService: IndexService,
-  draftConceptApiClient: DraftConceptApiClient,
-  props: Props,
-  searchApiClient: SearchApiClient
-) extends IndexService[Concept] with StrictLogging {
-    override val documentType: String                = "concept"
-    override val searchIndex: String                 = props.SearchIndex(SearchType.Concepts)
-    override val apiClient: SearchApiClient[Concept] = draftConceptApiClient
+    searchConverterService: SearchConverterService,
+    indexService: IndexService,
+    draftConceptApiClient: DraftConceptApiClient,
+    props: Props,
+    searchApiClient: SearchApiClient
+) extends IndexService[Concept]
+    with StrictLogging {
+  override val documentType: String                = "concept"
+  override val searchIndex: String                 = props.SearchIndex(SearchType.Concepts)
+  override val apiClient: SearchApiClient[Concept] = draftConceptApiClient
 
-    override def createIndexRequest(
-        domainModel: Concept,
-        indexName: String,
-        indexingBundle: IndexingBundle
-    ): Try[IndexRequest] = {
-      searchConverterService.asSearchableConcept(domainModel, indexingBundle).map { searchable =>
-        val source = CirceUtil.toJsonString(searchable)
-        indexInto(indexName)
-          .doc(source)
-          .id(domainModel.id.get.toString)
-          .versionType(EXTERNAL_GTE)
-          .version(domainModel.revision.map(_.toLong).get)
-      }
-    }
-
-    def getMapping: MappingDefinition = {
-      val fields = List(
-        longField("id"),
-        keywordField("conceptType"),
-        keywordField("defaultTitle"),
-        dateField("lastUpdated"),
-        keywordField("draftStatus.current"),
-        keywordField("draftStatus.other"),
-        keywordField("status"),
-        keywordField("owner"),
-        keywordField("users"),
-        textField("typeName"),
-        keywordField("updatedBy"),
-        keywordField("license"),
-        keywordField("authors"),
-        dateField("created"),
-        keywordField("learningResourceType"),
-        keywordField("source"),
-        ObjectField(
-          "responsible",
-          properties = Seq(
-            keywordField("responsibleId"),
-            dateField("lastUpdated")
-          )
-        ),
-        textField("gloss"),
-        longField("favorited"),
-        ObjectField("domainObject", enabled = Some(false))
-      )
-      val dynamics =
-        languageValuesMapping("title", keepRaw = true) ++
-          languageValuesMapping("content", keepRaw = true) ++
-          languageValuesMapping("tags")
-
-      properties(fields ++ dynamics)
-
+  override def createIndexRequest(
+      domainModel: Concept,
+      indexName: String,
+      indexingBundle: IndexingBundle
+  ): Try[IndexRequest] = {
+    searchConverterService.asSearchableConcept(domainModel, indexingBundle).map { searchable =>
+      val source = CirceUtil.toJsonString(searchable)
+      indexInto(indexName)
+        .doc(source)
+        .id(domainModel.id.get.toString)
+        .versionType(EXTERNAL_GTE)
+        .version(domainModel.revision.map(_.toLong).get)
     }
   }
+
+  def getMapping: MappingDefinition = {
+    val fields = List(
+      longField("id"),
+      keywordField("conceptType"),
+      keywordField("defaultTitle"),
+      dateField("lastUpdated"),
+      keywordField("draftStatus.current"),
+      keywordField("draftStatus.other"),
+      keywordField("status"),
+      keywordField("owner"),
+      keywordField("users"),
+      textField("typeName"),
+      keywordField("updatedBy"),
+      keywordField("license"),
+      keywordField("authors"),
+      dateField("created"),
+      keywordField("learningResourceType"),
+      keywordField("source"),
+      ObjectField(
+        "responsible",
+        properties = Seq(
+          keywordField("responsibleId"),
+          dateField("lastUpdated")
+        )
+      ),
+      textField("gloss"),
+      longField("favorited"),
+      ObjectField("domainObject", enabled = Some(false))
+    )
+    val dynamics =
+      languageValuesMapping("title", keepRaw = true) ++
+        languageValuesMapping("content", keepRaw = true) ++
+        languageValuesMapping("tags")
+
+    properties(fields ++ dynamics)
+
+  }
+}

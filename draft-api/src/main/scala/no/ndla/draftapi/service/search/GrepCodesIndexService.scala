@@ -19,24 +19,25 @@ import no.ndla.draftapi.model.search.SearchableGrepCode
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
 
 class GrepCodesIndexService(using
-  searchConverterService: SearchConverterService,
-  draftRepository: DraftRepository,
-  props: Props
-) extends IndexService[Draft, SearchableGrepCode] with StrictLogging {
-    override val documentType: String          = props.DraftGrepCodesSearchDocument
-    override val searchIndex: String           = props.DraftGrepCodesSearchIndex
-    override val repository: Repository[Draft] = draftRepository
+    searchConverterService: SearchConverterService,
+    draftRepository: DraftRepository,
+    props: Props
+) extends IndexService[Draft, SearchableGrepCode]
+    with StrictLogging {
+  override val documentType: String          = props.DraftGrepCodesSearchDocument
+  override val searchIndex: String           = props.DraftGrepCodesSearchIndex
+  override val repository: Repository[Draft] = draftRepository
 
-    override def createIndexRequests(domainModel: Draft, indexName: String): Seq[IndexRequest] = {
-      val grepCodes = searchConverterService.asSearchableGrepCodes(domainModel)
+  override def createIndexRequests(domainModel: Draft, indexName: String): Seq[IndexRequest] = {
+    val grepCodes = searchConverterService.asSearchableGrepCodes(domainModel)
 
-      grepCodes.map(code => {
-        val source = CirceUtil.toJsonString(code)
-        indexInto(indexName).doc(source).id(code.grepCode)
-      })
-    }
+    grepCodes.map(code => {
+      val source = CirceUtil.toJsonString(code)
+      indexInto(indexName).doc(source).id(code.grepCode)
+    })
+  }
 
-    def getMapping: MappingDefinition = {
-      properties(List(textField("grepCode")))
-    }
+  def getMapping: MappingDefinition = {
+    properties(List(textField("grepCode")))
+  }
 }

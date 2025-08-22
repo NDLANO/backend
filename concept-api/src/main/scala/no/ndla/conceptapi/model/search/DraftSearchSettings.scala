@@ -31,23 +31,23 @@ case class DraftSearchSettings(
 )
 
 class DraftSearchSettingsHelper(using props: Props) {
-    def empty: DraftSearchSettings = {
-      DraftSearchSettings(
-        withIdIn = List.empty,
-        searchLanguage = AllLanguages,
-        page = 1,
-        pageSize = props.MaxPageSize,
-        sort = Sort.ByRelevanceDesc,
-        fallback = false,
-        tagsToFilterBy = Set.empty,
-        statusFilter = Set.empty,
-        userFilter = Seq.empty,
-        shouldScroll = false,
-        embedResource = List.empty,
-        embedId = None,
-        responsibleIdFilter = List.empty,
-        conceptType = None,
-        aggregatePaths = List.empty
-      )
-    }
+  def empty: DraftSearchSettings = {
+    DraftSearchSettings(
+      withIdIn = List.empty,
+      searchLanguage = AllLanguages,
+      page = 1,
+      pageSize = props.MaxPageSize,
+      sort = Sort.ByRelevanceDesc,
+      fallback = false,
+      tagsToFilterBy = Set.empty,
+      statusFilter = Set.empty,
+      userFilter = Seq.empty,
+      shouldScroll = false,
+      embedResource = List.empty,
+      embedId = None,
+      responsibleIdFilter = List.empty,
+      conceptType = None,
+      aggregatePaths = List.empty
+    )
   }
+}

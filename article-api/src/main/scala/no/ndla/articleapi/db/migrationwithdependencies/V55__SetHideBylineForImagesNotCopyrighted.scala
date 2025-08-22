@@ -15,9 +15,9 @@ import no.ndla.network.NdlaClient
 import org.jsoup.nodes.Element
 
 class V55__SetHideBylineForImagesNotCopyrighted(using
-  imageApiClient: ImageApiClient,
-  ndlaClient: NdlaClient,
-  props: Props
+    imageApiClient: ImageApiClient,
+    ndlaClient: NdlaClient,
+    props: Props
 ) {
 
   class V55__SetHideBylineForImagesNotCopyrighted extends HtmlMigration {

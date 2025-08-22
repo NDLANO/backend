@@ -16,9 +16,9 @@ import org.jsoup.nodes.Element
 import scalikejdbc.{SQLSyntax, scalikejdbcSQLInterpolationImplicitDef}
 
 class V66__SetHideBylineForImagesNotCopyrighted(using
-  imageApiClient: ImageApiClient,
-  ndlaClient: NdlaClient,
-  props: Props
+    imageApiClient: ImageApiClient,
+    ndlaClient: NdlaClient,
+    props: Props
 ) {
 
   class V66__SetHideBylineForImagesNotCopyrighted extends HtmlMigration {

@@ -20,68 +20,68 @@ import no.ndla.imageapi.repository.{ImageRepository, Repository}
 import no.ndla.search.SearchLanguage
 
 class ImageIndexService(using
-  searchConverterService: SearchConverterService,
-  imageRepository: ImageRepository,
-  props: Props,
-  searchLanguage: SearchLanguage
+    searchConverterService: SearchConverterService,
+    imageRepository: ImageRepository,
+    props: Props,
+    searchLanguage: SearchLanguage
 ) extends IndexService {
-    override val documentType: String                         = props.SearchDocument
-    override val searchIndex: String                          = props.SearchIndex
-    override val repository: Repository[ImageMetaInformation] = imageRepository
+  override val documentType: String                         = props.SearchDocument
+  override val searchIndex: String                          = props.SearchIndex
+  override val repository: Repository[ImageMetaInformation] = imageRepository
 
-    override def createIndexRequests(domainModel: ImageMetaInformation, indexName: String): Seq[IndexRequest] = {
-      val searchable = searchConverterService.asSearchableImage(domainModel)
-      val source     = CirceUtil.toJsonString(searchable)
+  override def createIndexRequests(domainModel: ImageMetaInformation, indexName: String): Seq[IndexRequest] = {
+    val searchable = searchConverterService.asSearchableImage(domainModel)
+    val source     = CirceUtil.toJsonString(searchable)
 
-      Seq(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
+    Seq(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
+  }
+
+  protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
+    if (keepRaw) {
+      SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+          .fielddata(false)
+          .analyzer(langAnalyzer.analyzer)
+          .fields(keywordField("raw"))
+      )
+    } else {
+      SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+          .fielddata(false)
+          .analyzer(langAnalyzer.analyzer)
+      )
     }
+  }
 
-    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
-      if (keepRaw) {
-        SearchLanguage.languageAnalyzers.map(langAnalyzer =>
-          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-            .fielddata(false)
-            .analyzer(langAnalyzer.analyzer)
-            .fields(keywordField("raw"))
-        )
-      } else {
-        SearchLanguage.languageAnalyzers.map(langAnalyzer =>
-          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-            .fielddata(false)
-            .analyzer(langAnalyzer.analyzer)
-        )
-      }
-    }
-
-    def getMapping: MappingDefinition = {
-      val fields: Seq[ElasticField] = List(
-        ObjectField("domainObject", enabled = Some(false)),
-        intField("id"),
-        keywordField("license"),
-        dateField("lastUpdated"),
-        keywordField("defaultTitle"),
-        keywordField("modelReleased"),
-        textField("editorNotes"),
-        keywordField("podcastFriendly"),
-        keywordField("users"),
-        nestedField("imageFiles").fields(
-          intField("imageSize"),
-          textField("previewUrl"),
-          ObjectField(
-            "dimensions",
-            properties = Seq(
-              intField("width"),
-              intField("height")
-            )
+  def getMapping: MappingDefinition = {
+    val fields: Seq[ElasticField] = List(
+      ObjectField("domainObject", enabled = Some(false)),
+      intField("id"),
+      keywordField("license"),
+      dateField("lastUpdated"),
+      keywordField("defaultTitle"),
+      keywordField("modelReleased"),
+      textField("editorNotes"),
+      keywordField("podcastFriendly"),
+      keywordField("users"),
+      nestedField("imageFiles").fields(
+        intField("imageSize"),
+        textField("previewUrl"),
+        ObjectField(
+          "dimensions",
+          properties = Seq(
+            intField("width"),
+            intField("height")
           )
         )
       )
+    )
 
-      val dynamics = generateLanguageSupportedFieldList("titles", keepRaw = true) ++
-        generateLanguageSupportedFieldList("alttexts") ++
-        generateLanguageSupportedFieldList("captions") ++
-        generateLanguageSupportedFieldList("tags")
+    val dynamics = generateLanguageSupportedFieldList("titles", keepRaw = true) ++
+      generateLanguageSupportedFieldList("alttexts") ++
+      generateLanguageSupportedFieldList("captions") ++
+      generateLanguageSupportedFieldList("tags")
 
-      properties(fields ++ dynamics)
-    }
+    properties(fields ++ dynamics)
+  }
 }

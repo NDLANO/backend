@@ -18,13 +18,13 @@ import sttp.client3.quick.*
 import scala.util.{Success, Try}
 
 class TaxonomyApiClient(using ndlaClient: NdlaClient, props: Props) extends StrictLogging {
-    private val resolveEndpoint = s"${props.TaxonomyUrl}/v1/url/resolve"
+  private val resolveEndpoint = s"${props.TaxonomyUrl}/v1/url/resolve"
 
-    def resolveUrl(path: String): Try[String] = {
-      val req = quickRequest.get(uri"$resolveEndpoint?path=$path")
-      ndlaClient.fetch[ResolvePathResponse](req).map(resolved => resolved.url).orElse(Success(path))
-    }
+  def resolveUrl(path: String): Try[String] = {
+    val req = quickRequest.get(uri"$resolveEndpoint?path=$path")
+    ndlaClient.fetch[ResolvePathResponse](req).map(resolved => resolved.url).orElse(Success(path))
   }
+}
 
 case class ResolvePathResponse(url: String)
 object ResolvePathResponse {

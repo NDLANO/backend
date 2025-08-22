@@ -29,18 +29,18 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 class StateTransitionRules(using
-  writeService: WriteService,
-  draftRepository: DraftRepository,
-  clock: Clock,
-  articleApiClient: ArticleApiClient,
-  taxonomyApiClient: TaxonomyApiClient,
-  learningpathApiClient: LearningpathApiClient,
-  h5PApiClient: H5PApiClient,
-  converterService: ConverterService,
-  contentValidator: ContentValidator,
-  articleIndexService: ArticleIndexService,
-  errorHandling: ErrorHandling,
-  searchApiClient: SearchApiClient
+    writeService: WriteService,
+    draftRepository: DraftRepository,
+    clock: Clock,
+    articleApiClient: ArticleApiClient,
+    taxonomyApiClient: TaxonomyApiClient,
+    learningpathApiClient: LearningpathApiClient,
+    h5PApiClient: H5PApiClient,
+    converterService: ConverterService,
+    contentValidator: ContentValidator,
+    articleIndexService: ArticleIndexService,
+    errorHandling: ErrorHandling,
+    searchApiClient: SearchApiClient
 ) {
 
   object StateTransitionRules {

@@ -44,7 +44,7 @@ class Memoize[R](maxCacheAgeMs: Long, f: () => R, autoRefreshCache: Boolean) ext
 }
 
 class MemoizeHelpers(using
-  props: Props
+    props: Props
 ) {
 
   object Memoize {

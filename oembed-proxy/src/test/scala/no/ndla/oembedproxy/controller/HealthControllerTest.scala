@@ -15,11 +15,11 @@ import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick.*
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: TapirHealthController     = new TapirHealthController
+  val controller: TapirHealthController                      = new TapirHealthController
   override implicit lazy val services: List[TapirController] = List(controller)
-  override implicit lazy val routes: Routes = new Routes
-  override implicit lazy val clock: NDLAClock = mock[NDLAClock]
-  override implicit lazy val errorHelpers: NDLAErrorHelpers = new NDLAErrorHelpers
+  override implicit lazy val routes: Routes                  = new Routes
+  override implicit lazy val clock: NDLAClock                = mock[NDLAClock]
+  override implicit lazy val errorHelpers: NDLAErrorHelpers  = new NDLAErrorHelpers
   controller.setWarmedUp()
 
   test("That /health returns 200 ok") {

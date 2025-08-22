@@ -25,87 +25,88 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success, Try}
 
 class GrepCodesSearchService(using
-  e4sClient: Elastic4sClient,
-  searchConverterService: SearchConverterService,
-  searchService: SearchService,
-  grepCodesIndexService: GrepCodesIndexService,
-  props: Props,
-  errorHandling: ErrorHandling
-) extends StrictLogging with BasicSearchService[String] {
-    override val searchIndex: String = props.DraftGrepCodesSearchIndex
+    e4sClient: Elastic4sClient,
+    searchConverterService: SearchConverterService,
+    searchService: SearchService,
+    grepCodesIndexService: GrepCodesIndexService,
+    props: Props,
+    errorHandling: ErrorHandling
+) extends StrictLogging
+    with BasicSearchService[String] {
+  override val searchIndex: String = props.DraftGrepCodesSearchIndex
 
-    def getHits(response: SearchResponse): Seq[String] = {
-      response.hits.hits.toList.map(hit => CirceUtil.unsafeParseAs[SearchableGrepCode](hit.sourceAsString).grepCode)
-    }
+  def getHits(response: SearchResponse): Seq[String] = {
+    response.hits.hits.toList.map(hit => CirceUtil.unsafeParseAs[SearchableGrepCode](hit.sourceAsString).grepCode)
+  }
 
-    def matchingQuery(query: String, page: Int, pageSize: Int): Try[LanguagelessSearchResult[String]] = {
+  def matchingQuery(query: String, page: Int, pageSize: Int): Try[LanguagelessSearchResult[String]] = {
 
-      val fullQuery = boolQuery()
-        .must(
-          boolQuery().should(
-            matchQuery("grepCode", query.toLowerCase).boost(2),
-            prefixQuery("grepCode", query.toLowerCase)
-          )
+    val fullQuery = boolQuery()
+      .must(
+        boolQuery().should(
+          matchQuery("grepCode", query.toLowerCase).boost(2),
+          prefixQuery("grepCode", query.toLowerCase)
         )
+      )
 
-      executeSearch(page, pageSize, fullQuery)
-    }
+    executeSearch(page, pageSize, fullQuery)
+  }
 
-    def executeSearch(
-        page: Int,
-        pageSize: Int,
-        queryBuilder: BoolQuery
-    ): Try[LanguagelessSearchResult[String]] = {
-      val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
-      val requestedResultWindow = pageSize * page
-      if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
-        logger.info(
-          s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
-        )
-        Failure(new ResultWindowTooLargeException())
-      } else {
-        val searchToExecute = search(searchIndex)
-          .size(numResults)
-          .from(startAt)
-          .trackTotalHits(true)
-          .query(queryBuilder)
-          .sortBy(fieldSort("_score").sortOrder(SortOrder.Desc))
+  def executeSearch(
+      page: Int,
+      pageSize: Int,
+      queryBuilder: BoolQuery
+  ): Try[LanguagelessSearchResult[String]] = {
+    val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
+    val requestedResultWindow = pageSize * page
+    if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
+      logger.info(
+        s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
+      )
+      Failure(new ResultWindowTooLargeException())
+    } else {
+      val searchToExecute = search(searchIndex)
+        .size(numResults)
+        .from(startAt)
+        .trackTotalHits(true)
+        .query(queryBuilder)
+        .sortBy(fieldSort("_score").sortOrder(SortOrder.Desc))
 
-        val searchWithScroll =
-          if (startAt != 0) { searchToExecute }
-          else { searchToExecute.scroll(props.ElasticSearchScrollKeepAlive) }
+      val searchWithScroll =
+        if (startAt != 0) { searchToExecute }
+        else { searchToExecute.scroll(props.ElasticSearchScrollKeepAlive) }
 
-        e4sClient.execute(searchWithScroll) match {
-          case Success(response) =>
-            Success(
-              LanguagelessSearchResult(
-                response.result.totalHits,
-                Some(page),
-                numResults,
-                getHits(response.result),
-                response.result.scrollId
-              )
+      e4sClient.execute(searchWithScroll) match {
+        case Success(response) =>
+          Success(
+            LanguagelessSearchResult(
+              response.result.totalHits,
+              Some(page),
+              numResults,
+              getHits(response.result),
+              response.result.scrollId
             )
-          case Failure(ex) =>
-            errorHandler(ex)
-        }
-      }
-    }
-
-    override def scheduleIndexDocuments(): Unit = {
-      implicit val ec: ExecutionContextExecutorService =
-        ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-      val f = Future {
-        grepCodesIndexService.indexDocuments(None)
-      }
-
-      f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
-      f.foreach {
-        case Success(reindexResult) =>
-          logger.info(
-            s"Completed indexing of grepCodes of ${reindexResult.totalIndexed} articles in ${reindexResult.millisUsed} ms."
           )
-        case Failure(ex) => logger.warn(ex.getMessage, ex)
+        case Failure(ex) =>
+          errorHandler(ex)
       }
     }
+  }
+
+  override def scheduleIndexDocuments(): Unit = {
+    implicit val ec: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+    val f = Future {
+      grepCodesIndexService.indexDocuments(None)
+    }
+
+    f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
+    f.foreach {
+      case Success(reindexResult) =>
+        logger.info(
+          s"Completed indexing of grepCodes of ${reindexResult.totalIndexed} articles in ${reindexResult.millisUsed} ms."
+        )
+      case Failure(ex) => logger.warn(ex.getMessage, ex)
+    }
+  }
 }

@@ -28,10 +28,7 @@ class TestProps extends SearchApiProperties with BaseProps with DatabaseProps {
   override def MetaMigrationLocation: String = ???
 }
 
-trait TestEnvironment
-    extends TapirApplication
-    with MockitoSugar
-    with StrictLogging {
+trait TestEnvironment extends TapirApplication with MockitoSugar with StrictLogging {
   given props: TestProps = new TestProps
 
   given searchController: SearchController      = mock[SearchController]
@@ -39,7 +36,7 @@ trait TestEnvironment
   given healthController: TapirHealthController = mock[TapirHealthController]
 
   given ndlaClient: NdlaClient = mock[NdlaClient]
-  var e4sClient: NdlaE4sClient             = mock[NdlaE4sClient]
+  var e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
 
   given myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
 

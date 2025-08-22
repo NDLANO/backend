@@ -24,58 +24,59 @@ import no.ndla.search.Elastic4sClient
 import scala.util.{Failure, Try}
 
 class AudioIndexService(using
-  elastic4sClient: Elastic4sClient,
-  searchConverterService: SearchConverterService,
-  indexService: IndexService,
-  seriesIndexService: SeriesIndexService,
-  audioRepository: AudioRepository,
-  props: Props
-) extends IndexService[AudioMetaInformation, SearchableAudioInformation] with StrictLogging {
-    override val documentType: String        = props.SearchDocument
-    override val searchIndex: String         = props.SearchIndex
-    override val repository: AudioRepository = audioRepository
+    elastic4sClient: Elastic4sClient,
+    searchConverterService: SearchConverterService,
+    indexService: IndexService,
+    seriesIndexService: SeriesIndexService,
+    audioRepository: AudioRepository,
+    props: Props
+) extends IndexService[AudioMetaInformation, SearchableAudioInformation]
+    with StrictLogging {
+  override val documentType: String        = props.SearchDocument
+  override val searchIndex: String         = props.SearchIndex
+  override val repository: AudioRepository = audioRepository
 
-    override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Try[Seq[IndexRequest]] = {
-      domainModel.id match {
-        case None =>
-          Failure(MissingIdException(s"Missing id when creating index request for $indexName. This is a bug."))
-        case Some(domainId) =>
-          searchConverterService
-            .asSearchableAudioInformation(domainModel)
-            .map(sai => {
-              val source = CirceUtil.toJsonString(sai)
-              Seq(indexInto(indexName).doc(source).id(domainId.toString))
-            })
-      }
+  override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Try[Seq[IndexRequest]] = {
+    domainModel.id match {
+      case None =>
+        Failure(MissingIdException(s"Missing id when creating index request for $indexName. This is a bug."))
+      case Some(domainId) =>
+        searchConverterService
+          .asSearchableAudioInformation(domainModel)
+          .map(sai => {
+            val source = CirceUtil.toJsonString(sai)
+            Seq(indexInto(indexName).doc(source).id(domainId.toString))
+          })
     }
+  }
 
-    def getMapping: MappingDefinition = {
-      val fields: Seq[ElasticField] = List(
-        intField("id"),
-        keywordField("license"),
-        keywordField("defaultTitle"),
-        textField("authors").fielddata(true),
-        keywordField("audioType"),
-        nestedField("series").fields(seriesIndexService.seriesIndexFields),
-        nestedField("podcastMeta").fields(
-          keywordField("language"),
-          ObjectField(
-            "coverPhoto",
-            properties = Seq(
-              keywordField("imageId"),
-              keywordField("altText")
-            )
+  def getMapping: MappingDefinition = {
+    val fields: Seq[ElasticField] = List(
+      intField("id"),
+      keywordField("license"),
+      keywordField("defaultTitle"),
+      textField("authors").fielddata(true),
+      keywordField("audioType"),
+      nestedField("series").fields(seriesIndexService.seriesIndexFields),
+      nestedField("podcastMeta").fields(
+        keywordField("language"),
+        ObjectField(
+          "coverPhoto",
+          properties = Seq(
+            keywordField("imageId"),
+            keywordField("altText")
           )
         )
       )
+    )
 
-      val dynamics =
-        generateLanguageSupportedFieldList("titles", keepRaw = true) ++
-          generateLanguageSupportedFieldList("tags") ++
-          generateLanguageSupportedFieldList("manuscript") ++
-          generateLanguageSupportedFieldList("filePaths") ++
-          generateLanguageSupportedFieldList("podcastMetaIntroduction")
+    val dynamics =
+      generateLanguageSupportedFieldList("titles", keepRaw = true) ++
+        generateLanguageSupportedFieldList("tags") ++
+        generateLanguageSupportedFieldList("manuscript") ++
+        generateLanguageSupportedFieldList("filePaths") ++
+        generateLanguageSupportedFieldList("podcastMetaIntroduction")
 
-      properties(fields ++ dynamics)
-    }
+    properties(fields ++ dynamics)
   }
+}

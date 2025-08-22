@@ -55,7 +55,7 @@ class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication
   given healthController        = new HealthController
   given transcriptionController = new TranscriptionController
 
-  var e4sClient: NdlaE4sClient             = Elastic4sClientFactory.getClient(props.SearchServer)
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
   given searchConverterService = new SearchConverterService
   given audioIndexService      = new AudioIndexService
   given audioSearchService     = new AudioSearchService

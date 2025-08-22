@@ -14,27 +14,27 @@ import no.ndla.imageapi.service.ImageStorageService
 import no.ndla.network.tapir.TapirHealthController
 
 class HealthController(using
-  imageStorageService: ImageStorageService,
-  imageRepository: ImageRepository,
-  props: Props
+    imageStorageService: ImageStorageService,
+    imageRepository: ImageRepository,
+    props: Props
 ) extends TapirHealthController {
 
-    override def checkReadiness(): Either[String, String] = {
-      imageRepository
-        .getRandomImage()
-        .flatMap(image => {
-          image.images
-            .flatMap(imgMeta => {
-              imgMeta.headOption
-                .map(img => {
-                  if (imageStorageService.objectExists(img.fileName)) {
-                    Right("Healthy")
-                  } else {
-                    Left("Internal server error")
-                  }
-                })
-            })
-        })
-        .getOrElse(Right("Healthy"))
-    }
+  override def checkReadiness(): Either[String, String] = {
+    imageRepository
+      .getRandomImage()
+      .flatMap(image => {
+        image.images
+          .flatMap(imgMeta => {
+            imgMeta.headOption
+              .map(img => {
+                if (imageStorageService.objectExists(img.fileName)) {
+                  Right("Healthy")
+                } else {
+                  Left("Internal server error")
+                }
+              })
+          })
+      })
+      .getOrElse(Right("Healthy"))
+  }
 }

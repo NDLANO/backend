@@ -22,7 +22,7 @@ import scala.util.{Failure, Success, Try}
 class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
   override given dataSource: DataSource = testDataSource.get
   override given migrator: DBMigrator   = new DBMigrator
-  var repository: UserDataRepository       = _
+  var repository: UserDataRepository    = _
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {

@@ -37,9 +37,7 @@ import no.ndla.network.tapir.TapirApplication
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
 
-trait TestEnvironment
-    extends TapirApplication
-    with MockitoSugar {
+trait TestEnvironment extends TapirApplication with MockitoSugar {
   given props                                          = new MyNdlaApiProperties
   given clock: SystemClock                             = mock[SystemClock]
   given dataSource: HikariDataSource                   = mock[HikariDataSource]
@@ -60,7 +58,7 @@ trait TestEnvironment
   given redisClient: RedisClient                       = mock[RedisClient]
   given folderController: FolderController             = mock[FolderController]
   given userController: UserController                 = mock[UserController]
-  given statsController: StatsController                           = mock[StatsController]
+  given statsController: StatsController               = mock[StatsController]
   given healthController: TapirHealthController        = mock[TapirHealthController]
   given nodebb: NodeBBClient                           = mock[NodeBBClient]
   given searchApiClient: SearchApiClient               = mock[SearchApiClient]

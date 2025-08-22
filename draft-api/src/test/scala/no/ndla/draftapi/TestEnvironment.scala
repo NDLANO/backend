@@ -29,10 +29,7 @@ import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
-trait TestEnvironment
-    extends TapirApplication
-    with MockitoSugar
-    with StrictLogging {
+trait TestEnvironment extends TapirApplication with MockitoSugar with StrictLogging {
   given props: DraftApiProperties = new DraftApiProperties {
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
@@ -71,7 +68,7 @@ trait TestEnvironment
   given ndlaClient: NdlaClient                         = mock[NdlaClient]
   given myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
   given searchConverterService: SearchConverterService = mock[SearchConverterService]
-  given e4sClient: NdlaE4sClient                                     = mock[NdlaE4sClient]
+  given e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
   given learningpathApiClient: LearningpathApiClient   = mock[LearningpathApiClient]
 
   given clock: SystemClock = mock[SystemClock]

@@ -19,12 +19,12 @@ import scala.concurrent.duration.DurationInt
 import scala.util.Try
 
 class LearningPathApiClient(using ndlaClient: NdlaClient, props: Props) extends StrictLogging {
-    private val learningPathTimeout = 20.seconds
+  private val learningPathTimeout = 20.seconds
 
-    def getStats: Try[LearningPathStatsDTO] = get[LearningPathStatsDTO](s"${props.LearningpathApiUrl}/intern/stats")
+  def getStats: Try[LearningPathStatsDTO] = get[LearningPathStatsDTO](s"${props.LearningpathApiUrl}/intern/stats")
 
-    private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {
-      val request = quickRequest.get(uri"$url".withParams(params*)).readTimeout(learningPathTimeout)
-      ndlaClient.fetchWithForwardedAuth[A](request, None)
-    }
+  private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {
+    val request = quickRequest.get(uri"$url".withParams(params*)).readTimeout(learningPathTimeout)
+    ndlaClient.fetchWithForwardedAuth[A](request, None)
   }
+}

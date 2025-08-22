@@ -17,33 +17,33 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse
 import scala.util.Try
 
 class FileStorageService(using
-  s3Client: NdlaS3Client,
-  props: Props
+    s3Client: NdlaS3Client,
+    props: Props
 ) extends StrictLogging {
-    val resourceDirectory = "resources"
+  val resourceDirectory = "resources"
 
-    def uploadResourceFromStream(stream: UploadedFile, storageKey: String): Try[HeadObjectResponse] = {
-      val uploadPath = s"$resourceDirectory/$storageKey"
+  def uploadResourceFromStream(stream: UploadedFile, storageKey: String): Try[HeadObjectResponse] = {
+    val uploadPath = s"$resourceDirectory/$storageKey"
 
-      for {
-        _    <- s3Client.putObject(uploadPath, stream)
-        head <- s3Client.headObject(uploadPath)
-      } yield head
-    }
+    for {
+      _    <- s3Client.putObject(uploadPath, stream)
+      head <- s3Client.headObject(uploadPath)
+    } yield head
+  }
 
-    def resourceExists(storageKey: String): Boolean = resourceWithPathExists(s"$resourceDirectory/$storageKey")
+  def resourceExists(storageKey: String): Boolean = resourceWithPathExists(s"$resourceDirectory/$storageKey")
 
-    def copyResource(existingStorageKey: String, newStorageKey: String): Try[String] = {
-      val uploadPath = s"$resourceDirectory/$newStorageKey"
-      s3Client.copyObject(existingStorageKey, uploadPath).map(_ => uploadPath)
-    }
+  def copyResource(existingStorageKey: String, newStorageKey: String): Try[String] = {
+    val uploadPath = s"$resourceDirectory/$newStorageKey"
+    s3Client.copyObject(existingStorageKey, uploadPath).map(_ => uploadPath)
+  }
 
-    def resourceWithPathExists(filePath: String): Boolean =
-      s3Client.objectExists(filePath)
+  def resourceWithPathExists(filePath: String): Boolean =
+    s3Client.objectExists(filePath)
 
-    def deleteResource(storageKey: String): Try[_] =
-      deleteResourceWithPath(s"$resourceDirectory/$storageKey")
+  def deleteResource(storageKey: String): Try[_] =
+    deleteResourceWithPath(s"$resourceDirectory/$storageKey")
 
-    def deleteResourceWithPath(filePath: String): Try[_] =
-      s3Client.deleteObject(filePath)
+  def deleteResourceWithPath(filePath: String): Try[_] =
+    s3Client.deleteObject(filePath)
 }

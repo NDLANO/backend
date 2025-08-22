@@ -16,9 +16,7 @@ import no.ndla.validation.ResourceType
 
 import scala.util.Properties.*
 
-trait Props extends HasBaseProps with HasDatabaseProps {
-  lazy val props: ConceptApiProperties
-}
+type Props = ConceptApiProperties
 
 class ConceptApiProperties extends BaseProps with DatabaseProps with StrictLogging {
   def IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined

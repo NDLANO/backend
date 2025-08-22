@@ -27,116 +27,117 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 class SeriesSearchService(using
-  e4sClient: Elastic4sClient,
-  seriesIndexService: SeriesIndexService,
-  searchConverterService: SearchConverterService,
-  converterService: ConverterService,
-  props: Props,
-  errorHandling: ErrorHandling
-) extends StrictLogging with SearchService[api.SeriesSummaryDTO] {
-    override val searchIndex: String = props.SeriesSearchIndex
+    e4sClient: Elastic4sClient,
+    seriesIndexService: SeriesIndexService,
+    searchConverterService: SearchConverterService,
+    converterService: ConverterService,
+    props: Props,
+    errorHandling: ErrorHandling
+) extends StrictLogging
+    with SearchService[api.SeriesSummaryDTO] {
+  override val searchIndex: String = props.SeriesSearchIndex
 
-    override def hitToApiModel(hitString: String, language: String): Try[api.SeriesSummaryDTO] = {
-      for {
-        searchable <- CirceUtil.tryParseAs[SearchableSeries](hitString)
-        result     <- searchConverterService.asSeriesSummary(searchable, language)
-      } yield result
-    }
+  override def hitToApiModel(hitString: String, language: String): Try[api.SeriesSummaryDTO] = {
+    for {
+      searchable <- CirceUtil.tryParseAs[SearchableSeries](hitString)
+      result     <- searchConverterService.asSeriesSummary(searchable, language)
+    } yield result
+  }
 
-    def matchingQuery(settings: SeriesSearchSettings): Try[domain.SearchResult[api.SeriesSummaryDTO]] = {
+  def matchingQuery(settings: SeriesSearchSettings): Try[domain.SearchResult[api.SeriesSummaryDTO]] = {
 
-      val fullSearch = settings.query.emptySomeToNone match {
-        case Some(query) =>
-          val languageSearch = (field: String, boost: Double) => {
-            languageSpecificSearch(
-              field,
-              settings.language,
-              query,
-              boost,
-              settings.fallback
-            )
-          }
-          boolQuery()
-            .must(
-              boolQuery()
-                .should(
-                  languageSearch("titles", 2),
-                  languageSearch("descriptions", 1),
-                  idsQuery(query)
-                )
-            )
-        case None => boolQuery()
-      }
-
-      executeSearch(settings, fullSearch)
-    }
-
-    def executeSearch(
-        settings: SeriesSearchSettings,
-        queryBuilder: BoolQuery
-    ): Try[domain.SearchResult[api.SeriesSummaryDTO]] = {
-
-      val (languageFilter, searchLanguage) = settings.language match {
-        case None | Some(AllLanguages) => (None, "*")
-        case Some(lang)                =>
-          if (settings.fallback) (None, lang)
-          else (Some(existsQuery(s"titles.$lang")), lang)
-      }
-
-      val filters        = List(languageFilter)
-      val filteredSearch = queryBuilder.filter(filters.flatten)
-
-      val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
-      val requestedResultWindow = settings.page.getOrElse(1) * numResults
-      if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
-        logger.info(
-          s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
-        )
-        Failure(new Helpers.ResultWindowTooLargeException())
-      } else {
-
-        val searchToExecute =
-          search(searchIndex)
-            .size(numResults)
-            .from(startAt)
-            .trackTotalHits(true)
-            .query(filteredSearch)
-            .highlighting(highlight("*"))
-            .sortBy(getSortDefinition(settings.sort, searchLanguage))
-
-        // Only add scroll param if it is first page
-        val searchWithScroll =
-          if (startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
-          } else { searchToExecute }
-
-        e4sClient.execute(searchWithScroll) match {
-          case Success(response) =>
-            getHits(response.result, searchLanguage).map(hits =>
-              domain.SearchResult(
-                response.result.totalHits,
-                Some(settings.page.getOrElse(1)),
-                numResults,
-                searchLanguage,
-                hits,
-                response.result.scrollId
-              )
-            )
-          case Failure(ex) => errorHandler(ex)
-        }
-      }
-
-    }
-
-    protected override def scheduleIndexDocuments(): Unit = {
-      val f = Future(seriesIndexService.indexDocuments(None))
-      f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
-      f.foreach {
-        case Success(reindexResult) =>
-          logger.info(
-            s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
+    val fullSearch = settings.query.emptySomeToNone match {
+      case Some(query) =>
+        val languageSearch = (field: String, boost: Double) => {
+          languageSpecificSearch(
+            field,
+            settings.language,
+            query,
+            boost,
+            settings.fallback
           )
-        case Failure(ex) => logger.warn(ex.getMessage, ex)
+        }
+        boolQuery()
+          .must(
+            boolQuery()
+              .should(
+                languageSearch("titles", 2),
+                languageSearch("descriptions", 1),
+                idsQuery(query)
+              )
+          )
+      case None => boolQuery()
+    }
+
+    executeSearch(settings, fullSearch)
+  }
+
+  def executeSearch(
+      settings: SeriesSearchSettings,
+      queryBuilder: BoolQuery
+  ): Try[domain.SearchResult[api.SeriesSummaryDTO]] = {
+
+    val (languageFilter, searchLanguage) = settings.language match {
+      case None | Some(AllLanguages) => (None, "*")
+      case Some(lang)                =>
+        if (settings.fallback) (None, lang)
+        else (Some(existsQuery(s"titles.$lang")), lang)
+    }
+
+    val filters        = List(languageFilter)
+    val filteredSearch = queryBuilder.filter(filters.flatten)
+
+    val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
+    val requestedResultWindow = settings.page.getOrElse(1) * numResults
+    if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
+      logger.info(
+        s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
+      )
+      Failure(new Helpers.ResultWindowTooLargeException())
+    } else {
+
+      val searchToExecute =
+        search(searchIndex)
+          .size(numResults)
+          .from(startAt)
+          .trackTotalHits(true)
+          .query(filteredSearch)
+          .highlighting(highlight("*"))
+          .sortBy(getSortDefinition(settings.sort, searchLanguage))
+
+      // Only add scroll param if it is first page
+      val searchWithScroll =
+        if (startAt == 0 && settings.shouldScroll) {
+          searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
+        } else { searchToExecute }
+
+      e4sClient.execute(searchWithScroll) match {
+        case Success(response) =>
+          getHits(response.result, searchLanguage).map(hits =>
+            domain.SearchResult(
+              response.result.totalHits,
+              Some(settings.page.getOrElse(1)),
+              numResults,
+              searchLanguage,
+              hits,
+              response.result.scrollId
+            )
+          )
+        case Failure(ex) => errorHandler(ex)
       }
     }
+
+  }
+
+  protected override def scheduleIndexDocuments(): Unit = {
+    val f = Future(seriesIndexService.indexDocuments(None))
+    f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
+    f.foreach {
+      case Success(reindexResult) =>
+        logger.info(
+          s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
+        )
+      case Failure(ex) => logger.warn(ex.getMessage, ex)
+    }
+  }
 }

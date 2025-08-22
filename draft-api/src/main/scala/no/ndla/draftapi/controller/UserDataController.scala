@@ -18,36 +18,36 @@ import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 class UserDataController(using
-  readService: ReadService,
-  writeService: WriteService,
-  errorHandling: ErrorHandling
+    readService: ReadService,
+    writeService: WriteService,
+    errorHandling: ErrorHandling
 ) extends TapirController {
-    override val serviceName: String         = "user-data"
-    override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
+  override val serviceName: String         = "user-data"
+  override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
 
-    val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-      getUserData,
-      updateUserData
-    )
+  val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+    getUserData,
+    updateUserData
+  )
 
-    def getUserData: ServerEndpoint[Any, Eff] = endpoint.get
-      .summary("Retrieves user's data")
-      .description("Retrieves user's data")
-      .out(jsonBody[UserDataDTO])
-      .errorOut(errorOutputsFor(401, 403))
-      .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure { userInfo => _ =>
-        readService.getUserData(userInfo.id)
-      }
+  def getUserData: ServerEndpoint[Any, Eff] = endpoint.get
+    .summary("Retrieves user's data")
+    .description("Retrieves user's data")
+    .out(jsonBody[UserDataDTO])
+    .errorOut(errorOutputsFor(401, 403))
+    .requirePermission(DRAFT_API_WRITE)
+    .serverLogicPure { userInfo => _ =>
+      readService.getUserData(userInfo.id)
+    }
 
-    def updateUserData: ServerEndpoint[Any, Eff] = endpoint.patch
-      .summary("Update data of logged in user")
-      .description("Update data of logged in user")
-      .in(jsonBody[UpdatedUserDataDTO])
-      .out(jsonBody[UserDataDTO])
-      .errorOut(errorOutputsFor(400, 401, 403))
-      .requirePermission(DRAFT_API_WRITE)
-      .serverLogicPure { userInfo => updatedUserData =>
-        writeService.updateUserData(updatedUserData, userInfo)
-      }
+  def updateUserData: ServerEndpoint[Any, Eff] = endpoint.patch
+    .summary("Update data of logged in user")
+    .description("Update data of logged in user")
+    .in(jsonBody[UpdatedUserDataDTO])
+    .out(jsonBody[UserDataDTO])
+    .errorOut(errorOutputsFor(400, 401, 403))
+    .requirePermission(DRAFT_API_WRITE)
+    .serverLogicPure { userInfo => updatedUserData =>
+      writeService.updateUserData(updatedUserData, userInfo)
+    }
 }

@@ -23,11 +23,11 @@ import sttp.model.{Header, Method, RequestMetadata, StatusCode, Uri}
 import scala.util.{Failure, Success}
 
 class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: OEmbedProxyController = new OEmbedProxyController
+  val controller: OEmbedProxyController                      = new OEmbedProxyController
   override implicit lazy val services: List[TapirController] = List(controller)
-  override implicit lazy val routes: Routes = new Routes
-  override implicit lazy val clock: NDLAClock = mock[NDLAClock]
-  override implicit lazy val errorHelpers: NDLAErrorHelpers = new NDLAErrorHelpers
+  override implicit lazy val routes: Routes                  = new Routes
+  override implicit lazy val clock: NDLAClock                = mock[NDLAClock]
+  override implicit lazy val errorHelpers: NDLAErrorHelpers  = new NDLAErrorHelpers
 
   val oembed: OEmbedDTO = OEmbedDTO(
     `type` = "rich",

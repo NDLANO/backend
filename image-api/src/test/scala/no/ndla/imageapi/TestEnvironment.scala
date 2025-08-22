@@ -37,11 +37,8 @@ import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
-trait TestEnvironment
-    extends TapirApplication
-    with MockitoSugar
-    with TestDataTrait {
-  given props     = new ImageApiProperties
+trait TestEnvironment extends TapirApplication with MockitoSugar with TestDataTrait {
+  given props                 = new ImageApiProperties
   val TestData: TestDataClass = new TestDataClass
 
   given migrator: DBMigrator   = mock[DBMigrator]
@@ -68,7 +65,7 @@ trait TestEnvironment
   given imageControllerV3: ImageControllerV3           = mock[ImageControllerV3]
   given converterService: ConverterService             = mock[ConverterService]
   given validationService: ValidationService           = mock[ValidationService]
-  var e4sClient: NdlaE4sClient                                     = mock[NdlaE4sClient]
+  var e4sClient: NdlaE4sClient                         = mock[NdlaE4sClient]
   given searchConverterService: SearchConverterService = mock[SearchConverterService]
   given imageConverter: ImageConverter                 = mock[ImageConverter]
 

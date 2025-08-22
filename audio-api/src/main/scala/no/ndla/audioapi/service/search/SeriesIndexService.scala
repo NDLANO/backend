@@ -23,35 +23,36 @@ import no.ndla.search.Elastic4sClient
 import scala.util.{Failure, Success, Try}
 
 class SeriesIndexService(using
-  elastic4sClient: Elastic4sClient,
-  searchConverterService: SearchConverterService,
-  indexService: IndexService,
-  seriesRepository: SeriesRepository,
-  props: Props
-) extends IndexService[Series, SearchableSeries] with StrictLogging {
-    override val documentType: String         = props.SeriesSearchDocument
-    override val searchIndex: String          = props.SeriesSearchIndex
-    override val repository: SeriesRepository = seriesRepository
+    elastic4sClient: Elastic4sClient,
+    searchConverterService: SearchConverterService,
+    indexService: IndexService,
+    seriesRepository: SeriesRepository,
+    props: Props
+) extends IndexService[Series, SearchableSeries]
+    with StrictLogging {
+  override val documentType: String         = props.SeriesSearchDocument
+  override val searchIndex: String          = props.SeriesSearchIndex
+  override val repository: SeriesRepository = seriesRepository
 
-    override def createIndexRequests(domainModel: Series, indexName: String): Try[Seq[IndexRequest]] = {
-      searchConverterService.asSearchableSeries(domainModel) match {
-        case Failure(exception)  => Failure(exception)
-        case Success(searchable) =>
-          val source = CirceUtil.toJsonString(searchable)
-          Success(Seq(indexInto(indexName).doc(source).id(domainModel.id.toString)))
-      }
+  override def createIndexRequests(domainModel: Series, indexName: String): Try[Seq[IndexRequest]] = {
+    searchConverterService.asSearchableSeries(domainModel) match {
+      case Failure(exception)  => Failure(exception)
+      case Success(searchable) =>
+        val source = CirceUtil.toJsonString(searchable)
+        Success(Seq(indexInto(indexName).doc(source).id(domainModel.id.toString)))
     }
-
-    val seriesIndexFields: Seq[ElasticField] =
-      List(
-        intField("id"),
-        keywordField("defaultTitle"),
-        dateField("lastUpdated")
-      )
-
-    val seriesDynamics =
-      generateLanguageSupportedFieldList("titles", keepRaw = true) ++
-        generateLanguageSupportedFieldList("descriptions", keepRaw = true)
-
-    def getMapping: MappingDefinition = properties(seriesIndexFields ++ seriesDynamics)
   }
+
+  val seriesIndexFields: Seq[ElasticField] =
+    List(
+      intField("id"),
+      keywordField("defaultTitle"),
+      dateField("lastUpdated")
+    )
+
+  val seriesDynamics =
+    generateLanguageSupportedFieldList("titles", keepRaw = true) ++
+      generateLanguageSupportedFieldList("descriptions", keepRaw = true)
+
+  def getMapping: MappingDefinition = properties(seriesIndexFields ++ seriesDynamics)
+}

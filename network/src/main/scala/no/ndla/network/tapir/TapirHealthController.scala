@@ -33,8 +33,6 @@ class TapirHealthController(using
     errorHelpers.generic
   }
 
-
-
   private def checkLiveness(): Either[String, String]    = Right("Healthy")
   protected def checkReadiness(): Either[String, String] = {
     if (isShuttingDown) Left("Service is shutting down")

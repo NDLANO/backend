@@ -15,8 +15,8 @@ import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, Subj
 import no.ndla.network.tapir.{ErrorBody, TapirErrorHandling}
 
 class ErrorHandling(using
-  props: Props,
-  clock: Clock
+    props: Props,
+    clock: Clock
 ) extends TapirErrorHandling {
 
   import ErrorHelpers.*

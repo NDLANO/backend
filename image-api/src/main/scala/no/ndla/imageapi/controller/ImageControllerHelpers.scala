@@ -12,7 +12,7 @@ import no.ndla.imageapi.Props
 import sttp.tapir.*
 
 class ImageControllerHelpers(using
-  props: Props
+    props: Props
 ) {
   object ImageControllerHelpers {
     val pageNo: EndpointInput.Query[Int] =

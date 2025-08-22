@@ -22,9 +22,9 @@ import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
 class SearchService(using
-  e4sClient: Elastic4sClient,
-  searchConverterService: SearchConverterService,
-  props: Props
+    e4sClient: Elastic4sClient,
+    searchConverterService: SearchConverterService,
+    props: Props
 ) extends StrictLogging {
 
   trait SearchService[T] extends BasicSearchService[T] {
