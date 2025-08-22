@@ -102,7 +102,8 @@ class LearningPathAndStepCreationTests
       responsibleId = None,
       comments = None,
       priority = None,
-      revisionMeta = None
+      revisionMeta = None,
+      grepCodes = None
     )
 
     val x = CirceUtil.toJsonString(dto)

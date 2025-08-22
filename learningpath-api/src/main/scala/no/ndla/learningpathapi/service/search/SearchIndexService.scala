@@ -133,6 +133,7 @@ trait SearchIndexService {
         dateField("lastUpdated"),
         keywordField("defaultTitle"),
         textField("author"),
+        keywordField("grepCodes"),
         nestedField("learningsteps").fields(
           textField("stepType"),
           keywordField("embedUrl"),
