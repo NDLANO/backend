@@ -9,7 +9,7 @@
 package no.ndla.learningpathapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.common.model.domain.learningpath.{
   LearningPath,
@@ -27,7 +27,7 @@ import scalikejdbc.*
 import java.util.UUID
 import scala.util.Try
 
-trait LearningPathRepositoryComponent extends StrictLogging {
+trait LearningPathRepositoryComponent extends StrictLogging with Clock {
   this: DataSource & Props =>
   lazy val learningPathRepository: LearningPathRepository
 
@@ -111,7 +111,13 @@ trait LearningPathRepositoryComponent extends StrictLogging {
 
       val learningSteps = learningpath.learningsteps.map(lsteps =>
         lsteps.map(learningStep => {
-          insertLearningStep(learningStep.copy(learningPathId = Some(learningPathId)))
+          insertLearningStep(
+            learningStep.copy(
+              learningPathId = Some(learningPathId),
+              created = clock.now(),
+              lastUpdated = clock.now()
+            )
+          )
         })
       )
 
@@ -133,7 +139,11 @@ trait LearningPathRepositoryComponent extends StrictLogging {
           .updateAndReturnGeneratedKey()
       val learningSteps = learningpath.learningsteps.map(lsteps =>
         lsteps.map(learningStep => {
-          insertLearningStep(learningStep.copy(learningPathId = Some(learningPathId)))
+          insertLearningStep(
+            learningStep.copy(
+              learningPathId = Some(learningPathId)
+            )
+          )
         })
       )
 

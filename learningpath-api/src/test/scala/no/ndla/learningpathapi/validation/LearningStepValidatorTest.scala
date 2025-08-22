@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.ValidationMessage
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.{
   Description,
   EmbedType,
@@ -32,7 +33,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   var validator: LearningStepValidator = _
 
-  val license = PublicDomain.toString
+  val license: String = PublicDomain.toString
+  val today: NDLADate = clock.now()
 
   val ValidLearningStep: LearningStep = LearningStep(
     id = None,
@@ -48,7 +50,9 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     `type` = StepType.TEXT,
     copyright = Some(LearningpathCopyright(license, Seq.empty)),
     showTitle = true,
-    status = StepStatus.ACTIVE
+    status = StepStatus.ACTIVE,
+    created = today,
+    lastUpdated = today
   )
 
   val trump: Author                    = Author(ContributorType.Writer, "Donald Drumpf")
@@ -67,8 +71,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     isBasedOn = None,
     status = LearningPathStatus.PRIVATE,
     verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = clock.now(),
-    lastUpdated = clock.now(),
+    created = today,
+    lastUpdated = today,
     owner = "",
     copyright = copyright,
     isMyNDLAOwner = false,

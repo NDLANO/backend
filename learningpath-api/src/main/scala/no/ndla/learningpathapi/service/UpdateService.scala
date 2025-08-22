@@ -380,10 +380,14 @@ trait UpdateService {
           case ((seqNo, foundStep, steps), curr) =>
             val isChangedStep         = curr.id.contains(learningStepId)
             val (mainStep, stepToAdd) =
-              if (isChangedStep) (curr.copy(status = newStatus), curr.copy(status = newStatus))
+              if (isChangedStep)
+                (
+                  curr.copy(status = newStatus, lastUpdated = clock.now()),
+                  curr.copy(status = newStatus, lastUpdated = clock.now())
+                )
               else (foundStep, curr)
-            val updatedMainStep = mainStep.copy(seqNo = seqNo)
-            val updatedSteps    = steps :+ stepToAdd.copy(seqNo = seqNo)
+            val updatedMainStep = mainStep.copy(seqNo = seqNo, lastUpdated = clock.now())
+            val updatedSteps    = steps :+ stepToAdd.copy(seqNo = seqNo, lastUpdated = clock.now())
             val nextSeqNo       = if (stepToAdd.status == DELETED) seqNo else seqNo + 1
 
             (nextSeqNo, updatedMainStep, updatedSteps)
@@ -462,9 +466,13 @@ trait UpdateService {
                   def addOrSubtract(seqNo: Int): Int = if (from > to) seqNo + 1 else seqNo - 1
 
                   inTransaction { implicit session =>
-                    val _ = learningPathRepository.updateLearningStep(learningStep.copy(seqNo = seqNo))
+                    val _ = learningPathRepository.updateLearningStep(
+                      learningStep.copy(seqNo = seqNo, lastUpdated = clock.now())
+                    )
                     toUpdate.foreach(step => {
-                      learningPathRepository.updateLearningStep(step.copy(seqNo = addOrSubtract(step.seqNo)))
+                      learningPathRepository.updateLearningStep(
+                        step.copy(seqNo = addOrSubtract(step.seqNo), lastUpdated = clock.now())
+                      )
                     })
                   }
 
