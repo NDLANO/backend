@@ -32,8 +32,6 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
   override def beforeEach(): Unit = {
     resetMocks()
     when(clock.now()).thenCallRealMethod()
-    when(languageValidator.validate(any[String], any[String], any[Boolean]))
-      .thenReturn(None)
     when(searchConverterService.asApiSearchResult(any)).thenCallRealMethod()
   }
 
