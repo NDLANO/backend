@@ -64,3 +64,8 @@ object OEmbedDTO {
   implicit val encoder: Encoder[OEmbedDTO] = deriveEncoder
   implicit val decoder: Decoder[OEmbedDTO] = deriveDecoder
 }
+
+class DoNotUpdateMemoizeException(message: String) extends RuntimeException(message)
+
+case class InvalidUrlException(message: String)           extends RuntimeException(message)
+case class ProviderNotSupportedException(message: String) extends RuntimeException(message)

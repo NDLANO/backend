@@ -19,9 +19,10 @@ import sttp.tapir.*
 class TapirHealthController(using
     props: BaseProps,
     clock: Clock,
-    myNDLAApiClient: MyNDLAApiClient
-) extends Warmup
-    with TapirController {
+    myNDLAApiClient: MyNDLAApiClient,
+    errorHelpers: ErrorHelpers
+) extends TapirController
+    with Warmup {
   @volatile private var isShuttingDown: Boolean = false
   override val enableSwagger: Boolean           = false
   val prefix: EndpointInput[Unit]               = "health"
@@ -29,8 +30,10 @@ class TapirHealthController(using
   def setShuttingDown(): Unit = { isShuttingDown = true }
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = { case e: Throwable =>
-    ErrorHelpers.generic
+    errorHelpers.generic
   }
+
+
 
   private def checkLiveness(): Either[String, String]    = Right("Healthy")
   protected def checkReadiness(): Either[String, String] = {

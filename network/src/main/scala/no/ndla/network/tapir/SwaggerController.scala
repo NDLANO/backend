@@ -24,12 +24,13 @@ import scala.collection.immutable.ListMap
 class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInfo)(using
     props: BaseProps,
     clock: Clock,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
+    errorHelpers: ErrorHelpers
 ) extends TapirController {
   def getServices(): List[TapirController] = services :+ this
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = { case e: Throwable =>
-    ErrorHelpers.generic
+    errorHelpers.generic
   }
 
   val info: Info = Info(

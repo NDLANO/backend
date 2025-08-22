@@ -1,5 +1,6 @@
 package no.ndla.network.tapir
 
+import cats.implicits.catsSyntaxOptionId
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseProps
 import no.ndla.common.errors.ValidationException

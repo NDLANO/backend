@@ -9,8 +9,9 @@
 package no.ndla.tapirtesting
 
 import com.sun.net.httpserver.HttpServer
+import no.ndla.common.{Clock, configuration}
 import no.ndla.common.configuration.BaseProps
-import no.ndla.network.tapir.{Routes, TapirController, TapirErrorHandling}
+import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController, TapirErrorHandling}
 import no.ndla.scalatestsuite.UnitTestSuite
 
 import scala.compiletime.uninitialized
@@ -20,6 +21,8 @@ trait TapirControllerTest extends UnitTestSuite {
   val serverPort: Int = findFreePort
 
   implicit lazy val props: BaseProps
+  implicit lazy val clock: Clock                    = new Clock
+  implicit lazy val errorHelpers: ErrorHelpers     = new ErrorHelpers
   implicit lazy val errorHandling: TapirErrorHandling
   implicit lazy val services: List[TapirController] = List(controller)
   implicit lazy val routes: Routes                  = new Routes

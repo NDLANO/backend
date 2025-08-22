@@ -37,7 +37,8 @@ import scala.util.{Failure, Success}
 abstract class TapirController(using
     props: BaseProps,
     clock: Clock,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
+    errorHelpers: ErrorHelpers
 ) extends TapirErrorHandling
     with StrictLogging
     with SchemaImplicits {
@@ -72,8 +73,8 @@ abstract class TapirController(using
     */
   def requireScope(scope: Permission*): Option[TokenUser] => Either[AllErrors, TokenUser] = {
     case Some(user) if user.hasPermissions(scope) => user.asRight
-    case Some(_)                                  => ErrorHelpers.forbidden.asLeft
-    case None                                     => ErrorHelpers.unauthorized.asLeft
+    case Some(_)                                  => errorHelpers.forbidden.asLeft
+    case None                                     => errorHelpers.unauthorized.asLeft
   }
 
   implicit class authlessEndpoint[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
@@ -95,12 +96,12 @@ abstract class TapirController(using
           case Some(token) =>
             myNDLAApiClient.getUserWithFeideToken(token) match {
               case Failure(ex: HttpRequestException) if ex.code == 401 =>
-                ErrorHelpers.unauthorized.asLeft
+                errorHelpers.unauthorized.asLeft
               case Failure(ex: HttpRequestException) if ex.code == 403 =>
-                ErrorHelpers.forbidden.asLeft
+                errorHelpers.forbidden.asLeft
               case Failure(ex) =>
                 logger.error("Got exception when fetching user", ex)
-                ErrorHelpers.generic.asLeft
+                errorHelpers.generic.asLeft
               case Success(user) =>
                 Some(user).asRight
             }
@@ -167,7 +168,7 @@ abstract class TapirController(using
             case (Some(tokenUser), Some(ndlaUser)) => CombinedUserWithBoth(tokenUser, ndlaUser).asRight
             case (Some(tokenUser), None)           => tokenUser.toCombined.asRight
             case (None, Some(ndlaUser))            => CombinedUserWithMyNDLAUser(None, ndlaUser).asRight
-            case _                                 => ErrorHelpers.unauthorized.asLeft
+            case _                                 => errorHelpers.unauthorized.asLeft
           }
         }
       val securityLogic = (m: MonadError[F]) => (a: (Option[TokenUser], Option[String])) => m.unit(authFunc(a))

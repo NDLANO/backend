@@ -3,9 +3,16 @@ package no.ndla.oembedproxy.controller
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseProps
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.TapirController
+import no.ndla.network.model.HttpRequestException
+import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHelpers, TapirController}
+import no.ndla.oembedproxy.model.{InvalidUrlException, ProviderNotSupportedException}
 
-class BaseController(using props: BaseProps, clock: Clock, myNDLAApiClient: MyNDLAApiClient, errorHelpers: ErrorHelpers) extends TapirController {
+abstract class BaseController(using
+    props: BaseProps,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient,
+    errorHelpers: ErrorHelpers
+) extends TapirController {
   import errorHelpers.*
 
   private val statusCodesToPassAlong                                                      = List(401, 403, 404, 410)
@@ -15,7 +22,7 @@ class BaseController(using props: BaseProps, clock: Clock, myNDLAApiClient: MyND
       case _                                                     => None
     }
 
-  override def handleErrors: PartialFunction[Throwable, ErrorBody] = {
+  override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case ivu: InvalidUrlException =>
       ErrorBody(INVALID_URL, ivu.getMessage, clock.now(), 400)
     case pnse: ProviderNotSupportedException =>
@@ -37,7 +44,3 @@ class BaseController(using props: BaseProps, clock: Clock, myNDLAApiClient: MyND
       }
   }
 }
-
-case class InvalidUrlException(message: String)           extends RuntimeException(message)
-case class ProviderNotSupportedException(message: String) extends RuntimeException(message)
-class DoNotUpdateMemoizeException(message: String)        extends RuntimeException(message)

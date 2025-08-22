@@ -63,7 +63,7 @@ class Routes(using props: BaseProps, errorHelpers: ErrorHelpers, services: List[
 
   private case class NdlaExceptionHandler[T[_]]() extends ExceptionHandler[T] {
     override def apply(ctx: ExceptionContext)(implicit monad: MonadError[T]): T[Option[ValuedEndpointOutput[?]]] = {
-      val errorToReturn = returnError(ctx.e)
+      val errorToReturn = errorHelpers.generic
       val sc            = StatusCode(errorToReturn.statusCode)
       val resp          = ValuedEndpointOutput(jsonBody[AllErrors], errorToReturn)
       val withsc        = resp.prepend(statusCode, sc)
@@ -80,10 +80,10 @@ class Routes(using props: BaseProps, errorHelpers: ErrorHelpers, services: List[
 
     override def apply(ctx: RejectContext)(implicit monad: MonadError[A]): A[Option[ValuedEndpointOutput[?]]] = {
       val statusCodeAndBody = if (hasMethodMismatch(ctx.failure)) {
-        ValuedEndpointOutput(jsonBody[ErrorBody], errorHandling.ErrorHelpers.methodNotAllowed)
+        ValuedEndpointOutput(jsonBody[ErrorBody], errorHelpers.methodNotAllowed)
           .prepend(statusCode, StatusCode.MethodNotAllowed)
       } else {
-        ValuedEndpointOutput(jsonBody[ErrorBody], errorHandling.ErrorHelpers.notFound)
+        ValuedEndpointOutput(jsonBody[ErrorBody], errorHelpers.notFound)
           .prepend(statusCode, StatusCode.NotFound)
       }
       monad.unit(Some(statusCodeAndBody))

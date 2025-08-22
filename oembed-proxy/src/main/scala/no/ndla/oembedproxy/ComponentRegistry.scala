@@ -10,15 +10,25 @@ package no.ndla.oembedproxy
 
 import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{Routes, SwaggerController, TapirApplication, TapirController, TapirHealthController}
+import no.ndla.network.tapir.{
+  AllErrors,
+  ErrorHelpers,
+  Routes,
+  SwaggerController,
+  TapirApplication,
+  TapirController,
+  TapirErrorHandling,
+  TapirHealthController
+}
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.oembedproxy.controller.{OEmbedProxyController, SwaggerDocControllerConfig}
 import no.ndla.oembedproxy.service.{OEmbedService, ProviderService}
 
 class ComponentRegistry(properties: OEmbedProxyProperties) extends TapirApplication[OEmbedProxyProperties] {
   given props: OEmbedProxyProperties                 = properties
-  given routes: Routes                               = new Routes
   given clock: Clock                                 = new Clock
+  given errorHelpers: ErrorHelpers                   = new ErrorHelpers
+  given routes: Routes                               = new Routes
   given ndlaClient: NdlaClient                       = new NdlaClient
   given providerService: ProviderService             = new ProviderService
   given oEmbedService: OEmbedService                 = new OEmbedService(None)
