@@ -5,6 +5,7 @@ import mill.api.BuildCtx
 import mill.scalalib.*
 import mill.api.Task.Simple.create
 import mill.api.daemon.Result
+import build.modules.Yarn
 
 import java.io.{BufferedWriter, File, FileWriter}
 
@@ -23,8 +24,8 @@ trait OpenAPITSPlugin extends ScalaModule {
     if (isComponent) {
       Task.Command {
         generateOpenAPIFile()
-        yarnInstall()
-        generateOpenapiTypescriptFile()
+        Yarn.worker().yarnInstall(typescriptPath.toString)
+        Yarn.worker().generateOpenapiTypescriptFile(typescriptPath.toString, moduleName)
         writeFile()
       }
     } else {
@@ -89,21 +90,4 @@ trait OpenAPITSPlugin extends ScalaModule {
       .toList
   }
 
-  private def runCommand(cmd: String) = Task.Anon {
-    println(s"Running command: $cmd")
-    import sys.process.*
-    val result = cmd.!
-    if (result != 0) {
-      throw new Exception(s"Failed to run command: $cmd")
-    }
-    println(s"Command executed successfully: $cmd")
-  }
-
-  private def yarnInstall: Task[Unit] = Task.Anon {
-    runCommand(s"yarn --cwd ${typescriptPath.toString} install")()
-  }
-
-  private def generateOpenapiTypescriptFile: Task[Unit] = Task.Anon {
-    runCommand(s"yarn --cwd ${typescriptPath.toString} generate-typescript $moduleName")()
-  }
 }
