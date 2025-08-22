@@ -8,9 +8,13 @@
 
 package no.ndla.frontpageapi.controller
 
+import no.ndla.common.{Clock, configuration}
+import no.ndla.frontpageapi.Props
 import no.ndla.common.model.api.FrontPageDTO
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{AllErrors, ErrorHelpers}
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.{TapirController, TapirErrorHandling}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -22,8 +26,11 @@ import sttp.tapir.server.ServerEndpoint
 class FrontPageController(using
     readService: ReadService,
     writeService: WriteService,
-    errorHandling: ErrorHandling
-) extends TapirController {
+    props: Props,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient,
+    errorHelpers: ErrorHelpers
+) extends BaseController {
   override val serviceName: String         = "frontpage"
   override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 

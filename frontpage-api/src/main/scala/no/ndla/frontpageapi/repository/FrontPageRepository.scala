@@ -30,22 +30,22 @@ class FrontPageRepository(using
     dataObject.setValue(page.asJson.noSpacesDropNull)
 
     Try(
-      sql"insert into ${DBFrontPageData.table} (document) values ($dataObject)"
+      sql"insert into ${dBFrontPage.DBFrontPageData.table} (document) values ($dataObject)"
         .updateAndReturnGeneratedKey()
     ).map(deleteAllBut).map(_ => page)
   }
 
   private def deleteAllBut(id: Long)(implicit session: DBSession): Try[Long] = {
     Try(
-      sql"delete from ${DBFrontPageData.table} where id<>${id} "
+      sql"delete from ${dBFrontPage.DBFrontPageData.table} where id<>${id} "
         .update()
     ).map(_ => id)
   }
 
   def getFrontPage(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[FrontPage]] = Try {
-    val fr = DBFrontPageData.syntax("fr")
-    sql"select ${fr.result.*} from ${DBFrontPageData.as(fr)} order by fr.id desc limit 1"
-      .map(DBFrontPageData.fromResultSet(fr))
+    val fr = dBFrontPage.DBFrontPageData.syntax("fr")
+    sql"select ${fr.result.*} from ${dBFrontPage.DBFrontPageData.as(fr)} order by fr.id desc limit 1"
+      .map(dBFrontPage.DBFrontPageData.fromResultSet(fr))
       .single()
       .sequence
   }.flatten

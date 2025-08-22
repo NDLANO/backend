@@ -10,9 +10,13 @@ package no.ndla.frontpageapi.controller
 
 import cats.implicits.*
 import io.circe.generic.auto.*
+import no.ndla.common.{Clock, configuration}
+import no.ndla.frontpageapi.Props
 import no.ndla.common.errors.ValidationException
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{AllErrors, ErrorHelpers}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -24,8 +28,11 @@ import sttp.tapir.server.ServerEndpoint
 class FilmPageController(using
     readService: ReadService,
     writeService: WriteService,
-    errorHandling: ErrorHandling
-) extends TapirController {
+    props: Props,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient,
+    errorHelpers: ErrorHelpers
+) extends BaseController {
   override val serviceName: String         = "filmfrontpage"
   override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
   private val pathLanguage = path[String]("language").description("The ISO 639-1 language code describing language.")
@@ -38,7 +45,7 @@ class FilmPageController(using
       .serverLogicPure { language =>
         readService.filmFrontPage(language) match {
           case Some(s) => s.asRight
-          case None    => ErrorHelpers.notFound.asLeft
+          case None    => errorHelpers.notFound.asLeft
         }
       },
     endpoint.post
@@ -49,7 +56,7 @@ class FilmPageController(using
       .requirePermission(FRONTPAGE_API_WRITE)
       .serverLogicPure { _ => filmFrontPage =>
         writeService.updateFilmFrontPage(filmFrontPage).partialOverride { case ex: ValidationException =>
-          ErrorHelpers.unprocessableEntity(ex.getMessage)
+          errorHelpers.unprocessableEntity(ex.getMessage)
         }
       },
     endpoint.delete

@@ -8,6 +8,8 @@
 
 package no.ndla.frontpageapi.controller
 
+import no.ndla.common.{Clock, configuration}
+import no.ndla.frontpageapi.Props
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
@@ -16,6 +18,7 @@ import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api.{ErrorHandling, NewSubjectPageDTO, UpdatedSubjectPageDTO}
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{AllErrors, ErrorHelpers}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -28,9 +31,10 @@ class SubjectPageController(using
     readService: ReadService,
     writeService: WriteService,
     props: Props,
-    errorHandling: ErrorHandling,
-    myndlaApiClient: MyNDLAApiClient
-) extends TapirController {
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient,
+    errorHelpers: ErrorHelpers
+) extends BaseController {
   override val serviceName: String         = "subjectpage"
   override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 
@@ -106,7 +110,7 @@ class SubjectPageController(using
         writeService
           .newSubjectPage(newSubjectFrontPageData)
           .partialOverride { case ex: ValidationException =>
-            ErrorHelpers.unprocessableEntity(ex.getMessage)
+            errorHelpers.unprocessableEntity(ex.getMessage)
           }
       }
     }
@@ -125,7 +129,7 @@ class SubjectPageController(using
         writeService
           .updateSubjectPage(id, subjectPage, language.code, fallback)
           .partialOverride { case ex: ValidationException =>
-            ErrorHelpers.unprocessableEntity(ex.getMessage)
+            errorHelpers.unprocessableEntity(ex.getMessage)
           }
       }
     }

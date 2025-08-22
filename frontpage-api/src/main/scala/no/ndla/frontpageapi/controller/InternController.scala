@@ -10,11 +10,13 @@ package no.ndla.frontpageapi.controller
 
 import cats.implicits.*
 import io.circe.generic.auto.*
+import no.ndla.common.{Clock, configuration}
 import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{AllErrors, ErrorHelpers}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -28,9 +30,10 @@ class InternController(using
     readService: ReadService,
     writeService: WriteService,
     props: Props,
-    errorHandling: ErrorHandling,
-    myndlaApiClient: MyNDLAApiClient
-) extends TapirController {
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient,
+    errorHelpers: ErrorHelpers
+) extends BaseController {
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
 
@@ -43,8 +46,8 @@ class InternController(using
       .serverLogicPure { nid =>
         readService.getIdFromExternalId(nid) match {
           case Success(Some(id)) => id.asRight
-          case Success(None)     => errorHandling.ErrorHelpers.notFound.asLeft
-          case Failure(ex)       => errorHandling.returnLeftError(ex)
+          case Success(None)     => errorHelpers.notFound.asLeft
+          case Failure(ex)       => returnLeftError(ex)
         }
       },
     endpoint.get

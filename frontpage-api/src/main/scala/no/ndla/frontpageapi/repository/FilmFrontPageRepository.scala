@@ -30,24 +30,24 @@ class FilmFrontPageRepository(using
     dataObject.setValue(page.asJson.noSpacesDropNull)
 
     Try(
-      sql"insert into ${DBFilmFrontPageData.table} (document) values (${dataObject})"
+      sql"insert into ${dBFilmFrontPage.DBFilmFrontPageData.table} (document) values (${dataObject})"
         .updateAndReturnGeneratedKey()
     ).map(deleteAllBut).map(_ => page)
   }
 
   private def deleteAllBut(id: Long)(implicit session: DBSession) = {
     Try(
-      sql"delete from ${DBFilmFrontPageData.table} where id<>${id} "
+      sql"delete from ${dBFilmFrontPage.DBFilmFrontPageData.table} where id<>${id} "
         .update()
     ).map(_ => id)
   }
 
   def get(implicit session: DBSession = ReadOnlyAutoSession): Option[FilmFrontPage] = {
-    val fr = DBFilmFrontPageData.syntax("fr")
+    val fr = dBFilmFrontPage.DBFilmFrontPageData.syntax("fr")
 
     Try(
-      sql"select ${fr.result.*} from ${DBFilmFrontPageData.as(fr)} order by fr.id desc limit 1"
-        .map(DBFilmFrontPageData.fromDb(fr))
+      sql"select ${fr.result.*} from ${dBFilmFrontPage.DBFilmFrontPageData.as(fr)} order by fr.id desc limit 1"
+        .map(dBFilmFrontPage.DBFilmFrontPageData.fromDb(fr))
         .single()
     ) match {
       case Success(Some(Success(s)))  => Some(s)
@@ -68,7 +68,7 @@ class FilmFrontPageRepository(using
     dataObject.setValue(page.asJson.noSpacesDropNull)
 
     Try(
-      sql"update ${DBFilmFrontPageData.table} set document=$dataObject".update()
+      sql"update ${dBFilmFrontPage.DBFilmFrontPageData.table} set document=$dataObject".update()
     ).map(_ => page)
   }
 

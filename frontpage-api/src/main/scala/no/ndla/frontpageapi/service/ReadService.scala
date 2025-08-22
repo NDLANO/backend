@@ -50,7 +50,7 @@ class ReadService(using
 
   def subjectPage(id: Long, language: String, fallback: Boolean): Try[SubjectPageDTO] = permitTry {
     val maybeSubject = subjectPageRepository.withId(id).?
-    val converted    = maybeSubject.traverse(ConverterService.toApiSubjectPage(_, language, fallback)).?
+    val converted    = maybeSubject.traverse(converterService.toApiSubjectPage(_, language, fallback)).?
     converted.toTry(SubjectPageNotFoundException(id))
   }
 
@@ -62,7 +62,7 @@ class ReadService(using
   ): Try[List[SubjectPageDTO]] = permitTry {
     val offset    = pageSize * (page - 1)
     val data      = subjectPageRepository.all(offset, pageSize).?
-    val converted = data.map(ConverterService.toApiSubjectPage(_, language, fallback))
+    val converted = data.map(converterService.toApiSubjectPage(_, language, fallback))
     val filtered  = filterOutNotFoundExceptions(converted)
     filtered.sequence
   }
@@ -86,7 +86,7 @@ class ReadService(using
     for {
       ids          <- validateSubjectPageIdsOrError(subjectIds)
       subjectPages <- subjectPageRepository.withIds(ids, offset, pageSize)
-      api          <- subjectPages.traverse(subject => ConverterService.toApiSubjectPage(subject, language, fallback))
+      api          <- subjectPages.traverse(subject => converterService.toApiSubjectPage(subject, language, fallback))
     } yield api
   }
 
@@ -98,11 +98,11 @@ class ReadService(using
   def getFrontPage: Try[FrontPageDTO] = {
     frontPageRepository.getFrontPage.flatMap {
       case None        => Failure(common.NotFoundException("Front page was not found"))
-      case Some(value) => Success(ConverterService.toApiFrontPage(value))
+      case Some(value) => Success(converterService.toApiFrontPage(value))
     }
   }
 
   def filmFrontPage(language: Option[String]): Option[api.FilmFrontPageDTO] = {
-    filmFrontPageRepository.get.map(page => ConverterService.toApiFilmFrontPage(page, language))
+    filmFrontPageRepository.get.map(page => converterService.toApiFilmFrontPage(page, language))
   }
 }

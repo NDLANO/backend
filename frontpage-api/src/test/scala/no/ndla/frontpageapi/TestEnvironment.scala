@@ -12,33 +12,55 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.frontpageapi.controller.{FilmPageController, FrontPageController, SubjectPageController}
-import no.ndla.frontpageapi.model.api.ErrorHandling
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.network.tapir.TapirApplication
+import no.ndla.network.NdlaClient
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{
+  AllErrors,
+  ErrorHelpers,
+  Routes,
+  SwaggerController,
+  TapirApplication,
+  TapirController,
+  TapirErrorHandling,
+  TapirHealthController
+}
 import org.scalatestplus.mockito.MockitoSugar
 
-trait TestEnvironment extends TapirApplication with MockitoSugar {
-  given props = new FrontpageApiProperties
+trait TestEnvironment extends TapirApplication[FrontpageApiProperties] with MockitoSugar {
+  implicit lazy val props: FrontpageApiProperties     = new FrontpageApiProperties
+  implicit lazy val clock: Clock                      = mock[Clock]
+  implicit lazy val errorHelpers: ErrorHelpers        = new ErrorHelpers
+  implicit lazy val errorHandling: TapirErrorHandling = new TapirErrorHandling {
+    override def handleErrors: PartialFunction[Throwable, AllErrors] = { case e: Throwable =>
+      errorHelpers.generic
+    }
+  }
+  implicit lazy val routes: Routes                  = new Routes
+  implicit lazy val services: List[TapirController] = List.empty
 
-  given clock: SystemClock           = mock[SystemClock]
-  given migrator: DBMigrator         = mock[DBMigrator]
-  given dataSource: HikariDataSource = mock[HikariDataSource]
+  implicit lazy val migrator: DBMigrator   = mock[DBMigrator]
+  implicit lazy val dataSource: DataSource = mock[DataSource]
 
-  given filmPageController: FilmPageController           = mock[FilmPageController]
-  given subjectPageController: SubjectPageController     = mock[SubjectPageController]
-  given frontPageController: FrontPageController         = mock[FrontPageController]
-  given subjectPageRepository: SubjectPageRepository     = mock[SubjectPageRepository]
-  given frontPageRepository: FrontPageRepository         = mock[FrontPageRepository]
-  given filmFrontPageRepository: FilmFrontPageRepository = mock[FilmFrontPageRepository]
-  given healthController: TapirHealthController          = mock[TapirHealthController]
-  given readService: ReadService                         = mock[ReadService]
-  given writeService: WriteService                       = mock[WriteService]
+  implicit lazy val dBSubjectPage: DBSubjectPage     = mock[DBSubjectPage]
+  implicit lazy val dBFrontPage: DBFrontPage         = mock[DBFrontPage]
+  implicit lazy val dBFilmFrontPage: DBFilmFrontPage = mock[DBFilmFrontPage]
 
-  given ndlaClient: NdlaClient           = mock[NdlaClient]
-  given myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
+  implicit lazy val filmPageController: FilmPageController           = mock[FilmPageController]
+  implicit lazy val subjectPageController: SubjectPageController     = mock[SubjectPageController]
+  implicit lazy val frontPageController: FrontPageController         = mock[FrontPageController]
+  implicit lazy val subjectPageRepository: SubjectPageRepository     = mock[SubjectPageRepository]
+  implicit lazy val frontPageRepository: FrontPageRepository         = mock[FrontPageRepository]
+  implicit lazy val filmFrontPageRepository: FilmFrontPageRepository = mock[FilmFrontPageRepository]
+  implicit lazy val healthController: TapirHealthController          = mock[TapirHealthController]
+  implicit lazy val readService: ReadService                         = mock[ReadService]
+  implicit lazy val writeService: WriteService                       = mock[WriteService]
+  implicit lazy val converterService: ConverterService               = mock[ConverterService]
 
-  def services: List[TapirController] = List.empty
-  val swagger: SwaggerController      = mock[SwaggerController]
+  implicit lazy val ndlaClient: NdlaClient           = mock[NdlaClient]
+  implicit lazy val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
+
+  implicit lazy val swagger: SwaggerController = mock[SwaggerController]
 }

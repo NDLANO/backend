@@ -1,25 +1,18 @@
-/*
- * Part of NDLA frontpage-api
- * Copyright (C) 2018 NDLA
- *
- * See LICENSE
- *
- */
-
-package no.ndla.frontpageapi.model.api
+package no.ndla.frontpageapi.controller
 
 import no.ndla.common.Clock
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.errors.{NotFoundException, ValidationException}
-import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, SubjectPageNotFoundException}
-import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHelpers, TapirErrorHandling}
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{AllErrors, ErrorHelpers, TapirController}
 
-class ErrorHandling(using
-    props: Props,
+abstract class BaseController(using
+    props: BaseProps,
     clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers
-) extends TapirErrorHandling {
-
+) extends TapirController {
   import errorHelpers.*
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
@@ -28,5 +21,4 @@ class ErrorHandling(using
     case ex: NotFoundException            => notFoundWithMsg(ex.getMessage)
     case ex: LanguageNotFoundException    => notFoundWithMsg(ex.getMessage)
   }
-
 }

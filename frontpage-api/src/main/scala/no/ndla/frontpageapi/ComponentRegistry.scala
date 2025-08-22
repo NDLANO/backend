@@ -19,6 +19,8 @@ import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{
+  AllErrors,
+  ErrorHelpers,
   Routes,
   SwaggerController,
   TapirApplication,
@@ -28,13 +30,12 @@ import no.ndla.network.tapir.{
 }
 
 class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplication[FrontpageApiProperties] {
-  given props: FrontpageApiProperties         = properties
-  given routes: Routes                        = new Routes
-  override given errorHandling: ErrorHandling = new ErrorHandling
-  given migrator: DBMigrator                  = DBMigrator()
-  given dataSource: DataSource                = DataSource.getDataSource
-
-  given clock: Clock = new Clock
+  given props: FrontpageApiProperties = properties
+  given clock: Clock                  = new Clock
+  given errorHelpers: ErrorHelpers    = new ErrorHelpers
+  given routes: Routes                = new Routes
+  given migrator: DBMigrator          = DBMigrator()
+  given dataSource: DataSource        = DataSource.getDataSource
 
   given DBSubjectPage                                    = new DBSubjectPage
   given DBFrontPage                                      = new DBFrontPage
@@ -56,7 +57,7 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
   given ndlaClient: NdlaClient           = new NdlaClient
 
-  val swagger = new SwaggerController(
+  given swagger: SwaggerController = new SwaggerController(
     List(
       subjectPageController,
       frontPageController,
