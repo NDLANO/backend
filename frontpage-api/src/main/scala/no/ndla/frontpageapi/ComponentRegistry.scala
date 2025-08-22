@@ -16,27 +16,42 @@ import no.ndla.frontpageapi.model.api.ErrorHandling
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.network.tapir.TapirApplication
+import no.ndla.network.NdlaClient
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{
+  Routes,
+  SwaggerController,
+  TapirApplication,
+  TapirController,
+  TapirErrorHandling,
+  TapirHealthController
+}
 
 class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplication[FrontpageApiProperties] {
-  given props: FrontpageApiProperties = properties
-  given migrator: DBMigrator          = DBMigrator()
-  given dataSource: HikariDataSource  = DataSource.getDataSource
+  given props: FrontpageApiProperties         = properties
+  given routes: Routes                        = new Routes
+  override given errorHandling: ErrorHandling = new ErrorHandling
+  given migrator: DBMigrator                  = DBMigrator()
+  given dataSource: DataSource                = DataSource.getDataSource
 
-  given clock = new SystemClock
+  given clock: Clock = new Clock
 
-  given subjectPageRepository   = new SubjectPageRepository
-  given frontPageRepository     = new FrontPageRepository
-  given filmFrontPageRepository = new FilmFrontPageRepository
+  given DBSubjectPage                                    = new DBSubjectPage
+  given DBFrontPage                                      = new DBFrontPage
+  given DBFilmFrontPage                                  = new DBFilmFrontPage
+  given subjectPageRepository: SubjectPageRepository     = new SubjectPageRepository
+  given frontPageRepository: FrontPageRepository         = new FrontPageRepository
+  given filmFrontPageRepository: FilmFrontPageRepository = new FilmFrontPageRepository
+  given converterService: ConverterService               = new ConverterService
 
-  given readService  = new ReadService
-  given writeService = new WriteService
+  given readService: ReadService   = new ReadService
+  given writeService: WriteService = new WriteService
 
-  given subjectPageController = new SubjectPageController
-  given frontPageController   = new FrontPageController
-  given filmPageController    = new FilmPageController
-  given internController      = new InternController
-  given healthController      = new TapirHealthController
+  given subjectPageController: SubjectPageController = new SubjectPageController
+  given frontPageController: FrontPageController     = new FrontPageController
+  given filmPageController: FilmPageController       = new FilmPageController
+  given internController: InternController           = new InternController
+  given healthController: TapirHealthController      = new TapirHealthController
 
   given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
   given ndlaClient: NdlaClient           = new NdlaClient
@@ -52,5 +67,5 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override def services: List[TapirController] = swagger.getServices()
+  given services: List[TapirController] = swagger.getServices()
 }

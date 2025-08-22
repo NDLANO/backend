@@ -9,13 +9,13 @@
 package no.ndla.oembedproxy.controller
 
 import no.ndla.network.tapir.SwaggerInfo
-import no.ndla.oembedproxy.OEmbedProxyProperties
+import no.ndla.oembedproxy.Props
 import sttp.tapir.*
 
 import scala.collection.immutable.ListMap
 
 object SwaggerDocControllerConfig {
-  def swaggerInfo(using props: OEmbedProxyProperties): SwaggerInfo = SwaggerInfo(
+  def swaggerInfo(using props: Props): SwaggerInfo = SwaggerInfo(
     mountPoint = "oembed-proxy" / "api-docs",
     description = "Convert any NDLA resource to an oEmbed embeddable resource.",
     authUrl = props.Auth0LoginEndpoint,

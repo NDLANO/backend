@@ -16,7 +16,7 @@ import no.ndla.common.errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
 
-abstract class TapirErrorHandling(using props: BaseProps, clock: Clock) extends StrictLogging {
+trait TapirErrorHandling(using props: BaseProps, clock: Clock) extends StrictLogging {
   def logError(e: Throwable): Unit = {
     logger.error(e.getMessage, e)
   }
