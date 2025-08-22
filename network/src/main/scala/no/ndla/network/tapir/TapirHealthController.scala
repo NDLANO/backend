@@ -8,7 +8,8 @@
 
 package no.ndla.network.tapir
 
-import no.ndla.common.Warmup
+import no.ndla.common.{Clock, Warmup}
+import no.ndla.common.configuration.BaseProps
 import no.ndla.network.clients.MyNDLAApiClient
 import sttp.model.StatusCode
 import sttp.tapir.EndpointInput
@@ -16,10 +17,12 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 
 class TapirHealthController(using
+    props: BaseProps,
+    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
     errorHandling: TapirErrorHandling
 ) extends Warmup
-    with TapirController(using myNDLAApiClient, errorHandling) {
+    with TapirController {
   @volatile private var isShuttingDown: Boolean = false
   override val enableSwagger: Boolean           = false
   val prefix: EndpointInput[Unit]               = "health"

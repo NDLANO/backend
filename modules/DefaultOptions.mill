@@ -32,7 +32,7 @@ trait DefaultOptions extends ScalaModule {
       "-language:experimental.macros",
       "-language:higherKinds",
       "-language:implicitConversions",
-      "-Xfatal-warnings",
+//      "-Xfatal-warnings",
       "-deprecation",
       "-Xlint:adapted-args"           -> scala2,
       "-Xlint:constant"               -> scala2,

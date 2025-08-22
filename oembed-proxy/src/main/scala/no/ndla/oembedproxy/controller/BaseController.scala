@@ -1,25 +1,11 @@
-/*
- * Part of NDLA oembed-proxy
- * Copyright (C) 2016 NDLA
- *
- * See LICENSE
- *
- */
+package no.ndla.oembedproxy.controller
 
-package no.ndla.oembedproxy.model
-
-import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.*
-import no.ndla.oembedproxy.OEmbedProxyProperties
+import no.ndla.common.configuration.BaseProps
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.TapirController
 
-class ErrorHandling(using
-    props: OEmbedProxyProperties,
-    clock: Clock
-) extends TapirErrorHandling(using props, clock)
-    with StrictLogging {
-
+class BaseController(using props: BaseProps, clock: Clock, myNDLAApiClient: MyNDLAApiClient) extends TapirController {
   import ErrorHelpers.*
 
   private val statusCodesToPassAlong                                                      = List(401, 403, 404, 410)

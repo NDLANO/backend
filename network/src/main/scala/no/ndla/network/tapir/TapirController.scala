@@ -11,7 +11,8 @@ package no.ndla.network.tapir
 import cats.implicits.catsSyntaxEitherId
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.SchemaImplicits
+import no.ndla.common.{Clock, SchemaImplicits}
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.auth.AuthUtility
 import no.ndla.network.clients.MyNDLAApiClient
@@ -34,9 +35,11 @@ import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import scala.util.{Failure, Success}
 
 trait TapirController(using
-    myNDLAApiClient: MyNDLAApiClient,
-    errorHandling: TapirErrorHandling
-) extends StrictLogging
+//    props: BaseProps,
+//    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient
+) extends TapirErrorHandling
+    with StrictLogging
     with SchemaImplicits {
   type Eff[A] = Identity[A]
   val enableSwagger: Boolean = true
@@ -69,8 +72,8 @@ trait TapirController(using
     */
   def requireScope(scope: Permission*): Option[TokenUser] => Either[AllErrors, TokenUser] = {
     case Some(user) if user.hasPermissions(scope) => user.asRight
-    case Some(_)                                  => errorHandling.ErrorHelpers.forbidden.asLeft
-    case None                                     => errorHandling.ErrorHelpers.unauthorized.asLeft
+    case Some(_)                                  => ErrorHelpers.forbidden.asLeft
+    case None                                     => ErrorHelpers.unauthorized.asLeft
   }
 
   implicit class authlessEndpoint[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
@@ -92,12 +95,12 @@ trait TapirController(using
           case Some(token) =>
             myNDLAApiClient.getUserWithFeideToken(token) match {
               case Failure(ex: HttpRequestException) if ex.code == 401 =>
-                errorHandling.ErrorHelpers.unauthorized.asLeft
+                ErrorHelpers.unauthorized.asLeft
               case Failure(ex: HttpRequestException) if ex.code == 403 =>
-                errorHandling.ErrorHelpers.forbidden.asLeft
+                ErrorHelpers.forbidden.asLeft
               case Failure(ex) =>
                 logger.error("Got exception when fetching user", ex)
-                errorHandling.ErrorHelpers.generic.asLeft
+                ErrorHelpers.generic.asLeft
               case Success(user) =>
                 Some(user).asRight
             }
@@ -164,7 +167,7 @@ trait TapirController(using
             case (Some(tokenUser), Some(ndlaUser)) => CombinedUserWithBoth(tokenUser, ndlaUser).asRight
             case (Some(tokenUser), None)           => tokenUser.toCombined.asRight
             case (None, Some(ndlaUser))            => CombinedUserWithMyNDLAUser(None, ndlaUser).asRight
-            case _                                 => errorHandling.ErrorHelpers.unauthorized.asLeft
+            case _                                 => ErrorHelpers.unauthorized.asLeft
           }
         }
       val securityLogic = (m: MonadError[F]) => (a: (Option[TokenUser], Option[String])) => m.unit(authFunc(a))

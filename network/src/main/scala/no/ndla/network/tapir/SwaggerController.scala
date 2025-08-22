@@ -10,6 +10,7 @@ package no.ndla.network.tapir
 
 import cats.implicits.*
 import io.circe.Json
+import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseProps
 import no.ndla.network.clients.MyNDLAApiClient
 import sttp.apispec.openapi.{Components, Contact, Info, License}
@@ -22,9 +23,9 @@ import scala.collection.immutable.ListMap
 
 class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInfo)(using
     props: BaseProps,
-    myNDLAApiClient: MyNDLAApiClient,
-    errorHandling: TapirErrorHandling
-) extends TapirController(using myNDLAApiClient, errorHandling) {
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient
+) extends TapirController {
   def getServices(): List[TapirController] = services :+ this
 
   val info: Info = Info(
