@@ -40,6 +40,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
 
   val PUBLISHED_OWNER: TokenUser       = TokenUser("published_owner", Set.empty, None)
   val PRIVATE_OWNER: TokenUser         = TokenUser("private_owner", Set.empty, None)
+  val today: NDLADate                  = clock.now()
   val cruz: Author                     = Author(ContributorType.Writer, "Lyin' Ted")
   val license: String                  = License.PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(cruz))
@@ -56,8 +57,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     duration = Some(1),
     status = LearningPathStatus.PUBLISHED,
     verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = NDLADate.now(),
-    lastUpdated = NDLADate.now(),
+    created = today,
+    lastUpdated = today,
     tags = List(),
     owner = PUBLISHED_OWNER.id,
     copyright = copyright,
@@ -80,8 +81,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     duration = Some(1),
     status = LearningPathStatus.PRIVATE,
     verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = NDLADate.now(),
-    lastUpdated = NDLADate.now(),
+    created = today,
+    lastUpdated = today,
     tags = List(),
     owner = PRIVATE_OWNER.id,
     copyright = copyright,
@@ -105,10 +106,11 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     StepType.TEXT,
     None,
+    today,
+    today,
     showTitle = true,
     StepStatus.ACTIVE
   )
-
   val STEP2: LearningStep = LearningStep(
     Some(2),
     Some(1),
@@ -122,10 +124,11 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     StepType.TEXT,
     None,
+    today,
+    today,
     showTitle = false,
     StepStatus.ACTIVE
   )
-
   val STEP3: LearningStep = LearningStep(
     Some(3),
     Some(1),
@@ -139,6 +142,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     None,
     StepType.TEXT,
     None,
+    today,
+    today,
     showTitle = false,
     StepStatus.ACTIVE
   )
