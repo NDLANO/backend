@@ -36,10 +36,7 @@ import scala.util.Try
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.RevisionMeta
 
-class LearningPathRepositoryComponentIntegrationTest
-    extends DatabaseIntegrationSuite
-    with UnitSuite
-    with TestEnvironment {
+class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
   override val schemaName = "learningpathapi_test"
 
   override lazy val dataSource: HikariDataSource = testDataSource.get
@@ -93,7 +90,7 @@ class LearningPathRepositoryComponentIntegrationTest
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
+    dataSource.connectToDatabase()
     migrator.migrate()
   }
 

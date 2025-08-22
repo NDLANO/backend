@@ -20,11 +20,9 @@ import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-trait PublishedConceptRepository {
-  this: DataSource =>
-  lazy val publishedConceptRepository: PublishedConceptRepository
-
-  class PublishedConceptRepository extends StrictLogging with Repository[Concept] {
+class PublishedConceptRepository(using
+  dataSource: DataSource
+) extends StrictLogging with Repository[Concept] {
     def insertOrUpdate(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
@@ -134,4 +132,3 @@ trait PublishedConceptRepository {
         .list()
     }
   }
-}

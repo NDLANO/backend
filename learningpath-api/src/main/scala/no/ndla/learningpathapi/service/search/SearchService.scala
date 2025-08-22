@@ -32,12 +32,14 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success, Try}
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
 
-trait SearchService extends StrictLogging {
-  this: SearchIndexService & Elastic4sClient & SearchConverterServiceComponent & TaxonomyApiClient & Props &
-    ErrorHandling =>
-  lazy val searchService: SearchService
-
-  class SearchService {
+class SearchService(using
+  searchIndexService: SearchIndexService,
+  e4sClient: Elastic4sClient,
+  searchConverterServiceComponent: SearchConverterServiceComponent,
+  taxonomyApiClient: TaxonomyApiClient,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends StrictLogging {
     def scroll(scrollId: String, language: String): Try[SearchResult] =
       e4sClient
         .execute {
@@ -356,6 +358,4 @@ trait SearchService extends StrictLogging {
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }
-  }
-
 }

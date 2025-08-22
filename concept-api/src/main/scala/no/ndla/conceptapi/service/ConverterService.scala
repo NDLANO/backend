@@ -44,11 +44,12 @@ import org.jsoup.nodes.Element
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
-trait ConverterService {
-  this: Clock & DraftConceptRepository & StateTransitionRules & Props =>
-  lazy val converterService: ConverterService
-
-  class ConverterService extends StrictLogging {
+class ConverterService(using
+  clock: Clock,
+  draftConceptRepository: DraftConceptRepository,
+  stateTransitionRules: StateTransitionRules,
+  props: Props
+) extends StrictLogging {
 
     def toApiConcept(
         concept: DomainConcept,
@@ -434,5 +435,3 @@ trait ConverterService {
     }
 
   }
-
-}

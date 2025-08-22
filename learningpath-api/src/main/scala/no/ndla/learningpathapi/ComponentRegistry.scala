@@ -29,7 +29,7 @@ import no.ndla.learningpathapi.db.migrationwithdependencies.{
 }
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.api.ErrorHandling
-import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
+import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation.{
@@ -46,44 +46,9 @@ import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 import no.ndla.database.DBUtility
 
-class ComponentRegistry(properties: LearningpathApiProperties)
-    extends BaseComponentRegistry[LearningpathApiProperties]
-    with TapirApplication
-    with LearningpathControllerV2
-    with InternController
-    with StatsController
-    with LearningPathRepositoryComponent
-    with ReadService
-    with UpdateService
-    with DBUtility
-    with SearchConverterServiceComponent
-    with SearchService
-    with SearchIndexService
-    with BaseIndexService
-    with TaxonomyApiClient
-    with NdlaClient
-    with CommonConverter
-    with ConverterService
-    with OembedProxyClient
-    with Elastic4sClient
-    with DataSource
-    with Clock
-    with UUIDUtil
-    with MyNDLAApiClient
-    with LanguageValidator
-    with LearningPathValidator
-    with LearningStepValidator
-    with TitleValidator
-    with SearchApiClient
-    with Props
-    with DBMigrator
-    with TextValidator
-    with UrlValidator
-    with ErrorHandling
-    with SwaggerDocControllerConfig
-    with SearchLanguage {
-  override lazy val props: LearningpathApiProperties = properties
-  override lazy val migrator: DBMigrator             = DBMigrator(
+class ComponentRegistry(properties: LearningpathApiProperties) extends TapirApplication[LearningpathApiProperties] {
+  given props: LearningpathApiProperties = properties
+  given migrator: DBMigrator             = DBMigrator(
     new V11__CreatedByNdlaStatusForOwnersWithRoles,
     new V13__StoreNDLAStepsAsIframeTypes,
     new V14__ConvertLanguageUnknown,
@@ -91,33 +56,33 @@ class ComponentRegistry(properties: LearningpathApiProperties)
     new V31__ArenaDefaultEnabledOrgs,
     new V33__AiDefaultEnabledOrgs
   )
-  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  override lazy val DBUtil: DBUtility            = new DBUtility
+  given dataSource: HikariDataSource = DataSource.getDataSource
+  given DBUtil: DBUtility            = new DBUtility
 
-  override lazy val learningPathRepository = new LearningPathRepository
-  override lazy val readService            = new ReadService
-  override lazy val updateService          = new UpdateService
-  override lazy val searchConverterService = new SearchConverterService
-  override lazy val searchService          = new SearchService
-  override lazy val searchIndexService     = new SearchIndexService
-  override lazy val converterService       = new ConverterService
-  override lazy val clock                  = new SystemClock
-  override lazy val uuidUtil               = new UUIDUtil
-  override lazy val taxonomyApiClient      = new TaxonomyApiClient
-  override lazy val ndlaClient             = new NdlaClient
-  override lazy val languageValidator      = new LanguageValidator
-  override lazy val titleValidator         = new TitleValidator
-  override lazy val learningPathValidator  = new LearningPathValidator
-  override lazy val learningStepValidator  = new LearningStepValidator
-  var e4sClient: NdlaE4sClient             = Elastic4sClientFactory.getClient(props.SearchServer)
-  override lazy val searchApiClient        = new SearchApiClient
-  override lazy val oembedProxyClient      = new OembedProxyClient
-  override lazy val myndlaApiClient        = new MyNDLAApiClient
+  given learningPathRepository = new LearningPathRepository
+  given readService            = new ReadService
+  given updateService          = new UpdateService
+  given searchConverterService = new SearchConverterService
+  given searchService          = new SearchService
+  given searchIndexService     = new SearchIndexService
+  given converterService       = new ConverterService
+  given clock                  = new SystemClock
+  given uuidUtil               = new UUIDUtil
+  given taxonomyApiClient      = new TaxonomyApiClient
+  given ndlaClient             = new NdlaClient
+  given languageValidator      = new LanguageValidator
+  given titleValidator         = new TitleValidator
+  given learningPathValidator  = new LearningPathValidator
+  given learningStepValidator  = new LearningStepValidator
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
+  given searchApiClient        = new SearchApiClient
+  given oembedProxyClient      = new OembedProxyClient
+  given myndlaApiClient        = new MyNDLAApiClient
 
-  override lazy val learningpathControllerV2                = new LearningpathControllerV2
-  override lazy val internController                        = new InternController
-  override lazy val statsController                         = new StatsController
-  override lazy val healthController: TapirHealthController = new TapirHealthController
+  given learningpathControllerV2                = new LearningpathControllerV2
+  given internController                        = new InternController
+  given statsController                         = new StatsController
+  given healthController: TapirHealthController = new TapirHealthController
 
   val swagger = new SwaggerController(
     List[TapirController](

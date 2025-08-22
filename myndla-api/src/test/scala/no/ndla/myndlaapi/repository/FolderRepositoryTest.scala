@@ -25,11 +25,11 @@ import java.util.UUID
 import scala.util.{Success, Try}
 
 class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override lazy val dataSource: HikariDataSource   = testDataSource.get
-  override lazy val migrator: DBMigrator           = new DBMigrator
-  var repository: FolderRepository                 = _
-  override lazy val userRepository: UserRepository = new UserRepository
-  override lazy val DBUtil: DBUtility              = new DBUtility
+  override given dataSource: HikariDataSource   = testDataSource.get
+  override given migrator: DBMigrator           = new DBMigrator
+  var repository: FolderRepository              = _
+  override given userRepository: UserRepository = new UserRepository
+  override given DBUtil: DBUtility              = new DBUtility
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
@@ -61,7 +61,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
+    dataSource.connectToDatabase()
     if (serverIsListening) {
       migrator.migrate()
     }

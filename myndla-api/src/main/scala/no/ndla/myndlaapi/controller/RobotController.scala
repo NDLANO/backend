@@ -21,11 +21,7 @@ import sttp.tapir.server.ServerEndpoint
 
 import java.util.UUID
 
-trait RobotController {
-  this: ErrorHandling & TapirController & RobotService =>
-  lazy val robotController: RobotController
-
-  class RobotController extends TapirController {
+class RobotController(using errorHandling: ErrorHandling, robotService: RobotService) extends TapirController {
     override val serviceName: String         = "robots"
     override val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
 
@@ -100,4 +96,3 @@ trait RobotController {
       deleteRobotDefinition()
     )
   }
-}

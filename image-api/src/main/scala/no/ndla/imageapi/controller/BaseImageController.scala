@@ -22,11 +22,11 @@ import java.io.File
 import scala.util.{Failure, Try}
 import sttp.tapir.model.Delimited
 
-trait BaseImageController {
-  this: Props =>
+class BaseImageController(using
+  props: Props
+) {
 
   /** Base class for sharing code between Image controllers. */
-  trait BaseImageController {
     val queryParam: EndpointInput.Query[Option[String]] =
       query[Option[String]]("query")
         .description("Return only images with titles, alt-texts or tags matching the specified query.")
@@ -118,5 +118,4 @@ trait BaseImageController {
       }
     }
 
-  }
 }

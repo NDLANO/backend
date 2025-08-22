@@ -20,11 +20,7 @@ import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-trait UserRepository {
-  this: DBUtility =>
-  lazy val userRepository: UserRepository
-
-  class UserRepository extends StrictLogging {
+class UserRepository(using dBUtility: DBUtility) extends StrictLogging {
 
     def getUsersPaginated(offset: Long, limit: Long, filterTeachers: Boolean, query: Option[String])(implicit
         session: DBSession
@@ -224,6 +220,4 @@ trait UserRepository {
         .map(DBMyNDLAUser.fromResultSet(u))
         .list()
     }
-
-  }
 }

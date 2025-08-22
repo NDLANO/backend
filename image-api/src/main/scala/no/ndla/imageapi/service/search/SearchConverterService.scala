@@ -29,11 +29,11 @@ import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
 
-trait SearchConverterService {
-  this: ConverterService & Props & SearchLanguage =>
-  lazy val searchConverterService: SearchConverterService
-
-  class SearchConverterService extends StrictLogging {
+class SearchConverterService(using
+  converterService: ConverterService,
+  props: Props,
+  searchLanguage: SearchLanguage
+) extends StrictLogging {
 
     def asSearchableTags(domainModel: ImageMetaInformation): Seq[SearchableTag] =
       domainModel.tags.flatMap(tags =>
@@ -227,6 +227,4 @@ trait SearchConverterService {
         )
 
     }
-  }
-
 }

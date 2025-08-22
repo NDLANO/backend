@@ -37,12 +37,17 @@ import java.lang.Math.max
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
 
-trait WriteService {
-  this: ConverterService & ValidationService & ImageRepository & ImageIndexService & ImageStorageService &
-    TagIndexService & Clock & Props & Random =>
-  lazy val writeService: WriteService
-
-  class WriteService extends StrictLogging {
+class WriteService(using
+  converterService: ConverterService,
+  validationService: ValidationService,
+  imageRepository: ImageRepository,
+  imageIndexService: ImageIndexService,
+  imageStorageService: ImageStorageService,
+  tagIndexService: TagIndexService,
+  clock: Clock,
+  props: Props,
+  random: Random
+) extends StrictLogging {
 
     def deleteImageLanguageVersionV2(
         imageId: Long,

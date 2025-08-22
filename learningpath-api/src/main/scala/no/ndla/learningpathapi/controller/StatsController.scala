@@ -17,11 +17,11 @@ import sttp.tapir.EndpointInput
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
-trait StatsController {
-  this: ReadService & Props & ErrorHandling & TapirController =>
-  lazy val statsController: StatsController
-
-  class StatsController extends TapirController {
+class StatsController(using
+  readService: ReadService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends TapirController {
     override val serviceName: String                       = "stats"
     override val prefix: EndpointInput[Unit]               = "learningpath-api" / "v1" / serviceName
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
@@ -35,4 +35,3 @@ trait StatsController {
       .errorOut(statusCode(StatusCode.MovedPermanently).and(header("Location", "/myndla-api/v1/stats")))
       .serverLogicPure(_ => Left(()))
   }
-}

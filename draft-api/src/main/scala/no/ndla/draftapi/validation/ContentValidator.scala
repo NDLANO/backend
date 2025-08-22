@@ -30,12 +30,12 @@ import scalikejdbc.ReadOnlyAutoSession
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
-trait ContentValidator {
-  this: DraftRepository & ConverterService & ArticleApiClient & Props =>
-  lazy val contentValidator: ContentValidator
-  lazy val importValidator: ContentValidator
-
-  class ContentValidator {
+class ContentValidator(using
+  draftRepository: DraftRepository,
+  converterService: ConverterService,
+  articleApiClient: ArticleApiClient,
+  props: Props
+) {
     private val inlineHtmlTags       = props.InlineHtmlTags
     private val introductionHtmlTags = props.IntroductionHtmlTags
 
@@ -349,5 +349,4 @@ trait ContentValidator {
 
     private def languageCodeSupported639(languageCode: String): Boolean = Iso639.get(languageCode).isSuccess
 
-  }
 }

@@ -21,10 +21,11 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.schemaForCaseClass
 
 import scala.util.{Failure, Success}
-trait TranscriptionController {
-  this: Props & TapirController & ReadService & TranscriptionService =>
-  lazy val transcriptionController: TranscriptionController
-  class TranscriptionController() extends TapirController {
+class TranscriptionController(using
+  props: Props,
+  readService: ReadService,
+  transcriptionService: TranscriptionService
+) extends TapirController {
 
     override val serviceName: String         = "transcription"
     override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / serviceName

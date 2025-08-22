@@ -31,11 +31,7 @@ import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
 
-trait ConverterService {
-  this: Clock & Props =>
-  lazy val converterService: ConverterService
-
-  class ConverterService extends StrictLogging {
+class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     def asApiAuthor(domainAuthor: commonDomain.Author): commonApi.AuthorDTO = {
       commonApi.AuthorDTO(domainAuthor.`type`, domainAuthor.name)
     }
@@ -347,5 +343,3 @@ trait ConverterService {
       )
     }
   }
-
-}

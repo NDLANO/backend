@@ -28,11 +28,10 @@ import scala.concurrent.duration.DurationInt
 import scala.util.Using.Releasable
 import scala.util.{Failure, Success, Try, Using}
 
-trait GrepApiClient {
-  this: NdlaClient & Props =>
-  lazy val grepApiClient: GrepApiClient
-
-  class GrepApiClient extends StrictLogging {
+class GrepApiClient(using 
+  ndlaClient: NdlaClient,
+  props: Props
+) extends StrictLogging {
     private val grepDumpUrl = s"${props.GrepApiUrl}/kl06/v201906/dump/json"
 
     private def readFile(file: File): Try[String] = Try {
@@ -134,4 +133,3 @@ trait GrepApiClient {
     }
 
   }
-}

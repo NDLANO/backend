@@ -17,8 +17,12 @@ import no.ndla.myndlaapi.model.domain.InvalidStatusException
 import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHandling, ValidationErrorBody}
 import org.postgresql.util.PSQLException
 
-trait ErrorHandling extends TapirErrorHandling with StrictLogging {
-  this: Props & Clock & DataSource =>
+class ErrorHandling(using
+    props: Props,
+    clock: Clock,
+    dataSource: DataSource
+) extends TapirErrorHandling
+    with StrictLogging {
 
   import ErrorHelpers.*
 
@@ -34,7 +38,7 @@ trait ErrorHandling extends TapirErrorHandling with StrictLogging {
     case mse: InvalidStatusException =>
       ErrorBody(MISSING_STATUS, mse.getMessage, clock.now(), 400)
     case _: PSQLException =>
-      DataSource.connectToDatabase()
+      dataSource.connectToDatabase()
       ErrorHelpers.generic
     case v: ValidationException =>
       ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), Some(v.errors), 400)

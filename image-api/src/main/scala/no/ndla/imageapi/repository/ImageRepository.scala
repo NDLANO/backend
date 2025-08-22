@@ -19,11 +19,10 @@ import scalikejdbc.*
 
 import scala.util.{Success, Try}
 
-trait ImageRepository {
-  this: DataSource & ConverterService =>
-  lazy val imageRepository: ImageRepository
-
-  class ImageRepository extends StrictLogging with Repository[ImageMetaInformation] {
+class ImageRepository(using
+  dataSource: DataSource,
+  converterService: ConverterService
+) extends StrictLogging with Repository[ImageMetaInformation] {
     def imageCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
       sql"select count(*) from ${ImageMetaInformation.table}"
         .map(rs => rs.long("count"))
@@ -232,4 +231,3 @@ trait ImageRepository {
     }
 
   }
-}

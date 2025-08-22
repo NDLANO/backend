@@ -34,13 +34,18 @@ import no.ndla.searchapi.model.taxonomy.NodeType
 
 import scala.util.{Failure, Success, Try}
 
-trait MultiSearchService {
-  this: Elastic4sClient & SearchConverterService & SearchService & IndexService & ArticleIndexService &
-    LearningPathIndexService & Props & ErrorHandling & NodeIndexService & BaseIndexService =>
-
-  lazy val multiSearchService: MultiSearchService
-
-  class MultiSearchService extends SearchService with StrictLogging with TaxonomyFiltering {
+class MultiSearchService(using
+  e4sClient: Elastic4sClient,
+  searchConverterService: SearchConverterService,
+  searchService: SearchService,
+  indexService: IndexService,
+  articleIndexService: ArticleIndexService,
+  learningPathIndexService: LearningPathIndexService,
+  props: Props,
+  errorHandling: ErrorHandling,
+  nodeIndexService: NodeIndexService,
+  baseIndexService: BaseIndexService
+) extends SearchService with StrictLogging with TaxonomyFiltering {
     override val searchIndex: List[String] =
       List(SearchType.Articles, SearchType.LearningPaths, SearchType.Nodes).map(props.SearchIndex)
     override val indexServices: List[BaseIndexService] = List(
@@ -330,7 +335,4 @@ trait MultiSearchService {
         embedResourceAndIdFilter,
         availabilityFilter
       ).flatten
-    }
   }
-
-}

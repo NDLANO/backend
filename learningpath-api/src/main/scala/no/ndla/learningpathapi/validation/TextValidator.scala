@@ -13,10 +13,7 @@ import no.ndla.learningpathapi.Props
 import org.jsoup.Jsoup
 import org.jsoup.safety.Safelist
 
-trait TextValidator {
-  this: Props =>
-
-  class TextValidator(allowHtml: Boolean) {
+class TextValidator(allowHtml: Boolean)(using props: Props) {
     val IllegalContentInBasicText: String =
       s"The content contains illegal html-characters. Allowed characters are ${props.AllowedHtmlTags.mkString(", ")}"
 
@@ -61,4 +58,3 @@ trait TextValidator {
       }
     }
   }
-}

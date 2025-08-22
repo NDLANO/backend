@@ -17,11 +17,12 @@ import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
 
-trait TagIndexService {
-  this: SearchConverterService & IndexService & ImageRepository & Props =>
-  lazy val tagIndexService: TagIndexService
-
-  class TagIndexService extends IndexService {
+class TagIndexService(using
+  searchConverterService: SearchConverterService,
+  indexService: IndexService,
+  imageRepository: ImageRepository,
+  props: Props
+) extends IndexService {
     override val documentType: String                         = props.TagSearchDocument
     override val searchIndex: String                          = props.TagSearchIndex
     override val repository: Repository[ImageMetaInformation] = imageRepository
@@ -44,5 +45,3 @@ trait TagIndexService {
       )
     }
   }
-
-}

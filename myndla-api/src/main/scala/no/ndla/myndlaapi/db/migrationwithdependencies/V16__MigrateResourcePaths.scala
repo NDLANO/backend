@@ -15,8 +15,10 @@ import scalikejdbc.{DBSession, WrappedResultSet, scalikejdbcSQLInterpolationImpl
 
 import java.util.UUID
 
-trait V16__MigrateResourcePaths {
-  this: TaxonomyApiClient & NdlaClient =>
+class V16__MigrateResourcePaths(using
+  taxonomyApiClient: TaxonomyApiClient,
+  ndlaClient: NdlaClient
+) {
 
   class V16__MigrateResourcePaths extends TableMigration[ResourceRow] {
     override val tableName: String                                 = "resources"

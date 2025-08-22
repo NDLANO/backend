@@ -35,67 +35,39 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.TapirApplication
 import org.mockito.Mockito.reset
-import org.scalatestplus.mockito.MockitoSugar.mock
+import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends TapirApplication
-    with Props
-    with Clock
-    with SwaggerDocControllerConfig
-    with DataSource
-    with DBMigrator
-    with MyNDLAAuthHelpers
-    with FolderRepository
-    with RobotRepository
-    with FolderReadService
-    with FolderWriteService
-    with FolderConverterService
-    with UserService
-    with ConfigService
-    with UserRepository
-    with DBUtility
-    with ConfigRepository
-    with FeideApiClient
-    with ConfigController
-    with RedisClient
-    with FolderController
-    with RobotController
-    with RobotService
-    with UserController
-    with StatsController
-    with ErrorHandling
-    with NodeBBClient
-    with SearchApiClient
-    with LearningPathApiClient
-    with NdlaClient {
-  override lazy val props                                          = new MyNdlaApiProperties
-  override lazy val clock: SystemClock                             = mock[SystemClock]
-  override lazy val dataSource: HikariDataSource                   = mock[HikariDataSource]
-  override lazy val migrator: DBMigrator                           = mock[DBMigrator]
-  override lazy val folderRepository: FolderRepository             = mock[FolderRepository]
-  override lazy val robotRepository: RobotRepository               = mock[RobotRepository]
-  override lazy val folderReadService: FolderReadService           = mock[FolderReadService]
-  override lazy val folderWriteService: FolderWriteService         = mock[FolderWriteService]
-  override lazy val folderConverterService: FolderConverterService = mock[FolderConverterService]
-  override lazy val robotService: RobotService                     = mock[RobotService]
-  override lazy val userService: UserService                       = mock[UserService]
-  override lazy val configService: ConfigService                   = mock[ConfigService]
-  override lazy val userRepository: UserRepository                 = mock[UserRepository]
-  override lazy val configRepository: ConfigRepository             = mock[ConfigRepository]
-  override lazy val feideApiClient: FeideApiClient                 = mock[FeideApiClient]
-  override lazy val configController: ConfigController             = mock[ConfigController]
-  override lazy val robotController: RobotController               = mock[RobotController]
-  override lazy val redisClient: RedisClient                       = mock[RedisClient]
-  override lazy val folderController: FolderController             = mock[FolderController]
-  override lazy val userController: UserController                 = mock[UserController]
-  val statsController: StatsController                             = mock[StatsController]
-  override lazy val healthController: TapirHealthController        = mock[TapirHealthController]
-  override lazy val nodebb: NodeBBClient                           = mock[NodeBBClient]
-  override lazy val searchApiClient: SearchApiClient               = mock[SearchApiClient]
-  override lazy val learningPathApiClient: LearningPathApiClient   = mock[LearningPathApiClient]
-  override lazy val ndlaClient: NdlaClient                         = mock[NdlaClient]
-  override lazy val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
-  override lazy val DBUtil: DBUtility                              = mock[DBUtility]
+    with MockitoSugar {
+  given props                                          = new MyNdlaApiProperties
+  given clock: SystemClock                             = mock[SystemClock]
+  given dataSource: HikariDataSource                   = mock[HikariDataSource]
+  given migrator: DBMigrator                           = mock[DBMigrator]
+  given folderRepository: FolderRepository             = mock[FolderRepository]
+  given robotRepository: RobotRepository               = mock[RobotRepository]
+  given folderReadService: FolderReadService           = mock[FolderReadService]
+  given folderWriteService: FolderWriteService         = mock[FolderWriteService]
+  given folderConverterService: FolderConverterService = mock[FolderConverterService]
+  given robotService: RobotService                     = mock[RobotService]
+  given userService: UserService                       = mock[UserService]
+  given configService: ConfigService                   = mock[ConfigService]
+  given userRepository: UserRepository                 = mock[UserRepository]
+  given configRepository: ConfigRepository             = mock[ConfigRepository]
+  given feideApiClient: FeideApiClient                 = mock[FeideApiClient]
+  given configController: ConfigController             = mock[ConfigController]
+  given robotController: RobotController               = mock[RobotController]
+  given redisClient: RedisClient                       = mock[RedisClient]
+  given folderController: FolderController             = mock[FolderController]
+  given userController: UserController                 = mock[UserController]
+  given statsController: StatsController                           = mock[StatsController]
+  given healthController: TapirHealthController        = mock[TapirHealthController]
+  given nodebb: NodeBBClient                           = mock[NodeBBClient]
+  given searchApiClient: SearchApiClient               = mock[SearchApiClient]
+  given learningPathApiClient: LearningPathApiClient   = mock[LearningPathApiClient]
+  given ndlaClient: NdlaClient                         = mock[NdlaClient]
+  given myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
+  given DBUtil: DBUtility                              = mock[DBUtility]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]

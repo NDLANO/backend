@@ -30,9 +30,7 @@ case class DraftSearchSettings(
     aggregatePaths: List[String]
 )
 
-trait DraftSearchSettingsHelper {
-  this: Props =>
-  object draftSearchSettings {
+class DraftSearchSettingsHelper(using props: Props) {
     def empty: DraftSearchSettings = {
       DraftSearchSettings(
         withIdIn = List.empty,
@@ -53,4 +51,3 @@ trait DraftSearchSettingsHelper {
       )
     }
   }
-}

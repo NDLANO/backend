@@ -18,11 +18,9 @@ import scalikejdbc.interpolation.SQLSyntax
 
 import scala.util.{Success, Try}
 
-trait UserDataRepository {
-  this: DataSource =>
-  lazy val userDataRepository: UserDataRepository
-
-  class UserDataRepository extends StrictLogging {
+class UserDataRepository(using
+  dataSource: DataSource
+) extends StrictLogging {
     def insert(userData: UserData)(implicit session: DBSession = AutoSession): Try[UserData] = {
       Try {
         val dataObject = new PGobject()
@@ -66,7 +64,6 @@ trait UserDataRepository {
 
     def withUserId(userId: String): Option[UserData] =
       userDataWhere(sqls"ud.user_id=$userId")
-  }
 
   private def userDataWhere(
       whereClause: SQLSyntax

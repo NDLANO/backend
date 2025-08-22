@@ -27,12 +27,15 @@ import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
-trait ArticleSearchService {
-  this: Elastic4sClient & SearchConverterService & SearchService & ArticleIndexService & ConverterService & Props &
-    ErrorHandling =>
-  lazy val articleSearchService: ArticleSearchService
-
-  class ArticleSearchService extends StrictLogging with SearchService[api.ArticleSummaryV2DTO] {
+class ArticleSearchService(using
+  elastic4sClient: Elastic4sClient,
+  searchConverterService: SearchConverterService,
+  searchService: SearchService,
+  articleIndexService: ArticleIndexService,
+  converterService: ConverterService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends StrictLogging with SearchService[api.ArticleSummaryV2DTO] {
     private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
     override val searchIndex: String = props.ArticleSearchIndex
@@ -166,7 +169,4 @@ trait ArticleSearchService {
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }
-
-  }
-
 }

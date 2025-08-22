@@ -26,11 +26,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-trait AudioSearchService {
-  this: Elastic4sClient & AudioIndexService & SearchConverterService & SearchService & Props & ErrorHandling =>
-  lazy val audioSearchService: AudioSearchService
-
-  class AudioSearchService extends StrictLogging with SearchService[api.AudioSummaryDTO] {
+class AudioSearchService(using
+  e4sClient: Elastic4sClient,
+  audioIndexService: AudioIndexService,
+  searchConverterService: SearchConverterService,
+  searchService: SearchService[api.AudioSummaryDTO],
+  props: Props,
+  errorHandling: ErrorHandling
+) extends StrictLogging with SearchService[api.AudioSummaryDTO] {
     override val searchIndex: String = props.SearchIndex
 
     override def hitToApiModel(hitString: String, language: String): Try[api.AudioSummaryDTO] = {
@@ -159,5 +162,3 @@ trait AudioSearchService {
       }
     }
   }
-
-}

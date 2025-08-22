@@ -20,11 +20,13 @@ import no.ndla.searchapi.model.domain.DomainDumpResults
 
 import scala.util.{Failure, Success, Try}
 
-trait LearningPathApiClient {
-  this: NdlaClient & StrictLogging & SearchApiClient =>
-  lazy val learningPathApiClient: LearningPathApiClient
-
-  class LearningPathApiClient(val baseUrl: String) extends SearchApiClient[LearningPath] {
+class LearningPathApiClient(
+  val baseUrl: String
+)(using 
+  ndlaClient: NdlaClient,
+  strictLogging: StrictLogging,
+  searchApiClient: SearchApiClient
+) extends SearchApiClient[LearningPath] {
     override val searchPath     = "learningpath-api/v2/learningpaths"
     override val name           = "learningpaths"
     override val dumpDomainPath = "intern/dump/learningpath"
@@ -52,4 +54,3 @@ trait LearningPathApiClient {
       }
     }
   }
-}

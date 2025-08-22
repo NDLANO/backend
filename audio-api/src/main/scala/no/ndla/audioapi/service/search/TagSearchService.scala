@@ -23,12 +23,13 @@ import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
-trait TagSearchService {
-  this: Elastic4sClient & SearchConverterService & SearchService & TagIndexService & SearchConverterService & Props &
-    ErrorHandling =>
-  lazy val tagSearchService: TagSearchService
-
-  class TagSearchService extends StrictLogging with SearchService[String] {
+class TagSearchService(using
+  e4sClient: Elastic4sClient,
+  searchConverterService: SearchConverterService,
+  tagIndexService: TagIndexService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends StrictLogging with SearchService[String] {
     override val searchIndex: String = props.AudioTagSearchIndex
 
     override def hitToApiModel(hit: String, language: String): Try[String] = {
@@ -123,5 +124,4 @@ trait TagSearchService {
       }
     }
 
-  }
 }

@@ -23,12 +23,14 @@ import scala.util.{Failure, Success, Try}
 
 import cats.implicits.*
 
-trait SearchService {
-  this: Elastic4sClient & IndexService & SearchConverterService & Props =>
-
-  abstract class SearchService[T] extends StrictLogging {
+abstract class SearchService[T](using
+  e4sClient: Elastic4sClient,
+  indexService: IndexService,
+  searchConverterService: SearchConverterService,
+  props: Props
+) extends StrictLogging {
     val searchIndex: String
-    val indexService: IndexService
+
 
     def hitToApiModel(hit: String, language: String): Try[T]
 
@@ -141,4 +143,3 @@ trait SearchService {
       }
     }
   }
-}

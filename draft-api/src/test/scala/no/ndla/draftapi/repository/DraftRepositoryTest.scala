@@ -24,10 +24,10 @@ import java.util.UUID
 import scala.util.{Success, Try}
 
 class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
-  override lazy val dataSource: HikariDataSource = testDataSource.get
-  override lazy val migrator: DBMigrator         = new DBMigrator
-  var repository: DraftRepository                = _
-  val sampleArticle: Draft                       = TestData.sampleArticleWithByNcSa
+  override lazy val dataSource: DataSource = testDataSource.get
+  override lazy val migrator: DBMigrator   = new DBMigrator
+  var repository: DraftRepository          = _
+  val sampleArticle: Draft                 = TestData.sampleArticleWithByNcSa
 
   def emptyTestDatabase(): Unit = DB autoCommit (implicit session => {
     sql"delete from articledata;".execute()(session)
@@ -59,7 +59,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
+    dataSource.connectToDatabase()
     if (serverIsListening) {
       migrator.migrate()
     }

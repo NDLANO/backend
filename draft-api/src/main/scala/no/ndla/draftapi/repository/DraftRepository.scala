@@ -22,11 +22,11 @@ import scalikejdbc.*
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
-trait DraftRepository {
-  this: DataSource & ErrorHandling & Clock =>
-  lazy val draftRepository: DraftRepository
-
-  class DraftRepository extends StrictLogging with Repository[Draft] {
+class DraftRepository(using
+  dataSource: DataSource,
+  errorHandling: ErrorHandling,
+  clock: Clock
+) extends StrictLogging with Repository[Draft] {
     def insert(article: Draft)(implicit session: DBSession): Draft = {
       val startRevision = article.revision.getOrElse(1)
       val dataObject    = new PGobject()
@@ -411,4 +411,3 @@ trait DraftRepository {
     }
 
   }
-}

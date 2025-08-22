@@ -12,14 +12,13 @@ import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.repository.{PublishedConceptRepository, Repository}
 
-trait PublishedConceptIndexService {
-  this: IndexService & PublishedConceptRepository & SearchConverterService & Props =>
-  lazy val publishedConceptIndexService: PublishedConceptIndexService
-
-  class PublishedConceptIndexService extends IndexService {
-    override val documentType: String            = props.ConceptSearchDocument
-    override val searchIndex: String             = props.PublishedConceptSearchIndex
-    override val repository: Repository[Concept] = publishedConceptRepository
-  }
-
+class PublishedConceptIndexService(using
+  indexService: IndexService,
+  publishedConceptRepository: PublishedConceptRepository,
+  searchConverterService: SearchConverterService,
+  props: Props
+) extends IndexService {
+  override val documentType: String            = props.ConceptSearchDocument
+  override val searchIndex: String             = props.PublishedConceptSearchIndex
+  override val repository: Repository[Concept] = publishedConceptRepository
 }

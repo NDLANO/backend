@@ -19,11 +19,10 @@ import no.ndla.frontpageapi.model.domain.DBSubjectPage
 
 import scala.util.{Failure, Success, Try}
 
-trait SubjectPageRepository {
-  this: DataSource & DBSubjectPage =>
-  lazy val subjectPageRepository: SubjectPageRepository
-
-  class SubjectPageRepository {
+class SubjectPageRepository(using
+  dataSource: DataSource,
+  dBSubjectPage: DBSubjectPage
+) {
     val logger: Logger = getLogger
 
     def newSubjectPage(subj: SubjectPage, externalId: String)(implicit
@@ -133,4 +132,3 @@ trait SubjectPageRepository {
     }
 
   }
-}

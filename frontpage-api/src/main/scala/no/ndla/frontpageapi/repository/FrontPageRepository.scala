@@ -18,11 +18,10 @@ import no.ndla.database.DataSource
 
 import scala.util.Try
 
-trait FrontPageRepository {
-  this: DataSource & DBFrontPage =>
-  lazy val frontPageRepository: FrontPageRepository
-
-  class FrontPageRepository extends StrictLogging {
+class FrontPageRepository(using
+  dataSource: DataSource,
+  dBFrontPage: DBFrontPage
+) extends StrictLogging {
     import FrontPage._
 
     def newFrontPage(page: FrontPage)(implicit session: DBSession = AutoSession): Try[FrontPage] = {
@@ -51,5 +50,4 @@ trait FrontPageRepository {
         .sequence
     }.flatten
 
-  }
 }

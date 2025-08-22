@@ -28,12 +28,16 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 import scala.util.{Failure, Success, Try}
 import no.ndla.common.errors.OperationNotAllowedException
 
-trait WriteService {
-  this: DraftConceptRepository & PublishedConceptRepository & ConverterService & ContentValidator &
-    DraftConceptIndexService & PublishedConceptIndexService & StrictLogging & SearchApiClient & Clock =>
-  lazy val writeService: WriteService
-
-  class WriteService {
+class WriteService(using
+  draftConceptRepository: DraftConceptRepository,
+  publishedConceptRepository: PublishedConceptRepository,
+  converterService: ConverterService,
+  contentValidator: ContentValidator,
+  draftConceptIndexService: DraftConceptIndexService,
+  publishedConceptIndexService: PublishedConceptIndexService,
+  searchApiClient: SearchApiClient,
+  clock: Clock
+) extends StrictLogging {
 
     def newConcept(newConcept: api.NewConceptDTO, user: TokenUser): Try[api.ConceptDTO] = {
       for {
@@ -239,5 +243,4 @@ trait WriteService {
         case None => Failure(ConceptMissingIdException("Cannot attempt to unpublish concept without id"))
       }
     }
-  }
 }

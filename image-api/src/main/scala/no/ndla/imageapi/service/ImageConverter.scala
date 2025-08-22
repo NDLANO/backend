@@ -22,9 +22,9 @@ import org.imgscalr.Scalr.Mode
 import java.awt.{Color, Transparency}
 import scala.util.{Success, Try}
 
-trait ImageConverter {
-  this: Props =>
-  lazy val imageConverter: ImageConverter
+class ImageConverter(using
+  props: Props
+) extends StrictLogging {
   case class PixelPoint(x: Int, y: Int) // A point given with pixles
   case class PercentPoint(x: Double, y: Double) { // A point given with values from MinValue to MaxValue. MinValue,MinValue is top-left, MaxValue,MaxValue is bottom-right
     import PercentPoint.*
@@ -212,5 +212,4 @@ trait ImageConverter {
       (min(width, image.getWidth - start.x), min(height, image.getHeight - start.y))
     }
 
-  }
 }

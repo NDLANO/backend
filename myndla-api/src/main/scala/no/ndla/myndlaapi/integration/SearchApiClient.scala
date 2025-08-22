@@ -18,12 +18,7 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-trait SearchApiClient {
-  this: NdlaClient & Props =>
-
-  lazy val searchApiClient: SearchApiClient
-
-  class SearchApiClient extends StrictLogging {
+class SearchApiClient(using ndlaClient: NdlaClient, props: Props) extends StrictLogging {
     private val internEndpoint = s"${props.SearchApiUrl}/intern"
 
     private def reindex(id: String, documentType: String): Try[Unit] = {
@@ -50,4 +45,3 @@ trait SearchApiClient {
     def reindexLearningpath(id: String): Unit = reindexAsync(id, "learningpath")
     def reindexConcept(id: String): Unit      = reindexAsync(id, "concept")
   }
-}

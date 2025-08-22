@@ -13,11 +13,11 @@ import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.ImageStorageService
 import no.ndla.network.tapir.TapirHealthController
 
-trait HealthController {
-  this: ImageStorageService & ImageRepository & Props & TapirHealthController =>
-  lazy val healthController: HealthController
-
-  class HealthController extends TapirHealthController {
+class HealthController(using
+  imageStorageService: ImageStorageService,
+  imageRepository: ImageRepository,
+  props: Props
+) extends TapirHealthController {
 
     override def checkReadiness(): Either[String, String] = {
       imageRepository
@@ -27,7 +27,7 @@ trait HealthController {
             .flatMap(imgMeta => {
               imgMeta.headOption
                 .map(img => {
-                  if (imageStorage.objectExists(img.fileName)) {
+                  if (imageStorageService.objectExists(img.fileName)) {
                     Right("Healthy")
                   } else {
                     Left("Internal server error")
@@ -37,6 +37,4 @@ trait HealthController {
         })
         .getOrElse(Right("Healthy"))
     }
-  }
-
 }

@@ -21,11 +21,12 @@ import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageReposi
 
 import scala.util.{Failure, Success, Try}
 
-trait ReadService {
-  this: SubjectPageRepository & FrontPageRepository & FilmFrontPageRepository & ConverterService =>
-  lazy val readService: ReadService
-
-  class ReadService {
+class ReadService(using
+  subjectPageRepository: SubjectPageRepository,
+  frontPageRepository: FrontPageRepository,
+  filmFrontPageRepository: FilmFrontPageRepository,
+  converterService: ConverterService
+) {
 
     private def validateSubjectPageIdsOrError(subjectIds: List[Long]): Try[List[Long]] = {
       if (subjectIds.isEmpty) Failure(common.ValidationException("ids", "Query parameter 'ids' is missing"))
@@ -104,5 +105,4 @@ trait ReadService {
     def filmFrontPage(language: Option[String]): Option[api.FilmFrontPageDTO] = {
       filmFrontPageRepository.get.map(page => ConverterService.toApiFilmFrontPage(page, language))
     }
-  }
 }

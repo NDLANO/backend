@@ -22,11 +22,11 @@ import no.ndla.database.DataSource
 
 import scala.util.{Failure, Success, Try}
 
-trait SeriesRepository {
-  this: DataSource & Props & ErrorHandling =>
-  lazy val seriesRepository: SeriesRepository
-
-  class SeriesRepository extends StrictLogging with Repository[Series] {
+class SeriesRepository(using
+  dataSource: DataSource,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends StrictLogging with Repository[Series] {
 
     /** Method to fetch single series from database
       * @param id
@@ -174,4 +174,3 @@ trait SeriesRepository {
     }
 
   }
-}

@@ -12,7 +12,7 @@ import io.circe.generic.semiauto.deriveDecoder
 import io.circe.{Decoder, Json}
 import io.circe.parser.*
 import sttp.client3.{HttpClientSyncBackend, UriContext, basicRequest}
-import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.errors.{
   TokenDecodingException,
   TokenRetrievalException,
@@ -28,11 +28,7 @@ object TokenResponse {
   implicit def decoder: Decoder[TokenResponse] = deriveDecoder[TokenResponse]
 }
 
-trait NdlaBrightcoveClient {
-  this: HasBaseProps =>
-  lazy val brightcoveClient: NdlaBrightcoveClient
-
-  class NdlaBrightcoveClient {
+class NdlaBrightcoveClient(using props: BaseProps) {
     private val backend = HttpClientSyncBackend()
 
     def getToken(clientID: String, clientSecret: String): Try[String] = {
@@ -77,5 +73,4 @@ trait NdlaBrightcoveClient {
         case Failure(exception) => Failure(new VideoSourceRetrievalException(exception.getMessage))
       }
     }
-  }
 }

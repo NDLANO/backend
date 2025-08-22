@@ -24,8 +24,11 @@ import no.ndla.network.tapir.{
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
-trait ErrorHandling extends TapirErrorHandling with StrictLogging {
-  this: Props & Clock & DataSource =>
+class ErrorHandling(using
+  props: Props,
+  clock: Clock,
+  dataSource: DataSource
+) extends TapirErrorHandling with StrictLogging {
 
   import ErrorHelpers.*
 
@@ -44,7 +47,7 @@ trait ErrorHandling extends TapirErrorHandling with StrictLogging {
     case rw: ArticleErrorHelpers.ResultWindowTooLargeException =>
       ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422)
     case _: PSQLException =>
-      DataSource.connectToDatabase()
+      dataSource.connectToDatabase()
       ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)
     case NdlaSearchException(_, Some(rf), _, _)
         if rf.error.rootCause

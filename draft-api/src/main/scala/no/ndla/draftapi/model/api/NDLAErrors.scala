@@ -23,8 +23,11 @@ import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHandling}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
-trait ErrorHandling extends TapirErrorHandling with StrictLogging {
-  this: Props & Clock & DataSource =>
+class ErrorHandling(using
+  props: Props,
+  clock: Clock,
+  dataSource: DataSource
+) extends TapirErrorHandling with StrictLogging {
 
   import ErrorHelpers.*
 
@@ -48,7 +51,7 @@ trait ErrorHandling extends TapirErrorHandling with StrictLogging {
       )
     case psql: PSQLException =>
       logger.error(s"Got postgres exception: '${psql.getMessage}', attempting db reconnect", psql)
-      DataSource.connectToDatabase()
+      dataSource.connectToDatabase()
       ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)
     case h: HttpRequestException =>
       h.httpResponse match {

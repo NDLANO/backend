@@ -16,11 +16,11 @@ import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Try}
 
-trait ReadService {
-  this: DraftConceptRepository & PublishedConceptRepository & ConverterService =>
-  lazy val readService: ReadService
-
-  class ReadService {
+class ReadService(using
+  draftConceptRepository: DraftConceptRepository,
+  publishedConceptRepository: PublishedConceptRepository,
+  converterService: ConverterService
+) {
 
     def conceptWithId(id: Long, language: String, fallback: Boolean, user: Option[TokenUser]): Try[api.ConceptDTO] =
       draftConceptRepository.withId(id).map(converterService.addUrlOnVisualElement) match {
@@ -83,5 +83,4 @@ trait ReadService {
 
       api.ConceptDomainDump(draftConceptRepository.conceptCount, pageNo, pageSize, results)
     }
-  }
 }

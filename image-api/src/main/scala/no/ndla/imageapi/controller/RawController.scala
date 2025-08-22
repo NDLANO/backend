@@ -23,12 +23,14 @@ import sttp.tapir.server.ServerEndpoint
 import java.io.InputStream
 import scala.util.{Failure, Success, Try}
 
-trait RawController {
-  this: ImageStorageService & ImageConverter & ImageRepository & ErrorHandling & Props & ReadService &
-    TapirController =>
-  lazy val rawController: RawController
-
-  class RawController extends TapirController {
+class RawController(using
+  imageStorageService: ImageStorageService,
+  imageConverter: ImageConverter,
+  imageRepository: ImageRepository,
+  errorHandling: ErrorHandling,
+  props: Props,
+  readService: ReadService
+) extends TapirController {
     override val serviceName: String         = "raw"
     override val prefix: EndpointInput[Unit] = "image-api" / serviceName
     override val enableSwagger: Boolean      = true

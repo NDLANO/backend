@@ -75,11 +75,14 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.domain.getNextRevision
 
-trait SearchConverterService {
-  this: DraftApiClient & TaxonomyApiClient & ConverterService & Props & MyNDLAApiClient & SearchLanguage =>
-  lazy val searchConverterService: SearchConverterService
-
-  class SearchConverterService extends StrictLogging {
+class SearchConverterService(using
+  draftApiClient: DraftApiClient,
+  taxonomyApiClient: TaxonomyApiClient,
+  converterService: ConverterService,
+  props: Props,
+  myNDLAApiClient: MyNDLAApiClient,
+  searchLanguage: SearchLanguage
+) extends StrictLogging {
 
     private def parseHtml(html: String): Element = {
       val document = Jsoup.parseBodyFragment(html)
@@ -1227,5 +1230,4 @@ trait SearchConverterService {
         )
       }
     }
-  }
 }

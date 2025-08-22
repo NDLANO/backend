@@ -30,10 +30,7 @@ import no.ndla.common.model.domain.frontpage.{
 import no.ndla.frontpageapi.Props
 import no.ndla.language.Language.{findByLanguageOrBestEffort, mergeLanguageFields}
 
-trait ConverterService {
-  this: Props =>
-
-  object ConverterService {
+class ConverterService(using props: Props) {
     private def toApiMenu(menu: domain.Menu): model.api.MenuDTO =
       model.api.MenuDTO(menu.articleId, menu.menu.map(toApiMenu), Some(menu.hideLevel))
 
@@ -236,4 +233,3 @@ trait ConverterService {
     private def createImageUrl(id: Long): String   = createImageUrl(id.toString)
     private def createImageUrl(id: String): String = s"${props.RawImageApiUrl}/id/$id"
   }
-}

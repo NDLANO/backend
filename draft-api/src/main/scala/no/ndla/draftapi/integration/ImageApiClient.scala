@@ -18,11 +18,11 @@ import sttp.client3.quick.*
 
 import scala.util.Try
 
-trait ImageApiClient {
-  this: NdlaClient & ConverterService & Props =>
-  lazy val imageApiClient: ImageApiClient
-
-  class ImageApiClient {
+class ImageApiClient(using
+  ndlaClient: NdlaClient,
+  converterService: ConverterService,
+  props: Props
+) {
     private val Endpoint = s"http://${props.ImageApiHost}/image-api/v3/images"
 
     def getImagesWithIds(ids: Seq[String]): Try[Seq[ImageWithCopyright]] = {
@@ -36,7 +36,6 @@ trait ImageApiClient {
     }
 
   }
-}
 case class ImageWithCopyright(id: String, copyright: CopyrightDTO)
 
 object ImageWithCopyright {

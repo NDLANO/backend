@@ -35,12 +35,17 @@ import scala.concurrent.*
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
-trait InternController {
-  this: ReadService & WriteService & ConverterService & ArticleRepository & IndexService & ArticleIndexService &
-    ContentValidator & Props & DBArticle & TapirController =>
-  lazy val internController: InternController
-
-  class InternController extends TapirController with StrictLogging {
+class InternController(using
+  readService: ReadService,
+  writeService: WriteService,
+  converterService: ConverterService,
+  articleRepository: ArticleRepository,
+  indexService: IndexService,
+  articleIndexService: ArticleIndexService,
+  contentValidator: ContentValidator,
+  props: Props,
+  dBArticle: DBArticle
+) extends TapirController with StrictLogging {
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
     private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
@@ -243,5 +248,4 @@ trait InternController {
       partialPublishArticle,
       partialPublishMultiple
     )
-  }
 }

@@ -8,7 +8,7 @@
 
 package no.ndla.network.clients
 
-import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.model.api.{MyNDLABundleDTO, SingleResourceStatsDTO}
 import no.ndla.common.model.api.config.ConfigMetaRestrictedDTO
 import no.ndla.common.model.domain.ResourceType
@@ -20,12 +20,7 @@ import sttp.client3.quick.*
 
 import scala.util.{Failure, Success, Try}
 
-trait MyNDLAApiClient {
-  this: HasBaseProps & NdlaClient =>
-
-  lazy val myndlaApiClient: MyNDLAApiClient
-
-  class MyNDLAApiClient {
+class MyNDLAApiClient(using props: BaseProps, ndlaClient: NdlaClient) {
     private val statsEndpoint = s"http://${props.MyNDLAApiHost}/myndla-api/v1/stats"
     private val userEndpoint  = uri"http://${props.MyNDLAApiHost}/myndla-api/v1/users"
 
@@ -61,5 +56,4 @@ trait MyNDLAApiClient {
     private def doRequest(httpRequest: NdlaRequest): Try[ConfigMetaRestrictedDTO] = {
       ndlaClient.fetchWithForwardedAuth[ConfigMetaRestrictedDTO](httpRequest, None)
     }
-  }
 }

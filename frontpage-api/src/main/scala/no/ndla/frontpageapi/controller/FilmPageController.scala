@@ -21,11 +21,11 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
-trait FilmPageController {
-  this: ReadService & WriteService & ErrorHandling & TapirController =>
-  lazy val filmPageController: FilmPageController
-
-  class FilmPageController extends TapirController {
+class FilmPageController(using
+  readService: ReadService,
+  writeService: WriteService,
+  errorHandling: ErrorHandling
+) extends TapirController {
     override val serviceName: String         = "filmfrontpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
     private val pathLanguage = path[String]("language").description("The ISO 639-1 language code describing language.")
@@ -63,5 +63,4 @@ trait FilmPageController {
           writeService.deleteFilmFrontPageLanguage(language)
         }
     )
-  }
 }

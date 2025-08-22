@@ -23,12 +23,15 @@ import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
 
-trait ReadService {
-  this: ConverterService & ValidationService & ImageRepository & ImageIndexService & ImageStorageService &
-    TagSearchService & SearchConverterService =>
-  lazy val readService: ReadService
-
-  class ReadService extends StrictLogging {
+class ReadService(using
+  converterService: ConverterService,
+  validationService: ValidationService,
+  imageRepository: ImageRepository,
+  imageIndexService: ImageIndexService,
+  imageStorageService: ImageStorageService,
+  tagSearchService: TagSearchService,
+  searchConverterService: SearchConverterService
+) extends StrictLogging {
 
     def withIdV3(
         imageId: Long,
@@ -156,6 +159,4 @@ trait ReadService {
           .map(_.toStringRaw.dropWhile(_ == '/'))
       )
     }
-  }
-
 }

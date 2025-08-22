@@ -15,8 +15,11 @@ import no.ndla.network.NdlaClient
 import org.jsoup.nodes.Element
 import scalikejdbc.{SQLSyntax, scalikejdbcSQLInterpolationImplicitDef}
 
-trait V66__SetHideBylineForImagesNotCopyrighted {
-  this: ImageApiClient & NdlaClient & Props =>
+class V66__SetHideBylineForImagesNotCopyrighted(using
+  imageApiClient: ImageApiClient,
+  ndlaClient: NdlaClient,
+  props: Props
+) {
 
   class V66__SetHideBylineForImagesNotCopyrighted extends HtmlMigration {
     override val tableName: String            = "articledata a"

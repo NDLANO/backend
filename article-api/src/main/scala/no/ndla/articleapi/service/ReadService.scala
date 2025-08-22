@@ -37,12 +37,17 @@ import scala.jdk.CollectionConverters.*
 import scala.math.max
 import scala.util.{Failure, Success, Try}
 
-trait ReadService {
-  this: ArticleRepository & FeideApiClient & ConverterService & ArticleSearchService & SearchConverterService &
-    MemoizeHelpers & Props & ErrorHandling & FrontpageApiClient =>
-  lazy val readService: ReadService
-
-  class ReadService extends StrictLogging {
+class ReadService(using
+  articleRepository: ArticleRepository,
+  feideApiClient: FeideApiClient,
+  converterService: ConverterService,
+  articleSearchService: ArticleSearchService,
+  searchConverterService: SearchConverterService,
+  memoizeHelpers: MemoizeHelpers,
+  props: Props,
+  errorHandling: ErrorHandling,
+  frontpageApiClient: FrontpageApiClient
+) extends StrictLogging {
     def getInternalIdByExternalId(externalId: String): Option[api.ArticleIdV2DTO] =
       articleRepository.getIdFromExternalId(externalId).map(api.ArticleIdV2DTO.apply)
 
@@ -337,6 +342,4 @@ trait ReadService {
         rssArticles <- getArticlesForRSSFeed(menu)
       } yield rssArticles.map(arts => toRSSXML(article.value, arts))
     }
-  }
-
 }

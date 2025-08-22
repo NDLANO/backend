@@ -47,11 +47,7 @@ import org.jsoup.Jsoup
 
 import scala.util.{Failure, Success, Try}
 
-trait ConverterService {
-  this: Clock & ArticleRepository & Props =>
-  lazy val converterService: ConverterService
-
-  class ConverterService extends StrictLogging {
+class ConverterService(using clock: Clock, articleRepository: ArticleRepository, props: Props) extends StrictLogging {
 
     /** Attempts to extract language that hit from highlights in elasticsearch response.
       * @param result
@@ -391,6 +387,4 @@ trait ConverterService {
     ): api.TagsSearchResultDTO = {
       api.TagsSearchResultDTO(tagsCount, offset, pageSize, language, tags)
     }
-
-  }
 }

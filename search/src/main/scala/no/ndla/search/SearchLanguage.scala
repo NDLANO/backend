@@ -12,12 +12,9 @@ import com.sksamuel.elastic4s.analysis.{CustomAnalyzer, LanguageAnalyzers, Stemm
 import no.ndla.language.Language.*
 import no.ndla.language.model.LanguageTag
 import com.sksamuel.elastic4s.analysis.TokenFilter
-import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.configuration.BaseProps
 
-trait SearchLanguage {
-  this: HasBaseProps =>
-
-  object SearchLanguage {
+class SearchLanguage(using props: BaseProps) {
 
     val NynorskTokenFilters: List[TokenFilter] = List(
       StopTokenFilter("norwegian_stop", language = Some("norwegian")),
@@ -84,6 +81,5 @@ trait SearchLanguage {
       props.SupportedLanguages.contains(analyzer.languageTag.toString)
     }
   }
-}
 
 case class LanguageAnalyzer(languageTag: LanguageTag, analyzer: String)

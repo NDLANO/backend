@@ -28,9 +28,7 @@ case class SearchSettings(
     aggregatePaths: List[String]
 )
 
-trait SearchSettingsHelper {
-  this: Props =>
-  object SearchSettings {
+class SearchSettingsHelper(using props: Props) {
     def empty: SearchSettings = {
       new SearchSettings(
         withIdIn = List.empty,
@@ -49,4 +47,3 @@ trait SearchSettingsHelper {
       )
     }
   }
-}

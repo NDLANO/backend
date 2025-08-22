@@ -26,12 +26,15 @@ import java.util.concurrent.Executors
 import scala.concurrent.*
 import scala.util.{Failure, Success, Try}
 
-trait DraftConceptSearchService {
-  this: Elastic4sClient & SearchService & DraftConceptIndexService & ConverterService & SearchConverterService & Props &
-    ErrorHandling & DraftSearchSettingsHelper =>
-  lazy val draftConceptSearchService: DraftConceptSearchService
-
-  class DraftConceptSearchService extends StrictLogging with SearchService[api.ConceptSummaryDTO] {
+class DraftConceptSearchService(using
+  e4sClient: Elastic4sClient,
+  draftConceptIndexService: DraftConceptIndexService,
+  converterService: ConverterService,
+  searchConverterService: SearchConverterService,
+  props: Props,
+  errorHandling: ErrorHandling,
+  draftSearchSettingsHelper: DraftSearchSettingsHelper
+) extends StrictLogging with SearchService[api.ConceptSummaryDTO] {
     override val searchIndex: String = props.DraftConceptSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummaryDTO =
@@ -171,5 +174,4 @@ trait DraftConceptSearchService {
       }
     }
 
-  }
 }

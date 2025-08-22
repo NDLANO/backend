@@ -8,7 +8,6 @@
 
 package no.ndla.scalatestsuite
 
-import no.ndla.common.configuration.HasBaseProps
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.utility.DockerImageName
@@ -18,8 +17,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 import sys.env
 
-trait RedisIntegrationSuite extends UnitTestSuite with ContainerSuite {
-  this: HasBaseProps =>
+abstract class RedisIntegrationSuite extends UnitTestSuite with ContainerSuite {
 
   val EnableRedisContainer: Boolean = true
 

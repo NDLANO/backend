@@ -16,11 +16,13 @@ import no.ndla.common.errors.{NotFoundException, ValidationException}
 
 import scala.util.{Failure, Success, Try}
 
-trait ReadService {
-  this: AudioRepository & SeriesRepository & ConverterService & TagSearchService & SearchConverterService =>
-  lazy val readService: ReadService
-
-  class ReadService {
+class ReadService(using
+  audioRepository: AudioRepository,
+  seriesRepository: SeriesRepository,
+  converterService: ConverterService,
+  tagSearchService: TagSearchService,
+  searchConverterService: SearchConverterService
+) {
 
     def seriesWithId(seriesId: Long, language: Option[String]): Try[api.SeriesDTO] = {
       seriesRepository.withId(seriesId) match {
@@ -70,5 +72,4 @@ trait ReadService {
 
       api.AudioMetaDomainDumpDTO(audioRepository.audioCount, pageNo, pageSize, results)
     }
-  }
 }

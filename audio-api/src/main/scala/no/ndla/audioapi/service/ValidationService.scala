@@ -25,11 +25,7 @@ import java.net.URI
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
 
-trait ValidationService {
-  this: ConverterService & Props =>
-  lazy val validationService: ValidationService
-
-  class ValidationService {
+class ValidationService(using converterService: ConverterService, props: Props) {
 
     def validatePodcastEpisodes(
         episodes: Seq[(Long, Option[AudioMetaInformation])],
@@ -368,4 +364,3 @@ trait ValidationService {
     }
 
   }
-}

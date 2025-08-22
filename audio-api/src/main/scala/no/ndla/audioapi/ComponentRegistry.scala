@@ -24,83 +24,47 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
-class ComponentRegistry(properties: AudioApiProperties)
-    extends BaseComponentRegistry[AudioApiProperties]
-    with TapirApplication
-    with DataSource
-    with AudioRepository
-    with SeriesRepository
-    with NdlaClient
-    with ReadService
-    with WriteService
-    with ValidationService
-    with ConverterService
-    with InternController
-    with HealthController
-    with AudioController
-    with SeriesController
-    with TranscriptionController
-    with SearchService
-    with AudioSearchService
-    with SeriesSearchService
-    with TagSearchService
-    with Elastic4sClient
-    with IndexService
-    with BaseIndexService
-    with SearchLanguage
-    with AudioIndexService
-    with SeriesIndexService
-    with TagIndexService
-    with SearchConverterService
-    with Clock
-    with Props
-    with DBMigrator
-    with ErrorHandling
-    with SwaggerDocControllerConfig
-    with NdlaS3Client
-    with TranscriptionService
-    with NdlaAWSTranscribeClient
-    with NdlaBrightcoveClient {
-  override lazy val props: AudioApiProperties = properties
-  override lazy val migrator: DBMigrator      = DBMigrator(
+class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication[AudioApiProperties] {
+  given props: AudioApiProperties = properties
+  given migrator: DBMigrator      = DBMigrator(
     new V5__AddAgreementToAudio,
     new V6__TranslateUntranslatedAuthors
   )
-  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  given dataSource: HikariDataSource = DataSource.getDataSource
 
-  override lazy val s3Client           = new NdlaS3Client(props.StorageName, props.StorageRegion)
-  override lazy val s3TranscribeClient = new NdlaS3Client(props.TranscribeStorageName, props.TranscribeStorageRegion)
-  override lazy val brightcoveClient   = new NdlaBrightcoveClient()
-  override lazy val transcribeClient   = new NdlaAWSTranscribeClient(props.TranscribeStorageRegion)
+  given s3Client           = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  given s3TranscribeClient = new NdlaS3Client(props.TranscribeStorageName, props.TranscribeStorageRegion)
+  given brightcoveClient   = new NdlaBrightcoveClient()
+  given transcribeClient   = new NdlaAWSTranscribeClient(props.TranscribeStorageRegion)
 
-  override lazy val audioRepository  = new AudioRepository
-  override lazy val seriesRepository = new SeriesRepository
+  given audioRepository  = new AudioRepository
+  given seriesRepository = new SeriesRepository
 
-  override lazy val ndlaClient                       = new NdlaClient
-  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  given ndlaClient                       = new NdlaClient
+  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
 
-  override lazy val readService          = new ReadService
-  override lazy val writeService         = new WriteService
-  override lazy val validationService    = new ValidationService
-  override lazy val converterService     = new ConverterService
-  override lazy val transcriptionService = new TranscriptionService
+  given readService          = new ReadService
+  given writeService         = new WriteService
+  given validationService    = new ValidationService
+  given converterService     = new ConverterService
+  given transcriptionService = new TranscriptionService
 
-  override lazy val internController        = new InternController
-  override lazy val audioApiController      = new AudioController
-  override lazy val seriesController        = new SeriesController
-  override lazy val healthController        = new HealthController
-  override lazy val transcriptionController = new TranscriptionController
+  given internController        = new InternController
+  given audioApiController      = new AudioController
+  given seriesController        = new SeriesController
+  given healthController        = new HealthController
+  given transcriptionController = new TranscriptionController
 
   var e4sClient: NdlaE4sClient             = Elastic4sClientFactory.getClient(props.SearchServer)
-  override lazy val searchConverterService = new SearchConverterService
-  override lazy val audioIndexService      = new AudioIndexService
-  override lazy val audioSearchService     = new AudioSearchService
-  override lazy val seriesIndexService     = new SeriesIndexService
-  override lazy val seriesSearchService    = new SeriesSearchService
-  override lazy val tagIndexService        = new TagIndexService
-  override lazy val tagSearchService       = new TagSearchService
+  given searchConverterService = new SearchConverterService
+  given audioIndexService      = new AudioIndexService
+  given audioSearchService     = new AudioSearchService
+  given seriesIndexService     = new SeriesIndexService
+  given seriesSearchService    = new SeriesSearchService
+  given tagIndexService        = new TagIndexService
+  given tagSearchService       = new TagSearchService
 
-  override lazy val clock = new SystemClock
+  given clock = new SystemClock
 
   val swagger = new SwaggerController(
     List(

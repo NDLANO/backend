@@ -22,7 +22,7 @@ import java.net.Socket
 import scala.util.{Success, Try}
 
 class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override lazy val dataSource: HikariDataSource = testDataSource.get
+  override lazy val dataSource: DataSource = testDataSource.get
   override lazy val migrator                     = new DBMigrator
   var repository: ArticleRepository              = _
 
@@ -39,7 +39,7 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
+    dataSource.connectToDatabase()
     if (serverIsListening) {
       migrator.migrate()
     }

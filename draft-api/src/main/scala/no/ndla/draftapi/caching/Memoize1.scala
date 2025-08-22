@@ -49,8 +49,7 @@ private[caching] class Memoize[R](
   }
 
 }
-trait MemoizeHelpers {
-  this: Props =>
+class MemoizeHelpers(using props: Props) {
   object Memoize {
 
     def apply[R](f: () => R, shouldCacheResult: R => Boolean = (_: R) => true) =

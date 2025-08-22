@@ -16,11 +16,8 @@ import java.util.UUID
 import no.ndla.common.model.domain.RevisionMeta
 import no.ndla.common.model.domain.RevisionStatus
 
-trait CommonConverter {
-  this: Clock & UUIDUtil =>
-
-  object CommonConverter {
-    def newCommentApiToDomain(comment: NewCommentDTO): Comment = {
+class CommonConverter(using clock: Clock, uuidUtil: UUIDUtil) {
+  def newCommentApiToDomain(comment: NewCommentDTO): Comment = {
       Comment(
         id = uuidUtil.randomUUID(),
         created = clock.now(),
@@ -29,8 +26,8 @@ trait CommonConverter {
         isOpen = comment.isOpen.getOrElse(true),
         solved = false
       )
-    }
-    def commentDomainToApi(comment: Comment): CommentDTO = {
+  }
+  def commentDomainToApi(comment: Comment): CommentDTO = {
       CommentDTO(
         id = comment.id.toString,
         content = comment.content,
@@ -39,8 +36,8 @@ trait CommonConverter {
         isOpen = comment.isOpen,
         solved = comment.solved
       )
-    }
-    def mergeUpdatedCommentsWithExisting(
+  }
+  def mergeUpdatedCommentsWithExisting(
         updatedComments: List[UpdatedCommentDTO],
         existingComments: Seq[Comment]
     ): Seq[Comment] = {
@@ -66,24 +63,23 @@ trait CommonConverter {
             )
         }
       })
-    }
+  }
 
-    def revisionMetaApiToDomain(revisionMeta: RevisionMetaDTO): RevisionMeta = {
+  def revisionMetaApiToDomain(revisionMeta: RevisionMetaDTO): RevisionMeta = {
       RevisionMeta(
         id = revisionMeta.id.map(UUID.fromString).getOrElse(uuidUtil.randomUUID()),
         revisionDate = revisionMeta.revisionDate,
         note = revisionMeta.note,
         status = RevisionStatus.fromStringDefault(revisionMeta.status)
       )
-    }
+  }
 
-    def revisionMetaDomainToApi(revisionMeta: RevisionMeta): RevisionMetaDTO = {
+  def revisionMetaDomainToApi(revisionMeta: RevisionMeta): RevisionMetaDTO = {
       RevisionMetaDTO(
         id = Some(revisionMeta.id.toString),
         revisionDate = revisionMeta.revisionDate,
         note = revisionMeta.note,
         status = revisionMeta.status.entryName
       )
-    }
   }
 }

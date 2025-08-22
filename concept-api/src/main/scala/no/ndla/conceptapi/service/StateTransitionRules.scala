@@ -24,9 +24,16 @@ import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
-trait StateTransitionRules {
-  this: WriteService & DraftConceptRepository & PublishedConceptRepository & WriteService & ConverterService &
-    ContentValidator & DraftConceptIndexService & PublishedConceptRepository & ErrorHandling & Clock =>
+class StateTransitionRules(using
+  writeService: WriteService,
+  draftConceptRepository: DraftConceptRepository,
+  publishedConceptRepository: PublishedConceptRepository,
+  converterService: ConverterService,
+  contentValidator: ContentValidator,
+  draftConceptIndexService: DraftConceptIndexService,
+  errorHandling: ErrorHandling,
+  clock: Clock
+) {
 
   object StateTransitionRules {
 

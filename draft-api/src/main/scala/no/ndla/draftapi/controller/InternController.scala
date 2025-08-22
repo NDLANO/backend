@@ -36,12 +36,18 @@ import scala.concurrent.*
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
-trait InternController {
-  this: ReadService & WriteService & ConverterService & DraftRepository & IndexService & ArticleIndexService &
-    TagIndexService & GrepCodesIndexService & ArticleApiClient & TapirController & Props =>
-  lazy val internController: InternController
-
-  class InternController extends TapirController with StrictLogging {
+class InternController(using
+  readService: ReadService,
+  writeService: WriteService,
+  converterService: ConverterService,
+  draftRepository: DraftRepository,
+  indexService: IndexService,
+  articleIndexService: ArticleIndexService,
+  tagIndexService: TagIndexService,
+  grepCodesIndexService: GrepCodesIndexService,
+  articleApiClient: ArticleApiClient,
+  props: Props
+) extends TapirController with StrictLogging {
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
     private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
@@ -249,5 +255,4 @@ trait InternController {
       .serverLogicPure { article =>
         writeService.insertDump(article)
       }
-  }
 }

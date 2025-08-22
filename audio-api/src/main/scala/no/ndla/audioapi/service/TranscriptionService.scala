@@ -22,15 +22,16 @@ import ws.schild.jave.encode.{AudioAttributes, EncodingAttributes}
 import java.io.File
 import scala.util.{Failure, Success, Try}
 
-trait TranscriptionService {
-  this: NdlaS3Client & Props & NdlaBrightcoveClient & NdlaAWSTranscribeClient =>
-  lazy val transcriptionService: TranscriptionService
-  lazy val s3TranscribeClient: NdlaS3Client
+sealed trait TranscriptionResult
+case class TranscriptionComplete(transcription: String)             extends TranscriptionResult
+case class TranscriptionNonComplete(status: TranscriptionJobStatus) extends TranscriptionResult
 
-  sealed trait TranscriptionResult
-  case class TranscriptionComplete(transcription: String)             extends TranscriptionResult
-  case class TranscriptionNonComplete(status: TranscriptionJobStatus) extends TranscriptionResult
-  class TranscriptionService                                          extends StrictLogging {
+class TranscriptionService(using
+  s3TranscribeClient: NdlaS3Client,
+  props: Props,
+  brightcoveClient: NdlaBrightcoveClient,
+  transcribeClient: NdlaAWSTranscribeClient
+) extends StrictLogging {
 
     def transcribeVideo(videoId: String, language: String, maxSpeakers: Int): Try[Unit] = {
       getVideoTranscription(videoId, language) match {
@@ -259,4 +260,3 @@ trait TranscriptionService {
 
     }
   }
-}

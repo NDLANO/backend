@@ -20,9 +20,9 @@ import scalikejdbc.*
 import scala.util.{Failure, Success, Try}
 
 class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
-  override lazy val dataSource: HikariDataSource = testDataSource.get
-  override lazy val migrator: DBMigrator         = new DBMigrator
-  var repository: UserDataRepository             = _
+  override given dataSource: DataSource = testDataSource.get
+  override given migrator: DBMigrator   = new DBMigrator
+  var repository: UserDataRepository       = _
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
@@ -57,7 +57,7 @@ class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironme
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
+    dataSource.connectToDatabase()
     if (serverIsListening) {
       migrator.migrate()
     }

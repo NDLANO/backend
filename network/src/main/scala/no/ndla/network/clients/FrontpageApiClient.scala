@@ -9,18 +9,14 @@
 package no.ndla.network.clients
 
 import io.circe.Decoder
-import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.network.NdlaClient
 import sttp.client3.quick.*
 import scala.concurrent.duration.*
 import scala.util.Try
 
-trait FrontpageApiClient {
-  this: HasBaseProps & NdlaClient =>
-  lazy val frontpageApiClient: FrontpageApiClient
-
-  class FrontpageApiClient {
+class FrontpageApiClient(using props: BaseProps, ndlaClient: NdlaClient) {
     val timeout: FiniteDuration = 15.seconds
 
     def getSubjectPage(id: Long): Try[SubjectPage] = {
@@ -34,5 +30,4 @@ trait FrontpageApiClient {
       )
     }
 
-  }
 }

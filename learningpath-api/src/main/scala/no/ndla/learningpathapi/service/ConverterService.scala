@@ -37,7 +37,7 @@ import no.ndla.learningpathapi.model.api.{LearningPathStatusDTO as _, *}
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearningPathMethods
 import no.ndla.learningpathapi.model.{api, domain}
-import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
+import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.validation.{LanguageValidator, LearningPathValidator}
 import no.ndla.mapping.License
 import no.ndla.mapping.License.getLicense
@@ -45,13 +45,15 @@ import no.ndla.network.model.{CombinedUser, CombinedUserRequired, HttpRequestExc
 
 import scala.util.{Failure, Success, Try}
 
-trait ConverterService {
-  this: LearningPathRepositoryComponent & LanguageValidator & LearningPathValidator & OembedProxyClient & Clock &
-    CommonConverter & Props =>
-
-  lazy val converterService: ConverterService
-
-  class ConverterService {
+class ConverterService(using
+  learningPathRepository: LearningPathRepository,
+  languageValidator: LanguageValidator,
+  learningPathValidator: LearningPathValidator,
+  oembedProxyClient: OembedProxyClient,
+  clock: Clock,
+  commonConverter: CommonConverter,
+  props: Props
+) {
     def asEmbedUrlV2(embedUrl: api.EmbedUrlV2DTO, language: String): EmbedUrl = {
       learningpath.EmbedUrl(embedUrl.url, language, EmbedType.valueOfOrError(embedUrl.embedType))
     }
@@ -173,9 +175,9 @@ trait ConverterService {
             madeAvailable = lp.madeAvailable,
             isMyNDLAOwner = lp.isMyNDLAOwner,
             responsible = lp.responsible.map(asApiResponsible),
-            comments = lp.comments.map(CommonConverter.commentDomainToApi),
+            comments = lp.comments.map(commonConverter.commentDomainToApi),
             priority = lp.priority,
-            revisions = lp.revisionMeta.map(CommonConverter.revisionMetaDomainToApi)
+            revisions = lp.revisionMeta.map(commonConverter.revisionMetaDomainToApi)
           )
         )
       } else
@@ -252,13 +254,13 @@ trait ConverterService {
       }
 
       val updatedComments = updated.comments
-        .map(comments => CommonConverter.mergeUpdatedCommentsWithExisting(comments, existing.comments))
+        .map(comments => commonConverter.mergeUpdatedCommentsWithExisting(comments, existing.comments))
         .getOrElse(existing.comments)
 
       val message = existing.message.filterNot(_ => updated.deleteMessage.getOrElse(false))
 
       val updatedRevision =
-        updated.revisionMeta.map(_.map(CommonConverter.revisionMetaApiToDomain)).getOrElse(existing.revisionMeta)
+        updated.revisionMeta.map(_.map(commonConverter.revisionMetaApiToDomain)).getOrElse(existing.revisionMeta)
 
       LearningPath(
         id = existing.id,
@@ -549,7 +551,7 @@ trait ConverterService {
       val revisionMeta = newLearningPath.revisionMeta match {
         case Some(revs) if revs.nonEmpty =>
           newLearningPath.revisionMeta
-            .map(_.map(CommonConverter.revisionMetaApiToDomain))
+            .map(_.map(commonConverter.revisionMetaApiToDomain))
             .getOrElse(RevisionMeta.default)
         case _ => RevisionMeta.default
       }
@@ -578,7 +580,7 @@ trait ConverterService {
           responsible = newLearningPath.responsibleId
             .map(responsibleId => Responsible(responsibleId = responsibleId, lastUpdated = clock.now())),
           comments = newLearningPath.comments
-            .map(comments => comments.map(CommonConverter.newCommentApiToDomain))
+            .map(comments => comments.map(commonConverter.newCommentApiToDomain))
             .getOrElse(Seq.empty),
           priority = priority,
           revisionMeta = revisionMeta

@@ -23,11 +23,13 @@ import no.ndla.common.model.domain.concept.Concept
 
 import scala.util.Try
 
-trait DraftConceptIndexService {
-  this: SearchConverterService & IndexService & DraftConceptApiClient & Props & SearchApiClient =>
-  lazy val draftConceptIndexService: DraftConceptIndexService
-
-  class DraftConceptIndexService extends IndexService[Concept] with StrictLogging {
+class DraftConceptIndexService(using
+  searchConverterService: SearchConverterService,
+  indexService: IndexService,
+  draftConceptApiClient: DraftConceptApiClient,
+  props: Props,
+  searchApiClient: SearchApiClient
+) extends IndexService[Concept] with StrictLogging {
     override val documentType: String                = "concept"
     override val searchIndex: String                 = props.SearchIndex(SearchType.Concepts)
     override val apiClient: SearchApiClient[Concept] = draftConceptApiClient
@@ -85,5 +87,3 @@ trait DraftConceptIndexService {
 
     }
   }
-
-}

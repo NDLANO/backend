@@ -22,7 +22,7 @@ import scala.util.{Failure, Success, Try}
 
 class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
 
-  override lazy val dataSource: HikariDataSource = testDataSource.get
+  override lazy val dataSource: DataSource = testDataSource.get
   override lazy val migrator                     = new DBMigrator
   var repository: DraftConceptRepository         = _
 
@@ -42,7 +42,7 @@ class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (serverIsListening) {
-      DataSource.connectToDatabase()
+      dataSource.connectToDatabase()
       migrator.migrate()
     }
   }

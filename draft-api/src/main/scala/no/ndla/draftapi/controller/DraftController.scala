@@ -32,12 +32,16 @@ import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
 
-trait DraftController {
-  this: ReadService & WriteService & ArticleSearchService & SearchConverterService & ConverterService &
-    ContentValidator & Props & ErrorHandling & TapirController =>
-  lazy val draftController: DraftController
-
-  class DraftController extends TapirController {
+class DraftController(using
+  readService: ReadService,
+  writeService: WriteService,
+  articleSearchService: ArticleSearchService,
+  searchConverterService: SearchConverterService,
+  converterService: ConverterService,
+  contentValidator: ContentValidator,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends TapirController {
     override val serviceName: String         = "drafts"
     override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
 
@@ -660,5 +664,4 @@ trait DraftController {
       .serverLogicPure { _ => articleId =>
         writeService.deleteCurrentRevision(articleId).handleErrorsOrOk
       }
-  }
 }

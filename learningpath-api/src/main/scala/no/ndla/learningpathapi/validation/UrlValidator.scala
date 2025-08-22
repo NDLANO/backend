@@ -12,11 +12,11 @@ import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.learningpathapi.Props
 
-trait UrlValidator {
-  this: Props & TextValidator =>
-
-  class UrlValidator {
-    val noHtmlTextValidator = new TextValidator(allowHtml = false)
+class UrlValidator(using 
+  props: Props,
+  textValidator: TextValidator
+) {
+    val noHtmlTextValidator = TextValidator(allowHtml = false)
 
     def validate(fieldPath: String, url: String): Seq[ValidationMessage] = {
       nonEmptyText(fieldPath, url) ++
@@ -47,4 +47,3 @@ trait UrlValidator {
         List.empty
     }
   }
-}

@@ -15,7 +15,7 @@ import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.learningpathapi.controller.{InternController, LearningpathControllerV2, StatsController}
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.api.ErrorHandling
-import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
+import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
 import no.ndla.learningpathapi.validation.*
@@ -27,74 +27,38 @@ import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
 import no.ndla.database.DBUtility
 
-trait TestEnvironment
-    extends TapirApplication
-    with LearningpathControllerV2
-    with StatsController
-    with LearningPathRepositoryComponent
-    with FeideApiClient
-    with ReadService
-    with UpdateService
-    with DBUtility
-    with SearchConverterServiceComponent
-    with SearchService
-    with SearchLanguage
-    with SearchIndexService
-    with BaseIndexService
-    with SearchApiClient
-    with TaxonomyApiClient
-    with NdlaClient
-    with CommonConverter
-    with ConverterService
-    with OembedProxyClient
-    with Elastic4sClient
-    with DataSource
-    with MockitoSugar
-    with Clock
-    with UUIDUtil
-    with LanguageValidator
-    with LearningPathValidator
-    with LearningStepValidator
-    with TitleValidator
-    with TextValidator
-    with UrlValidator
-    with MyNDLAApiClient
-    with ErrorHandling
-    with Props
-    with InternController
-    with DBMigrator
-    with RedisClient {
-  lazy val props = new LearningpathApiProperties
+trait TestEnvironment extends TapirApplication with MockitoSugar {
+  given props = new LearningpathApiProperties
 
-  override lazy val migrator: DBMigrator         = mock[DBMigrator]
-  override lazy val dataSource: HikariDataSource = mock[HikariDataSource]
+  given migrator: DBMigrator         = mock[DBMigrator]
+  given dataSource: HikariDataSource = mock[HikariDataSource]
 
-  override lazy val learningPathRepository: LearningPathRepository     = mock[LearningPathRepository]
-  override lazy val readService: ReadService                           = mock[ReadService]
-  override lazy val updateService: UpdateService                       = mock[UpdateService]
-  override lazy val searchConverterService: SearchConverterService     = mock[SearchConverterService]
-  override lazy val searchService: SearchService                       = mock[SearchService]
-  override lazy val searchIndexService: SearchIndexService             = mock[SearchIndexService]
-  override lazy val converterService: ConverterService                 = org.mockito.Mockito.spy(new ConverterService)
-  override lazy val clock: SystemClock                                 = mock[SystemClock]
-  override lazy val uuidUtil: UUIDUtil                                 = mock[UUIDUtil]
-  override lazy val taxonomyApiClient: TaxonomyApiClient               = mock[TaxonomyApiClient]
-  override lazy val ndlaClient: NdlaClient                             = mock[NdlaClient]
-  override lazy val languageValidator: LanguageValidator               = mock[LanguageValidator]
-  override lazy val learningpathControllerV2: LearningpathControllerV2 = mock[LearningpathControllerV2]
-  override lazy val statsController: StatsController                   = mock[StatsController]
-  override lazy val internController: InternController                 = mock[InternController]
-  override lazy val healthController: TapirHealthController            = mock[TapirHealthController]
-  override lazy val learningStepValidator: LearningStepValidator       = mock[LearningStepValidator]
-  override lazy val learningPathValidator: LearningPathValidator       = mock[LearningPathValidator]
-  override lazy val titleValidator: TitleValidator                     = mock[TitleValidator]
-  var e4sClient: NdlaE4sClient                                         = mock[NdlaE4sClient]
-  override lazy val searchApiClient: SearchApiClient                   = mock[SearchApiClient]
-  override lazy val oembedProxyClient: OembedProxyClient               = mock[OembedProxyClient]
-  override lazy val feideApiClient: FeideApiClient                     = mock[FeideApiClient]
-  override lazy val redisClient: RedisClient                           = mock[RedisClient]
-  override lazy val myndlaApiClient: MyNDLAApiClient                   = mock[MyNDLAApiClient]
-  override lazy val DBUtil: DBUtility                                  = mock[DBUtility]
+  given learningPathRepository: LearningPathRepository     = mock[LearningPathRepository]
+  given readService: ReadService                           = mock[ReadService]
+  given updateService: UpdateService                       = mock[UpdateService]
+  given searchConverterService: SearchConverterService     = mock[SearchConverterService]
+  given searchService: SearchService                       = mock[SearchService]
+  given searchIndexService: SearchIndexService             = mock[SearchIndexService]
+  given converterService: ConverterService                 = org.mockito.Mockito.spy(new ConverterService)
+  given clock: SystemClock                                 = mock[SystemClock]
+  given uuidUtil: UUIDUtil                                 = mock[UUIDUtil]
+  given taxonomyApiClient: TaxonomyApiClient               = mock[TaxonomyApiClient]
+  given ndlaClient: NdlaClient                             = mock[NdlaClient]
+  given languageValidator: LanguageValidator               = mock[LanguageValidator]
+  given learningpathControllerV2: LearningpathControllerV2 = mock[LearningpathControllerV2]
+  given statsController: StatsController                   = mock[StatsController]
+  given internController: InternController                 = mock[InternController]
+  given healthController: TapirHealthController            = mock[TapirHealthController]
+  given learningStepValidator: LearningStepValidator       = mock[LearningStepValidator]
+  given learningPathValidator: LearningPathValidator       = mock[LearningPathValidator]
+  given titleValidator: TitleValidator                     = mock[TitleValidator]
+  var e4sClient: NdlaE4sClient                             = mock[NdlaE4sClient]
+  given searchApiClient: SearchApiClient                   = mock[SearchApiClient]
+  given oembedProxyClient: OembedProxyClient               = mock[OembedProxyClient]
+  given feideApiClient: FeideApiClient                     = mock[FeideApiClient]
+  given redisClient: RedisClient                           = mock[RedisClient]
+  given myndlaApiClient: MyNDLAApiClient                   = mock[MyNDLAApiClient]
+  given DBUtil: DBUtility                                  = mock[DBUtility]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]

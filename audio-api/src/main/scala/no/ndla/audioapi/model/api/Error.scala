@@ -17,8 +17,11 @@ import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHandling, Validati
 import no.ndla.search.NdlaSearchException
 import org.postgresql.util.PSQLException
 
-trait ErrorHandling extends TapirErrorHandling {
-  this: Props with Clock with DataSource =>
+class ErrorHandling(using
+    props: Props,
+    clock: Clock,
+    dataSource: DataSource
+) extends TapirErrorHandling {
 
   import ErrorHelpers._
 
@@ -49,7 +52,7 @@ trait ErrorHandling extends TapirErrorHandling {
     case o: OptimisticLockException        => ErrorBody(RESOURCE_OUTDATED, o.getMessage, clock.now(), 409)
     case _: FileTooBigException            => ErrorBody(FILE_TOO_BIG, fileTooBigDescription, clock.now(), 413)
     case _: PSQLException                  =>
-      DataSource.connectToDatabase()
+      dataSource.connectToDatabase()
       ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)
     case NdlaSearchException(_, Some(rf), _, _)
         if rf.error.rootCause

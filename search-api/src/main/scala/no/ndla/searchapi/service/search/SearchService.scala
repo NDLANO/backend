@@ -41,11 +41,15 @@ import no.ndla.searchapi.model.search.SearchPagination
 import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
-trait SearchService {
-  this: Elastic4sClient & IndexService & SearchConverterService & StrictLogging & Props & BaseIndexService &
-    ErrorHandling & SearchLanguage =>
-
-  trait SearchService {
+class SearchService(using
+  e4sClient: Elastic4sClient,
+  indexService: IndexService,
+  searchConverterService: SearchConverterService,
+  props: Props,
+  baseIndexService: BaseIndexService,
+  errorHandling: ErrorHandling,
+  searchLanguage: SearchLanguage
+) extends StrictLogging {
     val searchIndex: List[String]
     val indexServices: List[BaseIndexService]
 
@@ -385,5 +389,4 @@ trait SearchService {
         }
       }
     }
-  }
 }

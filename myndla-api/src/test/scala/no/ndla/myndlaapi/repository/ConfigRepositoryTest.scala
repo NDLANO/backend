@@ -33,7 +33,7 @@ class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
+    dataSource.connectToDatabase()
     migrator.migrate()
   }
 

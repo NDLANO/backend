@@ -21,12 +21,13 @@ import no.ndla.network.model.FeideAccessToken
 import java.util.UUID
 import scala.util.Try
 
-trait RobotService {
-  this: RobotRepository & DBUtility & Clock & FeideApiClient & FolderWriteService =>
-
-  lazy val robotService: RobotService
-
-  class RobotService {
+class RobotService(using
+  robotRepository: RobotRepository,
+  dBUtility: DBUtility,
+  clock: Clock,
+  feideApiClient: FeideApiClient,
+  folderWriteService: FolderWriteService
+) {
 
     def getAllRobots(feideToken: Option[FeideAccessToken]): Try[ListOfRobotDefinitionsDTO] = DBUtil.readOnly {
       session =>
@@ -125,4 +126,3 @@ trait RobotService {
       }
 
   }
-}

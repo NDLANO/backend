@@ -24,11 +24,10 @@ import no.ndla.validation.TextValidator
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
-trait ContentValidator {
-  this: ArticleRepository & Props =>
-  lazy val contentValidator: ContentValidator
-
-  class ContentValidator {
+class ContentValidator(using
+  articleRepository: ArticleRepository,
+  props: Props
+) {
     private val inlineHtmlTags       = props.InlineHtmlTags
     private val introductionHtmlTags = props.IntroductionHtmlTags
 
@@ -294,5 +293,4 @@ trait ContentValidator {
     }
 
     private def languageCodeSupported6391(languageCode: String): Boolean = Iso639.get(languageCode).isSuccess
-  }
 }

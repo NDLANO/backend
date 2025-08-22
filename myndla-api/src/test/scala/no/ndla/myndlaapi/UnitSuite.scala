@@ -12,8 +12,7 @@ import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.scalatestsuite.UnitTestSuite
 
-trait UnitSuite extends UnitTestSuite {
-  this: HasBaseProps =>
+abstract class UnitSuite(using props: HasBaseProps) extends UnitTestSuite {
   setPropEnv("NDLA_ENVIRONMENT", "local")
 
   setPropEnv(PropertyKeys.MetaUserNameKey, "postgres")

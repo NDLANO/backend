@@ -24,17 +24,14 @@ import no.ndla.search.Elastic4sClient
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
-trait TagSearchService {
-  this: Elastic4sClient
-    with SearchConverterService
-    with SearchService
-    with TagIndexService
-    with SearchConverterService
-    with Props
-    with ErrorHandling =>
-  lazy val tagSearchService: TagSearchService
-
-  class TagSearchService extends StrictLogging with SearchService[String] {
+class TagSearchService(using
+  e4sClient: Elastic4sClient,
+  searchConverterService: SearchConverterService,
+  searchService: SearchService,
+  tagIndexService: TagIndexService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends StrictLogging with SearchService[String] {
     override val searchIndex: String = props.DraftTagSearchIndex
 
     override def hitToApiModel(hit: String, language: String): String = {
@@ -134,5 +131,4 @@ trait TagSearchService {
       }
     }
 
-  }
 }

@@ -28,8 +28,11 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorServic
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration.DurationInt
 
-trait V57__MigrateSavedSearch {
-  this: TaxonomyApiClient with NdlaClient with Props =>
+class V57__MigrateSavedSearch(using
+  taxonomyApiClient: TaxonomyApiClient,
+  ndlaClient: NdlaClient,
+  props: Props
+) {
 
   class V57__MigrateSavedSearch extends BaseJavaMigration {
 

@@ -36,12 +36,19 @@ import scala.jdk.CollectionConverters.*
 import scala.math.max
 import scala.util.{Failure, Success, Try, boundary}
 
-trait ReadService {
-  this: DraftRepository & ConverterService & ArticleSearchService & TagSearchService & GrepCodesSearchService &
-    SearchConverterService & UserDataRepository & WriteService & Props & MemoizeHelpers & DBUtility =>
-  lazy val readService: ReadService
-
-  class ReadService {
+class ReadService(using
+  draftRepository: DraftRepository,
+  converterService: ConverterService,
+  articleSearchService: ArticleSearchService,
+  tagSearchService: TagSearchService,
+  grepCodesSearchService: GrepCodesSearchService,
+  searchConverterService: SearchConverterService,
+  userDataRepository: UserDataRepository,
+  writeService: WriteService,
+  props: Props,
+  memoizeHelpers: MemoizeHelpers,
+  dBUtility: DBUtility
+) {
 
     def getInternalArticleIdByExternalId(externalId: Long): Option[api.ContentIdDTO] =
       draftRepository.getIdFromExternalId(externalId.toString)(ReadOnlyAutoSession).map(id => api.ContentIdDTO(id))
@@ -214,5 +221,4 @@ trait ReadService {
 
       Success(ArticleRevisionHistoryDTO(articles, canDeleteCurrentRevision))
     }
-  }
 }

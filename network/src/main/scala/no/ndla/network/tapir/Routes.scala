@@ -12,7 +12,7 @@ import com.sun.net.httpserver.{HttpExchange, HttpServer}
 import io.circe.generic.auto.*
 import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.ndla.common.RequestLogger
-import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.configuration.BaseProps
 import no.ndla.network.TaxonomyData
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.*
@@ -39,11 +39,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors}
 
-trait Routes {
-  this: TapirController & HasBaseProps =>
-
-  def services: List[TapirController]
-
+class Routes(using props: BaseProps, errorHandling: TapirErrorHandling, services: List[TapirController]) {
   object Routes {
     val activeRequests: AtomicInteger = new AtomicInteger(0)
     val logger: Logger                = getLogger
@@ -54,7 +50,7 @@ trait Routes {
         case None     => logger.error(logMsg)
       }
 
-      ValuedEndpointOutput(jsonBody[AllErrors], ErrorHelpers.generic)
+      ValuedEndpointOutput(jsonBody[AllErrors], errorHandling.ErrorHelpers.generic)
     }
 
     private def decodeFailureHandler[T[_]]: DefaultDecodeFailureHandler[T] =
@@ -62,13 +58,13 @@ trait Routes {
         .response(failureMsg => {
           ValuedEndpointOutput(
             jsonBody[AllErrors],
-            ErrorHelpers.badRequest(failureMsg)
+            errorHandling.ErrorHelpers.badRequest(failureMsg)
           )
         })
 
     private case class NdlaExceptionHandler[T[_]]() extends ExceptionHandler[T] {
       override def apply(ctx: ExceptionContext)(implicit monad: MonadError[T]): T[Option[ValuedEndpointOutput[?]]] = {
-        val errorToReturn = returnError(ctx.e)
+        val errorToReturn = errorHandling.returnError(ctx.e)
         val sc            = StatusCode(errorToReturn.statusCode)
         val resp          = ValuedEndpointOutput(jsonBody[AllErrors], errorToReturn)
         val withsc        = resp.prepend(statusCode, sc)
@@ -85,10 +81,10 @@ trait Routes {
 
       override def apply(ctx: RejectContext)(implicit monad: MonadError[A]): A[Option[ValuedEndpointOutput[?]]] = {
         val statusCodeAndBody = if (hasMethodMismatch(ctx.failure)) {
-          ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.methodNotAllowed)
+          ValuedEndpointOutput(jsonBody[ErrorBody], errorHandling.ErrorHelpers.methodNotAllowed)
             .prepend(statusCode, StatusCode.MethodNotAllowed)
         } else {
-          ValuedEndpointOutput(jsonBody[ErrorBody], ErrorHelpers.notFound)
+          ValuedEndpointOutput(jsonBody[ErrorBody], errorHandling.ErrorHelpers.notFound)
             .prepend(statusCode, StatusCode.NotFound)
         }
         monad.unit(Some(statusCodeAndBody))

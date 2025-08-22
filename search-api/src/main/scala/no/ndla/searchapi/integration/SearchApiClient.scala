@@ -21,10 +21,11 @@ import scala.concurrent.duration.*
 import scala.math.ceil
 import scala.util.{Failure, Success, Try}
 
-trait SearchApiClient {
-  this: NdlaClient & StrictLogging & Props =>
-
-  trait SearchApiClient[T] {
+trait SearchApiClient[T](using
+  ndlaClient: NdlaClient,
+  strictLogging: StrictLogging,
+  props: Props
+) {
     val name: String
     val baseUrl: String
     val searchPath: String

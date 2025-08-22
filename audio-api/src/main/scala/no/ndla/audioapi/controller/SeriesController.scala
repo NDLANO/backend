@@ -31,11 +31,15 @@ import sttp.tapir.*
 
 import scala.util.{Failure, Success, Try}
 
-trait SeriesController {
-  this: ReadService & WriteService & SeriesSearchService & SearchConverterService & ConverterService & Props &
-    ErrorHandling & TapirController =>
-  lazy val seriesController: SeriesController
-  class SeriesController extends TapirController {
+class SeriesController(using
+  readService: ReadService,
+  writeService: WriteService,
+  seriesSearchService: SeriesSearchService,
+  searchConverterService: SearchConverterService,
+  converterService: ConverterService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends TapirController {
     private val queryString = query[Option[String]]("query")
       .description("Return only results with titles or tags matching the specified query.")
     private val language =
@@ -255,5 +259,4 @@ trait SeriesController {
       putUpdateSeries
     )
 
-  }
 }

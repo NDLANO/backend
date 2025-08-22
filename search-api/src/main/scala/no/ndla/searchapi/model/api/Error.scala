@@ -16,8 +16,10 @@ import no.ndla.search.model.domain.DocumentConflictException
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import no.ndla.searchapi.Props
 
-trait ErrorHandling extends TapirErrorHandling {
-  this: Props & Clock =>
+class ErrorHandling(using
+  props: Props,
+  clock: Clock
+) extends TapirErrorHandling {
 
   import ErrorHelpers.*
   import SearchErrorHelpers.*

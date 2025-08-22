@@ -26,74 +26,40 @@ import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.tapir.TapirApplication
 
-class ComponentRegistry(properties: ConceptApiProperties)
-    extends BaseComponentRegistry[ConceptApiProperties]
-    with TapirApplication
-    with DraftConceptController
-    with PublishedConceptController
-    with Clock
-    with WriteService
-    with ContentValidator
-    with ReadService
-    with ConverterService
-    with StateTransitionRules
-    with DraftConceptRepository
-    with PublishedConceptRepository
-    with DataSource
-    with StrictLogging
-    with DraftConceptSearchService
-    with PublishedConceptSearchService
-    with SearchService
-    with SearchLanguage
-    with SearchConverterService
-    with Elastic4sClient
-    with DraftConceptIndexService
-    with PublishedConceptIndexService
-    with IndexService
-    with BaseIndexService
-    with InternController
-    with SearchApiClient
-    with NdlaClient
-    with Props
-    with DBMigrator
-    with ErrorHandling
-    with SearchSettingsHelper
-    with DraftSearchSettingsHelper
-    with SwaggerDocControllerConfig
-    with ConceptControllerHelpers {
-  override lazy val props: ConceptApiProperties = properties
-  override lazy val migrator: DBMigrator        = DBMigrator(
+class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplication[ConceptApiProperties] {
+  given props: ConceptApiProperties = properties
+  given migrator: DBMigrator        = DBMigrator(
     new V23__SubjectNameAsTags(props),
     new V25__SubjectNameAsTagsPublished(props)
   )
 
-  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  given dataSource: HikariDataSource = DataSource.getDataSource
 
-  override lazy val draftConceptRepository     = new DraftConceptRepository
-  override lazy val publishedConceptRepository = new PublishedConceptRepository
+  given draftConceptRepository     = new DraftConceptRepository
+  given publishedConceptRepository = new PublishedConceptRepository
 
-  override lazy val draftConceptSearchService     = new DraftConceptSearchService
-  override lazy val searchConverterService        = new SearchConverterService
-  override lazy val draftConceptIndexService      = new DraftConceptIndexService
-  override lazy val publishedConceptIndexService  = new PublishedConceptIndexService
-  override lazy val publishedConceptSearchService = new PublishedConceptSearchService
+  given draftConceptSearchService     = new DraftConceptSearchService
+  given searchConverterService        = new SearchConverterService
+  given draftConceptIndexService      = new DraftConceptIndexService
+  given publishedConceptIndexService  = new PublishedConceptIndexService
+  given publishedConceptSearchService = new PublishedConceptSearchService
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
-  override lazy val ndlaClient                       = new NdlaClient
-  override lazy val searchApiClient                  = new SearchApiClient
-  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  given ndlaClient                       = new NdlaClient
+  given searchApiClient                  = new SearchApiClient
+  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
 
-  override lazy val writeService     = new WriteService
-  override lazy val readService      = new ReadService
-  override lazy val converterService = new ConverterService
-  override lazy val clock            = new SystemClock
-  override lazy val contentValidator = new ContentValidator
+  given writeService     = new WriteService
+  given readService      = new ReadService
+  given converterService = new ConverterService
+  given clock            = new SystemClock
+  given contentValidator = new ContentValidator
 
-  lazy val draftConceptController                  = new DraftConceptController
-  lazy val publishedConceptController              = new PublishedConceptController
-  lazy val healthController: TapirHealthController = new TapirHealthController
-  lazy val internController                        = new InternController
+  given draftConceptController                  = new DraftConceptController
+  given publishedConceptController              = new PublishedConceptController
+  given healthController: TapirHealthController = new TapirHealthController
+  given internController                        = new InternController
 
   val swagger = new SwaggerController(
     List[TapirController](

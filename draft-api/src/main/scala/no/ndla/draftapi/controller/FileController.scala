@@ -26,11 +26,11 @@ import sttp.tapir.server.ServerEndpoint
 import java.io.File
 import scala.util.{Failure, Success, Try}
 
-trait FileController {
-  this: WriteService & ErrorHandling & Props & TapirController =>
-  lazy val fileController: FileController
-
-  class FileController extends TapirController {
+class FileController(using
+  writeService: WriteService,
+  errorHandling: ErrorHandling,
+  props: Props
+) extends TapirController {
     override val serviceName: String         = "files"
     override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
 
@@ -85,5 +85,4 @@ trait FileController {
             )
         }
       }
-  }
 }

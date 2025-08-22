@@ -19,11 +19,11 @@ import sttp.client3.quick.*
 
 import scala.util.Try
 
-trait LearningpathApiClient {
-  this: NdlaClient with ConverterService with Props =>
-  lazy val learningpathApiClient: LearningpathApiClient
-
-  class LearningpathApiClient {
+class LearningpathApiClient(using
+  ndlaClient: NdlaClient,
+  converterService: ConverterService,
+  props: Props
+) {
     private val Endpoint = s"http://${props.LearningpathApiHost}/learningpath-api/v2/learningpaths"
 
     def getLearningpathsWithId(articleId: Long, user: TokenUser): Try[Seq[LearningPath]] = {
@@ -36,7 +36,6 @@ trait LearningpathApiClient {
     }
 
   }
-}
 case class LearningPath(id: Long, title: Title)
 
 object LearningPath {

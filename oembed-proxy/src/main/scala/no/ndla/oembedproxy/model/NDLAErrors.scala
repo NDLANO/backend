@@ -12,10 +12,13 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.*
-import no.ndla.oembedproxy.Props
+import no.ndla.oembedproxy.OEmbedProxyProperties
 
-trait ErrorHandling extends TapirErrorHandling with StrictLogging {
-  this: Props & Clock =>
+class ErrorHandling(using
+    props: OEmbedProxyProperties,
+    clock: Clock
+) extends TapirErrorHandling(using props, clock)
+    with StrictLogging {
 
   import ErrorHelpers.*
 

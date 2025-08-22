@@ -23,11 +23,13 @@ import no.ndla.searchapi.model.domain.IndexingBundle
 
 import scala.util.Try
 
-trait DraftIndexService {
-  this: SearchConverterService & IndexService & DraftApiClient & Props & SearchApiClient =>
-  lazy val draftIndexService: DraftIndexService
-
-  class DraftIndexService extends StrictLogging with IndexService[Draft] {
+class DraftIndexService(using
+  searchConverterService: SearchConverterService,
+  indexService: IndexService,
+  draftApiClient: DraftApiClient,
+  props: Props,
+  searchApiClient: SearchApiClient
+) extends StrictLogging with IndexService[Draft] {
     override val documentType: String              = "draft"
     override val searchIndex: String               = props.SearchIndex(SearchType.Drafts)
     override val apiClient: SearchApiClient[Draft] = draftApiClient
@@ -124,5 +126,3 @@ trait DraftIndexService {
       properties(fields ++ dynamics)
     }
   }
-
-}

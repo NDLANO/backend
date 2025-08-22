@@ -21,8 +21,11 @@ import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchExcept
 import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
-trait SearchService {
-  this: Elastic4sClient with SearchConverterService with StrictLogging with Props =>
+class SearchService(using
+  e4sClient: Elastic4sClient,
+  searchConverterService: SearchConverterService,
+  props: Props
+) extends StrictLogging {
 
   trait SearchService[T] extends BasicSearchService[T] {
     def hitToApiModel(hit: String, language: String): T

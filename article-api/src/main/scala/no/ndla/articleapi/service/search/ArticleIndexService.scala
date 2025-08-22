@@ -17,11 +17,11 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Article
 
-trait ArticleIndexService {
-  this: SearchConverterService & IndexService & ArticleRepository & Props =>
-  lazy val articleIndexService: ArticleIndexService
-
-  class ArticleIndexService extends IndexService with StrictLogging {
+class ArticleIndexService(using
+  searchConverterService: SearchConverterService,
+  articleRepository: ArticleRepository,
+  props: Props
+) extends IndexService with StrictLogging {
     override val documentType: String = props.ArticleSearchDocument
     override val searchIndex: String  = props.ArticleSearchIndex
 
@@ -56,6 +56,4 @@ trait ArticleIndexService {
 
       properties(fields ++ dynamics)
     }
-  }
-
 }

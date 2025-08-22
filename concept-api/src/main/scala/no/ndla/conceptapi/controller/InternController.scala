@@ -27,12 +27,16 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 import sttp.tapir.*
 
-trait InternController {
-  this: IndexService & DraftConceptIndexService & PublishedConceptIndexService & ConverterService & ReadService &
-    DraftConceptRepository & PublishedConceptRepository & ErrorHandling & TapirController =>
-  lazy val internController: InternController
-
-  class InternController extends TapirController {
+class InternController(using
+  indexService: IndexService,
+  draftConceptIndexService: DraftConceptIndexService,
+  publishedConceptIndexService: PublishedConceptIndexService,
+  converterService: ConverterService,
+  readService: ReadService,
+  draftConceptRepository: DraftConceptRepository,
+  publishedConceptRepository: PublishedConceptRepository,
+  errorHandling: ErrorHandling
+) extends TapirController {
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
 
@@ -173,5 +177,4 @@ trait InternController {
         draftConceptRepository.insert(concept).asRight
       }
 
-  }
 }

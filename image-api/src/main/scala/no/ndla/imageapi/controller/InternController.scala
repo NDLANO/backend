@@ -29,12 +29,15 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-trait InternController {
-  this: ImageRepository & ReadService & ConverterService & ImageIndexService & TagIndexService & ImageRepository &
-    Props & ErrorHandling & TapirController =>
-  lazy val internController: InternController
-
-  class InternController extends TapirController with StrictLogging {
+class InternController(using
+  imageRepository: ImageRepository,
+  readService: ReadService,
+  converterService: ConverterService,
+  imageIndexService: ImageIndexService,
+  tagIndexService: TagIndexService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends TapirController with StrictLogging {
     import ErrorHelpers.*
 
     override val prefix: EndpointInput[Unit] = "intern"

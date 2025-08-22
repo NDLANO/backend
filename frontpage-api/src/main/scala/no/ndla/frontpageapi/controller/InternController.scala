@@ -23,11 +23,12 @@ import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success}
 
-trait InternController {
-  this: ReadService & WriteService & Props & ErrorHandling & TapirController =>
-  lazy val internController: InternController
-
-  class InternController extends TapirController {
+class InternController(using
+  readService: ReadService,
+  writeService: WriteService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends TapirController {
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
 
@@ -42,8 +43,8 @@ trait InternController {
             case Success(Some(id)) => id.asRight
             case Success(None)     => ErrorHelpers.notFound.asLeft
             case Failure(ex)       => returnLeftError(ex)
-          }
-        },
+
+      ,
       endpoint.get
         .in("dump" / "subjectpage")
         .in(query[Int]("page").default(1))
@@ -51,14 +52,14 @@ trait InternController {
         .out(jsonBody[SubjectPageDomainDumpDTO])
         .serverLogicPure { case (pageNo, pageSize) =>
           readService.getSubjectPageDomainDump(pageNo, pageSize).asRight
-        },
+      ,
       endpoint.get
         .in("dump" / "subjectpage" / path[Long]("subjectId"))
         .out(jsonBody[SubjectPage])
         .errorOut(errorOutputsFor(400, 404))
         .serverLogicPure { subjectId =>
           readService.domainSubjectPage(subjectId)
-        }
+
     )
-  }
+
 }

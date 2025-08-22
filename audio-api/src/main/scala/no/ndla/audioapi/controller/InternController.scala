@@ -28,12 +28,16 @@ import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success}
 
-trait InternController {
-  this: AudioIndexService & ConverterService & AudioRepository & AudioIndexService & SeriesIndexService &
-    TagIndexService & ReadService & Props & ErrorHandling & TapirController =>
-  lazy val internController: InternController
-
-  class InternController extends TapirController {
+class InternController(using
+  audioIndexService: AudioIndexService,
+  converterService: ConverterService,
+  audioRepository: AudioRepository,
+  seriesIndexService: SeriesIndexService,
+  tagIndexService: TagIndexService,
+  readService: ReadService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends TapirController {
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
     private val internalErrorStringBody      = statusCode(StatusCode.InternalServerError).and(stringBody)
@@ -126,5 +130,4 @@ trait InternController {
         .out(jsonBody[AudioMetaInformation])
         .serverLogicPure { domainMeta => audioRepository.insert(domainMeta).asRight }
     )
-  }
 }

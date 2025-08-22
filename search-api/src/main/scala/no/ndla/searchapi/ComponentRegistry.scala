@@ -22,79 +22,40 @@ import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.service.search.*
 import no.ndla.searchapi.service.ConverterService
 
-class ComponentRegistry(properties: SearchApiProperties)
-    extends BaseComponentRegistry[SearchApiProperties]
-    with TapirApplication
-    with ArticleApiClient
-    with ArticleIndexService
-    with DraftConceptApiClient
-    with DraftConceptIndexService
-    with LearningPathIndexService
-    with DraftIndexService
-    with NodeIndexService
-    with FrontpageApiClient
-    with MultiSearchService
-    with ErrorHandling
-    with Clock
-    with MultiDraftSearchService
-    with ConverterService
-    with DraftApiClient
-    with Elastic4sClient
-    with TaxonomyApiClient
-    with IndexService
-    with BaseIndexService
-    with SearchLanguage
-    with StrictLogging
-    with LearningPathApiClient
-    with NdlaClient
-    with SearchConverterService
-    with MyNDLAApiClient
-    with SearchService
-    with SearchController
-    with GetSearchQueryParams
-    with FeideApiClient
-    with RedisClient
-    with InternController
-    with GrepIndexService
-    with SearchApiClient
-    with GrepApiClient
-    with Props
-    with SwaggerDocControllerConfig
-    with GrepSearchService {
-  override lazy val props: SearchApiProperties = properties
+class ComponentRegistry(properties: SearchApiProperties) extends TapirApplication[SearchApiProperties] {
+  given props: SearchApiProperties = properties
 
-  override lazy val ndlaClient = new NdlaClient
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
+  given ndlaClient               = new NdlaClient
+  given e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
-  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
 
-  override lazy val taxonomyApiClient = new TaxonomyApiClient
-  override lazy val grepApiClient     = new GrepApiClient
+  given taxonomyApiClient     = new TaxonomyApiClient
+  given grepApiClient         = new GrepApiClient
+  given draftApiClient        = new DraftApiClient(props.DraftApiUrl)
+  given draftConceptApiClient = new DraftConceptApiClient(props.ConceptApiUrl)
+  given learningPathApiClient = new LearningPathApiClient(props.LearningpathApiUrl)
+  given articleApiClient      = new ArticleApiClient(props.ArticleApiUrl)
+  given feideApiClient        = new FeideApiClient
+  given redisClient           = new RedisClient(props.RedisHost, props.RedisPort)
+  given frontpageApiClient    = new FrontpageApiClient
 
-  override lazy val draftApiClient        = new DraftApiClient(props.DraftApiUrl)
-  override lazy val draftConceptApiClient = new DraftConceptApiClient(props.ConceptApiUrl)
-  override lazy val learningPathApiClient = new LearningPathApiClient(props.LearningpathApiUrl)
-  override lazy val articleApiClient      = new ArticleApiClient(props.ArticleApiUrl)
-  override lazy val feideApiClient        = new FeideApiClient
-  override lazy val redisClient           = new RedisClient(props.RedisHost, props.RedisPort)
-  override lazy val frontpageApiClient    = new FrontpageApiClient
+  given converterService         = new ConverterService
+  given searchConverterService   = new SearchConverterService
+  given multiSearchService       = new MultiSearchService
+  given articleIndexService      = new ArticleIndexService
+  given draftConceptIndexService = new DraftConceptIndexService
+  given learningPathIndexService = new LearningPathIndexService
+  given draftIndexService        = new DraftIndexService
+  given multiDraftSearchService  = new MultiDraftSearchService
+  given grepIndexService         = new GrepIndexService
+  given grepSearchService        = new GrepSearchService
+  given nodeIndexService         = new NodeIndexService
 
-  override lazy val converterService         = new ConverterService
-  override lazy val searchConverterService   = new SearchConverterService
-  override lazy val multiSearchService       = new MultiSearchService
-  override lazy val articleIndexService      = new ArticleIndexService
-  override lazy val draftConceptIndexService = new DraftConceptIndexService
-  override lazy val learningPathIndexService = new LearningPathIndexService
-  override lazy val draftIndexService        = new DraftIndexService
-  override lazy val multiDraftSearchService  = new MultiDraftSearchService
-  override lazy val grepIndexService         = new GrepIndexService
-  override lazy val grepSearchService        = new GrepSearchService
-  override lazy val nodeIndexService         = new NodeIndexService
-
-  override lazy val searchController                        = new SearchController
-  override lazy val healthController: TapirHealthController = new TapirHealthController
-  override lazy val internController                        = new InternController
-  override lazy val clock: SystemClock                      = new SystemClock
+  given searchController                        = new SearchController
+  given healthController: TapirHealthController = new TapirHealthController
+  given internController                        = new InternController
+  given clock: SystemClock                      = new SystemClock
 
   val swagger = new SwaggerController(
     List[TapirController](
@@ -105,5 +66,6 @@ class ComponentRegistry(properties: SearchApiProperties)
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override def services: List[TapirController] = swagger.getServices()
+  def services: List[TapirController] = swagger.getServices()
+  given routes                        = new Routes(services)
 }

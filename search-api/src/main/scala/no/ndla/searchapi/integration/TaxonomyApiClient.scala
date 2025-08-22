@@ -28,11 +28,10 @@ import scala.concurrent.*
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Success, Try}
 
-trait TaxonomyApiClient {
-  this: NdlaClient & Props =>
-  lazy val taxonomyApiClient: TaxonomyApiClient
-
-  class TaxonomyApiClient extends StrictLogging {
+class TaxonomyApiClient(using 
+  ndlaClient: NdlaClient,
+  props: Props
+) extends StrictLogging {
     private val TaxonomyApiEndpoint                                             = s"${props.TaxonomyUrl}/v1"
     private val timeoutSeconds                                                  = 600.seconds
     private def getNodes(shouldUsePublishedTax: Boolean): Try[ListBuffer[Node]] =
@@ -148,7 +147,6 @@ trait TaxonomyApiClient {
       })
     }
   }
-}
 case class PaginationPage[T](totalCount: Long, results: List[T])
 object PaginationPage {
   implicit def encoder[T](implicit @unused e: Encoder[T]): Encoder[PaginationPage[T]] = deriveEncoder

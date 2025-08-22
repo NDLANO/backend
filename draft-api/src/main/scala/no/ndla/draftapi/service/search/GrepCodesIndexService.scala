@@ -18,11 +18,11 @@ import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableGrepCode
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
 
-trait GrepCodesIndexService {
-  this: SearchConverterService with IndexService with DraftRepository with Props =>
-  lazy val grepCodesIndexService: GrepCodesIndexService
-
-  class GrepCodesIndexService extends IndexService[Draft, SearchableGrepCode] with StrictLogging {
+class GrepCodesIndexService(using
+  searchConverterService: SearchConverterService,
+  draftRepository: DraftRepository,
+  props: Props
+) extends IndexService[Draft, SearchableGrepCode] with StrictLogging {
     override val documentType: String          = props.DraftGrepCodesSearchDocument
     override val searchIndex: String           = props.DraftGrepCodesSearchIndex
     override val repository: Repository[Draft] = draftRepository
@@ -39,6 +39,4 @@ trait GrepCodesIndexService {
     def getMapping: MappingDefinition = {
       properties(List(textField("grepCode")))
     }
-  }
-
 }

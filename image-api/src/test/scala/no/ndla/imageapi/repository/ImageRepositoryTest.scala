@@ -42,7 +42,7 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
+    dataSource.connectToDatabase()
     if (serverIsListening) {
       migrator.migrate()
     }

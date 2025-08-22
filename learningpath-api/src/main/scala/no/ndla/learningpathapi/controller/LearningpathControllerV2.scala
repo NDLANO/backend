@@ -34,13 +34,17 @@ import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
 
-trait LearningpathControllerV2 {
-
-  this: ReadService & UpdateService & SearchService & LanguageValidator & ConverterService & TaxonomyApiClient &
-    SearchConverterServiceComponent & Props & ErrorHandling & TapirController =>
-  lazy val learningpathControllerV2: LearningpathControllerV2
-
-  class LearningpathControllerV2 extends TapirController {
+class LearningpathControllerV2(using
+  readService: ReadService,
+  updateService: UpdateService,
+  searchService: SearchService,
+  languageValidator: LanguageValidator,
+  converterService: ConverterService,
+  taxonomyApiClient: TaxonomyApiClient,
+  searchConverterServiceComponent: SearchConverterServiceComponent,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends TapirController {
 
     import ErrorHelpers.*
 
@@ -749,5 +753,4 @@ trait LearningpathControllerV2 {
       .serverLogicPure { articleId =>
         searchService.containsArticle(articleId).handleErrorsOrOk
       }
-  }
 }

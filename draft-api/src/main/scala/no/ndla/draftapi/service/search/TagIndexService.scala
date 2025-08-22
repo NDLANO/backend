@@ -18,11 +18,11 @@ import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableTag
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
 
-trait TagIndexService {
-  this: SearchConverterService with IndexService with DraftRepository with Props =>
-  lazy val tagIndexService: TagIndexService
-
-  class TagIndexService extends IndexService[Draft, SearchableTag] with StrictLogging {
+class TagIndexService(using
+  searchConverterService: SearchConverterService,
+  draftRepository: DraftRepository,
+  props: Props
+) extends IndexService[Draft, SearchableTag] with StrictLogging {
     override val documentType: String          = props.DraftTagSearchDocument
     override val searchIndex: String           = props.DraftTagSearchIndex
     override val repository: Repository[Draft] = draftRepository
@@ -44,6 +44,4 @@ trait TagIndexService {
         )
       )
     }
-  }
-
 }

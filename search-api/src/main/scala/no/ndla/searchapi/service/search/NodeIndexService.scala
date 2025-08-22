@@ -28,12 +28,15 @@ import no.ndla.network.model.HttpRequestException
 
 import scala.util.{Failure, Success, Try}
 
-trait NodeIndexService {
-  this: SearchConverterService & IndexService & Props & TaxonomyApiClient & ArticleApiClient & FrontpageApiClient &
-    GrepApiClient =>
-  lazy val nodeIndexService: NodeIndexService
-
-  class NodeIndexService extends BulkIndexingService with StrictLogging {
+class NodeIndexService(using
+  searchConverterService: SearchConverterService,
+  indexService: IndexService,
+  props: Props,
+  taxonomyApiClient: TaxonomyApiClient,
+  articleApiClient: ArticleApiClient,
+  frontpageApiClient: FrontpageApiClient,
+  grepApiClient: GrepApiClient
+) extends BulkIndexingService with StrictLogging {
     override val documentType: String       = "nodes"
     override val searchIndex: String        = props.SearchIndex(SearchType.Nodes)
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
@@ -130,5 +133,4 @@ trait NodeIndexService {
         .traverse(group => sendChunkToElastic(indexingBundle, group, indexName))
         .map(countBulkIndexed)
     }
-  }
 }

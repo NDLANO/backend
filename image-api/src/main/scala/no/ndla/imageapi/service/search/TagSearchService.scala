@@ -23,14 +23,17 @@ import no.ndla.search.Elastic4sClient
 
 import scala.util.{Failure, Success, Try}
 
-trait TagSearchService {
-  this: Elastic4sClient & SearchConverterService & SearchService & TagIndexService & SearchConverterService & Props &
-    ErrorHandling & IndexService =>
-  lazy val tagSearchService: TagSearchService
-
-  class TagSearchService extends SearchService[String] with StrictLogging {
+class TagSearchService(using
+  e4sClient: Elastic4sClient,
+  searchConverterService: SearchConverterService,
+  searchService: SearchService[?],
+  tagIndexService: TagIndexService,
+  props: Props,
+  errorHandling: ErrorHandling,
+  indexService: IndexService
+) extends SearchService[String] with StrictLogging {
     override val searchIndex: String        = props.TagSearchIndex
-    override val indexService: IndexService = tagIndexService
+
 
     override def hitToApiModel(hit: String, language: String): Try[String] = {
       CirceUtil.tryParseAs[SearchableTag](hit).map(_.tag)

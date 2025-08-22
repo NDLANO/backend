@@ -22,12 +22,7 @@ import no.ndla.common.model.domain.config.ConfigKey
 import no.ndla.myndlaapi.service.ConfigService
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 
-trait ConfigController {
-  this: ErrorHandling & ConfigService & TapirController =>
-
-  lazy val configController: ConfigController
-
-  class ConfigController extends TapirController {
+class ConfigController(using errorHandling: ErrorHandling, configService: ConfigService) extends TapirController {
     override val serviceName: String = "config"
 
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
@@ -65,5 +60,3 @@ trait ConfigController {
       updateConfig
     )
   }
-
-}

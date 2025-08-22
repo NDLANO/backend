@@ -26,12 +26,15 @@ import java.util.concurrent.{ExecutorService, Executors}
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 import scala.util.{Failure, Success, Try}
 
-trait WriteService {
-  this: ArticleRepository & ConverterService & ContentValidator & ArticleIndexService & ReadService & SearchApiClient &
-    DBUtility =>
-  lazy val writeService: WriteService
-
-  class WriteService extends StrictLogging {
+class WriteService(using
+  articleRepository: ArticleRepository,
+  converterService: ConverterService,
+  contentValidator: ContentValidator,
+  articleIndexService: ArticleIndexService,
+  readService: ReadService,
+  searchApiClient: SearchApiClient,
+  dBUtility: DBUtility
+) extends StrictLogging {
     private val executor: ExecutorService            = Executors.newSingleThreadExecutor
     implicit val ec: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(executor)
 
@@ -164,6 +167,4 @@ trait WriteService {
         .map(a => searchApiClient.deleteDocument(a, "article"))
         .map(api.ArticleIdV2DTO.apply)
     }
-
-  }
 }

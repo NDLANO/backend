@@ -22,12 +22,13 @@ import no.ndla.search.Elastic4sClient
 
 import scala.util.{Failure, Success, Try}
 
-trait SeriesIndexService {
-  this: Elastic4sClient & SearchConverterService & IndexService & SeriesRepository & Props =>
-
-  lazy val seriesIndexService: SeriesIndexService
-
-  class SeriesIndexService extends IndexService[Series, SearchableSeries] with StrictLogging {
+class SeriesIndexService(using
+  elastic4sClient: Elastic4sClient,
+  searchConverterService: SearchConverterService,
+  indexService: IndexService,
+  seriesRepository: SeriesRepository,
+  props: Props
+) extends IndexService[Series, SearchableSeries] with StrictLogging {
     override val documentType: String         = props.SeriesSearchDocument
     override val searchIndex: String          = props.SeriesSearchIndex
     override val repository: SeriesRepository = seriesRepository
@@ -54,5 +55,3 @@ trait SeriesIndexService {
 
     def getMapping: MappingDefinition = properties(seriesIndexFields ++ seriesDynamics)
   }
-
-}

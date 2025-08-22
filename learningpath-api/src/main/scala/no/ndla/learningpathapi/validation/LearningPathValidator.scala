@@ -19,11 +19,13 @@ import no.ndla.common.model.NDLADate
 
 import scala.util.{Failure, Success, Try}
 
-trait LearningPathValidator {
-  this: LanguageValidator & TitleValidator & TextValidator =>
-  lazy val learningPathValidator: LearningPathValidator
-
-  class LearningPathValidator(descriptionRequired: Boolean = false) {
+class LearningPathValidator(
+  descriptionRequired: Boolean = false
+)(using
+  languageValidator: LanguageValidator,
+  titleValidator: TitleValidator,
+  textValidator: TextValidator
+) {
 
     private val MY_NDLA_LANGUAGE_MISMATCH =
       "A learning path created in MyNDLA must have exactly one supported language."
@@ -181,4 +183,3 @@ trait LearningPathValidator {
       }
     }
   }
-}

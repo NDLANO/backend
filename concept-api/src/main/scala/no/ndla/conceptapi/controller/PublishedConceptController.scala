@@ -29,12 +29,15 @@ import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
 
-trait PublishedConceptController {
-  this: WriteService & ReadService & PublishedConceptSearchService & SearchConverterService & Props &
-    ConceptControllerHelpers & ErrorHandling & TapirController =>
-  lazy val publishedConceptController: PublishedConceptController
-
-  class PublishedConceptController extends TapirController {
+class PublishedConceptController(using
+  writeService: WriteService,
+  readService: ReadService,
+  publishedConceptSearchService: PublishedConceptSearchService,
+  searchConverterService: SearchConverterService,
+  props: Props,
+  conceptControllerHelpers: ConceptControllerHelpers,
+  errorHandling: ErrorHandling
+) extends TapirController {
     import ConceptControllerHelpers.*
 
     override val serviceName: String         = "concepts"
@@ -243,5 +246,4 @@ trait PublishedConceptController {
       .serverLogicPure { case (language, fallback) =>
         readService.allTagsFromConcepts(language.code, fallback).asRight
       }
-  }
 }

@@ -25,11 +25,10 @@ import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import org.jsoup.Jsoup
 
-trait SearchConverterService {
-  this: ConverterService & SearchLanguage =>
-  lazy val searchConverterService: SearchConverterService
-
-  class SearchConverterService extends StrictLogging {
+class SearchConverterService(using
+  converterService: ConverterService,
+  searchLanguage: SearchLanguage
+) extends StrictLogging {
     def asSearchableArticle(ai: Draft): SearchableArticle = {
 
       val defaultTitle = ai.title
@@ -173,5 +172,4 @@ trait SearchConverterService {
 
     def asSearchableGrepCodes(article: Draft): Seq[SearchableGrepCode] =
       article.grepCodes.map(code => SearchableGrepCode(code))
-  }
 }

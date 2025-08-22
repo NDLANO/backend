@@ -26,12 +26,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-trait SeriesSearchService {
-  this: Elastic4sClient & SeriesIndexService & SearchConverterService & SearchService & ConverterService & Props &
-    ErrorHandling =>
-  lazy val seriesSearchService: SeriesSearchService
-
-  class SeriesSearchService extends StrictLogging with SearchService[api.SeriesSummaryDTO] {
+class SeriesSearchService(using
+  e4sClient: Elastic4sClient,
+  seriesIndexService: SeriesIndexService,
+  searchConverterService: SearchConverterService,
+  converterService: ConverterService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends StrictLogging with SearchService[api.SeriesSummaryDTO] {
     override val searchIndex: String = props.SeriesSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): Try[api.SeriesSummaryDTO] = {
@@ -137,6 +139,4 @@ trait SeriesSearchService {
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }
-  }
-
 }

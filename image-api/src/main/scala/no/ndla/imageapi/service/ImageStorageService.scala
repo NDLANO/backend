@@ -24,11 +24,11 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 
 import scala.util.{Failure, Success, Try}
 
-trait ImageStorageService {
-  this: NdlaS3Client & ReadService & Props =>
-  lazy val imageStorage: AmazonImageStorageService
-
-  class AmazonImageStorageService extends StrictLogging {
+class ImageStorageService(using
+  s3Client: NdlaS3Client,
+  readService: ReadService,
+  props: Props
+) extends StrictLogging {
     case class NdlaImage(s3Object: NdlaS3Object, fileName: String) extends ImageStream {
       lazy val imageContent: Array[Byte]           = s3Object.stream.readAllBytes()
       override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
@@ -90,6 +90,4 @@ trait ImageStorageService {
       s3Client.objectExists(storageKey)
 
     def deleteObject(storageKey: String): Try[Unit] = s3Client.deleteObject(storageKey).map(_ => ())
-  }
-
 }

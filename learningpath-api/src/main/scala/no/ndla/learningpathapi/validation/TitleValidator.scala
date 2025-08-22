@@ -11,14 +11,15 @@ package no.ndla.learningpathapi.validation
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.Title
 
-trait TitleValidator {
-  this: LanguageValidator & TextValidator =>
-  lazy val titleValidator: TitleValidator
-
-  class TitleValidator(titleRequired: Boolean = true) {
+class TitleValidator(
+  titleRequired: Boolean = true
+)(using
+  languageValidator: LanguageValidator,
+  textValidator: TextValidator
+) {
     private val MISSING_TITLE = "At least one title is required."
 
-    val noHtmlTextValidator = new TextValidator(allowHtml = false)
+    val noHtmlTextValidator = TextValidator(allowHtml = false)
 
     def validate(titles: Seq[Title], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       (titleRequired, titles.isEmpty) match {
@@ -36,4 +37,3 @@ trait TitleValidator {
           .toList
     }
   }
-}

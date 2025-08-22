@@ -33,12 +33,18 @@ import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
 
 import scala.util.{Failure, Success, Try}
 
-trait MultiDraftSearchService {
-  this: Elastic4sClient & SearchConverterService & IndexService & SearchService & DraftIndexService &
-    LearningPathIndexService & Props & ErrorHandling & DraftConceptIndexService & BaseIndexService =>
-  lazy val multiDraftSearchService: MultiDraftSearchService
-
-  class MultiDraftSearchService extends StrictLogging with SearchService with TaxonomyFiltering {
+class MultiDraftSearchService(using
+  e4sClient: Elastic4sClient,
+  searchConverterService: SearchConverterService,
+  indexService: IndexService,
+  searchService: SearchService,
+  draftIndexService: DraftIndexService,
+  learningPathIndexService: LearningPathIndexService,
+  props: Props,
+  errorHandling: ErrorHandling,
+  draftConceptIndexService: DraftConceptIndexService,
+  baseIndexService: BaseIndexService
+) extends StrictLogging with SearchService with TaxonomyFiltering {
     override val searchIndex: List[String] = List(
       SearchType.Drafts,
       SearchType.LearningPaths,
@@ -411,5 +417,3 @@ trait MultiDraftSearchService {
     private def boolUsersFilter(users: Seq[String]): Option[TermsQuery[String]] =
       Option.when(users.nonEmpty)(termsQuery("users", users))
   }
-
-}

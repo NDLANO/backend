@@ -19,11 +19,12 @@ import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
 import no.ndla.search.SearchLanguage
 
-trait ImageIndexService {
-  this: SearchConverterService & IndexService & ImageRepository & Props & SearchLanguage =>
-  lazy val imageIndexService: ImageIndexService
-
-  class ImageIndexService extends IndexService {
+class ImageIndexService(using
+  searchConverterService: SearchConverterService,
+  imageRepository: ImageRepository,
+  props: Props,
+  searchLanguage: SearchLanguage
+) extends IndexService {
     override val documentType: String                         = props.SearchDocument
     override val searchIndex: String                          = props.SearchIndex
     override val repository: Repository[ImageMetaInformation] = imageRepository
@@ -83,6 +84,4 @@ trait ImageIndexService {
 
       properties(fields ++ dynamics)
     }
-  }
-
 }

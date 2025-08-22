@@ -24,9 +24,7 @@ import sttp.tapir.model.CommaSeparated
 
 import scala.util.Failure
 
-trait StatsController {
-  this: FolderReadService & TapirController =>
-  class StatsController extends TapirController {
+class StatsController(using folderReadService: FolderReadService) extends TapirController {
     override val serviceName: String                   = "stats"
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
 
@@ -74,5 +72,4 @@ trait StatsController {
       getAllTheFavorites,
       getFolderResourceFavorites
     )
-  }
 }

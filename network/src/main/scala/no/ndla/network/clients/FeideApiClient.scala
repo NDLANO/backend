@@ -84,11 +84,7 @@ object FeideExtendedUserInfo {
   implicit val encoder: Encoder[FeideExtendedUserInfo] = deriveEncoder
 }
 
-trait FeideApiClient {
-  this: RedisClient =>
-  lazy val feideApiClient: FeideApiClient
-
-  class FeideApiClient extends StrictLogging {
+class FeideApiClient(using redisClient: RedisClient) extends StrictLogging {
 
     private val feideTimeout           = 30.seconds
     private val openIdUserInfoEndpoint = uri"https://auth.dataporten.no/openid/userinfo"
@@ -224,7 +220,5 @@ trait FeideApiClient {
       }).?
       redisClient.updateCacheAndReturnOrganization(accessToken, organization)
     }
-
-  }
 
 }

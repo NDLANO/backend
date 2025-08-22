@@ -26,11 +26,10 @@ import sttp.client3.quick.*
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
-trait TaxonomyApiClient {
-  this: NdlaClient with Props =>
-  lazy val taxonomyApiClient: TaxonomyApiClient
-
-  class TaxonomyApiClient extends StrictLogging {
+class TaxonomyApiClient(using
+  ndlaClient: NdlaClient,
+  props: Props
+) extends StrictLogging {
     private val TaxonomyApiEndpoint = s"${props.TaxonomyUrl}/v1"
     private val taxonomyTimeout     = 20.seconds
 

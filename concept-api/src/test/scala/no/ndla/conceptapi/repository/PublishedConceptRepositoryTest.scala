@@ -22,9 +22,9 @@ import scala.util.{Success, Try}
 
 class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
 
-  override lazy val dataSource: HikariDataSource = testDataSource.get
-  override lazy val migrator                     = new DBMigrator
-  var repository: PublishedConceptRepository     = _
+  override lazy val dataSource: DataSource   = testDataSource.get
+  override lazy val migrator                 = new DBMigrator
+  var repository: PublishedConceptRepository = _
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
@@ -42,7 +42,7 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (serverIsListening) {
-      DataSource.connectToDatabase()
+      dataSource.connectToDatabase()
       migrator.migrate()
     }
   }

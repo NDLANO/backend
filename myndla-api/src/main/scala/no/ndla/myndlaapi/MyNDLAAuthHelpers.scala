@@ -17,10 +17,10 @@ import sttp.monad.MonadError
 import sttp.tapir.*
 import sttp.tapir.server.PartialServerEndpoint
 
-trait MyNDLAAuthHelpers {
-  this: UserService & TapirErrorHandling =>
-
-  object MyNDLAAuthHelpers {
+class MyNDLAAuthHelpers(using
+  userService: UserService,
+  tapirErrorHandling: TapirErrorHandling
+) {
     implicit class authlessEndpointFeideExtension[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
       private type MaybeFeideToken            = Option[FeideAccessToken]
       private type PartialFeideEndpoint[F[_]] =

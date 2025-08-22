@@ -28,11 +28,10 @@ import sttp.client3.Response
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
-trait TaxonomyApiClient {
-  this: NdlaClient & Props =>
-  lazy val taxonomyApiClient: TaxonomyApiClient
-
-  class TaxonomyApiClient extends StrictLogging {
+class TaxonomyApiClient(using
+  ndlaClient: NdlaClient,
+  props: Props
+) extends StrictLogging {
     private val taxonomyTimeout            = 20.seconds
     private val TaxonomyApiEndpoint        = s"${props.TaxonomyUrl}/v1"
     private val LearningPathResourceTypeId = "urn:resourcetype:learningPath"
@@ -320,7 +319,6 @@ trait TaxonomyApiClient {
       }
 
   }
-}
 
 case class Translation(name: String, language: Option[String] = None)
 object Translation {

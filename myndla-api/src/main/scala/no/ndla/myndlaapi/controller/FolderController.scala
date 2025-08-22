@@ -38,11 +38,11 @@ import sttp.tapir.server.ServerEndpoint
 
 import java.util.UUID
 
-trait FolderController {
-  this: FolderReadService & FolderWriteService & ErrorHandling & TapirController =>
-  lazy val folderController: FolderController
-
-  class FolderController extends TapirController {
+class FolderController(using
+  folderReadService: FolderReadService,
+  folderWriteService: FolderWriteService,
+  errorHandling: ErrorHandling
+) extends TapirController {
     override val serviceName: String = "folders"
 
     override val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
@@ -324,5 +324,4 @@ trait FolderController {
       createFolderUserConnection,
       deleteFolderUserConnection()
     )
-  }
 }

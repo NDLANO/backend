@@ -23,11 +23,10 @@ import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-trait H5PApiClient {
-  this: NdlaClient with Props =>
-  lazy val h5pApiClient: H5PApiClient
-
-  class H5PApiClient extends StrictLogging {
+class H5PApiClient(using
+  ndlaClient: NdlaClient,
+  props: Props
+) extends StrictLogging {
     private val H5PApi     = s"${props.H5PAddress}/v1"
     private val h5pTimeout = 20.seconds
 
@@ -96,5 +95,4 @@ trait H5PApiClient {
         }
       }
     }
-  }
 }

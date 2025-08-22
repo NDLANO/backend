@@ -14,8 +14,10 @@ import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, SubjectPageNotFoundException}
 import no.ndla.network.tapir.{ErrorBody, TapirErrorHandling}
 
-trait ErrorHandling extends TapirErrorHandling {
-  this: Props & Clock =>
+class ErrorHandling(using
+  props: Props,
+  clock: Clock
+) extends TapirErrorHandling {
 
   import ErrorHelpers.*
 

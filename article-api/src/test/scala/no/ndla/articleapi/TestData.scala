@@ -18,10 +18,7 @@ import no.ndla.common.model.domain.{article, *}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.mapping.License
 
-trait TestDataT {
-  this: Props =>
-
-  class TestDataClass {
+class TestData(using props: Props) {
     private val publicDomainCopyright =
       Copyright(License.PublicDomain.toString, None, List(), List(), List(), None, None, false)
     private val byNcSaCopyright =

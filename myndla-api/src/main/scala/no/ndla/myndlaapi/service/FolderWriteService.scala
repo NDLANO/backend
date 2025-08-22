@@ -52,13 +52,18 @@ import java.util.UUID
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
-trait FolderWriteService {
-  this: FolderReadService & Clock & FeideApiClient & FolderRepository & FolderConverterService & UserRepository &
-    ConfigService & UserService & SearchApiClient & DBUtility =>
-
-  lazy val folderWriteService: FolderWriteService
-
-  class FolderWriteService extends StrictLogging {
+class FolderWriteService(using
+  folderReadService: FolderReadService,
+  clock: Clock,
+  feideApiClient: FeideApiClient,
+  folderRepository: FolderRepository,
+  folderConverterService: FolderConverterService,
+  userRepository: UserRepository,
+  configService: ConfigService,
+  userService: UserService,
+  searchApiClient: SearchApiClient,
+  dBUtility: DBUtility
+) extends StrictLogging {
     val MaxFolderDepth = 5L
 
     private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
@@ -759,6 +764,4 @@ trait FolderWriteService {
           else Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
         })
     }
-
-  }
 }

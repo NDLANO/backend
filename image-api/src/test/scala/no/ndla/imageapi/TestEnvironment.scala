@@ -39,72 +39,41 @@ import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends TapirApplication
-    with Elastic4sClient
-    with IndexService
-    with BaseIndexService
-    with TagIndexService
-    with SearchService
-    with ImageSearchService
-    with TagSearchService
-    with SearchConverterService
-    with SearchLanguage
-    with DataSource
-    with ConverterService
-    with ValidationService
-    with ImageRepository
-    with ReadService
-    with WriteService
-    with ImageStorageService
-    with NdlaS3Client
-    with ImageIndexService
-    with NdlaClient
-    with HealthController
-    with InternController
-    with BaseImageController
-    with ImageControllerV2
-    with ImageControllerV3
-    with RawController
-    with ImageConverter
     with MockitoSugar
-    with Clock
-    with Props
-    with ErrorHandling
-    with DBMigrator
-    with TestDataTrait
-    with Random {
-  override lazy val props     = new ImageApiProperties
+    with TestDataTrait {
+  given props     = new ImageApiProperties
   val TestData: TestDataClass = new TestDataClass
 
-  override lazy val migrator: DBMigrator   = mock[DBMigrator]
-  override lazy val s3Client: NdlaS3Client = mock[NdlaS3Client]
+  given migrator: DBMigrator   = mock[DBMigrator]
+  given s3Client: NdlaS3Client = mock[NdlaS3Client]
 
-  override lazy val dataSource: HikariDataSource           = mock[HikariDataSource]
-  override lazy val imageIndexService: ImageIndexService   = mock[ImageIndexService]
-  override lazy val imageSearchService: ImageSearchService = mock[ImageSearchService]
+  given dataSource: HikariDataSource           = mock[HikariDataSource]
+  given imageIndexService: ImageIndexService   = mock[ImageIndexService]
+  given imageSearchService: ImageSearchService = mock[ImageSearchService]
 
-  override lazy val tagIndexService: TagIndexService   = mock[TagIndexService]
-  override lazy val tagSearchService: TagSearchService = mock[TagSearchService]
+  given tagIndexService: TagIndexService   = mock[TagIndexService]
+  given tagSearchService: TagSearchService = mock[TagSearchService]
 
-  override lazy val imageRepository: ImageRepository        = mock[ImageRepository]
-  override lazy val readService: ReadService                = mock[ReadService]
-  override lazy val writeService: WriteService              = mock[WriteService]
-  override lazy val imageStorage: AmazonImageStorageService = mock[AmazonImageStorageService]
+  given imageRepository: ImageRepository        = mock[ImageRepository]
+  given readService: ReadService                = mock[ReadService]
+  given writeService: WriteService              = mock[WriteService]
+  given imageStorage: AmazonImageStorageService = mock[AmazonImageStorageService]
 
-  override lazy val ndlaClient: NdlaClient                         = mock[NdlaClient]
-  override lazy val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
-  override lazy val rawController: RawController                   = mock[RawController]
-  override lazy val healthController: HealthController             = mock[HealthController]
-  override lazy val internController: InternController             = mock[InternController]
-  override lazy val imageControllerV2: ImageControllerV2           = mock[ImageControllerV2]
-  override lazy val imageControllerV3: ImageControllerV3           = mock[ImageControllerV3]
-  override lazy val converterService: ConverterService             = mock[ConverterService]
-  override lazy val validationService: ValidationService           = mock[ValidationService]
+  given ndlaClient: NdlaClient                         = mock[NdlaClient]
+  given myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
+  given rawController: RawController                   = mock[RawController]
+  given healthController: HealthController             = mock[HealthController]
+  given internController: InternController             = mock[InternController]
+  given imageControllerV2: ImageControllerV2           = mock[ImageControllerV2]
+  given imageControllerV3: ImageControllerV3           = mock[ImageControllerV3]
+  given converterService: ConverterService             = mock[ConverterService]
+  given validationService: ValidationService           = mock[ValidationService]
   var e4sClient: NdlaE4sClient                                     = mock[NdlaE4sClient]
-  override lazy val searchConverterService: SearchConverterService = mock[SearchConverterService]
-  override lazy val imageConverter: ImageConverter                 = mock[ImageConverter]
+  given searchConverterService: SearchConverterService = mock[SearchConverterService]
+  given imageConverter: ImageConverter                 = mock[ImageConverter]
 
-  override lazy val clock: SystemClock = mock[SystemClock]
-  override lazy val random: Random     = mock[Random]
+  given clock: SystemClock = mock[SystemClock]
+  given random: Random     = mock[Random]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]

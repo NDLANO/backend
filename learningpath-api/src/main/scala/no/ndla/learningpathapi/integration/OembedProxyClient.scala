@@ -26,11 +26,10 @@ object OembedResponse {
   implicit val decoder: Decoder[OembedResponse] = deriveDecoder
 }
 
-trait OembedProxyClient {
-  this: NdlaClient & Props =>
-  lazy val oembedProxyClient: OembedProxyClient
-
-  class OembedProxyClient extends StrictLogging {
+class OembedProxyClient(using
+  ndlaClient: NdlaClient,
+  props: Props
+) extends StrictLogging {
     private val OembedProxyTimeout = 90.seconds
     private val OembedProxyBaseUrl = s"http://${props.ApiGatewayHost}/oembed-proxy/v1"
 
@@ -56,5 +55,3 @@ trait OembedProxyClient {
       ndlaClient.fetchWithForwardedAuth[A](request, None)
     }
   }
-
-}

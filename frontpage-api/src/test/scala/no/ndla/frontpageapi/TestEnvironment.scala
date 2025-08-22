@@ -21,42 +21,25 @@ import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends TapirApplication
-    with MockitoSugar
-    with DataSource
-    with SubjectPageRepository
-    with FrontPageRepository
-    with FilmFrontPageRepository
-    with FilmPageController
-    with SubjectPageController
-    with FrontPageController
-    with ReadService
-    with WriteService
-    with ConverterService
-    with Props
-    with DBFilmFrontPage
-    with DBSubjectPage
-    with DBFrontPage
-    with ErrorHandling
-    with Clock
-    with DBMigrator {
-  override lazy val props = new FrontpageApiProperties
+    with MockitoSugar {
+  given props = new FrontpageApiProperties
 
-  override lazy val clock: SystemClock           = mock[SystemClock]
-  override lazy val migrator: DBMigrator         = mock[DBMigrator]
-  override lazy val dataSource: HikariDataSource = mock[HikariDataSource]
+  given clock: SystemClock           = mock[SystemClock]
+  given migrator: DBMigrator         = mock[DBMigrator]
+  given dataSource: HikariDataSource = mock[HikariDataSource]
 
-  override lazy val filmPageController: FilmPageController           = mock[FilmPageController]
-  override lazy val subjectPageController: SubjectPageController     = mock[SubjectPageController]
-  override lazy val frontPageController: FrontPageController         = mock[FrontPageController]
-  override lazy val subjectPageRepository: SubjectPageRepository     = mock[SubjectPageRepository]
-  override lazy val frontPageRepository: FrontPageRepository         = mock[FrontPageRepository]
-  override lazy val filmFrontPageRepository: FilmFrontPageRepository = mock[FilmFrontPageRepository]
-  override lazy val healthController: TapirHealthController          = mock[TapirHealthController]
-  override lazy val readService: ReadService                         = mock[ReadService]
-  override lazy val writeService: WriteService                       = mock[WriteService]
+  given filmPageController: FilmPageController           = mock[FilmPageController]
+  given subjectPageController: SubjectPageController     = mock[SubjectPageController]
+  given frontPageController: FrontPageController         = mock[FrontPageController]
+  given subjectPageRepository: SubjectPageRepository     = mock[SubjectPageRepository]
+  given frontPageRepository: FrontPageRepository         = mock[FrontPageRepository]
+  given filmFrontPageRepository: FilmFrontPageRepository = mock[FilmFrontPageRepository]
+  given healthController: TapirHealthController          = mock[TapirHealthController]
+  given readService: ReadService                         = mock[ReadService]
+  given writeService: WriteService                       = mock[WriteService]
 
-  override lazy val ndlaClient: NdlaClient           = mock[NdlaClient]
-  override lazy val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
+  given ndlaClient: NdlaClient           = mock[NdlaClient]
+  given myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]

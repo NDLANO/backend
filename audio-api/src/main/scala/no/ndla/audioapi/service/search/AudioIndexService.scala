@@ -23,12 +23,14 @@ import no.ndla.search.Elastic4sClient
 
 import scala.util.{Failure, Try}
 
-trait AudioIndexService {
-  this: Elastic4sClient & SearchConverterService & IndexService & SeriesIndexService & AudioRepository & Props =>
-
-  lazy val audioIndexService: AudioIndexService
-
-  class AudioIndexService extends IndexService[AudioMetaInformation, SearchableAudioInformation] with StrictLogging {
+class AudioIndexService(using
+  elastic4sClient: Elastic4sClient,
+  searchConverterService: SearchConverterService,
+  indexService: IndexService,
+  seriesIndexService: SeriesIndexService,
+  audioRepository: AudioRepository,
+  props: Props
+) extends IndexService[AudioMetaInformation, SearchableAudioInformation] with StrictLogging {
     override val documentType: String        = props.SearchDocument
     override val searchIndex: String         = props.SearchIndex
     override val repository: AudioRepository = audioRepository
@@ -77,5 +79,3 @@ trait AudioIndexService {
       properties(fields ++ dynamics)
     }
   }
-
-}

@@ -20,24 +20,16 @@ import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment
     extends TapirApplication
-    with OEmbedProxyController
-    with OEmbedServiceComponent
-    with NdlaClient
-    with ProviderService
-    with MockitoSugar
-    with Props
-    with MemoizeHelpers
-    with ErrorHandling
-    with Clock {
-  override lazy val props = new OEmbedProxyProperties
+    with MockitoSugar {
+  given props = new OEmbedProxyProperties
 
-  lazy val oEmbedService: OEmbedService                 = mock[OEmbedService]
-  lazy val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
-  lazy val ndlaClient: NdlaClient                       = mock[NdlaClient]
-  lazy val myndlaApiClient: MyNDLAApiClient             = mock[MyNDLAApiClient]
-  lazy val providerService: ProviderService             = mock[ProviderService]
-  lazy val healthController: TapirHealthController      = mock[TapirHealthController]
-  lazy val clock: SystemClock                           = mock[SystemClock]
+  given oEmbedService: OEmbedService                 = mock[OEmbedService]
+  given oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
+  given ndlaClient: NdlaClient                       = mock[NdlaClient]
+  given myndlaApiClient: MyNDLAApiClient             = mock[MyNDLAApiClient]
+  given providerService: ProviderService             = mock[ProviderService]
+  given healthController: TapirHealthController      = mock[TapirHealthController]
+  given clock: SystemClock                           = mock[SystemClock]
 
   def services: List[TapirController] = List.empty
   val swagger: SwaggerController      = mock[SwaggerController]

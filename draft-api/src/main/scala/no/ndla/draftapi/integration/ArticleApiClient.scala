@@ -37,11 +37,14 @@ import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Try}
 import common.getNextRevision
 
-trait ArticleApiClient {
-  this: NdlaClient & ConverterService & Props =>
-  lazy val articleApiClient: ArticleApiClient
-
-  class ArticleApiClient(ArticleBaseUrl: String = s"http://${props.ArticleApiHost}") {
+class ArticleApiClient(
+  ArticleBaseUrl: String
+)(using
+  ndlaClient: NdlaClient,
+  converterService: ConverterService,
+  props: Props
+) {
+  def this()(using NdlaClient, ConverterService, Props) = this(s"http://${summon[Props].ArticleApiHost}")
     private val InternalEndpoint = s"$ArticleBaseUrl/intern"
     private val deleteTimeout    = 10.seconds
     private val timeout          = 15.seconds

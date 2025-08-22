@@ -28,19 +28,20 @@ import scala.collection.mutable
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
-trait StateTransitionRules {
-  this: WriteService
-    with DraftRepository
-    with Clock
-    with ArticleApiClient
-    with TaxonomyApiClient
-    with LearningpathApiClient
-    with H5PApiClient
-    with ConverterService
-    with ContentValidator
-    with ArticleIndexService
-    with ErrorHandling
-    with SearchApiClient =>
+class StateTransitionRules(using
+  writeService: WriteService,
+  draftRepository: DraftRepository,
+  clock: Clock,
+  articleApiClient: ArticleApiClient,
+  taxonomyApiClient: TaxonomyApiClient,
+  learningpathApiClient: LearningpathApiClient,
+  h5PApiClient: H5PApiClient,
+  converterService: ConverterService,
+  contentValidator: ContentValidator,
+  articleIndexService: ArticleIndexService,
+  errorHandling: ErrorHandling,
+  searchApiClient: SearchApiClient
+) {
 
   object StateTransitionRules {
     private[service] val checkIfArticleIsInUse: SideEffect =

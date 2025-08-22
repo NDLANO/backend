@@ -39,57 +39,9 @@ import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
-class ComponentRegistry(properties: DraftApiProperties)
-    extends BaseComponentRegistry[DraftApiProperties]
-    with TapirApplication
-    with DataSource
-    with InternController
-    with ConverterService
-    with CommonConverter
-    with StateTransitionRules
-    with LearningpathApiClient
-    with TaxonomyApiClient
-    with DraftController
-    with MemoizeHelpers
-    with DraftRepository
-    with UserDataRepository
-    with Elastic4sClient
-    with ReindexClient
-    with ArticleSearchService
-    with TagSearchService
-    with GrepCodesSearchService
-    with IndexService
-    with BaseIndexService
-    with ArticleIndexService
-    with TagIndexService
-    with GrepCodesIndexService
-    with SearchService
-    with StrictLogging
-    with NdlaClient
-    with SearchConverterService
-    with ReadService
-    with DBUtility
-    with WriteService
-    with FileController
-    with FileStorageService
-    with NdlaS3Client
-    with ContentValidator
-    with Clock
-    with UUIDUtil
-    with ArticleApiClient
-    with SearchApiClient
-    with H5PApiClient
-    with ImageApiClient
-    with UserDataController
-    with Props
-    with DBMigrator
-    with ErrorHandling
-    with SwaggerDocControllerConfig
-    with SearchLanguage
-    with V57__MigrateSavedSearch
-    with V66__SetHideBylineForImagesNotCopyrighted {
-  override lazy val props: DraftApiProperties = properties
-  override lazy val migrator: DBMigrator      = DBMigrator(
+class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication[DraftApiProperties] {
+  given props: DraftApiProperties = properties
+  given migrator: DBMigrator      = DBMigrator(
     new R__RemoveEmptyStringLanguageFields(props),
     new R__RemoveStatusPublishedArticles(props),
     new R__SetArticleLanguageFromTaxonomy(props),
@@ -100,51 +52,51 @@ class ComponentRegistry(properties: DraftApiProperties)
     new V57__MigrateSavedSearch,
     new V66__SetHideBylineForImagesNotCopyrighted
   )
-  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
-  override lazy val DBUtil: DBUtility            = new DBUtility
+  given dataSource: HikariDataSource = DataSource.getDataSource
+  given DBUtil: DBUtility            = new DBUtility
 
-  override lazy val draftRepository    = new DraftRepository
-  override lazy val userDataRepository = new UserDataRepository
+  given draftRepository    = new DraftRepository
+  given userDataRepository = new UserDataRepository
 
-  override lazy val articleSearchService   = new ArticleSearchService
-  override lazy val articleIndexService    = new ArticleIndexService
-  override lazy val tagSearchService       = new TagSearchService
-  override lazy val tagIndexService        = new TagIndexService
-  override lazy val grepCodesSearchService = new GrepCodesSearchService
-  override lazy val grepCodesIndexService  = new GrepCodesIndexService
+  given articleSearchService   = new ArticleSearchService
+  given articleIndexService    = new ArticleIndexService
+  given tagSearchService       = new TagSearchService
+  given tagIndexService        = new TagIndexService
+  given grepCodesSearchService = new GrepCodesSearchService
+  given grepCodesIndexService  = new GrepCodesIndexService
 
-  override lazy val converterService = new ConverterService
-  override lazy val contentValidator = new ContentValidator()
-  override lazy val importValidator  = new ContentValidator()
+  given converterService = new ConverterService
+  given contentValidator = new ContentValidator()
+  given importValidator  = new ContentValidator()
 
-  override lazy val ndlaClient                       = new NdlaClient
-  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
-  override lazy val searchConverterService           = new SearchConverterService
-  override lazy val readService                      = new ReadService
-  override lazy val writeService                     = new WriteService
-  override lazy val reindexClient                    = new ReindexClient
+  given ndlaClient                       = new NdlaClient
+  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  given searchConverterService           = new SearchConverterService
+  given readService                      = new ReadService
+  given writeService                     = new WriteService
+  given reindexClient                    = new ReindexClient
 
-  override lazy val fileStorage = new FileStorageService
+  given fileStorage = new FileStorageService
 
-  override lazy val s3Client = new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
+  given s3Client = new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
 
-  override lazy val clock    = new SystemClock
-  override lazy val uuidUtil = new UUIDUtil
+  given clock    = new SystemClock
+  given uuidUtil = new UUIDUtil
 
-  override lazy val articleApiClient      = new ArticleApiClient
-  override lazy val searchApiClient       = new SearchApiClient
-  override lazy val taxonomyApiClient     = new TaxonomyApiClient
-  override lazy val learningpathApiClient = new LearningpathApiClient
-  override lazy val h5pApiClient          = new H5PApiClient
-  override lazy val imageApiClient        = new ImageApiClient
+  given articleApiClient      = new ArticleApiClient
+  given searchApiClient       = new SearchApiClient
+  given taxonomyApiClient     = new TaxonomyApiClient
+  given learningpathApiClient = new LearningpathApiClient
+  given h5pApiClient          = new H5PApiClient
+  given imageApiClient        = new ImageApiClient
 
-  override lazy val internController                        = new InternController
-  override lazy val draftController                         = new DraftController
-  override lazy val fileController                          = new FileController
-  override lazy val userDataController                      = new UserDataController
-  override lazy val healthController: TapirHealthController = new TapirHealthController
+  given internController                        = new InternController
+  given draftController                         = new DraftController
+  given fileController                          = new FileController
+  given userDataController                      = new UserDataController
+  given healthController: TapirHealthController = new TapirHealthController
 
   val swagger = new SwaggerController(
     List[TapirController](

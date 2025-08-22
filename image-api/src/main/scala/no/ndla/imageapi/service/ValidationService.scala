@@ -20,11 +20,9 @@ import org.jsoup.safety.Safelist
 
 import scala.util.{Failure, Success, Try}
 
-trait ValidationService {
-  this: Props =>
-  lazy val validationService: ValidationService
-
-  class ValidationService {
+class ValidationService(using
+  props: Props
+) {
 
     def validateImageFile(imageFile: UploadedFile): Option[ValidationMessage] = {
       val fn = imageFile.fileName.getOrElse("").stripPrefix("\"").stripSuffix("\"")
@@ -193,5 +191,4 @@ trait ValidationService {
     private def languageCodeSupported6391(languageCode: String): Boolean =
       get6391CodeFor6392CodeMappings.exists(_._2 == languageCode)
 
-  }
 }

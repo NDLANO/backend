@@ -48,13 +48,20 @@ import scala.util.{Failure, Success, Try}
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
-trait InternController {
-  this: IndexService & ArticleIndexService & LearningPathIndexService & DraftIndexService & DraftConceptIndexService &
-    NodeIndexService & TaxonomyApiClient & GrepApiClient & GrepIndexService & Props & ErrorHandling & MyNDLAApiClient &
-    TapirController =>
-  lazy val internController: InternController
-
-  class InternController extends TapirController with StrictLogging {
+class InternController(using
+  indexService: IndexService,
+  articleIndexService: ArticleIndexService,
+  learningPathIndexService: LearningPathIndexService,
+  draftIndexService: DraftIndexService,
+  draftConceptIndexService: DraftConceptIndexService,
+  nodeIndexService: NodeIndexService,
+  taxonomyApiClient: TaxonomyApiClient,
+  grepApiClient: GrepApiClient,
+  grepIndexService: GrepIndexService,
+  props: Props,
+  errorHandling: ErrorHandling,
+  myNDLAApiClient: MyNDLAApiClient
+) extends TapirController with StrictLogging {
     import ErrorHelpers._
 
     implicit val ec: ExecutionContext =
@@ -420,5 +427,4 @@ trait InternController {
             }
         }
       }
-  }
 }

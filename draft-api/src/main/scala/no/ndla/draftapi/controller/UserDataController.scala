@@ -17,11 +17,11 @@ import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
-trait UserDataController {
-  this: ReadService & WriteService & ErrorHandling & TapirController =>
-  lazy val userDataController: UserDataController
-
-  class UserDataController extends TapirController {
+class UserDataController(using
+  readService: ReadService,
+  writeService: WriteService,
+  errorHandling: ErrorHandling
+) extends TapirController {
     override val serviceName: String         = "user-data"
     override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
 
@@ -50,6 +50,4 @@ trait UserDataController {
       .serverLogicPure { userInfo => updatedUserData =>
         writeService.updateUserData(updatedUserData, userInfo)
       }
-  }
-
 }

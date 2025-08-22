@@ -21,10 +21,14 @@ import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
-trait IndexService {
-  this: Elastic4sClient & BaseIndexService & SearchConverterService & AudioRepository & Props & SearchLanguage =>
-
-  abstract class IndexService[D, T] extends BaseIndexService with StrictLogging {
+abstract class IndexService[D, T](using
+  e4sClient: Elastic4sClient,
+  baseIndexService: BaseIndexService,
+  searchConverterService: SearchConverterService,
+  audioRepository: AudioRepository,
+  props: Props,
+  searchLanguage: SearchLanguage
+) extends BaseIndexService with StrictLogging {
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
     val documentType: String
@@ -104,17 +108,15 @@ trait IndexService {
       */
     protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
       if (keepRaw) {
-        SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+        searchLanguage.languageAnalyzers.map(langAnalyzer =>
           textField(s"$fieldName.${langAnalyzer.languageTag.toString()}")
             .analyzer(langAnalyzer.analyzer)
             .fields(keywordField("raw"))
         )
       } else {
-        SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+        searchLanguage.languageAnalyzers.map(langAnalyzer =>
           textField(s"$fieldName.${langAnalyzer.languageTag.toString()}").analyzer(langAnalyzer.analyzer)
         )
       }
     }
   }
-
-}

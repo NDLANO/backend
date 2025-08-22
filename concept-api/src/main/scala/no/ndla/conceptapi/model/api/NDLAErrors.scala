@@ -17,8 +17,7 @@ import no.ndla.network.tapir.{AllErrors, TapirErrorHandling}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
-trait ErrorHandling extends TapirErrorHandling {
-  this: Props & Clock & DataSource =>
+class ErrorHandling(using props: Props, clock: Clock, dataSource: DataSource) extends TapirErrorHandling {
 
   import ConceptErrorHelpers.*
   import ErrorHelpers.*
@@ -36,7 +35,7 @@ trait ErrorHandling extends TapirErrorHandling {
       errorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, 400)
     case ona: OperationNotAllowedException => errorBody(OPERATION_NOT_ALLOWED, ona.getMessage, 400)
     case psqle: PSQLException              =>
-      DataSource.connectToDatabase()
+      dataSource.connectToDatabase()
       logger.error("Something went wrong with database connections", psqle)
       errorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, 500)
     case h: HttpRequestException =>

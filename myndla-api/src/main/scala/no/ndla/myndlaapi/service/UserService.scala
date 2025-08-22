@@ -23,13 +23,17 @@ import scalikejdbc.{AutoSession, DBSession}
 
 import scala.util.{Failure, Success, Try}
 
-trait UserService {
-  this: FeideApiClient & FolderConverterService & ConfigService & UserRepository & Clock & FolderWriteService &
-    NodeBBClient & FolderRepository & DBUtility =>
-
-  lazy val userService: UserService
-
-  class UserService {
+class UserService(using
+  feideApiClient: FeideApiClient,
+  folderConverterService: FolderConverterService,
+  configService: ConfigService,
+  userRepository: UserRepository,
+  clock: Clock,
+  folderWriteService: FolderWriteService,
+  nodeBBClient: NodeBBClient,
+  folderRepository: FolderRepository,
+  dBUtility: DBUtility
+) {
     def getMyNdlaUserDataDomain(
         feideAccessToken: Option[FeideAccessToken]
     ): Try[MyNDLAUser] = {
@@ -205,5 +209,4 @@ trait UserService {
           _            <- userRepository.deleteUser(feideId)(session)
         } yield ()
       })
-  }
 }

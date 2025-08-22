@@ -31,13 +31,18 @@ import java.util.UUID
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
-trait FolderReadService {
-  this: FolderConverterService & FolderRepository & UserRepository & FeideApiClient & Clock & ConfigService &
-    UserService & DBUtility & LearningPathApiClient & RobotRepository =>
-
-  lazy val folderReadService: FolderReadService
-
-  class FolderReadService {
+class FolderReadService(using
+  folderConverterService: FolderConverterService,
+  folderRepository: FolderRepository,
+  userRepository: UserRepository,
+  feideApiClient: FeideApiClient,
+  clock: Clock,
+  configService: ConfigService,
+  userService: UserService,
+  dBUtility: DBUtility,
+  learningPathApiClient: LearningPathApiClient,
+  robotRepository: RobotRepository
+) {
     private def getSubFoldersAndResources(
         topFolders: List[domain.Folder],
         includeSubfolders: Boolean,
@@ -371,6 +376,4 @@ trait FolderReadService {
         userData = feideUser,
         folders = folders.folders
       )
-
-  }
 }

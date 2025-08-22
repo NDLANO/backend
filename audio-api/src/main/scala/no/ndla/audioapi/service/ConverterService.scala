@@ -25,11 +25,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 
-trait ConverterService {
-  this: Clock & Props =>
-  lazy val converterService: ConverterService
-
-  class ConverterService extends StrictLogging {
+class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     def updateSeries(existingSeries: domain.Series, updatedSeries: api.NewSeriesDTO): domain.Series = {
       val newTitle       = common.Title(updatedSeries.title, updatedSeries.language)
       val newDescription = domain.Description(updatedSeries.description, updatedSeries.language)
@@ -301,5 +297,3 @@ trait ConverterService {
       }
     }
   }
-
-}

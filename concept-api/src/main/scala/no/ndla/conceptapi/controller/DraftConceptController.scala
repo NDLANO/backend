@@ -32,12 +32,16 @@ import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
 
-trait DraftConceptController {
-  this: WriteService & ReadService & DraftConceptSearchService & SearchConverterService & ConverterService & Props &
-    ConceptControllerHelpers & ErrorHandling & TapirController =>
-  lazy val draftConceptController: DraftConceptController
-
-  class DraftConceptController extends TapirController {
+class DraftConceptController(using
+  writeService: WriteService,
+  readService: ReadService,
+  draftConceptSearchService: DraftConceptSearchService,
+  searchConverterService: SearchConverterService,
+  converterService: ConverterService,
+  props: Props,
+  conceptControllerHelpers: ConceptControllerHelpers,
+  errorHandling: ErrorHandling
+) extends TapirController {
     override val serviceName: String         = "drafts"
     override val prefix: EndpointInput[Unit] = "concept-api" / "v1" / serviceName
 
@@ -362,5 +366,4 @@ trait DraftConceptController {
           writeService.updateConcept(conceptId, updatedConcept, user)
         }
       }
-  }
 }

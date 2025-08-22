@@ -35,12 +35,16 @@ import sttp.tapir.*
 import java.io.File
 import scala.util.{Failure, Success, Try}
 
-trait AudioController {
-  this: AudioRepository & ReadService & WriteService & AudioSearchService & SearchConverterService & ConverterService &
-    Props & ErrorHandling & TapirController =>
-  lazy val audioApiController: AudioController
-
-  class AudioController extends TapirController {
+class AudioController(using
+  audioRepository: AudioRepository,
+  readService: ReadService,
+  writeService: WriteService,
+  audioSearchService: AudioSearchService,
+  searchConverterService: SearchConverterService,
+  converterService: ConverterService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends TapirController {
     val maxAudioFileSizeBytes: Int           = props.MaxAudioFileSizeBytes
     override val serviceName: String         = "audio"
     override val prefix: EndpointInput[Unit] = "audio-api" / "v1" / serviceName

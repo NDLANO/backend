@@ -24,11 +24,10 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success, Try}
 
-trait SearchApiClient {
-  this: NdlaClient & Props =>
-  lazy val searchApiClient: SearchApiClient
-
-  class SearchApiClient extends StrictLogging {
+class SearchApiClient(using
+  ndlaClient: NdlaClient,
+  props: Props
+) extends StrictLogging {
     private val IndexTimeout = 90.seconds
     @unused
     private val SearchApiBaseUrl = s"http://${props.SearchApiHost}"
@@ -92,5 +91,3 @@ trait SearchApiClient {
     }
 
   }
-
-}

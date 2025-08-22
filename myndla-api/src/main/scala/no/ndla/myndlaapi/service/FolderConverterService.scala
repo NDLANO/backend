@@ -31,12 +31,7 @@ import java.util.UUID
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
-trait FolderConverterService {
-  this: Clock & NodeBBClient =>
-
-  lazy val folderConverterService: FolderConverterService
-
-  class FolderConverterService extends StrictLogging {
+class FolderConverterService(using clock: Clock, nodebb: NodeBBClient) extends StrictLogging {
     def toApiFolder(
         domainFolder: domain.Folder,
         breadcrumbs: List[api.BreadcrumbDTO],
@@ -327,5 +322,3 @@ trait FolderConverterService {
     }
 
   }
-
-}

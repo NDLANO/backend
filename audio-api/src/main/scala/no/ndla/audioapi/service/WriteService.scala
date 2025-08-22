@@ -26,12 +26,18 @@ import no.ndla.network.tapir.auth.TokenUser
 import java.lang.Math.max
 import scala.util.{Failure, Random, Success, Try}
 
-trait WriteService {
-  this: ConverterService & ValidationService & AudioRepository & SeriesRepository & AudioIndexService &
-    SeriesIndexService & TagIndexService & NdlaS3Client & ReadService & Clock =>
-  lazy val writeService: WriteService
-
-  class WriteService extends StrictLogging {
+class WriteService(using
+  converterService: ConverterService,
+  validationService: ValidationService,
+  audioRepository: AudioRepository,
+  seriesRepository: SeriesRepository,
+  audioIndexService: AudioIndexService,
+  seriesIndexService: SeriesIndexService,
+  tagIndexService: TagIndexService,
+  s3Client: NdlaS3Client,
+  readService: ReadService,
+  clock: Clock
+) extends StrictLogging {
 
     def updateSeries(id: Long, toUpdateSeries: api.NewSeriesDTO): Try[api.SeriesDTO] = {
       seriesRepository.withId(id) match {
@@ -431,5 +437,4 @@ trait WriteService {
       s"$randomString$extensionWithDot"
     }
 
-  }
 }

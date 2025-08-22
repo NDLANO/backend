@@ -31,75 +31,41 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.TapirApplication
 import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
-class ComponentRegistry(properties: ImageApiProperties)
-    extends BaseComponentRegistry[ImageApiProperties]
-    with TapirApplication
-    with Elastic4sClient
-    with IndexService
-    with BaseIndexService
-    with TagIndexService
-    with ImageIndexService
-    with SearchService
-    with ImageSearchService
-    with SearchLanguage
-    with TagSearchService
-    with SearchConverterService
-    with DataSource
-    with ImageRepository
-    with ReadService
-    with WriteService
-    with ImageStorageService
-    with NdlaClient
-    with ConverterService
-    with ValidationService
-    with BaseImageController
-    with ImageControllerV2
-    with ImageControllerV3
-    with RawController
-    with InternController
-    with HealthController
-    with ImageConverter
-    with Clock
-    with Props
-    with DBMigrator
-    with ErrorHandling
-    with Random
-    with NdlaS3Client
-    with SwaggerDocControllerConfig {
-  override lazy val props: ImageApiProperties = properties
+class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication [ImageApiProperties] {
+  given props: ImageApiProperties = properties
 
-  override lazy val migrator: DBMigrator = DBMigrator(
+  given migrator: DBMigrator = DBMigrator(
     new V6__AddAgreementToImages,
     new V7__TranslateUntranslatedAuthors
   )
-  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  given dataSource: HikariDataSource = DataSource.getDataSource
 
-  override lazy val s3Client = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  given s3Client = new NdlaS3Client(props.StorageName, props.StorageRegion)
 
-  override lazy val imageIndexService                = new ImageIndexService
-  override lazy val imageSearchService               = new ImageSearchService
-  override lazy val tagIndexService                  = new TagIndexService
-  override lazy val tagSearchService                 = new TagSearchService
-  override lazy val imageRepository                  = new ImageRepository
-  override lazy val readService                      = new ReadService
-  override lazy val writeService                     = new WriteService
-  override lazy val validationService                = new ValidationService
-  override lazy val imageStorage                     = new AmazonImageStorageService
-  override lazy val ndlaClient                       = new NdlaClient
-  override lazy val converterService                 = new ConverterService
+  given imageIndexService                = new ImageIndexService
+  given imageSearchService               = new ImageSearchService
+  given tagIndexService                  = new TagIndexService
+  given tagSearchService                 = new TagSearchService
+  given imageRepository                  = new ImageRepository
+  given readService                      = new ReadService
+  given writeService                     = new WriteService
+  given validationService                = new ValidationService
+  given imageStorage                     = new AmazonImageStorageService
+  given ndlaClient                       = new NdlaClient
+  given converterService                 = new ConverterService
   var e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
-  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
-  override lazy val searchConverterService           = new SearchConverterService
+  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  given searchConverterService           = new SearchConverterService
 
-  override lazy val imageConverter = new ImageConverter
-  override lazy val clock          = new SystemClock
-  override lazy val random         = new Random
+  given imageConverter = new ImageConverter
+  given clock          = new SystemClock
+  given random         = new Random
 
-  override lazy val imageControllerV2 = new ImageControllerV2
-  override lazy val imageControllerV3 = new ImageControllerV3
-  override lazy val rawController     = new RawController
-  override lazy val internController  = new InternController
-  override lazy val healthController  = new HealthController
+  given imageControllerV2 = new ImageControllerV2
+  given imageControllerV3 = new ImageControllerV3
+  given rawController     = new RawController
+  given internController  = new InternController
+  given healthController  = new HealthController
 
   val swagger = new SwaggerController(
     List[TapirController](

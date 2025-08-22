@@ -17,11 +17,10 @@ import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-trait FilmFrontPageRepository {
-  this: DataSource & DBFilmFrontPage =>
-  lazy val filmFrontPageRepository: FilmFrontPageRepository
-
-  class FilmFrontPageRepository {
+class FilmFrontPageRepository(using
+  dataSource: DataSource,
+  dBFilmFrontPage: DBFilmFrontPage
+) {
     val logger: Logger = org.log4s.getLogger
     import FilmFrontPage._
 
@@ -72,7 +71,5 @@ trait FilmFrontPageRepository {
         sql"update ${DBFilmFrontPageData.table} set document=$dataObject".update()
       ).map(_ => page)
     }
-
-  }
 
 }

@@ -39,12 +39,16 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 import common.getNextRevision
 
-trait ConverterService {
-  this: Clock & DraftRepository & ArticleApiClient & StateTransitionRules & WriteService & UUIDUtil & CommonConverter &
-    Props =>
-  lazy val converterService: ConverterService
-
-  class ConverterService extends StrictLogging {
+class ConverterService(using
+  clock: Clock,
+  draftRepository: DraftRepository,
+  articleApiClient: ArticleApiClient,
+  stateTransitionRules: StateTransitionRules,
+  writeService: WriteService,
+  uUIDUtil: UUIDUtil,
+  commonConverter: CommonConverter,
+  props: Props
+) extends StrictLogging {
     def toDomainArticle(newArticleId: Long, newArticle: api.NewArticleDTO, user: TokenUser): Try[Draft] = {
       val domainTitles  = Seq(common.Title(newArticle.title, newArticle.language))
       val domainContent = newArticle.content
@@ -757,5 +761,3 @@ trait ConverterService {
     }
 
   }
-
-}

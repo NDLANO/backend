@@ -24,17 +24,14 @@ import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
-trait GrepCodesSearchService {
-  this: Elastic4sClient
-    with SearchConverterService
-    with SearchService
-    with GrepCodesIndexService
-    with SearchConverterService
-    with Props
-    with ErrorHandling =>
-  lazy val grepCodesSearchService: GrepCodesSearchService
-
-  class GrepCodesSearchService extends StrictLogging with BasicSearchService[String] {
+class GrepCodesSearchService(using
+  e4sClient: Elastic4sClient,
+  searchConverterService: SearchConverterService,
+  searchService: SearchService,
+  grepCodesIndexService: GrepCodesIndexService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends StrictLogging with BasicSearchService[String] {
     override val searchIndex: String = props.DraftGrepCodesSearchIndex
 
     def getHits(response: SearchResponse): Seq[String] = {
@@ -111,5 +108,4 @@ trait GrepCodesSearchService {
         case Failure(ex) => logger.warn(ex.getMessage, ex)
       }
     }
-  }
 }

@@ -19,12 +19,7 @@ import no.ndla.network.tapir.auth.TokenUser
 import scala.annotation.unused
 import scala.util.{Failure, Success, Try}
 
-trait ConfigService {
-  this: ConfigRepository & Clock =>
-
-  lazy val configService: ConfigService
-
-  class ConfigService {
+class ConfigService(using configRepository: ConfigRepository, clock: Clock) {
 
     def isWriteRestricted: Try[Boolean] = getConfigBoolean(ConfigKey.LearningpathWriteRestricted)
 
@@ -90,4 +85,3 @@ trait ConfigService {
       )
     }
   }
-}

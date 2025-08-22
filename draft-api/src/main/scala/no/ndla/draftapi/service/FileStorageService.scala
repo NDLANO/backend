@@ -16,11 +16,10 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse
 
 import scala.util.Try
 
-trait FileStorageService {
-  this: NdlaS3Client with Props =>
-  lazy val fileStorage: FileStorageService
-
-  class FileStorageService extends StrictLogging {
+class FileStorageService(using
+  s3Client: NdlaS3Client,
+  props: Props
+) extends StrictLogging {
     val resourceDirectory = "resources"
 
     def uploadResourceFromStream(stream: UploadedFile, storageKey: String): Try[HeadObjectResponse] = {
@@ -47,6 +46,4 @@ trait FileStorageService {
 
     def deleteResourceWithPath(filePath: String): Try[_] =
       s3Client.deleteObject(filePath)
-  }
-
 }

@@ -22,10 +22,12 @@ import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait IndexService {
-  this: Elastic4sClient & BaseIndexService & Props & SearchLanguage =>
-
-  abstract class IndexService[D, T <: AnyRef] extends BaseIndexService with StrictLogging {
+abstract class IndexService[D, T <: AnyRef](using
+  e4sClient: Elastic4sClient,
+  baseIndexService: BaseIndexService,
+  props: Props,
+  searchLanguage: SearchLanguage
+) extends BaseIndexService with StrictLogging {
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
     val repository: Repository[D]
 
@@ -120,5 +122,4 @@ trait IndexService {
         )
       }
     }
-  }
 }

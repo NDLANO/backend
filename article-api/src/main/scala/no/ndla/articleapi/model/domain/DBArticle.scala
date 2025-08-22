@@ -13,8 +13,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Article
 import scalikejdbc.*
 
-trait DBArticle {
-  this: Props =>
+class DBArticle(using props: Props) {
   object Article extends SQLSyntaxSupport[Article] {
 
     override val tableName                       = "contentdata"
@@ -47,6 +46,4 @@ trait DBArticle {
         article = article
       )
     }
-  }
-
 }

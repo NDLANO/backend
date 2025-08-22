@@ -20,8 +20,11 @@ import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 import no.ndla.common.errors.OperationNotAllowedException
 
-trait ErrorHandling extends TapirErrorHandling {
-  this: Props with Clock with DataSource =>
+class ErrorHandling(using
+  props: Props,
+  clock: Clock,
+  dataSource: DataSource
+) extends TapirErrorHandling {
 
   import ErrorHelpers._
   import LearningpathHelpers._
@@ -45,7 +48,7 @@ trait ErrorHandling extends TapirErrorHandling {
     case i: ElasticIndexingException =>
       errorBody(GENERIC, i.getMessage, 500)
     case _: PSQLException =>
-      DataSource.connectToDatabase()
+      dataSource.connectToDatabase()
       errorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, 500)
     case mse: InvalidLpStatusException =>
       errorBody(MISSING_STATUS, mse.getMessage, 400)

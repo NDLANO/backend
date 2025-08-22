@@ -29,11 +29,7 @@ import no.ndla.searchapi.model.api.{
 import no.ndla.searchapi.model.api.article.ArticleIntroductionDTO
 import no.ndla.searchapi.model.domain.*
 
-trait ConverterService {
-  this: Props =>
-  lazy val converterService: ConverterService
-
-  class ConverterService {
+class ConverterService(using props: Props) {
     def searchResultToApiModel(searchResults: ApiSearchResults): SearchResultsDTO = {
       searchResults match {
         case a: ArticleApiSearchResults      => articleSearchResultsToApi(a)
@@ -137,5 +133,4 @@ trait ConverterService {
         audio.supportedLanguages
       )
     }
-  }
 }

@@ -57,12 +57,18 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 import no.ndla.common.model.domain.Priority
 
-trait SearchController {
-  this: SearchApiClient & MultiSearchService & SearchConverterService & SearchService & MultiDraftSearchService &
-    FeideApiClient & Props & ErrorHandling & TapirController & GrepSearchService & GetSearchQueryParams =>
-  lazy val searchController: SearchController
-
-  class SearchController extends TapirController {
+class SearchController(using
+  searchApiClient: SearchApiClient,
+  multiSearchService: MultiSearchService,
+  searchConverterService: SearchConverterService,
+  searchService: SearchService,
+  multiDraftSearchService: MultiDraftSearchService,
+  feideApiClient: FeideApiClient,
+  props: Props,
+  errorHandling: ErrorHandling,
+  grepSearchService: GrepSearchService,
+  getSearchQueryParams: GetSearchQueryParams
+) extends TapirController {
     override val serviceName: String         = "search"
     override val prefix: EndpointInput[Unit] = "search-api" / "v1" / serviceName
 
@@ -537,5 +543,4 @@ trait SearchController {
           )
       }
     }
-  }
 }

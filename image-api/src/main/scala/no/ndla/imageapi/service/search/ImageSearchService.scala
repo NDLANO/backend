@@ -29,14 +29,18 @@ import no.ndla.search.Elastic4sClient
 
 import scala.util.{Failure, Success, Try}
 
-trait ImageSearchService {
-  this: Elastic4sClient & ImageIndexService & SearchService & SearchConverterService & Props & ErrorHandling &
-    IndexService =>
-  lazy val imageSearchService: ImageSearchService
-  class ImageSearchService extends SearchService[(SearchableImage, MatchedLanguage)] with StrictLogging {
+class ImageSearchService(using
+  e4sClient: Elastic4sClient,
+  imageIndexService: ImageIndexService,
+  searchService: SearchService[?],
+  searchConverterService: SearchConverterService,
+  props: Props,
+  errorHandling: ErrorHandling,
+  indexService: IndexService
+) extends SearchService[(SearchableImage, MatchedLanguage)] with StrictLogging {
     private val noCopyright                 = boolQuery().not(termQuery("license", License.Copyrighted.toString))
     override val searchIndex: String        = props.SearchIndex
-    override val indexService: IndexService = imageIndexService
+
 
     def hitToApiModel(hit: String, matchedLanguage: String): Try[(SearchableImage, MatchedLanguage)] = {
       val searchableImage = CirceUtil.tryParseAs[SearchableImage](hit)

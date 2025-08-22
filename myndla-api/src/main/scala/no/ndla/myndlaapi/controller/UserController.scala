@@ -21,11 +21,13 @@ import no.ndla.common.model.api.myndla.{MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
 import no.ndla.myndlaapi.model.api.ExportedUserDataDTO
 import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService, UserService}
 
-trait UserController {
-  this: ErrorHandling & UserService & MyNDLAAuthHelpers & FolderWriteService & FolderReadService & TapirController =>
-  lazy val userController: UserController
-
-  class UserController extends TapirController {
+class UserController(using
+  errorHandling: ErrorHandling,
+  userService: UserService,
+  myNDLAAuthHelpers: MyNDLAAuthHelpers,
+  folderWriteService: FolderWriteService,
+  folderReadService: FolderReadService
+) extends TapirController {
     override val serviceName: String = "users"
 
     override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
@@ -92,5 +94,4 @@ trait UserController {
       exportUserData,
       importUserData
     )
-  }
 }

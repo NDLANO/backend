@@ -30,12 +30,17 @@ import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
 
-trait ImageControllerV3 {
-  this: ImageRepository & ImageSearchService & ConverterService & ReadService & WriteService & SearchConverterService &
-    Props & ErrorHandling & BaseImageController & TapirController =>
-  lazy val imageControllerV3: ImageControllerV3
-
-  class ImageControllerV3 extends TapirController with BaseImageController {
+class ImageControllerV3(using
+  imageRepository: ImageRepository,
+  imageSearchService: ImageSearchService,
+  converterService: ConverterService,
+  readService: ReadService,
+  writeService: WriteService,
+  searchConverterService: SearchConverterService,
+  props: Props,
+  errorHandling: ErrorHandling,
+  baseImageController: BaseImageController
+) extends TapirController with BaseImageController {
     import ErrorHelpers.*
     override val serviceName: String         = "images V3"
     override val prefix: EndpointInput[Unit] = "image-api" / "v3" / "images"

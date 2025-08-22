@@ -23,11 +23,12 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
-trait SubjectPageController {
-  this: ReadService & WriteService & Props & ErrorHandling & TapirController =>
-  lazy val subjectPageController: SubjectPageController
-
-  class SubjectPageController extends TapirController {
+class SubjectPageController(using
+  readService: ReadService,
+  writeService: WriteService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends TapirController {
     override val serviceName: String         = "subjectpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 

@@ -17,9 +17,7 @@ import no.ndla.language.Language
 import sttp.tapir.*
 import sttp.tapir.model.Delimited
 
-trait ConceptControllerHelpers {
-  this: Props =>
-  object ConceptControllerHelpers {
+class ConceptControllerHelpers(using props: Props) {
 
     val pathConceptId: EndpointInput.PathCapture[Long] =
       path[Long]("concept_id")
@@ -107,4 +105,3 @@ trait ConceptControllerHelpers {
     val responsibleIdFilter: EndpointInput.Query[Option[Delimited[",", String]]] = listQuery[String]("responsible-ids")
       .description("List of responsible ids to filter by (OR filter)")
   }
-}

@@ -37,11 +37,7 @@ import java.util.UUID
 import scala.collection.IndexedSeq.iterableFactory
 import scala.util.{Failure, Success, Try}
 
-trait FolderRepository {
-  this: Clock & DBUtility =>
-  lazy val folderRepository: FolderRepository
-
-  class FolderRepository extends StrictLogging {
+class FolderRepository(using clock: Clock, dBUtility: DBUtility) extends StrictLogging {
     def getSession(readOnly: Boolean): DBSession =
       if (readOnly) ReadOnlyAutoSession
       else AutoSession
@@ -948,5 +944,4 @@ trait FolderRepository {
         .list()
         .sequence
     }.flatten
-  }
 }

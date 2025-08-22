@@ -29,11 +29,9 @@ import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import org.jsoup.Jsoup
 
-trait SearchConverterService {
-  this: ConverterService =>
-  lazy val searchConverterService: SearchConverterService
-
-  class SearchConverterService extends StrictLogging {
+class SearchConverterService(using
+  converterService: ConverterService
+) extends StrictLogging {
     private def getEmbedResourcesAndIdsToIndex(
         visualElement: Seq[VisualElement]
     ): List[EmbedValues] = {

@@ -23,10 +23,11 @@ import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchExcept
 import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
-trait SearchService {
-  this: Elastic4sClient & ConverterService & Props =>
-
-  trait SearchService[T] extends StrictLogging {
+trait SearchService[T](using 
+  e4sClient: Elastic4sClient,
+  converterService: ConverterService,
+  props: Props
+) extends StrictLogging {
     val searchIndex: String
 
     def scroll(scrollId: String, language: String): Try[SearchResult[T]] =
@@ -133,6 +134,3 @@ trait SearchService {
         case t: Throwable => Failure(t)
       }
     }
-
-  }
-}

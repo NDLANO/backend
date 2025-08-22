@@ -23,11 +23,11 @@ import no.ndla.validation.*
 
 import scala.util.{Failure, Success, Try}
 
-trait ContentValidator {
-  this: DraftConceptRepository & ConverterService & Props =>
-  lazy val contentValidator: ContentValidator
-
-  class ContentValidator {
+class ContentValidator(using
+  draftConceptRepository: DraftConceptRepository,
+  converterService: ConverterService,
+  props: Props
+) {
     private val inlineHtmlTags = props.InlineHtmlTags
 
     def validateConcept(concept: Concept): Try[Concept] = {

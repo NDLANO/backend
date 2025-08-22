@@ -24,11 +24,12 @@ import no.ndla.searchapi.model.grep.{GrepBundle, GrepElement}
 
 import scala.util.{Success, Try}
 
-trait GrepIndexService {
-  this: SearchConverterService & IndexService & Props & GrepApiClient =>
-  lazy val grepIndexService: GrepIndexService
-
-  class GrepIndexService extends BulkIndexingService with StrictLogging {
+class GrepIndexService(using
+  searchConverterService: SearchConverterService,
+  indexService: IndexService,
+  props: Props,
+  grepApiClient: GrepApiClient
+) extends BulkIndexingService with StrictLogging {
     override val documentType: String       = "grep"
     override val searchIndex: String        = props.SearchIndex(SearchType.Grep)
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
@@ -80,4 +81,3 @@ trait GrepIndexService {
         .map(countBulkIndexed)
     }
   }
-}

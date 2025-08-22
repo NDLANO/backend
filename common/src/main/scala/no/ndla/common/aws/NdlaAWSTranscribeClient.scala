@@ -13,10 +13,7 @@ import software.amazon.awssdk.services.transcribe.{TranscribeClient, TranscribeC
 
 import scala.util.{Failure, Try}
 
-trait NdlaAWSTranscribeClient {
-  lazy val transcribeClient: NdlaAWSTranscribeClient
-
-  class NdlaAWSTranscribeClient(region: Option[String]) {
+class NdlaAWSTranscribeClient(region: Option[String]) {
 
     private val builder: TranscribeClientBuilder = TranscribeClient.builder()
 
@@ -95,5 +92,4 @@ trait NdlaAWSTranscribeClient {
 
       client.deleteTranscriptionJob(request)
     }
-  }
 }

@@ -19,11 +19,11 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
-trait FrontPageController {
-  this: ReadService & WriteService & ErrorHandling & TapirController =>
-  lazy val frontPageController: FrontPageController
-
-  class FrontPageController() extends TapirController {
+class FrontPageController(using
+  readService: ReadService,
+  writeService: WriteService,
+  errorHandling: ErrorHandling
+) extends TapirController {
     override val serviceName: String         = "frontpage"
     override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 
@@ -48,5 +48,4 @@ trait FrontPageController {
       }
 
     override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getFrontPage, newFrontPage)
-  }
 }

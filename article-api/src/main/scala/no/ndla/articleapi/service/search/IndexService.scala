@@ -21,10 +21,13 @@ import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
-trait IndexService {
-  this: Elastic4sClient & BaseIndexService & Props & ArticleRepository & SearchLanguage =>
-
-  abstract class IndexService extends BaseIndexService with StrictLogging {
+abstract class IndexService(using
+  e4sClient: Elastic4sClient,
+  baseIndexService: BaseIndexService,
+  props: Props,
+  articleRepository: ArticleRepository,
+  searchLanguage: SearchLanguage
+) extends BaseIndexService with StrictLogging {
     override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
     def createIndexRequest(domainModel: Article, indexName: String): IndexRequest
@@ -110,5 +113,4 @@ trait IndexService {
         )
       }
     }
-  }
 }

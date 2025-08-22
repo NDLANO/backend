@@ -22,11 +22,7 @@ import sttp.model.headers.CookieWithMeta
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try, boundary}
 
-trait NodeBBClient {
-  this: Props =>
-  lazy val nodebb: NodeBBClient
-
-  class NodeBBClient extends StrictLogging {
+class NodeBBClient(using props: Props) extends StrictLogging {
     private val baseUrl: String = props.nodeBBUrl
     private val attemptLimit    = 5
 

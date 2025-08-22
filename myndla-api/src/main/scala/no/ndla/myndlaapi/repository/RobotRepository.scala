@@ -21,11 +21,7 @@ import scalikejdbc.*
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
-trait RobotRepository {
-  this: Clock & DBUtility =>
-  lazy val robotRepository: RobotRepository
-
-  class RobotRepository extends StrictLogging {
+class RobotRepository(using clock: Clock, dBUtility: DBUtility) extends StrictLogging {
     def getSession(readOnly: Boolean): DBSession =
       if (readOnly) ReadOnlyAutoSession
       else AutoSession
@@ -115,5 +111,4 @@ trait RobotRepository {
         case Success(_)                       => Success(())
       }
     }
-  }
 }

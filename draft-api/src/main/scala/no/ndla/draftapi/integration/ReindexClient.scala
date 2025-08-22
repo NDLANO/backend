@@ -15,11 +15,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import sttp.client3.quick._
 
-trait ReindexClient {
-  this: Props =>
-  lazy val reindexClient: ReindexClient
-
-  class ReindexClient extends StrictLogging {
+class ReindexClient(using props: Props) extends StrictLogging {
     private def reindexArticles() = {
       val req = quickRequest.post(uri"${props.internalApiUrls("article-api")}/index")
       simpleHttpClient.send(req)
@@ -49,6 +45,4 @@ trait ReindexClient {
         reindexImages(): Unit
       }
     }
-  }
-
 }

@@ -13,7 +13,7 @@ import no.ndla.common.model.api.learningpath as commonApi
 import no.ndla.common.model.domain.learningpath as commonDomain
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.{ErrorHandling, LearningPathDomainDumpDTO}
-import no.ndla.learningpathapi.repository.LearningPathRepositoryComponent
+import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.service.search.{SearchIndexService, SearchService}
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -26,12 +26,15 @@ import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success}
 
-trait InternController {
-  this: SearchIndexService & SearchService & LearningPathRepositoryComponent & ReadService & UpdateService & Props &
-    ErrorHandling & TapirController =>
-  lazy val internController: InternController
-
-  class InternController extends TapirController {
+class InternController(using
+  searchIndexService: SearchIndexService,
+  searchService: SearchService,
+  learningPathRepositoryComponent: LearningPathRepositoryComponent,
+  readService: ReadService,
+  updateService: UpdateService,
+  props: Props,
+  errorHandling: ErrorHandling
+) extends TapirController {
     override val prefix: EndpointInput[Unit] = "intern"
     override val enableSwagger               = false
     private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
@@ -145,5 +148,4 @@ trait InternController {
           )
           .asRight
       }
-  }
 }

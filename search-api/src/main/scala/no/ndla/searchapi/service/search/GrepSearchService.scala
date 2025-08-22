@@ -37,11 +37,14 @@ import no.ndla.searchapi.model.search.SearchableGrepElement
 
 import scala.util.{Failure, Success, Try, boundary}
 
-trait GrepSearchService {
-  this: Props & SearchService & GrepIndexService & BaseIndexService & Elastic4sClient & SearchConverterService =>
-  lazy val grepSearchService: GrepSearchService
-
-  class GrepSearchService extends SearchService with StrictLogging {
+class GrepSearchService(using
+  props: Props,
+  searchService: SearchService,
+  grepIndexService: GrepIndexService,
+  baseIndexService: BaseIndexService,
+  elastic4sClient: Elastic4sClient,
+  searchConverterService: SearchConverterService
+) extends SearchService with StrictLogging {
     override val searchIndex: List[String]             = List(SearchType.Grep).map(props.SearchIndex)
     override val indexServices: List[BaseIndexService] = List(grepIndexService)
 
@@ -305,4 +308,3 @@ trait GrepSearchService {
       Success((convertedCodes ++ missingCodesList).toMap)
     }
   }
-}

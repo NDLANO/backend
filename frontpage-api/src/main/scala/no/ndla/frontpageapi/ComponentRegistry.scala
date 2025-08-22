@@ -18,48 +18,28 @@ import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageReposi
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.network.tapir.TapirApplication
 
-class ComponentRegistry(properties: FrontpageApiProperties)
-    extends TapirApplication
-    with DataSource
-    with SubjectPageRepository
-    with FrontPageRepository
-    with FilmFrontPageRepository
-    with InternController
-    with ReadService
-    with WriteService
-    with SubjectPageController
-    with FrontPageController
-    with FilmPageController
-    with DBFilmFrontPage
-    with DBSubjectPage
-    with DBFrontPage
-    with ErrorHandling
-    with Clock
-    with Props
-    with DBMigrator
-    with ConverterService
-    with SwaggerDocControllerConfig {
-  override lazy val props: FrontpageApiProperties = properties
-  override lazy val migrator: DBMigrator          = DBMigrator()
-  override lazy val dataSource: HikariDataSource  = DataSource.getHikariDataSource
+class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplication[FrontpageApiProperties] {
+  given props: FrontpageApiProperties = properties
+  given migrator: DBMigrator          = DBMigrator()
+  given dataSource: HikariDataSource  = DataSource.getDataSource
 
-  override lazy val clock = new SystemClock
+  given clock = new SystemClock
 
-  override lazy val subjectPageRepository   = new SubjectPageRepository
-  override lazy val frontPageRepository     = new FrontPageRepository
-  override lazy val filmFrontPageRepository = new FilmFrontPageRepository
+  given subjectPageRepository   = new SubjectPageRepository
+  given frontPageRepository     = new FrontPageRepository
+  given filmFrontPageRepository = new FilmFrontPageRepository
 
-  override lazy val readService  = new ReadService
-  override lazy val writeService = new WriteService
+  given readService  = new ReadService
+  given writeService = new WriteService
 
-  override lazy val subjectPageController = new SubjectPageController
-  override lazy val frontPageController   = new FrontPageController
-  override lazy val filmPageController    = new FilmPageController
-  override lazy val internController      = new InternController
-  override lazy val healthController      = new TapirHealthController
+  given subjectPageController = new SubjectPageController
+  given frontPageController   = new FrontPageController
+  given filmPageController    = new FilmPageController
+  given internController      = new InternController
+  given healthController      = new TapirHealthController
 
-  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
-  override lazy val ndlaClient: NdlaClient           = new NdlaClient
+  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  given ndlaClient: NdlaClient           = new NdlaClient
 
   val swagger = new SwaggerController(
     List(

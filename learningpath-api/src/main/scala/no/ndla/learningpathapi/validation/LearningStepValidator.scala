@@ -13,14 +13,14 @@ import no.ndla.common.model.domain.learningpath.{Description, EmbedUrl, Introduc
 
 import scala.util.{Failure, Success, Try}
 
-trait LearningStepValidator {
-  this: TitleValidator & LanguageValidator & TextValidator & UrlValidator =>
-  lazy val learningStepValidator: LearningStepValidator
-
-  class LearningStepValidator {
-    val noHtmlTextValidator              = new TextValidator(allowHtml = false)
-    private val allowedHtmlTextValidator = new TextValidator(allowHtml = true)
-    private val urlValidator             = new UrlValidator()
+class LearningStepValidator(using
+  titleValidator: TitleValidator,
+  languageValidator: LanguageValidator,
+  textValidator: TextValidator,
+  urlValidator: UrlValidator
+) {
+    val noHtmlTextValidator              = TextValidator(allowHtml = false)
+    private val allowedHtmlTextValidator = TextValidator(allowHtml = true)
 
     private val MY_NDLA_INVALID_LANGUAGES =
       "A learning step created in MyNDLA must have exactly one supported language."

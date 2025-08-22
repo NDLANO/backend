@@ -50,13 +50,23 @@ import scala.jdk.CollectionConverters.*
 import scala.math.max
 import scala.util.{Failure, Random, Success, Try, boundary}
 
-trait WriteService {
-  this: DraftRepository & UserDataRepository & ConverterService & ContentValidator & ArticleIndexService &
-    TagIndexService & GrepCodesIndexService & Clock & ReadService & ArticleApiClient & SearchApiClient &
-    FileStorageService & TaxonomyApiClient & Props & DBUtility =>
-  lazy val writeService: WriteService
-
-  class WriteService extends StrictLogging {
+class WriteService(using
+  draftRepository: DraftRepository,
+  userDataRepository: UserDataRepository,
+  converterService: ConverterService,
+  contentValidator: ContentValidator,
+  articleIndexService: ArticleIndexService,
+  tagIndexService: TagIndexService,
+  grepCodesIndexService: GrepCodesIndexService,
+  clock: Clock,
+  readService: ReadService,
+  articleApiClient: ArticleApiClient,
+  searchApiClient: SearchApiClient,
+  fileStorageService: FileStorageService,
+  taxonomyApiClient: TaxonomyApiClient,
+  props: Props,
+  dBUtility: DBUtility
+) extends StrictLogging {
 
     def insertDump(article: Draft): Try[Draft] =
       DBUtil.rollbackOnFailure(implicit session => {
@@ -904,5 +914,4 @@ trait WriteService {
           draftRepository.updateArticle(toUpdate)(AutoSession)
         })
     }
-  }
 }
