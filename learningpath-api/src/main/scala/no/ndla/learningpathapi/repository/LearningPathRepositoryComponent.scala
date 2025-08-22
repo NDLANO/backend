@@ -27,8 +27,8 @@ import scalikejdbc.*
 import java.util.UUID
 import scala.util.Try
 
-trait LearningPathRepositoryComponent extends StrictLogging with Clock {
-  this: DataSource & Props =>
+trait LearningPathRepositoryComponent extends StrictLogging {
+  this: DataSource & Props & Clock =>
   lazy val learningPathRepository: LearningPathRepository
 
   def inTransaction[A](work: DBSession => A)(implicit session: DBSession = null): A = {

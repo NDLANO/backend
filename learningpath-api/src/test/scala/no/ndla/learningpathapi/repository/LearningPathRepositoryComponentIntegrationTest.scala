@@ -400,7 +400,7 @@ class LearningPathRepositoryComponentIntegrationTest
   }
 
   test("That inserted and fetched entry stays the same") {
-    when(clock.now()).thenReturn(NDLADate.fromUnixTime(0))
+    when(clock.now()).thenReturn(today)
     val steps = Vector(
       DefaultLearningStep,
       DefaultLearningStep,
