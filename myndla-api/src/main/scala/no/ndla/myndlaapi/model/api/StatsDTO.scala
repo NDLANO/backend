@@ -47,6 +47,7 @@ case class UserStatsDTO(
     @description("The number of students") students: Long,
     @description("The number of users with favourites") withFavourites: Long,
     @description("The number of users with no favourites") noFavourites: Long,
+    @description("The number of users with learningpaths") withLearningpaths: Long,
     @description("The number of users in the arena") arena: Long
 )
 
