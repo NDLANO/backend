@@ -38,14 +38,14 @@ class ImageIndexService(using
 
   protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
     if (keepRaw) {
-      SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+      searchLanguage.languageAnalyzers.map(langAnalyzer =>
         textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
           .fielddata(false)
           .analyzer(langAnalyzer.analyzer)
           .fields(keywordField("raw"))
       )
     } else {
-      SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+      searchLanguage.languageAnalyzers.map(langAnalyzer =>
         textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
           .fielddata(false)
           .analyzer(langAnalyzer.analyzer)

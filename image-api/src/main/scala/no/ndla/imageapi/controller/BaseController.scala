@@ -1,29 +1,29 @@
-/*
- * Part of NDLA image-api
- * Copyright (C) 2017 NDLA
- *
- * See LICENSE
- *
- */
+package no.ndla.imageapi.controller
 
-package no.ndla.imageapi.model.api
-
-import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, ValidationException}
 import no.ndla.common.Clock
+import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, ValidationException}
 import no.ndla.database.DataSource
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.*
-import no.ndla.network.tapir.{AllErrors, TapirErrorHandling}
+import no.ndla.imageapi.model.{
+  ImageNotFoundException,
+  ImageStorageException,
+  ImportException,
+  InvalidUrlException,
+  ResultWindowTooLargeException
+}
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{AllErrors, ErrorHelpers, TapirController}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
-class ErrorHandling(using
+abstract class BaseController(using
     props: Props,
     clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient,
+    errorHelpers: ErrorHelpers,
     dataSource: DataSource
-) extends TapirErrorHandling {
-
-  import ErrorHelpers.*
+) extends TapirController {
+  import errorHelpers.*
   import ImageErrorHelpers.*
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case v: ValidationException    => validationError(v)

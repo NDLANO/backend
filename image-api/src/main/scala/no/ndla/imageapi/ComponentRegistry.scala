@@ -11,7 +11,6 @@ package no.ndla.imageapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
-import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.imageapi.controller.*
 import no.ndla.imageapi.db.migrationwithdependencies.{V6__AddAgreementToImages, V7__TranslateUntranslatedAuthors}
@@ -28,8 +27,9 @@ import no.ndla.imageapi.service.search.{
   TagSearchService
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{ErrorHelpers, SwaggerController, TapirApplication, TapirController}
+import no.ndla.search.{BaseIndexService, Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication[ImageApiProperties] {
   given props: ImageApiProperties = properties
@@ -40,34 +40,35 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   )
   given dataSource: HikariDataSource = DataSource.getDataSource
 
-  given s3Client = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  given s3Client: NdlaS3Client     = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  given errorHelpers: ErrorHelpers = new ErrorHelpers
 
-  given imageIndexService                = new ImageIndexService
-  given imageSearchService               = new ImageSearchService
-  given tagIndexService                  = new TagIndexService
-  given tagSearchService                 = new TagSearchService
-  given imageRepository                  = new ImageRepository
-  given readService                      = new ReadService
-  given writeService                     = new WriteService
-  given validationService                = new ValidationService
-  given imageStorage                     = new AmazonImageStorageService
-  given ndlaClient                       = new NdlaClient
-  given converterService                 = new ConverterService
-  var e4sClient: NdlaE4sClient           = Elastic4sClientFactory.getClient(props.SearchServer)
-  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
-  given searchConverterService           = new SearchConverterService
+  given imageIndexService: ImageIndexService           = new ImageIndexService
+  given imageSearchService: ImageSearchService         = new ImageSearchService
+  given tagIndexService: TagIndexService               = new TagIndexService
+  given tagSearchService: TagSearchService             = new TagSearchService
+  given imageRepository: ImageRepository               = new ImageRepository
+  given readService: ReadService                       = new ReadService
+  given writeService: WriteService                     = new WriteService
+  given validationService: ValidationService           = new ValidationService
+  given imageStorage: ImageStorageService              = new ImageStorageService
+  given ndlaClient: NdlaClient                         = new NdlaClient
+  given converterService: ConverterService             = new ConverterService
+  given e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
+  given myndlaApiClient: MyNDLAApiClient               = new MyNDLAApiClient
+  given searchConverterService: SearchConverterService = new SearchConverterService
 
-  given imageConverter = new ImageConverter
-  given clock          = new SystemClock
-  given random         = new Random
+  given imageConverter: ImageConverter = new ImageConverter
+  given clock: Clock                   = new Clock
+  given random: Random                 = new Random
 
-  given imageControllerV2 = new ImageControllerV2
-  given imageControllerV3 = new ImageControllerV3
-  given rawController     = new RawController
-  given internController  = new InternController
-  given healthController  = new HealthController
+  given imageControllerV2: ImageControllerV2 = new ImageControllerV2
+  given imageControllerV3: ImageControllerV3 = new ImageControllerV3
+  given rawController: RawController         = new RawController
+  given internController: InternController   = new InternController
+  given healthController: HealthController   = new HealthController
 
-  val swagger = new SwaggerController(
+  given swagger: SwaggerController = new SwaggerController(
     List[TapirController](
       imageControllerV2,
       imageControllerV3,
