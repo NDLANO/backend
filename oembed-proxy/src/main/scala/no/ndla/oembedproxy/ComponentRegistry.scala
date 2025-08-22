@@ -29,10 +29,7 @@ class ComponentRegistry(properties: OEmbedProxyProperties) extends TapirApplicat
   given myndlaApiClient: MyNDLAApiClient             = new MyNDLAApiClient
 
   given swagger: SwaggerController = new SwaggerController(
-    List(
-      oEmbedProxyController,
-      healthController
-    ),
+    List(oEmbedProxyController, healthController),
     SwaggerDocControllerConfig.swaggerInfo
   )
 
