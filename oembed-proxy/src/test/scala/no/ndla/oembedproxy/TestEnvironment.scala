@@ -19,17 +19,17 @@ import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment extends TapirApplication[OEmbedProxyProperties] with MockitoSugar {
-  implicit val props: OEmbedProxyProperties                 = new OEmbedProxyProperties
-  implicit val errorHandler: ErrorHandling                  = new ErrorHandling
-  implicit val routes: Routes                               = new Routes(using props, errorHandler, List.empty)
-  implicit val oEmbedService: OEmbedService                 = mock[OEmbedService]
-  implicit val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
-  implicit val ndlaClient: NdlaClient                       = mock[NdlaClient]
-  implicit val myndlaApiClient: MyNDLAApiClient             = mock[MyNDLAApiClient]
-  implicit val providerService: ProviderService             = mock[ProviderService]
-  implicit val healthController: TapirHealthController      = mock[TapirHealthController]
-  implicit val clock: Clock                                 = mock[Clock]
-  implicit val swagger: SwaggerController                   = mock[SwaggerController]
+  implicit lazy val props: OEmbedProxyProperties                 = new OEmbedProxyProperties
+  implicit lazy val errorHandling: ErrorHandling                 = new ErrorHandling(using props, clock)
+  implicit lazy val routes: Routes                               = new Routes(using props, errorHandling, List.empty)
+  implicit lazy val oEmbedService: OEmbedService                 = mock[OEmbedService]
+  implicit lazy val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]
+  implicit lazy val ndlaClient: NdlaClient                       = mock[NdlaClient]
+  implicit lazy val myndlaApiClient: MyNDLAApiClient             = mock[MyNDLAApiClient]
+  implicit lazy val providerService: ProviderService             = mock[ProviderService]
+  implicit lazy val healthController: TapirHealthController      = mock[TapirHealthController]
+  implicit lazy val clock: Clock                                 = mock[Clock]
+  implicit lazy val swagger: SwaggerController                   = mock[SwaggerController]
 
   def resetMocks(): Unit = {
     reset(oEmbedService)

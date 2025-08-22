@@ -9,6 +9,7 @@
 package no.ndla.oembedproxy.controller
 
 import no.ndla.network.model.HttpRequestException
+import no.ndla.network.tapir.Routes
 import no.ndla.oembedproxy.model.OEmbedDTO
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
@@ -21,7 +22,8 @@ import sttp.model.{Header, Method, RequestMetadata, StatusCode, Uri}
 import scala.util.{Failure, Success}
 
 class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: OEmbedProxyController = new OEmbedProxyController
+  val controller: OEmbedProxyController = new OEmbedProxyController(using oEmbedService, myndlaApiClient, errorHandling)
+  override implicit lazy val routes: Routes = new Routes(using props, errorHandling, List(controller))
 
   val oembed: OEmbedDTO = OEmbedDTO(
     `type` = "rich",

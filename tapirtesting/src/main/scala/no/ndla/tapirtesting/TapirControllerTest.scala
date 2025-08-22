@@ -18,10 +18,11 @@ import scala.compiletime.uninitialized
 trait TapirControllerTest extends UnitTestSuite {
   val controller: TapirController
   val serverPort: Int = findFreePort
-  implicit val props: BaseProps
-  implicit val errorHandling: TapirErrorHandling
-  implicit val services: List[TapirController] = List(controller)
-  implicit val routes: Routes                  = new Routes
+
+  implicit lazy val props: BaseProps
+  implicit lazy val errorHandling: TapirErrorHandling
+  implicit lazy val services: List[TapirController] = List(controller)
+  implicit lazy val routes: Routes                  = new Routes
 
   var server: HttpServer = uninitialized
 

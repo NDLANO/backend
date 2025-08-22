@@ -19,7 +19,7 @@ import no.ndla.oembedproxy.service.{OEmbedService, ProviderService}
 class ComponentRegistry(properties: OEmbedProxyProperties) extends TapirApplication[OEmbedProxyProperties] {
   given props: OEmbedProxyProperties                 = properties
   given routes: Routes                               = new Routes
-  given errorHandler: ErrorHandling                  = new ErrorHandling
+  given errorHandling: ErrorHandling                 = new ErrorHandling
   given clock: Clock                                 = new Clock
   given ndlaClient: NdlaClient                       = new NdlaClient
   given providerService: ProviderService             = new ProviderService
