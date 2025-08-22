@@ -967,6 +967,11 @@ export type components = {
             noFavourites: number;
             /**
              * Format: int64
+             * @description The number of users with learningpaths
+             */
+            withLearningpaths: number;
+            /**
+             * Format: int64
              * @description The number of users in the arena
              */
             arena: number;
