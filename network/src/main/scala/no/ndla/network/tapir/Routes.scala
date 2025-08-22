@@ -39,7 +39,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors}
 
-class Routes(using props: BaseProps, errorHandling: TapirErrorHandling, services: List[TapirController]) {
+class Routes(using props: BaseProps, errorHelpers: ErrorHelpers, services: List[TapirController]) {
   val activeRequests: AtomicInteger = new AtomicInteger(0)
   val logger: Logger                = getLogger
   private def failureResponse(error: String, exception: Option[Throwable]): ValuedEndpointOutput[?] = {
@@ -49,7 +49,7 @@ class Routes(using props: BaseProps, errorHandling: TapirErrorHandling, services
       case None     => logger.error(logMsg)
     }
 
-    ValuedEndpointOutput(jsonBody[AllErrors], errorHandling.ErrorHelpers.generic)
+    ValuedEndpointOutput(jsonBody[AllErrors], errorHelpers.generic)
   }
 
   private def decodeFailureHandler[T[_]]: DefaultDecodeFailureHandler[T] =
@@ -57,13 +57,13 @@ class Routes(using props: BaseProps, errorHandling: TapirErrorHandling, services
       .response(failureMsg => {
         ValuedEndpointOutput(
           jsonBody[AllErrors],
-          errorHandling.ErrorHelpers.badRequest(failureMsg)
+          errorHelpers.badRequest(failureMsg)
         )
       })
 
   private case class NdlaExceptionHandler[T[_]]() extends ExceptionHandler[T] {
     override def apply(ctx: ExceptionContext)(implicit monad: MonadError[T]): T[Option[ValuedEndpointOutput[?]]] = {
-      val errorToReturn = errorHandling.returnError(ctx.e)
+      val errorToReturn = returnError(ctx.e)
       val sc            = StatusCode(errorToReturn.statusCode)
       val resp          = ValuedEndpointOutput(jsonBody[AllErrors], errorToReturn)
       val withsc        = resp.prepend(statusCode, sc)

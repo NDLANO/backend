@@ -5,8 +5,8 @@ import no.ndla.common.configuration.BaseProps
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirController
 
-class BaseController(using props: BaseProps, clock: Clock, myNDLAApiClient: MyNDLAApiClient) extends TapirController {
-  import ErrorHelpers.*
+class BaseController(using props: BaseProps, clock: Clock, myNDLAApiClient: MyNDLAApiClient, errorHelpers: ErrorHelpers) extends TapirController {
+  import errorHelpers.*
 
   private val statusCodesToPassAlong                                                      = List(401, 403, 404, 410)
   private def getRequestExceptionStatusCode(exception: HttpRequestException): Option[Int] =

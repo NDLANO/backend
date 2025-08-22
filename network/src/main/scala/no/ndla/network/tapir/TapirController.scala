@@ -34,9 +34,9 @@ import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 
 import scala.util.{Failure, Success}
 
-trait TapirController(using
-//    props: BaseProps,
-//    clock: Clock,
+abstract class TapirController(using
+    props: BaseProps,
+    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirErrorHandling
     with StrictLogging

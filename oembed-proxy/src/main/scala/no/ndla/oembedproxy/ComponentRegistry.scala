@@ -13,13 +13,11 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.{Routes, SwaggerController, TapirApplication, TapirController, TapirHealthController}
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.oembedproxy.controller.{OEmbedProxyController, SwaggerDocControllerConfig}
-import no.ndla.oembedproxy.model.ErrorHandling
 import no.ndla.oembedproxy.service.{OEmbedService, ProviderService}
 
 class ComponentRegistry(properties: OEmbedProxyProperties) extends TapirApplication[OEmbedProxyProperties] {
   given props: OEmbedProxyProperties                 = properties
   given routes: Routes                               = new Routes
-  given errorHandling: ErrorHandling                 = new ErrorHandling
   given clock: Clock                                 = new Clock
   given ndlaClient: NdlaClient                       = new NdlaClient
   given providerService: ProviderService             = new ProviderService

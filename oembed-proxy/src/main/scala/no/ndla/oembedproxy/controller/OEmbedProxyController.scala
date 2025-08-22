@@ -24,8 +24,7 @@ import scala.util.{Failure, Success}
 class OEmbedProxyController(using
     oEmbedService: OEmbedService,
     myNDLAApiClient: MyNDLAApiClient,
-    errorHandling: ErrorHandling
-) extends TapirController(using myNDLAApiClient, errorHandling) {
+) extends BaseController(using myNDLAApiClient) {
   override val serviceName: String                       = "oembed"
   override val prefix: EndpointInput[Unit]               = "oembed-proxy" / "v1" / serviceName
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
@@ -40,7 +39,7 @@ class OEmbedProxyController(using
       .serverLogicPure { case (url, maxWidth, maxHeight) =>
         oEmbedService.get(url, maxWidth, maxHeight) match {
           case Success(oembed) => oembed.asRight
-          case Failure(ex)     => errorHandling.returnLeftError(ex)
+          case Failure(ex)     => returnLeftError(ex)
         }
       }
   )

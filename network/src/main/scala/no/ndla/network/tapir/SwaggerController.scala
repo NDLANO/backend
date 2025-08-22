@@ -28,6 +28,10 @@ class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInf
 ) extends TapirController {
   def getServices(): List[TapirController] = services :+ this
 
+  override def handleErrors: PartialFunction[Throwable, AllErrors] = { case e: Throwable =>
+    ErrorHelpers.generic
+  }
+
   val info: Info = Info(
     title = props.ApplicationName,
     version = "1.0",
