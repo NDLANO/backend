@@ -28,10 +28,10 @@ import java.io.ByteArrayInputStream
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val writeService     = new WriteService
-  override lazy val converterService = new ConverterService
-  val newFileName                    = "AbCdeF.mp3"
-  val fileMock1: UploadedFile        = mock[UploadedFile]
+  override implicit lazy val writeService: WriteService         = new WriteService
+  override implicit lazy val converterService: ConverterService = new ConverterService
+  val newFileName                                               = "AbCdeF.mp3"
+  val fileMock1: UploadedFile                                   = mock[UploadedFile]
 
   val newImageMeta: NewImageMetaInformationV2DTO = NewImageMetaInformationV2DTO(
     "title",

@@ -18,9 +18,8 @@ import org.testcontainers.containers.PostgreSQLContainer
 import scala.util.{Failure, Success, Try}
 import sys.env
 
-abstract class DatabaseIntegrationSuite(using props: BaseProps & DatabaseProps)
-    extends UnitTestSuite
-    with ContainerSuite {
+abstract class DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
+  lazy val props: BaseProps & DatabaseProps
 
   val EnablePostgresContainer: Boolean = true
   val PostgresqlVersion: String        = "17.5"

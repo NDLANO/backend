@@ -8,10 +8,10 @@
 
 package no.ndla.imageapi
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.common.configuration.BaseProps
+import no.ndla.database.{DatabaseProps, DBMigrator, DataSource}
 import no.ndla.imageapi.controller.{
   BaseImageController,
   HealthController,
@@ -20,7 +20,6 @@ import no.ndla.imageapi.controller.{
   InternController,
   RawController
 }
-import no.ndla.imageapi.model.api.ErrorHandling
 import no.ndla.imageapi.repository.*
 import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
@@ -33,45 +32,58 @@ import no.ndla.imageapi.service.search.{
   TagSearchService
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{
+  AllErrors,
+  ErrorHelpers,
+  Routes,
+  SwaggerController,
+  TapirApplication,
+  TapirController,
+  TapirErrorHandling,
+  TapirHealthController
+}
+import no.ndla.search.{BaseIndexService, Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
-trait TestEnvironment extends TapirApplication with MockitoSugar with TestDataTrait {
-  given props                 = new ImageApiProperties
-  val TestData: TestDataClass = new TestDataClass
+trait TestEnvironment extends TapirApplication[ImageApiProperties] with MockitoSugar {
+  implicit lazy val props: ImageApiProperties         = new ImageApiProperties
+  implicit lazy val clock: Clock                      = mock[Clock]
+  implicit lazy val errorHelpers: ErrorHelpers        = mock[ErrorHelpers]
+  implicit lazy val errorHandling: TapirErrorHandling = mock[TapirErrorHandling]
+  implicit lazy val routes: Routes                    = mock[Routes]
+  implicit lazy val services: List[TapirController]   = List.empty
 
-  given migrator: DBMigrator   = mock[DBMigrator]
-  given s3Client: NdlaS3Client = mock[NdlaS3Client]
+  val TestData: TestData = new TestData
 
-  given dataSource: HikariDataSource           = mock[HikariDataSource]
-  given imageIndexService: ImageIndexService   = mock[ImageIndexService]
-  given imageSearchService: ImageSearchService = mock[ImageSearchService]
+  implicit lazy val migrator: DBMigrator   = mock[DBMigrator]
+  implicit lazy val s3Client: NdlaS3Client = mock[NdlaS3Client]
+  implicit lazy val dataSource: DataSource = mock[DataSource]
 
-  given tagIndexService: TagIndexService   = mock[TagIndexService]
-  given tagSearchService: TagSearchService = mock[TagSearchService]
+  implicit lazy val imageIndexService: ImageIndexService   = mock[ImageIndexService]
+  implicit lazy val imageSearchService: ImageSearchService = mock[ImageSearchService]
 
-  given imageRepository: ImageRepository        = mock[ImageRepository]
-  given readService: ReadService                = mock[ReadService]
-  given writeService: WriteService              = mock[WriteService]
-  given imageStorage: AmazonImageStorageService = mock[AmazonImageStorageService]
+  implicit lazy val tagIndexService: TagIndexService   = mock[TagIndexService]
+  implicit lazy val tagSearchService: TagSearchService = mock[TagSearchService]
 
-  given ndlaClient: NdlaClient                         = mock[NdlaClient]
-  given myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
-  given rawController: RawController                   = mock[RawController]
-  given healthController: HealthController             = mock[HealthController]
-  given internController: InternController             = mock[InternController]
-  given imageControllerV2: ImageControllerV2           = mock[ImageControllerV2]
-  given imageControllerV3: ImageControllerV3           = mock[ImageControllerV3]
-  given converterService: ConverterService             = mock[ConverterService]
-  given validationService: ValidationService           = mock[ValidationService]
-  var e4sClient: NdlaE4sClient                         = mock[NdlaE4sClient]
-  given searchConverterService: SearchConverterService = mock[SearchConverterService]
-  given imageConverter: ImageConverter                 = mock[ImageConverter]
+  implicit lazy val imageRepository: ImageRepository  = mock[ImageRepository]
+  implicit lazy val readService: ReadService          = mock[ReadService]
+  implicit lazy val writeService: WriteService        = mock[WriteService]
+  implicit lazy val imageStorage: ImageStorageService = mock[ImageStorageService]
 
-  given clock: SystemClock = mock[SystemClock]
-  given random: Random     = mock[Random]
+  implicit lazy val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  implicit lazy val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
+  implicit lazy val rawController: RawController                   = mock[RawController]
+  implicit lazy val healthController: TapirHealthController        = mock[TapirHealthController]
+  implicit lazy val internController: InternController             = mock[InternController]
+  implicit lazy val imageControllerV2: ImageControllerV2           = mock[ImageControllerV2]
+  implicit lazy val imageControllerV3: ImageControllerV3           = mock[ImageControllerV3]
+  implicit lazy val converterService: ConverterService             = mock[ConverterService]
+  implicit lazy val validationService: ValidationService           = mock[ValidationService]
+  implicit lazy val e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
+  implicit lazy val searchConverterService: SearchConverterService = mock[SearchConverterService]
+  implicit lazy val imageConverter: ImageConverter                 = mock[ImageConverter]
+  implicit lazy val random: Random                                 = mock[Random]
 
-  def services: List[TapirController] = List.empty
-  val swagger: SwaggerController      = mock[SwaggerController]
+  implicit lazy val swagger: SwaggerController = mock[SwaggerController]
 }

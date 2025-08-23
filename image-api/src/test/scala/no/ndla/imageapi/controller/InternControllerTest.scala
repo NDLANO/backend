@@ -8,14 +8,19 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.{NDLADate, api as commonApi}
+import no.ndla.database.DataSource
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.api.{ImageAltTextDTO, ImageCaptionDTO, ImageTagDTO, ImageTitleDTO}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
-import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import no.ndla.imageapi.repository.ImageRepository
+import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick.*
 
@@ -25,8 +30,11 @@ import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  override lazy val converterService        = new ConverterService
-  override val controller: InternController = new InternController
+  override implicit lazy val clock: Clock                    = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  val controller: InternController                           = new InternController
+  override implicit lazy val services: List[TapirController] = List(controller)
+  override implicit lazy val routes: Routes                  = new Routes
 
   val updated: NDLADate       = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val BySa: LicenseDefinition = getLicense(CC_BY.toString).get

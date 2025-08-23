@@ -8,7 +8,8 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
+import no.ndla.imageapi.ImageApiProperties
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain as common
 import no.ndla.common.model.domain.ContributorType
@@ -23,8 +24,8 @@ import scalikejdbc.DBSession
 import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val readService      = new ReadService
-  override lazy val converterService = new ConverterService
+  override implicit lazy val readService: ReadService           = new ReadService
+  override implicit lazy val converterService: ConverterService = new ConverterService
 
   test("That path to id conversion works as expected for id paths") {
     val id                = 1234L
