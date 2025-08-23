@@ -61,7 +61,7 @@ class SearchConverterService(using
   def asSearchableImage(image: ImageMetaInformation): SearchableImage = {
     val defaultTitle = image.titles
       .sortBy(title => {
-        val languagePriority = SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
+        val languagePriority = searchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
         languagePriority.indexOf(title.language)
       })
       .lastOption

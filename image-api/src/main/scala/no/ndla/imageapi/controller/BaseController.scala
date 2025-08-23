@@ -24,7 +24,7 @@ abstract class BaseController(using
     dataSource: DataSource
 ) extends TapirController {
   import errorHelpers.*
-  import ImageErrorHelpers.*
+  import no.ndla.imageapi.model.ImageErrorHelpers.*
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case v: ValidationException    => validationError(v)
     case a: AccessDeniedException  => forbiddenMsg(a.getMessage)
@@ -44,12 +44,5 @@ abstract class BaseController(using
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       errorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, 400)
     case _: FileTooBigException => errorBody(FILE_TOO_BIG, fileTooBigError, 413)
-  }
-
-  object ImageErrorHelpers {
-    val fileTooBigError: String =
-      s"The file is too big. Max file size is ${props.MaxImageFileSizeBytes / 1024 / 1024} MiB"
-    val WINDOW_TOO_LARGE_DESCRIPTION: String =
-      s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
   }
 }

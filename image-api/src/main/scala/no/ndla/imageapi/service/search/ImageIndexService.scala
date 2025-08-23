@@ -17,10 +17,11 @@ import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.model.search.SearchableImage
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
-import no.ndla.search.SearchLanguage
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 class ImageIndexService(using
     searchConverterService: SearchConverterService,
+    e4sClient: NdlaE4sClient,
     imageRepository: ImageRepository,
     props: Props,
     searchLanguage: SearchLanguage

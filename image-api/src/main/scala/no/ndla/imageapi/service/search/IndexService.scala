@@ -15,14 +15,14 @@ import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
 abstract class IndexService(using
-    e4sClient: Elastic4sClient,
+    e4sClient: NdlaE4sClient,
     imageRepository: ImageRepository,
-    baseIndexService: BaseIndexService,
+    searchLanguage: SearchLanguage,
     props: Props
 ) extends BaseIndexService
     with StrictLogging {

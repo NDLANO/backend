@@ -22,7 +22,7 @@ import java.io.File
 import scala.util.{Failure, Try}
 import sttp.tapir.model.Delimited
 
-class BaseImageController(using
+trait BaseImageController(using
     props: Props
 ) {
 

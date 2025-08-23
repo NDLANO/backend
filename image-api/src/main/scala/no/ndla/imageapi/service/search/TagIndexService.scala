@@ -16,11 +16,13 @@ import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 class TagIndexService(using
     searchConverterService: SearchConverterService,
-    indexService: IndexService,
+    e4sClient: NdlaE4sClient,
     imageRepository: ImageRepository,
+    searchLanguage: SearchLanguage,
     props: Props
 ) extends IndexService {
   override val documentType: String                         = props.TagSearchDocument

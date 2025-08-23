@@ -14,7 +14,6 @@ import no.ndla.common.aws.NdlaS3Client
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.imageapi.controller.*
 import no.ndla.imageapi.db.migrationwithdependencies.{V6__AddAgreementToImages, V7__TranslateUntranslatedAuthors}
-import no.ndla.imageapi.model.api.ErrorHandling
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
@@ -28,21 +27,23 @@ import no.ndla.imageapi.service.search.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{ErrorHelpers, SwaggerController, TapirApplication, TapirController}
+import no.ndla.network.tapir.{ErrorHelpers, Routes, SwaggerController, TapirApplication, TapirController}
 import no.ndla.search.{BaseIndexService, Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication[ImageApiProperties] {
   given props: ImageApiProperties = properties
+  given dataSource: DataSource    = DataSource.getDataSource
+  given routes: Routes            = new Routes
 
   given migrator: DBMigrator = DBMigrator(
     new V6__AddAgreementToImages,
     new V7__TranslateUntranslatedAuthors
   )
-  given dataSource: HikariDataSource = DataSource.getDataSource
 
   given s3Client: NdlaS3Client     = new NdlaS3Client(props.StorageName, props.StorageRegion)
   given errorHelpers: ErrorHelpers = new ErrorHelpers
 
+  given searchLanguage: SearchLanguage                 = new SearchLanguage
   given imageIndexService: ImageIndexService           = new ImageIndexService
   given imageSearchService: ImageSearchService         = new ImageSearchService
   given tagIndexService: TagIndexService               = new TagIndexService
@@ -79,5 +80,5 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override def services: List[TapirController] = swagger.getServices()
+  given services: List[TapirController] = swagger.getServices()
 }

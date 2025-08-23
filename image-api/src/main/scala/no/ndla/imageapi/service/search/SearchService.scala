@@ -15,16 +15,15 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{SearchResult, Sort}
 import no.ndla.language.Language
-import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
+import no.ndla.search.{IndexNotFoundException, NdlaE4sClient, NdlaSearchException}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
-
 import cats.implicits.*
 
 abstract class SearchService[T](using
-    e4sClient: Elastic4sClient,
+    e4sClient: NdlaE4sClient,
     indexService: IndexService,
     searchConverterService: SearchConverterService,
     props: Props
