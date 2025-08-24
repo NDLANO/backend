@@ -14,9 +14,8 @@ import no.ndla.common.model.api.FrontPageDTO
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{AllErrors, ErrorHelpers}
+import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, TapirController, TapirErrorHandling}
 import no.ndla.network.tapir.NoNullJsonPrinter.*
-import no.ndla.network.tapir.{TapirController, TapirErrorHandling}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.FRONTPAGE_API_ADMIN
 import sttp.tapir.*
@@ -29,8 +28,9 @@ class FrontPageController(using
     props: Props,
     clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
-    errorHelpers: ErrorHelpers
-) extends BaseController {
+    errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling
+) extends TapirController {
   override val serviceName: String         = "frontpage"
   override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 

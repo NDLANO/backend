@@ -16,9 +16,8 @@ import no.ndla.frontpageapi.Props
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{AllErrors, ErrorHelpers}
+import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -32,8 +31,10 @@ class InternController(using
     props: Props,
     clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
-    errorHelpers: ErrorHelpers
-) extends BaseController {
+    errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling
+) extends TapirController {
+  import errorHandling.*
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
 

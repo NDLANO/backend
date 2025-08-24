@@ -12,7 +12,6 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.frontpageapi.controller.*
-import no.ndla.frontpageapi.model.api.ErrorHandling
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
@@ -20,6 +19,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{
   AllErrors,
+  ErrorHandling,
   ErrorHelpers,
   Routes,
   SwaggerController,
@@ -33,6 +33,7 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   given props: FrontpageApiProperties = properties
   given clock: Clock                  = new Clock
   given errorHelpers: ErrorHelpers    = new ErrorHelpers
+  given errorHandling: ErrorHandling  = new ControllerErrorHandling
   given routes: Routes                = new Routes
   given migrator: DBMigrator          = DBMigrator()
   given dataSource: DataSource        = DataSource.getDataSource

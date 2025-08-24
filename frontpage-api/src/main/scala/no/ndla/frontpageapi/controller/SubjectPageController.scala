@@ -15,12 +15,11 @@ import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.api.frontpage.SubjectPageDTO
 import no.ndla.frontpageapi.Props
-import no.ndla.frontpageapi.model.api.{ErrorHandling, NewSubjectPageDTO, UpdatedSubjectPageDTO}
+import no.ndla.frontpageapi.model.api.{NewSubjectPageDTO, UpdatedSubjectPageDTO}
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{AllErrors, ErrorHelpers}
+import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirController
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.FRONTPAGE_API_WRITE
 import sttp.tapir.*
@@ -33,8 +32,9 @@ class SubjectPageController(using
     props: Props,
     clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
-    errorHelpers: ErrorHelpers
-) extends BaseController {
+    errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling
+) extends TapirController {
   override val serviceName: String         = "subjectpage"
   override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 

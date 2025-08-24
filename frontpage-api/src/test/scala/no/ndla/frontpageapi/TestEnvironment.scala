@@ -8,36 +8,35 @@
 
 package no.ndla.frontpageapi
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DataSource}
-import no.ndla.frontpageapi.controller.{FilmPageController, FrontPageController, SubjectPageController}
+import no.ndla.frontpageapi.controller.{
+  ControllerErrorHandling,
+  FilmPageController,
+  FrontPageController,
+  SubjectPageController
+}
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{
-  AllErrors,
+  ErrorHandling,
   ErrorHelpers,
   Routes,
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirErrorHandling,
   TapirHealthController
 }
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment extends TapirApplication[FrontpageApiProperties] with MockitoSugar {
-  implicit lazy val props: FrontpageApiProperties     = new FrontpageApiProperties
-  implicit lazy val clock: Clock                      = mock[Clock]
-  implicit lazy val errorHelpers: ErrorHelpers        = new ErrorHelpers
-  implicit lazy val errorHandling: TapirErrorHandling = new TapirErrorHandling {
-    override def handleErrors: PartialFunction[Throwable, AllErrors] = { case e: Throwable =>
-      errorHelpers.generic
-    }
-  }
+  implicit lazy val props: FrontpageApiProperties   = new FrontpageApiProperties
+  implicit lazy val clock: Clock                    = mock[Clock]
+  implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
+  implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
   implicit lazy val routes: Routes                  = new Routes
   implicit lazy val services: List[TapirController] = List.empty
 
