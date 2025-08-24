@@ -124,7 +124,7 @@ class WriteService(using
   }
 
   def partialUpdateBulk(bulkInput: PartialPublishArticlesBulkDTO): Try[Unit] = {
-    DBUtil
+    dBUtility
       .rollbackOnFailure { session =>
         bulkInput.idTo.toList.traverse { case (id, ppa) =>
           val updateResult = partialUpdate(

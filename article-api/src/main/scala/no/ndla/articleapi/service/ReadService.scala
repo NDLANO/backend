@@ -15,7 +15,8 @@ import no.ndla.articleapi.Props
 import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.integration.FrontpageApiClient
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, ErrorHandling, NotFoundException}
+import no.ndla.articleapi.controller.ArticleErrorHelpers
+import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, NotFoundException}
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
@@ -45,7 +46,6 @@ class ReadService(using
     searchConverterService: SearchConverterService,
     memoizeHelpers: MemoizeHelpers,
     props: Props,
-    errorHandling: ErrorHandling,
     frontpageApiClient: FrontpageApiClient
 ) extends StrictLogging {
   def getInternalIdByExternalId(externalId: String): Option[api.ArticleIdV2DTO] =

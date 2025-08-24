@@ -18,13 +18,15 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.{ArticleIndexService, IndexService}
 import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.common.Clock
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.article.{Article, PartialPublishArticleDTO, PartialPublishArticlesBulkDTO}
 import no.ndla.language.Language
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.ARTICLE_API_WRITE
-import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.{TapirController, ErrorHandling, ErrorHelpers}
+import no.ndla.network.clients.MyNDLAApiClient
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -44,7 +46,11 @@ class InternController(using
     articleIndexService: ArticleIndexService,
     contentValidator: ContentValidator,
     props: Props,
-    dBArticle: DBArticle
+    dBArticle: DBArticle,
+    errorHandling: ErrorHandling,
+    clock: Clock,
+    errorHelpers: ErrorHelpers,
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController
     with StrictLogging {
   override val prefix: EndpointInput[Unit] = "intern"

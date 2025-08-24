@@ -345,4 +345,3 @@ class TestData(using props: Props) {
     )
 
   }
-}

@@ -17,13 +17,15 @@ import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterS
 import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.Props
+import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
-import no.ndla.network.tapir.{DynamicHeaders, TapirController}
+import no.ndla.network.tapir.{DynamicHeaders, TapirController, ErrorHelpers, ErrorHandling}
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.{Header, MediaType}
 import sttp.tapir.*
@@ -40,7 +42,10 @@ class ArticleControllerV2(using
     converterService: ConverterService,
     contentValidator: ContentValidator,
     props: Props,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
+    clock: Clock,
+    errorHelpers: ErrorHelpers,
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   protected val applicationDescription = "Services for accessing articles from NDLA."
 
@@ -360,7 +365,7 @@ class ArticleControllerV2(using
     .serverLogicPure(externalId => {
       readService.getInternalIdByExternalId(externalId) match {
         case Some(id) => Right(id)
-        case None     => Left(ErrorHelpers.notFoundWithMsg(s"No article with id $externalId"))
+        case None     => Left(errorHelpers.notFoundWithMsg(s"No article with id $externalId"))
       }
     })
 
@@ -376,7 +381,7 @@ class ArticleControllerV2(using
     .serverLogicPure(externalId => {
       readService.getArticleIdsByExternalId(externalId) match {
         case Some(idObject) => Right(idObject)
-        case None           => Left(ErrorHelpers.notFound)
+        case None           => Left(errorHelpers.notFound)
       }
     })
 

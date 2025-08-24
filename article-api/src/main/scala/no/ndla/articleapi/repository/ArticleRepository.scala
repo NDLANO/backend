@@ -34,7 +34,7 @@ class ArticleRepository(using
       val slug = article.slug.map(_.toLowerCase)
 
       Try {
-        sql"""update ${Article.table}
+        sql"""update ${dbArticle.Article.table}
               set document=$dataObject,
                   external_id=ARRAY[$externalIds]::text[],
                   slug=$slug
@@ -49,7 +49,7 @@ class ArticleRepository(using
           val slug = article.slug.map(_.toLowerCase)
           Try {
             sql"""
-                  insert into ${Article.table} (article_id, document, external_id, revision, slug)
+                  insert into ${dbArticle.Article.table} (article_id, document, external_id, revision, slug)
                   values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision}, $slug)
               """.updateAndReturnGeneratedKey()
           }.map(_ => article.copy(slug = slug))
@@ -61,10 +61,10 @@ class ArticleRepository(using
     def unpublishMaxRevision(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
       val numRows =
         sql"""
-             update ${Article.table}
+             update ${dbArticle.Article.table}
              set document=null
              where article_id=$articleId
-             and revision=(select max(revision) from ${Article.table} where article_id=$articleId)
+             and revision=(select max(revision) from ${dbArticle.Article.table} where article_id=$articleId)
            """.update()
       if (numRows == 1) {
         Success(articleId)
@@ -76,7 +76,7 @@ class ArticleRepository(using
     def unpublish(articleId: Long, revision: Int)(implicit session: DBSession = AutoSession): Try[Long] = {
       val numRows =
         sql"""
-             update ${Article.table}
+             update ${dbArticle.Article.table}
              set document=null, slug=null
              where article_id=$articleId
              and revision=$revision
@@ -91,9 +91,9 @@ class ArticleRepository(using
     def deleteMaxRevision(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
       val numRows =
         sql"""
-             delete from ${Article.table}
+             delete from ${dbArticle.Article.table}
              where article_id = $articleId
-             and revision=(select max(revision) from ${Article.table} where article_id=$articleId)
+             and revision=(select max(revision) from ${dbArticle.Article.table} where article_id=$articleId)
            """.update()
       if (numRows == 1) {
         Success(articleId)
@@ -106,7 +106,7 @@ class ArticleRepository(using
     def delete(articleId: Long, revision: Int)(implicit session: DBSession = AutoSession): Try[Long] = {
       val numRows =
         sql"""
-             delete from ${Article.table}
+             delete from ${dbArticle.Article.table}
              where article_id = $articleId
              and revision=$revision
            """.update()
@@ -143,29 +143,29 @@ class ArticleRepository(using
     def withIds(articleIds: List[Long], offset: Int, pageSize: Int)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): Seq[ArticleRow] = {
-      val ar  = Article.syntax("ar")
-      val ar2 = Article.syntax("ar2")
+      val ar  = dbArticle.Article.syntax("ar")
+      val ar2 = dbArticle.Article.syntax("ar2")
       sql"""
         select ${ar.result.*}
-        from ${Article.as(ar)}
+        from ${dbArticle.Article.as(ar)}
         where ar.document is not NULL
         and ar.article_id in ($articleIds)
         and ar.revision = (
             select max(revision)
-            from ${Article.as(ar2)}
+            from ${dbArticle.Article.as(ar2)}
             where ar2.article_id = ar.article_id
         )
         offset $offset
         limit $pageSize
          """
-        .map(Article.fromResultSet(ar))
+        .map(dbArticle.Article.fromResultSet(ar))
         .list()
     }
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
       sql"""
            select article_id
-           from ${Article.table}
+           from ${dbArticle.Article.table}
            where $externalId = any(external_id)
            order by revision desc
            limit 1
@@ -177,7 +177,7 @@ class ArticleRepository(using
     def getRevisions(articleId: Long)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Int] = {
       sql"""
             select revision
-            from ${Article.table}
+            from ${dbArticle.Article.table}
             where article_id=$articleId
             and document is not NULL;
          """
@@ -195,7 +195,7 @@ class ArticleRepository(using
     def getExternalIdsFromId(id: Long)(implicit session: DBSession = AutoSession): List[String] = {
       sql"""
            select external_id
-           from ${Article.table}
+           from ${dbArticle.Article.table}
            where article_id=${id.toInt}
            order by revision desc
            limit 1
@@ -206,7 +206,7 @@ class ArticleRepository(using
     }
 
     def getAllIds(implicit session: DBSession = AutoSession): Seq[ArticleIds] = {
-      sql"select article_id, external_id from ${Article.table}"
+      sql"select article_id, external_id from ${dbArticle.Article.table}"
         .map(rs =>
           ArticleIds(
             rs.long("article_id"),
@@ -217,14 +217,14 @@ class ArticleRepository(using
     }
 
     def articleCount(implicit session: DBSession = AutoSession): Long = {
-      val ar = Article.syntax("ar")
+      val ar = dbArticle.Article.syntax("ar")
       sql"""
            select count(distinct article_id)
            from (select
                    *,
                    ar.document as doc,
                    max(revision) over (partition by article_id) as max_revision
-                 from ${Article.as(ar)}
+                 from ${dbArticle.Article.as(ar)}
                  ) _
            where revision = max_revision
            and doc is not null
@@ -235,7 +235,7 @@ class ArticleRepository(using
     }
 
     def getArticlesByPage(pageSize: Int, offset: Int)(implicit session: DBSession = AutoSession): Seq[Article] = {
-      val ar = Article.syntax("ar")
+      val ar = dbArticle.Article.syntax("ar")
       sql"""
            select *
            from (select
@@ -244,14 +244,14 @@ class ArticleRepository(using
                    ${ar.id} as row_id,
                    ar.document as doc,
                    max(revision) over (partition by article_id) as max_revision
-                 from ${Article.as(ar)}) _
+                 from ${dbArticle.Article.as(ar)}) _
            where revision = max_revision
            and doc is not null
            order by row_id
            offset $offset
            limit $pageSize
       """
-        .map(Article.fromResultSet(ar))
+        .map(dbArticle.Article.fromResultSet(ar))
         .list()
         .toArticles
     }
@@ -265,7 +265,7 @@ class ArticleRepository(using
 
       val tags = sql"""select tags from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
-              (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${Article.table}) _
+              (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${dbArticle.Article.table}) _
               where tagObj->>'language' like $langOrAll
               order by tags) sorted_tags
               where sorted_tags.tags ilike ${sanitizedInput + '%'}
@@ -279,7 +279,7 @@ class ArticleRepository(using
         sql"""
               select count(*) from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
-              (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${Article.table}) _
+              (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${dbArticle.Article.table}) _
               where tagObj->>'language' like  $langOrAll) all_tags
               where all_tags.tags ilike ${sanitizedInput + '%'};
            """
@@ -292,7 +292,7 @@ class ArticleRepository(using
     }
 
     def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
-      sql"select coalesce(MIN(article_id),0) as mi, coalesce(MAX(article_id),0) as ma from ${Article.table}"
+      sql"select coalesce(MIN(article_id),0) as mi, coalesce(MAX(article_id),0) as ma from ${dbArticle.Article.table}"
         .map(rs => {
           (rs.long("mi"), rs.long("ma"))
         })
@@ -305,21 +305,21 @@ class ArticleRepository(using
     def documentsWithIdBetween(min: Long, max: Long)(implicit
         session: DBSession = ReadOnlyAutoSession
     ): Seq[Article] = {
-      val article         = Article.syntax("a")
-      val subqueryArticle = Article.syntax("b")
+      val article         = dbArticle.Article.syntax("a")
+      val subqueryArticle = dbArticle.Article.syntax("b")
 
       sql"""
         select ${article.result.*}
-        from ${Article.as(article)}
+        from ${dbArticle.Article.as(article)}
         where a.document is not NULL
         and a.article_id between $min and $max
         and a.revision = (
             select max(b.revision)
-            from ${Article.as(subqueryArticle)}
+            from ${dbArticle.Article.as(subqueryArticle)}
             where b.article_id = a.article_id
           )
          """
-        .map(Article.fromResultSet(article))
+        .map(dbArticle.Article.fromResultSet(article))
         .list()
         .toArticles
     }
@@ -327,22 +327,22 @@ class ArticleRepository(using
     private def articleWhere(
         whereClause: SQLSyntax
     )(implicit session: DBSession = ReadOnlyAutoSession): Option[ArticleRow] = {
-      val ar = Article.syntax("ar")
+      val ar = dbArticle.Article.syntax("ar")
       sql"""
            select ${ar.result.*}
-           from ${Article.as(ar)}
+           from ${dbArticle.Article.as(ar)}
            where $whereClause
          """
-        .map(Article.fromResultSet(ar))
+        .map(dbArticle.Article.fromResultSet(ar))
         .single()
     }
 
     def getArticleIdsFromExternalId(
         externalId: String
     )(implicit session: DBSession = ReadOnlyAutoSession): Option[ArticleIds] = {
-      val ar = Article.syntax("ar")
+      val ar = dbArticle.Article.syntax("ar")
       sql"""select distinct article_id, external_id
-        from ${Article.as(ar)}
+        from ${dbArticle.Article.as(ar)}
         where $externalId=ANY(ar.external_id)
         and ar.document is not NULL"""
         .map(rs =>
@@ -358,14 +358,12 @@ class ArticleRepository(using
         session: DBSession = ReadOnlyAutoSession
     ): Boolean = {
       val sq = articleId match {
-        case None     => sql"select count(*) from ${Article.table} where slug = ${slug.toLowerCase}"
+        case None     => sql"select count(*) from ${dbArticle.Article.table} where slug = ${slug.toLowerCase}"
         case Some(id) =>
-          sql"select count(*) from ${Article.table} where slug = ${slug.toLowerCase} and article_id != $id"
+          sql"select count(*) from ${dbArticle.Article.table} where slug = ${slug.toLowerCase} and article_id != $id"
       }
       val count = sq.map(rs => rs.long("count")).single().getOrElse(0L)
       count > 0L
     }
 
   }
-
-}

@@ -13,30 +13,28 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, ErrorHandling}
+import no.ndla.articleapi.model.api.ArticleSummaryV2DTO
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
+import no.ndla.articleapi.controller.ArticleErrorHelpers
 import no.ndla.common.implicits.*
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language
 import no.ndla.mapping.License
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.NdlaE4sClient
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
 class ArticleSearchService(using
-    elastic4sClient: Elastic4sClient,
-    searchConverterService: SearchConverterService,
-    searchService: SearchService,
+    elastic4sClient: NdlaE4sClient,
     articleIndexService: ArticleIndexService,
     converterService: ConverterService,
-    props: Props,
-    errorHandling: ErrorHandling
-) extends StrictLogging
-    with SearchService[api.ArticleSummaryV2DTO] {
+    props: Props
+) extends SearchService[api.ArticleSummaryV2DTO]
+    with StrictLogging {
   private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
   override val searchIndex: String = props.ArticleSearchIndex
@@ -137,7 +135,7 @@ class ArticleSearchService(using
           searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
         } else { searchToExecute }
 
-      e4sClient.execute(searchWithScroll) match {
+      elastic4sClient.execute(searchWithScroll) match {
         case Success(response) =>
           Success(
             SearchResult[ArticleSummaryV2DTO](

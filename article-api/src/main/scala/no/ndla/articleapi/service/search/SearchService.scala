@@ -18,13 +18,13 @@ import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.service.ConverterService
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
-import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
+import no.ndla.search.{NdlaE4sClient, IndexNotFoundException, NdlaSearchException}
 
 import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
 trait SearchService[T](using 
-  e4sClient: Elastic4sClient,
+  e4sClient: NdlaE4sClient,
   converterService: ConverterService,
   props: Props
 ) extends StrictLogging {
@@ -134,3 +134,4 @@ trait SearchService[T](using
         case t: Throwable => Failure(t)
       }
     }
+  }

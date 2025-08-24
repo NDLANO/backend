@@ -9,11 +9,10 @@
 package no.ndla.articleapi
 
 import no.ndla.articleapi.model.domain.ArticleRow
-import no.ndla.common.configuration.HasBaseProps
 import no.ndla.common.model.domain.article.Article
 import no.ndla.scalatestsuite.UnitTestSuite
 
-abstract class UnitSuite(using props: HasBaseProps) extends UnitTestSuite {
+trait UnitSuite extends UnitTestSuite {
   setPropEnv("NDLA_ENVIRONMENT", "local")
 
   setPropEnv("SEARCH_SERVER", "some-server")

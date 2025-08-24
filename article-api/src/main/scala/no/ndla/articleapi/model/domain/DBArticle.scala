@@ -46,4 +46,5 @@ class DBArticle(using props: Props) {
         article = article
       )
     }
+  }
 }

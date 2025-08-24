@@ -56,8 +56,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   val articleContent2: ArticleContent = ArticleContent(content2, "und")
 
-  override lazy val readService      = new ReadService
-  override lazy val converterService = new ConverterService
+  override implicit lazy val readService: ReadService           = new ReadService
+  override implicit lazy val converterService: ConverterService = new ConverterService
 
   override def beforeEach(): Unit = {
     reset(feideApiClient)

@@ -23,7 +23,7 @@ class SearchConverterService(using converterService: ConverterService, searchLan
   def asSearchableArticle(ai: Article): SearchableArticle = {
     val defaultTitle = ai.title
       .sortBy(title => {
-        val languagePriority = SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString).reverse
+        val languagePriority = searchLanguage.languageAnalyzers.map(la => la.languageTag.toString).reverse
         languagePriority.indexOf(title.language)
       })
       .lastOption

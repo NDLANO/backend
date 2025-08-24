@@ -17,6 +17,8 @@ import no.ndla.database.DataSource
 import no.ndla.network.tapir.{
   AllErrors,
   ErrorBody,
+  ErrorHandling,
+  ErrorHelpers,
   NotFoundWithSupportedLanguages,
   TapirErrorHandling,
   ValidationErrorBody
@@ -24,14 +26,16 @@ import no.ndla.network.tapir.{
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
-class ErrorHandling(using
+class LegacyErrorHandling(using
     props: Props,
     clock: Clock,
-    dataSource: DataSource
+    dataSource: DataSource,
+    errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling
 ) extends TapirErrorHandling
     with StrictLogging {
 
-  import ErrorHelpers.*
+  import errorHelpers.*
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case a: AccessDeniedException if a.unauthorized =>

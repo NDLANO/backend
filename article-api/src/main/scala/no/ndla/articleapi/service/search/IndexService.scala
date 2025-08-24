@@ -17,13 +17,12 @@ import no.ndla.articleapi.Props
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.model.domain.article.Article
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
-import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
+import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
 abstract class IndexService(using
-    e4sClient: Elastic4sClient,
-    baseIndexService: BaseIndexService,
+    e4sClient: NdlaE4sClient,
     props: Props,
     articleRepository: ArticleRepository,
     searchLanguage: SearchLanguage
@@ -100,14 +99,14 @@ abstract class IndexService(using
     */
   protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
     if (keepRaw) {
-      SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+      searchLanguage.languageAnalyzers.map(langAnalyzer =>
         textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
           .fielddata(false)
           .analyzer(langAnalyzer.analyzer)
           .fields(keywordField("raw"))
       )
     } else {
-      SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+      searchLanguage.languageAnalyzers.map(langAnalyzer =>
         textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
           .fielddata(false)
           .analyzer(langAnalyzer.analyzer)
