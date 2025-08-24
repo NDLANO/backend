@@ -63,7 +63,9 @@ class Routes(using props: BaseProps, errorHelpers: ErrorHelpers, services: List[
 
   private case class NdlaExceptionHandler[T[_]]() extends ExceptionHandler[T] {
     override def apply(ctx: ExceptionContext)(implicit monad: MonadError[T]): T[Option[ValuedEndpointOutput[?]]] = {
-      val errorToReturn = errorHelpers.generic
+      // TODO: Figure out how we can access returnError from TapirErrorHandling here,
+      //       but still keep it related to the controller like it is now after the refactor.
+      val errorToReturn = returnError(ctx.e)
       val sc            = StatusCode(errorToReturn.statusCode)
       val resp          = ValuedEndpointOutput(jsonBody[AllErrors], errorToReturn)
       val withsc        = resp.prepend(statusCode, sc)

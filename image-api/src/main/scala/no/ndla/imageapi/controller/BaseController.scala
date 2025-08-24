@@ -29,7 +29,8 @@ abstract class BaseController(using
     case v: ValidationException    => validationError(v)
     case a: AccessDeniedException  => forbiddenMsg(a.getMessage)
     case _: IndexNotFoundException => errorBody(INDEX_MISSING, INDEX_MISSING_DESCRIPTION, 500)
-    case i: ImageNotFoundException => notFoundWithMsg(i.getMessage)
+    case i: ImageNotFoundException =>
+      notFoundWithMsg(i.getMessage)
     case b: ImportException        => errorBody(IMPORT_FAILED, b.getMessage, 422)
     case iu: InvalidUrlException   => errorBody(INVALID_URL, iu.getMessage, 400)
     case s: ImageStorageException  =>
