@@ -12,6 +12,7 @@ import no.ndla.common.Clock
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{
+  ErrorHandling,
   ErrorHelpers,
   Routes,
   SwaggerController,
@@ -30,6 +31,7 @@ trait TestEnvironment extends TapirApplication[OEmbedProxyProperties] with Mocki
   implicit lazy val services: List[TapirController]              = List.empty
   implicit lazy val clock: Clock                                 = mock[Clock]
   implicit lazy val errorHelpers: ErrorHelpers                   = mock[ErrorHelpers]
+  implicit lazy val errorHandling: ErrorHandling                 = mock[ErrorHandling]
   implicit lazy val routes: Routes                               = mock[Routes]
   implicit lazy val oEmbedService: OEmbedService                 = mock[OEmbedService]
   implicit lazy val oEmbedProxyController: OEmbedProxyController = mock[OEmbedProxyController]

@@ -2,17 +2,11 @@ package no.ndla.oembedproxy.controller
 
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseProps
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHelpers, TapirController}
+import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.oembedproxy.model.{InvalidUrlException, ProviderNotSupportedException}
 
-abstract class BaseController(using
-    props: BaseProps,
-    clock: Clock,
-    myNDLAApiClient: MyNDLAApiClient,
-    errorHelpers: ErrorHelpers
-) extends TapirController {
+class ControllerErrorHandling(using clock: Clock, errorHelpers: ErrorHelpers) extends ErrorHandling {
   import errorHelpers.*
 
   private val statusCodesToPassAlong                                                      = List(401, 403, 404, 410)
