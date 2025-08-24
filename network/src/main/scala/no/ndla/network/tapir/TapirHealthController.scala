@@ -20,7 +20,8 @@ class TapirHealthController(using
     props: BaseProps,
     clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
-    errorHelpers: ErrorHelpers
+    errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling
 ) extends TapirController
     with Warmup {
   @volatile private var isShuttingDown: Boolean = false

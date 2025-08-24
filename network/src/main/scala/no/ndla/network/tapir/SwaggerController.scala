@@ -25,7 +25,8 @@ class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInf
     props: BaseProps,
     clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
-    errorHelpers: ErrorHelpers
+    errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling
 ) extends TapirController {
   def getServices(): List[TapirController] = services :+ this
 

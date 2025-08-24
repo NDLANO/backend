@@ -11,7 +11,7 @@ package no.ndla.tapirtesting
 import com.sun.net.httpserver.HttpServer
 import no.ndla.common.{Clock, configuration}
 import no.ndla.common.configuration.BaseProps
-import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
+import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.scalatestsuite.UnitTestSuite
 
 import scala.compiletime.uninitialized
@@ -21,8 +21,13 @@ trait TapirControllerTest extends UnitTestSuite {
   val serverPort: Int = findFreePort
 
   implicit lazy val props: BaseProps
-  implicit lazy val clock: Clock                    = new Clock
-  implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  implicit lazy val clock: Clock                 = new Clock
+  implicit lazy val errorHelpers: ErrorHelpers   = new ErrorHelpers
+  implicit lazy val errorHandling: ErrorHandling = new ErrorHandling() {
+    override def handleErrors: PartialFunction[Throwable, AllErrors] = { case t: Throwable =>
+      fail("Error handler not implemented in test")
+    }
+  }
   implicit lazy val services: List[TapirController] = List(controller)
   implicit lazy val routes: Routes                  = new Routes
 

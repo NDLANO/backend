@@ -38,7 +38,8 @@ abstract class TapirController(using
     props: BaseProps,
     clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
-    errorHelpers: ErrorHelpers
+    errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling
 ) extends TapirErrorHandling
     with StrictLogging
     with SchemaImplicits {

@@ -9,13 +9,10 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.common.Clock
-import no.ndla.database.DataSource
 import no.ndla.imageapi.model.ImageNotFoundException
-import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.ImageConverter
-import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
-import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
@@ -34,6 +31,8 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
 
   override implicit lazy val clock: Clock                    = mock[Clock]
   override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
+  override implicit lazy val imageConverter: ImageConverter  = new ImageConverter
   val controller: RawController                              = new RawController
   override implicit lazy val services: List[TapirController] = List(controller)
   override implicit lazy val routes: Routes                  = new Routes

@@ -11,13 +11,11 @@ package no.ndla.imageapi.controller
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.Clock
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.database.DataSource
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageStream
-import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.{ImageConverter, ImageStorageService, PercentPoint, PixelPoint, ReadService}
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{AllErrors, DynamicHeaders, ErrorHelpers, TapirController}
+import no.ndla.network.tapir.{AllErrors, ErrorHandling, DynamicHeaders, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
@@ -28,18 +26,18 @@ import scala.util.{Failure, Success, Try}
 class RawController(using
     imageStorage: ImageStorageService,
     imageConverter: ImageConverter,
-    imageRepository: ImageRepository,
     errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling,
     clock: Clock,
     props: Props,
     readService: ReadService,
-    myNDLAApiClient: MyNDLAApiClient,
-    dataSource: DataSource
-) extends BaseController {
+    myNDLAApiClient: MyNDLAApiClient
+) extends TapirController {
+  import errorHelpers.*
+  import errorHandling.*
   override val serviceName: String         = "raw"
   override val prefix: EndpointInput[Unit] = "image-api" / serviceName
   override val enableSwagger: Boolean      = true
-  import errorHelpers.*
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
     getImageFileById,
@@ -77,9 +75,12 @@ class RawController(using
     .serverLogicPure { case (imageId, imageParams) =>
       readService.getImageFileName(imageId, imageParams.language) match {
         case Success(Some(fileName)) =>
-          getRawImage(fileName, imageParams) match {
-            case Failure(ex)  => returnLeftError(ex)
-            case Success(img) => toImageResponse(img)
+          val x = getRawImage(fileName, imageParams)
+          x match {
+            case Failure(ex) =>
+              returnLeftError(ex)
+            case Success(img) =>
+              toImageResponse(img)
           }
         case Success(None) => notFoundWithMsg(s"Image with id $imageId not found").asLeft
         case Failure(ex)   => returnLeftError(ex)

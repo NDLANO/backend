@@ -28,7 +28,7 @@ import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when, withSettings}
@@ -48,13 +48,14 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJzb21lOm90aGVyIl0sImd0eSI6ImNsaWVudC1jcmVkZW50aWFscyJ9.u8o7-FXyVzWurle2tP1pngad8KRja6VjFdmy71T4m0k"
 
   override implicit lazy val clock: Clock                       = mock[Clock]
-  override implicit lazy val converterService: ConverterService = new ConverterService()
+  override implicit lazy val converterService: ConverterService = new ConverterService
   override implicit lazy val errorHelpers: ErrorHelpers         = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling       = new ControllerErrorHandling
   override val controller: ImageControllerV2                    = new ImageControllerV2 {
     override val maxImageFileSizeBytes: Int = 10
   }
   override implicit lazy val services: List[TapirController] = List(controller)
-  override lazy val routes                                   = new Routes(using props, errorHelpers, services)
+  override lazy val routes                                   = new Routes
 
   override def beforeEach(): Unit = {
     reset(clock)

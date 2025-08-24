@@ -11,7 +11,7 @@ package no.ndla.imageapi
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.configuration.BaseProps
-import no.ndla.database.{DatabaseProps, DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DataSource, DatabaseProps}
 import no.ndla.imageapi.controller.{
   BaseImageController,
   HealthController,
@@ -35,6 +35,7 @@ import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{
   AllErrors,
+  ErrorHandling,
   ErrorHelpers,
   Routes,
   SwaggerController,
@@ -47,12 +48,12 @@ import no.ndla.search.{BaseIndexService, Elastic4sClientFactory, NdlaE4sClient, 
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment extends TapirApplication[ImageApiProperties] with MockitoSugar {
-  implicit lazy val props: ImageApiProperties         = new ImageApiProperties
-  implicit lazy val clock: Clock                      = mock[Clock]
-  implicit lazy val errorHelpers: ErrorHelpers        = mock[ErrorHelpers]
-  implicit lazy val errorHandling: TapirErrorHandling = mock[TapirErrorHandling]
-  implicit lazy val routes: Routes                    = mock[Routes]
-  implicit lazy val services: List[TapirController]   = List.empty
+  implicit lazy val props: ImageApiProperties       = new ImageApiProperties
+  implicit lazy val clock: Clock                    = mock[Clock]
+  implicit lazy val errorHelpers: ErrorHelpers      = mock[ErrorHelpers]
+  implicit lazy val errorHandling: ErrorHandling    = mock[ErrorHandling]
+  implicit lazy val routes: Routes                  = mock[Routes]
+  implicit lazy val services: List[TapirController] = List.empty
 
   val TestData: TestData = new TestData
 

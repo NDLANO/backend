@@ -15,7 +15,7 @@ import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
 import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.Mockito.{reset, when}
 
@@ -31,6 +31,7 @@ class ImageControllerV3Test extends UnitSuite with TestEnvironment with TapirCon
 
   override implicit lazy val clock: Clock                    = mock[Clock]
   override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
   val controller: ImageControllerV3                          = new ImageControllerV3
   override implicit lazy val services: List[TapirController] = List(controller)
   override implicit lazy val routes: Routes                  = new Routes

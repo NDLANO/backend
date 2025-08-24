@@ -20,7 +20,7 @@ import no.ndla.imageapi.service.{ConverterService, ReadService}
 import no.ndla.imageapi.Props
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.{ErrorHelpers, TapirController}
+import no.ndla.network.tapir.{ErrorHelpers, TapirController, ErrorHandling}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.StatusCode
 import sttp.tapir.*
@@ -40,10 +40,11 @@ class InternController(using
     tagIndexService: TagIndexService,
     props: Props,
     errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling,
     clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
     dataSource: DataSource
-) extends BaseController
+) extends TapirController
     with StrictLogging {
   import errorHelpers.*
   override val prefix: EndpointInput[Unit] = "intern"

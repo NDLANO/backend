@@ -26,7 +26,7 @@ import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.network.tapir.{DynamicHeaders, ErrorHelpers, TapirController}
+import no.ndla.network.tapir.{DynamicHeaders, ErrorHelpers, TapirController, ErrorHandling}
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
@@ -42,12 +42,14 @@ class ImageControllerV3(using
     searchConverterService: SearchConverterService,
     props: Props,
     errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling,
     clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
     dataSource: DataSource
-) extends BaseController
+) extends TapirController
     with BaseImageController {
   import errorHelpers.*
+  import errorHandling.*
   override val serviceName: String         = "images V3"
   override val prefix: EndpointInput[Unit] = "image-api" / "v3" / "images"
 

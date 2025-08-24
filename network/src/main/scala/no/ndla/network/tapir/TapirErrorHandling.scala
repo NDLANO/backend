@@ -16,19 +16,16 @@ import no.ndla.common.errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
 
-trait TapirErrorHandling(using props: BaseProps, clock: Clock, errorHelpers: ErrorHelpers) extends StrictLogging {
-  def logError(e: Throwable): Unit = {
-    logger.error(e.getMessage, e)
-  }
+trait TapirErrorHandling(using
+    props: BaseProps,
+    clock: Clock,
+    errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling
+) extends StrictLogging {
 
-  private def handleUnknownError(e: Throwable): ErrorBody = {
-    logError(e)
-    errorHelpers.generic
-  }
+  import errorHandling.*
 
-  def handleErrors: PartialFunction[Throwable, AllErrors]
-  def returnError(ex: Throwable): AllErrors                    = handleErrors.applyOrElse(ex, handleUnknownError)
-  def returnLeftError[R](ex: Throwable): Either[AllErrors, R]  = returnError(ex).asLeft[R]
+  def handleErrors: PartialFunction[Throwable, AllErrors]      = errorHandling.handleErrors
   implicit def tryToEither[T](x: Try[T]): Either[AllErrors, T] = x.handleErrorsOrOk
 
   implicit class handleErrorOrOkClass[T](t: Try[T]) {

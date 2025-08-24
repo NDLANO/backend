@@ -13,7 +13,7 @@ import no.ndla.imageapi.Props
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.ImageStorageService
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{ErrorHelpers, TapirHealthController}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirHealthController}
 
 class HealthController(using
     imageStorageService: ImageStorageService,
@@ -21,7 +21,8 @@ class HealthController(using
     props: Props,
     clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
-    errorHelpers: ErrorHelpers
+    errorHelpers: ErrorHelpers,
+    errorHandling: ErrorHandling
 ) extends TapirHealthController {
 
   override def checkReadiness(): Either[String, String] = {

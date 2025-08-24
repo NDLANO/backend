@@ -27,22 +27,22 @@ import no.ndla.imageapi.service.search.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{ErrorHelpers, Routes, SwaggerController, TapirApplication, TapirController}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, SwaggerController, TapirApplication, TapirController}
 import no.ndla.search.{BaseIndexService, Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication[ImageApiProperties] {
-  given props: ImageApiProperties = properties
-  given dataSource: DataSource    = DataSource.getDataSource
-  given routes: Routes            = new Routes
+  given props: ImageApiProperties    = properties
+  given dataSource: DataSource       = DataSource.getDataSource
+  given errorHelpers: ErrorHelpers   = new ErrorHelpers
+  given errorHandling: ErrorHandling = new ControllerErrorHandling
+  given routes: Routes               = new Routes
 
   given migrator: DBMigrator = DBMigrator(
     new V6__AddAgreementToImages,
     new V7__TranslateUntranslatedAuthors
   )
 
-  given s3Client: NdlaS3Client     = new NdlaS3Client(props.StorageName, props.StorageRegion)
-  given errorHelpers: ErrorHelpers = new ErrorHelpers
-
+  given s3Client: NdlaS3Client                         = new NdlaS3Client(props.StorageName, props.StorageRegion)
   given searchLanguage: SearchLanguage                 = new SearchLanguage
   given imageIndexService: ImageIndexService           = new ImageIndexService
   given imageSearchService: ImageSearchService         = new ImageSearchService
