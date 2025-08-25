@@ -18,10 +18,13 @@ import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableArticle
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 class ArticleIndexService(using
     searchConverterService: SearchConverterService,
     draftRepository: DraftRepository,
+    e4sClient: NdlaE4sClient,
+    searchLanguage: SearchLanguage,
     props: Props
 ) extends IndexService[Draft, SearchableArticle]
     with StrictLogging {

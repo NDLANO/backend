@@ -62,14 +62,13 @@ class WriteService(using
     readService: ReadService,
     articleApiClient: ArticleApiClient,
     searchApiClient: SearchApiClient,
-    fileStorageService: FileStorageService,
+    fileStorage: FileStorageService,
     taxonomyApiClient: TaxonomyApiClient,
     props: Props,
-    dBUtility: DBUtility
+    dbUtility: DBUtility
 ) extends StrictLogging {
-
   def insertDump(article: Draft): Try[Draft] =
-    DBUtil.rollbackOnFailure(implicit session => {
+    dbUtility.rollbackOnFailure(implicit session => {
       draftRepository
         .newEmptyArticleId()
         .map(newId => {
@@ -100,7 +99,7 @@ class WriteService(using
       fallback: Boolean,
       usePostFix: Boolean
   ): Try[api.ArticleDTO] = {
-    DBUtil.rollbackOnFailure { implicit session =>
+    dbUtility.rollbackOnFailure { implicit session =>
       draftRepository.withId(articleId) match {
         case None          => Failure(api.NotFoundException(s"Article with id '$articleId' was not found in database."))
         case Some(article) =>
@@ -176,7 +175,7 @@ class WriteService(using
       notes = newNotes,
       visualElement = visualElement
     )
-    DBUtil.rollbackOnFailure { implicit session =>
+    dbUtility.rollbackOnFailure { implicit session =>
       for {
         newId           <- draftRepository.newEmptyArticleId()
         domainArticle   <- converterService.toDomainArticle(newId, withNotes, user)
@@ -203,7 +202,7 @@ class WriteService(using
 
   def updateArticleAndStoreAsNewIfPublished(article: Draft, statusWasUpdated: Boolean): Try[Draft] = {
     val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED
-    DBUtil.rollbackOnFailure { implicit session =>
+    dbUtility.rollbackOnFailure { implicit session =>
       draftRepository.updateArticle(article) match {
         case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
         case Success(updated)                      => Success(updated)
@@ -253,7 +252,7 @@ class WriteService(using
   }
 
   def migrateOutdatedGreps(user: TokenUser): Try[Unit] = logTaskTime("Migrate outdated grep codes") {
-    DBUtil.rollbackOnFailure { session =>
+    dbUtility.rollbackOnFailure { session =>
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
       val result = getRanges(session)
@@ -483,10 +482,11 @@ class WriteService(using
       .map { case (draftId, notes) => AddNoteDTO(draftId, notes.flatMap(_.notes)) }
       .toList
 
-  def addNotesToDrafts(input: AddMultipleNotesDTO, user: TokenUser): Try[Unit] = DBUtil.rollbackOnFailure { session =>
-    flattenNotes(input)
-      .traverse(info => addNotesToDraft(info.draftId, info.notes, user)(session))
-      .unit
+  def addNotesToDrafts(input: AddMultipleNotesDTO, user: TokenUser): Try[Unit] = dbUtility.rollbackOnFailure {
+    session =>
+      flattenNotes(input)
+        .traverse(info => addNotesToDraft(info.draftId, info.notes, user)(session))
+        .unit
   }
 
   private def addNotesToDraft(id: Long, notes: List[String], user: TokenUser)(
@@ -868,7 +868,7 @@ class WriteService(using
     }
   }
 
-  def deleteCurrentRevision(id: Long): Try[Unit] = DBUtil.rollbackOnFailure { implicit session =>
+  def deleteCurrentRevision(id: Long): Try[Unit] = dbUtility.rollbackOnFailure { implicit session =>
     lazy val missingRevisionError = api.NotFoundException(s"No revision found for article with id $id")
     lazy val partialPublishError  =
       OperationNotAllowedException("The previous revision has been partially published")

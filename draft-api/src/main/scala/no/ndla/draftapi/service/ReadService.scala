@@ -47,7 +47,7 @@ class ReadService(using
     writeService: WriteService,
     props: Props,
     memoizeHelpers: MemoizeHelpers,
-    dBUtility: DBUtility
+    dbUtility: DBUtility
 ) {
 
   def getInternalArticleIdByExternalId(externalId: Long): Option[api.ContentIdDTO] =
@@ -87,7 +87,7 @@ class ReadService(using
 
   def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean = false): api.ArticleDumpDTO = {
     val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-    DBUtil.withSession { implicit session =>
+    dbUtility.withSession { implicit session =>
       val results = draftRepository
         .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
         .flatMap(article => converterService.toApiArticle(article, lang, fallback).toOption)
@@ -96,7 +96,7 @@ class ReadService(using
   }
 
   def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDumpDTO = {
-    DBUtil.withSession(implicit session => {
+    dbUtility.withSession(implicit session => {
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
       val results                    = draftRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
 

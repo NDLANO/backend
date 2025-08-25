@@ -1,8 +1,18 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.draftapi.model.api.{ArticleStatusException, NotFoundException, DraftErrorHelpers}
+import no.ndla.common.errors.{
+  AccessDeniedException,
+  FileTooBigException,
+  OperationNotAllowedException,
+  ValidationException
+}
+import no.ndla.draftapi.model.api.{
+  ArticlePublishException,
+  ArticleStatusException,
+  DraftErrorHelpers,
+  NotFoundException
+}
 import no.ndla.database.DataSource
 import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHandling, ErrorHelpers, NotFoundWithSupportedLanguages}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
@@ -31,14 +41,8 @@ class ControllerErrorHandling(using
     case pf: ArticlePublishException       => ErrorBody(PUBLISH, pf.getMessage, clock.now(), 400)
     case st: IllegalStatusStateTransition  => ErrorBody(VALIDATION, st.getMessage, clock.now(), 400)
     case ona: OperationNotAllowedException => ErrorBody(UNPROCESSABLE_ENTITY, ona.getMessage, clock.now(), 422)
-    case _: FileTooBigException            =>
-      ErrorBody(
-        FILE_TOO_BIG,
-        DraftErrorHelpers.fileTooBigDescription,
-        clock.now(),
-        413
-      )
-    case psql: PSQLException =>
+    case _: FileTooBigException            => ErrorBody(FILE_TOO_BIG, fileTooBigDescription, clock.now(), 413)
+    case psql: PSQLException               =>
       logger.error(s"Got postgres exception: '${psql.getMessage}', attempting db reconnect", psql)
       dataSource.connectToDatabase()
       ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)

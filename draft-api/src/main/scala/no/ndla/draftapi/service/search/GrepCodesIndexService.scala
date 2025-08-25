@@ -17,11 +17,14 @@ import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableGrepCode
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 class GrepCodesIndexService(using
     searchConverterService: SearchConverterService,
     draftRepository: DraftRepository,
-    props: Props
+    props: Props,
+    e4sClient: NdlaE4sClient,
+    searchLanguage: SearchLanguage
 ) extends IndexService[Draft, SearchableGrepCode]
     with StrictLogging {
   override val documentType: String          = props.DraftGrepCodesSearchDocument

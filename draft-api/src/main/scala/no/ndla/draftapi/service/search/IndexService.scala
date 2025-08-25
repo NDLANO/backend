@@ -11,24 +11,25 @@ package no.ndla.draftapi.service.search
 import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ElasticField
-import com.sksamuel.elastic4s.requests.indexes.{CreateIndexResponse, IndexRequest}
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.repository.Repository
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
-import no.ndla.search.{BaseIndexService, IndexNotFoundException, NdlaE4sClient, SearchLanguage}
+import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
-trait IndexService[T, D](using
+trait IndexService[D, T](using
     e4sClient: NdlaE4sClient,
     props: DraftApiProperties,
     searchLanguage: SearchLanguage
 ) extends BaseIndexService
     with StrictLogging {
+  override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
   val repository: Repository[D]
 
   def indexAsync(id: Long, doc: D)(implicit ec: ExecutionContext): Future[Try[D]] = {

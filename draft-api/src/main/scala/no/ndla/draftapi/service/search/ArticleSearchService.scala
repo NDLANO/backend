@@ -12,16 +12,14 @@ import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.queries.matches.MatchQuery
-import com.sksamuel.elastic4s.requests.searches.queries.term.TermQuery
 import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query, RangeQuery}
 import com.sksamuel.elastic4s.requests.searches.sort.FieldSort
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.model.api.ArticleSummaryDTO
+import no.ndla.draftapi.model.api.{ArticleSummaryDTO, DraftErrorHelpers}
 import no.ndla.draftapi.model.domain.{SearchResult, SearchSettings, Sort}
-import no.ndla.draftapi.controller.DraftErrorHelpers
 import no.ndla.language.Language
 import no.ndla.mapping.License
 import no.ndla.search.{IndexNotFoundException, NdlaE4sClient, NdlaSearchException}
@@ -34,7 +32,8 @@ class ArticleSearchService(using
     e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
     articleIndexService: ArticleIndexService,
-    props: DraftApiProperties
+    props: DraftApiProperties,
+    draftErrorHelpers: DraftErrorHelpers
 ) extends SearchService[api.ArticleSummaryDTO]
     with StrictLogging {
   private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
@@ -111,7 +110,7 @@ class ArticleSearchService(using
       logger.info(
         s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
       )
-      Failure(DraftErrorHelpers.ResultWindowTooLargeException())
+      Failure(draftErrorHelpers.ResultWindowTooLargeException())
     } else {
       val searchToExecute = search(searchIndex)
         .size(numResults)

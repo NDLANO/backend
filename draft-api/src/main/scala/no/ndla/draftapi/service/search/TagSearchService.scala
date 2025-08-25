@@ -14,11 +14,12 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.DraftApiProperties
-import no.ndla.draftapi.model.domain.{SearchResult, Sort, SearchableTag}
-import no.ndla.draftapi.controller.DraftErrorHelpers
+import no.ndla.draftapi.model.domain.{SearchResult, Sort}
 import no.ndla.language.Language
 import no.ndla.search.{IndexNotFoundException, NdlaE4sClient, NdlaSearchException}
 import io.circe.parser.decode
+import no.ndla.draftapi.model.api.DraftErrorHelpers
+import no.ndla.draftapi.model.search.SearchableTag
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
@@ -28,7 +29,8 @@ class TagSearchService(using
     e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
     tagIndexService: TagIndexService,
-    props: DraftApiProperties
+    props: DraftApiProperties,
+    draftErrorHelpers: DraftErrorHelpers
 ) extends SearchService[String]
     with StrictLogging {
   override val searchIndex: String = props.DraftTagSearchIndex
@@ -36,7 +38,7 @@ class TagSearchService(using
   override def hitToApiModel(hit: String, language: String): String = {
     decode[SearchableTag](hit) match {
       case Right(searchableTag) => searchableTag.tag
-      case Left(_) => hit // fallback to raw hit if parsing fails
+      case Left(_)              => hit // fallback to raw hit if parsing fails
     }
   }
 
@@ -84,7 +86,7 @@ class TagSearchService(using
       logger.info(
         s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
       )
-      Failure(DraftErrorHelpers.ResultWindowTooLargeException())
+      Failure(draftErrorHelpers.ResultWindowTooLargeException())
     } else {
       val searchToExecute = search(searchIndex)
         .size(numResults)
