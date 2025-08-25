@@ -61,7 +61,7 @@ trait GrepSearchService {
       val prefixQueries = (codePrefixes ++ codes).toList.flatMap { prefix =>
         List(
           prefixQuery("code", prefix).boost(50),
-          prefixQuery("laereplanCode", prefix).boost(50)
+          prefixQuery("belongsTo", prefix).boost(50)
         )
       }
 
@@ -69,8 +69,8 @@ trait GrepSearchService {
         List(
           matchQuery("code", query).boost(50),
           termQuery("code", query).boost(50),
-          matchQuery("laereplanCode", query).boost(50),
-          termQuery("laereplanCode", query).boost(50)
+          matchQuery("belongsTo", query).boost(50),
+          termQuery("belongsTo", query).boost(50)
         )
       }
 
