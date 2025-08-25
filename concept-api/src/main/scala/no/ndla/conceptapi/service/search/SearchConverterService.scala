@@ -214,4 +214,3 @@ class SearchConverterService(using
       )
     }
   }
-}

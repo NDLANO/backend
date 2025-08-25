@@ -9,6 +9,7 @@
 package no.ndla.conceptapi.controller
 
 import cats.implicits.*
+import no.ndla.common.Clock
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
@@ -20,10 +21,11 @@ import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConve
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.conceptapi.Props
 import no.ndla.language.Language.AllLanguages
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
-import no.ndla.network.tapir.{DynamicHeaders, TapirController}
+import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, ErrorHelpers, TapirController}
 import sttp.model.headers.CacheDirective
 import sttp.model.{HeaderNames, StatusCode}
 import sttp.tapir.*
@@ -40,8 +42,12 @@ class DraftConceptController(using
     converterService: ConverterService,
     props: Props,
     conceptControllerHelpers: ConceptControllerHelpers,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
+    errorHelpers: ErrorHelpers,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
+  import conceptControllerHelpers.*
   override val serviceName: String         = "drafts"
   override val prefix: EndpointInput[Unit] = "concept-api" / "v1" / serviceName
 
@@ -131,7 +137,6 @@ class DraftConceptController(using
       case Failure(ex) => Failure(ex)
     }
   }
-  import ConceptControllerHelpers.*
 
   def getConceptById: ServerEndpoint[Any, Eff] = endpoint.get
     .summary("Show concept with a specified id")

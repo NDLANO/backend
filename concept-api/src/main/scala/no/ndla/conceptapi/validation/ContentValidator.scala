@@ -184,4 +184,3 @@ class ContentValidator(using
     private def languageCodeSupported639(languageCode: String): Boolean = Iso639.get(languageCode).isSuccess
 
   }
-}

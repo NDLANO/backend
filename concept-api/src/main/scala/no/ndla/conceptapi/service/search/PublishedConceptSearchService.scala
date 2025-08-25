@@ -14,20 +14,21 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.ErrorHandling
+import no.ndla.conceptapi.model.api.ResultWindowTooLargeException
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.{SearchSettings, SearchSettingsHelper}
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.AllLanguages
+import no.ndla.network.tapir.ErrorHandling
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.NdlaE4sClient
 
 import java.util.concurrent.Executors
 import scala.concurrent.*
 import scala.util.{Failure, Success, Try}
 
 class PublishedConceptSearchService(using
-    e4sClient: Elastic4sClient,
+    e4sClient: NdlaE4sClient,
     publishedConceptIndexService: PublishedConceptIndexService,
     converterService: ConverterService,
     searchConverterService: SearchConverterService,
@@ -101,7 +102,7 @@ class PublishedConceptSearchService(using
       logger.info(
         s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
       )
-      Failure(new ResultWindowTooLargeException())
+      Failure(ResultWindowTooLargeException.default)
     } else {
       val aggregations = buildTermsAggregation(settings.aggregatePaths, List(publishedConceptIndexService.getMapping))
       val searchToExecute =

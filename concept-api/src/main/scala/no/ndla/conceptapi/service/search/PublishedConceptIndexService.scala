@@ -11,12 +11,14 @@ package no.ndla.conceptapi.service.search
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.repository.{PublishedConceptRepository, Repository}
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 class PublishedConceptIndexService(using
-    indexService: IndexService,
     publishedConceptRepository: PublishedConceptRepository,
     searchConverterService: SearchConverterService,
-    props: Props
+    props: Props,
+    e4sClient: NdlaE4sClient,
+    searchLanguage: SearchLanguage
 ) extends IndexService {
   override val documentType: String            = props.ConceptSearchDocument
   override val searchIndex: String             = props.PublishedConceptSearchIndex

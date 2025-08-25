@@ -179,7 +179,7 @@ class ConverterService(using
     api.ConceptContent(Jsoup.parseBodyFragment(content.content).body().text(), content.content, content.language)
 
   def toApiVisualElement(visualElement: VisualElement): api.VisualElementDTO =
-    api.VisualElementDTO(converterService.addUrlOnElement(visualElement.visualElement), visualElement.language)
+    api.VisualElementDTO(addUrlOnElement(visualElement.visualElement), visualElement.language)
 
   private def toApiConceptResponsible(responsible: Responsible): ResponsibleDTO =
     ResponsibleDTO(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
@@ -318,7 +318,7 @@ class ConverterService(using
   }
 
   def updateStatus(status: ConceptStatus, concept: DomainConcept, user: TokenUser): Try[DomainConcept] =
-    StateTransitionRules.doTransition(concept, status, user)
+    stateTransitionRules.doTransition(concept, status, user)
 
   def toDomainConcept(id: Long, concept: api.UpdatedConceptDTO, userInfo: TokenUser): DomainConcept = {
     val lang = concept.language
@@ -385,7 +385,7 @@ class ConverterService(using
   }
 
   def stateTransitionsToApi(user: TokenUser): Map[String, List[String]] =
-    StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
+    stateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
       from.toString -> to
         .filter(t => user.hasPermissions(t.requiredPermissions))
         .map(_.to.toString)

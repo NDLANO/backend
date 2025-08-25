@@ -9,6 +9,7 @@
 package no.ndla.conceptapi.controller
 
 import cats.implicits.catsSyntaxEitherId
+import no.ndla.common.Clock
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.LanguageCode
@@ -19,9 +20,10 @@ import no.ndla.conceptapi.service.search.{PublishedConceptSearchService, SearchC
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import no.ndla.conceptapi.Props
 import no.ndla.language.Language
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.{DynamicHeaders, TapirController}
+import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, ErrorHelpers, TapirController}
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -36,9 +38,12 @@ class PublishedConceptController(using
     searchConverterService: SearchConverterService,
     props: Props,
     conceptControllerHelpers: ConceptControllerHelpers,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
+    errorHelpers: ErrorHelpers,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
-  import ConceptControllerHelpers.*
+  import conceptControllerHelpers.*
 
   override val serviceName: String         = "concepts"
   override val prefix: EndpointInput[Unit] = "concept-api" / "v1" / serviceName

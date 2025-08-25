@@ -11,7 +11,6 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.NDLAS3Client
 import no.ndla.audioapi.repository.AudioRepository
-import no.ndla.common.aws.NdlaS3Client
 import no.ndla.network.tapir.{ErrorHelpers, TapirHealthController}
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.common.Clock

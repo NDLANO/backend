@@ -20,13 +20,12 @@ import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.repository.Repository
 import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, ReindexResult}
-import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaE4sClient, SearchLanguage}
+import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
 abstract class IndexService(using
     e4sClient: NdlaE4sClient,
-    baseIndexService: BaseIndexService,
     props: Props,
     searchConverterService: SearchConverterService,
     searchLanguage: SearchLanguage

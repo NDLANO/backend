@@ -13,9 +13,10 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ErrorHandling, NotFoundException}
+import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException, OptimisticLockException}
 import no.ndla.conceptapi.model.domain.DBConcept
 import no.ndla.database.DataSource
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers}
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
@@ -24,7 +25,8 @@ import scala.util.{Failure, Success, Try}
 class DraftConceptRepository(using
     dataSource: DataSource,
     props: Props,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
+    errorHelpers: ErrorHelpers
 ) extends StrictLogging
     with Repository[Concept] {
   def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
@@ -156,7 +158,7 @@ class DraftConceptRepository(using
     if (count != 1) {
       val message = s"Found revision mismatch when attempting to update concept ${concept.id}"
       logger.info(message)
-      Failure(new OptimisticLockException)
+      Failure(OptimisticLockException.default)
     } else {
       logger.info(s"Updated concept ${concept.id}")
       val updatedConcept = concept.copy(revision = Some(newRevision))
