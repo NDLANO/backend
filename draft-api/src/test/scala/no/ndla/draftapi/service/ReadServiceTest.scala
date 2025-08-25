@@ -20,6 +20,9 @@ import scalikejdbc.DBSession
 import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
+  override implicit lazy val readService: ReadService           = new ReadService
+  override implicit lazy val converterService: ConverterService = new ConverterService
+
   val externalImageApiUrl: String = props.externalApiUrls("image")
   val resourceIdAttr: String      = s"${TagAttribute.DataResource_Id}"
   val resourceAttr: String        = s"${TagAttribute.DataResource}"
@@ -39,8 +42,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   )
 
   val articleContent2: ArticleContent = ArticleContent(content2, "und")
-
-
 
   test("withId adds urls and ids on embed resources") {
     val visualElementBefore =

@@ -149,7 +149,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         started = true
       )
 
-    when(service.partialPublish(any, any, any, any)).thenReturn((expectedArticle.id.get, Success(expectedArticle)))
+    when(writeService.partialPublish(any, any, any, any)).thenReturn((expectedArticle.id.get, Success(expectedArticle)))
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(expectedArticle.id.get))
 
     val result = service.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess)
@@ -635,7 +635,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-    when(service.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
+    when(writeService.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
 
     val Success(result1) =
@@ -687,7 +687,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-    when(service.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
+    when(writeService.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
 
     val Success(result1) =
@@ -739,7 +739,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-    when(service.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
+    when(writeService.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
 
     val Success(result1) =
@@ -1063,7 +1063,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-    when(service.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
+    when(writeService.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
 
     val Success(result1) =
