@@ -25,7 +25,6 @@ import scala.util.{Failure, Success, Try}
 class SeriesIndexService(using
     elastic4sClient: Elastic4sClient,
     searchConverterService: SearchConverterService,
-    indexService: IndexService,
     seriesRepository: SeriesRepository,
     props: Props
 ) extends IndexService[Series, SearchableSeries]

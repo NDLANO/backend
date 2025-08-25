@@ -38,7 +38,7 @@ class SeriesController(using
     searchConverterService: SearchConverterService,
     converterService: ConverterService,
     props: Props,
-    errorHandling: ErrorHandling
+    errorHandling: ControllerErrorHandling
 ) extends TapirController {
   private val queryString = query[Option[String]]("query")
     .description("Return only results with titles or tags matching the specified query.")

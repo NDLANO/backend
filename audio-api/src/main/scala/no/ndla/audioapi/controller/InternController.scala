@@ -19,7 +19,7 @@ import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, T
 import no.ndla.audioapi.service.{ConverterService, ReadService}
 import no.ndla.common.errors.NotFoundException
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.{ErrorHandling, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.StatusCode
 import sttp.tapir.*

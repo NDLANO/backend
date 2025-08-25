@@ -10,6 +10,7 @@ package no.ndla.audioapi.service
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
+import no.ndla.audioapi.integration.TranscribeS3Client
 import no.ndla.audioapi.model.api.JobAlreadyFoundException
 import no.ndla.common.aws.{NdlaAWSTranscribeClient, NdlaS3Client}
 import no.ndla.common.brightcove.NdlaBrightcoveClient
@@ -27,7 +28,7 @@ case class TranscriptionComplete(transcription: String)             extends Tran
 case class TranscriptionNonComplete(status: TranscriptionJobStatus) extends TranscriptionResult
 
 class TranscriptionService(using
-    s3TranscribeClient: NdlaS3Client,
+    s3TranscribeClient: TranscribeS3Client,
     props: Props,
     brightcoveClient: NdlaBrightcoveClient,
     transcribeClient: NdlaAWSTranscribeClient

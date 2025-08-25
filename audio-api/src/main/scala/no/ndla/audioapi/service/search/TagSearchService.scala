@@ -13,24 +13,25 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.model.api.ErrorHandling
+import no.ndla.audioapi.controller.ControllerErrorHandling
 import no.ndla.audioapi.model.domain.{SearchResult, SearchableTag}
 import no.ndla.common.CirceUtil
 import no.ndla.language.model.Iso639
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.NdlaE4sClient
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
 class TagSearchService(using
-    e4sClient: Elastic4sClient,
+    e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
     tagIndexService: TagIndexService,
     props: Props,
-    errorHandling: ErrorHandling
+    errorHandling: ControllerErrorHandling
 ) extends StrictLogging
     with SearchService[String] {
+  import errorHandling.ResultWindowTooLargeException
   override val searchIndex: String = props.AudioTagSearchIndex
 
   override def hitToApiModel(hit: String, language: String): Try[String] = {
@@ -77,7 +78,7 @@ class TagSearchService(using
       logger.info(
         s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
       )
-      Failure(new Helpers.ResultWindowTooLargeException())
+      Failure(new ResultWindowTooLargeException())
     } else {
       val searchToExecute = search(searchIndex)
         .size(numResults)

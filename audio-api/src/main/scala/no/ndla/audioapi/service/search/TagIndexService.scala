@@ -21,7 +21,6 @@ import scala.util.{Success, Try}
 
 class TagIndexService(using
     searchConverterService: SearchConverterService,
-    indexService: IndexService,
     audioRepository: AudioRepository,
     props: Props
 ) extends IndexService[AudioMetaInformation, SearchableTag]

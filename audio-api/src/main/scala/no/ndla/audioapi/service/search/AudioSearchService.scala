@@ -12,7 +12,7 @@ import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.model.api.ErrorHandling
+import no.ndla.audioapi.controller.ControllerErrorHandling
 import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.model.{api, domain}
@@ -20,21 +20,22 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.*
 import no.ndla.language.Language.AllLanguages
 import no.ndla.mapping.License
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.NdlaE4sClient
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 class AudioSearchService(using
-    e4sClient: Elastic4sClient,
+    e4sClient: NdlaE4sClient,
     audioIndexService: AudioIndexService,
     searchConverterService: SearchConverterService,
     searchService: SearchService[api.AudioSummaryDTO],
     props: Props,
-    errorHandling: ErrorHandling
+    errorHandling: ControllerErrorHandling
 ) extends StrictLogging
     with SearchService[api.AudioSummaryDTO] {
+  import errorHandling.ResultWindowTooLargeException
   override val searchIndex: String = props.SearchIndex
 
   override def hitToApiModel(hitString: String, language: String): Try[api.AudioSummaryDTO] = {
@@ -112,7 +113,7 @@ class AudioSearchService(using
       logger.info(
         s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
       )
-      Failure(new Helpers.ResultWindowTooLargeException())
+      Failure(new ResultWindowTooLargeException())
     } else {
 
       val searchToExecute =

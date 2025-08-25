@@ -21,12 +21,12 @@ import no.ndla.audioapi.model.Sort
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
-import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException, SearchLanguage}
+import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaE4sClient, NdlaSearchException, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
 trait SearchService[T](using
-    e4sClient: Elastic4sClient,
+    e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
     props: Props,
     searchLanguage: SearchLanguage

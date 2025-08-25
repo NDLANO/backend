@@ -15,14 +15,12 @@ import no.ndla.draftapi.model.api.{
   NotFoundException
 }
 import no.ndla.database.DataSource
-import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHandling, ErrorHelpers, NotFoundWithSupportedLanguages}
+import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHandling, ErrorHelpers}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import no.ndla.draftapi.DraftApiProperties
 import no.ndla.network.model.HttpRequestException
 import org.postgresql.util.PSQLException
 
 class ControllerErrorHandling(using
-    props: DraftApiProperties,
     dataSource: DataSource,
     errorHelpers: ErrorHelpers,
     draftErrorHelpers: DraftErrorHelpers,
