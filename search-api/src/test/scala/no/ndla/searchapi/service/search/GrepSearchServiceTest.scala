@@ -72,7 +72,7 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
         ),
         `tilhoerer-laereplan` = BelongsToObj("LP2", GrepStatusDTO.Published, "Dette er LP2"),
         `tilhoerer-kompetansemaalsett` = BelongsToObj(
-          "KE200",
+          "KV200",
           GrepStatusDTO.Published,
           "Kompetansemaalsett"
         ),
@@ -207,7 +207,7 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
     result2.results.map(_.code) should be(List("KE12", "KE34"))
   }
 
-  test("That searching for a læreplan helps out") {
+  test("That searching for a læreplan or kompetansemaalsett helps out") {
     grepIndexService.indexDocuments(1.some, Some(grepTestBundle)).get
     blockUntil(() => grepIndexService.countDocuments == grepTestBundle.grepContext.size)
 
@@ -230,6 +230,16 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
       )
       .get
     result2.results.map(_.code) should be(List("KE12", "KE34"))
+
+    val result3 = grepSearchService
+      .searchGreps(
+        emptyInput.copy(
+          query = NonEmptyString.fromString("og KV200"),
+          prefixFilter = Some(List("KM"))
+        )
+      )
+      .get
+    result3.results.map(_.code) should be(List("KM123"))
 
   }
 

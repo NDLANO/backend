@@ -17,7 +17,7 @@ case class SearchableGrepElement(
     code: String,
     title: SearchableLanguageValues,
     defaultTitle: Option[String],
-    laereplanCode: Option[String],
+    belongsTo: List[String],
     gjenbrukAv: Option[String],
     erstattesAv: List[String],
     domainObject: GrepElement
