@@ -21,6 +21,7 @@ import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.search.ArticleIndexService
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.clients.SearchApiClient
+import no.ndla.network.tapir.ErrorHandling
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import scalikejdbc.ReadOnlyAutoSession
 
@@ -42,7 +43,6 @@ class StateTransitionRules(using
     errorHandling: ErrorHandling,
     searchApiClient: SearchApiClient
 ) {
-
   object StateTransitionRules {
     private[service] val checkIfArticleIsInUse: SideEffect =
       SideEffect.withDraftAndUser("checkIfArticleIsInUse")((article: Draft, user: TokenUser) =>

@@ -9,7 +9,7 @@
 package no.ndla.draftapi.caching
 
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
-import no.ndla.draftapi.Props
+import no.ndla.draftapi.DraftApiProperties
 
 private[caching] class Memoize[R](
     maxCacheAgeMs: Long,
@@ -49,7 +49,7 @@ private[caching] class Memoize[R](
   }
 
 }
-class MemoizeHelpers(using props: Props) {
+class MemoizeHelpers(using props: DraftApiProperties) {
   object Memoize {
 
     def apply[R](f: () => R, shouldCacheResult: R => Boolean = (_: R) => true) =

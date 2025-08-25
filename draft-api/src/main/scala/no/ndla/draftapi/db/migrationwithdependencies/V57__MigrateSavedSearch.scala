@@ -15,7 +15,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.*
 import no.ndla.draftapi.integration.{Node, TaxonomyApiClient}
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.Props
+import no.ndla.draftapi.DraftApiProperties
 import no.ndla.network.{AuthUser, NdlaClient, TaxonomyData}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 import org.postgresql.util.PGobject
@@ -31,7 +31,7 @@ import scala.concurrent.duration.DurationInt
 class V57__MigrateSavedSearch(using
     taxonomyApiClient: TaxonomyApiClient,
     ndlaClient: NdlaClient,
-    props: Props
+    props: DraftApiProperties
 ) {
 
   class V57__MigrateSavedSearch extends BaseJavaMigration {

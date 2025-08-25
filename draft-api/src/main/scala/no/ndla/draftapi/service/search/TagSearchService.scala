@@ -8,36 +8,36 @@
 
 package no.ndla.draftapi.service.search
 
-import java.util.concurrent.Executors
+import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
-import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
+import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.CirceUtil
-import no.ndla.draftapi.Props
-import no.ndla.draftapi.model.api.ErrorHandling
-import no.ndla.draftapi.model.domain.*
-import no.ndla.draftapi.model.search.SearchableTag
+import no.ndla.draftapi.DraftApiProperties
+import no.ndla.draftapi.model.domain.{SearchResult, Sort, SearchableTag}
+import no.ndla.draftapi.controller.DraftErrorHelpers
 import no.ndla.language.Language
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.{IndexNotFoundException, NdlaE4sClient, NdlaSearchException}
+import io.circe.parser.decode
 
+import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
 class TagSearchService(using
-    e4sClient: Elastic4sClient,
+    e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
-    searchService: SearchService,
     tagIndexService: TagIndexService,
-    props: Props,
-    errorHandling: ErrorHandling
-) extends StrictLogging
-    with SearchService[String] {
+    props: DraftApiProperties
+) extends SearchService[String]
+    with StrictLogging {
   override val searchIndex: String = props.DraftTagSearchIndex
 
   override def hitToApiModel(hit: String, language: String): String = {
-    val searchableTag = CirceUtil.unsafeParseAs[SearchableTag](hit)
-    searchableTag.tag
+    decode[SearchableTag](hit) match {
+      case Right(searchableTag) => searchableTag.tag
+      case Left(_) => hit // fallback to raw hit if parsing fails
+    }
   }
 
   def all(
@@ -84,7 +84,7 @@ class TagSearchService(using
       logger.info(
         s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
       )
-      Failure(new ResultWindowTooLargeException())
+      Failure(DraftErrorHelpers.ResultWindowTooLargeException())
     } else {
       val searchToExecute = search(searchIndex)
         .size(numResults)

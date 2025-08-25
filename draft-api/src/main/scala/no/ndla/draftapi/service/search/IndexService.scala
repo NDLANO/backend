@@ -8,28 +8,27 @@
 
 package no.ndla.draftapi.service.search
 
+import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ElasticField
-import com.sksamuel.elastic4s.requests.indexes.IndexRequest
+import com.sksamuel.elastic4s.requests.indexes.{CreateIndexResponse, IndexRequest}
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.draftapi.Props
+import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.repository.Repository
-import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
-
-import scala.util.{Failure, Success, Try}
-import cats.implicits.*
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
+import no.ndla.search.{BaseIndexService, IndexNotFoundException, NdlaE4sClient, SearchLanguage}
 
-import scala.concurrent.{ExecutionContext, Future}
+import java.util.concurrent.Executors
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
+import scala.util.{Failure, Success, Try}
 
-abstract class IndexService[D, T <: AnyRef](using
-    e4sClient: Elastic4sClient,
-    baseIndexService: BaseIndexService,
-    props: Props,
+trait IndexService[T, D](using
+    e4sClient: NdlaE4sClient,
+    props: DraftApiProperties,
     searchLanguage: SearchLanguage
 ) extends BaseIndexService
     with StrictLogging {
-  override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
   val repository: Repository[D]
 
   def indexAsync(id: Long, doc: D)(implicit ec: ExecutionContext): Future[Try[D]] = {
@@ -109,14 +108,14 @@ abstract class IndexService[D, T <: AnyRef](using
     */
   protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
     if (keepRaw) {
-      SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+      searchLanguage.languageAnalyzers.map(langAnalyzer =>
         textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
           .fielddata(false)
           .analyzer(langAnalyzer.analyzer)
           .fields(keywordField("raw"))
       )
     } else {
-      SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+      searchLanguage.languageAnalyzers.map(langAnalyzer =>
         textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
           .fielddata(false)
           .analyzer(langAnalyzer.analyzer)

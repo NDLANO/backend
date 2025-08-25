@@ -11,14 +11,14 @@ package no.ndla.draftapi.service
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.model.domain.UploadedFile
-import no.ndla.draftapi.Props
+import no.ndla.draftapi.DraftApiProperties
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse
 
 import scala.util.Try
 
 class FileStorageService(using
     s3Client: NdlaS3Client,
-    props: Props
+    props: DraftApiProperties
 ) extends StrictLogging {
   val resourceDirectory = "resources"
 

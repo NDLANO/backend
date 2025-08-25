@@ -9,18 +9,20 @@
 package no.ndla.draftapi.controller
 
 import no.ndla.common.errors.{FileTooBigException, ValidationException}
-import no.ndla.draftapi.Props
+import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.*
 import no.ndla.draftapi.service.WriteService
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.common.Clock
 import sttp.model.Part
 import sttp.tapir.EndpointInput
 import sttp.tapir.*
 import no.ndla.common.model.domain
-import no.ndla.network.tapir.TapirController
 import sttp.tapir.server.ServerEndpoint
 
 import java.io.File
@@ -28,8 +30,11 @@ import scala.util.{Failure, Success, Try}
 
 class FileController(using
     writeService: WriteService,
+    props: DraftApiProperties,
     errorHandling: ErrorHandling,
-    props: Props
+    errorHelpers: ErrorHelpers,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   override val serviceName: String         = "files"
   override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
@@ -73,11 +78,11 @@ class FileController(using
       {
         case Some(fp) =>
           writeService.deleteFile(fp) match {
-            case Failure(ex) => returnLeftError(ex)
+            case Failure(ex) => errorHandling.returnLeftError(ex)
             case Success(_)  => Right(())
           }
         case None =>
-          returnLeftError(
+          errorHandling.returnLeftError(
             ValidationException(
               this.filePath.name,
               "The request must contain a file path query parameter"

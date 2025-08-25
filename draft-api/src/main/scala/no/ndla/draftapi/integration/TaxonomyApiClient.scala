@@ -189,7 +189,6 @@ class TaxonomyApiClient(using
       }
     }
   }
-}
 
 case class Node(id: String, name: String, contentUri: Option[String], paths: List[String]) {
   def withName(name: String): Node = this.copy(name = name)

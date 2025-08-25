@@ -21,8 +21,8 @@ import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{RelatedContentLink, api as commonApi, domain as common}
 import no.ndla.common.{Clock, UUIDUtil, model}
-import no.ndla.draftapi.Props
-import no.ndla.draftapi.integration.ArticleApiClient
+import no.ndla.draftapi.DraftApiProperties
+import no.ndla.draftapi.integration.{ArticleApiClient, TaxonomyApiClient}
 import no.ndla.draftapi.model.api.{NotFoundException, UpdatedArticleDTO}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.DraftRepository
@@ -43,11 +43,11 @@ class ConverterService(using
     clock: Clock,
     draftRepository: DraftRepository,
     articleApiClient: ArticleApiClient,
-    stateTransitionRules: StateTransitionRules,
-    writeService: WriteService,
-    uUIDUtil: UUIDUtil,
+    taxonomyApiClient: TaxonomyApiClient,
     commonConverter: CommonConverter,
-    props: Props
+    writeService: WriteService,
+    stateTransitionRules: StateTransitionRules,
+    props: DraftApiProperties
 ) extends StrictLogging {
   def toDomainArticle(newArticleId: Long, newArticle: api.NewArticleDTO, user: TokenUser): Try[Draft] = {
     val domainTitles  = Seq(common.Title(newArticle.title, newArticle.language))
@@ -61,7 +61,7 @@ class ConverterService(using
     val revisionMeta    = newArticle.revisionMeta match {
       case Some(revs) if revs.nonEmpty =>
         newArticle.revisionMeta
-          .map(_.map(CommonConverter.revisionMetaApiToDomain))
+          .map(_.map(commonConverter.revisionMetaApiToDomain))
           .getOrElse(common.RevisionMeta.default)
       case _ => common.RevisionMeta.default
     }
@@ -112,7 +112,7 @@ class ConverterService(using
         responsible = responsible,
         slug = newArticle.slug,
         comments = newArticle.comments
-          .map(comments => comments.map(CommonConverter.newCommentApiToDomain))
+          .map(comments => comments.map(commonConverter.newCommentApiToDomain))
           .getOrElse(List.empty),
         priority = priority,
         started = false,
@@ -262,7 +262,7 @@ class ConverterService(using
   }
 
   def updateStatus(status: DraftStatus, draft: Draft, user: TokenUser): Try[Draft] =
-    StateTransitionRules.doTransition(draft, status, user)
+    stateTransitionRules.doTransition(draft, status, user)
 
   private def toApiResponsible(responsible: Responsible): ResponsibleDTO =
     ResponsibleDTO(
@@ -283,7 +283,7 @@ class ConverterService(using
       val visualElement  = findByLanguageOrBestEffort(article.visualElement, language).map(toApiVisualElement)
       val articleContent = findByLanguageOrBestEffort(article.content, language).map(toApiArticleContent)
       val metaImage      = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
-      val revisionMetas  = article.revisionMeta.map(CommonConverter.revisionMetaDomainToApi)
+      val revisionMetas  = article.revisionMeta.map(commonConverter.revisionMetaDomainToApi)
       val responsible    = article.responsible.map(toApiResponsible)
       val disclaimer     = article.disclaimer.findByLanguageOrBestEffort(language).map(DisclaimerDTO.fromLanguageValue)
 
@@ -317,7 +317,7 @@ class ConverterService(using
           revisions = revisionMetas,
           responsible = responsible,
           slug = article.slug,
-          comments = article.comments.map(CommonConverter.commentDomainToApi),
+          comments = article.comments.map(commonConverter.commentDomainToApi),
           priority = article.priority,
           started = article.started,
           qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation),
@@ -635,7 +635,7 @@ class ConverterService(using
     val publishedDate       = article.published.getOrElse(toMergeInto.published)
     val updatedAvailability = common.Availability.valueOf(article.availability).getOrElse(toMergeInto.availability)
     val updatedRevision     =
-      article.revisionMeta.map(_.map(CommonConverter.revisionMetaApiToDomain)).getOrElse(toMergeInto.revisionMeta)
+      article.revisionMeta.map(_.map(commonConverter.revisionMetaApiToDomain)).getOrElse(toMergeInto.revisionMeta)
     val responsible        = getNewResponsible(toMergeInto, article)
     val copyright          = article.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright)
     val priority           = getNewPriority(toMergeInto, article)
@@ -645,7 +645,7 @@ class ConverterService(using
     val reqLibs            =
       article.requiredLibraries.map(_.map(toDomainRequiredLibraries)).getOrElse(toMergeInto.requiredLibraries)
     val updatedComments = article.comments
-      .map(comments => CommonConverter.mergeUpdatedCommentsWithExisting(comments, toMergeInto.comments))
+      .map(comments => commonConverter.mergeUpdatedCommentsWithExisting(comments, toMergeInto.comments))
       .getOrElse(toMergeInto.comments)
 
     val articleWithNewContent = article.copy(content = newContent)
@@ -731,7 +731,7 @@ class ConverterService(using
   }
 
   private[service] def buildTransitionsMap(user: TokenUser, article: Option[Draft]): Map[String, List[String]] =
-    StateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
+    stateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
       from.toString -> to
         .filter(_.hasRequiredProperties(user, article))
         .map(_.to.toString)

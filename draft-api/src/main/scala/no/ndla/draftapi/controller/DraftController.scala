@@ -18,14 +18,16 @@ import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.service.search.{ArticleSearchService, SearchConverterService}
 import no.ndla.draftapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.draftapi.validation.ContentValidator
-import no.ndla.draftapi.Props
+import no.ndla.draftapi.DraftApiProperties
+import no.ndla.common.Clock
 import no.ndla.language.Language
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.{ARTICLE_API_WRITE, DRAFT_API_WRITE}
-import no.ndla.network.tapir.{DynamicHeaders, TapirController}
+import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, ErrorHelpers, TapirController}
+import no.ndla.network.clients.MyNDLAApiClient
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
@@ -39,8 +41,11 @@ class DraftController(using
     searchConverterService: SearchConverterService,
     converterService: ConverterService,
     contentValidator: ContentValidator,
-    props: Props,
-    errorHandling: ErrorHandling
+    props: DraftApiProperties,
+    errorHandling: ErrorHandling,
+    errorHelpers: ErrorHelpers,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   override val serviceName: String         = "drafts"
   override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
@@ -350,7 +355,7 @@ class DraftController(using
         val permitted      = user.hasPermission(DRAFT_API_WRITE) || isPublicStatus
 
         if (permitted) article
-        else ErrorHelpers.forbidden.asLeft
+        else errorHelpers.forbidden.asLeft
       }
     }
 
@@ -424,7 +429,7 @@ class DraftController(using
       { externalId =>
         readService.getInternalArticleIdByExternalId(externalId) match {
           case Some(id) => id.asRight
-          case None     => ErrorHelpers.notFoundWithMsg(s"No article with id $externalId").asLeft
+          case None     => errorHelpers.notFoundWithMsg(s"No article with id $externalId").asLeft
         }
       }
     }
@@ -619,7 +624,7 @@ class DraftController(using
     .serverLogicPure { _ => publicId =>
       writeService.copyRevisionDates(publicId) match {
         case Success(_)  => Right(())
-        case Failure(ex) => returnLeftError(ex)
+        case Failure(ex) => errorHandling.returnLeftError(ex)
       }
     }
 
@@ -639,7 +644,7 @@ class DraftController(using
         val isPublicStatus = currentOption.contains(DraftStatus.EXTERNAL_REVIEW.toString)
         val permitted      = user.hasPermission(DRAFT_API_WRITE) || isPublicStatus
         if (permitted) article
-        else ErrorHelpers.forbidden.asLeft
+        else errorHelpers.forbidden.asLeft
       }
     }
 

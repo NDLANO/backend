@@ -8,34 +8,29 @@
 
 package no.ndla.draftapi.validation
 
-import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.*
-import no.ndla.common.model.domain.draft.*
-import no.ndla.common.model.domain.draft.DraftStatus.ARCHIVED
-import no.ndla.common.model.domain.language.OptLanguageFields
-import no.ndla.draftapi.Props
+import cats.implicits.*
+import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.errors.{AccessDeniedException, ValidationException, ValidationMessage}
+import no.ndla.common.implicits.*
+import no.ndla.common.model.domain.ArticleType
+import no.ndla.common.model.domain.draft.Draft
+import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{ContentIdDTO, NotFoundException, UpdatedArticleDTO}
-import no.ndla.draftapi.repository.DraftRepository
+import no.ndla.draftapi.model.api.{ContentIdDTO, UpdatedArticleDTO}
 import no.ndla.draftapi.service.ConverterService
-import no.ndla.language.model.Iso639
-import no.ndla.mapping.License.getLicense
+import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.validation.HtmlTagRules.{allLegalTags, stringToJsoupDocument}
-import no.ndla.validation.SlugValidator.validateSlug
-import no.ndla.validation.*
-import scalikejdbc.ReadOnlyAutoSession
 
-import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
+import javax.swing.text.html.HTML.Tag
+import no.ndla.common.model.domain.draft.DraftStatus
+import scalikejdbc.*
 
 class ContentValidator(using
-    draftRepository: DraftRepository,
-    converterService: ConverterService,
     articleApiClient: ArticleApiClient,
-    props: Props
-) {
+    converterService: ConverterService,
+    props: DraftApiProperties
+) extends StrictLogging {
   private val inlineHtmlTags       = props.InlineHtmlTags
   private val introductionHtmlTags = props.IntroductionHtmlTags
 

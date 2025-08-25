@@ -236,7 +236,6 @@ class ArticleApiClient(
   object PartialPublishArticle {
     def empty(): PartialPublishArticleDTO = PartialPublishArticleDTO(None, None, None, None, None, None, Missing, None)
   }
-}
 
 case class ArticleApiId(id: Long)
 object ArticleApiId {

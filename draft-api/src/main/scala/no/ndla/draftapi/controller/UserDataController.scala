@@ -8,10 +8,13 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.draftapi.model.api.{ErrorHandling, UpdatedUserDataDTO, UserDataDTO}
+import no.ndla.draftapi.DraftApiProperties
+import no.ndla.draftapi.model.api.{UpdatedUserDataDTO, UserDataDTO}
 import no.ndla.draftapi.service.{ReadService, WriteService}
 import no.ndla.network.tapir.NoNullJsonPrinter.*
-import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.common.Clock
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import sttp.tapir.*
@@ -20,7 +23,11 @@ import sttp.tapir.server.ServerEndpoint
 class UserDataController(using
     readService: ReadService,
     writeService: WriteService,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
+    errorHelpers: ErrorHelpers,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient,
+    props: DraftApiProperties
 ) extends TapirController {
   override val serviceName: String         = "user-data"
   override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName

@@ -8,7 +8,7 @@
 
 package no.ndla.draftapi.db.migrationwithdependencies
 
-import no.ndla.draftapi.Props
+import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.db.HtmlMigration
 import no.ndla.draftapi.integration.ImageApiClient
 import no.ndla.network.NdlaClient
@@ -18,7 +18,7 @@ import scalikejdbc.{SQLSyntax, scalikejdbcSQLInterpolationImplicitDef}
 class V66__SetHideBylineForImagesNotCopyrighted(using
     imageApiClient: ImageApiClient,
     ndlaClient: NdlaClient,
-    props: Props
+    props: DraftApiProperties
 ) {
 
   class V66__SetHideBylineForImagesNotCopyrighted extends HtmlMigration {

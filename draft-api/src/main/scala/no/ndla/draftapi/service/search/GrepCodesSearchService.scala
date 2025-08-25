@@ -8,38 +8,39 @@
 
 package no.ndla.draftapi.service.search
 
+import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.*
-import com.sksamuel.elastic4s.requests.searches.SearchResponse
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
-import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
+import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.CirceUtil
-import no.ndla.draftapi.Props
-import no.ndla.draftapi.model.api.ErrorHandling
-import no.ndla.draftapi.model.domain.*
-import no.ndla.draftapi.model.search.SearchableGrepCode
-import no.ndla.search.Elastic4sClient
+import no.ndla.draftapi.DraftApiProperties
+import no.ndla.draftapi.model.domain.{SearchResult, Sort, SearchableGrepCode}
+import no.ndla.draftapi.controller.DraftErrorHelpers
+import no.ndla.language.Language
+import no.ndla.search.{IndexNotFoundException, NdlaE4sClient, NdlaSearchException}
+import io.circe.parser.decode
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
 class GrepCodesSearchService(using
-    e4sClient: Elastic4sClient,
+    e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
-    searchService: SearchService,
     grepCodesIndexService: GrepCodesIndexService,
-    props: Props,
-    errorHandling: ErrorHandling
-) extends StrictLogging
-    with BasicSearchService[String] {
+    props: DraftApiProperties
+) extends SearchService[String]
+    with StrictLogging {
   override val searchIndex: String = props.DraftGrepCodesSearchIndex
 
-  def getHits(response: SearchResponse): Seq[String] = {
-    response.hits.hits.toList.map(hit => CirceUtil.unsafeParseAs[SearchableGrepCode](hit.sourceAsString).grepCode)
+  override def hitToApiModel(hit: String, language: String): String = {
+    decode[SearchableGrepCode](hit) match {
+      case Right(searchableGrepCode) => searchableGrepCode.grepCode
+      case Left(_) => hit // fallback to raw hit if parsing fails
+    }
   }
 
-  def matchingQuery(query: String, page: Int, pageSize: Int): Try[LanguagelessSearchResult[String]] = {
+  def matchingQuery(query: String, page: Int, pageSize: Int): Try[SearchResult[String]] = {
 
     val fullQuery = boolQuery()
       .must(
@@ -56,14 +57,14 @@ class GrepCodesSearchService(using
       page: Int,
       pageSize: Int,
       queryBuilder: BoolQuery
-  ): Try[LanguagelessSearchResult[String]] = {
+  ): Try[SearchResult[String]] = {
     val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
     val requestedResultWindow = pageSize * page
     if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
       logger.info(
         s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
       )
-      Failure(new ResultWindowTooLargeException())
+      Failure(DraftErrorHelpers.ResultWindowTooLargeException())
     } else {
       val searchToExecute = search(searchIndex)
         .size(numResults)
@@ -79,11 +80,12 @@ class GrepCodesSearchService(using
       e4sClient.execute(searchWithScroll) match {
         case Success(response) =>
           Success(
-            LanguagelessSearchResult(
+            SearchResult(
               response.result.totalHits,
               Some(page),
               numResults,
-              getHits(response.result),
+              Language.AllLanguages,
+              getHits(response.result, Language.AllLanguages),
               response.result.scrollId
             )
           )
