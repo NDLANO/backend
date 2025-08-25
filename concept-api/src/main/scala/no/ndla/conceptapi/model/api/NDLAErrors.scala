@@ -8,14 +8,8 @@
 
 package no.ndla.conceptapi.model.api
 
-import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, ValidationException, OperationNotAllowedException}
 import no.ndla.conceptapi.Props
-import no.ndla.database.DataSource
-import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.{AllErrors, TapirErrorHandling, ErrorHelpers}
-import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import org.postgresql.util.PSQLException
+import no.ndla.network.tapir.ErrorHelpers
 
 class ResultWindowTooLargeException(message: String) extends RuntimeException(message)
 object ResultWindowTooLargeException {

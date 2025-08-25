@@ -30,8 +30,8 @@ case class DraftSearchSettings(
     aggregatePaths: List[String]
 )
 
-class DraftSearchSettingsHelper(using props: Props) {
-  def empty: DraftSearchSettings = {
+object DraftSearchSettings {
+  def empty(using props: Props): DraftSearchSettings = {
     DraftSearchSettings(
       withIdIn = List.empty,
       searchLanguage = AllLanguages,

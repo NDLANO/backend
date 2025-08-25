@@ -36,6 +36,7 @@ class WriteService(using
     draftConceptIndexService: DraftConceptIndexService,
     publishedConceptIndexService: PublishedConceptIndexService,
     searchApiClient: SearchApiClient,
+    stateTransitionRules: StateTransitionRules,
     clock: Clock
 ) extends StrictLogging {
 
@@ -70,7 +71,7 @@ class WriteService(using
       val newStatusIfNotDefined = if (oldStatus == PUBLISHED) IN_PROGRESS else oldStatus
       val newStatus             = updateStatus.flatMap(ConceptStatus.valueOf).getOrElse(newStatusIfNotDefined)
 
-      converterService.updateStatus(newStatus, changed, user)
+      stateTransitionRules.doTransition(changed, newStatus, user)
     }
   }
 
@@ -213,7 +214,7 @@ class WriteService(using
       case None        => Failure(NotFoundException(s"No article with id $id was found"))
       case Some(draft) =>
         for {
-          convertedConcept <- converterService.updateStatus(status, draft, user)
+          convertedConcept <- stateTransitionRules.doTransition(draft, status, user)
           updatedConcept   <- updateConcept(convertedConcept, user)
           _                <- draftConceptIndexService.indexDocument(updatedConcept)
           apiConcept       <- converterService.toApiConcept(

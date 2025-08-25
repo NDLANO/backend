@@ -20,18 +20,23 @@ import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import java.time.LocalDateTime
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptType, GlossData, VisualElement, WordClass}
+import no.ndla.conceptapi.service.ConverterService
 import no.ndla.mapping.License
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 
 class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
-
-  override lazy val publishedConceptSearchService                              = new PublishedConceptSearchService
-  override lazy val publishedConceptIndexService: PublishedConceptIndexService = new PublishedConceptIndexService {
-    override val indexShards = 1
-  }
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
+  override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
+  override implicit lazy val e4sClient: NdlaE4sClient       =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val publishedConceptSearchService: PublishedConceptSearchService =
+    new PublishedConceptSearchService
+  override implicit lazy val publishedConceptIndexService: PublishedConceptIndexService =
+    new PublishedConceptIndexService {
+      override val indexShards = 1
+    }
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   val byNcSa: DraftCopyright = DraftCopyright(
     Some(License.CC_BY_NC_SA.toString),

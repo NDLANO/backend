@@ -12,7 +12,6 @@ import no.ndla.conceptapi.controller.*
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.service.*
-import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
@@ -50,8 +49,6 @@ class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplicati
 
   given draftConceptSearchService: DraftConceptSearchService         = new DraftConceptSearchService
   given searchConverterService: SearchConverterService               = new SearchConverterService
-  given searchSettingsHelper: SearchSettingsHelper                   = new SearchSettingsHelper
-  given draftSearchSettingsHelper: DraftSearchSettingsHelper         = new DraftSearchSettingsHelper
   given draftConceptIndexService: DraftConceptIndexService           = new DraftConceptIndexService
   given publishedConceptIndexService: PublishedConceptIndexService   = new PublishedConceptIndexService
   given publishedConceptSearchService: PublishedConceptSearchService = new PublishedConceptSearchService

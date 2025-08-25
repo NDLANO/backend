@@ -13,7 +13,9 @@ import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.common.model.domain.concept
 import no.ndla.common.model.domain.concept.ConceptContent
 import no.ndla.conceptapi.TestData.*
+import no.ndla.conceptapi.model.api.OptimisticLockException
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.*
 
@@ -21,10 +23,9 @@ import java.net.Socket
 import scala.util.{Failure, Success, Try}
 
 class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-
-  override lazy val dataSource: DataSource = testDataSource.get
-  override lazy val migrator               = new DBMigrator
-  var repository: DraftConceptRepository   = _
+  override implicit lazy val dataSource: DataSource = testDataSource.get
+  override implicit lazy val migrator: DBMigrator   = new DBMigrator
+  var repository: DraftConceptRepository            = _
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
@@ -222,7 +223,7 @@ class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite
     val updatedArt1    = art1.copy(id = Some(insertedId), revision = Some(10), content = updatedContent)
 
     val updateResult1 = repository.update(updatedArt1)
-    updateResult1 should be(Failure(new OptimisticLockException))
+    updateResult1 should be(Failure(OptimisticLockException.default))
 
     val fetched1 = repository.withId(insertedId).get
     fetched1 should be(insertedConcept)

@@ -16,7 +16,7 @@ import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.ResultWindowTooLargeException
 import no.ndla.conceptapi.model.domain.SearchResult
-import no.ndla.conceptapi.model.search.{SearchSettings, SearchSettingsHelper}
+import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.ErrorHandling
@@ -33,8 +33,7 @@ class PublishedConceptSearchService(using
     converterService: ConverterService,
     searchConverterService: SearchConverterService,
     props: Props,
-    errorHandling: ErrorHandling,
-    searchSettingsHelper: SearchSettingsHelper
+    errorHandling: ErrorHandling
 ) extends StrictLogging
     with SearchService[api.ConceptSummaryDTO] {
   override val searchIndex: String = props.PublishedConceptSearchIndex

@@ -8,33 +8,20 @@
 
 package no.ndla.conceptapi.service
 
+import no.ndla.common.Clock
+import no.ndla.common.model.domain.concept.ConceptStatus.*
 import no.ndla.common.model.domain.concept.{ConceptEditorNote, ConceptStatus, Status, Concept as DomainConcept}
 import no.ndla.common.model.domain.{Responsible, concept}
 import no.ndla.conceptapi.model.api.IllegalStatusStateTransition
-import no.ndla.common.model.domain.concept.ConceptStatus.*
 import no.ndla.conceptapi.model.domain.SideEffect.SideEffect
 import no.ndla.conceptapi.model.domain.StateTransition
-import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
-import no.ndla.conceptapi.service.search.DraftConceptIndexService
-import no.ndla.conceptapi.validation.ContentValidator
-import no.ndla.common.Clock
-import no.ndla.network.tapir.ErrorHandling
 import no.ndla.network.tapir.auth.Permission.{CONCEPT_API_ADMIN, CONCEPT_API_WRITE}
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
-class StateTransitionRules(using
-    writeService: WriteService,
-    draftConceptRepository: DraftConceptRepository,
-    publishedConceptRepository: PublishedConceptRepository,
-    converterService: ConverterService,
-    contentValidator: ContentValidator,
-    draftConceptIndexService: DraftConceptIndexService,
-    errorHandling: ErrorHandling,
-    clock: Clock
-) {
+class StateTransitionRules(using writeService: WriteService, clock: Clock) {
 
   private[service] val unpublishConcept: SideEffect =
     (concept: DomainConcept, _: TokenUser) => writeService.unpublishConcept(concept)
@@ -186,4 +173,13 @@ class StateTransitionRules(using
       })
     })
   }
+
+  def stateTransitionsToApi(user: TokenUser): Map[String, List[String]] =
+    StateTransitions.groupBy(_.from).map { case (from, to) =>
+      from.toString -> to
+        .filter(t => user.hasPermissions(t.requiredPermissions))
+        .map(_.to.toString)
+        .toList
+    }
+
 }

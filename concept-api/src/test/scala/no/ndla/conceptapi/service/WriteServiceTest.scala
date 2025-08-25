@@ -26,11 +26,12 @@ import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.stubbing.OngoingStubbing
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val converterService = new ConverterService
+  override implicit lazy val converterService: ConverterService         = new ConverterService
+  override implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
 
   val today: NDLADate     = NDLADate.now()
   val yesterday: NDLADate = NDLADate.now().minusDays(1)
-  val service             = new WriteService()
+  val service             = new WriteService
   val conceptId           = 13L
   val userInfo: TokenUser = TokenUser.SystemUser
 

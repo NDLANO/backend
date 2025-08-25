@@ -28,8 +28,8 @@ case class SearchSettings(
     aggregatePaths: List[String]
 )
 
-class SearchSettingsHelper(using props: Props) {
-  def empty: SearchSettings = {
+object SearchSettings {
+  def empty(using props: Props): SearchSettings = {
     new SearchSettings(
       withIdIn = List.empty,
       searchLanguage = AllLanguages,

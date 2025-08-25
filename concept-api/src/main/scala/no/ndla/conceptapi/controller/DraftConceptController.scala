@@ -18,7 +18,7 @@ import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
-import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.conceptapi.service.{ConverterService, ReadService, StateTransitionRules, WriteService}
 import no.ndla.conceptapi.Props
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.clients.MyNDLAApiClient
@@ -39,7 +39,7 @@ class DraftConceptController(using
     readService: ReadService,
     draftConceptSearchService: DraftConceptSearchService,
     searchConverterService: SearchConverterService,
-    converterService: ConverterService,
+    stateTransitionRules: StateTransitionRules,
     props: Props,
     conceptControllerHelpers: ConceptControllerHelpers,
     errorHandling: ErrorHandling,
@@ -328,7 +328,7 @@ class DraftConceptController(using
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .requirePermission(CONCEPT_API_WRITE)
     .serverLogicPure { user => _ =>
-      converterService.stateTransitionsToApi(user).asRight
+      stateTransitionRules.stateTransitionsToApi(user).asRight
     }
 
   def getTagsPaginated: ServerEndpoint[Any, Eff] = endpoint.get

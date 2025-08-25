@@ -15,7 +15,6 @@ import no.ndla.common.model.domain.{Responsible, Tag, Title, concept}
 import no.ndla.common.model.domain.concept.{
   ConceptContent,
   ConceptEditorNote,
-  ConceptStatus,
   ConceptType,
   GlossData,
   GlossExample,
@@ -31,7 +30,6 @@ import no.ndla.common.model.{api as commonApi, domain as commonDomain}
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.{ConceptTagsDTO, NotFoundException}
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
@@ -46,8 +44,6 @@ import scala.util.{Failure, Success, Try}
 
 class ConverterService(using
     clock: Clock,
-    draftConceptRepository: DraftConceptRepository,
-    stateTransitionRules: StateTransitionRules,
     props: Props
 ) extends StrictLogging {
 
@@ -317,9 +313,6 @@ class ConverterService(using
     )
   }
 
-  def updateStatus(status: ConceptStatus, concept: DomainConcept, user: TokenUser): Try[DomainConcept] =
-    stateTransitionRules.doTransition(concept, status, user)
-
   def toDomainConcept(id: Long, concept: api.UpdatedConceptDTO, userInfo: TokenUser): DomainConcept = {
     val lang = concept.language
 
@@ -383,14 +376,6 @@ class ConverterService(using
   ): api.TagsSearchResultDTO = {
     api.TagsSearchResultDTO(tagsCount, offset, pageSize, language, tags)
   }
-
-  def stateTransitionsToApi(user: TokenUser): Map[String, List[String]] =
-    stateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
-      from.toString -> to
-        .filter(t => user.hasPermissions(t.requiredPermissions))
-        .map(_.to.toString)
-        .toList
-    }
 
   def addUrlOnVisualElement(concept: DomainConcept): DomainConcept = {
     val visualElementWithUrls =
