@@ -11,6 +11,7 @@ import no.ndla.draftapi.model.api.{
   ArticlePublishException,
   ArticleStatusException,
   DraftErrorHelpers,
+  IllegalStatusStateTransition,
   NotFoundException
 }
 import no.ndla.database.DataSource

@@ -18,6 +18,7 @@ import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.api as commonApi
 import no.ndla.draftapi.model.api
+import no.ndla.draftapi.model.api.IllegalStatusStateTransition
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.tapir.auth.TokenUser
@@ -32,7 +33,8 @@ import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
-  val service = new ConverterService
+  override implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
+  val service: ConverterService                                         = new ConverterService
 
   test("toApiLicense defaults to unknown if the license was not found") {
     service.toApiLicense("invalid") should equal(commonApi.LicenseDTO("unknown", None, None))

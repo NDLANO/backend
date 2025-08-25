@@ -8,20 +8,8 @@
 
 package no.ndla.draftapi.model.api
 
-import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Clock
-import no.ndla.common.errors.{
-  AccessDeniedException,
-  FileTooBigException,
-  ValidationException,
-  OperationNotAllowedException
-}
-import no.ndla.database.DataSource
 import no.ndla.draftapi.Props
-import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHandling, ErrorHelpers}
-import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import org.postgresql.util.PSQLException
+import no.ndla.network.tapir.ErrorHelpers
 
 class DraftErrorHelpers(using props: Props, errorHelpers: ErrorHelpers) {
   import errorHelpers.*
@@ -31,11 +19,11 @@ class DraftErrorHelpers(using props: Props, errorHelpers: ErrorHelpers) {
   val fileTooBigDescription: String =
     s"The file is too big. Max file size is ${props.multipartFileSizeThresholdBytes / 1024 / 1024} MiB"
 
-  class OptimisticLockException(message: String = RESOURCE_OUTDATED_DESCRIPTION)       extends RuntimeException(message)
-  case class IllegalStatusStateTransition(message: String = ILLEGAL_STATUS_TRANSITION) extends RuntimeException(message)
-  class ResultWindowTooLargeException(message: String = WINDOW_TOO_LARGE_DESCRIPTION)  extends RuntimeException(message)
+  class OptimisticLockException(message: String = RESOURCE_OUTDATED_DESCRIPTION)      extends RuntimeException(message)
+  class ResultWindowTooLargeException(message: String = WINDOW_TOO_LARGE_DESCRIPTION) extends RuntimeException(message)
 }
 
+case class IllegalStatusStateTransition(message: String) extends RuntimeException(message)
 case class NotFoundException(message: String, supportedLanguages: Seq[String] = Seq.empty)
     extends RuntimeException(message)
 case class ArticlePublishException(message: String)    extends RuntimeException(message)

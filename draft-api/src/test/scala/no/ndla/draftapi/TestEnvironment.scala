@@ -8,78 +8,90 @@
 
 package no.ndla.draftapi
 
-import com.typesafe.scalalogging.StrictLogging
-import com.zaxxer.hikari.HikariDataSource
+import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.converter.CommonConverter
-import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
-import no.ndla.draftapi.db.migrationwithdependencies.V57__MigrateSavedSearch
+import no.ndla.draftapi.model.api.DraftErrorHelpers
 import no.ndla.draftapi.integration.*
-import no.ndla.draftapi.model.api.ErrorHandling
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.SearchApiClient
-import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
+import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient}
+import no.ndla.network.tapir.{
+  ErrorHandling,
+  ErrorHelpers,
+  Routes,
+  SwaggerController,
+  TapirApplication,
+  TapirController,
+  TapirHealthController
+}
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
-trait TestEnvironment extends TapirApplication with MockitoSugar with StrictLogging {
-  given props: DraftApiProperties = new DraftApiProperties {
+trait TestEnvironment extends TapirApplication[DraftApiProperties] with MockitoSugar {
+  implicit lazy val props: DraftApiProperties = new DraftApiProperties {
     override def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "strong", "sub", "sup")
     override def IntroductionHtmlTags: Set[String] = InlineHtmlTags ++ Set("br", "p")
   }
-  given migrator: DBMigrator = mock[DBMigrator]
-  given DBUtil: DBUtility    = mock[DBUtility]
 
-  given articleSearchService: ArticleSearchService     = mock[ArticleSearchService]
-  given articleIndexService: ArticleIndexService       = mock[ArticleIndexService]
-  given tagSearchService: TagSearchService             = mock[TagSearchService]
-  given tagIndexService: TagIndexService               = mock[TagIndexService]
-  given grepCodesSearchService: GrepCodesSearchService = mock[GrepCodesSearchService]
-  given grepCodesIndexService: GrepCodesIndexService   = mock[GrepCodesIndexService]
+  implicit lazy val migrator: DBMigrator                 = mock[DBMigrator]
+  implicit lazy val dbUtility: DBUtility                 = mock[DBUtility]
+  implicit lazy val uuidUtil: UUIDUtil                   = mock[UUIDUtil]
+  implicit lazy val memoizeHelpers: MemoizeHelpers       = mock[MemoizeHelpers]
+  implicit lazy val searchLanguage: SearchLanguage       = mock[SearchLanguage]
+  implicit lazy val errorHelpers: ErrorHelpers           = new ErrorHelpers
+  implicit lazy val draftErrorHelpers: DraftErrorHelpers = new DraftErrorHelpers
+  implicit lazy val errorHandling: ErrorHandling         = new ControllerErrorHandling
+  implicit lazy val clock: Clock                         = mock[Clock]
+  implicit lazy val routes: Routes                       = mock[Routes]
+  implicit lazy val services: List[TapirController]      = List.empty
 
-  given internController: InternController      = mock[InternController]
-  given draftController: DraftController        = mock[DraftController]
-  given fileController: FileController          = mock[FileController]
-  given userDataController: UserDataController  = mock[UserDataController]
-  given healthController: TapirHealthController = mock[TapirHealthController]
+  implicit lazy val articleSearchService: ArticleSearchService     = mock[ArticleSearchService]
+  implicit lazy val articleIndexService: ArticleIndexService       = mock[ArticleIndexService]
+  implicit lazy val tagSearchService: TagSearchService             = mock[TagSearchService]
+  implicit lazy val tagIndexService: TagIndexService               = mock[TagIndexService]
+  implicit lazy val grepCodesSearchService: GrepCodesSearchService = mock[GrepCodesSearchService]
+  implicit lazy val grepCodesIndexService: GrepCodesIndexService   = mock[GrepCodesIndexService]
 
-  given dataSource: HikariDataSource           = mock[HikariDataSource]
-  given draftRepository: DraftRepository       = mock[DraftRepository]
-  given userDataRepository: UserDataRepository = mock[UserDataRepository]
+  implicit lazy val internController: InternController      = mock[InternController]
+  implicit lazy val draftController: DraftController        = mock[DraftController]
+  implicit lazy val fileController: FileController          = mock[FileController]
+  implicit lazy val userDataController: UserDataController  = mock[UserDataController]
+  implicit lazy val healthController: TapirHealthController = mock[TapirHealthController]
 
-  given converterService: ConverterService = mock[ConverterService]
+  implicit lazy val dataSource: DataSource                 = mock[DataSource]
+  implicit lazy val draftRepository: DraftRepository       = mock[DraftRepository]
+  implicit lazy val userDataRepository: UserDataRepository = mock[UserDataRepository]
 
-  given readService: ReadService           = mock[ReadService]
-  given writeService: WriteService         = mock[WriteService]
-  given contentValidator: ContentValidator = mock[ContentValidator]
-  given importValidator: ContentValidator  = mock[ContentValidator]
-  given reindexClient: ReindexClient       = mock[ReindexClient]
+  implicit lazy val converterService: ConverterService         = mock[ConverterService]
+  implicit lazy val commonConverter: CommonConverter           = mock[CommonConverter]
+  implicit lazy val stateTransitionRules: StateTransitionRules = mock[StateTransitionRules]
 
-  given fileStorage: FileStorageService = mock[FileStorageService]
-  given s3Client: NdlaS3Client          = mock[NdlaS3Client]
+  implicit lazy val readService: ReadService           = mock[ReadService]
+  implicit lazy val writeService: WriteService         = mock[WriteService]
+  implicit lazy val contentValidator: ContentValidator = mock[ContentValidator]
+  implicit lazy val reindexClient: ReindexClient       = mock[ReindexClient]
 
-  given ndlaClient: NdlaClient                         = mock[NdlaClient]
-  given myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
-  given searchConverterService: SearchConverterService = mock[SearchConverterService]
-  given e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
-  given learningpathApiClient: LearningpathApiClient   = mock[LearningpathApiClient]
+  implicit lazy val fileStorage: FileStorageService = mock[FileStorageService]
+  implicit lazy val s3Client: NdlaS3Client          = mock[NdlaS3Client]
 
-  given clock: SystemClock = mock[SystemClock]
-  given uuidUtil: UUIDUtil = mock[UUIDUtil]
+  implicit lazy val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  implicit lazy val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
+  implicit lazy val searchConverterService: SearchConverterService = mock[SearchConverterService]
+  implicit lazy val e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
+  implicit lazy val learningpathApiClient: LearningpathApiClient   = mock[LearningpathApiClient]
 
-  given articleApiClient: ArticleApiClient   = mock[ArticleApiClient]
-  given searchApiClient: SearchApiClient     = mock[SearchApiClient]
-  given taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
-  given h5pApiClient: H5PApiClient           = mock[H5PApiClient]
-  given imageApiClient: ImageApiClient       = mock[ImageApiClient]
+  implicit lazy val articleApiClient: ArticleApiClient   = mock[ArticleApiClient]
+  implicit lazy val searchApiClient: SearchApiClient     = mock[SearchApiClient]
+  implicit lazy val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
+  implicit lazy val h5pApiClient: H5PApiClient           = mock[H5PApiClient]
+  implicit lazy val imageApiClient: ImageApiClient       = mock[ImageApiClient]
 
-  def services: List[TapirController] = List.empty
-  val swagger: SwaggerController      = mock[SwaggerController]
+  implicit lazy val swagger: SwaggerController = mock[SwaggerController]
 }

@@ -41,11 +41,9 @@ import scala.util.{Failure, Success, Try}
 class InternController(using
     readService: ReadService,
     writeService: WriteService,
-    converterService: ConverterService,
     draftRepository: DraftRepository,
     articleIndexService: ArticleIndexService,
     tagIndexService: TagIndexService,
-    grepCodesIndexService: GrepCodesIndexService,
     articleApiClient: ArticleApiClient,
     props: DraftApiProperties,
     errorHandling: ErrorHandling,
@@ -54,6 +52,8 @@ class InternController(using
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController
     with StrictLogging {
+  import errorHandling.*
+  import errorHelpers.*
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
@@ -65,12 +65,12 @@ class InternController(using
 
     val fut = Future { indexService.indexDocuments(numShards) }
 
-    val logEx = (ex: Throwable) => logger.error(s"Something went wrong when indexing:", ex)
+    val logEx = (ex: Throwable) => logger.error(s"Something went wrong when indexing ${indexService.documentType}:", ex)
 
     fut.onComplete {
       case Success(Success(result)) =>
         logger.info(
-          s"Successfully indexed ${result.totalIndexed} documents in ${result.millisUsed}ms"
+          s"Successfully indexed ${result.totalIndexed} ${indexService.documentType}'s in ${result.millisUsed}ms"
         )
       case Failure(ex)          => logEx(ex)
       case Success(Failure(ex)) => logEx(ex)
@@ -118,10 +118,40 @@ class InternController(using
     }
 
   def deleteIndexLogic(@unused x: Unit): Either[String, String] = {
-    // Note: findAllIndexes method not available without BaseIndexService extension
-    // Simplified implementation - just return success for now
-    logger.info("Index deletion requested - not implemented without BaseIndexService")
-    "Index deletion not available".asRight
+    implicit val ec: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+    def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
+
+    val indexes = for {
+      articleIndex <- Future { articleIndexService.findAllIndexes(props.DraftSearchIndex) }
+      tagIndex     <- Future { tagIndexService.findAllIndexes(props.DraftTagSearchIndex) }
+    } yield (articleIndex, tagIndex)
+
+    val deleteResults: Seq[Try[?]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {
+      case (Failure(articleFail), _)                      => return articleFail.getMessage.asLeft
+      case (_, Failure(tagFail))                          => return tagFail.getMessage.asLeft
+      case (Success(articleIndexes), Success(tagIndexes)) =>
+        val articleDeleteResults = articleIndexes.map(index => {
+          logger.info(s"Deleting article index $index")
+          articleIndexService.deleteIndexWithName(Option(index))
+        })
+        val tagDeleteResults = tagIndexes.map(index => {
+          logger.info(s"Deleting tag index $index")
+          tagIndexService.deleteIndexWithName(Option(index))
+        })
+        articleDeleteResults ++ tagDeleteResults
+    }
+
+    val (errors, successes) = deleteResults.partition(_.isFailure)
+    if (errors.nonEmpty) {
+      val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
+        s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
+        s"${pluralIndex(successes.length)} were deleted successfully."
+      message.asLeft
+    } else {
+      s"Deleted ${pluralIndex(successes.length)}".asRight
+    }
+
   }
 
   def deleteIndex: ServerEndpoint[Any, Eff] = endpoint.delete
@@ -139,7 +169,7 @@ class InternController(using
       status.map(DraftStatus.valueOfOrError) match {
         case Some(Success(status)) =>
           draftRepository.idsWithStatus(status)(ReadOnlyAutoSession).getOrElse(List.empty).asRight
-        case Some(Failure(ex)) => errorHandling.returnLeftError(ex)
+        case Some(Failure(ex)) => returnLeftError(ex)
         case None              => draftRepository.getAllIds(ReadOnlyAutoSession).asRight
       }
     }
@@ -151,7 +181,7 @@ class InternController(using
     .serverLogicPure { externalId =>
       readService.importIdOfArticle(externalId) match {
         case Some(ids) => ids.asRight
-        case _         => errorHelpers.notFound.asLeft
+        case _         => notFound.asLeft
       }
     }
 
@@ -162,7 +192,7 @@ class InternController(using
     .serverLogicPure { externalId =>
       draftRepository.getIdFromExternalId(externalId)(ReadOnlyAutoSession) match {
         case Some(id) => id.asRight
-        case None     => errorHelpers.notFound.asLeft
+        case None     => notFound.asLeft
       }
     }
 
@@ -218,7 +248,7 @@ class InternController(using
     .serverLogicPure { id =>
       draftRepository.withId(id)(ReadOnlyAutoSession) match {
         case Some(article) => article.asRight
-        case None          => errorHandling.returnLeftError(NotFoundException(s"Could not find draft with id: '$id"))
+        case None          => returnLeftError(NotFoundException(s"Could not find draft with id: '$id"))
       }
     }
 

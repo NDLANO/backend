@@ -13,17 +13,20 @@ import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 
 import scala.util.Success
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.draftapi.service.ConverterService
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class GrepCodesSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+  override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
+  override implicit lazy val e4sClient: NdlaE4sClient       =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
-
-  override lazy val grepCodesSearchService                       = new GrepCodesSearchService
-  override lazy val grepCodesIndexService: GrepCodesIndexService = new GrepCodesIndexService {
+  override implicit lazy val grepCodesSearchService: GrepCodesSearchService = new GrepCodesSearchService
+  override implicit lazy val grepCodesIndexService: GrepCodesIndexService   = new GrepCodesIndexService {
     override val indexShards: Int = 1
   }
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   val article1: Draft = TestData.sampleDomainArticle.copy(
     grepCodes = Seq("KE101", "KE115", "TT555")

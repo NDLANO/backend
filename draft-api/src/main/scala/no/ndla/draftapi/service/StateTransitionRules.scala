@@ -15,13 +15,10 @@ import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain as common
 import no.ndla.draftapi.integration.*
-import no.ndla.draftapi.model.api.{DraftErrorHelpers, NotFoundException}
+import no.ndla.draftapi.model.api.{IllegalStatusStateTransition, NotFoundException}
 import no.ndla.draftapi.model.domain.{IgnoreFunction, StateTransition}
 import no.ndla.draftapi.repository.DraftRepository
-import no.ndla.draftapi.service.search.ArticleIndexService
-import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.clients.SearchApiClient
-import no.ndla.network.tapir.ErrorHandling
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import scalikejdbc.ReadOnlyAutoSession
 
@@ -30,7 +27,6 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 class StateTransitionRules(using
-    writeService: WriteService,
     draftRepository: DraftRepository,
     clock: Clock,
     articleApiClient: ArticleApiClient,
@@ -38,13 +34,8 @@ class StateTransitionRules(using
     learningpathApiClient: LearningpathApiClient,
     h5pApiClient: H5PApiClient,
     converterService: ConverterService,
-    contentValidator: ContentValidator,
-    articleIndexService: ArticleIndexService,
-    errorHandling: ErrorHandling,
-    searchApiClient: SearchApiClient,
-    draftErrorHelpers: DraftErrorHelpers
+    searchApiClient: SearchApiClient
 ) {
-  import draftErrorHelpers.*
   private[service] val checkIfArticleIsInUse: SideEffect =
     SideEffect.withDraftAndUser("checkIfArticleIsInUse")((article: Draft, user: TokenUser) =>
       doIfArticleIsNotInUse(article.id.getOrElse(1), user) {

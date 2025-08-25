@@ -12,6 +12,7 @@ import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.{ArticleContent, Comment, EditorNote, Status}
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.draftapi.*
 import no.ndla.draftapi.model.domain.*
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
@@ -24,9 +25,9 @@ import java.util.UUID
 import scala.util.{Success, Try}
 
 class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
-  override lazy val dataSource: DataSource = testDataSource.get
-  override lazy val migrator: DBMigrator   = new DBMigrator
-  var repository: DraftRepository          = _
+  override implicit lazy val dataSource: DataSource = testDataSource.get
+  override implicit lazy val migrator: DBMigrator   = new DBMigrator
+  var repository: DraftRepository                   = _
   val sampleArticle: Draft                 = TestData.sampleArticleWithByNcSa
 
   def emptyTestDatabase(): Unit = DB autoCommit (implicit session => {

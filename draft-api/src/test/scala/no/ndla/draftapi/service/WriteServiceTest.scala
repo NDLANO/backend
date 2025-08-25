@@ -9,6 +9,7 @@
 package no.ndla.draftapi.service
 
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.converter.CommonConverter
 import no.ndla.common.model
 import no.ndla.common.model.api.{RelatedContentLinkDTO, RevisionMetaDTO, UpdateWith}
 import no.ndla.common.model.domain.*
@@ -34,11 +35,13 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val converterService = new ConverterService
+  override implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
+  override implicit lazy val commonConverter: CommonConverter           = new CommonConverter
+  override implicit lazy val converterService: ConverterService         = new ConverterService
 
-  val today: NDLADate     = NDLADate.now()
-  val yesterday: NDLADate = NDLADate.now().minusDays(1)
-  val service             = new WriteService()
+  val today: NDLADate                                   = NDLADate.now()
+  val yesterday: NDLADate                               = NDLADate.now().minusDays(1)
+  override implicit lazy val writeService: WriteService = new WriteService
 
   val articleId   = 13L
   val agreementId = 14L
@@ -65,7 +68,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     doAnswer((i: InvocationOnMock) => {
       val x = i.getArgument[DBSession => Try[?]](0)
       x(mock[DBSession])
-    }).when(DBUtil).rollbackOnFailure(any())
+    }).when(dbUtility).rollbackOnFailure(any())
 
     when(draftRepository.withId(eqTo(articleId), anyBoolean())(any)).thenReturn(Option(article))
     when(articleIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
@@ -121,9 +124,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.newEmptyArticleId()(any[DBSession]))
       .thenReturn(Success(1: Long))
 
-    val result = service
-      .newArticle(TestData.newArticle, TestData.userWithWriteAccess)
-
+    val result = writeService.newArticle(TestData.newArticle, TestData.userWithWriteAccess)
     result.failIfFailure
 
     verify(draftRepository, times(1)).newEmptyArticleId()(any)
@@ -151,9 +152,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(writeService.partialPublish(any, any, any, any)).thenReturn((expectedArticle.id.get, Success(expectedArticle)))
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(expectedArticle.id.get))
 
-    service.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess) should equal(
-      converterService.toApiArticle(expectedArticle, "en")
-    )
+    val result = writeService.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess)
+    result should equal(converterService.toApiArticle(expectedArticle, "en"))
   }
 
   test("That updateArticle updates only title properly") {
@@ -170,7 +170,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         updated = today
       )
 
-    service.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess) should equal(
+    writeService.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess) should equal(
       converterService.toApiArticle(expectedArticle, "en")
     )
   }
@@ -243,7 +243,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       articleType = ArticleType.TopicArticle
     )
 
-    service.updateArticle(
+    writeService.updateArticle(
       articleId,
       updatedApiArticle,
       TestData.userWithWriteAccess
@@ -257,7 +257,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(status = Some("IN_PROGRESS"))
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-    val Success(result) = service.updateArticle(
+    val Success(result) = writeService.updateArticle(
       existing.id.get,
       updatedArticle,
       TestData.userWithWriteAccess
@@ -275,7 +275,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       responsible = Some(Responsible("hei", TestData.today))
     )
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-    val Success(result) = service.updateArticle(
+    val Success(result) = writeService.updateArticle(
       existing.id.get,
       updatedArticle,
       TestData.userWithWriteAccess
@@ -292,7 +292,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         responsible = Some(Responsible("hei", TestData.today))
       )
       when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-      val Success(result) = service.updateArticle(
+      val Success(result) = writeService.updateArticle(
         existing.id.get,
         updatedArticle,
         TestData.userWithWriteAccess
@@ -306,7 +306,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         responsible = Some(Responsible("hei", TestData.today))
       )
       when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-      val Success(result) = service.updateArticle(
+      val Success(result) = writeService.updateArticle(
         existing.id.get,
         updatedArticle,
         TestData.userWithWriteAccess
@@ -320,7 +320,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         responsible = Some(Responsible("hei", TestData.today))
       )
       when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-      val Success(result) = service.updateArticle(
+      val Success(result) = writeService.updateArticle(
         existing.id.get,
         updatedArticle,
         TestData.userWithWriteAccess
@@ -340,7 +340,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           Success(i.getArgument[domain.article.Article](0))
         }
       )
-      val Success(result) = service.updateArticle(
+      val Success(result) = writeService.updateArticle(
         existing.id.get,
         updatedArticle,
         TestData.userWithWriteAccess
@@ -350,7 +350,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That delete article should fail when only one language") {
-    val Failure(result) = service.deleteLanguage(article.id.get, "nb", TokenUser("asdf", Set(), None)): @unchecked
+    val Failure(result) = writeService.deleteLanguage(article.id.get, "nb", TokenUser("asdf", Set(), None)): @unchecked
     result.getMessage should equal("Only one language left")
   }
 
@@ -363,7 +363,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val articleCaptor: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
 
     when(draftRepository.withId(any, anyBoolean())(any)).thenReturn(Some(article))
-    service.deleteLanguage(article.id.get, "nn", TokenUser("asdf", Set(), None))
+    writeService.deleteLanguage(article.id.get, "nn", TokenUser("asdf", Set(), None))
     verify(draftRepository).updateArticle(articleCaptor.capture())(any)
 
     articleCaptor.getValue.title.length should be(1)
@@ -376,11 +376,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val d = ".te....st.txt"
     val e = "kek.jpeg"
 
-    service.getFileExtension(a) should be(Success(".pdf"))
-    service.getFileExtension(b).isFailure should be(true)
-    service.getFileExtension(c) should be(Success(".csv"))
-    service.getFileExtension(d) should be(Success(".txt"))
-    service.getFileExtension(e).isFailure should be(true)
+    writeService.getFileExtension(a) should be(Success(".pdf"))
+    writeService.getFileExtension(b).isFailure should be(true)
+    writeService.getFileExtension(c) should be(Success(".csv"))
+    writeService.getFileExtension(d) should be(Success(".txt"))
+    writeService.getFileExtension(e).isFailure should be(true)
   }
 
   test("uploading file calls fileStorageService as expected") {
@@ -393,7 +393,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(fileStorage.uploadResourceFromStream(any[UploadedFile], any))
       .thenAnswer((_: InvocationOnMock) => Success(mock[HeadObjectResponse]))
 
-    val uploaded = service.uploadFile(fileToUpload)
+    val uploaded = writeService.uploadFile(fileToUpload)
 
     val storageKeyCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
     uploaded.isSuccess should be(true)
@@ -429,7 +429,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Future.successful(Success(updatedAndInserted)))
     when(searchApiClient.indexDocument(any[String], any[Draft], any)(any, any, any)).thenReturn(updatedAndInserted)
 
-    service.updateArticleStatus(DraftStatus.IN_PROGRESS, 10, user)
+    writeService.updateArticleStatus(DraftStatus.IN_PROGRESS, 10, user)
 
     val argCap1: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
     val argCap2: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
@@ -458,7 +458,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
 
     when(draftRepository.withId(any, anyBoolean())(any)).thenReturn(Some(article))
-    service.updateArticle(1, updatedArticle, TestData.userWithPublishAccess)
+    writeService.updateArticle(1, updatedArticle, TestData.userWithPublishAccess)
 
     verify(contentValidator, times(1)).validateArticleOnLanguage(any, any, eqTo(Some("nb")))
   }
@@ -506,7 +506,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
     when(draftRepository.withId(any, anyBoolean())(any)).thenReturn(Some(article))
 
-    service.copyArticleFromId(5, userinfo, "*", true, true)
+    writeService.copyArticleFromId(5, userinfo, "*", true, true)
 
     val cap: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
     verify(draftRepository, times(1)).insert(cap.capture())(any[DBSession])
@@ -554,7 +554,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           .get
     )
     when(draftRepository.withId(any, anyBoolean())(any)).thenReturn(Some(article))
-    service.copyArticleFromId(5, userinfo, "*", true, false)
+    writeService.copyArticleFromId(5, userinfo, "*", true, false)
 
     val cap: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
     verify(draftRepository, times(1)).insert(cap.capture())(any[DBSession])
@@ -572,7 +572,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existing = TestData.sampleDomainArticle.copy(status = TestData.statusWithPublished)
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
     val Success(result1) =
-      service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
+      writeService.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
     result1.status.current should be(existing.status.current.toString)
     result1.status.other.sorted should be(existing.status.other.map(_.toString).toSeq.sorted)
   }
@@ -593,7 +593,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
     val Success(result1) =
-      service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
+      writeService.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
     result1.status.current should be(existing.status.current.toString)
     result1.status.other.sorted should be(existing.status.other.map(_.toString).toSeq.sorted)
   }
@@ -639,7 +639,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
 
     val Success(result1) =
-      service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
+      writeService.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
 
     result1.status.current should be(existing.status.current.toString)
     result1.status.other.sorted should be(existing.status.other.map(_.toString).toSeq.sorted)
@@ -691,7 +691,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
 
     val Success(result1) =
-      service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
+      writeService.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
 
     result1.status.current should not be existing.status.current.toString
     result1.status.current should be(DraftStatus.IN_PROGRESS.toString)
@@ -743,7 +743,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
 
     val Success(result1) =
-      service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
+      writeService.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
 
     result1.status.current should not be existing.status.current.toString
     result1.status.current should be(DraftStatus.IN_PROGRESS.toString)
@@ -766,11 +766,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val onlyPath      = "resources/01f6TKKF1wpAsc1Z.pdf"
     val pathWithSlash = "/resources/01f6TKKF1wpAsc1Z.pdf"
     val pathWithFiles = "/files/resources/01f6TKKF1wpAsc1Z.pdf"
-    service.getFilePathFromUrl(imported) should be("194277/Temahefte egg og meieriprodukterNN.pdf")
-    service.getFilePathFromUrl(notImported) should be("resources/01f6TKKF1wpAsc1Z.pdf")
-    service.getFilePathFromUrl(onlyPath) should be("resources/01f6TKKF1wpAsc1Z.pdf")
-    service.getFilePathFromUrl(pathWithSlash) should be("resources/01f6TKKF1wpAsc1Z.pdf")
-    service.getFilePathFromUrl(pathWithFiles) should be("resources/01f6TKKF1wpAsc1Z.pdf")
+    writeService.getFilePathFromUrl(imported) should be("194277/Temahefte egg og meieriprodukterNN.pdf")
+    writeService.getFilePathFromUrl(notImported) should be("resources/01f6TKKF1wpAsc1Z.pdf")
+    writeService.getFilePathFromUrl(onlyPath) should be("resources/01f6TKKF1wpAsc1Z.pdf")
+    writeService.getFilePathFromUrl(pathWithSlash) should be("resources/01f6TKKF1wpAsc1Z.pdf")
+    writeService.getFilePathFromUrl(pathWithFiles) should be("resources/01f6TKKF1wpAsc1Z.pdf")
   }
 
   test("Article should not be saved, but only copied if createNewVersion is specified") {
@@ -780,7 +780,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       createNewVersion = Some(true)
     )
 
-    val updated = service.updateArticle(articleId, updatedArticle, TestData.userWithAdminAccess)
+    val updated = writeService.updateArticle(articleId, updatedArticle, TestData.userWithAdminAccess)
 
     updated.get.notes.length should be(1)
 
@@ -819,7 +819,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val expectedNb = ArticleContent(s"<section><h1>Hei</h1>$expectedEmbed1$expectedEmbed2</section>", "nb")
     val expectedEn = ArticleContent(s"<section><h1>Hello</h1>$expectedEmbed3$expectedEmbed4</section>", "en")
 
-    val result = service.contentWithClonedFiles(List(contentNb, contentEn))
+    val result = writeService.contentWithClonedFiles(List(contentNb, contentEn))
 
     result should be(Success(List(expectedNb, expectedEn)))
 
@@ -839,7 +839,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success("resources/new456.pdf")
     )
 
-    val results = embeds.map(service.cloneEmbedAndUpdateElement)
+    val results = embeds.map(writeService.cloneEmbedAndUpdateElement)
     results.map(_.isSuccess should be(true))
 
     val expectedEmbed1 =
@@ -958,13 +958,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       published = Some(tomorrow)
     )
 
-    service.partialArticleFieldsUpdate(existingArticle, articleFieldsToUpdate, "nb") should be(
+    writeService.partialArticleFieldsUpdate(existingArticle, articleFieldsToUpdate, "nb") should be(
       expectedPartialPublishFields
     )
-    service.partialArticleFieldsUpdate(existingArticle, articleFieldsToUpdate, "en") should be(
+    writeService.partialArticleFieldsUpdate(existingArticle, articleFieldsToUpdate, "en") should be(
       expectedPartialPublishFieldsLangEN
     )
-    service.partialArticleFieldsUpdate(existingArticle, articleFieldsToUpdate, "*") should be(
+    writeService.partialArticleFieldsUpdate(existingArticle, articleFieldsToUpdate, "*") should be(
       expectedPartialPublishFieldsLangALL
     )
   }
@@ -985,7 +985,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         updated = today
       )
 
-    service.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess) should equal(
+    writeService.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess) should equal(
       converterService.toApiArticle(expectedArticle, "en")
     )
   }
@@ -999,7 +999,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       revisionMeta = Some(Seq(revision))
     )
 
-    val saved = service.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess)
+    val saved = writeService.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess)
     saved.get.notes.size should be(2)
     saved.get.notes.map(n => n.note) should be(
       Seq("Lagt til revisjon Ny revision.", "Slettet revisjon Automatisk revisjonsdato satt av systemet.")
@@ -1020,7 +1020,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val another: Draft = article.copy(revisionMeta = Seq(domainRev))
     when(draftRepository.withId(eqTo(articleId), anyBoolean())(any)).thenReturn(Option(another))
 
-    val updated2 = service.updateArticle(articleId, revisedApiArticle, TestData.userWithWriteAccess)
+    val updated2 = writeService.updateArticle(articleId, revisedApiArticle, TestData.userWithWriteAccess)
     updated2.get.notes.size should be(1)
     updated2.get.notes.head.note should be("Fullført revisjon Ny revision.")
 
@@ -1067,7 +1067,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
 
     val Success(result1) =
-      service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
+      writeService.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
 
     result1.status.current should be(existing.status.current.toString)
     result1.status.other.sorted should be(existing.status.other.map(_.toString).toSeq.sorted)
@@ -1100,7 +1100,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(draftRepository.newEmptyArticleId()(any[DBSession])).thenReturn(Success(10L))
 
-    val Success(_) = service.newArticle(newArt, TestData.userWithWriteAccess): @unchecked
+    val Success(_) = writeService.newArticle(newArt, TestData.userWithWriteAccess): @unchecked
 
     val captor: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
     Mockito.verify(draftRepository).insert(captor.capture())(any)
@@ -1120,11 +1120,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val article1 = TestData.sampleDomainArticle.copy(title = Seq(nnTitle, nbTitle))
     val article2 = TestData.sampleDomainArticle.copy(title = Seq(nnTitle, nbTitle))
-    service.shouldUpdateStatus(article1, article2) should be(false)
+    writeService.shouldUpdateStatus(article1, article2) should be(false)
 
     val article3 = TestData.sampleDomainArticle.copy(title = Seq(nnTitle, nbTitle))
     val article4 = TestData.sampleDomainArticle.copy(title = Seq(nbTitle, nnTitle))
-    service.shouldUpdateStatus(article3, article4) should be(false)
+    writeService.shouldUpdateStatus(article3, article4) should be(false)
   }
 
   test("shouldUpdateStatus should returns false when comparing comments") {
@@ -1157,11 +1157,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val article1 = TestData.sampleDomainArticle.copy(comments = Seq(comment1, comment2))
     val article2 = TestData.sampleDomainArticle.copy(comments = Seq(comment2, comment3))
-    service.shouldUpdateStatus(article1, article2) should be(false)
+    writeService.shouldUpdateStatus(article1, article2) should be(false)
 
     val article3 = TestData.sampleDomainArticle.copy(comments = Seq(comment1, comment2, comment3))
     val article4 = TestData.sampleDomainArticle.copy(comments = Seq.empty)
-    service.shouldUpdateStatus(article3, article4) should be(false)
+    writeService.shouldUpdateStatus(article3, article4) should be(false)
   }
 
   test("copyRevisionDates updates articles") {
@@ -1183,7 +1183,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(eqTo(1L), anyBoolean())(any)).thenReturn(Some(article1))
     when(draftRepository.withId(eqTo(2L), anyBoolean())(any)).thenReturn(Some(article2))
     when(draftRepository.withId(eqTo(3L), anyBoolean())(any)).thenReturn(Some(article3))
-    service.copyRevisionDates(nodeId) should be(Success(()))
+    writeService.copyRevisionDates(nodeId) should be(Success(()))
     verify(draftRepository, times(3)).updateArticle(any[Draft])(any[DBSession])
   }
 
@@ -1203,7 +1203,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(eqTo(1L), anyBoolean())(any)).thenReturn(Some(article1))
     when(draftRepository.withId(eqTo(2L), anyBoolean())(any)).thenReturn(Some(article2))
     when(draftRepository.withId(eqTo(3L), anyBoolean())(any)).thenReturn(Some(article3))
-    service.copyRevisionDates(nodeId) should be(Success(()))
+    writeService.copyRevisionDates(nodeId) should be(Success(()))
     verify(draftRepository, times(0)).updateArticle(any[Draft])(any[DBSession])
   }
 
@@ -1227,7 +1227,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Success(List(resource)), Success(List(resource)), Success(List.empty))
     when(draftRepository.withId(eqTo(1L), anyBoolean())(any)).thenReturn(Some(article1))
     when(draftRepository.withId(eqTo(2L), anyBoolean())(any)).thenReturn(Some(article2))
-    service.copyRevisionDates(nodeId) should be(Success(()))
+    writeService.copyRevisionDates(nodeId) should be(Success(()))
     verify(draftRepository, times(2)).updateArticle(any[Draft])(any[DBSession])
   }
 
@@ -1245,7 +1245,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-    val result = service
+    val result = writeService
       .updateArticle(
         existing.id.get,
         updatedArticle,
@@ -1270,7 +1270,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-    val result = service
+    val result = writeService
       .updateArticle(
         existing.id.get,
         updatedArticle,
@@ -1294,7 +1294,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       responsibleId = UpdateWith("heiho")
     )
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-    val result = service
+    val result = writeService
       .updateArticle(
         existing.id.get,
         updatedArticle,
@@ -1317,7 +1317,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       language = Some("nb")
     )
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-    val result = service
+    val result = writeService
       .updateArticle(
         existing.id.get,
         updatedArticle,
@@ -1341,7 +1341,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       language = Some("nb")
     )
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-    val result = service
+    val result = writeService
       .updateArticle(
         existing.id.get,
         updatedArticle,
@@ -1370,7 +1370,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       language = Some("nb")
     )
     when(draftRepository.withId(eqTo(existing.id.get), anyBoolean())(any)).thenReturn(Some(existing))
-    val result = service
+    val result = writeService
       .updateArticle(
         existing.id.get,
         updatedArticle,
@@ -1388,7 +1388,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.getCurrentAndPreviousRevision(eqTo(current.id.get))(any))
       .thenReturn(Success((current, previous)))
 
-    val result = service.deleteCurrentRevision(current.id.get)
+    val result = writeService.deleteCurrentRevision(current.id.get)
     result.isFailure should be(true)
   }
 
@@ -1398,7 +1398,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.getCurrentAndPreviousRevision(eqTo(current.id.get))(any))
       .thenReturn(Success((current, previous)))
 
-    val result = service.deleteCurrentRevision(current.id.get)
+    val result = writeService.deleteCurrentRevision(current.id.get)
     result.isFailure should be(true)
   }
 
@@ -1410,7 +1410,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.deleteArticleRevision(eqTo(current.id.get), eqTo(current.revision.get))(any))
       .thenReturn(Success(()))
 
-    service.deleteCurrentRevision(current.id.get).failIfFailure
+    writeService.deleteCurrentRevision(current.id.get).failIfFailure
     verify(draftRepository, times(1)).storeArticleAsNewVersion(any, any, any)(any)
   }
 }

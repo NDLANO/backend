@@ -20,9 +20,8 @@ import no.ndla.common.model.domain.draft.DraftStatus.PLANNED
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{RelatedContentLink, api as commonApi, domain as common}
-import no.ndla.common.{Clock, UUIDUtil, model}
+import no.ndla.common.{Clock, model}
 import no.ndla.draftapi.DraftApiProperties
-import no.ndla.draftapi.integration.{ArticleApiClient, TaxonomyApiClient}
 import no.ndla.draftapi.model.api.{NotFoundException, UpdatedArticleDTO}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.DraftRepository
@@ -42,8 +41,6 @@ import common.getNextRevision
 class ConverterService(using
     clock: Clock,
     draftRepository: DraftRepository,
-    articleApiClient: ArticleApiClient,
-    taxonomyApiClient: TaxonomyApiClient,
     commonConverter: CommonConverter,
     writeService: WriteService,
     stateTransitionRules: StateTransitionRules,

@@ -40,8 +40,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   val articleContent2: ArticleContent = ArticleContent(content2, "und")
 
-  override lazy val readService      = new ReadService
-  override lazy val converterService = new ConverterService
+
 
   test("withId adds urls and ids on embed resources") {
     val visualElementBefore =

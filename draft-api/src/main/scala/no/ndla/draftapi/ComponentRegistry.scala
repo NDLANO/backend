@@ -108,38 +108,10 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
   given grepCodesIndexService: GrepCodesIndexService   = new GrepCodesIndexService
 
   // Controllers
-  given internController: InternController = new InternController(using
-    readService,
-    writeService,
-    converterService,
-    draftRepository,
-    articleIndexService,
-    tagIndexService,
-    grepCodesIndexService,
-    articleApiClient,
-    props,
-    errorHandling,
-    errorHelpers,
-    clock,
-    myndlaApiClient
-  )
-  given draftController: DraftController = new DraftController(using
-    readService,
-    writeService,
-    articleSearchService,
-    searchConverterService,
-    converterService,
-    contentValidator,
-    props,
-    errorHandling,
-    errorHelpers,
-    clock,
-    myndlaApiClient
-  )
-  given fileController: FileController =
-    new FileController(using writeService, props, errorHandling, errorHelpers, clock, myndlaApiClient)
-  given userDataController: UserDataController =
-    new UserDataController(using readService, writeService, errorHandling, errorHelpers, clock, myndlaApiClient, props)
+  given internController: InternController      = new InternController
+  given draftController: DraftController        = new DraftController
+  given fileController: FileController          = new FileController
+  given userDataController: UserDataController  = new UserDataController
   given healthController: TapirHealthController = new TapirHealthController
 
   given swagger: SwaggerController = new SwaggerController(

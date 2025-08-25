@@ -8,9 +8,11 @@
 
 package no.ndla.draftapi.controller
 
+import no.ndla.common.Clock
 import no.ndla.draftapi.*
 import no.ndla.draftapi.model.api.ContentIdDTO
 import no.ndla.draftapi.model.domain.ImportId
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doReturn, never, reset, times, verify, verifyNoMoreInteractions, when}
@@ -19,7 +21,12 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: InternController = new InternController
+  override val controller: InternController                  = new InternController
+  override implicit lazy val clock: Clock                    = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
+  override implicit lazy val services: List[TapirController] = List(controller)
+  override implicit lazy val routes: Routes                  = new Routes
 
   override def beforeEach(): Unit = {
     reset(clock)

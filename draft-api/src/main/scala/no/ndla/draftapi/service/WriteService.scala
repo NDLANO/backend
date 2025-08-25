@@ -32,7 +32,7 @@ import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.{AddMultipleNotesDTO, AddNoteDTO, PartialArticleFieldsDTO}
 import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
-import no.ndla.draftapi.service.search.{ArticleIndexService, GrepCodesIndexService, TagIndexService}
+import no.ndla.draftapi.service.search.{ArticleIndexService, TagIndexService}
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.language.Language
 import no.ndla.language.Language.UnknownLanguage
@@ -57,7 +57,6 @@ class WriteService(using
     contentValidator: ContentValidator,
     articleIndexService: ArticleIndexService,
     tagIndexService: TagIndexService,
-    grepCodesIndexService: GrepCodesIndexService,
     clock: Clock,
     readService: ReadService,
     articleApiClient: ArticleApiClient,
