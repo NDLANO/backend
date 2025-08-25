@@ -483,7 +483,7 @@ trait WriteService {
         session: DBSession
     ): Try[api.ArticleDTO] = {
       for {
-        maybeDraft <- Try(draftRepository.withId(id, updateLock = true)(session))
+        maybeDraft <- Try(draftRepository.withId(id)(session))
         draft      <- maybeDraft.toTry(NotFoundException(s"Article with id $id not found"))
         now       = clock.now()
         newNotes  = notes.map(note => common.EditorNote(note, user.id, draft.status, now))
