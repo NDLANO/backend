@@ -11,8 +11,11 @@ package no.ndla.audioapi.controller
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api.TranscriptionResultDTO
 import no.ndla.audioapi.service.{ReadService, TranscriptionService}
+import no.ndla.audioapi.service.{TranscriptionComplete, TranscriptionNonComplete}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.{ErrorHelpers, TapirController}
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.common.Clock
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
 import sttp.tapir.server.ServerEndpoint
@@ -24,7 +27,11 @@ import scala.util.{Failure, Success}
 class TranscriptionController(using
   props: Props,
   readService: ReadService,
-  transcriptionService: TranscriptionService
+  transcriptionService: TranscriptionService,
+  errorHelpers: ErrorHelpers,
+  errorHandling: ControllerErrorHandling,
+  clock: Clock,
+  myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
 
     override val serviceName: String         = "transcription"
@@ -50,7 +57,7 @@ class TranscriptionController(using
         { case (videoId, language) =>
           transcriptionService.extractAudioFromVideo(videoId, language) match {
             case Success(_)  => Right(())
-            case Failure(ex) => returnLeftError(ex)
+            case Failure(ex) => errorHandling.returnLeftError(ex)
           }
         }
       }
@@ -67,7 +74,7 @@ class TranscriptionController(using
         { case (videoId, language) =>
           transcriptionService.getAudioExtractionStatus(videoId, language) match {
             case Success(_)  => Right(())
-            case Failure(ex) => returnLeftError(ex)
+            case Failure(ex) => errorHandling.returnLeftError(ex)
           }
         }
       }
@@ -85,7 +92,7 @@ class TranscriptionController(using
         { case (videoId, language, maxSpeakerOpt) =>
           transcriptionService.transcribeVideo(videoId, language, maxSpeakerOpt) match {
             case Success(_)  => Right(())
-            case Failure(ex) => returnLeftError(ex)
+            case Failure(ex) => errorHandling.returnLeftError(ex)
           }
         }
       }
@@ -106,7 +113,7 @@ class TranscriptionController(using
               Right(TranscriptionResultDTO("COMPLETED", Some(transcriptionContent.toString)))
             case Success(TranscriptionNonComplete(jobStatus)) =>
               Right(TranscriptionResultDTO(jobStatus.toString, None))
-            case Failure(ex) => returnLeftError(ex)
+            case Failure(ex) => errorHandling.returnLeftError(ex)
           }
         }
       }
@@ -126,7 +133,7 @@ class TranscriptionController(using
         { case (audioName, audioId, language, maxSpeakerOpt, format) =>
           transcriptionService.transcribeAudio(audioName, audioId, language, maxSpeakerOpt, format) match {
             case Success(_)  => Right(())
-            case Failure(ex) => returnLeftError(ex)
+            case Failure(ex) => errorHandling.returnLeftError(ex)
           }
         }
       }
@@ -147,7 +154,7 @@ class TranscriptionController(using
               Right(TranscriptionResultDTO("COMPLETED", Some(transcriptionContent)))
             case Success(Left(jobStatus)) =>
               Right(TranscriptionResultDTO(jobStatus.toString, None))
-            case Failure(ex) => returnLeftError(ex)
+            case Failure(ex) => errorHandling.returnLeftError(ex)
           }
         }
       }
@@ -161,6 +168,4 @@ class TranscriptionController(using
         postAudioTranscription,
         getAudioTranscription
       )
-  }
-
 }

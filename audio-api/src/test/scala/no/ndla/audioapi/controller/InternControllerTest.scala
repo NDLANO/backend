@@ -12,9 +12,11 @@ import no.ndla.audioapi.TestData.*
 import no.ndla.audioapi.model.domain
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, AudioType}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.Clock
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain as common
 import no.ndla.mapping.License
+import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
@@ -23,8 +25,12 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  override lazy val converterService        = new ConverterService
-  override val controller: InternController = new InternController
+  override implicit lazy val clock: Clock                           = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers             = new ErrorHelpers
+  override implicit lazy val errorHandling: ControllerErrorHandling = new ControllerErrorHandling
+  val controller: InternController                                  = new InternController
+  override implicit lazy val services: List[TapirController]        = List(controller)
+  override implicit lazy val routes: Routes                         = new Routes
 
   val DefaultDomainImageMetaInformation: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),

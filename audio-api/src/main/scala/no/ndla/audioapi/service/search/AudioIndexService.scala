@@ -19,17 +19,17 @@ import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.common.CirceUtil
 import no.ndla.common.errors.MissingIdException
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 import scala.util.{Failure, Try}
 
 class AudioIndexService(using
-    elastic4sClient: Elastic4sClient,
+    elastic4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
-    indexService: IndexService,
     seriesIndexService: SeriesIndexService,
     audioRepository: AudioRepository,
-    props: Props
+    props: Props,
+    searchLanguage: SearchLanguage
 ) extends IndexService[AudioMetaInformation, SearchableAudioInformation]
     with StrictLogging {
   override val documentType: String        = props.SearchDocument

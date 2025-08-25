@@ -13,15 +13,14 @@ import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.controller.ControllerErrorHandling
-import no.ndla.audioapi.model.api.ErrorHandling
+
 import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.model.search.SearchableSeries
 import no.ndla.audioapi.model.{api, domain}
-import no.ndla.audioapi.service.ConverterService
 import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.*
 import no.ndla.language.Language.AllLanguages
-import no.ndla.search.{Elastic4sClient, NdlaE4sClient}
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -31,9 +30,9 @@ class SeriesSearchService(using
     e4sClient: NdlaE4sClient,
     seriesIndexService: SeriesIndexService,
     searchConverterService: SearchConverterService,
-    converterService: ConverterService,
     props: Props,
-    errorHandling: ControllerErrorHandling
+    errorHandling: ControllerErrorHandling,
+    searchLanguage: SearchLanguage
 ) extends StrictLogging
     with SearchService[api.SeriesSummaryDTO] {
   import errorHandling.*

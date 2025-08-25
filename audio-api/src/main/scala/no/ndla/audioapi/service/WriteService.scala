@@ -10,6 +10,7 @@ package no.ndla.audioapi.service
 
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.audioapi.integration.NDLAS3Client
 import no.ndla.audioapi.model.api.AudioStorageException
 import no.ndla.audioapi.model.domain.Audio
 import no.ndla.audioapi.model.{api, domain}
@@ -34,8 +35,7 @@ class WriteService(using
     audioIndexService: AudioIndexService,
     seriesIndexService: SeriesIndexService,
     tagIndexService: TagIndexService,
-    s3Client: NdlaS3Client,
-    readService: ReadService,
+    s3Client: NDLAS3Client,
     clock: Clock
 ) extends StrictLogging {
 

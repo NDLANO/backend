@@ -17,7 +17,7 @@ import no.ndla.audioapi.controller.ControllerErrorHandling
 import no.ndla.audioapi.model.domain.{SearchResult, SearchableTag}
 import no.ndla.common.CirceUtil
 import no.ndla.language.model.Iso639
-import no.ndla.search.NdlaE4sClient
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
@@ -28,7 +28,8 @@ class TagSearchService(using
     searchConverterService: SearchConverterService,
     tagIndexService: TagIndexService,
     props: Props,
-    errorHandling: ControllerErrorHandling
+    errorHandling: ControllerErrorHandling,
+    searchLanguage: SearchLanguage
 ) extends StrictLogging
     with SearchService[String] {
   import errorHandling.ResultWindowTooLargeException

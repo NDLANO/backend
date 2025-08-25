@@ -12,14 +12,16 @@ import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.api
-import no.ndla.audioapi.model.api.{AudioMetaDomainDumpDTO, ErrorHandling}
+import no.ndla.audioapi.model.api.AudioMetaDomainDumpDTO
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.audioapi.service.{ConverterService, ReadService}
 import no.ndla.common.errors.NotFoundException
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.{ErrorHandling, TapirController}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.common.Clock
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.StatusCode
 import sttp.tapir.*
@@ -36,7 +38,10 @@ class InternController(using
     tagIndexService: TagIndexService,
     readService: ReadService,
     props: Props,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
+    errorHelpers: ErrorHelpers,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
@@ -121,7 +126,7 @@ class InternController(using
       .serverLogicPure { id =>
         audioRepository.withId(id) match {
           case Some(image) => image.asRight
-          case None        => returnLeftError(NotFoundException(s"Could not find audio with id: '$id'"))
+          case None        => errorHandling.returnLeftError(NotFoundException(s"Could not find audio with id: '$id'"))
         }
       },
     endpoint.post

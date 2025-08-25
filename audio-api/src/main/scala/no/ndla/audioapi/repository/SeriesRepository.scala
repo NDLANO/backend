@@ -15,7 +15,7 @@ import org.postgresql.util.PGobject
 import scalikejdbc.*
 import cats.implicits.*
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.model.api.ErrorHandling
+import no.ndla.network.tapir.ErrorHandling
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.database.DataSource
@@ -75,7 +75,7 @@ class SeriesRepository(using
         val message =
           s"Found revision mismatch when attempting to update series with id '${series.id}' (rev: ${series.revision})"
         logger.info(message)
-        Failure(new Helpers.OptimisticLockException)
+        Failure(new RuntimeException("Optimistic lock exception"))
       case Success(_) =>
         logger.info(s"Updated series with id ${series.id}")
         Success(series.copy(revision = newRevision))

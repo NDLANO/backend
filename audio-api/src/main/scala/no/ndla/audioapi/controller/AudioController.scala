@@ -25,7 +25,7 @@ import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{NonEmptyString, TapirController}
+import no.ndla.network.tapir.{ErrorHelpers, NonEmptyString, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
 import sttp.model.Part
@@ -47,6 +47,7 @@ class AudioController(using
     converterService: ConverterService,
     props: Props,
     errorHandling: ControllerErrorHandling,
+    errorHelpers: ErrorHelpers,
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   val maxAudioFileSizeBytes: Int           = props.MaxAudioFileSizeBytes
@@ -169,7 +170,7 @@ class AudioController(using
     .serverLogicPure { case (id, language) =>
       readService.withId(id, language.map(_.code)) match {
         case Some(audio) => audio.asRight
-        case None        => notFoundWithMsg(s"Audio with id $id not found").asLeft
+        case None        => errorHelpers.notFoundWithMsg(s"Audio with id $id not found").asLeft
       }
     }
 
@@ -213,7 +214,7 @@ class AudioController(using
       writeService.deleteAudioLanguageVersion(audioId, language) match {
         case Success(Some(audio)) => Right(Some(audio))
         case Success(None)        => Right(None)
-        case Failure(ex)          => returnLeftError(ex)
+        case Failure(ex)          => errorHandling.returnLeftError(ex)
       }
     }
 

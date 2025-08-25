@@ -9,6 +9,7 @@
 package no.ndla.audioapi.service
 
 import no.ndla.audioapi.TestData.testUser
+import no.ndla.audioapi.controller.ControllerErrorHandling
 import no.ndla.audioapi.model.api.*
 import no.ndla.audioapi.model.domain.{Audio, AudioType}
 import no.ndla.audioapi.model.{api, domain}
@@ -30,11 +31,12 @@ import java.io.FileInputStream
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val writeService       = new WriteService
-  override lazy val converterService   = new ConverterService
-  val (newFileName1, newFileName2)     = ("AbCdeF.mp3", "GhijKl.mp3")
-  val filePartMock: UploadedFile       = mock[UploadedFile]
-  val s3ObjectMock: HeadObjectResponse = mock[HeadObjectResponse]
+  override implicit lazy val writeService: WriteService             = new WriteService
+  override implicit lazy val errorHandling: ControllerErrorHandling = new ControllerErrorHandling
+  override implicit lazy val converterService: ConverterService     = new ConverterService
+  val (newFileName1, newFileName2)                                  = ("AbCdeF.mp3", "GhijKl.mp3")
+  val filePartMock: UploadedFile                                    = mock[UploadedFile]
+  val s3ObjectMock: HeadObjectResponse                              = mock[HeadObjectResponse]
 
   val newAudioMeta: NewAudioMetaInformationDTO = NewAudioMetaInformationDTO(
     "title",
@@ -703,7 +705,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       series.episodes.get.find(_.id.contains(id))
     })
     when(seriesRepository.update(any[domain.Series])(any[DBSession]))
-      .thenReturn(Failure(new Helpers.OptimisticLockException))
+      .thenReturn(Failure(new OptimisticLockException("hei")))
     setupSuccessfulSeriesValidation()
 
     val updateSeries = api.NewSeriesDTO(

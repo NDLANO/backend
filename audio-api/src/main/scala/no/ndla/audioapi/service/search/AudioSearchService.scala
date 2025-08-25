@@ -20,7 +20,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.*
 import no.ndla.language.Language.AllLanguages
 import no.ndla.mapping.License
-import no.ndla.search.NdlaE4sClient
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -30,9 +30,9 @@ class AudioSearchService(using
     e4sClient: NdlaE4sClient,
     audioIndexService: AudioIndexService,
     searchConverterService: SearchConverterService,
-    searchService: SearchService[api.AudioSummaryDTO],
     props: Props,
-    errorHandling: ControllerErrorHandling
+    errorHandling: ControllerErrorHandling,
+    searchLanguage: SearchLanguage
 ) extends StrictLogging
     with SearchService[api.AudioSummaryDTO] {
   import errorHandling.ResultWindowTooLargeException

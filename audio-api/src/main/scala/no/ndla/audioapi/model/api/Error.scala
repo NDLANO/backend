@@ -22,3 +22,4 @@ class AudioStorageException(message: String)              extends RuntimeExcepti
 class LanguageMappingException(message: String)           extends RuntimeException(message)
 class ImportException(message: String)                    extends RuntimeException(message)
 case class JobAlreadyFoundException(message: String)      extends RuntimeException(message)
+class OptimisticLockException(message: String)            extends RuntimeException(message)

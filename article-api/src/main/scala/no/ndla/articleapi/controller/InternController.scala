@@ -13,10 +13,10 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.model.api.*
-import no.ndla.articleapi.model.domain.{ArticleIds, DBArticle}
+import no.ndla.articleapi.model.domain.ArticleIds
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.*
-import no.ndla.articleapi.service.search.{ArticleIndexService, IndexService}
+import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.common.Clock
 import no.ndla.common.model.api.CommaSeparatedList.*
@@ -40,13 +40,10 @@ import scala.util.{Failure, Success}
 class InternController(using
     readService: ReadService,
     writeService: WriteService,
-    converterService: ConverterService,
     articleRepository: ArticleRepository,
-    indexService: IndexService,
     articleIndexService: ArticleIndexService,
     contentValidator: ContentValidator,
     props: Props,
-    dBArticle: DBArticle,
     errorHandling: ErrorHandling,
     clock: Clock,
     errorHelpers: ErrorHelpers,

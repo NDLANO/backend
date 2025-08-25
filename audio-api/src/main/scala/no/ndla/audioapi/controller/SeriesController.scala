@@ -22,7 +22,9 @@ import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.AUDIO_API_WRITE
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.LanguageCode
-import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.{ErrorHelpers, TapirController}
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.common.Clock
 import sttp.model.StatusCode
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto.*
@@ -38,7 +40,10 @@ class SeriesController(using
     searchConverterService: SearchConverterService,
     converterService: ConverterService,
     props: Props,
-    errorHandling: ControllerErrorHandling
+    errorHandling: ControllerErrorHandling,
+    errorHelpers: ErrorHelpers,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   private val queryString = query[Option[String]]("query")
     .description("Return only results with titles or tags matching the specified query.")
@@ -130,7 +135,7 @@ class SeriesController(using
     .requirePermission(AUDIO_API_WRITE)
     .serverLogicPure { _ => seriesId =>
       writeService.deleteSeries(seriesId) match {
-        case Failure(ex) => returnLeftError(ex)
+        case Failure(ex) => errorHandling.returnLeftError(ex)
         case Success(_)  => Right(())
       }
     }
@@ -147,7 +152,7 @@ class SeriesController(using
     .serverLogicPure { _ => input =>
       val (seriesId, language) = input
       writeService.deleteSeriesLanguageVersion(seriesId, language) match {
-        case Failure(ex)           => returnLeftError(ex)
+        case Failure(ex)           => errorHandling.returnLeftError(ex)
         case Success(Some(series)) => Some(series).asRight
         case Success(None)         => None.asRight
       }

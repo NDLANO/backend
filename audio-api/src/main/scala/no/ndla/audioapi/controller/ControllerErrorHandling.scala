@@ -1,20 +1,14 @@
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.model.api.{ImportException, JobAlreadyFoundException}
+import no.ndla.audioapi.model.api.{ImportException, JobAlreadyFoundException, OptimisticLockException}
 import no.ndla.common.Clock
-import no.ndla.common.errors.{
-  AccessDeniedException,
-  FileTooBigException,
-  NotFoundException,
-  OperationNotAllowedException,
-  ValidationException
-}
+import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, NotFoundException, ValidationException}
 import no.ndla.database.DataSource
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHandling, ErrorHelpers, ValidationErrorBody}
 import org.postgresql.util.PSQLException
-import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
+import no.ndla.search.NdlaSearchException
 
 class ControllerErrorHandling(using
     props: Props,
@@ -30,7 +24,6 @@ class ControllerErrorHandling(using
     s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
 
   class ResultWindowTooLargeException(message: String = WINDOW_TOO_LARGE_DESCRIPTION) extends RuntimeException(message)
-  class OptimisticLockException(message: String = RESOURCE_OUTDATED_DESCRIPTION)      extends RuntimeException(message)
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case a: AccessDeniedException => ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403)

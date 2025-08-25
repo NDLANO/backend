@@ -21,7 +21,7 @@ import no.ndla.audioapi.model.Sort
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
-import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaE4sClient, NdlaSearchException, SearchLanguage}
+import no.ndla.search.{IndexNotFoundException, NdlaE4sClient, NdlaSearchException, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
@@ -58,21 +58,21 @@ trait SearchService[T](using
       boost: Double,
       fallback: Boolean
   ): Query = {
-    val searchLanguage = language match {
+    val searchLang = language match {
       case Some(lang) if Iso639.get(lang).isSuccess => lang
       case _                                        => Language.AllLanguages
     }
 
-    if (searchLanguage == Language.AllLanguages || fallback) {
-      SearchLanguage.languageAnalyzers
+    if (searchLang == Language.AllLanguages || fallback) {
+      searchLanguage.languageAnalyzers
         .foldLeft(SimpleStringQuery(query))((acc, cur) => {
           val languageTag = cur.languageTag.toString
-          val fieldBoost  = if (languageTag == searchLanguage) boost + 1 else boost
+          val fieldBoost  = if (languageTag == searchLang) boost + 1 else boost
           acc.field(s"$searchField.$languageTag", fieldBoost)
         })
         .field(s"$searchField.*", boost)
     } else {
-      simpleStringQuery(query).field(s"$searchField.$searchLanguage", boost)
+      simpleStringQuery(query).field(s"$searchField.$searchLang", boost)
     }
   }
 

@@ -16,13 +16,16 @@ import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchableTag}
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
 import no.ndla.common.CirceUtil
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 import scala.util.{Success, Try}
 
 class TagIndexService(using
+    e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
     audioRepository: AudioRepository,
-    props: Props
+    props: Props,
+    searchLanguage: SearchLanguage
 ) extends IndexService[AudioMetaInformation, SearchableTag]
     with StrictLogging {
   override val documentType: String                         = props.AudioTagSearchDocument

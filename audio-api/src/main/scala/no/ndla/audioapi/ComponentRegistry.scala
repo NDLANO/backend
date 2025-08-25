@@ -11,8 +11,8 @@ package no.ndla.audioapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.controller.*
 import no.ndla.audioapi.db.migrationwithdependencies.{V5__AddAgreementToAudio, V6__TranslateUntranslatedAuthors}
-import no.ndla.audioapi.integration.TranscribeS3Client
-import no.ndla.audioapi.model.api.ErrorHandling
+import no.ndla.audioapi.integration.{NDLAS3Client, TranscribeS3Client}
+import no.ndla.network.tapir.ErrorHandling
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.*
 import no.ndla.audioapi.service.search.*
@@ -36,7 +36,7 @@ class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication
   given errorHandling: ControllerErrorHandling = new ControllerErrorHandling
   given searchLanguage: SearchLanguage         = new SearchLanguage
 
-  given s3Client: NdlaS3Client                 = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  given s3Client: NDLAS3Client                 = new NDLAS3Client(props.StorageName, props.StorageRegion)
   given s3TranscribeClient: TranscribeS3Client =
     new TranscribeS3Client(props.TranscribeStorageName, props.TranscribeStorageRegion)
   given brightcoveClient: NdlaBrightcoveClient    = new NdlaBrightcoveClient
@@ -82,6 +82,6 @@ class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  given services: List[TapirController] = swagger.getServices()
-  given routes: Routes                  = new Routes
+  given services: List[no.ndla.network.tapir.TapirController] = swagger.getServices()
+  given routes: Routes                                        = new Routes
 }

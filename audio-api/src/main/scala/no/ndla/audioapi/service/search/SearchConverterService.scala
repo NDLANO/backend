@@ -105,7 +105,7 @@ class SearchConverterService(using
         .map(lv => api.DescriptionDTO(lv.value, lv.language))
 
       episodes <- searchable.episodes.traverse(eps =>
-        eps.traverse(ep => searchConverterService.asAudioSummary(ep, language))
+        eps.traverse(ep => asAudioSummary(ep, language))
       )
 
       supportedLanguages = getSupportedLanguages(
@@ -125,9 +125,9 @@ class SearchConverterService(using
   def asSearchableAudioInformation(ai: AudioMetaInformation): Try[SearchableAudioInformation] = {
     val defaultTitle = ai.titles
       .sortBy(title => {
-        val languagePriority = SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
+        val languagePriority = searchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
         languagePriority.indexOf(title.language)
-      })
+      })(Ordering.Int)
       .lastOption
 
     val authors =
@@ -176,8 +176,8 @@ class SearchConverterService(using
 
       keyLanguages
         .sortBy(lang => {
-          SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse.indexOf(lang)
-        })
+          searchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse.indexOf(lang)
+        })(Ordering.Int)
         .lastOption
     }
 

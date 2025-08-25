@@ -18,15 +18,18 @@ import no.ndla.audioapi.model.domain.Series
 import no.ndla.audioapi.model.search.SearchableSeries
 import no.ndla.audioapi.repository.SeriesRepository
 import no.ndla.common.CirceUtil
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
+import no.ndla.audioapi.repository.AudioRepository
 
 import scala.util.{Failure, Success, Try}
 
 class SeriesIndexService(using
-    elastic4sClient: Elastic4sClient,
+    elastic4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
     seriesRepository: SeriesRepository,
-    props: Props
+    audioRepository: AudioRepository,
+    props: Props,
+    searchLanguage: SearchLanguage
 ) extends IndexService[Series, SearchableSeries]
     with StrictLogging {
   override val documentType: String         = props.SeriesSearchDocument
