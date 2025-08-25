@@ -493,7 +493,7 @@ trait DraftController {
       .summary("Add notes to a draft")
       .description("Add notes to a draft")
       .in(jsonBody[AddMultipleNotesDTO])
-      .errorOut(errorOutputsFor(401, 403, 404))
+      .errorOut(errorOutputsFor(401, 403, 404, 409))
       .out(noContent)
       .requirePermission(DRAFT_API_WRITE)
       .serverLogicPure { user => { input => writeService.addNotesToDrafts(input, user) } }
