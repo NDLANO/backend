@@ -30,7 +30,6 @@ class SearchIndexService(using
     searchConverterServiceComponent: SearchConverterServiceComponent,
     learningPathRepository: LearningPathRepository,
     searchApiClient: SearchApiClient,
-    baseIndexService: BaseIndexService,
     props: Props,
     searchLanguage: SearchLanguage
 ) extends BaseIndexService
@@ -46,7 +45,7 @@ class SearchIndexService(using
 
   def indexDocument(learningPath: LearningPath): Try[LearningPath] = for {
     _ <- createIndexIfNotExists()
-    searchable = searchConverterService.asSearchableLearningpath(learningPath)
+    searchable = searchConverterServiceComponent.asSearchableLearningpath(learningPath)
     source     = CirceUtil.toJsonString(searchable)
     _ <- e4sClient.execute(deleteById(searchIndex, learningPath.id.get.toString))
     _ <- e4sClient.execute(
@@ -99,7 +98,7 @@ class SearchIndexService(using
     if (learningPaths.isEmpty) {
       Success(0)
     } else {
-      val searchables = learningPaths.map(searchConverterService.asSearchableLearningpath)
+      val searchables = learningPaths.map(searchConverterServiceComponent.asSearchableLearningpath)
       val requests    = searchables.map(lp => {
         val source = CirceUtil.toJsonString(lp)
 
@@ -171,7 +170,7 @@ class SearchIndexService(using
 
   protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
     if (keepRaw) {
-      SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+      searchLanguage.languageAnalyzers.map(langAnalyzer =>
         textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
           .analyzer(langAnalyzer.analyzer)
           .fields(
@@ -179,7 +178,7 @@ class SearchIndexService(using
           )
       )
     } else {
-      SearchLanguage.languageAnalyzers.map(langAnalyzer =>
+      searchLanguage.languageAnalyzers.map(langAnalyzer =>
         textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
           .analyzer(langAnalyzer.analyzer)
       )

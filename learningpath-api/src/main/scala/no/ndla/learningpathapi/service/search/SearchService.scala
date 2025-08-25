@@ -22,10 +22,11 @@ import no.ndla.common.model.domain.learningpath.LearningPathStatus
 import no.ndla.language.Language.{AllLanguages, NoLanguage}
 import no.ndla.language.model.Iso639
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.{ErrorHandling, LearningPathSummaryV2DTO}
+import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2DTO, ResultWindowTooLargeException}
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.search.SearchableLearningPath
-import no.ndla.search.{Elastic4sClient, IndexNotFoundException, NdlaSearchException}
+import no.ndla.search.{NdlaE4sClient, IndexNotFoundException, NdlaSearchException}
+import no.ndla.network.tapir.ErrorHandling
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
@@ -34,11 +35,10 @@ import no.ndla.learningpathapi.integration.TaxonomyApiClient
 
 class SearchService(using
     searchIndexService: SearchIndexService,
-    e4sClient: Elastic4sClient,
+    e4sClient: NdlaE4sClient,
     searchConverterServiceComponent: SearchConverterServiceComponent,
     taxonomyApiClient: TaxonomyApiClient,
-    props: Props,
-    errorHandling: ErrorHandling
+    props: Props
 ) extends StrictLogging {
   def scroll(scrollId: String, language: String): Try[SearchResult] =
     e4sClient
@@ -66,7 +66,7 @@ class SearchService(using
         resultArray.map(result => {
           val matchedLanguage = language match {
             case AllLanguages =>
-              searchConverterService
+              searchConverterServiceComponent
                 .getLanguageFromHit(result)
                 .getOrElse(language)
             case _ => language
@@ -80,7 +80,7 @@ class SearchService(using
 
   private def hitAsLearningPathSummaryV2(hitString: String, language: String): LearningPathSummaryV2DTO = {
     val searchable = CirceUtil.unsafeParseAs[SearchableLearningPath](hitString)
-    searchConverterService.asApiLearningPathSummaryV2(searchable, language)
+    searchConverterServiceComponent.asApiLearningPathSummaryV2(searchable, language)
   }
 
   def containsArticle(id: Long): Try[Seq[LearningPathSummaryV2DTO]] = {
@@ -199,7 +199,7 @@ class SearchService(using
       logger.info(
         s"Max supported results are ${props.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow"
       )
-      Failure(LearningpathHelpers.ResultWindowTooLargeException())
+      Failure(ResultWindowTooLargeException.default)
     } else {
       val searchToExecute = search(props.SearchIndex)
         .size(numResults)

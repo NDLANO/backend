@@ -172,6 +172,6 @@ class ReadService(using
   }
 
   def canWriteNow(userInfo: CombinedUser): Try[Boolean] = {
-    myndlaApiClient.isWriteRestricted.map(isRestricted => userInfo.canWriteDuringWriteRestriction || !isRestricted)
+    myNDLAApiClient.isWriteRestricted.map(isRestricted => userInfo.canWriteDuringWriteRestriction || !isRestricted)
   }
 }

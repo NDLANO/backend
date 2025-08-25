@@ -284,7 +284,7 @@ class ConverterService(using
         status = status,
         copyright =
           if (updated.copyright.isDefined)
-            converterService.asCopyright(updated.copyright.get)
+            asCopyright(updated.copyright.get)
           else existing.copyright,
         lastUpdated = clock.now(),
         message = message,
@@ -306,7 +306,7 @@ class ConverterService(using
         .toSeq
 
       val embedUrlT = newLearningStep.embedUrl
-        .map(converterService.asDomainEmbedUrl(_, newLearningStep.language))
+        .map(asDomainEmbedUrl(_, newLearningStep.language))
         .map(t => t.map(embed => Seq(embed)))
         .getOrElse(Success(Seq.empty))
 
@@ -424,8 +424,7 @@ class ConverterService(using
         case Missing           => Success(existing.embedUrl)
         case Delete            => Success(existing.embedUrl.filterNot(_.language == updated.language))
         case UpdateWith(value) =>
-          converterService
-            .asDomainEmbedUrl(value, updated.language)
+          asDomainEmbedUrl(value, updated.language)
             .map(newEmbedUrl => mergeLanguageFields(existing.embedUrl, Seq(newEmbedUrl)))
       }
 
@@ -441,7 +440,7 @@ class ConverterService(using
         case (Missing, Some(license)) => LearningpathCopyright(license, Seq.empty).some
         case (Missing, _)             => existing.copyright
         case (Delete, _)              => None
-        case (UpdateWith(value), _)   => Some(converterService.asCopyright(value))
+        case (UpdateWith(value), _)   => Some(asCopyright(value))
       }
 
       embedUrlsT.map(embedUrls =>
@@ -486,15 +485,15 @@ class ConverterService(using
       user.id.toTry(AccessDeniedException("User id not found")).map { ownerId =>
         val title        = mergeLanguageFields(existing.title, oldTitle)
         val description  = mergeLanguageFields(existing.description, oldDescription)
-        val tags         = converterService.mergeLearningPathTags(existing.tags, oldTags)
+        val tags         = mergeLearningPathTags(existing.tags, oldTags)
         val coverPhotoId = newLearningPath.coverPhotoMetaUrl
-          .map(converterService.extractImageId)
+          .map(extractImageId)
           .getOrElse(existing.coverPhotoId)
         val duration =
           if (newLearningPath.duration.nonEmpty) newLearningPath.duration
           else existing.duration
         val copyright = newLearningPath.copyright
-          .map(converterService.asCopyright)
+          .map(asCopyright)
           .getOrElse(existing.copyright)
 
         val existingPathCopyright = existing.copyright.some
@@ -564,7 +563,7 @@ class ConverterService(using
           isBasedOn = None,
           title = Seq(common.Title(newLearningPath.title, newLearningPath.language)),
           description = description,
-          coverPhotoId = newLearningPath.coverPhotoMetaUrl.flatMap(converterService.extractImageId),
+          coverPhotoId = newLearningPath.coverPhotoMetaUrl.flatMap(extractImageId),
           duration = newLearningPath.duration,
           status = learningpath.LearningPathStatus.PRIVATE,
           verificationStatus = getVerificationStatus(user),
@@ -572,7 +571,7 @@ class ConverterService(using
           lastUpdated = clock.now(),
           tags = domainTags,
           owner = ownerId,
-          copyright = converterService.asCopyright(copyright),
+          copyright = asCopyright(copyright),
           isMyNDLAOwner = user.isMyNDLAUser,
           learningsteps = Some(Seq.empty),
           message = None,
@@ -751,8 +750,7 @@ class ConverterService(using
             searchLanguage,
             learningSteps
               .flatMap(ls =>
-                converterService
-                  .asApiLearningStepSummaryV2(ls, learningPath, searchLanguage)
+                asApiLearningStepSummaryV2(ls, learningPath, searchLanguage)
               )
               .sortBy(_.seqNo),
             supportedLanguages
@@ -866,4 +864,3 @@ class ConverterService(using
     }
 
   }
-}

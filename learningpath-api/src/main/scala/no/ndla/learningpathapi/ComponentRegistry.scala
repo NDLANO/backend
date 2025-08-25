@@ -44,6 +44,7 @@ import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{
   ErrorHandling,
   ErrorHelpers,
+  Routes,
   SwaggerController,
   TapirApplication,
   TapirController,
@@ -67,6 +68,7 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
   given DBUtil: DBUtility            = new DBUtility
   given errorHandling: ErrorHandling = new ControllerErrorHandling
   given errorHelpers: ErrorHelpers   = new ErrorHelpers
+  given routes: Routes               = new Routes
 
   given searchLanguage: SearchLanguage                          = new SearchLanguage
   given learningPathRepository: LearningPathRepository          = new LearningPathRepository
@@ -77,9 +79,9 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
   given searchIndexService: SearchIndexService                  = new SearchIndexService
   given commonConverter: CommonConverter                        = new CommonConverter
   given converterService: ConverterService                      = new ConverterService
-  given clock: Clock                                            = new Clock
+  implicit lazy val clock: Clock                                = new Clock
   given uuidUtil: UUIDUtil                                      = new UUIDUtil
-  given taxonomyApiClient: TaxonomyApiClient                    = new TaxonomyApiClient
+  implicit lazy val taxonomyApiClient: TaxonomyApiClient        = new TaxonomyApiClient
   given ndlaClient: NdlaClient                                  = new NdlaClient
   given languageValidator: LanguageValidator                    = new LanguageValidator
   given titleValidator: TitleValidator                          = new TitleValidator
@@ -89,7 +91,7 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
   given e4sClient: NdlaE4sClient                                = Elastic4sClientFactory.getClient(props.SearchServer)
   given searchApiClient: SearchApiClient                        = new SearchApiClient
   given oembedProxyClient: OembedProxyClient                    = new OembedProxyClient
-  given myndlaApiClient: MyNDLAApiClient                        = new MyNDLAApiClient
+  implicit lazy val myndlaApiClient: MyNDLAApiClient            = new MyNDLAApiClient
 
   given learningpathControllerV2: LearningpathControllerV2 = new LearningpathControllerV2
   given internController: InternController                 = new InternController

@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.controller
 
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.TapirController
 import no.ndla.tapirtesting.TapirControllerTest
 import sttp.client3.quick.*
 

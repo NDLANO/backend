@@ -126,7 +126,7 @@ class LearningpathControllerV2(using
       case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
         searchService.scroll(scroll, language.code) match {
           case Success(scrollResult) =>
-            val body    = searchConverterService.asApiSearchResult(scrollResult)
+            val body    = searchConverterServiceComponent.asApiSearchResult(scrollResult)
             val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
             Success((body, headers))
           case Failure(ex) => Failure(ex)
@@ -184,7 +184,7 @@ class LearningpathControllerV2(using
     searchService.matchingQuery(settings) match {
       case Success(searchResult) =>
         val scrollHeader = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
-        val output       = searchConverterService.asApiSearchResult(searchResult)
+        val output       = searchConverterServiceComponent.asApiSearchResult(searchResult)
         Success((output, scrollHeader))
       case Failure(ex) => Failure(ex)
     }

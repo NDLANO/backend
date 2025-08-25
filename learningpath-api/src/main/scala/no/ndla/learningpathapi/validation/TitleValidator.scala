@@ -10,11 +10,13 @@ package no.ndla.learningpathapi.validation
 
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.domain.Title
+import no.ndla.learningpathapi.Props
 
 class TitleValidator(
     titleRequired: Boolean = true
 )(using
     languageValidator: LanguageValidator,
+    props: Props
 ) {
   private val MISSING_TITLE = "At least one title is required."
 

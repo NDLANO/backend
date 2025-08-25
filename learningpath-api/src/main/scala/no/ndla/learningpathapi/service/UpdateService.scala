@@ -141,7 +141,7 @@ class UpdateService(using
       language: String,
       owner: CombinedUserRequired
   ): Try[LearningPathV2DTO] =
-    DBUtil.rollbackOnFailure { implicit session =>
+    dBUtility.rollbackOnFailure { implicit session =>
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         for {
           learningPath <- withId(learningPathId).flatMap(_.canEditLearningpath(owner))
@@ -168,7 +168,7 @@ class UpdateService(using
       language: String,
       owner: CombinedUserRequired
   ): Try[LearningStepV2DTO] =
-    DBUtil.rollbackOnFailure { implicit session =>
+    dBUtility.rollbackOnFailure { implicit session =>
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         for {
           learningPath <- withId(learningPathId).flatMap(_.canEditLearningpath(owner))
@@ -298,7 +298,7 @@ class UpdateService(using
           validated match {
             case Failure(ex)      => Failure(ex)
             case Success(newStep) =>
-              val (insertedStep, updatedPath) = inTransaction { implicit session =>
+              val (insertedStep, updatedPath) = learningPathRepository.inTransaction { implicit session =>
                 val insertedStep =
                   learningPathRepository.insertLearningStep(newStep)
                 val toUpdate    = converterService.insertLearningStep(learningPath, insertedStep, owner)
@@ -348,7 +348,7 @@ class UpdateService(using
               validated match {
                 case Failure(ex)       => Failure(ex)
                 case Success(toUpdate) =>
-                  val (updatedStep, updatedPath) = inTransaction { implicit session =>
+                  val (updatedStep, updatedPath) = learningPathRepository.inTransaction { implicit session =>
                     val updatedStep =
                       learningPathRepository.updateLearningStep(toUpdate)
                     val pathToUpdate = converterService.insertLearningStep(learningPath, updatedStep, owner)
@@ -381,7 +381,7 @@ class UpdateService(using
       stepToUpdate: LearningStep,
       stepsToChange: Seq[LearningStep],
       owner: CombinedUserRequired
-  ): (LearningPath, LearningStep) = inTransaction { implicit session =>
+  ): (LearningPath, LearningStep) = learningPathRepository.inTransaction { implicit session =>
     val (_, updatedStep, newLearningSteps) =
       stepsToChange.sortBy(_.seqNo).foldLeft((0, stepToUpdate, Seq.empty[LearningStep])) {
         case ((seqNo, foundStep, steps), curr) =>
@@ -468,7 +468,7 @@ class UpdateService(using
 
                 def addOrSubtract(seqNo: Int): Int = if (from > to) seqNo + 1 else seqNo - 1
 
-                inTransaction { implicit session =>
+                learningPathRepository.inTransaction { implicit session =>
                   val _ = learningPathRepository.updateLearningStep(learningStep.copy(seqNo = seqNo))
                   toUpdate.foreach(step => {
                     learningPathRepository.updateLearningStep(step.copy(seqNo = addOrSubtract(step.seqNo)))

@@ -12,6 +12,7 @@ import io.lemonlabs.uri.Url
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.{Author, Tag}
 import no.ndla.common.model.domain.learningpath.{Description, LearningPath, LearningpathCopyright}
+import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.UpdatedLearningPathV2DTO
 import no.ndla.mapping.License.getLicense
 import no.ndla.common.model.domain.RevisionStatus
@@ -21,7 +22,7 @@ import scala.util.{Failure, Success, Try}
 
 class LearningPathValidator(
     descriptionRequired: Boolean = false
-)(using languageValidator: LanguageValidator, titleValidator: TitleValidator) {
+)(using languageValidator: LanguageValidator, titleValidator: TitleValidator, props: Props) {
 
   private val MY_NDLA_LANGUAGE_MISMATCH =
     "A learning path created in MyNDLA must have exactly one supported language."

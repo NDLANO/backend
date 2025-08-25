@@ -176,7 +176,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        revisionMeta.map(CommonConverter.revisionMetaDomainToApi)
+        revisionMeta.map(commonConverter.revisionMetaDomainToApi)
       )
     )
     service.asApiLearningpathV2(
@@ -233,7 +233,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        revisionMeta.map(CommonConverter.revisionMetaDomainToApi)
+        revisionMeta.map(commonConverter.revisionMetaDomainToApi)
       )
     )
     service.asApiLearningpathV2(

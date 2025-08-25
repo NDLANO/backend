@@ -28,6 +28,7 @@ import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.mapping.License
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import org.mockito.Mockito.when
 import scalikejdbc.*
@@ -39,8 +40,8 @@ import no.ndla.common.model.domain.RevisionMeta
 class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
   override val schemaName = "learningpathapi_test"
 
-  override lazy val dataSource: HikariDataSource = testDataSource.get
-  override lazy val migrator: DBMigrator         = DBMigrator()
+  override implicit lazy val dataSource: DataSource = testDataSource.get
+  override implicit lazy val migrator: DBMigrator   = new DBMigrator
 
   var repository: LearningPathRepository = _
 
@@ -90,8 +91,9 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    dataSource.connectToDatabase()
-    migrator.migrate()
+    if (serverIsListening) {
+      migrator.migrate()
+    }
   }
 
   def databaseIsAvailable: Boolean = {
@@ -99,15 +101,25 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     res.isSuccess
   }
 
+  def serverIsListening: Boolean = {
+    import java.net.Socket
+    scala.util.Try(new Socket(props.MetaServer.unsafeGet, props.MetaPort.unsafeGet)) match {
+      case scala.util.Success(c) =>
+        c.close()
+        true
+      case _ => false
+    }
+  }
+
   override def beforeEach(): Unit = {
     repository = new LearningPathRepository
-    if (databaseIsAvailable) {
+    if (serverIsListening) {
       emptyTestDatabase
     }
   }
 
   test("That insert, fetch and delete works happy-day") {
-    inTransaction { implicit session =>
+    repository.inTransaction { implicit session =>
       val inserted = repository.insert(DefaultLearningPath)
       inserted.id.isDefined should be(true)
 
@@ -124,7 +136,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     deleteAllWithOwner(owner)
 
     try {
-      inTransaction { implicit session =>
+      repository.inTransaction { implicit session =>
         repository.insert(DefaultLearningPath.copy(owner = owner))
         throw new RuntimeException("Provoking exception inside transaction")
       }
@@ -436,7 +448,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   def deleteAllWithOwner(owner: String): Unit = {
-    inTransaction { implicit session =>
+    repository.inTransaction { implicit session =>
       repository
         .withOwner(owner)
         .foreach(lp => repository.deletePath(lp.id.get))

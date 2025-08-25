@@ -18,7 +18,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import scala.util.{Failure, Success, Try}
 import sys.env
 
-abstract class DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
+trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
   lazy val props: BaseProps & DatabaseProps
 
   val EnablePostgresContainer: Boolean = true
