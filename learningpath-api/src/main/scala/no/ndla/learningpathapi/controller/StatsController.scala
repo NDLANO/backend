@@ -8,10 +8,11 @@
 
 package no.ndla.learningpathapi.controller
 
+import no.ndla.common.Clock
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.model.api.ErrorHandling
 import no.ndla.learningpathapi.service.ReadService
-import no.ndla.network.tapir.TapirController
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import sttp.model.StatusCode
 import sttp.tapir.EndpointInput
 import sttp.tapir.*
@@ -20,7 +21,10 @@ import sttp.tapir.server.ServerEndpoint
 class StatsController(using
     readService: ReadService,
     props: Props,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
+    errorHelpers: ErrorHelpers,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   override val serviceName: String                       = "stats"
   override val prefix: EndpointInput[Unit]               = "learningpath-api" / "v1" / serviceName

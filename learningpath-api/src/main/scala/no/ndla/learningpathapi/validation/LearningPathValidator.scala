@@ -21,11 +21,7 @@ import scala.util.{Failure, Success, Try}
 
 class LearningPathValidator(
     descriptionRequired: Boolean = false
-)(using
-    languageValidator: LanguageValidator,
-    titleValidator: TitleValidator,
-    textValidator: TextValidator
-) {
+)(using languageValidator: LanguageValidator, titleValidator: TitleValidator) {
 
   private val MY_NDLA_LANGUAGE_MISMATCH =
     "A learning path created in MyNDLA must have exactly one supported language."

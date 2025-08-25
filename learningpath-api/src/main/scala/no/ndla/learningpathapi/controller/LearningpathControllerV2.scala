@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
+import no.ndla.common.Clock
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.{AuthorDTO, LanguageCode, LicenseDTO}
 import no.ndla.common.model.domain.learningpath
@@ -24,9 +25,10 @@ import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateSer
 import no.ndla.learningpathapi.validation.LanguageValidator
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.{DynamicHeaders, TapirController}
+import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, ErrorHelpers, TapirController}
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -43,10 +45,13 @@ class LearningpathControllerV2(using
     taxonomyApiClient: TaxonomyApiClient,
     searchConverterServiceComponent: SearchConverterServiceComponent,
     props: Props,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
+    errorHelpers: ErrorHelpers,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
-
-  import ErrorHelpers.*
+  import errorHelpers.*
+  import errorHandling.*
 
   override val serviceName: String         = "learningpaths"
   override val prefix: EndpointInput[Unit] = "learningpath-api" / "v2" / serviceName

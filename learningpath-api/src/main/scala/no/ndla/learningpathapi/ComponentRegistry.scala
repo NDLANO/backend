@@ -10,10 +10,10 @@ package no.ndla.learningpathapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.{Clock, UUIDUtil}
-import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.common.converter.CommonConverter
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.learningpathapi.controller.{
+  ControllerErrorHandling,
   InternController,
   LearningpathControllerV2,
   StatsController,
@@ -28,7 +28,6 @@ import no.ndla.learningpathapi.db.migrationwithdependencies.{
   V33__AiDefaultEnabledOrgs
 }
 import no.ndla.learningpathapi.integration.*
-import no.ndla.learningpathapi.model.api.ErrorHandling
 import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
@@ -42,8 +41,15 @@ import no.ndla.learningpathapi.validation.{
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
+import no.ndla.network.tapir.{
+  ErrorHandling,
+  ErrorHelpers,
+  SwaggerController,
+  TapirApplication,
+  TapirController,
+  TapirHealthController
+}
+import no.ndla.search.{BaseIndexService, Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.database.DBUtility
 
 class ComponentRegistry(properties: LearningpathApiProperties) extends TapirApplication[LearningpathApiProperties] {
@@ -56,35 +62,41 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
     new V31__ArenaDefaultEnabledOrgs,
     new V33__AiDefaultEnabledOrgs
   )
-  given dataSource: HikariDataSource = DataSource.getDataSource
+
+  given dataSource: DataSource       = DataSource.getDataSource
   given DBUtil: DBUtility            = new DBUtility
+  given errorHandling: ErrorHandling = new ControllerErrorHandling
+  given errorHelpers: ErrorHelpers   = new ErrorHelpers
 
-  given learningPathRepository = new LearningPathRepository
-  given readService            = new ReadService
-  given updateService          = new UpdateService
-  given searchConverterService = new SearchConverterService
-  given searchService          = new SearchService
-  given searchIndexService     = new SearchIndexService
-  given converterService       = new ConverterService
-  given clock                  = new SystemClock
-  given uuidUtil               = new UUIDUtil
-  given taxonomyApiClient      = new TaxonomyApiClient
-  given ndlaClient             = new NdlaClient
-  given languageValidator      = new LanguageValidator
-  given titleValidator         = new TitleValidator
-  given learningPathValidator  = new LearningPathValidator
-  given learningStepValidator  = new LearningStepValidator
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
-  given searchApiClient        = new SearchApiClient
-  given oembedProxyClient      = new OembedProxyClient
-  given myndlaApiClient        = new MyNDLAApiClient
+  given searchLanguage: SearchLanguage                          = new SearchLanguage
+  given learningPathRepository: LearningPathRepository          = new LearningPathRepository
+  given readService: ReadService                                = new ReadService
+  given updateService: UpdateService                            = new UpdateService
+  given searchConverterService: SearchConverterServiceComponent = new SearchConverterServiceComponent
+  given searchService: SearchService                            = new SearchService
+  given searchIndexService: SearchIndexService                  = new SearchIndexService
+  given commonConverter: CommonConverter                        = new CommonConverter
+  given converterService: ConverterService                      = new ConverterService
+  given clock: Clock                                            = new Clock
+  given uuidUtil: UUIDUtil                                      = new UUIDUtil
+  given taxonomyApiClient: TaxonomyApiClient                    = new TaxonomyApiClient
+  given ndlaClient: NdlaClient                                  = new NdlaClient
+  given languageValidator: LanguageValidator                    = new LanguageValidator
+  given titleValidator: TitleValidator                          = new TitleValidator
+  given learningPathValidator: LearningPathValidator            = new LearningPathValidator
+  given urlValidator: UrlValidator                              = new UrlValidator
+  given learningStepValidator: LearningStepValidator            = new LearningStepValidator
+  given e4sClient: NdlaE4sClient                                = Elastic4sClientFactory.getClient(props.SearchServer)
+  given searchApiClient: SearchApiClient                        = new SearchApiClient
+  given oembedProxyClient: OembedProxyClient                    = new OembedProxyClient
+  given myndlaApiClient: MyNDLAApiClient                        = new MyNDLAApiClient
 
-  given learningpathControllerV2                = new LearningpathControllerV2
-  given internController                        = new InternController
-  given statsController                         = new StatsController
-  given healthController: TapirHealthController = new TapirHealthController
+  given learningpathControllerV2: LearningpathControllerV2 = new LearningpathControllerV2
+  given internController: InternController                 = new InternController
+  given statsController: StatsController                   = new StatsController
+  given healthController: TapirHealthController            = new TapirHealthController
 
-  val swagger = new SwaggerController(
+  given swagger: SwaggerController = new SwaggerController(
     List[TapirController](
       learningpathControllerV2,
       internController,
@@ -94,6 +106,5 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override def services: List[TapirController] = swagger.getServices()
-
+  given services: List[TapirController] = swagger.getServices()
 }

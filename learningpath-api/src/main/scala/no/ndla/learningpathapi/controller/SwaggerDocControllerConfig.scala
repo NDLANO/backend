@@ -13,19 +13,13 @@ import no.ndla.network.tapir.auth.Permission
 import no.ndla.network.tapir.{SwaggerControllerConfig, SwaggerInfo}
 import sttp.tapir.*
 
-class SwaggerDocControllerConfig(using
-    props: Props,
-    swaggerControllerConfig: SwaggerControllerConfig
-) {
+object SwaggerDocControllerConfig {
+  private val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("learningpath"))
 
-  object SwaggerDocControllerConfig {
-    private val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("learningpath"))
-
-    val swaggerInfo: SwaggerInfo = SwaggerInfo(
-      mountPoint = "learningpath-api" / "api-docs",
-      description = "Services for accessing learningpaths",
-      authUrl = props.Auth0LoginEndpoint,
-      scopes = scopes
-    )
-  }
+  def swaggerInfo(using props: Props): SwaggerInfo = SwaggerInfo(
+    mountPoint = "learningpath-api" / "api-docs",
+    description = "Services for accessing learningpaths",
+    authUrl = props.Auth0LoginEndpoint,
+    scopes = scopes
+  )
 }

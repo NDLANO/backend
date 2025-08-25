@@ -15,7 +15,6 @@ class TitleValidator(
     titleRequired: Boolean = true
 )(using
     languageValidator: LanguageValidator,
-    textValidator: TextValidator
 ) {
   private val MISSING_TITLE = "At least one title is required."
 
