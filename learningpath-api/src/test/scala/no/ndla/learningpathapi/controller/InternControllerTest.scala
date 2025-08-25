@@ -8,9 +8,10 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.api.learningpath.LearningPathStatsDTO
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
@@ -20,7 +21,12 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: InternController = new InternController
+  override implicit lazy val clock: Clock                    = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers     = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling   = mock[ErrorHandling]
+  override implicit lazy val routes: Routes                 = mock[Routes]
+  val controller: InternController                           = new InternController
+  override implicit lazy val services: List[TapirController] = List(controller)
 
   test("that id with value 404 gives OK") {
     resetMocks()
