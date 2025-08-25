@@ -64,7 +64,8 @@ class WriteService(using
     fileStorage: FileStorageService,
     taxonomyApiClient: TaxonomyApiClient,
     props: Props,
-    dbUtility: DBUtility
+    dbUtility: DBUtility,
+    stateTransitionRules: StateTransitionRules
 ) extends StrictLogging {
   def insertDump(article: Draft): Try[Draft] =
     dbUtility.rollbackOnFailure(implicit session => {
@@ -191,7 +192,7 @@ class WriteService(using
       case None        => Failure(api.NotFoundException(s"No article with id $id was found"))
       case Some(draft) =>
         for {
-          convertedArticle <- converterService.updateStatus(status, draft, user)
+          convertedArticle <- stateTransitionRules.doTransition(draft, status, user)
           updatedArticle   <- updateArticleAndStoreAsNewIfPublished(convertedArticle, statusWasUpdated = true)
           _ = indexArticle(updatedArticle, user)
           apiArticle <- converterService.toApiArticle(updatedArticle, Language.AllLanguages, fallback = true)
@@ -517,7 +518,7 @@ class WriteService(using
       val newStatusIfUndefined = if (oldStatus == PUBLISHED) IN_PROGRESS else oldStatus
       val newStatus            = newManualStatus.getOrElse(newStatusIfUndefined)
 
-      converterService.updateStatus(newStatus, convertedArticle, user)
+      stateTransitionRules.doTransition(convertedArticle, newStatus, user)
     }
   }
 

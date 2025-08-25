@@ -324,4 +324,21 @@ class StateTransitionRules(using
         Failure(new ValidationException(errors = learningPathMessage.toSeq ++ publishedMessage.toSeq))
     }
 
+  private[service] def buildTransitionsMap(user: TokenUser, article: Option[Draft]): Map[String, List[String]] =
+    StateTransitions.groupBy(_.from).map { case (from, to) =>
+      from.toString -> to
+        .filter(_.hasRequiredProperties(user, article))
+        .map(_.to.toString)
+        .toList
+    }
+
+  def stateTransitionsToApi(user: TokenUser, articleId: Option[Long]): Try[Map[String, List[String]]] =
+    articleId match {
+      case Some(id) =>
+        draftRepository.withId(id)(ReadOnlyAutoSession) match {
+          case Some(article) => Success(buildTransitionsMap(user, Some(article)))
+          case None          => Failure(NotFoundException("The article does not exist"))
+        }
+      case None => Success(buildTransitionsMap(user, None))
+    }
 }

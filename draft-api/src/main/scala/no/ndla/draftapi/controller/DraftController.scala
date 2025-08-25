@@ -16,7 +16,7 @@ import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.model.api.*
 import no.ndla.draftapi.model.domain.{SearchSettings, Sort}
 import no.ndla.draftapi.service.search.{ArticleSearchService, SearchConverterService}
-import no.ndla.draftapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.draftapi.service.{ReadService, StateTransitionRules, WriteService}
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.common.Clock
@@ -39,13 +39,13 @@ class DraftController(using
     writeService: WriteService,
     articleSearchService: ArticleSearchService,
     searchConverterService: SearchConverterService,
-    converterService: ConverterService,
     contentValidator: ContentValidator,
     props: DraftApiProperties,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
     clock: Clock,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
+    stateTransitionRules: StateTransitionRules
 ) extends TapirController {
   override val serviceName: String         = "drafts"
   override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
@@ -551,7 +551,7 @@ class DraftController(using
     .requirePermission(DRAFT_API_WRITE)
     .serverLogicPure { user =>
       { id =>
-        converterService.stateTransitionsToApi(user, id)
+        stateTransitionRules.stateTransitionsToApi(user, id)
       }
     }
 

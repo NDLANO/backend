@@ -11,9 +11,10 @@ package no.ndla.draftapi.service.search
 import no.ndla.draftapi.*
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
-import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class GrepCodesIndexServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+  override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
 
   override implicit lazy val e4sClient: NdlaE4sClient =
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))

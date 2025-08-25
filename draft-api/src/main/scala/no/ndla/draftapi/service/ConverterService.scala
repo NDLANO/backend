@@ -43,7 +43,6 @@ class ConverterService(using
     draftRepository: DraftRepository,
     commonConverter: CommonConverter,
     writeService: WriteService,
-    stateTransitionRules: StateTransitionRules,
     props: DraftApiProperties
 ) extends StrictLogging {
   def toDomainArticle(newArticleId: Long, newArticle: api.NewArticleDTO, user: TokenUser): Try[Draft] = {
@@ -257,9 +256,6 @@ class ConverterService(using
 
     HtmlTagRules.jsoupDocumentToString(document)
   }
-
-  def updateStatus(status: DraftStatus, draft: Draft, user: TokenUser): Try[Draft] =
-    stateTransitionRules.doTransition(draft, status, user)
 
   private def toApiResponsible(responsible: Responsible): ResponsibleDTO =
     ResponsibleDTO(
@@ -726,24 +722,6 @@ class ConverterService(using
 
     Success(converted)
   }
-
-  private[service] def buildTransitionsMap(user: TokenUser, article: Option[Draft]): Map[String, List[String]] =
-    stateTransitionRules.StateTransitions.groupBy(_.from).map { case (from, to) =>
-      from.toString -> to
-        .filter(_.hasRequiredProperties(user, article))
-        .map(_.to.toString)
-        .toList
-    }
-
-  def stateTransitionsToApi(user: TokenUser, articleId: Option[Long]): Try[Map[String, List[String]]] =
-    articleId match {
-      case Some(id) =>
-        draftRepository.withId(id)(ReadOnlyAutoSession) match {
-          case Some(article) => Success(buildTransitionsMap(user, Some(article)))
-          case None          => Failure(NotFoundException("The article does not exist"))
-        }
-      case None => Success(buildTransitionsMap(user, None))
-    }
 
   def toApiArticleGrepCodes(result: domain.LanguagelessSearchResult[String]): api.GrepCodesSearchResultDTO = {
     api.GrepCodesSearchResultDTO(result.totalCount, result.page.getOrElse(1), result.pageSize, result.results)
