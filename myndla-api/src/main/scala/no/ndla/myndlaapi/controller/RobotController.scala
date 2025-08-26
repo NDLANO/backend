@@ -8,12 +8,15 @@
 
 package no.ndla.myndlaapi.controller
 
+import no.ndla.common.Clock
+import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.model.api.robot.{CreateRobotDefinitionDTO, ListOfRobotDefinitionsDTO, RobotDefinitionDTO}
 import no.ndla.myndlaapi.model.domain.RobotStatus
 import no.ndla.myndlaapi.service.RobotService
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
-import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.{ErrorHelpers, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -21,7 +24,14 @@ import sttp.tapir.server.ServerEndpoint
 
 import java.util.UUID
 
-class RobotController(using errorHandling: ErrorHandling, robotService: RobotService) extends TapirController {
+class RobotController(using
+    robotService: RobotService,
+    errorHandling: ControllerErrorHandling,
+    errorHelpers: ErrorHelpers,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient,
+    props: Props
+) extends TapirController {
   override val serviceName: String         = "robots"
   override val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
 

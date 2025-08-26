@@ -13,7 +13,7 @@ import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.controller.{
   ConfigController,
-  ErrorHandling,
+  ControllerErrorHandling,
   FolderController,
   RobotController,
   StatsController,
@@ -32,43 +32,52 @@ import no.ndla.myndlaapi.service.{
   UserService
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.TapirApplication
+import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.tapir.{
+  ErrorHelpers,
+  Routes,
+  SwaggerController,
+  TapirApplication,
+  TapirController,
+  TapirHealthController
+}
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
 
-trait TestEnvironment extends TapirApplication with MockitoSugar {
-  given props                                          = new MyNdlaApiProperties
-  given clock: SystemClock                             = mock[SystemClock]
-  given dataSource: HikariDataSource                   = mock[HikariDataSource]
-  given migrator: DBMigrator                           = mock[DBMigrator]
-  given folderRepository: FolderRepository             = mock[FolderRepository]
-  given robotRepository: RobotRepository               = mock[RobotRepository]
-  given folderReadService: FolderReadService           = mock[FolderReadService]
-  given folderWriteService: FolderWriteService         = mock[FolderWriteService]
-  given folderConverterService: FolderConverterService = mock[FolderConverterService]
-  given robotService: RobotService                     = mock[RobotService]
-  given userService: UserService                       = mock[UserService]
-  given configService: ConfigService                   = mock[ConfigService]
-  given userRepository: UserRepository                 = mock[UserRepository]
-  given configRepository: ConfigRepository             = mock[ConfigRepository]
-  given feideApiClient: FeideApiClient                 = mock[FeideApiClient]
-  given configController: ConfigController             = mock[ConfigController]
-  given robotController: RobotController               = mock[RobotController]
-  given redisClient: RedisClient                       = mock[RedisClient]
-  given folderController: FolderController             = mock[FolderController]
-  given userController: UserController                 = mock[UserController]
-  given statsController: StatsController               = mock[StatsController]
-  given healthController: TapirHealthController        = mock[TapirHealthController]
-  given nodebb: NodeBBClient                           = mock[NodeBBClient]
-  given searchApiClient: SearchApiClient               = mock[SearchApiClient]
-  given learningPathApiClient: LearningPathApiClient   = mock[LearningPathApiClient]
-  given ndlaClient: NdlaClient                         = mock[NdlaClient]
-  given myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
-  given DBUtil: DBUtility                              = mock[DBUtility]
-
-  def services: List[TapirController] = List.empty
-  val swagger: SwaggerController      = mock[SwaggerController]
+trait TestEnvironment extends TapirApplication[MyNdlaApiProperties] with MockitoSugar {
+  implicit lazy val props: MyNdlaApiProperties                     = new MyNdlaApiProperties
+  implicit lazy val routes: Routes                                 = mock[Routes]
+  implicit lazy val errorHandling: ControllerErrorHandling         = mock[ControllerErrorHandling]
+  implicit lazy val errorHelpers: ErrorHelpers                     = mock[ErrorHelpers]
+  implicit lazy val clock: Clock                                   = mock[Clock]
+  implicit lazy val dataSource: DataSource                         = mock[DataSource]
+  implicit lazy val migrator: DBMigrator                           = mock[DBMigrator]
+  implicit lazy val folderRepository: FolderRepository             = mock[FolderRepository]
+  implicit lazy val robotRepository: RobotRepository               = mock[RobotRepository]
+  implicit lazy val folderReadService: FolderReadService           = mock[FolderReadService]
+  implicit lazy val folderWriteService: FolderWriteService         = mock[FolderWriteService]
+  implicit lazy val folderConverterService: FolderConverterService = mock[FolderConverterService]
+  implicit lazy val robotService: RobotService                     = mock[RobotService]
+  implicit lazy val userService: UserService                       = mock[UserService]
+  implicit lazy val configService: ConfigService                   = mock[ConfigService]
+  implicit lazy val userRepository: UserRepository                 = mock[UserRepository]
+  implicit lazy val configRepository: ConfigRepository             = mock[ConfigRepository]
+  implicit lazy val feideApiClient: FeideApiClient                 = mock[FeideApiClient]
+  implicit lazy val configController: ConfigController             = mock[ConfigController]
+  implicit lazy val robotController: RobotController               = mock[RobotController]
+  implicit lazy val redisClient: RedisClient                       = mock[RedisClient]
+  implicit lazy val folderController: FolderController             = mock[FolderController]
+  implicit lazy val userController: UserController                 = mock[UserController]
+  implicit lazy val statsController: StatsController               = mock[StatsController]
+  implicit lazy val healthController: TapirHealthController        = mock[TapirHealthController]
+  implicit lazy val nodebb: NodeBBClient                           = mock[NodeBBClient]
+  implicit lazy val searchApiClient: SearchApiClient               = mock[SearchApiClient]
+  implicit lazy val learningPathApiClient: LearningPathApiClient   = mock[LearningPathApiClient]
+  implicit lazy val ndlaClient: NdlaClient                         = mock[NdlaClient]
+  implicit lazy val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
+  implicit lazy val DBUtil: DBUtility                              = mock[DBUtility]
+  implicit lazy val services: List[TapirController]                = List.empty
+  implicit lazy val swagger: SwaggerController                     = mock[SwaggerController]
 
   def resetMocks(): Unit = {
     reset(clock)

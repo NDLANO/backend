@@ -23,20 +23,21 @@ import scala.util.Try
 
 class RobotService(using
     robotRepository: RobotRepository,
-    dBUtility: DBUtility,
+    dbUtility: DBUtility,
     clock: Clock,
     feideApiClient: FeideApiClient,
     folderWriteService: FolderWriteService
 ) {
 
-  def getAllRobots(feideToken: Option[FeideAccessToken]): Try[ListOfRobotDefinitionsDTO] = DBUtil.readOnly { session =>
-    for {
-      feideId <- feideApiClient.getFeideID(feideToken)
-      robots  <- robotRepository.getRobotsWithFeideId(feideId)(session)
-    } yield ListOfRobotDefinitionsDTO(robots = robots.map(RobotDefinitionDTO.fromDomain))
+  def getAllRobots(feideToken: Option[FeideAccessToken]): Try[ListOfRobotDefinitionsDTO] = dbUtility.readOnly {
+    session =>
+      for {
+        feideId <- feideApiClient.getFeideID(feideToken)
+        robots  <- robotRepository.getRobotsWithFeideId(feideId)(session)
+      } yield ListOfRobotDefinitionsDTO(robots = robots.map(RobotDefinitionDTO.fromDomain))
   }
 
-  def getSingleRobot(robotId: UUID, feide: Option[FeideAccessToken]): Try[RobotDefinitionDTO] = DBUtil.readOnly {
+  def getSingleRobot(robotId: UUID, feide: Option[FeideAccessToken]): Try[RobotDefinitionDTO] = dbUtility.readOnly {
     session =>
       lazy val nfe = NotFoundException(s"Could not find robot definition with id $robotId")
       for {
@@ -51,7 +52,7 @@ class RobotService(using
       robotDefinitionDTO: CreateRobotDefinitionDTO,
       feideToken: Option[FeideAccessToken]
   ): Try[RobotDefinitionDTO] =
-    DBUtil.rollbackOnFailure { session =>
+    dbUtility.rollbackOnFailure { session =>
       val now = clock.now()
       for {
         feideId <- feideApiClient.getFeideID(feideToken)
@@ -89,7 +90,7 @@ class RobotService(using
       _.copy(status = newStatus)
     }
 
-  def deleteRobot(robotId: UUID, feideToken: Option[FeideAccessToken]): Try[Unit] = DBUtil.rollbackOnFailure {
+  def deleteRobot(robotId: UUID, feideToken: Option[FeideAccessToken]): Try[Unit] = dbUtility.rollbackOnFailure {
     session =>
       for {
         feideId       <- feideApiClient.getFeideID(feideToken)
@@ -104,7 +105,7 @@ class RobotService(using
   private def updateRobotWith(robotId: UUID, feideToken: Option[FeideAccessToken])(
       updateFunc: RobotDefinition => RobotDefinition
   ): Try[RobotDefinitionDTO] =
-    DBUtil.rollbackOnFailure { session =>
+    dbUtility.rollbackOnFailure { session =>
       val now = clock.now()
       for {
         feideId       <- feideApiClient.getFeideID(feideToken)

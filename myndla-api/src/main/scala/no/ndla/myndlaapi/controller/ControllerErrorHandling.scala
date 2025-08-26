@@ -14,17 +14,24 @@ import no.ndla.common.errors.{AccessDeniedException, InvalidStateException, NotF
 import no.ndla.database.DataSource
 import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.model.domain.InvalidStatusException
-import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHandling, ValidationErrorBody}
+import no.ndla.network.tapir.{
+  AllErrors,
+  ErrorBody,
+  ErrorHandling,
+  ErrorHelpers,
+  TapirErrorHandling,
+  ValidationErrorBody
+}
 import org.postgresql.util.PSQLException
 
-class ErrorHandling(using
+class ControllerErrorHandling(using
     props: Props,
     clock: Clock,
-    dataSource: DataSource
-) extends TapirErrorHandling
+    dataSource: DataSource,
+    errorHelpers: ErrorHelpers
+) extends ErrorHandling
     with StrictLogging {
-
-  import ErrorHelpers.*
+  import errorHelpers.*
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case nfe: NotFoundException =>
@@ -39,7 +46,7 @@ class ErrorHandling(using
       ErrorBody(MISSING_STATUS, mse.getMessage, clock.now(), 400)
     case _: PSQLException =>
       dataSource.connectToDatabase()
-      ErrorHelpers.generic
+      generic
     case v: ValidationException =>
       ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), Some(v.errors), 400)
   }

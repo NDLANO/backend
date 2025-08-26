@@ -37,7 +37,7 @@ import java.util.UUID
 import scala.collection.IndexedSeq.iterableFactory
 import scala.util.{Failure, Success, Try}
 
-class FolderRepository(using clock: Clock, dBUtility: DBUtility) extends StrictLogging {
+class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictLogging {
   def getSession(readOnly: Boolean): DBSession =
     if (readOnly) ReadOnlyAutoSession
     else AutoSession
@@ -105,7 +105,7 @@ class FolderRepository(using clock: Clock, dBUtility: DBUtility) extends StrictL
           column("path")          -> path,
           column("resource_type") -> resourceType.entryName,
           column("created")       -> created,
-          column("document")      -> DBUtil.asJsonb(document)
+          column("document")      -> dbUtility.asJsonb(document)
         )
     }.update()
 
@@ -747,7 +747,7 @@ class FolderRepository(using clock: Clock, dBUtility: DBUtility) extends StrictL
        """
 
       val batchParams = bulk.resources.map { resource =>
-        val document = DBUtil.asJsonb(ResourceDocument(resource.tags, resource.resourceId))
+        val document = dbUtility.asJsonb(ResourceDocument(resource.tags, resource.resourceId))
         Seq[Any](
           resource.id,
           resource.feideId,

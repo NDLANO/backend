@@ -10,19 +10,29 @@ package no.ndla.myndlaapi.controller
 
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.{ErrorHelpers, TapirController}
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.codec.enumeratum.*
 import io.circe.generic.auto.*
+import no.ndla.common.Clock
 import no.ndla.common.model.api.config.{ConfigMetaDTO, ConfigMetaRestrictedDTO, ConfigMetaValueDTO}
 import no.ndla.common.model.domain.config.ConfigKey
+import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.service.ConfigService
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 
-class ConfigController(using errorHandling: ErrorHandling, configService: ConfigService) extends TapirController {
+class ConfigController(using
+    errorHandling: ControllerErrorHandling,
+    errorHelpers: ErrorHelpers,
+    configService: ConfigService,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient,
+    props: Props
+) extends TapirController {
   override val serviceName: String = "config"
 
   override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName

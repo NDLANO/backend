@@ -10,11 +10,10 @@ package no.ndla.myndlaapi
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
-import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.controller.{
   ConfigController,
-  ErrorHandling,
+  ControllerErrorHandling,
   FolderController,
   RobotController,
   StatsController,
@@ -34,22 +33,31 @@ import no.ndla.myndlaapi.service.{
   UserService
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, RedisClient}
-import no.ndla.network.tapir.TapirApplication
+import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.tapir.{
+  ErrorHelpers,
+  Routes,
+  SwaggerController,
+  TapirApplication,
+  TapirController,
+  TapirHealthController
+}
 
 class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplication[MyNdlaApiProperties] {
   given props: MyNdlaApiProperties                              = properties
+  given errorHandling: ControllerErrorHandling                  = new ControllerErrorHandling
+  given errorHelpers: ErrorHelpers                              = new ErrorHelpers
   given healthController: TapirHealthController                 = new TapirHealthController
-  given clock: SystemClock                                      = new SystemClock
+  implicit lazy val clock: Clock                                = new Clock
   given folderController: FolderController                      = new FolderController
   given robotController: RobotController                        = new RobotController
-  given feideApiClient: FeideApiClient                          = new FeideApiClient
-  given redisClient                                             = new RedisClient(props.RedisHost, props.RedisPort)
-  given folderRepository: FolderRepository                      = new FolderRepository
+  implicit lazy val feideApiClient: FeideApiClient              = new FeideApiClient
+  given redisClient: RedisClient                                = new RedisClient(props.RedisHost, props.RedisPort)
+  implicit lazy val folderRepository: FolderRepository          = new FolderRepository
   given folderConverterService: FolderConverterService          = new FolderConverterService
   given folderReadService: FolderReadService                    = new FolderReadService
   given folderWriteService: FolderWriteService                  = new FolderWriteService
-  given userRepository: UserRepository                          = new UserRepository
+  implicit lazy val userRepository: UserRepository              = new UserRepository
   given robotRepository: RobotRepository                        = new RobotRepository
   given robotService: RobotService                              = new RobotService
   given userService: UserService                                = new UserService
@@ -65,12 +73,12 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
   given ndlaClient: NdlaClient                                  = new NdlaClient
   given myndlaApiClient: MyNDLAApiClient                        = new MyNDLAApiClient
   lazy val v16__MigrateResourcePaths: V16__MigrateResourcePaths = new V16__MigrateResourcePaths
-  given DBUtil                                                  = new DBUtility
+  given dbUtil: DBUtility                                       = new DBUtility
 
-  given migrator: DBMigrator         = DBMigrator(v16__MigrateResourcePaths)
-  given dataSource: HikariDataSource = DataSource.getDataSource
+  given migrator: DBMigrator   = new DBMigrator(v16__MigrateResourcePaths)
+  given dataSource: DataSource = DataSource.getDataSource
 
-  val swagger = new SwaggerController(
+  given swagger: SwaggerController = new SwaggerController(
     List(
       healthController,
       folderController,
@@ -81,6 +89,6 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
     ),
     SwaggerDocControllerConfig.swaggerInfo
   )
-  override def services: List[TapirController] = swagger.getServices()
-
+  given services: List[TapirController] = swagger.getServices()
+  given routes: Routes                  = new Routes
 }

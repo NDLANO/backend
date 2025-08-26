@@ -24,9 +24,8 @@ import scalikejdbc.DBSession
 import scala.util.{Failure, Success, Try}
 
 class UserServiceTest extends UnitTestSuite with TestEnvironment {
-
-  val service: UserService                                         = spy(new UserService)
-  override lazy val folderConverterService: FolderConverterService = spy(new FolderConverterService)
+  override implicit lazy val folderConverterService: FolderConverterService = spy(new FolderConverterService)
+  val service: UserService                                                  = spy(new UserService)
 
   override def beforeEach(): Unit = {
     super.beforeEach()

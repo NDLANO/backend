@@ -62,12 +62,14 @@ class FolderWriteService(using
     configService: ConfigService,
     userService: UserService,
     searchApiClient: SearchApiClient,
-    dBUtility: DBUtility
+    dbUtility: DBUtility
 ) extends StrictLogging {
   val MaxFolderDepth = 5L
 
   private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
-    DBUtil.rollbackOnFailure(session => userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session))
+    dbUtility.rollbackOnFailure(session =>
+      userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+    )
   }
 
   private[service] def isOperationAllowedOrAccessDenied(
@@ -108,7 +110,7 @@ class FolderWriteService(using
       newStatus: FolderStatus.Value,
       feideAccessToken: Option[FeideAccessToken]
   ): Try[List[UUID]] =
-    DBUtil.rollbackOnFailure({ implicit session =>
+    dbUtility.rollbackOnFailure({ implicit session =>
       for {
         feideId    <- feideApiClient.getFeideID(feideAccessToken)
         _          <- isTeacherOrAccessDenied(feideId, feideAccessToken)
@@ -220,7 +222,7 @@ class FolderWriteService(using
       destinationId: Option[UUID],
       feideAccessToken: Option[FeideAccessToken]
   ): Try[FolderDTO] = {
-    DBUtil.rollbackOnFailure { implicit session =>
+    dbUtility.rollbackOnFailure { implicit session =>
       for {
         feideId <- feideApiClient.getFeideID(feideAccessToken)
         _       <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
@@ -258,7 +260,7 @@ class FolderWriteService(using
       feideId: FeideID,
       maybeFeideToken: Option[FeideAccessToken]
   ): Try[ExportedUserDataDTO] = {
-    DBUtil.rollbackOnFailure { session =>
+    dbUtility.rollbackOnFailure { session =>
       for {
         _ <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, maybeFeideToken)
         _ <- userService.importUser(toImport.userData, feideId, maybeFeideToken)(session)

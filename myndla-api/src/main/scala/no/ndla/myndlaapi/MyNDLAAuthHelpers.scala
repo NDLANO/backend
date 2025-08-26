@@ -18,25 +18,24 @@ import sttp.tapir.*
 import sttp.tapir.server.PartialServerEndpoint
 
 class MyNDLAAuthHelpers(using
-  userService: UserService,
-  tapirErrorHandling: TapirErrorHandling
+    userService: UserService,
+    tapirErrorHandling: TapirErrorHandling
 ) {
-    implicit class authlessEndpointFeideExtension[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
-      private type MaybeFeideToken            = Option[FeideAccessToken]
-      private type PartialFeideEndpoint[F[_]] =
-        PartialServerEndpoint[MaybeFeideToken, MyNDLAUser, I, AllErrors, O, R, F]
-      def requireMyNDLAUser[F[_]](
-          requireArena: Boolean = false
-      ): PartialFeideEndpoint[F] = {
-        val newEndpoint = self.securityIn(AuthUtility.feideOauth())
-        val authFunc: Option[FeideAccessToken] => Either[AllErrors, MyNDLAUser] = { maybeToken =>
-          if (requireArena) userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk
-          else userService.getMyNdlaUserDataDomain(maybeToken).handleErrorsOrOk
-        }
-        val securityLogic = (m: MonadError[F]) => (a: Option[FeideAccessToken]) => m.unit(authFunc(a))
-        PartialServerEndpoint(newEndpoint, securityLogic)
+  import tapirErrorHandling.*
+  implicit class authlessEndpointFeideExtension[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
+    private type MaybeFeideToken            = Option[FeideAccessToken]
+    private type PartialFeideEndpoint[F[_]] =
+      PartialServerEndpoint[MaybeFeideToken, MyNDLAUser, I, AllErrors, O, R, F]
+    def requireMyNDLAUser[F[_]](
+        requireArena: Boolean = false
+    ): PartialFeideEndpoint[F] = {
+      val newEndpoint = self.securityIn(AuthUtility.feideOauth())
+      val authFunc: Option[FeideAccessToken] => Either[AllErrors, MyNDLAUser] = { maybeToken =>
+        if (requireArena) userService.getArenaEnabledUser(maybeToken).handleErrorsOrOk
+        else userService.getMyNdlaUserDataDomain(maybeToken).handleErrorsOrOk
       }
+      val securityLogic = (m: MonadError[F]) => (a: Option[FeideAccessToken]) => m.unit(authFunc(a))
+      PartialServerEndpoint(newEndpoint, securityLogic)
     }
-
   }
 }

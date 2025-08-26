@@ -8,9 +8,11 @@
 
 package no.ndla.myndlaapi.controller
 
+import no.ndla.common.Clock
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.api.FolderDTO
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
+import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -21,7 +23,12 @@ import java.util.UUID
 import scala.util.Success
 
 class FolderControllerTest extends UnitTestSuite with TestEnvironment with TapirControllerTest {
-  val controller: FolderController = new FolderController()
+  override implicit lazy val clock: Clock                           = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers             = new ErrorHelpers
+  override implicit lazy val errorHandling: ControllerErrorHandling = new ControllerErrorHandling
+  override implicit lazy val routes: Routes                         = new Routes
+  val controller: FolderController                                  = new FolderController()
+  override implicit lazy val services: List[TapirController]        = List(controller)
 
   override def beforeEach(): Unit = {
     resetMocks()

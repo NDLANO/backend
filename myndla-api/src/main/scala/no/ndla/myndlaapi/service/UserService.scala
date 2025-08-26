@@ -26,20 +26,19 @@ import scala.util.{Failure, Success, Try}
 class UserService(using
     feideApiClient: FeideApiClient,
     folderConverterService: FolderConverterService,
-    configService: ConfigService,
     userRepository: UserRepository,
     clock: Clock,
     folderWriteService: FolderWriteService,
     nodeBBClient: NodeBBClient,
     folderRepository: FolderRepository,
-    dBUtility: DBUtility
+    dbUtility: DBUtility
 ) {
   def getMyNdlaUserDataDomain(
       feideAccessToken: Option[FeideAccessToken]
   ): Try[MyNDLAUser] = {
     for {
       feideId  <- feideApiClient.getFeideID(feideAccessToken)
-      userData <- DBUtil.rollbackOnFailure(session =>
+      userData <- dbUtility.rollbackOnFailure(session =>
         getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
       )
     } yield userData
@@ -89,7 +88,7 @@ class UserService(using
       session: DBSession
   ): Try[myndla.MyNDLAUserDTO] =
     for {
-      existingUser <- userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+      existingUser <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
       newFavorites     = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
       updatedFeideUser = UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(newFavorites),
@@ -97,7 +96,7 @@ class UserService(using
         arenaAccepted = None,
         shareNameAccepted = None
       )
-      updated <- userService.updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
+      updated <- updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
     } yield updated
 
   private def updateFeideUserDataAuthenticated(
@@ -198,14 +197,14 @@ class UserService(using
   }
 
   def deleteAllUserData(feideAccessToken: Option[FeideAccessToken]): Try[Unit] =
-    DBUtil.rollbackOnFailure(session => {
+    dbUtility.rollbackOnFailure(session => {
       for {
         feideToken   <- feideApiClient.getFeideAccessTokenOrFail(feideAccessToken)
         feideId      <- feideApiClient.getFeideID(feideAccessToken)
-        nodebbUserId <- nodebb.getUserId(feideToken)
+        nodebbUserId <- nodeBBClient.getUserId(feideToken)
         _            <- folderRepository.deleteAllUserFolders(feideId)(session)
         _            <- folderRepository.deleteAllUserResources(feideId)(session)
-        _            <- nodebb.deleteUser(nodebbUserId, feideToken)
+        _            <- nodeBBClient.deleteUser(nodebbUserId, feideToken)
         _            <- userRepository.deleteUser(feideId)(session)
       } yield ()
     })

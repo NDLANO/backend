@@ -8,9 +8,11 @@
 
 package no.ndla.myndlaapi.controller
 
+import no.ndla.common.Clock
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.FolderStatus
+import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.model.api.{
   FolderDTO,
   FolderSortRequestDTO,
@@ -28,9 +30,10 @@ import no.ndla.myndlaapi.model.domain.FolderSortObject.{
   SharedFolderSorting
 }
 import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService}
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
-import no.ndla.network.tapir.TapirController
+import no.ndla.network.tapir.{ErrorHelpers, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -41,7 +44,11 @@ import java.util.UUID
 class FolderController(using
     folderReadService: FolderReadService,
     folderWriteService: FolderWriteService,
-    errorHandling: ErrorHandling
+    errorHandling: ControllerErrorHandling,
+    errorHelpers: ErrorHelpers,
+    clock: Clock,
+    myNDLAApiClient: MyNDLAApiClient,
+    props: Props
 ) extends TapirController {
   override val serviceName: String = "folders"
 

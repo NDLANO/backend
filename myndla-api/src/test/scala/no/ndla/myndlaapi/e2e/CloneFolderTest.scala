@@ -9,7 +9,7 @@
 package no.ndla.myndlaapi.e2e
 
 import io.circe.parser
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
@@ -17,8 +17,9 @@ import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.model.api.{BreadcrumbDTO, FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.{NewFolderData, ResourceDocument}
+import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
-import no.ndla.network.clients.FeideExtendedUserInfo
+import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, spy, times, verify, when, withSettings}
@@ -33,10 +34,10 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Futu
 import scala.util.{Failure, Success}
 
 class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with UnitSuite with TestEnvironment {
-  val myndlaApiPort: Int                    = findFreePort
-  val pgc: PostgreSQLContainer[?]           = postgresContainer.get
-  val redisPort: Int                        = redisContainer.get.port
-  val myndlaproperties: MyNdlaApiProperties = new MyNdlaApiProperties {
+  val myndlaApiPort: Int                                  = findFreePort
+  val pgc: PostgreSQLContainer[?]                         = postgresContainer.get
+  val redisPort: Int                                      = redisContainer.get.port
+  implicit lazy val myndlaproperties: MyNdlaApiProperties = new MyNdlaApiProperties {
     override def ApplicationPort: Int       = myndlaApiPort
     override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
     override val MetaResource: Prop[String] = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
@@ -54,11 +55,11 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
 
   val myndlaApi: MainClass = new MainClass(myndlaproperties) {
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(myndlaproperties) {
-      override lazy val feideApiClient: FeideApiClient =
+      override implicit lazy val feideApiClient: FeideApiClient =
         mock[FeideApiClient](withSettings.strictness(Strictness.LENIENT))
-      override lazy val clock: SystemClock = mock[SystemClock](withSettings.strictness(Strictness.LENIENT))
-      override lazy val folderRepository: FolderRepository = spy(new FolderRepository)
-      override lazy val userRepository: UserRepository     = spy(new UserRepository)
+      override implicit lazy val clock: Clock = mock[Clock](withSettings.strictness(Strictness.LENIENT))
+      override implicit lazy val folderRepository: FolderRepository = spy(new FolderRepository)
+      override implicit lazy val userRepository: UserRepository     = spy(new UserRepository)
 
       when(feideApiClient.getFeideID(any)).thenReturn(Success("q"))
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
@@ -74,7 +75,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     }
   }
 
-  val testClock: myndlaApi.componentRegistry.SystemClock = myndlaApi.componentRegistry.clock
+  val testClock: Clock = myndlaApi.componentRegistry.clock
 
   val myndlaApiBaseUrl: String   = s"http://localhost:$myndlaApiPort"
   val myndlaApiFolderUrl: String = s"$myndlaApiBaseUrl/myndla-api/v1/folders"

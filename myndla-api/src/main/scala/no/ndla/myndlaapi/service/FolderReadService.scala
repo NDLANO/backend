@@ -39,7 +39,7 @@ class FolderReadService(using
     clock: Clock,
     configService: ConfigService,
     userService: UserService,
-    dBUtility: DBUtility,
+    dbUtility: DBUtility,
     learningPathApiClient: LearningPathApiClient,
     robotRepository: RobotRepository
 ) {
@@ -99,7 +99,7 @@ class FolderReadService(using
       includeResources: Boolean,
       feideId: FeideID
   ): Try[UserFolderDTO] = {
-    DBUtil.rollbackOnFailure(session => {
+    dbUtility.rollbackOnFailure(session => {
       for {
         myFolders          <- folderRepository.foldersWithFeideAndParentID(None, feideId)
         savedSharedFolders <- folderRepository.getSavedSharedFolders(feideId)
@@ -279,7 +279,7 @@ class FolderReadService(using
       feideAccessToken: Option[FeideAccessToken]
   ): Try[MyNDLAUserDTO] =
     for {
-      user <- DBUtil.rollbackOnFailure(session =>
+      user <- dbUtility.rollbackOnFailure(session =>
         userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
       )
     } yield folderConverterService.toApiUserData(user)

@@ -21,7 +21,7 @@ import scalikejdbc.*
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
-class RobotRepository(using clock: Clock, dBUtility: DBUtility) extends StrictLogging {
+class RobotRepository(using clock: Clock, dbUtility: DBUtility) extends StrictLogging {
   def getSession(readOnly: Boolean): DBSession =
     if (readOnly) ReadOnlyAutoSession
     else AutoSession
@@ -38,7 +38,7 @@ class RobotRepository(using clock: Clock, dBUtility: DBUtility) extends StrictLo
           column("status")        -> robot.status.entryName,
           column("updated")       -> robot.updated,
           column("shared")        -> robot.shared,
-          column("configuration") -> DBUtil.asJsonb(robot.configuration)
+          column("configuration") -> dbUtility.asJsonb(robot.configuration)
         )
         .where
         .eq(column("id"), robot.id)
@@ -61,7 +61,7 @@ class RobotRepository(using clock: Clock, dBUtility: DBUtility) extends StrictLo
           column("created")       -> robot.created,
           column("updated")       -> robot.updated,
           column("shared")        -> robot.shared,
-          column("configuration") -> DBUtil.asJsonb(robot.configuration)
+          column("configuration") -> dbUtility.asJsonb(robot.configuration)
         )
     }.update()(session): Unit
 

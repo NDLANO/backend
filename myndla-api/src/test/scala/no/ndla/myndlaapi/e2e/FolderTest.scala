@@ -8,14 +8,15 @@
 
 package no.ndla.myndlaapi.e2e
 
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.model.api.FolderDTO
+import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
-import no.ndla.network.clients.FeideExtendedUserInfo
+import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, spy, when, withSettings}
@@ -54,7 +55,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(myndlaproperties) {
       override lazy val feideApiClient: FeideApiClient =
         mock[FeideApiClient](withSettings.strictness(Strictness.LENIENT))
-      override lazy val clock: SystemClock = mock[SystemClock](withSettings.strictness(Strictness.LENIENT))
+      override lazy val clock: Clock                       = mock[Clock](withSettings.strictness(Strictness.LENIENT))
       override lazy val folderRepository: FolderRepository = spy(new FolderRepository)
       override lazy val userRepository: UserRepository     = spy(new UserRepository)
 
@@ -71,7 +72,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     }
   }
 
-  val testClock: myndlaApi.componentRegistry.SystemClock = myndlaApi.componentRegistry.clock
+  val testClock: Clock = myndlaApi.componentRegistry.clock
 
   val myndlaApiBaseUrl: String   = s"http://localhost:$myndlaApiPort"
   val myndlaApiFolderUrl: String = s"$myndlaApiBaseUrl/myndla-api/v1/folders"

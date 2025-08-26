@@ -10,6 +10,7 @@ package no.ndla.myndlaapi.repository
 
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.model.domain.{RobotConfiguration, RobotDefinition, RobotSettings, RobotStatus}
 import no.ndla.myndlaapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
@@ -21,10 +22,10 @@ import java.util.UUID
 import scala.util.{Success, Try}
 
 class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override lazy val dataSource: DataSource = testDataSource.get
-  override lazy val migrator: DBMigrator   = new DBMigrator
-  var repository: RobotRepository          = _
-  override lazy val DBUtil: DBUtility      = new DBUtility
+  override implicit lazy val dataSource: DataSource = testDataSource.get
+  override implicit lazy val migrator: DBMigrator   = new DBMigrator
+  override implicit lazy val DBUtil: DBUtility      = new DBUtility
+  var repository: RobotRepository                   = _
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {

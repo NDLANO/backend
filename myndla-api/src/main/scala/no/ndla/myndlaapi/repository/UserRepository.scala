@@ -20,7 +20,7 @@ import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class UserRepository(using dBUtility: DBUtility) extends StrictLogging {
+class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
 
   def getUsersPaginated(offset: Long, limit: Long, filterTeachers: Boolean, query: Option[String])(implicit
       session: DBSession
@@ -33,7 +33,7 @@ class UserRepository(using dBUtility: DBUtility) extends StrictLogging {
       sqls"u.document->>'displayName' ilike $qString or u.document->>'username' ilike $qString"
     })
 
-    val whereClause = DBUtil.buildWhereClause((teacherClause ++ queryClause).toSeq)
+    val whereClause = dbUtility.buildWhereClause((teacherClause ++ queryClause).toSeq)
 
     val count: Long = sql"""
               select count(*)

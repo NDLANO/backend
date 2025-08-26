@@ -32,8 +32,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
 
   val MaxFolderDepth = 5L
 
-  val service                                                      = new FolderWriteService
-  override lazy val folderConverterService: FolderConverterService = spy(new FolderConverterService)
+  override implicit lazy val folderConverterService: FolderConverterService = spy(new FolderConverterService)
+  val service                                                               = new FolderWriteService
 
   override def beforeEach(): Unit = {
     super.beforeEach()

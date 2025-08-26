@@ -14,9 +14,7 @@ import no.ndla.network.AuthUser
 
 import scala.util.Properties.*
 
-trait Props extends HasBaseProps with HasDatabaseProps {
-  lazy val props: MyNdlaApiProperties
-}
+type Props = MyNdlaApiProperties
 
 class MyNdlaApiProperties extends BaseProps with DatabaseProps {
   override def ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt

@@ -17,7 +17,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 import sys.env
 
-abstract class RedisIntegrationSuite extends UnitTestSuite with ContainerSuite {
+trait RedisIntegrationSuite extends UnitTestSuite with ContainerSuite {
 
   val EnableRedisContainer: Boolean = true
 

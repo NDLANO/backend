@@ -29,8 +29,9 @@ import scala.util.{Failure, Success, Try}
 
 class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
 
-  val service                                                      = new FolderReadService
-  override lazy val folderConverterService: FolderConverterService = org.mockito.Mockito.spy(new FolderConverterService)
+  override implicit lazy val folderConverterService: FolderConverterService =
+    org.mockito.Mockito.spy(new FolderConverterService)
+  val service = new FolderReadService
 
   override def beforeEach(): Unit = {
     super.beforeEach()
