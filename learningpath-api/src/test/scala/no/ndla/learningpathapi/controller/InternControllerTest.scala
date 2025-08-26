@@ -22,11 +22,11 @@ import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override implicit lazy val clock: Clock                    = mock[Clock]
-  override implicit lazy val errorHelpers: ErrorHelpers     = new ErrorHelpers
-  override implicit lazy val errorHandling: ErrorHandling   = mock[ErrorHandling]
-  override implicit lazy val routes: Routes                 = mock[Routes]
+  override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
   val controller: InternController                           = new InternController
   override implicit lazy val services: List[TapirController] = List(controller)
+  override implicit lazy val routes: Routes                  = new Routes
 
   test("that id with value 404 gives OK") {
     resetMocks()

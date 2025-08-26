@@ -16,9 +16,9 @@ import sttp.client3.quick.*
 
 class StatsControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override implicit lazy val clock: Clock                    = mock[Clock]
-  override implicit lazy val errorHelpers: ErrorHelpers     = new ErrorHelpers
-  override implicit lazy val errorHandling: ErrorHandling   = mock[ErrorHandling]
-  override implicit lazy val routes: Routes                 = mock[Routes]
+  override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
+  override implicit lazy val routes: Routes                  = new Routes
   val controller: StatsController                            = new StatsController
   override implicit lazy val services: List[TapirController] = List(controller)
 
