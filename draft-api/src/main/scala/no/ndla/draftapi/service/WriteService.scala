@@ -53,7 +53,7 @@ import scala.util.{Failure, Random, Success, Try, boundary}
 class WriteService(using
     draftRepository: DraftRepository,
     userDataRepository: UserDataRepository,
-    converterService: ConverterService,
+    converterService: => ConverterService,
     contentValidator: ContentValidator,
     articleIndexService: ArticleIndexService,
     tagIndexService: TagIndexService,

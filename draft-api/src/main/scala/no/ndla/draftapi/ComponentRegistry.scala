@@ -45,13 +45,13 @@ import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.common.converter.CommonConverter
 
 class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication[DraftApiProperties] {
-  given props: DraftApiProperties            = properties
-  given dataSource: DataSource               = DataSource.getDataSource
-  given errorHelpers: ErrorHelpers           = new ErrorHelpers
-  given draftErrorHelpers: DraftErrorHelpers = new DraftErrorHelpers
-  given errorHandling: ErrorHandling         = new ControllerErrorHandling
+  implicit val props: DraftApiProperties            = properties
+  implicit val dataSource: DataSource               = DataSource.getDataSource
+  implicit val errorHelpers: ErrorHelpers           = new ErrorHelpers
+  implicit val draftErrorHelpers: DraftErrorHelpers = new DraftErrorHelpers
+  implicit val errorHandling: ErrorHandling         = new ControllerErrorHandling
 
-  given migrator: DBMigrator = DBMigrator(
+  implicit val migrator: DBMigrator = DBMigrator(
     new R__RemoveEmptyStringLanguageFields(props),
     new R__RemoveStatusPublishedArticles(props),
     new R__SetArticleLanguageFromTaxonomy(props),
@@ -63,58 +63,45 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
     new V66__SetHideBylineForImagesNotCopyrighted
   )
 
-  given clock: Clock                               = new Clock
-  given e4sClient: NdlaE4sClient                   = Elastic4sClientFactory.getClient(props.SearchServer)
-  given searchLanguage: SearchLanguage             = new SearchLanguage
-  given dbUtility: DBUtility                       = new DBUtility
-  given memoizeHelpers: MemoizeHelpers             = new MemoizeHelpers
-  given uuidUtil: UUIDUtil                         = new UUIDUtil
-  given commonConverter: CommonConverter           = new CommonConverter
-  given stateTransitionRules: StateTransitionRules = new StateTransitionRules
+  implicit val clock: Clock                               = new Clock
+  implicit val e4sClient: NdlaE4sClient                   = Elastic4sClientFactory.getClient(props.SearchServer)
+  implicit val searchLanguage: SearchLanguage             = new SearchLanguage
+  implicit val dbUtility: DBUtility                       = new DBUtility
+  implicit val memoizeHelpers: MemoizeHelpers             = new MemoizeHelpers
+  implicit val uuidUtil: UUIDUtil                         = new UUIDUtil
+  implicit val commonConverter: CommonConverter           = new CommonConverter
+  implicit val stateTransitionRules: StateTransitionRules = new StateTransitionRules
+  implicit val ndlaClient: NdlaClient           = new NdlaClient
+  implicit val searchApiClient: SearchApiClient = new SearchApiClient(props.SearchApiUrl)
+  implicit val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  implicit val s3Client: NdlaS3Client = new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
+  implicit val articleApiClient: ArticleApiClient           = new ArticleApiClient
+  implicit val taxonomyApiClient: TaxonomyApiClient         = new TaxonomyApiClient
+  implicit val learningpathApiClient: LearningpathApiClient = new LearningpathApiClient
+  implicit val h5pApiClient: H5PApiClient                   = new H5PApiClient
+  implicit val imageApiClient: ImageApiClient               = new ImageApiClient
+  implicit val draftRepository: DraftRepository       = new DraftRepository
+  implicit val userDataRepository: UserDataRepository = new UserDataRepository
+  implicit val contentValidator: ContentValidator             = new ContentValidator()
+  implicit val converterService: ConverterService             = new ConverterService
+  implicit val searchConverterService: SearchConverterService = new SearchConverterService
+  implicit val readService: ReadService                       = new ReadService
+  implicit val writeService: WriteService                     = new WriteService
+  implicit val fileStorage: FileStorageService                = new FileStorageService
+  implicit val reindexClient: ReindexClient                   = new ReindexClient
+  implicit val articleSearchService: ArticleSearchService     = new ArticleSearchService
+  implicit val articleIndexService: ArticleIndexService       = new ArticleIndexService
+  implicit val tagSearchService: TagSearchService             = new TagSearchService
+  implicit val tagIndexService: TagIndexService               = new TagIndexService
+  implicit val grepCodesSearchService: GrepCodesSearchService = new GrepCodesSearchService
+  implicit val grepCodesIndexService: GrepCodesIndexService   = new GrepCodesIndexService
+  implicit val internController: InternController      = new InternController
+  implicit val draftController: DraftController        = new DraftController
+  implicit val fileController: FileController          = new FileController
+  implicit val userDataController: UserDataController  = new UserDataController
+  implicit val healthController: TapirHealthController = new TapirHealthController
 
-  // Infrastructure clients
-  given ndlaClient: NdlaClient           = new NdlaClient
-  given searchApiClient: SearchApiClient = new SearchApiClient(props.SearchApiUrl)
-  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
-  given s3Client: NdlaS3Client           = new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
-
-  // Integration clients
-  given articleApiClient: ArticleApiClient           = new ArticleApiClient
-  given taxonomyApiClient: TaxonomyApiClient         = new TaxonomyApiClient
-  given learningpathApiClient: LearningpathApiClient = new LearningpathApiClient
-  given h5pApiClient: H5PApiClient                   = new H5PApiClient
-  given imageApiClient: ImageApiClient               = new ImageApiClient
-
-  // Repository
-  given draftRepository: DraftRepository       = new DraftRepository
-  given userDataRepository: UserDataRepository = new UserDataRepository
-
-  // Services
-  given contentValidator: ContentValidator             = new ContentValidator()
-  val importValidator: ContentValidator                = new ContentValidator()
-  given converterService: ConverterService             = new ConverterService
-  given searchConverterService: SearchConverterService = new SearchConverterService
-  given readService: ReadService                       = new ReadService
-  given writeService: WriteService                     = new WriteService
-  given fileStorage: FileStorageService                = new FileStorageService
-  given reindexClient: ReindexClient                   = new ReindexClient
-
-  // Search services
-  given articleSearchService: ArticleSearchService     = new ArticleSearchService
-  given articleIndexService: ArticleIndexService       = new ArticleIndexService
-  given tagSearchService: TagSearchService             = new TagSearchService
-  given tagIndexService: TagIndexService               = new TagIndexService
-  given grepCodesSearchService: GrepCodesSearchService = new GrepCodesSearchService
-  given grepCodesIndexService: GrepCodesIndexService   = new GrepCodesIndexService
-
-  // Controllers
-  given internController: InternController      = new InternController
-  given draftController: DraftController        = new DraftController
-  given fileController: FileController          = new FileController
-  given userDataController: UserDataController  = new UserDataController
-  given healthController: TapirHealthController = new TapirHealthController
-
-  given swagger: SwaggerController = new SwaggerController(
+  implicit val swagger: SwaggerController = new SwaggerController(
     List[TapirController](
       draftController,
       fileController,
@@ -125,6 +112,6 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  given services: List[TapirController] = swagger.getServices()
-  given routes: Routes                  = new Routes
+  implicit val services: List[TapirController] = swagger.getServices()
+  implicit val routes: Routes                  = new Routes
 }

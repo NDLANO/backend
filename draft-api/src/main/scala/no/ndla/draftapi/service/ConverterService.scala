@@ -42,7 +42,7 @@ class ConverterService(using
     clock: Clock,
     draftRepository: DraftRepository,
     commonConverter: CommonConverter,
-    writeService: WriteService,
+    writeService: => WriteService,
     props: DraftApiProperties
 ) extends StrictLogging {
   def toDomainArticle(newArticleId: Long, newArticle: api.NewArticleDTO, user: TokenUser): Try[Draft] = {
