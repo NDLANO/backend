@@ -18,10 +18,10 @@ class LearningStepValidator(using
     props: Props,
     languageValidator: LanguageValidator,
     titleValidator: TitleValidator,
-    urlValidator: UrlValidator
 ) {
   val noHtmlTextValidator              = TextValidator(allowHtml = false)
   private val allowedHtmlTextValidator = TextValidator(allowHtml = true)
+  private val urlValidator = new UrlValidator()
 
   private val MY_NDLA_INVALID_LANGUAGES =
     "A learning step created in MyNDLA must have exactly one supported language."

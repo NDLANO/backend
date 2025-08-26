@@ -8,7 +8,6 @@
 
 package no.ndla.learningpathapi.repository
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.{
   Description,
@@ -38,8 +37,7 @@ import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.RevisionMeta
 
 class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override val schemaName = "learningpathapi_test"
-
+  override lazy val schemaName                      = "learningpathapi_test"
   override implicit lazy val dataSource: DataSource = testDataSource.get
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
 
@@ -91,6 +89,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
 
   override def beforeAll(): Unit = {
     super.beforeAll()
+    dataSource.connectToDatabase()
     if (serverIsListening) {
       migrator.migrate()
     }
@@ -103,7 +102,9 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
 
   def serverIsListening: Boolean = {
     import java.net.Socket
-    scala.util.Try(new Socket(props.MetaServer.unsafeGet, props.MetaPort.unsafeGet)) match {
+    val server = props.MetaServer.unsafeGet
+    val port   = props.MetaPort.unsafeGet
+    scala.util.Try(new Socket(server, port)) match {
       case scala.util.Success(c) =>
         c.close()
         true

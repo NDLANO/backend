@@ -76,22 +76,22 @@ class SearchConverterServiceComponent(using
       .lastOption
 
     SearchableLearningPath(
-      learningPath.id.get,
-      SearchableLanguageValues(learningPath.title.map(title => LanguageValue(title.language, title.title))),
-      SearchableLanguageValues(learningPath.description.map(desc => LanguageValue(desc.language, desc.description))),
-      learningPath.coverPhotoId
+      id = learningPath.id.get,
+      titles = SearchableLanguageValues(learningPath.title.map(title => LanguageValue(title.language, title.title))),
+      descriptions = SearchableLanguageValues(learningPath.description.map(desc => LanguageValue(desc.language, desc.description))),
+      coverPhotoUrl = learningPath.coverPhotoId
         .flatMap(converterService.asCoverPhoto)
         .map(_.url),
-      learningPath.duration,
-      learningPath.status.toString,
-      learningPath.verificationStatus.toString,
-      learningPath.created,
-      learningPath.lastUpdated,
-      defaultTitle.map(_.title),
-      SearchableLanguageList(learningPath.tags.map(tags => LanguageValue(tags.language, tags.tags))),
-      learningPath.learningsteps.getOrElse(Seq.empty).map(asSearchableLearningStep).toList,
-      converterService.asApiCopyright(learningPath.copyright),
-      learningPath.isBasedOn
+      duration = learningPath.duration,
+      status = learningPath.status.toString,
+      verificationStatus = learningPath.verificationStatus.toString,
+      created = learningPath.created,
+      lastUpdated = learningPath.lastUpdated,
+      defaultTitle = defaultTitle.map(_.title),
+      tags = SearchableLanguageList(learningPath.tags.map(tags => LanguageValue(tags.language, tags.tags))),
+      learningsteps = learningPath.learningsteps.getOrElse(Seq.empty).map(asSearchableLearningStep).toList,
+      copyright = converterService.asApiCopyright(learningPath.copyright),
+      isBasedOn = learningPath.isBasedOn
     )
   }
 

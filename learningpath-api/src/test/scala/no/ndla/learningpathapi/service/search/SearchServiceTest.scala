@@ -25,7 +25,7 @@ import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title, learnin
 import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.domain.*
-import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import org.mockito.ArgumentMatchers.any
@@ -34,10 +34,12 @@ import org.mockito.Mockito.doReturn
 import scala.util.Success
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.RevisionMeta
-import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.learningpathapi.model.api.CopyrightDTO
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-  override implicit lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
+  override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
+  override implicit lazy val e4sClient: NdlaE4sClient       = Elastic4sClientFactory.getClient(elasticSearchHost.get)
   override implicit lazy val searchConverterService: SearchConverterServiceComponent =
     new SearchConverterServiceComponent
   override implicit lazy val searchIndexService: SearchIndexService = new SearchIndexService {
@@ -103,6 +105,9 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       doReturn(commonApi.AuthorDTO(ContributorType.Writer, "En eier"), Nil*)
         .when(converterService)
         .asAuthor(any[NdlaUserName])
+
+      val copyright: CopyrightDTO = CopyrightDTO(commonApi.LicenseDTO(License.CC_BY_SA.toString, None, None), List())
+      doReturn(copyright).when(converterService).asApiCopyright(any)
 
       val today      = NDLADate.now()
       val yesterday  = NDLADate.now().minusDays(1)

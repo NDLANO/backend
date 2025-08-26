@@ -47,7 +47,6 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
   }
 
   override def beforeEach(): Unit = {
-    given dataSourceForRepo: DataSource = dataSource
     repository = new ArticleRepository
     repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
   }

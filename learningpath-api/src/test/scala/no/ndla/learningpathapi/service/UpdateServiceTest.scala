@@ -33,7 +33,8 @@ import scala.util.{Failure, Success, Try}
 import org.mockito.ArgumentCaptor
 
 class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
-  var service: UpdateService = _
+  override implicit lazy val converterService: ConverterService = new ConverterService
+  var service: UpdateService                                    = _
 
   val PUBLISHED_ID: Long = 1
   val PRIVATE_ID: Long   = 2
@@ -370,6 +371,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningStepValidator.validate(any[LearningStep], any[LearningPath], any[Boolean])).thenAnswer(
       (i: InvocationOnMock) => Success(i.getArgument[LearningStep](0))
     )
+    doAnswer((i: InvocationOnMock) => {
+      val x = i.getArgument[DBSession => Try[?]](0)
+      x(mock[DBSession])
+    }).when(learningPathRepository).inTransaction(any())(any())
+
     doAnswer((i: InvocationOnMock) => {
       val x = i.getArgument[DBSession => Try[?]](0)
       x(mock[DBSession])

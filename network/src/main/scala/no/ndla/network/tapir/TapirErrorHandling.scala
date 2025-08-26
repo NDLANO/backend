@@ -8,20 +8,11 @@
 
 package no.ndla.network.tapir
 
-import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Clock
-import no.ndla.common.configuration.BaseProps
-import no.ndla.common.errors.ValidationException
 
 import scala.util.{Failure, Success, Try}
 
-trait TapirErrorHandling(using
-    props: BaseProps,
-    clock: Clock,
-    errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling
-) extends StrictLogging {
+trait TapirErrorHandling(using errorHandling: ErrorHandling) extends StrictLogging {
 
   import errorHandling.*
 

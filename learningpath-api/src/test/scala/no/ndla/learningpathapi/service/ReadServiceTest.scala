@@ -32,8 +32,8 @@ import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.RevisionMeta
 
 class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
-
-  var service: ReadService = _
+  override implicit lazy val converterService: ConverterService = new ConverterService
+  var service: ReadService                                      = _
 
   val PUBLISHED_ID = 1L
   val PRIVATE_ID   = 2L

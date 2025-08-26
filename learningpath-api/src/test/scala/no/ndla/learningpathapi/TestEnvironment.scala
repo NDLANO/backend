@@ -30,7 +30,7 @@ import no.ndla.network.tapir.{
   TapirHealthController
 }
 import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
-import org.mockito.Mockito.reset
+import org.mockito.Mockito.{mockingDetails, reset}
 import org.scalatestplus.mockito.MockitoSugar
 import no.ndla.database.DBUtility
 
@@ -76,20 +76,25 @@ trait TestEnvironment extends TapirApplication[LearningpathApiProperties] with M
   implicit lazy val services: List[TapirController] = List.empty
   implicit lazy val swagger: SwaggerController      = mock[SwaggerController]
 
+  val mocks: Seq[Object] = Seq(
+    dataSource,
+    learningPathRepository,
+    readService,
+    updateService,
+    searchService,
+    searchIndexService,
+    converterService,
+    searchConverterService,
+    languageValidator,
+    titleValidator,
+    e4sClient,
+    oembedProxyClient,
+    feideApiClient,
+    myndlaApiClient
+  )
+
   def resetMocks(): Unit = {
-    reset(dataSource)
-    reset(learningPathRepository)
-    reset(readService)
-    reset(updateService)
-    reset(searchService)
-    reset(searchIndexService)
-    reset(converterService)
-    reset(searchConverterService)
-    reset(languageValidator)
-    reset(titleValidator)
-    reset(e4sClient)
-    reset(oembedProxyClient)
-    reset(feideApiClient)
-    reset(myndlaApiClient)
+    val actualMocks = mocks.filter(m => mockingDetails(m).isMock)
+    reset(actualMocks*)
   }
 }
