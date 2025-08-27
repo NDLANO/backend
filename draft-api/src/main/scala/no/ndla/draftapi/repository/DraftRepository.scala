@@ -80,16 +80,16 @@ trait DraftRepository {
             val dbId: Long =
               sql"""
                  insert into ${DBArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id, slug)
-                 values (ARRAY[${externalIds}]::text[],
-                         ARRAY[${externalSubjectIds}]::text[],
-                         ${dataObject},
+                 values (ARRAY[$externalIds]::text[],
+                         ARRAY[$externalSubjectIds]::text[],
+                         $dataObject,
                          $articleRevision,
                          $uuid,
-                         ${articleId},
+                         $articleId,
                          $slug)
               """.updateAndReturnGeneratedKey()
 
-            logger.info(s"Inserted new article: ${articleId} (with db id $dbId)")
+            logger.info(s"Inserted new article: $articleId (with db id $dbId)")
             Success(copiedArticle.copy(revision = Some(articleRevision)))
           }
       }
@@ -143,9 +143,8 @@ trait DraftRepository {
       failIfRevisionMismatch(count, article, newRevision)
     }
 
-    def withId(articleId: Long, updateLock: Boolean = false)(implicit session: DBSession): Option[Draft] =
+    def withId(articleId: Long)(implicit session: DBSession): Option[Draft] =
       articleWhere(
-        updateLock,
         sqls"""
               ar.article_id=${articleId.toInt}
               ORDER BY revision
@@ -220,7 +219,7 @@ trait DraftRepository {
     }
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession): Option[Long] = {
-      sql"select article_id from ${DBArticle.table} where ${externalId} = any (external_id) order by revision desc limit 1"
+      sql"select article_id from ${DBArticle.table} where $externalId = any (external_id) order by revision desc limit 1"
         .map(rs => rs.long("article_id"))
         .single()
     }
@@ -364,12 +363,10 @@ trait DraftRepository {
     }
 
     private def articleWhere(
-        updateLock: Boolean,
         whereClause: SQLSyntax
     )(implicit session: DBSession): Option[Draft] = {
-      val ar         = DBArticle.syntax("ar")
-      val lockClause = if (updateLock) sqls"FOR UPDATE" else sqls""
-      sql"select ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL and $whereClause $lockClause"
+      val ar = DBArticle.syntax("ar")
+      sql"select ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL and $whereClause"
         .map(DBArticle.fromResultSet(ar))
         .single()
     }
@@ -395,8 +392,8 @@ trait DraftRepository {
         .single()
     }
 
-    def withSlug(slug: String, updateLock: Boolean = false)(implicit session: DBSession): Option[Draft] =
-      articleWhere(updateLock, sqls"ar.slug=${slug.toLowerCase} ORDER BY revision DESC LIMIT 1")
+    def withSlug(slug: String)(implicit session: DBSession): Option[Draft] =
+      articleWhere(sqls"ar.slug=${slug.toLowerCase} ORDER BY revision DESC LIMIT 1")
 
     def slugExists(slug: String, articleId: Option[Long])(implicit
         session: DBSession = ReadOnlyAutoSession

@@ -23,7 +23,7 @@ import no.ndla.mapping.License.CC_BY
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.{ResourceType, TagAttribute}
 import org.jsoup.nodes.Element
-import org.mockito.ArgumentMatchers.{any, anyBoolean, eq as eqTo}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 
@@ -160,7 +160,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val articleId: Long = 1
     val article: Draft  =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.PLANNED, Set()))
-    when(draftRepository.withId(eqTo(articleId), anyBoolean())(any)).thenReturn(Some(article))
+    when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
     noTrans(PLANNED.toString) should contain(DraftStatus.ARCHIVED.toString)
     noTrans(IN_PROGRESS.toString) should contain(DraftStatus.ARCHIVED.toString)
@@ -178,7 +178,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val articleId: Long = 1
     val article: Draft  =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.PUBLISHED, Set()))
-    when(draftRepository.withId(eqTo(articleId), anyBoolean())(any)).thenReturn(Some(article))
+    when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
 
     noTrans(PLANNED.toString) should not contain (DraftStatus.ARCHIVED.toString)
@@ -196,7 +196,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val articleId: Long    = 1
     val unpublished: Draft =
       TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.IN_PROGRESS, Set()))
-    when(draftRepository.withId(eqTo(articleId), anyBoolean())(any)).thenReturn(Some(unpublished))
+    when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(unpublished))
     val Success(transOne) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
     transOne(IN_PROGRESS.toString) should not contain (DraftStatus.LANGUAGE.toString)
 
@@ -205,7 +205,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         id = Some(articleId),
         status = Status(DraftStatus.IN_PROGRESS, Set(DraftStatus.PUBLISHED))
       )
-    when(draftRepository.withId(eqTo(articleId), anyBoolean())(any)).thenReturn(Some(published))
+    when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(published))
     val Success(transTwo) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
     transTwo(IN_PROGRESS.toString) should contain(DraftStatus.LANGUAGE.toString)
   }
@@ -218,7 +218,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         id = Some(articleId),
         status = Status(DraftStatus.PLANNED, Set(DraftStatus.PUBLISHED))
       )
-    when(draftRepository.withId(eqTo(articleId), anyBoolean())(any)).thenReturn(Some(article))
+    when(draftRepository.withId(eqTo(articleId))(any)).thenReturn(Some(article))
     val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None): @unchecked
 
     noTrans(PLANNED.toString) should not contain (DraftStatus.ARCHIVED)
