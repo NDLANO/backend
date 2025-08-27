@@ -221,21 +221,11 @@ trait ConverterService {
       (toKeep ++ updated).filterNot(_.tags.isEmpty)
     }
 
-    private def mergeStatus(existing: LearningPath, user: CombinedUser): LearningPathStatus = {
-      existing.status match {
-        case LearningPathStatus.PUBLISHED if existing.canSetStatus(LearningPathStatus.PUBLISHED, user).isFailure =>
-          LearningPathStatus.UNLISTED
-        case existingStatus => existingStatus
-      }
-    }
-
     def mergeLearningPaths(
         existing: LearningPath,
         updated: UpdatedLearningPathV2DTO,
         userInfo: CombinedUser
     ): LearningPath = {
-      val status = mergeStatus(existing, userInfo)
-
       val titles = updated.title match {
         case None        => Seq.empty
         case Some(value) =>
@@ -288,7 +278,7 @@ trait ConverterService {
             updated.duration
           else existing.duration,
         tags = mergeLearningPathTags(existing.tags, tags),
-        status = status,
+        status = existing.status,
         copyright =
           if (updated.copyright.isDefined)
             converterService.asCopyright(updated.copyright.get)
@@ -362,12 +352,11 @@ trait ConverterService {
         updatedStep: LearningStep,
         user: CombinedUserRequired
     ): LearningPath = {
-      val status                = mergeStatus(learningPath, user)
       val existingLearningSteps = learningPath.learningsteps.getOrElse(Seq.empty).filterNot(_.id == updatedStep.id)
       val steps                 =
         if (StepStatus.ACTIVE == updatedStep.status) existingLearningSteps :+ updatedStep else existingLearningSteps
 
-      learningPath.copy(learningsteps = Some(steps), status = status, lastUpdated = clock.now())
+      learningPath.copy(learningsteps = Some(steps), lastUpdated = clock.now())
     }
 
     def deleteLearningStepLanguage(step: LearningStep, language: String): Try[LearningStep] = {
