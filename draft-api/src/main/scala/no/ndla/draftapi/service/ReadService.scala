@@ -51,17 +51,17 @@ class ReadService(using
 ) {
 
   def getInternalArticleIdByExternalId(externalId: Long): Option[api.ContentIdDTO] =
-    draftRepository.getIdFromExternalId(externalId.toString)(ReadOnlyAutoSession).map(id => api.ContentIdDTO(id))
+    draftRepository.getIdFromExternalId(externalId.toString)(using ReadOnlyAutoSession).map(id => api.ContentIdDTO(id))
 
   def withId(id: Long, language: String, fallback: Boolean = false): Try[api.ArticleDTO] = {
-    draftRepository.withId(id)(ReadOnlyAutoSession).map(addUrlsOnEmbedResources) match {
+    draftRepository.withId(id)(using ReadOnlyAutoSession).map(addUrlsOnEmbedResources) match {
       case None          => Failure(NotFoundException(s"The article with id $id was not found"))
       case Some(article) => converterService.toApiArticle(article, language, fallback)
     }
   }
 
   def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[api.ArticleDTO] = {
-    draftRepository.withSlug(slug)(ReadOnlyAutoSession).map(addUrlsOnEmbedResources) match {
+    draftRepository.withSlug(slug)(using ReadOnlyAutoSession).map(addUrlsOnEmbedResources) match {
       case None          => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
       case Some(article) => converterService.toApiArticle(article, language, fallback)
     }

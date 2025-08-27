@@ -17,7 +17,7 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Delete, DisclaimerDTO, DraftCopyrightDTO, Missing, ResponsibleDTO, UpdateWith}
 import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.PLANNED
-import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{RelatedContentLink, api as commonApi, domain as common}
 import no.ndla.common.{Clock, model}
@@ -283,7 +283,7 @@ class ConverterService(using
       Success(
         api.ArticleDTO(
           id = article.id.get,
-          oldNdlaUrl = article.id.flatMap(id => getLinkToOldNdla(id)(ReadOnlyAutoSession)),
+          oldNdlaUrl = article.id.flatMap(id => getLinkToOldNdla(id)(using ReadOnlyAutoSession)),
           revision = article.revision.get,
           status = toApiStatus(article.status),
           title = title,

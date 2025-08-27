@@ -85,7 +85,7 @@ class H5PApiClient(using
       threadInfo.setThreadContextRequestInfo()
       ndlaClient.fetchRawWithForwardedAuth(
         quickRequest
-          .put(uri"$url".withParams(params: _*))
+          .put(uri"$url".withParams(params*))
           .header("content-type", "application/json")
           .readTimeout(h5pTimeout),
         Some(user)

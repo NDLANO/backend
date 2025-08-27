@@ -8,30 +8,13 @@
 
 package no.ndla.draftapi.validation
 
-import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.errors.{AccessDeniedException, ValidationException, ValidationMessage}
-import no.ndla.common.implicits.*
-import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, ArticleType, ContributorType, RequiredLibrary}
+import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, ContributorType, RequiredLibrary}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.DraftApiProperties
-import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{ContentIdDTO, UpdatedArticleDTO}
-import no.ndla.draftapi.service.ConverterService
-import no.ndla.language.Language.findByLanguageOrBestEffort
-import no.ndla.network.tapir.auth.TokenUser
 
-import no.ndla.validation.SlugValidator.validateSlug
-
-import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.domain.draft.DraftStatus
-import no.ndla.common.model.domain.language.OptLanguageFields
-import no.ndla.draftapi.repository.DraftRepository
-import no.ndla.language.model.Iso639
-import no.ndla.validation.HtmlTagRules.allLegalTags
 import no.ndla.validation.TextValidator
-import scalikejdbc.*
 
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
@@ -39,7 +22,6 @@ import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.*
 import no.ndla.common.model.domain.draft.DraftStatus.ARCHIVED
 import no.ndla.common.model.domain.language.OptLanguageFields
-import no.ndla.draftapi.Props
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentIdDTO, NotFoundException, UpdatedArticleDTO}
 import no.ndla.draftapi.repository.DraftRepository
@@ -49,7 +31,6 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules.{allLegalTags, stringToJsoupDocument}
 import no.ndla.validation.SlugValidator.validateSlug
-import no.ndla.validation.*
 import scalikejdbc.ReadOnlyAutoSession
 
 import scala.jdk.CollectionConverters.*
@@ -159,7 +140,7 @@ class ContentValidator(using
   }
 
   def validateArticleApiArticle(id: Long, importValidate: Boolean, user: TokenUser): Try[ContentIdDTO] = {
-    draftRepository.withId(id)(ReadOnlyAutoSession) match {
+    draftRepository.withId(id)(using ReadOnlyAutoSession) match {
       case None        => Failure(NotFoundException(s"Article with id $id does not exist"))
       case Some(draft) =>
         converterService
@@ -175,7 +156,7 @@ class ContentValidator(using
       importValidate: Boolean,
       user: TokenUser
   ): Try[ContentIdDTO] = {
-    draftRepository.withId(id)(ReadOnlyAutoSession) match {
+    draftRepository.withId(id)(using ReadOnlyAutoSession) match {
       case None           => Failure(NotFoundException(s"Article with id $id does not exist"))
       case Some(existing) =>
         converterService

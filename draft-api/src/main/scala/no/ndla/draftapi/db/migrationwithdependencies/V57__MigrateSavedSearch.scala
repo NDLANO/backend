@@ -143,7 +143,7 @@ class V57__MigrateSavedSearch(using
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
-    .withinTx { session => migrateRows(session) }
+    .withinTx { session => migrateRows(using session) }
 
   def migrateRows(implicit session: DBSession): Unit = {
     val count        = countAllRows.get
@@ -161,7 +161,7 @@ class V57__MigrateSavedSearch(using
   private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {
     ndlaClient.fetchWithForwardedAuth[A](
       quickRequest
-        .get(uri"$url".withParams(params: _*))
+        .get(uri"$url".withParams(params*))
         .readTimeout(taxonomyTimeout)
         .header(props.TaxonomyVersionHeader, TaxonomyData.get),
       None

@@ -8,21 +8,16 @@
 
 package no.ndla.draftapi.service.search
 
-import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
-import com.sksamuel.elastic4s.requests.searches.queries.matches.MatchQuery
-import com.sksamuel.elastic4s.requests.searches.queries.{NestedQuery, Query, RangeQuery}
-import com.sksamuel.elastic4s.requests.searches.sort.FieldSort
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.model.domain.ArticleType
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.{ArticleSummaryDTO, DraftErrorHelpers}
-import no.ndla.draftapi.model.domain.{SearchResult, SearchSettings, Sort}
+import no.ndla.draftapi.model.domain.{SearchResult, SearchSettings}
 import no.ndla.language.Language
 import no.ndla.mapping.License
-import no.ndla.search.{IndexNotFoundException, NdlaE4sClient, NdlaSearchException}
+import no.ndla.search.NdlaE4sClient
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}

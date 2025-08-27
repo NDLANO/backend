@@ -9,8 +9,8 @@
 package no.ndla.draftapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.configuration.{BaseProps, HasBaseProps, Prop}
-import no.ndla.database.{DatabaseProps, HasDatabaseProps}
+import no.ndla.common.configuration.{BaseProps, Prop}
+import no.ndla.database.DatabaseProps
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
 

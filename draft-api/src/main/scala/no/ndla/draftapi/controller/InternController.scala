@@ -168,9 +168,9 @@ class InternController(using
     .serverLogicPure { status =>
       status.map(DraftStatus.valueOfOrError) match {
         case Some(Success(status)) =>
-          draftRepository.idsWithStatus(status)(ReadOnlyAutoSession).getOrElse(List.empty).asRight
+          draftRepository.idsWithStatus(status)(using ReadOnlyAutoSession).getOrElse(List.empty).asRight
         case Some(Failure(ex)) => returnLeftError(ex)
-        case None              => draftRepository.getAllIds(ReadOnlyAutoSession).asRight
+        case None              => draftRepository.getAllIds(using ReadOnlyAutoSession).asRight
       }
     }
 
@@ -190,7 +190,7 @@ class InternController(using
     .out(jsonBody[Long])
     .errorOut(errorOutputsFor(404))
     .serverLogicPure { externalId =>
-      draftRepository.getIdFromExternalId(externalId)(ReadOnlyAutoSession) match {
+      draftRepository.getIdFromExternalId(externalId)(using ReadOnlyAutoSession) match {
         case Some(id) => id.asRight
         case None     => notFound.asLeft
       }
@@ -246,7 +246,7 @@ class InternController(using
     .errorOut(errorOutputsFor(404))
     .out(jsonBody[Draft])
     .serverLogicPure { id =>
-      draftRepository.withId(id)(ReadOnlyAutoSession) match {
+      draftRepository.withId(id)(using ReadOnlyAutoSession) match {
         case Some(article) => article.asRight
         case None          => returnLeftError(NotFoundException(s"Could not find draft with id: '$id"))
       }

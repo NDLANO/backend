@@ -143,7 +143,7 @@ class TaxonomyApiClient(using
     private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest
-          .get(uri"$url".withParams(params: _*))
+          .get(uri"$url".withParams(params*))
           .readTimeout(taxonomyTimeout)
           .header(props.TaxonomyVersionHeader, TaxonomyData.get),
         None
@@ -164,7 +164,7 @@ class TaxonomyApiClient(using
     private[integration] def delete(url: String, user: TokenUser, params: (String, String)*): Try[Unit] =
       ndlaClient.fetchRawWithForwardedAuth(
         quickRequest
-          .delete(uri"$url".withParams(params: _*))
+          .delete(uri"$url".withParams(params*))
           .readTimeout(taxonomyTimeout),
         Some(user)
       ) match {

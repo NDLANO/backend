@@ -8,7 +8,6 @@
 
 package no.ndla.draftapi.integration
 
-import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.network.NdlaClient

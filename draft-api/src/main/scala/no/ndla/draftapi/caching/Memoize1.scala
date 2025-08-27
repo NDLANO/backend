@@ -21,7 +21,7 @@ private[caching] class Memoize[R](
     def isExpired: Boolean = lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
   }
 
-  private[this] var cache: Option[CacheValue] = None
+  private var cache: Option[CacheValue] = None
 
   private def renewCache(): Unit = {
     val result = f()

@@ -131,7 +131,7 @@ class SearchConverterService(using
         .lastOption
     }
 
-    val highlightKeys: Option[Map[String, _]] = Option(result.highlight)
+    val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)
     val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
     matchLanguage match {

@@ -31,7 +31,7 @@ class LearningpathApiClient(using
   }
 
   private def get[A: Decoder](endpointUrl: String, user: TokenUser, params: (String, String)*): Try[A] = {
-    val request = quickRequest.get(uri"$endpointUrl".withParams(params: _*))
+    val request = quickRequest.get(uri"$endpointUrl".withParams(params*))
     ndlaClient.fetchWithForwardedAuth[A](request, Some(user))
   }
 

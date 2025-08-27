@@ -8,15 +8,14 @@
 
 package no.ndla.draftapi.service.search
 
-import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
-import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
+import com.sksamuel.elastic4s.requests.searches.sort.SortOrder
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.DraftApiProperties
-import no.ndla.draftapi.model.domain.{SearchResult, Sort}
+import no.ndla.draftapi.model.domain.SearchResult
 import no.ndla.language.Language
-import no.ndla.search.{IndexNotFoundException, NdlaE4sClient, NdlaSearchException}
+import no.ndla.search.NdlaE4sClient
 import io.circe.parser.decode
 import no.ndla.draftapi.model.api.DraftErrorHelpers
 import no.ndla.draftapi.model.search.SearchableTag

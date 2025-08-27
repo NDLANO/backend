@@ -188,7 +188,7 @@ class WriteService(using
   }
 
   def updateArticleStatus(status: DraftStatus, id: Long, user: TokenUser): Try[api.ArticleDTO] = {
-    draftRepository.withId(id)(ReadOnlyAutoSession) match {
+    draftRepository.withId(id)(using ReadOnlyAutoSession) match {
       case None        => Failure(api.NotFoundException(s"No article with id $id was found"))
       case Some(draft) =>
         for {
@@ -212,7 +212,7 @@ class WriteService(using
   }
 
   def getRanges(session: DBSession): Try[List[(Long, Long)]] = Try {
-    val (minId, maxId) = draftRepository.minMaxArticleId(session)
+    val (minId, maxId) = draftRepository.minMaxArticleId(using session)
     Seq
       .range(minId, maxId + 1)
       .grouped(100)
@@ -240,7 +240,7 @@ class WriteService(using
       if (draft.grepCodes.sorted == updatedGrepCodes.sorted) { boundary.break(Success(None)) }
       val grepCodeNote = getGrepCodeNote(newGrepCodeMapping, draft, user)
       val newDraft     = draft.copy(grepCodes = updatedGrepCodes, notes = draft.notes :+ grepCodeNote)
-      val updated      = draftRepository.updateArticle(newDraft)(session).?
+      val updated      = draftRepository.updateArticle(newDraft)(using session).?
       val partialPart  = partialArticleFieldsUpdate(updated, grepFieldsToPublish, Language.AllLanguages)
       logger.info(
         s"Migrated grep codes for article $articleId from [${draft.grepCodes.mkString(",")}] to [${updatedGrepCodes.mkString(",")}]"
@@ -259,7 +259,7 @@ class WriteService(using
         .map(ranges => {
           val chunkResult = ranges.map { case (start, end) =>
             Future {
-              val chunk = draftRepository.documentsWithArticleIdBetween(start, end)(session)
+              val chunk = draftRepository.documentsWithArticleIdBetween(start, end)(using session)
               chunk.map(d => migrateOutdatedGrepForDraft(d, user)(session))
             }
           }
@@ -291,7 +291,7 @@ class WriteService(using
       statusWasUpdated: Boolean
   ): Try[Draft] =
     if (createNewVersion)
-      draftRepository.storeArticleAsNewVersion(article, Some(user), keepDraftData = true)(AutoSession)
+      draftRepository.storeArticleAsNewVersion(article, Some(user), keepDraftData = true)(using AutoSession)
     else updateArticleAndStoreAsNewIfPublished(article, statusWasUpdated)
 
   private def addRevisionDateNotes(
@@ -493,12 +493,12 @@ class WriteService(using
       session: DBSession
   ): Try[api.ArticleDTO] = {
     for {
-      maybeDraft <- Try(draftRepository.withId(id, updateLock = true)(session))
+      maybeDraft <- Try(draftRepository.withId(id, updateLock = true)(using session))
       draft      <- maybeDraft.toTry(NotFoundException(s"Article with id $id not found"))
       now       = clock.now()
       newNotes  = notes.map(note => common.EditorNote(note, user.id, draft.status, now))
       converted = draft.copy(notes = draft.notes ++ newNotes)
-      updated <- draftRepository.updateArticle(converted)(session)
+      updated <- draftRepository.updateArticle(converted)(using session)
       output  <- converterService.toApiArticle(updated, Language.AllLanguages)
     } yield output
   }
@@ -523,7 +523,7 @@ class WriteService(using
   }
 
   def updateArticle(articleId: Long, updatedApiArticle: api.UpdatedArticleDTO, user: TokenUser): Try[api.ArticleDTO] =
-    draftRepository.withId(articleId)(ReadOnlyAutoSession) match {
+    draftRepository.withId(articleId)(using ReadOnlyAutoSession) match {
       case Some(existing) =>
         updateExistingArticle(existing, updatedApiArticle, user)
       case None =>
@@ -569,7 +569,7 @@ class WriteService(using
     } yield apiArticle
 
   def deleteLanguage(id: Long, language: String, userInfo: TokenUser): Try[api.ArticleDTO] = {
-    draftRepository.withId(id)(ReadOnlyAutoSession) match {
+    draftRepository.withId(id)(using ReadOnlyAutoSession) match {
       case Some(article) =>
         article.title.size match {
           case 1 => Failure(OperationNotAllowedException("Only one language left"))
@@ -586,7 +586,7 @@ class WriteService(using
 
   def deleteArticle(id: Long): Try[api.ContentIdDTO] = {
     draftRepository
-      .deleteArticle(id)(AutoSession)
+      .deleteArticle(id)(using AutoSession)
       .flatMap(articleIndexService.deleteDocument)
       .map(id => api.ContentIdDTO(id))
   }
@@ -744,7 +744,7 @@ class WriteService(using
       language: String,
       user: TokenUser
   ): (Long, Try[Draft]) =
-    draftRepository.withId(id)(ReadOnlyAutoSession) match {
+    draftRepository.withId(id)(using ReadOnlyAutoSession) match {
       case None => id -> Failure(api.NotFoundException(s"Could not find draft with id of $id to partial publish"))
       case Some(article) =>
         partialPublish(article, articleFieldsToUpdate, language, user): Unit
@@ -842,7 +842,7 @@ class WriteService(using
       case Some(contentUri) =>
         parseArticleIdAndRevision(contentUri) match {
           case (Success(articleId), _) =>
-            draftRepository.withId(articleId)(ReadOnlyAutoSession) match {
+            draftRepository.withId(articleId)(using ReadOnlyAutoSession) match {
               case Some(article) => article.revisionMeta
               case _             => Seq.empty
             }
@@ -907,11 +907,11 @@ class WriteService(using
 
   private def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.RevisionMeta]): Try[?] = {
     draftRepository
-      .withId(articleId)(ReadOnlyAutoSession)
+      .withId(articleId)(using ReadOnlyAutoSession)
       .traverse(article => {
         val revisionMeta = article.revisionMeta ++ revisions
         val toUpdate     = article.copy(revisionMeta = revisionMeta.distinct)
-        draftRepository.updateArticle(toUpdate)(AutoSession)
+        draftRepository.updateArticle(toUpdate)(using AutoSession)
       })
   }
 }

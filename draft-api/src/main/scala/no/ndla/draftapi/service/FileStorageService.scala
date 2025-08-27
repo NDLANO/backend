@@ -41,9 +41,9 @@ class FileStorageService(using
   def resourceWithPathExists(filePath: String): Boolean =
     s3Client.objectExists(filePath)
 
-  def deleteResource(storageKey: String): Try[_] =
+  def deleteResource(storageKey: String): Try[?] =
     deleteResourceWithPath(s"$resourceDirectory/$storageKey")
 
-  def deleteResourceWithPath(filePath: String): Try[_] =
+  def deleteResourceWithPath(filePath: String): Try[?] =
     s3Client.deleteObject(filePath)
 }
