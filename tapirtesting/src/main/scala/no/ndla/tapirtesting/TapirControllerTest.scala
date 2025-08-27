@@ -9,7 +9,7 @@
 package no.ndla.tapirtesting
 
 import com.sun.net.httpserver.HttpServer
-import no.ndla.common.{Clock, configuration}
+import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseProps
 import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.scalatestsuite.UnitTestSuite

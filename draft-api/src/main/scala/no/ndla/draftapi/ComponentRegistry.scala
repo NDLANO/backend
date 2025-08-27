@@ -45,13 +45,13 @@ import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.common.converter.CommonConverter
 
 class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication[DraftApiProperties] {
-  implicit val props: DraftApiProperties            = properties
-  implicit val dataSource: DataSource               = DataSource.getDataSource
-  implicit val errorHelpers: ErrorHelpers           = new ErrorHelpers
-  implicit val draftErrorHelpers: DraftErrorHelpers = new DraftErrorHelpers
-  implicit val errorHandling: ErrorHandling         = new ControllerErrorHandling
+  implicit lazy val props: DraftApiProperties            = properties
+  implicit lazy val dataSource: DataSource               = DataSource.getDataSource
+  implicit lazy val errorHelpers: ErrorHelpers           = new ErrorHelpers
+  implicit lazy val draftErrorHelpers: DraftErrorHelpers = new DraftErrorHelpers
+  implicit lazy val errorHandling: ErrorHandling         = new ControllerErrorHandling
 
-  implicit val migrator: DBMigrator = DBMigrator(
+  implicit lazy val migrator: DBMigrator = DBMigrator(
     new R__RemoveEmptyStringLanguageFields(props),
     new R__RemoveStatusPublishedArticles(props),
     new R__SetArticleLanguageFromTaxonomy(props),
@@ -63,45 +63,46 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
     new V66__SetHideBylineForImagesNotCopyrighted
   )
 
-  implicit val clock: Clock                               = new Clock
-  implicit val e4sClient: NdlaE4sClient                   = Elastic4sClientFactory.getClient(props.SearchServer)
-  implicit val searchLanguage: SearchLanguage             = new SearchLanguage
-  implicit val dbUtility: DBUtility                       = new DBUtility
-  implicit val memoizeHelpers: MemoizeHelpers             = new MemoizeHelpers
-  implicit val uuidUtil: UUIDUtil                         = new UUIDUtil
-  implicit val commonConverter: CommonConverter           = new CommonConverter
-  implicit val stateTransitionRules: StateTransitionRules = new StateTransitionRules
-  implicit val ndlaClient: NdlaClient           = new NdlaClient
-  implicit val searchApiClient: SearchApiClient = new SearchApiClient(props.SearchApiUrl)
-  implicit val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
-  implicit val s3Client: NdlaS3Client = new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
-  implicit val articleApiClient: ArticleApiClient           = new ArticleApiClient
-  implicit val taxonomyApiClient: TaxonomyApiClient         = new TaxonomyApiClient
-  implicit val learningpathApiClient: LearningpathApiClient = new LearningpathApiClient
-  implicit val h5pApiClient: H5PApiClient                   = new H5PApiClient
-  implicit val imageApiClient: ImageApiClient               = new ImageApiClient
-  implicit val draftRepository: DraftRepository       = new DraftRepository
-  implicit val userDataRepository: UserDataRepository = new UserDataRepository
-  implicit val contentValidator: ContentValidator             = new ContentValidator()
-  implicit val converterService: ConverterService             = new ConverterService
-  implicit val searchConverterService: SearchConverterService = new SearchConverterService
-  implicit val readService: ReadService                       = new ReadService
-  implicit val writeService: WriteService                     = new WriteService
-  implicit val fileStorage: FileStorageService                = new FileStorageService
-  implicit val reindexClient: ReindexClient                   = new ReindexClient
-  implicit val articleSearchService: ArticleSearchService     = new ArticleSearchService
-  implicit val articleIndexService: ArticleIndexService       = new ArticleIndexService
-  implicit val tagSearchService: TagSearchService             = new TagSearchService
-  implicit val tagIndexService: TagIndexService               = new TagIndexService
-  implicit val grepCodesSearchService: GrepCodesSearchService = new GrepCodesSearchService
-  implicit val grepCodesIndexService: GrepCodesIndexService   = new GrepCodesIndexService
-  implicit val internController: InternController      = new InternController
-  implicit val draftController: DraftController        = new DraftController
-  implicit val fileController: FileController          = new FileController
-  implicit val userDataController: UserDataController  = new UserDataController
-  implicit val healthController: TapirHealthController = new TapirHealthController
+  implicit lazy val clock: Clock                               = new Clock
+  implicit lazy val e4sClient: NdlaE4sClient                   = Elastic4sClientFactory.getClient(props.SearchServer)
+  implicit lazy val searchLanguage: SearchLanguage             = new SearchLanguage
+  implicit lazy val dbUtility: DBUtility                       = new DBUtility
+  implicit lazy val memoizeHelpers: MemoizeHelpers             = new MemoizeHelpers
+  implicit lazy val uuidUtil: UUIDUtil                         = new UUIDUtil
+  implicit lazy val commonConverter: CommonConverter           = new CommonConverter
+  implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
+  implicit lazy val ndlaClient: NdlaClient                     = new NdlaClient
+  implicit lazy val searchApiClient: SearchApiClient           = new SearchApiClient(props.SearchApiUrl)
+  implicit lazy val myndlaApiClient: MyNDLAApiClient           = new MyNDLAApiClient
+  implicit lazy val s3Client: NdlaS3Client                     =
+    new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
+  implicit lazy val articleApiClient: ArticleApiClient             = new ArticleApiClient
+  implicit lazy val taxonomyApiClient: TaxonomyApiClient           = new TaxonomyApiClient
+  implicit lazy val learningpathApiClient: LearningpathApiClient   = new LearningpathApiClient
+  implicit lazy val h5pApiClient: H5PApiClient                     = new H5PApiClient
+  implicit lazy val imageApiClient: ImageApiClient                 = new ImageApiClient
+  implicit lazy val draftRepository: DraftRepository               = new DraftRepository
+  implicit lazy val userDataRepository: UserDataRepository         = new UserDataRepository
+  implicit lazy val contentValidator: ContentValidator             = new ContentValidator()
+  implicit lazy val converterService: ConverterService             = new ConverterService
+  implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  implicit lazy val readService: ReadService                       = new ReadService
+  implicit lazy val writeService: WriteService                     = new WriteService
+  implicit lazy val fileStorage: FileStorageService                = new FileStorageService
+  implicit lazy val reindexClient: ReindexClient                   = new ReindexClient
+  implicit lazy val articleSearchService: ArticleSearchService     = new ArticleSearchService
+  implicit lazy val articleIndexService: ArticleIndexService       = new ArticleIndexService
+  implicit lazy val tagSearchService: TagSearchService             = new TagSearchService
+  implicit lazy val tagIndexService: TagIndexService               = new TagIndexService
+  implicit lazy val grepCodesSearchService: GrepCodesSearchService = new GrepCodesSearchService
+  implicit lazy val grepCodesIndexService: GrepCodesIndexService   = new GrepCodesIndexService
+  implicit lazy val internController: InternController             = new InternController
+  implicit lazy val draftController: DraftController               = new DraftController
+  implicit lazy val fileController: FileController                 = new FileController
+  implicit lazy val userDataController: UserDataController         = new UserDataController
+  implicit lazy val healthController: TapirHealthController        = new TapirHealthController
 
-  implicit val swagger: SwaggerController = new SwaggerController(
+  implicit lazy val swagger: SwaggerController = new SwaggerController(
     List[TapirController](
       draftController,
       fileController,
@@ -112,6 +113,6 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  implicit val services: List[TapirController] = swagger.getServices()
-  implicit val routes: Routes                  = new Routes
+  implicit lazy val services: List[TapirController] = swagger.getServices()
+  implicit lazy val routes: Routes                  = new Routes
 }

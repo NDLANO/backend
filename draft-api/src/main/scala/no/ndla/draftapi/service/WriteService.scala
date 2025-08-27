@@ -60,7 +60,7 @@ class WriteService(using
     clock: Clock,
     readService: => ReadService,
     articleApiClient: ArticleApiClient,
-    searchApiClient: SearchApiClient,
+    searchApiClient: => SearchApiClient,
     fileStorage: => FileStorageService,
     taxonomyApiClient: TaxonomyApiClient,
     props: Props,

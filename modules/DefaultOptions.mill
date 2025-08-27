@@ -69,6 +69,7 @@ trait DefaultOptions extends ScalaModule {
       "-Yretain-trees"   -> scala3,
       "-Xmax-inlines:50" -> scala3,
       "-rewrite",
+      "-source:3.4-migration",
       "-source:3.7-migration"
     ).filterByVersion(scalaVersion())
   }

@@ -22,11 +22,11 @@ import scala.util.{Failure, Success, Try}
 class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
   override implicit lazy val dataSource: DataSource = testDataSource.get
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
-  var repository: UserDataRepository                = _
+  var repository: UserDataRepository                = scala.compiletime.uninitialized
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
-      sql"delete from userdata;".execute()(session)
+      sql"delete from userdata;".execute()(using session)
     })
   }
 

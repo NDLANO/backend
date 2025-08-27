@@ -8,7 +8,6 @@
 
 package no.ndla.draftapi.service.search
 
-import no.ndla.common.converter.CommonConverter
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.*

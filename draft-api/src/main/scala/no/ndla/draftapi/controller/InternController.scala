@@ -39,7 +39,7 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
 class InternController(using
-    readService: ReadService,
+    readService: => ReadService,
     writeService: WriteService,
     draftRepository: DraftRepository,
     articleIndexService: ArticleIndexService,

@@ -28,7 +28,7 @@ class SearchApiClient(SearchApiBaseUrl: String)(using ndlaClient: NdlaClient) ex
   private val indexTimeout            = 60.seconds
   private val indexRetryCount         = 3
 
-  def indexDocument[D <: Content: Decoder: Encoder](name: String, document: D, user: Option[TokenUser])(implicit
+  def indexDocument[D <: Content: {Decoder, Encoder}](name: String, document: D, user: Option[TokenUser])(using
       ex: ExecutionContext
   ): D = {
     def attemptIndex(document: D, user: Option[TokenUser], attempt: Int): D = {

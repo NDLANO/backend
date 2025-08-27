@@ -53,8 +53,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       visualElement = Seq(VisualElement(visualElementBefore, "nb"))
     )
 
-    when(draftRepository.withId(eqTo(1L), anyBoolean())(any)).thenReturn(Option(article))
-    when(draftRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("54321"))
+    when(draftRepository.withId(eqTo(1L), anyBoolean())(using any)).thenReturn(Option(article))
+    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List("54321"))
 
     val expectedResult = converterService
       .toApiArticle(
@@ -116,8 +116,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2))
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3))
 
-    when(draftRepository.withIds(any, any, any)(any)).thenReturn(Success(Seq(article1, article2, article3)))
-    when(draftRepository.getExternalIdsFromId(any)(any)).thenReturn(List(""), List(""), List(""))
+    when(draftRepository.withIds(any, any, any)(using any)).thenReturn(Success(Seq(article1, article2, article3)))
+    when(draftRepository.getExternalIdsFromId(any)(using any)).thenReturn(List(""), List(""), List(""))
 
     val Success(result) =
       readService.getArticlesByIds(
@@ -129,7 +129,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       ): @unchecked
     result.length should be(3)
 
-    verify(draftRepository, times(1)).withIds(any, any, any)(any)
+    verify(draftRepository, times(1)).withIds(any, any, any)(using any)
   }
 
   test("that getArticlesByIds fails if no ids were given") {
@@ -144,7 +144,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       ): @unchecked
     result.errors.head.message should be("Query parameter 'ids' is missing")
 
-    verify(draftRepository, times(0)).withIds(any, any, any)(any)
+    verify(draftRepository, times(0)).withIds(any, any, any)(using any)
   }
 
   test("that getArticleRevisionHistory checks for possibility of deleting current revision") {
@@ -152,7 +152,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val currentDraft   = TestData.sampleDomainArticle.copy(revision = Some(42))
     val publishedDraft = currentDraft.copy(status = TestData.statusWithPublished)
     val articleId      = previousDraft.id.get
-    when(draftRepository.getExternalIdsFromId(eqTo(articleId))(any)).thenReturn(List("123"))
+    when(draftRepository.getExternalIdsFromId(eqTo(articleId))(using any)).thenReturn(List("123"))
 
     when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(previousDraft, publishedDraft))
     val revisionHistory = readService.getArticleRevisionHistory(articleId, "nb", fallback = true).failIfFailure

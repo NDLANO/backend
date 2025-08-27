@@ -84,10 +84,10 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
     when(tagIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index7", "index8")))
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(tagIndexService).deleteIndexWithName(Some("index7"))
-    doReturn(Success(""), Nil: _*).when(tagIndexService).deleteIndexWithName(Some("index8"))
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil*).when(tagIndexService).deleteIndexWithName(Some("index7"))
+    doReturn(Success(""), Nil*).when(tagIndexService).deleteIndexWithName(Some("index8"))
 
     {
       val res = simpleHttpClient.send(
@@ -117,11 +117,11 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       grepCodesIndexService
     )
 
-    doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
+    doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil*)
       .when(articleIndexService)
       .findAllIndexes(props.DraftSearchIndex)
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index2"))
 
     {
       val res = simpleHttpClient.send(
@@ -146,12 +146,12 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
     when(tagIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index7", "index8")))
 
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
-    doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil: _*)
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil*)
       .when(articleIndexService)
       .deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(tagIndexService).deleteIndexWithName(Some("index7"))
-    doReturn(Success(""), Nil: _*).when(tagIndexService).deleteIndexWithName(Some("index8"))
+    doReturn(Success(""), Nil*).when(tagIndexService).deleteIndexWithName(Some("index7"))
+    doReturn(Success(""), Nil*).when(tagIndexService).deleteIndexWithName(Some("index8"))
 
     {
       val res = simpleHttpClient.send(
