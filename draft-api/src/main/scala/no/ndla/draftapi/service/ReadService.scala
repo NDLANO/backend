@@ -17,17 +17,11 @@ import no.ndla.common.model.domain.draft.DraftStatus.PUBLISHED
 import no.ndla.database.DBUtility
 import no.ndla.draftapi.DraftUtil.shouldPartialPublish
 import no.ndla.draftapi.Props
-import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.model.api.{ArticleRevisionHistoryDTO, NotFoundException}
 import no.ndla.draftapi.model.domain.ImportId
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
-import no.ndla.draftapi.service.search.{
-  ArticleSearchService,
-  GrepCodesSearchService,
-  SearchConverterService,
-  TagSearchService
-}
+import no.ndla.draftapi.service.search.{GrepCodesSearchService, SearchConverterService, TagSearchService}
 import no.ndla.validation.*
 import org.jsoup.nodes.Element
 import scalikejdbc.ReadOnlyAutoSession
@@ -39,14 +33,12 @@ import scala.util.{Failure, Success, Try, boundary}
 class ReadService(using
     draftRepository: DraftRepository,
     converterService: ConverterService,
-    articleSearchService: ArticleSearchService,
-    tagSearchService: TagSearchService,
-    grepCodesSearchService: GrepCodesSearchService,
-    searchConverterService: SearchConverterService,
+    tagSearchService: => TagSearchService,
+    grepCodesSearchService: => GrepCodesSearchService,
+    searchConverterService: => SearchConverterService,
     userDataRepository: UserDataRepository,
-    writeService: WriteService,
+    writeService: => WriteService,
     props: Props,
-    memoizeHelpers: MemoizeHelpers,
     dbUtility: DBUtility
 ) {
 

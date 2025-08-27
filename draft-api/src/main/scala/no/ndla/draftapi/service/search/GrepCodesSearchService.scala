@@ -27,7 +27,7 @@ import scala.util.{Failure, Success, Try}
 class GrepCodesSearchService(using
     e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
-    grepCodesIndexService: GrepCodesIndexService,
+    grepCodesIndexService: => GrepCodesIndexService,
     props: DraftApiProperties,
     draftErrorHelpers: DraftErrorHelpers
 ) extends SearchService[String]

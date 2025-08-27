@@ -27,7 +27,7 @@ import scala.util.{Failure, Success, Try}
 class TagSearchService(using
     e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
-    tagIndexService: TagIndexService,
+    tagIndexService: => TagIndexService,
     props: DraftApiProperties,
     draftErrorHelpers: DraftErrorHelpers
 ) extends SearchService[String]

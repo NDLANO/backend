@@ -8,17 +8,13 @@
 
 package no.ndla.draftapi.db.migrationwithdependencies
 
-import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.db.HtmlMigration
 import no.ndla.draftapi.integration.ImageApiClient
-import no.ndla.network.NdlaClient
 import org.jsoup.nodes.Element
 import scalikejdbc.{SQLSyntax, scalikejdbcSQLInterpolationImplicitDef}
 
 class V66__SetHideBylineForImagesNotCopyrighted(using
-    imageApiClient: ImageApiClient,
-    ndlaClient: NdlaClient,
-    props: DraftApiProperties
+    imageApiClient: => ImageApiClient,
 ) extends HtmlMigration {
   override val tableName: String            = "articledata a"
   override val columnName: String           = "document"

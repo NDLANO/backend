@@ -26,7 +26,7 @@ import scala.util.{Failure, Success, Try}
 class ArticleSearchService(using
     e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
-    articleIndexService: ArticleIndexService,
+    articleIndexService: => ArticleIndexService,
     props: DraftApiProperties,
     draftErrorHelpers: DraftErrorHelpers
 ) extends SearchService[api.ArticleSummaryDTO]

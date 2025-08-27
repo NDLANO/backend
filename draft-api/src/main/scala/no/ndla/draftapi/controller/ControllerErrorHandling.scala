@@ -24,7 +24,7 @@ class ControllerErrorHandling(using
     dataSource: DataSource,
     errorHelpers: ErrorHelpers,
     draftErrorHelpers: DraftErrorHelpers,
-    clock: Clock
+    clock: => Clock
 ) extends ErrorHandling {
   import errorHelpers.*
   import draftErrorHelpers.*

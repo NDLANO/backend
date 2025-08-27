@@ -11,8 +11,7 @@ package no.ndla.network.tapir
 import cats.implicits.catsSyntaxEitherId
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.{Clock, SchemaImplicits}
-import no.ndla.common.configuration.BaseProps
+import no.ndla.common.SchemaImplicits
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.auth.AuthUtility
 import no.ndla.network.clients.MyNDLAApiClient
@@ -35,8 +34,6 @@ import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import scala.util.{Failure, Success}
 
 abstract class TapirController(using
-    props: BaseProps,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling

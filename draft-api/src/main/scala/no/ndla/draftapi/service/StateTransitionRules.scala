@@ -27,14 +27,14 @@ import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 class StateTransitionRules(using
-    draftRepository: DraftRepository,
+    draftRepository: => DraftRepository,
     clock: Clock,
-    articleApiClient: ArticleApiClient,
-    taxonomyApiClient: TaxonomyApiClient,
-    learningpathApiClient: LearningpathApiClient,
-    h5pApiClient: H5PApiClient,
+    articleApiClient: => ArticleApiClient,
+    taxonomyApiClient: => TaxonomyApiClient,
+    learningpathApiClient: => LearningpathApiClient,
+    h5pApiClient: => H5PApiClient,
     converterService: ConverterService,
-    searchApiClient: SearchApiClient
+    searchApiClient: => SearchApiClient
 ) {
   private[service] val checkIfArticleIsInUse: SideEffect =
     SideEffect.withDraftAndUser("checkIfArticleIsInUse")((article: Draft, user: TokenUser) =>

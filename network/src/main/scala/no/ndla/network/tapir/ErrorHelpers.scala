@@ -5,7 +5,7 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseProps
 import no.ndla.common.errors.ValidationException
 
-class ErrorHelpers(using props: BaseProps, clock: Clock) {
+class ErrorHelpers(using props: BaseProps, clock: => Clock) {
   val GENERIC                = "GENERIC"
   val NOT_FOUND              = "NOT_FOUND"
   val BAD_REQUEST            = "BAD_REQUEST"
