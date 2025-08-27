@@ -341,6 +341,10 @@ trait SearchConverterService {
         case lp: BelongsToLaerePlan => Some(lp.`tilhoerer-laereplan`.kode)
         case _                      => None
       }
+      val kompetansemaalSett = grepElement match {
+        case km: GrepKompetansemaal => Some(km.`tilhoerer-kompetansemaalsett`.kode)
+        case _                      => None
+      }
       val defaultTitle = grepElement.getTitle.find(_.spraak == "default")
       val titles       = GrepTitle.convertTitles(grepElement.getTitle)
       val title        = SearchableLanguageValues.fromFields(titles)
@@ -360,7 +364,7 @@ trait SearchConverterService {
           code = grepElement.kode,
           title = title,
           defaultTitle = defaultTitle.map(_.verdi),
-          laereplanCode = laererplan,
+          belongsTo = List(laererplan, kompetansemaalSett).flatten,
           gjenbrukAv = gjenbrukAv,
           erstattesAv = erstattesAv,
           domainObject = grepElement
