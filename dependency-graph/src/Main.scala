@@ -24,12 +24,15 @@ object Main {
 
   def parseModule(module: String): Unit = {
     val files = getScalaFilesRecursivly(module)
-    val trees = files.map(parseScalaFile)
-    println(s"Parsed ${trees.length} files in module $module")
+    val trees = files.flatMap(parseScalaFile)
+    println(s"Parsed ${files.length} files in module $module")
   }
 
   def filterFile(f: File): Boolean = {
-    f.getName.endsWith(".scala") && f.getName.contains("WriteService") && !f.getName.contains("Test")
+    f.getName.endsWith(".scala") &&
+    !f.toString.contains("/test/") &&
+    !f.toString.contains("/model/")
+    // && f.getName.contains("WriteService")
   }
 
   def getScalaFilesRecursivly(directory: String): List[String] = {
@@ -47,8 +50,10 @@ object Main {
 
   case class ClassWithArguments(
       name: String,
+      packageName: String,
       arguments: List[ParsedArgument]
   )
+
   case class ParsedArgument(
       name: String,
       argType: String,
@@ -62,6 +67,12 @@ object Main {
       typeName: String,
       textDocument: TextDocument
   ): Option[String] = {
+    if (typeName == "String") return Some("java.lang")
+    if (typeName == "Long") return Some("scala")
+    if (typeName == "Int") return Some("scala")
+    if (typeName.startsWith("List[")) return Some("scala")
+    if (typeName.startsWith("Seq[")) return Some("scala")
+    if (typeName.startsWith("Option[")) return Some("scala")
     val found = textDocument.occurrences.filter { occ =>
       occ.range.exists { r =>
         val paramStart = param.pos.startLine
@@ -73,12 +84,21 @@ object Main {
     }
     val refs = found.filter { occ => occ.role == REFERENCE }
 
+    def fixSymbol(symbol: String): String = {
+      symbol.replace("/", ".").stripSuffix(s".$typeName#")
+    }
+
     refs match {
       case Seq(head) =>
-        Some(head.symbol.replace("/", ".").stripSuffix(s".$typeName#"))
+        Some(fixSymbol(head.symbol))
       case _ =>
+        val textMatched = found.filter(occ => occ.symbol.endsWith(s"$typeName#"))
+        // TODO: There is probably some better way to find this reference that doesnt rely on picking one if there are multiple
+        if (textMatched.nonEmpty)
+          return textMatched.headOption.map(s => fixSymbol(s.symbol))
+
         println(
-          s"Could not find unique occurrence for param: $param in textDocument: ${textDocument.uri}, found: $found"
+          s"${textDocument.uri}: Could not find unique occurrence for param: ${param} found: $found"
         )
         None
     }
@@ -118,9 +138,9 @@ object Main {
     }
   }
 
-  def findClassArguments(cls: Defn.Class, textDocument: TextDocument): Unit = {
+  def findClassArguments(cls: Defn.Class, pkg: Pkg, textDocument: TextDocument): ClassWithArguments = {
     val argumentLists = cls.ctor.paramClauses
-    val params        = argumentLists.flatMap { list =>
+    val arguments     = argumentLists.flatMap { list =>
       val isImplicit = list.mod match {
         case Some(Mod.Using())    => true
         case Some(Mod.Implicit()) => true
@@ -129,18 +149,23 @@ object Main {
       list.values.flatMap(p => parseArgument(p, isImplicit, textDocument))
     }
 
-    params.foreach(println)
+    ClassWithArguments(
+      name = cls.name.value,
+      packageName = pkg.ref.syntax,
+      arguments = arguments.toList
+    )
   }
 
-  def handleTree(t: Tree, textDocument: TextDocument): Unit = {
-    t.children.collect { case pkg: Pkg =>
-      val classes        = pkg.body.children.collect { case x: Defn.Class => x }
-      val classArguments = classes.map(c => findClassArguments(c, textDocument))
+  def handleTree(t: Tree, textDocument: TextDocument): List[ClassWithArguments] = {
+    val x = t.children.collect { case pkg: Pkg =>
+      val classes = pkg.body.children.collect { case x: Defn.Class => x }
+      classes.map(c => findClassArguments(c, pkg, textDocument))
     }
+
+    x.flatten
   }
 
-  def parseScalaFile(filePath: String): String = {
-    println(s"Parsing: $filePath")
+  def parseScalaFile(filePath: String): List[ClassWithArguments] = {
     val semanticDBPath = new File(s"$filePath.semanticdb").toPath
     val dbBytes        = Files.readAllBytes(semanticDBPath)
     val textDocuments  = TextDocuments.parseFrom(dbBytes)
@@ -152,6 +177,5 @@ object Main {
     val input = Input.VirtualFile(path.toString, text)
     val tree  = input.parse[Source].get
     handleTree(tree, textDocument)
-    text
   }
 }
