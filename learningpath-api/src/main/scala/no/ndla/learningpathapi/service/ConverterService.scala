@@ -342,7 +342,9 @@ trait ConverterService {
           articleId = newLearningStep.articleId,
           `type` = StepType.valueOfOrError(newLearningStep.`type`),
           copyright = copyright,
-          showTitle = newLearningStep.showTitle
+          showTitle = newLearningStep.showTitle,
+          created = clock.now(),
+          lastUpdated = clock.now()
         )
       )
     }
@@ -382,7 +384,8 @@ trait ConverterService {
               title = step.title.filterNot(_.language == language),
               introduction = step.introduction.filterNot(_.language == language),
               description = step.description.filterNot(_.language == language),
-              embedUrl = step.embedUrl.filterNot(_.language == language)
+              embedUrl = step.embedUrl.filterNot(_.language == language),
+              lastUpdated = clock.now()
             )
           )
       }
@@ -401,7 +404,8 @@ trait ConverterService {
             learningPath.copy(
               title = learningPath.title.filterNot(_.language == language),
               description = learningPath.description.filterNot(_.language == language),
-              tags = learningPath.tags.filterNot(_.language == language)
+              tags = learningPath.tags.filterNot(_.language == language),
+              lastUpdated = clock.now()
             )
           )
       }
@@ -461,7 +465,8 @@ trait ConverterService {
           articleId = articleId,
           showTitle = updated.showTitle.getOrElse(existing.showTitle),
           `type` = stepType,
-          copyright = copyright
+          copyright = copyright,
+          lastUpdated = clock.now()
         )
       )
     }
@@ -519,7 +524,8 @@ trait ConverterService {
                 revision = None,
                 externalId = None,
                 learningPathId = None,
-                copyright = stepCopyright
+                copyright = stepCopyright,
+                lastUpdated = clock.now()
               )
             }
           )
@@ -712,6 +718,8 @@ trait ConverterService {
             metaUrl = createUrlToLearningStep(ls, lp),
             canEdit = lp.canEdit(user),
             status = ls.status.entryName,
+            created = ls.created,
+            lastUpdated = ls.lastUpdated,
             supportedLanguages = supportedLanguages
           )
         )

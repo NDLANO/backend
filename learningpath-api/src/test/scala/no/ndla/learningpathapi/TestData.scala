@@ -56,9 +56,10 @@ object TestData {
     List(),
     None,
     StepType.INTRODUCTION,
-    None
+    None,
+    today,
+    today
   )
-
   val domainLearningStep2: LearningStep = LearningStep(
     None,
     None,
@@ -71,7 +72,9 @@ object TestData {
     List(),
     None,
     learningpath.StepType.TEXT,
-    None
+    None,
+    today,
+    today
   )
 
   val sampleDomainLearningPath: LearningPath = LearningPath(

@@ -10,6 +10,7 @@ package no.ndla.common.model.domain.learningpath
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Title
 import no.ndla.language.Language.getSupportedLanguages
 
@@ -26,6 +27,8 @@ case class LearningStep(
     articleId: Option[Long],
     `type`: StepType,
     copyright: Option[LearningpathCopyright],
+    created: NDLADate,
+    lastUpdated: NDLADate,
     showTitle: Boolean = false,
     status: StepStatus = StepStatus.ACTIVE
 ) {

@@ -9,6 +9,7 @@
 package no.ndla.searchapi.service.search
 
 import io.circe.syntax.*
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Title
 import no.ndla.common.model.domain.learningpath.{
   EmbedType,
@@ -72,7 +73,9 @@ class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with Un
                 contributors = Seq.empty
               )
             ),
-            status = StepStatus.ACTIVE
+            status = StepStatus.ACTIVE,
+            created = NDLADate.now(),
+            lastUpdated = NDLADate.now()
           )
         )
       )
