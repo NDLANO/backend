@@ -45,22 +45,6 @@ object TestData {
   val writeScopeAuthMap: Map[String, String] = Map("Authorization" -> s"Bearer $writeScopeClientToken")
   val adminScopeAuthMap: Map[String, String] = Map("Authorization" -> s"Bearer $adminScopeClientToken")
 
-  val emptyMyNDLAUser: MyNDLAUser = MyNDLAUser(
-    id = 1,
-    feideId = "",
-    favoriteSubjects = Seq.empty,
-    userRole = UserRole.EMPLOYEE,
-    lastUpdated = today,
-    organization = "",
-    groups = Seq.empty,
-    username = "",
-    displayName = "",
-    email = "",
-    arenaEnabled = false,
-    arenaAccepted = false,
-    shareNameAccepted = false
-  )
-
   val domainLearningStep1: LearningStep = LearningStep(
     None,
     None,
