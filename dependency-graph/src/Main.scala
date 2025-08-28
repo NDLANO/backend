@@ -22,9 +22,14 @@ object Main {
     parseModule("draft-api")
   }
 
+  def findCyclicalDependencies(classes: List[ClassWithArguments]): Unit = {
+    ???
+  }
+
   def parseModule(module: String): Unit = {
-    val files = getScalaFilesRecursivly(module)
-    val trees = files.flatMap(parseScalaFile)
+    val files   = getScalaFilesRecursivly(module)
+    val classes = files.flatMap(parseScalaFile)
+    findCyclicalDependencies(classes)
     println(s"Parsed ${files.length} files in module $module")
   }
 
