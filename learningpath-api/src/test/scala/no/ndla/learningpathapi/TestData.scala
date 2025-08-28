@@ -23,6 +23,7 @@ import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.learningpathapi.model.domain.{SearchSettings, Sort}
 import common.learningpath.Introduction
+import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
 
 object TestData {
 
@@ -43,6 +44,22 @@ object TestData {
   val emptyScopeAuthMap: Map[String, String] = Map("Authorization" -> s"Bearer $emptyScopeClientToken")
   val writeScopeAuthMap: Map[String, String] = Map("Authorization" -> s"Bearer $writeScopeClientToken")
   val adminScopeAuthMap: Map[String, String] = Map("Authorization" -> s"Bearer $adminScopeClientToken")
+
+  val emptyMyNDLAUser: MyNDLAUser = MyNDLAUser(
+    id = 1,
+    feideId = "",
+    favoriteSubjects = Seq.empty,
+    userRole = UserRole.EMPLOYEE,
+    lastUpdated = today,
+    organization = "",
+    groups = Seq.empty,
+    username = "",
+    displayName = "",
+    email = "",
+    arenaEnabled = false,
+    arenaAccepted = false,
+    shareNameAccepted = false
+  )
 
   val domainLearningStep1: LearningStep = LearningStep(
     None,
