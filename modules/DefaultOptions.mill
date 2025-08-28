@@ -1,6 +1,7 @@
 package build.modules
 
 import mill.*
+import mill.api.BuildCtx
 import mill.scalalib.*
 
 trait DefaultOptions extends ScalaModule {
@@ -23,6 +24,9 @@ trait DefaultOptions extends ScalaModule {
     (name, versionCheck) => NDLAScalaOption(name, versionCheck)
 
   def sharedScalacOptions: T[Seq[String]] = Task {
+
+    val x = (BuildCtx.workspaceRoot / "apekatter").toString
+
     Seq[NDLAScalaOption](
       "-encoding",
       "utf8",
@@ -69,6 +73,7 @@ trait DefaultOptions extends ScalaModule {
       "-Yretain-trees"   -> scala3,
       "-Xmax-inlines:50" -> scala3,
       "-rewrite",
+      "-Xsemanticdb",
       "-source:3.4-migration",
       "-source:3.7-migration"
     ).filterByVersion(scalaVersion())
