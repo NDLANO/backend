@@ -109,7 +109,8 @@ trait SearchService extends StrictLogging {
           LearningPathStatus.PUBLISHED,
           LearningPathStatus.SUBMITTED,
           LearningPathStatus.UNLISTED
-        )
+        ),
+        grepCodes = List.empty
       )
 
       executeSearch(boolQuery(), settings).map(_.results)
@@ -178,6 +179,9 @@ trait SearchService extends StrictLogging {
 
       val verificationStatusFilter = settings.verificationStatus.map(status => termQuery("verificationStatus", status))
 
+      val grepCodesFilter =
+        if (settings.grepCodes.nonEmpty) Some(constantScoreQuery(termsQuery("grepCodes", settings.grepCodes))) else None
+
       val statusFilter = getStatusFilter(settings)
 
       val filters = List(
@@ -186,7 +190,8 @@ trait SearchService extends StrictLogging {
         articlesFilter,
         languageFilter,
         verificationStatusFilter,
-        statusFilter
+        statusFilter,
+        grepCodesFilter
       )
 
       val filteredSearch = queryBuilder.filter(filters.flatten)

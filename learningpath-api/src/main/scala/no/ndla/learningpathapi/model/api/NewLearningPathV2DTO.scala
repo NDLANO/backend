@@ -40,7 +40,9 @@ case class NewLearningPathV2DTO(
     @description("If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified")
     priority: Option[Priority],
     @description("An introduction")
-    introduction: Option[String]
+    introduction: Option[String],
+    @description("A list of codes from GREP API connected to the article")
+    grepCodes: Option[Seq[String]]
 )
 
 object NewLearningPathV2DTO {

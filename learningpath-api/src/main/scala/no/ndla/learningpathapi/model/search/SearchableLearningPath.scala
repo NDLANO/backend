@@ -29,7 +29,8 @@ case class SearchableLearningPath(
     tags: SearchableLanguageList,
     learningsteps: Seq[SearchableLearningStep],
     copyright: CopyrightDTO,
-    isBasedOn: Option[Long]
+    isBasedOn: Option[Long],
+    grepCodes: Seq[String]
 )
 
 object SearchableLearningPath {
