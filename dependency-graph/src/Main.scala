@@ -32,12 +32,44 @@ object Main {
     }
   }
 
-  def handleTree(t: Tree): Unit = {
-    t.children.collect { case cls: Pkg =>
-      println(cls.ref)
+  case class ParsedArgument(name: String, argType: String, isImplicit: Boolean, isLazyFunctionType: Boolean)
 
-      println(cls.getClass.getSimpleName)
-//      println(s"Class: ${cls.syntax}")
+  def parseArgument(param: Term.Param, isImplicit: Boolean): Option[ParsedArgument] = {
+    param.decltpe match {
+      case None        => None
+      case Some(value) =>
+        val (typeName, isFunc) = if (value.toString().startsWith("=>")) {
+          (value.toString().stripPrefix("=>").trim, true)
+        } else {
+          (value.toString(), false)
+        }
+
+        Some(ParsedArgument(param.name.value, typeName, isImplicit, isFunc))
+    }
+  }
+
+  def findClassArguments(cls: Defn.Class): Unit = {
+    val argumentLists = cls.ctor.paramClauses
+    val params        = argumentLists.flatMap { list =>
+      val isImplicit = list.mod match {
+        case Some(Mod.Using())    => true
+        case Some(Mod.Implicit()) => true
+        case _                    => false
+      }
+      list.values.flatMap(p => parseArgument(p, isImplicit))
+    }
+
+    params.foreach(println)
+  }
+
+  def handleTree(t: Tree): Unit = {
+    t.children.collect { case pkg: Pkg =>
+      println(pkg.ref)
+      println("Pkg: " + pkg.ref)
+
+      val imports        = pkg.body.children.collect { case x: Import => x }
+      val classes        = pkg.body.children.collect { case x: Defn.Class => x }
+      val classArguments = classes.map(findClassArguments)
     }
   }
 
