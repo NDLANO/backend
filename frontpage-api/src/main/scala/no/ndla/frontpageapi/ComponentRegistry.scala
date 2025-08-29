@@ -8,7 +8,6 @@
 
 package no.ndla.frontpageapi
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.frontpageapi.controller.*
@@ -18,14 +17,12 @@ import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{
-  AllErrors,
   ErrorHandling,
   ErrorHelpers,
   Routes,
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirErrorHandling,
   TapirHealthController
 }
 
@@ -34,9 +31,9 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   given clock: Clock                  = new Clock
   given errorHelpers: ErrorHelpers    = new ErrorHelpers
   given errorHandling: ErrorHandling  = new ControllerErrorHandling
-  given routes: Routes                = new Routes
-  given migrator: DBMigrator          = DBMigrator()
   given dataSource: DataSource        = DataSource.getDataSource
+  given migrator: DBMigrator          = DBMigrator()
+  given ndlaClient: NdlaClient        = new NdlaClient
 
   given DBSubjectPage                                    = new DBSubjectPage
   given DBFrontPage                                      = new DBFrontPage
@@ -45,6 +42,7 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   given frontPageRepository: FrontPageRepository         = new FrontPageRepository
   given filmFrontPageRepository: FilmFrontPageRepository = new FilmFrontPageRepository
   given converterService: ConverterService               = new ConverterService
+  given myndlaApiClient: MyNDLAApiClient                 = new MyNDLAApiClient
 
   given readService: ReadService   = new ReadService
   given writeService: WriteService = new WriteService
@@ -54,9 +52,6 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   given filmPageController: FilmPageController       = new FilmPageController
   given internController: InternController           = new InternController
   given healthController: TapirHealthController      = new TapirHealthController
-
-  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
-  given ndlaClient: NdlaClient           = new NdlaClient
 
   given swagger: SwaggerController = new SwaggerController(
     List(
@@ -70,4 +65,5 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   )
 
   given services: List[TapirController] = swagger.getServices()
+  given routes: Routes                  = new Routes
 }

@@ -1,11 +1,8 @@
 package no.ndla.frontpageapi.controller
 
-import no.ndla.common.Clock
-import no.ndla.common.configuration.BaseProps
 import no.ndla.common.errors.{NotFoundException, ValidationException}
 import no.ndla.frontpageapi.model.domain.Errors.{LanguageNotFoundException, SubjectPageNotFoundException}
-import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, TapirController}
+import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers}
 
 class ControllerErrorHandling(using errorHelpers: ErrorHelpers) extends ErrorHandling {
   import errorHelpers.*
