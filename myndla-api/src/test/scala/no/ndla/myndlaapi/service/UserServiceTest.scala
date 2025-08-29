@@ -24,9 +24,8 @@ import scalikejdbc.DBSession
 import scala.util.{Failure, Success, Try}
 
 class UserServiceTest extends UnitTestSuite with TestEnvironment {
-
-  val service: UserService                                         = spy(new UserService)
-  override lazy val folderConverterService: FolderConverterService = spy(new FolderConverterService)
+  override implicit lazy val folderConverterService: FolderConverterService = spy(new FolderConverterService)
+  val service: UserService                                                  = spy(new UserService)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -105,14 +104,14 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       .when(folderWriteService)
       .canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("feide", Some("feide"))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(userBefore)))
-    when(userRepository.updateUser(eqTo(feideId), any)(any)).thenReturn(Success(userAfterMerge))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(userBefore)))
+    when(userRepository.updateUser(eqTo(feideId), any)(using any)).thenReturn(Success(userAfterMerge))
 
     service.updateMyNDLAUserData(updatedUserData, Some(feideId)) should be(Success(expected))
 
-    verify(userRepository, times(1)).userWithFeideId(any)(any)
-    verify(userRepository, times(1)).updateUser(any, any)(any)
+    verify(userRepository, times(1)).userWithFeideId(any)(using any)
+    verify(userRepository, times(1)).updateUser(any, any)(using any)
   }
 
   test("That updateUserData fails if user does not exist") {
@@ -129,15 +128,15 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       .when(folderWriteService)
       .canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("feide", Some("feide"))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(None))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(None))
 
     service.updateMyNDLAUserData(updatedUserData, Some(feideId)) should be(
       Failure(NotFoundException(s"User with feide_id $feideId was not found"))
     )
 
-    verify(userRepository, times(1)).userWithFeideId(any)(any)
-    verify(userRepository, times(0)).updateUser(any, any)(any)
+    verify(userRepository, times(1)).userWithFeideId(any)(using any)
+    verify(userRepository, times(0)).updateUser(any, any)(using any)
   }
 
   test("That getMyNDLAUserData creates new UserData if no user exist") {
@@ -146,7 +145,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
     }).when(DBUtil).rollbackOnFailure(any())
-    when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(false))
+    when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(false))
 
     val feideId     = "feide"
     val feideGroups =
@@ -208,8 +207,8 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(feideUserInfo))
     when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))
     when(feideApiClient.getOrganization(any)).thenReturn(Success("oslo"))
-    when(userRepository.userWithFeideId(any)(any)).thenReturn(Success(None))
-    when(userRepository.insertUser(any, any[MyNDLAUserDocument])(any))
+    when(userRepository.userWithFeideId(any)(using any)).thenReturn(Success(None))
+    when(userRepository.insertUser(any, any[MyNDLAUserDocument])(using any))
       .thenReturn(Success(domainUserData))
 
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
@@ -217,9 +216,9 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     verify(feideApiClient, times(1)).getFeideExtendedUser(any)
     verify(feideApiClient, times(1)).getFeideGroups(any)
     verify(feideApiClient, times(1)).getOrganization(any)
-    verify(userRepository, times(1)).reserveFeideIdIfNotExists(any)(any)
-    verify(userRepository, times(1)).insertUser(any, any)(any)
-    verify(userRepository, times(0)).updateUser(any, any)(any)
+    verify(userRepository, times(1)).reserveFeideIdIfNotExists(any)(using any)
+    verify(userRepository, times(1)).insertUser(any, any)(using any)
+    verify(userRepository, times(0)).updateUser(any, any)(using any)
   }
 
   test("That getMyNDLAUserData returns already created user if it exists and was updated lately") {
@@ -228,7 +227,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
     }).when(DBUtil).rollbackOnFailure(any())
-    when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
+    when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(true))
 
     val feideId        = "feide"
     val domainUserData = MyNDLAUser(
@@ -269,15 +268,15 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     )
 
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
-    when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
+    when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(domainUserData)))
 
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
     verify(feideApiClient, times(0)).getFeideExtendedUser(any)
     verify(feideApiClient, times(0)).getFeideGroups(any)
-    verify(userRepository, times(1)).userWithFeideId(any)(any)
-    verify(userRepository, times(0)).insertUser(any, any)(any)
-    verify(userRepository, times(0)).updateUser(any, any)(any)
+    verify(userRepository, times(1)).userWithFeideId(any)(using any)
+    verify(userRepository, times(0)).insertUser(any, any)(using any)
+    verify(userRepository, times(0)).updateUser(any, any)(using any)
   }
 
   test("That getMyNDLAUserData returns already created user if it exists but needs update") {
@@ -286,7 +285,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       val func = i.getArgument[DBSession => Try[Nothing]](0)
       func(mock[DBSession])
     }).when(DBUtil).rollbackOnFailure(any())
-    when(userRepository.reserveFeideIdIfNotExists(any)(any)).thenReturn(Success(true))
+    when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(true))
 
     val feideId     = "feide"
     val feideGroups =
@@ -347,17 +346,17 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     when(feideApiClient.getFeideExtendedUser(Some(feideId))).thenReturn(Success(updatedFeideUser))
     when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))
     when(feideApiClient.getOrganization(Some(feideId))).thenReturn(Success("oslo"))
-    when(userRepository.userWithFeideId(eqTo(feideId))(any)).thenReturn(Success(Some(domainUserData)))
-    when(userRepository.updateUser(any, any)(any)).thenReturn(Success(domainUserData))
+    when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(domainUserData)))
+    when(userRepository.updateUser(any, any)(using any)).thenReturn(Success(domainUserData))
 
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
     verify(feideApiClient, times(1)).getFeideExtendedUser(any)
     verify(feideApiClient, times(1)).getFeideGroups(any)
     verify(feideApiClient, times(1)).getOrganization(any)
-    verify(userRepository, times(1)).userWithFeideId(any)(any)
-    verify(userRepository, times(0)).insertUser(any, any)(any)
-    verify(userRepository, times(1)).updateUser(any, any)(any)
+    verify(userRepository, times(1)).userWithFeideId(any)(using any)
+    verify(userRepository, times(0)).insertUser(any, any)(using any)
+    verify(userRepository, times(1)).updateUser(any, any)(using any)
   }
 
 }
