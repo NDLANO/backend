@@ -14,21 +14,25 @@ import no.ndla.common.model.domain.draft.*
 import no.ndla.draftapi.TestData.searchSettings
 import no.ndla.draftapi.*
 import no.ndla.draftapi.model.domain.*
+import no.ndla.draftapi.service.ConverterService
 import no.ndla.language.Language
 import no.ndla.mapping.License
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 import scala.util.Success
 
 class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
+  override implicit lazy val e4sClient: NdlaE4sClient       =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override lazy val articleSearchService                     = new ArticleSearchService
-  override lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
+  override implicit lazy val articleSearchService: ArticleSearchService = new ArticleSearchService
+  override implicit lazy val articleIndexService: ArticleIndexService   = new ArticleIndexService {
     override val indexShards = 1
   }
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   val byNcSa: DraftCopyright = DraftCopyright(
     Some(License.CC_BY_NC_SA.toString),

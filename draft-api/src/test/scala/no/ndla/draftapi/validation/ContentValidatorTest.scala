@@ -12,6 +12,7 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright}
 import no.ndla.common.model.domain.language.OptLanguageFields
+import no.ndla.draftapi.service.ConverterService
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY_SA
@@ -20,11 +21,11 @@ import java.util.UUID
 import scala.util.Failure
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
-  override lazy val contentValidator                   = new ContentValidator()
-  override lazy val converterService: ConverterService = new ConverterService
-  val validDocument                                    = """<section><h1>heisann</h1><h2>heia</h2></section>"""
-  val invalidDocument                                  = """<section><invalid></invalid></section>"""
-  val validDisclaimer                                  =
+  override implicit lazy val contentValidator: ContentValidator = new ContentValidator()
+  override implicit lazy val converterService: ConverterService = new ConverterService
+  val validDocument                                             = """<section><h1>heisann</h1><h2>heia</h2></section>"""
+  val invalidDocument                                           = """<section><invalid></invalid></section>"""
+  val validDisclaimer                                           =
     """<p><strong>hallo!</strong><ndlaembed data-content-id="123" data-open-in="current-context" data-resource="content-link" data-content-type="article">test</ndlaembed></p>"""
 
   val articleToValidate: Draft =
