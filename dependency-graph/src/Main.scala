@@ -154,7 +154,6 @@ object Main {
     val classes = files.flatMap(parseScalaFile)
     println(s"Extracted classes and their constructor arguments in $module\n\n")
     findCyclicalDependencies(classes)
-    println(s"Parsed ${files.length} files in module $module")
   }
 
   def filterFile(f: File): Boolean = {
