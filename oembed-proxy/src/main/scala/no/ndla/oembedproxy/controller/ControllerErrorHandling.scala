@@ -1,23 +1,20 @@
 /*
  * Part of NDLA oembed-proxy
- * Copyright (C) 2016 NDLA
+ * Copyright (C) 2025 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.oembedproxy.model
+package no.ndla.oembedproxy.controller
 
-import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.*
-import no.ndla.oembedproxy.Props
+import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHandling, ErrorHelpers}
+import no.ndla.oembedproxy.model.{InvalidUrlException, ProviderNotSupportedException}
 
-trait ErrorHandling extends TapirErrorHandling with StrictLogging {
-  this: Props & Clock =>
-
-  import ErrorHelpers.*
+class ControllerErrorHandling(using clock: Clock, errorHelpers: ErrorHelpers) extends ErrorHandling {
+  import errorHelpers.*
 
   private val statusCodesToPassAlong                                                      = List(401, 403, 404, 410)
   private def getRequestExceptionStatusCode(exception: HttpRequestException): Option[Int] =
@@ -26,7 +23,7 @@ trait ErrorHandling extends TapirErrorHandling with StrictLogging {
       case _                                                     => None
     }
 
-  override def handleErrors: PartialFunction[Throwable, ErrorBody] = {
+  override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case ivu: InvalidUrlException =>
       ErrorBody(INVALID_URL, ivu.getMessage, clock.now(), 400)
     case pnse: ProviderNotSupportedException =>
@@ -48,7 +45,3 @@ trait ErrorHandling extends TapirErrorHandling with StrictLogging {
       }
   }
 }
-
-case class InvalidUrlException(message: String)           extends RuntimeException(message)
-case class ProviderNotSupportedException(message: String) extends RuntimeException(message)
-class DoNotUpdateMemoizeException(message: String)        extends RuntimeException(message)
