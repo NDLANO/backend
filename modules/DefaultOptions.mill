@@ -36,7 +36,7 @@ trait DefaultOptions extends ScalaModule {
       "-language:experimental.macros",
       "-language:higherKinds",
       "-language:implicitConversions",
-//      "-Xfatal-warnings",
+      "-Xfatal-warnings",
       "-deprecation",
       "-Xlint:adapted-args"           -> scala2,
       "-Xlint:constant"               -> scala2,
@@ -72,10 +72,7 @@ trait DefaultOptions extends ScalaModule {
       "-Wconf:src=src_managed/.*:silent",
       "-Yretain-trees"   -> scala3,
       "-Xmax-inlines:50" -> scala3,
-      "-rewrite",
-      "-Xsemanticdb",
-      "-source:3.4-migration",
-      "-source:3.7-migration"
+      "-Xsemanticdb"
     ).filterByVersion(scalaVersion())
   }
 

@@ -8,11 +8,9 @@
 
 package no.ndla.myndlaapi.controller
 
-import no.ndla.common.Clock
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.FolderStatus
-import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.model.api.{
   FolderDTO,
   FolderSortRequestDTO,
@@ -46,9 +44,7 @@ class FolderController(using
     folderWriteService: FolderWriteService,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
-    clock: Clock,
-    myNDLAApiClient: MyNDLAApiClient,
-    props: Props
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   override val serviceName: String = "folders"
 
