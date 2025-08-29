@@ -10,7 +10,6 @@ package no.ndla.myndlaapi.repository
 
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
 import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.uuidParameterFactory
@@ -21,7 +20,7 @@ import scalikejdbc.*
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
-class RobotRepository(using clock: Clock, dbUtility: DBUtility) extends StrictLogging {
+class RobotRepository(using dbUtility: DBUtility) extends StrictLogging {
   def getSession(readOnly: Boolean): DBSession =
     if (readOnly) ReadOnlyAutoSession
     else AutoSession

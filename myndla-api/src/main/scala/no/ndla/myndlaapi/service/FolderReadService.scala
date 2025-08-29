@@ -9,7 +9,6 @@
 package no.ndla.myndlaapi.service
 
 import cats.implicits.*
-import no.ndla.common.Clock
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.SingleResourceStatsDTO
@@ -22,7 +21,7 @@ import no.ndla.myndlaapi.FavoriteFolderDefaultName
 import no.ndla.myndlaapi.integration.LearningPathApiClient
 import no.ndla.myndlaapi.model.api.{ExportedUserDataDTO, FolderDTO, ResourceDTO, StatsDTO, UserFolderDTO, UserStatsDTO}
 import no.ndla.myndlaapi.model.{api, domain}
-import no.ndla.myndlaapi.repository.{FolderRepository, RobotRepository, UserRepository}
+import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.model.{FeideAccessToken, FeideID}
 import scalikejdbc.DBSession
@@ -36,12 +35,9 @@ class FolderReadService(using
     folderRepository: FolderRepository,
     userRepository: UserRepository,
     feideApiClient: FeideApiClient,
-    clock: Clock,
-    configService: ConfigService,
     userService: => UserService,
     dbUtility: DBUtility,
-    learningPathApiClient: LearningPathApiClient,
-    robotRepository: RobotRepository
+    learningPathApiClient: LearningPathApiClient
 ) {
   private def getSubFoldersAndResources(
       topFolders: List[domain.Folder],

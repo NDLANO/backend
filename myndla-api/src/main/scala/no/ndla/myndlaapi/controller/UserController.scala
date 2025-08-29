@@ -8,8 +8,6 @@
 
 package no.ndla.myndlaapi.controller
 
-import no.ndla.common.Clock
-import no.ndla.myndlaapi.Props
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.{ErrorHelpers, TapirController}
@@ -29,9 +27,7 @@ class UserController(using
     folderReadService: FolderReadService,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient,
-    clock: Clock,
-    props: Props
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   override val serviceName: String = "users"
 
