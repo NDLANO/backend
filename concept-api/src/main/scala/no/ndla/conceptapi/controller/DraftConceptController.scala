@@ -18,7 +18,7 @@ import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
-import no.ndla.conceptapi.service.{ConverterService, ReadService, StateTransitionRules, WriteService}
+import no.ndla.conceptapi.service.{ReadService, StateTransitionRules, WriteService}
 import no.ndla.conceptapi.Props
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.clients.MyNDLAApiClient

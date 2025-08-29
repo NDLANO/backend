@@ -8,7 +8,6 @@
 
 package no.ndla.conceptapi.repository
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.common.model.domain.concept
 import no.ndla.common.model.domain.concept.ConceptContent
@@ -25,11 +24,11 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
 
   override implicit lazy val dataSource: DataSource = testDataSource.get
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
-  var repository: PublishedConceptRepository        = _
+  var repository: PublishedConceptRepository        = scala.compiletime.uninitialized
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
-      sql"delete from ${PublishedConcept.table};".execute()(session)
+      sql"delete from ${PublishedConcept.table};".execute()(using session)
     })
   }
 

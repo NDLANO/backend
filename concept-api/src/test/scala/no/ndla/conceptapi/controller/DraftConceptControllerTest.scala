@@ -15,7 +15,6 @@ import no.ndla.conceptapi.model.search
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.database.DataSource
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest

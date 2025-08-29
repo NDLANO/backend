@@ -9,7 +9,6 @@
 package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.StrictLogging
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.conceptapi.controller.{
   ConceptControllerHelpers,

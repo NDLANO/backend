@@ -34,37 +34,37 @@ import no.ndla.network.tapir.auth.Permission
 
 class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplication[ConceptApiProperties] {
   given props: ConceptApiProperties = properties
-  given migrator: DBMigrator        = DBMigrator(
+
+  given clock: Clock                       = new Clock
+  given e4sClient: NdlaE4sClient           = Elastic4sClientFactory.getClient(props.SearchServer)
+  given dataSource: DataSource             = DataSource.getDataSource
+  given errorHelpers: ErrorHelpers         = new ErrorHelpers
+  given errorHandling: ErrorHandling       = new ControllerErrorHandling
+  given searchLanguage: SearchLanguage     = new SearchLanguage
+  given converterService: ConverterService = new ConverterService
+
+  given migrator: DBMigrator = DBMigrator(
     new V23__SubjectNameAsTags(props),
     new V25__SubjectNameAsTagsPublished(props)
   )
 
-  given dataSource: DataSource         = DataSource.getDataSource
-  given errorHelpers: ErrorHelpers     = new ErrorHelpers
-  given errorHandling: ErrorHandling   = new ControllerErrorHandling
-  given searchLanguage: SearchLanguage = new SearchLanguage
-
   given draftConceptRepository: DraftConceptRepository         = new DraftConceptRepository
   given publishedConceptRepository: PublishedConceptRepository = new PublishedConceptRepository
 
-  given draftConceptSearchService: DraftConceptSearchService         = new DraftConceptSearchService
   given searchConverterService: SearchConverterService               = new SearchConverterService
-  given draftConceptIndexService: DraftConceptIndexService           = new DraftConceptIndexService
   given publishedConceptIndexService: PublishedConceptIndexService   = new PublishedConceptIndexService
   given publishedConceptSearchService: PublishedConceptSearchService = new PublishedConceptSearchService
-
-  given e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
+  given draftConceptIndexService: DraftConceptIndexService           = new DraftConceptIndexService
+  given draftConceptSearchService: DraftConceptSearchService         = new DraftConceptSearchService
 
   given ndlaClient: NdlaClient           = new NdlaClient
   given searchApiClient: SearchApiClient = new SearchApiClient(props.SearchApiUrl)
   given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
 
-  given stateTransitionRules: StateTransitionRules = new StateTransitionRules
-  given writeService: WriteService                 = new WriteService
-  given readService: ReadService                   = new ReadService
-  given converterService: ConverterService         = new ConverterService
-  given clock: Clock                               = new Clock
-  given contentValidator: ContentValidator         = new ContentValidator
+  implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
+  implicit lazy val writeService: WriteService                 = new WriteService
+  given readService: ReadService                               = new ReadService
+  given contentValidator: ContentValidator                     = new ContentValidator
 
   given conceptControllerHelpers: ConceptControllerHelpers = new ConceptControllerHelpers
 

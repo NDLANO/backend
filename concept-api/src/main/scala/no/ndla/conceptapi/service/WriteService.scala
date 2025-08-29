@@ -36,7 +36,7 @@ class WriteService(using
     draftConceptIndexService: DraftConceptIndexService,
     publishedConceptIndexService: PublishedConceptIndexService,
     searchApiClient: SearchApiClient,
-    stateTransitionRules: StateTransitionRules,
+    stateTransitionRules: => StateTransitionRules,
     clock: Clock
 ) extends StrictLogging {
 

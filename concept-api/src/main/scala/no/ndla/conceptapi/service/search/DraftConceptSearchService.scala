@@ -17,7 +17,6 @@ import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.ResultWindowTooLargeException
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.DraftSearchSettings
-import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.tapir.ErrorHandling
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
@@ -30,7 +29,6 @@ import scala.util.{Failure, Success, Try}
 class DraftConceptSearchService(using
     e4sClient: NdlaE4sClient,
     draftConceptIndexService: DraftConceptIndexService,
-    converterService: ConverterService,
     searchConverterService: SearchConverterService,
     props: Props,
     errorHandling: ErrorHandling
