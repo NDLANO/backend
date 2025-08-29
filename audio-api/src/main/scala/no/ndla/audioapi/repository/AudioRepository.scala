@@ -9,22 +9,14 @@
 package no.ndla.audioapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.audioapi.Props
-import no.ndla.network.tapir.ErrorHandling
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, Series}
 import no.ndla.common.CirceUtil
-import no.ndla.database.DataSource
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class AudioRepository(using
-    dataSource: DataSource,
-    props: Props,
-    errorHandling: ErrorHandling
-) extends StrictLogging
-    with Repository[AudioMetaInformation] {
+class AudioRepository extends StrictLogging with Repository[AudioMetaInformation] {
   def audioCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
     sql"select count(*) from ${AudioMetaInformation.table}"
       .map(rs => rs.long("count"))

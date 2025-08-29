@@ -19,7 +19,6 @@ import no.ndla.audioapi.model.search.SearchableSeries
 import no.ndla.audioapi.repository.SeriesRepository
 import no.ndla.common.CirceUtil
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
-import no.ndla.audioapi.repository.AudioRepository
 
 import scala.util.{Failure, Success, Try}
 
@@ -27,7 +26,6 @@ class SeriesIndexService(using
     elastic4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
     seriesRepository: SeriesRepository,
-    audioRepository: AudioRepository,
     props: Props,
     searchLanguage: SearchLanguage
 ) extends IndexService[Series, SearchableSeries]

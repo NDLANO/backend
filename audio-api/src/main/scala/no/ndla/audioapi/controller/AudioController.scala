@@ -14,10 +14,8 @@ import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api.*
 import no.ndla.audioapi.model.domain.{AudioType, SearchSettings}
-import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioSearchService, SearchConverterService}
-import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.common.Clock
+import no.ndla.audioapi.service.{ReadService, WriteService}
 import no.ndla.common.errors.FileTooBigException
 import no.ndla.language.Language
 import no.ndla.common.implicits.*
@@ -38,13 +36,10 @@ import java.io.File
 import scala.util.{Failure, Success, Try}
 
 class AudioController(using
-    clock: Clock,
-    audioRepository: AudioRepository,
     readService: ReadService,
     writeService: WriteService,
     audioSearchService: AudioSearchService,
     searchConverterService: SearchConverterService,
-    converterService: ConverterService,
     props: Props,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,

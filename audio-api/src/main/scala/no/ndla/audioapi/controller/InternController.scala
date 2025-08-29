@@ -16,12 +16,11 @@ import no.ndla.audioapi.model.api.AudioMetaDomainDumpDTO
 import no.ndla.audioapi.model.domain.AudioMetaInformation
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
-import no.ndla.audioapi.service.{ConverterService, ReadService}
+import no.ndla.audioapi.service.ReadService
 import no.ndla.common.errors.NotFoundException
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.common.Clock
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.StatusCode
 import sttp.tapir.*
@@ -32,7 +31,6 @@ import scala.util.{Failure, Success}
 
 class InternController(using
     audioIndexService: AudioIndexService,
-    converterService: ConverterService,
     audioRepository: AudioRepository,
     seriesIndexService: SeriesIndexService,
     tagIndexService: TagIndexService,
@@ -40,7 +38,6 @@ class InternController(using
     props: Props,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   override val prefix: EndpointInput[Unit] = "intern"

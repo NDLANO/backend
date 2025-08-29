@@ -15,7 +15,7 @@ import no.ndla.audioapi.model.Sort
 import no.ndla.audioapi.model.api.*
 import no.ndla.audioapi.model.domain.SeriesSearchSettings
 import no.ndla.audioapi.service.search.{SearchConverterService, SeriesSearchService}
-import no.ndla.audioapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.audioapi.service.{ReadService, WriteService}
 import no.ndla.language.Language
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -24,7 +24,6 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.network.tapir.{ErrorHelpers, TapirController}
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.common.Clock
 import sttp.model.StatusCode
 import sttp.tapir.EndpointIO.annotations.{header, jsonbody}
 import sttp.tapir.generic.auto.*
@@ -38,11 +37,9 @@ class SeriesController(using
     writeService: WriteService,
     seriesSearchService: SeriesSearchService,
     searchConverterService: SearchConverterService,
-    converterService: ConverterService,
     props: Props,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   private val queryString = query[Option[String]]("query")

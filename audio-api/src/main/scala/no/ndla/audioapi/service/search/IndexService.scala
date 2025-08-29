@@ -15,7 +15,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
-import no.ndla.audioapi.repository.{AudioRepository, Repository}
+import no.ndla.audioapi.repository.Repository
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 
@@ -23,8 +23,6 @@ import scala.util.{Failure, Success, Try}
 
 abstract class IndexService[D, T](using
     e4sClient: NdlaE4sClient,
-    searchConverterService: SearchConverterService,
-    audioRepository: AudioRepository,
     props: Props,
     searchLanguage: SearchLanguage
 ) extends BaseIndexService

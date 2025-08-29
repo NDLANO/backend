@@ -14,20 +14,12 @@ import no.ndla.audioapi.model.domain
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 import cats.implicits.*
-import no.ndla.audioapi.Props
-import no.ndla.network.tapir.ErrorHandling
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
-import no.ndla.database.DataSource
 
 import scala.util.{Failure, Success, Try}
 
-class SeriesRepository(using
-    dataSource: DataSource,
-    props: Props,
-    errorHandling: ErrorHandling
-) extends StrictLogging
-    with Repository[Series] {
+class SeriesRepository extends StrictLogging with Repository[Series] {
 
   /** Method to fetch single series from database
     * @param id

@@ -8,18 +8,14 @@
 
 package no.ndla.audioapi.controller
 
-import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.NDLAS3Client
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.network.tapir.{ErrorHelpers, TapirHealthController}
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.common.Clock
 
 class HealthController(using
     s3Client: NDLAS3Client,
     audioRepository: AudioRepository,
-    props: Props,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ControllerErrorHandling
