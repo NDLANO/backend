@@ -23,9 +23,8 @@ import software.amazon.awssdk.services.transcribe.model.{
 import scala.util.Success
 
 class TranscriptionServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val transcriptionService: TranscriptionService = new TranscriptionService
-  override lazy val brightcoveClient: NdlaBrightcoveClient     = new NdlaBrightcoveClient
-  override lazy val props: AudioApiProperties                  = new AudioApiProperties {
+  override implicit lazy val transcriptionService: TranscriptionService = new TranscriptionService
+  override implicit lazy val props: AudioApiProperties                  = new AudioApiProperties {
     override val BrightcoveAccountId: Prop[String]    = propFromTestValue("BRIGHTCOVE_ACCOUNT_ID", "123")
     override val BrightcoveClientId: Prop[String]     = propFromTestValue("BRIGHTCOIVE_CLIENT_ID", "123")
     override val BrightcoveClientSecret: Prop[String] = propFromTestValue("BRIGHTCOVE_CLIENT_SECRET", "123")
