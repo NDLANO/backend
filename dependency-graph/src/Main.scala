@@ -66,10 +66,10 @@ object Main {
 //    println(s"\nDependency Graph Summary:")
 //    println(s"Total classes: ${nodes.size}")
 //    println(s"Total dependencies: ${edges.size}")
-
+//
     if (edges.nonEmpty) {
 //      println(s"\nDependencies found:")
-      edges.groupBy(_.from).foreach { case (from, deps) =>
+      edges.groupBy(_.from).toSeq.sortBy(_._1.toString).foreach { case (from, deps) =>
         val depList = deps.map(_.to.toString).mkString(", ")
 //        println(s"  $from -> [$depList]")
       }
@@ -87,10 +87,8 @@ object Main {
 
     val genericPattern = """^(\w+)\[(.+)\]$""".r
     cleanType match {
-      case genericPattern(containerType, innerType) =>
-        innerType.trim
-      case _ =>
-        cleanType
+      case genericPattern(containerType, innerType) => innerType.trim
+      case _                                        => cleanType
     }
   }
 
@@ -109,44 +107,70 @@ object Main {
   }
 
   def detectCycles(graph: DependencyGraph): List[List[ClassIdentifier]] = {
-    var visited        = Set.empty[ClassIdentifier]
-    var recursionStack = Set.empty[ClassIdentifier]
-    var cycles         = List.empty[List[ClassIdentifier]]
+    var globalVisited = Set.empty[ClassIdentifier]
+    var cycles        = List.empty[List[ClassIdentifier]]
 
-    def dfs(node: ClassIdentifier, path: List[ClassIdentifier]): Unit = {
-      if (recursionStack.contains(node)) {
-        // Found a cycle - extract the cycle from the path
-        val cycleStart = path.indexOf(node)
-        if (cycleStart >= 0) {
-          val cycle = path.drop(cycleStart)
-          // Only add cycles that have more than one node (avoid self-references unless they're real)
-          if (cycle.size > 1 || graph.dependenciesOf(node).contains(node)) {
-            cycles = cycle :: cycles
+    def dfsFromNode(startNode: ClassIdentifier): Unit = {
+      var recursionStack = Set.empty[ClassIdentifier]
+      var localVisited   = Set.empty[ClassIdentifier]
+
+      def dfs(node: ClassIdentifier, path: List[ClassIdentifier]): Unit = {
+        if (recursionStack.contains(node)) {
+          // Found a cycle - extract the cycle from the path
+          val cycleStart = path.indexOf(node)
+          if (cycleStart >= 0) {
+            val cycle = path.drop(cycleStart)
+            // Only add cycles that have more than one node (avoid self-references unless they're real)
+            if (cycle.size > 1 || graph.dependenciesOf(node).contains(node)) {
+              cycles = cycle :: cycles
+            }
           }
+          return
         }
-        return
+
+        if (localVisited.contains(node)) return
+        localVisited += node
+        recursionStack += node
+        val dependencies = graph.dependenciesOf(node)
+        dependencies.foreach { dep => dfs(dep, node :: path) }
+        recursionStack -= node
       }
 
-      if (visited.contains(node)) return
-
-      visited += node
-      recursionStack += node
-
-      val dependencies = graph.dependenciesOf(node)
-      dependencies.foreach { dep =>
-        dfs(dep, node :: path)
-      }
-
-      recursionStack -= node
-    }
-
-    graph.nodes.foreach { node =>
-      if (!visited.contains(node)) {
-        dfs(node, List.empty)
+      if (!globalVisited.contains(startNode)) {
+        dfs(startNode, List.empty)
+        globalVisited ++= localVisited
       }
     }
 
-    cycles.distinct
+    graph.nodes.foreach { node => dfsFromNode(node) }
+
+    // Additional check for direct 2-node cycles that might be missed by DFS
+    val directCycles = for {
+      nodeA <- graph.nodes
+      nodeB <- graph.dependenciesOf(nodeA)
+      if graph.dependenciesOf(nodeB).contains(nodeA) && nodeA != nodeB
+      // To avoid duplicates, only include cycles where nodeA < nodeB lexicographically
+      if nodeA.toString < nodeB.toString
+    } yield List(nodeA, nodeB)
+
+    val allCycles = (cycles ++ directCycles).distinct
+
+    // Filter out cycles that are not actually direct paths
+    val validCycles = allCycles.filter { cycle =>
+      // For 2-node cycles, verify that the dependency actually exists
+      if (cycle.size == 2) {
+        val nodeA = cycle(0)
+        val nodeB = cycle(1)
+        graph.dependenciesOf(nodeA).contains(nodeB) && graph.dependenciesOf(nodeB).contains(nodeA)
+      } else {
+        // For longer cycles, verify each step in the path
+        cycle.zip(cycle.tail :+ cycle.head).forall { case (from, to) =>
+          graph.dependenciesOf(from).contains(to)
+        }
+      }
+    }
+
+    validCycles
   }
 
   def parseModule(module: String): Unit = {
