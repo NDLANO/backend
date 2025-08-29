@@ -17,7 +17,7 @@ import java.time.Duration
 import scala.util.{Failure, Success, Try}
 import sys.env
 
-abstract class ElasticsearchIntegrationSuite extends UnitTestSuite with ContainerSuite {
+trait ElasticsearchIntegrationSuite extends UnitTestSuite with ContainerSuite {
   val EnableElasticsearchContainer: Boolean = true
   val ElasticsearchImage: String            = "c3f7a34" // elasticsearch 8.18.1
 

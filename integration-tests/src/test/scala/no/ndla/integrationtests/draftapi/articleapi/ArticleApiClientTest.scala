@@ -8,15 +8,17 @@
 
 package no.ndla.integrationtests.draftapi.articleapi
 
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.{ArticleApiProperties, TestData}
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.domain.{ContributorType, Priority}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{NDLADate, domain as common}
+import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.ContentIdDTO
+import no.ndla.draftapi.service.ConverterService
 import no.ndla.integrationtests.UnitSuite
-import no.ndla.network.AuthUser
+import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.validation.HtmlTagRules
@@ -34,7 +36,7 @@ class ArticleApiClientTest
     with DatabaseIntegrationSuite
     with UnitSuite
     with draftapi.TestEnvironment {
-  override lazy val ndlaClient = new NdlaClient
+  override implicit lazy val ndlaClient: NdlaClient = new NdlaClient
 
   // NOTE: There is some weirdness with loading the resources in validation library if this isn't called.
   //       For some reason this fixes that.
@@ -80,8 +82,8 @@ class ArticleApiClientTest
     super.afterAll()
   }
 
-  val idResponse: ContentIdDTO       = ContentIdDTO(1)
-  override lazy val converterService = new ConverterService
+  val idResponse: ContentIdDTO                                  = ContentIdDTO(1)
+  override implicit lazy val converterService: ConverterService = new ConverterService
 
   val testCopyright: common.draft.DraftCopyright = common.draft.DraftCopyright(
     Some("CC-BY-SA-4.0"),
@@ -141,9 +143,9 @@ class ArticleApiClientTest
   val authHeaderMap: Map[String, String] = Map("Authorization" -> s"Bearer $exampleToken")
   val authUser: TokenUser                = TokenUser.SystemUser.copy(originalToken = Some(exampleToken))
 
-  class LocalArticleApiTestData extends articleapi.Props with articleapi.TestDataT {
-    override lazy val props: ArticleApiProperties = articleApiProperties
-    val td                                        = new TestDataClass
+  class LocalArticleApiTestData extends articleapi.Props {
+    implicit lazy val props: ArticleApiProperties = articleApiProperties
+    val td                                        = new TestData
 
     def setupArticles(): Try[Boolean] =
       (1L to 10)
