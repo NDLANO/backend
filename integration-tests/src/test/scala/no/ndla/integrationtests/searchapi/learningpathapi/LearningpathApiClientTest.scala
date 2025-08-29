@@ -48,6 +48,7 @@ class LearningpathApiClientTest
     override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
     override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", "testschema")
     override def SearchServer: String       = esHost
+    override def SearchIndex: String        = "test-learningpath"
   }
 
   var learningpathApi: learningpathapi.MainClass = null
