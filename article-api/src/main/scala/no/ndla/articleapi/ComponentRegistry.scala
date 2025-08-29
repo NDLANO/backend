@@ -44,9 +44,33 @@ import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplication[ArticleApiProperties] {
   given props: ArticleApiProperties  = properties
   given dataSource: DataSource       = DataSource.getDataSource
+  given clock: Clock                 = new Clock
   given errorHelpers: ErrorHelpers   = new ErrorHelpers
   given errorHandling: ErrorHandling = new ControllerErrorHandling
-  given routes: Routes               = new Routes
+
+  given e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
+  given searchLanguage: SearchLanguage                 = new SearchLanguage
+  given dbUtility: DBUtility                           = new DBUtility
+  given dbArticle: DBArticle                           = new DBArticle
+  given articleRepository: ArticleRepository           = new ArticleRepository
+  given converterService: ConverterService             = new ConverterService
+  given redisClient: RedisClient                       = new RedisClient(props.RedisHost, props.RedisPort)
+  given memoizeHelpers: MemoizeHelpers                 = new MemoizeHelpers
+  given ndlaClient: NdlaClient                         = new NdlaClient
+  given searchApiClient: SearchApiClient               = new SearchApiClient(props.SearchApiUrl)
+  given feideApiClient: FeideApiClient                 = new FeideApiClient
+  given myndlaApiClient: MyNDLAApiClient               = new MyNDLAApiClient
+  given frontpageApiClient: FrontpageApiClient         = new FrontpageApiClient
+  given imageApiClient: ImageApiClient                 = new ImageApiClient
+  given contentValidator: ContentValidator             = new ContentValidator()
+  given searchConverterService: SearchConverterService = new SearchConverterService
+  given articleIndexService: ArticleIndexService       = new ArticleIndexService
+  given articleSearchService: ArticleSearchService     = new ArticleSearchService
+  given readService: ReadService                       = new ReadService
+  given writeService: WriteService                     = new WriteService
+  given internController: InternController             = new InternController
+  given articleControllerV2: ArticleControllerV2       = new ArticleControllerV2
+  given healthController: TapirHealthController        = new TapirHealthController
 
   given migrator: DBMigrator = DBMigrator(
     new R__SetArticleLanguageFromTaxonomy(props),
@@ -59,41 +83,6 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
     new V55__SetHideBylineForImagesNotCopyrighted(props)
   )
 
-  given clock: Clock                   = new Clock
-  given e4sClient: NdlaE4sClient       = Elastic4sClientFactory.getClient(props.SearchServer)
-  given searchLanguage: SearchLanguage = new SearchLanguage
-  given dbUtility: DBUtility           = new DBUtility
-  given dbArticle: DBArticle           = new DBArticle
-  given memoizeHelpers: MemoizeHelpers = new MemoizeHelpers
-
-  // Infrastructure clients
-  given ndlaClient: NdlaClient                 = new NdlaClient
-  given searchApiClient: SearchApiClient       = new SearchApiClient(props.SearchApiUrl)
-  given feideApiClient: FeideApiClient         = new FeideApiClient
-  given myndlaApiClient: MyNDLAApiClient       = new MyNDLAApiClient
-  given redisClient: RedisClient               = new RedisClient(props.RedisHost, props.RedisPort)
-  given frontpageApiClient: FrontpageApiClient = new FrontpageApiClient
-  given imageApiClient: ImageApiClient         = new ImageApiClient
-
-  // Repository
-  given articleRepository: ArticleRepository = new ArticleRepository
-
-  // Services
-  given converterService: ConverterService             = new ConverterService
-  given contentValidator: ContentValidator             = new ContentValidator()
-  given searchConverterService: SearchConverterService = new SearchConverterService
-  given readService: ReadService                       = new ReadService
-  given writeService: WriteService                     = new WriteService
-
-  // Search services
-  given articleSearchService: ArticleSearchService = new ArticleSearchService
-  given articleIndexService: ArticleIndexService   = new ArticleIndexService
-
-  // Controllers
-  given internController: InternController       = new InternController
-  given articleControllerV2: ArticleControllerV2 = new ArticleControllerV2
-  given healthController: TapirHealthController  = new TapirHealthController
-
   given swagger: SwaggerController = new SwaggerController(
     List[TapirController](
       articleControllerV2,
@@ -104,4 +93,5 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
   )
 
   given services: List[TapirController] = swagger.getServices()
+  given routes: Routes                  = new Routes
 }

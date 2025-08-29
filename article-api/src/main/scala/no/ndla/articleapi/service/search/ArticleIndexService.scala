@@ -16,7 +16,7 @@ import no.ndla.articleapi.Props
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Article
-import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 class ArticleIndexService(using
     searchConverterService: SearchConverterService,

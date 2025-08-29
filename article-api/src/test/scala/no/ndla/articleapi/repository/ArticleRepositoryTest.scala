@@ -25,7 +25,7 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
   override implicit lazy val dbArticle: DBArticle   = new DBArticle
   override implicit lazy val dataSource: DataSource = testDataSource.get
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
-  var repository: ArticleRepository                 = _
+  var repository: ArticleRepository                 = scala.compiletime.uninitialized
 
   lazy val sampleArticle: Article = TestData.sampleArticleWithByNcSa
 
