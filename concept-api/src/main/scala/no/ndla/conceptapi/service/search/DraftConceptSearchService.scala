@@ -18,8 +18,10 @@ import no.ndla.conceptapi.model.api.ResultWindowTooLargeException
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.language.Language.AllLanguages
-import no.ndla.network.tapir.ErrorHandling
-import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
+import no.ndla.search.AggregationBuilder.{
+  buildTermsAggregation,
+  getAggregationsFromResult
+}
 import no.ndla.search.NdlaE4sClient
 
 import java.util.concurrent.Executors
@@ -30,21 +32,29 @@ class DraftConceptSearchService(using
     e4sClient: NdlaE4sClient,
     draftConceptIndexService: DraftConceptIndexService,
     searchConverterService: SearchConverterService,
-    props: Props,
-    errorHandling: ErrorHandling
+    props: Props
 ) extends StrictLogging
     with SearchService[api.ConceptSummaryDTO] {
   override val searchIndex: String = props.DraftConceptSearchIndex
 
-  override def hitToApiModel(hitString: String, language: String): api.ConceptSummaryDTO =
+  override def hitToApiModel(
+      hitString: String,
+      language: String
+  ): api.ConceptSummaryDTO =
     searchConverterService.hitAsConceptSummary(hitString, language)
 
-  def all(settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] =
+  def all(
+      settings: DraftSearchSettings
+  ): Try[SearchResult[api.ConceptSummaryDTO]] =
     executeSearch(boolQuery(), settings)
 
-  def matchingQuery(query: String, settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] = {
+  def matchingQuery(
+      query: String,
+      settings: DraftSearchSettings
+  ): Try[SearchResult[api.ConceptSummaryDTO]] = {
     val language =
-      if (settings.searchLanguage == AllLanguages || settings.fallback) "*" else settings.searchLanguage
+      if (settings.searchLanguage == AllLanguages || settings.fallback) "*"
+      else settings.searchLanguage
 
     val fullQuery = boolQuery()
       .must(
@@ -57,8 +67,18 @@ class DraftConceptSearchService(using
               simpleStringQuery(query).field(s"gloss", 1),
               idsQuery(query)
             ) ++
-              buildNestedEmbedField(List(query), None, settings.searchLanguage, settings.fallback) ++
-              buildNestedEmbedField(List.empty, Some(query), settings.searchLanguage, settings.fallback)
+              buildNestedEmbedField(
+                List(query),
+                None,
+                settings.searchLanguage,
+                settings.fallback
+              ) ++
+              buildNestedEmbedField(
+                List.empty,
+                Some(query),
+                settings.searchLanguage,
+                settings.fallback
+              )
           )
       )
 
@@ -69,14 +89,22 @@ class DraftConceptSearchService(using
       queryBuilder: BoolQuery,
       settings: DraftSearchSettings
   ): Try[SearchResult[api.ConceptSummaryDTO]] = {
-    val idFilter     = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-    val typeFilter   = settings.conceptType.map(ct => termsQuery("conceptType", ct))
+    val idFilter =
+      if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+    val typeFilter =
+      settings.conceptType.map(ct => termsQuery("conceptType", ct))
     val statusFilter = boolStatusFilter(settings.statusFilter)
-    val tagFilter    = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
-    val userFilter   = orFilter(settings.userFilter, "updatedBy")
-    val responsibleIdFilter = Option.when(settings.responsibleIdFilter.nonEmpty) {
-      termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
-    }
+    val tagFilter = languageOrFilter(
+      settings.tagsToFilterBy,
+      "tags",
+      settings.searchLanguage,
+      settings.fallback
+    )
+    val userFilter = orFilter(settings.userFilter, "updatedBy")
+    val responsibleIdFilter =
+      Option.when(settings.responsibleIdFilter.nonEmpty) {
+        termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
+      }
 
     val (languageFilter, searchLanguage) = settings.searchLanguage match {
       case "" | AllLanguages      => (None, "*")
@@ -85,7 +113,12 @@ class DraftConceptSearchService(using
     }
 
     val embedResourceAndIdFilter =
-      buildNestedEmbedField(settings.embedResource, settings.embedId, settings.searchLanguage, settings.fallback)
+      buildNestedEmbedField(
+        settings.embedResource,
+        settings.embedId,
+        settings.searchLanguage,
+        settings.fallback
+      )
 
     val filters =
       List(
@@ -101,7 +134,8 @@ class DraftConceptSearchService(using
 
     val filteredSearch = queryBuilder.filter(filters.flatten)
 
-    val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
+    val (startAt, numResults) =
+      getStartAtAndNumResults(settings.page, settings.pageSize)
     val requestedResultWindow = settings.pageSize * settings.page
     if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
       logger.info(
@@ -109,7 +143,10 @@ class DraftConceptSearchService(using
       )
       Failure(ResultWindowTooLargeException.default)
     } else {
-      val aggregations    = buildTermsAggregation(settings.aggregatePaths, List(draftConceptIndexService.getMapping))
+      val aggregations = buildTermsAggregation(
+        settings.aggregatePaths,
+        List(draftConceptIndexService.getMapping)
+      )
       val searchToExecute =
         search(searchIndex)
           .size(numResults)
@@ -146,12 +183,16 @@ class DraftConceptSearchService(using
   private def boolStatusFilter(statuses: Set[String]): Some[BoolQuery] = {
     if (statuses.isEmpty) {
       Some(
-        boolQuery().not(termQuery("status.current", ConceptStatus.ARCHIVED.toString))
+        boolQuery().not(
+          termQuery("status.current", ConceptStatus.ARCHIVED.toString)
+        )
       )
     } else {
       val draftStatuses = Seq("status.current", "status.other")
       Some(
-        boolQuery().should(draftStatuses.flatMap(ds => statuses.map(s => termQuery(ds, s))))
+        boolQuery().should(
+          draftStatuses.flatMap(ds => statuses.map(s => termQuery(ds, s)))
+        )
       )
     }
   }
@@ -163,7 +204,9 @@ class DraftConceptSearchService(using
       draftConceptIndexService.indexDocuments(None)
     }
 
-    f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
+    f.failed.foreach(t =>
+      logger.warn("Unable to create index: " + t.getMessage, t)
+    )
     f.foreach {
       case Success(reindexResult) =>
         logger.info(

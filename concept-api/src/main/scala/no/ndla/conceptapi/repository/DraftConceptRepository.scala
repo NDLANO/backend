@@ -15,19 +15,14 @@ import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException, OptimisticLockException}
 import no.ndla.conceptapi.model.domain.DBConcept
-import no.ndla.database.DataSource
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers}
+import no.ndla.network.tapir.ErrorHelpers
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class DraftConceptRepository(using
-    dataSource: DataSource,
-    props: Props,
-    errorHandling: ErrorHandling,
-    errorHelpers: ErrorHelpers
-) extends StrictLogging
+class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
+    extends StrictLogging
     with Repository[Concept] {
   def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
     val dataObject = new PGobject()

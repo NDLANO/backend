@@ -9,7 +9,6 @@
 package no.ndla.conceptapi.controller
 
 import cats.implicits.*
-import no.ndla.common.Clock
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
@@ -44,7 +43,6 @@ class DraftConceptController(using
     conceptControllerHelpers: ConceptControllerHelpers,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   import conceptControllerHelpers.*

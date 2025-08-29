@@ -14,17 +14,18 @@ import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.{DBConcept, PublishedConcept}
-import no.ndla.database.DataSource
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class PublishedConceptRepository(using
-    dataSource: DataSource
-) extends StrictLogging
+class PublishedConceptRepository
+    extends StrictLogging
     with Repository[Concept] {
-  def insertOrUpdate(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
+
+  def insertOrUpdate(
+      concept: Concept
+  )(implicit session: DBSession = AutoSession): Try[Concept] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(concept))
@@ -41,7 +42,9 @@ class PublishedConceptRepository(using
         logger.info(s"Updated published concept ${concept.id}")
         Success(concept)
       case Success(_) =>
-        logger.info(s"No published concept with id ${concept.id} exists, creating...")
+        logger.info(
+          s"No published concept with id ${concept.id} exists, creating..."
+        )
         Try {
           sql"""
                   insert into ${PublishedConcept.table} (id, document, revision)
@@ -61,13 +64,20 @@ class PublishedConceptRepository(using
     ) match {
       case Success(count) if count > 0 => Success(id)
       case Failure(ex)                 => Failure(ex)
-      case _ => Failure(NotFoundException("Could not find concept to delete from Published concepts table."))
+      case _ =>
+        Failure(
+          NotFoundException(
+            "Could not find concept to delete from Published concepts table."
+          )
+        )
     }
   }
 
   def withId(id: Long): Option[Concept] = conceptWhere(sqls"co.id=${id.toInt}")
 
-  def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {
+  def everyTagFromEveryConcept(implicit
+      session: DBSession = ReadOnlyAutoSession
+  ): List[List[Tag]] = {
     sql"""
            select distinct id, document#>'{tags}' as tags
            from ${PublishedConcept.table}
@@ -99,7 +109,9 @@ class PublishedConceptRepository(using
   override def documentsWithIdBetween(min: Long, max: Long): List[Concept] =
     conceptsWhere(sqls"co.id between $min and $max")
 
-  override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
+  override def minMaxId(implicit
+      session: DBSession = AutoSession
+  ): (Long, Long) = {
     sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${PublishedConcept.table}"
       .map(rs => {
         (rs.long("mi"), rs.long("ma"))
@@ -119,7 +131,9 @@ class PublishedConceptRepository(using
       .list()
   }
 
-  def getByPage(pageSize: Int, offset: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Concept] = {
+  def getByPage(pageSize: Int, offset: Int)(implicit
+      session: DBSession = ReadOnlyAutoSession
+  ): Seq[Concept] = {
     val co = PublishedConcept.syntax("co")
     sql"""
            select ${co.result.*}

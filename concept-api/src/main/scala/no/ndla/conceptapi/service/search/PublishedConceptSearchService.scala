@@ -17,10 +17,11 @@ import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.ResultWindowTooLargeException
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.SearchSettings
-import no.ndla.conceptapi.service.ConverterService
 import no.ndla.language.Language.AllLanguages
-import no.ndla.network.tapir.ErrorHandling
-import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
+import no.ndla.search.AggregationBuilder.{
+  buildTermsAggregation,
+  getAggregationsFromResult
+}
 import no.ndla.search.NdlaE4sClient
 
 import java.util.concurrent.Executors
@@ -30,25 +31,34 @@ import scala.util.{Failure, Success, Try}
 class PublishedConceptSearchService(using
     e4sClient: NdlaE4sClient,
     publishedConceptIndexService: PublishedConceptIndexService,
-    converterService: ConverterService,
     searchConverterService: SearchConverterService,
-    props: Props,
-    errorHandling: ErrorHandling
+    props: Props
 ) extends StrictLogging
     with SearchService[api.ConceptSummaryDTO] {
   override val searchIndex: String = props.PublishedConceptSearchIndex
 
-  override def hitToApiModel(hitString: String, language: String): api.ConceptSummaryDTO =
+  override def hitToApiModel(
+      hitString: String,
+      language: String
+  ): api.ConceptSummaryDTO =
     searchConverterService.hitAsConceptSummary(hitString, language)
 
-  def all(settings: SearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] = executeSearch(boolQuery(), settings)
+  def all(settings: SearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] =
+    executeSearch(boolQuery(), settings)
 
-  def matchingQuery(query: String, settings: SearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] = {
+  def matchingQuery(
+      query: String,
+      settings: SearchSettings
+  ): Try[SearchResult[api.ConceptSummaryDTO]] = {
     val language =
       if (settings.fallback) "*" else settings.searchLanguage
 
     val fullQuery = if (settings.exactTitleMatch) {
-      boolQuery().must(simpleStringQuery(query).flags(SimpleQueryStringFlag.NONE).field(s"title.$language.lower"))
+      boolQuery().must(
+        simpleStringQuery(query)
+          .flags(SimpleQueryStringFlag.NONE)
+          .field(s"title.$language.lower")
+      )
     } else {
       boolQuery().must(
         boolQuery()
@@ -59,18 +69,38 @@ class PublishedConceptSearchService(using
               simpleStringQuery(query).field(s"gloss", 1),
               idsQuery(query)
             ) ++
-              buildNestedEmbedField(List(query), None, settings.searchLanguage, settings.fallback) ++
-              buildNestedEmbedField(List.empty, Some(query), settings.searchLanguage, settings.fallback)
+              buildNestedEmbedField(
+                List(query),
+                None,
+                settings.searchLanguage,
+                settings.fallback
+              ) ++
+              buildNestedEmbedField(
+                List.empty,
+                Some(query),
+                settings.searchLanguage,
+                settings.fallback
+              )
           )
       )
     }
     executeSearch(fullQuery, settings)
   }
 
-  def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] = {
-    val idFilter   = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-    val typeFilter = settings.conceptType.map(ct => termsQuery("conceptType", ct))
-    val tagFilter  = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
+  def executeSearch(
+      queryBuilder: BoolQuery,
+      settings: SearchSettings
+  ): Try[SearchResult[api.ConceptSummaryDTO]] = {
+    val idFilter =
+      if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+    val typeFilter =
+      settings.conceptType.map(ct => termsQuery("conceptType", ct))
+    val tagFilter = languageOrFilter(
+      settings.tagsToFilterBy,
+      "tags",
+      settings.searchLanguage,
+      settings.fallback
+    )
 
     val (languageFilter, searchLanguage) = settings.searchLanguage match {
       case "" | AllLanguages =>
@@ -83,7 +113,12 @@ class PublishedConceptSearchService(using
     }
 
     val embedResourceAndIdFilter =
-      buildNestedEmbedField(settings.embedResource, settings.embedId, settings.searchLanguage, settings.fallback)
+      buildNestedEmbedField(
+        settings.embedResource,
+        settings.embedId,
+        settings.searchLanguage,
+        settings.fallback
+      )
 
     val filters = List(
       idFilter,
@@ -95,7 +130,8 @@ class PublishedConceptSearchService(using
 
     val filteredSearch = queryBuilder.filter(filters.flatten)
 
-    val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
+    val (startAt, numResults) =
+      getStartAtAndNumResults(settings.page, settings.pageSize)
     val requestedResultWindow = settings.pageSize * settings.page
     if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
       logger.info(
@@ -103,7 +139,10 @@ class PublishedConceptSearchService(using
       )
       Failure(ResultWindowTooLargeException.default)
     } else {
-      val aggregations = buildTermsAggregation(settings.aggregatePaths, List(publishedConceptIndexService.getMapping))
+      val aggregations = buildTermsAggregation(
+        settings.aggregatePaths,
+        List(publishedConceptIndexService.getMapping)
+      )
       val searchToExecute =
         search(searchIndex)
           .size(numResults)
@@ -145,7 +184,9 @@ class PublishedConceptSearchService(using
       publishedConceptIndexService.indexDocuments(None)
     }
 
-    f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
+    f.failed.foreach(t =>
+      logger.warn("Unable to create index: " + t.getMessage, t)
+    )
     f.foreach {
       case Success(reindexResult) =>
         logger.info(

@@ -9,13 +9,11 @@
 package no.ndla.conceptapi.controller
 
 import cats.implicits.*
-import no.ndla.common.Clock
 import no.ndla.common.model.domain.concept.Concept
-import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.{ConceptDomainDump, NotFoundException}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
-import no.ndla.conceptapi.service.{ConverterService, ReadService}
+import no.ndla.conceptapi.service.ReadService
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
@@ -33,15 +31,12 @@ import sttp.tapir.*
 class InternController(using
     draftConceptIndexService: DraftConceptIndexService,
     publishedConceptIndexService: PublishedConceptIndexService,
-    converterService: ConverterService,
     readService: ReadService,
     draftConceptRepository: DraftConceptRepository,
     publishedConceptRepository: PublishedConceptRepository,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    clock: Clock,
-    myNDLAApiClient: MyNDLAApiClient,
-    props: Props
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   import errorHandling.*
   override val prefix: EndpointInput[Unit] = "intern"

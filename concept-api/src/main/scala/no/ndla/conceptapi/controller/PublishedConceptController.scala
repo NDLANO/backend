@@ -9,7 +9,6 @@
 package no.ndla.conceptapi.controller
 
 import cats.implicits.catsSyntaxEitherId
-import no.ndla.common.Clock
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.LanguageCode
@@ -17,7 +16,7 @@ import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.Sort
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.service.search.{PublishedConceptSearchService, SearchConverterService}
-import no.ndla.conceptapi.service.{ReadService, WriteService}
+import no.ndla.conceptapi.service.ReadService
 import no.ndla.conceptapi.Props
 import no.ndla.language.Language
 import no.ndla.network.clients.MyNDLAApiClient
@@ -32,7 +31,6 @@ import sttp.tapir.server.ServerEndpoint
 import scala.util.{Failure, Success, Try}
 
 class PublishedConceptController(using
-    writeService: WriteService,
     readService: ReadService,
     publishedConceptSearchService: PublishedConceptSearchService,
     searchConverterService: SearchConverterService,
@@ -40,7 +38,6 @@ class PublishedConceptController(using
     conceptControllerHelpers: ConceptControllerHelpers,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   import conceptControllerHelpers.*
