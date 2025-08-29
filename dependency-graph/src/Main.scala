@@ -22,13 +22,137 @@ object Main {
     parseModule("draft-api")
   }
 
+  case class ClassIdentifier(name: String, packageName: String) {
+    override def toString: String = s"$packageName.$name"
+  }
+
+  case class DependencyEdge(from: ClassIdentifier, to: ClassIdentifier)
+
+  case class DependencyGraph(
+      nodes: Set[ClassIdentifier],
+      edges: Set[DependencyEdge]
+  ) {
+    def dependenciesOf(classId: ClassIdentifier): Set[ClassIdentifier] = {
+      edges.filter(_.from == classId).map(_.to)
+    }
+
+    def dependents(classId: ClassIdentifier): Set[ClassIdentifier] = {
+      edges.filter(_.to == classId).map(_.from)
+    }
+  }
+
+  def buildDependencyGraph(classes: List[ClassWithArguments]): DependencyGraph = {
+    // Create a map for quick lookup of classes by name and package
+    val classMap = classes.map(c => ClassIdentifier(c.name, c.packageName) -> c).toMap
+
+    // Create all nodes
+    val nodes = classMap.keySet
+
+    // Create edges based on constructor arguments
+    val edges = for {
+      cls <- classes
+      fromId = ClassIdentifier(cls.name, cls.packageName)
+      arg <- cls.arguments
+      // Include all arguments - both explicit and implicit dependencies matter for cycle detection
+      argPackage <- arg.packageName
+      // Extract the actual class name from the argument type
+      actualTypeName = extractClassName(arg.argType)
+      // Try to find a matching class in our parsed classes
+      toId <- classMap.keys.find(id => id.name == actualTypeName && id.packageName == argPackage)
+    } yield DependencyEdge(fromId, toId)
+
+    val graph = DependencyGraph(nodes, edges.toSet)
+
+//    println(s"\nDependency Graph Summary:")
+//    println(s"Total classes: ${nodes.size}")
+//    println(s"Total dependencies: ${edges.size}")
+
+    if (edges.nonEmpty) {
+//      println(s"\nDependencies found:")
+      edges.groupBy(_.from).foreach { case (from, deps) =>
+        val depList = deps.map(_.to.toString).mkString(", ")
+//        println(s"  $from -> [$depList]")
+      }
+    }
+
+    graph
+  }
+
+  def extractClassName(argType: String): String = {
+    val cleanType = if (argType.trim.startsWith("=>")) {
+      argType.trim.stripPrefix("=>").trim
+    } else {
+      argType.trim
+    }
+
+    val genericPattern = """^(\w+)\[(.+)\]$""".r
+    cleanType match {
+      case genericPattern(containerType, innerType) =>
+        innerType.trim
+      case _ =>
+        cleanType
+    }
+  }
+
   def findCyclicalDependencies(classes: List[ClassWithArguments]): Unit = {
-    ???
+    val graph  = buildDependencyGraph(classes)
+    val cycles = detectCycles(graph)
+
+    if (cycles.isEmpty) {
+      println("\nNo cyclical dependencies found! ✅")
+    } else {
+      println(s"\n⚠️  Found ${cycles.size} cyclical dependencies:")
+      cycles.zipWithIndex.foreach { case (cycle, index) =>
+        println(s"  Cycle ${index + 1}: ${cycle.mkString(" -> ")} -> ${cycle.head}")
+      }
+    }
+  }
+
+  def detectCycles(graph: DependencyGraph): List[List[ClassIdentifier]] = {
+    var visited        = Set.empty[ClassIdentifier]
+    var recursionStack = Set.empty[ClassIdentifier]
+    var cycles         = List.empty[List[ClassIdentifier]]
+
+    def dfs(node: ClassIdentifier, path: List[ClassIdentifier]): Unit = {
+      if (recursionStack.contains(node)) {
+        // Found a cycle - extract the cycle from the path
+        val cycleStart = path.indexOf(node)
+        if (cycleStart >= 0) {
+          val cycle = path.drop(cycleStart)
+          // Only add cycles that have more than one node (avoid self-references unless they're real)
+          if (cycle.size > 1 || graph.dependenciesOf(node).contains(node)) {
+            cycles = cycle :: cycles
+          }
+        }
+        return
+      }
+
+      if (visited.contains(node)) return
+
+      visited += node
+      recursionStack += node
+
+      val dependencies = graph.dependenciesOf(node)
+      dependencies.foreach { dep =>
+        dfs(dep, node :: path)
+      }
+
+      recursionStack -= node
+    }
+
+    graph.nodes.foreach { node =>
+      if (!visited.contains(node)) {
+        dfs(node, List.empty)
+      }
+    }
+
+    cycles.distinct
   }
 
   def parseModule(module: String): Unit = {
     val files   = getScalaFilesRecursivly(module)
     val classes = files.flatMap(parseScalaFile)
+    println(s"Extracted classes and their constructor arguments in $module\n\n")
     findCyclicalDependencies(classes)
     println(s"Parsed ${files.length} files in module $module")
   }
