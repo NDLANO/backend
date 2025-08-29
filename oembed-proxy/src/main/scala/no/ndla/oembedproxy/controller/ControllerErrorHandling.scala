@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA oembed-proxy
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.oembedproxy.controller
 
 import no.ndla.common.Clock

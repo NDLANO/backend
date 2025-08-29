@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA learningpath-api
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.learningpathapi.controller
 
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}

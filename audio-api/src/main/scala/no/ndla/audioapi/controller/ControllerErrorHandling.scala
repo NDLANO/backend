@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA audio-api
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.audioapi.controller
 
 import no.ndla.audioapi.Props

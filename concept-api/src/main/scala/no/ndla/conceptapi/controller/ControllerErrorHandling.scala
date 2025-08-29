@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA concept-api
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.conceptapi.controller
 
 import no.ndla.common.Clock

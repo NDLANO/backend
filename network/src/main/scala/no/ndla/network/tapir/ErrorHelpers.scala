@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA network
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.network.tapir
 
 import cats.implicits.catsSyntaxOptionId
