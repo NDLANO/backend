@@ -18,10 +18,10 @@ import org.mockito.Mockito.when
 import sttp.client3.quick.*
 
 class FilmPageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  override implicit lazy val clock                        = mock[Clock]
-  override implicit lazy val errorHelpers                 = new ErrorHelpers
+  override implicit lazy val clock: Clock                 = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers   = new ErrorHelpers
   override implicit lazy val errorHandling: ErrorHandling = new ControllerErrorHandling
-  override implicit lazy val routes                       = new Routes
+  override implicit lazy val routes: Routes               = new Routes
   override val controller: TapirController                = {
     given ReadService     = readService
     given WriteService    = writeService

@@ -9,9 +9,7 @@
 package no.ndla.imageapi.controller
 
 import cats.implicits.catsSyntaxEitherId
-import no.ndla.common.Clock
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.service.{ImageConverter, ImageStorageService, PercentPoint, PixelPoint, ReadService}
 import no.ndla.network.clients.MyNDLAApiClient
@@ -28,8 +26,6 @@ class RawController(using
     imageConverter: ImageConverter,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
-    clock: Clock,
-    props: Props,
     readService: ReadService,
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {

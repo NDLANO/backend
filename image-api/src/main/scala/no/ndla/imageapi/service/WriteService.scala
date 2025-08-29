@@ -16,7 +16,6 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Deletable, Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.{NDLADate, domain as common}
-import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.*
 import no.ndla.imageapi.model.api.{
   ImageMetaInformationV2DTO,
@@ -45,7 +44,6 @@ class WriteService(using
     imageStorage: ImageStorageService,
     tagIndexService: TagIndexService,
     clock: Clock,
-    props: Props,
     random: Random
 ) extends StrictLogging {
 

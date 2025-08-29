@@ -11,19 +11,13 @@ package no.ndla.imageapi.repository
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
-import no.ndla.database.DataSource
 import no.ndla.imageapi.model.domain.*
-import no.ndla.imageapi.service.ConverterService
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
 import scala.util.{Success, Try}
 
-class ImageRepository(using
-    dataSource: DataSource,
-    converterService: ConverterService
-) extends StrictLogging
-    with Repository[ImageMetaInformation] {
+class ImageRepository extends StrictLogging with Repository[ImageMetaInformation] {
   def imageCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
     sql"select count(*) from ${ImageMetaInformation.table}"
       .map(rs => rs.long("count"))

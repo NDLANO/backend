@@ -15,7 +15,7 @@ import no.ndla.imageapi.model.api.{ImageMetaDomainDumpDTO, ImageMetaInformationV
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, Sort}
 import no.ndla.imageapi.model.{ImageConversionException, ImageNotFoundException, InvalidUrlException, api}
 import no.ndla.imageapi.repository.ImageRepository
-import no.ndla.imageapi.service.search.{ImageIndexService, SearchConverterService, TagSearchService}
+import no.ndla.imageapi.service.search.{SearchConverterService, TagSearchService}
 import no.ndla.language.Language.findByLanguageOrBestEffort
 import cats.implicits.*
 import no.ndla.common.errors.ValidationException
@@ -25,9 +25,7 @@ import scala.util.{Failure, Success, Try}
 
 class ReadService(using
     converterService: ConverterService,
-    validationService: ValidationService,
     imageRepository: ImageRepository,
-    imageIndexService: ImageIndexService,
     tagSearchService: TagSearchService,
     searchConverterService: SearchConverterService
 ) extends StrictLogging {

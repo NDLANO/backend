@@ -10,8 +10,6 @@ package no.ndla.imageapi.controller
 
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Clock
-import no.ndla.database.DataSource
 import no.ndla.imageapi.model.api.{ImageMetaDomainDumpDTO, ImageMetaInformationV2DTO}
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.repository.ImageRepository
@@ -41,9 +39,7 @@ class InternController(using
     props: Props,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
-    clock: Clock,
-    myNDLAApiClient: MyNDLAApiClient,
-    dataSource: DataSource
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController
     with StrictLogging {
   import errorHelpers.*

@@ -8,8 +8,6 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.common.Clock
-import no.ndla.imageapi.Props
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.ImageStorageService
 import no.ndla.network.clients.MyNDLAApiClient
@@ -18,8 +16,6 @@ import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirHealthController
 class HealthController(using
     imageStorageService: ImageStorageService,
     imageRepository: ImageRepository,
-    props: Props,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling

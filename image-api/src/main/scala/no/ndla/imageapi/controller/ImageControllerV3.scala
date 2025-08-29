@@ -9,10 +9,8 @@
 package no.ndla.imageapi.controller
 
 import cats.implicits.*
-import no.ndla.common.Clock
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
-import no.ndla.database.DataSource
 import no.ndla.imageapi.controller.multipart.{CopyMetaDataAndFileForm, MetaDataAndFileForm, UpdateMetaDataAndFileForm}
 import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain.{ModelReleasedStatus, SearchSettings, Sort}
@@ -43,9 +41,7 @@ class ImageControllerV3(using
     props: Props,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
-    clock: Clock,
-    myNDLAApiClient: MyNDLAApiClient,
-    dataSource: DataSource
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController
     with BaseImageController {
   import errorHelpers.*
