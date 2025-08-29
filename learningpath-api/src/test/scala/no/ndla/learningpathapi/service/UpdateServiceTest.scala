@@ -438,7 +438,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test(
     "That updateLearningPathV2 updates the learningpath when the given user is a publisher if the status is PUBLISHED"
   ) {
-    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
+      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.update(any[LearningPath])(using any[DBSession])).thenReturn(PUBLISHED_LEARNINGPATH)
 
     assertResult(PUBLISHED_LEARNINGPATH.id.get) {
@@ -462,7 +463,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That updateLearningPathV2 sets status to UNLISTED if owner is not publisher and status is PUBLISHED") {
-    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
+      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.update(any[LearningPath])(using any[DBSession]))
       .thenReturn(PUBLISHED_LEARNINGPATH.copy(status = LearningPathStatus.UNLISTED))
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
@@ -794,7 +796,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test(
     "That addLearningStep inserts the learningstep and update lastUpdated on the learningpath when the given user is the owner and status is PUBLISHED"
   ) {
-    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
+      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.insertLearningStep(any[LearningStep])(using any[DBSession])).thenReturn(STEP2)
     when(learningPathRepository.update(any[LearningPath])(using any[DBSession]))
       .thenAnswer((i: InvocationOnMock) => i.getArgument[LearningPath](0))
@@ -814,7 +817,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That addLearningStepV2 throws an AccessDeniedException when the given user is NOT the owner") {
-    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
+      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     val Failure(ex) = service.addLearningStepV2(PUBLISHED_ID, NEW_STEPV2, PRIVATE_OWNER.toCombined): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
@@ -831,7 +835,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That updateLearningStepV2 returns None when the learningstep does not exist") {
-    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
+      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(using any[DBSession]))
       .thenReturn(None)
     val Failure(ex) =
@@ -1193,11 +1198,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val newDate          = NDLADate.fromUnixTime(648000000)
     val stepWithBadTitle = STEP1.copy(title = Seq(common.Title("Dårlig tittel", "nb")))
 
-    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
+      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(using any[DBSession]))
       .thenReturn(Some(STEP1))
     when(learningPathRepository.learningStepsFor(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(List())
-    when(learningPathRepository.updateLearningStep(eqTo(stepWithBadTitle))(using any[DBSession])).thenReturn(stepWithBadTitle)
+    when(learningPathRepository.updateLearningStep(eqTo(stepWithBadTitle))(using any[DBSession]))
+      .thenReturn(stepWithBadTitle)
     when(learningPathRepository.update(any[LearningPath])(using any[DBSession])).thenAnswer((i: InvocationOnMock) =>
       i.getArgument[LearningPath](0)
     )
@@ -1233,7 +1240,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("owner updates published path should update status to unlisted") {
     val newDate = NDLADate.fromUnixTime(648000000)
-    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
+      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(using any[DBSession]))
       .thenReturn(Some(STEP1))
     when(learningPathRepository.learningStepsFor(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(List())
@@ -1280,7 +1288,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningStepWithId(eqTo(PRIVATE_ID), eqTo(STEP1.id.get))(using any[DBSession]))
       .thenReturn(Some(STEP1))
     when(learningPathRepository.learningStepsFor(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(List())
-    when(learningPathRepository.updateLearningStep(eqTo(stepWithBadTitle))(using any[DBSession])).thenReturn(stepWithBadTitle)
+    when(learningPathRepository.updateLearningStep(eqTo(stepWithBadTitle))(using any[DBSession]))
+      .thenReturn(stepWithBadTitle)
     when(learningPathRepository.update(any[LearningPath])(using any[DBSession])).thenAnswer((i: InvocationOnMock) =>
       i.getArgument[LearningPath](0)
     )
@@ -1317,11 +1326,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val newDate          = NDLADate.fromUnixTime(648000000)
     val stepWithBadTitle = STEP1.copy(title = Seq(common.Title("Dårlig tittel", "nb")))
 
-    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
+      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(using any[DBSession]))
       .thenReturn(Some(STEP1))
     when(learningPathRepository.learningStepsFor(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(List())
-    when(learningPathRepository.updateLearningStep(eqTo(stepWithBadTitle))(using any[DBSession])).thenReturn(stepWithBadTitle)
+    when(learningPathRepository.updateLearningStep(eqTo(stepWithBadTitle))(using any[DBSession]))
+      .thenReturn(stepWithBadTitle)
     when(learningPathRepository.update(any[LearningPath])(using any[DBSession])).thenAnswer((i: InvocationOnMock) =>
       i.getArgument[LearningPath](0)
     )
@@ -1588,7 +1599,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That an existing coverphoto can be removed") {
-    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
+      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.update(any[LearningPath])(using any[DBSession]))
       .thenReturn(PUBLISHED_LEARNINGPATH.copy(coverPhotoId = None))
 
@@ -1655,7 +1667,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.update(any)(using any[DBSession])).thenAnswer(_.getArgument(0))
 
     val res = service.deleteLearningPathLanguage(PRIVATE_ID, "nb", PRIVATE_OWNER.toCombined).failIfFailure
-    verify(learningPathRepository, times(PRIVATE_LEARNINGPATH.learningsteps.get.size)).updateLearningStep(any)(using any)
+    verify(learningPathRepository, times(PRIVATE_LEARNINGPATH.learningsteps.get.size))
+      .updateLearningStep(any)(using any)
     res.supportedLanguages should be(Seq("nn"))
   }
 }

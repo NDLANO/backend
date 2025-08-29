@@ -19,9 +19,7 @@ import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class PublishedConceptRepository
-    extends StrictLogging
-    with Repository[Concept] {
+class PublishedConceptRepository extends StrictLogging with Repository[Concept] {
 
   def insertOrUpdate(
       concept: Concept
@@ -64,7 +62,7 @@ class PublishedConceptRepository
     ) match {
       case Success(count) if count > 0 => Success(id)
       case Failure(ex)                 => Failure(ex)
-      case _ =>
+      case _                           =>
         Failure(
           NotFoundException(
             "Could not find concept to delete from Published concepts table."

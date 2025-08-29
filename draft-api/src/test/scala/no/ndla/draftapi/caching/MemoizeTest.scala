@@ -42,7 +42,8 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
   test("That the cache is invalidated after cacheMaxAge") {
     val cacheMaxAgeInMs = 20L
     val targetMock      = mock[Target]
-    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, (() => targetMock.targetMethod()), false, shouldCacheResult)
+    val memoizedTarget  =
+      new Memoize[String](cacheMaxAgeInMs, (() => targetMock.targetMethod()), false, shouldCacheResult)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
 
@@ -58,7 +59,8 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
   test("The cache should only be renewed if shouldCacheResult returns true") {
     val cacheMaxAgeInMs = 20L
     val targetMock      = mock[Target]
-    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, (() => targetMock.targetMethod()), false, shouldNotCacheResult)
+    val memoizedTarget  =
+      new Memoize[String](cacheMaxAgeInMs, (() => targetMock.targetMethod()), false, shouldNotCacheResult)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
 

@@ -492,8 +492,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
 
     when(imageRepository.withId(imageId)).thenReturn(Some(image))
-    when(imageRepository.update(any[ImageMetaInformation], eqTo(imageId))(using any)).thenAnswer((i: InvocationOnMock) =>
-      Success(i.getArgument[ImageMetaInformation](0))
+    when(imageRepository.update(any[ImageMetaInformation], eqTo(imageId))(using any)).thenAnswer(
+      (i: InvocationOnMock) => Success(i.getArgument[ImageMetaInformation](0))
     )
     when(validationService.validate(any[ImageMetaInformation], any[Option[ImageMetaInformation]]))
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[ImageMetaInformation](0)))

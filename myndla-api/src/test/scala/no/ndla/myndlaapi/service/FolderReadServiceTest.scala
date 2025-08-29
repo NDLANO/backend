@@ -193,7 +193,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.getFolderResources(eqTo(mainFolderUUID))(using any)).thenReturn(Success(List(resource1)))
     when(folderRepository.getFolderResources(eqTo(subFolder1UUID))(using any)).thenReturn(Success(List.empty))
     when(folderRepository.getFolderResources(eqTo(subFolder2UUID))(using any)).thenReturn(Success(List.empty))
-    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(any)(using any)).thenReturn(Success(Some(whgaterh)))
+    when(folderRepository.getFolderAndChildrenSubfoldersWithResources(any)(using any))
+      .thenReturn(Success(Some(whgaterh)))
     when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
 
     val result = service.getSingleFolder(
@@ -232,7 +233,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
 
     when(feideApiClient.getFeideID(Some("token"))).thenReturn(Success(feideId))
     when(folderRepository.insertFolder(any, any)(using any)).thenReturn(Success(favoriteDomainFolder))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(using any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(using any))
+      .thenReturn(Success(List.empty))
     when(folderRepository.folderWithId(eqTo(favoriteUUID))(using any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.getSavedSharedFolders(any)(using any[DBSession])).thenReturn(Success(List.empty))
     when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
@@ -272,9 +274,11 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
 
     when(feideApiClient.getFeideID(Some("token"))).thenReturn(Success(feideId))
     when(folderRepository.insertFolder(any, any)(using any)).thenReturn(Success(favoriteDomainFolder))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(using any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(using any))
+      .thenReturn(Success(List.empty))
     when(folderRepository.folderWithId(eqTo(favoriteUUID))(using any)).thenReturn(Success(favoriteDomainFolder))
-    when(folderRepository.getSavedSharedFolders(any)(using any[DBSession])).thenReturn(Success(List(sharedFolderDomain)))
+    when(folderRepository.getSavedSharedFolders(any)(using any[DBSession]))
+      .thenReturn(Success(List(sharedFolderDomain)))
     when(folderRepository.getFolderAndChildrenSubfoldersWithResources(any, any, any)(using any[DBSession]))
       .thenReturn(Success(Option(sharedFolderDomain)))
     when(folderRepository.getSharedFolderAndChildrenSubfoldersWithResources(any)(using any[DBSession]))
@@ -409,7 +413,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That getting stats fetches stats for my ndla usage") {
-    when(userRepository.usersGrouped()(using any)).thenReturn(Success(Map(UserRole.EMPLOYEE -> 2L, UserRole.STUDENT -> 3L)))
+    when(userRepository.usersGrouped()(using any))
+      .thenReturn(Success(Map(UserRole.EMPLOYEE -> 2L, UserRole.STUDENT -> 3L)))
     when(folderRepository.numberOfFolders()(using any)).thenReturn(Success(Some(10L)))
     when(folderRepository.numberOfResources()(using any)).thenReturn(Success(Some(20L)))
     when(folderRepository.numberOfTags()(using any)).thenReturn(Success(Some(10L)))

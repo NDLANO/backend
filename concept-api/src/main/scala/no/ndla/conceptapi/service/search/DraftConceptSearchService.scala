@@ -18,10 +18,7 @@ import no.ndla.conceptapi.model.api.ResultWindowTooLargeException
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.language.Language.AllLanguages
-import no.ndla.search.AggregationBuilder.{
-  buildTermsAggregation,
-  getAggregationsFromResult
-}
+import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.NdlaE4sClient
 
 import java.util.concurrent.Executors
@@ -94,13 +91,13 @@ class DraftConceptSearchService(using
     val typeFilter =
       settings.conceptType.map(ct => termsQuery("conceptType", ct))
     val statusFilter = boolStatusFilter(settings.statusFilter)
-    val tagFilter = languageOrFilter(
+    val tagFilter    = languageOrFilter(
       settings.tagsToFilterBy,
       "tags",
       settings.searchLanguage,
       settings.fallback
     )
-    val userFilter = orFilter(settings.userFilter, "updatedBy")
+    val userFilter          = orFilter(settings.userFilter, "updatedBy")
     val responsibleIdFilter =
       Option.when(settings.responsibleIdFilter.nonEmpty) {
         termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
@@ -204,9 +201,7 @@ class DraftConceptSearchService(using
       draftConceptIndexService.indexDocuments(None)
     }
 
-    f.failed.foreach(t =>
-      logger.warn("Unable to create index: " + t.getMessage, t)
-    )
+    f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
     f.foreach {
       case Success(reindexResult) =>
         logger.info(

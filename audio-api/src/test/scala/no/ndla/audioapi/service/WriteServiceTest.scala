@@ -581,8 +581,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(audioRepository.update(any[domain.AudioMetaInformation], eqTo(audioId))).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.AudioMetaInformation](0))
     )
-    when(audioRepository.setSeriesId(any[Long], any[Option[Long]])(using any[DBSession])).thenAnswer((i: InvocationOnMock) =>
-      Success(i.getArgument(0))
+    when(audioRepository.setSeriesId(any[Long], any[Option[Long]])(using any[DBSession])).thenAnswer(
+      (i: InvocationOnMock) => Success(i.getArgument(0))
     )
     when(
       validationService.validate(

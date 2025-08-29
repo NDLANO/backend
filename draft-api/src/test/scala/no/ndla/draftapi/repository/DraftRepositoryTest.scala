@@ -27,7 +27,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
   override implicit lazy val dataSource: DataSource = testDataSource.get
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
   var repository: DraftRepository                   = scala.compiletime.uninitialized
-  val sampleArticle: Draft                 = TestData.sampleArticleWithByNcSa
+  val sampleArticle: Draft                          = TestData.sampleArticleWithByNcSa
 
   def emptyTestDatabase(): Unit = DB autoCommit (implicit session => {
     sql"delete from articledata;".execute()(using session)
@@ -66,7 +66,9 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
   }
 
   test("withId also returns archieved articles") {
-    repository.insert(sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty)))(using AutoSession)
+    repository.insert(sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty)))(using
+      AutoSession
+    )
     repository.insert(
       sampleArticle.copy(id = Some(2), status = Status(DraftStatus.ARCHIVED, Set.empty))
     )(using AutoSession)
@@ -149,12 +151,18 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     repository.newEmptyArticleId()(using AutoSession) should be(Success(7))
   }
   test("That idsWithStatus returns correct drafts") {
-    repository.insert(sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty)))(using AutoSession)
-    repository.insert(sampleArticle.copy(id = Some(2), status = Status(DraftStatus.PLANNED, Set.empty)))(using AutoSession)
+    repository.insert(sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty)))(using
+      AutoSession
+    )
+    repository.insert(sampleArticle.copy(id = Some(2), status = Status(DraftStatus.PLANNED, Set.empty)))(using
+      AutoSession
+    )
     repository.insert(
       sampleArticle.copy(id = Some(3), status = Status(DraftStatus.IN_PROGRESS, Set.empty))
     )(using AutoSession)
-    repository.insert(sampleArticle.copy(id = Some(4), status = Status(DraftStatus.PLANNED, Set.empty)))(using AutoSession)
+    repository.insert(sampleArticle.copy(id = Some(4), status = Status(DraftStatus.PLANNED, Set.empty)))(using
+      AutoSession
+    )
     repository.insert(
       sampleArticle.copy(id = Some(5), status = Status(DraftStatus.IN_PROGRESS, Set.empty))
     )(using AutoSession)
@@ -176,9 +184,13 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
       Success(List(ArticleIds(3, List.empty), ArticleIds(5, List.empty), ArticleIds(8, List.empty)))
     )
 
-    repository.idsWithStatus(DraftStatus.PUBLISHED)(using AutoSession) should be(Success(List(ArticleIds(6, List.empty))))
+    repository.idsWithStatus(DraftStatus.PUBLISHED)(using AutoSession) should be(
+      Success(List(ArticleIds(6, List.empty)))
+    )
 
-    repository.idsWithStatus(DraftStatus.END_CONTROL)(using AutoSession) should be(Success(List(ArticleIds(7, List.empty))))
+    repository.idsWithStatus(DraftStatus.END_CONTROL)(using AutoSession) should be(
+      Success(List(ArticleIds(7, List.empty)))
+    )
   }
 
   test("That getArticlesByPage returns all latest articles") {

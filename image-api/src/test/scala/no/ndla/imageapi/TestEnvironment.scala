@@ -11,12 +11,7 @@ package no.ndla.imageapi
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.database.{DBMigrator, DataSource}
-import no.ndla.imageapi.controller.{
-  ImageControllerV2,
-  ImageControllerV3,
-  InternController,
-  RawController
-}
+import no.ndla.imageapi.controller.{ImageControllerV2, ImageControllerV3, InternController, RawController}
 import no.ndla.imageapi.repository.*
 import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{

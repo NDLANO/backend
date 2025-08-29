@@ -636,12 +636,13 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       resources = List(insertedResource.copy(connection = Some(insertedConnection)))
     )
 
-    val resultNormal = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(using ReadOnlyAutoSession)
+    val resultNormal =
+      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(using ReadOnlyAutoSession)
     resultNormal should be(Success(Some(expectedResultNormal)))
 
     val resultFiltered =
-      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED, None)(
-        using ReadOnlyAutoSession
+      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED, None)(using
+        ReadOnlyAutoSession
       )
     resultFiltered should be(Success(Some(expectedResultFiltered)))
   }

@@ -78,7 +78,8 @@ class SearchConverterServiceComponent(using
     SearchableLearningPath(
       id = learningPath.id.get,
       titles = SearchableLanguageValues(learningPath.title.map(title => LanguageValue(title.language, title.title))),
-      descriptions = SearchableLanguageValues(learningPath.description.map(desc => LanguageValue(desc.language, desc.description))),
+      descriptions =
+        SearchableLanguageValues(learningPath.description.map(desc => LanguageValue(desc.language, desc.description))),
       coverPhotoUrl = learningPath.coverPhotoId
         .flatMap(converterService.asCoverPhoto)
         .map(_.url),

@@ -14,7 +14,7 @@ import org.jsoup.nodes.Element
 import scalikejdbc.{SQLSyntax, scalikejdbcSQLInterpolationImplicitDef}
 
 class V66__SetHideBylineForImagesNotCopyrighted(using
-    imageApiClient: => ImageApiClient,
+    imageApiClient: => ImageApiClient
 ) extends HtmlMigration {
   override val tableName: String            = "articledata a"
   override val columnName: String           = "document"

@@ -104,9 +104,7 @@ class SearchConverterService(using
         .findAndConvertDomainToApiField(searchable.descriptions.languageValues, Some(language))
         .map(lv => api.DescriptionDTO(lv.value, lv.language))
 
-      episodes <- searchable.episodes.traverse(eps =>
-        eps.traverse(ep => asAudioSummary(ep, language))
-      )
+      episodes <- searchable.episodes.traverse(eps => eps.traverse(ep => asAudioSummary(ep, language)))
 
       supportedLanguages = getSupportedLanguages(
         searchable.titles.languageValues,

@@ -18,10 +18,7 @@ import no.ndla.conceptapi.model.api.ResultWindowTooLargeException
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.language.Language.AllLanguages
-import no.ndla.search.AggregationBuilder.{
-  buildTermsAggregation,
-  getAggregationsFromResult
-}
+import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.NdlaE4sClient
 
 import java.util.concurrent.Executors
@@ -184,9 +181,7 @@ class PublishedConceptSearchService(using
       publishedConceptIndexService.indexDocuments(None)
     }
 
-    f.failed.foreach(t =>
-      logger.warn("Unable to create index: " + t.getMessage, t)
-    )
+    f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
     f.foreach {
       case Success(reindexResult) =>
         logger.info(

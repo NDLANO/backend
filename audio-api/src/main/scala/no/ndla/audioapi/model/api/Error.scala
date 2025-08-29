@@ -8,7 +8,6 @@
 
 package no.ndla.audioapi.model.api
 
-
 case class CouldNotFindLanguageException(message: String) extends RuntimeException(message)
 class AudioStorageException(message: String)              extends RuntimeException(message)
 class LanguageMappingException(message: String)           extends RuntimeException(message)

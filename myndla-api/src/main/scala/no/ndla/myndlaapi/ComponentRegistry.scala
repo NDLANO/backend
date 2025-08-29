@@ -43,12 +43,12 @@ import no.ndla.network.tapir.{
 }
 
 class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplication[MyNdlaApiProperties] {
-  given props: MyNdlaApiProperties                              = properties
-  implicit lazy val clock: Clock                                = new Clock
-  given dataSource: DataSource                                  = DataSource.getDataSource
-  given migrator: DBMigrator                                    = new DBMigrator(v16__MigrateResourcePaths)
-  given dbUtil: DBUtility                                       = new DBUtility
-  
+  given props: MyNdlaApiProperties = properties
+  implicit lazy val clock: Clock   = new Clock
+  given dataSource: DataSource     = DataSource.getDataSource
+  given migrator: DBMigrator       = new DBMigrator(v16__MigrateResourcePaths)
+  given dbUtil: DBUtility          = new DBUtility
+
   given ndlaClient: NdlaClient                                  = new NdlaClient
   given myndlaApiClient: MyNDLAApiClient                        = new MyNDLAApiClient
   implicit lazy val redisClient: RedisClient                    = new RedisClient(props.RedisHost, props.RedisPort)
