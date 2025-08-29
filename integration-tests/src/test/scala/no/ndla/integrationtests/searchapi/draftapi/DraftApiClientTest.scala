@@ -10,13 +10,15 @@ package no.ndla.integrationtests.searchapi.draftapi
 
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
-import no.ndla.database.HasDatabaseProps
+import no.ndla.database.{DBUtility, HasDatabaseProps}
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
-import no.ndla.network.AuthUser
+import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.search.model.LanguageValue
+import no.ndla.searchapi.integration.DraftApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
+import no.ndla.searchapi.service.search.SearchConverterService
 import no.ndla.{draftapi, searchapi}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -32,9 +34,9 @@ class DraftApiClientTest
     with UnitSuite
     with searchapi.TestEnvironment
     with HasDatabaseProps {
-  override lazy val ndlaClient             = new NdlaClient
-  override lazy val searchConverterService = new SearchConverterService
-  override lazy val DBUtil                 = new DBUtility
+  override implicit lazy val ndlaClient: NdlaClient                         = new NdlaClient
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  override implicit lazy val DBUtil: DBUtility                              = new DBUtility
 
   val draftApiPort: Int                      = findFreePort
   val pgc: PostgreSQLContainer[?]            = postgresContainer.get

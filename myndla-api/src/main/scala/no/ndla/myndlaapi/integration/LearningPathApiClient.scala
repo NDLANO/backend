@@ -18,18 +18,13 @@ import sttp.client3.{UriContext, quickRequest}
 import scala.concurrent.duration.DurationInt
 import scala.util.Try
 
-trait LearningPathApiClient {
-  this: NdlaClient & Props =>
+class LearningPathApiClient(using ndlaClient: NdlaClient, props: Props) extends StrictLogging {
+  private val learningPathTimeout = 20.seconds
 
-  lazy val learningPathApiClient: LearningPathApiClient
-  class LearningPathApiClient extends StrictLogging {
-    private val learningPathTimeout = 20.seconds
+  def getStats: Try[LearningPathStatsDTO] = get[LearningPathStatsDTO](s"${props.LearningpathApiUrl}/intern/stats")
 
-    def getStats: Try[LearningPathStatsDTO] = get[LearningPathStatsDTO](s"${props.LearningpathApiUrl}/intern/stats")
-
-    private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {
-      val request = quickRequest.get(uri"$url".withParams(params*)).readTimeout(learningPathTimeout)
-      ndlaClient.fetchWithForwardedAuth[A](request, None)
-    }
+  private def get[A: Decoder](url: String, params: (String, String)*): Try[A] = {
+    val request = quickRequest.get(uri"$url".withParams(params*)).readTimeout(learningPathTimeout)
+    ndlaClient.fetchWithForwardedAuth[A](request, None)
   }
 }

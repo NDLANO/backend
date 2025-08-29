@@ -8,12 +8,15 @@
 
 package no.ndla.searchapi.controller
 
+import no.ndla.common.Clock
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Availability
 import no.ndla.network.clients.FeideExtendedUserInfo
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
+import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentCaptor
@@ -25,8 +28,13 @@ import java.time.Month
 import scala.util.Success
 
 class SearchControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  override lazy val converterService        = new ConverterService
-  override val controller: SearchController = new SearchController()
+  override implicit lazy val converterService: ConverterService = new ConverterService
+  override implicit lazy val clock: Clock                       = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers         = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling       = new ControllerErrorHandling
+  override val controller: SearchController                     = new SearchController()
+  override implicit lazy val services: List[TapirController]    = List(controller)
+  override implicit lazy val routes: Routes                     = new Routes
 
   override def beforeEach(): Unit = {
     reset(clock)

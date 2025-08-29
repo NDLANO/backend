@@ -9,15 +9,13 @@
 package no.ndla.audioapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.configuration.{BaseProps, HasBaseProps, Prop}
-import no.ndla.database.{DatabaseProps, HasDatabaseProps}
+import no.ndla.common.configuration.{BaseProps, Prop}
+import no.ndla.database.DatabaseProps
 import no.ndla.network.{AuthUser, Domains}
 
 import scala.util.Properties.*
 
-trait Props extends HasBaseProps with HasDatabaseProps {
-  lazy val props: AudioApiProperties
-}
+type Props = AudioApiProperties
 
 class AudioApiProperties extends BaseProps with DatabaseProps with StrictLogging {
   val IsKubernetes: Boolean = propOrNone("NDLA_IS_KUBERNETES").isDefined

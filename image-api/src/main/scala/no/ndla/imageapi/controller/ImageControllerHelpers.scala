@@ -11,8 +11,9 @@ package no.ndla.imageapi.controller
 import no.ndla.imageapi.Props
 import sttp.tapir.*
 
-trait ImageControllerHelpers {
-  this: Props =>
+class ImageControllerHelpers(using
+    props: Props
+) {
   object ImageControllerHelpers {
     val pageNo: EndpointInput.Query[Int] =
       query[Int]("page")

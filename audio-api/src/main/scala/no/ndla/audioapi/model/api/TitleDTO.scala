@@ -10,7 +10,6 @@ package no.ndla.audioapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
 case class TitleDTO(

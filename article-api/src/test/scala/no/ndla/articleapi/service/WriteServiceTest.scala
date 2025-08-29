@@ -21,7 +21,7 @@ import scalikejdbc.DBSession
 import scala.util.{Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val converterService = new ConverterService
+  override implicit lazy val converterService: ConverterService = new ConverterService
 
   val today: NDLADate     = NDLADate.now()
   val yesterday: NDLADate = NDLADate.now().minusDays(1)
@@ -42,7 +42,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(readService.addUrlsOnEmbedResources(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
       invocation.getArgument[Article](0)
     )
-    when(articleRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
+    when(articleRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List("1234"))
     when(clock.now()).thenReturn(today)
     when(contentValidator.validateArticle(any[Article], any[Boolean]))
       .thenAnswer((invocation: InvocationOnMock) => Success(invocation.getArgument[Article](0)))
@@ -56,11 +56,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .copy(revision = articleToUpdate.revision.map(_ + 1), updated = today)
 
     when(articleRepository.withId(eqTo(10L))(any)).thenReturn(Some(toArticleRow(articleToUpdate)))
-    when(articleRepository.updateArticleFromDraftApi(any[Article], any)(any[DBSession]))
+    when(articleRepository.updateArticleFromDraftApi(any[Article], any)(using any[DBSession]))
       .thenReturn(Success(updatedAndInserted))
 
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(updatedAndInserted))
-    when(searchApiClient.indexDocument(any[String], any[Article], any[Option[TokenUser]])(any, any, any))
+    when(searchApiClient.indexDocument(any[String], any[Article], any[Option[TokenUser]])(using any, any, any))
       .thenReturn(updatedAndInserted)
 
     service.updateArticle(
@@ -75,7 +75,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val argCap2: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
 
     verify(articleIndexService, times(1)).indexDocument(argCap1.capture())
-    verify(searchApiClient, times(1)).indexDocument(any[String], argCap2.capture(), any[Option[TokenUser]])(
+    verify(searchApiClient, times(1)).indexDocument(any[String], argCap2.capture(), any[Option[TokenUser]])(using
       any,
       any,
       any
@@ -92,7 +92,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(articleIndexService, searchApiClient)
     val articleIdToUnpublish = 11L
 
-    when(articleRepository.unpublishMaxRevision(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
+    when(articleRepository.unpublishMaxRevision(any[Long])(using any[DBSession]))
+      .thenReturn(Success(articleIdToUnpublish))
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
     when(searchApiClient.deleteDocument(any[Long], any[String])).thenReturn(articleIdToUnpublish)
 
@@ -106,7 +107,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(articleIndexService, searchApiClient)
     val articleIdToUnpublish = 11L
 
-    when(articleRepository.deleteMaxRevision(any[Long])(any[DBSession])).thenReturn(Success(articleIdToUnpublish))
+    when(articleRepository.deleteMaxRevision(any[Long])(using any[DBSession])).thenReturn(Success(articleIdToUnpublish))
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
     when(searchApiClient.deleteDocument(any[Long], any[String])).thenReturn(articleIdToUnpublish)
 

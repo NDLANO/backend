@@ -8,60 +8,52 @@
 
 package no.ndla.frontpageapi
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.frontpageapi.controller.*
-import no.ndla.frontpageapi.model.api.ErrorHandling
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
 import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.network.tapir.TapirApplication
+import no.ndla.network.NdlaClient
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.tapir.{
+  ErrorHandling,
+  ErrorHelpers,
+  Routes,
+  SwaggerController,
+  TapirApplication,
+  TapirController,
+  TapirHealthController
+}
 
-class ComponentRegistry(properties: FrontpageApiProperties)
-    extends TapirApplication
-    with DataSource
-    with SubjectPageRepository
-    with FrontPageRepository
-    with FilmFrontPageRepository
-    with InternController
-    with ReadService
-    with WriteService
-    with SubjectPageController
-    with FrontPageController
-    with FilmPageController
-    with DBFilmFrontPage
-    with DBSubjectPage
-    with DBFrontPage
-    with ErrorHandling
-    with Clock
-    with Props
-    with DBMigrator
-    with ConverterService
-    with SwaggerDocControllerConfig {
-  override lazy val props: FrontpageApiProperties = properties
-  override lazy val migrator: DBMigrator          = DBMigrator()
-  override lazy val dataSource: HikariDataSource  = DataSource.getHikariDataSource
+class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplication[FrontpageApiProperties] {
+  given props: FrontpageApiProperties = properties
+  given clock: Clock                  = new Clock
+  given errorHelpers: ErrorHelpers    = new ErrorHelpers
+  given errorHandling: ErrorHandling  = new ControllerErrorHandling
+  given dataSource: DataSource        = DataSource.getDataSource
+  given migrator: DBMigrator          = DBMigrator()
+  given ndlaClient: NdlaClient        = new NdlaClient
 
-  override lazy val clock = new SystemClock
+  given DBSubjectPage                                    = new DBSubjectPage
+  given DBFrontPage                                      = new DBFrontPage
+  given DBFilmFrontPage                                  = new DBFilmFrontPage
+  given subjectPageRepository: SubjectPageRepository     = new SubjectPageRepository
+  given frontPageRepository: FrontPageRepository         = new FrontPageRepository
+  given filmFrontPageRepository: FilmFrontPageRepository = new FilmFrontPageRepository
+  given converterService: ConverterService               = new ConverterService
+  given myndlaApiClient: MyNDLAApiClient                 = new MyNDLAApiClient
 
-  override lazy val subjectPageRepository   = new SubjectPageRepository
-  override lazy val frontPageRepository     = new FrontPageRepository
-  override lazy val filmFrontPageRepository = new FilmFrontPageRepository
+  given readService: ReadService   = new ReadService
+  given writeService: WriteService = new WriteService
 
-  override lazy val readService  = new ReadService
-  override lazy val writeService = new WriteService
+  given subjectPageController: SubjectPageController = new SubjectPageController
+  given frontPageController: FrontPageController     = new FrontPageController
+  given filmPageController: FilmPageController       = new FilmPageController
+  given internController: InternController           = new InternController
+  given healthController: TapirHealthController      = new TapirHealthController
 
-  override lazy val subjectPageController = new SubjectPageController
-  override lazy val frontPageController   = new FrontPageController
-  override lazy val filmPageController    = new FilmPageController
-  override lazy val internController      = new InternController
-  override lazy val healthController      = new TapirHealthController
-
-  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
-  override lazy val ndlaClient: NdlaClient           = new NdlaClient
-
-  val swagger = new SwaggerController(
+  given swagger: SwaggerController = new SwaggerController(
     List(
       subjectPageController,
       frontPageController,
@@ -72,5 +64,6 @@ class ComponentRegistry(properties: FrontpageApiProperties)
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  override def services: List[TapirController] = swagger.getServices()
+  given services: List[TapirController] = swagger.getServices()
+  given routes: Routes                  = new Routes
 }

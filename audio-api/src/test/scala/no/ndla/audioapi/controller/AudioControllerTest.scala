@@ -14,8 +14,10 @@ import no.ndla.audioapi.model.domain.SearchSettings
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.CirceUtil.unsafeParseAs
+import no.ndla.common.Clock
 import no.ndla.common.model.api.{CopyrightDTO, LicenseDTO}
 import no.ndla.mapping.License
+import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.ArgumentCaptor
@@ -29,7 +31,12 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
 class AudioControllerTest extends UnitSuite with TestEnvironment with Retries with TapirControllerTest {
-  val controller: AudioController = new AudioController {
+  override implicit lazy val clock: Clock                           = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers             = new ErrorHelpers
+  override implicit lazy val errorHandling: ControllerErrorHandling = new ControllerErrorHandling
+  override implicit lazy val services: List[TapirController]        = List(controller)
+  override implicit lazy val routes: Routes                         = new Routes
+  val controller: AudioController                                   = new AudioController {
     // NOTE: Small max file size when testing to test the failure in the controller without using a bunch of memory
     override val maxAudioFileSizeBytes: Int = 10
   }

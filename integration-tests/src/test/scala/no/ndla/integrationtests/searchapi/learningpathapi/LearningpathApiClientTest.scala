@@ -13,10 +13,13 @@ import no.ndla.common.model.NDLADate
 import no.ndla.database.HasDatabaseProps
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.learningpathapi.LearningpathApiProperties
-import no.ndla.network.AuthUser
+import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.search.model.LanguageValue
+import no.ndla.searchapi.integration.LearningPathApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
+import no.ndla.searchapi.service.ConverterService
+import no.ndla.searchapi.service.search.SearchConverterService
 import no.ndla.{learningpathapi, searchapi}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -32,9 +35,9 @@ class LearningpathApiClientTest
     with UnitSuite
     with searchapi.TestEnvironment
     with HasDatabaseProps {
-  override lazy val ndlaClient             = new NdlaClient
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
+  override implicit lazy val ndlaClient: NdlaClient                         = new NdlaClient
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   val learningpathApiPort: Int                             = findFreePort
   val pgc: PostgreSQLContainer[?]                          = postgresContainer.get
