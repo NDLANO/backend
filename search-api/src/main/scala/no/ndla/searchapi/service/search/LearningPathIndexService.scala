@@ -87,6 +87,13 @@ trait LearningPathIndexService {
             )
           )
         ),
+        ObjectField(
+          "responsible",
+          properties = Seq(
+            keywordField("responsibleId"),
+            dateField("lastUpdated")
+          )
+        ),
         intField("isBasedOn"),
         keywordField("supportedLanguages"),
         getTaxonomyContextMapping("context"),

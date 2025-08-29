@@ -435,7 +435,8 @@ trait SearchConverterService {
             typeName = getTypeNames(LearningResourceType.LearningPath),
             priority = lp.priority,
             revisionMeta = lp.revisionMeta.toList,
-            nextRevision = lp.revisionMeta.getNextRevision
+            nextRevision = lp.revisionMeta.getNextRevision,
+            responsible = lp.responsible
           )
         )
       }
@@ -916,10 +917,9 @@ trait SearchConverterService {
         searchableLearningPath.tags.languageValues.map(lv =>
           api.learningpath.LearningPathTagsDTO(lv.value, lv.language)
         )
-
       val supportedLanguages = getSupportedLanguages(titles, metaDescriptions, tags)
-
-      val title =
+      val responsible = searchableLearningPath.responsible.map(r => ResponsibleDTO(r.responsibleId, r.lastUpdated))
+      val title       =
         findByLanguageOrBestEffort(titles, language).getOrElse(
           common.model.api.search.TitleWithHtmlDTO("", "", UnknownLanguage.toString)
         )
@@ -955,7 +955,7 @@ trait SearchConverterService {
           lastUpdated = searchableLearningPath.lastUpdated,
           license = Some(searchableLearningPath.license),
           revisions = Seq.empty,
-          responsible = None,
+          responsible = responsible,
           comments = None,
           priority = None,
           resourceTypeName = None,
