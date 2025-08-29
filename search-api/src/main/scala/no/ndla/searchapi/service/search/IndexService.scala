@@ -105,8 +105,7 @@ trait IndexService[D <: Content](using
     e4sClient: NdlaE4sClient,
     taxonomyApiClient: TaxonomyApiClient,
     grepApiClient: GrepApiClient,
-    myNDLAApiClient: MyNDLAApiClient,
-    searchLanguage: SearchLanguage
+    myNDLAApiClient: MyNDLAApiClient
 ) extends BulkIndexingService
     with StrictLogging {
   val apiClient: SearchApiClient[D]

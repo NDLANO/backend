@@ -15,7 +15,6 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.*
 import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.NDLADate
-import no.ndla.network.NdlaClient
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.grep.GrepStatusEncoderConfiguration
@@ -28,10 +27,7 @@ import scala.concurrent.duration.DurationInt
 import scala.util.Using.Releasable
 import scala.util.{Failure, Success, Try, Using}
 
-class GrepApiClient(using
-    ndlaClient: NdlaClient,
-    props: Props
-) extends StrictLogging {
+class GrepApiClient(using props: Props) extends StrictLogging {
   private val grepDumpUrl = s"${props.GrepApiUrl}/kl06/v201906/dump/json"
 
   private def readFile(file: File): Try[String] = Try {

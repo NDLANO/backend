@@ -24,7 +24,6 @@ import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.search.model.domain.ReindexResult
-import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.api.InvalidIndexBodyException
 import no.ndla.searchapi.model.domain.IndexingBundle
@@ -57,7 +56,6 @@ class InternController(using
     taxonomyApiClient: TaxonomyApiClient,
     grepApiClient: GrepApiClient,
     grepIndexService: GrepIndexService,
-    props: Props,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
     myNDLAApiClient: MyNDLAApiClient

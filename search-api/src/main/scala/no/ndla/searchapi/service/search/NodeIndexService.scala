@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.implicits.*
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.{ArticleApiClient, GrepApiClient, TaxonomyApiClient}
+import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.taxonomy.Node
 import cats.implicits.*
@@ -33,7 +33,6 @@ class NodeIndexService(using
     searchConverterService: SearchConverterService,
     props: Props,
     taxonomyApiClient: TaxonomyApiClient,
-    articleApiClient: ArticleApiClient,
     frontpageApiClient: FrontpageApiClient,
     grepApiClient: GrepApiClient,
     searchLanguage: SearchLanguage,
