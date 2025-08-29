@@ -14,10 +14,8 @@ import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.api.*
 import no.ndla.articleapi.model.domain.Sort
 import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
-import no.ndla.articleapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.articleapi.service.ReadService
 import no.ndla.articleapi.Props
-import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
@@ -36,14 +34,10 @@ import scala.util.{Failure, Success, Try}
 
 class ArticleControllerV2(using
     readService: ReadService,
-    writeService: WriteService,
     articleSearchService: ArticleSearchService,
     searchConverterService: SearchConverterService,
-    converterService: ConverterService,
-    contentValidator: ContentValidator,
     props: Props,
     errorHandling: ErrorHandling,
-    clock: Clock,
     errorHelpers: ErrorHelpers,
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {

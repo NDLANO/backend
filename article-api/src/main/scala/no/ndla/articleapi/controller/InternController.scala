@@ -18,7 +18,6 @@ import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
-import no.ndla.common.Clock
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.article.{Article, PartialPublishArticleDTO, PartialPublishArticlesBulkDTO}
 import no.ndla.language.Language
@@ -45,7 +44,6 @@ class InternController(using
     contentValidator: ContentValidator,
     props: Props,
     errorHandling: ErrorHandling,
-    clock: Clock,
     errorHelpers: ErrorHelpers,
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController

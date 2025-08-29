@@ -11,15 +11,12 @@ package no.ndla.articleapi.db.migrationwithdependencies
 import no.ndla.articleapi.ArticleApiProperties
 import no.ndla.articleapi.db.HtmlMigration
 import no.ndla.articleapi.integration.ImageApiClient
-import no.ndla.network.NdlaClient
 import org.jsoup.nodes.Element
 
 class V55__SetHideBylineForImagesNotCopyrighted(
     properties: ArticleApiProperties
-)(using
-    imageApiClient: ImageApiClient,
-    ndlaClient: NdlaClient
-) extends HtmlMigration {
+)(using imageApiClient: ImageApiClient)
+    extends HtmlMigration {
   given props: ArticleApiProperties = properties
 
   override val tableName: String  = "contentdata"

@@ -17,7 +17,7 @@ import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common
-import no.ndla.common.{CirceUtil, Clock, model}
+import no.ndla.common.{CirceUtil, model}
 import no.ndla.common.model.{RelatedContentLink, api as commonApi}
 import no.ndla.common.model.api.{Delete, DisclaimerDTO, LicenseDTO, Missing, UpdateWith}
 import no.ndla.common.model.domain.{
@@ -47,7 +47,7 @@ import org.jsoup.Jsoup
 
 import scala.util.{Failure, Success, Try}
 
-class ConverterService(using clock: Clock, articleRepository: ArticleRepository, props: Props) extends StrictLogging {
+class ConverterService(using articleRepository: ArticleRepository, props: Props) extends StrictLogging {
 
   /** Attempts to extract language that hit from highlights in elasticsearch response.
     * @param result

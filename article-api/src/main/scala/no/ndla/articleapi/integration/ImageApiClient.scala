@@ -11,18 +11,13 @@ package no.ndla.articleapi.integration
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.service.ConverterService
 import no.ndla.common.model.api.CopyrightDTO
 import no.ndla.network.NdlaClient
 import sttp.client3.quick.*
 
 import scala.util.Try
 
-class ImageApiClient(using
-    ndlaClient: NdlaClient,
-    converterService: ConverterService,
-    props: Props
-) {
+class ImageApiClient(using ndlaClient: NdlaClient, props: Props) {
   private val Endpoint = s"http://${props.ImageApiHost}/image-api/v3/images"
 
   def getImagesWithIds(ids: Seq[String]): Try[Seq[ImageWithCopyright]] = {

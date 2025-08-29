@@ -6,10 +6,9 @@ import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.database.DataSource
 import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHandling, ErrorHelpers, NotFoundWithSupportedLanguages}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import no.ndla.articleapi.ArticleApiProperties
 import org.postgresql.util.PSQLException
 
-class ControllerErrorHandling(using props: ArticleApiProperties, dataSource: DataSource, errorHelpers: ErrorHelpers, clock: Clock)
+class ControllerErrorHandling(using dataSource: DataSource, errorHelpers: ErrorHelpers, clock: Clock)
     extends ErrorHandling {
   import errorHelpers.*
 
@@ -18,8 +17,8 @@ class ControllerErrorHandling(using props: ArticleApiProperties, dataSource: Dat
       ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 401)
     case a: AccessDeniedException =>
       ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403)
-    case v: ValidationException   => validationError(v)
-    case _: IndexNotFoundException => errorBody(INDEX_MISSING, INDEX_MISSING_DESCRIPTION, 500)
+    case v: ValidationException                         => validationError(v)
+    case _: IndexNotFoundException                      => errorBody(INDEX_MISSING, INDEX_MISSING_DESCRIPTION, 500)
     case NotFoundException(message, sl) if sl.isEmpty   => notFoundWithMsg(message)
     case NotFoundException(message, supportedLanguages) =>
       NotFoundWithSupportedLanguages(NOT_FOUND, message, clock.now(), supportedLanguages, 404)
@@ -38,7 +37,7 @@ class ControllerErrorHandling(using props: ArticleApiProperties, dataSource: Dat
 }
 
 object ArticleErrorHelpers {
-  val ARTICLE_GONE = "ARTICLE_GONE"
+  val ARTICLE_GONE                         = "ARTICLE_GONE"
   val WINDOW_TOO_LARGE_DESCRIPTION: String =
     "The result window is too large. Fetching pages above the maximum result window requires scrolling, see query-parameter 'search-context'."
   val ARTICLE_GONE_DESCRIPTION = "The article you are searching for seems to have vanished 👻"

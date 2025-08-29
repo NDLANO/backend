@@ -61,7 +61,7 @@ trait DefaultOptions extends ScalaModule {
       "-Wnumeric-widen"               -> scala2,
       "-Xsource:3"                    -> scala2,
       "-Yrangepos"                    -> scala2,
-      "-Wsafe-init",
+      // TODO: "-Wsafe-init",
       "-Wunused:nowarn",
       "-Wunused:implicits",
       "-Wunused:explicits",

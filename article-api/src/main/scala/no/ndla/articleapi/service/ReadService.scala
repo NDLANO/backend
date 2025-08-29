@@ -12,7 +12,6 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.integration.FrontpageApiClient
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.controller.ArticleErrorHelpers
@@ -20,7 +19,7 @@ import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, NotFoundException}
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
-import no.ndla.articleapi.service.search.{ArticleSearchService, SearchConverterService}
+import no.ndla.articleapi.service.search.ArticleSearchService
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.implicits.*
@@ -43,8 +42,6 @@ class ReadService(using
     feideApiClient: FeideApiClient,
     converterService: ConverterService,
     articleSearchService: ArticleSearchService,
-    searchConverterService: SearchConverterService,
-    memoizeHelpers: MemoizeHelpers,
     props: Props,
     frontpageApiClient: FrontpageApiClient
 ) extends StrictLogging {

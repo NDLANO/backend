@@ -31,7 +31,6 @@ class WriteService(using
     converterService: ConverterService,
     contentValidator: ContentValidator,
     articleIndexService: ArticleIndexService,
-    readService: ReadService,
     searchApiClient: SearchApiClient,
     dBUtility: DBUtility
 ) extends StrictLogging {
