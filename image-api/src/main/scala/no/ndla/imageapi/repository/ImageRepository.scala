@@ -79,7 +79,7 @@ class ImageRepository(using
     )
   }
 
-  private def updateImageFileMeta(imageFileData: ImageFileData)(implicit session: DBSession): Try[_] =
+  private def updateImageFileMeta(imageFileData: ImageFileData)(implicit session: DBSession): Try[?] =
     Try {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")

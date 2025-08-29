@@ -22,7 +22,7 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
   override implicit lazy val props: ImageApiProperties = new ImageApiProperties
   override implicit lazy val dataSource: DataSource    = testDataSource.get
   override implicit lazy val migrator: DBMigrator      = new DBMigrator
-  var repository: ImageRepository                      = _
+  var repository: ImageRepository                      = scala.compiletime.uninitialized
 
   def serverIsListening: Boolean = {
     val server = props.MetaServer.unsafeGet
@@ -37,7 +37,7 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
 
   def emptyTestDatabase: Boolean =
     DB autoCommit (implicit session => {
-      sql"delete from imagemetadata;".execute()(session)
+      sql"delete from imagemetadata;".execute()(using session)
     })
 
   override def beforeAll(): Unit = {

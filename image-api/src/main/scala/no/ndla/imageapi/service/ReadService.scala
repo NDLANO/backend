@@ -28,7 +28,6 @@ class ReadService(using
     validationService: ValidationService,
     imageRepository: ImageRepository,
     imageIndexService: ImageIndexService,
-    imageStorageService: ImageStorageService,
     tagSearchService: TagSearchService,
     searchConverterService: SearchConverterService
 ) extends StrictLogging {

@@ -280,7 +280,7 @@ class ImageControllerV2(using
   def postNewImage: ServerEndpoint[Any, Eff] = endpoint.post
     .summary("Upload a new image with meta information.")
     .description("Upload a new image file with meta data.")
-    .in(multipartBody[MetaDataAndFileForm](implicitly))
+    .in(multipartBody[MetaDataAndFileForm](using implicitly))
     .errorOut(errorOutputsFor(400, 401, 403, 413))
     .out(jsonBody[ImageMetaInformationV2DTO])
     .requirePermission(IMAGE_API_WRITE)

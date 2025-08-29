@@ -9,7 +9,6 @@
 package no.ndla.imageapi.service.search
 
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
-import no.ndla.search.NdlaE4sClient
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{never, verify, when}
 

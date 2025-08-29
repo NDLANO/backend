@@ -8,9 +8,7 @@
 
 package no.ndla.imageapi.service.search
 
-import no.ndla.common.Clock
 import no.ndla.common.model.NDLADate
-import no.ndla.imageapi.ImageApiProperties
 import no.ndla.imageapi.service.ConverterService
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.common.model.domain.article.Copyright

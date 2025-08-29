@@ -10,11 +10,8 @@ package no.ndla.imageapi
 
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
-import no.ndla.common.configuration.BaseProps
-import no.ndla.database.{DBMigrator, DataSource, DatabaseProps}
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.imageapi.controller.{
-  BaseImageController,
-  HealthController,
   ImageControllerV2,
   ImageControllerV3,
   InternController,
@@ -25,26 +22,22 @@ import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
   ImageIndexService,
   ImageSearchService,
-  IndexService,
   SearchConverterService,
-  SearchService,
   TagIndexService,
   TagSearchService
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{
-  AllErrors,
   ErrorHandling,
   ErrorHelpers,
   Routes,
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirErrorHandling,
   TapirHealthController
 }
-import no.ndla.search.{BaseIndexService, Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
+import no.ndla.search.NdlaE4sClient
 import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment extends TapirApplication[ImageApiProperties] with MockitoSugar {

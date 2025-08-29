@@ -9,12 +9,7 @@
 package no.ndla.imageapi.controller
 
 import no.ndla.common.Clock
-import no.ndla.database.DataSource
-import no.ndla.imageapi.repository.ImageRepository
-import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
-import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.Mockito.{reset, when}

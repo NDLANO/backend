@@ -8,8 +8,7 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.common.{CirceUtil, Clock}
-import no.ndla.imageapi.ImageApiProperties
+import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain as common
 import no.ndla.common.model.domain.ContributorType
@@ -132,7 +131,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     doReturn(Some(expectedImage), Some(expectedImage))
       .when(imageRepository)
-      .getImageFromFilePath(eqTo(encodedPath))(any[DBSession])
+      .getImageFromFilePath(eqTo(encodedPath))(using any[DBSession])
     readService.getDomainImageMetaFromUrl(s"/image-api/raw/$imageUrl") should be(Success(expectedImage))
 
     verify(imageRepository, times(1)).getImageFromFilePath(encodedPath)

@@ -8,7 +8,6 @@
 
 package no.ndla.imageapi
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.database.{DBMigrator, DataSource}
@@ -19,23 +18,21 @@ import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
   ImageIndexService,
   ImageSearchService,
-  IndexService,
   SearchConverterService,
-  SearchService,
   TagIndexService,
   TagSearchService
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, SwaggerController, TapirApplication, TapirController}
-import no.ndla.search.{BaseIndexService, Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication[ImageApiProperties] {
   given props: ImageApiProperties    = properties
   given dataSource: DataSource       = DataSource.getDataSource
+  given clock: Clock                 = new Clock
   given errorHelpers: ErrorHelpers   = new ErrorHelpers
   given errorHandling: ErrorHandling = new ControllerErrorHandling
-  given routes: Routes               = new Routes
 
   given migrator: DBMigrator = DBMigrator(
     new V6__AddAgreementToImages,
@@ -43,25 +40,23 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   )
 
   given s3Client: NdlaS3Client                         = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  given ndlaClient: NdlaClient                         = new NdlaClient
+  given e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
   given searchLanguage: SearchLanguage                 = new SearchLanguage
+  given imageConverter: ImageConverter                 = new ImageConverter
+  given random: Random                                 = new Random
+  given converterService: ConverterService             = new ConverterService
+  given myndlaApiClient: MyNDLAApiClient               = new MyNDLAApiClient
+  given searchConverterService: SearchConverterService = new SearchConverterService
+  given imageRepository: ImageRepository               = new ImageRepository
   given imageIndexService: ImageIndexService           = new ImageIndexService
   given imageSearchService: ImageSearchService         = new ImageSearchService
   given tagIndexService: TagIndexService               = new TagIndexService
   given tagSearchService: TagSearchService             = new TagSearchService
-  given imageRepository: ImageRepository               = new ImageRepository
-  given readService: ReadService                       = new ReadService
-  given writeService: WriteService                     = new WriteService
   given validationService: ValidationService           = new ValidationService
+  given readService: ReadService                       = new ReadService
   given imageStorage: ImageStorageService              = new ImageStorageService
-  given ndlaClient: NdlaClient                         = new NdlaClient
-  given converterService: ConverterService             = new ConverterService
-  given e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
-  given myndlaApiClient: MyNDLAApiClient               = new MyNDLAApiClient
-  given searchConverterService: SearchConverterService = new SearchConverterService
-
-  given imageConverter: ImageConverter = new ImageConverter
-  given clock: Clock                   = new Clock
-  given random: Random                 = new Random
+  given writeService: WriteService                     = new WriteService
 
   given imageControllerV2: ImageControllerV2 = new ImageControllerV2
   given imageControllerV3: ImageControllerV3 = new ImageControllerV3
@@ -81,4 +76,5 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   )
 
   given services: List[TapirController] = swagger.getServices()
+  given routes: Routes                  = new Routes
 }

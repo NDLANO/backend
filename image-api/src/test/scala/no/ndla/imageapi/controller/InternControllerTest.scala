@@ -14,7 +14,6 @@ import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.api.{ImageAltTextDTO, ImageCaptionDTO, ImageTagDTO, ImageTitleDTO}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
-import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.ConverterService
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}

@@ -93,9 +93,9 @@ class RawController(using
   ): Try[ImageStream] = {
     val dynamicCropOrResize = {
       val canDynamicCrop = canDoDynamicCrop(imageParams)
-      if (canDynamicCrop) dynamicCrop _
+      if (canDynamicCrop) dynamicCrop
       else {
-        resize _
+        resize
       }
     }
     val nonResizableMimeTypes = List("image/gif", "image/svg", "image/svg+xml")

@@ -12,7 +12,6 @@ import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.database.DataSource
 import no.ndla.imageapi.model.api.{
   ImageMetaSummaryDTO,
   NewImageMetaInformationV2DTO,
@@ -21,13 +20,10 @@ import no.ndla.imageapi.model.api.{
 }
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.model.{ImageNotFoundException, api, domain}
-import no.ndla.imageapi.repository.ImageRepository
-import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
-import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
-import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.imageapi.service.ConverterService
+import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
