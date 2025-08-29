@@ -8,9 +8,12 @@
 
 package no.ndla.articleapi.controller
 
+import no.ndla.articleapi.service.ConverterService
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.Clock
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{Author, ContributorType}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doReturn, never, reset, times, verify, verifyNoMoreInteractions, when}
@@ -22,7 +25,13 @@ import scala.util.{Failure, Success}
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val author: Author = Author(ContributorType.Writer, "Henrik")
 
-  val controller: TapirController = new InternController
+  override implicit lazy val clock: Clock                       = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers         = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling       = new ControllerErrorHandling
+  override implicit lazy val converterService: ConverterService = new ConverterService
+  val controller: InternController                              = new InternController
+  override implicit lazy val services: List[TapirController]    = List(controller)
+  override implicit lazy val routes: Routes                     = new Routes
 
   when(clock.now()).thenCallRealMethod()
 
