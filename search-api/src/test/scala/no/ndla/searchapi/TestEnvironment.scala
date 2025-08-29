@@ -11,15 +11,13 @@ package no.ndla.searchapi
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseProps
-import no.ndla.database.{DBUtility, DatabaseProps, HasDatabaseProps}
+import no.ndla.database.{DBUtility, DatabaseProps}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient}
-import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
-import no.ndla.searchapi.controller.parameters.GetSearchQueryParams
+import no.ndla.network.tapir.{SwaggerController, TapirController, TapirHealthController}
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.controller.{InternController, SearchController}
 import no.ndla.searchapi.integration.*
-import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.service.search.*
 import no.ndla.searchapi.service.ConverterService
 import org.scalatestplus.mockito.MockitoSugar
@@ -28,15 +26,15 @@ class TestProps extends SearchApiProperties with BaseProps with DatabaseProps {
   override def MetaMigrationLocation: String = ???
 }
 
-trait TestEnvironment extends TapirApplication with MockitoSugar with StrictLogging {
+trait TestEnvironment extends MockitoSugar with StrictLogging {
   implicit lazy val props: TestProps = new TestProps
 
   implicit lazy val searchController: SearchController      = mock[SearchController]
   implicit lazy val internController: InternController      = mock[InternController]
   implicit lazy val healthController: TapirHealthController = mock[TapirHealthController]
 
-  implicit lazy val ndlaClient: NdlaClient = mock[NdlaClient]
-  var e4sClient: NdlaE4sClient             = mock[NdlaE4sClient]
+  implicit lazy val ndlaClient: NdlaClient   = mock[NdlaClient]
+  implicit lazy val e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
 
   implicit lazy val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
 
@@ -51,6 +49,7 @@ trait TestEnvironment extends TapirApplication with MockitoSugar with StrictLogg
   implicit lazy val redisClient: RedisClient                     = mock[RedisClient]
   implicit lazy val frontpageApiClient: FrontpageApiClient       = mock[FrontpageApiClient]
   implicit lazy val DBUtil: DBUtility                            = mock[DBUtility]
+  implicit lazy val searchLanguage: SearchLanguage               = mock[SearchLanguage]
 
   implicit lazy val clock: Clock = mock[Clock]
 
@@ -68,6 +67,6 @@ trait TestEnvironment extends TapirApplication with MockitoSugar with StrictLogg
 
   implicit lazy val multiDraftSearchService: MultiDraftSearchService = mock[MultiDraftSearchService]
 
-  override def services: List[TapirController] = List()
-  val swagger: SwaggerController               = mock[SwaggerController]
+  implicit def services: List[TapirController] = List()
+  implicit lazy val swagger: SwaggerController = mock[SwaggerController]
 }

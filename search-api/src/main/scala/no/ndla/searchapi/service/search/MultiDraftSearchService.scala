@@ -23,7 +23,6 @@ import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.learningpath.LearningPathStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
-import no.ndla.network.tapir.ErrorHandling
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
 import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
@@ -39,7 +38,6 @@ class MultiDraftSearchService(using
     draftIndexService: DraftIndexService,
     learningPathIndexService: LearningPathIndexService,
     props: Props,
-    errorHandling: ErrorHandling,
     draftConceptIndexService: DraftConceptIndexService,
     searchConverterService: SearchConverterService,
     searchLanguage: SearchLanguage

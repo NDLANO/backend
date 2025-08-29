@@ -12,6 +12,7 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.search.SearchTrait
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
+import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
@@ -35,9 +36,9 @@ import org.mockito.Mockito.when
 import scala.util.{Success, Try}
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
-
-  override lazy val searchConverterService = new SearchConverterService
-  val sampleArticle: Article               = TestData.sampleArticleWithPublicDomain.copy()
+  override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  val sampleArticle: Article = TestData.sampleArticleWithPublicDomain.copy()
 
   val titles: List[Title] = List(
     Title("Bokmål tittel", "nb"),
