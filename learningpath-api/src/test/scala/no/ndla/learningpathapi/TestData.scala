@@ -23,7 +23,6 @@ import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.learningpathapi.model.domain.{SearchSettings, Sort}
 import common.learningpath.Introduction
-import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
 
 object TestData {
 
