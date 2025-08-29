@@ -8,103 +8,88 @@
 
 package no.ndla.conceptapi
 
-import com.typesafe.scalalogging.StrictLogging
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.controller.*
-import no.ndla.conceptapi.model.api.ErrorHandling
-import no.ndla.conceptapi.model.search.{DraftSearchSettingsHelper, SearchSettingsHelper}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.service.*
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.common.Clock
-import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.conceptapi.db.migrationwithdependencies.{V23__SubjectNameAsTags, V25__SubjectNameAsTagsPublished}
 import no.ndla.database.{DBMigrator, DataSource}
-import no.ndla.network.clients.SearchApiClient
-import no.ndla.network.tapir.TapirApplication
+import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient}
+import no.ndla.network.tapir.{
+  ErrorHandling,
+  ErrorHelpers,
+  Routes,
+  SwaggerController,
+  SwaggerInfo,
+  TapirApplication,
+  TapirController,
+  TapirHealthController
+}
+import sttp.tapir.stringToPath
+import no.ndla.network.tapir.auth.Permission
 
-class ComponentRegistry(properties: ConceptApiProperties)
-    extends BaseComponentRegistry[ConceptApiProperties]
-    with TapirApplication
-    with DraftConceptController
-    with PublishedConceptController
-    with Clock
-    with WriteService
-    with ContentValidator
-    with ReadService
-    with ConverterService
-    with StateTransitionRules
-    with DraftConceptRepository
-    with PublishedConceptRepository
-    with DataSource
-    with StrictLogging
-    with DraftConceptSearchService
-    with PublishedConceptSearchService
-    with SearchService
-    with SearchLanguage
-    with SearchConverterService
-    with Elastic4sClient
-    with DraftConceptIndexService
-    with PublishedConceptIndexService
-    with IndexService
-    with BaseIndexService
-    with InternController
-    with SearchApiClient
-    with NdlaClient
-    with Props
-    with DBMigrator
-    with ErrorHandling
-    with SearchSettingsHelper
-    with DraftSearchSettingsHelper
-    with SwaggerDocControllerConfig
-    with ConceptControllerHelpers {
-  override lazy val props: ConceptApiProperties = properties
-  override lazy val migrator: DBMigrator        = DBMigrator(
+class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplication[ConceptApiProperties] {
+  given props: ConceptApiProperties = properties
+
+  given clock: Clock                       = new Clock
+  given e4sClient: NdlaE4sClient           = Elastic4sClientFactory.getClient(props.SearchServer)
+  given dataSource: DataSource             = DataSource.getDataSource
+  given errorHelpers: ErrorHelpers         = new ErrorHelpers
+  given errorHandling: ErrorHandling       = new ControllerErrorHandling
+  given searchLanguage: SearchLanguage     = new SearchLanguage
+  given converterService: ConverterService = new ConverterService
+
+  given migrator: DBMigrator = DBMigrator(
     new V23__SubjectNameAsTags(props),
     new V25__SubjectNameAsTagsPublished(props)
   )
 
-  override lazy val dataSource: HikariDataSource = DataSource.getHikariDataSource
+  given draftConceptRepository: DraftConceptRepository         = new DraftConceptRepository
+  given publishedConceptRepository: PublishedConceptRepository = new PublishedConceptRepository
 
-  override lazy val draftConceptRepository     = new DraftConceptRepository
-  override lazy val publishedConceptRepository = new PublishedConceptRepository
+  given searchConverterService: SearchConverterService               = new SearchConverterService
+  given publishedConceptIndexService: PublishedConceptIndexService   = new PublishedConceptIndexService
+  given publishedConceptSearchService: PublishedConceptSearchService = new PublishedConceptSearchService
+  given draftConceptIndexService: DraftConceptIndexService           = new DraftConceptIndexService
+  given draftConceptSearchService: DraftConceptSearchService         = new DraftConceptSearchService
 
-  override lazy val draftConceptSearchService     = new DraftConceptSearchService
-  override lazy val searchConverterService        = new SearchConverterService
-  override lazy val draftConceptIndexService      = new DraftConceptIndexService
-  override lazy val publishedConceptIndexService  = new PublishedConceptIndexService
-  override lazy val publishedConceptSearchService = new PublishedConceptSearchService
+  given ndlaClient: NdlaClient           = new NdlaClient
+  given searchApiClient: SearchApiClient = new SearchApiClient(props.SearchApiUrl)
+  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
 
-  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
+  implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
+  implicit lazy val writeService: WriteService                 = new WriteService
+  given readService: ReadService                               = new ReadService
+  given contentValidator: ContentValidator                     = new ContentValidator
 
-  override lazy val ndlaClient                       = new NdlaClient
-  override lazy val searchApiClient                  = new SearchApiClient
-  override lazy val myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
+  given conceptControllerHelpers: ConceptControllerHelpers = new ConceptControllerHelpers
 
-  override lazy val writeService     = new WriteService
-  override lazy val readService      = new ReadService
-  override lazy val converterService = new ConverterService
-  override lazy val clock            = new SystemClock
-  override lazy val contentValidator = new ContentValidator
+  given draftConceptController: DraftConceptController         = new DraftConceptController
+  given publishedConceptController: PublishedConceptController = new PublishedConceptController
+  given healthController: TapirHealthController                = new TapirHealthController
+  given internController: InternController                     = new InternController
 
-  lazy val draftConceptController                  = new DraftConceptController
-  lazy val publishedConceptController              = new PublishedConceptController
-  lazy val healthController: TapirHealthController = new TapirHealthController
-  lazy val internController                        = new InternController
+  private val swaggerInfo = SwaggerInfo(
+    mountPoint = "concept-api" / "api-docs",
+    description = "Services for accessing concepts",
+    authUrl = props.Auth0LoginEndpoint,
+    scopes = Permission.toSwaggerMap(Permission.thatStartsWith("concept"))
+  )
 
-  val swagger = new SwaggerController(
-    List[TapirController](
+  given swagger: SwaggerController = new SwaggerController(
+    List(
       draftConceptController,
       publishedConceptController,
       healthController,
       internController
     ),
-    SwaggerDocControllerConfig.swaggerInfo
+    swaggerInfo
   )
 
-  override def services: List[TapirController] = swagger.getServices()
-
+  given services: List[TapirController] = swagger.getServices()
+  given routes: Routes                  = new Routes
 }

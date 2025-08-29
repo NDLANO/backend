@@ -16,7 +16,6 @@ import no.ndla.conceptapi.model.domain.*
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.language.Language
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
-
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.concept.{
   Concept,
@@ -28,23 +27,27 @@ import no.ndla.common.model.domain.concept.{
   VisualElement,
   WordClass
 }
+import no.ndla.conceptapi.service.ConverterService
 import no.ndla.mapping.License
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 import java.util.UUID
 
 class DraftConceptSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
+  override implicit lazy val e4sClient: NdlaE4sClient       =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  val indexName: String                                                  = UUID.randomUUID().toString
-  override lazy val draftConceptSearchService: DraftConceptSearchService = new DraftConceptSearchService {
+  val indexName: String                                                           = UUID.randomUUID().toString
+  override implicit lazy val draftConceptSearchService: DraftConceptSearchService = new DraftConceptSearchService {
     override val searchIndex: String = indexName
   }
-  override lazy val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
+  override implicit lazy val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards         = 1
     override val searchIndex: String = indexName
   }
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
+  override implicit lazy val converterService       = new ConverterService
+  override implicit lazy val searchConverterService = new SearchConverterService
 
   val byNcSa: DraftCopyright = DraftCopyright(
     Some(License.CC_BY_NC_SA.toString),

@@ -8,10 +8,13 @@
 
 package no.ndla.conceptapi.controller
 
+import no.ndla.common.Clock
 import no.ndla.conceptapi.model.api.{ConceptSummaryDTO, NotFoundException}
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
+import no.ndla.conceptapi.service.ConverterService
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -20,7 +23,14 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: PublishedConceptController = new PublishedConceptController
+  override implicit lazy val clock: Clock                                       = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers                         = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling                       = new ControllerErrorHandling
+  override implicit lazy val converterService: ConverterService                 = new ConverterService
+  override implicit lazy val conceptControllerHelpers: ConceptControllerHelpers = new ConceptControllerHelpers
+  val controller: PublishedConceptController                                    = new PublishedConceptController
+  override implicit lazy val services: List[TapirController]                    = List(controller)
+  override implicit lazy val routes: Routes                                     = new Routes
 
   override def beforeEach(): Unit = {
     reset(clock)

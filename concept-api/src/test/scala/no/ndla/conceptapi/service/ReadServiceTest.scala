@@ -18,10 +18,9 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val converterService = new ConverterService
-
-  val service             = new ReadService()
-  val userInfo: TokenUser = TokenUser("", Set(CONCEPT_API_WRITE), None)
+  override implicit lazy val converterService: ConverterService = new ConverterService
+  val service                                                   = new ReadService()
+  val userInfo: TokenUser                                       = TokenUser("", Set(CONCEPT_API_WRITE), None)
 
   test("Checks that filter by language works as it should") {
 

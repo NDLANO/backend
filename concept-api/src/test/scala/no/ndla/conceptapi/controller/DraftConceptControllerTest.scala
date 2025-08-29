@@ -8,11 +8,14 @@
 
 package no.ndla.conceptapi.controller
 
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.conceptapi.model.api.*
 import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
 import no.ndla.conceptapi.model.search
+import no.ndla.conceptapi.model.search.DraftSearchSettings
+import no.ndla.conceptapi.service.ConverterService
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
@@ -22,7 +25,14 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class DraftConceptControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: DraftConceptController = new DraftConceptController
+  override implicit lazy val clock: Clock                                       = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers                         = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling                       = new ControllerErrorHandling
+  override implicit lazy val converterService: ConverterService                 = new ConverterService
+  override implicit lazy val conceptControllerHelpers: ConceptControllerHelpers = new ConceptControllerHelpers
+  val controller: DraftConceptController                                        = new DraftConceptController
+  override implicit lazy val services: List[TapirController]                    = List(controller)
+  override implicit lazy val routes: Routes                                     = new Routes
 
   override def beforeEach(): Unit = {
     reset(clock)
@@ -218,8 +228,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     when(draftConceptSearchService.all(any[search.DraftSearchSettings])).thenReturn(Success(multiResult))
     when(searchConverterService.asApiConceptSearchResult(any)).thenCallRealMethod()
 
-    val expectedSettings =
-      draftSearchSettings.empty.copy(pageSize = 10, sort = Sort.ByTitleDesc, shouldScroll = true)
+    val expectedSettings = DraftSearchSettings.empty.copy(pageSize = 10, sort = Sort.ByTitleDesc, shouldScroll = true)
 
     simpleHttpClient
       .send(
