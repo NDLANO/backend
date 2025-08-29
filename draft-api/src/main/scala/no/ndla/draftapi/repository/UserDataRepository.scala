@@ -10,7 +10,6 @@ package no.ndla.draftapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
-import no.ndla.database.DataSource
 import no.ndla.draftapi.model.domain.UserData
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -18,9 +17,7 @@ import scalikejdbc.interpolation.SQLSyntax
 
 import scala.util.{Success, Try}
 
-class UserDataRepository(using
-    dataSource: DataSource
-) extends StrictLogging {
+class UserDataRepository extends StrictLogging {
   def insert(userData: UserData)(implicit session: DBSession = AutoSession): Try[UserData] = {
     Try {
       val dataObject = new PGobject()

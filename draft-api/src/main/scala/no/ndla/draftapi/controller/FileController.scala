@@ -18,7 +18,6 @@ import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.common.Clock
 import sttp.model.Part
 import sttp.tapir.EndpointInput
 import sttp.tapir.*
@@ -33,7 +32,6 @@ class FileController(using
     props: DraftApiProperties,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   override val serviceName: String         = "files"

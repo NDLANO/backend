@@ -12,10 +12,13 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.domain.{ArticleType, EditorNote, Priority}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.database.DataSource
-import no.ndla.draftapi.model.api.{ArticleVersioningException, DraftErrorHelpers, GenerateIDException, NotFoundException}
+import no.ndla.draftapi.model.api.{
+  ArticleVersioningException,
+  DraftErrorHelpers,
+  GenerateIDException,
+  NotFoundException
+}
 import no.ndla.draftapi.model.domain.*
-import no.ndla.network.tapir.ErrorHandling
 import no.ndla.network.tapir.auth.TokenUser
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -23,12 +26,8 @@ import scalikejdbc.*
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
-class DraftRepository(using
-    dataSource: DataSource,
-    errorHandling: ErrorHandling,
-    draftErrorHelpers: DraftErrorHelpers,
-    clock: Clock
-) extends StrictLogging
+class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
+    extends StrictLogging
     with Repository[Draft] {
   import draftErrorHelpers.*
   def insert(article: Draft)(implicit session: DBSession): Draft = {

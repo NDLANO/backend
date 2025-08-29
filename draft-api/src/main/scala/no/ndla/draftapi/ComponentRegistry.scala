@@ -53,12 +53,12 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
 
   implicit lazy val migrator: DBMigrator = DBMigrator(
     new R__RemoveEmptyStringLanguageFields(props),
-    new R__RemoveStatusPublishedArticles(props),
-    new R__SetArticleLanguageFromTaxonomy(props),
-    new R__SetArticleTypeFromTaxonomy(props),
+    new R__RemoveStatusPublishedArticles,
+    new R__SetArticleLanguageFromTaxonomy,
+    new R__SetArticleTypeFromTaxonomy,
     new V20__UpdateH5PDomainForFF,
     new V23__UpdateH5PDomainForFFVisualElement,
-    new V33__ConvertLanguageUnknown(props),
+    new V33__ConvertLanguageUnknown,
     new V57__MigrateSavedSearch,
     new V66__SetHideBylineForImagesNotCopyrighted
   )

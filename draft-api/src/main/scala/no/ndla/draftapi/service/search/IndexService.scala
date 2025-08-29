@@ -16,16 +16,13 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.repository.Repository
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
-import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
+import no.ndla.search.{BaseIndexService, SearchLanguage}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-trait IndexService[D, T](using
-    e4sClient: NdlaE4sClient,
-    props: DraftApiProperties,
-    searchLanguage: SearchLanguage
-) extends BaseIndexService
+trait IndexService[D, T](using props: DraftApiProperties, searchLanguage: SearchLanguage)
+    extends BaseIndexService
     with StrictLogging {
   override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
   val repository: Repository[D]

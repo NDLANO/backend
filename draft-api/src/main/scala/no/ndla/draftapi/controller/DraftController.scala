@@ -19,7 +19,6 @@ import no.ndla.draftapi.service.search.{ArticleSearchService, SearchConverterSer
 import no.ndla.draftapi.service.{ReadService, StateTransitionRules, WriteService}
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.draftapi.DraftApiProperties
-import no.ndla.common.Clock
 import no.ndla.language.Language
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
@@ -43,7 +42,6 @@ class DraftController(using
     props: DraftApiProperties,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
     stateTransitionRules: StateTransitionRules
 ) extends TapirController {
