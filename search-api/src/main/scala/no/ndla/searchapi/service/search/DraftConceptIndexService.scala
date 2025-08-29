@@ -17,18 +17,23 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.{DraftConceptApiClient, SearchApiClient}
+import no.ndla.searchapi.integration.{DraftConceptApiClient, GrepApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.common.model.domain.concept.Concept
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 import scala.util.Try
 
 class DraftConceptIndexService(using
     searchConverterService: SearchConverterService,
-    indexService: IndexService,
     draftConceptApiClient: DraftConceptApiClient,
     props: Props,
-    searchApiClient: SearchApiClient
+    e4sClient: NdlaE4sClient,
+    searchLanguage: SearchLanguage,
+    taxonomyApiClient: TaxonomyApiClient,
+    grepApiClient: GrepApiClient,
+    myNDLAApiClient: MyNDLAApiClient
 ) extends IndexService[Concept]
     with StrictLogging {
   override val documentType: String                = "concept"

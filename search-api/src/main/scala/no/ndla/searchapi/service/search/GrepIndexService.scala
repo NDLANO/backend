@@ -17,6 +17,7 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.SearchType
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.GrepApiClient
@@ -26,9 +27,10 @@ import scala.util.{Success, Try}
 
 class GrepIndexService(using
     searchConverterService: SearchConverterService,
-    indexService: IndexService,
     props: Props,
-    grepApiClient: GrepApiClient
+    grepApiClient: GrepApiClient,
+    e4sClient: NdlaE4sClient,
+    searchLanguage: SearchLanguage
 ) extends BulkIndexingService
     with StrictLogging {
   override val documentType: String       = "grep"

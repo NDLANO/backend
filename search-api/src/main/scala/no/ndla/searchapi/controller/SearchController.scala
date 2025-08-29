@@ -17,10 +17,10 @@ import no.ndla.common.model.api.search.{LearningResourceType, MultiSearchResultD
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
-import no.ndla.network.clients.FeideApiClient
+import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.Parameters.feideHeader
-import no.ndla.network.tapir.{AllErrors, DynamicHeaders, NonEmptyString, TapirController}
+import no.ndla.network.tapir.{AllErrors, DynamicHeaders, ErrorHandling, ErrorHelpers, NonEmptyString, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
@@ -32,9 +32,8 @@ import no.ndla.searchapi.controller.parameters.{
   SubjectAggsInputDTO
 }
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.SearchApiClient
 import no.ndla.searchapi.model.api.grep.GrepSearchResultsDTO
-import no.ndla.searchapi.model.api.{ErrorHandling, GroupSearchResultDTO, SubjectAggregationsDTO}
+import no.ndla.searchapi.model.api.{GroupSearchResultDTO, SubjectAggregationsDTO}
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.model.taxonomy.NodeType
@@ -58,17 +57,21 @@ import sttp.tapir.server.ServerEndpoint
 import no.ndla.common.model.domain.Priority
 
 class SearchController(using
-    searchApiClient: SearchApiClient,
     multiSearchService: MultiSearchService,
     searchConverterService: SearchConverterService,
-    searchService: SearchService,
     multiDraftSearchService: MultiDraftSearchService,
     feideApiClient: FeideApiClient,
     props: Props,
     errorHandling: ErrorHandling,
+    errorHelpers: ErrorHelpers,
     grepSearchService: GrepSearchService,
-    getSearchQueryParams: GetSearchQueryParams
+    myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
+
+  val getSearchQueryParams: GetSearchQueryParams = new GetSearchQueryParams
+  import getSearchQueryParams.*
+  import errorHandling.*
+
   override val serviceName: String         = "search"
   override val prefix: EndpointInput[Unit] = "search-api" / "v1" / serviceName
 
@@ -106,7 +109,7 @@ class SearchController(using
     .summary("Search across multiple groups of learning resources")
     .description("Search across multiple groups of learning resources")
     .in("group")
-    .in(GetSearchQueryParams.input)
+    .in(SearchQueryParams.input)
     .in(includeMissingResourceTypeGroup)
     .in(feideHeader)
     .out(jsonBody[Seq[GroupSearchResultDTO]])
@@ -251,7 +254,7 @@ class SearchController(using
     .errorOut(errorOutputsFor(400, 401, 403))
     .out(jsonBody[MultiSearchResultDTO])
     .out(EndpointOutput.derived[DynamicHeaders])
-    .in(GetSearchQueryParams.input)
+    .in(SearchQueryParams.input)
     .in(feideHeader)
     .serverLogicPure { case (queryWrapper, feideToken) =>
       scrollWithOr(queryWrapper.searchParams.scrollId, queryWrapper.searchParams.language, multiSearchService) {

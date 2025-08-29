@@ -17,20 +17,25 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.article.Article
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.{ArticleApiClient, SearchApiClient}
+import no.ndla.searchapi.integration.{ArticleApiClient, GrepApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.domain.IndexingBundle
 
 import scala.util.Try
 
 class ArticleIndexService(using
     searchConverterService: SearchConverterService,
-    indexService: IndexService,
     articleApiClient: ArticleApiClient,
-    props: Props,
-    searchApiClient: SearchApiClient
-) extends StrictLogging
-    with IndexService[Article] {
+    e4sClient: NdlaE4sClient,
+    searchLanguage: SearchLanguage,
+    taxonomyApiClient: TaxonomyApiClient,
+    grepApiClient: GrepApiClient,
+    myNDLAApiClient: MyNDLAApiClient,
+    props: Props
+) extends IndexService[Article]
+    with StrictLogging {
   override val documentType: String                = "article"
   override val searchIndex: String                 = props.SearchIndex(SearchType.Articles)
   override val apiClient: SearchApiClient[Article] = articleApiClient

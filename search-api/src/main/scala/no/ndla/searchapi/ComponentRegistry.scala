@@ -8,56 +8,64 @@
 
 package no.ndla.searchapi
 
-import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.configuration.BaseComponentRegistry
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient}
-import no.ndla.network.tapir.TapirApplication
-import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
-import no.ndla.searchapi.controller.parameters.GetSearchQueryParams
-import no.ndla.searchapi.controller.{InternController, SearchController, SwaggerDocControllerConfig}
+import no.ndla.network.tapir.{
+  ErrorHelpers,
+  Routes,
+  SwaggerController,
+  TapirApplication,
+  TapirController,
+  TapirHealthController
+}
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
+import no.ndla.searchapi.controller.{
+  ControllerErrorHandling,
+  InternController,
+  SearchController,
+  SwaggerDocControllerConfig
+}
 import no.ndla.searchapi.integration.*
-import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.service.search.*
 import no.ndla.searchapi.service.ConverterService
 
 class ComponentRegistry(properties: SearchApiProperties) extends TapirApplication[SearchApiProperties] {
-  given props: SearchApiProperties = properties
+  given props: SearchApiProperties                   = properties
+  given ndlaClient: NdlaClient                       = new NdlaClient
+  given clock: Clock                                 = new Clock
+  given e4sClient: NdlaE4sClient                     = Elastic4sClientFactory.getClient(props.SearchServer)
+  given searchLanguage: SearchLanguage               = new SearchLanguage
+  given errorHelpers: ErrorHelpers                   = new ErrorHelpers
+  given errorHandling: ControllerErrorHandling       = new ControllerErrorHandling
+  given myndlaApiClient: MyNDLAApiClient             = new MyNDLAApiClient
+  given taxonomyApiClient: TaxonomyApiClient         = new TaxonomyApiClient
+  given grepApiClient: GrepApiClient                 = new GrepApiClient
+  given draftApiClient: DraftApiClient               = new DraftApiClient(props.DraftApiUrl)
+  given draftConceptApiClient: DraftConceptApiClient = new DraftConceptApiClient(props.ConceptApiUrl)
+  given learningPathApiClient: LearningPathApiClient = new LearningPathApiClient(props.LearningpathApiUrl)
+  given articleApiClient: ArticleApiClient           = new ArticleApiClient(props.ArticleApiUrl)
+  given redisClient: RedisClient                     = new RedisClient(props.RedisHost, props.RedisPort)
+  given feideApiClient: FeideApiClient               = new FeideApiClient
+  given frontpageApiClient: FrontpageApiClient       = new FrontpageApiClient
 
-  given ndlaClient               = new NdlaClient
-  given e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
+  given converterService: ConverterService                 = new ConverterService
+  given searchConverterService: SearchConverterService     = new SearchConverterService
+  given articleIndexService: ArticleIndexService           = new ArticleIndexService
+  given learningPathIndexService: LearningPathIndexService = new LearningPathIndexService
+  given draftIndexService: DraftIndexService               = new DraftIndexService
+  given grepIndexService: GrepIndexService                 = new GrepIndexService
+  given nodeIndexService: NodeIndexService                 = new NodeIndexService
+  given multiSearchService: MultiSearchService             = new MultiSearchService
+  given draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService
+  given multiDraftSearchService: MultiDraftSearchService   = new MultiDraftSearchService
+  given grepSearchService: GrepSearchService               = new GrepSearchService
 
-  given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
-
-  given taxonomyApiClient     = new TaxonomyApiClient
-  given grepApiClient         = new GrepApiClient
-  given draftApiClient        = new DraftApiClient(props.DraftApiUrl)
-  given draftConceptApiClient = new DraftConceptApiClient(props.ConceptApiUrl)
-  given learningPathApiClient = new LearningPathApiClient(props.LearningpathApiUrl)
-  given articleApiClient      = new ArticleApiClient(props.ArticleApiUrl)
-  given feideApiClient        = new FeideApiClient
-  given redisClient           = new RedisClient(props.RedisHost, props.RedisPort)
-  given frontpageApiClient    = new FrontpageApiClient
-
-  given converterService         = new ConverterService
-  given searchConverterService   = new SearchConverterService
-  given multiSearchService       = new MultiSearchService
-  given articleIndexService      = new ArticleIndexService
-  given draftConceptIndexService = new DraftConceptIndexService
-  given learningPathIndexService = new LearningPathIndexService
-  given draftIndexService        = new DraftIndexService
-  given multiDraftSearchService  = new MultiDraftSearchService
-  given grepIndexService         = new GrepIndexService
-  given grepSearchService        = new GrepSearchService
-  given nodeIndexService         = new NodeIndexService
-
-  given searchController                        = new SearchController
+  given searchController: SearchController      = new SearchController
   given healthController: TapirHealthController = new TapirHealthController
-  given internController                        = new InternController
-  given clock: SystemClock                      = new SystemClock
+  given internController: InternController      = new InternController
 
-  val swagger = new SwaggerController(
+  given swagger: SwaggerController = new SwaggerController(
     List[TapirController](
       searchController,
       internController,
@@ -66,6 +74,6 @@ class ComponentRegistry(properties: SearchApiProperties) extends TapirApplicatio
     SwaggerDocControllerConfig.swaggerInfo
   )
 
-  def services: List[TapirController] = swagger.getServices()
-  given routes                        = new Routes(services)
+  given services: List[TapirController] = swagger.getServices()
+  given routes: Routes                  = new Routes
 }

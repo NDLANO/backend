@@ -21,12 +21,12 @@ import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.{AllErrors, TapirController}
+import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.search.model.domain.ReindexResult
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
-import no.ndla.searchapi.model.api.ErrorHandling
+import no.ndla.searchapi.model.api.InvalidIndexBodyException
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.service.search.{
   ArticleIndexService,
@@ -49,7 +49,6 @@ import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 class InternController(using
-    indexService: IndexService,
     articleIndexService: ArticleIndexService,
     learningPathIndexService: LearningPathIndexService,
     draftIndexService: DraftIndexService,
@@ -60,10 +59,12 @@ class InternController(using
     grepIndexService: GrepIndexService,
     props: Props,
     errorHandling: ErrorHandling,
+    errorHelpers: ErrorHelpers,
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController
     with StrictLogging {
-  import ErrorHelpers._
+  import errorHelpers.*
+  import errorHandling.*
 
   implicit val ec: ExecutionContext =
     ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(SearchType.values.size))
@@ -362,7 +363,7 @@ class InternController(using
         taxonomyBundleDraft     <- taxonomyApiClient.getTaxonomyBundle(false)
         taxonomyBundlePublished <- taxonomyApiClient.getTaxonomyBundle(true)
         grepBundle              <- grepApiClient.getGrepBundle()
-        myndlaBundle            <- myndlaApiClient.getMyNDLABundle
+        myndlaBundle            <- myNDLAApiClient.getMyNDLABundle
       } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)
 
       val start = System.currentTimeMillis()

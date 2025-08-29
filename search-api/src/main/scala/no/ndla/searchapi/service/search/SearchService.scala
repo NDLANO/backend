@@ -31,9 +31,9 @@ import no.ndla.language.Language
 import no.ndla.language.model.Iso639
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.search.AggregationBuilder.getAggregationsFromResult
-import no.ndla.search.{BaseIndexService, Elastic4sClient, NdlaSearchException, SearchLanguage}
+import no.ndla.search.{BaseIndexService, NdlaE4sClient, NdlaSearchException, SearchLanguage}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.ErrorHandling
+import no.ndla.searchapi.model.api.ResultWindowTooLargeException
 import no.ndla.searchapi.model.domain.Sort.*
 import no.ndla.searchapi.model.domain.*
 import no.ndla.searchapi.model.search.SearchPagination
@@ -41,14 +41,11 @@ import no.ndla.searchapi.model.search.SearchPagination
 import java.lang.Math.max
 import scala.util.{Failure, Success, Try}
 
-class SearchService(using
-    e4sClient: Elastic4sClient,
-    indexService: IndexService,
+abstract class SearchService(using
+    e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
     props: Props,
-    baseIndexService: BaseIndexService,
-    errorHandling: ErrorHandling,
-    searchLanguage: SearchLanguage
+    searchLanguageHelp: SearchLanguage
 ) extends StrictLogging {
   val searchIndex: List[String]
   val indexServices: List[BaseIndexService]
@@ -114,7 +111,7 @@ class SearchService(using
       case _                                  => Language.AllLanguages
     }
     val matchQueries = if (searchLanguage == Language.AllLanguages || fallback) {
-      SearchLanguage.languageAnalyzers
+      searchLanguageHelp.languageAnalyzers
         .map { cur =>
           List(
             matchPhrasePrefixQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost),
@@ -131,7 +128,7 @@ class SearchService(using
     }
 
     val termQueries = if (searchLanguage == Language.AllLanguages || fallback) {
-      SearchLanguage.languageAnalyzers.map { cur =>
+      searchLanguageHelp.languageAnalyzers.map { cur =>
         prefixQuery(s"$field.${cur.languageTag.toString}.raw", query.underlying).boost(boost * 2)
       }.toList
     } else {
@@ -158,7 +155,7 @@ class SearchService(using
     }
 
     if (searchLanguage == Language.AllLanguages || fallback) {
-      SearchLanguage.languageAnalyzers.foldLeft(
+      searchLanguageHelp.languageAnalyzers.foldLeft(
         SimpleStringQuery(query.underlying, quote_field_suffix = Some(".exact"))
       )((acc, cur) => {
         val base = acc.field(s"$field.${cur.languageTag.toString}", boost)
@@ -364,7 +361,7 @@ class SearchService(using
     val resultWindow = startAt + safePageSize
     if (resultWindow > maxResultWindow) {
       logger.info(s"Max supported results are $maxResultWindow, user requested $resultWindow")
-      Failure(ResultWindowTooLargeException())
+      Failure(ResultWindowTooLargeException.default)
     } else Success(SearchPagination(safePage, safePageSize, startAt))
   }
 

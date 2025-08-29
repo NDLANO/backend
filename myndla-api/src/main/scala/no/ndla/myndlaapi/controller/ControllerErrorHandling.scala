@@ -12,19 +12,11 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, InvalidStateException, NotFoundException, ValidationException}
 import no.ndla.database.DataSource
-import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.model.domain.InvalidStatusException
-import no.ndla.network.tapir.{
-  AllErrors,
-  ErrorBody,
-  ErrorHandling,
-  ErrorHelpers,
-  ValidationErrorBody
-}
+import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHandling, ErrorHelpers, ValidationErrorBody}
 import org.postgresql.util.PSQLException
 
 class ControllerErrorHandling(using
-    props: Props,
     clock: Clock,
     dataSource: DataSource,
     errorHelpers: ErrorHelpers

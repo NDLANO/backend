@@ -65,7 +65,6 @@ import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.model.{api, domain, search}
-import no.ndla.searchapi.service.ConverterService
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
@@ -76,11 +75,9 @@ import scala.util.{Failure, Success, Try}
 import no.ndla.common.model.domain.getNextRevision
 
 class SearchConverterService(using
-    draftApiClient: DraftApiClient,
     taxonomyApiClient: TaxonomyApiClient,
-    converterService: ConverterService,
     props: Props,
-    myNDLAApiClient: MyNDLAApiClient,
+    myndlaApiClient: MyNDLAApiClient,
     searchLanguage: SearchLanguage
 ) extends StrictLogging {
 
@@ -688,7 +685,7 @@ class SearchConverterService(using
 
       languagesInKeys
         .sortBy(lang => {
-          SearchLanguage.languageAnalyzers.map(la => la.languageTag.toString).reverse.indexOf(lang)
+          searchLanguage.languageAnalyzers.map(la => la.languageTag.toString).reverse.indexOf(lang)
         })
         .lastOption
     }

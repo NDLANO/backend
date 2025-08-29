@@ -25,17 +25,19 @@ import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.common.{CirceUtil, ContentURIUtil}
 import no.ndla.network.clients.FrontpageApiClient
 import no.ndla.network.model.HttpRequestException
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
 class NodeIndexService(using
     searchConverterService: SearchConverterService,
-    indexService: IndexService,
     props: Props,
     taxonomyApiClient: TaxonomyApiClient,
     articleApiClient: ArticleApiClient,
     frontpageApiClient: FrontpageApiClient,
-    grepApiClient: GrepApiClient
+    grepApiClient: GrepApiClient,
+    searchLanguage: SearchLanguage,
+    e4sClient: NdlaE4sClient
 ) extends BulkIndexingService
     with StrictLogging {
   override val documentType: String       = "nodes"

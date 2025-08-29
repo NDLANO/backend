@@ -16,17 +16,16 @@ import no.ndla.common.model.domain.learningpath.LearningPathStatus.DELETED
 import no.ndla.common.model.domain.learningpath.LearningPathVerificationStatus.CREATED_BY_NDLA
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.RequestInfo
+import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.domain.DomainDumpResults
 
 import scala.util.{Failure, Success, Try}
 
 class LearningPathApiClient(
     val baseUrl: String
-)(using
-    ndlaClient: NdlaClient,
-    strictLogging: StrictLogging,
-    searchApiClient: SearchApiClient
-) extends SearchApiClient[LearningPath] {
+)(using props: Props, ndlaClient: NdlaClient)
+    extends SearchApiClient[LearningPath]
+    with StrictLogging {
   override val searchPath     = "learningpath-api/v2/learningpaths"
   override val name           = "learningpaths"
   override val dumpDomainPath = "intern/dump/learningpath"

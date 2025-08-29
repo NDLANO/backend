@@ -23,29 +23,28 @@ import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.learningpath.LearningPathStatus
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
+import no.ndla.network.tapir.ErrorHandling
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.{ErrorHandling, SubjectAggregationDTO, SubjectAggregationsDTO}
+import no.ndla.searchapi.model.api.{SubjectAggregationDTO, SubjectAggregationsDTO}
 import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
 
 import scala.util.{Failure, Success, Try}
 
 class MultiDraftSearchService(using
-    e4sClient: Elastic4sClient,
-    searchConverterService: SearchConverterService,
-    indexService: IndexService,
-    searchService: SearchService,
+    e4sClient: NdlaE4sClient,
     draftIndexService: DraftIndexService,
     learningPathIndexService: LearningPathIndexService,
     props: Props,
     errorHandling: ErrorHandling,
     draftConceptIndexService: DraftConceptIndexService,
-    baseIndexService: BaseIndexService
-) extends StrictLogging
-    with SearchService
+    searchConverterService: SearchConverterService,
+    searchLanguage: SearchLanguage
+) extends SearchService
+    with StrictLogging
     with TaxonomyFiltering {
   override val searchIndex: List[String] = List(
     SearchType.Drafts,
@@ -75,7 +74,7 @@ class MultiDraftSearchService(using
       .size(0)
       .aggs(aggregations)
     e4sClient.execute(searchToExecute).map { res =>
-      res.result.aggregations.result("favoritedCount")(sumAggsSerde).value
+      res.result.aggregations.result("favoritedCount")(using sumAggsSerde).value
     }
   }
 

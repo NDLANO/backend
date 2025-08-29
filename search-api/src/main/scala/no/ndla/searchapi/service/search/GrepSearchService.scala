@@ -21,7 +21,7 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.controller.parameters.GrepSearchInputDTO
 import no.ndla.searchapi.model.api.grep.GrepSortDTO.*
@@ -39,11 +39,10 @@ import scala.util.{Failure, Success, Try, boundary}
 
 class GrepSearchService(using
     props: Props,
-    searchService: SearchService,
     grepIndexService: GrepIndexService,
-    baseIndexService: BaseIndexService,
-    elastic4sClient: Elastic4sClient,
-    searchConverterService: SearchConverterService
+    e4sClient: NdlaE4sClient,
+    searchConverterService: SearchConverterService,
+    searchLanguage: SearchLanguage
 ) extends SearchService
     with StrictLogging {
   override val searchIndex: List[String]             = List(SearchType.Grep).map(props.SearchIndex)

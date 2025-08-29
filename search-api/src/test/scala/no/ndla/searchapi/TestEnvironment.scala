@@ -29,44 +29,44 @@ class TestProps extends SearchApiProperties with BaseProps with DatabaseProps {
 }
 
 trait TestEnvironment extends TapirApplication with MockitoSugar with StrictLogging {
-  given props: TestProps = new TestProps
+  implicit lazy val props: TestProps = new TestProps
 
-  given searchController: SearchController      = mock[SearchController]
-  given internController: InternController      = mock[InternController]
-  given healthController: TapirHealthController = mock[TapirHealthController]
+  implicit lazy val searchController: SearchController      = mock[SearchController]
+  implicit lazy val internController: InternController      = mock[InternController]
+  implicit lazy val healthController: TapirHealthController = mock[TapirHealthController]
 
-  given ndlaClient: NdlaClient = mock[NdlaClient]
-  var e4sClient: NdlaE4sClient = mock[NdlaE4sClient]
+  implicit lazy val ndlaClient: NdlaClient = mock[NdlaClient]
+  var e4sClient: NdlaE4sClient             = mock[NdlaE4sClient]
 
-  given myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
+  implicit lazy val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
 
-  given taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
-  given grepApiClient: GrepApiClient         = mock[GrepApiClient]
+  implicit lazy val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
+  implicit lazy val grepApiClient: GrepApiClient         = mock[GrepApiClient]
 
-  given draftApiClient: DraftApiClient               = mock[DraftApiClient]
-  given learningPathApiClient: LearningPathApiClient = mock[LearningPathApiClient]
-  given articleApiClient: ArticleApiClient           = mock[ArticleApiClient]
-  given draftConceptApiClient: DraftConceptApiClient = mock[DraftConceptApiClient]
-  given feideApiClient: FeideApiClient               = mock[FeideApiClient]
-  given redisClient: RedisClient                     = mock[RedisClient]
-  given frontpageApiClient: FrontpageApiClient       = mock[FrontpageApiClient]
-  given DBUtil: DBUtility                            = mock[DBUtility]
+  implicit lazy val draftApiClient: DraftApiClient               = mock[DraftApiClient]
+  implicit lazy val learningPathApiClient: LearningPathApiClient = mock[LearningPathApiClient]
+  implicit lazy val articleApiClient: ArticleApiClient           = mock[ArticleApiClient]
+  implicit lazy val draftConceptApiClient: DraftConceptApiClient = mock[DraftConceptApiClient]
+  implicit lazy val feideApiClient: FeideApiClient               = mock[FeideApiClient]
+  implicit lazy val redisClient: RedisClient                     = mock[RedisClient]
+  implicit lazy val frontpageApiClient: FrontpageApiClient       = mock[FrontpageApiClient]
+  implicit lazy val DBUtil: DBUtility                            = mock[DBUtility]
 
-  given clock: SystemClock = mock[SystemClock]
+  implicit lazy val clock: Clock = mock[Clock]
 
-  given converterService: ConverterService             = mock[ConverterService]
-  given searchConverterService: SearchConverterService = mock[SearchConverterService]
-  given multiSearchService: MultiSearchService         = mock[MultiSearchService]
-  given grepSearchService: GrepSearchService           = mock[GrepSearchService]
+  implicit lazy val converterService: ConverterService             = mock[ConverterService]
+  implicit lazy val searchConverterService: SearchConverterService = mock[SearchConverterService]
+  implicit lazy val multiSearchService: MultiSearchService         = mock[MultiSearchService]
+  implicit lazy val grepSearchService: GrepSearchService           = mock[GrepSearchService]
 
-  given articleIndexService: ArticleIndexService           = mock[ArticleIndexService]
-  given learningPathIndexService: LearningPathIndexService = mock[LearningPathIndexService]
-  given draftIndexService: DraftIndexService               = mock[DraftIndexService]
-  given draftConceptIndexService: DraftConceptIndexService = mock[DraftConceptIndexService]
-  given grepIndexService: GrepIndexService                 = mock[GrepIndexService]
-  given nodeIndexService: NodeIndexService                 = mock[NodeIndexService]
+  implicit lazy val articleIndexService: ArticleIndexService           = mock[ArticleIndexService]
+  implicit lazy val learningPathIndexService: LearningPathIndexService = mock[LearningPathIndexService]
+  implicit lazy val draftIndexService: DraftIndexService               = mock[DraftIndexService]
+  implicit lazy val draftConceptIndexService: DraftConceptIndexService = mock[DraftConceptIndexService]
+  implicit lazy val grepIndexService: GrepIndexService                 = mock[GrepIndexService]
+  implicit lazy val nodeIndexService: NodeIndexService                 = mock[NodeIndexService]
 
-  given multiDraftSearchService: MultiDraftSearchService = mock[MultiDraftSearchService]
+  implicit lazy val multiDraftSearchService: MultiDraftSearchService = mock[MultiDraftSearchService]
 
   override def services: List[TapirController] = List()
   val swagger: SwaggerController               = mock[SwaggerController]
