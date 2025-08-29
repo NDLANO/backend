@@ -1,25 +1,35 @@
 import java.io.File
 import java.nio.file.Files
-import scala.collection.immutable.{AbstractSeq, LinearSeq}
 import scala.meta.*
 import scala.meta.dialects.Scala3
-import scala.meta.internal.io.ListFiles
-import scala.meta.internal.semanticdb.SymbolOccurrence.Role.{DEFINITION, REFERENCE}
-import scala.meta.internal.semanticdb.{
-  ClassSignature,
-  MethodSignature,
-  Signature,
-  TextDocument,
-  TextDocuments,
-  TypeSignature,
-  ValueSignature
-}
-import scala.util.boundary
+import scala.meta.internal.semanticdb.SymbolOccurrence.Role.REFERENCE
+import scala.meta.internal.semanticdb.{TextDocument, TextDocuments}
+import scala.sys.exit
 
 object Main {
   def main(args: Array[String]): Unit = {
-    println("Building dependency graph")
-    parseModule("draft-api")
+    Logger.info("Building dependency graph")
+    val modules = List("draft-api")
+    modules.foreach(parseModule)
+  }
+
+  def ignoredModules = List(
+    "modules",
+    "dependency-graph"
+  )
+
+  def detectModules(): List[String] = {
+    val currentDir = new File(".")
+    if (currentDir.exists && currentDir.isDirectory) {
+      val dirs = currentDir.listFiles.filter(_.isDirectory).toList
+      dirs
+        .filter(d => new File(d, "package.mill").exists)
+        .map(_.getName)
+        .filterNot(ignoredModules.contains)
+
+    } else {
+      throw new RuntimeException("Current directory is not a valid directory and that is weird.")
+    }
   }
 
   case class ClassIdentifier(name: String, packageName: String) {
@@ -42,40 +52,18 @@ object Main {
   }
 
   def buildDependencyGraph(classes: List[ClassWithArguments]): DependencyGraph = {
-    // Create a map for quick lookup of classes by name and package
     val classMap = classes.map(c => ClassIdentifier(c.name, c.packageName) -> c).toMap
-
-    // Create all nodes
-    val nodes = classMap.keySet
-
-    // Create edges based on constructor arguments
-    val edges = for {
+    val nodes    = classMap.keySet
+    val edges    = for {
       cls <- classes
       fromId = ClassIdentifier(cls.name, cls.packageName)
-      arg <- cls.arguments
-      // Include all arguments - both explicit and implicit dependencies matter for cycle detection
+      arg        <- cls.arguments
       argPackage <- arg.packageName
-      // Extract the actual class name from the argument type
       actualTypeName = extractClassName(arg.argType)
-      // Try to find a matching class in our parsed classes
       toId <- classMap.keys.find(id => id.name == actualTypeName && id.packageName == argPackage)
     } yield DependencyEdge(fromId, toId)
 
-    val graph = DependencyGraph(nodes, edges.toSet)
-
-//    println(s"\nDependency Graph Summary:")
-//    println(s"Total classes: ${nodes.size}")
-//    println(s"Total dependencies: ${edges.size}")
-//
-    if (edges.nonEmpty) {
-//      println(s"\nDependencies found:")
-      edges.groupBy(_.from).toSeq.sortBy(_._1.toString).foreach { case (from, deps) =>
-        val depList = deps.map(_.to.toString).mkString(", ")
-//        println(s"  $from -> [$depList]")
-      }
-    }
-
-    graph
+    DependencyGraph(nodes, edges.toSet)
   }
 
   def extractClassName(argType: String): String = {
@@ -97,11 +85,11 @@ object Main {
     val cycles = detectCycles(graph)
 
     if (cycles.isEmpty) {
-      println("\nNo cyclical dependencies found! ✅")
+      Logger.info("✅ No cyclical dependencies found!")
     } else {
-      println(s"\n⚠️  Found ${cycles.size} cyclical dependencies:")
+      Logger.error(s"Found ${cycles.size} cyclical dependencies:")
       cycles.zipWithIndex.foreach { case (cycle, index) =>
-        println(s"  Cycle ${index + 1}: ${cycle.mkString(" -> ")} -> ${cycle.head}")
+        Logger.warn(s"  Cycle ${index + 1}: ${cycle.mkString(" -> ")} -> ${cycle.head}")
       }
     }
   }
@@ -174,9 +162,10 @@ object Main {
   }
 
   def parseModule(module: String): Unit = {
+    Logger.info(s"Parsing scala files in $module")
     val files   = getScalaFilesRecursivly(module)
     val classes = files.flatMap(parseScalaFile)
-    println(s"Extracted classes and their constructor arguments in $module\n\n")
+    Logger.info(s"Extracted classes and their constructor arguments in $module\n\n")
     findCyclicalDependencies(classes)
   }
 
@@ -184,7 +173,6 @@ object Main {
     f.getName.endsWith(".scala") &&
     !f.toString.contains("/test/") &&
     !f.toString.contains("/model/")
-    // && f.getName.contains("WriteService")
   }
 
   def getScalaFilesRecursivly(directory: String): List[String] = {
@@ -249,7 +237,7 @@ object Main {
         if (textMatched.nonEmpty)
           return textMatched.headOption.map(s => fixSymbol(s.symbol))
 
-        println(
+        Logger.warn(
           s"${textDocument.uri}: Could not find unique occurrence for param: ${param} found: $found"
         )
         None
@@ -318,10 +306,14 @@ object Main {
   }
 
   def parseScalaFile(filePath: String): List[ClassWithArguments] = {
-    val semanticDBPath = new File(s"$filePath.semanticdb").toPath
-    val dbBytes        = Files.readAllBytes(semanticDBPath)
-    val textDocuments  = TextDocuments.parseFrom(dbBytes)
-    val textDocument   = textDocuments.documents.head
+    val semanticDBFile = new File(s"$filePath.semanticdb")
+    if (!semanticDBFile.exists()) {
+      Logger.error(s"No semanticdb file found for $filePath, please compile module first.")
+      exit(1)
+    }
+    val dbBytes       = Files.readAllBytes(semanticDBFile.toPath)
+    val textDocuments = TextDocuments.parseFrom(dbBytes)
+    val textDocument  = textDocuments.documents.head
 
     val path  = new File(filePath).toPath
     val bytes = Files.readAllBytes(path)
