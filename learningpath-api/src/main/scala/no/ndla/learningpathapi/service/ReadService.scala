@@ -9,7 +9,6 @@
 package no.ndla.learningpathapi.service
 
 import cats.implicits.*
-import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.model.api as commonApi
 import no.ndla.common.model.domain.learningpath
@@ -28,7 +27,6 @@ import scala.util.{Failure, Success, Try}
 class ReadService(using
     learningPathRepository: LearningPathRepository,
     converterService: ConverterService,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient
 ) {
   def tags: List[LearningPathTagsDTO] = {

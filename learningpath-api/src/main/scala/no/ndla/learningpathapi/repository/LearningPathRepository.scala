@@ -18,8 +18,6 @@ import no.ndla.common.model.domain.learningpath.{
   LearningpathCopyright,
   StepStatus
 }
-import no.ndla.database.DataSource
-import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain.*
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -27,7 +25,7 @@ import scalikejdbc.*
 import java.util.UUID
 import scala.util.Try
 
-class LearningPathRepository(using dataSource: DataSource, props: Props) extends StrictLogging {
+class LearningPathRepository extends StrictLogging {
 
   def inTransaction[A](work: DBSession => A)(implicit session: DBSession = null): A = {
     Option(session) match {

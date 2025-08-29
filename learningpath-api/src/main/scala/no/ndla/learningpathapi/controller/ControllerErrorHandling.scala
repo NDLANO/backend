@@ -1,9 +1,7 @@
 package no.ndla.learningpathapi.controller
 
-import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.database.DataSource
-import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain.{ImportException, InvalidLpStatusException, OptimisticLockException}
 import no.ndla.network.model.HttpRequestException
 import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers}
@@ -14,10 +12,8 @@ import no.ndla.common.errors.OperationNotAllowedException
 import no.ndla.learningpathapi.model.api.ResultWindowTooLargeException
 
 class ControllerErrorHandling(using
-    props: Props,
     dataSource: DataSource,
-    errorHelpers: ErrorHelpers,
-    clock: Clock
+    errorHelpers: ErrorHelpers
 ) extends ErrorHandling {
   import errorHelpers.*
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {

@@ -9,13 +9,12 @@
 package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
-import no.ndla.common.Clock
 import no.ndla.common.model.api.learningpath as commonApi
 import no.ndla.common.model.domain.learningpath as commonDomain
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.LearningPathDomainDumpDTO
 import no.ndla.learningpathapi.repository.LearningPathRepository
-import no.ndla.learningpathapi.service.search.{SearchIndexService, SearchService}
+import no.ndla.learningpathapi.service.search.SearchIndexService
 import no.ndla.learningpathapi.service.{ReadService, UpdateService}
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -30,14 +29,12 @@ import scala.util.{Failure, Success}
 
 class InternController(using
     searchIndexService: SearchIndexService,
-    searchService: SearchService,
     learningPathRepository: LearningPathRepository,
     readService: ReadService,
     updateService: UpdateService,
     props: Props,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    clock: Clock,
     myndlaApiClient: MyNDLAApiClient
 ) extends TapirController {
   override val prefix: EndpointInput[Unit] = "intern"

@@ -9,7 +9,6 @@
 package no.ndla.learningpathapi.controller
 
 import cats.implicits.catsSyntaxEitherId
-import no.ndla.common.Clock
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.{AuthorDTO, LanguageCode, LicenseDTO}
 import no.ndla.common.model.domain.learningpath
@@ -17,12 +16,10 @@ import no.ndla.common.model.domain.learningpath.{StepStatus, LearningPathStatus 
 import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
-import no.ndla.learningpathapi.integration.TaxonomyApiClient
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.model.domain.{License as _, *}
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchService}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
-import no.ndla.learningpathapi.validation.LanguageValidator
 import no.ndla.mapping
 import no.ndla.mapping.LicenseDefinition
 import no.ndla.network.clients.MyNDLAApiClient
@@ -40,14 +37,11 @@ class LearningpathControllerV2(using
     readService: ReadService,
     updateService: UpdateService,
     searchService: SearchService,
-    languageValidator: LanguageValidator,
     converterService: ConverterService,
-    taxonomyApiClient: TaxonomyApiClient,
     searchConverterServiceComponent: SearchConverterServiceComponent,
     props: Props,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient
 ) extends TapirController {
   import errorHelpers.*
