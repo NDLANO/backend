@@ -3,7 +3,7 @@ package build.modules
 import mill._, mill.scalalib._
 
 object SharedDependencies {
-  val ScalaVersion          = "3.3.6"
+  val ScalaVersion          = "3.7.2"
   val HikariConnectionPoolV = "6.3.0"
   val ScalaLoggingV         = "3.9.5"
   val ScalaTestV            = "3.2.19"
@@ -25,6 +25,7 @@ object SharedDependencies {
   val JavaMelodyV           = "2.5.0"
   val EnumeratumV           = "1.9.0"
   val FlexmarkV             = "0.64.8"
+  val ScalaMetaVersion      = "4.13.9"
 
   def logging: Seq[Dep] = Seq(
     mvn"org.apache.logging.log4j:log4j-api:$Log4JV",

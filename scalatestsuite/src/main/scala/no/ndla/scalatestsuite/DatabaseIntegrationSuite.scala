@@ -8,21 +8,22 @@
 
 package no.ndla.scalatestsuite
 
-import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-import no.ndla.common.configuration.HasBaseProps
-import no.ndla.database.HasDatabaseProps
+import com.zaxxer.hikari.HikariConfig
+import no.ndla.common.configuration.BaseProps
+import no.ndla.database.{DataSource, DatabaseProps}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.testcontainers.containers.PostgreSQLContainer
+
 import scala.util.{Failure, Success, Try}
 import sys.env
 
 trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
-  this: HasBaseProps & HasDatabaseProps =>
+  lazy val props: BaseProps & DatabaseProps
 
   val EnablePostgresContainer: Boolean = true
   val PostgresqlVersion: String        = "17.5"
-  val schemaName: String               = "testschema"
+  lazy val schemaName: String          = "testschema"
 
   val postgresContainer: Try[PostgreSQLContainer[?]] = if (EnablePostgresContainer) {
     val defaultUsername: String     = "postgres"
@@ -48,7 +49,7 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
     }
   } else { Failure(new RuntimeException("Postgres disabled for this IntegrationSuite")) }
 
-  def testDataSource: Try[HikariDataSource] = postgresContainer.flatMap(pgc =>
+  def testDataSource: Try[DataSource] = postgresContainer.flatMap(pgc =>
     Try {
       val dataSourceConfig = new HikariConfig()
       dataSourceConfig.setUsername(pgc.getUsername)
@@ -59,7 +60,7 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
       )
       dataSourceConfig.setSchema(schemaName)
       dataSourceConfig.setMaximumPoolSize(10)
-      new HikariDataSource(dataSourceConfig)
+      new DataSource(dataSourceConfig)
     }
   )
 
