@@ -8,7 +8,7 @@
 
 package no.ndla.myndlaapi
 
-import no.ndla.common.configuration.{BaseProps, HasBaseProps}
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.scalatestsuite.UnitTestSuite
 

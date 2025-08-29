@@ -16,7 +16,6 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.codec.enumeratum.*
-import io.circe.generic.auto.*
 import no.ndla.common.Clock
 import no.ndla.common.model.api.config.{ConfigMetaDTO, ConfigMetaRestrictedDTO, ConfigMetaValueDTO}
 import no.ndla.common.model.domain.config.ConfigKey

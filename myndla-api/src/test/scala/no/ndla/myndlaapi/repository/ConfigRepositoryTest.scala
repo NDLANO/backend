@@ -8,7 +8,6 @@
 
 package no.ndla.myndlaapi.repository
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
 import no.ndla.database.{DBMigrator, DataSource}
@@ -23,12 +22,12 @@ class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   override implicit lazy val dataSource: DataSource = testDataSource.get
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
 
-  var repository: ConfigRepository = _
+  var repository: ConfigRepository = scala.compiletime.uninitialized
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
-      sql"delete from configtable;".execute()(session)
-      sql"delete from configtable;".execute()(session)
+      sql"delete from configtable;".execute()(using session)
+      sql"delete from configtable;".execute()(using session)
     })
   }
 

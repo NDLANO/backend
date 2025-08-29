@@ -8,7 +8,6 @@
 
 package no.ndla.myndlaapi
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.controller.{
@@ -17,7 +16,6 @@ import no.ndla.myndlaapi.controller.{
   FolderController,
   RobotController,
   StatsController,
-  SwaggerDocControllerConfig,
   UserController
 }
 import no.ndla.myndlaapi.integration.{LearningPathApiClient, SearchApiClient}

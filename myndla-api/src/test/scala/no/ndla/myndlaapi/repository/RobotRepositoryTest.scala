@@ -8,7 +8,6 @@
 
 package no.ndla.myndlaapi.repository
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.model.domain.{RobotConfiguration, RobotDefinition, RobotSettings, RobotStatus}
@@ -25,11 +24,11 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
   override implicit lazy val dataSource: DataSource = testDataSource.get
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
   override implicit lazy val DBUtil: DBUtility      = new DBUtility
-  var repository: RobotRepository                   = _
+  var repository: RobotRepository                   = scala.compiletime.uninitialized
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
-      sql"delete from robot_definitions;".execute()(session)
+      sql"delete from robot_definitions;".execute()(using session)
     })
   }
 
@@ -88,7 +87,7 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
     val robot1  = repository.insertRobotDefinition(toInsert)(session).get
     robot1.configuration.title should be("hei")
 
-    val robots = repository.getRobotsWithFeideId("feide1")(session)
+    val robots = repository.getRobotsWithFeideId("feide1")(using session)
     robots.get.head should be(toInsert)
   }
 
@@ -121,9 +120,9 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
     robot1.configuration.title should be("hei")
 
     val toUpdate = robot1.copy(configuration = robot1.configuration.copy(title = "hei2"))
-    repository.updateRobotDefinition(toUpdate)(session).get
+    repository.updateRobotDefinition(toUpdate)(using session).get
 
-    val robots = repository.getRobotsWithFeideId("feide1")(session)
+    val robots = repository.getRobotsWithFeideId("feide1")(using session)
     robots.get.head should be(toUpdate)
   }
 

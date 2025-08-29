@@ -55,7 +55,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       val updated = created
       val shared  = if (folderData.status == FolderStatus.SHARED) Some(created) else None
 
-      val column = Folder.column.c _
+      val column = Folder.column.c
       val _      = withSQL {
         insert
           .into(Folder)
@@ -94,7 +94,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       document: ResourceDocument
   )(implicit session: DBSession = AutoSession): Try[Resource] = Try {
     val newId  = UUID.randomUUID()
-    val column = Resource.column.c _
+    val column = Resource.column.c
 
     val _ = withSQL {
       insert
@@ -137,7 +137,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
   def updateFolder(id: UUID, feideId: FeideID, folder: Folder)(implicit
       session: DBSession = AutoSession
   ): Try[Folder] = Try {
-    val column = Folder.column.c _
+    val column = Folder.column.c
     withSQL {
       update(Folder)
         .set(
@@ -165,7 +165,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       session: DBSession = AutoSession
   ): Try[List[UUID]] = Try {
     val newSharedValue = if (newStatus == FolderStatus.SHARED) Some(clock.now()) else None
-    val column         = Folder.column.c _
+    val column         = Folder.column.c
     withSQL {
       update(Folder)
         .set(
@@ -877,7 +877,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
   def deleteFolderUserConnections(
       folderIds: List[UUID]
   )(implicit session: DBSession = AutoSession): Try[List[UUID]] = Try {
-    val column = SavedSharedFolder.column.c _
+    val column = SavedSharedFolder.column.c
     withSQL {
       delete
         .from(SavedSharedFolder)

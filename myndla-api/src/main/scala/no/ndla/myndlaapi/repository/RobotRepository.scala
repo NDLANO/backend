@@ -30,7 +30,7 @@ class RobotRepository(using clock: Clock, dbUtility: DBUtility) extends StrictLo
     DB.localTx { session => func(session) }
 
   def updateRobotDefinition(robot: RobotDefinition)(implicit session: DBSession): Try[Unit] = Try {
-    val column = RobotDefinition.column.c _
+    val column = RobotDefinition.column.c
 
     val _ = withSQL {
       update(RobotDefinition)
@@ -49,7 +49,7 @@ class RobotRepository(using clock: Clock, dbUtility: DBUtility) extends StrictLo
   }
 
   def insertRobotDefinition(robot: RobotDefinition)(session: DBSession): Try[RobotDefinition] = Try {
-    val column = RobotDefinition.column.c _
+    val column = RobotDefinition.column.c
 
     withSQL {
       insert
@@ -63,7 +63,7 @@ class RobotRepository(using clock: Clock, dbUtility: DBUtility) extends StrictLo
           column("shared")        -> robot.shared,
           column("configuration") -> dbUtility.asJsonb(robot.configuration)
         )
-    }.update()(session): Unit
+    }.update()(using session): Unit
 
     logger.info(s"Inserted new robot definition with ID: ${robot.id}")
 

@@ -13,7 +13,7 @@ import no.ndla.common.model.api.SingleResourceStatsDTO
 import no.ndla.common.model.domain.TryMaybe
 import no.ndla.myndlaapi.model.api.{StatsDTO, UserStatsDTO}
 import no.ndla.myndlaapi.TestEnvironment
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
+import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any

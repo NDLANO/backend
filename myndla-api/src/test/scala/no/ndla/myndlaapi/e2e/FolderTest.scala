@@ -42,7 +42,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     override val MetaUserName: Prop[String] = propFromTestValue("META_USER_NAME", pgc.getUsername)
     override val MetaPassword: Prop[String] = propFromTestValue("META_PASSWORD", pgc.getPassword)
     override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
-    override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", "testschema")
+    override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", schemaName)
 
     override def RedisHost: String = "localhost"
     override def RedisPort: Int    = redisPort
@@ -53,12 +53,13 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
 
   val myndlaApi: MainClass = new MainClass(myndlaproperties) {
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(myndlaproperties) {
-      override lazy val feideApiClient: FeideApiClient =
+      override implicit lazy val feideApiClient: FeideApiClient =
         mock[FeideApiClient](withSettings.strictness(Strictness.LENIENT))
-      override lazy val clock: Clock                       = mock[Clock](withSettings.strictness(Strictness.LENIENT))
-      override lazy val folderRepository: FolderRepository = spy(new FolderRepository)
-      override lazy val userRepository: UserRepository     = spy(new UserRepository)
+      override implicit lazy val clock: Clock = mock[Clock](withSettings.strictness(Strictness.LENIENT))
+      override implicit lazy val folderRepository: FolderRepository = spy(new FolderRepository)
+      override implicit lazy val userRepository: UserRepository     = spy(new UserRepository)
 
+      when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
       when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
       when(feideApiClient.getFeideExtendedUser(any))
@@ -68,7 +69,6 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
           )
         )
       when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
-      when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
     }
   }
 

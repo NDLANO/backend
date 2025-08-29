@@ -38,7 +38,7 @@ class FolderReadService(using
     feideApiClient: FeideApiClient,
     clock: Clock,
     configService: ConfigService,
-    userService: UserService,
+    userService: => UserService,
     dbUtility: DBUtility,
     learningPathApiClient: LearningPathApiClient,
     robotRepository: RobotRepository
@@ -51,8 +51,8 @@ class FolderReadService(using
   )(session: DBSession): Try[List[FolderDTO]] = {
     for {
       withFavorite <- mergeWithFavorite(topFolders, feideId)
-      withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)(session)
-      feideUser    <- userRepository.userWithFeideId(feideId)(session)
+      withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)(using session)
+      feideUser    <- userRepository.userWithFeideId(feideId)(using session)
       apiFolders   <- folderConverterService.domainToApiModel(
         withData,
         v =>
@@ -74,7 +74,7 @@ class FolderReadService(using
       withData <- topFolders
         .traverse(f => {
           val folderWithContent =
-            folderRepository.getSharedFolderAndChildrenSubfoldersWithResources(f.id)(
+            folderRepository.getSharedFolderAndChildrenSubfoldersWithResources(f.id)(using
               session
             )
           getWith404IfNone(f.id, folderWithContent)
@@ -280,15 +280,15 @@ class FolderReadService(using
   ): Try[MyNDLAUserDTO] =
     for {
       user <- dbUtility.rollbackOnFailure(session =>
-        userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+        userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
       )
     } yield folderConverterService.toApiUserData(user)
 
   private def getUserStats(session: DBSession): Try[Option[UserStatsDTO]] = {
     for {
-      numberOfUsersWithFavourites    <- folderRepository.numberOfUsersWithFavourites(session).toTryMaybe
-      numberOfUsersWithoutFavourites <- folderRepository.numberOfUsersWithoutFavourites(session).toTryMaybe
-      numberOfUsersInArena           <- userRepository.numberOfUsersInArena(session).toTryMaybe
+      numberOfUsersWithFavourites    <- folderRepository.numberOfUsersWithFavourites(using session).toTryMaybe
+      numberOfUsersWithoutFavourites <- folderRepository.numberOfUsersWithoutFavourites(using session).toTryMaybe
+      numberOfUsersInArena           <- userRepository.numberOfUsersInArena(using session).toTryMaybe
       usersGrouped                   <- userRepository.usersGrouped().toTrySome
       numberOfEmployees = usersGrouped(UserRole.EMPLOYEE)
       numberOfStudents  = usersGrouped(UserRole.STUDENT)
@@ -336,12 +336,12 @@ class FolderReadService(using
 
   def getAllTheFavorites: Try[Map[String, Map[String, Long]]] = {
     implicit val session: DBSession = folderRepository.getSession(true)
-    folderRepository.getAllFavorites(session)
+    folderRepository.getAllFavorites(using session)
   }
 
   def getRecentFavorite(size: Option[Int], excludeResourceTypes: List[ResourceType]): Try[List[ResourceDTO]] = {
     implicit val session: DBSession = folderRepository.getSession(true)
-    folderRepository.getRecentFavorited(size, excludeResourceTypes)(session) match {
+    folderRepository.getRecentFavorited(size, excludeResourceTypes)(using session) match {
       case Failure(ex)    => Failure(ex)
       case Success(value) => value.traverse(r => folderConverterService.toApiResource(r, isOwner = false))
     }

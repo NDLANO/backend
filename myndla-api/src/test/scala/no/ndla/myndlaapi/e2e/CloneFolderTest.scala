@@ -490,7 +490,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val sourceFolderId   = prepareFolderToClone()
 
     // We want to fail on only the connection insertion
-    when(myndlaApi.componentRegistry.folderRepository.insertResourceConnectionInBulk(any)(any))
+    when(myndlaApi.componentRegistry.folderRepository.insertResourceConnectionInBulk(any)(using any))
       .thenReturn(Failure(new RuntimeException("bad")))
 
     val destinationFoldersBefore   = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -505,7 +505,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
         .header("FeideAuthorization", s"Bearer asd")
     )
 
-    verify(folderRepository, times(1)).insertFolderInBulk(any)(any)
+    verify(folderRepository, times(1)).insertFolderInBulk(any)(using any)
 
     val destinationFoldersAfter   = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     val destinationResourcesAfter = folderRepository.resourcesWithFeideId(destinationFeideId, 10)
@@ -625,7 +625,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
 
     val results            = CirceUtil.unsafeParseAs[List[UUID]](response.body)
     val resultParentId     = results.find(uuid => uuid == parentId).get
-    val domainParentFolder = folderRepository.getFolderAndChildrenSubfolders(resultParentId)(session).get.get
+    val domainParentFolder = folderRepository.getFolderAndChildrenSubfolders(resultParentId)(using session).get.get
 
     domainParentFolder should be(expectedParent)
   }

@@ -8,7 +8,6 @@
 
 package no.ndla.myndlaapi
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.Clock
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.controller.{
@@ -45,38 +44,39 @@ import no.ndla.network.tapir.{
 
 class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplication[MyNdlaApiProperties] {
   given props: MyNdlaApiProperties                              = properties
-  given errorHandling: ControllerErrorHandling                  = new ControllerErrorHandling
-  given errorHelpers: ErrorHelpers                              = new ErrorHelpers
-  given healthController: TapirHealthController                 = new TapirHealthController
   implicit lazy val clock: Clock                                = new Clock
-  given folderController: FolderController                      = new FolderController
-  given robotController: RobotController                        = new RobotController
+  given dataSource: DataSource                                  = DataSource.getDataSource
+  given migrator: DBMigrator                                    = new DBMigrator(v16__MigrateResourcePaths)
+  given dbUtil: DBUtility                                       = new DBUtility
+  
+  given ndlaClient: NdlaClient                                  = new NdlaClient
+  given myndlaApiClient: MyNDLAApiClient                        = new MyNDLAApiClient
+  implicit lazy val redisClient: RedisClient                    = new RedisClient(props.RedisHost, props.RedisPort)
   implicit lazy val feideApiClient: FeideApiClient              = new FeideApiClient
-  given redisClient: RedisClient                                = new RedisClient(props.RedisHost, props.RedisPort)
+  implicit lazy val nodebb: NodeBBClient                        = new NodeBBClient
+  given errorHelpers: ErrorHelpers                              = new ErrorHelpers
+  given errorHandling: ControllerErrorHandling                  = new ControllerErrorHandling
   implicit lazy val folderRepository: FolderRepository          = new FolderRepository
   given folderConverterService: FolderConverterService          = new FolderConverterService
-  given folderReadService: FolderReadService                    = new FolderReadService
-  given folderWriteService: FolderWriteService                  = new FolderWriteService
   implicit lazy val userRepository: UserRepository              = new UserRepository
-  given robotRepository: RobotRepository                        = new RobotRepository
-  given robotService: RobotService                              = new RobotService
-  given userService: UserService                                = new UserService
-  given userController: UserController                          = new UserController
   given configRepository: ConfigRepository                      = new ConfigRepository
   given configService: ConfigService                            = new ConfigService
-  given configController: ConfigController                      = new ConfigController
-  lazy val statsController: StatsController                     = new StatsController
-  given nodebb: NodeBBClient                                    = new NodeBBClient
+  implicit lazy val folderReadService: FolderReadService        = new FolderReadService
+  implicit lazy val folderWriteService: FolderWriteService      = new FolderWriteService
+  implicit lazy val userService: UserService                    = new UserService
+  given robotRepository: RobotRepository                        = new RobotRepository
+  given robotService: RobotService                              = new RobotService
   given searchApiClient: SearchApiClient                        = new SearchApiClient
   given taxonomyApiClient: TaxonomyApiClient                    = new TaxonomyApiClient
   given learningPathApiClient: LearningPathApiClient            = new LearningPathApiClient
-  given ndlaClient: NdlaClient                                  = new NdlaClient
-  given myndlaApiClient: MyNDLAApiClient                        = new MyNDLAApiClient
   lazy val v16__MigrateResourcePaths: V16__MigrateResourcePaths = new V16__MigrateResourcePaths
-  given dbUtil: DBUtility                                       = new DBUtility
 
-  given migrator: DBMigrator   = new DBMigrator(v16__MigrateResourcePaths)
-  given dataSource: DataSource = DataSource.getDataSource
+  given userController: UserController          = new UserController
+  lazy val statsController: StatsController     = new StatsController
+  given configController: ConfigController      = new ConfigController
+  given healthController: TapirHealthController = new TapirHealthController
+  given folderController: FolderController      = new FolderController
+  given robotController: RobotController        = new RobotController
 
   given swagger: SwaggerController = new SwaggerController(
     List(

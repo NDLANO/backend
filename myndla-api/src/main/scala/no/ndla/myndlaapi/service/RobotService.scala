@@ -33,7 +33,7 @@ class RobotService(using
     session =>
       for {
         feideId <- feideApiClient.getFeideID(feideToken)
-        robots  <- robotRepository.getRobotsWithFeideId(feideId)(session)
+        robots  <- robotRepository.getRobotsWithFeideId(feideId)(using session)
       } yield ListOfRobotDefinitionsDTO(robots = robots.map(RobotDefinitionDTO.fromDomain))
   }
 
@@ -42,7 +42,7 @@ class RobotService(using
       lazy val nfe = NotFoundException(s"Could not find robot definition with id $robotId")
       for {
         feideId    <- feideApiClient.getFeideID(feide)
-        maybeRobot <- robotRepository.getRobotWithId(robotId)(session)
+        maybeRobot <- robotRepository.getRobotWithId(robotId)(using session)
         robot      <- maybeRobot.toTry(nfe)
         _          <- robot.canRead(feideId, notFound = true)
       } yield RobotDefinitionDTO.fromDomain(robot)
@@ -95,10 +95,10 @@ class RobotService(using
       for {
         feideId       <- feideApiClient.getFeideID(feideToken)
         _             <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideToken)
-        maybeRobot    <- robotRepository.getRobotWithId(robotId)(session)
+        maybeRobot    <- robotRepository.getRobotWithId(robotId)(using session)
         existingRobot <- maybeRobot.toTry(NotFoundException(s"Could not find editable robot with id '$robotId'"))
         _             <- existingRobot.canEdit(feideId)
-        _             <- robotRepository.deleteRobotDefinition(robotId)(session)
+        _             <- robotRepository.deleteRobotDefinition(robotId)(using session)
       } yield ()
   }
 
@@ -110,7 +110,7 @@ class RobotService(using
       for {
         feideId       <- feideApiClient.getFeideID(feideToken)
         _             <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideToken)
-        maybeRobot    <- robotRepository.getRobotWithId(robotId)(session)
+        maybeRobot    <- robotRepository.getRobotWithId(robotId)(using session)
         existingRobot <- maybeRobot.toTry(NotFoundException(s"Could not find editable robot with id '$robotId'"))
         _             <- existingRobot.canEdit(feideId)
         updated       <- Try(updateFunc(existingRobot))
@@ -120,7 +120,7 @@ class RobotService(using
           case _                                                  => None
         }
         withUpdatedTimes = updated.copy(updated = now, shared = sharedTime)
-        _ <- robotRepository.updateRobotDefinition(withUpdatedTimes)(session)
+        _ <- robotRepository.updateRobotDefinition(withUpdatedTimes)(using session)
 
       } yield RobotDefinitionDTO.fromDomain(withUpdatedTimes)
     }

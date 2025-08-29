@@ -19,7 +19,6 @@ import no.ndla.network.tapir.{
   ErrorBody,
   ErrorHandling,
   ErrorHelpers,
-  TapirErrorHandling,
   ValidationErrorBody
 }
 import org.postgresql.util.PSQLException

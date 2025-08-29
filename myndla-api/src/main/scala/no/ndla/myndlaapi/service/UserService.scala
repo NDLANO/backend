@@ -28,7 +28,7 @@ class UserService(using
     folderConverterService: FolderConverterService,
     userRepository: UserRepository,
     clock: Clock,
-    folderWriteService: FolderWriteService,
+    folderWriteService: => FolderWriteService,
     nodeBBClient: NodeBBClient,
     folderRepository: FolderRepository,
     dbUtility: DBUtility
@@ -39,7 +39,7 @@ class UserService(using
     for {
       feideId  <- feideApiClient.getFeideID(feideAccessToken)
       userData <- dbUtility.rollbackOnFailure(session =>
-        getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+        getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
       )
     } yield userData
   }
@@ -63,14 +63,14 @@ class UserService(using
       feideId: FeideID,
       feideAccessToken: Option[FeideAccessToken]
   )(implicit session: DBSession): Try[MyNDLAUser] = {
-    userRepository.reserveFeideIdIfNotExists(feideId)(session).flatMap {
-      case false => createMyNDLAUser(feideId, feideAccessToken)(session)
+    userRepository.reserveFeideIdIfNotExists(feideId)(using session).flatMap {
+      case false => createMyNDLAUser(feideId, feideAccessToken)(using session)
       case true  =>
-        userRepository.userWithFeideId(feideId)(session).flatMap {
+        userRepository.userWithFeideId(feideId)(using session).flatMap {
           case None => Failure(new IllegalStateException(s"User with feide_id $feideId was not found."))
           case Some(userData) if userData.wasUpdatedLast24h => Success(userData)
           case Some(userData)                               =>
-            fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(session)
+            fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(using session)
         }
     }
   }
@@ -81,14 +81,14 @@ class UserService(using
   ): Try[myndla.MyNDLAUserDTO] = {
     feideApiClient
       .getFeideID(feideAccessToken)
-      .flatMap(feideId => updateFeideUserDataAuthenticated(updatedUser, feideId, feideAccessToken)(AutoSession))
+      .flatMap(feideId => updateFeideUserDataAuthenticated(updatedUser, feideId, feideAccessToken)(using AutoSession))
   }
 
   def importUser(userData: myndla.MyNDLAUserDTO, feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
       session: DBSession
   ): Try[myndla.MyNDLAUserDTO] =
     for {
-      existingUser <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+      existingUser <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
       newFavorites     = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
       updatedFeideUser = UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(newFavorites),
@@ -96,7 +96,7 @@ class UserService(using
         arenaAccepted = None,
         shareNameAccepted = None
       )
-      updated <- updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(session)
+      updated <- updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(using session)
     } yield updated
 
   private def updateFeideUserDataAuthenticated(
@@ -163,7 +163,7 @@ class UserService(using
         arenaAccepted = false,
         shareNameAccepted = true
       )
-      inserted <- userRepository.insertUser(feideId, newUser)(session)
+      inserted <- userRepository.insertUser(feideId, newUser)(using session)
     } yield inserted
   }
 
@@ -193,7 +193,7 @@ class UserService(using
       arenaAccepted = userData.arenaAccepted,
       shareNameAccepted = userData.shareNameAccepted
     )
-    userRepository.updateUser(feideId, updatedMyNDLAUser)(session)
+    userRepository.updateUser(feideId, updatedMyNDLAUser)(using session)
   }
 
   def deleteAllUserData(feideAccessToken: Option[FeideAccessToken]): Try[Unit] =
@@ -202,10 +202,10 @@ class UserService(using
         feideToken   <- feideApiClient.getFeideAccessTokenOrFail(feideAccessToken)
         feideId      <- feideApiClient.getFeideID(feideAccessToken)
         nodebbUserId <- nodeBBClient.getUserId(feideToken)
-        _            <- folderRepository.deleteAllUserFolders(feideId)(session)
-        _            <- folderRepository.deleteAllUserResources(feideId)(session)
+        _            <- folderRepository.deleteAllUserFolders(feideId)(using session)
+        _            <- folderRepository.deleteAllUserResources(feideId)(using session)
         _            <- nodeBBClient.deleteUser(nodebbUserId, feideToken)
-        _            <- userRepository.deleteUser(feideId)(session)
+        _            <- userRepository.deleteUser(feideId)(using session)
       } yield ()
     })
 }

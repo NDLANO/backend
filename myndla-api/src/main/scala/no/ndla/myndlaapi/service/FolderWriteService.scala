@@ -60,7 +60,7 @@ class FolderWriteService(using
     folderConverterService: FolderConverterService,
     userRepository: UserRepository,
     configService: ConfigService,
-    userService: UserService,
+    userService: => UserService,
     searchApiClient: SearchApiClient,
     dbUtility: DBUtility
 ) extends StrictLogging {
@@ -68,7 +68,7 @@ class FolderWriteService(using
 
   private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
     dbUtility.rollbackOnFailure(session =>
-      userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(session)
+      userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
     )
   }
 
@@ -185,9 +185,9 @@ class FolderWriteService(using
     val now      = clock.now()
     val toInsert = buildInsertList(sourceFolder, destinationFolder, BulkInserts.empty, feideId, now, isOwner)
     for {
-      _ <- folderRepository.insertFolderInBulk(toInsert)(session)
-      _ <- folderRepository.insertResourcesInBulk(toInsert)(session)
-      _ <- folderRepository.insertResourceConnectionInBulk(toInsert)(session)
+      _ <- folderRepository.insertFolderInBulk(toInsert)(using session)
+      _ <- folderRepository.insertResourcesInBulk(toInsert)(using session)
+      _ <- folderRepository.insertResourceConnectionInBulk(toInsert)(using session)
     } yield ()
   }
 
@@ -234,7 +234,7 @@ class FolderWriteService(using
         sourceFolder <- folderReadService.getWith404IfNone(sourceId, maybeFolder)
         isOwner = sourceFolder.feideId == feideId
         _            <- sourceFolder.isClonable
-        clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId, "_Kopi".some, isOwner)(session)
+        clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId, "_Kopi".some, isOwner)(using session)
         breadcrumbs  <- folderReadService.getBreadcrumbs(clonedFolder)
         feideUser    <- userRepository.userWithFeideId(feideId)
         converted    <- folderConverterService.toApiFolder(clonedFolder, breadcrumbs, feideUser, isOwner)
@@ -263,8 +263,8 @@ class FolderWriteService(using
     dbUtility.rollbackOnFailure { session =>
       for {
         _ <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, maybeFeideToken)
-        _ <- userService.importUser(toImport.userData, feideId, maybeFeideToken)(session)
-        _ <- importFolders(toImport.folders, feideId)(session)
+        _ <- userService.importUser(toImport.userData, feideId, maybeFeideToken)(using session)
+        _ <- importFolders(toImport.folders, feideId)(using session)
       } yield toImport
     }
   }
@@ -302,7 +302,7 @@ class FolderWriteService(using
       maybeSiblings  <- getFolderWithDirectChildren(converted.parentId, feideId)
       _              <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
       updated        <- folderRepository.updateFolder(id, feideId, converted)
-      crumbs         <- folderReadService.getBreadcrumbs(updated)(ReadOnlyAutoSession)
+      crumbs         <- folderReadService.getBreadcrumbs(updated)(using ReadOnlyAutoSession)
       feideUser      <- userRepository.userWithFeideId(feideId)
       api            <- folderConverterService.toApiFolder(updated, crumbs, feideUser, isOwner = true)
     } yield api
@@ -418,11 +418,11 @@ class FolderWriteService(using
           val found   = rankables.find(_.sortId == id)
           found match {
             case Some(domain.Folder(folderId, _, _, _, _, _, _, _, _, _, _, _, _)) if sharedFolderSort =>
-              folderRepository.setSharedFolderRank(folderId, newRank, feideId)(session)
+              folderRepository.setSharedFolderRank(folderId, newRank, feideId)(using session)
             case Some(domain.Folder(folderId, _, _, _, _, _, _, _, _, _, _, _, _)) =>
-              folderRepository.setFolderRank(folderId, newRank, feideId)(session)
+              folderRepository.setFolderRank(folderId, newRank, feideId)(using session)
             case Some(domain.FolderResource(folderId, resourceId, _, _)) =>
-              folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(session)
+              folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(using session)
             case _ => Failure(FolderSortException("Something went wrong when sorting! This seems like a bug!"))
           }
         })
@@ -434,14 +434,14 @@ class FolderWriteService(using
   private def sortRootFolders(sortRequest: api.FolderSortRequestDTO, feideId: FeideID): Try[Unit] = {
     val session = folderRepository.getSession(true)
     folderRepository
-      .foldersWithFeideAndParentID(None, feideId)(session)
+      .foldersWithFeideAndParentID(None, feideId)(using session)
       .flatMap(rootFolders => performSort(rootFolders, sortRequest, feideId, sharedFolderSort = false))
   }
 
   private def sortSavedSharedFolders(sortRequest: api.FolderSortRequestDTO, feideId: FeideID): Try[Unit] = {
     val session = folderRepository.getSession(true)
     folderRepository
-      .getSavedSharedFolders(feideId)(session)
+      .getSavedSharedFolders(feideId)(using session)
       .flatMap(savedFolders => performSort(savedFolders, sortRequest, feideId, sharedFolderSort = true))
   }
 
@@ -620,7 +620,7 @@ class FolderWriteService(using
       feideId   <- feideApiClient.getFeideID(feideAccessToken)
       _         <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
       inserted  <- createNewFolder(newFolder, feideId, makeUniqueNamePostfix = None, isCloning = false)
-      crumbs    <- folderReadService.getBreadcrumbs(inserted)(ReadOnlyAutoSession)
+      crumbs    <- folderReadService.getBreadcrumbs(inserted)(using ReadOnlyAutoSession)
       feideUser <- userRepository.userWithFeideId(feideId)
       api       <- folderConverterService.toApiFolder(inserted, crumbs, feideUser, isOwner = true)
     } yield api

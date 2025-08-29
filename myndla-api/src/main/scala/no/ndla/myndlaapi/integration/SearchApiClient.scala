@@ -31,14 +31,14 @@ class SearchApiClient(using ndlaClient: NdlaClient, props: Props) extends Strict
 
   private def reindexAsync(id: String, documentType: String): Unit = {
     val ec     = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-    val future = Future { reindex(id, documentType) }(ec)
+    val future = Future { reindex(id, documentType) }(using ec)
 
     future.onComplete { result =>
       result.flatten match {
         case Success(_) => logger.info(s"Successfully reindexed '$documentType' with id '$id'")
         case Failure(e) => logger.error(s"Failed to reindex '$documentType' with id '$id'", e)
       }
-    }(ec)
+    }(using ec)
   }
 
   def reindexDraft(id: String): Unit        = reindexAsync(id, "draft")
