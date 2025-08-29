@@ -9,16 +9,14 @@
 package no.ndla.searchapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.configuration.{BaseProps, HasBaseProps}
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.network.{AuthUser, Domains}
 
 import scala.util.Properties.*
 import scala.util.{Failure, Success, Try}
 
-trait Props extends HasBaseProps {
-  lazy val props: SearchApiProperties
-}
+type Props = SearchApiProperties
 
 class SearchApiProperties extends BaseProps with StrictLogging {
   def ApplicationName            = "search-api"
