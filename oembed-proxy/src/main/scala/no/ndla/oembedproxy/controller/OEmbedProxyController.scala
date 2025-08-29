@@ -9,8 +9,6 @@
 package no.ndla.oembedproxy.controller
 
 import cats.implicits.*
-import no.ndla.common.Clock
-import no.ndla.common.configuration.BaseProps
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -25,8 +23,6 @@ import scala.util.{Failure, Success}
 
 class OEmbedProxyController(using
     oEmbedService: OEmbedService,
-    props: BaseProps,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling
