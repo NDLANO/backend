@@ -14,15 +14,11 @@ import org.postgresql.util.PGobject
 import scalikejdbc.*
 import io.circe.syntax.*
 import no.ndla.common.model.domain.frontpage.SubjectPage
-import no.ndla.database.DataSource
 import no.ndla.frontpageapi.model.domain.DBSubjectPage
 
 import scala.util.{Failure, Success, Try}
 
-class SubjectPageRepository(using
-    dataSource: DataSource,
-    dBSubjectPage: DBSubjectPage
-) {
+class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) {
   val logger: Logger = getLogger
 
   def newSubjectPage(subj: SubjectPage, externalId: String)(implicit

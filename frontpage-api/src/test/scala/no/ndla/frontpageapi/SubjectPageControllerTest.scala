@@ -28,7 +28,6 @@ class SubjectPageControllerTest extends UnitSuite with TestEnvironment with Tapi
     given ReadService            = readService
     given WriteService           = writeService
     given FrontpageApiProperties = props
-    given Clock                  = clock
     given MyNDLAApiClient        = myndlaApiClient
     given ErrorHelpers           = errorHelpers
     new SubjectPageController

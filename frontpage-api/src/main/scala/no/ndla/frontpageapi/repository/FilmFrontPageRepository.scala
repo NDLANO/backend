@@ -9,7 +9,6 @@
 package no.ndla.frontpageapi.repository
 
 import io.circe.syntax.*
-import no.ndla.database.DataSource
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, FilmFrontPage}
 import org.log4s.Logger
 import org.postgresql.util.PGobject
@@ -17,10 +16,7 @@ import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class FilmFrontPageRepository(using
-    dataSource: DataSource,
-    dBFilmFrontPage: DBFilmFrontPage
-) {
+class FilmFrontPageRepository(using dBFilmFrontPage: DBFilmFrontPage) {
   val logger: Logger = org.log4s.getLogger
   import FilmFrontPage._
 

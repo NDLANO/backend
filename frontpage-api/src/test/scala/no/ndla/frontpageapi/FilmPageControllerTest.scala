@@ -23,12 +23,10 @@ class FilmPageControllerTest extends UnitSuite with TestEnvironment with TapirCo
   override implicit lazy val errorHandling: ErrorHandling = new ControllerErrorHandling
   override implicit lazy val routes                       = new Routes
   override val controller: TapirController                = {
-    given ReadService            = readService
-    given WriteService           = writeService
-    given FrontpageApiProperties = props
-    given Clock                  = clock
-    given MyNDLAApiClient        = myndlaApiClient
-    given ErrorHelpers           = errorHelpers
+    given ReadService     = readService
+    given WriteService    = writeService
+    given MyNDLAApiClient = myndlaApiClient
+    given ErrorHelpers    = errorHelpers
     new FilmPageController
   }
   override implicit lazy val services: List[TapirController] = List(controller)

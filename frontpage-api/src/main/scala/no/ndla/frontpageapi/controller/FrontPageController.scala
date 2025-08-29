@@ -8,8 +8,6 @@
 
 package no.ndla.frontpageapi.controller
 
-import no.ndla.common.Clock
-import no.ndla.frontpageapi.Props
 import no.ndla.common.model.api.FrontPageDTO
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
 import no.ndla.network.clients.MyNDLAApiClient
@@ -24,8 +22,6 @@ import sttp.tapir.server.ServerEndpoint
 class FrontPageController(using
     readService: ReadService,
     writeService: WriteService,
-    props: Props,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling

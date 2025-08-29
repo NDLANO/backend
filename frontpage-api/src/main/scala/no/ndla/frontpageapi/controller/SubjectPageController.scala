@@ -8,7 +8,6 @@
 
 package no.ndla.frontpageapi.controller
 
-import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
@@ -29,7 +28,6 @@ class SubjectPageController(using
     readService: ReadService,
     writeService: WriteService,
     props: Props,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling

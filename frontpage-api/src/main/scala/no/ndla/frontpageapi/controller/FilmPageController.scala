@@ -10,8 +10,6 @@ package no.ndla.frontpageapi.controller
 
 import cats.implicits.*
 import io.circe.generic.auto.*
-import no.ndla.common.Clock
-import no.ndla.frontpageapi.Props
 import no.ndla.common.errors.ValidationException
 import no.ndla.frontpageapi.model.api.*
 import no.ndla.frontpageapi.service.{ReadService, WriteService}
@@ -27,8 +25,6 @@ import sttp.tapir.server.ServerEndpoint
 class FilmPageController(using
     readService: ReadService,
     writeService: WriteService,
-    props: Props,
-    clock: Clock,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling

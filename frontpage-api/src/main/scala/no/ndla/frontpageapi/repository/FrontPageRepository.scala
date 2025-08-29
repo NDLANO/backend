@@ -14,14 +14,10 @@ import no.ndla.frontpageapi.model.domain.{DBFrontPage, FrontPage}
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 import cats.implicits.*
-import no.ndla.database.DataSource
 
 import scala.util.Try
 
-class FrontPageRepository(using
-    dataSource: DataSource,
-    dBFrontPage: DBFrontPage
-) extends StrictLogging {
+class FrontPageRepository(using dBFrontPage: DBFrontPage) extends StrictLogging {
   import FrontPage._
 
   def newFrontPage(page: FrontPage)(implicit session: DBSession = AutoSession): Try[FrontPage] = {
