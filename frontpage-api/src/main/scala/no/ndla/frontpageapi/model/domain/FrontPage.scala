@@ -38,8 +38,7 @@ object FrontPage {
   }
 }
 
-trait DBFrontPage {
-  this: Props =>
+class DBFrontPage(using props: Props) {
 
   object DBFrontPageData extends SQLSyntaxSupport[FrontPage] {
     override val tableName                  = "mainfrontpage"

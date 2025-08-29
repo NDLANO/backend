@@ -39,8 +39,7 @@ object FilmFrontPage {
   }
 }
 
-trait DBFilmFrontPage {
-  this: Props =>
+class DBFilmFrontPage(using props: Props) {
 
   object DBFilmFrontPageData extends SQLSyntaxSupport[FilmFrontPage] {
     override val tableName                  = "filmfrontpage"
