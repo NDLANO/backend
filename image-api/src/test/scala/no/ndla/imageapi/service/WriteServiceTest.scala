@@ -28,10 +28,10 @@ import java.io.ByteArrayInputStream
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val writeService     = new WriteService
-  override lazy val converterService = new ConverterService
-  val newFileName                    = "AbCdeF.mp3"
-  val fileMock1: UploadedFile        = mock[UploadedFile]
+  override implicit lazy val writeService: WriteService         = new WriteService
+  override implicit lazy val converterService: ConverterService = new ConverterService
+  val newFileName                                               = "AbCdeF.mp3"
+  val fileMock1: UploadedFile                                   = mock[UploadedFile]
 
   val newImageMeta: NewImageMetaInformationV2DTO = NewImageMetaInformationV2DTO(
     "title",
@@ -93,7 +93,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(imageIndexService)
     reset(imageStorage)
     reset(tagIndexService)
-    when(imageRepository.insert(any[ImageMetaInformation])(any[DBSession]))
+    when(imageRepository.insert(any[ImageMetaInformation])(using any[DBSession]))
       .thenReturn(domainImageMeta.copy(id = Some(1L)))
   }
 
@@ -156,7 +156,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
 
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
-    verify(imageRepository, times(0)).insert(any[ImageMetaInformation])(any[DBSession])
+    verify(imageRepository, times(0)).insert(any[ImageMetaInformation])(using any[DBSession])
     verify(imageIndexService, times(0)).indexDocument(any[ImageMetaInformation])
     verify(imageStorage, times(0)).cloneObject(any, any)
     verify(imageStorage, times(0)).uploadFromStream(any, any)
@@ -168,7 +168,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
     when(imageStorage.uploadFromStream(any, any))
       .thenReturn(Success(newFileName))
-    when(imageRepository.insert(any[ImageMetaInformation])(any[DBSession])).thenThrow(new RuntimeException)
+    when(imageRepository.insert(any[ImageMetaInformation])(using any[DBSession])).thenThrow(new RuntimeException)
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
 
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
@@ -207,8 +207,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Failure(new RuntimeException))
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
-    when(imageRepository.insert(any)(any)).thenReturn(afterInsert)
-    when(imageRepository.insertImageFile(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageRepository.insert(any)(using any)).thenReturn(afterInsert)
+    when(imageRepository.insertImageFile(any, any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       val imageId  = i.getArgument[Long](0)
       val fileName = i.getArgument[String](1)
       val document = i.getArgument[ImageFileDataDocument](2)
@@ -216,7 +216,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     })
 
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
-    verify(imageRepository, times(1)).insert(any[ImageMetaInformation])(any[DBSession])
+    verify(imageRepository, times(1)).insert(any[ImageMetaInformation])(using any[DBSession])
     verify(imageStorage, times(1)).deleteObject(any[String])
     verify(imageIndexService, times(1)).deleteDocument(eqTo(1L))
   }
@@ -229,9 +229,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .thenReturn(Success(newFileName))
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
-    when(imageRepository.insert(any)(any)).thenReturn(afterInsert)
+    when(imageRepository.insert(any)(using any)).thenReturn(afterInsert)
     var fullImage: Option[domain.ImageFileData] = None
-    when(imageRepository.insertImageFile(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageRepository.insertImageFile(any, any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       val imageId  = i.getArgument[Long](0)
       val fileName = i.getArgument[String](1)
       val document = i.getArgument[ImageFileDataDocument](2)
@@ -243,7 +243,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result.isSuccess should be(true)
     result should equal(Success(afterInsert.copy(images = Some(Seq(fullImage.get)))))
 
-    verify(imageRepository, times(1)).insert(any[ImageMetaInformation])(any[DBSession])
+    verify(imageRepository, times(1)).insert(any[ImageMetaInformation])(using any[DBSession])
     verify(imageIndexService, times(1)).indexDocument(any[ImageMetaInformation])
     verify(tagIndexService, times(1)).indexDocument(any[ImageMetaInformation])
   }
@@ -271,7 +271,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeImages should append a new language if language not already exists") {
-    when(imageRepository.insertImageFile(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageRepository.insertImageFile(any, any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       val imageId    = i.getArgument[Long](0)
       val fileName   = i.getArgument[String](1)
       val document   = i.getArgument[ImageFileDataDocument](2)
@@ -389,7 +389,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("mergeImages adds imagefile for language if it doesn't exist already") {
-    when(imageRepository.insertImageFile(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageRepository.insertImageFile(any, any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       val imageId    = i.getArgument[Long](0)
       val fileName   = i.getArgument[String](1)
       val document   = i.getArgument[ImageFileDataDocument](2)
@@ -457,7 +457,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(imageRepository.withId(imageId)).thenReturn(Some(domainWithImage))
-    when(imageRepository.delete(eqTo(imageId))(any[DBSession])).thenReturn(1)
+    when(imageRepository.delete(eqTo(imageId))(using any[DBSession])).thenReturn(1)
     when(imageStorage.deleteObject(any[String])).thenReturn(Success(()))
     when(imageIndexService.deleteDocument(any[Long])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Long](0))
@@ -469,7 +469,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageStorage, times(1)).deleteObject(domainWithImage.images.get.head.fileName)
     verify(imageIndexService, times(1)).deleteDocument(imageId)
     verify(tagIndexService, times(1)).deleteDocument(imageId)
-    verify(imageRepository, times(1)).delete(eqTo(imageId))(any[DBSession])
+    verify(imageRepository, times(1)).delete(eqTo(imageId))(using any[DBSession])
   }
 
   test("That deleting language version deletes language") {
@@ -492,8 +492,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
 
     when(imageRepository.withId(imageId)).thenReturn(Some(image))
-    when(imageRepository.update(any[ImageMetaInformation], eqTo(imageId))(any)).thenAnswer((i: InvocationOnMock) =>
-      Success(i.getArgument[ImageMetaInformation](0))
+    when(imageRepository.update(any[ImageMetaInformation], eqTo(imageId))(using any)).thenAnswer(
+      (i: InvocationOnMock) => Success(i.getArgument[ImageMetaInformation](0))
     )
     when(validationService.validate(any[ImageMetaInformation], any[Option[ImageMetaInformation]]))
       .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[ImageMetaInformation](0)))
@@ -504,7 +504,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     writeService.deleteImageLanguageVersionV2(imageId, "nn", userWithWriteScope)
 
-    verify(imageRepository, times(1)).update(eqTo(expectedImage), eqTo(imageId))(any)
+    verify(imageRepository, times(1)).update(eqTo(expectedImage), eqTo(imageId))(using any)
   }
 
   test("That deleting last language version deletes entire image") {
@@ -524,7 +524,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(imageRepository.withId(imageId)).thenReturn(Some(image))
-    when(imageRepository.delete(eqTo(imageId))(any[DBSession])).thenReturn(1)
+    when(imageRepository.delete(eqTo(imageId))(using any[DBSession])).thenReturn(1)
     when(imageStorage.deleteObject(any[String])).thenReturn(Success(()))
     when(imageIndexService.deleteDocument(any[Long])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Long](0))
@@ -536,7 +536,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageStorage, times(1)).deleteObject(image.images.get.head.fileName)
     verify(imageIndexService, times(1)).deleteDocument(imageId)
     verify(tagIndexService, times(1)).deleteDocument(imageId)
-    verify(imageRepository, times(1)).delete(eqTo(imageId))(any[DBSession])
+    verify(imageRepository, times(1)).delete(eqTo(imageId))(using any[DBSession])
   }
 
   test("That updating image file with multiple same filepaths does not override filepath") {
@@ -585,7 +585,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
-    when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageRepository.update(any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
@@ -629,8 +629,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageStorage, times(1)).uploadFromStream(any, any)
     verify(imageStorage, times(0)).deleteObject(any)
     verify(imageStorage, times(0)).cloneObject(any, any)
-    verify(imageRepository, times(1)).update(any, any)(any)
-    verify(imageRepository, times(0)).insertImageFile(any, any, any)(any)
+    verify(imageRepository, times(1)).update(any, any)(using any)
+    verify(imageRepository, times(0)).insertImageFile(any, any, any)(using any)
   }
 
   test("That uploading image for a new language just adds a new one") {
@@ -678,7 +678,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
-    when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageRepository.update(any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
@@ -695,7 +695,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.objectExists(any)).thenReturn(false)
     when(random.string(any)).thenReturn("randomstring")
 
-    when(imageRepository.insertImageFile(any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageRepository.insertImageFile(any, any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       val imageId  = i.getArgument[Long](0)
       val fileName = i.getArgument[String](1)
       val doc      = i.getArgument[domain.ImageFileDataDocument](2)
@@ -730,8 +730,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageStorage, times(1)).uploadFromStream(any, any)
     verify(imageStorage, times(0)).deleteObject(any)
     verify(imageStorage, times(0)).cloneObject(any, any)
-    verify(imageRepository, times(1)).update(any, any)(any)
-    verify(imageRepository, times(1)).insertImageFile(any, any, any)(any)
+    verify(imageRepository, times(1)).update(any, any)(using any)
+    verify(imageRepository, times(1)).insertImageFile(any, any, any)(using any)
   }
 
   test("Deleting language version should delete file if only used by that language") {
@@ -771,10 +771,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
-    when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageRepository.update(any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
-    when(imageRepository.deleteImageFileMeta(eqTo(imageId), eqTo("nn"))(any)).thenReturn(Success(1))
+    when(imageRepository.deleteImageFileMeta(eqTo(imageId), eqTo("nn"))(using any)).thenReturn(Success(1))
     when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
     when(imageStorage.uploadFromStream(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](1))
@@ -803,8 +803,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageStorage, times(0)).uploadFromStream(any, any)
     verify(imageStorage, times(1)).deleteObject(eqTo("hello-nn.jpg"))
     verify(imageStorage, times(0)).cloneObject(any, any)
-    verify(imageRepository, times(1)).update(any, any)(any)
-    verify(imageRepository, times(0)).insertImageFile(any, any, any)(any)
+    verify(imageRepository, times(1)).update(any, any)(using any)
+    verify(imageRepository, times(0)).insertImageFile(any, any, any)(using any)
     verify(imageRepository, times(1)).deleteImageFileMeta(imageId, "nn")
   }
 
@@ -845,10 +845,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
-    when(imageRepository.update(any, any)(any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageRepository.update(any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
-    when(imageRepository.deleteImageFileMeta(eqTo(imageId), eqTo("nn"))(any)).thenReturn(Success(1))
+    when(imageRepository.deleteImageFileMeta(eqTo(imageId), eqTo("nn"))(using any)).thenReturn(Success(1))
     when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
     when(imageStorage.uploadFromStream(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](1))
@@ -877,8 +877,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageStorage, times(0)).uploadFromStream(any, any)
     verify(imageStorage, times(0)).deleteObject(any)
     verify(imageStorage, times(0)).cloneObject(any, any)
-    verify(imageRepository, times(1)).update(any, any)(any)
-    verify(imageRepository, times(0)).insertImageFile(any, any, any)(any)
+    verify(imageRepository, times(1)).update(any, any)(using any)
+    verify(imageRepository, times(0)).insertImageFile(any, any, any)(using any)
     verify(imageRepository, times(1)).deleteImageFileMeta(imageId, "nn")
   }
 

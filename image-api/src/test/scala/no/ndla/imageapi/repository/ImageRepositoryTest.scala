@@ -10,19 +10,19 @@ package no.ndla.imageapi.repository
 
 import java.net.Socket
 import no.ndla.imageapi.model.domain.ImageTitle
-import no.ndla.imageapi.{TestEnvironment, UnitSuite}
+import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
+import no.ndla.database.{DataSource, DBMigrator}
 import scalikejdbc.DB
 
 import scala.util.{Success, Try}
 import scalikejdbc.*
 
 class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override lazy val dataSource    = testDataSource.get
-  override lazy val migrator      = new DBMigrator
-  var repository: ImageRepository = _
-
-  this.setDatabaseEnvironment()
+  override implicit lazy val props: ImageApiProperties = new ImageApiProperties
+  override implicit lazy val dataSource: DataSource    = testDataSource.get
+  override implicit lazy val migrator: DBMigrator      = new DBMigrator
+  var repository: ImageRepository                      = scala.compiletime.uninitialized
 
   def serverIsListening: Boolean = {
     val server = props.MetaServer.unsafeGet
@@ -37,12 +37,12 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
 
   def emptyTestDatabase: Boolean =
     DB autoCommit (implicit session => {
-      sql"delete from imagemetadata;".execute()(session)
+      sql"delete from imagemetadata;".execute()(using session)
     })
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
+    dataSource.connectToDatabase()
     if (serverIsListening) {
       migrator.migrate()
     }

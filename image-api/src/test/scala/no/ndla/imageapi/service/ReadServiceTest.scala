@@ -23,8 +23,8 @@ import scalikejdbc.DBSession
 import scala.util.{Failure, Success}
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val readService      = new ReadService
-  override lazy val converterService = new ConverterService
+  override implicit lazy val readService: ReadService           = new ReadService
+  override implicit lazy val converterService: ConverterService = new ConverterService
 
   test("That path to id conversion works as expected for id paths") {
     val id                = 1234L
@@ -131,7 +131,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     doReturn(Some(expectedImage), Some(expectedImage))
       .when(imageRepository)
-      .getImageFromFilePath(eqTo(encodedPath))(any[DBSession])
+      .getImageFromFilePath(eqTo(encodedPath))(using any[DBSession])
     readService.getDomainImageMetaFromUrl(s"/image-api/raw/$imageUrl") should be(Success(expectedImage))
 
     verify(imageRepository, times(1)).getImageFromFilePath(encodedPath)
