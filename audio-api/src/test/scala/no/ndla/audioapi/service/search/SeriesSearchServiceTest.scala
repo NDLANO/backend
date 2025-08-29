@@ -14,7 +14,6 @@ import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.service.ConverterService
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain as common
-import no.ndla.network.tapir.ErrorHandling
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 

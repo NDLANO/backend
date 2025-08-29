@@ -237,7 +237,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    when(converterService.findAndConvertDomainToApiField(any, any)(any)).thenCallRealMethod()
+    when(converterService.findAndConvertDomainToApiField(any, any)(using any)).thenCallRealMethod()
     when(converterService.toApiManuscript(any)).thenCallRealMethod()
     when(converterService.toApiCoverPhoto(any)).thenCallRealMethod()
     when(converterService.toApiPodcastMeta(any)).thenCallRealMethod()

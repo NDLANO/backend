@@ -21,7 +21,6 @@ import scala.util.{Failure, Success, Try}
 
 class AudioRepository(using
     dataSource: DataSource,
-    seriesRepository: SeriesRepository,
     props: Props,
     errorHandling: ErrorHandling
 ) extends StrictLogging

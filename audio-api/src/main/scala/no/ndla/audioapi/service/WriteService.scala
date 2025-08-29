@@ -17,7 +17,6 @@ import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.search.{AudioIndexService, SeriesIndexService, TagIndexService}
 import no.ndla.common.Clock
-import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.errors.{MissingIdException, NotFoundException, ValidationException}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.domain as common

@@ -127,7 +127,7 @@ class SearchConverterService(using
       .sortBy(title => {
         val languagePriority = searchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
         languagePriority.indexOf(title.language)
-      })(Ordering.Int)
+      })(using Ordering.Int)
       .lastOption
 
     val authors =
@@ -177,7 +177,7 @@ class SearchConverterService(using
       keyLanguages
         .sortBy(lang => {
           searchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse.indexOf(lang)
-        })(Ordering.Int)
+        })(using Ordering.Int)
         .lastOption
     }
 

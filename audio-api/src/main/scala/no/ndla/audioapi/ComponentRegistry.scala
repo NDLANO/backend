@@ -8,30 +8,29 @@
 
 package no.ndla.audioapi
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.audioapi.controller.*
 import no.ndla.audioapi.db.migrationwithdependencies.{V5__AddAgreementToAudio, V6__TranslateUntranslatedAuthors}
 import no.ndla.audioapi.integration.{NDLAS3Client, TranscribeS3Client}
-import no.ndla.network.tapir.ErrorHandling
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.*
 import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
-import no.ndla.common.aws.{NdlaAWSTranscribeClient, NdlaS3Client}
+import no.ndla.common.aws.NdlaAWSTranscribeClient
 import no.ndla.common.brightcove.NdlaBrightcoveClient
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, SwaggerController, TapirApplication}
-import no.ndla.search.{BaseIndexService, Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
+import no.ndla.network.tapir.{ErrorHelpers, Routes, SwaggerController, TapirApplication}
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication[AudioApiProperties] {
   given props: AudioApiProperties = properties
+  given dataSource: DataSource    = DataSource.getDataSource
+  given clock: Clock              = new Clock
   given migrator: DBMigrator      = DBMigrator(
     new V5__AddAgreementToAudio,
     new V6__TranslateUntranslatedAuthors
   )
-  given dataSource: DataSource                 = DataSource.getDataSource
   given errorHelpers: ErrorHelpers             = new ErrorHelpers
   given errorHandling: ControllerErrorHandling = new ControllerErrorHandling
   given searchLanguage: SearchLanguage         = new SearchLanguage
@@ -48,28 +47,27 @@ class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication
   given ndlaClient: NdlaClient           = new NdlaClient
   given myndlaApiClient: MyNDLAApiClient = new MyNDLAApiClient
 
-  given readService: ReadService                   = new ReadService
-  given writeService: WriteService                 = new WriteService
-  given validationService: ValidationService       = new ValidationService
   given converterService: ConverterService         = new ConverterService
+  given validationService: ValidationService       = new ValidationService
   given transcriptionService: TranscriptionService = new TranscriptionService
+
+  given e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
+  given searchConverterService: SearchConverterService = new SearchConverterService
+  given seriesIndexService: SeriesIndexService         = new SeriesIndexService
+  given seriesSearchService: SeriesSearchService       = new SeriesSearchService
+  given audioIndexService: AudioIndexService           = new AudioIndexService
+  given audioSearchService: AudioSearchService         = new AudioSearchService
+  given tagIndexService: TagIndexService               = new TagIndexService
+  given tagSearchService: TagSearchService             = new TagSearchService
+
+  given readService: ReadService   = new ReadService
+  given writeService: WriteService = new WriteService
 
   given internController: InternController               = new InternController
   given audioApiController: AudioController              = new AudioController
   given seriesController: SeriesController               = new SeriesController
   given healthController: HealthController               = new HealthController
   given transcriptionController: TranscriptionController = new TranscriptionController
-
-  given e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
-  given searchConverterService: SearchConverterService = new SearchConverterService
-  given audioIndexService: AudioIndexService           = new AudioIndexService
-  given audioSearchService: AudioSearchService         = new AudioSearchService
-  given seriesIndexService: SeriesIndexService         = new SeriesIndexService
-  given seriesSearchService: SeriesSearchService       = new SeriesSearchService
-  given tagIndexService: TagIndexService               = new TagIndexService
-  given tagSearchService: TagSearchService             = new TagSearchService
-
-  given clock: Clock = new Clock
 
   given swagger: SwaggerController = new SwaggerController(
     List(

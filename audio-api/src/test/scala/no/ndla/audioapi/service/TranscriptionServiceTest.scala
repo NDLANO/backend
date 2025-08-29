@@ -21,7 +21,6 @@ import software.amazon.awssdk.services.transcribe.model.{
 }
 
 import scala.util.Success
-import no.ndla.audioapi.integration.TranscribeS3Client
 
 class TranscriptionServiceTest extends UnitSuite with TestEnvironment {
   override implicit lazy val transcriptionService: TranscriptionService = new TranscriptionService

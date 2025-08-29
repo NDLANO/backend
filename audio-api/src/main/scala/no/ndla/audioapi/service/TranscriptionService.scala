@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.integration.TranscribeS3Client
 import no.ndla.audioapi.model.api.JobAlreadyFoundException
-import no.ndla.common.aws.{NdlaAWSTranscribeClient, NdlaS3Client}
+import no.ndla.common.aws.NdlaAWSTranscribeClient
 import no.ndla.common.brightcove.NdlaBrightcoveClient
 import no.ndla.common.model.domain.UploadedFile
 import software.amazon.awssdk.services.transcribe.model.TranscriptionJobStatus

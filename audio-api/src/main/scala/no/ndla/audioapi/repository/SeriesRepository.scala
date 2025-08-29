@@ -146,7 +146,7 @@ class SeriesRepository(using
         .one(Series.fromResultSet(se.resultName))
         .toMany(AudioMetaInformation.fromResultSetOpt(au.resultName))
         .map { (series, audios) =>
-          series.map(_.copy(episodes = Some(audios.sortBy(_.created)(Ordering[NDLADate].reverse).toSeq)))
+          series.map(_.copy(episodes = Some(audios.sortBy(_.created)(using Ordering[NDLADate].reverse).toSeq)))
         }
         .single()
     ).flatMap(_.sequence)
