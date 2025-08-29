@@ -31,7 +31,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
   override implicit lazy val clock: Clock = new Clock
 
-  var validator: LearningPathValidator = _
+  var validator: LearningPathValidator = scala.compiletime.uninitialized
 
   override def beforeEach(): Unit = {
     validator = new LearningPathValidator

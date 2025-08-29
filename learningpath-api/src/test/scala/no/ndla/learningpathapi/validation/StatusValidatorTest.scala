@@ -12,7 +12,7 @@ import no.ndla.testbase.UnitTestSuiteBase
 
 class StatusValidatorTest extends UnitTestSuiteBase {
 
-  var validator: StatusValidator  = _
+  var validator: StatusValidator  = scala.compiletime.uninitialized
   override def beforeEach(): Unit = {
     validator = new StatusValidator
   }

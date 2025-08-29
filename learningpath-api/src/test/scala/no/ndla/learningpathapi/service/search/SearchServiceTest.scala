@@ -25,7 +25,7 @@ import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title, learnin
 import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.domain.*
-import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import org.mockito.ArgumentMatchers.any

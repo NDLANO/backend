@@ -30,7 +30,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   test("that id with value 404 gives OK") {
     resetMocks()
-    when(learningPathRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(404L))
+    when(learningPathRepository.getIdFromExternalId(any[String])(using any[DBSession])).thenReturn(Some(404L))
 
     simpleHttpClient
       .send(
@@ -99,7 +99,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   test("That GET /stats returns statistics for learning paths") {
     val count = 42L
-    when(learningPathRepository.myNdlaOwnerLearningPathCount(any)).thenReturn(count)
+    when(learningPathRepository.myNdlaOwnerLearningPathCount(using any)).thenReturn(count)
     val res = simpleHttpClient.send(
       quickRequest.get(uri"http://localhost:$serverPort/intern/stats")
     )

@@ -26,7 +26,6 @@ import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2DTO, ResultWindow
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.search.SearchableLearningPath
 import no.ndla.search.{NdlaE4sClient, IndexNotFoundException, NdlaSearchException}
-import no.ndla.network.tapir.ErrorHandling
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}

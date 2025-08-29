@@ -109,7 +109,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   val apiTags: List[api.LearningPathTagsDTO] = List(api.LearningPathTagsDTO(Seq("tag"), props.DefaultLanguage))
 
   val randomDate: NDLADate      = NDLADate.now()
-  var service: ConverterService = _
+  var service: ConverterService = scala.compiletime.uninitialized
 
   val revisionMeta = RevisionMeta.default
 

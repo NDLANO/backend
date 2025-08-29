@@ -6,7 +6,7 @@ import no.ndla.database.DataSource
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain.{ImportException, InvalidLpStatusException, OptimisticLockException}
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, TapirErrorHandling}
+import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers}
 import no.ndla.search.model.domain.ElasticIndexingException
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException

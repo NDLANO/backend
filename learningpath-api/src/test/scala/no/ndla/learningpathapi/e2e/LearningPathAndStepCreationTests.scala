@@ -36,7 +36,7 @@ class LearningPathAndStepCreationTests
     with TestEnvironment {
 
   val learningpathApiPort: Int                             = findFreePort
-  val pgc: PostgreSQLContainer[_]                          = postgresContainer.get
+  val pgc: PostgreSQLContainer[?]                          = postgresContainer.get
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int       = learningpathApiPort
     override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
@@ -88,7 +88,7 @@ class LearningPathAndStepCreationTests
   override def beforeEach(): Unit = {
     super.beforeEach()
     learningpathApi.componentRegistry.learningPathRepository.inTransaction(implicit session => {
-      learningpathApi.componentRegistry.learningPathRepository.deleteAllPathsAndSteps(session)
+      learningpathApi.componentRegistry.learningPathRepository.deleteAllPathsAndSteps(using session)
     })
   }
 

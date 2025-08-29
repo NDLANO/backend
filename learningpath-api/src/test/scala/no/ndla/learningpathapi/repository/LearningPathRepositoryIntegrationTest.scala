@@ -41,7 +41,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   override implicit lazy val dataSource: DataSource = testDataSource.get
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
 
-  var repository: LearningPathRepository = _
+  var repository: LearningPathRepository = scala.compiletime.uninitialized
 
   val clinton: Author                  = Author(ContributorType.Writer, "Hilla the Hun")
   val license: String                  = License.PublicDomain.toString
@@ -443,8 +443,8 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
-      sql"delete from learningpaths;".execute()(session)
-      sql"delete from learningsteps;".execute()(session)
+      sql"delete from learningpaths;".execute()(using session)
+      sql"delete from learningsteps;".execute()(using session)
     })
   }
 

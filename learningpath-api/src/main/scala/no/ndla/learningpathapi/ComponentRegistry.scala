@@ -8,7 +8,6 @@
 
 package no.ndla.learningpathapi
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.converter.CommonConverter
 import no.ndla.database.{DBMigrator, DataSource}
@@ -35,7 +34,6 @@ import no.ndla.learningpathapi.validation.{
   LanguageValidator,
   LearningPathValidator,
   LearningStepValidator,
-  TextValidator,
   TitleValidator,
   UrlValidator
 }
@@ -50,11 +48,15 @@ import no.ndla.network.tapir.{
   TapirController,
   TapirHealthController
 }
-import no.ndla.search.{BaseIndexService, Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.database.DBUtility
 
 class ComponentRegistry(properties: LearningpathApiProperties) extends TapirApplication[LearningpathApiProperties] {
   given props: LearningpathApiProperties = properties
+  given dataSource: DataSource           = DataSource.getDataSource
+  implicit lazy val clock: Clock         = new Clock
+  given uuidUtil: UUIDUtil               = new UUIDUtil
+  given DBUtil: DBUtility                = new DBUtility
   given migrator: DBMigrator             = DBMigrator(
     new V11__CreatedByNdlaStatusForOwnersWithRoles,
     new V13__StoreNDLAStepsAsIframeTypes,
@@ -63,35 +65,30 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
     new V31__ArenaDefaultEnabledOrgs,
     new V33__AiDefaultEnabledOrgs
   )
+  given e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
+  given ndlaClient: NdlaClient   = new NdlaClient
 
-  given dataSource: DataSource       = DataSource.getDataSource
-  given DBUtil: DBUtility            = new DBUtility
-  given errorHandling: ErrorHandling = new ControllerErrorHandling
-  given errorHelpers: ErrorHelpers   = new ErrorHelpers
-  given routes: Routes               = new Routes
+  given errorHelpers: ErrorHelpers                       = new ErrorHelpers
+  given errorHandling: ErrorHandling                     = new ControllerErrorHandling
+  implicit lazy val taxonomyApiClient: TaxonomyApiClient = new TaxonomyApiClient
+  implicit lazy val myndlaApiClient: MyNDLAApiClient     = new MyNDLAApiClient
+  given searchApiClient: SearchApiClient                 = new SearchApiClient
+  given oembedProxyClient: OembedProxyClient             = new OembedProxyClient
 
-  given searchLanguage: SearchLanguage                          = new SearchLanguage
   given learningPathRepository: LearningPathRepository          = new LearningPathRepository
-  given readService: ReadService                                = new ReadService
-  given updateService: UpdateService                            = new UpdateService
-  given searchConverterService: SearchConverterServiceComponent = new SearchConverterServiceComponent
-  given searchService: SearchService                            = new SearchService
-  given searchIndexService: SearchIndexService                  = new SearchIndexService
-  given commonConverter: CommonConverter                        = new CommonConverter
-  given converterService: ConverterService                      = new ConverterService
-  implicit lazy val clock: Clock                                = new Clock
-  given uuidUtil: UUIDUtil                                      = new UUIDUtil
-  implicit lazy val taxonomyApiClient: TaxonomyApiClient        = new TaxonomyApiClient
-  given ndlaClient: NdlaClient                                  = new NdlaClient
   given languageValidator: LanguageValidator                    = new LanguageValidator
   given titleValidator: TitleValidator                          = new TitleValidator
+  given commonConverter: CommonConverter                        = new CommonConverter
   given learningPathValidator: LearningPathValidator            = new LearningPathValidator
-  given urlValidator: UrlValidator                              = new UrlValidator
   given learningStepValidator: LearningStepValidator            = new LearningStepValidator
-  given e4sClient: NdlaE4sClient                                = Elastic4sClientFactory.getClient(props.SearchServer)
-  given searchApiClient: SearchApiClient                        = new SearchApiClient
-  given oembedProxyClient: OembedProxyClient                    = new OembedProxyClient
-  implicit lazy val myndlaApiClient: MyNDLAApiClient            = new MyNDLAApiClient
+  given converterService: ConverterService                      = new ConverterService
+  given searchLanguage: SearchLanguage                          = new SearchLanguage
+  given readService: ReadService                                = new ReadService
+  given searchConverterService: SearchConverterServiceComponent = new SearchConverterServiceComponent
+  given searchIndexService: SearchIndexService                  = new SearchIndexService
+  given updateService: UpdateService                            = new UpdateService
+  given searchService: SearchService                            = new SearchService
+  given urlValidator: UrlValidator                              = new UrlValidator
 
   given learningpathControllerV2: LearningpathControllerV2 = new LearningpathControllerV2
   given internController: InternController                 = new InternController
@@ -109,4 +106,5 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
   )
 
   given services: List[TapirController] = swagger.getServices()
+  given routes: Routes                  = new Routes
 }

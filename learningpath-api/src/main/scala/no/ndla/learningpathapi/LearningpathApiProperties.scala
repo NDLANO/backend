@@ -9,8 +9,8 @@
 package no.ndla.learningpathapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.configuration.{BaseProps, HasBaseProps}
-import no.ndla.database.{DatabaseProps, HasDatabaseProps}
+import no.ndla.common.configuration.BaseProps
+import no.ndla.database.DatabaseProps
 import no.ndla.network.{AuthUser, Domains}
 
 import scala.util.Properties.*

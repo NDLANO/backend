@@ -8,7 +8,6 @@
 
 package no.ndla.learningpathapi
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.converter.CommonConverter
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.database.{DBMigrator, DataSource}
@@ -29,7 +28,7 @@ import no.ndla.network.tapir.{
   TapirController,
   TapirHealthController
 }
-import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import org.mockito.Mockito.{mockingDetails, reset}
 import org.scalatestplus.mockito.MockitoSugar
 import no.ndla.database.DBUtility

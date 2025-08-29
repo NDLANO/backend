@@ -145,8 +145,8 @@ class ReadService(using
     val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
 
     val resultFunc =
-      if (onlyIncludePublished) learningPathRepository.getPublishedLearningPathByPage _
-      else learningPathRepository.getAllLearningPathsByPage _
+      if (onlyIncludePublished) learningPathRepository.getPublishedLearningPathByPage
+      else learningPathRepository.getAllLearningPathsByPage
 
     val count =
       if (onlyIncludePublished) learningPathRepository.publishedLearningPathCount

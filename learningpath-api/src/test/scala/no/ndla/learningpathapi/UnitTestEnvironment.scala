@@ -8,6 +8,4 @@
 
 package no.ndla.learningpathapi
 
-import scalikejdbc.DBSession
-
 trait UnitTestEnvironment extends TestEnvironment
