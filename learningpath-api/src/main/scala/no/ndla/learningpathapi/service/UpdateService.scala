@@ -284,7 +284,7 @@ trait UpdateService {
           case Failure(ex)           => Failure(ex)
           case Success(learningPath) =>
             val validated = for {
-              newStep   <- converterService.asDomainLearningStep(newLearningStep, learningPath)
+              newStep   <- converterService.asDomainLearningStep(newLearningStep, learningPath, owner)
               validated <- learningStepValidator.validate(newStep, learningPath)
             } yield validated
 

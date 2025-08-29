@@ -88,7 +88,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     None
   )
 
-  val multiLanguageDomainStep = TestData.domainLearningStep2.copy(
+  val multiLanguageDomainStep: LearningStep = TestData.domainLearningStep2.copy(
     title = Seq(
       Title("Tittel på bokmål", "nb"),
       Title("Tittel på nynorsk", "nn")
@@ -112,7 +112,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   val randomDate: NDLADate      = NDLADate.now()
   var service: ConverterService = _
 
-  val revisionMeta = RevisionMeta.default
+  val revisionMeta: Seq[RevisionMeta] = RevisionMeta.default
 
   val domainLearningPath: LearningPath = LearningPath(
     id = Some(1L),
@@ -603,10 +603,11 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       learningsteps =
         Some(Seq(TestData.domainLearningStep1.copy(seqNo = 0), TestData.domainLearningStep2.copy(seqNo = 1)))
     )
+    val owner = TokenUser("eier2", Set.empty, None).toCombined
 
-    service.asDomainLearningStep(newLs, lp1).get.seqNo should be(0)
-    service.asDomainLearningStep(newLs, lp2).get.seqNo should be(0)
-    service.asDomainLearningStep(newLs, lp3).get.seqNo should be(2)
+    service.asDomainLearningStep(newLs, lp1, owner).get.seqNo should be(0)
+    service.asDomainLearningStep(newLs, lp2, owner).get.seqNo should be(0)
+    service.asDomainLearningStep(newLs, lp3, owner).get.seqNo should be(2)
   }
 
   test("mergeLearningSteps correctly retains nullable fields") {

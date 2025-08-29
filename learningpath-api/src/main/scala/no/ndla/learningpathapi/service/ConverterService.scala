@@ -302,7 +302,11 @@ trait ConverterService {
       )
     }
 
-    def asDomainLearningStep(newLearningStep: NewLearningStepV2DTO, learningPath: LearningPath): Try[LearningStep] = {
+    def asDomainLearningStep(
+        newLearningStep: NewLearningStepV2DTO,
+        learningPath: LearningPath,
+        user: CombinedUserRequired
+    ): Try[LearningStep] = {
       val introduction = newLearningStep.introduction
         .filterNot(_.isEmpty)
         .map(Introduction(_, newLearningStep.language))
@@ -323,9 +327,12 @@ trait ConverterService {
         if (listOfLearningSteps.isEmpty) 0
         else listOfLearningSteps.map(_.seqNo).max + 1
 
+      val contributors =
+        user.myndlaUser.map(name => Seq(common.Author(ContributorType.Writer, name.displayName))).getOrElse(Seq.empty)
+
       val copyright = newLearningStep.copyright match {
         case Some(copyright) => Some(asCopyright(copyright))
-        case None            => newLearningStep.license.map(l => LearningpathCopyright(l, Seq.empty))
+        case None            => newLearningStep.license.map(l => LearningpathCopyright(l, contributors))
       }
 
       embedUrlT.map(embedUrl =>
