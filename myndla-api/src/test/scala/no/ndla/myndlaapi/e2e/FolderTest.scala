@@ -82,7 +82,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     Future { myndlaApi.run(Array.empty) }: Unit
-    Thread.sleep(4000)
+    blockUntilHealthy(s"$myndlaApiBaseUrl/health/readiness")
   }
 
   override def beforeEach(): Unit = {

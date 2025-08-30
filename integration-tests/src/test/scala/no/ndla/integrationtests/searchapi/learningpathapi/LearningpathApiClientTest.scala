@@ -27,7 +27,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
-import scala.util.{Success, Try}
+import scala.util.Success
 
 class LearningpathApiClientTest
     extends ElasticsearchIntegrationSuite
@@ -63,13 +63,7 @@ class LearningpathApiClientTest
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     learningpathApi = new learningpathapi.MainClass(learningpathApiProperties)
     Future { learningpathApi.run(Array.empty) }: Unit
-    blockUntil(() => {
-      import sttp.client3.quick.*
-      val req = quickRequest.get(uri"$learningpathApiBaseUrl/health/readiness")
-      val res = Try(simpleHttpClient.send(req))
-      println(res)
-      res.map(_.code.code) == Success(200)
-    })
+    blockUntilHealthy(s"$learningpathApiBaseUrl/health/readiness")
   }
 
   override def afterAll(): Unit = {

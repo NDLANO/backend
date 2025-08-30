@@ -26,7 +26,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
-import scala.util.{Success, Try}
+import scala.util.Success
 
 class DraftApiClientTest
     extends DatabaseIntegrationSuite
@@ -68,13 +68,7 @@ class DraftApiClientTest
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     draftApi = new draftapi.MainClass(draftApiProperties)
     Future { draftApi.run(Array.empty) }: Unit
-    blockUntil(() => {
-      import sttp.client3.quick.*
-      val req = quickRequest.get(uri"$draftApiBaseUrl/health/readiness")
-      val res = Try(simpleHttpClient.send(req))
-      println(res)
-      res.map(_.code.code) == Success(200)
-    })
+    blockUntilHealthy(s"$draftApiBaseUrl/health/readiness")
   }
 
   override def afterAll(): Unit = {

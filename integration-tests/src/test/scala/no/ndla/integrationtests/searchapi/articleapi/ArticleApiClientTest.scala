@@ -63,13 +63,7 @@ class ArticleApiClientTest
     articleApi = new articleapi.MainClass(articleApiProperties)
     Future { articleApi.run(Array.empty) }: Unit
 
-    blockUntil(() => {
-      import sttp.client3.quick.*
-      val req = quickRequest.get(uri"$articleApiBaseUrl/health/readiness")
-      val res = Try(simpleHttpClient.send(req))
-      println(res)
-      res.map(_.code.code) == Success(200)
-    })
+    blockUntilHealthy(s"$articleApiBaseUrl/health/readiness")
   }
 
   override def afterAll(): Unit = {

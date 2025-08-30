@@ -15,6 +15,8 @@ import org.scalatestplus.mockito.MockitoSugar
 
 import java.io.IOException
 import java.net.ServerSocket
+import scala.collection.mutable
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Success, Try}
 
 trait UnitTestSuiteBase
@@ -67,6 +69,39 @@ trait UnitTestSuiteBase
     }
 
     require(done, s"Failed waiting for predicate")
+  }
+
+  def blockUntilSuccess(predicate: () => Try[?], timeout: Duration = 30.seconds): Unit = {
+    val startTime                          = System.currentTimeMillis()
+    val resultStack: mutable.Stack[Try[?]] = mutable.Stack.empty
+    val maxWaitTime                        = 5000
+
+    while (
+      resultStack.isEmpty || (resultStack.top.isFailure && (System.currentTimeMillis() - startTime) < timeout.toMillis)
+    ) {
+      if (resultStack.nonEmpty) {
+        val waitTime = Math.min(200L * resultStack.length, maxWaitTime)
+        Thread.sleep(waitTime)
+      }
+      try {
+        val result = predicate()
+        resultStack.push(result)
+      } catch {
+        case e: Throwable => println(("problem while testing predicate", e))
+      }
+    }
+
+    Try(resultStack.top).flatten match {
+      case Success(_)  =>
+      case Failure(ex) =>
+        val header =
+          s"waited for ${System.currentTimeMillis() - startTime}ms, retries: ${resultStack.length}"
+        val failures = resultStack.zipWithIndex
+          .map { case (res, retryIdx) => s"  retry #$retryIdx: $res" }
+          .mkString("\n")
+
+        fail(s"Failed waiting for predicate to return Success:\n\n$header\n$failures", ex)
+    }
   }
 
   // Adds method to `Try`s in tests that will fail the test if a `Try` is `Failure`

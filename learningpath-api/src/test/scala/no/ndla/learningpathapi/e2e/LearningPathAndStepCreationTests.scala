@@ -82,7 +82,7 @@ class LearningPathAndStepCreationTests
     super.beforeAll()
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     Future { learningpathApi.run(Array.empty) }: Unit
-    Thread.sleep(5000)
+    blockUntilHealthy(s"$learningpathApiBaseUrl/health/readiness")
   }
 
   override def beforeEach(): Unit = {
