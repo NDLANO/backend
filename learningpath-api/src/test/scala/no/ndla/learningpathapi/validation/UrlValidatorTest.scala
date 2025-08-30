@@ -12,7 +12,7 @@ import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class UrlValidatorTest extends UnitSuite with TestEnvironment {
 
-  var validator: UrlValidator = _
+  var validator: UrlValidator = scala.compiletime.uninitialized
 
   override def beforeEach(): Unit = {
     validator = new UrlValidator

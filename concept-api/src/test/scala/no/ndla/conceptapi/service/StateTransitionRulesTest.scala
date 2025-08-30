@@ -20,6 +20,7 @@ import org.mockito.invocation.InvocationOnMock
 import scala.util.Success
 
 class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
+  override lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
   test("That publishing concept results in responsibleId being reset") {
     val beforeResponsible = Responsible("heisann", clock.now())
     val concept           = Concept(
@@ -51,13 +52,13 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       editorNotes = Seq.empty
     )
     val status            = Status(ConceptStatus.IN_PROGRESS, Set.empty)
-    val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.PUBLISHED)
+    val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.PUBLISHED)
     when(writeService.publishConcept(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Concept](0)))
     when(writeService.unpublishConcept(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Concept](0)))
     for (t <- transitionsToTest) {
       val fromDraft = concept.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
       val result    =
-        StateTransitionRules.doTransition(fromDraft, ConceptStatus.PUBLISHED, TestData.userWithWriteAndPublishAccess)
+        stateTransitionRules.doTransition(fromDraft, ConceptStatus.PUBLISHED, TestData.userWithWriteAndPublishAccess)
 
       if (result.get.responsible.isDefined) {
         fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
@@ -96,13 +97,16 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       editorNotes = Seq.empty
     )
     val status            = Status(ConceptStatus.IN_PROGRESS, Set.empty)
-    val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.ARCHIVED)
+    val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.ARCHIVED)
     when(writeService.publishConcept(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Concept](0)))
     when(writeService.unpublishConcept(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Concept](0)))
     for (t <- transitionsToTest) {
       val fromDraft = concept.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
-      val result    = StateTransitionRules
-        .doTransition(fromDraft, ConceptStatus.ARCHIVED, TestData.userWithWriteAndPublishAccess)
+      val result    = stateTransitionRules.doTransition(
+        fromDraft,
+        ConceptStatus.ARCHIVED,
+        TestData.userWithWriteAndPublishAccess
+      )
 
       if (result.get.responsible.isDefined) {
         fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
@@ -141,13 +145,16 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       editorNotes = Seq.empty
     )
     val status            = Status(ConceptStatus.IN_PROGRESS, Set.empty)
-    val transitionsToTest = StateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.UNPUBLISHED)
+    val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.UNPUBLISHED)
     when(writeService.publishConcept(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Concept](0)))
     when(writeService.unpublishConcept(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Concept](0)))
     for (t <- transitionsToTest) {
       val fromDraft = concept.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
-      val result    = StateTransitionRules
-        .doTransition(fromDraft, ConceptStatus.UNPUBLISHED, TestData.userWithWriteAndPublishAccess)
+      val result    = stateTransitionRules.doTransition(
+        fromDraft,
+        ConceptStatus.UNPUBLISHED,
+        TestData.userWithWriteAndPublishAccess
+      )
 
       if (result.get.responsible.isDefined) {
         fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
@@ -191,8 +198,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(writeService.unpublishConcept(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Concept](0)))
 
     val fromConcept = concept.copy(status = status.copy(current = transitionToTest.from))
-    val result      = StateTransitionRules
-      .doTransition(fromConcept, ConceptStatus.IN_PROGRESS, TestData.userWithWriteAndPublishAccess)
+    val result      =
+      stateTransitionRules.doTransition(fromConcept, ConceptStatus.IN_PROGRESS, TestData.userWithWriteAndPublishAccess)
 
     result.get.responsible.get.responsibleId should be(expected)
   }

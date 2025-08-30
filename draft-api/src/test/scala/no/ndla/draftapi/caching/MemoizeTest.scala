@@ -21,7 +21,7 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
 
   test("That an uncached value will do an actual call") {
     val targetMock     = mock[Target]
-    val memoizedTarget = new Memoize[String](Long.MaxValue, targetMock.targetMethod _, false, shouldCacheResult)
+    val memoizedTarget = new Memoize[String](Long.MaxValue, (() => targetMock.targetMethod()), false, shouldCacheResult)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
     memoizedTarget() should equal(Some("Hello from mock"))
@@ -30,7 +30,7 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
 
   test("That a cached value will not forward the call to the target") {
     val targetMock     = mock[Target]
-    val memoizedTarget = new Memoize[String](Long.MaxValue, targetMock.targetMethod _, false, shouldCacheResult)
+    val memoizedTarget = new Memoize[String](Long.MaxValue, (() => targetMock.targetMethod()), false, shouldCacheResult)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
     Seq(1 to 10).foreach(_ => {
@@ -42,7 +42,8 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
   test("That the cache is invalidated after cacheMaxAge") {
     val cacheMaxAgeInMs = 20L
     val targetMock      = mock[Target]
-    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, targetMock.targetMethod _, false, shouldCacheResult)
+    val memoizedTarget  =
+      new Memoize[String](cacheMaxAgeInMs, (() => targetMock.targetMethod()), false, shouldCacheResult)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
 
@@ -58,7 +59,8 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
   test("The cache should only be renewed if shouldCacheResult returns true") {
     val cacheMaxAgeInMs = 20L
     val targetMock      = mock[Target]
-    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, targetMock.targetMethod _, false, shouldNotCacheResult)
+    val memoizedTarget  =
+      new Memoize[String](cacheMaxAgeInMs, (() => targetMock.targetMethod()), false, shouldNotCacheResult)
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
 

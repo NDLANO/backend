@@ -10,20 +10,16 @@ package no.ndla.learningpathapi.controller
 
 import no.ndla.learningpathapi.Props
 import no.ndla.network.tapir.auth.Permission
-import no.ndla.network.tapir.{SwaggerControllerConfig, SwaggerInfo}
+import no.ndla.network.tapir.SwaggerInfo
 import sttp.tapir.*
 
-trait SwaggerDocControllerConfig {
-  this: Props & SwaggerControllerConfig =>
+object SwaggerDocControllerConfig {
+  private val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("learningpath"))
 
-  object SwaggerDocControllerConfig {
-    private val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("learningpath"))
-
-    val swaggerInfo: SwaggerInfo = SwaggerInfo(
-      mountPoint = "learningpath-api" / "api-docs",
-      description = "Services for accessing learningpaths",
-      authUrl = props.Auth0LoginEndpoint,
-      scopes = scopes
-    )
-  }
+  def swaggerInfo(using props: Props): SwaggerInfo = SwaggerInfo(
+    mountPoint = "learningpath-api" / "api-docs",
+    description = "Services for accessing learningpaths",
+    authUrl = props.Auth0LoginEndpoint,
+    scopes = scopes
+  )
 }

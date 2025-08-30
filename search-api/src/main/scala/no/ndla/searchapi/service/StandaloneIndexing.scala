@@ -17,6 +17,7 @@ import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.Content
 import no.ndla.search.model.domain.ReindexResult
 import no.ndla.searchapi.model.domain.IndexingBundle
+import no.ndla.searchapi.service.search.IndexService
 import no.ndla.searchapi.{ComponentRegistry, SearchApiProperties}
 import sttp.client3.quick.*
 
@@ -108,7 +109,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(SearchType.values.size))
 
         def reindexWithIndexService[C <: Content](
-            indexService: componentRegistry.IndexService[C],
+            indexService: IndexService[C],
             shouldUsePublishedTax: Boolean
         )(implicit d: Decoder[C]): Future[Try[ReindexResult]] = {
           val taxonomyBundle = if (shouldUsePublishedTax) taxonomyBundlePublished else taxonomyBundleDraft

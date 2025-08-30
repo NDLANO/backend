@@ -9,6 +9,8 @@
 package no.ndla.imageapi.service.search
 
 import no.ndla.common.model.domain as common
+import no.ndla.imageapi.service.ConverterService
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.imageapi.model.domain.Sort
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
@@ -18,18 +20,21 @@ import no.ndla.imageapi.model.domain.ImageMetaInformation
 
 class TagSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
 
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val e4sClient: NdlaE4sClient =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  val indexName                                        = "tags-testing"
-  override lazy val tagSearchService: TagSearchService = new TagSearchService {
-    override val searchIndex: String = indexName
-  }
-  override lazy val tagIndexService: TagIndexService = new TagIndexService {
+  val indexName = "tags-testing"
+
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  implicit lazy val searchLanguage: SearchLanguage                          = new SearchLanguage
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  override implicit lazy val tagIndexService: TagIndexService               = new TagIndexService {
     override val indexShards: Int    = 1
     override val searchIndex: String = indexName
   }
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
+  override implicit lazy val tagSearchService: TagSearchService = new TagSearchService {
+    override val searchIndex: String = indexName
+  }
 
   val image1: ImageMetaInformation = TestData.elg.copy(
     tags = Seq(

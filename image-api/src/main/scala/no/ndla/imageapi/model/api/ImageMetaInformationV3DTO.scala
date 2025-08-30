@@ -13,7 +13,6 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CopyrightDTO
 import sttp.tapir.Schema.annotations.description
-import sttp.tapir.Schema
 
 @description("Meta information for the image")
 case class ImageMetaInformationV3DTO(

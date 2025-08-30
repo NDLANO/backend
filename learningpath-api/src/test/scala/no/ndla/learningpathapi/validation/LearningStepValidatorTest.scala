@@ -29,7 +29,7 @@ import org.mockito.Mockito.when
 
 class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
-  var validator: LearningStepValidator = _
+  var validator: LearningStepValidator = scala.compiletime.uninitialized
 
   val license = PublicDomain.toString
 

@@ -17,7 +17,7 @@ import org.scalatest.TryValues.*
 import sttp.client3.{Response, SimpleHttpClient, SpecifyAuthScheme, UriContext}
 import sttp.model.{Method, RequestMetadata, StatusCode}
 
-class NdlaClientTest extends UnitSuite with NdlaClient {
+class NdlaClientTest extends UnitSuite {
 
   case class TestObject(id: String, verdi: String)
 
@@ -29,8 +29,8 @@ class NdlaClientTest extends UnitSuite with NdlaClient {
       |}
     """.stripMargin
 
-  val httpClientMock: SimpleHttpClient     = mock[SimpleHttpClient]
-  override lazy val ndlaClient: NdlaClient = new NdlaClient {
+  val httpClientMock: SimpleHttpClient = mock[SimpleHttpClient]
+  lazy val ndlaClient: NdlaClient      = new NdlaClient {
     override val client = httpClientMock
   }
 

@@ -42,7 +42,7 @@ class V58__MigrateSavedSearchUrls extends BaseJavaMigration {
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
-    .withinTx { session => migrateRows(session) }
+    .withinTx { session => migrateRows(using session) }
 
   private def migrateRows(implicit session: DBSession): Unit = {
     val count        = countAllRows.get

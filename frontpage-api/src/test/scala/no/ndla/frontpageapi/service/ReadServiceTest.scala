@@ -17,7 +17,8 @@ import org.mockito.Mockito.when
 import scala.util.Success
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val readService: ReadService = new ReadService
+  override implicit lazy val converterService: ConverterService = new ConverterService
+  override lazy val readService: ReadService                    = new ReadService
 
   test("That all subjectpages does not fail on 404 because of language") {
     val norwegianSubjectPage = TestData.domainSubjectPage.copy(

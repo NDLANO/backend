@@ -19,36 +19,39 @@ import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment}
 import no.ndla.searchapi.SearchTestUtility.*
+import no.ndla.searchapi.service.ConverterService
 
 import java.util.UUID
 import scala.util.{Success, Try}
 
 class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with TestEnvironment {
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-
-  override lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
+  override implicit lazy val e4sClient: NdlaE4sClient =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
+  override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  override implicit lazy val articleIndexService: ArticleIndexService       = new ArticleIndexService {
     override val indexShards = 1
   }
-  override lazy val draftIndexService: DraftIndexService = new DraftIndexService {
+  override implicit lazy val draftIndexService: DraftIndexService = new DraftIndexService {
     override val indexShards = 1
   }
-  override lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+  override implicit lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
     override val indexShards = 1
   }
-  override lazy val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
+  override implicit lazy val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards = 1
   }
-  override lazy val multiDraftSearchService: MultiDraftSearchService = new MultiDraftSearchService {
+  override implicit lazy val multiDraftSearchService: MultiDraftSearchService = new MultiDraftSearchService {
     override val enableExplanations = true
   }
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {

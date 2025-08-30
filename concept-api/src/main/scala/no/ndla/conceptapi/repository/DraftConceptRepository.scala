@@ -13,127 +13,125 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
-import no.ndla.conceptapi.model.api.{ConceptMissingIdException, ErrorHandling, NotFoundException}
+import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException, OptimisticLockException}
 import no.ndla.conceptapi.model.domain.DBConcept
-import no.ndla.database.DataSource
+import no.ndla.network.tapir.ErrorHelpers
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-trait DraftConceptRepository {
-  this: DataSource & Props & ErrorHandling =>
-  lazy val draftConceptRepository: DraftConceptRepository
+class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
+    extends StrictLogging
+    with Repository[Concept] {
+  def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    dataObject.setValue(CirceUtil.toJsonString(concept))
 
-  class DraftConceptRepository extends StrictLogging with Repository[Concept] {
-    def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(CirceUtil.toJsonString(concept))
+    val newRevision = 1
 
-      val newRevision = 1
-
-      val conceptId: Long =
-        sql"""
+    val conceptId: Long =
+      sql"""
         insert into ${DBConcept.table} (document, revision)
         values ($dataObject, $newRevision)
           """.updateAndReturnGeneratedKey()
 
-      logger.info(s"Inserted new concept: $conceptId")
-      concept.copy(id = Some(conceptId), revision = Some(newRevision))
-    }
+    logger.info(s"Inserted new concept: $conceptId")
+    concept.copy(id = Some(conceptId), revision = Some(newRevision))
+  }
 
-    def insertwithListingId(concept: Concept, listingId: Long)(implicit session: DBSession = AutoSession): Concept = {
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(CirceUtil.toJsonString(concept))
+  def insertwithListingId(concept: Concept, listingId: Long)(implicit session: DBSession = AutoSession): Concept = {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    dataObject.setValue(CirceUtil.toJsonString(concept))
 
-      val newRevision = 1
+    val newRevision = 1
 
-      val conceptId: Long =
-        sql"""
+    val conceptId: Long =
+      sql"""
         insert into ${DBConcept.table} (listing_id, document, revision)
         values ($listingId, $dataObject, $newRevision)
           """.updateAndReturnGeneratedKey()
 
-      logger.info(s"Inserted new concept: '$conceptId', with listing id '$listingId'")
-      concept.copy(id = Some(conceptId))
-    }
+    logger.info(s"Inserted new concept: '$conceptId', with listing id '$listingId'")
+    concept.copy(id = Some(conceptId))
+  }
 
-    def updateWithListingId(concept: Concept, listingId: Long)(implicit
-        session: DBSession = AutoSession
-    ): Try[Concept] = {
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(CirceUtil.toJsonString(concept))
+  def updateWithListingId(concept: Concept, listingId: Long)(implicit
+      session: DBSession = AutoSession
+  ): Try[Concept] = {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    dataObject.setValue(CirceUtil.toJsonString(concept))
 
-      Try(
-        sql"""
+    Try(
+      sql"""
            update ${DBConcept.table}
            set document=$dataObject
            where listing_id=$listingId
          """.updateAndReturnGeneratedKey()
-      ) match {
-        case Success(id) => Success(concept.copy(id = Some(id)))
-        case Failure(ex) =>
-          logger.warn(s"Failed to update concept with id ${concept.id} and listing id: $listingId: ${ex.getMessage}")
-          Failure(ex)
-      }
+    ) match {
+      case Success(id) => Success(concept.copy(id = Some(id)))
+      case Failure(ex) =>
+        logger.warn(s"Failed to update concept with id ${concept.id} and listing id: $listingId: ${ex.getMessage}")
+        Failure(ex)
     }
+  }
 
-    def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {
-      sql"""
+  def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {
+    sql"""
            select distinct id, document#>'{tags}' as tags
            from ${DBConcept.table}
            where jsonb_array_length(document#>'{tags}') > 0
            order by id
          """
-        .map(rs => {
-          val jsonStr = rs.string("tags")
-          CirceUtil.unsafeParseAs[List[Tag]](jsonStr)
-        })
-        .list()
-    }
+      .map(rs => {
+        val jsonStr = rs.string("tags")
+        CirceUtil.unsafeParseAs[List[Tag]](jsonStr)
+      })
+      .list()
+  }
 
-    def withListingId(listingId: Long): Option[Concept] =
-      conceptWhere(sqls"co.listing_id=$listingId")
+  def withListingId(listingId: Long): Option[Concept] =
+    conceptWhere(sqls"co.listing_id=$listingId")
 
-    def insertWithId(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
-      concept.id match {
-        case Some(id) =>
-          val dataObject = new PGobject()
-          dataObject.setType("jsonb")
-          dataObject.setValue(CirceUtil.toJsonString(concept))
+  def insertWithId(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
+    concept.id match {
+      case Some(id) =>
+        val dataObject = new PGobject()
+        dataObject.setType("jsonb")
+        dataObject.setValue(CirceUtil.toJsonString(concept))
 
-          val newRevision = 1
+        val newRevision = 1
 
-          Try(
-            sql"""
+        Try(
+          sql"""
                   insert into ${DBConcept.table} (id, document, revision)
                   values ($id, $dataObject, $newRevision)
                """.update()
-          ).map(_ => {
-            logger.info(s"Inserted new concept: $id")
-            concept
-          })
-        case None =>
-          Failure(ConceptMissingIdException("Attempted to insert concept without an id."))
-      }
+        ).map(_ => {
+          logger.info(s"Inserted new concept: $id")
+          concept
+        })
+      case None =>
+        Failure(ConceptMissingIdException("Attempted to insert concept without an id."))
     }
+  }
 
-    def update(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(CirceUtil.toJsonString(concept))
+  def update(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    dataObject.setValue(CirceUtil.toJsonString(concept))
 
-      concept.id match {
-        case None            => Failure(NotFoundException("Can not update "))
-        case Some(conceptId) =>
-          val newRevision = concept.revision.getOrElse(0) + 1
-          val oldRevision = concept.revision
+    concept.id match {
+      case None            => Failure(NotFoundException("Can not update "))
+      case Some(conceptId) =>
+        val newRevision = concept.revision.getOrElse(0) + 1
+        val oldRevision = concept.revision
 
-          Try(
-            sql"""
+        Try(
+          sql"""
               update ${DBConcept.table}
               set
                 document=$dataObject,
@@ -142,104 +140,104 @@ trait DraftConceptRepository {
               and revision=$oldRevision
               and revision=(select max(revision) from ${DBConcept.table} where id=$conceptId)
             """.update()
-          ) match {
-            case Success(updatedRows) => failIfRevisionMismatch(updatedRows, concept, newRevision)
-            case Failure(ex)          =>
-              logger.warn(s"Failed to update concept with id ${concept.id}: ${ex.getMessage}")
-              Failure(ex)
-          }
-      }
+        ) match {
+          case Success(updatedRows) => failIfRevisionMismatch(updatedRows, concept, newRevision)
+          case Failure(ex)          =>
+            logger.warn(s"Failed to update concept with id ${concept.id}: ${ex.getMessage}")
+            Failure(ex)
+        }
+    }
+  }
+
+  private def failIfRevisionMismatch(count: Int, concept: Concept, newRevision: Int): Try[Concept] =
+    if (count != 1) {
+      val message = s"Found revision mismatch when attempting to update concept ${concept.id}"
+      logger.info(message)
+      Failure(OptimisticLockException.default)
+    } else {
+      logger.info(s"Updated concept ${concept.id}")
+      val updatedConcept = concept.copy(revision = Some(newRevision))
+      Success(updatedConcept)
     }
 
-    private def failIfRevisionMismatch(count: Int, concept: Concept, newRevision: Int): Try[Concept] =
-      if (count != 1) {
-        val message = s"Found revision mismatch when attempting to update concept ${concept.id}"
-        logger.info(message)
-        Failure(new OptimisticLockException)
-      } else {
-        logger.info(s"Updated concept ${concept.id}")
-        val updatedConcept = concept.copy(revision = Some(newRevision))
-        Success(updatedConcept)
-      }
+  def withId(id: Long): Option[Concept] =
+    conceptWhere(sqls"co.id=${id.toInt} ORDER BY revision DESC LIMIT 1")
 
-    def withId(id: Long): Option[Concept] =
-      conceptWhere(sqls"co.id=${id.toInt} ORDER BY revision DESC LIMIT 1")
+  def exists(id: Long)(implicit session: DBSession = AutoSession): Boolean = {
+    sql"select id from ${DBConcept.table} where id=$id"
+      .map(rs => rs.long("id"))
+      .single()
+      .isDefined
+  }
 
-    def exists(id: Long)(implicit session: DBSession = AutoSession): Boolean = {
-      sql"select id from ${DBConcept.table} where id=$id"
-        .map(rs => rs.long("id"))
-        .single()
-        .isDefined
+  def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
+    sql"select id from ${DBConcept.table} where $externalId = any(external_id)"
+      .map(rs => rs.long("id"))
+      .single()
+  }
+
+  override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
+    sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${DBConcept.table}"
+      .map(rs => {
+        (rs.long("mi"), rs.long("ma"))
+      })
+      .single() match {
+      case Some(minmax) => minmax
+      case None         => (0L, 0L)
     }
+  }
 
-    def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
-      sql"select id from ${DBConcept.table} where $externalId = any(external_id)"
-        .map(rs => rs.long("id"))
-        .single()
-    }
+  override def documentsWithIdBetween(min: Long, max: Long): List[Concept] =
+    conceptsWhere(sqls"co.id between $min and $max")
 
-    override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
-      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${DBConcept.table}"
-        .map(rs => {
-          (rs.long("mi"), rs.long("ma"))
-        })
-        .single() match {
-        case Some(minmax) => minmax
-        case None         => (0L, 0L)
-      }
-    }
+  private def conceptWhere(
+      whereClause: SQLSyntax
+  )(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
+    val co = DBConcept.syntax("co")
+    sql"select ${co.result.*} from ${DBConcept.as(co)} where co.document is not NULL and $whereClause"
+      .map(DBConcept.fromResultSet(co))
+      .single()
+  }
 
-    override def documentsWithIdBetween(min: Long, max: Long): List[Concept] =
-      conceptsWhere(sqls"co.id between $min and $max")
+  private def conceptsWhere(
+      whereClause: SQLSyntax
+  )(implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
+    val co = DBConcept.syntax("co")
+    sql"select ${co.result.*} from ${DBConcept.as(co)} where co.document is not NULL and $whereClause"
+      .map(DBConcept.fromResultSet(co))
+      .list()
+  }
 
-    private def conceptWhere(
-        whereClause: SQLSyntax
-    )(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
-      val co = DBConcept.syntax("co")
-      sql"select ${co.result.*} from ${DBConcept.as(co)} where co.document is not NULL and $whereClause"
-        .map(DBConcept.fromResultSet(co))
-        .single()
-    }
+  def conceptCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
+    sql"select count(*) from ${DBConcept.table}"
+      .map(rs => rs.long("count"))
+      .single()
+      .getOrElse(0)
 
-    private def conceptsWhere(
-        whereClause: SQLSyntax
-    )(implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
-      val co = DBConcept.syntax("co")
-      sql"select ${co.result.*} from ${DBConcept.as(co)} where co.document is not NULL and $whereClause"
-        .map(DBConcept.fromResultSet(co))
-        .list()
-    }
+  private def getHighestId(implicit session: DBSession = ReadOnlyAutoSession): Long = {
+    sql"select id from ${DBConcept.table} order by id desc limit 1"
+      .map(rs => rs.long("id"))
+      .single()
+      .getOrElse(0)
+  }
 
-    def conceptCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
-      sql"select count(*) from ${DBConcept.table}"
-        .map(rs => rs.long("count"))
-        .single()
-        .getOrElse(0)
+  def updateIdCounterToHighestId()(implicit session: DBSession = AutoSession): Unit = {
+    val idToStartAt  = SQLSyntax.createUnsafely((getHighestId() + 1).toString)
+    val sequenceName = SQLSyntax.createUnsafely(
+      s"${DBConcept.schemaName.getOrElse(props.MetaSchema)}.${DBConcept.tableName}_id_seq"
+    )
 
-    private def getHighestId(implicit session: DBSession = ReadOnlyAutoSession): Long = {
-      sql"select id from ${DBConcept.table} order by id desc limit 1"
-        .map(rs => rs.long("id"))
-        .single()
-        .getOrElse(0)
-    }
+    val _ = sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate()
+  }
 
-    def updateIdCounterToHighestId()(implicit session: DBSession = AutoSession): Unit = {
-      val idToStartAt  = SQLSyntax.createUnsafely((getHighestId() + 1).toString)
-      val sequenceName = SQLSyntax.createUnsafely(
-        s"${DBConcept.schemaName.getOrElse(props.MetaSchema)}.${DBConcept.tableName}_id_seq"
-      )
+  def getTags(input: String, pageSize: Int, offset: Int, language: String)(implicit
+      session: DBSession = AutoSession
+  ): (Seq[String], Int) = {
+    val sanitizedInput    = input.replaceAll("%", "")
+    val sanitizedLanguage = language.replaceAll("%", "")
+    val langOrAll         = if (sanitizedLanguage == "*" || sanitizedLanguage == "") "%" else sanitizedLanguage
 
-      val _ = sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate()
-    }
-
-    def getTags(input: String, pageSize: Int, offset: Int, language: String)(implicit
-        session: DBSession = AutoSession
-    ): (Seq[String], Int) = {
-      val sanitizedInput    = input.replaceAll("%", "")
-      val sanitizedLanguage = language.replaceAll("%", "")
-      val langOrAll         = if (sanitizedLanguage == "*" || sanitizedLanguage == "") "%" else sanitizedLanguage
-
-      val tags = sql"""select tags from
+    val tags = sql"""select tags from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
               (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${DBConcept.table}) _
               where tagObj->>'language' like $langOrAll
@@ -248,28 +246,28 @@ trait DraftConceptRepository {
               offset $offset
               limit $pageSize
                       """
-        .map(rs => rs.string("tags"))
-        .list()
+      .map(rs => rs.string("tags"))
+      .list()
 
-      val tagsCount =
-        sql"""
+    val tagsCount =
+      sql"""
               select count(*) from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
               (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${DBConcept.table}) _
               where tagObj->>'language' like  $langOrAll) all_tags
               where all_tags.tags ilike ${sanitizedInput + '%'};
            """
-          .map(rs => rs.int("count"))
-          .single()
-          .getOrElse(0)
+        .map(rs => rs.int("count"))
+        .single()
+        .getOrElse(0)
 
-      (tags, tagsCount)
+    (tags, tagsCount)
 
-    }
+  }
 
-    def getByPage(pageSize: Int, offset: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Concept] = {
-      val co = DBConcept.syntax("co")
-      sql"""
+  def getByPage(pageSize: Int, offset: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Concept] = {
+    val co = DBConcept.syntax("co")
+    sql"""
            select ${co.result.*}, ${co.revision} as revision
            from ${DBConcept.as(co)}
            where document is not null
@@ -277,8 +275,7 @@ trait DraftConceptRepository {
            offset $offset
            limit $pageSize
       """
-        .map(DBConcept.fromResultSet(co))
-        .list()
-    }
+      .map(DBConcept.fromResultSet(co))
+      .list()
   }
 }

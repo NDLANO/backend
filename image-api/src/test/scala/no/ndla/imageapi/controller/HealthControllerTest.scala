@@ -8,7 +8,9 @@
 
 package no.ndla.imageapi.controller
 
+import no.ndla.common.Clock
 import no.ndla.common.model.NDLADate
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.common.model.domain.{Author, ContributorType}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.imageapi.model.domain.{
@@ -27,8 +29,13 @@ import org.mockito.Mockito.when
 import sttp.client3.quick.*
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  var healthControllerResponse: Int = 200
-  val controller: HealthController  = new HealthController
+  override implicit lazy val clock: Clock                    = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
+  var healthControllerResponse: Int                          = 200
+  val controller: HealthController                           = new HealthController
+  override implicit lazy val services: List[TapirController] = List(controller)
+  override implicit lazy val routes: Routes                  = new Routes
   controller.setWarmedUp()
 
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
