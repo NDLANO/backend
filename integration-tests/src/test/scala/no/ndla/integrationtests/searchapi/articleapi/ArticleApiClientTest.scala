@@ -51,6 +51,7 @@ class ArticleApiClientTest
     override val BrightcoveAccountId: Prop[String] = propFromTestValue("BRIGHTCOVE_ACCOUNT_ID", "123")
     override val BrightcovePlayerId: Prop[String]  = propFromTestValue("BRIGHTCOVE_PLAYER_ID", "123")
     override def SearchServer: String              = esHost
+    override def ArticleSearchIndex: String        = "test-article"
   }
 
   var articleApi: articleapi.MainClass = null
