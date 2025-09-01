@@ -36,7 +36,7 @@ import no.ndla.common.model.api.search.{
 import no.ndla.common.model.api.{AuthorDTO, CommentDTO, LicenseDTO, ResponsibleDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
-import no.ndla.common.model.domain.draft.{Draft}
+import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.frontpage.{AboutSubject, SubjectPage}
 import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep}
 import no.ndla.common.model.domain.{
@@ -47,16 +47,21 @@ import no.ndla.common.model.domain.{
   VisualElement,
   ResourceType as MyNDLAResourceType
 }
-import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
+import no.ndla.language.Language.{
+  UnknownLanguage,
+  findByLanguageOrBestEffort,
+  getDefault,
+  getSupportedLanguages,
+  sortLanguagesByPriority
+}
 import no.ndla.language.model.{Iso639, LanguageField}
-import no.ndla.mapping.ISO639
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.search.{SearchLanguage, model}
+import no.ndla.search.model
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.*
@@ -77,8 +82,7 @@ import no.ndla.common.model.domain.getNextRevision
 class SearchConverterService(using
     taxonomyApiClient: TaxonomyApiClient,
     props: Props,
-    myndlaApiClient: MyNDLAApiClient,
-    searchLanguage: SearchLanguage
+    myndlaApiClient: MyNDLAApiClient
 ) extends StrictLogging {
 
   private def parseHtml(html: String): Element = {
@@ -277,11 +281,7 @@ class SearchConverterService(using
     val embedAttributes      = getAttributesToIndex(ai.content, ai.visualElement)
     val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(ai.content, ai.visualElement, ai.metaImage)
 
-    val defaultTitle = ai.title
-      .sortBy(title => {
-        ISO639.languagePriority.reverse.indexOf(title.language)
-      })
-      .lastOption
+    val defaultTitle       = getDefault(ai.title)
     val supportedLanguages = getSupportedLanguages(
       ai.title,
       ai.visualElement,
@@ -392,8 +392,8 @@ class SearchConverterService(using
         getFavoritedCountFor(indexingBundle, lp.id.get.toString, List(MyNDLAResourceType.Learningpath)).?
 
       val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
-      val defaultTitle = lp.title.sortBy(title => ISO639.languagePriority.reverse.indexOf(title.language)).lastOption
-      val license      = api.learningpath.CopyrightDTO(
+      val defaultTitle       = getDefault(lp.title)
+      val license            = api.learningpath.CopyrightDTO(
         asLearningPathApiLicense(lp.copyright.license),
         lp.copyright.contributors.map(c => AuthorDTO(c.`type`, c.name))
       )
@@ -517,11 +517,7 @@ class SearchConverterService(using
     val embedAttributes      = getAttributesToIndex(draft.content, draft.visualElement)
     val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(draft.content, draft.visualElement, draft.metaImage)
 
-    val defaultTitle = draft.title
-      .sortBy(title => {
-        ISO639.languagePriority.reverse.indexOf(title.language)
-      })
-      .lastOption
+    val defaultTitle = getDefault(draft.title)
 
     val supportedLanguages = getSupportedLanguages(
       draft.title,
@@ -690,11 +686,7 @@ class SearchConverterService(using
       val keySplits       = keys.toList.flatMap(key => key.split('.'))
       val languagesInKeys = keySplits.filter(split => Iso639.get(split).isSuccess)
 
-      languagesInKeys
-        .sortBy(lang => {
-          searchLanguage.languageAnalyzers.map(la => la.languageTag.toString).reverse.indexOf(lang)
-        })
-        .lastOption
+      sortLanguagesByPriority(languagesInKeys).headOption
     }
 
     val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)

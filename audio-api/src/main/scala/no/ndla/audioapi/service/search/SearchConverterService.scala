@@ -18,16 +18,19 @@ import no.ndla.audioapi.model.search.*
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.service.ConverterService
 import no.ndla.common.model.domain as common
-import no.ndla.language.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
-import no.ndla.search.SearchLanguage
+import no.ndla.language.Language.{
+  findByLanguageOrBestEffort,
+  getDefault,
+  getSupportedLanguages,
+  sortLanguagesByPriority
+}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 import scala.util.Try
 
 class SearchConverterService(using
     converterService: ConverterService,
-    props: Props,
-    searchLanguage: SearchLanguage
+    props: Props
 ) extends StrictLogging {
 
   def asSearchableSeries(s: domain.Series): Try[SearchableSeries] = {
@@ -121,12 +124,7 @@ class SearchConverterService(using
   }
 
   def asSearchableAudioInformation(ai: AudioMetaInformation): Try[SearchableAudioInformation] = {
-    val defaultTitle = ai.titles
-      .sortBy(title => {
-        val languagePriority = searchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
-        languagePriority.indexOf(title.language)
-      })(using Ordering.Int)
-      .lastOption
+    val defaultTitle = getDefault(ai.titles)
 
     val authors =
       ai.copyright.creators.map(_.name) ++
@@ -172,11 +170,7 @@ class SearchConverterService(using
         }
       )
 
-      keyLanguages
-        .sortBy(lang => {
-          searchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse.indexOf(lang)
-        })(using Ordering.Int)
-        .lastOption
+      sortLanguagesByPriority(keyLanguages).headOption
     }
 
     val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)

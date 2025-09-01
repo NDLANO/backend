@@ -39,8 +39,13 @@ import no.ndla.common.model.domain.article.{
   Copyright,
   PartialPublishArticleDTO
 }
-import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
-import no.ndla.mapping.ISO639
+import no.ndla.language.Language.{
+  AllLanguages,
+  UnknownLanguage,
+  findByLanguageOrBestEffort,
+  getSupportedLanguages,
+  sortLanguagesByPriority
+}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
 import org.jsoup.Jsoup
@@ -64,11 +69,7 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
         }
       )
 
-      keyLanguages
-        .sortBy(lang => {
-          ISO639.languagePriority.reverse.indexOf(lang)
-        })
-        .lastOption
+      sortLanguagesByPriority(keyLanguages).headOption
     }
 
     val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)

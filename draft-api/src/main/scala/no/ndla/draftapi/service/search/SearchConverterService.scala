@@ -18,25 +18,20 @@ import no.ndla.draftapi.model.api.ArticleSearchResultDTO
 import no.ndla.draftapi.model.domain.SearchResult
 import no.ndla.draftapi.model.search.*
 import no.ndla.draftapi.service.ConverterService
-import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
-import no.ndla.mapping.ISO639
+import no.ndla.language.Language.{
+  UnknownLanguage,
+  findByLanguageOrBestEffort,
+  getDefault,
+  getSupportedLanguages,
+  sortLanguagesByPriority
+}
 import no.ndla.network.ApplicationUrl
-import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import org.jsoup.Jsoup
 
-class SearchConverterService(using
-    converterService: ConverterService,
-    searchLanguage: SearchLanguage
-) extends StrictLogging {
+class SearchConverterService(using converterService: ConverterService) extends StrictLogging {
   def asSearchableArticle(ai: Draft): SearchableArticle = {
-
-    val defaultTitle = ai.title
-      .sortBy(title => {
-        val languagePriority = searchLanguage.languageAnalyzers.map(la => la.languageTag.toString).reverse
-        languagePriority.indexOf(title.language)
-      })
-      .lastOption
+    val defaultTitle = getDefault(ai.title)
 
     SearchableArticle(
       id = ai.id.get,
@@ -124,11 +119,7 @@ class SearchConverterService(using
         }
       )
 
-      keyLanguages
-        .sortBy(lang => {
-          ISO639.languagePriority.reverse.indexOf(lang)
-        })
-        .lastOption
+      sortLanguagesByPriority(keyLanguages).headOption
     }
 
     val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)

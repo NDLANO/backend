@@ -16,13 +16,17 @@ import no.ndla.common.model.domain.{Tag, Title, concept}
 import no.ndla.common.model.api as commonApi
 import no.ndla.common.model.api.ResponsibleDTO
 import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptType, VisualElement}
-import no.ndla.conceptapi.model.api.{ConceptSearchResultDTO}
+import no.ndla.conceptapi.model.api.ConceptSearchResultDTO
 import no.ndla.conceptapi.model.domain.SearchResult
 import no.ndla.conceptapi.model.search.*
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.service.ConverterService
-import no.ndla.language.Language.{UnknownLanguage, findByLanguageOrBestEffort, getSupportedLanguages}
-import no.ndla.mapping.ISO639
+import no.ndla.language.Language.{
+  UnknownLanguage,
+  findByLanguageOrBestEffort,
+  getSupportedLanguages,
+  sortLanguagesByPriority
+}
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
 import no.ndla.search.model.domain.EmbedValues
@@ -179,11 +183,7 @@ class SearchConverterService(using
         }
       )
 
-      keyLanguages
-        .sortBy(lang => {
-          ISO639.languagePriority.reverse.indexOf(lang)
-        })
-        .lastOption
+      sortLanguagesByPriority(keyLanguages).headOption
     }
 
     val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)

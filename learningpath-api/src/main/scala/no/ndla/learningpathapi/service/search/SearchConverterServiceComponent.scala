@@ -10,23 +10,22 @@ package no.ndla.learningpathapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep, StepType}
-import no.ndla.language.Language.{findByLanguageOrBestEffort, getSupportedLanguages}
+import no.ndla.language.Language.{
+  findByLanguageOrBestEffort,
+  getDefault,
+  getSupportedLanguages,
+  sortLanguagesByPriority
+}
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.*
 import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2DTO, SearchResultV2DTO}
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.search.*
 import no.ndla.learningpathapi.service.ConverterService
-import no.ndla.mapping.ISO639
 import no.ndla.network.ApplicationUrl
-import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
-class SearchConverterServiceComponent(using
-    converterService: ConverterService,
-    props: Props,
-    searchLanguage: SearchLanguage
-) {
+class SearchConverterServiceComponent(using converterService: ConverterService, props: Props) {
   def asApiLearningPathSummaryV2(
       searchableLearningPath: SearchableLearningPath,
       language: String
@@ -71,13 +70,7 @@ class SearchConverterServiceComponent(using
   }
 
   def asSearchableLearningpath(learningPath: LearningPath): SearchableLearningPath = {
-    val defaultTitle = learningPath.title
-      .sortBy(title => {
-        val languagePriority =
-          searchLanguage.languageAnalyzers.map(la => la.languageTag.toString).reverse
-        languagePriority.indexOf(title.language)
-      })
-      .lastOption
+    val defaultTitle = getDefault(learningPath.title)
 
     SearchableLearningPath(
       id = learningPath.id.get,
@@ -127,11 +120,7 @@ class SearchConverterServiceComponent(using
         }
       )
 
-      keyLanguages
-        .sortBy(lang => {
-          ISO639.languagePriority.reverse.indexOf(lang)
-        })
-        .lastOption
+      sortLanguagesByPriority(keyLanguages).headOption
     }
 
     val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)

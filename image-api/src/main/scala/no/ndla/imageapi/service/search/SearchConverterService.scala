@@ -18,10 +18,8 @@ import no.ndla.imageapi.model.{ImageConversionException, api, domain}
 import no.ndla.imageapi.model.search.{SearchableImage, SearchableImageFile, SearchableTag}
 import no.ndla.imageapi.service.ConverterService
 import no.ndla.language.Language
-import no.ndla.language.Language.findByLanguageOrBestEffort
-import no.ndla.mapping.ISO639
+import no.ndla.language.Language.{findByLanguageOrBestEffort, getDefault, sortLanguagesByPriority}
 import no.ndla.network.ApplicationUrl
-import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import cats.implicits.*
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
@@ -29,11 +27,7 @@ import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
 
-class SearchConverterService(using
-    converterService: ConverterService,
-    props: Props,
-    searchLanguage: SearchLanguage
-) extends StrictLogging {
+class SearchConverterService(using converterService: ConverterService, props: Props) extends StrictLogging {
 
   def asSearchableTags(domainModel: ImageMetaInformation): Seq[SearchableTag] =
     domainModel.tags.flatMap(tags =>
@@ -59,13 +53,7 @@ class SearchConverterService(using
   }
 
   def asSearchableImage(image: ImageMetaInformation): SearchableImage = {
-    val defaultTitle = image.titles
-      .sortBy(title => {
-        val languagePriority = searchLanguage.languageAnalyzers.map(la => la.languageTag.toString()).reverse
-        languagePriority.indexOf(title.language)
-      })
-      .lastOption
-
+    val defaultTitle = getDefault(image.titles)
     val contributors =
       image.copyright.creators.map(c => c.name) ++
         image.copyright.processors.map(p => p.name) ++
@@ -173,11 +161,7 @@ class SearchConverterService(using
         }
       )
 
-      keyLanguages
-        .sortBy(lang => {
-          ISO639.languagePriority.reverse.indexOf(lang)
-        })
-        .lastOption
+      sortLanguagesByPriority(keyLanguages).headOption
     }
 
     val highlightKeys: Option[Map[String, ?]] = Option(result.highlight)
