@@ -8,6 +8,7 @@ target/
 .vscode/
 out/
 metals.sbt
+*.semanticdb
 
 /typescript/**/node_modules
 /typescript/**/build

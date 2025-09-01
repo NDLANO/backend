@@ -110,7 +110,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   val apiTags: List[api.LearningPathTagsDTO] = List(api.LearningPathTagsDTO(Seq("tag"), props.DefaultLanguage))
 
   val randomDate: NDLADate      = NDLADate.now()
-  var service: ConverterService = _
+  var service: ConverterService = scala.compiletime.uninitialized
 
   val revisionMeta = RevisionMeta.default
 
@@ -178,7 +178,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        revisionMeta.map(CommonConverter.revisionMetaDomainToApi),
+        revisionMeta.map(commonConverter.revisionMetaDomainToApi),
         api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage)
       )
     )
@@ -236,7 +236,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        revisionMeta.map(CommonConverter.revisionMetaDomainToApi),
+        revisionMeta.map(commonConverter.revisionMetaDomainToApi),
         api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage)
       )
     )

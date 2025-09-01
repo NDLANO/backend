@@ -38,7 +38,7 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
   )
 
   test("That updating config returns failure for non-admin users") {
-    when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
+    when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession]))
       .thenReturn(Success(testConfigMeta))
     val Failure(ex) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
@@ -49,7 +49,7 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That updating config returns success if all is good") {
-    when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
+    when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession]))
       .thenReturn(Success(testConfigMeta))
     val Success(_) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
@@ -59,7 +59,7 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That validation fails if IsWriteRestricted is not a boolean") {
-    when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
+    when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession]))
       .thenReturn(Success(testConfigMeta))
     val Failure(ex) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
@@ -71,7 +71,7 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That validation succeeds if IsWriteRestricted is a boolean") {
-    when(configRepository.updateConfigParam(any[ConfigMeta])(any[DBSession]))
+    when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession]))
       .thenReturn(Success(testConfigMeta))
     val res = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,

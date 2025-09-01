@@ -9,11 +9,11 @@
 package no.ndla.articleapi.repository
 
 import cats.implicits.*
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.articleapi.*
-import no.ndla.articleapi.model.domain.ArticleIds
+import no.ndla.articleapi.model.domain.{ArticleIds, DBArticle}
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.article.Article
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.AutoSession
 import org.scalatest.EitherValues.convertEitherToValuable
@@ -22,9 +22,10 @@ import java.net.Socket
 import scala.util.{Success, Try}
 
 class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override lazy val dataSource: HikariDataSource = testDataSource.get
-  override lazy val migrator                     = new DBMigrator
-  var repository: ArticleRepository              = _
+  override implicit lazy val dbArticle: DBArticle   = new DBArticle
+  override implicit lazy val dataSource: DataSource = testDataSource.get
+  override implicit lazy val migrator: DBMigrator   = new DBMigrator
+  var repository: ArticleRepository                 = scala.compiletime.uninitialized
 
   lazy val sampleArticle: Article = TestData.sampleArticleWithByNcSa
 
@@ -39,7 +40,7 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
+    dataSource.connectToDatabase()
     if (serverIsListening) {
       migrator.migrate()
     }

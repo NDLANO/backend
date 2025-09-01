@@ -50,9 +50,7 @@ trait BaseProps extends StrictLogging {
     val prop = Prop.successful[T](key, value)
     loadedProps.get(key) match {
       case Some(existing: Prop[T] @unchecked) => existing.setValue(value)
-      case Some(_)                            =>
-        throw new RuntimeException("Prop with key " + key + " exists with a different type, this is a super weird bug.")
-      case None => loadedProps.put(key, prop): Unit
+      case None                               => loadedProps.put(key, prop): Unit
     }
     prop
   }

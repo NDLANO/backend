@@ -8,10 +8,11 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.domain
 import no.ndla.draftapi.model.api.UploadedFileDTO
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
@@ -20,7 +21,12 @@ import sttp.client3.quick.*
 import scala.util.Success
 
 class FileControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: FileController = new FileController
+  override val controller: FileController                    = new FileController
+  override implicit lazy val clock: Clock                    = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
+  override implicit lazy val services: List[TapirController] = List(controller)
+  override implicit lazy val routes: Routes                  = new Routes
 
   override def beforeEach(): Unit = {
     reset(clock)

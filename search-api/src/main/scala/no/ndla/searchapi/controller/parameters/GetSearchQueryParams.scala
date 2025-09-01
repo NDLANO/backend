@@ -19,8 +19,7 @@ import sttp.tapir.Schema.annotations.{default, description}
 import sttp.tapir.ValidationResult.{Invalid, Valid}
 import no.ndla.common.DeriveHelpers
 
-trait GetSearchQueryParams {
-  this: Props =>
+class GetSearchQueryParams(using props: Props) {
 
   case class PaginationParams(
       @query("page")
@@ -35,10 +34,10 @@ trait GetSearchQueryParams {
 
   case class GetParamsWrapper(
       pagination: PaginationParams,
-      searchParams: GetSearchQueryParams
+      searchParams: SearchQueryParams
   )
 
-  case class GetSearchQueryParams(
+  case class SearchQueryParams(
       @query("article-types")
       @description("A comma separated list of article-types the search should be filtered by.")
       articleTypes: CommaSeparatedList[String],
@@ -116,11 +115,11 @@ trait GetSearchQueryParams {
       nodeTypeFilter: CommaSeparatedList[String]
   )
 
-  object GetSearchQueryParams {
-    implicit val schema: Schema[GetSearchQueryParams]            = DeriveHelpers.getSchema[GetSearchQueryParams]
-    implicit val schemaOpt: Schema[Option[GetSearchQueryParams]] = schema.asOption
+  object SearchQueryParams {
+    implicit val schema: Schema[SearchQueryParams]            = DeriveHelpers.getSchema[SearchQueryParams]
+    implicit val schemaOpt: Schema[Option[SearchQueryParams]] = schema.asOption
 
-    def input2 = EndpointInput.derived[GetSearchQueryParams]
+    def input2 = EndpointInput.derived[SearchQueryParams]
     def input1 = EndpointInput
       .derived[PaginationParams]
       .validate {

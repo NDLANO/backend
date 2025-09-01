@@ -12,7 +12,7 @@ import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class LanguageValidatorTest extends UnitSuite with TestEnvironment {
 
-  var validator: LanguageValidator = _
+  var validator: LanguageValidator = scala.compiletime.uninitialized
 
   override def beforeEach(): Unit = {
     validator = new LanguageValidator

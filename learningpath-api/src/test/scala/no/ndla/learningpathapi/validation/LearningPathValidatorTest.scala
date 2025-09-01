@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.validation
 
+import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.api as commonApi
 import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
@@ -28,9 +29,9 @@ import no.ndla.common.model.domain.learningpath.Introduction
 
 class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
-  var validator: LearningPathValidator = _
+  override implicit lazy val clock: Clock = new Clock
 
-  override lazy val clock = new SystemClock
+  var validator: LearningPathValidator = scala.compiletime.uninitialized
 
   override def beforeEach(): Unit = {
     validator = new LearningPathValidator

@@ -8,7 +8,7 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.draft.DraftStatus.EXTERNAL_REVIEW
@@ -20,6 +20,7 @@ import no.ndla.draftapi.model.{api, domain}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.getLicenses
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -28,7 +29,12 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class DraftControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: DraftController = new DraftController
+  override val controller: DraftController                   = new DraftController
+  override implicit lazy val clock: Clock                    = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
+  override implicit lazy val services: List[TapirController] = List(controller)
+  override implicit lazy val routes: Routes                  = new Routes
 
   override def beforeEach(): Unit = {
     reset(clock)

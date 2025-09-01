@@ -76,10 +76,16 @@ object Language {
   def sortByLanguagePriority[P <: WithLanguage](sequence: Seq[P]): Seq[P] =
     sequence.sortBy(lf => languagePriority.reverse.indexOf(lf.language)).reverse
 
+  def getDefault[P <: WithLanguage](sequence: Seq[P]): Option[P] =
+    sortByLanguagePriority(sequence).headOption
+
+  def sortLanguagesByPriority(languages: Seq[String]): Seq[String] =
+    languages.sortBy(lang => languagePriority.reverse.indexOf(lang)).reverse
+
   def findByLanguageOrBestEffort[P <: WithLanguage](sequence: Seq[P], language: String): Option[P] =
     sequence
       .find(_.language == language)
-      .orElse(sortByLanguagePriority(sequence).headOption)
+      .orElse(getDefault(sequence))
 
   def getSupportedLanguages(sequences: Seq[WithLanguage]*): Seq[String] = {
     sequences.flatMap(_.map(_.language)).distinct.sortBy { lang =>

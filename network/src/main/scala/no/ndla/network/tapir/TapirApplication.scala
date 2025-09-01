@@ -8,20 +8,11 @@
 
 package no.ndla.network.tapir
 
-import no.ndla.common.Clock
-import no.ndla.common.configuration.HasBaseProps
-import no.ndla.network.NdlaClient
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.common.configuration.BaseProps
 
-trait TapirApplication
-    extends TapirController
-    with MyNDLAApiClient
-    with NdlaClient
-    with TapirErrorHandling
-    with Clock
-    with HasBaseProps
-    with Routes
-    with SwaggerControllerConfig
-    with TapirHealthController {
-  val swagger: SwaggerController
+trait TapirApplication[PropType <: BaseProps] {
+  given props: PropType
+  given routes: Routes
+  given swagger: SwaggerController
+  given healthController: TapirHealthController
 }

@@ -20,8 +20,10 @@ import no.ndla.common.model.domain.learningpath.{
   Description as LPDescription
 }
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.searchapi.model.domain.IndexingBundle
+import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -30,9 +32,12 @@ import scala.util.Success
 
 class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
 
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-
-  override lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+  override implicit lazy val e4sClient: NdlaE4sClient =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
+  override implicit lazy val searchLanguage: SearchLanguage                     = new SearchLanguage
+  override implicit lazy val converterService: ConverterService                 = new ConverterService
+  override implicit lazy val searchConverterService: SearchConverterService     = new SearchConverterService
+  override implicit lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
     override val indexShards = 1
   }
 
@@ -46,9 +51,6 @@ class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with Un
     super.beforeAll()
     when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
-
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
 
   test("That mapping contains every field after serialization") {
     val domainLearningPath = TestData.learningPath1.copy(
