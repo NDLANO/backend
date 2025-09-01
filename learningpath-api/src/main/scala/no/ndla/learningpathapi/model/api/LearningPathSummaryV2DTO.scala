@@ -31,7 +31,8 @@ case class LearningPathSummaryV2DTO(
                                      @description("The contributors of this learningpath") copyright: CopyrightDTO,
                                      @description("A list of available languages for this audio") supportedLanguages: Seq[String],
                                      @description("The id this learningpath is based on, if any") isBasedOn: Option[Long],
-                                     @description("Message that admins can place on a LearningPath for notifying a owner of issues with the LearningPath") message: Option[String]
+                                     @description("Message that admins can place on a LearningPath for notifying a owner of issues with the LearningPath") message: Option[String],
+                                     @description("The codes from GREP API registered for this draft article") grepCodes: Seq[String]
 )
 
 object LearningPathSummaryV2DTO {

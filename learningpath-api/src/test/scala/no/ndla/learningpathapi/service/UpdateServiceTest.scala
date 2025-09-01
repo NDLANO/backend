@@ -204,7 +204,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default
+    revisionMeta = common.RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val PUBLISHED_LEARNINGPATH_NO_STEPS: LearningPath = LearningPath(
@@ -229,7 +230,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default
+    revisionMeta = common.RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val PRIVATE_LEARNINGPATH: LearningPath = LearningPath(
@@ -254,7 +256,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default
+    revisionMeta = common.RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val PRIVATE_LEARNINGPATH_NO_STEPS: LearningPath = LearningPath(
@@ -279,7 +282,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default
+    revisionMeta = common.RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val DELETED_LEARNINGPATH: LearningPath = LearningPath(
@@ -304,7 +308,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default
+    revisionMeta = common.RevisionMeta.default,
+    grepCodes = Seq.empty
   )
   val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2DTO =
     NewLearningPathV2DTO(
@@ -315,6 +320,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       None,
       "nb",
       Some(apiCopyright),
+      None,
       None,
       None,
       None,
@@ -348,6 +354,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       None,
       None,
       None,
+      None,
       None
     )
 
@@ -363,6 +370,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Some(apiCopyright),
       None,
       commonApi.Missing,
+      None,
       None,
       None,
       None,
@@ -1283,6 +1291,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         None,
         None,
+        None,
         None
       )
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
@@ -1591,6 +1600,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Some(true),
         commonApi.Missing,
+        None,
         None,
         None,
         None,

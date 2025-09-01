@@ -64,7 +64,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default
+    revisionMeta = RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
@@ -82,7 +83,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
       comments = None,
       priority = None,
       revisionMeta = None,
-      introduction = None
+      introduction = None,
+      grepCodes = None
     )
 
   test("That valid learningpath returns no errors") {

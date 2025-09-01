@@ -68,7 +68,8 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default
+    revisionMeta = RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(

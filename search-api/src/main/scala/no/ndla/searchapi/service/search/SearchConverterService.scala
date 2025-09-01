@@ -435,7 +435,8 @@ class SearchConverterService(using
           typeName = getTypeNames(LearningResourceType.LearningPath),
           priority = lp.priority,
           revisionMeta = lp.revisionMeta.toList,
-          nextRevision = lp.revisionMeta.getNextRevision
+          nextRevision = lp.revisionMeta.getNextRevision,
+          grepCodes = lp.grepCodes.toList
         )
       )
     }

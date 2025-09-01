@@ -155,7 +155,8 @@ class LearningpathControllerV2(using
           verificationStatus = verificationStatus,
           shouldScroll = shouldScroll,
           articleId = None,
-          status = List(learningpath.LearningPathStatus.PUBLISHED)
+          status = List(learningpath.LearningPathStatus.PUBLISHED),
+          grepCodes = List.empty
         )
       case None =>
         SearchSettings(
@@ -171,7 +172,8 @@ class LearningpathControllerV2(using
           verificationStatus = verificationStatus,
           shouldScroll = shouldScroll,
           articleId = None,
-          status = List(learningpath.LearningPathStatus.PUBLISHED)
+          status = List(learningpath.LearningPathStatus.PUBLISHED),
+          grepCodes = List.empty
         )
     }
 
