@@ -237,7 +237,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(any[DBSession])).thenReturn(None)
     val Failure(ex) = service.learningstepsForWithStatusV2(
       PUBLISHED_ID,
-      StepStatus.ACTIVE,
+      Seq(StepStatus.ACTIVE),
       "nb",
       fallback = false,
       TokenUser.PublicUser.toCombined
@@ -252,7 +252,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(List())
     val Failure(ex) = service.learningstepsForWithStatusV2(
       PUBLISHED_ID,
-      StepStatus.ACTIVE,
+      Seq(StepStatus.ACTIVE),
       "nb",
       fallback = false,
       TokenUser.PublicUser.toCombined
@@ -267,7 +267,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(List(STEP1, STEP2.copy(status = StepStatus.DELETED), STEP3))
     val learningSteps = service.learningstepsForWithStatusV2(
       PUBLISHED_ID,
-      StepStatus.ACTIVE,
+      Seq(StepStatus.ACTIVE),
       "nb",
       fallback = false,
       TokenUser.PublicUser.toCombined
@@ -285,7 +285,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(List(STEP1, STEP2.copy(status = StepStatus.DELETED), STEP3))
     val learningSteps = service.learningstepsForWithStatusV2(
       PUBLISHED_ID,
-      StepStatus.DELETED,
+      Seq(StepStatus.DELETED),
       "nb",
       fallback = false,
       TokenUser.PublicUser.toCombined
@@ -301,7 +301,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val Failure(ex) =
       service.learningstepsForWithStatusV2(
         PRIVATE_ID,
-        StepStatus.ACTIVE,
+        Seq(StepStatus.ACTIVE),
         "nb",
         fallback = false,
         TokenUser.PublicUser.toCombined
@@ -315,7 +315,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     val Failure(ex) =
       service.learningstepsForWithStatusV2(
         PRIVATE_ID,
-        StepStatus.ACTIVE,
+        Seq(StepStatus.ACTIVE),
         "nb",
         fallback = false,
         PUBLISHED_OWNER.toCombined
@@ -332,7 +332,13 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(List(STEP1, STEP2))
     assertResult(2) {
       service
-        .learningstepsForWithStatusV2(PRIVATE_ID, StepStatus.ACTIVE, "nb", fallback = false, PRIVATE_OWNER.toCombined)
+        .learningstepsForWithStatusV2(
+          PRIVATE_ID,
+          Seq(StepStatus.ACTIVE),
+          "nb",
+          fallback = false,
+          PRIVATE_OWNER.toCombined
+        )
         .get
         .learningsteps
         .length

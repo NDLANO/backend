@@ -14,8 +14,9 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 sealed abstract class StepStatus(override val entryName: String) extends EnumEntry
 object StepStatus                                                extends Enum[StepStatus] with CirceEnum[StepStatus] {
 
-  case object ACTIVE  extends StepStatus("ACTIVE")
-  case object DELETED extends StepStatus("DELETED")
+  case object ACTIVE   extends StepStatus("ACTIVE")
+  case object MIGRATED extends StepStatus("MIGRATED")
+  case object DELETED  extends StepStatus("DELETED")
 
   def values: IndexedSeq[StepStatus] = findValues
 

@@ -340,7 +340,7 @@ trait LearningpathControllerV2 {
           readService
             .learningstepsForWithStatusV2(
               id,
-              StepStatus.ACTIVE,
+              Seq(StepStatus.ACTIVE, StepStatus.MIGRATED),
               language.code,
               fallback,
               maybeUser
@@ -378,7 +378,7 @@ trait LearningpathControllerV2 {
       .serverLogicPure { user =>
         { case (id, language, fallback) =>
           readService
-            .learningstepsForWithStatusV2(id, StepStatus.DELETED, language.code, fallback, user)
+            .learningstepsForWithStatusV2(id, Seq(StepStatus.DELETED), language.code, fallback, user)
             .handleErrorsOrOk
         }
       }

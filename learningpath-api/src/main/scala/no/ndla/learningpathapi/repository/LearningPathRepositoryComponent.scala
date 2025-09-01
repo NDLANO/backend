@@ -329,7 +329,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
         .one(DBLearningPath.fromResultSet(lp.resultName))
         .toMany(DBLearningStep.opt(ls.resultName))
         .map { (learningpath, learningsteps) =>
-          learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
+          learningpath.copy(learningsteps = Some(learningsteps.filter(_.status != StepStatus.DELETED).toSeq))
         }
         .list()
     }
@@ -343,7 +343,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
         .one(DBLearningPath.fromResultSet(lp.resultName))
         .toMany(DBLearningStep.opt(ls.resultName))
         .map { (learningpath, learningsteps) =>
-          learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
+          learningpath.copy(learningsteps = Some(learningsteps.filter(_.status != StepStatus.DELETED).toSeq))
         }
         .single()
     }
@@ -364,7 +364,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
         .one(DBLearningPath.fromResultSet(lps(lp).resultName))
         .toMany(DBLearningStep.opt(ls.resultName))
         .map { (learningpath, learningsteps) =>
-          learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
+          learningpath.copy(learningsteps = Some(learningsteps.filter(_.status != StepStatus.DELETED).toSeq))
         }
         .list()
     }
@@ -385,7 +385,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
         .one(DBLearningPath.fromResultSet(lps(lp).resultName))
         .toMany(DBLearningStep.opt(ls.resultName))
         .map { (learningpath, learningsteps) =>
-          learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
+          learningpath.copy(learningsteps = Some(learningsteps.filter(_.status != StepStatus.DELETED).toSeq))
         }
         .list()
     }
@@ -407,7 +407,7 @@ trait LearningPathRepositoryComponent extends StrictLogging {
         .one(DBLearningPath.fromResultSet(lps(lp).resultName))
         .toMany(DBLearningStep.opt(ls.resultName))
         .map { (learningpath, learningsteps) =>
-          learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
+          learningpath.copy(learningsteps = Some(learningsteps.filter(_.status != StepStatus.DELETED).toSeq))
         }
         .list()
     }

@@ -365,7 +365,8 @@ trait ConverterService {
       val status                = mergeStatus(learningPath, user)
       val existingLearningSteps = learningPath.learningsteps.getOrElse(Seq.empty).filterNot(_.id == updatedStep.id)
       val steps                 =
-        if (StepStatus.ACTIVE == updatedStep.status) existingLearningSteps :+ updatedStep else existingLearningSteps
+        if (updatedStep.status in Seq(StepStatus.ACTIVE, StepStatus.MIGRATED)) existingLearningSteps :+ updatedStep
+        else existingLearningSteps
 
       learningPath.copy(learningsteps = Some(steps), status = status, lastUpdated = clock.now())
     }
@@ -741,14 +742,14 @@ trait ConverterService {
     }
 
     def asLearningStepContainerSummary(
-        status: StepStatus,
+        status: Seq[StepStatus],
         learningPath: LearningPath,
         language: String,
         fallback: Boolean
     ): Try[api.LearningStepContainerSummaryDTO] = {
       val learningSteps = learningPathRepository
         .learningStepsFor(learningPath.id.get)
-        .filter(_.status == status)
+        .filter(_.status in status)
       val supportedLanguages =
         learningSteps.flatMap(_.title).map(_.language).distinct
 
