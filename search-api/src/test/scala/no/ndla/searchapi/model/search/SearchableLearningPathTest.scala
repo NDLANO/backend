@@ -87,7 +87,8 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       typeName = List.empty,
       priority = Priority.Unspecified,
       revisionMeta = RevisionMeta.default.toList,
-      nextRevision = RevisionMeta.default.getNextRevision
+      nextRevision = RevisionMeta.default.getNextRevision,
+      grepCodes = Seq.empty.toList
     )
 
     val json         = CirceUtil.toJsonString(original)

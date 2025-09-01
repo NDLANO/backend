@@ -23,5 +23,6 @@ case class SearchSettings(
     verificationStatus: Option[String],
     shouldScroll: Boolean,
     status: List[LearningPathStatus],
-    articleId: Option[Long]
+    articleId: Option[Long],
+    grepCodes: List[String]
 )

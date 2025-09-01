@@ -60,7 +60,8 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
     copyright,
     List("nb"),
     None,
-    None
+    None,
+    Seq.empty
   )
 
   test("That GET / will send all query-params to the search service") {

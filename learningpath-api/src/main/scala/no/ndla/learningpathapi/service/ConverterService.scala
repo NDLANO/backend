@@ -180,7 +180,8 @@ class ConverterService(using
           comments = lp.comments.map(commonConverter.commentDomainToApi),
           priority = lp.priority,
           revisions = lp.revisionMeta.map(commonConverter.revisionMetaDomainToApi),
-          introduction = introduction
+          introduction = introduction,
+          grepCodes = lp.grepCodes
         )
       )
     } else
@@ -300,7 +301,8 @@ class ConverterService(using
       responsible = getNewResponsible(existing, updated),
       comments = updatedComments,
       priority = updated.priority.getOrElse(existing.priority),
-      revisionMeta = updatedRevision
+      revisionMeta = updatedRevision,
+      grepCodes = updated.grepCodes.getOrElse(existing.grepCodes)
     )
   }
 
@@ -594,7 +596,8 @@ class ConverterService(using
           .getOrElse(Seq.empty),
         priority = priority,
         revisionMeta = revisionMeta,
-        introduction = introduction
+        introduction = introduction,
+        grepCodes = newLearningPath.grepCodes.getOrElse(Seq.empty)
       )
     }
   }
@@ -660,7 +663,8 @@ class ConverterService(using
         asApiCopyright(learningpath.copyright),
         supportedLanguages,
         learningpath.isBasedOn,
-        message
+        message,
+        learningpath.grepCodes
       )
     )
   }
