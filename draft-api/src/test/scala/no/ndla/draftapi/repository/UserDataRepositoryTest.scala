@@ -8,7 +8,7 @@
 
 package no.ndla.draftapi.repository
 
-import com.zaxxer.hikari.HikariDataSource
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.draftapi.model.api.SavedSearchDTO
 
 import java.net.Socket
@@ -20,13 +20,13 @@ import scalikejdbc.*
 import scala.util.{Failure, Success, Try}
 
 class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
-  override lazy val dataSource: HikariDataSource = testDataSource.get
-  override lazy val migrator: DBMigrator         = new DBMigrator
-  var repository: UserDataRepository             = _
+  override implicit lazy val dataSource: DataSource = testDataSource.get
+  override implicit lazy val migrator: DBMigrator   = new DBMigrator
+  var repository: UserDataRepository                = scala.compiletime.uninitialized
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
-      sql"delete from userdata;".execute()(session)
+      sql"delete from userdata;".execute()(using session)
     })
   }
 
@@ -57,7 +57,7 @@ class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironme
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
+    dataSource.connectToDatabase()
     if (serverIsListening) {
       migrator.migrate()
     }

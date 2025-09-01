@@ -8,12 +8,13 @@
 
 package no.ndla.myndlaapi
 
-import no.ndla.common.configuration.HasBaseProps
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.secrets.PropertyKeys
 import no.ndla.scalatestsuite.UnitTestSuite
 
 trait UnitSuite extends UnitTestSuite {
-  this: HasBaseProps =>
+  lazy val props: BaseProps
+
   setPropEnv("NDLA_ENVIRONMENT", "local")
 
   setPropEnv(PropertyKeys.MetaUserNameKey, "postgres")

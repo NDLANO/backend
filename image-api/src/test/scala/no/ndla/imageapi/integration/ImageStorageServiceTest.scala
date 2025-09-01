@@ -9,6 +9,7 @@
 package no.ndla.imageapi.integration
 
 import no.ndla.common.aws.NdlaS3Object
+import no.ndla.imageapi.service.ImageStorageService
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
@@ -22,7 +23,7 @@ class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
   val ImageWithNoThumb           = TestData.nonexistingWithoutThumb
   val Content                    = "content"
   val ContentType                = "image/jpeg"
-  override lazy val imageStorage = new AmazonImageStorageService
+  override lazy val imageStorage = new ImageStorageService
 
   override def beforeEach(): Unit = {
     reset(s3Client)

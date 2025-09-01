@@ -11,22 +11,26 @@ package no.ndla.articleapi.service.search
 import no.ndla.articleapi.*
 import no.ndla.articleapi.model.api
 import no.ndla.articleapi.model.domain.*
+import no.ndla.articleapi.service.ConverterService
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.language.Language
 import no.ndla.mapping.License.{CC_BY_NC_SA, Copyrighted, PublicDomain}
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override given e4sClient: NdlaE4sClient =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override lazy val articleSearchService                     = new ArticleSearchService
-  override lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
+  override implicit lazy val searchLanguage: SearchLanguage             = new SearchLanguage
+  override implicit lazy val articleSearchService: ArticleSearchService = new ArticleSearchService
+  override implicit lazy val articleIndexService: ArticleIndexService   = new ArticleIndexService {
     override val indexShards = 1
   }
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
     Copyright(

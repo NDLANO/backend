@@ -8,9 +8,11 @@
 
 package no.ndla.draftapi.controller
 
+import no.ndla.common.Clock
 import no.ndla.draftapi.model.api.UpdatedUserDataDTO
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
@@ -20,7 +22,12 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class UserDataControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: UserDataController = new UserDataController()
+  override implicit lazy val clock: Clock                    = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
+  override val controller: UserDataController                = new UserDataController()
+  override implicit lazy val services: List[TapirController] = List(controller)
+  override implicit lazy val routes: Routes                  = new Routes
 
   override def beforeEach(): Unit = {
     reset(clock)

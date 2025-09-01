@@ -9,6 +9,8 @@
 package no.ndla.imageapi.service.search
 
 import no.ndla.common.model.NDLADate
+import no.ndla.imageapi.service.ConverterService
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, ContributorType, Tag}
 import no.ndla.common.model.api as commonApi
@@ -28,14 +30,16 @@ import scala.util.Success
 class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   import TestData.searchSettings
 
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val e4sClient: NdlaE4sClient =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override lazy val searchConverterService               = new SearchConverterService
-  override lazy val converterService                     = new ConverterService
-  override lazy val imageIndexService: ImageIndexService = new ImageIndexService {
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  implicit lazy val searchLanguage: SearchLanguage                          = new SearchLanguage
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  override implicit lazy val imageIndexService: ImageIndexService           = new ImageIndexService {
     override val indexShards = 1
   }
-  override lazy val imageSearchService = new ImageSearchService
+  override implicit lazy val imageSearchService: ImageSearchService = new ImageSearchService
 
   val largeImage: ImageFileData   = ImageFileData(1, "large-full-url", 10000, "jpg", None, "und", 4)
   val smallImage: ImageFileData   = ImageFileData(2, "small-full-url", 100, "jpg", None, "und", 6)

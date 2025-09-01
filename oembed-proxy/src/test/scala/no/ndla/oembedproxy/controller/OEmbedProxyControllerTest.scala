@@ -8,7 +8,9 @@
 
 package no.ndla.oembedproxy.controller
 
+import no.ndla.common.Clock
 import no.ndla.network.model.HttpRequestException
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.oembedproxy.model.OEmbedDTO
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import no.ndla.tapirtesting.TapirControllerTest
@@ -21,7 +23,12 @@ import sttp.model.{Header, Method, RequestMetadata, StatusCode, Uri}
 import scala.util.{Failure, Success}
 
 class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: OEmbedProxyController = new OEmbedProxyController
+  val controller: OEmbedProxyController                      = new OEmbedProxyController
+  override implicit lazy val services: List[TapirController] = List(controller)
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
+  override implicit lazy val routes: Routes                  = new Routes
+  override implicit lazy val clock: Clock                    = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
 
   val oembed: OEmbedDTO = OEmbedDTO(
     `type` = "rich",

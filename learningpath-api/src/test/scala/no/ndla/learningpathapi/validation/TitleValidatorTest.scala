@@ -15,7 +15,7 @@ import org.mockito.Mockito.when
 
 class TitleValidatorTest extends UnitSuite with TestEnvironment {
 
-  var validator: TitleValidator = _
+  var validator: TitleValidator = scala.compiletime.uninitialized
 
   override def beforeEach(): Unit = {
     validator = new TitleValidator

@@ -8,9 +8,9 @@
 
 package no.ndla.myndlaapi.repository
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.myndlaapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.*
@@ -18,22 +18,22 @@ import scalikejdbc.*
 import scala.util.Success
 
 class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override val schemaName: String                = "myndlaapi_test"
-  override lazy val dataSource: HikariDataSource = testDataSource.get
-  override lazy val migrator                     = new DBMigrator
+  override lazy val schemaName: String              = "myndlaapi_test"
+  override implicit lazy val dataSource: DataSource = testDataSource.get
+  override implicit lazy val migrator: DBMigrator   = new DBMigrator
 
-  var repository: ConfigRepository = _
+  var repository: ConfigRepository = scala.compiletime.uninitialized
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
-      sql"delete from configtable;".execute()(session)
-      sql"delete from configtable;".execute()(session)
+      sql"delete from configtable;".execute()(using session)
+      sql"delete from configtable;".execute()(using session)
     })
   }
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
+    dataSource.connectToDatabase()
     migrator.migrate()
   }
 

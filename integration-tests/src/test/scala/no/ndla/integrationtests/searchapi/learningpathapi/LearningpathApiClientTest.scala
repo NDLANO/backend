@@ -13,10 +13,13 @@ import no.ndla.common.model.NDLADate
 import no.ndla.database.HasDatabaseProps
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.learningpathapi.LearningpathApiProperties
-import no.ndla.network.AuthUser
+import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.search.model.LanguageValue
+import no.ndla.searchapi.integration.LearningPathApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
+import no.ndla.searchapi.service.ConverterService
+import no.ndla.searchapi.service.search.SearchConverterService
 import no.ndla.{learningpathapi, searchapi}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -24,7 +27,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
-import scala.util.{Success, Try}
+import scala.util.Success
 
 class LearningpathApiClientTest
     extends ElasticsearchIntegrationSuite
@@ -32,9 +35,9 @@ class LearningpathApiClientTest
     with UnitSuite
     with searchapi.TestEnvironment
     with HasDatabaseProps {
-  override lazy val ndlaClient             = new NdlaClient
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
+  override implicit lazy val ndlaClient: NdlaClient                         = new NdlaClient
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   val learningpathApiPort: Int                             = findFreePort
   val pgc: PostgreSQLContainer[?]                          = postgresContainer.get
@@ -61,13 +64,7 @@ class LearningpathApiClientTest
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     learningpathApi = new learningpathapi.MainClass(learningpathApiProperties)
     Future { learningpathApi.run(Array.empty) }: Unit
-    blockUntil(() => {
-      import sttp.client3.quick.*
-      val req = quickRequest.get(uri"$learningpathApiBaseUrl/health/readiness")
-      val res = Try(simpleHttpClient.send(req))
-      println(res)
-      res.map(_.code.code) == Success(200)
-    })
+    blockUntilHealthy(s"$learningpathApiBaseUrl/health/readiness")
   }
 
   override def afterAll(): Unit = {

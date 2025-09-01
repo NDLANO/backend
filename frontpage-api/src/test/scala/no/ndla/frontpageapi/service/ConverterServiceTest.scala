@@ -18,13 +18,14 @@ import no.ndla.frontpageapi.{TestData, TestEnvironment, UnitSuite}
 import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
+  override lazy val converterService: ConverterService = new ConverterService
 
   test("toApiSubjectPage should convert visual element id to url") {
     val visualElement = TestData.domainSubjectPage.about.head.visualElement.copy(`type` = VisualElementType.Image)
     val about         = TestData.domainSubjectPage.about.map(_.copy(visualElement = visualElement))
     val page          = TestData.domainSubjectPage.copy(about = about)
 
-    ConverterService.toApiSubjectPage(page, "nb").get.about.get.visualElement.url should equal(
+    converterService.toApiSubjectPage(page, "nb").get.about.get.visualElement.url should equal(
       s"http://api-gateway.ndla-local/image-api/raw/id/${visualElement.id}"
     )
 
@@ -34,7 +35,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val expected =
       s"https://players.brightcove.net/${props.BrightcoveAccountId}/${props.BrightcovePlayer}_default/index.html?videoId=${visualElement2.id}"
-    ConverterService.toApiSubjectPage(page2, "nb").get.about.get.visualElement.url should equal(expected)
+    converterService.toApiSubjectPage(page2, "nb").get.about.get.visualElement.url should equal(expected)
   }
 
   test("toDomainSubjectPage should return a failure if visual element type is invalid") {
@@ -42,7 +43,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val about         = TestData.apiNewSubjectPage.about.map(_.copy(visualElement = visualElement))
     val page          = TestData.apiNewSubjectPage.copy(about = about)
 
-    val result        = ConverterService.toDomainSubjectPage(page)
+    val result        = converterService.toDomainSubjectPage(page)
     val expectedError = ValidationException(
       "visualElement.type",
       "'not an image' is an invalid visual element type"
@@ -55,14 +56,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val about         = TestData.apiNewSubjectPage.about.map(_.copy(visualElement = visualElement))
     val page          = TestData.apiNewSubjectPage.copy(about = about)
 
-    ConverterService.toDomainSubjectPage(page).isSuccess should be(true)
+    converterService.toDomainSubjectPage(page).isSuccess should be(true)
   }
 
   test("toDomainSubjectPage from patch should convert correctly") {
     val updatedSubjectPage = TestData.apiUpdatedSubjectPage
     val toMergeInto        = TestData.domainSubjectPage
 
-    ConverterService.toDomainSubjectPage(toMergeInto, updatedSubjectPage) should be(
+    converterService.toDomainSubjectPage(toMergeInto, updatedSubjectPage) should be(
       Success(TestData.domainUpdatedSubjectPage)
     )
   }
@@ -80,13 +81,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"))
     )
 
-    ConverterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.connectedTo should be(
+    converterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.connectedTo should be(
       List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
     )
-    ConverterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.buildsOn should be(
+    converterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.buildsOn should be(
       List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
     )
-    ConverterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.leadsTo should be(
+    converterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.leadsTo should be(
       List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
     )
   }
@@ -104,7 +105,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None
     )
 
-    ConverterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.metaDescription should be(
+    converterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.metaDescription should be(
       Seq(MetaDescription("oppdatert meta", "nb"))
     )
   }
@@ -131,7 +132,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None
     )
 
-    ConverterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.about should be(
+    converterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.about should be(
       Seq(
         AboutSubject(
           "oppdatert tittel",
@@ -169,7 +170,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None
     )
 
-    ConverterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith) should be(
+    converterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith) should be(
       Success(
         TestData.domainSubjectPage.copy(
           about = Seq(
@@ -194,7 +195,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiSubjectPage failure if subject not found in specified language without fallback") {
-    ConverterService.toApiSubjectPage(TestData.domainSubjectPage, "hei") should be(
+    converterService.toApiSubjectPage(TestData.domainSubjectPage, "hei") should be(
       Failure(
         LanguageNotFoundException(
           s"The subjectpage with id ${TestData.domainSubjectPage.id.get} and language hei was not found",
@@ -205,19 +206,19 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiSubjectPage success if subject not found in specified language, but with fallback") {
-    ConverterService.toApiSubjectPage(TestData.domainSubjectPage, "hei", fallback = true) should be(
+    converterService.toApiSubjectPage(TestData.domainSubjectPage, "hei", fallback = true) should be(
       Success(TestData.apiSubjectPage)
     )
   }
 
   test("Should get all languages if nothing is specified") {
-    val apiFilmFrontPage = ConverterService.toApiFilmFrontPage(TestData.domainFilmFrontPage, None)
+    val apiFilmFrontPage = converterService.toApiFilmFrontPage(TestData.domainFilmFrontPage, None)
     apiFilmFrontPage.about.length should equal(2)
     apiFilmFrontPage.about.map(_.language) should equal(Seq("nb", "en"))
   }
 
   test("Should get only specified language") {
-    val apiFilmFrontPage = ConverterService.toApiFilmFrontPage(TestData.domainFilmFrontPage, Some("nb"))
+    val apiFilmFrontPage = converterService.toApiFilmFrontPage(TestData.domainFilmFrontPage, Some("nb"))
     apiFilmFrontPage.about.length should equal(1)
     apiFilmFrontPage.about.map(_.language) should equal(Seq("nb"))
 
