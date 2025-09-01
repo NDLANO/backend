@@ -42,7 +42,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   val PUBLISHED_OWNER: TokenUser = TokenUser("eier1", Set.empty, None)
   val PRIVATE_OWNER: TokenUser   = TokenUser("eier2", Set.empty, None)
 
-  val today: NDLADate = clock.now()
+  val today: NDLADate = NDLADate.now()
 
   val STEP1: LearningStep = LearningStep(
     Some(1),
@@ -975,8 +975,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .thenReturn(Some(STEP1))
     when(learningPathRepository.learningStepsFor(eqTo(PRIVATE_ID))(using any[DBSession]))
       .thenReturn(List(STEP1))
-    when(learningPathRepository.updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED)))(using any[DBSession]))
-      .thenReturn(STEP1.copy(status = StepStatus.DELETED))
+    when(
+      learningPathRepository
+        .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED, lastUpdated = nowDate)))(using any[DBSession])
+    )
+      .thenReturn(STEP1.copy(status = StepStatus.DELETED, lastUpdated = nowDate))
     when(learningPathRepository.update(any[LearningPath])(using any[DBSession]))
       .thenReturn(PRIVATE_LEARNINGPATH)
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
@@ -987,7 +990,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
       .update(any[LearningPath])(using any[DBSession])
     verify(searchIndexService, times(1)).indexDocument(any[LearningPath])
@@ -1025,7 +1028,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
 
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED, lastUpdated = updatedDate)))(using
+        any[DBSession]
+      )
     verify(learningPathRepository, times(1)).update(eqTo(expectedUpdatePath))(using any[DBSession])
     verify(searchIndexService, times(1)).indexDocument(any[LearningPath])
     verify(searchIndexService, times(0)).deleteDocument(any[LearningPath], any)
@@ -1053,11 +1058,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP2.copy(seqNo = STEP2.seqNo - 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP2.copy(seqNo = STEP2.seqNo - 1, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP3.copy(seqNo = STEP3.seqNo - 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP3.copy(seqNo = STEP3.seqNo - 1, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
       .update(any[LearningPath])(using any[DBSession])
     verify(searchIndexService, times(1)).indexDocument(any[LearningPath])
@@ -1088,11 +1093,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     updatedStep.get.status should equal(StepStatus.ACTIVE.entryName)
 
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.ACTIVE, seqNo = 0)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.ACTIVE, seqNo = 0, lastUpdated = nowDate)))(using
+        any[DBSession]
+      )
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP2.copy(seqNo = 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP2.copy(seqNo = 1, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP3.copy(seqNo = 2)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP3.copy(seqNo = 2, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
       .update(any[LearningPath])(using any[DBSession])
     verify(searchIndexService, times(1)).indexDocument(any[LearningPath])
@@ -1134,27 +1141,30 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PRIVATE_ID), eqTo(STEP1.id.get))(using any[DBSession]))
-      .thenReturn(Some(STEP1))
+      .thenReturn(Some(STEP1.copy(lastUpdated = nowDate)))
 
     val updatedStep =
       service.updateSeqNo(PRIVATE_ID, STEP1.id.get, STEP6.seqNo, PRIVATE_OWNER.toCombined)
     updatedStep.get.seqNo should equal(STEP6.seqNo)
 
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP2.copy(seqNo = STEP2.seqNo - 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP2.copy(seqNo = STEP2.seqNo - 1, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP3.copy(seqNo = STEP3.seqNo - 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP3.copy(seqNo = STEP3.seqNo - 1, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP4.copy(seqNo = STEP4.seqNo - 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP4.copy(seqNo = STEP4.seqNo - 1, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP5.copy(seqNo = STEP5.seqNo - 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP5.copy(seqNo = STEP5.seqNo - 1, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP6.copy(seqNo = STEP6.seqNo - 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP6.copy(seqNo = STEP6.seqNo - 1, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP1.copy(seqNo = STEP6.seqNo)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP1.copy(seqNo = STEP6.seqNo, lastUpdated = nowDate)))(using any[DBSession])
   }
 
   test("That updateSeqNo from last to 0 updates all learningsteps in between") {
+    val nowDate = NDLADate.fromUnixTime(1337)
+    when(clock.now()).thenReturn(nowDate)
+
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PRIVATE_ID), eqTo(STEP6.id.get))(using any[DBSession]))
@@ -1165,20 +1175,23 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     updatedStep.get.seqNo should equal(STEP1.seqNo)
 
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP6.copy(seqNo = STEP1.seqNo)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP6.copy(seqNo = STEP1.seqNo, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP1.copy(seqNo = STEP1.seqNo + 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP1.copy(seqNo = STEP1.seqNo + 1, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP2.copy(seqNo = STEP2.seqNo + 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP2.copy(seqNo = STEP2.seqNo + 1, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP3.copy(seqNo = STEP3.seqNo + 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP3.copy(seqNo = STEP3.seqNo + 1, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP4.copy(seqNo = STEP4.seqNo + 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP4.copy(seqNo = STEP4.seqNo + 1, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP5.copy(seqNo = STEP5.seqNo + 1)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP5.copy(seqNo = STEP5.seqNo + 1, lastUpdated = nowDate)))(using any[DBSession])
   }
 
   test("That updateSeqNo between two middle steps only updates the two middle steps") {
+    val nowDate = NDLADate.fromUnixTime(1337)
+    when(clock.now()).thenReturn(nowDate)
+
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession]))
       .thenReturn(Some(PRIVATE_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(eqTo(PRIVATE_ID), eqTo(STEP2.id.get))(using any[DBSession]))
@@ -1189,9 +1202,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     updatedStep.get.seqNo should equal(STEP3.seqNo)
 
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP2.copy(seqNo = STEP3.seqNo)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP2.copy(seqNo = STEP3.seqNo, lastUpdated = nowDate)))(using any[DBSession])
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP3.copy(seqNo = STEP2.seqNo)))(using any[DBSession])
+      .updateLearningStep(eqTo(STEP3.copy(seqNo = STEP2.seqNo, lastUpdated = nowDate)))(using any[DBSession])
   }
 
   test("That updateSeqNo also update seqNo for all affected steps") {

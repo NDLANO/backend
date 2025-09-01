@@ -43,6 +43,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
 
   var repository: LearningPathRepository = scala.compiletime.uninitialized
 
+  val today: NDLADate                  = NDLADate.now().withNano(0)
   val clinton: Author                  = Author(ContributorType.Writer, "Hilla the Hun")
   val license: String                  = License.PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(clinton))

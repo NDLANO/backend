@@ -330,6 +330,8 @@ class ConverterService(using
       case None            => newLearningStep.license.map(l => LearningpathCopyright(l, Seq.empty))
     }
 
+    val now = clock.now()
+
     embedUrlT.map(embedUrl =>
       LearningStep(
         id = None,
@@ -344,6 +346,8 @@ class ConverterService(using
         articleId = newLearningStep.articleId,
         `type` = StepType.valueOfOrError(newLearningStep.`type`),
         copyright = copyright,
+        created = now,
+        lastUpdated = now,
         showTitle = newLearningStep.showTitle
       )
     )
@@ -384,7 +388,8 @@ class ConverterService(using
             title = step.title.filterNot(_.language == language),
             introduction = step.introduction.filterNot(_.language == language),
             description = step.description.filterNot(_.language == language),
-            embedUrl = step.embedUrl.filterNot(_.language == language)
+            embedUrl = step.embedUrl.filterNot(_.language == language),
+            lastUpdated = clock.now()
           )
         )
     }
@@ -403,7 +408,8 @@ class ConverterService(using
           learningPath.copy(
             title = learningPath.title.filterNot(_.language == language),
             description = learningPath.description.filterNot(_.language == language),
-            tags = learningPath.tags.filterNot(_.language == language)
+            tags = learningPath.tags.filterNot(_.language == language),
+            lastUpdated = clock.now()
           )
         )
     }
@@ -462,7 +468,8 @@ class ConverterService(using
         articleId = articleId,
         showTitle = updated.showTitle.getOrElse(existing.showTitle),
         `type` = stepType,
-        copyright = copyright
+        copyright = copyright,
+        lastUpdated = clock.now()
       )
     )
   }
@@ -520,7 +527,8 @@ class ConverterService(using
               revision = None,
               externalId = None,
               learningPathId = None,
-              copyright = stepCopyright
+              copyright = stepCopyright,
+              lastUpdated = clock.now()
             )
           }
         )
@@ -713,6 +721,8 @@ class ConverterService(using
           metaUrl = createUrlToLearningStep(ls, lp),
           canEdit = lp.canEdit(user),
           status = ls.status.entryName,
+          created = ls.created,
+          lastUpdated = ls.lastUpdated,
           supportedLanguages = supportedLanguages
         )
       )

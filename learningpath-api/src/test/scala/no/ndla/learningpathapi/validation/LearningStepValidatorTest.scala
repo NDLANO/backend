@@ -33,7 +33,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
   var validator: LearningStepValidator = scala.compiletime.uninitialized
 
   val license: String = PublicDomain.toString
-  val today: NDLADate = clock.now()
+  val today: NDLADate = NDLADate.now()
 
   val ValidLearningStep: LearningStep = LearningStep(
     id = None,
