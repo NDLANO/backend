@@ -1,10 +1,10 @@
-name: 'Scalafmt formatting'
+name: 'Linting & Formatting'
 on: [ push, pull_request ]
 env:
   CI_RELEASE_ROLE: ${{ secrets.CI_RELEASE_ROLE }}
   CI_GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 jobs:
-  unit_tests:
+  formatting:
     name: Formatting
     runs-on: ubuntu-latest
     steps:
@@ -18,3 +18,17 @@ jobs:
         run: ./checkfmt.sh
       - name: Check copyrights
         run: ./mill _.copyrightCheck
+  linting:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: coursier/cache-action@v6
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: ${{ vars.JAVA_VERSION }}
+      - name: Compile
+        run: ./mill _.compile
+      - name: Check dependency cycles
+        run: ./mill dependency-graph.run

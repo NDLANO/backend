@@ -26,11 +26,12 @@ import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.stubbing.OngoingStubbing
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val converterService = new ConverterService
+  override implicit lazy val converterService: ConverterService         = new ConverterService
+  override implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
 
   val today: NDLADate     = NDLADate.now()
   val yesterday: NDLADate = NDLADate.now().minusDays(1)
-  val service             = new WriteService()
+  val service             = new WriteService
   val conceptId           = 13L
   val userInfo: TokenUser = TokenUser.SystemUser
 
@@ -47,7 +48,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   def mockWithConcept(concept: Concept): OngoingStubbing[NDLADate] = {
     when(draftConceptRepository.withId(conceptId)).thenReturn(Option(concept))
-    when(draftConceptRepository.update(any[Concept])(any[DBSession]))
+    when(draftConceptRepository.update(any[Concept])(using any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgument[Concept](0)))
 
     when(contentValidator.validateConcept(any[Concept])).thenAnswer((invocation: InvocationOnMock) =>
@@ -66,13 +67,17 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("newConcept should insert a given Concept") {
-    when(draftConceptRepository.insert(any[Concept])(any[DBSession])).thenReturn(domainConcept)
+    when(draftConceptRepository.insert(any[Concept])(using any[DBSession])).thenReturn(domainConcept)
     when(contentValidator.validateConcept(any[Concept])).thenReturn(Success(domainConcept))
 
     service.newConcept(TestData.sampleNewConcept, userInfo).get.id.toString should equal(domainConcept.id.get.toString)
     verify(draftConceptRepository, times(1)).insert(any[Concept])
     verify(draftConceptIndexService, times(1)).indexDocument(any[Concept])
-    verify(searchApiClient, times(1)).indexDocument(any[String], any[Concept], any[Option[TokenUser]])(any, any, any)
+    verify(searchApiClient, times(1)).indexDocument(any[String], any[Concept], any[Option[TokenUser]])(using
+      any,
+      any,
+      any
+    )
   }
 
   test("That update function updates only content properly") {
@@ -230,7 +235,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     service.updateConcept(conceptId, updatedApiConcept, userInfo)
 
-    verify(draftConceptRepository).update(conceptCaptor.capture())(any[DBSession])
+    verify(draftConceptRepository).update(conceptCaptor.capture())(using any[DBSession])
 
     conceptCaptor.getValue.revision should be(Some(951))
     conceptCaptor.getValue.title should be(Seq(Title(updatedTitle, "en")))

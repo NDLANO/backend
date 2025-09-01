@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.validation
 
+import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.api as commonApi
 import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
@@ -24,14 +25,13 @@ import org.mockito.Mockito.when
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.RevisionMeta
 import no.ndla.learningpathapi.model.api.UpdatedLearningPathV2DTO
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import no.ndla.common.model.domain.learningpath.Introduction
 
 class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
-  var validator: LearningPathValidator = _
+  override implicit lazy val clock: Clock = new Clock
 
-  override lazy val clock = new SystemClock
+  var validator: LearningPathValidator = scala.compiletime.uninitialized
 
   override def beforeEach(): Unit = {
     validator = new LearningPathValidator
@@ -85,30 +85,17 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
       introduction = None
     )
 
-  private def validMock() = {
-    when(languageValidator.validate("description.language", "nb", false))
-      .thenReturn(None)
-    when(titleValidator.validate(ValidLearningPath.title, false))
-      .thenReturn(List())
-    when(languageValidator.validate("introduction.language", "nb", false)).thenReturn(None)
-    when(languageValidator.validate("tags.language", "nb", false))
-      .thenReturn(None)
-  }
-
   test("That valid learningpath returns no errors") {
-    validMock()
     validator.validateLearningPath(ValidLearningPath, allowUnknownLanguage = false) should equal(List())
   }
 
   test("That validate returns no error for no coverPhoto") {
-    validMock()
     validator.validateLearningPath(ValidLearningPath.copy(coverPhotoId = None), allowUnknownLanguage = false) should be(
       List()
     )
   }
 
   test("That validateCoverPhoto returns an error when metaUrl is pointing to some another api on ndla") {
-    validMock()
     val validationError =
       validator.validateCoverPhoto(s"http://api.ndla.no/h5p/1")
     validationError.size should be(1)
@@ -117,7 +104,6 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validateCoverPhoto returns an error when metaUrl is pointing to empty string") {
-    validMock()
     val validationError = validator.validateCoverPhoto("")
     validationError.size should be(1)
     validationError.head.field should equal("coverPhotoMetaUrl")
@@ -125,7 +111,6 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validateCoverPhoto returns an error when metaUrl is pointing to another Domain") {
-    validMock()
     val validationError =
       validator.validateCoverPhoto("http://api.vg.no/images/1")
     validationError.size should be(1)
@@ -136,7 +121,6 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   test(
     "That validate does not return error message when no descriptions are defined and no descriptions are required"
   ) {
-    validMock()
     new LearningPathValidator(descriptionRequired = false)
       .validateLearningPath(ValidLearningPath.copy(description = List()), allowUnknownLanguage = false) should equal(
       List()
@@ -144,7 +128,6 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate returns error message when description contains html") {
-    validMock()
     val validationErrors =
       validator.validateLearningPath(
         ValidLearningPath.copy(description = List(Description("<h1>Ugyldig</h1>", "nb"))),
@@ -172,7 +155,6 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate returns error message when description contains html even if description is not required") {
-    validMock()
     val validationErrors = new LearningPathValidator(descriptionRequired = false)
       .validateLearningPath(ValidLearningPath.copy(description = List(Description("<h1>Ugyldig</h1>", "nb"))), false)
     validationErrors.size should be(1)
@@ -217,7 +199,6 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate returns error for all invalid descriptions") {
-    validMock()
     val validationErrors = validator.validateLearningPath(
       ValidLearningPath.copy(
         description = List(
@@ -235,7 +216,6 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate returns error when duration less than 1") {
-    validMock()
     val validationError =
       validator.validateLearningPath(ValidLearningPath.copy(duration = Some(0)), false)
     validationError.size should be(1)
@@ -243,12 +223,10 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate accepts a learningpath without duration") {
-    validMock()
     validator.validateLearningPath(ValidLearningPath.copy(duration = None), false) should equal(List())
   }
 
   test("That validate returns error when tag contains html") {
-    validMock()
     val validationErrors = validator.validateLearningPath(
       ValidLearningPath.copy(tags = List(Tag(Seq("<strong>ugyldig</strong>"), "nb"))),
       false
@@ -296,7 +274,6 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate returns error for all invalid tags") {
-    validMock()
     val validationErrors = validator.validateLearningPath(
       ValidLearningPath.copy(
         tags = List(
@@ -311,7 +288,6 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate returns error when copyright.license is invalid") {
-    validMock()
     val invalidLicense   = "dummy license"
     val invalidCopyright =
       ValidLearningPath.copyright.copy(license = invalidLicense)
@@ -321,12 +297,10 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate returns no errors when license is valid") {
-    validMock()
     validator.validateLearningPath(ValidLearningPath, false).isEmpty should be(true)
   }
 
   test("That validate returns error when copyright.contributors contains html") {
-    validMock()
     val invalidCopyright =
       ValidLearningPath.copyright.copy(contributors = List(Author(ContributorType.Writer, "<h1>Gandalf</h1>")))
     val validationErrors = validator.validateLearningPath(ValidLearningPath.copy(copyright = invalidCopyright), false)
@@ -334,19 +308,16 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate returns no errors when copyright.contributors contains no html") {
-    validMock()
     validator.validateLearningPath(ValidLearningPath, false).isEmpty should be(true)
   }
 
   test("That revision validation does not kick in when learning path is created in My NDLA") {
-    validMock()
     validator
       .validateLearningPath(ValidLearningPath.copy(revisionMeta = Seq.empty, isMyNDLAOwner = true), false)
       .isEmpty should be(true)
   }
 
   test("That revision validation should fail if revisionMeta does not have unplanned revisions") {
-    validMock()
     val invalidLp = ValidLearningPath.copy(revisionMeta = Seq.empty)
     val res       = validator.validateLearningPath(invalidLp, false)
 
@@ -357,8 +328,6 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   test("That validate returns error when MyNDLA path supports multiple languages") {
     val learningPath =
       ValidLearningPath.copy(isMyNDLAOwner = true, title = ValidLearningPath.title :+ Title("Tittel", "nn"))
-    when(languageValidator.validate(any[String], any[String], any[Boolean])).thenReturn(None)
-    when(titleValidator.validate(any[Seq[Title]], any[Boolean])).thenReturn(Seq.empty)
     validator.validateLearningPath(learningPath, true) should be(
       Seq(
         ValidationMessage(
@@ -372,27 +341,24 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   test("That validate reurns error when MyNDLA path is updated with wrong language") {
     val updated  = UPDATED_PRIVATE_LEARNINGPATHV2.copy(title = Some("Tittel"), language = "nn")
     val existing = ValidLearningPath.copy(isMyNDLAOwner = true)
-    when(languageValidator.validate(eqTo("language"), eqTo(updated.language), any[Boolean])).thenReturn(None)
     validator.validateLearningPathUpdate(updated, existing) should be(
       Seq(ValidationMessage("language", "A learning path created in MyNDLA must have exactly one supported language."))
     )
   }
+
   test("That validate returns error when introduction.introduction does not contain valid html") {
-    validMock()
     val invalid = ValidLearningPath.copy(introduction = List(Introduction("Ugyldig introduksjon", "nb")))
     val errors  = validator.validateLearningPath(invalid, false)
     errors.size should be(1)
   }
 
   test("That validate returns error when introduction.introduction is not wrapped in a section tag") {
-    validMock()
     val invalid = ValidLearningPath.copy(introduction = List(Introduction("<p>Ugyldig introduksjon</p>", "nb")))
     val errors  = validator.validateLearningPath(invalid, false)
     errors.size should be(1)
   }
 
   test("That validate returns error when introduction.introduction contains several section tags") {
-    validMock()
     val invalid = ValidLearningPath.copy(introduction =
       List(Introduction("<section>Ugyldig introduksjon</section><section>hello</section>", "nb"))
     )
@@ -401,7 +367,6 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate returns error when introduction.introduction contains illegal html") {
-    validMock()
     val invalid =
       ValidLearningPath.copy(introduction = List(Introduction("<section><aside>Hallo</aside></section>", "nb")))
     val errors = validator.validateLearningPath(invalid, false)

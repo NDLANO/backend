@@ -14,7 +14,6 @@ import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 import sttp.tapir.Schema
-import sttp.tapir.SchemaType.SProduct
 import sttp.tapir.FieldName
 import sttp.tapir.SchemaType
 import no.ndla.common.DeriveHelpers

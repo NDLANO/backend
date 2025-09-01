@@ -21,88 +21,88 @@ import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageReposi
 
 import scala.util.{Failure, Success, Try}
 
-trait ReadService {
-  this: SubjectPageRepository & FrontPageRepository & FilmFrontPageRepository & ConverterService =>
-  lazy val readService: ReadService
+class ReadService(using
+    subjectPageRepository: SubjectPageRepository,
+    frontPageRepository: FrontPageRepository,
+    filmFrontPageRepository: FilmFrontPageRepository,
+    converterService: ConverterService
+) {
 
-  class ReadService {
+  private def validateSubjectPageIdsOrError(subjectIds: List[Long]): Try[List[Long]] = {
+    if (subjectIds.isEmpty) Failure(common.ValidationException("ids", "Query parameter 'ids' is missing"))
+    else Success(subjectIds)
+  }
 
-    private def validateSubjectPageIdsOrError(subjectIds: List[Long]): Try[List[Long]] = {
-      if (subjectIds.isEmpty) Failure(common.ValidationException("ids", "Query parameter 'ids' is missing"))
-      else Success(subjectIds)
+  def getIdFromExternalId(nid: String): Try[Option[SubjectPageIdDTO]] =
+    subjectPageRepository.getIdFromExternalId(nid) match {
+      case Success(Some(id)) => Success(Some(SubjectPageIdDTO(id)))
+      case Success(None)     => Success(None)
+      case Failure(ex)       => Failure(ex)
     }
 
-    def getIdFromExternalId(nid: String): Try[Option[SubjectPageIdDTO]] =
-      subjectPageRepository.getIdFromExternalId(nid) match {
-        case Success(Some(id)) => Success(Some(SubjectPageIdDTO(id)))
-        case Success(None)     => Success(None)
-        case Failure(ex)       => Failure(ex)
-      }
-
-    def domainSubjectPage(id: Long): Try[SubjectPage] = {
-      subjectPageRepository.withId(id) match {
-        case Failure(ex)            => Failure(ex)
-        case Success(Some(subject)) => Success(subject)
-        case Success(None)          => Failure(SubjectPageNotFoundException(id))
-      }
+  def domainSubjectPage(id: Long): Try[SubjectPage] = {
+    subjectPageRepository.withId(id) match {
+      case Failure(ex)            => Failure(ex)
+      case Success(Some(subject)) => Success(subject)
+      case Success(None)          => Failure(SubjectPageNotFoundException(id))
     }
+  }
 
-    def subjectPage(id: Long, language: String, fallback: Boolean): Try[SubjectPageDTO] = permitTry {
-      val maybeSubject = subjectPageRepository.withId(id).?
-      val converted    = maybeSubject.traverse(ConverterService.toApiSubjectPage(_, language, fallback)).?
-      converted.toTry(SubjectPageNotFoundException(id))
-    }
+  def subjectPage(id: Long, language: String, fallback: Boolean): Try[SubjectPageDTO] = permitTry {
+    val maybeSubject = subjectPageRepository.withId(id).?
+    val converted    = maybeSubject.traverse(converterService.toApiSubjectPage(_, language, fallback)).?
+    converted.toTry(SubjectPageNotFoundException(id))
+  }
 
-    def subjectPages(
-        page: Int,
-        pageSize: Int,
-        language: String,
-        fallback: Boolean
-    ): Try[List[SubjectPageDTO]] = permitTry {
-      val offset    = pageSize * (page - 1)
-      val data      = subjectPageRepository.all(offset, pageSize).?
-      val converted = data.map(ConverterService.toApiSubjectPage(_, language, fallback))
-      val filtered  = filterOutNotFoundExceptions(converted)
-      filtered.sequence
-    }
+  def subjectPages(
+      page: Int,
+      pageSize: Int,
+      language: String,
+      fallback: Boolean
+  ): Try[List[SubjectPageDTO]] = permitTry {
+    val offset    = pageSize * (page - 1)
+    val data      = subjectPageRepository.all(offset, pageSize).?
+    val converted = data.map(converterService.toApiSubjectPage(_, language, fallback))
+    val filtered  = filterOutNotFoundExceptions(converted)
+    filtered.sequence
+  }
 
-    private def filterOutNotFoundExceptions[T](exceptions: List[Try[T]]): List[Try[T]] = {
-      exceptions.filter {
-        case Failure(_: SubjectPageNotFoundException) => false
-        case Failure(_: LanguageNotFoundException)    => false
-        case _                                        => true
-      }
+  private def filterOutNotFoundExceptions[T](exceptions: List[Try[T]]): List[Try[T]] = {
+    exceptions.filter {
+      case Failure(_: SubjectPageNotFoundException) => false
+      case Failure(_: LanguageNotFoundException)    => false
+      case _                                        => true
     }
+  }
 
-    def getSubjectPageByIds(
-        subjectIds: List[Long],
-        language: String,
-        fallback: Boolean,
-        pageSize: Int,
-        page: Int
-    ): Try[List[SubjectPageDTO]] = {
-      val offset = (page - 1) * pageSize
-      for {
-        ids          <- validateSubjectPageIdsOrError(subjectIds)
-        subjectPages <- subjectPageRepository.withIds(ids, offset, pageSize)
-        api          <- subjectPages.traverse(subject => ConverterService.toApiSubjectPage(subject, language, fallback))
-      } yield api
-    }
+  def getSubjectPageByIds(
+      subjectIds: List[Long],
+      language: String,
+      fallback: Boolean,
+      pageSize: Int,
+      page: Int
+  ): Try[List[SubjectPageDTO]] = {
+    val offset = (page - 1) * pageSize
+    for {
+      ids          <- validateSubjectPageIdsOrError(subjectIds)
+      subjectPages <- subjectPageRepository.withIds(ids, offset, pageSize)
+      api          <- subjectPages.traverse(subject => converterService.toApiSubjectPage(subject, language, fallback))
+    } yield api
+  }
 
-    def getSubjectPageDomainDump(pageNo: Int, pageSize: Int): SubjectPageDomainDumpDTO = {
-      val results = subjectPageRepository.all(pageNo, pageSize).get
-      SubjectPageDomainDumpDTO(subjectPageRepository.totalCount, pageNo, pageSize, results)
-    }
+  def getSubjectPageDomainDump(pageNo: Int, pageSize: Int): SubjectPageDomainDumpDTO = {
+    val results = subjectPageRepository.all(pageNo, pageSize).get
+    SubjectPageDomainDumpDTO(subjectPageRepository.totalCount, pageNo, pageSize, results)
+  }
 
-    def getFrontPage: Try[FrontPageDTO] = {
-      frontPageRepository.getFrontPage.flatMap {
-        case None        => Failure(common.NotFoundException("Front page was not found"))
-        case Some(value) => Success(ConverterService.toApiFrontPage(value))
-      }
+  def getFrontPage: Try[FrontPageDTO] = {
+    frontPageRepository.getFrontPage.flatMap {
+      case None        => Failure(common.NotFoundException("Front page was not found"))
+      case Some(value) => Success(converterService.toApiFrontPage(value))
     }
+  }
 
-    def filmFrontPage(language: Option[String]): Option[api.FilmFrontPageDTO] = {
-      filmFrontPageRepository.get.map(page => ConverterService.toApiFilmFrontPage(page, language))
-    }
+  def filmFrontPage(language: Option[String]): Option[api.FilmFrontPageDTO] = {
+    filmFrontPageRepository.get.map(page => converterService.toApiFilmFrontPage(page, language))
   }
 }

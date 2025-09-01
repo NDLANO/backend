@@ -9,11 +9,13 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.model.api.search.SearchType
+import no.ndla.search.SearchLanguage
 import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 
 class SearchServiceTest extends UnitSuite with TestEnvironment {
 
-  override lazy val draftIndexService: DraftIndexService = new DraftIndexService {
+  override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
+  override lazy val draftIndexService: DraftIndexService    = new DraftIndexService {
     override val indexShards = 1
   }
   override lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
@@ -22,7 +24,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
 
   val service: SearchService = new SearchService {
     override val searchIndex = List(SearchType.Drafts, SearchType.LearningPaths).map(props.SearchIndex)
-    override val indexServices: List[IndexService[_]] = List(draftIndexService, learningPathIndexService)
+    override val indexServices: List[IndexService[?]] = List(draftIndexService, learningPathIndexService)
   }
 
 }

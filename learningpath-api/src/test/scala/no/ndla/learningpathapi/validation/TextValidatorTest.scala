@@ -11,8 +11,8 @@ package no.ndla.learningpathapi.validation
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class TextValidatorTest extends UnitSuite with TestEnvironment {
-  var allowedHtmlValidator: TextValidator = _
-  var noHtmlValidator: TextValidator      = _
+  var allowedHtmlValidator: TextValidator = scala.compiletime.uninitialized
+  var noHtmlValidator: TextValidator      = scala.compiletime.uninitialized
 
   override def beforeEach(): Unit = {
     allowedHtmlValidator = new TextValidator(allowHtml = true)

@@ -16,11 +16,13 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.mapping.License
+import no.ndla.search.SearchLanguage
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
-  override lazy val searchConverterService = new SearchConverterService
+  override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
+  override lazy val searchConverterService                  = new SearchConverterService
 
   val byNcSa: Copyright =
     Copyright(

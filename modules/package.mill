@@ -6,6 +6,8 @@ import mill.scalalib.*
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.util.Tasks
 import os.Path
+
+import java.security.MessageDigest
 import scala.util.{Failure, Success, Try}
 import scala.io.Source
 
@@ -50,4 +52,49 @@ trait BaseModule
     override def forkArgs: T[Seq[String]] = Task { super.forkArgs() ++ testJavaOptions() }
   }
 
+}
+
+object Yarn extends mill.Module {
+  def worker: Task.Worker[YarnWorker] = Task.Worker { new YarnWorker() }
+
+  class YarnWorker {
+    private val installedPaths = scala.collection.mutable.Map.empty[String, String]
+    private val digest         = MessageDigest.getInstance("SHA-256")
+
+    private def runCommand(cmd: String): Unit = {
+      println(s"Running command: $cmd")
+      import sys.process.*
+      val result = cmd.!
+      if (result != 0) {
+        throw new Exception(s"Failed to run command: $cmd")
+      }
+      println(s"Command executed successfully: $cmd")
+    }
+
+    private def runIfLockHashMismatch(path: String)(f: => Unit): Unit = {
+      val yarnLockPath = os.Path(path) / "yarn.lock"
+      if (!os.exists(yarnLockPath)) f
+      else {
+        val lockFile    = os.read.bytes(yarnLockPath)
+        val currentHash = digest.digest(lockFile).map("%02x".format(_)).mkString
+        if (installedPaths.get(path).contains(currentHash)) {
+          println(s"Yarn install skipped for $path, lock file hash matches: $currentHash")
+        } else {
+          f
+          installedPaths(path) = currentHash
+          println(s"Yarn install completed for $path, updated lock file hash.")
+        }
+      }
+    }
+
+    def yarnInstall(path: String): Unit = synchronized {
+      runIfLockHashMismatch(path) {
+        runCommand(s"yarn --cwd $path install")
+      }
+    }
+
+    def generateOpenapiTypescriptFile(typescriptPath: String, moduleName: String): Unit = {
+      runCommand(s"yarn --cwd ${typescriptPath} generate-typescript $moduleName")
+    }
+  }
 }

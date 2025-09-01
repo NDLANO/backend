@@ -15,8 +15,7 @@ import scalikejdbc.*
 
 import scala.util.Try
 
-trait DBSubjectPage {
-  this: Props =>
+class DBSubjectPage(using props: Props) {
 
   object DBSubjectPage extends SQLSyntaxSupport[SubjectPage] {
     override val tableName                  = "subjectpage"

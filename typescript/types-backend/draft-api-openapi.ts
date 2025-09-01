@@ -2807,6 +2807,14 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
             500: {
                 headers: {
                     [name: string]: unknown;

@@ -687,6 +687,8 @@ export type components = {
             priority: components["schemas"]["Priority"];
             /** @description A list of revisions planned for the learningpath */
             revisions: components["schemas"]["RevisionMetaDTO"][];
+            /** @description An introduction for the learningpath */
+            introduction: components["schemas"]["IntroductionDTO"];
         };
         /**
          * LearningStepContainerSummaryDTO
@@ -777,8 +779,13 @@ export type components = {
             showTitle: boolean;
             /** @description The type of the step */
             type: string;
-            /** @description Describes the copyright information for the learningstep */
+            /**
+             * @deprecated
+             * @description Describes the copyright information for the learningstep
+             */
             license?: components["schemas"]["LicenseDTO"];
+            /** @description Describes the copyright information for the learningstep */
+            copyright?: components["schemas"]["CopyrightDTO"];
             /** @description The full url to where the complete metainformation about the learningstep can be found */
             metaUrl: string;
             /** @description True if authenticated user may edit this learningstep */
@@ -824,6 +831,8 @@ export type components = {
         NewCopyLearningPathV2DTO: {
             /** @description The titles of the learningpath */
             title: string;
+            /** @description The introduction of the learningpath */
+            introduction?: string;
             /** @description The descriptions of the learningpath */
             description?: string;
             /** @description The chosen language */
@@ -869,6 +878,8 @@ export type components = {
             /** @description A list of all revisions of the learningpath */
             revisionMeta?: components["schemas"]["RevisionMetaDTO"][];
             priority?: components["schemas"]["Priority"];
+            /** @description An introduction */
+            introduction?: string;
         };
         /**
          * NewLearningStepV2DTO
@@ -896,8 +907,13 @@ export type components = {
             showTitle?: boolean;
             /** @description The type of the step */
             type: string;
-            /** @description Describes the copyright information for the learningstep */
+            /**
+             * @deprecated
+             * @description Describes the copyright information for the learningstep
+             */
             license?: string;
+            /** @description Describes the copyright information for the learningstep */
+            copyright?: components["schemas"]["CopyrightDTO"];
         };
         /**
          * NotFoundWithSupportedLanguages
@@ -1077,6 +1093,8 @@ export type components = {
             priority?: components["schemas"]["Priority"];
             /** @description A list of all revisions of the learningpath */
             revisionMeta?: components["schemas"]["RevisionMetaDTO"][];
+            /** @description An introduction */
+            introduction?: string;
         };
         /**
          * UpdatedLearningStepV2DTO
@@ -1107,8 +1125,13 @@ export type components = {
             showTitle?: boolean;
             /** @description The type of the step */
             type?: string;
-            /** @description Describes the copyright information for the learningstep */
+            /**
+             * @deprecated
+             * @description Describes the copyright information for the learningstep
+             */
             license?: string;
+            /** @description Describes the copyright information for the learningstep */
+            copyright?: components["schemas"]["CopyrightDTO"] | null;
         };
         /**
          * ValidationErrorBody

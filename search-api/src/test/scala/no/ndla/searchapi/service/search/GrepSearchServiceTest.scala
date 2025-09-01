@@ -11,21 +11,25 @@ package no.ndla.searchapi.service.search
 import cats.implicits.catsSyntaxOptionId
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.TestEnvironment
 import no.ndla.searchapi.controller.parameters.GrepSearchInputDTO
 import no.ndla.searchapi.model.api.grep.GrepSortDTO.{ByCodeAsc, ByCodeDesc}
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.grep.*
+import no.ndla.searchapi.service.ConverterService
 
 class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
+  override implicit lazy val e4sClient: NdlaE4sClient =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
-  override lazy val grepIndexService: GrepIndexService = new GrepIndexService {
+  override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
+  override implicit lazy val grepSearchService: GrepSearchService           = new GrepSearchService
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  override implicit lazy val grepIndexService: GrepIndexService             = new GrepIndexService {
     override val indexShards = 1
   }
-  override lazy val grepSearchService      = new GrepSearchService
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
@@ -72,7 +76,7 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
         ),
         `tilhoerer-laereplan` = BelongsToObj("LP2", GrepStatusDTO.Published, "Dette er LP2"),
         `tilhoerer-kompetansemaalsett` = BelongsToObj(
-          "KE200",
+          "KV200",
           GrepStatusDTO.Published,
           "Kompetansemaalsett"
         ),
@@ -207,7 +211,7 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
     result2.results.map(_.code) should be(List("KE12", "KE34"))
   }
 
-  test("That searching for a læreplan helps out") {
+  test("That searching for a læreplan or kompetansemaalsett helps out") {
     grepIndexService.indexDocuments(1.some, Some(grepTestBundle)).get
     blockUntil(() => grepIndexService.countDocuments == grepTestBundle.grepContext.size)
 
@@ -230,6 +234,16 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
       )
       .get
     result2.results.map(_.code) should be(List("KE12", "KE34"))
+
+    val result3 = grepSearchService
+      .searchGreps(
+        emptyInput.copy(
+          query = NonEmptyString.fromString("og KV200"),
+          prefixFilter = Some(List("KM"))
+        )
+      )
+      .get
+    result3.results.map(_.code) should be(List("KM123"))
 
   }
 

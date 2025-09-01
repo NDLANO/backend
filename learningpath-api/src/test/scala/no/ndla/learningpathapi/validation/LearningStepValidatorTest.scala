@@ -26,12 +26,11 @@ import no.ndla.common.model.domain.learningpath.{
 import no.ndla.common.model.domain.{Author, ContributorType, Priority, RevisionMeta, Tag, Title}
 import no.ndla.learningpathapi.*
 import no.ndla.mapping.License.PublicDomain
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 
 class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
-  var validator: LearningStepValidator = _
+  var validator: LearningStepValidator = scala.compiletime.uninitialized
 
   val license: String = PublicDomain.toString
   val today: NDLADate = clock.now()
@@ -86,19 +85,12 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     validator = new LearningStepValidator
     resetMocks()
   }
-  private def validMock() = {
-    when(languageValidator.validate("language", "nb", false)).thenReturn(None)
-    when(titleValidator.validate(ValidLearningStep.title, false))
-      .thenReturn(List())
-  }
 
   test("That a valid learningstep does not give an error") {
-    validMock()
     validator.validateLearningStep(ValidLearningStep, ValidLearningPath, false) should equal(List())
   }
 
   test("That validate returns error message when description contains illegal html") {
-    validMock()
     val validationErrors =
       validator.validateLearningStep(
         ValidLearningStep.copy(description = List(Description("<h1>Ugyldig</h1>", "nb"))),
@@ -141,7 +133,6 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate returns error for all invalid descriptions") {
-    validMock()
     val validationErrors = validator.validateLearningStep(
       ValidLearningStep.copy(
         description = List(
@@ -161,7 +152,6 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate returns error when embedUrl contains html") {
-    validMock()
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(embedUrl = List(EmbedUrl("<strong>ikke gyldig</strong>", "nb", EmbedType.OEmbed))),
       ValidLearningPath,
@@ -244,7 +234,6 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That html-code in license returns an error") {
-    validMock()
     val license            = "<strong>ugyldig</strong>"
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(copyright = Some(LearningpathCopyright(license, Seq.empty))),
@@ -256,14 +245,12 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That None-license doesn't give an error") {
-    validMock()
     validator.validateLearningStep(ValidLearningStep.copy(copyright = None), ValidLearningPath, false) should equal(
       List()
     )
   }
 
   test("That error is returned when no descriptions, embedUrls or articleId are defined") {
-    validMock()
     val validationErrors =
       validator.validateLearningStep(
         ValidLearningStep.copy(description = List(), embedUrl = Seq(), articleId = None),
@@ -278,22 +265,18 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That no error is returned when a description is present, but no embedUrls") {
-    validMock()
     validator.validateLearningStep(ValidLearningStep.copy(embedUrl = Seq()), ValidLearningPath, false) should equal(
       Seq()
     )
   }
 
   test("That no error is returned when an embedUrl is present, but no descriptions") {
-    validMock()
     validator.validateLearningStep(ValidLearningStep.copy(description = List()), ValidLearningPath, false) should equal(
       List()
     )
   }
 
   test("That error is returned if step in My NDLA path is created/updated with multiple languages") {
-    validMock()
-    when(titleValidator.validate(any[Seq[Title]], any[Boolean])).thenReturn(List())
     val newStep      = ValidLearningStep.copy(title = ValidLearningStep.title :+ Title("Tittel", "nn"))
     val learningPath = ValidLearningPath.copy(isMyNDLAOwner = true)
     validator.validateLearningStep(newStep, learningPath, false) should be(

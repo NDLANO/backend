@@ -17,28 +17,30 @@ import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableGrepCode
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
-trait GrepCodesIndexService {
-  this: SearchConverterService with IndexService with DraftRepository with Props =>
-  lazy val grepCodesIndexService: GrepCodesIndexService
+class GrepCodesIndexService(using
+    searchConverterService: SearchConverterService,
+    draftRepository: DraftRepository,
+    props: Props,
+    e4sClient: NdlaE4sClient,
+    searchLanguage: SearchLanguage
+) extends IndexService[Draft, SearchableGrepCode]
+    with StrictLogging {
+  override val documentType: String          = props.DraftGrepCodesSearchDocument
+  override val searchIndex: String           = props.DraftGrepCodesSearchIndex
+  override val repository: Repository[Draft] = draftRepository
 
-  class GrepCodesIndexService extends IndexService[Draft, SearchableGrepCode] with StrictLogging {
-    override val documentType: String          = props.DraftGrepCodesSearchDocument
-    override val searchIndex: String           = props.DraftGrepCodesSearchIndex
-    override val repository: Repository[Draft] = draftRepository
+  override def createIndexRequests(domainModel: Draft, indexName: String): Seq[IndexRequest] = {
+    val grepCodes = searchConverterService.asSearchableGrepCodes(domainModel)
 
-    override def createIndexRequests(domainModel: Draft, indexName: String): Seq[IndexRequest] = {
-      val grepCodes = searchConverterService.asSearchableGrepCodes(domainModel)
-
-      grepCodes.map(code => {
-        val source = CirceUtil.toJsonString(code)
-        indexInto(indexName).doc(source).id(code.grepCode)
-      })
-    }
-
-    def getMapping: MappingDefinition = {
-      properties(List(textField("grepCode")))
-    }
+    grepCodes.map(code => {
+      val source = CirceUtil.toJsonString(code)
+      indexInto(indexName).doc(source).id(code.grepCode)
+    })
   }
 
+  def getMapping: MappingDefinition = {
+    properties(List(textField("grepCode")))
+  }
 }

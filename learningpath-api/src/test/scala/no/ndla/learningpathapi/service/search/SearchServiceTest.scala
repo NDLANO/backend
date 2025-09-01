@@ -34,14 +34,18 @@ import org.mockito.Mockito.doReturn
 import scala.util.Success
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.RevisionMeta
+import no.ndla.learningpathapi.model.api.CopyrightDTO
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.get)
-  override lazy val searchConverterService: SearchConverterService = new SearchConverterService
-  override lazy val searchIndexService: SearchIndexService         = new SearchIndexService {
+  override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
+  override implicit lazy val e4sClient: NdlaE4sClient       = Elastic4sClientFactory.getClient(elasticSearchHost.get)
+  override implicit lazy val searchConverterService: SearchConverterServiceComponent =
+    new SearchConverterServiceComponent
+  override implicit lazy val searchIndexService: SearchIndexService = new SearchIndexService {
     override val indexShards: Int = 1 // 1 shard for accurate scoring in tests
   }
-  override lazy val searchService: SearchService = new SearchService
+  override implicit lazy val searchService: SearchService = new SearchService
 
   val paul: Author                     = Author(ContributorType.Writer, "Truly Weird Rand Paul")
   val license: String                  = License.PublicDomain.toString
@@ -105,6 +109,9 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       doReturn(commonApi.AuthorDTO(ContributorType.Writer, "En eier"), Nil*)
         .when(converterService)
         .asAuthor(any[NdlaUserName])
+
+      val copyright: CopyrightDTO = CopyrightDTO(commonApi.LicenseDTO(License.CC_BY_SA.toString, None, None), List())
+      doReturn(copyright).when(converterService).asApiCopyright(any)
 
       val yesterday  = NDLADate.now().minusDays(1)
       val tomorrow   = NDLADate.now().plusDays(1)
