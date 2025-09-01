@@ -10,7 +10,6 @@ package no.ndla.conceptapi.controller
 
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, FileTooBigException, NotFoundException, ValidationException}
-import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.{
   NotFoundException => OldNotFoundException,
   OptimisticLockException,
@@ -23,10 +22,9 @@ import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
 class ControllerErrorHandling(using
-    val props: Props,
-    val dataSource: DataSource,
-    val errorHelpers: ErrorHelpers,
-    val clock: Clock
+    dataSource: => DataSource,
+    errorHelpers: ErrorHelpers,
+    clock: Clock
 ) extends ErrorHandling {
   import errorHelpers.*
 

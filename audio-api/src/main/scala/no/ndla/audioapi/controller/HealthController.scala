@@ -14,7 +14,7 @@ import no.ndla.network.tapir.{ErrorHelpers, TapirHealthController}
 import no.ndla.network.clients.MyNDLAApiClient
 
 class HealthController(using
-    s3Client: NDLAS3Client,
+    s3Client: => NDLAS3Client,
     audioRepository: AudioRepository,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,

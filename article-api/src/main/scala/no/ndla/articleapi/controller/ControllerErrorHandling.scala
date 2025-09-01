@@ -16,7 +16,7 @@ import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHandling, ErrorHelpers,
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 
-class ControllerErrorHandling(using dataSource: DataSource, errorHelpers: ErrorHelpers, clock: Clock)
+class ControllerErrorHandling(using dataSource: => DataSource, errorHelpers: ErrorHelpers, clock: Clock)
     extends ErrorHandling {
   import errorHelpers.*
 

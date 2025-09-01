@@ -20,7 +20,7 @@ import no.ndla.common.errors.OperationNotAllowedException
 import no.ndla.learningpathapi.model.api.ResultWindowTooLargeException
 
 class ControllerErrorHandling(using
-    dataSource: DataSource,
+    dataSource: => DataSource,
     errorHelpers: ErrorHelpers
 ) extends ErrorHandling {
   import errorHelpers.*
