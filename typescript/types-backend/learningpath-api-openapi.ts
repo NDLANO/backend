@@ -796,6 +796,10 @@ export type components = {
             canEdit: boolean;
             /** @description The status of the learningstep */
             status: string;
+            /** @description The date when this learningstep was created. */
+            created: string;
+            /** @description The date when this learningstep was last updated. */
+            lastUpdated: string;
             /** @description The supported languages of the learningstep */
             supportedLanguages: string[];
         };
