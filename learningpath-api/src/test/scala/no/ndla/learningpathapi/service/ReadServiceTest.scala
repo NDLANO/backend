@@ -66,7 +66,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default
+    revisionMeta = RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val PRIVATE_LEARNINGPATH: LearningPath = LearningPath(
@@ -90,7 +91,8 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default
+    revisionMeta = RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val STEP1: LearningStep = LearningStep(

@@ -69,7 +69,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     comments = Seq.empty,
     priority = Priority.Unspecified,
     revisions = Seq.empty,
-    introduction = api.IntroductionDTO("<section><p>Introduksjon</p></section>", "nb")
+    introduction = api.IntroductionDTO("<section><p>Introduksjon</p></section>", "nb"),
+    Seq.empty
   )
 
   val domainLearningStep: LearningStep = LearningStep(
@@ -154,7 +155,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = revisionMeta
+    revisionMeta = revisionMeta,
+    grepCodes = Seq.empty
   )
 
   override def beforeEach(): Unit = {
@@ -197,7 +199,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         Seq.empty,
         Priority.Unspecified,
         revisionMeta.map(commonConverter.revisionMetaDomainToApi),
-        api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage)
+        api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
+        Seq.empty
       )
     )
     service.asApiLearningpathV2(
@@ -255,7 +258,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         Seq.empty,
         Priority.Unspecified,
         revisionMeta.map(commonConverter.revisionMetaDomainToApi),
-        api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage)
+        api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
+        Seq.empty
       )
     )
     service.asApiLearningpathV2(
@@ -291,7 +295,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         ),
         List("nb", "en"),
         None,
-        None
+        None,
+        Seq.empty
       )
     )
     service.asApiLearningpathSummaryV2(
@@ -571,7 +576,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         None,
         None,
-        Some("<section><p>Introduksjon</p></section>")
+        Some("<section><p>Introduksjon</p></section>"),
+        None
       )
 
     service

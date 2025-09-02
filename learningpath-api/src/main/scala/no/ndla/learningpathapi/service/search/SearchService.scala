@@ -110,7 +110,8 @@ class SearchService(using
         LearningPathStatus.PUBLISHED,
         LearningPathStatus.SUBMITTED,
         LearningPathStatus.UNLISTED
-      )
+      ),
+      grepCodes = List.empty
     )
 
     executeSearch(boolQuery(), settings).map(_.results)
@@ -179,6 +180,9 @@ class SearchService(using
 
     val verificationStatusFilter = settings.verificationStatus.map(status => termQuery("verificationStatus", status))
 
+    val grepCodesFilter =
+      if (settings.grepCodes.nonEmpty) Some(constantScoreQuery(termsQuery("grepCodes", settings.grepCodes))) else None
+
     val statusFilter = getStatusFilter(settings)
 
     val filters = List(
@@ -187,7 +191,8 @@ class SearchService(using
       articlesFilter,
       languageFilter,
       verificationStatusFilter,
-      statusFilter
+      statusFilter,
+      grepCodesFilter
     )
 
     val filteredSearch = queryBuilder.filter(filters.flatten)

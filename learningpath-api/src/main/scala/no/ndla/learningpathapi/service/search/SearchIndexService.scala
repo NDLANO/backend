@@ -136,6 +136,7 @@ class SearchIndexService(using
       dateField("lastUpdated"),
       keywordField("defaultTitle"),
       textField("author"),
+      keywordField("grepCodes"),
       nestedField("learningsteps").fields(
         textField("stepType"),
         keywordField("embedUrl"),
@@ -162,7 +163,8 @@ class SearchIndexService(using
       intField("isBasedOn")
     )
     val dynamics = generateLanguageSupportedFieldList("titles", keepRaw = true) ++
-      generateLanguageSupportedFieldList("introductions") ++ generateLanguageSupportedFieldList("descriptions") ++
+      generateLanguageSupportedFieldList("introductions") ++
+      generateLanguageSupportedFieldList("descriptions") ++
       generateLanguageSupportedFieldList("tags", keepRaw = true)
 
     properties(fields ++ dynamics)

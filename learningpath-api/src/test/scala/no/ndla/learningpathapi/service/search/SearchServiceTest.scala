@@ -73,7 +73,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default
+    revisionMeta = RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(
@@ -141,7 +142,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         created = yesterday,
         lastUpdated = yesterday,
         tags = List(Tag(Seq("superhelt", "kanikkefly"), "nb")),
-        learningsteps = Some(List(activeStep))
+        learningsteps = Some(List(activeStep)),
+        grepCodes = Seq("KM123", "KM456")
       )
 
       val batman = DefaultLearningPath.copy(
@@ -152,7 +154,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         created = yesterday,
         lastUpdated = today,
         tags = List(Tag(Seq("superhelt", "kanfly"), "nb")),
-        learningsteps = Some(List(activeStep, deletedStep))
+        learningsteps = Some(List(activeStep, deletedStep)),
+        grepCodes = Seq("KM456", "KM789")
       )
 
       val theDuck = DefaultLearningPath.copy(
@@ -164,7 +167,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         lastUpdated = tomorrow,
         tags = List(Tag(Seq("disney", "kanfly"), "nb")),
         learningsteps = Some(List(deletedStep)),
-        verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA
+        verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
+        grepCodes = Seq("KM123", "KM456", "KM789")
       )
 
       val unrelated = DefaultLearningPath.copy(
@@ -174,7 +178,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         duration = Some(4),
         created = yesterday,
         lastUpdated = tomorrowp1,
-        tags = List()
+        tags = List(),
+        grepCodes = Seq("KM111", "KM222")
       )
 
       val englando = DefaultLearningPath.copy(
@@ -184,7 +189,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         duration = Some(5),
         created = yesterday,
         lastUpdated = tomorrowp2,
-        tags = List()
+        tags = List(),
+        grepCodes = Seq("KM333", "KM444")
       )
 
       val brumle = DefaultLearningPath.copy(
@@ -195,7 +201,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         created = yesterday,
         lastUpdated = tomorrowp2,
         tags = List(),
-        status = LearningPathStatus.UNLISTED
+        status = LearningPathStatus.UNLISTED,
+        grepCodes = Seq("KM123", "KM456")
       )
 
       searchIndexService.indexDocument(thePenguin).get
@@ -795,6 +802,19 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     ): @unchecked
 
     searchResult2.totalCount should be(0)
+  }
+
+  test("That searching for grep codes works as expected") {
+    val Success(searchResult) = searchService.matchingQuery(
+      searchSettings.copy(
+        sort = Sort.ByIdAsc,
+        language = Some(Language.AllLanguages),
+        grepCodes = List("KM123", "KM456")
+      )
+    ): @unchecked
+
+    searchResult.totalCount should be(3)
+    searchResult.results.map(_.id) should be(Seq(1, 2, 3))
   }
 
 }

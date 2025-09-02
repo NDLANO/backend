@@ -42,7 +42,8 @@ case class LearningPath(
     comments: Seq[Comment],
     priority: Priority,
     revisionMeta: Seq[RevisionMeta],
-    introduction: Seq[Introduction]
+    introduction: Seq[Introduction],
+    grepCodes: Seq[String]
 ) extends Content {
 
   def supportedLanguages: Seq[String] = {

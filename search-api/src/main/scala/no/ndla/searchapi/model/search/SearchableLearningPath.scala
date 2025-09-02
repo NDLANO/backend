@@ -45,7 +45,8 @@ case class SearchableLearningPath(
     typeName: List[String],
     priority: Priority,
     revisionMeta: List[RevisionMeta],
-    nextRevision: Option[RevisionMeta]
+    nextRevision: Option[RevisionMeta],
+    grepCodes: List[String]
 )
 
 object SearchableLearningPath {
