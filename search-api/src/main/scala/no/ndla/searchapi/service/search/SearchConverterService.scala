@@ -237,7 +237,7 @@ class SearchConverterService(using
   private def toPlaintext(text: String): String              = Jsoup.parseBodyFragment(text).text()
   private def toPlaintext(lv: LanguageField[String]): String = toPlaintext(lv.value)
 
-  def getTypeNames(learningResourceType: LearningResourceType): List[String] = {
+  private def getTypeNames(learningResourceType: LearningResourceType): List[String] = {
     learningResourceType match {
       case LearningResourceType.Article =>
         List("article", "artikkel")
@@ -399,8 +399,42 @@ class SearchConverterService(using
       )
       val contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
 
+      val parentTopicName = SearchableLanguageValues(
+        taxonomyContexts
+          .getOrElse(List.empty)
+          .headOption
+          .map(context => {
+            context.breadcrumbs
+              .map(breadcrumbsLanguageValue =>
+                breadcrumbsLanguageValue.value.lastOption
+                  .map(LanguageValue(breadcrumbsLanguageValue.language, _))
+              )
+              .flatten
+          })
+          .getOrElse(Seq.empty)
+      )
+
+      val primaryContext =
+        taxonomyContexts.getOrElse(List.empty).find(tc => tc.isPrimary && tc.rootId.startsWith("urn:subject:"))
+      val primaryRoot              = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
+      val sortableResourceTypeName = primaryContext
+        .flatMap(context => {
+          val typeNames = context.resourceTypes.map(resourceType => resourceType.name)
+          Option.when(typeNames.nonEmpty) {
+            SearchableLanguageValues.combine(typeNames)
+          }
+        })
+        .getOrElse(
+          SearchableLanguageValues.from(
+            "nb" -> "Læringssti",
+            "nn" -> "Læringssti",
+            "en" -> "Learning path"
+          )
+        )
+
       Success(
         SearchableLearningPath(
+          domainObject = lp,
           id = lp.id.get,
           title = model.SearchableLanguageValues(lp.title.map(t => LanguageValue(t.language, t.title))),
           content = model.SearchableLanguageValues(
@@ -434,6 +468,12 @@ class SearchConverterService(using
           learningResourceType = LearningResourceType.LearningPath,
           typeName = getTypeNames(LearningResourceType.LearningPath),
           priority = lp.priority,
+          defaultParentTopicName = parentTopicName.defaultValue,
+          parentTopicName = parentTopicName,
+          defaultRoot = primaryRoot.defaultValue,
+          primaryRoot = primaryRoot,
+          resourceTypeName = sortableResourceTypeName,
+          defaultResourceTypeName = sortableResourceTypeName.defaultValue,
           revisionMeta = lp.revisionMeta.toList,
           nextRevision = lp.revisionMeta.getNextRevision,
           grepCodes = lp.grepCodes.toList,
@@ -918,6 +958,10 @@ class SearchConverterService(using
     val metaDescription = findByLanguageOrBestEffort(metaDescriptions, language).getOrElse(
       common.model.api.search.MetaDescriptionDTO("", UnknownLanguage.toString)
     )
+    val comments =
+      searchableLearningPath.domainObject.comments.map(c =>
+        CommentDTO(c.id.toString, c.content, c.created, c.updated, c.isOpen, c.solved)
+      )
     val url       = s"${props.ExternalApiUrls("learningpath-api")}/${searchableLearningPath.id}"
     val metaImage =
       searchableLearningPath.coverPhotoId.map(id =>
@@ -927,6 +971,10 @@ class SearchConverterService(using
           language = language
         )
       )
+
+    val resourceTypeName = searchableLearningPath.resourceTypeName.getLanguageOrDefault(language)
+    val parentTopicName  = searchableLearningPath.parentTopicName.getLanguageOrDefault(language)
+    val primaryRootName  = searchableLearningPath.primaryRoot.getLanguageOrDefault(language)
 
     Success(
       MultiSearchSummaryDTO(
@@ -948,11 +996,11 @@ class SearchConverterService(using
         license = Some(searchableLearningPath.license),
         revisions = Seq.empty,
         responsible = None,
-        comments = None,
-        priority = None,
-        resourceTypeName = None,
-        parentTopicName = None,
-        primaryRootName = None,
+        comments = Some(comments),
+        priority = Some(searchableLearningPath.priority),
+        resourceTypeName = resourceTypeName,
+        parentTopicName = parentTopicName,
+        primaryRootName = primaryRootName,
         published = None,
         favorited = Some(searchableLearningPath.favorited),
         resultType = SearchType.LearningPaths

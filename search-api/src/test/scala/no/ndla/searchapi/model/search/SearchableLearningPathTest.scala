@@ -54,6 +54,7 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
     )
 
     val original = SearchableLearningPath(
+      domainObject = TestData.DefaultLearningPath.copy(id = Some(101), isBasedOn = Some(1001)),
       id = 101,
       title = titles,
       content = SearchableLanguageValues(Seq.empty),
@@ -83,6 +84,12 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       learningResourceType = LearningResourceType.LearningPath,
       typeName = List.empty,
       priority = Priority.Unspecified,
+      defaultParentTopicName = titles.defaultValue,
+      parentTopicName = titles,
+      defaultRoot = titles.defaultValue,
+      primaryRoot = titles,
+      resourceTypeName = titles,
+      defaultResourceTypeName = titles.defaultValue,
       revisionMeta = RevisionMeta.default.toList,
       nextRevision = RevisionMeta.default.getNextRevision,
       grepCodes = List("grep1", "grep2"),

@@ -57,6 +57,7 @@ class LearningPathIndexService(using
 
   def getMapping: MappingDefinition = {
     val fields = List(
+      ObjectField("domainObject", enabled = Some(false)),
       intField("id"),
       textField("coverPhotoId"),
       intField("duration"),
@@ -118,7 +119,10 @@ class LearningPathIndexService(using
       dateField(
         "nextRevision.revisionDate"
       ),
-      keywordField("priority")
+      keywordField("priority"),
+      keywordField("defaultParentTopicName"),
+      keywordField("defaultRoot"),
+      keywordField("defaultResourceTypeName")
     )
     val dynamics =
       languageValuesMapping("title", keepRaw = true) ++
@@ -127,7 +131,10 @@ class LearningPathIndexService(using
         languageValuesMapping("tags", keepRaw = true) ++
         languageValuesMapping("relevance") ++
         languageValuesMapping("breadcrumbs") ++
-        languageValuesMapping("name", keepRaw = true)
+        languageValuesMapping("name", keepRaw = true) ++
+        languageValuesMapping("parentTopicName", keepRaw = true) ++
+        languageValuesMapping("resourceTypeName", keepRaw = true) ++
+        languageValuesMapping("primaryRoot", keepRaw = true)
 
     properties(fields ++ dynamics)
   }
