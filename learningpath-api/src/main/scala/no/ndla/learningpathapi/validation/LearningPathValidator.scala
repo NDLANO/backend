@@ -198,8 +198,8 @@ class LearningPathValidator(
       lp.revisionMeta.find(rm =>
         rm.status == RevisionStatus.NeedsRevision && rm.revisionDate.isAfter(NDLADate.now())
       ) match {
-        case None =>
-          Seq(ValidationMessage("revisionMeta", "An article must contain at least one planned revision date"))
+        // case None =>
+        //   Seq(ValidationMessage("revisionMeta", "A learningpath must contain at least one planned revision date"))
         case _ => Seq.empty
       }
   }

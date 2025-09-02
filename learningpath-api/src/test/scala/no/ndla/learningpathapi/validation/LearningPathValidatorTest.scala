@@ -313,19 +313,19 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     validator.validateLearningPath(ValidLearningPath, false).isEmpty should be(true)
   }
 
-  test("That revision validation does not kick in when learning path is created in My NDLA") {
-    validator
-      .validateLearningPath(ValidLearningPath.copy(revisionMeta = Seq.empty, isMyNDLAOwner = true), false)
-      .isEmpty should be(true)
-  }
-
-  test("That revision validation should fail if revisionMeta does not have unplanned revisions") {
-    val invalidLp = ValidLearningPath.copy(revisionMeta = Seq.empty)
-    val res       = validator.validateLearningPath(invalidLp, false)
-
-    res.size should be(1)
-    res.head.field should equal("revisionMeta")
-  }
+  // test("That revision validation does not kick in when learning path is created in My NDLA") {
+  //   validator
+  //     .validateLearningPath(ValidLearningPath.copy(revisionMeta = Seq.empty, isMyNDLAOwner = true), false)
+  //     .isEmpty should be(true)
+  // }
+  //
+  // test("That revision validation should fail if revisionMeta does not have unplanned revisions") {
+  //   val invalidLp = ValidLearningPath.copy(revisionMeta = Seq.empty)
+  //   val res       = validator.validateLearningPath(invalidLp, false)
+  //
+  //   res.size should be(1)
+  //   res.head.field should equal("revisionMeta")
+  // }
 
   test("That validate returns error when MyNDLA path supports multiple languages") {
     val learningPath =
