@@ -10,8 +10,9 @@ package no.ndla.learningpathapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.LicenseDTO
-import sttp.tapir.Schema.annotations.{description, deprecated}
+import sttp.tapir.Schema.annotations.{deprecated, description}
 
 @description("Information about a learningstep")
 case class LearningStepV2DTO(
@@ -46,6 +47,10 @@ case class LearningStepV2DTO(
     canEdit: Boolean,
     @description("The status of the learningstep")
     status: String,
+    @description("The date when this learningstep was created.")
+    created: NDLADate,
+    @description("The date when this learningstep was last updated.")
+    lastUpdated: NDLADate,
     @description("The supported languages of the learningstep")
     supportedLanguages: Seq[String]
 )

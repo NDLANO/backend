@@ -75,7 +75,9 @@ class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with Un
                 contributors = Seq.empty
               )
             ),
-            status = StepStatus.ACTIVE
+            status = StepStatus.ACTIVE,
+            created = NDLADate.now(),
+            lastUpdated = NDLADate.now()
           )
         )
       ),
