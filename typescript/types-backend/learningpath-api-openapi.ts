@@ -603,6 +603,8 @@ export type components = {
             isBasedOn?: number;
             /** @description Message that admins can place on a LearningPath for notifying a owner of issues with the LearningPath */
             message?: string;
+            /** @description The codes from GREP API registered for this draft article */
+            grepCodes: string[];
         };
         /**
          * LearningPathTagsDTO
@@ -689,6 +691,8 @@ export type components = {
             revisions: components["schemas"]["RevisionMetaDTO"][];
             /** @description An introduction for the learningpath */
             introduction: components["schemas"]["IntroductionDTO"];
+            /** @description A list of codes from GREP API connected to the article */
+            grepCodes: string[];
         };
         /**
          * LearningStepContainerSummaryDTO
@@ -880,6 +884,8 @@ export type components = {
             priority?: components["schemas"]["Priority"];
             /** @description An introduction */
             introduction?: string;
+            /** @description A list of codes from GREP API connected to the article */
+            grepCodes?: string[];
         };
         /**
          * NewLearningStepV2DTO
@@ -1095,6 +1101,8 @@ export type components = {
             revisionMeta?: components["schemas"]["RevisionMetaDTO"][];
             /** @description An introduction */
             introduction?: string;
+            /** @description A list of codes from GREP API connected to the article */
+            grepCodes?: string[];
         };
         /**
          * UpdatedLearningStepV2DTO
