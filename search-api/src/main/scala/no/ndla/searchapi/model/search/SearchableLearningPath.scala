@@ -45,6 +45,7 @@ case class SearchableLearningPath(
     priority: Priority,
     revisionMeta: List[RevisionMeta],
     nextRevision: Option[RevisionMeta],
+    grepCodes: List[String],
     responsible: Option[Responsible]
 )
 

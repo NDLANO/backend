@@ -8,11 +8,9 @@
 
 package no.ndla.draftapi.db.migrationwithdependencies
 
-import no.ndla.draftapi.{DraftApiProperties, Props}
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
 
-class R__SetArticleLanguageFromTaxonomy(properties: DraftApiProperties) extends BaseJavaMigration with Props {
-  override lazy val props: DraftApiProperties  = properties
+class R__SetArticleLanguageFromTaxonomy extends BaseJavaMigration {
   override def getChecksum: Integer            = 1
   override def migrate(context: Context): Unit = {}
 }

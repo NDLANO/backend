@@ -8,7 +8,6 @@
 
 package no.ndla.scalatestsuite
 
-import no.ndla.common.configuration.HasBaseProps
 import org.mockito.Mockito.when
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.elasticsearch.ElasticsearchContainer
@@ -19,7 +18,6 @@ import scala.util.{Failure, Success, Try}
 import sys.env
 
 trait ElasticsearchIntegrationSuite extends UnitTestSuite with ContainerSuite {
-  this: HasBaseProps =>
   val EnableElasticsearchContainer: Boolean = true
   val ElasticsearchImage: String            = "c3f7a34" // elasticsearch 8.18.1
 

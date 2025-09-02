@@ -16,33 +16,34 @@ import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.imageapi.repository.{ImageRepository, Repository}
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
-trait TagIndexService {
-  this: SearchConverterService & IndexService & ImageRepository & Props =>
-  lazy val tagIndexService: TagIndexService
+class TagIndexService(using
+    searchConverterService: SearchConverterService,
+    e4sClient: NdlaE4sClient,
+    imageRepository: ImageRepository,
+    searchLanguage: SearchLanguage,
+    props: Props
+) extends IndexService {
+  override val documentType: String                         = props.TagSearchDocument
+  override val searchIndex: String                          = props.TagSearchIndex
+  override val repository: Repository[ImageMetaInformation] = imageRepository
 
-  class TagIndexService extends IndexService {
-    override val documentType: String                         = props.TagSearchDocument
-    override val searchIndex: String                          = props.TagSearchIndex
-    override val repository: Repository[ImageMetaInformation] = imageRepository
+  override def createIndexRequests(domainModel: ImageMetaInformation, indexName: String): Seq[IndexRequest] = {
+    val tags = searchConverterService.asSearchableTags(domainModel)
 
-    override def createIndexRequests(domainModel: ImageMetaInformation, indexName: String): Seq[IndexRequest] = {
-      val tags = searchConverterService.asSearchableTags(domainModel)
-
-      tags.map(t => {
-        val source = CirceUtil.toJsonString(t)
-        indexInto(indexName).doc(source).id(s"${t.language}.${t.tag}")
-      })
-    }
-
-    def getMapping: MappingDefinition = {
-      properties(
-        List(
-          textField("tag").fields(keywordField("raw")),
-          keywordField("language")
-        )
-      )
-    }
+    tags.map(t => {
+      val source = CirceUtil.toJsonString(t)
+      indexInto(indexName).doc(source).id(s"${t.language}.${t.tag}")
+    })
   }
 
+  def getMapping: MappingDefinition = {
+    properties(
+      List(
+        textField("tag").fields(keywordField("raw")),
+        keywordField("language")
+      )
+    )
+  }
 }

@@ -43,8 +43,9 @@ class Memoize[R](maxCacheAgeMs: Long, f: () => R, autoRefreshCache: Boolean) ext
 
 }
 
-trait MemoizeHelpers {
-  this: Props =>
+class MemoizeHelpers(using
+    props: Props
+) {
 
   object Memoize {
     def apply[R](f: () => R) = new Memoize(props.ApiClientsCacheAgeInMs, f, autoRefreshCache = false)

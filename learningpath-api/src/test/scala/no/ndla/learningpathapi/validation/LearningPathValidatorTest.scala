@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.validation
 
+import no.ndla.common.Clock
 import no.ndla.common.errors.ValidationMessage
 import no.ndla.common.model.api as commonApi
 import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
@@ -28,9 +29,9 @@ import no.ndla.common.model.domain.learningpath.Introduction
 
 class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
 
-  var validator: LearningPathValidator = _
+  override implicit lazy val clock: Clock = new Clock
 
-  override lazy val clock = new SystemClock
+  var validator: LearningPathValidator = scala.compiletime.uninitialized
 
   override def beforeEach(): Unit = {
     validator = new LearningPathValidator
@@ -63,7 +64,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default
+    revisionMeta = RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val UPDATED_PRIVATE_LEARNINGPATHV2: UpdatedLearningPathV2DTO =
@@ -81,7 +83,8 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
       comments = None,
       priority = None,
       revisionMeta = None,
-      introduction = None
+      introduction = None,
+      grepCodes = None
     )
 
   test("That valid learningpath returns no errors") {

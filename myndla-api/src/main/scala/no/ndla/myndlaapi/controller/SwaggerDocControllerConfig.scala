@@ -10,20 +10,16 @@ package no.ndla.myndlaapi.controller
 
 import no.ndla.myndlaapi.Props
 import no.ndla.network.tapir.auth.Permission
-import no.ndla.network.tapir.{SwaggerControllerConfig, SwaggerInfo}
+import no.ndla.network.tapir.SwaggerInfo
 import sttp.tapir.*
 
-trait SwaggerDocControllerConfig {
-  this: Props & SwaggerControllerConfig =>
+object SwaggerDocControllerConfig {
+  private val scopes = Permission.toSwaggerMap(List.empty)
 
-  object SwaggerDocControllerConfig {
-    private val scopes = Permission.toSwaggerMap(List.empty)
-
-    val swaggerInfo: SwaggerInfo = SwaggerInfo(
-      mountPoint = "myndla-api" / "api-docs",
-      description = "NDLA API to manage users and groups related to MyNDLA",
-      authUrl = props.Auth0LoginEndpoint,
-      scopes = scopes
-    )
-  }
+  def swaggerInfo(using props: Props): SwaggerInfo = SwaggerInfo(
+    mountPoint = "myndla-api" / "api-docs",
+    description = "NDLA API to manage users and groups related to MyNDLA",
+    authUrl = props.Auth0LoginEndpoint,
+    scopes = scopes
+  )
 }

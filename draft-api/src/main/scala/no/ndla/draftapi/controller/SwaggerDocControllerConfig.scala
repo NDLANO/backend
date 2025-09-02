@@ -8,18 +8,16 @@
 
 package no.ndla.draftapi.controller
 
-import no.ndla.draftapi.Props
+import no.ndla.draftapi.DraftApiProperties
 import no.ndla.network.tapir.auth.Permission
-import no.ndla.network.tapir.{SwaggerControllerConfig, SwaggerInfo}
+import no.ndla.network.tapir.SwaggerInfo
 import sttp.tapir.*
 
-trait SwaggerDocControllerConfig {
-  this: Props & SwaggerControllerConfig =>
+object SwaggerDocControllerConfig {
+  def swaggerInfo(using props: DraftApiProperties): SwaggerInfo = {
+    val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("drafts"))
 
-  object SwaggerDocControllerConfig {
-    private val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("drafts"))
-
-    val swaggerInfo: SwaggerInfo = SwaggerInfo(
+    SwaggerInfo(
       mountPoint = "draft-api" / "api-docs",
       description = "Services for accessing draft articles, draft and agreements.",
       authUrl = props.Auth0LoginEndpoint,

@@ -29,7 +29,7 @@ import org.mockito.Mockito.when
 
 class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
-  var validator: LearningStepValidator = _
+  var validator: LearningStepValidator = scala.compiletime.uninitialized
 
   val license = PublicDomain.toString
 
@@ -74,7 +74,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default
+    revisionMeta = RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   override def beforeEach(): Unit = {

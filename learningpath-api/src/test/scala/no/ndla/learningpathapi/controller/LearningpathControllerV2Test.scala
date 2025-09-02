@@ -8,7 +8,7 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.integration.Node
@@ -19,6 +19,7 @@ import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
 import no.ndla.mapping.License.getLicenses
 import no.ndla.network.model.CombinedUser
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -27,7 +28,12 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: LearningpathControllerV2 = new LearningpathControllerV2
+  override implicit lazy val clock: Clock                    = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
+  override implicit lazy val routes: Routes                  = new Routes
+  val controller: LearningpathControllerV2                   = new LearningpathControllerV2
+  override implicit lazy val services: List[TapirController] = List(controller)
 
   override def beforeEach(): Unit = {
     resetMocks()
@@ -54,7 +60,8 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
     copyright,
     List("nb"),
     None,
-    None
+    None,
+    Seq.empty
   )
 
   test("That GET / will send all query-params to the search service") {

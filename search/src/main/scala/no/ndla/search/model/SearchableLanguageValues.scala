@@ -10,8 +10,8 @@ package no.ndla.search.model
 
 import io.circe.{Decoder, Encoder, FailedCursor}
 import io.circe.syntax.*
+import no.ndla.language.Language
 import no.ndla.language.model.LanguageField
-import no.ndla.mapping.ISO639
 
 case class LanguageValue[T](language: String, value: T) extends LanguageField[T] {
   def isEmpty: Boolean = language.isEmpty
@@ -27,10 +27,7 @@ case class SearchableLanguageValues(languageValues: Seq[LanguageValue[String]]) 
     getLanguage(language).orElse(defaultValue)
 
   def defaultValue: Option[String] =
-    languageValues
-      .sortBy(lv => ISO639.languagePriority.reverse.indexOf(lv.language))
-      .lastOption
-      .map(_.value)
+    Language.getDefault(languageValues).map(_.value)
 }
 
 object SearchableLanguageValues {

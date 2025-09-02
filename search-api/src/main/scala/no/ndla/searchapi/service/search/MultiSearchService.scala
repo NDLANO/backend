@@ -25,312 +25,315 @@ import no.ndla.language.model.Iso639
 import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregationsFromResult}
-import no.ndla.search.{BaseIndexService, Elastic4sClient}
+import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.ErrorHandling
 import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.settings.SearchSettings
 import no.ndla.searchapi.model.taxonomy.NodeType
 
 import scala.util.{Failure, Success, Try}
 
-trait MultiSearchService {
-  this: Elastic4sClient & SearchConverterService & SearchService & IndexService & ArticleIndexService &
-    LearningPathIndexService & Props & ErrorHandling & NodeIndexService & BaseIndexService =>
+class MultiSearchService(using
+    e4sClient: NdlaE4sClient,
+    searchConverterService: SearchConverterService,
+    articleIndexService: ArticleIndexService,
+    learningPathIndexService: LearningPathIndexService,
+    searchLanguage: SearchLanguage,
+    props: Props,
+    nodeIndexService: NodeIndexService
+) extends SearchService
+    with StrictLogging
+    with TaxonomyFiltering {
+  override val searchIndex: List[String] =
+    List(SearchType.Articles, SearchType.LearningPaths, SearchType.Nodes).map(props.SearchIndex)
+  override val indexServices: List[BaseIndexService] = List(
+    articleIndexService,
+    learningPathIndexService,
+    nodeIndexService
+  )
 
-  lazy val multiSearchService: MultiSearchService
+  private def getIndexFilter(indexes: List[SearchType]): Query = {
+    val indexNames = indexes.map(props.SearchIndex)
+    termsQuery("_index", indexNames)
+  }
 
-  class MultiSearchService extends SearchService with StrictLogging with TaxonomyFiltering {
-    override val searchIndex: List[String] =
-      List(SearchType.Articles, SearchType.LearningPaths, SearchType.Nodes).map(props.SearchIndex)
-    override val indexServices: List[BaseIndexService] = List(
-      articleIndexService,
-      learningPathIndexService,
-      nodeIndexService
-    )
+  private def typeNameQuery(q: NonEmptyString): Query = {
+    constantScoreQuery(simpleStringQuery(q.underlying).field("typeName")).boost(400)
+  }
 
-    private def getIndexFilter(indexes: List[SearchType]): Query = {
-      val indexNames = indexes.map(props.SearchIndex)
-      termsQuery("_index", indexNames)
-    }
+  def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
+    val contentSearch: Option[BoolQuery] = buildContentIndexesQuery(settings)
+    val nodeSearch: Option[BoolQuery]    = buildNodeIndexQuery(settings)
+    val indexFilterNode                  = getIndexFilter(List(SearchType.Nodes))
+    val indexFilterContent               = getIndexFilter(List(SearchType.Articles, SearchType.LearningPaths))
 
-    private def typeNameQuery(q: NonEmptyString): Query = {
-      constantScoreQuery(simpleStringQuery(q.underlying).field("typeName")).boost(400)
-    }
+    val boolQueries: List[BoolQuery] = List(
+      contentSearch.map(_.filter(indexFilterContent)),
+      nodeSearch.map(_.filter(indexFilterNode))
+    ).flatten
 
-    def matchingQuery(settings: SearchSettings): Try[SearchResult] = {
-      val contentSearch: Option[BoolQuery] = buildContentIndexesQuery(settings)
-      val nodeSearch: Option[BoolQuery]    = buildNodeIndexQuery(settings)
-      val indexFilterNode                  = getIndexFilter(List(SearchType.Nodes))
-      val indexFilterContent               = getIndexFilter(List(SearchType.Articles, SearchType.LearningPaths))
+    val contentFilter = boolQuery().must(getSearchFilters(settings)).filter(indexFilterContent)
+    val nodeFilter    = boolQuery().must(getNodeSearchFilters(settings)).filter(indexFilterNode)
 
-      val boolQueries: List[BoolQuery] = List(
-        contentSearch.map(_.filter(indexFilterContent)),
-        nodeSearch.map(_.filter(indexFilterNode))
+    val filteredSearch = boolQuery()
+      .should(boolQueries)
+      .minimumShouldMatch(Math.min(boolQueries.size, 1))
+      .filter(boolQuery().should(contentFilter, nodeFilter).minimumShouldMatch(1))
+
+    executeSearch(settings, filteredSearch)
+  }
+
+  private def buildNodeIndexQuery(settings: SearchSettings) = settings.query.map { q =>
+    val langQueryFunc = (fieldName: String, boost: Double) => {
+      List(
+        buildSimpleStringQuery(q, fieldName, boost, settings.language, settings.fallback, decompounded = true).some,
+        buildMatchQueryForField(q, fieldName, settings.language, settings.fallback, boost)
       ).flatten
-
-      val contentFilter = boolQuery().must(getSearchFilters(settings)).filter(indexFilterContent)
-      val nodeFilter    = boolQuery().must(getNodeSearchFilters(settings)).filter(indexFilterNode)
-
-      val filteredSearch = boolQuery()
-        .should(boolQueries)
-        .minimumShouldMatch(Math.min(boolQueries.size, 1))
-        .filter(boolQuery().should(contentFilter, nodeFilter).minimumShouldMatch(1))
-
-      executeSearch(settings, filteredSearch)
     }
 
-    private def buildNodeIndexQuery(settings: SearchSettings) = settings.query.map { q =>
-      val langQueryFunc = (fieldName: String, boost: Double) => {
-        List(
-          buildSimpleStringQuery(q, fieldName, boost, settings.language, settings.fallback, decompounded = true).some,
-          buildMatchQueryForField(q, fieldName, settings.language, settings.fallback, boost)
-        ).flatten
-      }
-
-      boolQuery()
-        .must(
-          boolQuery().should(
-            langQueryFunc("title", 100) ++
-              langQueryFunc("subjectPage.aboutTitle", 20) ++
-              langQueryFunc("subjectPage.aboutDescription", 1) ++
-              langQueryFunc("subjectPage.metaDescription", 1)
-          )
+    boolQuery()
+      .must(
+        boolQuery().should(
+          langQueryFunc("title", 100) ++
+            langQueryFunc("subjectPage.aboutTitle", 20) ++
+            langQueryFunc("subjectPage.aboutDescription", 1) ++
+            langQueryFunc("subjectPage.metaDescription", 1)
         )
-        .should(typeNameQuery(q))
-    }
+      )
+      .should(typeNameQuery(q))
+  }
 
-    private def buildContentIndexesQuery(settings: SearchSettings) = settings.query.map(q => {
-      val langQueryFunc = (fieldName: String, boost: Double) =>
-        buildSimpleStringQuery(q, fieldName, boost, settings.language, settings.fallback, decompounded = true)
+  private def buildContentIndexesQuery(settings: SearchSettings) = settings.query.map(q => {
+    val langQueryFunc = (fieldName: String, boost: Double) =>
+      buildSimpleStringQuery(q, fieldName, boost, settings.language, settings.fallback, decompounded = true)
 
-      boolQuery()
-        .must(
-          boolQuery().should(
+    boolQuery()
+      .must(
+        boolQuery().should(
+          List(
+            buildMatchQueryForField(q, "title", settings.language, settings.fallback, 20),
+            buildBreadcrumbQuery(q, settings.language, settings.fallback, 1)
+          ).flatten ++
             List(
-              buildMatchQueryForField(q, "title", settings.language, settings.fallback, 20),
-              buildBreadcrumbQuery(q, settings.language, settings.fallback, 1)
-            ).flatten ++
-              List(
-                langQueryFunc("title", 20),
-                langQueryFunc("introduction", 2),
-                langQueryFunc("metaDescription", 1),
-                langQueryFunc("content", 1),
-                langQueryFunc("tags", 1),
-                langQueryFunc("embedAttributes", 1),
-                simpleStringQuery(q.underlying).field("authors", 1),
-                simpleStringQuery(q.underlying).field("grepContexts.title", 1),
-                nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
-                termQuery("contextids", q.underlying),
-                idsQuery(q.underlying)
-              ) ++
-              buildNestedEmbedField(List(q.underlying), None, settings.language, settings.fallback) ++
-              buildNestedEmbedField(List.empty, Some(q.underlying), settings.language, settings.fallback)
-          )
+              langQueryFunc("title", 20),
+              langQueryFunc("introduction", 2),
+              langQueryFunc("metaDescription", 1),
+              langQueryFunc("content", 1),
+              langQueryFunc("tags", 1),
+              langQueryFunc("embedAttributes", 1),
+              simpleStringQuery(q.underlying).field("authors", 1),
+              simpleStringQuery(q.underlying).field("grepContexts.title", 1),
+              nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
+              termQuery("contextids", q.underlying),
+              idsQuery(q.underlying)
+            ) ++
+            buildNestedEmbedField(List(q.underlying), None, settings.language, settings.fallback) ++
+            buildNestedEmbedField(List.empty, Some(q.underlying), settings.language, settings.fallback)
         )
-        .should(typeNameQuery(q))
-    })
+      )
+      .should(typeNameQuery(q))
+  })
 
-    private def getSearchIndexes(settings: SearchSettings): Try[List[String]] = {
-      settings.resultTypes match {
-        case Some(list) if list.nonEmpty =>
-          val idxs = list.map { st =>
-            val index        = props.SearchIndex(st)
-            val isValidIndex = searchIndex.contains(index)
+  private def getSearchIndexes(settings: SearchSettings): Try[List[String]] = {
+    settings.resultTypes match {
+      case Some(list) if list.nonEmpty =>
+        val idxs = list.map { st =>
+          val index        = props.SearchIndex(st)
+          val isValidIndex = searchIndex.contains(index)
 
-            if (isValidIndex) Right(index)
-            else {
-              val validSearchTypes = searchIndex.traverse(props.indexToSearchType).getOrElse(List.empty)
-              val validTypesString = s"[${validSearchTypes.mkString("'", "','", "'")}]"
-              Left(
-                ValidationMessage(
-                  "resultTypes",
-                  s"Invalid result type for endpoint: '$st', expected one of: $validTypesString"
-                )
-              )
-            }
-          }
-
-          val errors = idxs.collect { case Left(e) => e }
-          if (errors.nonEmpty) Failure(new ValidationException(s"Got invalid `resultTypes` for endpoint", errors))
-          else Success(idxs.collect { case Right(i) => i })
-
-        case _ => Success(List(SearchType.Articles, SearchType.LearningPaths).map(props.SearchIndex))
-      }
-    }
-
-    private def logShardErrors(response: RequestSuccess[SearchResponse]): Unit = {
-      if (response.result.shards.failed > 0) {
-        val _ = response.body.map { body =>
-          CirceUtil.tryParse(body) match {
-            case Failure(ex) =>
-              logger.error(s"Got error parsing search response: $body", ex)
-            case Success(jsonBody) =>
-              val failures = jsonBody.hcursor.downField("_shards").downField("failures").focus.map(_.spaces2)
-              failures match {
-                case Some(shardFailure) =>
-                  logger.error(s"${response.result.shards.failed} failed shards in search response: \n$shardFailure")
-                case None =>
-                  logger.error(s"${response.result.shards.failed} failed shards in search response")
-              }
-          }
-        }
-      }
-    }
-
-    def executeSearch(settings: SearchSettings, filteredSearch: BoolQuery): Try[SearchResult] = permitTry {
-      val searchLanguage = settings.language match {
-        case lang if Iso639.get(lang).isSuccess && !settings.fallback => lang
-        case _                                                        => AllLanguages
-      }
-
-      getStartAtAndNumResults(settings.page, settings.pageSize).flatMap { pagination =>
-        val aggregations    = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
-        val index           = getSearchIndexes(settings).?
-        val searchToExecute = search(index)
-          .query(filteredSearch)
-          .explain(enableExplanations)
-          .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
-          .from(pagination.startAt)
-          .trackTotalHits(true)
-          .size(pagination.pageSize)
-          .highlighting(highlight("*"))
-          .aggs(aggregations)
-          .sortBy(getSortDefinition(settings.sort, searchLanguage))
-
-        // Only add scroll param if it is first page
-        val searchWithScroll =
-          if (pagination.startAt == 0 && settings.shouldScroll) {
-            searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
-          } else { searchToExecute }
-
-        e4sClient.execute(searchWithScroll) match {
-          case Success(response) =>
-            logShardErrors(response)
-            printExplanations(response)
-            getHits(response.result, settings.language, settings.filterInactive).map(hits => {
-              SearchResult(
-                totalCount = response.result.totalHits,
-                page = Some(settings.page),
-                pageSize = pagination.pageSize,
-                language = searchLanguage,
-                results = hits,
-                suggestions = getSuggestions(response.result),
-                aggregations = getAggregationsFromResult(response.result),
-                scrollId = response.result.scrollId
-              )
-            })
-          case Failure(ex) => Failure(ex)
-        }
-      }
-    }
-
-    private def getNodeTypeFilter(maybeTypes: List[NodeType]): Option[Query] = {
-      maybeTypes match {
-        case types if types.nonEmpty =>
-          boolQuery()
-            .should(
-              boolQuery().not(existsQuery("nodeType")),
-              boolQuery().must(
-                termsQuery("nodeType", types.map(_.entryName)),
-                nestedQuery("context", termQuery("context.isVisible", true))
+          if (isValidIndex) Right(index)
+          else {
+            val validSearchTypes = searchIndex.traverse(props.indexToSearchType).getOrElse(List.empty)
+            val validTypesString = s"[${validSearchTypes.mkString("'", "','", "'")}]"
+            Left(
+              ValidationMessage(
+                "resultTypes",
+                s"Invalid result type for endpoint: '$st', expected one of: $validTypesString"
               )
             )
-            .some
-        case _ => None
-      }
-    }
+          }
+        }
 
-    private def getNodeSearchFilters(settings: SearchSettings): List[Query] = {
-      val nodeTypeFilter       = getNodeTypeFilter(settings.nodeTypeFilter)
-      val contextSubjectFilter = subjectFilter(settings.subjects, settings.filterInactive)
-      val grepCodesFilter      =
-        if (settings.grepCodes.nonEmpty)
-          Some(termsQuery("grepContexts.code", settings.grepCodes))
-        else None
+        val errors = idxs.collect { case Left(e) => e }
+        if (errors.nonEmpty) Failure(new ValidationException(s"Got invalid `resultTypes` for endpoint", errors))
+        else Success(idxs.collect { case Right(i) => i })
 
-      List(
-        nodeTypeFilter,
-        contextSubjectFilter,
-        grepCodesFilter
-      ).flatten
-    }
-
-    /** Returns a list of QueryDefinitions of different search filters depending on settings.
-      *
-      * @param settings
-      *   SearchSettings object.
-      * @return
-      *   List of QueryDefinitions.
-      */
-    private def getSearchFilters(settings: SearchSettings): List[Query] = {
-      val languageFilter = settings.language match {
-        case lang if Iso639.get(lang).isSuccess && !settings.fallback =>
-          if (settings.fallback) None else Some(existsQuery(s"title.$lang"))
-        case _ => None
-      }
-
-      val statusFilter = Some(boolQuery().should(termQuery("status", "PUBLISHED")))
-
-      val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-
-      val licenseFilter = settings.license match {
-        case Some("all") => None
-        case Some(lic)   => Some(termQuery("license", lic))
-        case None        => Some(boolQuery().not(termQuery("license", License.Copyrighted.toString)))
-      }
-
-      val grepCodesFilter =
-        if (settings.grepCodes.nonEmpty)
-          Some(termsQuery("grepContexts.code", settings.grepCodes))
-        else None
-
-      val traitsFilter =
-        if (settings.traits.nonEmpty)
-          Some(termsQuery("traits", settings.traits.map(_.entryName)))
-        else None
-
-      val embedResourceAndIdFilter =
-        buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
-
-      val articleTypeFilter = Some(
-        boolQuery().should(settings.articleTypes.map(articleType => termQuery("articleType", articleType)))
-      )
-      val learningResourceTypeFilter = Option.when(settings.learningResourceTypes.nonEmpty)(
-        boolQuery().should(
-          settings.learningResourceTypes.map(resourceType => termQuery("learningResourceType", resourceType.entryName))
-        )
-      )
-      val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, settings.filterByNoResourceType)
-      val taxonomySubjectFilter       = subjectFilter(settings.subjects, settings.filterInactive)
-      val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
-      val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
-
-      val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
-
-      val availsToFilterOut  = Availability.values.toSet -- (settings.availability.toSet + Availability.everyone)
-      val availabilityFilter = Some(
-        not(availsToFilterOut.toSeq.map(a => termQuery("availability", a.toString)))
-      )
-
-      List(
-        licenseFilter,
-        idFilter,
-        statusFilter,
-        articleTypeFilter,
-        learningResourceTypeFilter,
-        languageFilter,
-        taxonomySubjectFilter,
-        taxonomyResourceTypesFilter,
-        supportedLanguageFilter,
-        taxonomyRelevanceFilter,
-        taxonomyContextActiveFilter,
-        grepCodesFilter,
-        traitsFilter,
-        embedResourceAndIdFilter,
-        availabilityFilter
-      ).flatten
+      case _ => Success(List(SearchType.Articles, SearchType.LearningPaths).map(props.SearchIndex))
     }
   }
 
+  private def logShardErrors(response: RequestSuccess[SearchResponse]): Unit = {
+    if (response.result.shards.failed > 0) {
+      val _ = response.body.map { body =>
+        CirceUtil.tryParse(body) match {
+          case Failure(ex) =>
+            logger.error(s"Got error parsing search response: $body", ex)
+          case Success(jsonBody) =>
+            val failures = jsonBody.hcursor.downField("_shards").downField("failures").focus.map(_.spaces2)
+            failures match {
+              case Some(shardFailure) =>
+                logger.error(s"${response.result.shards.failed} failed shards in search response: \n$shardFailure")
+              case None =>
+                logger.error(s"${response.result.shards.failed} failed shards in search response")
+            }
+        }
+      }
+    }
+  }
+
+  def executeSearch(settings: SearchSettings, filteredSearch: BoolQuery): Try[SearchResult] = permitTry {
+    val searchLanguage = settings.language match {
+      case lang if Iso639.get(lang).isSuccess && !settings.fallback => lang
+      case _                                                        => AllLanguages
+    }
+
+    getStartAtAndNumResults(settings.page, settings.pageSize).flatMap { pagination =>
+      val aggregations    = buildTermsAggregation(settings.aggregatePaths, indexServices.map(_.getMapping))
+      val index           = getSearchIndexes(settings).?
+      val searchToExecute = search(index)
+        .query(filteredSearch)
+        .explain(enableExplanations)
+        .suggestions(suggestions(settings.query.underlying, searchLanguage, settings.fallback))
+        .from(pagination.startAt)
+        .trackTotalHits(true)
+        .size(pagination.pageSize)
+        .highlighting(highlight("*"))
+        .aggs(aggregations)
+        .sortBy(getSortDefinition(settings.sort, searchLanguage))
+
+      // Only add scroll param if it is first page
+      val searchWithScroll =
+        if (pagination.startAt == 0 && settings.shouldScroll) {
+          searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
+        } else {
+          searchToExecute
+        }
+
+      e4sClient.execute(searchWithScroll) match {
+        case Success(response) =>
+          logShardErrors(response)
+          printExplanations(response)
+          getHits(response.result, settings.language, settings.filterInactive).map(hits => {
+            SearchResult(
+              totalCount = response.result.totalHits,
+              page = Some(settings.page),
+              pageSize = pagination.pageSize,
+              language = searchLanguage,
+              results = hits,
+              suggestions = getSuggestions(response.result),
+              aggregations = getAggregationsFromResult(response.result),
+              scrollId = response.result.scrollId
+            )
+          })
+        case Failure(ex) => Failure(ex)
+      }
+    }
+  }
+
+  private def getNodeTypeFilter(maybeTypes: List[NodeType]): Option[Query] = {
+    maybeTypes match {
+      case types if types.nonEmpty =>
+        boolQuery()
+          .should(
+            boolQuery().not(existsQuery("nodeType")),
+            boolQuery().must(
+              termsQuery("nodeType", types.map(_.entryName)),
+              nestedQuery("context", termQuery("context.isVisible", true))
+            )
+          )
+          .some
+      case _ => None
+    }
+  }
+
+  private def getNodeSearchFilters(settings: SearchSettings): List[Query] = {
+    val nodeTypeFilter       = getNodeTypeFilter(settings.nodeTypeFilter)
+    val contextSubjectFilter = subjectFilter(settings.subjects, settings.filterInactive)
+    val grepCodesFilter      =
+      if (settings.grepCodes.nonEmpty)
+        Some(termsQuery("grepContexts.code", settings.grepCodes))
+      else None
+
+    List(
+      nodeTypeFilter,
+      contextSubjectFilter,
+      grepCodesFilter
+    ).flatten
+  }
+
+  /** Returns a list of QueryDefinitions of different search filters depending on settings.
+    *
+    * @param settings
+    *   SearchSettings object.
+    * @return
+    *   List of QueryDefinitions.
+    */
+  private def getSearchFilters(settings: SearchSettings): List[Query] = {
+    val languageFilter = settings.language match {
+      case lang if Iso639.get(lang).isSuccess && !settings.fallback =>
+        if (settings.fallback) None else Some(existsQuery(s"title.$lang"))
+      case _ => None
+    }
+
+    val statusFilter = Some(boolQuery().should(termQuery("status", "PUBLISHED")))
+
+    val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+
+    val licenseFilter = settings.license match {
+      case Some("all") => None
+      case Some(lic)   => Some(termQuery("license", lic))
+      case None        => Some(boolQuery().not(termQuery("license", License.Copyrighted.toString)))
+    }
+
+    val grepCodesFilter =
+      if (settings.grepCodes.nonEmpty)
+        Some(termsQuery("grepContexts.code", settings.grepCodes))
+      else None
+
+    val traitsFilter =
+      if (settings.traits.nonEmpty)
+        Some(termsQuery("traits", settings.traits.map(_.entryName)))
+      else None
+
+    val embedResourceAndIdFilter =
+      buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
+
+    val articleTypeFilter = Some(
+      boolQuery().should(settings.articleTypes.map(articleType => termQuery("articleType", articleType)))
+    )
+    val learningResourceTypeFilter = Option.when(settings.learningResourceTypes.nonEmpty)(
+      boolQuery().should(
+        settings.learningResourceTypes.map(resourceType => termQuery("learningResourceType", resourceType.entryName))
+      )
+    )
+    val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, settings.filterByNoResourceType)
+    val taxonomySubjectFilter       = subjectFilter(settings.subjects, settings.filterInactive)
+    val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
+    val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
+
+    val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
+
+    val availsToFilterOut  = Availability.values.toSet -- (settings.availability.toSet + Availability.everyone)
+    val availabilityFilter = Some(
+      not(availsToFilterOut.toSeq.map(a => termQuery("availability", a.toString)))
+    )
+
+    List(
+      licenseFilter,
+      idFilter,
+      statusFilter,
+      articleTypeFilter,
+      learningResourceTypeFilter,
+      languageFilter,
+      taxonomySubjectFilter,
+      taxonomyResourceTypesFilter,
+      supportedLanguageFilter,
+      taxonomyRelevanceFilter,
+      taxonomyContextActiveFilter,
+      grepCodesFilter,
+      traitsFilter,
+      embedResourceAndIdFilter,
+      availabilityFilter
+    ).flatten
+  }
 }

@@ -1011,7 +1011,8 @@ object TestData {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default
+    revisionMeta = RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val PenguinId   = 1L
@@ -1028,7 +1029,8 @@ object TestData {
     description = List(LPDescription("Dette handler om fugler", "nb")),
     duration = Some(1),
     lastUpdated = today.minusDays(34),
-    tags = List(Tag(List("superhelt", "kanikkefly"), "nb"))
+    tags = List(Tag(List("superhelt", "kanikkefly"), "nb")),
+    grepCodes = Seq("KM123", "KM456")
   )
 
   val learningPath2: LearningPath = DefaultLearningPath.copy(
@@ -1037,7 +1039,8 @@ object TestData {
     description = List(LPDescription("Dette handler om flaggermus, som kan ligne litt på en fugl", "nb")),
     duration = Some(2),
     lastUpdated = today.minusDays(3),
-    tags = List(Tag(Seq("superhelt", "kanfly"), "nb"))
+    tags = List(Tag(Seq("superhelt", "kanfly"), "nb")),
+    grepCodes = Seq("KM123", "KM789")
   )
 
   val learningPath3: LearningPath = DefaultLearningPath.copy(
@@ -1046,7 +1049,8 @@ object TestData {
     description = List(LPDescription("Dette handler om en and, som også minner om både flaggermus og fugler.", "nb")),
     duration = Some(3),
     lastUpdated = today.minusDays(4),
-    tags = List(Tag(Seq("disney", "kanfly"), "nb"))
+    tags = List(Tag(Seq("disney", "kanfly"), "nb")),
+    grepCodes = Seq("KM456", "KM789")
   )
 
   val learningPath4: LearningPath = DefaultLearningPath.copy(
@@ -1058,7 +1062,8 @@ object TestData {
     ),
     duration = Some(4),
     lastUpdated = today.minusDays(5),
-    tags = List()
+    tags = List(),
+    grepCodes = Seq("KM999", "KM888")
   )
 
   val learningPath5: LearningPath = DefaultLearningPath.copy(
@@ -1068,7 +1073,8 @@ object TestData {
     duration = Some(5),
     lastUpdated = today.minusDays(6),
     tags = List(),
-    copyright = copyright.copy(contributors = List(Author(ContributorType.Writer, "Svims")))
+    copyright = copyright.copy(contributors = List(Author(ContributorType.Writer, "Svims"))),
+    grepCodes = Seq("KM123", "KM456")
   )
 
   val learningPath6: LearningPath = DefaultLearningPath.copy(

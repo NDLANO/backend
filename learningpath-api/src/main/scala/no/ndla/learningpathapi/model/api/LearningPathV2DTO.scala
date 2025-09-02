@@ -71,7 +71,10 @@ case class LearningPathV2DTO(
     ) priority: Priority,
     @description("A list of revisions planned for the learningpath")
     revisions: Seq[RevisionMetaDTO],
-    @description("An introduction for the learningpath") introduction: IntroductionDTO
+    @description("An introduction for the learningpath")
+    introduction: IntroductionDTO,
+    @description("A list of codes from GREP API connected to the article")
+    grepCodes: Seq[String]
 )
 
 object LearningPathV2DTO {

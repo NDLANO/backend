@@ -85,6 +85,7 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       revisionMeta = RevisionMeta.default.toList,
       nextRevision = RevisionMeta.default.getNextRevision,
+      grepCodes = List("grep1", "grep2"),
       responsible = Some(Responsible("some responsible", TestData.today))
     )
 

@@ -13,15 +13,20 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, StatusDTO}
 import no.ndla.common.model.domain.Responsible
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.search.SearchableConcept
+import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 class DraftConceptIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-  override lazy val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  override implicit lazy val e4sClient: NdlaE4sClient                       =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
+  override implicit lazy val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards = 1
   }
 
@@ -30,9 +35,6 @@ class DraftConceptIndexServiceTest extends ElasticsearchIntegrationSuite with Un
     articleIndexService.deleteIndexAndAlias()
     articleIndexService.createIndexWithGeneratedName
   }
-
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
 
   test("That mapping contains every field after serialization") {
     val languageValues = SearchableLanguageValues(Seq(LanguageValue("nb", "hei"), LanguageValue("en", "hå")))

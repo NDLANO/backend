@@ -8,9 +8,10 @@
 
 package no.ndla.frontpageapi.controller
 
-import no.ndla.common.{model, errors as common}
+import no.ndla.common.{Clock, model, errors as common}
 import no.ndla.common.model.api.FrontPageDTO
 import no.ndla.frontpageapi.{TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -20,7 +21,12 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
 class PageControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: FrontPageController = new FrontPageController
+  override implicit lazy val clock: Clock                           = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers             = new ErrorHelpers
+  override implicit lazy val errorHandling: ControllerErrorHandling = new ControllerErrorHandling
+  val controller: FrontPageController                               = new FrontPageController
+  override implicit lazy val services: List[TapirController]        = List(controller)
+  override implicit lazy val routes: Routes                         = new Routes
   when(clock.now()).thenCallRealMethod()
 
   val authHeaderWithAdminRole =
