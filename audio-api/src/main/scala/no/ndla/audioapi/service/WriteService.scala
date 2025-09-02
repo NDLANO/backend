@@ -34,7 +34,7 @@ class WriteService(using
     audioIndexService: AudioIndexService,
     seriesIndexService: SeriesIndexService,
     tagIndexService: TagIndexService,
-    s3Client: NDLAS3Client,
+    s3Client: => NDLAS3Client,
     clock: Clock
 ) extends StrictLogging {
 

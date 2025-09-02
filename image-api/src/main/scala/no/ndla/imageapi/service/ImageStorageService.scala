@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 import scala.util.{Failure, Success, Try}
 
 class ImageStorageService(using
-    s3Client: NdlaS3Client,
+    s3Client: => NdlaS3Client,
     readService: ReadService,
     props: Props
 ) extends StrictLogging {

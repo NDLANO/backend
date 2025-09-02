@@ -20,7 +20,7 @@ import no.ndla.search.NdlaSearchException
 
 class ControllerErrorHandling(using
     props: Props,
-    dataSource: DataSource,
+    dataSource: => DataSource,
     errorHelpers: ErrorHelpers,
     clock: Clock
 ) extends ErrorHandling {

@@ -28,10 +28,10 @@ case class TranscriptionComplete(transcription: String)             extends Tran
 case class TranscriptionNonComplete(status: TranscriptionJobStatus) extends TranscriptionResult
 
 class TranscriptionService(using
-    s3TranscribeClient: TranscribeS3Client,
+    s3TranscribeClient: => TranscribeS3Client,
     props: Props,
     brightcoveClient: NdlaBrightcoveClient,
-    transcribeClient: NdlaAWSTranscribeClient
+    transcribeClient: => NdlaAWSTranscribeClient
 ) extends StrictLogging {
 
   def transcribeVideo(videoId: String, language: String, maxSpeakers: Int): Try[Unit] = {
