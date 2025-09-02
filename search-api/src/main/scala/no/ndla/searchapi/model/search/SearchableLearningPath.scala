@@ -14,8 +14,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.learningpath.CopyrightDTO
-import no.ndla.common.model.domain.Priority
-import no.ndla.common.model.domain.RevisionMeta
+import no.ndla.common.model.domain.{Priority, Responsible, RevisionMeta}
 
 case class SearchableLearningPath(
     id: Long,
@@ -46,7 +45,8 @@ case class SearchableLearningPath(
     priority: Priority,
     revisionMeta: List[RevisionMeta],
     nextRevision: Option[RevisionMeta],
-    grepCodes: List[String]
+    grepCodes: List[String],
+    responsible: Option[Responsible]
 )
 
 object SearchableLearningPath {
