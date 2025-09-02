@@ -68,8 +68,7 @@ trait DefaultOptions extends ScalaModule {
       "-Wunused:privates",
       "-Wconf:src=src_managed/.*:silent",
       "-Yretain-trees"   -> scala3,
-      "-Xmax-inlines:50" -> scala3,
-      "-Xsemanticdb"
+      "-Xmax-inlines:50" -> scala3
     ).filterByVersion(scalaVersion())
   }
 

@@ -34,8 +34,9 @@ object Main {
 
   def parseModule(module: String): Unit = {
     Logger.info(s"---- $module ----")
-    val files   = getScalaFilesRecursivly(module)
-    val classes = files.flatMap(ScalaFileParser.parseScalaFile)
+    val files            = getScalaFilesRecursivly(module)
+    val semanticDbPrefix = ScalaFileParser.getSemanticDbPrefix(module)
+    val classes          = files.flatMap(f => ScalaFileParser.parseScalaFile(f, semanticDbPrefix))
     CycleDetector.findCyclicalDependencies(classes)
   }
 
@@ -51,8 +52,8 @@ object Main {
     if (d.exists && d.isDirectory) {
       val nestedDirectories = d.listFiles.filter(_.isDirectory).toList
       val filesInD          = d.listFiles.filter(_.isFile).toList
-      val scalaFiles        = filesInD.filter(filterFile).map(_.getAbsolutePath)
-      val nestedFiles       = nestedDirectories.flatMap(f => getScalaFilesRecursivly(f.getAbsolutePath))
+      val scalaFiles        = filesInD.filter(filterFile).map(_.getPath())
+      val nestedFiles       = nestedDirectories.flatMap(f => getScalaFilesRecursivly(f.getPath()))
       scalaFiles ++ nestedFiles
     } else {
       List[String]()

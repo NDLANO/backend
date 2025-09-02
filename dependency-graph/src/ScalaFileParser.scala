@@ -121,10 +121,15 @@ object ScalaFileParser {
     x.flatten
   }
 
-  def parseScalaFile(filePath: String): List[ClassWithArguments] = {
-    val semanticDBFile = new File(s"$filePath.semanticdb")
+  def getSemanticDbPrefix(moduleName: String): String = {
+    val outDir = Option(System.getenv("MILL_OUTPUT_DIR")).getOrElse("out")
+    s"$outDir/$moduleName/semanticDbDataDetailed.dest/classes/META-INF/semanticdb"
+  }
+
+  def parseScalaFile(filePath: String, semanticDbPrefix: String): List[ClassWithArguments] = {
+    val semanticDBFile = new File(s"$semanticDbPrefix/$filePath.semanticdb")
     if (!semanticDBFile.exists()) {
-      Logger.error(s"No semanticdb file found for $filePath, please compile module first.")
+      Logger.error(s"No semanticdb file found for $semanticDBFile, please run `./mill _.semanticDbData` first.")
       exit(1)
     }
     val dbBytes       = Files.readAllBytes(semanticDBFile.toPath)
