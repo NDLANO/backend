@@ -11,16 +11,13 @@ package no.ndla.searchapi.model.search
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.LearningResourceType
 import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
-import no.ndla.common.model.domain.ContributorType
+import no.ndla.common.model.domain.{ContributorType, Priority, Responsible, RevisionMeta, getNextRevision}
 import no.ndla.common.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
 import no.ndla.mapping.License
 import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.learningpath.CopyrightDTO
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData.*
-import no.ndla.common.model.domain.Priority
-import no.ndla.common.model.domain.RevisionMeta
-import no.ndla.common.model.domain.getNextRevision
 
 class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
 
@@ -88,7 +85,8 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       revisionMeta = RevisionMeta.default.toList,
       nextRevision = RevisionMeta.default.getNextRevision,
-      grepCodes = Seq.empty.toList
+      grepCodes = List("grep1", "grep2"),
+      responsible = Some(Responsible("some responsible", TestData.today))
     )
 
     val json         = CirceUtil.toJsonString(original)

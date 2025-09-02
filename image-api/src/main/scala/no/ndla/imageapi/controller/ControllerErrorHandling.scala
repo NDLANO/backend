@@ -23,7 +23,7 @@ import no.ndla.search.NdlaSearchException
 import no.ndla.search.IndexNotFoundException
 import org.postgresql.util.PSQLException
 
-class ControllerErrorHandling(using props: Props, dataSource: DataSource, errorHelpers: ErrorHelpers)
+class ControllerErrorHandling(using props: Props, dataSource: => DataSource, errorHelpers: ErrorHelpers)
     extends ErrorHandling {
   import errorHelpers.*
   import no.ndla.imageapi.model.ImageErrorHelpers.*

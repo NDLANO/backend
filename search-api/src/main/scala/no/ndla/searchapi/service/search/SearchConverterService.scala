@@ -436,7 +436,8 @@ class SearchConverterService(using
           priority = lp.priority,
           revisionMeta = lp.revisionMeta.toList,
           nextRevision = lp.revisionMeta.getNextRevision,
-          grepCodes = lp.grepCodes.toList
+          grepCodes = lp.grepCodes.toList,
+          responsible = lp.responsible
         )
       )
     }

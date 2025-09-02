@@ -29,7 +29,7 @@ import no.ndla.network.model.HttpRequestException
 import org.postgresql.util.PSQLException
 
 class ControllerErrorHandling(using
-    dataSource: DataSource,
+    dataSource: => DataSource,
     errorHelpers: ErrorHelpers,
     draftErrorHelpers: DraftErrorHelpers,
     clock: => Clock

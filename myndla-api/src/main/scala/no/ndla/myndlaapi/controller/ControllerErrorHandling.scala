@@ -18,7 +18,7 @@ import org.postgresql.util.PSQLException
 
 class ControllerErrorHandling(using
     clock: Clock,
-    dataSource: DataSource,
+    dataSource: => DataSource,
     errorHelpers: ErrorHelpers
 ) extends ErrorHandling
     with StrictLogging {
