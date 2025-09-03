@@ -385,12 +385,14 @@ class UpdateService(using
     val (_, updatedStep, newLearningSteps) =
       stepsToChange.sortBy(_.seqNo).foldLeft((0, stepToUpdate, Seq.empty[LearningStep])) {
         case ((seqNo, foundStep, steps), curr) =>
+          val now                   = clock.now()
           val isChangedStep         = curr.id.contains(learningStepId)
           val (mainStep, stepToAdd) =
-            if (isChangedStep) (curr.copy(status = newStatus), curr.copy(status = newStatus))
+            if (isChangedStep)
+              (curr.copy(status = newStatus, lastUpdated = now), curr.copy(status = newStatus, lastUpdated = now))
             else (foundStep, curr)
-          val updatedMainStep = mainStep.copy(seqNo = seqNo)
-          val updatedSteps    = steps :+ stepToAdd.copy(seqNo = seqNo)
+          val updatedMainStep = mainStep.copy(seqNo = seqNo, lastUpdated = now)
+          val updatedSteps    = steps :+ stepToAdd.copy(seqNo = seqNo, lastUpdated = now)
           val nextSeqNo       = if (stepToAdd.status == DELETED) seqNo else seqNo + 1
 
           (nextSeqNo, updatedMainStep, updatedSteps)
@@ -467,11 +469,14 @@ class UpdateService(using
                   .filter(step => rangeToUpdate(from, to).contains(step.seqNo))
 
                 def addOrSubtract(seqNo: Int): Int = if (from > to) seqNo + 1 else seqNo - 1
+                val now                            = clock.now()
 
                 learningPathRepository.inTransaction { implicit session =>
-                  val _ = learningPathRepository.updateLearningStep(learningStep.copy(seqNo = seqNo))
+                  val _ = learningPathRepository.updateLearningStep(learningStep.copy(seqNo = seqNo, lastUpdated = now))
                   toUpdate.foreach(step => {
-                    learningPathRepository.updateLearningStep(step.copy(seqNo = addOrSubtract(step.seqNo)))
+                    learningPathRepository.updateLearningStep(
+                      step.copy(seqNo = addOrSubtract(step.seqNo), lastUpdated = now)
+                    )
                   })
                 }
 

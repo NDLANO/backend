@@ -50,6 +50,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
   val paul: Author                     = Author(ContributorType.Writer, "Truly Weird Rand Paul")
   val license: String                  = License.PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(paul))
+  val today: NDLADate                  = NDLADate.now()
 
   val DefaultLearningPath: LearningPath = LearningPath(
     id = None,
@@ -63,8 +64,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     duration = Some(0),
     status = LearningPathStatus.PUBLISHED,
     verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = clock.now(),
-    lastUpdated = clock.now(),
+    created = today,
+    lastUpdated = today,
     tags = List(),
     owner = "owner",
     copyright = copyright,
@@ -89,7 +90,9 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     articleId = None,
     `type` = StepType.INTRODUCTION,
     copyright = Some(LearningpathCopyright(license, Seq.empty)),
-    status = StepStatus.ACTIVE
+    status = StepStatus.ACTIVE,
+    created = today,
+    lastUpdated = today
   )
 
   val PenguinId   = 1L
@@ -111,7 +114,6 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       val copyright: CopyrightDTO = CopyrightDTO(commonApi.LicenseDTO(License.CC_BY_SA.toString, None, None), List())
       doReturn(copyright).when(converterService).asApiCopyright(any)
 
-      val today      = NDLADate.now()
       val yesterday  = NDLADate.now().minusDays(1)
       val tomorrow   = NDLADate.now().plusDays(1)
       val tomorrowp1 = NDLADate.now().plusDays(2)

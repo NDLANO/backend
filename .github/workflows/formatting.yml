@@ -1,5 +1,5 @@
-name: 'Linting & Formatting'
-on: [ push, pull_request ]
+name: "Linting & Formatting"
+on: [push, pull_request]
 env:
   CI_RELEASE_ROLE: ${{ secrets.CI_RELEASE_ROLE }}
   CI_GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
@@ -28,7 +28,7 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ vars.JAVA_VERSION }}
-      - name: Compile
-        run: ./mill _.compile
+      - name: Build required semanticdb files
+        run: ./mill _.semanticDbData
       - name: Check dependency cycles
         run: ./mill dependency-graph.run
