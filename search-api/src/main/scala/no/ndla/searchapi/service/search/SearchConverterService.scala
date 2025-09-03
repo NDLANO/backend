@@ -971,6 +971,7 @@ class SearchConverterService(using
           language = language
         )
       )
+    val responsible = searchableLearningPath.responsible.map(r => ResponsibleDTO(r.responsibleId, r.lastUpdated))
 
     val resourceTypeName = searchableLearningPath.resourceTypeName.getLanguageOrDefault(language)
     val parentTopicName  = searchableLearningPath.parentTopicName.getLanguageOrDefault(language)
@@ -995,7 +996,7 @@ class SearchConverterService(using
         lastUpdated = searchableLearningPath.lastUpdated,
         license = Some(searchableLearningPath.license),
         revisions = Seq.empty,
-        responsible = None,
+        responsible = responsible,
         comments = Some(comments),
         priority = Some(searchableLearningPath.priority),
         resourceTypeName = resourceTypeName,
