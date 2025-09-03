@@ -14,7 +14,7 @@ import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
 class V53__AddDatesToLearningStepTest extends UnitSuite with TestEnvironment {
 
-  test("that license is moved to copyright with empty contributors") {
+  test("that learningstep gets dates from learningpath") {
     val migration    = new V53__AddDatesToLearningStep
     val learningpath =
       """
