@@ -12,7 +12,7 @@ import io.circe.Json
 import no.ndla.common.CirceUtil
 import no.ndla.learningpathapi.db.util.*
 
-class V55__AddDatesToLearningStep extends LearningPathAndStepMigration {
+class V53__AddDatesToLearningStep extends LearningPathAndStepMigration {
   override def convertPathAndSteps(
       lpData: LpDocumentRow,
       stepDatas: List[StepDocumentRow]
