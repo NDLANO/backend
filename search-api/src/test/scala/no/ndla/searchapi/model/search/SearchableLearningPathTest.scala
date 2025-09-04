@@ -65,6 +65,7 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       status = LearningPathStatus.PUBLISHED.toString,
       draftStatus = SearchableStatus(current = "PUBLISHED", other = Seq("PUBLISHED")),
       owner = "xxxyyy",
+      users = List("xxxyyy"),
       verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA.toString,
       lastUpdated = TestData.today,
       defaultTitle = Some("Christian Tut"),

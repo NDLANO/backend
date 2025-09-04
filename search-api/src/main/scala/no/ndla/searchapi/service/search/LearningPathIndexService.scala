@@ -66,6 +66,7 @@ class LearningPathIndexService(using
       keywordField("draftStatus.current"),
       keywordField("draftStatus.other"),
       keywordField("owner"),
+      keywordField("users"),
       textField("verificationStatus"),
       dateField("lastUpdated"),
       keywordField("defaultTitle"),

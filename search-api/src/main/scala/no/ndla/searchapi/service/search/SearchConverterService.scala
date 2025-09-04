@@ -397,6 +397,7 @@ class SearchConverterService(using
         asLearningPathApiLicense(lp.copyright.license),
         lp.copyright.contributors.map(c => AuthorDTO(c.`type`, c.name))
       )
+      val users    = List(lp.owner)
       val contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
 
       val parentTopicName = SearchableLanguageValues(
@@ -451,6 +452,7 @@ class SearchConverterService(using
           status = lp.status.toString,
           draftStatus = draftStatus,
           owner = lp.owner,
+          users = users,
           verificationStatus = lp.verificationStatus.toString,
           lastUpdated = lp.lastUpdated,
           defaultTitle = defaultTitle.map(_.title),

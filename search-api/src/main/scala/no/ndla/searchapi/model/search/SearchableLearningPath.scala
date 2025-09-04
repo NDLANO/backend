@@ -29,6 +29,7 @@ case class SearchableLearningPath(
     status: String,
     draftStatus: SearchableStatus,
     owner: String,
+    users: List[String],
     verificationStatus: String,
     lastUpdated: NDLADate,
     defaultTitle: Option[String],
