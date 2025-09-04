@@ -775,7 +775,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchSettings.copy(
         language = AllLanguages,
         learningResourceTypes = List(LearningResourceType.Article, LearningResourceType.TopicArticle),
-        statusFilter = List(DraftStatus.IN_PROGRESS.entryName)
+        statusFilter = List(DraftStatus.IN_PROGRESS)
       )
     ): @unchecked
     search1.summaryResults.map(_.id) should be(Seq(10, 11))
@@ -784,7 +784,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchSettings.copy(
         language = AllLanguages,
         learningResourceTypes = List(LearningResourceType.Article, LearningResourceType.TopicArticle),
-        statusFilter = List(DraftStatus.IMPORTED.entryName)
+        statusFilter = List(DraftStatus.IMPORTED)
       )
     ): @unchecked
     search2.summaryResults.map(_.id) should be(Seq())
@@ -793,7 +793,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchSettings.copy(
         language = AllLanguages,
         learningResourceTypes = List(LearningResourceType.Article, LearningResourceType.TopicArticle),
-        statusFilter = List(DraftStatus.IMPORTED.entryName),
+        statusFilter = List(DraftStatus.IMPORTED),
         includeOtherStatuses = true
       )
     ): @unchecked
@@ -805,7 +805,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     val expectedIds        = expectedArticleIds.sorted
 
     val Success(search1) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(language = AllLanguages, statusFilter = List(DraftStatus.IN_PROGRESS.entryName))
+      multiDraftSearchSettings.copy(language = AllLanguages, statusFilter = List(DraftStatus.IN_PROGRESS))
     ): @unchecked
     search1.summaryResults.map(_.id) should be(expectedIds)
 
@@ -844,11 +844,11 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   test("excluded drafts should only be returned if filtered by status") {
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.ARCHIVED.entryName))
+        multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.ARCHIVED))
       ): @unchecked
     val Success(search2) =
       multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.UNPUBLISHED.entryName))
+        multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.UNPUBLISHED))
       ): @unchecked
     val Success(search3) =
       multiDraftSearchService.matchingQuery(

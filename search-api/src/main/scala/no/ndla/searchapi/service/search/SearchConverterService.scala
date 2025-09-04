@@ -413,7 +413,7 @@ class SearchConverterService(using
           })
           .getOrElse(Seq.empty)
       )
-      val draftStatus = search.SearchableStatus(lp.status.entryName, Seq.empty)
+      val draftStatus = search.SearchableStatus(lp.status.entryName, Seq(lp.status.entryName))
 
       val primaryContext =
         taxonomyContexts.getOrElse(List.empty).find(tc => tc.isPrimary && tc.rootId.startsWith("urn:subject:"))

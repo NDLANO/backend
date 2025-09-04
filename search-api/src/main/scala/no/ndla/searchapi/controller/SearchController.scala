@@ -54,6 +54,8 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 import no.ndla.common.model.domain.Priority
+import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.learningpath.LearningPathStatus
 
 class SearchController(using
     multiSearchService: MultiSearchService,
@@ -505,6 +507,7 @@ class SearchController(using
       case None         => MultiDraftSearchSettings.default(user)
       case Some(params) =>
         val shouldScroll = params.scrollId.exists(props.InitialScrollContextKeywords.contains)
+        val statuses     = params.draftStatus.getOrElse(List.empty)
         MultiDraftSearchSettings(
           user = user,
           query = params.query,
@@ -522,7 +525,7 @@ class SearchController(using
           learningResourceTypes = params.contextTypes.getOrElse(List.empty).flatMap(LearningResourceType.valueOf),
           supportedLanguages = params.languageFilter.getOrElse(List.empty),
           relevanceIds = params.relevance.getOrElse(List.empty),
-          statusFilter = params.draftStatus.getOrElse(List.empty),
+          statusFilter = statuses.flatMap(DraftStatus.valueOf) ++ statuses.flatMap(LearningPathStatus.valueOf),
           userFilter = params.users.getOrElse(List.empty),
           grepCodes = params.grepCodes.getOrElse(List.empty),
           traits = params.traits.getOrElse(List.empty),
