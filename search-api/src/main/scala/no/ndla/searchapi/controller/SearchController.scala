@@ -14,7 +14,6 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.api.search.{LearningResourceType, MultiSearchResultDTO, SearchTrait, SearchType}
-import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient}
@@ -523,7 +522,7 @@ class SearchController(using
           learningResourceTypes = params.contextTypes.getOrElse(List.empty).flatMap(LearningResourceType.valueOf),
           supportedLanguages = params.languageFilter.getOrElse(List.empty),
           relevanceIds = params.relevance.getOrElse(List.empty),
-          statusFilter = params.draftStatus.getOrElse(List.empty).flatMap(DraftStatus.valueOf),
+          statusFilter = params.draftStatus.getOrElse(List.empty),
           userFilter = params.users.getOrElse(List.empty),
           grepCodes = params.grepCodes.getOrElse(List.empty),
           traits = params.traits.getOrElse(List.empty),

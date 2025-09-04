@@ -63,6 +63,8 @@ class LearningPathIndexService(using
       intField("duration"),
       keywordField("learningResourceType"),
       keywordField("status"),
+      keywordField("draftStatus.current"),
+      keywordField("draftStatus.other"),
       keywordField("owner"),
       textField("verificationStatus"),
       dateField("lastUpdated"),

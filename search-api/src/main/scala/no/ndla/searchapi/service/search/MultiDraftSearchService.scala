@@ -80,7 +80,7 @@ class MultiDraftSearchService(using
     val fiveYearsAgo        = NDLADate.now().minusYears(5)
     val inOneYear           = NDLADate.now().plusYears(1)
     val flowExcludeStatuses = List(DraftStatus.ARCHIVED, DraftStatus.PUBLISHED, DraftStatus.UNPUBLISHED)
-    val flowStatuses        = DraftStatus.values.filterNot(s => flowExcludeStatuses.contains(s)).toList
+    val flowStatuses        = DraftStatus.values.filterNot(s => flowExcludeStatuses.contains(s)).map(_.toString).toList
     def aggregateSubject(subjectId: String): Try[SubjectAggregationDTO] = for {
       old <- filteredCountSearch(
         MultiDraftSearchSettings
@@ -103,7 +103,7 @@ class MultiDraftSearchService(using
           .default(user)
           .copy(
             subjects = List(subjectId),
-            statusFilter = List(DraftStatus.PUBLISHED)
+            statusFilter = List(DraftStatus.PUBLISHED.toString)
           )
       )
       inFlow <- filteredCountSearch(
@@ -393,7 +393,10 @@ class MultiDraftSearchService(using
     )
   }
 
-  private def draftStatusFilter(statuses: Seq[DraftStatus], includeOthers: Boolean): Some[BoolQuery] = {
+  private def draftStatusFilter(
+      statuses: Seq[String],
+      includeOthers: Boolean
+  ): Some[BoolQuery] = {
     if (statuses.isEmpty) {
       Some(
         boolQuery()
@@ -408,7 +411,7 @@ class MultiDraftSearchService(using
         else Seq("draftStatus.current")
 
       Some(
-        boolQuery().should(draftStatuses.flatMap(ds => statuses.map(s => termQuery(ds, s.toString))))
+        boolQuery().should(draftStatuses.flatMap(ds => statuses.map(s => termQuery(ds, s))))
       )
     }
   }

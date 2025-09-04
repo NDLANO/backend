@@ -413,6 +413,7 @@ class SearchConverterService(using
           })
           .getOrElse(Seq.empty)
       )
+      val draftStatus = search.SearchableStatus(lp.status.entryName, Seq.empty)
 
       val primaryContext =
         taxonomyContexts.getOrElse(List.empty).find(tc => tc.isPrimary && tc.rootId.startsWith("urn:subject:"))
@@ -448,6 +449,7 @@ class SearchConverterService(using
           coverPhotoId = lp.coverPhotoId,
           duration = lp.duration,
           status = lp.status.toString,
+          draftStatus = draftStatus,
           owner = lp.owner,
           verificationStatus = lp.verificationStatus.toString,
           lastUpdated = lp.lastUpdated,

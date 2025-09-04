@@ -10,7 +10,6 @@ package no.ndla.searchapi.model.search.settings
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait, SearchType}
-import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.network.tapir.auth.TokenUser
@@ -34,7 +33,7 @@ case class MultiDraftSearchSettings(
     learningResourceTypes: List[LearningResourceType],
     supportedLanguages: List[String],
     relevanceIds: List[String],
-    statusFilter: List[DraftStatus],
+    statusFilter: List[String],
     userFilter: List[String],
     grepCodes: List[String],
     traits: List[SearchTrait],

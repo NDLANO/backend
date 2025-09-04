@@ -27,6 +27,7 @@ case class SearchableLearningPath(
     coverPhotoId: Option[String],
     duration: Option[Int],
     status: String,
+    draftStatus: SearchableStatus,
     owner: String,
     verificationStatus: String,
     lastUpdated: NDLADate,
