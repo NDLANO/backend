@@ -1031,7 +1031,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val expectedUpdatePath =
       PUBLISHED_LEARNINGPATH.copy(
         learningsteps = None,
-        status = LearningPathStatus.UNLISTED,
         lastUpdated = updatedDate
       )
 
@@ -1251,94 +1250,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val Failure(ex) =
       service.newFromExistingV2(PRIVATE_ID, NEW_COPIED_LEARNINGPATHV2, PUBLISHED_OWNER.toCombined): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
-  }
-
-  test("Owner updates step of published should update status to UNLISTED") {
-    val newDate          = NDLADate.fromUnixTime(648000000)
-    val stepWithBadTitle = STEP1.copy(title = Seq(common.Title("Dårlig tittel", "nb")), lastUpdated = newDate)
-
-    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
-      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
-    when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(using any[DBSession]))
-      .thenReturn(Some(STEP1))
-    when(learningPathRepository.learningStepsFor(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(List())
-    when(learningPathRepository.updateLearningStep(eqTo(stepWithBadTitle))(using any[DBSession]))
-      .thenReturn(stepWithBadTitle)
-    when(learningPathRepository.update(any[LearningPath])(using any[DBSession])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[LearningPath](0)
-    )
-    when(clock.now()).thenReturn(newDate)
-    when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
-
-    val updatedLs =
-      UpdatedLearningStepV2DTO(
-        1,
-        Some("Dårlig tittel"),
-        commonApi.Missing,
-        "nb",
-        commonApi.Missing,
-        commonApi.Missing,
-        commonApi.Missing,
-        None,
-        None,
-        None,
-        commonApi.Missing
-      )
-    service.updateLearningStepV2(PUBLISHED_ID, STEP1.id.get, updatedLs, PUBLISHED_OWNER.toCombined)
-    val updatedPath = PUBLISHED_LEARNINGPATH.copy(
-      status = LearningPathStatus.UNLISTED,
-      lastUpdated = newDate,
-      learningsteps = Some(PUBLISHED_LEARNINGPATH.learningsteps.get.tail ++ List(stepWithBadTitle))
-    )
-
-    verify(learningPathRepository, times(1)).updateLearningStep(eqTo(stepWithBadTitle))(using any[DBSession])
-    verify(learningPathRepository, times(1)).update(eqTo(updatedPath))(using any[DBSession])
-    verify(searchIndexService, times(1)).indexDocument(updatedPath)
-    verify(searchIndexService, times(0)).deleteDocument(eqTo(updatedPath), any)
-  }
-
-  test("owner updates published path should update status to unlisted") {
-    val newDate = NDLADate.fromUnixTime(648000000)
-    when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
-      .thenReturn(Some(PUBLISHED_LEARNINGPATH))
-    when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(using any[DBSession]))
-      .thenReturn(Some(STEP1))
-    when(learningPathRepository.learningStepsFor(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(List())
-    when(learningPathRepository.update(any[LearningPath])(using any[DBSession])).thenAnswer((i: InvocationOnMock) =>
-      i.getArgument[LearningPath](0)
-    )
-    when(clock.now()).thenReturn(newDate)
-    when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
-
-    val lpToUpdate =
-      UpdatedLearningPathV2DTO(
-        1,
-        Some("YapThisUpdated"),
-        "nb",
-        None,
-        commonApi.Missing,
-        None,
-        None,
-        None,
-        None,
-        commonApi.Missing,
-        None,
-        None,
-        None,
-        commonApi.Missing,
-        None
-      )
-    service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
-
-    val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(
-      title = List(Title("YapThisUpdated", "nb")),
-      status = LearningPathStatus.UNLISTED,
-      lastUpdated = newDate
-    )
-
-    verify(learningPathRepository, times(1)).update(eqTo(expectedUpdatedPath))(using any[DBSession])
-    verify(searchIndexService, times(1)).indexDocument(expectedUpdatedPath)
-    verify(searchIndexService, times(0)).deleteDocument(any[LearningPath], any)
   }
 
   test("owner updates step private should not update status") {
@@ -1644,7 +1555,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)
 
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(
-      status = LearningPathStatus.UNLISTED,
       lastUpdated = newDate,
       message = None
     )

@@ -121,7 +121,7 @@ class UpdateService(using
     for {
       existing        <- withId(id).flatMap(_.canEditLearningpath(owner))
       validatedUpdate <- learningPathValidator.validate(learningPathToUpdate, existing)
-      mergedPath = converterService.mergeLearningPaths(existing, validatedUpdate, owner)
+      mergedPath = converterService.mergeLearningPaths(existing, validatedUpdate)
       // Imported learningpaths may contain fields with language=unknown.
       // We should still be able to update it, but not add new fields with language=unknown.
       validatedMergedPath <- learningPathValidator.validate(mergedPath, allowUnknownLanguage = true)
@@ -148,7 +148,7 @@ class UpdateService(using
           updatedSteps <- learningPath.learningsteps
             .getOrElse(Seq.empty)
             .traverse(step => deleteLanguageFromStep(step, language, learningPath))
-          withUpdatedSteps    <- Try(converterService.insertLearningSteps(learningPath, updatedSteps, owner))
+          withUpdatedSteps    <- Try(converterService.insertLearningSteps(learningPath, updatedSteps))
           withDeletedLanguage <- converterService.deleteLearningPathLanguage(withUpdatedSteps, language)
           updatedPath         <- Try(learningPathRepository.update(withDeletedLanguage))
           _                   <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
@@ -176,7 +176,7 @@ class UpdateService(using
             .learningStepWithId(learningPathId, stepId)
             .toTry(NotFoundException(s"Could not find learningpath with id '$learningPathId'."))
           updatedStep  <- deleteLanguageFromStep(learningStep, language, learningPath)
-          pathToUpdate <- Try(converterService.insertLearningStep(learningPath, updatedStep, owner))
+          pathToUpdate <- Try(converterService.insertLearningStep(learningPath, updatedStep))
           updatedPath  <- Try(learningPathRepository.update(pathToUpdate))
           _            <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
           converted    <- converterService.asApiLearningStepV2(
@@ -301,7 +301,7 @@ class UpdateService(using
               val (insertedStep, updatedPath) = learningPathRepository.inTransaction { implicit session =>
                 val insertedStep =
                   learningPathRepository.insertLearningStep(newStep)
-                val toUpdate    = converterService.insertLearningStep(learningPath, insertedStep, owner)
+                val toUpdate    = converterService.insertLearningStep(learningPath, insertedStep)
                 val updatedPath = learningPathRepository.update(toUpdate)
 
                 (insertedStep, updatedPath)
@@ -351,7 +351,7 @@ class UpdateService(using
                   val (updatedStep, updatedPath) = learningPathRepository.inTransaction { implicit session =>
                     val updatedStep =
                       learningPathRepository.updateLearningStep(toUpdate)
-                    val pathToUpdate = converterService.insertLearningStep(learningPath, updatedStep, owner)
+                    val pathToUpdate = converterService.insertLearningStep(learningPath, updatedStep)
                     val updatedPath  = learningPathRepository.update(pathToUpdate)
 
                     (updatedStep, updatedPath)
@@ -379,8 +379,7 @@ class UpdateService(using
       newStatus: StepStatus,
       learningPath: LearningPath,
       stepToUpdate: LearningStep,
-      stepsToChange: Seq[LearningStep],
-      owner: CombinedUserRequired
+      stepsToChange: Seq[LearningStep]
   ): (LearningPath, LearningStep) = learningPathRepository.inTransaction { implicit session =>
     val (_, updatedStep, newLearningSteps) =
       stepsToChange.sortBy(_.seqNo).foldLeft((0, stepToUpdate, Seq.empty[LearningStep])) {
@@ -399,7 +398,7 @@ class UpdateService(using
       }
 
     val updated     = newLearningSteps.map(learningPathRepository.updateLearningStep)
-    val lp          = converterService.insertLearningSteps(learningPath, updated, owner)
+    val lp          = converterService.insertLearningSteps(learningPath, updated)
     val updatedPath = learningPathRepository.update(lp.copy(learningsteps = None))
     (updatedPath, updatedStep)
   }
@@ -428,7 +427,7 @@ class UpdateService(using
             }
 
             val (updatedPath, updatedStep) =
-              updateWithStepSeqNo(learningStepId, newStatus, learningPath, stepToUpdate, stepsToChange, owner)
+              updateWithStepSeqNo(learningStepId, newStatus, learningPath, stepToUpdate, stepsToChange)
 
             updateSearchAndTaxonomy(updatedPath, owner.tokenUser).flatMap(_ =>
               converterService.asApiLearningStepV2(
