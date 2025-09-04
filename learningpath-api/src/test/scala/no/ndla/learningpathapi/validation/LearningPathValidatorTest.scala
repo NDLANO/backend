@@ -83,7 +83,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
       comments = None,
       priority = None,
       revisionMeta = None,
-      introduction = None,
+      introduction = commonApi.Missing,
       grepCodes = None
     )
 
