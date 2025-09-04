@@ -13,7 +13,7 @@ import scala.io.Source
 
 trait BaseModule
     extends ScalaModule,
-      DefaultOptions,
+      ScalacOptions,
       AutoEnvLoading,
       OpenAPITSPlugin,
       GithubWorkflowPlugin,
