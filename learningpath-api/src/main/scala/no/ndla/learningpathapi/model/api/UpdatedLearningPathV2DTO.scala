@@ -35,7 +35,7 @@ case class UpdatedLearningPathV2DTO(
       "If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified"
     ) priority: Option[Priority],
     @description("A list of all revisions of the learningpath") revisionMeta: Option[Seq[RevisionMetaDTO]],
-    @description("An introduction") introduction: Option[String],
+    @description("An introduction") introduction: UpdateOrDelete[String],
     @description("A list of codes from GREP API connected to the article")
     grepCodes: Option[Seq[String]]
 )
