@@ -41,7 +41,7 @@ import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.validation.LearningPathValidator
 import no.ndla.mapping.License
 import no.ndla.mapping.License.getLicense
-import no.ndla.network.model.{CombinedUser, CombinedUserRequired, HttpRequestException}
+import no.ndla.network.model.{CombinedUser, HttpRequestException}
 
 import scala.util.{Failure, Success, Try}
 
@@ -224,21 +224,10 @@ class ConverterService(using
     (toKeep ++ updated).filterNot(_.tags.isEmpty)
   }
 
-  private def mergeStatus(existing: LearningPath, user: CombinedUser): LearningPathStatus = {
-    existing.status match {
-      case LearningPathStatus.PUBLISHED if existing.canSetStatus(LearningPathStatus.PUBLISHED, user).isFailure =>
-        LearningPathStatus.UNLISTED
-      case existingStatus => existingStatus
-    }
-  }
-
   def mergeLearningPaths(
       existing: LearningPath,
-      updated: UpdatedLearningPathV2DTO,
-      userInfo: CombinedUser
+      updated: UpdatedLearningPathV2DTO
   ): LearningPath = {
-    val status = mergeStatus(existing, userInfo)
-
     val titles = updated.title match {
       case None        => Seq.empty
       case Some(value) =>
@@ -291,7 +280,7 @@ class ConverterService(using
           updated.duration
         else existing.duration,
       tags = mergeLearningPathTags(existing.tags, tags),
-      status = status,
+      status = existing.status,
       copyright =
         if (updated.copyright.isDefined)
           asCopyright(updated.copyright.get)
@@ -357,25 +346,22 @@ class ConverterService(using
 
   def insertLearningSteps(
       learningPath: LearningPath,
-      steps: Seq[LearningStep],
-      user: CombinedUserRequired
+      steps: Seq[LearningStep]
   ): LearningPath = {
     steps.foldLeft(learningPath) { (lp, ls) =>
-      insertLearningStep(lp, ls, user)
+      insertLearningStep(lp, ls)
     }
   }
 
   def insertLearningStep(
       learningPath: LearningPath,
-      updatedStep: LearningStep,
-      user: CombinedUserRequired
+      updatedStep: LearningStep
   ): LearningPath = {
-    val status                = mergeStatus(learningPath, user)
     val existingLearningSteps = learningPath.learningsteps.getOrElse(Seq.empty).filterNot(_.id == updatedStep.id)
     val steps                 =
       if (StepStatus.ACTIVE == updatedStep.status) existingLearningSteps :+ updatedStep else existingLearningSteps
 
-    learningPath.copy(learningsteps = Some(steps), status = status, lastUpdated = clock.now())
+    learningPath.copy(learningsteps = Some(steps), lastUpdated = clock.now())
   }
 
   def deleteLearningStepLanguage(step: LearningStep, language: String): Try[LearningStep] = {
