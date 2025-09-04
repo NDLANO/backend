@@ -363,7 +363,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       None,
       None,
       None,
-      None,
+      commonApi.Missing,
       None
     )
 
@@ -382,7 +382,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       None,
       None,
       None,
-      None,
+      commonApi.Missing,
       None
     )
 
@@ -1549,7 +1549,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         None,
         None,
-        None,
+        commonApi.Missing,
         None
       )
     service.updateLearningPathV2(PUBLISHED_ID, lpToUpdate, PUBLISHED_OWNER.toCombined)

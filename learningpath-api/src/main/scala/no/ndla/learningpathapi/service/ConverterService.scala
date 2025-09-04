@@ -241,8 +241,9 @@ class ConverterService(using
     }
 
     val introductions = updated.introduction match {
-      case None        => Seq.empty
-      case Some(value) => Seq(Introduction(value, updated.language))
+      case Missing           => existing.introduction
+      case Delete            => existing.introduction.filterNot(_.language == updated.language)
+      case UpdateWith(value) => mergeLanguageFields(existing.introduction, Seq(Introduction(value, updated.language)))
     }
 
     val tags = updated.tags match {

@@ -393,7 +393,10 @@ class MultiDraftSearchService(using
     )
   }
 
-  private def draftStatusFilter(statuses: Seq[DraftStatus], includeOthers: Boolean): Some[BoolQuery] = {
+  private def draftStatusFilter(
+      statuses: Seq[DraftStatus | LearningPathStatus],
+      includeOthers: Boolean
+  ): Some[BoolQuery] = {
     if (statuses.isEmpty) {
       Some(
         boolQuery()

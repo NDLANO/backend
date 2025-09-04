@@ -80,7 +80,8 @@ class GrepApiClient(using props: Props) extends StrictLogging {
   )
 
   val getGrepBundle: () => Try[GrepBundle]                   = () => _getGrepBundle(())
-  private val _getGrepBundle: Memoize[Unit, Try[GrepBundle]] = new Memoize(1000 * 60, _ => getGrepBundleUncached)
+  private val _getGrepBundle: Memoize[Unit, Try[GrepBundle]] =
+    new Memoize(1000 * 60 * 60 * 24, _ => getGrepBundleUncached)
 
   implicit object FileIsReleasable extends Releasable[File] {
     private def deleteDirectory(f: File): Unit = {

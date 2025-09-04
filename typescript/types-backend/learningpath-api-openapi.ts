@@ -1104,7 +1104,7 @@ export type components = {
             /** @description A list of all revisions of the learningpath */
             revisionMeta?: components["schemas"]["RevisionMetaDTO"][];
             /** @description An introduction */
-            introduction?: string;
+            introduction?: string | null;
             /** @description A list of codes from GREP API connected to the article */
             grepCodes?: string[];
         };
