@@ -14,7 +14,7 @@ import no.ndla.common.model.domain.Author
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.learningpathapi.db.util.*
 
-class V52__CopyContributorsToLearningStep extends LearningPathAndStepMigration {
+class V54__CopyContributorsToLearningStep extends LearningPathAndStepMigration {
   override def convertPathAndSteps(
       lpData: LpDocumentRow,
       stepDatas: List[StepDocumentRow]
@@ -25,29 +25,25 @@ class V52__CopyContributorsToLearningStep extends LearningPathAndStepMigration {
       contributors <- Option(copyright.contributors)
     } yield contributors
 
-    if (learningPathJson.hcursor.downField("isMyNDLAOwner").as[Boolean].getOrElse(false)) {
+    // extract contributors from learning path and copy to each step of type TEXT without embedUrl
+    val updatedSteps = stepDatas.map { step =>
+      val json         = CirceUtil.unsafeParse(step.learningStepDocument)
+      val cursor       = json.hcursor
+      val isText       = cursor.get[String]("type").toOption.contains("TEXT")
+      val hasEmbedUrl  = cursor.get[String]("embedUrl").toOption.isDefined
+      val hasArticleId = cursor.get[Long]("articleId").toOption.isDefined
 
-      // extract contributors from learning path and copy to each step of type TEXT without embedUrl
-      val updatedSteps = stepDatas.map { step =>
-        val json         = CirceUtil.unsafeParse(step.learningStepDocument)
-        val cursor       = json.hcursor
-        val isText       = cursor.get[String]("type").toOption.contains("TEXT")
-        val hasEmbedUrl  = cursor.get[String]("embedUrl").toOption.isDefined
-        val hasArticleId = cursor.get[Long]("articleId").toOption.isDefined
-
-        if (isText && !hasEmbedUrl && !hasArticleId && contributorsOpt.isDefined) {
-          addContributorsToCopyright(json, contributorsOpt.get) match {
-            case Some(updated) => step.copy(learningStepDocument = updated.noSpaces)
-            case None          => step
-          }
-        } else {
-          step
+      if (isText && !hasEmbedUrl && !hasArticleId && contributorsOpt.isDefined) {
+        addContributorsToCopyright(json, contributorsOpt.get) match {
+          case Some(updated) => step.copy(learningStepDocument = updated.noSpaces)
+          case None          => step
         }
+      } else {
+        step
       }
-      return (lpData, updatedSteps)
     }
+    return (lpData, updatedSteps)
 
-    (lpData, stepDatas)
   }
 
   private def addContributorsToCopyright(json: Json, contributors: Seq[Author]): Option[Json] = {
