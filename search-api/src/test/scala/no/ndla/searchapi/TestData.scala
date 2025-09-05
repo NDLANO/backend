@@ -1818,7 +1818,7 @@ object TestData {
     language = DefaultLanguage,
     license = None,
     page = 1,
-    pageSize = 20,
+    pageSize = 30,
     sort = Sort.ByIdAsc,
     withIdIn = List.empty,
     subjects = List.empty,
