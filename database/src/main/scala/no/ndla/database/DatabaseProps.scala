@@ -15,6 +15,7 @@ import scala.util.Properties.propOrElse
 
 trait DatabaseProps {
   this: BaseProps =>
+
   val MetaUserName: Prop[String] = prop(PropertyKeys.MetaUserNameKey)
   val MetaPassword: Prop[String] = prop(PropertyKeys.MetaPasswordKey)
   val MetaResource: Prop[String] = prop(PropertyKeys.MetaResourceKey)

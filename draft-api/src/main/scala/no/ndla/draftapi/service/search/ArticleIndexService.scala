@@ -18,44 +18,46 @@ import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableArticle
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
+import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
-trait ArticleIndexService {
-  this: SearchConverterService with IndexService with DraftRepository with Props =>
-  lazy val articleIndexService: ArticleIndexService
+class ArticleIndexService(using
+    searchConverterService: SearchConverterService,
+    draftRepository: DraftRepository,
+    e4sClient: NdlaE4sClient,
+    searchLanguage: SearchLanguage,
+    props: Props
+) extends IndexService[Draft, SearchableArticle]
+    with StrictLogging {
+  override val documentType: String          = props.DraftSearchDocument
+  override val searchIndex: String           = props.DraftSearchIndex
+  override val repository: Repository[Draft] = draftRepository
 
-  class ArticleIndexService extends IndexService[Draft, SearchableArticle] with StrictLogging {
-    override val documentType: String          = props.DraftSearchDocument
-    override val searchIndex: String           = props.DraftSearchIndex
-    override val repository: Repository[Draft] = draftRepository
-
-    override def createIndexRequests(domainModel: Draft, indexName: String): Seq[IndexRequest] = {
-      val searchable = searchConverterService.asSearchableArticle(domainModel)
-      val source     = CirceUtil.toJsonString(searchable)
-      Seq(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
-    }
-
-    def getMapping: MappingDefinition = {
-      val fields = List(
-        intField("id"),
-        dateField("lastUpdated"),
-        keywordField("license"),
-        keywordField("defaultTitle"),
-        textField("authors") fielddata true,
-        textField("articleType") analyzer "keyword",
-        textField("notes"),
-        textField("previousNotes"),
-        keywordField("users"),
-        keywordField("grepCodes"),
-        ObjectField("status", properties = Seq(keywordField("current"), keywordField("other")))
-      )
-      val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
-        generateLanguageSupportedFieldList("content") ++
-        generateLanguageSupportedFieldList("visualElement") ++
-        generateLanguageSupportedFieldList("introduction") ++
-        generateLanguageSupportedFieldList("tags")
-
-      properties(fields ++ dynamics)
-    }
+  override def createIndexRequests(domainModel: Draft, indexName: String): Seq[IndexRequest] = {
+    val searchable = searchConverterService.asSearchableArticle(domainModel)
+    val source     = CirceUtil.toJsonString(searchable)
+    Seq(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
   }
 
+  def getMapping: MappingDefinition = {
+    val fields = List(
+      intField("id"),
+      dateField("lastUpdated"),
+      keywordField("license"),
+      keywordField("defaultTitle"),
+      textField("authors") fielddata true,
+      textField("articleType") analyzer "keyword",
+      textField("notes"),
+      textField("previousNotes"),
+      keywordField("users"),
+      keywordField("grepCodes"),
+      ObjectField("status", properties = Seq(keywordField("current"), keywordField("other")))
+    )
+    val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
+      generateLanguageSupportedFieldList("content") ++
+      generateLanguageSupportedFieldList("visualElement") ++
+      generateLanguageSupportedFieldList("introduction") ++
+      generateLanguageSupportedFieldList("tags")
+
+    properties(fields ++ dynamics)
+  }
 }

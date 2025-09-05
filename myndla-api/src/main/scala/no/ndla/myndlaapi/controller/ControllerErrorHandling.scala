@@ -12,15 +12,17 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, InvalidStateException, NotFoundException, ValidationException}
 import no.ndla.database.DataSource
-import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.model.domain.InvalidStatusException
-import no.ndla.network.tapir.{AllErrors, ErrorBody, TapirErrorHandling, ValidationErrorBody}
+import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHandling, ErrorHelpers, ValidationErrorBody}
 import org.postgresql.util.PSQLException
 
-trait ErrorHandling extends TapirErrorHandling with StrictLogging {
-  this: Props & Clock & DataSource =>
-
-  import ErrorHelpers.*
+class ControllerErrorHandling(using
+    clock: Clock,
+    dataSource: => DataSource,
+    errorHelpers: ErrorHelpers
+) extends ErrorHandling
+    with StrictLogging {
+  import errorHelpers.*
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case nfe: NotFoundException =>
@@ -34,8 +36,8 @@ trait ErrorHandling extends TapirErrorHandling with StrictLogging {
     case mse: InvalidStatusException =>
       ErrorBody(MISSING_STATUS, mse.getMessage, clock.now(), 400)
     case _: PSQLException =>
-      DataSource.connectToDatabase()
-      ErrorHelpers.generic
+      dataSource.connectToDatabase()
+      generic
     case v: ValidationException =>
       ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), Some(v.errors), 400)
   }

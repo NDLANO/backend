@@ -32,6 +32,7 @@ import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.RevisionMeta
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
+  val today: NDLADate               = clock.now()
   val clinton: commonApi.AuthorDTO  = commonApi.AuthorDTO(ContributorType.Writer, "Crooked Hillary")
   val license: commonApi.LicenseDTO =
     commonApi.LicenseDTO(
@@ -42,53 +43,71 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   val copyright: api.CopyrightDTO = api.CopyrightDTO(license, List(clinton))
 
   val apiLearningPath: api.LearningPathV2DTO = api.LearningPathV2DTO(
-    1,
-    1,
-    None,
-    api.TitleDTO("Tittel", "nb"),
-    api.DescriptionDTO("Beskrivelse", "nb"),
-    "",
-    List(),
-    "",
-    None,
-    None,
-    "PRIVATE",
-    "CREATED_BY_NDLA",
-    NDLADate.now(),
-    NDLADate.now(),
-    api.LearningPathTagsDTO(List(), "nb"),
-    copyright,
-    true,
-    List("nb"),
-    None,
-    None,
-    None,
-    false,
-    None,
-    Seq.empty,
-    Priority.Unspecified,
-    Seq.empty,
-    api.IntroductionDTO("<section><p>Introduksjon</p></section>", "nb")
+    id = 1,
+    revision = 1,
+    isBasedOn = None,
+    title = api.TitleDTO("Tittel", "nb"),
+    description = api.DescriptionDTO("Beskrivelse", "nb"),
+    metaUrl = "",
+    learningsteps = List(),
+    learningstepUrl = "",
+    coverPhoto = None,
+    duration = None,
+    status = "PRIVATE",
+    verificationStatus = "CREATED_BY_NDLA",
+    created = today,
+    lastUpdated = today,
+    tags = api.LearningPathTagsDTO(List(), "nb"),
+    copyright = copyright,
+    canEdit = true,
+    supportedLanguages = List("nb"),
+    ownerId = None,
+    message = None,
+    madeAvailable = None,
+    isMyNDLAOwner = false,
+    responsible = None,
+    comments = Seq.empty,
+    priority = Priority.Unspecified,
+    revisions = Seq.empty,
+    introduction = api.IntroductionDTO("<section><p>Introduksjon</p></section>", "nb"),
+    Seq.empty
   )
-  val domainLearningStep: LearningStep =
-    LearningStep(None, None, None, None, 1, List(), List(), List(), List(), None, StepType.INTRODUCTION, None)
+
+  val domainLearningStep: LearningStep = LearningStep(
+    id = None,
+    revision = None,
+    externalId = None,
+    learningPathId = None,
+    seqNo = 1,
+    title = List(),
+    introduction = List(),
+    description = List(),
+    embedUrl = List(),
+    articleId = None,
+    `type` = StepType.INTRODUCTION,
+    copyright = None,
+    created = today,
+    lastUpdated = today
+  )
 
   val domainLearningStep2: LearningStep = LearningStep(
-    Some(1),
-    Some(1),
-    None,
-    None,
-    1,
-    List(Title("tittel", "nb")),
-    List(),
-    List(Description("deskripsjon", "nb")),
-    List(),
-    None,
-    StepType.INTRODUCTION,
-    None
+    id = Some(1),
+    revision = Some(1),
+    externalId = None,
+    learningPathId = None,
+    seqNo = 1,
+    title = List(Title("tittel", "nb")),
+    introduction = List(),
+    description = List(Description("deskripsjon", "nb")),
+    embedUrl = List(),
+    articleId = None,
+    `type` = StepType.INTRODUCTION,
+    copyright = None,
+    created = today,
+    lastUpdated = today
   )
 
-  val multiLanguageDomainStep = TestData.domainLearningStep2.copy(
+  val multiLanguageDomainStep: LearningStep = TestData.domainLearningStep2.copy(
     title = Seq(
       Title("Tittel på bokmål", "nb"),
       Title("Tittel på nynorsk", "nn")
@@ -109,8 +128,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   )
   val apiTags: List[api.LearningPathTagsDTO] = List(api.LearningPathTagsDTO(Seq("tag"), props.DefaultLanguage))
 
-  val randomDate: NDLADate      = NDLADate.now()
-  var service: ConverterService = _
+  val randomDate: NDLADate      = clock.now()
+  var service: ConverterService = scala.compiletime.uninitialized
 
   val revisionMeta = RevisionMeta.default
 
@@ -136,7 +155,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = revisionMeta
+    revisionMeta = revisionMeta,
+    grepCodes = Seq.empty
   )
 
   override def beforeEach(): Unit = {
@@ -178,8 +198,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        revisionMeta.map(CommonConverter.revisionMetaDomainToApi),
-        api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage)
+        revisionMeta.map(commonConverter.revisionMetaDomainToApi),
+        api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
+        Seq.empty
       )
     )
     service.asApiLearningpathV2(
@@ -236,8 +257,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        revisionMeta.map(CommonConverter.revisionMetaDomainToApi),
-        api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage)
+        revisionMeta.map(commonConverter.revisionMetaDomainToApi),
+        api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
+        Seq.empty
       )
     )
     service.asApiLearningpathV2(
@@ -273,7 +295,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         ),
         List("nb", "en"),
         None,
-        None
+        None,
+        Seq.empty
       )
     )
     service.asApiLearningpathSummaryV2(
@@ -300,6 +323,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1",
         canEdit = true,
         "ACTIVE",
+        today,
+        today,
         Seq(props.DefaultLanguage)
       )
     )
@@ -348,6 +373,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1",
         canEdit = true,
         "ACTIVE",
+        today,
+        today,
         Seq(props.DefaultLanguage)
       )
     )
@@ -549,7 +576,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         None,
         None,
-        Some("<section><p>Introduksjon</p></section>")
+        Some("<section><p>Introduksjon</p></section>"),
+        None
       )
 
     service

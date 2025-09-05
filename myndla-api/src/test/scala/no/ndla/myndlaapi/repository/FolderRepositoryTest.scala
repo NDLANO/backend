@@ -9,11 +9,11 @@
 package no.ndla.myndlaapi.repository
 
 import cats.implicits.*
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.ResourceType.Article
 import no.ndla.common.model.domain.myndla.FolderStatus
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.model.domain.{BulkInserts, Folder, FolderResource, NewFolderData, Resource, ResourceDocument}
 import no.ndla.myndlaapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
@@ -25,18 +25,18 @@ import java.util.UUID
 import scala.util.{Success, Try}
 
 class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override lazy val dataSource: HikariDataSource   = testDataSource.get
-  override lazy val migrator: DBMigrator           = new DBMigrator
-  var repository: FolderRepository                 = _
-  override lazy val userRepository: UserRepository = new UserRepository
-  override lazy val DBUtil: DBUtility              = new DBUtility
+  override implicit lazy val dataSource: DataSource         = testDataSource.get
+  override implicit lazy val migrator: DBMigrator           = new DBMigrator
+  var repository: FolderRepository                          = scala.compiletime.uninitialized
+  override implicit lazy val userRepository: UserRepository = new UserRepository
+  override implicit lazy val DBUtil: DBUtility              = new DBUtility
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
-      sql"delete from folders;".execute()(session)
-      sql"delete from resources;".execute()(session)
-      sql"delete from folder_resources;".execute()(session)
-      sql"delete from my_ndla_users;".execute()(session)
+      sql"delete from folders;".execute()(using session)
+      sql"delete from resources;".execute()(using session)
+      sql"delete from folder_resources;".execute()(using session)
+      sql"delete from my_ndla_users;".execute()(using session)
     })
   }
 
@@ -61,7 +61,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
+    dataSource.connectToDatabase()
     if (serverIsListening) {
       migrator.migrate()
     }
@@ -454,7 +454,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       resources = List(insertedResource.copy(connection = Some(insertedConnection)))
     )
 
-    val result = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(ReadOnlyAutoSession)
+    val result = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(using ReadOnlyAutoSession)
     result should be(Success(Some(expectedResult)))
   }
 
@@ -636,11 +636,12 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       resources = List(insertedResource.copy(connection = Some(insertedConnection)))
     )
 
-    val resultNormal = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(ReadOnlyAutoSession)
+    val resultNormal =
+      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(using ReadOnlyAutoSession)
     resultNormal should be(Success(Some(expectedResultNormal)))
 
     val resultFiltered =
-      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED, None)(
+      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED, None)(using
         ReadOnlyAutoSession
       )
     resultFiltered should be(Success(Some(expectedResultFiltered)))
@@ -831,21 +832,21 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       resources = List(resource1, resource2, resource3),
       connections = List(folderResource1, folderResource2)
     )
-    repository.insertFolderInBulk(bulkInserts)(session).get
+    repository.insertFolderInBulk(bulkInserts)(using session).get
 
     repository.folderWithId(id1).get should be(folder1)
     repository.folderWithId(id2).get should be(folder2)
 
-    repository.insertResourcesInBulk(bulkInserts.copy(resources = List(resource2)))(session).get
+    repository.insertResourcesInBulk(bulkInserts.copy(resources = List(resource2)))(using session).get
     repository.resourceWithId(resource2.id).get should be(resource2)
 
-    repository.insertResourcesInBulk(bulkInserts)(session).get
+    repository.insertResourcesInBulk(bulkInserts)(using session).get
     repository.resourceWithId(resource1.id).get should be(resource1)
     repository.resourceWithId(resource2.id).get should be(resource2)
     val err = repository.resourceWithId(resource3.id)
     err.isFailure should be(true)
 
-    repository.insertResourceConnectionInBulk(bulkInserts)(session).get
+    repository.insertResourceConnectionInBulk(bulkInserts)(using session).get
 
     val conn1 = repository.getConnection(folder1.id, resource1.id).get
     conn1 should be(Some(folderResource1))

@@ -9,6 +9,7 @@
 package no.ndla.audioapi.service.search
 
 import no.ndla.audioapi.TestData.searchSettings
+import no.ndla.audioapi.controller.ControllerErrorHandling
 import no.ndla.audioapi.model.domain.*
 import no.ndla.audioapi.model.{Sort, domain}
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
@@ -17,22 +18,26 @@ import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.mapping.License
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 
 import scala.util.Success
 
 class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val e4sClient: NdlaE4sClient =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override lazy val audioSearchService                   = new AudioSearchService
-  override lazy val audioIndexService: AudioIndexService = new AudioIndexService {
+  override implicit lazy val searchLanguage: SearchLanguage         = new SearchLanguage
+  override implicit lazy val errorHandling: ControllerErrorHandling = new ControllerErrorHandling
+  override implicit lazy val audioSearchService: AudioSearchService = new AudioSearchService
+  override implicit lazy val audioIndexService: AudioIndexService   = new AudioIndexService {
     override val indexShards = 1
   }
-  override lazy val seriesIndexService: SeriesIndexService = new SeriesIndexService {
+  override implicit lazy val seriesIndexService: SeriesIndexService = new SeriesIndexService {
     override val indexShards = 1
   }
-  override lazy val searchConverterService = new SearchConverterService
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   val byNcSa: Copyright =
     Copyright(
@@ -232,7 +237,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    when(converterService.findAndConvertDomainToApiField(any, any)(any)).thenCallRealMethod()
+    when(converterService.findAndConvertDomainToApiField(any, any)(using any)).thenCallRealMethod()
     when(converterService.toApiManuscript(any)).thenCallRealMethod()
     when(converterService.toApiCoverPhoto(any)).thenCallRealMethod()
     when(converterService.toApiPodcastMeta(any)).thenCallRealMethod()

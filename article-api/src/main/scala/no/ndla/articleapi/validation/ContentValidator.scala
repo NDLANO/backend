@@ -24,275 +24,273 @@ import no.ndla.validation.TextValidator
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
-trait ContentValidator {
-  this: ArticleRepository & Props =>
-  lazy val contentValidator: ContentValidator
+class ContentValidator(using
+    articleRepository: ArticleRepository,
+    props: Props
+) {
+  private val inlineHtmlTags       = props.InlineHtmlTags
+  private val introductionHtmlTags = props.IntroductionHtmlTags
 
-  class ContentValidator {
-    private val inlineHtmlTags       = props.InlineHtmlTags
-    private val introductionHtmlTags = props.IntroductionHtmlTags
+  def softValidateArticle(article: Article, isImported: Boolean): Try[Article] = {
+    val metaValidation =
+      if (isImported) None else validateNonEmpty("metaDescription", article.metaDescription)
+    val validationErrors =
+      validateRevisionDate(article.revisionDate) ++
+        validateNonEmpty("content", article.content) ++
+        validateNonEmpty("title", article.title) ++
+        metaValidation
 
-    def softValidateArticle(article: Article, isImported: Boolean): Try[Article] = {
-      val metaValidation =
-        if (isImported) None else validateNonEmpty("metaDescription", article.metaDescription)
-      val validationErrors =
-        validateRevisionDate(article.revisionDate) ++
-          validateNonEmpty("content", article.content) ++
-          validateNonEmpty("title", article.title) ++
-          metaValidation
-
-      if (validationErrors.isEmpty) {
-        Success(article)
-      } else {
-        val validationMessage = article.id match {
-          case Some(aid) => s"Article with id $aid failed soft article validation"
-          case None      => "Article without id failed soft article validation"
-        }
-
-        Failure(new ValidationException(validationMessage, errors = validationErrors))
-      }
-    }
-
-    def validateArticle(article: Article, isImported: Boolean): Try[Article] = {
-      val validationErrors = validateArticleContent(article.content) ++
-        article.introduction.flatMap(i => validateIntroduction(i)) ++
-        validateArticleDisclaimer(article.disclaimer) ++
-        validateMetaDescription(article.metaDescription, isImported) ++
-        validateTitle(article.title) ++
-        validateCopyright(article.copyright) ++
-        validateTags(article.tags, isImported) ++
-        article.requiredLibraries.flatMap(validateRequiredLibrary) ++
-        article.metaImage.flatMap(validateMetaImage) ++
-        article.visualElement.flatMap(v => validateVisualElement(v)) ++
-        validateRevisionDate(article.revisionDate) ++
-        validateSlug(article.slug, article.articleType, article.id, articleRepository.slugExists)
-      if (validationErrors.isEmpty) {
-        Success(article)
-      } else {
-        val validationMessage = article.id match {
-          case Some(aid) => s"Article with id $aid failed article validation"
-          case None      => "Article without id failed article validation"
-        }
-        Failure(new ValidationException(validationMessage, errors = validationErrors))
-      }
-    }
-
-    private def validateRevisionDate(revisionDate: Option[NDLADate]): Seq[ValidationMessage] = {
-      revisionDate match {
-        case None => Seq(ValidationMessage("revisionDate", "Article must have at least one unfinished revision"))
-        case _    => Seq.empty
-      }
-    }
-
-    private def validateNonEmpty(field: String, values: Seq[LanguageField[?]]): Option[ValidationMessage] = {
-      if (values.isEmpty || values.forall(_.isEmpty)) {
-        Some(ValidationMessage(field, "Field must contain at least one entry"))
-      } else
-        None
-    }
-
-    private def validateArticleContent(contents: Seq[ArticleContent]): Seq[ValidationMessage] = {
-      contents.flatMap(content => {
-        val field = s"content.${content.language}"
-        TextValidator.validate(field, content.content, allLegalTags).toList ++
-          rootElementContainsOnlySectionBlocks(field, content.content) ++
-          validateLanguage("content.language", content.language)
-      }) ++ validateNonEmpty("content", contents)
-    }
-
-    private def validateArticleDisclaimer(disclaimers: OptLanguageFields[String]): Seq[ValidationMessage] = {
-      disclaimers.mapExisting { disclaimer =>
-        val field = s"disclaimer.${disclaimer.language}"
-        TextValidator.validate(field, disclaimer.value, allLegalTags).toList ++
-          validateLanguage("disclaimer.language", disclaimer.language)
-      }.flatten
-    }
-
-    private def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
-      val legalTopLevelTag = "section"
-      val topLevelTags     = stringToJsoupDocument(html).children().asScala.map(_.tagName())
-
-      if (topLevelTags.forall(_ == legalTopLevelTag)) {
-        None
-      } else {
-        val illegalTags = topLevelTags.filterNot(_ == legalTopLevelTag).mkString(",")
-        Some(
-          ValidationMessage(
-            field,
-            s"An article must consist of one or more <section> blocks. Illegal tag(s) are $illegalTags "
-          )
-        )
-      }
-    }
-
-    private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
-      val field = s"visualElement.${content.language}"
-      TextValidator
-        .validateVisualElement(
-          field,
-          content.resource,
-          allLegalTags,
-          requiredToOptional = Map("image" -> Seq("data-caption"))
-        )
-        .toList ++
-        validateLanguage("visualElement.language", content.language)
-    }
-
-    private def validateIntroduction(content: Introduction): Seq[ValidationMessage] = {
-      val field = s"introduction.${content.language}"
-      TextValidator.validate(field, content.introduction, introductionHtmlTags).toList ++
-        validateLanguage("introduction.language", content.language)
-    }
-
-    private def validateMetaDescription(
-        contents: Seq[Description],
-        allowEmpty: Boolean
-    ): Seq[ValidationMessage] = {
-      val nonEmptyValidation = if (allowEmpty) None else validateNonEmpty("metaDescription", contents)
-      val validations        = contents.flatMap(content => {
-        val field = s"metaDescription.${content.language}"
-        TextValidator.validate(field, content.content, Set.empty).toList ++
-          validateLanguage("metaDescription.language", content.language)
-      })
-      validations ++ nonEmptyValidation
-    }
-
-    private def validateTitle(titles: Seq[LanguageField[String]]): Seq[ValidationMessage] = {
-      titles.flatMap(title => {
-        val field = s"title.language"
-        TextValidator.validate(field, title.value, inlineHtmlTags).toList ++
-          validateLanguage("title.language", title.language) ++
-          validateLength("title", title.value, 0, 256)
-      }) ++ validateNonEmpty("title", titles)
-    }
-
-    private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
-      val licenseMessage            = validateLicense(copyright.license)
-      val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
-      val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
-      val contributorsMessages      =
-        copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", ContributorType.creators)) ++
-          copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", ContributorType.processors)) ++
-          copyright.rightsholders.flatMap(a =>
-            validateAuthor(a, "copyright.rightsholders", ContributorType.rightsholders)
-          )
-      val originMessage =
-        copyright.origin
-          .map(origin => TextValidator.validate("copyright.origin", origin, Set.empty))
-          .getOrElse(Seq.empty)
-
-      licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage
-    }
-
-    private def validateLicense(license: String): Seq[ValidationMessage] = {
-      getLicense(license) match {
-        case None => Seq(ValidationMessage("license.license", s"$license is not a valid license"))
-        case _    => Seq()
-      }
-    }
-
-    private def validateAuthorLicenseCorrelation(license: String, authors: Seq[Author]) = {
-      val errorMessage = (lic: String) =>
-        ValidationMessage("license.license", s"At least one copyright holder is required when license is $lic")
-      if (license == "N/A" || authors.nonEmpty) Seq() else Seq(errorMessage(license))
-    }
-
-    private def validateAuthor(
-        author: Author,
-        fieldPath: String,
-        allowedTypes: Seq[ContributorType]
-    ): Seq[ValidationMessage] = {
-      TextValidator.validate(s"$fieldPath.name", author.name, Set.empty).toList ++
-        validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes).toList ++
-        validateLength(s"$fieldPath.name", author.name, 1, 256)
-    }
-
-    private def validateAuthorType(
-        fieldPath: String,
-        `type`: ContributorType,
-        allowedTypes: Seq[ContributorType]
-    ): Option[ValidationMessage] = {
-      if (allowedTypes.contains(`type`)) {
-        None
-      } else {
-        Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
-      }
-    }
-
-    private def validateTags(tags: Seq[Tag], isImported: Boolean): Seq[ValidationMessage] = {
-
-      // Since quite a few articles from old ndla has fewer than 3 tags we skip validation here for imported articles until we are done importing.
-      val languageTagAmountErrors = tags.groupBy(_.language).flatMap {
-        case (lang, tagsForLang) if !isImported && tagsForLang.flatMap(_.tags).size < props.MinimumAllowedTags =>
-          Seq(
-            ValidationMessage(
-              s"tags.$lang",
-              s"Invalid amount of tags. Articles needs ${props.MinimumAllowedTags} or more tags to be valid."
-            )
-          )
-        case _ => Seq()
+    if (validationErrors.isEmpty) {
+      Success(article)
+    } else {
+      val validationMessage = article.id match {
+        case Some(aid) => s"Article with id $aid failed soft article validation"
+        case None      => "Article without id failed soft article validation"
       }
 
-      val noTagsError =
-        if (tags.isEmpty) Seq(ValidationMessage("tags", "The article must have at least one set of tags")) else Seq()
-
-      tags.flatMap(tagList => {
-        tagList.tags.flatMap(TextValidator.validate(s"tags.${tagList.language}", _, Set.empty)).toList :::
-          validateLanguage("tags.language", tagList.language).toList
-      }) ++ languageTagAmountErrors ++ noTagsError
+      Failure(new ValidationException(validationMessage, errors = validationErrors))
     }
-
-    private def validateRequiredLibrary(requiredLibrary: RequiredLibrary): Option[ValidationMessage] = {
-      val permittedLibraries = Seq(props.BrightcoveVideoScriptUrl, props.H5PResizerScriptUrl) ++ props.NRKVideoScriptUrl
-      if (permittedLibraries.contains(requiredLibrary.url)) {
-        None
-      } else {
-        Some(
-          ValidationMessage(
-            "requiredLibraries.url",
-            s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"
-          )
-        )
-      }
-    }
-
-    private def validateMetaImage(metaImage: ArticleMetaImage): Seq[ValidationMessage] =
-      (validateMetaImageId(metaImage.imageId) ++ validateMetaImageAltText(metaImage.altText)).toSeq
-
-    private def validateMetaImageAltText(altText: String): Seq[ValidationMessage] =
-      TextValidator.validate("metaImage.alt", altText, Set.empty)
-
-    private def validateMetaImageId(id: String): Option[ValidationMessage] = {
-      def isAllDigits(x: String) = x forall Character.isDigit
-      if (isAllDigits(id) && id.nonEmpty) {
-        None
-      } else {
-        Some(ValidationMessage("metaImageId", "Meta image ID must be a number"))
-      }
-    }
-
-    private def validateLanguage(fieldPath: String, languageCode: String): Option[ValidationMessage] = {
-      if (languageCode.nonEmpty && languageCodeSupported6391(languageCode)) {
-        None
-      } else {
-        Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
-      }
-    }
-
-    private def validateLength(fieldPath: String, content: String, minLength: Int, maxLength: Int) = {
-      if (content.length > maxLength)
-        Some(ValidationMessage(fieldPath, s"This field exceeds the maximum permitted length of $maxLength characters"))
-      else if (content.length < minLength)
-        Some(
-          ValidationMessage(
-            fieldPath,
-            s"This field is shorter than the minimum permitted length of $minLength characters"
-          )
-        )
-      else
-        None
-    }
-
-    private def languageCodeSupported6391(languageCode: String): Boolean = Iso639.get(languageCode).isSuccess
   }
+
+  def validateArticle(article: Article, isImported: Boolean): Try[Article] = {
+    val validationErrors = validateArticleContent(article.content) ++
+      article.introduction.flatMap(i => validateIntroduction(i)) ++
+      validateArticleDisclaimer(article.disclaimer) ++
+      validateMetaDescription(article.metaDescription, isImported) ++
+      validateTitle(article.title) ++
+      validateCopyright(article.copyright) ++
+      validateTags(article.tags, isImported) ++
+      article.requiredLibraries.flatMap(validateRequiredLibrary) ++
+      article.metaImage.flatMap(validateMetaImage) ++
+      article.visualElement.flatMap(v => validateVisualElement(v)) ++
+      validateRevisionDate(article.revisionDate) ++
+      validateSlug(article.slug, article.articleType, article.id, articleRepository.slugExists)
+    if (validationErrors.isEmpty) {
+      Success(article)
+    } else {
+      val validationMessage = article.id match {
+        case Some(aid) => s"Article with id $aid failed article validation"
+        case None      => "Article without id failed article validation"
+      }
+      Failure(new ValidationException(validationMessage, errors = validationErrors))
+    }
+  }
+
+  private def validateRevisionDate(revisionDate: Option[NDLADate]): Seq[ValidationMessage] = {
+    revisionDate match {
+      case None => Seq(ValidationMessage("revisionDate", "Article must have at least one unfinished revision"))
+      case _    => Seq.empty
+    }
+  }
+
+  private def validateNonEmpty(field: String, values: Seq[LanguageField[?]]): Option[ValidationMessage] = {
+    if (values.isEmpty || values.forall(_.isEmpty)) {
+      Some(ValidationMessage(field, "Field must contain at least one entry"))
+    } else
+      None
+  }
+
+  private def validateArticleContent(contents: Seq[ArticleContent]): Seq[ValidationMessage] = {
+    contents.flatMap(content => {
+      val field = s"content.${content.language}"
+      TextValidator.validate(field, content.content, allLegalTags).toList ++
+        rootElementContainsOnlySectionBlocks(field, content.content) ++
+        validateLanguage("content.language", content.language)
+    }) ++ validateNonEmpty("content", contents)
+  }
+
+  private def validateArticleDisclaimer(disclaimers: OptLanguageFields[String]): Seq[ValidationMessage] = {
+    disclaimers.mapExisting { disclaimer =>
+      val field = s"disclaimer.${disclaimer.language}"
+      TextValidator.validate(field, disclaimer.value, allLegalTags).toList ++
+        validateLanguage("disclaimer.language", disclaimer.language)
+    }.flatten
+  }
+
+  private def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
+    val legalTopLevelTag = "section"
+    val topLevelTags     = stringToJsoupDocument(html).children().asScala.map(_.tagName())
+
+    if (topLevelTags.forall(_ == legalTopLevelTag)) {
+      None
+    } else {
+      val illegalTags = topLevelTags.filterNot(_ == legalTopLevelTag).mkString(",")
+      Some(
+        ValidationMessage(
+          field,
+          s"An article must consist of one or more <section> blocks. Illegal tag(s) are $illegalTags "
+        )
+      )
+    }
+  }
+
+  private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
+    val field = s"visualElement.${content.language}"
+    TextValidator
+      .validateVisualElement(
+        field,
+        content.resource,
+        allLegalTags,
+        requiredToOptional = Map("image" -> Seq("data-caption"))
+      )
+      .toList ++
+      validateLanguage("visualElement.language", content.language)
+  }
+
+  private def validateIntroduction(content: Introduction): Seq[ValidationMessage] = {
+    val field = s"introduction.${content.language}"
+    TextValidator.validate(field, content.introduction, introductionHtmlTags).toList ++
+      validateLanguage("introduction.language", content.language)
+  }
+
+  private def validateMetaDescription(
+      contents: Seq[Description],
+      allowEmpty: Boolean
+  ): Seq[ValidationMessage] = {
+    val nonEmptyValidation = if (allowEmpty) None else validateNonEmpty("metaDescription", contents)
+    val validations        = contents.flatMap(content => {
+      val field = s"metaDescription.${content.language}"
+      TextValidator.validate(field, content.content, Set.empty).toList ++
+        validateLanguage("metaDescription.language", content.language)
+    })
+    validations ++ nonEmptyValidation
+  }
+
+  private def validateTitle(titles: Seq[LanguageField[String]]): Seq[ValidationMessage] = {
+    titles.flatMap(title => {
+      val field = s"title.language"
+      TextValidator.validate(field, title.value, inlineHtmlTags).toList ++
+        validateLanguage("title.language", title.language) ++
+        validateLength("title", title.value, 0, 256)
+    }) ++ validateNonEmpty("title", titles)
+  }
+
+  private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
+    val licenseMessage            = validateLicense(copyright.license)
+    val allAuthors                = copyright.creators ++ copyright.processors ++ copyright.rightsholders
+    val licenseCorrelationMessage = validateAuthorLicenseCorrelation(copyright.license, allAuthors)
+    val contributorsMessages      =
+      copyright.creators.flatMap(a => validateAuthor(a, "copyright.creators", ContributorType.creators)) ++
+        copyright.processors.flatMap(a => validateAuthor(a, "copyright.processors", ContributorType.processors)) ++
+        copyright.rightsholders.flatMap(a =>
+          validateAuthor(a, "copyright.rightsholders", ContributorType.rightsholders)
+        )
+    val originMessage =
+      copyright.origin
+        .map(origin => TextValidator.validate("copyright.origin", origin, Set.empty))
+        .getOrElse(Seq.empty)
+
+    licenseMessage ++ licenseCorrelationMessage ++ contributorsMessages ++ originMessage
+  }
+
+  private def validateLicense(license: String): Seq[ValidationMessage] = {
+    getLicense(license) match {
+      case None => Seq(ValidationMessage("license.license", s"$license is not a valid license"))
+      case _    => Seq()
+    }
+  }
+
+  private def validateAuthorLicenseCorrelation(license: String, authors: Seq[Author]) = {
+    val errorMessage = (lic: String) =>
+      ValidationMessage("license.license", s"At least one copyright holder is required when license is $lic")
+    if (license == "N/A" || authors.nonEmpty) Seq() else Seq(errorMessage(license))
+  }
+
+  private def validateAuthor(
+      author: Author,
+      fieldPath: String,
+      allowedTypes: Seq[ContributorType]
+  ): Seq[ValidationMessage] = {
+    TextValidator.validate(s"$fieldPath.name", author.name, Set.empty).toList ++
+      validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes).toList ++
+      validateLength(s"$fieldPath.name", author.name, 1, 256)
+  }
+
+  private def validateAuthorType(
+      fieldPath: String,
+      `type`: ContributorType,
+      allowedTypes: Seq[ContributorType]
+  ): Option[ValidationMessage] = {
+    if (allowedTypes.contains(`type`)) {
+      None
+    } else {
+      Some(ValidationMessage(fieldPath, s"Author is of illegal type. Must be one of ${allowedTypes.mkString(", ")}"))
+    }
+  }
+
+  private def validateTags(tags: Seq[Tag], isImported: Boolean): Seq[ValidationMessage] = {
+
+    // Since quite a few articles from old ndla has fewer than 3 tags we skip validation here for imported articles until we are done importing.
+    val languageTagAmountErrors = tags.groupBy(_.language).flatMap {
+      case (lang, tagsForLang) if !isImported && tagsForLang.flatMap(_.tags).size < props.MinimumAllowedTags =>
+        Seq(
+          ValidationMessage(
+            s"tags.$lang",
+            s"Invalid amount of tags. Articles needs ${props.MinimumAllowedTags} or more tags to be valid."
+          )
+        )
+      case _ => Seq()
+    }
+
+    val noTagsError =
+      if (tags.isEmpty) Seq(ValidationMessage("tags", "The article must have at least one set of tags")) else Seq()
+
+    tags.flatMap(tagList => {
+      tagList.tags.flatMap(TextValidator.validate(s"tags.${tagList.language}", _, Set.empty)).toList :::
+        validateLanguage("tags.language", tagList.language).toList
+    }) ++ languageTagAmountErrors ++ noTagsError
+  }
+
+  private def validateRequiredLibrary(requiredLibrary: RequiredLibrary): Option[ValidationMessage] = {
+    val permittedLibraries = Seq(props.BrightcoveVideoScriptUrl, props.H5PResizerScriptUrl) ++ props.NRKVideoScriptUrl
+    if (permittedLibraries.contains(requiredLibrary.url)) {
+      None
+    } else {
+      Some(
+        ValidationMessage(
+          "requiredLibraries.url",
+          s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"
+        )
+      )
+    }
+  }
+
+  private def validateMetaImage(metaImage: ArticleMetaImage): Seq[ValidationMessage] =
+    (validateMetaImageId(metaImage.imageId) ++ validateMetaImageAltText(metaImage.altText)).toSeq
+
+  private def validateMetaImageAltText(altText: String): Seq[ValidationMessage] =
+    TextValidator.validate("metaImage.alt", altText, Set.empty)
+
+  private def validateMetaImageId(id: String): Option[ValidationMessage] = {
+    def isAllDigits(x: String) = x forall Character.isDigit
+    if (isAllDigits(id) && id.nonEmpty) {
+      None
+    } else {
+      Some(ValidationMessage("metaImageId", "Meta image ID must be a number"))
+    }
+  }
+
+  private def validateLanguage(fieldPath: String, languageCode: String): Option[ValidationMessage] = {
+    if (languageCode.nonEmpty && languageCodeSupported6391(languageCode)) {
+      None
+    } else {
+      Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
+    }
+  }
+
+  private def validateLength(fieldPath: String, content: String, minLength: Int, maxLength: Int) = {
+    if (content.length > maxLength)
+      Some(ValidationMessage(fieldPath, s"This field exceeds the maximum permitted length of $maxLength characters"))
+    else if (content.length < minLength)
+      Some(
+        ValidationMessage(
+          fieldPath,
+          s"This field is shorter than the minimum permitted length of $minLength characters"
+        )
+      )
+    else
+      None
+  }
+
+  private def languageCodeSupported6391(languageCode: String): Boolean = Iso639.get(languageCode).isSuccess
 }

@@ -10,13 +10,15 @@ package no.ndla.integrationtests.searchapi.draftapi
 
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
-import no.ndla.database.HasDatabaseProps
+import no.ndla.database.{DBUtility, HasDatabaseProps}
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
-import no.ndla.network.AuthUser
+import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.search.model.LanguageValue
+import no.ndla.searchapi.integration.DraftApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
+import no.ndla.searchapi.service.search.SearchConverterService
 import no.ndla.{draftapi, searchapi}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -24,7 +26,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
-import scala.util.{Success, Try}
+import scala.util.Success
 
 class DraftApiClientTest
     extends DatabaseIntegrationSuite
@@ -32,9 +34,9 @@ class DraftApiClientTest
     with UnitSuite
     with searchapi.TestEnvironment
     with HasDatabaseProps {
-  override lazy val ndlaClient             = new NdlaClient
-  override lazy val searchConverterService = new SearchConverterService
-  override lazy val DBUtil                 = new DBUtility
+  override implicit lazy val ndlaClient: NdlaClient                         = new NdlaClient
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  override implicit lazy val DBUtil: DBUtility                              = new DBUtility
 
   val draftApiPort: Int                      = findFreePort
   val pgc: PostgreSQLContainer[?]            = postgresContainer.get
@@ -54,6 +56,7 @@ class DraftApiClientTest
     override val BrightcoveAccountId: Prop[String] = propFromTestValue("BRIGHTCOVE_ACCOUNT_ID", "123")
     override val BrightcovePlayerId: Prop[String]  = propFromTestValue("BRIGHTCOVE_PLAYER_ID", "123")
     override def SearchServer: String              = esHost
+    override def DraftSearchIndex: String          = "test-draft"
   }
 
   var draftApi: draftapi.MainClass = null
@@ -66,13 +69,7 @@ class DraftApiClientTest
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     draftApi = new draftapi.MainClass(draftApiProperties)
     Future { draftApi.run(Array.empty) }: Unit
-    blockUntil(() => {
-      import sttp.client3.quick.*
-      val req = quickRequest.get(uri"$draftApiBaseUrl/health/readiness")
-      val res = Try(simpleHttpClient.send(req))
-      println(res)
-      res.map(_.code.code) == Success(200)
-    })
+    blockUntilHealthy(s"$draftApiBaseUrl/health/readiness")
   }
 
   override def afterAll(): Unit = {

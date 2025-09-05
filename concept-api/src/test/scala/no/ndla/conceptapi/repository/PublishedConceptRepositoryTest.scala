@@ -8,12 +8,12 @@
 
 package no.ndla.conceptapi.repository
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.common.model.domain.concept
 import no.ndla.common.model.domain.concept.ConceptContent
 import no.ndla.conceptapi.*
 import no.ndla.conceptapi.model.domain.PublishedConcept
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.{DB, *}
 
@@ -22,13 +22,13 @@ import scala.util.{Success, Try}
 
 class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
 
-  override lazy val dataSource: HikariDataSource = testDataSource.get
-  override lazy val migrator                     = new DBMigrator
-  var repository: PublishedConceptRepository     = _
+  override implicit lazy val dataSource: DataSource = testDataSource.get
+  override implicit lazy val migrator: DBMigrator   = new DBMigrator
+  var repository: PublishedConceptRepository        = scala.compiletime.uninitialized
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
-      sql"delete from ${PublishedConcept.table};".execute()(session)
+      sql"delete from ${PublishedConcept.table};".execute()(using session)
     })
   }
 
@@ -42,7 +42,7 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (serverIsListening) {
-      DataSource.connectToDatabase()
+      dataSource.connectToDatabase()
       migrator.migrate()
     }
   }

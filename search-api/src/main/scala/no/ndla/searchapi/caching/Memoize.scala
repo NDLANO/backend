@@ -25,8 +25,8 @@ class Memoize[I, R](maxCacheAgeMs: Long, f: I => R) extends StrictLogging {
     def isExpired: Boolean =
       lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
   }
-  private[this] val cache: MutableMap[I, CacheValue]              = MutableMap.empty
-  private[this] val isUpdating: MutableMap[I, Future[CacheValue]] = MutableMap.empty
+  private val cache: MutableMap[I, CacheValue]              = MutableMap.empty
+  private val isUpdating: MutableMap[I, Future[CacheValue]] = MutableMap.empty
 
   private def scheduleRenewCache(input: I): Future[CacheValue] = synchronized {
     val fut = Future {

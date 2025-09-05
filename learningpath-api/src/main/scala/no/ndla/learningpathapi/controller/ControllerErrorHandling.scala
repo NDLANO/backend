@@ -1,30 +1,29 @@
 /*
  * Part of NDLA learningpath-api
- * Copyright (C) 2016 NDLA
+ * Copyright (C) 2025 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.learningpathapi.model.api
+package no.ndla.learningpathapi.controller
 
-import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.database.DataSource
-import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.domain.{ImportException, InvalidLpStatusException, OptimisticLockException}
 import no.ndla.network.model.HttpRequestException
-import no.ndla.network.tapir.{AllErrors, TapirErrorHandling}
+import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers}
 import no.ndla.search.model.domain.ElasticIndexingException
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
 import no.ndla.common.errors.OperationNotAllowedException
+import no.ndla.learningpathapi.model.api.ResultWindowTooLargeException
 
-trait ErrorHandling extends TapirErrorHandling {
-  this: Props with Clock with DataSource =>
-
-  import ErrorHelpers._
-  import LearningpathHelpers._
+class ControllerErrorHandling(using
+    dataSource: => DataSource,
+    errorHelpers: ErrorHelpers
+) extends ErrorHandling {
+  import errorHelpers.*
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case v: ValidationException =>
       validationError(v)
@@ -45,7 +44,7 @@ trait ErrorHandling extends TapirErrorHandling {
     case i: ElasticIndexingException =>
       errorBody(GENERIC, i.getMessage, 500)
     case _: PSQLException =>
-      DataSource.connectToDatabase()
+      dataSource.connectToDatabase()
       errorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, 500)
     case mse: InvalidLpStatusException =>
       errorBody(MISSING_STATUS, mse.getMessage, 400)
@@ -54,12 +53,5 @@ trait ErrorHandling extends TapirErrorHandling {
         if rf.error.rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       errorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, 400)
-  }
-
-  object LearningpathHelpers {
-    val WINDOW_TOO_LARGE_DESCRIPTION: String =
-      s"The result window is too large. Fetching pages above ${props.ElasticSearchIndexMaxResultWindow} results requires scrolling, see query-parameter 'search-context'."
-    case class ResultWindowTooLargeException(message: String = LearningpathHelpers.WINDOW_TOO_LARGE_DESCRIPTION)
-        extends RuntimeException(message)
   }
 }

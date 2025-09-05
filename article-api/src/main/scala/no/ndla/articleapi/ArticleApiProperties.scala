@@ -8,16 +8,14 @@
 
 package no.ndla.articleapi
 
-import no.ndla.common.configuration.{BaseProps, HasBaseProps, Prop}
-import no.ndla.database.{DatabaseProps, HasDatabaseProps}
+import no.ndla.common.configuration.{BaseProps, Prop}
+import no.ndla.database.DatabaseProps
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
 
 import scala.util.Properties.*
 
-trait Props extends HasBaseProps with HasDatabaseProps {
-  lazy val props: ArticleApiProperties
-}
+type Props = ArticleApiProperties
 
 class ArticleApiProperties extends BaseProps with DatabaseProps {
 

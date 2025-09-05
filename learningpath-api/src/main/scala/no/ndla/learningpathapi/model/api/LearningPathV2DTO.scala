@@ -62,16 +62,18 @@ case class LearningPathV2DTO(
     madeAvailable: Option[NDLADate],
     @description("Whether the owner of the learningpath is a MyNDLA user or not")
     isMyNDLAOwner: Boolean,
-    @description("Object with data representing the editor responsible for this learningpath") responsible: Option[
-      ResponsibleDTO
-    ],
-    @description("Information about comments attached to the learningpath") comments: Seq[CommentDTO],
-    @description(
-      "If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified"
-    ) priority: Priority,
+    @description("Object with data representing the editor responsible for this learningpath")
+    responsible: Option[ResponsibleDTO],
+    @description("Information about comments attached to the learningpath")
+    comments: Seq[CommentDTO],
+    @description("If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified")
+    priority: Priority,
     @description("A list of revisions planned for the learningpath")
     revisions: Seq[RevisionMetaDTO],
-    @description("An introduction for the learningpath") introduction: IntroductionDTO
+    @description("An introduction for the learningpath")
+    introduction: IntroductionDTO,
+    @description("A list of codes from GREP API connected to the article")
+    grepCodes: Seq[String]
 )
 
 object LearningPathV2DTO {

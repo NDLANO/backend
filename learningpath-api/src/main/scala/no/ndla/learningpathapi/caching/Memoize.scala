@@ -15,7 +15,7 @@ class Memoize[T, R](f: T => R, maxAgeMs: Long) extends (T => R) {
       lastUpdated + maxAgeMs <= System.currentTimeMillis()
   }
 
-  private[this] var cache: Map[T, CacheValue] = Map.empty
+  private var cache: Map[T, CacheValue] = Map.empty
 
   override def apply(value: T): R = {
     cache.get(value) match {

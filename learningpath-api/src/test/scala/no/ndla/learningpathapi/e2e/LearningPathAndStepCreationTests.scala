@@ -8,12 +8,14 @@
 
 package no.ndla.learningpathapi.e2e
 
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.{LearningPath, StepType, EmbedType}
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.*
+import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.learningpathapi.integration.TaxonomyApiClient
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{spy, when, withSettings}
@@ -34,7 +36,7 @@ class LearningPathAndStepCreationTests
     with TestEnvironment {
 
   val learningpathApiPort: Int                             = findFreePort
-  val pgc: PostgreSQLContainer[_]                          = postgresContainer.get
+  val pgc: PostgreSQLContainer[?]                          = postgresContainer.get
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int       = learningpathApiPort
     override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
@@ -51,19 +53,27 @@ class LearningPathAndStepCreationTests
 
   val learningpathApi: MainClass = new MainClass(learningpathApiProperties) {
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(learningpathApiProperties) {
-      override lazy val clock: SystemClock = mock[SystemClock](withSettings.strictness(Strictness.LENIENT))
-      override lazy val myndlaApiClient: MyNDLAApiClient     = spy(new MyNDLAApiClient)
-      override lazy val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
-
-      when(clock.now()).thenReturn(someDate)
-      when(myndlaApiClient.isWriteRestricted).thenReturn(Success(false))
-      when(taxonomyApiClient.updateTaxonomyForLearningPath(any, any, any)).thenAnswer { (i: InvocationOnMock) =>
-        Success(i.getArgument[LearningPath](0))
+      override implicit lazy val clock: Clock = {
+        val mockClock = mock[Clock](withSettings.strictness(Strictness.LENIENT))
+        when(mockClock.now()).thenReturn(someDate)
+        mockClock
+      }
+      override given myndlaApiClient: MyNDLAApiClient = {
+        val client = spy(new MyNDLAApiClient)
+        when(client.isWriteRestricted).thenReturn(Success(false))
+        client
+      }
+      override given taxonomyApiClient: TaxonomyApiClient = {
+        val client = mock[TaxonomyApiClient]
+        when(client.updateTaxonomyForLearningPath(any, any, any)).thenAnswer { (i: InvocationOnMock) =>
+          Success(i.getArgument[LearningPath](0))
+        }
+        client
       }
     }
   }
 
-  val testClock: learningpathApi.componentRegistry.SystemClock = learningpathApi.componentRegistry.clock
+  val testClock: Clock = learningpathApi.componentRegistry.clock
 
   val learningpathApiBaseUrl: String = s"http://localhost:$learningpathApiPort"
   val learningpathApiLPUrl: String   = s"$learningpathApiBaseUrl/learningpath-api/v2/learningpaths"
@@ -72,13 +82,13 @@ class LearningPathAndStepCreationTests
     super.beforeAll()
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     Future { learningpathApi.run(Array.empty) }: Unit
-    Thread.sleep(5000)
+    blockUntilHealthy(s"$learningpathApiBaseUrl/health/readiness")
   }
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    learningpathApi.componentRegistry.inTransaction(implicit session => {
-      learningpathApi.componentRegistry.learningPathRepository.deleteAllPathsAndSteps(session)
+    learningpathApi.componentRegistry.learningPathRepository.inTransaction(implicit session => {
+      learningpathApi.componentRegistry.learningPathRepository.deleteAllPathsAndSteps(using session)
     })
   }
 
@@ -102,7 +112,8 @@ class LearningPathAndStepCreationTests
       responsibleId = None,
       comments = None,
       priority = None,
-      revisionMeta = None
+      revisionMeta = None,
+      grepCodes = None
     )
 
     val x = CirceUtil.toJsonString(dto)

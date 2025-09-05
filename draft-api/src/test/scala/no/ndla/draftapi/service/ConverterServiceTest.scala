@@ -23,7 +23,7 @@ import no.ndla.mapping.License.CC_BY
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.{ResourceType, TagAttribute}
 import org.jsoup.nodes.Element
-import org.mockito.ArgumentMatchers.{any, anyBoolean, eq as eqTo}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 
@@ -32,7 +32,8 @@ import scala.util.{Failure, Success}
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
-  val service = new ConverterService
+  override implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
+  val service: ConverterService                                         = new ConverterService
 
   test("toApiLicense defaults to unknown if the license was not found") {
     service.toApiLicense("invalid") should equal(commonApi.LicenseDTO("unknown", None, None))
@@ -67,12 +68,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiArticle converts a domain.Article to an api.ArticleV2") {
-    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(any)).thenReturn(List(TestData.externalId))
+    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(using any))
+      .thenReturn(List(TestData.externalId))
     service.toApiArticle(TestData.sampleDomainArticle, "nb") should equal(Success(TestData.apiArticleV2))
   }
 
   test("that toApiArticle returns sorted supportedLanguages") {
-    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(any)).thenReturn(List(TestData.externalId))
+    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(using any))
+      .thenReturn(List(TestData.externalId))
     val result = service.toApiArticle(
       TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ Title("hehe", "und")),
       "nb"
@@ -81,7 +84,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that toApiArticleV2 returns none if article does not exist on language, and fallback is not specified") {
-    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(any)).thenReturn(List(TestData.externalId))
+    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(using any))
+      .thenReturn(List(TestData.externalId))
     val result = service.toApiArticle(TestData.sampleDomainArticle, "en")
     result.isFailure should be(true)
   }
@@ -89,7 +93,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test(
     "That toApiArticleV2 returns article on existing language if fallback is specified even if selected language does not exist"
   ) {
-    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(any)).thenReturn(List(TestData.externalId))
+    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(using any))
+      .thenReturn(List(TestData.externalId))
     val result = service.toApiArticle(TestData.sampleDomainArticle, "en", fallback = true)
     result.get.title.get.language should be("nb")
     result.get.title.get.title should be(TestData.sampleDomainArticle.title.head.title)
@@ -141,141 +146,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         TestData.userWithWriteAccess
       ): @unchecked
     res.title.find(_.language == "nb").get.title should equal("kakemonster")
-  }
-
-  test("updateStatus should return an IO[Failure] if the status change is illegal") {
-    val Failure(res: IllegalStatusStateTransition) =
-      service.updateStatus(PUBLISHED, TestData.sampleArticleWithByNcSa, TestData.userWithWriteAccess): @unchecked
-    res.getMessage should equal(
-      s"Cannot go to PUBLISHED when article is ${TestData.sampleArticleWithByNcSa.status.current}"
-    )
-  }
-
-  test("stateTransitionsToApi should return only disabled entries if user has no roles") {
-    val Success(res) = service.stateTransitionsToApi(TestData.userWithNoRoles, None): @unchecked
-    res.forall { case (_, to) => to.isEmpty } should be(true)
-  }
-
-  test("stateTransitionsToApi should allow all users to archive articles that have not been published") {
-    val articleId: Long = 1
-    val article: Draft  =
-      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.PLANNED, Set()))
-    when(draftRepository.withId(eqTo(articleId), anyBoolean())(any)).thenReturn(Some(article))
-    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
-    noTrans(PLANNED.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(IN_PROGRESS.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(EXTERNAL_REVIEW.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(INTERNAL_REVIEW.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(END_CONTROL.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(LANGUAGE.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(FOR_APPROVAL.toString) should contain(DraftStatus.ARCHIVED.toString)
-    noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(UNPUBLISHED.toString) should contain(DraftStatus.ARCHIVED.toString)
-  }
-
-  test("stateTransitionsToApi should not allow all users to archive articles that are currently published") {
-
-    val articleId: Long = 1
-    val article: Draft  =
-      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.PUBLISHED, Set()))
-    when(draftRepository.withId(eqTo(articleId), anyBoolean())(any)).thenReturn(Some(article))
-    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
-
-    noTrans(PLANNED.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(IN_PROGRESS.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(EXTERNAL_REVIEW.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(INTERNAL_REVIEW.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(END_CONTROL.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(LANGUAGE.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(FOR_APPROVAL.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
-    noTrans(UNPUBLISHED.toString) should not contain (DraftStatus.ARCHIVED.toString)
-  }
-
-  test("stateTransitionsToApi should filter some transitions based on publishing status") {
-    val articleId: Long    = 1
-    val unpublished: Draft =
-      TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), status = Status(DraftStatus.IN_PROGRESS, Set()))
-    when(draftRepository.withId(eqTo(articleId), anyBoolean())(any)).thenReturn(Some(unpublished))
-    val Success(transOne) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
-    transOne(IN_PROGRESS.toString) should not contain (DraftStatus.LANGUAGE.toString)
-
-    val published: Draft =
-      TestData.sampleArticleWithPublicDomain.copy(
-        id = Some(articleId),
-        status = Status(DraftStatus.IN_PROGRESS, Set(DraftStatus.PUBLISHED))
-      )
-    when(draftRepository.withId(eqTo(articleId), anyBoolean())(any)).thenReturn(Some(published))
-    val Success(transTwo) = service.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
-    transTwo(IN_PROGRESS.toString) should contain(DraftStatus.LANGUAGE.toString)
-  }
-
-  test("stateTransitionsToApi should not allow all users to archive articles that have previously been published") {
-
-    val articleId      = 1L
-    val article: Draft =
-      TestData.sampleArticleWithPublicDomain.copy(
-        id = Some(articleId),
-        status = Status(DraftStatus.PLANNED, Set(DraftStatus.PUBLISHED))
-      )
-    when(draftRepository.withId(eqTo(articleId), anyBoolean())(any)).thenReturn(Some(article))
-    val Success(noTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None): @unchecked
-
-    noTrans(PLANNED.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(IN_PROGRESS.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(EXTERNAL_REVIEW.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(INTERNAL_REVIEW.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(END_CONTROL.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(LANGUAGE.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(FOR_APPROVAL.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(PUBLISHED.toString) should not contain (DraftStatus.ARCHIVED)
-    noTrans(UNPUBLISHED.toString) should not contain (DraftStatus.ARCHIVED)
-  }
-
-  test("stateTransitionsToApi should return different number of transitions based on access") {
-    val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None): @unchecked
-    val Success(writeTrans) = service.stateTransitionsToApi(TestData.userWithWriteAccess, None): @unchecked
-
-    // format: off
-    writeTrans(PLANNED.toString).length should be(adminTrans(PLANNED.toString).length)
-    writeTrans(IN_PROGRESS.toString).length should be < adminTrans(IN_PROGRESS.toString).length
-    writeTrans(EXTERNAL_REVIEW.toString).length should be < adminTrans(EXTERNAL_REVIEW.toString).length
-    writeTrans(INTERNAL_REVIEW.toString).length should be < adminTrans(INTERNAL_REVIEW.toString).length
-    writeTrans(END_CONTROL.toString).length should be < adminTrans(END_CONTROL.toString).length
-    writeTrans(LANGUAGE.toString).length should be < adminTrans(LANGUAGE.toString).length
-    writeTrans(FOR_APPROVAL.toString).length should be < adminTrans(FOR_APPROVAL.toString).length
-    writeTrans(PUBLISHED.toString).length should be < adminTrans(PUBLISHED.toString).length
-    writeTrans(UNPUBLISHED.toString).length should be < adminTrans(UNPUBLISHED.toString).length
-    // format: on
-  }
-
-  test("stateTransitionsToApi should have transitions from all statuses if admin") {
-    val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None): @unchecked
-    adminTrans.size should be(DraftStatus.values.size - 1)
-  }
-
-  test("stateTransitionsToApi should have transitions in inserted order") {
-    val Success(adminTrans) = service.stateTransitionsToApi(TestData.userWithAdminAccess, None): @unchecked
-    adminTrans(LANGUAGE.toString) should be(
-      Seq(
-        IN_PROGRESS.toString,
-        QUALITY_ASSURANCE.toString,
-        LANGUAGE.toString,
-        FOR_APPROVAL.toString,
-        PUBLISHED.toString,
-        ARCHIVED.toString
-      )
-    )
-    adminTrans(FOR_APPROVAL.toString) should be(
-      Seq(
-        IN_PROGRESS.toString,
-        LANGUAGE.toString,
-        FOR_APPROVAL.toString,
-        END_CONTROL.toString,
-        PUBLISHED.toString,
-        ARCHIVED.toString
-      )
-    )
   }
 
   test("newNotes should fail if empty strings are recieved") {
@@ -580,16 +450,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     res3.notes.map(_.note) should be(Seq("swoop", "fleibede"))
     res4.notes.map(_.note) should be(Seq("fleibede"))
-  }
-
-  test("Should not be able to go to ARCHIVED if published") {
-    val status  = Status(DraftStatus.PLANNED, other = Set(DraftStatus.PUBLISHED))
-    val article =
-      TestData.sampleDomainArticle.copy(status = status, responsible = Some(Responsible("hei", clock.now())))
-    val Failure(res: IllegalStatusStateTransition) =
-      service.updateStatus(ARCHIVED, article, TestData.userWithPublishAccess): @unchecked
-
-    res.getMessage should equal(s"Cannot go to ARCHIVED when article contains ${status.other}")
   }
 
   test("Adding new language to article will add note") {

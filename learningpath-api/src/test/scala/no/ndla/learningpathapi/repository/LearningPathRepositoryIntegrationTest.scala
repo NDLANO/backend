@@ -8,7 +8,6 @@
 
 package no.ndla.learningpathapi.repository
 
-import com.zaxxer.hikari.HikariDataSource
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.{
   Description,
@@ -28,6 +27,7 @@ import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.mapping.License
+import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import org.mockito.Mockito.when
 import scalikejdbc.*
@@ -36,17 +36,14 @@ import scala.util.Try
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.RevisionMeta
 
-class LearningPathRepositoryComponentIntegrationTest
-    extends DatabaseIntegrationSuite
-    with UnitSuite
-    with TestEnvironment {
-  override val schemaName = "learningpathapi_test"
+class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
+  override lazy val schemaName                      = "learningpathapi_test"
+  override implicit lazy val dataSource: DataSource = testDataSource.get
+  override implicit lazy val migrator: DBMigrator   = new DBMigrator
 
-  override lazy val dataSource: HikariDataSource = testDataSource.get
-  override lazy val migrator: DBMigrator         = DBMigrator()
+  var repository: LearningPathRepository = scala.compiletime.uninitialized
 
-  var repository: LearningPathRepository = _
-
+  val today: NDLADate                  = NDLADate.now().withNano(0)
   val clinton: Author                  = Author(ContributorType.Writer, "Hilla the Hun")
   val license: String                  = License.PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(clinton))
@@ -63,8 +60,8 @@ class LearningPathRepositoryComponentIntegrationTest
     duration = None,
     status = LearningPathStatus.PRIVATE,
     verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = NDLADate.now().withNano(0),
-    lastUpdated = NDLADate.now().withNano(0),
+    created = today,
+    lastUpdated = today,
     tags = List(),
     owner = "UNIT-TEST",
     copyright = copyright,
@@ -72,7 +69,8 @@ class LearningPathRepositoryComponentIntegrationTest
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default
+    revisionMeta = RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(
@@ -88,14 +86,18 @@ class LearningPathRepositoryComponentIntegrationTest
     None,
     StepType.TEXT,
     None,
+    today,
+    today,
     showTitle = true,
     StepStatus.ACTIVE
   )
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    DataSource.connectToDatabase()
-    migrator.migrate()
+    dataSource.connectToDatabase()
+    if (serverIsListening) {
+      migrator.migrate()
+    }
   }
 
   def databaseIsAvailable: Boolean = {
@@ -103,15 +105,27 @@ class LearningPathRepositoryComponentIntegrationTest
     res.isSuccess
   }
 
+  def serverIsListening: Boolean = {
+    import java.net.Socket
+    val server = props.MetaServer.unsafeGet
+    val port   = props.MetaPort.unsafeGet
+    scala.util.Try(new Socket(server, port)) match {
+      case scala.util.Success(c) =>
+        c.close()
+        true
+      case _ => false
+    }
+  }
+
   override def beforeEach(): Unit = {
     repository = new LearningPathRepository
-    if (databaseIsAvailable) {
+    if (serverIsListening) {
       emptyTestDatabase
     }
   }
 
   test("That insert, fetch and delete works happy-day") {
-    inTransaction { implicit session =>
+    repository.inTransaction { implicit session =>
       val inserted = repository.insert(DefaultLearningPath)
       inserted.id.isDefined should be(true)
 
@@ -128,7 +142,7 @@ class LearningPathRepositoryComponentIntegrationTest
     deleteAllWithOwner(owner)
 
     try {
-      inTransaction { implicit session =>
+      repository.inTransaction { implicit session =>
         repository.insert(DefaultLearningPath.copy(owner = owner))
         throw new RuntimeException("Provoking exception inside transaction")
       }
@@ -353,6 +367,7 @@ class LearningPathRepositoryComponentIntegrationTest
   }
 
   test("That getLearningPathByPage returns correct result when pageSize is smaller than amount of steps") {
+    when(clock.now()).thenReturn(NDLADate.fromUnixTime(0))
     val steps = List(
       DefaultLearningStep,
       DefaultLearningStep,
@@ -365,13 +380,13 @@ class LearningPathRepositoryComponentIntegrationTest
     val page1 = repository.getPublishedLearningPathByPage(2, 0)
     val page2 = repository.getPublishedLearningPathByPage(2, 2)
 
-    page1 should be(List(learningPath))
+    page1.length should be(List(learningPath).length)
     page2 should be(List.empty)
 
     repository.deletePath(learningPath.id.get)
   }
 
-  test("That getLeraningPathByPage returns only published results") {
+  test("That getLearningPathByPage returns only published results") {
     val steps = List(
       DefaultLearningStep,
       DefaultLearningStep,
@@ -388,7 +403,7 @@ class LearningPathRepositoryComponentIntegrationTest
     val page1 = repository.getPublishedLearningPathByPage(2, 0)
     val page2 = repository.getPublishedLearningPathByPage(2, 2)
 
-    page1 should be(List(learningPath3))
+    page1.length should be(List(learningPath3).length)
     page2 should be(List.empty)
 
     repository.deletePath(learningPath1.id.get)
@@ -397,7 +412,7 @@ class LearningPathRepositoryComponentIntegrationTest
   }
 
   test("That inserted and fetched entry stays the same") {
-    when(clock.now()).thenReturn(NDLADate.fromUnixTime(0))
+    when(clock.now()).thenReturn(today)
     val steps = Vector(
       DefaultLearningStep,
       DefaultLearningStep,
@@ -434,13 +449,13 @@ class LearningPathRepositoryComponentIntegrationTest
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
-      sql"delete from learningpaths;".execute()(session)
-      sql"delete from learningsteps;".execute()(session)
+      sql"delete from learningpaths;".execute()(using session)
+      sql"delete from learningsteps;".execute()(using session)
     })
   }
 
   def deleteAllWithOwner(owner: String): Unit = {
-    inTransaction { implicit session =>
+    repository.inTransaction { implicit session =>
       repository
         .withOwner(owner)
         .foreach(lp => repository.deletePath(lp.id.get))

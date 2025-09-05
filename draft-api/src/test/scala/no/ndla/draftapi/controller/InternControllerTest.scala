@@ -8,9 +8,11 @@
 
 package no.ndla.draftapi.controller
 
+import no.ndla.common.Clock
 import no.ndla.draftapi.*
 import no.ndla.draftapi.model.api.ContentIdDTO
 import no.ndla.draftapi.model.domain.ImportId
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doReturn, never, reset, times, verify, verifyNoMoreInteractions, when}
@@ -19,7 +21,12 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: InternController = new InternController
+  override val controller: InternController                  = new InternController
+  override implicit lazy val clock: Clock                    = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
+  override implicit lazy val services: List[TapirController] = List(controller)
+  override implicit lazy val routes: Routes                  = new Routes
 
   override def beforeEach(): Unit = {
     reset(clock)
@@ -77,10 +84,10 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
     when(tagIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index7", "index8")))
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(tagIndexService).deleteIndexWithName(Some("index7"))
-    doReturn(Success(""), Nil: _*).when(tagIndexService).deleteIndexWithName(Some("index8"))
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil*).when(tagIndexService).deleteIndexWithName(Some("index7"))
+    doReturn(Success(""), Nil*).when(tagIndexService).deleteIndexWithName(Some("index8"))
 
     {
       val res = simpleHttpClient.send(
@@ -110,11 +117,11 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       grepCodesIndexService
     )
 
-    doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil: _*)
+    doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil*)
       .when(articleIndexService)
       .findAllIndexes(props.DraftSearchIndex)
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index2"))
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index2"))
 
     {
       val res = simpleHttpClient.send(
@@ -139,12 +146,12 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
     when(tagIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index7", "index8")))
 
-    doReturn(Success(""), Nil: _*).when(articleIndexService).deleteIndexWithName(Some("index1"))
-    doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil: _*)
+    doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index1"))
+    doReturn(Failure(new RuntimeException("No index with name 'index2' exists")), Nil*)
       .when(articleIndexService)
       .deleteIndexWithName(Some("index2"))
-    doReturn(Success(""), Nil: _*).when(tagIndexService).deleteIndexWithName(Some("index7"))
-    doReturn(Success(""), Nil: _*).when(tagIndexService).deleteIndexWithName(Some("index8"))
+    doReturn(Success(""), Nil*).when(tagIndexService).deleteIndexWithName(Some("index7"))
+    doReturn(Success(""), Nil*).when(tagIndexService).deleteIndexWithName(Some("index8"))
 
     {
       val res = simpleHttpClient.send(

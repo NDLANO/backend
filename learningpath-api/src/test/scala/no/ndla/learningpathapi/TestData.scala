@@ -56,9 +56,10 @@ object TestData {
     List(),
     None,
     StepType.INTRODUCTION,
-    None
+    None,
+    today,
+    today
   )
-
   val domainLearningStep2: LearningStep = LearningStep(
     None,
     None,
@@ -71,7 +72,9 @@ object TestData {
     List(),
     None,
     learningpath.StepType.TEXT,
-    None
+    None,
+    today,
+    today
   )
 
   val sampleDomainLearningPath: LearningPath = LearningPath(
@@ -96,7 +99,8 @@ object TestData {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default
+    revisionMeta = common.RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val searchSettings: SearchSettings = SearchSettings(
@@ -112,6 +116,7 @@ object TestData {
     verificationStatus = None,
     shouldScroll = false,
     articleId = None,
-    status = List(learningpath.LearningPathStatus.PUBLISHED)
+    status = List(learningpath.LearningPathStatus.PUBLISHED),
+    grepCodes = List.empty
   )
 }

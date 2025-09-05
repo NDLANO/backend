@@ -8,14 +8,17 @@
 
 package no.ndla.integrationtests.searchapi.articleapi
 
-import no.ndla.articleapi.ArticleApiProperties
+import no.ndla.articleapi.{ArticleApiProperties, TestData => ArticleTestData}
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.database.HasDatabaseProps
-import no.ndla.network.AuthUser
+import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.search.model.LanguageValue
+import no.ndla.searchapi.integration.ArticleApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
+import no.ndla.searchapi.service.ConverterService
+import no.ndla.searchapi.service.search.SearchConverterService
 import no.ndla.searchapi.{TestData, UnitSuite}
 import no.ndla.{articleapi, searchapi}
 import org.testcontainers.containers.PostgreSQLContainer
@@ -30,9 +33,9 @@ class ArticleApiClientTest
     with UnitSuite
     with searchapi.TestEnvironment
     with HasDatabaseProps {
-  override lazy val ndlaClient             = new NdlaClient
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
+  override implicit lazy val ndlaClient: NdlaClient                         = new NdlaClient
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   val articleApiPort: Int                        = findFreePort
   val pgc: PostgreSQLContainer[?]                = postgresContainer.get
@@ -48,6 +51,7 @@ class ArticleApiClientTest
     override val BrightcoveAccountId: Prop[String] = propFromTestValue("BRIGHTCOVE_ACCOUNT_ID", "123")
     override val BrightcovePlayerId: Prop[String]  = propFromTestValue("BRIGHTCOVE_PLAYER_ID", "123")
     override def SearchServer: String              = esHost
+    override def ArticleSearchIndex: String        = "test-article"
   }
 
   var articleApi: articleapi.MainClass = null
@@ -60,13 +64,7 @@ class ArticleApiClientTest
     articleApi = new articleapi.MainClass(articleApiProperties)
     Future { articleApi.run(Array.empty) }: Unit
 
-    blockUntil(() => {
-      import sttp.client3.quick.*
-      val req = quickRequest.get(uri"$articleApiBaseUrl/health/readiness")
-      val res = Try(simpleHttpClient.send(req))
-      println(res)
-      res.map(_.code.code) == Success(200)
-    })
+    blockUntilHealthy(s"$articleApiBaseUrl/health/readiness")
   }
 
   override def afterAll(): Unit = {
@@ -77,9 +75,9 @@ class ArticleApiClientTest
     "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vY2xpZW50X2lkIjogInh4eHl5eSIsICJpc3MiOiAiaHR0cHM6Ly9uZGxhLmV1LmF1dGgwLmNvbS8iLCAic3ViIjogInh4eHl5eUBjbGllbnRzIiwgImF1ZCI6ICJuZGxhX3N5c3RlbSIsICJpYXQiOiAxNTEwMzA1NzczLCAiZXhwIjogMTUxMDM5MjE3MywgInNjb3BlIjogImFydGljbGVzLXRlc3Q6cHVibGlzaCBkcmFmdHMtdGVzdDp3cml0ZSBkcmFmdHMtdGVzdDpzZXRfdG9fcHVibGlzaCBhcnRpY2xlcy10ZXN0OndyaXRlIiwgImd0eSI6ICJjbGllbnQtY3JlZGVudGlhbHMifQ.gsM-U84ykgaxMSbL55w6UYIIQUouPIB6YOmJuj1KhLFnrYctu5vwYBo80zyr1je9kO_6L-rI7SUnrHVao9DFBZJmfFfeojTxIT3CE58hoCdxZQZdPUGePjQzROWRWeDfG96iqhRcepjbVF9pMhKp6FNqEVOxkX00RZg9vFT8iMM"
   val authHeaderMap: Map[String, String] = Map("Authorization" -> s"Bearer $exampleToken")
 
-  class LocalArticleApiTestData extends articleapi.Props with articleapi.TestDataT {
-    override lazy val props: ArticleApiProperties = articleApiProperties
-    val td                                        = new TestDataClass
+  class LocalArticleApiTestData {
+    implicit lazy val props: ArticleApiProperties = articleApiProperties
+    val td                                        = new ArticleTestData
 
     def setupArticles(): Try[Boolean] =
       (1L to 10)

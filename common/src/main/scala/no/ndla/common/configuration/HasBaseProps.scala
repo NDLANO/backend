@@ -8,4 +8,4 @@
 
 package no.ndla.common.configuration
 
-trait HasBaseProps { lazy val props: BaseProps }
+trait HasBaseProps { given props: BaseProps }

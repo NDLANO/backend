@@ -17,18 +17,12 @@ import sttp.client3.quick.*
 
 import scala.util.{Success, Try}
 
-trait TaxonomyApiClient {
-  this: NdlaClient & Props =>
+class TaxonomyApiClient(using ndlaClient: NdlaClient, props: Props) extends StrictLogging {
+  private val resolveEndpoint = s"${props.TaxonomyUrl}/v1/url/resolve"
 
-  lazy val taxonomyApiClient: TaxonomyApiClient
-
-  class TaxonomyApiClient extends StrictLogging {
-    private val resolveEndpoint = s"${props.TaxonomyUrl}/v1/url/resolve"
-
-    def resolveUrl(path: String): Try[String] = {
-      val req = quickRequest.get(uri"$resolveEndpoint?path=$path")
-      ndlaClient.fetch[ResolvePathResponse](req).map(resolved => resolved.url).orElse(Success(path))
-    }
+  def resolveUrl(path: String): Try[String] = {
+    val req = quickRequest.get(uri"$resolveEndpoint?path=$path")
+    ndlaClient.fetch[ResolvePathResponse](req).map(resolved => resolved.url).orElse(Success(path))
   }
 }
 
