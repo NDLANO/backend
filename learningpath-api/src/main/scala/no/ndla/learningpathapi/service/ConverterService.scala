@@ -274,7 +274,7 @@ class ConverterService(using
       revision = Some(updated.revision),
       title = mergeLanguageFields(existing.title, titles),
       description = mergeLanguageFields(existing.description, descriptions),
-      introduction = mergeLanguageFields(existing.introduction, introductions),
+      introduction = introductions,
       coverPhotoId = updateImageId(existing.coverPhotoId, updated.coverPhotoMetaUrl),
       duration =
         if (updated.duration.isDefined)
