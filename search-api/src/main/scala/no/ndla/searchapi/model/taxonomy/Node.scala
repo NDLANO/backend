@@ -12,7 +12,6 @@ import enumeratum.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.search.SearchableTaxonomyResourceType
 import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
 
@@ -38,6 +37,7 @@ case class Node(
     metadata: Option[Metadata],
     translations: List[TaxonomyTranslation],
     nodeType: NodeType,
+    resourceTypes: List[TaxonomyResourceType],
     contextids: List[String],
     context: Option[TaxonomyContext],
     var contexts: List[TaxonomyContext]
@@ -47,18 +47,32 @@ object Node {
   implicit val encoder: Encoder[Node] = deriveEncoder
   implicit val decoder: Decoder[Node] = Decoder.instance(c => {
     for {
-      id           <- c.downField("id").as[String]
-      name         <- c.downField("name").as[Option[String]].map(_.getOrElse(""))
-      contentUri   <- c.downField("contentUri").as[Option[String]]
-      path         <- c.downField("path").as[Option[String]]
-      url          <- c.downField("url").as[Option[String]]
-      metadata     <- c.downField("metadata").as[Option[Metadata]]
-      translations <- c.downField("translations").as[List[TaxonomyTranslation]]
-      nodeType     <- c.downField("nodeType").as[NodeType]
-      contextids   <- c.downField("contextids").as[List[String]]
-      context      <- c.downField("context").as[Option[TaxonomyContext]]
-      contexts     <- c.downField("contexts").as[List[TaxonomyContext]]
-    } yield Node(id, name, contentUri, path, url, metadata, translations, nodeType, contextids, context, contexts)
+      id            <- c.downField("id").as[String]
+      name          <- c.downField("name").as[Option[String]].map(_.getOrElse(""))
+      contentUri    <- c.downField("contentUri").as[Option[String]]
+      path          <- c.downField("path").as[Option[String]]
+      url           <- c.downField("url").as[Option[String]]
+      metadata      <- c.downField("metadata").as[Option[Metadata]]
+      translations  <- c.downField("translations").as[List[TaxonomyTranslation]]
+      nodeType      <- c.downField("nodeType").as[NodeType]
+      resourceTypes <- c.downField("resourceTypes").as[Option[List[TaxonomyResourceType]]].map(_.getOrElse(List.empty))
+      contextids    <- c.downField("contextids").as[List[String]]
+      context       <- c.downField("context").as[Option[TaxonomyContext]]
+      contexts      <- c.downField("contexts").as[List[TaxonomyContext]]
+    } yield Node(
+      id,
+      name,
+      contentUri,
+      path,
+      url,
+      metadata,
+      translations,
+      nodeType,
+      resourceTypes,
+      contextids,
+      context,
+      contexts
+    )
 
   })
 }
@@ -73,7 +87,7 @@ case class TaxonomyContext(
     contextType: Option[String],
     relevanceId: String,
     relevance: SearchableLanguageValues,
-    resourceTypes: List[SearchableTaxonomyResourceType],
+    resourceTypes: List[TaxonomyResourceType],
     parentIds: List[String],
     isPrimary: Boolean,
     contextId: String,
@@ -97,4 +111,15 @@ object TaxonomyTranslation {
       language <- c.downField("language").as[String]
     } yield TaxonomyTranslation(name, language)
   })
+}
+
+case class TaxonomyResourceType(
+    id: String,
+    parentId: Option[String],
+    name: SearchableLanguageValues
+)
+
+object TaxonomyResourceType {
+  implicit val decoder: Decoder[TaxonomyResourceType] = deriveDecoder
+  implicit val encoder: Encoder[TaxonomyResourceType] = deriveEncoder
 }
