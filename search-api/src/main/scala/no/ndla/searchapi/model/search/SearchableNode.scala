@@ -10,7 +10,7 @@ package no.ndla.searchapi.model.search
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.search.model.SearchableLanguageValues
+import no.ndla.common.model.api.search.SearchableLanguageValues
 import no.ndla.searchapi.model.taxonomy.NodeType
 
 case class SearchableNode(

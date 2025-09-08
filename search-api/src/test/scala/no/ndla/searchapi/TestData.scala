@@ -10,7 +10,12 @@ package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.MyNDLABundleDTO
-import no.ndla.common.model.api.search.LearningResourceType
+import no.ndla.common.model.api.search.{
+  LanguageValue,
+  LearningResourceType,
+  SearchableLanguageList,
+  SearchableLanguageValues
+}
 import no.ndla.common.model.domain.ContributorType
 import no.ndla.common.model.domain.{
   ArticleContent,
@@ -57,7 +62,6 @@ import no.ndla.mapping.License
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.*
 import no.ndla.searchapi.model.grep.{

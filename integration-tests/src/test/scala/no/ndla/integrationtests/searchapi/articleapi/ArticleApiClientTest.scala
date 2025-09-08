@@ -11,10 +11,10 @@ package no.ndla.integrationtests.searchapi.articleapi
 import no.ndla.articleapi.{ArticleApiProperties, TestData => ArticleTestData}
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.LanguageValue
 import no.ndla.database.HasDatabaseProps
 import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
-import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.integration.ArticleApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.service.ConverterService

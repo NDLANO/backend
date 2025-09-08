@@ -19,6 +19,7 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.search.{
   ApiTaxonomyContextDTO,
   HighlightedFieldDTO,
+  LanguageValue,
   LearningResourceType,
   MetaDescriptionDTO,
   MetaImageDTO,
@@ -28,6 +29,8 @@ import no.ndla.common.model.api.search.{
   RevisionMetaDTO,
   SearchTrait,
   SearchType,
+  SearchableLanguageList,
+  SearchableLanguageValues,
   StatusDTO,
   SubjectPageSummaryDTO,
   TaxonomyResourceTypeDTO,
@@ -60,7 +63,6 @@ import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.search.model
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.*
@@ -300,13 +302,13 @@ class SearchConverterService(using
         title = SearchableLanguageValues(
           ai.title.map(title => LanguageValue(title.language, toPlaintext(title.title)))
         ),
-        content = model.SearchableLanguageValues(
+        content = common.model.api.search.SearchableLanguageValues(
           ai.content.map(article => LanguageValue(article.language, toPlaintext(article.content)))
         ),
-        introduction = model.SearchableLanguageValues(
+        introduction = common.model.api.search.SearchableLanguageValues(
           ai.introduction.map(intro => LanguageValue(intro.language, toPlaintext(intro.introduction)))
         ),
-        metaDescription = model.SearchableLanguageValues(
+        metaDescription = common.model.api.search.SearchableLanguageValues(
           ai.metaDescription.map(meta => LanguageValue(meta.language, meta.content))
         ),
         tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
@@ -438,13 +440,14 @@ class SearchConverterService(using
         SearchableLearningPath(
           domainObject = lp,
           id = lp.id.get,
-          title = model.SearchableLanguageValues(lp.title.map(t => LanguageValue(t.language, t.title))),
-          content = model.SearchableLanguageValues(
+          title =
+            common.model.api.search.SearchableLanguageValues(lp.title.map(t => LanguageValue(t.language, t.title))),
+          content = common.model.api.search.SearchableLanguageValues(
             lp.title.map(t => LanguageValue(t.language, "*"))
           ),
-          description =
-            model.SearchableLanguageValues(lp.description.map(d => LanguageValue(d.language, d.description))),
-          introduction = model.SearchableLanguageValues(
+          description = common.model.api.search
+            .SearchableLanguageValues(lp.description.map(d => LanguageValue(d.language, d.description))),
+          introduction = common.model.api.search.SearchableLanguageValues(
             lp.introduction.map(i => LanguageValue(i.language, i.introduction))
           ),
           coverPhotoId = lp.coverPhotoId,
@@ -501,7 +504,8 @@ class SearchConverterService(using
   }
 
   def asSearchableConcept(c: Concept, indexingBundle: IndexingBundle): Try[SearchableConcept] = permitTry {
-    val title     = model.SearchableLanguageValues(c.title.map(t => LanguageValue(t.language, toPlaintext(t.title))))
+    val title = common.model.api.search
+      .SearchableLanguageValues(c.title.map(t => LanguageValue(t.language, toPlaintext(t.title))))
     val content   = SearchableLanguageValues.fromFieldsMap(c.content)(toPlaintext)
     val tags      = SearchableLanguageList.fromFields(c.tags)
     val favorited = getFavoritedCountFor(indexingBundle, c.id.get.toString, List(MyNDLAResourceType.Concept)).?

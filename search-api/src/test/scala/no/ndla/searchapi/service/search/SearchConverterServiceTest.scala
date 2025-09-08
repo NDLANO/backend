@@ -10,11 +10,10 @@ package no.ndla.searchapi.service.search
 
 import no.ndla.common.caching.Memoize
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.api.search.SearchTrait
+import no.ndla.common.model.api.search.{LanguageValue, SearchTrait, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
 import no.ndla.search.SearchLanguage
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.grep.{

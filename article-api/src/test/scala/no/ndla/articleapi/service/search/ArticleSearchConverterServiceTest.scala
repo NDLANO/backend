@@ -10,10 +10,10 @@ package no.ndla.articleapi.service.search
 
 import no.ndla.articleapi.model.search.*
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
 import no.ndla.search.SearchLanguage
-import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 

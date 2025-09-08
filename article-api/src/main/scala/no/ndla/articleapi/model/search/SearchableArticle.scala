@@ -11,8 +11,8 @@ package no.ndla.articleapi.model.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.ArticleMetaImage
-import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 case class SearchableArticle(
     id: Long,

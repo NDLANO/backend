@@ -10,12 +10,12 @@ package no.ndla.integrationtests.searchapi.draftapi
 
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.LanguageValue
 import no.ndla.database.{DBUtility, HasDatabaseProps}
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
 import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
-import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.integration.DraftApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.service.search.SearchConverterService
