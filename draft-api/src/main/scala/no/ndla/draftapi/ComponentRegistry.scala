@@ -19,7 +19,8 @@ import no.ndla.draftapi.db.migrationwithdependencies.{
   V23__UpdateH5PDomainForFFVisualElement,
   V33__ConvertLanguageUnknown,
   V57__MigrateSavedSearch,
-  V66__SetHideBylineForImagesNotCopyrighted
+  V66__SetHideBylineForImagesNotCopyrighted,
+  V76__ComputeSearchTraits
 }
 import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
@@ -51,18 +52,6 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
   implicit lazy val errorHelpers: ErrorHelpers           = new ErrorHelpers
   implicit lazy val draftErrorHelpers: DraftErrorHelpers = new DraftErrorHelpers
   implicit lazy val errorHandling: ErrorHandling         = new ControllerErrorHandling
-
-  implicit lazy val migrator: DBMigrator = DBMigrator(
-    new R__RemoveEmptyStringLanguageFields(props),
-    new R__RemoveStatusPublishedArticles,
-    new R__SetArticleLanguageFromTaxonomy,
-    new R__SetArticleTypeFromTaxonomy,
-    new V20__UpdateH5PDomainForFF,
-    new V23__UpdateH5PDomainForFFVisualElement,
-    new V33__ConvertLanguageUnknown,
-    new V57__MigrateSavedSearch,
-    new V66__SetHideBylineForImagesNotCopyrighted
-  )
 
   implicit lazy val clock: Clock                               = new Clock
   implicit lazy val e4sClient: NdlaE4sClient                   = Elastic4sClientFactory.getClient(props.SearchServer)
@@ -103,6 +92,19 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
   implicit lazy val fileController: FileController                 = new FileController
   implicit lazy val userDataController: UserDataController         = new UserDataController
   implicit lazy val healthController: TapirHealthController        = new TapirHealthController
+
+  implicit lazy val migrator: DBMigrator = DBMigrator(
+    new R__RemoveEmptyStringLanguageFields(props),
+    new R__RemoveStatusPublishedArticles,
+    new R__SetArticleLanguageFromTaxonomy,
+    new R__SetArticleTypeFromTaxonomy,
+    new V20__UpdateH5PDomainForFF,
+    new V23__UpdateH5PDomainForFFVisualElement,
+    new V33__ConvertLanguageUnknown,
+    new V57__MigrateSavedSearch,
+    new V66__SetHideBylineForImagesNotCopyrighted,
+    new V76__ComputeSearchTraits
+  )
 
   implicit lazy val swagger: SwaggerController = new SwaggerController(
     List[TapirController](
