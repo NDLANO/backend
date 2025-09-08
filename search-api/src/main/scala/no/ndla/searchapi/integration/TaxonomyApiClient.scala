@@ -13,12 +13,12 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.caching.Memoize
+import no.ndla.common.errors.TaxonomyException
+import no.ndla.common.model.taxonomy.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
 import no.ndla.network.model.RequestInfo
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.model.api.TaxonomyException
-import no.ndla.searchapi.model.taxonomy.*
 import sttp.client3.quick.*
 
 import java.util.concurrent.Executors

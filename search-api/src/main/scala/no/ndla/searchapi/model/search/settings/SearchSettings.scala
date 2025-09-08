@@ -10,10 +10,10 @@ package no.ndla.searchapi.model.search.settings
 
 import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait, SearchType}
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.taxonomy.NodeType
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.model.taxonomy.NodeType
 
 case class SearchSettings(
     query: Option[NonEmptyString],

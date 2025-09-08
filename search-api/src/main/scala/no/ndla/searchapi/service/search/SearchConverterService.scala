@@ -16,26 +16,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.MissingIdException
 import no.ndla.common.implicits.*
-import no.ndla.common.model.api.search.{
-  ApiTaxonomyContextDTO,
-  HighlightedFieldDTO,
-  LanguageValue,
-  LearningResourceType,
-  MetaDescriptionDTO,
-  MetaImageDTO,
-  MultiSearchResultDTO,
-  MultiSearchSummaryDTO,
-  NodeHitDTO,
-  RevisionMetaDTO,
-  SearchTrait,
-  SearchType,
-  SearchableLanguageList,
-  SearchableLanguageValues,
-  StatusDTO,
-  SubjectPageSummaryDTO,
-  TaxonomyResourceTypeDTO,
-  TitleWithHtmlDTO
-}
+import no.ndla.common.model.api.search.*
 import no.ndla.common.model.api.{AuthorDTO, CommentDTO, LicenseDTO, ResponsibleDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
@@ -48,29 +29,24 @@ import no.ndla.common.model.domain.{
   ArticleType,
   Tag,
   VisualElement,
+  getNextRevision,
   ResourceType as MyNDLAResourceType
 }
-import no.ndla.language.Language.{
-  UnknownLanguage,
-  findByLanguageOrBestEffort,
-  getDefault,
-  getSupportedLanguages,
-  sortLanguagesByPriority
-}
+import no.ndla.common.model.taxonomy.*
+import no.ndla.language.Language.*
 import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
-import no.ndla.search.model.domain.EmbedValues
 import no.ndla.search.model
+import no.ndla.search.model.domain.EmbedValues
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.*
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.*
-import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.model.{api, domain, search}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -79,7 +55,6 @@ import org.jsoup.nodes.Entities.EscapeMode
 import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
-import no.ndla.common.model.domain.getNextRevision
 
 class SearchConverterService(using
     taxonomyApiClient: TaxonomyApiClient,

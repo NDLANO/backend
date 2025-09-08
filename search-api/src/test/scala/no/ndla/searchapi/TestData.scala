@@ -27,13 +27,13 @@ import no.ndla.common.model.domain.{
   Introduction,
   Priority,
   Responsible,
+  RevisionMeta,
+  RevisionStatus,
   Status,
   Tag,
   Title,
   VisualElement,
-  draft,
-  RevisionMeta,
-  RevisionStatus
+  draft
 }
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain.concept.{
@@ -55,6 +55,15 @@ import no.ndla.common.model.domain.learningpath.{
   LearningPathVerificationStatus,
   LearningpathCopyright,
   Description as LPDescription
+}
+import no.ndla.common.model.taxonomy.{
+  Metadata,
+  Node,
+  NodeType,
+  Relevance,
+  ResourceType,
+  TaxonomyBundle,
+  TaxonomyContext
 }
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage

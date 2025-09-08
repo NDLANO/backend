@@ -13,6 +13,7 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.search.{LanguageValue, SearchTrait, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
+import no.ndla.common.model.taxonomy.{Metadata, Node, NodeType, TaxonomyBundle, TaxonomyTranslation}
 import no.ndla.search.SearchLanguage
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.IndexingBundle

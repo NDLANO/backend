@@ -20,6 +20,7 @@ import no.ndla.common.model.api.search.{
 import no.ndla.common.model.domain.frontpage.VisualElementType.Image
 import no.ndla.common.model.domain.frontpage.{AboutSubject, BannerImage, MetaDescription, SubjectPage, VisualElement}
 import no.ndla.common.model.domain.{ArticleContent, Title}
+import no.ndla.common.model.taxonomy.{Metadata, Node, NodeType, TaxonomyBundle, TaxonomyContext}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}

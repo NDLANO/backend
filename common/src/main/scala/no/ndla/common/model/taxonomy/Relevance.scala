@@ -6,6 +6,6 @@
  *
  */
 
-package no.ndla.searchapi.model.taxonomy
+package no.ndla.common.model.taxonomy
 
 case class Relevance(id: String, name: String, translations: List[TaxonomyTranslation])

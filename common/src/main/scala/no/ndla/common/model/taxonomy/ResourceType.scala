@@ -6,7 +6,7 @@
  *
  */
 
-package no.ndla.searchapi.model.taxonomy
+package no.ndla.common.model.taxonomy
 
 case class ResourceType(
     id: String,

@@ -8,24 +8,24 @@
 
 package no.ndla.searchapi.service.search
 
+import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticApi.*
 import com.sksamuel.elastic4s.fields.ObjectField
+import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.implicits.*
-import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
-import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
-import no.ndla.searchapi.model.domain.IndexingBundle
-import no.ndla.searchapi.model.taxonomy.Node
-import cats.implicits.*
-import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.frontpage.SubjectPage
+import no.ndla.common.model.taxonomy.Node
 import no.ndla.common.{CirceUtil, ContentURIUtil}
 import no.ndla.network.clients.FrontpageApiClient
 import no.ndla.network.model.HttpRequestException
+import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
+import no.ndla.searchapi.Props
+import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
+import no.ndla.searchapi.model.domain.IndexingBundle
 
 import scala.util.{Failure, Success, Try}
 

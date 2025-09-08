@@ -6,7 +6,7 @@
  *
  */
 
-package no.ndla.searchapi.model.taxonomy
+package no.ndla.common.model.taxonomy
 
 import enumeratum.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
