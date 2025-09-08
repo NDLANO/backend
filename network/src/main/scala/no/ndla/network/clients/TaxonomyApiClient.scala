@@ -1,12 +1,12 @@
 /*
- * Part of NDLA search-api
+ * Part of NDLA network
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.searchapi.integration
+package no.ndla.network.clients
 
 import cats.implicits.toTraverseOps
 import com.typesafe.scalalogging.StrictLogging
@@ -18,7 +18,6 @@ import no.ndla.common.model.taxonomy.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
 import no.ndla.network.model.RequestInfo
-import no.ndla.searchapi.Props
 import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
@@ -28,12 +27,10 @@ import scala.concurrent.*
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Success, Try}
 
-class TaxonomyApiClient(using
-    ndlaClient: NdlaClient,
-    props: Props
-) extends StrictLogging {
-  private val TaxonomyApiEndpoint                                             = s"${props.TaxonomyUrl}/v1"
-  private val timeoutSeconds                                                  = 600.seconds
+class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) extends StrictLogging {
+  private val TaxonomyApiEndpoint = s"$taxonomyBaseUrl/v1"
+  private val timeoutSeconds      = 600.seconds
+
   private def getNodes(shouldUsePublishedTax: Boolean): Try[ListBuffer[Node]] =
     get[ListBuffer[Node]](
       s"$TaxonomyApiEndpoint/nodes/",
@@ -147,6 +144,7 @@ class TaxonomyApiClient(using
     })
   }
 }
+
 case class PaginationPage[T](totalCount: Long, results: List[T])
 object PaginationPage {
   implicit def encoder[T](implicit @unused e: Encoder[T]): Encoder[PaginationPage[T]] = deriveEncoder

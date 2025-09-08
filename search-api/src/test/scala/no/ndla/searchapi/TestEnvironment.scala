@@ -13,7 +13,7 @@ import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseProps
 import no.ndla.database.{DBUtility, DatabaseProps}
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient, TaxonomyApiClient}
 import no.ndla.network.tapir.{SwaggerController, TapirController, TapirHealthController}
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.controller.{InternController, SearchController}
