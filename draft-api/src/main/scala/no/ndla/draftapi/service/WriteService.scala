@@ -203,7 +203,7 @@ class WriteService(using
   def updateArticleAndStoreAsNewIfPublished(article: Draft, statusWasUpdated: Boolean): Try[Draft] = {
     val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED
     dbUtility.rollbackOnFailure { implicit session =>
-      draftRepository.updateArticle(article) match {
+      draftRepository.updateArticle(article, false) match {
         case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
         case Success(updated)                      => Success(updated)
         case Failure(ex)                           => Failure(ex)
@@ -240,7 +240,7 @@ class WriteService(using
       if (draft.grepCodes.sorted == updatedGrepCodes.sorted) { boundary.break(Success(None)) }
       val grepCodeNote = getGrepCodeNote(newGrepCodeMapping, draft, user)
       val newDraft     = draft.copy(grepCodes = updatedGrepCodes, notes = draft.notes :+ grepCodeNote)
-      val updated      = draftRepository.updateArticle(newDraft)(using session).?
+      val updated      = draftRepository.updateArticle(newDraft, false)(using session).?
       val partialPart  = partialArticleFieldsUpdate(updated, grepFieldsToPublish, Language.AllLanguages)
       logger.info(
         s"Migrated grep codes for article $articleId from [${draft.grepCodes.mkString(",")}] to [${updatedGrepCodes.mkString(",")}]"
@@ -498,7 +498,7 @@ class WriteService(using
       now       = clock.now()
       newNotes  = notes.map(note => common.EditorNote(note, user.id, draft.status, now))
       converted = draft.copy(notes = draft.notes ++ newNotes)
-      updated <- draftRepository.updateArticle(converted)(using session)
+      updated <- draftRepository.updateArticle(converted, true)(using session)
       output  <- converterService.toApiArticle(updated, Language.AllLanguages)
     } yield output
   }
@@ -911,7 +911,7 @@ class WriteService(using
       .traverse(article => {
         val revisionMeta = article.revisionMeta ++ revisions
         val toUpdate     = article.copy(revisionMeta = revisionMeta.distinct)
-        draftRepository.updateArticle(toUpdate)(using AutoSession)
+        draftRepository.updateArticle(toUpdate, false)(using AutoSession)
       })
   }
 }

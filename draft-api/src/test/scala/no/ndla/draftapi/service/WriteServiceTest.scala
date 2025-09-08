@@ -93,7 +93,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
     when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List("1234"))
     when(clock.now()).thenReturn(today)
-    when(draftRepository.updateArticle(any[Draft])(using any[DBSession]))
+    when(draftRepository.updateArticle(any[Draft], any[Boolean])(using any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => {
         val arg = invocation.getArgument[Draft](0)
         Try(arg.copy(revision = Some(arg.revision.getOrElse(0) + 1)))
@@ -131,7 +131,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     verify(draftRepository, times(1)).newEmptyArticleId()(using any)
     verify(draftRepository, times(1)).insert(any[Draft])(using any)
-    verify(draftRepository, times(0)).updateArticle(any[Draft])(using any)
+    verify(draftRepository, times(0)).updateArticle(any[Draft], any[Boolean])(using any)
     verify(articleIndexService, times(1)).indexAsync(any, any)(using any)
     verify(tagIndexService, times(1)).indexAsync(any, any)(using any)
   }
@@ -366,7 +366,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(draftRepository.withId(any)(using any)).thenReturn(Some(article))
     service.deleteLanguage(article.id.get, "nn", TokenUser("asdf", Set(), None))
-    verify(draftRepository).updateArticle(articleCaptor.capture())(using any)
+    verify(draftRepository).updateArticle(articleCaptor.capture(), any[Boolean])(using any)
 
     articleCaptor.getValue.title.length should be(1)
   }
@@ -425,7 +425,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
 
     when(draftRepository.withId(eqTo(10L))(using any)).thenReturn(Some(articleToUpdate))
-    when(draftRepository.updateArticle(any[Draft])(using any)).thenReturn(Success(updatedAndInserted))
+    when(draftRepository.updateArticle(any[Draft], any[Boolean])(using any)).thenReturn(Success(updatedAndInserted))
 
     when(articleIndexService.indexAsync(any, any[Draft])(using any))
       .thenReturn(Future.successful(Success(updatedAndInserted)))
@@ -787,7 +787,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     updated.get.notes.length should be(1)
 
-    verify(draftRepository, never).updateArticle(any[Draft])(using any[DBSession])
+    verify(draftRepository, never).updateArticle(any[Draft], any[Boolean])(using any[DBSession])
     verify(draftRepository, times(1)).storeArticleAsNewVersion(any[Draft], any[Option[TokenUser]], any[Boolean])(using
       any[DBSession]
     )
@@ -1085,7 +1085,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     result1.notes.head.note should be("Artikkelen har blitt delpublisert")
 
     val captor: ArgumentCaptor[Draft] = ArgumentCaptor.forClass(classOf[Draft])
-    Mockito.verify(draftRepository).updateArticle(captor.capture())(using any)
+    Mockito.verify(draftRepository).updateArticle(captor.capture(), any[Boolean])(using any)
     val articlePassedToUpdate = captor.getValue
     articlePassedToUpdate.notes.head.note should be("Artikkelen har blitt delpublisert")
   }
@@ -1187,7 +1187,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(eqTo(2L))(using any)).thenReturn(Some(article2))
     when(draftRepository.withId(eqTo(3L))(using any)).thenReturn(Some(article3))
     service.copyRevisionDates(nodeId) should be(Success(()))
-    verify(draftRepository, times(3)).updateArticle(any[Draft])(using any[DBSession])
+    verify(draftRepository, times(3)).updateArticle(any[Draft], any[Boolean])(using any[DBSession])
   }
 
   test("copyRevisionDates does nothing if revisionMeta is empty") {
@@ -1207,7 +1207,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(eqTo(2L))(using any)).thenReturn(Some(article2))
     when(draftRepository.withId(eqTo(3L))(using any)).thenReturn(Some(article3))
     service.copyRevisionDates(nodeId) should be(Success(()))
-    verify(draftRepository, times(0)).updateArticle(any[Draft])(using any[DBSession])
+    verify(draftRepository, times(0)).updateArticle(any[Draft], any[Boolean])(using any[DBSession])
   }
 
   test("copyRevisionDates skips empty contentUris") {
@@ -1231,7 +1231,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withId(eqTo(1L))(using any)).thenReturn(Some(article1))
     when(draftRepository.withId(eqTo(2L))(using any)).thenReturn(Some(article2))
     service.copyRevisionDates(nodeId) should be(Success(()))
-    verify(draftRepository, times(2)).updateArticle(any[Draft])(using any[DBSession])
+    verify(draftRepository, times(2)).updateArticle(any[Draft], any[Boolean])(using any[DBSession])
   }
 
   test("That started is updated when article is changed") {
