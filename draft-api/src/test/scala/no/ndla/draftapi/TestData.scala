@@ -330,7 +330,8 @@ object TestData {
     Priority.Unspecified,
     false,
     None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleArticleWithPublicDomain: Draft = Draft(
@@ -365,7 +366,8 @@ object TestData {
     Priority.Unspecified,
     false,
     None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleDomainArticle: Draft = Draft(
@@ -402,7 +404,8 @@ object TestData {
     Priority.Unspecified,
     false,
     None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val newArticle: NewArticleDTO = api.NewArticleDTO(
@@ -501,7 +504,8 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val apiArticleWithHtmlFaultV2: api.ArticleDTO = api.ArticleDTO(

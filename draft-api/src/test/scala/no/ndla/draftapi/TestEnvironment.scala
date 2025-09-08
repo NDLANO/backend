@@ -11,6 +11,7 @@ package no.ndla.draftapi
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.converter.CommonConverter
+import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
@@ -58,6 +59,7 @@ trait TestEnvironment extends TapirApplication[DraftApiProperties] with MockitoS
   implicit lazy val tagIndexService: TagIndexService               = mock[TagIndexService]
   implicit lazy val grepCodesSearchService: GrepCodesSearchService = mock[GrepCodesSearchService]
   implicit lazy val grepCodesIndexService: GrepCodesIndexService   = mock[GrepCodesIndexService]
+  implicit lazy val traitUtil: TraitUtil                           = mock[TraitUtil]
 
   implicit lazy val internController: InternController      = mock[InternController]
   implicit lazy val draftController: DraftController        = mock[DraftController]

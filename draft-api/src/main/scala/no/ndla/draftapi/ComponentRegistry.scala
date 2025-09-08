@@ -43,6 +43,7 @@ import no.ndla.network.tapir.{
 import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient}
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.common.converter.CommonConverter
+import no.ndla.common.util.TraitUtil
 
 class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication[DraftApiProperties] {
   implicit lazy val props: DraftApiProperties            = properties
@@ -84,6 +85,7 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
   implicit lazy val draftRepository: DraftRepository               = new DraftRepository
   implicit lazy val userDataRepository: UserDataRepository         = new UserDataRepository
   implicit lazy val contentValidator: ContentValidator             = new ContentValidator()
+  implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
   implicit lazy val converterService: ConverterService             = new ConverterService
   implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
   implicit lazy val readService: ReadService                       = new ReadService

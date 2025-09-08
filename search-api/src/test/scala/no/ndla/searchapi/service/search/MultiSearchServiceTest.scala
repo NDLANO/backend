@@ -14,6 +14,7 @@ import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
 import no.ndla.common.model.domain.{ArticleType, Availability}
+import no.ndla.common.util.TraitUtil
 import no.ndla.language.Language.AllLanguages
 import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
@@ -33,6 +34,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
   override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   override implicit lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {

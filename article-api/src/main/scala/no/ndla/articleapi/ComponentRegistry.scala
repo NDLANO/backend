@@ -27,6 +27,7 @@ import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.*
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.common.Clock
+import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.{
@@ -52,6 +53,7 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
   given searchLanguage: SearchLanguage                 = new SearchLanguage
   given dbUtility: DBUtility                           = new DBUtility
   given dbArticle: DBArticle                           = new DBArticle
+  given traitUtil: TraitUtil                           = new TraitUtil
   given articleRepository: ArticleRepository           = new ArticleRepository
   given converterService: ConverterService             = new ConverterService
   given redisClient: RedisClient                       = new RedisClient(props.RedisHost, props.RedisPort)

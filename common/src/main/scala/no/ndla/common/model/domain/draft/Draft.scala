@@ -16,6 +16,7 @@ import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.common.DeriveHelpers
+import no.ndla.common.model.api.search.SearchTrait
 
 case class Draft(
     id: Option[Long],
@@ -49,7 +50,8 @@ case class Draft(
     priority: Priority,
     started: Boolean,
     qualityEvaluation: Option[QualityEvaluation],
-    disclaimer: OptLanguageFields[String]
+    disclaimer: OptLanguageFields[String],
+    traits: List[SearchTrait]
 ) extends Content {
 
   def supportedLanguages: Seq[String] =
