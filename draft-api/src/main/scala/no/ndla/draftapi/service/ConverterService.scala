@@ -333,6 +333,7 @@ class ConverterService(using
       savedSearches = userData.savedSearches,
       latestEditedArticles = userData.latestEditedArticles,
       latestEditedConcepts = userData.latestEditedConcepts,
+      latestEditedLearningpaths = userData.latestEditedLearningpaths,
       favoriteSubjects = userData.favoriteSubjects
     )
   }

@@ -585,7 +585,8 @@ object TestData {
       savedSearches = None,
       latestEditedArticles = None,
       favoriteSubjects = None,
-      latestEditedConcepts = None
+      latestEditedConcepts = None,
+      latestEditedLearningpaths = None
     )
 
   val statusWithPublished: common.Status      = common.Status(PUBLISHED, Set.empty)
