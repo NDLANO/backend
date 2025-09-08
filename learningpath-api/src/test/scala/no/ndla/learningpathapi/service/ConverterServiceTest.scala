@@ -640,7 +640,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   test("mergeLearningSteps correctly retains nullable fields") {
     val updatedStep = api.UpdatedLearningStepV2DTO(
       2,
-      None,
+      commonApi.Missing,
       commonApi.Missing,
       "nb",
       commonApi.Missing,
@@ -660,7 +660,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   test("mergeLearningSteps correctly deletes correct language version of nullable fields") {
     val updatedStep = api.UpdatedLearningStepV2DTO(
       2,
-      None,
+      commonApi.Delete,
       commonApi.Delete,
       "nn",
       commonApi.Delete,
@@ -672,6 +672,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       commonApi.Missing
     )
     val result = service.mergeLearningSteps(multiLanguageDomainStep, updatedStep).get
+    result.title shouldEqual Seq(Title("Tittel på bokmål", "nb"))
     result.introduction shouldEqual Seq(Introduction("Introduksjon på bokmål", "nb"))
     result.description shouldEqual Seq(Description("Beskrivelse på bokmål", "nb"))
     result.embedUrl shouldEqual Seq(EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed))
@@ -680,7 +681,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   test("mergeLearningSteps correctly updates language fields") {
     val updatedStep = api.UpdatedLearningStepV2DTO(
       2,
-      Some("Tittel på bokmål oppdatert"),
+      commonApi.UpdateWith("Tittel på bokmål oppdatert"),
       commonApi.UpdateWith("Introduksjon på bokmål oppdatert"),
       "nb",
       commonApi.UpdateWith("Beskrivelse på bokmål oppdatert"),
