@@ -57,7 +57,8 @@ class SearchConverterService(using converterService: ConverterService) extends S
       users = ai.updatedBy +: ai.notes.map(_.user),
       previousNotes = ai.previousVersionsNotes.map(_.note),
       grepCodes = ai.grepCodes,
-      status = SearchableStatus(ai.status.current, ai.status.other)
+      status = SearchableStatus(ai.status.current, ai.status.other),
+      traits = ai.traits
     )
   }
 
@@ -99,7 +100,8 @@ class SearchConverterService(using converterService: ConverterService) extends S
       users = users,
       grepCodes = searchableArticle.grepCodes,
       status = status,
-      updated = searchableArticle.lastUpdated
+      updated = searchableArticle.lastUpdated,
+      traits = searchableArticle.traits
     )
   }
 

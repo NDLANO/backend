@@ -118,19 +118,20 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
     val availability    = searchableArticle.availability
 
     ArticleSummaryV2DTO(
-      searchableArticle.id,
-      title,
-      visualElement,
-      introduction,
-      metaDescription,
-      metaImage,
-      ApplicationUrl.get + searchableArticle.id.toString,
-      searchableArticle.license,
-      searchableArticle.articleType,
-      lastUpdated,
-      supportedLanguages,
-      searchableArticle.grepCodes.getOrElse(List.empty),
-      availability
+      id = searchableArticle.id,
+      title = title,
+      visualElement = visualElement,
+      introduction = introduction,
+      metaDescription = metaDescription,
+      metaImage = metaImage,
+      url = ApplicationUrl.get + searchableArticle.id.toString,
+      license = searchableArticle.license,
+      articleType = searchableArticle.articleType,
+      lastUpdated = lastUpdated,
+      supportedLanguages = supportedLanguages,
+      grepCodes = searchableArticle.grepCodes.getOrElse(List.empty),
+      availability = availability,
+      traits = searchableArticle.traits
     )
   }
 
