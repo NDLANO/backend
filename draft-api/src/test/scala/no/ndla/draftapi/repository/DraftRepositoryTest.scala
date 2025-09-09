@@ -98,13 +98,13 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     repository.withId(art4.id.get)(using ReadOnlyAutoSession).get.content should be(art4.content)
   }
 
-  test("Updating an article with noRevisionBump should bypass revision bump") {
+  test("Updating an article with notes should merge the notes") {
     val art1     = sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty))
     val inserted = repository.insert(art1)(using AutoSession)
     val numNotes = inserted.notes.length
 
     val updatedNotes = Seq(EditorNote("A note", "SomeId", art1.status, NDLADate.now()))
-    repository.updateArticle(art1.copy(notes = art1.notes ++ updatedNotes), true)(using AutoSession)
+    repository.updateArticleNotes(art1.id.get, updatedNotes)(using AutoSession)
 
     val updated = repository.withId(art1.id.get)(using ReadOnlyAutoSession).get
     updated.notes.length should be(numNotes + 1)

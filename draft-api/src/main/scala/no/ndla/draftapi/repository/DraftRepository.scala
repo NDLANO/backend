@@ -147,6 +147,25 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     failIfRevisionMismatch(count, article, newRevision)
   }
 
+  def updateArticleNotes(articleId: Long, notes: Seq[EditorNote])(implicit session: DBSession): Try[Boolean] = {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    dataObject.setValue(CirceUtil.toJsonString(notes))
+
+    val count =
+      sql"""
+              update ${DBArticle.table}
+              set document=document || jsonb_set(document, '{notes}',(document -> 'notes') || $dataObject)
+              where article_id=${articleId}
+              and revision=(select max(revision) from ${DBArticle.table} where article_id=${articleId})
+           """.update()
+
+    count match {
+      case 1 => Success(true)
+      case _ => Failure(NotFoundException(s"Article with id $articleId does not exist"))
+    }
+  }
+
   def withId(articleId: Long)(implicit session: DBSession): Option[Draft] =
     articleWhere(
       sqls"""
