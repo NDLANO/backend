@@ -8,13 +8,15 @@
 
 package no.ndla.common.util
 
-import no.ndla.common.model.domain.ArticleContent
+import cats.syntax.option.catsSyntaxOptionId
+import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.search.SearchTrait
-import scala.collection.mutable.ListBuffer
+import no.ndla.common.model.api.search.SearchTrait.{Audio, H5p, Podcast, Video}
+import no.ndla.common.model.domain.ArticleContent
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
-import no.ndla.common.configuration.Constants.EmbedTagName
+
 import scala.jdk.CollectionConverters.*
 
 class TraitUtil {
@@ -24,39 +26,30 @@ class TraitUtil {
     document.body()
   }
 
-  def getArticleTraits(contents: Seq[ArticleContent]): List[SearchTrait] = {
+  def getArticleTraits(contents: Seq[ArticleContent]): List[SearchTrait] =
     contents
-      .flatMap(content => {
-        val traits = ListBuffer[SearchTrait]()
-        parseHtml(content.content)
-          .select(EmbedTagName)
-          .forEach(embed => {
-            val dataResource = embed.attr("data-resource")
-            dataResource match {
-              case "h5p"                 => traits += SearchTrait.H5p
-              case "brightcove" | "nrk"  => traits += SearchTrait.Video
-              case "external" | "iframe" =>
-                val dataUrl = embed.attr("data-url")
-                if (
-                  dataUrl.contains("youtu") || dataUrl.contains("vimeo") || dataUrl
-                    .contains("filmiundervisning") || dataUrl.contains("imdb") || dataUrl
-                    .contains("nrk") || dataUrl.contains("khanacademy")
-                ) {
-                  traits += SearchTrait.Video
-                }
-              case "audio" =>
-                val dataType = embed.attr("data-type")
-                dataType match {
-                  case "podcast" => traits += SearchTrait.Podcast
-                  case _         => traits += SearchTrait.Audio
-                }
-              case _ => // Do nothing
-            }
-          })
-        traits
-      })
+      .flatMap { content =>
+        val html      = parseHtml(content.content)
+        val embedTags = html.select(EmbedTagName).asScala
+        val init      = List.empty[SearchTrait]
+        embedTags.foldLeft(init)((acc, embed) => acc ++ embedToMaybeTrait(embed))
+      }
       .toList
       .distinct
+
+  private val videoUrl = List("youtu", "vimeo", "filmiundervisning", "imdb", "nrk", "khanacademy")
+  private def embedToMaybeTrait(embed: Element): Option[SearchTrait] = {
+    val dataResource = embed.attr("data-resource")
+    val dataUrl      = embed.attr("data-url")
+    val dataType     = embed.attr("data-type")
+    dataResource match {
+      case "h5p"                                                      => H5p.some
+      case "brightcove" | "nrk"                                       => Video.some
+      case "external" | "iframe" if videoUrl.exists(dataUrl.contains) => Video.some
+      case "audio" if dataType == "podcast"                           => Podcast.some
+      case "audio"                                                    => Audio.some
+      case _                                                          => None
+    }
   }
 
   def getAttributes(html: String): List[String] = {
