@@ -10,8 +10,8 @@ package no.ndla.common.util
 
 import cats.syntax.option.catsSyntaxOptionId
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.api.search.SearchTrait
-import no.ndla.common.model.api.search.SearchTrait.{Audio, H5p, Podcast, Video}
+import no.ndla.common.model.api.search.ArticleTrait
+import no.ndla.common.model.api.search.ArticleTrait.{Audio, H5p, Podcast, Video}
 import no.ndla.common.model.domain.ArticleContent
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -26,19 +26,19 @@ class TraitUtil {
     document.body()
   }
 
-  def getArticleTraits(contents: Seq[ArticleContent]): List[SearchTrait] =
+  def getArticleTraits(contents: Seq[ArticleContent]): List[ArticleTrait] =
     contents
       .flatMap { content =>
         val html      = parseHtml(content.content)
         val embedTags = html.select(EmbedTagName).asScala
-        val init      = List.empty[SearchTrait]
+        val init      = List.empty[ArticleTrait]
         embedTags.foldLeft(init)((acc, embed) => acc ++ embedToMaybeTrait(embed))
       }
       .toList
       .distinct
 
   private val videoUrl = List("youtu", "vimeo", "filmiundervisning", "imdb", "nrk", "khanacademy")
-  private def embedToMaybeTrait(embed: Element): Option[SearchTrait] = {
+  private def embedToMaybeTrait(embed: Element): Option[ArticleTrait] = {
     val dataResource = embed.attr("data-resource")
     val dataUrl      = embed.attr("data-url")
     val dataType     = embed.attr("data-type")

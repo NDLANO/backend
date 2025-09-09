@@ -25,7 +25,7 @@ import sttp.tapir.Schema.annotations.description
 import sttp.tapir.Schema
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.DeriveHelpers
-import no.ndla.common.model.api.search.SearchTrait
+import no.ndla.common.model.api.search.ArticleTrait
 
 @description("Information about the article")
 case class ArticleDTO(
@@ -96,7 +96,7 @@ case class ArticleDTO(
     @description("The disclaimer of the article")
     disclaimer: Option[DisclaimerDTO],
     @description("Traits extracted from the article content")
-    traits: List[SearchTrait]
+    traits: List[ArticleTrait]
 )
 
 object ArticleDTO {

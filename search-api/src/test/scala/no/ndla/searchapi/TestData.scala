@@ -10,7 +10,7 @@ package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.MyNDLABundleDTO
-import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait}
+import no.ndla.common.model.api.search.{LearningResourceType, ArticleTrait}
 import no.ndla.common.model.domain.ContributorType
 import no.ndla.common.model.domain.{
   ArticleContent,
@@ -499,7 +499,7 @@ object TestData {
     updated = today.minusDays(5),
     published = today.minusDays(5),
     articleType = ArticleType.Standard,
-    traits = List(SearchTrait.H5p)
+    traits = List(ArticleTrait.H5p)
   )
 
   val article13: Article = TestData.sampleArticleWithPublicDomain.copy(

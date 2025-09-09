@@ -11,7 +11,7 @@ package no.ndla.searchapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl.*
 import io.circe.syntax.*
 import no.ndla.common.CirceUtil
-import no.ndla.common.model.api.search.SearchTrait.H5p
+import no.ndla.common.model.api.search.ArticleTrait.H5p
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.*
 import no.ndla.common.util.TraitUtil

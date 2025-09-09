@@ -10,7 +10,7 @@ package no.ndla.searchapi.service.search
 
 import io.circe.syntax.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.SearchTrait
+import no.ndla.common.model.api.search.ArticleTrait
 import no.ndla.common.model.domain.draft.{DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.*
 import no.ndla.common.util.TraitUtil
@@ -63,7 +63,7 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
       previousVersionsNotes =
         Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
       revisionMeta = Seq(RevisionMeta(UUID.randomUUID(), now, "hei", RevisionStatus.NeedsRevision)),
-      traits = List(SearchTrait.H5p),
+      traits = List(ArticleTrait.H5p),
       copyright = Some(
         DraftCopyright(
           license = Some("hei"),

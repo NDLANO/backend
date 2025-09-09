@@ -9,7 +9,7 @@
 package no.ndla.common.util
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.api.search.SearchTrait
+import no.ndla.common.model.api.search.ArticleTrait
 import no.ndla.common.model.domain.ArticleContent
 import no.ndla.testbase.UnitTestSuiteBase
 
@@ -34,7 +34,7 @@ class TraitUtilTest extends UnitTestSuiteBase {
     )
 
     val result1 = traitUtil.getArticleTraits(content)
-    result1 should be(List(SearchTrait.H5p))
+    result1 should be(List(ArticleTrait.H5p))
 
     val content2 = Seq(
       ArticleContent(
@@ -52,7 +52,7 @@ class TraitUtilTest extends UnitTestSuiteBase {
     )
 
     val result2 = traitUtil.getArticleTraits(content2)
-    result2 should be(List(SearchTrait.H5p, SearchTrait.Video))
+    result2 should be(List(ArticleTrait.H5p, ArticleTrait.Video))
   }
 
 }
