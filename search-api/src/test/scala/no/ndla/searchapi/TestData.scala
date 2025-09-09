@@ -1001,7 +1001,7 @@ object TestData {
     coverPhotoId = None,
     duration = Some(0),
     status = LearningPathStatus.PUBLISHED,
-    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+    verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
     created = today,
     lastUpdated = today,
     tags = List(),
