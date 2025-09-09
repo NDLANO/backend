@@ -1263,6 +1263,8 @@ export type components = {
             latestEditedArticles?: string[];
             /** @description User's last edited concepts */
             latestEditedConcepts?: string[];
+            /** @description User's last edited learningpaths */
+            latestEditedLearningpaths?: string[];
             /** @description User's favorite subjects */
             favoriteSubjects?: string[];
         };
