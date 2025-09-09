@@ -126,14 +126,13 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
       Success(updatedArticle)
     }
 
-  /** noRevisionBump must only be used when external systems are updating the article */
-  def updateArticle(article: Draft, noRevisionBump: Boolean)(implicit session: DBSession): Try[Draft] = {
+  def updateArticle(article: Draft)(implicit session: DBSession): Try[Draft] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(article))
 
     val oldRevision = article.revision.getOrElse(0)
-    val newRevision = if (noRevisionBump) oldRevision else oldRevision + 1
+    val newRevision = oldRevision + 1
     val slug        = article.slug.map(_.toLowerCase)
     val count       =
       sql"""

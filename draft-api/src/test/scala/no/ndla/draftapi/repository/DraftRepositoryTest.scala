@@ -90,7 +90,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
 
     val updatedContent = Seq(ArticleContent("What u do mr", "nb"))
 
-    repository.updateArticle(art1.copy(content = updatedContent), false)(using AutoSession)
+    repository.updateArticle(art1.copy(content = updatedContent))(using AutoSession)
 
     repository.withId(art1.id.get)(using ReadOnlyAutoSession).get.content should be(updatedContent)
     repository.withId(art2.id.get)(using ReadOnlyAutoSession).get.content should be(art2.content)
@@ -248,7 +248,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     repository.insert(article)(using AutoSession)
     val oldCount                = repository.articlesWithId(article.id.get).size
     val publishedArticle        = article.copy(status = Status(DraftStatus.PUBLISHED, Set.empty))
-    val updatedArticle          = repository.updateArticle(publishedArticle, false)(using AutoSession).get
+    val updatedArticle          = repository.updateArticle(publishedArticle)(using AutoSession).get
     val updatedAndCopiedArticle = repository.storeArticleAsNewVersion(updatedArticle, None)(using AutoSession).get
 
     updatedAndCopiedArticle.revision should be(Some(5))
@@ -290,7 +290,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     fetched.previousVersionsNotes should be(Seq.empty)
 
     val toPublish1      = inserted.copy(status = Status(DraftStatus.PUBLISHED, Set.empty))
-    val updatedArticle1 = repository.updateArticle(toPublish1, false)(using AutoSession).get
+    val updatedArticle1 = repository.updateArticle(toPublish1)(using AutoSession).get
 
     updatedArticle1.notes should be(prevNotes1)
     updatedArticle1.previousVersionsNotes should be(Seq.empty)
@@ -303,7 +303,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
       status = Status(DraftStatus.PUBLISHED, Set.empty),
       notes = prevNotes2
     )
-    val updatedArticle2 = repository.updateArticle(draftArticle2, false)(using AutoSession).get
+    val updatedArticle2 = repository.updateArticle(draftArticle2)(using AutoSession).get
     updatedArticle2.notes should be(prevNotes2)
     updatedArticle2.previousVersionsNotes should be(prevNotes1)
 
