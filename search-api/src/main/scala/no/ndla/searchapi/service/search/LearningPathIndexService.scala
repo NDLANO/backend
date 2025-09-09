@@ -24,7 +24,7 @@ import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.{GrepApiClient, LearningPathApiClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.searchapi.model.domain.IndexingBundle
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 class LearningPathIndexService(using
     searchConverterService: SearchConverterService,
