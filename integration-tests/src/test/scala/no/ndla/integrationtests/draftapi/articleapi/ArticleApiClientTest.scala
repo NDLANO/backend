@@ -129,7 +129,8 @@ class ArticleApiClientTest
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val exampleToken =

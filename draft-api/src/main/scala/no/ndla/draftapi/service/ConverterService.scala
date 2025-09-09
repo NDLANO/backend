@@ -323,7 +323,8 @@ class ConverterService(using
           priority = article.priority,
           started = article.started,
           qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation),
-          disclaimer = disclaimer
+          disclaimer = disclaimer,
+          traits = article.traits
         )
       )
     } else {

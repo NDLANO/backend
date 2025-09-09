@@ -81,7 +81,8 @@ class TestData {
     relatedContent = Seq.empty,
     revisionDate = None,
     slug = None,
-    disclaimer = None
+    disclaimer = None,
+    traits = List.empty
   )
 
   val apiArticleV2: api.ArticleV2DTO = api.ArticleV2DTO(
@@ -122,7 +123,8 @@ class TestData {
     relatedContent = Seq.empty,
     revisionDate = None,
     slug = None,
-    disclaimer = None
+    disclaimer = None,
+    traits = List.empty
   )
 
   val sampleArticleWithPublicDomain: Article = Article(
@@ -292,7 +294,8 @@ class TestData {
     relatedContent = Seq.empty,
     revisionDate = None,
     slug = None,
-    disclaimer = None
+    disclaimer = None,
+    traits = List.empty
   )
 
   val (nodeId, nodeId2)  = ("1234", "4321")
