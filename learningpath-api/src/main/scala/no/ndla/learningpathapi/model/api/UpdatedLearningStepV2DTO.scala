@@ -18,7 +18,7 @@ case class UpdatedLearningStepV2DTO(
     @description("The revision number for this learningstep")
     revision: Int,
     @description("The title of the learningstep")
-    title: Option[String],
+    title: UpdateOrDelete[String],
     @description("The introduction of the learningstep")
     introduction: UpdateOrDelete[String],
     @description("The chosen language")

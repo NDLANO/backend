@@ -44,7 +44,8 @@ class SearchConverterService extends StrictLogging {
       articleType = ai.articleType.entryName,
       defaultTitle = defaultTitle.map(t => t.title),
       grepCodes = Some(ai.grepCodes),
-      availability = ai.availability.toString
+      availability = ai.availability.toString,
+      traits = ai.traits
     )
   }
 

@@ -37,13 +37,15 @@ import scalikejdbc.{DBSession, ReadOnlyAutoSession}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 import common.getNextRevision
+import no.ndla.common.util.TraitUtil
 
 class ConverterService(using
     clock: Clock,
     draftRepository: DraftRepository,
     commonConverter: CommonConverter,
     writeService: => WriteService,
-    props: DraftApiProperties
+    props: DraftApiProperties,
+    traitUtil: TraitUtil
 ) extends StrictLogging {
   def toDomainArticle(newArticleId: Long, newArticle: api.NewArticleDTO, user: TokenUser): Try[Draft] = {
     val domainTitles  = Seq(common.Title(newArticle.title, newArticle.language))
@@ -68,7 +70,22 @@ class ConverterService(using
 
     val priority  = newArticle.priority.getOrElse(Priority.Unspecified)
     val libraries = newArticle.requiredLibraries.getOrElse(Seq.empty)
+    val content   = domainContent.filterNot(_.isEmpty)
     val now       = clock.now()
+    val traits    = traitUtil.getArticleTraits(content)
+    val comments  = newArticle.comments
+      .map(comments => comments.map(commonConverter.newCommentApiToDomain))
+      .getOrElse(List.empty)
+
+    val visualElement = newArticle.visualElement.map(visual => toDomainVisualElement(visual, newArticle.language)).toSeq
+    val introduction  = newArticle.introduction
+      .map(intro => toDomainIntroduction(intro, newArticle.language))
+      .filterNot(_.isEmpty)
+      .toSeq
+    val metaDescription = newArticle.metaDescription
+      .map(meta => toDomainMetaDescription(meta, newArticle.language))
+      .filterNot(_.isEmpty)
+      .toSeq
 
     newNotes(newArticle.notes.getOrElse(Seq.empty), user, status).map(notes =>
       Draft(
@@ -76,20 +93,13 @@ class ConverterService(using
         revision = None,
         status,
         title = domainTitles,
-        content = domainContent.filterNot(_.isEmpty),
+        content = content,
         copyright = newArticle.copyright.map(toDomainCopyright),
         tags = toDomainTag(newArticle.tags, newArticle.language).toSeq,
         requiredLibraries = libraries.map(toDomainRequiredLibraries),
-        visualElement =
-          newArticle.visualElement.map(visual => toDomainVisualElement(visual, newArticle.language)).toSeq,
-        introduction = newArticle.introduction
-          .map(intro => toDomainIntroduction(intro, newArticle.language))
-          .filterNot(_.isEmpty)
-          .toSeq,
-        metaDescription = newArticle.metaDescription
-          .map(meta => toDomainMetaDescription(meta, newArticle.language))
-          .filterNot(_.isEmpty)
-          .toSeq,
+        visualElement = visualElement,
+        introduction = introduction,
+        metaDescription = metaDescription,
         metaImage =
           newArticle.metaImage.map(meta => toDomainMetaImage(meta, newArticle.language)).filterNot(_.isEmpty).toSeq,
         created = now,
@@ -107,13 +117,12 @@ class ConverterService(using
         revisionMeta = revisionMeta,
         responsible = responsible,
         slug = newArticle.slug,
-        comments = newArticle.comments
-          .map(comments => comments.map(commonConverter.newCommentApiToDomain))
-          .getOrElse(List.empty),
+        comments = comments,
         priority = priority,
         started = false,
         qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation),
-        disclaimer = domainDisclaimer
+        disclaimer = domainDisclaimer,
+        traits = traits
       )
     )
   }
@@ -314,7 +323,8 @@ class ConverterService(using
           priority = article.priority,
           started = article.started,
           qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation),
-          disclaimer = disclaimer
+          disclaimer = disclaimer,
+          traits = article.traits
         )
       )
     } else {
@@ -333,6 +343,7 @@ class ConverterService(using
       savedSearches = userData.savedSearches,
       latestEditedArticles = userData.latestEditedArticles,
       latestEditedConcepts = userData.latestEditedConcepts,
+      latestEditedLearningpaths = userData.latestEditedLearningpaths,
       favoriteSubjects = userData.favoriteSubjects
     )
   }
@@ -503,7 +514,8 @@ class ConverterService(using
             relatedContent = draft.relatedContent,
             revisionDate = draft.revisionMeta.getNextRevision.map(_.revisionDate),
             slug = draft.slug,
-            disclaimer = draft.disclaimer
+            disclaimer = draft.disclaimer,
+            traits = draft.traits
           )
         )
     }
@@ -717,7 +729,8 @@ class ConverterService(using
       priority = priority,
       started = toMergeInto.started,
       qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
-      disclaimer = updatedDisclaimer
+      disclaimer = updatedDisclaimer,
+      traits = traitUtil.getArticleTraits(updatedContents)
     )
 
     Success(converted)

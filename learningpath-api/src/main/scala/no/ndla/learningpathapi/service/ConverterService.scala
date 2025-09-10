@@ -274,7 +274,7 @@ class ConverterService(using
       revision = Some(updated.revision),
       title = mergeLanguageFields(existing.title, titles),
       description = mergeLanguageFields(existing.description, descriptions),
-      introduction = mergeLanguageFields(existing.introduction, introductions),
+      introduction = introductions,
       coverPhotoId = updateImageId(existing.coverPhotoId, updated.coverPhotoMetaUrl),
       duration =
         if (updated.duration.isDefined)
@@ -406,9 +406,9 @@ class ConverterService(using
 
   def mergeLearningSteps(existing: LearningStep, updated: UpdatedLearningStepV2DTO): Try[LearningStep] = {
     val titles = updated.title match {
-      case None        => existing.title
-      case Some(value) =>
-        mergeLanguageFields(existing.title, Seq(common.Title(value, updated.language)))
+      case Missing           => existing.title
+      case Delete            => existing.title.filterNot(_.language == updated.language)
+      case UpdateWith(value) => mergeLanguageFields(existing.title, Seq(common.Title(value, updated.language)))
     }
 
     val introductions = updated.introduction match {

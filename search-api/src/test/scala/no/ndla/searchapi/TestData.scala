@@ -10,7 +10,7 @@ package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.MyNDLABundleDTO
-import no.ndla.common.model.api.search.LearningResourceType
+import no.ndla.common.model.api.search.{LearningResourceType, ArticleTrait}
 import no.ndla.common.model.domain.ContributorType
 import no.ndla.common.model.domain.{
   ArticleContent,
@@ -241,7 +241,8 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleDomainArticle: Article = Article(
@@ -267,7 +268,8 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -293,7 +295,8 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleArticleWithByNcSa: Article =
@@ -496,7 +499,8 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = ArticleType.Standard
+    articleType = ArticleType.Standard,
+    traits = List(ArticleTrait.H5p)
   )
 
   val article13: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -579,7 +583,8 @@ object TestData {
     relatedContent = Seq.empty,
     revisionDate = None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val emptyDomainDraft: Draft = Draft(
@@ -614,7 +619,8 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val draftStatus: Status         = Status(DraftStatus.PLANNED, Set.empty)
@@ -677,7 +683,8 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))

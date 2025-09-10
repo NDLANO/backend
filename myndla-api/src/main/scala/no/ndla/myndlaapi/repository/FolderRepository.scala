@@ -435,7 +435,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
               case Some(children) =>
                 val childrenWithTheirChildrenFolders =
                   children
-                    .sortBy(_.id.toString)
+                    .sortBy(_.rank.toString)
                     .map(child => injectChildrenRecursively(child))
 
                 current.copy(subfolders = childrenWithTheirChildrenFolders)

@@ -49,7 +49,8 @@ class ArticleIndexService(using
         keywordField("altText"),
         keywordField("language")
       ),
-      keywordField("grepCodes")
+      keywordField("grepCodes"),
+      keywordField("traits")
     )
     val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
       generateLanguageSupportedFieldList("content") ++

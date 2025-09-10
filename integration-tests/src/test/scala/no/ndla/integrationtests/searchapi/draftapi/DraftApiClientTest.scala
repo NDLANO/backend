@@ -10,6 +10,7 @@ package no.ndla.integrationtests.searchapi.draftapi
 
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
+import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBUtility, HasDatabaseProps}
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.integrationtests.UnitSuite
@@ -35,6 +36,7 @@ class DraftApiClientTest
     with searchapi.TestEnvironment
     with HasDatabaseProps {
   override implicit lazy val ndlaClient: NdlaClient                         = new NdlaClient
+  override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
   override implicit lazy val DBUtil: DBUtility                              = new DBUtility
 

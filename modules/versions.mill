@@ -21,7 +21,7 @@ object SharedDependencies {
   val CirceV                = "0.14.14"
   val ScalikeJDBCV          = "4.3.4"
   val TestContainersV       = "1.21.1"
-  val JsoupV                = "1.20.1"
+  val JsoupV                = "1.21.2"
   val JavaMelodyV           = "2.5.0"
   val EnumeratumV           = "1.9.0"
   val FlexmarkV             = "0.64.8"

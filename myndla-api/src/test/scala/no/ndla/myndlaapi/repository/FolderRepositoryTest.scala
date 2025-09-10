@@ -379,7 +379,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
           subfolders = List(nestedChild1)
         ),
         child2.copy()
-      ).sortBy(_.id.toString)
+      ).sortBy(_.rank.toString)
     )
 
     repository.buildTreeStructureFromListOfChildren(
@@ -421,11 +421,13 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
     val insertedMain   = repository.insertFolder("feide", baseNewFolderData).failIfFailure
     val insertedChild1 =
-      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some)).failIfFailure
+      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some, rank = 1)).failIfFailure
     val insertedChild2 =
-      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some)).failIfFailure
+      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some, rank = 2)).failIfFailure
     val insertedChild3 =
-      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedChild1.id.some)).failIfFailure
+      repository
+        .insertFolder("feide", baseNewFolderData.copy(parentId = insertedChild1.id.some, rank = 3))
+        .failIfFailure
     val insertedResource = repository
       .insertResource(
         "feide",
@@ -450,7 +452,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     )
 
     val expectedResult = insertedMain.copy(
-      subfolders = expectedSubfolders.sortBy(_.id.toString),
+      subfolders = expectedSubfolders.sortBy(_.rank.toString),
       resources = List(insertedResource.copy(connection = Some(insertedConnection)))
     )
 
@@ -596,13 +598,18 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
     val insertedMain   = repository.insertFolder("feide", baseNewFolderData).failIfFailure
     val insertedChild1 =
-      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some)).failIfFailure
+      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some, rank = 1)).failIfFailure
     val insertedChild2 =
       repository
-        .insertFolder("feide", baseNewFolderData.copy(parentId = insertedMain.id.some, status = FolderStatus.PRIVATE))
+        .insertFolder(
+          "feide",
+          baseNewFolderData.copy(parentId = insertedMain.id.some, status = FolderStatus.PRIVATE, rank = 2)
+        )
         .failIfFailure
     val insertedChild3 =
-      repository.insertFolder("feide", baseNewFolderData.copy(parentId = insertedChild1.id.some)).failIfFailure
+      repository
+        .insertFolder("feide", baseNewFolderData.copy(parentId = insertedChild1.id.some, rank = 3))
+        .failIfFailure
     val insertedResource = repository
       .insertResource(
         "feide",
@@ -627,7 +634,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     )
 
     val expectedResultNormal = insertedMain.copy(
-      subfolders = expectedSubfolders.sortBy(_.id.toString),
+      subfolders = expectedSubfolders.sortBy(_.rank.toString),
       resources = List(insertedResource.copy(connection = Some(insertedConnection)))
     )
 

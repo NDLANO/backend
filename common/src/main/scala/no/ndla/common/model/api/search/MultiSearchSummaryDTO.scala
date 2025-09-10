@@ -95,7 +95,7 @@ case class MultiSearchSummaryDTO(
     @description("Status information of the resource")
     status: Option[StatusDTO],
     @description("Traits for the resource")
-    traits: List[SearchTrait],
+    traits: List[ArticleTrait],
     @description("Relevance score. The higher the score, the better the document matches your search criteria.")
     score: Float,
     @description("List of objects describing matched field with matching words emphasized")

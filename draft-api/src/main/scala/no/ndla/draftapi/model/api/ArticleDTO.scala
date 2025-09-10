@@ -25,6 +25,7 @@ import sttp.tapir.Schema.annotations.description
 import sttp.tapir.Schema
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.DeriveHelpers
+import no.ndla.common.model.api.search.ArticleTrait
 
 @description("Information about the article")
 case class ArticleDTO(
@@ -93,7 +94,9 @@ case class ArticleDTO(
     @description("The quality evaluation of the article. Consist of a score from 1 to 5 and a comment.")
     qualityEvaluation: Option[QualityEvaluationDTO],
     @description("The disclaimer of the article")
-    disclaimer: Option[DisclaimerDTO]
+    disclaimer: Option[DisclaimerDTO],
+    @description("Traits extracted from the article content")
+    traits: List[ArticleTrait]
 )
 
 object ArticleDTO {
