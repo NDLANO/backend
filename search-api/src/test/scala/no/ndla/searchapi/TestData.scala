@@ -22,13 +22,13 @@ import no.ndla.common.model.domain.{
   Introduction,
   Priority,
   Responsible,
+  RevisionMeta,
+  RevisionStatus,
   Status,
   Tag,
   Title,
   VisualElement,
-  draft,
-  RevisionMeta,
-  RevisionStatus
+  draft
 }
 import no.ndla.common.model.domain.article.{Article, Copyright}
 import no.ndla.common.model.domain.concept.{
@@ -44,6 +44,7 @@ import no.ndla.common.model.domain.concept.{
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
+import no.ndla.common.model.domain.learningpath.LearningPathVerificationStatus.EXTERNAL
 import no.ndla.common.model.domain.learningpath.{
   LearningPath,
   LearningPathStatus,
@@ -1089,12 +1090,13 @@ object TestData {
   val learningPath7: LearningPath = DefaultLearningPath.copy(
     id = Some(PrivateId),
     title = List(Title("Private", "en")),
-    description = List(LPDescription("This is private", "en")),
+    description = List(LPDescription("This is private and external", "en")),
     duration = Some(1),
     lastUpdated = today.minusDays(7),
     tags = List(),
     status = PRIVATE,
-    owner = "private"
+    owner = "private",
+    verificationStatus = EXTERNAL
   )
 
   val learningPathsToIndex: List[LearningPath] = List(

@@ -45,17 +45,19 @@ class LearningPathIndexService(using
       domainModel: LearningPath,
       indexName: String,
       indexingBundle: IndexingBundle
-  ): Try[IndexRequest] = {
+  ): Try[Option[IndexRequest]] = {
     if (domainModel.verificationStatus != CREATED_BY_NDLA) {
-      Success(indexInto(indexName).doc("").id(domainModel.id.get.toString).versionType(EXTERNAL_GTE).version(0))
+      Success(None)
     } else {
       searchConverterService.asSearchableLearningPath(domainModel, indexingBundle).map { searchableLearningPath =>
         val source = CirceUtil.toJsonString(searchableLearningPath)
-        indexInto(indexName)
-          .doc(source)
-          .id(domainModel.id.get.toString)
-          .versionType(EXTERNAL_GTE)
-          .version(domainModel.revision.map(_.toLong).get)
+        Some(
+          indexInto(indexName)
+            .doc(source)
+            .id(domainModel.id.get.toString)
+            .versionType(EXTERNAL_GTE)
+            .version(domainModel.revision.map(_.toLong).get)
+        )
       }
     }
   }

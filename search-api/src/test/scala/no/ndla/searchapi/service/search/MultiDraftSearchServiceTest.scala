@@ -12,6 +12,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO}
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.learningpath.LearningPathVerificationStatus.CREATED_BY_NDLA
 import no.ndla.language.Language.AllLanguages
 import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
@@ -65,7 +66,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
       blockUntil(() => {
         draftIndexService.countDocuments == draftsToIndex.size &&
-        learningPathIndexService.countDocuments == learningPathsToIndex.size
+        learningPathIndexService.countDocuments == learningPathsToIndex.count(lp =>
+          lp.verificationStatus == CREATED_BY_NDLA
+        )
       })
     }
   }
@@ -83,7 +86,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     else {
       learningPathsToIndex.filter(_.title.map(_.language).contains(language))
     }
-    x.filter(_.copyright.license != License.Copyrighted.toString)
+    x.filter(_.verificationStatus == CREATED_BY_NDLA).filter(_.copyright.license != License.Copyrighted.toString)
   }
 
   private def idsForLang(language: String) =
@@ -351,13 +354,12 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     hits(10).id should be(6)
     hits(11).id should be(6)
     hits(12).id should be(7)
-    hits(13).id should be(7)
-    hits(14).id should be(8)
-    hits(15).id should be(9)
-    hits(16).id should be(10)
-    hits(16).title.language should be("en")
-    hits(17).id should be(11)
-    hits(17).title.language should be("nb")
+    hits(13).id should be(8)
+    hits(14).id should be(9)
+    hits(15).id should be(10)
+    hits(15).title.language should be("en")
+    hits(16).id should be(11)
+    hits(16).title.language should be("nb")
   }
 
   test("Search for all languages should return all languages if copyrighted") {
@@ -575,8 +577,8 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchSettings.copy(language = "*", learningResourceTypes = List(LearningResourceType.LearningPath))
     ): @unchecked
 
-    search.totalCount should be(7)
-    search.summaryResults.map(_.id) should be(Seq(1, 2, 3, 4, 5, 6, 7))
+    search.totalCount should be(6)
+    search.summaryResults.map(_.id) should be(Seq(1, 2, 3, 4, 5, 6))
     search.summaryResults.map(_.url.contains("learningpath")).distinct should be(Seq(true))
   }
 
@@ -585,16 +587,16 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(language = "*", supportedLanguages = List("en"))
       ): @unchecked
-    search.totalCount should be(10)
-    search.summaryResults.map(_.id) should be(Seq(2, 3, 4, 5, 6, 7, 10, 11, 13, 15))
+    search.totalCount should be(9)
+    search.summaryResults.map(_.id) should be(Seq(2, 3, 4, 5, 6, 10, 11, 13, 15))
 
     val Success(search2) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(language = "*", supportedLanguages = List("en", "nb"), pageSize = 100)
       ): @unchecked
-    search2.totalCount should be(22)
+    search2.totalCount should be(21)
     search2.summaryResults.map(_.id) should be(
-      Seq(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 9, 10, 11, 12, 13, 15, 16)
+      Seq(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16)
     )
 
     val Success(search3) =

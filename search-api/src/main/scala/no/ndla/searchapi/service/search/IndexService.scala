@@ -111,7 +111,7 @@ trait IndexService[D <: Content](using
   val apiClient: SearchApiClient[D]
   override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
-  def createIndexRequest(domainModel: D, indexName: String, indexingBundle: IndexingBundle): Try[IndexRequest]
+  def createIndexRequest(domainModel: D, indexName: String, indexingBundle: IndexingBundle): Try[Option[IndexRequest]]
 
   def indexDocument(imported: D): Try[D] = {
     val grepBundle = grepApiClient.getGrepBundle() match {
@@ -132,9 +132,9 @@ trait IndexService[D <: Content](using
       indexingBundle: IndexingBundle
   ): Try[D] = {
     for {
-      _       <- createIndexIfNotExists()
-      request <- createIndexRequest(imported, searchIndex, indexingBundle)
-      _       <- e4sClient.execute(request)
+      _            <- createIndexIfNotExists()
+      maybeRequest <- createIndexRequest(imported, searchIndex, indexingBundle)
+      _ = maybeRequest.map(e4sClient.execute(_))
     } yield imported
   }
   def indexDocuments(shouldUsePublishedTax: Boolean)(implicit d: Decoder[D]): Try[ReindexResult] =
@@ -161,12 +161,10 @@ trait IndexService[D <: Content](using
     for {
       grepBundle <- grepApiClient.getGrepBundle()
       indexingBundle = IndexingBundle(grepBundle = Some(grepBundle), None, None)
-      _       <- createIndexIfNotExists()
-      toIndex <- apiClient.getSingle(id)
-      request <- createIndexRequest(toIndex, searchIndex, indexingBundle)
-      _       <- e4sClient.execute {
-        request
-      }
+      _            <- createIndexIfNotExists()
+      toIndex      <- apiClient.getSingle(id)
+      maybeRequest <- createIndexRequest(toIndex, searchIndex, indexingBundle)
+      _ = maybeRequest.map(e4sClient.execute(_))
     } yield toIndex
   }
 
@@ -235,7 +233,7 @@ trait IndexService[D <: Content](using
 
       if (indexRequests.nonEmpty) {
         val response = e4sClient.execute {
-          bulk(indexRequests)
+          bulk(indexRequests.filter(_.isDefined).flatten)
         }
 
         response match {

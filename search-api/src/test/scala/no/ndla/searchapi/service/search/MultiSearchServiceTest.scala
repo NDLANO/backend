@@ -13,6 +13,7 @@ import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO, Sear
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
+import no.ndla.common.model.domain.learningpath.LearningPathVerificationStatus.CREATED_BY_NDLA
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.language.Language.AllLanguages
 import no.ndla.mapping.License
@@ -83,7 +84,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
       blockUntil(() => {
         articleIndexService.countDocuments == articlesToIndex.size &&
-        learningPathIndexService.countDocuments == learningPathsToIndex.size
+        learningPathIndexService.countDocuments == learningPathsToIndex.count(_.verificationStatus == CREATED_BY_NDLA)
       })
     }
   }
