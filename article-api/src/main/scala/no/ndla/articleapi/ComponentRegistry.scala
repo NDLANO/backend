@@ -17,7 +17,7 @@ import no.ndla.articleapi.db.migrationwithdependencies.{
   V22__UpdateH5PDomainForFFVisualElement,
   V33__ConvertLanguageUnknown,
   V55__SetHideBylineForImagesNotCopyrighted,
-  V62__SetResourceTypeFromTaxonomyAsTag,
+  V63__SetResourceTypeFromTaxonomyAsTag,
   V8__CopyrightFormatUpdated,
   V9__TranslateUntranslatedAuthors
 }
@@ -83,7 +83,7 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
     new V22__UpdateH5PDomainForFFVisualElement,
     new V33__ConvertLanguageUnknown(props),
     new V55__SetHideBylineForImagesNotCopyrighted(props),
-    new V62__SetResourceTypeFromTaxonomyAsTag
+    new V63__SetResourceTypeFromTaxonomyAsTag
   )
 
   given swagger: SwaggerController = new SwaggerController(

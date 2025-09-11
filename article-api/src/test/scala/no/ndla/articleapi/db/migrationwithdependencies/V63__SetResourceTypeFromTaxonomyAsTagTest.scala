@@ -16,7 +16,7 @@ import org.mockito.Mockito.when
 
 import scala.util.Success
 
-class V62__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvironment {
+class V63__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvironment {
 
   val parent = TaxonomyResourceType(
     id = "urn:resourcetype:parent",
@@ -65,7 +65,7 @@ class V62__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvir
 
     when(taxonomyApiClient.getTaxonomyBundleUncached(true)).thenReturn(Success(TaxonomyBundle(nodes = List(node))))
 
-    val migration = new V62__SetResourceTypeFromTaxonomyAsTag()(using taxonomyApiClient)
+    val migration = new V63__SetResourceTypeFromTaxonomyAsTag()(using taxonomyApiClient)
 
     val oldDocument =
       """

@@ -14,7 +14,7 @@ import no.ndla.common.model.domain.Tag
 import no.ndla.database.DocumentMigration
 import no.ndla.network.clients.TaxonomyApiClient
 
-class V62__SetResourceTypeFromTaxonomyAsTag()(using taxonomyClient: TaxonomyApiClient) extends DocumentMigration {
+class V63__SetResourceTypeFromTaxonomyAsTag()(using taxonomyClient: TaxonomyApiClient) extends DocumentMigration {
   override val tableName: String  = "contentdata"
   override val columnName: String = "document"
 
