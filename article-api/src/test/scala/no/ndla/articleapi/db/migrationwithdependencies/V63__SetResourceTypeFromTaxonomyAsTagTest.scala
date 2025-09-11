@@ -212,6 +212,6 @@ class V63__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvir
         |""".stripMargin
 
     val expected = parser.parse(newDocument).toTry.get
-    migration.convertColumn(oldDocument) should be(expected.noSpaces)
+    migration.convertColumn(1, oldDocument) should be(expected.noSpaces)
   }
 }

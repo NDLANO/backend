@@ -11,28 +11,53 @@ package no.ndla.articleapi.db.migrationwithdependencies
 import io.circe.parser
 import io.circe.syntax.EncoderOps
 import no.ndla.common.model.domain.Tag
-import no.ndla.database.DocumentMigration
+import no.ndla.database.TableMigration
 import no.ndla.network.clients.TaxonomyApiClient
+import org.postgresql.util.PGobject
+import scalikejdbc.interpolation.Implicits.scalikejdbcSQLInterpolationImplicitDef
+import scalikejdbc.{DBSession, SQLSyntax, WrappedResultSet}
 
-class V63__SetResourceTypeFromTaxonomyAsTag()(using taxonomyClient: TaxonomyApiClient) extends DocumentMigration {
-  override val tableName: String  = "contentdata"
-  override val columnName: String = "document"
+case class DocumentRow(id: Long, document: String, article_id: Long)
+
+class V63__SetResourceTypeFromTaxonomyAsTag()(using taxonomyClient: TaxonomyApiClient)
+    extends TableMigration[DocumentRow] {
+
+  override val tableName: String            = "contentdata"
+  private val columnName                    = "document"
+  private lazy val columnNameSQL: SQLSyntax = SQLSyntax.createUnsafely(columnName)
+  override lazy val whereClause: SQLSyntax  = sqls"$columnNameSQL is not null"
 
   private val taxonomyBundle = taxonomyClient.getTaxonomyBundleUncached(true).get
 
-  override def convertColumn(value: String): String = {
+  override def extractRowData(rs: WrappedResultSet): DocumentRow =
+    DocumentRow(rs.long("id"), rs.string(columnName), rs.long("article_id"))
 
-    val oldDocument = parser.parse(value).toTry.get
-    val articleId   = oldDocument.hcursor.downField("id").as[Long].toTry.get
-    val node        = taxonomyBundle.nodeByContentUri.get(s"urn:article:$articleId") match {
+  def updateRow(rowData: DocumentRow)(implicit session: DBSession): Int = {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    val newDocument = convertColumn(rowData.article_id, rowData.document)
+    dataObject.setValue(newDocument)
+    sql"""update $tableNameSQL
+          set $columnNameSQL = $dataObject
+          where id = ${rowData.id}
+       """
+      .update()
+  }
+
+  def convertColumn(articleId: Long, document: String): String = {
+    val node = taxonomyBundle.nodeByContentUri.get(s"urn:article:$articleId") match {
       case Some(n) => n.headOption
-      case None    => return value
+      case None    => return document
     }
+    if node.isEmpty then return document
+
     val resourceTypes =
       node
         .flatMap(n => n.context.map(c => c.resourceTypes.filter(rt => rt.parentId.isDefined).map(rt => rt.name)))
         .getOrElse(List.empty)
-    val tags = oldDocument.hcursor.downField("tags").as[Option[Seq[Tag]]].toTry.get.getOrElse(Seq.empty)
+
+    val oldDocument = parser.parse(document).toTry.get
+    val tags        = oldDocument.hcursor.downField("tags").as[Option[Seq[Tag]]].toTry.get.getOrElse(Seq.empty)
     // Insert values from searchablelanguagevalues as tags if they are not already present
     // A Tag has a language and a sequence of strings. A SearchableLanguageValues has a language and a single string
     // We add the value from searchablelanguagevalues to the tags if it is not already present in the tags for the language from tag
