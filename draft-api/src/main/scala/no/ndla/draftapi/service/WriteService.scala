@@ -491,16 +491,14 @@ class WriteService(using
 
   private def addNotesToDraft(id: Long, notes: List[String], user: TokenUser)(
       session: DBSession
-  ): Try[api.ArticleDTO] = {
+  ): Try[Boolean] = {
     for {
       maybeDraft <- Try(draftRepository.withId(id)(using session))
       draft      <- maybeDraft.toTry(NotFoundException(s"Article with id $id not found"))
-      now       = clock.now()
-      newNotes  = notes.map(note => common.EditorNote(note, user.id, draft.status, now))
-      converted = draft.copy(notes = draft.notes ++ newNotes)
-      updated <- draftRepository.updateArticle(converted)(using session)
-      output  <- converterService.toApiArticle(updated, Language.AllLanguages)
-    } yield output
+      now      = clock.now()
+      newNotes = notes.map(note => common.EditorNote(note, user.id, draft.status, now))
+      result   = draftRepository.updateArticleNotes(id, newNotes)(using session)
+    } yield result.isSuccess
   }
 
   private[service] def updateStatusIfNeeded(
