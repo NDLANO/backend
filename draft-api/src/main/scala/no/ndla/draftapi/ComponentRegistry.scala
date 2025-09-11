@@ -19,7 +19,8 @@ import no.ndla.draftapi.db.migrationwithdependencies.{
   V23__UpdateH5PDomainForFFVisualElement,
   V33__ConvertLanguageUnknown,
   V57__MigrateSavedSearch,
-  V66__SetHideBylineForImagesNotCopyrighted
+  V66__SetHideBylineForImagesNotCopyrighted,
+  V77__SetResourceTypeFromTaxonomyAsTag
 }
 import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
@@ -40,7 +41,7 @@ import no.ndla.network.tapir.{
   TapirController,
   TapirHealthController
 }
-import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient}
+import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient, TaxonomyApiClient as BaseTaxonomyApiClient}
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.common.converter.CommonConverter
 
@@ -60,7 +61,8 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
     new V23__UpdateH5PDomainForFFVisualElement,
     new V33__ConvertLanguageUnknown,
     new V57__MigrateSavedSearch,
-    new V66__SetHideBylineForImagesNotCopyrighted
+    new V66__SetHideBylineForImagesNotCopyrighted,
+    new V77__SetResourceTypeFromTaxonomyAsTag
   )
 
   implicit lazy val clock: Clock                               = new Clock
@@ -78,6 +80,7 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
     new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
   implicit lazy val articleApiClient: ArticleApiClient             = new ArticleApiClient
   implicit lazy val taxonomyApiClient: TaxonomyApiClient           = new TaxonomyApiClient
+  implicit lazy val baseTaxonomyApiClient: BaseTaxonomyApiClient   = new BaseTaxonomyApiClient(props.TaxonomyUrl)
   implicit lazy val learningpathApiClient: LearningpathApiClient   = new LearningpathApiClient
   implicit lazy val h5pApiClient: H5PApiClient                     = new H5PApiClient
   implicit lazy val imageApiClient: ImageApiClient                 = new ImageApiClient

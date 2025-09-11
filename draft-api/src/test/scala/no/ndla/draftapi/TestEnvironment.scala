@@ -21,7 +21,7 @@ import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient}
+import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient, TaxonomyApiClient as BaseTaxonomyApiClient}
 import no.ndla.network.tapir.{
   ErrorHandling,
   ErrorHelpers,
@@ -87,11 +87,12 @@ trait TestEnvironment extends TapirApplication[DraftApiProperties] with MockitoS
   implicit lazy val e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
   implicit lazy val learningpathApiClient: LearningpathApiClient   = mock[LearningpathApiClient]
 
-  implicit lazy val articleApiClient: ArticleApiClient   = mock[ArticleApiClient]
-  implicit lazy val searchApiClient: SearchApiClient     = mock[SearchApiClient]
-  implicit lazy val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
-  implicit lazy val h5pApiClient: H5PApiClient           = mock[H5PApiClient]
-  implicit lazy val imageApiClient: ImageApiClient       = mock[ImageApiClient]
+  implicit lazy val articleApiClient: ArticleApiClient           = mock[ArticleApiClient]
+  implicit lazy val searchApiClient: SearchApiClient             = mock[SearchApiClient]
+  implicit lazy val taxonomyApiClient: TaxonomyApiClient         = mock[TaxonomyApiClient]
+  implicit lazy val baseTaxonomyApiClient: BaseTaxonomyApiClient = mock[BaseTaxonomyApiClient]
+  implicit lazy val h5pApiClient: H5PApiClient                   = mock[H5PApiClient]
+  implicit lazy val imageApiClient: ImageApiClient               = mock[ImageApiClient]
 
   implicit lazy val swagger: SwaggerController = mock[SwaggerController]
 }
