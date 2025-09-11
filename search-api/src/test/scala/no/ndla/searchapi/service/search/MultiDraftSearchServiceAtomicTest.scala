@@ -1013,7 +1013,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
           domainModel: Draft,
           indexName: String,
           indexingBundle: IndexingBundle
-      ): Try[IndexRequest] = {
+      ): Try[Option[IndexRequest]] = {
 
         val draft = domainModel.id.get match {
           case 1 =>
@@ -1050,7 +1050,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         }
 
         val source = CirceUtil.toJsonString(draft)
-        Success(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
+        Success(Some(indexInto(indexName).doc(source).id(domainModel.id.get.toString)))
       }
     }
 
