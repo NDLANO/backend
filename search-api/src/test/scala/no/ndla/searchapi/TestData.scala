@@ -85,7 +85,7 @@ import no.ndla.searchapi.model.grep.{
 }
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
-import no.ndla.searchapi.model.taxonomy.*
+import no.ndla.common.model.taxonomy.*
 
 import java.net.URI
 import java.util.UUID
@@ -314,7 +314,7 @@ object TestData {
   val sampleArticleWithCopyrighted: Article =
     sampleArticleWithPublicDomain.copy(copyright = copyrighted, published = NDLADate.now())
 
-  val article1: Article = TestData.sampleArticleWithByNcSa.copy(
+  val article1: Article = sampleArticleWithByNcSa.copy(
     id = Option(1),
     title = List(Title("Batmen er på vift med en bil", "nb")),
     content = List(
@@ -331,7 +331,7 @@ object TestData {
     grepCodes = Seq("KM123", "KE12")
   )
 
-  val article2: Article = TestData.sampleArticleWithPublicDomain.copy(
+  val article2: Article = sampleArticleWithPublicDomain.copy(
     id = Option(2),
     title = List(Title("Pingvinen er ute og går", "nb")),
     content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
@@ -1167,7 +1167,7 @@ object TestData {
         relevanceId = relevance.id,
         relevance = SearchableLanguageValues(Seq(LanguageValue("nb", relevance.name))),
         resourceTypes = resourceTypes.map(rt =>
-          SearchableTaxonomyResourceType(rt.id, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
+          TaxonomyResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
         ),
         parentIds = context.parentIds :+ parent.id,
         isPrimary = isPrimary,
@@ -1862,13 +1862,15 @@ object TestData {
     resultTypes = None
   )
 
-  val searchableResourceTypes: List[SearchableTaxonomyResourceType] = List(
-    SearchableTaxonomyResourceType(
+  val searchableResourceTypes: List[TaxonomyResourceType] = List(
+    TaxonomyResourceType(
       "urn:resourcetype:subjectMaterial",
+      None,
       SearchableLanguageValues(Seq(LanguageValue("nb", "Fagstoff")))
     ),
-    SearchableTaxonomyResourceType(
+    TaxonomyResourceType(
       "urn:resourcetype:academicArticle",
+      Some("urn:resourcetype:subjectMaterial"),
       SearchableLanguageValues(Seq(LanguageValue("nb", "Fagartikkel")))
     )
   )
@@ -1906,7 +1908,7 @@ object TestData {
         relevanceId = "urn:relevance:core",
         relevance = SearchableLanguageValues(Seq(LanguageValue("nb", "Kjernestoff"))),
         resourceTypes = resourceTypes.map(rt =>
-          SearchableTaxonomyResourceType(rt.id, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
+          TaxonomyResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
         ),
         parentIds = List("urn:topic:1"),
         isPrimary = true,

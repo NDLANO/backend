@@ -39,10 +39,8 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
-import no.ndla.search.model
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.*
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.grep.*

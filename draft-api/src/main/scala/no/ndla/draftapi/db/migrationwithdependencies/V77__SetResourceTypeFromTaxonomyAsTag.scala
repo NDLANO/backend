@@ -26,7 +26,7 @@ class V77__SetResourceTypeFromTaxonomyAsTag()(using taxonomyClient: TaxonomyApiC
   private lazy val columnNameSQL: SQLSyntax = SQLSyntax.createUnsafely(columnName)
   override lazy val whereClause: SQLSyntax  = sqls"$columnNameSQL is not null"
 
-  private val taxonomyBundle = taxonomyClient.getTaxonomyBundleUncached(true).get
+  private lazy val taxonomyBundle = taxonomyClient.getTaxonomyBundleUncached(false).get
 
   override def extractRowData(rs: WrappedResultSet): DocumentRow =
     DocumentRow(rs.long("id"), rs.string(columnName), rs.long("article_id"))

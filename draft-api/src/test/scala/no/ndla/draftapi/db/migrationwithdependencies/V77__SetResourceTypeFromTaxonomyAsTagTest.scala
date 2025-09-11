@@ -1,5 +1,5 @@
 /*
- * Part of NDLA article-api
+ * Part of NDLA draft-api
  * Copyright (C) 2025 NDLA
  *
  * See LICENSE
@@ -9,10 +9,11 @@
 package no.ndla.draftapi.db.migrationwithdependencies
 
 import io.circe.parser
-import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.taxonomy.*
 import no.ndla.draftapi.db.migrationwithdependencies.V77__SetResourceTypeFromTaxonomyAsTag
+import no.ndla.draftapi.{TestEnvironment, UnitSuite}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 
 import scala.util.Success
@@ -64,7 +65,8 @@ class V77__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvir
 
   test("That article gets updated with tags from taxonomy") {
 
-    when(baseTaxonomyApiClient.getTaxonomyBundleUncached(true)).thenReturn(Success(TaxonomyBundle(nodes = List(node))))
+    when(baseTaxonomyApiClient.getTaxonomyBundleUncached(any[Boolean]))
+      .thenReturn(Success(TaxonomyBundle(nodes = List(node))))
 
     val migration = new V77__SetResourceTypeFromTaxonomyAsTag()(using baseTaxonomyApiClient)
 

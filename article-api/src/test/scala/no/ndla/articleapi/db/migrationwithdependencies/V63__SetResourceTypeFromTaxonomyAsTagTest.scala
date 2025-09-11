@@ -12,6 +12,7 @@ import io.circe.parser
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.taxonomy.{Node, NodeType, TaxonomyBundle, TaxonomyContext, TaxonomyResourceType}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 
 import scala.util.Success
@@ -63,7 +64,8 @@ class V63__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvir
 
   test("That article gets updated with tags from taxonomy") {
 
-    when(taxonomyApiClient.getTaxonomyBundleUncached(true)).thenReturn(Success(TaxonomyBundle(nodes = List(node))))
+    when(taxonomyApiClient.getTaxonomyBundleUncached(any[Boolean]))
+      .thenReturn(Success(TaxonomyBundle(nodes = List(node))))
 
     val migration = new V63__SetResourceTypeFromTaxonomyAsTag()(using taxonomyApiClient)
 

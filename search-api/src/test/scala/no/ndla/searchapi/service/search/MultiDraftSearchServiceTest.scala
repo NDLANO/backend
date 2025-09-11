@@ -20,12 +20,12 @@ import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
+import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.model.search.SearchPagination
-import no.ndla.searchapi.{TestData, TestEnvironment}
-import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.service.ConverterService
+import no.ndla.searchapi.{TestData, TestEnvironment}
 
 import scala.util.Success
 
