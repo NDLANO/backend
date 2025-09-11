@@ -134,7 +134,10 @@ trait IndexService[D <: Content](using
     for {
       _            <- createIndexIfNotExists()
       maybeRequest <- createIndexRequest(imported, searchIndex, indexingBundle)
-      _ = maybeRequest.map(e4sClient.execute(_))
+      _            <- maybeRequest match {
+        case Some(req) => e4sClient.execute(req)
+        case None      => Success(())
+      }
     } yield imported
   }
   def indexDocuments(shouldUsePublishedTax: Boolean)(implicit d: Decoder[D]): Try[ReindexResult] =
@@ -164,7 +167,10 @@ trait IndexService[D <: Content](using
       _            <- createIndexIfNotExists()
       toIndex      <- apiClient.getSingle(id)
       maybeRequest <- createIndexRequest(toIndex, searchIndex, indexingBundle)
-      _ = maybeRequest.map(e4sClient.execute(_))
+      _            <- maybeRequest match {
+        case Some(req) => e4sClient.execute(req)
+        case None      => Success(())
+      }
     } yield toIndex
   }
 
@@ -231,9 +237,10 @@ trait IndexService[D <: Content](using
       val indexRequests          = req.collect { case Success(indexRequest) => indexRequest }
       val failedToCreateRequests = req.collect { case Failure(ex) => Failure(ex) }
 
-      if (indexRequests.nonEmpty) {
+      val filteredRequests = indexRequests.flatten
+      if (filteredRequests.nonEmpty) {
         val response = e4sClient.execute {
-          bulk(indexRequests.filter(_.isDefined).flatten)
+          bulk(filteredRequests)
         }
 
         response match {
