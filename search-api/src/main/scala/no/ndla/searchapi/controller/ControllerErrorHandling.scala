@@ -9,10 +9,10 @@
 package no.ndla.searchapi.controller
 
 import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.errors.{AccessDeniedException, ValidationException, TaxonomyException}
 import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, ValidationErrorBody}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
-import no.ndla.searchapi.model.api.{InvalidIndexBodyException, ResultWindowTooLargeException, TaxonomyException}
+import no.ndla.searchapi.model.api.{InvalidIndexBodyException, ResultWindowTooLargeException}
 import cats.implicits.*
 import no.ndla.search.model.domain.DocumentConflictException
 

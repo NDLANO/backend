@@ -18,10 +18,10 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.common.model.domain.learningpath.LearningPathVerificationStatus.CREATED_BY_NDLA
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.{GrepApiClient, LearningPathApiClient, SearchApiClient, TaxonomyApiClient}
+import no.ndla.searchapi.integration.{GrepApiClient, LearningPathApiClient, SearchApiClient}
 import no.ndla.searchapi.model.domain.IndexingBundle
 
 import scala.util.{Success, Try}

@@ -11,11 +11,15 @@ package no.ndla.searchapi.model.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{LearningResourceType, ArticleTrait}
-import no.ndla.common.model.domain.{Priority, Responsible, RevisionMeta}
+import no.ndla.common.model.api.search.{
+  ArticleTrait,
+  LearningResourceType,
+  SearchableLanguageList,
+  SearchableLanguageValues
+}
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.common.model.domain.{Priority, Responsible, RevisionMeta}
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 case class SearchableDraft(
     id: Long,

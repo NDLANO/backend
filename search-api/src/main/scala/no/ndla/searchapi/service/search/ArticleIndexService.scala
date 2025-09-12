@@ -17,10 +17,10 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.article.Article
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.{ArticleApiClient, GrepApiClient, SearchApiClient, TaxonomyApiClient}
+import no.ndla.searchapi.integration.{ArticleApiClient, GrepApiClient, SearchApiClient}
 import no.ndla.searchapi.model.domain.IndexingBundle
 
 import scala.util.Try

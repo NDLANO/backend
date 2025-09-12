@@ -9,6 +9,7 @@
 package no.ndla.learningpathapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
+import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep, StepType}
 import no.ndla.language.Language.{
   findByLanguageOrBestEffort,
@@ -23,7 +24,6 @@ import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.search.*
 import no.ndla.learningpathapi.service.ConverterService
 import no.ndla.network.ApplicationUrl
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 class SearchConverterServiceComponent(using converterService: ConverterService, props: Props) {
   def asApiLearningPathSummaryV2(

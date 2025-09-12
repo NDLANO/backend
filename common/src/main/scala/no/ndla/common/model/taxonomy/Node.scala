@@ -1,18 +1,17 @@
 /*
- * Part of NDLA search-api
+ * Part of NDLA common
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.searchapi.model.taxonomy
+package no.ndla.common.model.taxonomy
 
 import enumeratum.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.model.search.SearchableTaxonomyResourceType
+import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
 
@@ -58,7 +57,19 @@ object Node {
       contextids   <- c.downField("contextids").as[List[String]]
       context      <- c.downField("context").as[Option[TaxonomyContext]]
       contexts     <- c.downField("contexts").as[List[TaxonomyContext]]
-    } yield Node(id, name, contentUri, path, url, metadata, translations, nodeType, contextids, context, contexts)
+    } yield Node(
+      id,
+      name,
+      contentUri,
+      path,
+      url,
+      metadata,
+      translations,
+      nodeType,
+      contextids,
+      context,
+      contexts
+    )
 
   })
 }
@@ -73,7 +84,7 @@ case class TaxonomyContext(
     contextType: Option[String],
     relevanceId: String,
     relevance: SearchableLanguageValues,
-    resourceTypes: List[SearchableTaxonomyResourceType],
+    resourceTypes: List[TaxonomyResourceType],
     parentIds: List[String],
     isPrimary: Boolean,
     contextId: String,
@@ -97,4 +108,15 @@ object TaxonomyTranslation {
       language <- c.downField("language").as[String]
     } yield TaxonomyTranslation(name, language)
   })
+}
+
+case class TaxonomyResourceType(
+    id: String,
+    parentId: Option[String],
+    name: SearchableLanguageValues
+)
+
+object TaxonomyResourceType {
+  implicit val decoder: Decoder[TaxonomyResourceType] = deriveDecoder
+  implicit val encoder: Encoder[TaxonomyResourceType] = deriveEncoder
 }

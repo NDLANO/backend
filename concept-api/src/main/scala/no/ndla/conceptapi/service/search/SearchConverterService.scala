@@ -15,6 +15,7 @@ import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Tag, Title, concept}
 import no.ndla.common.model.api as commonApi
 import no.ndla.common.model.api.ResponsibleDTO
+import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.concept.{Concept, ConceptContent, ConceptType, VisualElement}
 import no.ndla.conceptapi.model.api.ConceptSearchResultDTO
 import no.ndla.conceptapi.model.domain.SearchResult
@@ -30,7 +31,6 @@ import no.ndla.language.Language.{
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import org.jsoup.Jsoup
 
 class SearchConverterService(using

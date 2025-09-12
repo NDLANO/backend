@@ -10,37 +10,9 @@ package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.MyNDLABundleDTO
-import no.ndla.common.model.api.search.{LearningResourceType, ArticleTrait}
-import no.ndla.common.model.domain.ContributorType
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Author,
-  Availability,
-  EditorNote,
-  Introduction,
-  Priority,
-  Responsible,
-  RevisionMeta,
-  RevisionStatus,
-  Status,
-  Tag,
-  Title,
-  VisualElement,
-  draft
-}
+import no.ndla.common.model.api.search.*
 import no.ndla.common.model.domain.article.{Article, Copyright}
-import no.ndla.common.model.domain.concept.{
-  Concept,
-  ConceptContent,
-  ConceptEditorNote,
-  ConceptStatus,
-  ConceptType,
-  GlossData,
-  GlossExample,
-  WordClass
-}
+import no.ndla.common.model.domain.concept.*
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
@@ -52,28 +24,19 @@ import no.ndla.common.model.domain.learningpath.{
   LearningpathCopyright,
   Description as LPDescription
 }
+import no.ndla.common.model.domain.{EditorNote, Status, VisualElement, *}
+import no.ndla.common.model.taxonomy.{ResourceType, *}
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.mapping.License
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.*
-import no.ndla.searchapi.model.grep.{
-  BelongsToObj,
-  GrepBundle,
-  GrepKjerneelement,
-  GrepKompetansemaal,
-  GrepLaererplan,
-  GrepTextObj,
-  GrepTitle,
-  GrepTverrfagligTema
-}
+import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
-import no.ndla.searchapi.model.taxonomy.*
 
 import java.net.URI
 import java.util.UUID
@@ -305,7 +268,7 @@ object TestData {
   val sampleArticleWithCopyrighted: Article =
     sampleArticleWithPublicDomain.copy(copyright = copyrighted, published = NDLADate.now())
 
-  val article1: Article = TestData.sampleArticleWithByNcSa.copy(
+  val article1: Article = sampleArticleWithByNcSa.copy(
     id = Option(1),
     title = List(Title("Batmen er på vift med en bil", "nb")),
     content = List(
@@ -322,7 +285,7 @@ object TestData {
     grepCodes = Seq("KM123", "KE12")
   )
 
-  val article2: Article = TestData.sampleArticleWithPublicDomain.copy(
+  val article2: Article = sampleArticleWithPublicDomain.copy(
     id = Option(2),
     title = List(Title("Pingvinen er ute og går", "nb")),
     content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
@@ -1163,7 +1126,7 @@ object TestData {
         relevanceId = relevance.id,
         relevance = SearchableLanguageValues(Seq(LanguageValue("nb", relevance.name))),
         resourceTypes = resourceTypes.map(rt =>
-          SearchableTaxonomyResourceType(rt.id, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
+          TaxonomyResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
         ),
         parentIds = context.parentIds :+ parent.id,
         isPrimary = isPrimary,
@@ -1858,13 +1821,15 @@ object TestData {
     resultTypes = None
   )
 
-  val searchableResourceTypes: List[SearchableTaxonomyResourceType] = List(
-    SearchableTaxonomyResourceType(
+  val searchableResourceTypes: List[TaxonomyResourceType] = List(
+    TaxonomyResourceType(
       "urn:resourcetype:subjectMaterial",
+      None,
       SearchableLanguageValues(Seq(LanguageValue("nb", "Fagstoff")))
     ),
-    SearchableTaxonomyResourceType(
+    TaxonomyResourceType(
       "urn:resourcetype:academicArticle",
+      Some("urn:resourcetype:subjectMaterial"),
       SearchableLanguageValues(Seq(LanguageValue("nb", "Fagartikkel")))
     )
   )
@@ -1902,7 +1867,7 @@ object TestData {
         relevanceId = "urn:relevance:core",
         relevance = SearchableLanguageValues(Seq(LanguageValue("nb", "Kjernestoff"))),
         resourceTypes = resourceTypes.map(rt =>
-          SearchableTaxonomyResourceType(rt.id, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
+          TaxonomyResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
         ),
         parentIds = List("urn:topic:1"),
         isPrimary = true,

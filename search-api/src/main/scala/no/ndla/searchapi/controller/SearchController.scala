@@ -35,7 +35,6 @@ import no.ndla.searchapi.model.api.grep.GrepSearchResultsDTO
 import no.ndla.searchapi.model.api.{GroupSearchResultDTO, SubjectAggregationsDTO}
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
-import no.ndla.searchapi.model.taxonomy.NodeType
 import no.ndla.searchapi.service.search.{
   GrepSearchService,
   MultiDraftSearchService,
@@ -56,6 +55,7 @@ import sttp.tapir.server.ServerEndpoint
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.learningpath.LearningPathStatus
+import no.ndla.common.model.taxonomy.NodeType
 
 class SearchController(using
     multiSearchService: MultiSearchService,

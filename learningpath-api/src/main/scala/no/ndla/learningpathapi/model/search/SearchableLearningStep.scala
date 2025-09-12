@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.model.search
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.search.model.SearchableLanguageValues
+import no.ndla.common.model.api.search.SearchableLanguageValues
 
 case class SearchableLearningStep(
     stepType: String,

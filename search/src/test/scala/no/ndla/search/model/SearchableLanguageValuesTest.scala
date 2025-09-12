@@ -10,6 +10,7 @@ package no.ndla.search.model
 
 import io.circe.Decoder
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.testbase.UnitTestSuiteBase
 
 class SearchableLanguageValuesTest extends UnitTestSuiteBase {

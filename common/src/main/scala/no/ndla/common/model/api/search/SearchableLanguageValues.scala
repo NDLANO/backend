@@ -1,15 +1,15 @@
 /*
- * Part of NDLA search
+ * Part of NDLA common
  * Copyright (C) 2022 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.search.model
+package no.ndla.common.model.api.search
 
-import io.circe.{Decoder, Encoder, FailedCursor}
 import io.circe.syntax.*
+import io.circe.{Decoder, Encoder, FailedCursor}
 import no.ndla.language.Language
 import no.ndla.language.model.LanguageField
 
