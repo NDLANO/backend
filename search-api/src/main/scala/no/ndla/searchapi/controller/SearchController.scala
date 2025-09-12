@@ -13,7 +13,7 @@ import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
-import no.ndla.common.model.api.search.{LearningResourceType, MultiSearchResultDTO, SearchTrait, SearchType}
+import no.ndla.common.model.api.search.{LearningResourceType, MultiSearchResultDTO, ArticleTrait, SearchType}
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient}
@@ -239,7 +239,7 @@ class SearchController(using
       relevance = q.relevanceFilter.values.some,
       languageFilter = q.languageFilter.values.some,
       grepCodes = q.grepCodes.values.some,
-      traits = q.traits.values.flatMap(SearchTrait.valueOf).some,
+      traits = q.traits.values.flatMap(ArticleTrait.valueOf).some,
       aggregatePaths = q.aggregatePaths.values.some,
       embedResource = q.embedResource.values.some,
       embedId = q.embedId,
@@ -371,7 +371,7 @@ class SearchController(using
             draftStatus = stringListParam("draft-status").some,
             users = stringListParam("users").some,
             grepCodes = stringListParam("grep-codes").some,
-            traits = stringListParam("traits").flatMap(SearchTrait.withNameOption).some,
+            traits = stringListParam("traits").flatMap(ArticleTrait.withNameOption).some,
             aggregatePaths = stringListParam("aggregate-paths").some,
             embedResource = stringListParam("embed-resource").some,
             embedId = stringParamOrNone("embed-id"),

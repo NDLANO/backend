@@ -10,45 +10,13 @@ package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.MyNDLABundleDTO
-import no.ndla.common.model.api.search.{
-  LanguageValue,
-  LearningResourceType,
-  SearchableLanguageList,
-  SearchableLanguageValues
-}
-import no.ndla.common.model.domain.ContributorType
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Author,
-  Availability,
-  EditorNote,
-  Introduction,
-  Priority,
-  Responsible,
-  RevisionMeta,
-  RevisionStatus,
-  Status,
-  Tag,
-  Title,
-  VisualElement,
-  draft
-}
+import no.ndla.common.model.api.search.*
 import no.ndla.common.model.domain.article.{Article, Copyright}
-import no.ndla.common.model.domain.concept.{
-  Concept,
-  ConceptContent,
-  ConceptEditorNote,
-  ConceptStatus,
-  ConceptType,
-  GlossData,
-  GlossExample,
-  WordClass
-}
+import no.ndla.common.model.domain.concept.*
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
+import no.ndla.common.model.domain.learningpath.LearningPathVerificationStatus.EXTERNAL
 import no.ndla.common.model.domain.learningpath.{
   LearningPath,
   LearningPathStatus,
@@ -56,15 +24,8 @@ import no.ndla.common.model.domain.learningpath.{
   LearningpathCopyright,
   Description as LPDescription
 }
-import no.ndla.common.model.taxonomy.{
-  Metadata,
-  Node,
-  NodeType,
-  Relevance,
-  ResourceType,
-  TaxonomyBundle,
-  TaxonomyContext
-}
+import no.ndla.common.model.domain.{EditorNote, Status, VisualElement, *}
+import no.ndla.common.model.taxonomy.{ResourceType, *}
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.mapping.License
@@ -73,19 +34,9 @@ import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.*
-import no.ndla.searchapi.model.grep.{
-  BelongsToObj,
-  GrepBundle,
-  GrepKjerneelement,
-  GrepKompetansemaal,
-  GrepLaererplan,
-  GrepTextObj,
-  GrepTitle,
-  GrepTverrfagligTema
-}
+import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
-import no.ndla.common.model.taxonomy.*
 
 import java.net.URI
 import java.util.UUID
@@ -253,7 +204,8 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleDomainArticle: Article = Article(
@@ -279,7 +231,8 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -305,7 +258,8 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleArticleWithByNcSa: Article =
@@ -508,7 +462,8 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = ArticleType.Standard
+    articleType = ArticleType.Standard,
+    traits = List(ArticleTrait.H5p)
   )
 
   val article13: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -591,7 +546,8 @@ object TestData {
     relatedContent = Seq.empty,
     revisionDate = None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val emptyDomainDraft: Draft = Draft(
@@ -626,7 +582,8 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val draftStatus: Status         = Status(DraftStatus.PLANNED, Set.empty)
@@ -689,7 +646,8 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
@@ -1014,7 +972,7 @@ object TestData {
     coverPhotoId = None,
     duration = Some(0),
     status = LearningPathStatus.PUBLISHED,
-    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+    verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
     created = today,
     lastUpdated = today,
     tags = List(),
@@ -1102,12 +1060,13 @@ object TestData {
   val learningPath7: LearningPath = DefaultLearningPath.copy(
     id = Some(PrivateId),
     title = List(Title("Private", "en")),
-    description = List(LPDescription("This is private", "en")),
+    description = List(LPDescription("This is private and external", "en")),
     duration = Some(1),
     lastUpdated = today.minusDays(7),
     tags = List(),
     status = PRIVATE,
-    owner = "private"
+    owner = "private",
+    verificationStatus = EXTERNAL
   )
 
   val learningPathsToIndex: List[LearningPath] = List(
@@ -1831,7 +1790,7 @@ object TestData {
     language = DefaultLanguage,
     license = None,
     page = 1,
-    pageSize = 20,
+    pageSize = 30,
     sort = Sort.ByIdAsc,
     withIdIn = List.empty,
     subjects = List.empty,

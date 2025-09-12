@@ -8,7 +8,7 @@
 
 package no.ndla.searchapi.model.search.settings
 
-import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait, SearchType}
+import no.ndla.common.model.api.search.{LearningResourceType, ArticleTrait, SearchType}
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.taxonomy.NodeType
 import no.ndla.language.Language
@@ -30,7 +30,7 @@ case class SearchSettings(
     supportedLanguages: List[String],
     relevanceIds: List[String],
     grepCodes: List[String],
-    traits: List[SearchTrait],
+    traits: List[ArticleTrait],
     shouldScroll: Boolean,
     filterByNoResourceType: Boolean,
     aggregatePaths: List[String],

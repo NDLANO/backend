@@ -10,16 +10,16 @@ package no.ndla.integrationtests.draftapi.articleapi
 
 import no.ndla.articleapi.{ArticleApiProperties, TestData}
 import no.ndla.common.configuration.Prop
-import no.ndla.common.model.domain.{ContributorType, Priority}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.language.OptLanguageFields
+import no.ndla.common.model.domain.{ContributorType, Priority}
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.ContentIdDTO
 import no.ndla.draftapi.service.ConverterService
 import no.ndla.integrationtests.UnitSuite
-import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.network.tapir.auth.TokenUser
+import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.validation.HtmlTagRules
 import no.ndla.{articleapi, draftapi}
@@ -129,7 +129,8 @@ class ArticleApiClientTest
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val exampleToken =

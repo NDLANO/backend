@@ -13,7 +13,6 @@ import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common
 import no.ndla.common.CirceUtil
-import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.MissingIdException
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.search.*
@@ -33,6 +32,7 @@ import no.ndla.common.model.domain.{
   ResourceType as MyNDLAResourceType
 }
 import no.ndla.common.model.taxonomy.*
+import no.ndla.common.util.TraitUtil
 import no.ndla.language.Language.*
 import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
@@ -47,56 +47,16 @@ import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.{api, domain, search}
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-import org.jsoup.nodes.Entities.EscapeMode
 
-import scala.collection.mutable.ListBuffer
-import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
 class SearchConverterService(using
     taxonomyApiClient: TaxonomyApiClient,
     props: Props,
-    myndlaApiClient: MyNDLAApiClient
+    myndlaApiClient: MyNDLAApiClient,
+    traits: TraitUtil
 ) extends StrictLogging {
-
-  private def parseHtml(html: String): Element = {
-    val document = Jsoup.parseBodyFragment(html)
-    document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
-    document.body()
-  }
-
-  private def getArticleTraits(contents: Seq[ArticleContent]): Seq[SearchTrait] = {
-    contents.flatMap(content => {
-      val traits = ListBuffer[SearchTrait]()
-      parseHtml(content.content)
-        .select(EmbedTagName)
-        .forEach(embed => {
-          val dataResource = embed.attr("data-resource")
-          dataResource match {
-            case "h5p"                 => traits += SearchTrait.H5p
-            case "brightcove" | "nrk"  => traits += SearchTrait.Video
-            case "external" | "iframe" =>
-              val dataUrl = embed.attr("data-url")
-              if (
-                dataUrl.contains("youtu") || dataUrl.contains("vimeo") || dataUrl
-                  .contains("filmiundervisning") || dataUrl.contains("imdb") || dataUrl
-                  .contains("nrk") || dataUrl.contains("khanacademy")
-              ) {
-                traits += SearchTrait.Video
-              }
-            case "audio" =>
-              val dataType = embed.attr("data-type")
-              dataType match {
-                case "podcast" => traits += SearchTrait.Podcast
-                case _         => traits += SearchTrait.Audio
-              }
-            case _ => // Do nothing
-          }
-        })
-      traits
-    })
-  }
+  import traits.*
 
   def nodeHitAsMultiSummary(hit: SearchHit, language: String): Try[NodeHitDTO] = permitTry {
     val searchableNode = CirceUtil.tryParseAs[SearchableNode](hit.sourceAsString).?
@@ -128,33 +88,6 @@ class SearchConverterService(using
       id = subjectPage.id,
       name = subjectPage.name,
       metaDescription = metaDescription
-    )
-  }
-
-  private[service] def getAttributes(html: String): List[String] = {
-    parseHtml(html)
-      .select(EmbedTagName)
-      .asScala
-      .flatMap(getAttributes)
-      .toList
-  }
-
-  private def getAttributes(embed: Element): List[String] = {
-    val attributesToKeep = List(
-      "data-title",
-      "data-caption",
-      "data-alt",
-      "data-link-text",
-      "data-edition",
-      "data-publisher",
-      "data-authors"
-    )
-
-    attributesToKeep.flatMap(attr =>
-      embed.attr(attr) match {
-        case "" => None
-        case a  => Some(a)
-      }
     )
   }
 
@@ -252,7 +185,6 @@ class SearchConverterService(using
         )
     }
 
-    val traits               = getArticleTraits(ai.content)
     val embedAttributes      = getAttributesToIndex(ai.content, ai.visualElement)
     val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(ai.content, ai.visualElement, ai.metaImage)
 
@@ -299,7 +231,7 @@ class SearchConverterService(using
         contextids =
           indexingBundle.taxonomyBundle.map(getTaxonomyContexids(articleId, "article", _)).getOrElse(List.empty),
         grepContexts = getGrepContexts(ai.grepCodes, indexingBundle.grepBundle),
-        traits = traits.toList.distinct,
+        traits = ai.traits,
         embedAttributes = embedAttributes,
         embedResourcesAndIds = embedResourcesAndIds,
         availability = ai.availability.toString,
@@ -536,7 +468,6 @@ class SearchConverterService(using
       }
     }.getOrElse(List.empty)
 
-    val traits               = getArticleTraits(draft.content)
     val embedAttributes      = getAttributesToIndex(draft.content, draft.visualElement)
     val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(draft.content, draft.visualElement, draft.metaImage)
 
@@ -629,7 +560,7 @@ class SearchConverterService(using
         users = users.distinct,
         previousVersionsNotes = draft.previousVersionsNotes.map(_.note).toList,
         grepContexts = getGrepContexts(draft.grepCodes, indexingBundle.grepBundle),
-        traits = traits.toList.distinct,
+        traits = draft.traits,
         embedAttributes = embedAttributes,
         embedResourcesAndIds = embedResourcesAndIds,
         revisionMeta = draft.revisionMeta.toList,

@@ -323,16 +323,6 @@ class MultiDraftSearchService(using
     val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
     val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
 
-    val onlyPrivateLearningathsForOwnersFilter = Some(
-      boolQuery().should(
-        boolQuery().not(termQuery("status", LearningPathStatus.PRIVATE.toString)),
-        boolQuery().must(
-          termQuery("status", LearningPathStatus.PRIVATE.toString),
-          termQuery("owner", settings.user.id)
-        )
-      )
-    )
-
     List(
       licenseFilter,
       idFilter,
@@ -354,8 +344,7 @@ class MultiDraftSearchService(using
       publishedDateFilter,
       responsibleIdFilter,
       priorityFilter,
-      learningResourceType,
-      onlyPrivateLearningathsForOwnersFilter
+      learningResourceType
     ).flatten
   }
 

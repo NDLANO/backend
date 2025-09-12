@@ -17,6 +17,7 @@ import no.ndla.articleapi.db.migrationwithdependencies.{
   V22__UpdateH5PDomainForFFVisualElement,
   V33__ConvertLanguageUnknown,
   V55__SetHideBylineForImagesNotCopyrighted,
+  V62__ComputeSearchTraits,
   V63__SetResourceTypeFromTaxonomyAsTag,
   V8__CopyrightFormatUpdated,
   V9__TranslateUntranslatedAuthors
@@ -28,6 +29,7 @@ import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.*
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.common.Clock
+import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.tapir.{
@@ -53,6 +55,7 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
   given searchLanguage: SearchLanguage                 = new SearchLanguage
   given dbUtility: DBUtility                           = new DBUtility
   given dbArticle: DBArticle                           = new DBArticle
+  given traitUtil: TraitUtil                           = new TraitUtil
   given articleRepository: ArticleRepository           = new ArticleRepository
   given converterService: ConverterService             = new ConverterService
   given redisClient: RedisClient                       = new RedisClient(props.RedisHost, props.RedisPort)
@@ -83,6 +86,7 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
     new V22__UpdateH5PDomainForFFVisualElement,
     new V33__ConvertLanguageUnknown(props),
     new V55__SetHideBylineForImagesNotCopyrighted(props),
+    new V62__ComputeSearchTraits,
     new V63__SetResourceTypeFromTaxonomyAsTag
   )
 

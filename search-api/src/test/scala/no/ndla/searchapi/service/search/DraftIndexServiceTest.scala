@@ -10,8 +10,10 @@ package no.ndla.searchapi.service.search
 
 import io.circe.syntax.*
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.ArticleTrait
 import no.ndla.common.model.domain.draft.{DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.*
+import no.ndla.common.util.TraitUtil
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
@@ -30,6 +32,7 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   override implicit lazy val converterService: ConverterService             = new ConverterService
   override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
+  override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
   override implicit lazy val draftIndexService: DraftIndexService           = new DraftIndexService {
     override val indexShards = 1
@@ -60,6 +63,7 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
       previousVersionsNotes =
         Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
       revisionMeta = Seq(RevisionMeta(UUID.randomUUID(), now, "hei", RevisionStatus.NeedsRevision)),
+      traits = List(ArticleTrait.H5p),
       copyright = Some(
         DraftCopyright(
           license = Some("hei"),

@@ -10,6 +10,7 @@ package no.ndla.draftapi.model.search
 
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.ArticleTrait.Video
 import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
@@ -35,7 +36,8 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     users = Seq("ndalId54321"),
     previousNotes = Seq("Søte", "Jordbær"),
     grepCodes = Seq("KM1337", "KM5432"),
-    status = SearchableStatus(DraftStatus.PUBLISHED, Set.empty)
+    status = SearchableStatus(DraftStatus.PUBLISHED, Set.empty),
+    traits = List(Video)
   )
 
   test("That deserialization and serialization of SearchableArticle works as expected") {

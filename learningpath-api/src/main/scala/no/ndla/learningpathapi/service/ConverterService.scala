@@ -406,9 +406,9 @@ class ConverterService(using
 
   def mergeLearningSteps(existing: LearningStep, updated: UpdatedLearningStepV2DTO): Try[LearningStep] = {
     val titles = updated.title match {
-      case None        => existing.title
-      case Some(value) =>
-        mergeLanguageFields(existing.title, Seq(common.Title(value, updated.language)))
+      case Missing           => existing.title
+      case Delete            => existing.title.filterNot(_.language == updated.language)
+      case UpdateWith(value) => mergeLanguageFields(existing.title, Seq(common.Title(value, updated.language)))
     }
 
     val introductions = updated.introduction match {

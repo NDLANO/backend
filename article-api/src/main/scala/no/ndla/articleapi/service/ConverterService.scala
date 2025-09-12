@@ -118,19 +118,20 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
     val availability    = searchableArticle.availability
 
     ArticleSummaryV2DTO(
-      searchableArticle.id,
-      title,
-      visualElement,
-      introduction,
-      metaDescription,
-      metaImage,
-      ApplicationUrl.get + searchableArticle.id.toString,
-      searchableArticle.license,
-      searchableArticle.articleType,
-      lastUpdated,
-      supportedLanguages,
-      searchableArticle.grepCodes.getOrElse(List.empty),
-      availability
+      id = searchableArticle.id,
+      title = title,
+      visualElement = visualElement,
+      introduction = introduction,
+      metaDescription = metaDescription,
+      metaImage = metaImage,
+      url = ApplicationUrl.get + searchableArticle.id.toString,
+      license = searchableArticle.license,
+      articleType = searchableArticle.articleType,
+      lastUpdated = lastUpdated,
+      supportedLanguages = supportedLanguages,
+      grepCodes = searchableArticle.grepCodes.getOrElse(List.empty),
+      availability = availability,
+      traits = searchableArticle.traits
     )
   }
 
@@ -267,31 +268,32 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
 
       Success(
         api.ArticleV2DTO(
-          article.id.get,
-          article.id.flatMap(getMainNidUrlToOldNdla),
-          article.revision.get,
-          title,
-          articleContent,
-          copyright,
-          tags,
-          article.requiredLibraries.map(toApiRequiredLibrary),
-          visualElement,
-          metaImage,
-          introduction,
-          meta,
-          article.created,
-          article.updated,
-          article.updatedBy,
-          article.published,
-          article.articleType.entryName,
-          supportedLanguages,
-          article.grepCodes,
-          article.conceptIds,
+          id = article.id.get,
+          oldNdlaUrl = article.id.flatMap(getMainNidUrlToOldNdla),
+          revision = article.revision.get,
+          title = title,
+          content = articleContent,
+          copyright = copyright,
+          tags = tags,
+          requiredLibraries = article.requiredLibraries.map(toApiRequiredLibrary),
+          visualElement = visualElement,
+          metaImage = metaImage,
+          introduction = introduction,
+          metaDescription = meta,
+          created = article.created,
+          updated = article.updated,
+          updatedBy = article.updatedBy,
+          published = article.published,
+          articleType = article.articleType.entryName,
+          supportedLanguages = supportedLanguages,
+          grepCodes = article.grepCodes,
+          conceptIds = article.conceptIds,
           availability = article.availability.toString,
-          article.relatedContent.map(toApiRelatedContent),
-          article.revisionDate,
-          article.slug,
-          disclaimer
+          relatedContent = article.relatedContent.map(toApiRelatedContent),
+          revisionDate = article.revisionDate,
+          slug = article.slug,
+          disclaimer = disclaimer,
+          traits = article.traits
         )
       )
     } else {

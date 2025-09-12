@@ -18,6 +18,7 @@ import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.taxonomy.{Node, NodeType, TaxonomyBundle, TaxonomyContext}
+import no.ndla.common.util.TraitUtil
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
@@ -35,6 +36,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
   override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
   override implicit lazy val articleIndexService: ArticleIndexService       = new ArticleIndexService {
     override val indexShards = 1
@@ -1010,7 +1012,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
           domainModel: Draft,
           indexName: String,
           indexingBundle: IndexingBundle
-      ): Try[IndexRequest] = {
+      ): Try[Option[IndexRequest]] = {
 
         val draft = domainModel.id.get match {
           case 1 =>
@@ -1047,7 +1049,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         }
 
         val source = CirceUtil.toJsonString(draft)
-        Success(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
+        Success(Some(indexInto(indexName).doc(source).id(domainModel.id.get.toString)))
       }
     }
 

@@ -17,13 +17,14 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.learningpath.LearningPath
+import no.ndla.common.model.domain.learningpath.LearningPathVerificationStatus.CREATED_BY_NDLA
 import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.integration.{GrepApiClient, LearningPathApiClient, SearchApiClient}
 import no.ndla.searchapi.model.domain.IndexingBundle
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 class LearningPathIndexService(using
     searchConverterService: SearchConverterService,
@@ -44,14 +45,20 @@ class LearningPathIndexService(using
       domainModel: LearningPath,
       indexName: String,
       indexingBundle: IndexingBundle
-  ): Try[IndexRequest] = {
-    searchConverterService.asSearchableLearningPath(domainModel, indexingBundle).map { searchableLearningPath =>
-      val source = CirceUtil.toJsonString(searchableLearningPath)
-      indexInto(indexName)
-        .doc(source)
-        .id(domainModel.id.get.toString)
-        .versionType(EXTERNAL_GTE)
-        .version(domainModel.revision.map(_.toLong).get)
+  ): Try[Option[IndexRequest]] = {
+    if (domainModel.verificationStatus != CREATED_BY_NDLA) {
+      Success(None)
+    } else {
+      searchConverterService.asSearchableLearningPath(domainModel, indexingBundle).map { searchableLearningPath =>
+        val source = CirceUtil.toJsonString(searchableLearningPath)
+        Some(
+          indexInto(indexName)
+            .doc(source)
+            .id(domainModel.id.get.toString)
+            .versionType(EXTERNAL_GTE)
+            .version(domainModel.revision.map(_.toLong).get)
+        )
+      }
     }
   }
 

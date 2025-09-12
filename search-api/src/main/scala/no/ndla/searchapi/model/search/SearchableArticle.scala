@@ -11,12 +11,7 @@ package no.ndla.searchapi.model.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{
-  LearningResourceType,
-  SearchTrait,
-  SearchableLanguageList,
-  SearchableLanguageValues
-}
+import no.ndla.common.model.api.search.*
 import no.ndla.common.model.domain.ArticleMetaImage
 import no.ndla.common.model.domain.article.Article
 import no.ndla.search.model.domain.EmbedValues
@@ -40,7 +35,7 @@ case class SearchableArticle(
     contexts: List[SearchableTaxonomyContext],
     contextids: List[String],
     grepContexts: List[SearchableGrepContext],
-    traits: List[SearchTrait],
+    traits: List[ArticleTrait],
     embedAttributes: SearchableLanguageList,
     embedResourcesAndIds: List[EmbedValues],
     availability: String,
