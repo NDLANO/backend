@@ -59,25 +59,14 @@ class V63__SetResourceTypeFromTaxonomyAsTag()(using taxonomyClient: TaxonomyApiC
     val oldDocument = parser.parse(document).toTry.get
     val tags        = oldDocument.hcursor.downField("tags").as[Option[Seq[Tag]]].toTry.get.getOrElse(Seq.empty)
     // Insert values from searchablelanguagevalues as tags if they are not already present
-    // A Tag has a language and a sequence of strings. A SearchableLanguageValues has a language and a single string
-    // We add the value from searchablelanguagevalues to the tags if it is not already present in the tags for the language from tag
-    val newTags = resourceTypes.iterator.foldLeft(tags) { (acc, rt) =>
-      val languages = acc.map(_.language).distinct
-      languages.foldLeft(acc) { (innerAcc, lang) =>
-        val existingTag = innerAcc.find(t => t.language == lang)
-        existingTag match {
-          case Some(_) =>
-            innerAcc.find(t => t.language == lang) match {
-              case Some(tag) =>
-                val updatedTags =
-                  tag.tags :+ rt.languageValues.find(lv => lv.language == lang).map(_.value).getOrElse("")
-                innerAcc.map(t => if (t.language == lang) t.copy(tags = updatedTags.distinct) else t)
-              case None => innerAcc
-            }
-          case _ => innerAcc
-        }
-      }
+    val uniqueTagsByLang = tags.foldLeft(Seq.empty[(String, Set[String])]) { (acc, tag) =>
+      acc :+ (tag.language, Set.from(tag.tags))
     }
+    val newTags = uniqueTagsByLang.map((tag) => {
+      val newTags =
+        resourceTypes.flatMap(rt => rt.languageValues.collect { case lng if lng.language == tag._1 => lng.value })
+      Tag(language = tag._1, tags = tag._2.concat(newTags).toList)
+    })
     val updatedDocument = oldDocument.hcursor.downField("tags").withFocus(_ => newTags.asJson)
     updatedDocument.top.get.noSpaces
   }
