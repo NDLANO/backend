@@ -1,23 +1,24 @@
 /*
- * Part of NDLA article-api
+ * Part of NDLA draft-api
  * Copyright (C) 2025 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.articleapi.db.migrationwithdependencies
+package no.ndla.draftapi.db.migrationwithdependencies
 
 import io.circe.parser
-import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.common.model.taxonomy.{Node, NodeType, TaxonomyBundle, TaxonomyContext, TaxonomyResourceType}
+import no.ndla.common.model.taxonomy.*
+import no.ndla.draftapi.db.migrationwithdependencies.V78__SetResourceTypeFromTaxonomyAsTag
+import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 
 import scala.util.Success
 
-class V63__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvironment {
+class V78__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvironment {
 
   val parent = TaxonomyResourceType(
     id = "urn:resourcetype:parent",
@@ -64,10 +65,10 @@ class V63__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvir
 
   test("That article gets updated with tags from taxonomy") {
 
-    when(taxonomyApiClient.getTaxonomyBundleUncached(any[Boolean]))
+    when(baseTaxonomyApiClient.getTaxonomyBundleUncached(any[Boolean]))
       .thenReturn(Success(TaxonomyBundle(nodes = List(node))))
 
-    val migration = new V63__SetResourceTypeFromTaxonomyAsTag()(using taxonomyApiClient)
+    val migration = new V78__SetResourceTypeFromTaxonomyAsTag()(using baseTaxonomyApiClient)
 
     val oldDocument =
       """

@@ -1,12 +1,12 @@
 /*
- * Part of NDLA draft-api
+ * Part of NDLA article-api
  * Copyright (C) 2025 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.draftapi.db.migrationwithdependencies
+package no.ndla.articleapi.db.migrationwithdependencies
 
 import io.circe.parser
 import io.circe.syntax.EncoderOps
@@ -19,14 +19,15 @@ import scalikejdbc.{DBSession, SQLSyntax, WrappedResultSet}
 
 case class DocumentRow(id: Long, document: String, article_id: Long)
 
-class V77__SetResourceTypeFromTaxonomyAsTag()(using taxonomyClient: TaxonomyApiClient)
+class V64__SetResourceTypeFromTaxonomyAsTag()(using taxonomyClient: TaxonomyApiClient)
     extends TableMigration[DocumentRow] {
-  override val tableName: String            = "articledata"
+
+  override val tableName: String            = "contentdata"
   private val columnName                    = "document"
   private lazy val columnNameSQL: SQLSyntax = SQLSyntax.createUnsafely(columnName)
   override lazy val whereClause: SQLSyntax  = sqls"$columnNameSQL is not null"
 
-  private lazy val taxonomyBundle = taxonomyClient.getTaxonomyBundleUncached(false).get
+  private lazy val taxonomyBundle = taxonomyClient.getTaxonomyBundleUncached(true).get
 
   override def extractRowData(rs: WrappedResultSet): DocumentRow =
     DocumentRow(rs.long("id"), rs.string(columnName), rs.long("article_id"))
@@ -37,9 +38,9 @@ class V77__SetResourceTypeFromTaxonomyAsTag()(using taxonomyClient: TaxonomyApiC
     val newDocument = convertColumn(rowData.article_id, rowData.document)
     dataObject.setValue(newDocument)
     sql"""update $tableNameSQL
-        set $columnNameSQL = $dataObject
-        where id = ${rowData.id}
-     """
+          set $columnNameSQL = $dataObject
+          where id = ${rowData.id}
+       """
       .update()
   }
 
