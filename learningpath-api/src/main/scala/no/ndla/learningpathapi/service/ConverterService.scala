@@ -366,41 +366,35 @@ class ConverterService(using
   }
 
   def deleteLearningStepLanguage(step: LearningStep, language: String): Try[LearningStep] = {
-    step.title.size match {
-      case 1 =>
-        Failure(
-          errors.OperationNotAllowedException(s"Cannot delete last title for step with id ${step.id.getOrElse(-1)}")
-        )
-      case _ =>
-        Success(
-          step.copy(
-            title = step.title.filterNot(_.language == language),
-            introduction = step.introduction.filterNot(_.language == language),
-            description = step.description.filterNot(_.language == language),
-            embedUrl = step.embedUrl.filterNot(_.language == language),
-            lastUpdated = clock.now()
-          )
-        )
+    val withDeleted = step.copy(
+      title = step.title.filterNot(_.language == language),
+      introduction = step.introduction.filterNot(_.language == language),
+      description = step.description.filterNot(_.language == language),
+      embedUrl = step.embedUrl.filterNot(_.language == language),
+      lastUpdated = clock.now()
+    )
+
+    val id = step.id.getOrElse(-1)
+
+    withDeleted.title.size match {
+      case 0 => Failure(errors.OperationNotAllowedException(s"Cannot delete last title for step with id $id"))
+      case _ => Success(withDeleted)
     }
   }
 
   def deleteLearningPathLanguage(learningPath: LearningPath, language: String): Try[LearningPath] = {
-    learningPath.title.size match {
-      case 1 =>
-        Failure(
-          errors.OperationNotAllowedException(
-            s"Cannot delete last language for learning path with id ${learningPath.id.getOrElse(-1)}"
-          )
-        )
-      case _ =>
-        Success(
-          learningPath.copy(
-            title = learningPath.title.filterNot(_.language == language),
-            description = learningPath.description.filterNot(_.language == language),
-            tags = learningPath.tags.filterNot(_.language == language),
-            lastUpdated = clock.now()
-          )
-        )
+    val id          = learningPath.id.getOrElse(-1)
+    val withDeleted = learningPath.copy(
+      title = learningPath.title.filterNot(_.language == language),
+      description = learningPath.description.filterNot(_.language == language),
+      tags = learningPath.tags.filterNot(_.language == language),
+      lastUpdated = clock.now()
+    )
+
+    withDeleted.title.size match {
+      case 0 =>
+        Failure(errors.OperationNotAllowedException(s"Cannot delete last language for learning path with id $id"))
+      case _ => Success(withDeleted)
     }
   }
 
