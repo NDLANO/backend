@@ -97,7 +97,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String, defaultLanguage: String)(using
     }
   }
 
-  private def updateTranslations(
+  private[clients] def updateTranslations(
       shouldUsePublishedTax: Boolean,
       id: String,
       titles: Seq[Title],
@@ -107,7 +107,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String, defaultLanguage: String)(using
     Traverse[List].sequence(tries.toList)
   }
 
-  private def updateNodeTranslation(
+  private[clients] def updateNodeTranslation(
       shouldUsePublishedTax: Boolean,
       nodeId: String,
       lang: String,
@@ -121,7 +121,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String, defaultLanguage: String)(using
       user
     )
 
-  private def updateNode(shouldUsePublishedTax: Boolean, node: Node, user: TokenUser) =
+  private[clients] def updateNode(shouldUsePublishedTax: Boolean, node: Node, user: TokenUser) =
     putRaw[Node](
       s"$TaxonomyApiEndpoint/nodes/${node.id}",
       headers = getVersionHashHeader(shouldUsePublishedTax),
@@ -129,7 +129,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String, defaultLanguage: String)(using
       user
     )
 
-  private def getTranslations(shouldUsePublishedTax: Boolean, nodeId: String) =
+  private[clients] def getTranslations(shouldUsePublishedTax: Boolean, nodeId: String) =
     get[List[TaxonomyTranslation]](
       s"$TaxonomyApiEndpoint/nodes/$nodeId/translations",
       headers = getVersionHashHeader(shouldUsePublishedTax)
@@ -193,7 +193,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String, defaultLanguage: String)(using
     val contexts = get[List[TaxonomyContext]](
       s"$TaxonomyApiEndpoint/queries/$contentUri",
       headers = getVersionHashHeader(shouldUsePublishedTax),
-      params = ("filterVisibles" -> filterVisibles.toString)
+      params = "filterVisibles" -> filterVisibles.toString
     )
     if (filterContexts) contexts.map(list => list.filter(c => c.rootId.contains("subject"))) else contexts
   }
@@ -241,7 +241,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String, defaultLanguage: String)(using
     }
   }
 
-  private def putRaw[B <: AnyRef](url: String, headers: Map[String, String], data: B, user: TokenUser)(implicit
+  private[clients] def putRaw[B <: AnyRef](url: String, headers: Map[String, String], data: B, user: TokenUser)(implicit
       d: Encoder[B]
   ): Try[B] = {
     val uri = uri"$url"
@@ -257,7 +257,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String, defaultLanguage: String)(using
     }
   }
 
-  private def delete(
+  private[clients] def delete(
       url: String,
       headers: Map[String, String],
       user: TokenUser,
@@ -274,7 +274,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String, defaultLanguage: String)(using
       case Success(_)  => Success(())
     }
 
-  private def get[A: Decoder](url: String, headers: Map[String, String], params: (String, String)*): Try[A] = {
+  private[clients] def get[A: Decoder](url: String, headers: Map[String, String], params: (String, String)*): Try[A] = {
     ndlaClient.fetchWithForwardedAuth[A](
       quickRequest.get(uri"$url".withParams(params*)).headers(headers).readTimeout(timeoutSeconds),
       None
@@ -299,7 +299,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String, defaultLanguage: String)(using
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
 
-      val pages        = pageRange.map(pageNum => Future(fetchPage((params :+ ("page" -> s"$pageNum"))*)))
+      val pages        = pageRange.map(pageNum => Future(fetchPage(params :+ ("page" -> s"$pageNum")*)))
       val mergedFuture = Future.sequence(pages)
       val awaited      = Await.result(mergedFuture, timeoutSeconds)
 

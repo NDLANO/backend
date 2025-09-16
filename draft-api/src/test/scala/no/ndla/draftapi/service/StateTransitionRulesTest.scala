@@ -184,7 +184,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
 
     when(learningpathApiClient.getLearningpathsWithId(any[Long], any)).thenReturn(Success(Seq.empty))
     when(searchApiClient.publishedWhereUsed(any[Long], any)).thenReturn(Seq.empty)
-    when(taxonomyApiClient.queryNodes(any[Long])).thenReturn(Success(List.empty))
+    when(taxonomyApiClient.queryNodes(any[Boolean], any[Long], any[String])).thenReturn(Success(List.empty))
     when(articleApiClient.unpublishArticle(any[Draft], any)).thenReturn(Success(expectedArticle))
 
     val (Success(res), sideEffect) =
@@ -259,7 +259,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   test("unpublishArticle should fail if article is used in another article") {
     val articleId: Long = 7L
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
-    when(taxonomyApiClient.queryNodes(articleId)).thenReturn(Success(List.empty))
+    when(taxonomyApiClient.queryNodes(false, articleId, "article")).thenReturn(Success(List.empty))
     when(learningpathApiClient.getLearningpathsWithId(any[Long], any)).thenReturn(Success(Seq.empty))
     val result = mock[MultiSearchSummaryDTO]
     when(result.title).thenReturn(TitleWithHtmlDTO("Title", "Title", "nb"))
@@ -294,7 +294,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
     when(learningpathApiClient.getLearningpathsWithId(eqTo(articleId), any)).thenReturn(Success(Seq.empty))
     when(articleApiClient.unpublishArticle(eqTo(article), any)).thenReturn(Success(article))
-    when(taxonomyApiClient.queryNodes(eqTo(articleId))).thenReturn(Success(List.empty))
+    when(taxonomyApiClient.queryNodes(any[Boolean], eqTo(articleId), any[String])).thenReturn(Success(List.empty))
     when(searchApiClient.publishedWhereUsed(any[Long], any)).thenReturn(Seq.empty)
 
     val res = stateTransitionRules.unpublishArticle.run(article, TestData.userWithAdminAccess)
@@ -307,7 +307,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     val learningPath    = TestData.sampleLearningPath
     when(learningpathApiClient.getLearningpathsWithId(eqTo(articleId), any)).thenReturn(Success(Seq(learningPath)))
-    when(taxonomyApiClient.queryNodes(articleId)).thenReturn(Success(List.empty))
+    when(taxonomyApiClient.queryNodes(false, articleId, "article")).thenReturn(Success(List.empty))
 
     val Failure(res: ValidationException) =
       stateTransitionRules.checkIfArticleIsInUse.run(article, TestData.userWithAdminAccess): @unchecked
@@ -334,7 +334,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
     when(learningpathApiClient.getLearningpathsWithId(eqTo(articleId), any)).thenReturn(Success(Seq.empty))
     when(articleApiClient.unpublishArticle(eqTo(article), any)).thenReturn(Success(article))
-    when(taxonomyApiClient.queryNodes(articleId)).thenReturn(Success(List.empty))
+    when(taxonomyApiClient.queryNodes(false, articleId, "article")).thenReturn(Success(List.empty))
 
     val res = stateTransitionRules.checkIfArticleIsInUse.run(article, TestData.userWithAdminAccess)
     res.isSuccess should be(true)
@@ -571,7 +571,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       val x = i.getArgument[Draft](1)
       Success(x)
     })
-    when(taxonomyApiClient.queryNodes(100L)).thenReturn(Success(List()))
+    when(taxonomyApiClient.queryNodes(false, 100L, "article")).thenReturn(Success(List()))
     when(articleApiClient.unpublishArticle(any, any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Draft](0))
     )
@@ -633,7 +633,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       val x = i.getArgument[Draft](1)
       Success(x)
     })
-    when(taxonomyApiClient.queryNodes(100L)).thenReturn(Success(List()))
+    when(taxonomyApiClient.queryNodes(false, 100L, "article")).thenReturn(Success(List()))
     when(articleApiClient.unpublishArticle(any, any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Draft](0))
     )
@@ -697,7 +697,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       val x = i.getArgument[Draft](1)
       Success(x)
     })
-    when(taxonomyApiClient.queryNodes(100L)).thenReturn(Success(List()))
+    when(taxonomyApiClient.queryNodes(false, 100L, "article")).thenReturn(Success(List()))
     when(articleApiClient.unpublishArticle(any, any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Draft](0))
     )

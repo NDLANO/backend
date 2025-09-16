@@ -13,7 +13,7 @@ import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder, parser}
 import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.*
-import no.ndla.draftapi.integration.Node
+import no.ndla.common.model.taxonomy.Node
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.network.{AuthUser, NdlaClient, TaxonomyData}

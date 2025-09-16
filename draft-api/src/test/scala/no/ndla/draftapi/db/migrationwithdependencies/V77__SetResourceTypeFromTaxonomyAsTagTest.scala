@@ -65,10 +65,10 @@ class V77__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvir
 
   test("That article gets updated with tags from taxonomy") {
 
-    when(baseTaxonomyApiClient.getTaxonomyBundleUncached(any[Boolean]))
+    when(taxonomyApiClient.getTaxonomyBundleUncached(any[Boolean]))
       .thenReturn(Success(TaxonomyBundle(nodes = List(node))))
 
-    val migration = new V77__SetResourceTypeFromTaxonomyAsTag()(using baseTaxonomyApiClient)
+    val migration = new V77__SetResourceTypeFromTaxonomyAsTag()(using taxonomyApiClient)
 
     val oldDocument =
       """

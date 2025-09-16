@@ -21,9 +21,10 @@ import no.ndla.common.implicits.*
 import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.article.PartialPublishArticleDTO
-import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, UploadedFile}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, UploadedFile}
+import no.ndla.common.model.taxonomy.Node
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.database.DBUtility
 import no.ndla.draftapi.DraftUtil.shouldPartialPublish
@@ -36,7 +37,7 @@ import no.ndla.draftapi.service.search.{ArticleIndexService, TagIndexService}
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.language.Language
 import no.ndla.language.Language.UnknownLanguage
-import no.ndla.network.clients.SearchApiClient
+import no.ndla.network.clients.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.*
@@ -48,7 +49,7 @@ import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.jdk.CollectionConverters.*
 import scala.math.max
-import scala.util.{Failure, Random, Success, Try, boundary}
+import scala.util.*
 
 class WriteService(using
     draftRepository: DraftRepository,
@@ -200,7 +201,7 @@ class WriteService(using
     }
   }
 
-  def updateArticleAndStoreAsNewIfPublished(article: Draft, statusWasUpdated: Boolean): Try[Draft] = {
+  private def updateArticleAndStoreAsNewIfPublished(article: Draft, statusWasUpdated: Boolean): Try[Draft] = {
     val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED
     dbUtility.rollbackOnFailure { implicit session =>
       draftRepository.updateArticle(article) match {
@@ -435,7 +436,7 @@ class WriteService(using
   private def updateTaxonomyForArticle(article: Draft, user: TokenUser) = {
     article.id match {
       case Some(id) =>
-        taxonomyApiClient.updateTaxonomyIfExists(id, article, user).map(_ => article)
+        taxonomyApiClient.updateTaxonomyIfExists(false, id, "article", article.title, user).map(_ => article)
       case None =>
         Failure(
           api.ArticleVersioningException("Article supplied to taxonomy update did not have an id. This is a bug.")
@@ -854,16 +855,14 @@ class WriteService(using
   }
 
   def copyRevisionDates(publicId: String): Try[Unit] = {
-    taxonomyApiClient.getNode(publicId) match {
+    taxonomyApiClient.getNode(false, publicId) match {
       case Failure(_)     => Failure(api.NotFoundException(s"No topics with id $publicId"))
       case Success(topic) =>
         val revisionMeta = getRevisionMetaForUrn(topic)
         if (revisionMeta.nonEmpty) {
           for {
-            topics    <- taxonomyApiClient.getChildNodes(publicId)
-            resources <- taxonomyApiClient.getChildResources(publicId)
-            _         <- topics.traverse(setRevisions(_, revisionMeta))
-            _         <- resources.traverse(setRevisions(_, revisionMeta))
+            children <- taxonomyApiClient.getChildNodes(false, publicId)
+            _        <- children.traverse(setRevisions(_, revisionMeta))
           } yield ()
         } else Success(())
     }
@@ -897,9 +896,9 @@ class WriteService(using
     }
     updateResult.map(_ => {
       entity match {
-        case Node(id, _, _, _) =>
+        case node =>
           taxonomyApiClient
-            .getChildResources(id)
+            .getChildNodes(false, node.id)
             .flatMap(resources => resources.traverse(setRevisions(_, revisions)))
         case null => Success(())
       }

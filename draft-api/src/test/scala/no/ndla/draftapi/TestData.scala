@@ -11,10 +11,11 @@ package no.ndla.draftapi
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
 import no.ndla.common.model.api.{DraftCopyrightDTO, Missing}
-import no.ndla.common.model.domain.{ContributorType, Priority, Title}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.language.OptLanguageFields
+import no.ndla.common.model.domain.{ContributorType, Priority, Title}
+import no.ndla.common.model.taxonomy.{Node, NodeType}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.draftapi.integration.LearningPath
 import no.ndla.draftapi.model.api.*
@@ -574,6 +575,20 @@ object TestData {
   val visualElement: common.VisualElement = common.VisualElement(
     s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size=""></$EmbedTagName>""",
     "nb"
+  )
+
+  val defaultNode: Node = Node(
+    id = "urn:resource:1",
+    name = "Name",
+    contentUri = Some(s"urn:article:1"),
+    path = Some(s"/subject:1/resource:1"),
+    url = Some("/r/name/12345678"),
+    metadata = None,
+    translations = List.empty,
+    nodeType = NodeType.RESOURCE,
+    contextids = List.empty,
+    context = None,
+    contexts = List.empty
   )
 
   val emptyDomainUserData: domain.UserData =

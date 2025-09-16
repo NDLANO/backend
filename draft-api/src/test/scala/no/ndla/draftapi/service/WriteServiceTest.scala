@@ -14,18 +14,17 @@ import no.ndla.common.model
 import no.ndla.common.model.api.{RelatedContentLinkDTO, RevisionMetaDTO, UpdateWith}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTagDTO, PartialPublishArticleDTO}
-import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PUBLISHED}
 import no.ndla.common.model.domain.draft.*
+import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PUBLISHED}
 import no.ndla.common.model.{NDLADate, RelatedContentLink, domain, api as commonApi}
 import no.ndla.common.util.TraitUtil
-import no.ndla.draftapi.integration.Node
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{doAnswer, never, reset, times, verify, when}
+import org.mockito.Mockito.*
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
 import scalikejdbc.DBSession
@@ -113,9 +112,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         Try(arg.copy(revision = Some(arg.revision.getOrElse(0) + 1)))
       })
 
-    when(taxonomyApiClient.updateTaxonomyIfExists(any[Long], any[Draft], any)).thenAnswer((i: InvocationOnMock) => {
-      Success(i.getArgument[Long](0))
-    })
+    when(taxonomyApiClient.updateTaxonomyIfExists(any[Boolean], any[Long], any[String], any[Seq[Title]], any))
+      .thenAnswer((i: InvocationOnMock) => {
+        Success(i.getArgument[Long](1))
+      })
   }
 
   override def afterEach(): Unit = {
@@ -1171,9 +1171,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("copyRevisionDates updates articles") {
     val nodeId   = "urn:topic:1"
-    val node     = Node(nodeId, "Topic", Some("urn:article:1"), List.empty)
-    val child    = Node("urn:topic:2", "Topic", Some("urn:article:2"), List.empty)
-    val resource = Node("urn:resource:1", "Resource", Some("urn:article:3"), List.empty)
+    val node     = TestData.defaultNode.copy(id = nodeId, name = "Topic")
+    val child    = TestData.defaultNode.copy(id = "urn:topic:2", name = "Topic", contentUri = Some("urn:article:2"))
+    val resource =
+      TestData.defaultNode.copy(id = "urn:resource:1", name = "Resource", contentUri = Some("urn:article:3"))
 
     val revisionMeta =
       RevisionMeta(UUID.randomUUID(), NDLADate.now(), "Test revision", RevisionStatus.NeedsRevision)
@@ -1181,10 +1182,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2L))
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3L))
 
-    when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
-    when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
-    when(taxonomyApiClient.getChildResources(any))
-      .thenReturn(Success(List(resource)), Success(List(resource)), Success(List.empty))
+    when(taxonomyApiClient.getNode(false, nodeId)).thenReturn(Success(node))
+    when(taxonomyApiClient.getChildNodes(any[Boolean], any[String])).thenReturn(
+      Success(List(child)),
+      Success(List(resource)),
+      Success(List(resource)),
+      Success(List.empty)
+    )
     when(draftRepository.withId(eqTo(1L))(using any)).thenReturn(Some(article1))
     when(draftRepository.withId(eqTo(2L))(using any)).thenReturn(Some(article2))
     when(draftRepository.withId(eqTo(3L))(using any)).thenReturn(Some(article3))
@@ -1194,17 +1198,17 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("copyRevisionDates does nothing if revisionMeta is empty") {
     val nodeId   = "urn:topic:1"
-    val node     = Node(nodeId, "Topic", Some("urn:article:1"), List.empty)
-    val child    = Node("urn:topic:2", "Topic", Some("urn:article:2"), List.empty)
-    val resource = Node("urn:resource:1", "Resource", Some("urn:article:3"), List.empty)
+    val node     = TestData.defaultNode.copy(id = nodeId, name = "Topic", contentUri = Some("urn:article:1"))
+    val child    = TestData.defaultNode.copy(id = "urn:topic:2", name = "Topic", contentUri = Some("urn:article:2"))
+    val resource =
+      TestData.defaultNode.copy(id = "urn:resource:1", name = "Resource", contentUri = Some("urn:article:3"))
 
     val article1 = TestData.sampleDomainArticle.copy(id = Some(1))
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2))
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3))
 
-    when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
-    when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
-    when(taxonomyApiClient.getChildResources(any)).thenReturn(Success(List(resource)))
+    when(taxonomyApiClient.getNode(false, nodeId)).thenReturn(Success(node))
+    when(taxonomyApiClient.getChildNodes(false, nodeId)).thenReturn(Success(List(child, resource)))
     when(draftRepository.withId(eqTo(1L))(using any)).thenReturn(Some(article1))
     when(draftRepository.withId(eqTo(2L))(using any)).thenReturn(Some(article2))
     when(draftRepository.withId(eqTo(3L))(using any)).thenReturn(Some(article3))
@@ -1214,9 +1218,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("copyRevisionDates skips empty contentUris") {
     val nodeId   = "urn:topic:1"
-    val node     = Node(nodeId, "Topic", Some("urn:article:1"), List.empty)
-    val child    = Node("urn:topic:2", "Topic", None, List.empty)
-    val resource = Node("urn:resource:1", "Resource", Some("urn:article:2"), List.empty)
+    val node     = TestData.defaultNode.copy(id = nodeId, name = "Topic", contentUri = Some("urn:article:1"))
+    val child    = TestData.defaultNode.copy(id = "urn:topic:2", name = "Topic", contentUri = None)
+    val resource =
+      TestData.defaultNode.copy(id = "urn:resource:1", name = "Resource", contentUri = Some("urn:article:2"))
 
     val revisionMeta =
       RevisionMeta(UUID.randomUUID(), NDLADate.now(), "Test revision", RevisionStatus.NeedsRevision)
@@ -1226,14 +1231,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2))
 
-    when(taxonomyApiClient.getNode(nodeId)).thenReturn(Success(node))
-    when(taxonomyApiClient.getChildNodes(nodeId)).thenReturn(Success(List(child)))
-    when(taxonomyApiClient.getChildResources(any))
-      .thenReturn(Success(List(resource)), Success(List(resource)), Success(List.empty))
+    when(taxonomyApiClient.getNode(any[Boolean], any[String])).thenReturn(Success(node))
+    when(taxonomyApiClient.getChildNodes(any[Boolean], any[String]))
+      .thenReturn(Success(List(child)), Success(List(resource)), Success(List.empty))
     when(draftRepository.withId(eqTo(1L))(using any)).thenReturn(Some(article1))
     when(draftRepository.withId(eqTo(2L))(using any)).thenReturn(Some(article2))
     service.copyRevisionDates(nodeId) should be(Success(()))
-    verify(draftRepository, times(2)).updateArticle(any[Draft])(using any[DBSession])
+    verify(draftRepository, times(1)).updateArticle(any[Draft])(using any[DBSession])
   }
 
   test("That started is updated when article is changed") {

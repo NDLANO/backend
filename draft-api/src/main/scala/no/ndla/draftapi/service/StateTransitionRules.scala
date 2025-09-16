@@ -14,11 +14,11 @@ import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain as common
-import no.ndla.draftapi.integration.*
+import no.ndla.draftapi.integration.{ArticleApiClient, H5PApiClient, LearningpathApiClient, LearningPath}
 import no.ndla.draftapi.model.api.{IllegalStatusStateTransition, NotFoundException}
 import no.ndla.draftapi.model.domain.{IgnoreFunction, StateTransition}
 import no.ndla.draftapi.repository.DraftRepository
-import no.ndla.network.clients.SearchApiClient
+import no.ndla.network.clients.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import scalikejdbc.ReadOnlyAutoSession
 
@@ -82,7 +82,7 @@ class StateTransitionRules(using
             val h5pPaths    = converterService.getEmbeddedH5PPaths(article)
             h5pApiClient.publishH5Ps(h5pPaths, user): Unit
 
-            val taxonomyT   = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
+            val taxonomyT   = taxonomyApiClient.updateTaxonomyIfExists(false, id, "article", article.title, user)
             val articleUdpT = articleApiClient.updateArticle(id, article, externalIds, useSoftValidation, user)
             val failures    = Seq(taxonomyT, articleUdpT).collectFirst { case Failure(ex) =>
               Failure(ex)
@@ -264,7 +264,7 @@ class StateTransitionRules(using
     }
   }
 
-  def debugLog(x: Any): Unit = {
+  private def debugLog(x: Any): Unit = {
     if (scala.util.Properties.propOrEmpty("DEBUG_FLAKE") == "true") {
       println(x)
     }
