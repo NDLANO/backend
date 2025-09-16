@@ -40,7 +40,9 @@ case class Node(
     contextids: List[String],
     context: Option[TaxonomyContext],
     var contexts: List[TaxonomyContext]
-)
+) {
+  def withName(name: String): Node = this.copy(name = name)
+}
 
 object Node {
   implicit val encoder: Encoder[Node] = deriveEncoder

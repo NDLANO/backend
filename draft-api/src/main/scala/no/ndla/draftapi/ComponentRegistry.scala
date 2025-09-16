@@ -47,9 +47,10 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
   implicit lazy val myndlaApiClient: MyNDLAApiClient           = new MyNDLAApiClient
   implicit lazy val s3Client: NdlaS3Client                     =
     new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
-  implicit lazy val articleApiClient: ArticleApiClient             = new ArticleApiClient
-  implicit lazy val taxonomyApiClient: TaxonomyApiClient           = new TaxonomyApiClient
-  implicit lazy val baseTaxonomyApiClient: BaseTaxonomyApiClient   = new BaseTaxonomyApiClient(props.TaxonomyUrl)
+  implicit lazy val articleApiClient: ArticleApiClient           = new ArticleApiClient
+  implicit lazy val taxonomyApiClient: TaxonomyApiClient         = new TaxonomyApiClient
+  implicit lazy val baseTaxonomyApiClient: BaseTaxonomyApiClient =
+    new BaseTaxonomyApiClient(props.TaxonomyUrl, props.DefaultLanguage)
   implicit lazy val learningpathApiClient: LearningpathApiClient   = new LearningpathApiClient
   implicit lazy val h5pApiClient: H5PApiClient                     = new H5PApiClient
   implicit lazy val imageApiClient: ImageApiClient                 = new ImageApiClient
