@@ -40,7 +40,7 @@ trait NdlaTapirMain[T <: TapirApplication[?]] {
     val server = componentRegistry.routes.startJdkServerAsync(name, port)(warmupFunc)
     this.server = Some(server)
     // NOTE: Since JdkHttpServer does not block, we need to block the main thread to keep the application alive
-    synchronized { wait() }
+    synchronized { this.wait() }
   }
 
   private def performWarmup(): Unit = if (!props.disableWarmup) {
