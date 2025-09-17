@@ -526,7 +526,7 @@ object TagValidator {
         Some(
           ValidationMessage(
             fieldName,
-            s"$partialErrorMessage and $key=$value can only contain the following values: ${field.validation.allowedValues
+            s"$partialErrorMessage and $key can only contain the following values: ${field.validation.allowedValues
                 .mkString(", ")}"
           )
         )

@@ -366,6 +366,29 @@ class EmbedTagValidatorTest extends UnitSuite {
     TagValidator.validate("content", tag).size should be(0)
   }
 
+  test("validate should fail if ENUM field has wrong value") {
+    val tag = generateTagWithAttrs(
+      Map(
+        TagAttribute.DataResource     -> ResourceType.Image.toString,
+        TagAttribute.DataAlt          -> "123",
+        TagAttribute.DataCaption      -> "123",
+        TagAttribute.DataResource_Id  -> "123",
+        TagAttribute.DataSize         -> "fullscreen",
+        TagAttribute.DataAlign        -> "left",
+        TagAttribute.DataUpperLeftX   -> "0",
+        TagAttribute.DataUpperLeftY   -> "0",
+        TagAttribute.DataLowerRightX  -> "1",
+        TagAttribute.DataLowerRightY  -> "1",
+        TagAttribute.DataFocalX       -> "0",
+        TagAttribute.DataFocalY       -> "1",
+        TagAttribute.DataIsDecorative -> "false"
+      )
+    )
+    val messages = TagValidator.validate("content", tag)
+    messages.size should be(1)
+    messages.head.message.contains("can only contain the following values:") should be(true)
+  }
+
   test("validate should fail if only one optional attribute is specified") {
     val tag = generateTagWithAttrs(
       Map(
