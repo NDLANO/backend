@@ -76,6 +76,18 @@ class EmbedTagValidatorTest extends UnitSuite {
     findErrorByMessage(res, "contains attributes with HTML: data-url").size should be(1)
   }
 
+  test("validate should return no validation errors if data-resource is invalid") {
+    val tag = generateTagWithAttrs(
+      Map(
+        TagAttribute.DataResource    -> "whatever",
+        TagAttribute.DataResource_Id -> "1234",
+        TagAttribute.DataCaption     -> "",
+        TagAttribute.DataType        -> "standard"
+      )
+    )
+    TagValidator.validate("content", tag).size should be(1)
+  }
+
   test(
     "validate should return validation error if embed tag does not contain required attributes for data-resource=image"
   ) {
