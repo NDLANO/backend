@@ -9,7 +9,7 @@
 package no.ndla.searchapi.model.search.settings
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait, SearchType}
+import no.ndla.common.model.api.search.{LearningResourceType, ArticleTrait, SearchType}
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.learningpath.LearningPathStatus
@@ -38,7 +38,7 @@ case class MultiDraftSearchSettings(
     statusFilter: List[DraftStatus | LearningPathStatus],
     userFilter: List[String],
     grepCodes: List[String],
-    traits: List[SearchTrait],
+    traits: List[ArticleTrait],
     shouldScroll: Boolean,
     searchDecompounded: Boolean,
     aggregatePaths: List[String],

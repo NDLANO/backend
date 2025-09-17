@@ -9,6 +9,7 @@
 package no.ndla.searchapi
 
 import no.ndla.common.Clock
+import no.ndla.common.util.TraitUtil
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient}
 import no.ndla.network.tapir.{
@@ -50,6 +51,7 @@ class ComponentRegistry(properties: SearchApiProperties) extends TapirApplicatio
   given frontpageApiClient: FrontpageApiClient       = new FrontpageApiClient
 
   given converterService: ConverterService                 = new ConverterService
+  given traitUtil: TraitUtil                               = new TraitUtil
   given searchConverterService: SearchConverterService     = new SearchConverterService
   given articleIndexService: ArticleIndexService           = new ArticleIndexService
   given learningPathIndexService: LearningPathIndexService = new LearningPathIndexService

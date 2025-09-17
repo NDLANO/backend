@@ -17,6 +17,7 @@ import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTa
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PUBLISHED}
 import no.ndla.common.model.domain.draft.*
 import no.ndla.common.model.{NDLADate, RelatedContentLink, domain, api as commonApi}
+import no.ndla.common.util.TraitUtil
 import no.ndla.draftapi.integration.Node
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
@@ -37,6 +38,7 @@ import scala.util.{Failure, Success, Try}
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override implicit lazy val commonConverter: CommonConverter           = new CommonConverter
   override implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
+  override implicit lazy val traitUtil: TraitUtil                       = new TraitUtil
   override implicit lazy val converterService: ConverterService         = new ConverterService
 
   val today: NDLADate       = NDLADate.now()

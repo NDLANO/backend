@@ -44,14 +44,16 @@ class DraftIndexService(using
       domainModel: Draft,
       indexName: String,
       indexingBundle: IndexingBundle
-  ): Try[IndexRequest] = {
+  ): Try[Option[IndexRequest]] = {
     searchConverterService.asSearchableDraft(domainModel, indexingBundle).map { searchableDraft =>
       val source = CirceUtil.toJsonString(searchableDraft)
-      indexInto(indexName)
-        .doc(source)
-        .id(domainModel.id.get.toString)
-        .versionType(EXTERNAL_GTE)
-        .version(domainModel.revision.map(_.toLong).get)
+      Some(
+        indexInto(indexName)
+          .doc(source)
+          .id(domainModel.id.get.toString)
+          .versionType(EXTERNAL_GTE)
+          .version(domainModel.revision.map(_.toLong).get)
+      )
     }
   }
 

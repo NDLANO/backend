@@ -1119,7 +1119,7 @@ export type components = {
              */
             revision: number;
             /** @description The title of the learningstep */
-            title?: string;
+            title?: string | null;
             /** @description The introduction of the learningstep */
             introduction?: string | null;
             /** @description The chosen language */

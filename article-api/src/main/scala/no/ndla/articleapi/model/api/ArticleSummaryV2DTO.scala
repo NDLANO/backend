@@ -9,6 +9,7 @@
 package no.ndla.articleapi.model.api
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.ArticleTrait
 import no.ndla.common.model.domain.article.ArticleMetaDescriptionDTO
 import sttp.tapir.Schema.annotations.description
 
@@ -39,5 +40,7 @@ case class ArticleSummaryV2DTO(
     @description("A list of codes from GREP API attached to this article")
     grepCodes: Seq[String],
     @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher")
-    availability: String
+    availability: String,
+    @description("Traits extracted from the article content")
+    traits: List[ArticleTrait]
 )

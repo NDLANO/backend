@@ -693,7 +693,8 @@ class WriteService(using
           savedSearches = updatedUserData.savedSearches.orElse(existing.savedSearches),
           latestEditedArticles = updatedUserData.latestEditedArticles.orElse(existing.latestEditedArticles),
           latestEditedConcepts = updatedUserData.latestEditedConcepts.orElse(existing.latestEditedConcepts),
-          latestEditedLearningpaths = existing.latestEditedLearningpaths,
+          latestEditedLearningpaths =
+            updatedUserData.latestEditedLearningpaths.orElse(existing.latestEditedLearningpaths),
           favoriteSubjects = updatedUserData.favoriteSubjects.orElse(existing.favoriteSubjects)
         )
         userDataRepository.update(toUpdate).map(converterService.toApiUserData)

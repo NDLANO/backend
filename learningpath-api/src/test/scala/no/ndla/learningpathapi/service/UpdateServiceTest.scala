@@ -167,7 +167,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   val UPDATED_STEPV2: UpdatedLearningStepV2DTO =
     UpdatedLearningStepV2DTO(
       1,
-      Option("Tittel"),
+      commonApi.UpdateWith("Tittel"),
       commonApi.Missing,
       "nb",
       commonApi.UpdateWith("Beskrivelse"),
@@ -1271,7 +1271,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedLs =
       UpdatedLearningStepV2DTO(
         1,
-        Some("Dårlig tittel"),
+        commonApi.UpdateWith("Dårlig tittel"),
         commonApi.Missing,
         "nb",
         commonApi.Missing,
@@ -1313,7 +1313,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val updatedLs =
       UpdatedLearningStepV2DTO(
         1,
-        Some("Dårlig tittel"),
+        commonApi.UpdateWith("Dårlig tittel"),
         commonApi.Missing,
         "nb",
         commonApi.Missing,
@@ -1644,5 +1644,21 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(learningPathRepository, times(PRIVATE_LEARNINGPATH.learningsteps.get.size))
       .updateLearningStep(any)(using any)
     res.supportedLanguages should be(Seq("nn"))
+  }
+
+  test("That delete learning path language should succeed even if learning step doesn't contain said language") {
+    val learningPath = PRIVATE_LEARNINGPATH.copy(
+      title = PRIVATE_LEARNINGPATH.title :+ Title("Tittel", "nn"),
+      description = PRIVATE_LEARNINGPATH.description :+ Description("Beskrivelse", "nn")
+    )
+    when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(Some(learningPath))
+    when(learningPathRepository.updateLearningStep(any)(using any[DBSession])).thenAnswer(_.getArgument(0))
+    when(learningPathRepository.update(any)(using any[DBSession])).thenAnswer(_.getArgument(0))
+
+    val res = service.deleteLearningPathLanguage(PRIVATE_ID, "nn", PRIVATE_OWNER.toCombined).failIfFailure
+    verify(learningPathRepository, times(PRIVATE_LEARNINGPATH.learningsteps.get.size))
+      .updateLearningStep(any)(using any)
+    res.supportedLanguages should be(Seq("nb"))
+
   }
 }

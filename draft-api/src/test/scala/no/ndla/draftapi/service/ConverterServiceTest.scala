@@ -17,6 +17,7 @@ import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.api as commonApi
+import no.ndla.common.util.TraitUtil
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
@@ -33,6 +34,7 @@ import scala.util.{Failure, Success}
 class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules
+  override implicit lazy val traitUtil: TraitUtil                       = new TraitUtil
   val service: ConverterService                                         = new ConverterService
 
   test("toApiLicense defaults to unknown if the license was not found") {
@@ -189,7 +191,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = OptLanguageFields.withValue("Disclaimer test", "nb")
+      disclaimer = OptLanguageFields.withValue("Disclaimer test", "nb"),
+      traits = List.empty
     )
 
     val updatedNothing = TestData.blankUpdatedArticle.copy(
@@ -237,7 +240,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = OptLanguageFields.withValue("Disclaimer test", "nb")
+      disclaimer = OptLanguageFields.withValue("Disclaimer test", "nb"),
+      traits = List.empty
     )
 
     val expectedArticle = Draft(
@@ -272,7 +276,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = OptLanguageFields.withValue("NyDisclaimer test", "nb")
+      disclaimer = OptLanguageFields.withValue("NyDisclaimer test", "nb"),
+      traits = List.empty
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -338,7 +343,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = OptLanguageFields.empty
+      disclaimer = OptLanguageFields.empty,
+      traits = List.empty
     )
 
     val expectedArticle = Draft(
@@ -381,7 +387,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = OptLanguageFields.empty
+      disclaimer = OptLanguageFields.empty,
+      traits = List.empty
     )
 
     val updatedEverything = TestData.blankUpdatedArticle.copy(
@@ -773,7 +780,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = OptLanguageFields.withValue("articleDisclaimer", "nb")
+      disclaimer = OptLanguageFields.withValue("articleDisclaimer", "nb"),
+      traits = List.empty
     )
     val article = common.model.domain.article.Article(
       id = Some(articleId),
@@ -799,7 +807,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       relatedContent = Seq.empty,
       revisionDate = None,
       slug = Some("kjempe-slug"),
-      disclaimer = OptLanguageFields.withValue("articleDisclaimer", "nb")
+      disclaimer = OptLanguageFields.withValue("articleDisclaimer", "nb"),
+      traits = List.empty
     )
 
     val result = service.toArticleApiArticle(draft)

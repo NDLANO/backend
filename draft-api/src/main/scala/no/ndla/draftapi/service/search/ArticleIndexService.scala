@@ -50,6 +50,7 @@ class ArticleIndexService(using
       textField("previousNotes"),
       keywordField("users"),
       keywordField("grepCodes"),
+      keywordField("traits"),
       ObjectField("status", properties = Seq(keywordField("current"), keywordField("other")))
     )
     val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++

@@ -9,15 +9,14 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO, SearchType}
+import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO}
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
-import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
+import no.ndla.common.model.domain.learningpath.LearningPathVerificationStatus.CREATED_BY_NDLA
+import no.ndla.common.util.TraitUtil
 import no.ndla.language.Language.AllLanguages
 import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
-import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_WRITE
-import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.TestData.*
@@ -34,6 +33,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
   override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   override implicit lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
@@ -68,7 +68,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
       blockUntil(() => {
         draftIndexService.countDocuments == draftsToIndex.size &&
-        learningPathIndexService.countDocuments == learningPathsToIndex.size
+        learningPathIndexService.countDocuments == learningPathsToIndex.count(lp =>
+          lp.verificationStatus == CREATED_BY_NDLA
+        )
       })
     }
   }
@@ -86,7 +88,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     else {
       learningPathsToIndex.filter(_.title.map(_.language).contains(language))
     }
-    x.filter(_.status != PRIVATE).filter(_.copyright.license != License.Copyrighted.toString)
+    x.filter(_.verificationStatus == CREATED_BY_NDLA).filter(_.copyright.license != License.Copyrighted.toString)
   }
 
   private def idsForLang(language: String) =
@@ -442,29 +444,6 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     search.summaryResults(2).title.language should equal("en")
   }
 
-  test("That private learningpaths are only returned if user is owner") {
-    val search = multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          resultTypes = Some(List(SearchType.LearningPaths)),
-          fallback = true
-        )
-      )
-      .get
-    search.totalCount should equal(6)
-
-    val search2 = multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          resultTypes = Some(List(SearchType.LearningPaths)),
-          fallback = true,
-          user = TokenUser("private", Set(LEARNINGPATH_API_WRITE), None)
-        )
-      )
-      .get
-    search2.totalCount should equal(7)
-  }
-
   test("That filtering for subjects works as expected") {
     val Success(search) =
       multiDraftSearchService.matchingQuery(
@@ -618,7 +597,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
         multiDraftSearchSettings.copy(language = "*", supportedLanguages = List("en", "nb"), pageSize = 100)
       ): @unchecked
     search2.totalCount should be(21)
-    search2.summaryResults.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16))
+    search2.summaryResults.map(_.id) should be(
+      Seq(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16)
+    )
 
     val Success(search3) =
       multiDraftSearchService.matchingQuery(

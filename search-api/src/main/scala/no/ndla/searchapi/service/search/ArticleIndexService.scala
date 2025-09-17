@@ -44,14 +44,16 @@ class ArticleIndexService(using
       domainModel: Article,
       indexName: String,
       indexingBundle: IndexingBundle
-  ): Try[IndexRequest] = {
+  ): Try[Option[IndexRequest]] = {
     searchConverterService.asSearchableArticle(domainModel, indexingBundle).map { searchableArticle =>
       val source = CirceUtil.toJsonString(searchableArticle)
-      indexInto(indexName)
-        .doc(source)
-        .id(domainModel.id.get.toString)
-        .versionType(EXTERNAL_GTE)
-        .version(domainModel.revision.map(_.toLong).get)
+      Some(
+        indexInto(indexName)
+          .doc(source)
+          .id(domainModel.id.get.toString)
+          .versionType(EXTERNAL_GTE)
+          .version(domainModel.revision.map(_.toLong).get)
+      )
     }
   }
 

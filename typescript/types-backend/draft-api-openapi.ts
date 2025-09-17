@@ -599,6 +599,8 @@ export type components = {
             started: boolean;
             qualityEvaluation?: components["schemas"]["QualityEvaluationDTO"];
             disclaimer?: components["schemas"]["DisclaimerDTO"];
+            /** @description Traits extracted from the article content */
+            traits: components["schemas"]["ArticleTrait"][];
         };
         /**
          * ArticleIntroductionDTO
@@ -733,6 +735,8 @@ export type components = {
             status: components["schemas"]["StatusDTO"];
             /** @description When the article was last updated */
             updated: string;
+            /** @description Traits extracted from the article content */
+            traits: components["schemas"]["ArticleTrait"][];
         };
         /**
          * ArticleTagDTO
@@ -753,6 +757,11 @@ export type components = {
             /** @description ISO 639-1 code that represents the language used in title */
             language: string;
         };
+        /**
+         * ArticleTrait
+         * @enum {string}
+         */
+        ArticleTrait: "VIDEO" | "H5P" | "AUDIO" | "PODCAST";
         /**
          * AuthorDTO
          * @description Information about an author
@@ -1263,6 +1272,8 @@ export type components = {
             latestEditedArticles?: string[];
             /** @description User's last edited concepts */
             latestEditedConcepts?: string[];
+            /** @description User's last edited learningpaths */
+            latestEditedLearningpaths?: string[];
             /** @description User's favorite subjects */
             favoriteSubjects?: string[];
         };
