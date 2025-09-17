@@ -40,7 +40,7 @@ class ComponentRegistry(properties: SearchApiProperties) extends TapirApplicatio
   given errorHelpers: ErrorHelpers                   = new ErrorHelpers
   given errorHandling: ControllerErrorHandling       = new ControllerErrorHandling
   given myndlaApiClient: MyNDLAApiClient             = new MyNDLAApiClient
-  given taxonomyApiClient: TaxonomyApiClient         = new TaxonomyApiClient(props.TaxonomyUrl)
+  given taxonomyApiClient: TaxonomyApiClient         = new TaxonomyApiClient(props.TaxonomyUrl, props.DefaultLanguage)
   given grepApiClient: GrepApiClient                 = new GrepApiClient
   given draftApiClient: DraftApiClient               = new DraftApiClient(props.DraftApiUrl)
   given draftConceptApiClient: DraftConceptApiClient = new DraftConceptApiClient(props.ConceptApiUrl)

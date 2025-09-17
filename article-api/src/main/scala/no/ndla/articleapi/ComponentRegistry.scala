@@ -66,7 +66,7 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
   given myndlaApiClient: MyNDLAApiClient               = new MyNDLAApiClient
   given frontpageApiClient: FrontpageApiClient         = new FrontpageApiClient
   given imageApiClient: ImageApiClient                 = new ImageApiClient
-  given taxonomyApiClient: TaxonomyApiClient           = new TaxonomyApiClient(props.TaxonomyUrl)
+  given taxonomyApiClient: TaxonomyApiClient           = new TaxonomyApiClient(props.TaxonomyUrl, props.DefaultLanguage)
   given contentValidator: ContentValidator             = new ContentValidator()
   given searchConverterService: SearchConverterService = new SearchConverterService
   given articleIndexService: ArticleIndexService       = new ArticleIndexService
