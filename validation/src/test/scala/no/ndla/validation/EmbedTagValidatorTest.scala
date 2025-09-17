@@ -92,7 +92,7 @@ class EmbedTagValidatorTest extends UnitSuite {
       Map(
         TagAttribute.DataResource    -> ResourceType.Image.toString,
         TagAttribute.DataResource_Id -> "1234",
-        TagAttribute.DataSize        -> "fullbredde",
+        TagAttribute.DataSize        -> "full",
         TagAttribute.DataAlign       -> "",
         TagAttribute.DataAlt         -> "alttext"
       )
@@ -110,7 +110,7 @@ class EmbedTagValidatorTest extends UnitSuite {
       Map(
         TagAttribute.DataResource    -> ResourceType.Image.toString,
         TagAttribute.DataResource_Id -> "1234",
-        TagAttribute.DataSize        -> "fullbredde",
+        TagAttribute.DataSize        -> "full",
         TagAttribute.DataAlt         -> "alternative text",
         TagAttribute.DataCaption     -> "here is a rabbit",
         TagAttribute.DataAlign       -> "left"
@@ -255,7 +255,7 @@ class EmbedTagValidatorTest extends UnitSuite {
         Map(
           TagAttribute.DataResource    -> ResourceType.Image.toString,
           TagAttribute.DataResource_Id -> "1234",
-          TagAttribute.DataSize        -> "fullbredde",
+          TagAttribute.DataSize        -> "full",
           TagAttribute.DataAlt         -> "alternative text",
           TagAttribute.DataCaption     -> "here is a rabbit",
           TagAttribute.DataAlign       -> "left"
@@ -338,7 +338,7 @@ class EmbedTagValidatorTest extends UnitSuite {
       Map(
         TagAttribute.DataResource -> ResourceType.ExternalContent.toString,
         TagAttribute.DataUrl      -> "https://www.youtube.com/watch?v=pCZeVTMEsik",
-        TagAttribute.DataType     -> "iframe"
+        TagAttribute.DataType     -> "external"
       )
     )
     TagValidator.validate("content", tag).size should be(0)

@@ -5,7 +5,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "symbol"
+            ]
           }
         }
       ],
@@ -18,13 +22,18 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "copyright"
+            ]
           }
         },
         {
           "name": "data-title",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         },
         {
@@ -68,13 +77,25 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "uu-disclaimer"
+            ]
           }
         },
         {
           "name": "data-disclaimer",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "TEXT"
+          }
+        },
+        {
+          "name": "data-skip-content",
+          "validation": {
+            "required": false,
+            "dataType": "BOOLEAN"
           }
         }
       ],
@@ -113,19 +134,29 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "comment"
+            ]
           }
         },
         {
           "name": "data-type",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "inline",
+              "block"
+            ]
           }
         },
         {
           "name": "data-text",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "TEXT"
           }
         }
       ],
@@ -161,7 +192,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "h5p"
+            ]
           }
         },
         {
@@ -173,7 +208,8 @@
         {
           "name": "data-title",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         },
         {
@@ -186,7 +222,8 @@
         {
           "name": "data-alt",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         }
       ]
@@ -196,7 +233,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "external"
+            ]
           }
         },
         {
@@ -209,19 +250,25 @@
         {
           "name": "data-type",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "external"
+            ]
           }
         },
         {
           "name": "data-caption",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         },
         {
           "name": "data-title",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         },
         {
@@ -239,6 +286,7 @@
           "name": "data-alt",
           "validation": {
             "required": false,
+            "dataType": "TEXT",
             "mustCoexistWith": [
               "data-imageid"
             ]
@@ -251,13 +299,18 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "error"
+            ]
           }
         },
         {
           "name": "data-message",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "TEXT"
           }
         }
       ]
@@ -267,7 +320,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "audio"
+            ]
           }
         },
         {
@@ -280,19 +337,26 @@
         {
           "name": "data-type",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "standard",
+              "minimal"
+            ]
           }
         },
         {
           "name": "data-caption",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         },
         {
           "name": "data-alt",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         }
       ]
@@ -302,7 +366,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "nrk"
+            ]
           }
         },
         {
@@ -325,7 +393,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "content-link"
+            ]
           }
         },
         {
@@ -338,13 +410,22 @@
         {
           "name": "data-content-type",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "article"
+            ]
           }
         },
         {
           "name": "data-open-in",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "current-context",
+              "new-context"
+            ]
           }
         }
       ],
@@ -368,13 +449,18 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "brightcove"
+            ]
           }
         },
         {
           "name": "data-caption",
           "validation": {
             "required": true,
+            "dataType": "TEXT",
             "allowedHtml": [
               "code",
               "em",
@@ -406,13 +492,15 @@
         {
           "name": "data-title",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         },
         {
           "name": "data-alt",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         }
       ]
@@ -422,7 +510,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "image"
+            ]
           }
         },
         {
@@ -435,19 +527,28 @@
         {
           "name": "data-align",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "",
+              "center",
+              "right",
+              "left"
+            ]
           }
         },
         {
           "name": "data-alt",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "TEXT"
           }
         },
         {
           "name": "data-caption",
           "validation": {
             "required": true,
+            "dataType": "TEXT",
             "allowedHtml": [
               "code",
               "em",
@@ -461,13 +562,21 @@
         {
           "name": "data-size",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "full",
+              "medium",
+              "small",
+              "xsmall"
+            ]
           }
         },
         {
           "name": "data-border",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "BOOLEAN"
           }
         },
         {
@@ -566,7 +675,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "concept"
+            ]
           }
         },
         {
@@ -579,7 +692,13 @@
         {
           "name": "data-type",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "gloss",
+              "inline",
+              "block"
+            ]
           }
         },
         {
@@ -614,7 +733,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "iframe"
+            ]
           }
         },
         {
@@ -685,19 +808,25 @@
         {
           "name": "data-type",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "iframe"
+            ]
           }
         },
         {
           "name": "data-title",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         },
         {
           "name": "data-caption",
           "validation": {
             "required": false,
+            "dataType": "TEXT",
             "mustCoexistWith": [
               "data-title",
               "data-imageid"
@@ -749,19 +878,25 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "footnote"
+            ]
           }
         },
         {
           "name": "data-title",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "TEXT"
           }
         },
         {
           "name": "data-type",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "TEXT"
           }
         },
         {
@@ -773,19 +908,22 @@
         {
           "name": "data-edition",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "TEXT"
           }
         },
         {
           "name": "data-publisher",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "TEXT"
           }
         },
         {
           "name": "data-authors",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "TEXT"
           }
         }
       ]
@@ -795,7 +933,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "code-block"
+            ]
           }
         },
         {
@@ -813,7 +955,8 @@
         {
           "name": "data-title",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         }
       ]
@@ -823,7 +966,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "related-content"
+            ]
           }
         },
         {
@@ -847,6 +994,7 @@
           "name": "data-title",
           "validation": {
             "required": false,
+            "dataType": "TEXT",
             "mustCoexistWith": [
               "data-url"
             ]
@@ -869,13 +1017,18 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "file"
+            ]
           }
         },
         {
           "name": "data-title",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "TEXT"
           }
         },
         {
@@ -893,13 +1046,19 @@
         {
           "name": "data-alt",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         },
         {
           "name": "data-display",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "block",
+              "inline"
+            ]
           }
         }
       ],
@@ -918,13 +1077,18 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "contact-block"
+            ]
           }
         },
         {
           "name": "data-job-title",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "TEXT"
           }
         },
         {
@@ -943,7 +1107,8 @@
         {
           "name": "data-description",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "TEXT"
           }
         },
         {
@@ -956,7 +1121,8 @@
         {
           "name": "data-alt",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         },
         {
@@ -972,7 +1138,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "pitch"
+            ]
           }
         },
         {
@@ -986,6 +1156,7 @@
           "name": "data-title",
           "validation": {
             "required": true,
+            "dataType": "TEXT",
             "allowedHtml": [
               "code",
               "em",
@@ -1000,6 +1171,7 @@
           "name": "data-description",
           "validation": {
             "required": false,
+            "dataType": "TEXT",
             "allowedHtml": [
               "code",
               "em",
@@ -1020,7 +1192,8 @@
         {
           "name": "data-alt",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         }
       ]
@@ -1030,7 +1203,11 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "key-figure"
+            ]
           }
         },
         {
@@ -1044,6 +1221,7 @@
           "name": "data-title",
           "validation": {
             "required": true,
+            "dataType": "TEXT",
             "allowedHtml": [
               "code",
               "em",
@@ -1058,6 +1236,7 @@
           "name": "data-subtitle",
           "validation": {
             "required": true,
+            "dataType": "TEXT",
             "allowedHtml": [
               "code",
               "em",
@@ -1090,7 +1269,8 @@
         {
           "name": "data-alt",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         }
       ]
@@ -1100,13 +1280,18 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "campaign-block"
+            ]
           }
         },
         {
           "name": "data-title",
           "validation": {
             "required": true,
+            "dataType": "TEXT",
             "allowedHtml": [
               "code",
               "em",
@@ -1127,6 +1312,7 @@
           "name": "data-description",
           "validation": {
             "required": true,
+            "dataType": "TEXT",
             "allowedHtml": [
               "code",
               "em",
@@ -1146,7 +1332,15 @@
         {
           "name": "data-heading-level",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "h1",
+              "h2",
+              "h3",
+              "h4",
+              "h5"
+            ]
           }
         },
         {
@@ -1160,6 +1354,7 @@
           "name": "data-url-text",
           "validation": {
             "required": false,
+            "dataType": "TEXT",
             "allowedHtml": [
               "code",
               "em",
@@ -1180,7 +1375,12 @@
         {
           "name": "data-image-side",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "left",
+              "right"
+            ]
           }
         },
         {
@@ -1193,7 +1393,8 @@
         {
           "name": "data-alt",
           "validation": {
-            "required": false
+            "required": false,
+            "dataType": "TEXT"
           }
         },
         {
@@ -1209,13 +1410,18 @@
         {
           "name": "data-resource",
           "validation": {
-            "required": true
+            "required": true,
+            "dataType": "ENUM",
+            "allowedValues": [
+              "link-block"
+            ]
           }
         },
         {
           "name": "data-title",
           "validation": {
             "required": true,
+            "dataType": "TEXT",
             "allowedHtml": [
               "code",
               "em",
