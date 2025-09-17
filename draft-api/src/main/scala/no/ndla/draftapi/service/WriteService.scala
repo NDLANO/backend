@@ -900,7 +900,6 @@ class WriteService(using
           taxonomyApiClient
             .getChildNodes(false, node.id)
             .flatMap(resources => resources.traverse(setRevisions(_, revisions)))
-        case null => Success(())
       }
     })
   }
