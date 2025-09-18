@@ -8,15 +8,13 @@
 
 package no.ndla.common.errors
 
-import org.log4s.Logger
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.util.{Failure, Try}
 
-object ExceptionLogHandler {
-  val logger: Logger = org.log4s.getLogger
-
+object ExceptionLogHandler extends StrictLogging {
   private def handleException(e: Throwable): Unit = {
-    logger.error(e)(s"Uncaught exception, quitting...")
+    logger.error(s"Uncaught exception, quitting...", e)
     System.exit(1)
   }
 

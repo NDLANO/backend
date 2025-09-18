@@ -9,7 +9,7 @@
 package no.ndla.frontpageapi.repository
 
 import cats.implicits.*
-import org.log4s.{Logger, getLogger}
+import com.typesafe.scalalogging.StrictLogging
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 import io.circe.syntax.*
@@ -18,9 +18,7 @@ import no.ndla.frontpageapi.model.domain.DBSubjectPage
 
 import scala.util.{Failure, Success, Try}
 
-class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) {
-  val logger: Logger = getLogger
-
+class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) extends StrictLogging {
   def newSubjectPage(subj: SubjectPage, externalId: String)(implicit
       session: DBSession = AutoSession
   ): Try[SubjectPage] = {

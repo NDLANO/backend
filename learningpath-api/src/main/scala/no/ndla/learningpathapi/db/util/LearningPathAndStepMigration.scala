@@ -10,8 +10,8 @@ package no.ndla.learningpathapi.db.util
 
 import com.typesafe.scalalogging.StrictLogging
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}
-import org.log4s.MDC
 import org.postgresql.util.PGobject
+import org.slf4j.MDC
 import scalikejdbc.*
 
 case class LpDocumentRow(
