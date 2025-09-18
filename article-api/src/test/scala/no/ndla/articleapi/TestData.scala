@@ -137,7 +137,7 @@ class TestData {
     Seq(),
     Seq(
       VisualElement(
-        s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-size=\"large\" data-align=\"center\" data-alt=\"alt\"></$EmbedTagName>",
+        s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-size=\"full\" data-align=\"center\" data-alt=\"alt\"></$EmbedTagName>",
         "en"
       )
     ),
@@ -302,7 +302,7 @@ class TestData {
   val sampleTitle: Title = Title("title", "en")
 
   val visualElement: VisualElement = VisualElement(
-    s"""<$EmbedTagName  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size=""></$EmbedTagName>""",
+    s"""<$EmbedTagName  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="full"></$EmbedTagName>""",
     "nb"
   )
 

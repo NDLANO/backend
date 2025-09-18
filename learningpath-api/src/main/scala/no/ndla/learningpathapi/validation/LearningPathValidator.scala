@@ -18,7 +18,7 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.common.model.domain.RevisionStatus
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.Introduction
-import no.ndla.validation.HtmlTagRules.{stringToJsoupDocument}
+import no.ndla.validation.HtmlTagRules.stringToJsoupDocument
 import scala.jdk.CollectionConverters.*
 
 import scala.util.{Failure, Success, Try}

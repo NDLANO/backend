@@ -64,7 +64,7 @@ class EmbedTagRulesTest extends UnitSuite {
         s"""<$EmbedTagName
            | data-resource="image"
            | data-resource_id=""
-           | data-size=""
+           | data-size="full"
            | data-align=""
            | data-alt=""
            | data-caption=""
@@ -422,7 +422,7 @@ class EmbedTagRulesTest extends UnitSuite {
       s"""<$EmbedTagName
          | data-resource="image"
          | data-resource_id="1"
-         | data-size=""
+         | data-size="full"
          | data-align=""
          | data-alt="Bilde på <span lang='en'>engelsk</span>"
          | data-caption="Bilde på <span lang='en'>engelsk</span>"
