@@ -20,6 +20,7 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.Availability
+import no.ndla.common.model.taxonomy.NodeType
 import no.ndla.language.Language.AllLanguages
 import no.ndla.language.model.Iso639
 import no.ndla.mapping.License
@@ -29,7 +30,6 @@ import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.domain.SearchResult
 import no.ndla.searchapi.model.search.settings.SearchSettings
-import no.ndla.searchapi.model.taxonomy.NodeType
 
 import scala.util.{Failure, Success, Try}
 

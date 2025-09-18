@@ -14,10 +14,10 @@ import no.ndla.common.model.api.LanguageCode
 import no.ndla.common.model.api.search.{ArticleTrait, SearchType}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.model.taxonomy.NodeType
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 import no.ndla.common.DeriveHelpers
+import no.ndla.common.model.taxonomy.NodeType
 
 case class SearchParamsDTO(
     @description("The page number of the search hits to display.")

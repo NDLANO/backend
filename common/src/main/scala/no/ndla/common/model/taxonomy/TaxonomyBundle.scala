@@ -1,12 +1,12 @@
 /*
- * Part of NDLA search-api
+ * Part of NDLA common
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.searchapi.model.taxonomy
+package no.ndla.common.model.taxonomy
 
 case class TaxonomyBundle(
     nodes: List[Node]

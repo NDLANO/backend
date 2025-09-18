@@ -18,6 +18,7 @@ import no.ndla.articleapi.db.migrationwithdependencies.{
   V33__ConvertLanguageUnknown,
   V55__SetHideBylineForImagesNotCopyrighted,
   V62__ComputeSearchTraits,
+  V64__SetResourceTypeFromTaxonomyAsTag,
   V8__CopyrightFormatUpdated,
   V9__TranslateUntranslatedAuthors
 }
@@ -40,7 +41,7 @@ import no.ndla.network.tapir.{
   TapirController,
   TapirHealthController
 }
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient, SearchApiClient}
+import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplication[ArticleApiProperties] {
@@ -65,6 +66,7 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
   given myndlaApiClient: MyNDLAApiClient               = new MyNDLAApiClient
   given frontpageApiClient: FrontpageApiClient         = new FrontpageApiClient
   given imageApiClient: ImageApiClient                 = new ImageApiClient
+  given taxonomyApiClient: TaxonomyApiClient           = new TaxonomyApiClient(props.TaxonomyUrl)
   given contentValidator: ContentValidator             = new ContentValidator()
   given searchConverterService: SearchConverterService = new SearchConverterService
   given articleIndexService: ArticleIndexService       = new ArticleIndexService
@@ -84,7 +86,8 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
     new V22__UpdateH5PDomainForFFVisualElement,
     new V33__ConvertLanguageUnknown(props),
     new V55__SetHideBylineForImagesNotCopyrighted(props),
-    new V62__ComputeSearchTraits
+    new V62__ComputeSearchTraits,
+    new V64__SetResourceTypeFromTaxonomyAsTag
   )
 
   given swagger: SwaggerController = new SwaggerController(

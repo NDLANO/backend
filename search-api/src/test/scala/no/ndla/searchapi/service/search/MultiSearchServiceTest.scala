@@ -21,12 +21,12 @@ import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
+import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.model.search.SearchPagination
-import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.service.ConverterService
+import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.Success
 

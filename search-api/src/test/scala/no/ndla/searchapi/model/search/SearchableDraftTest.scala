@@ -10,8 +10,13 @@ package no.ndla.searchapi.model.search
 
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.LearningResourceType
-import no.ndla.common.model.domain.draft.{DraftStatus}
+import no.ndla.common.model.api.search.{
+  LanguageValue,
+  LearningResourceType,
+  SearchableLanguageList,
+  SearchableLanguageValues
+}
+import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.{
   EditorNote,
   Priority,
@@ -22,7 +27,6 @@ import no.ndla.common.model.domain.{
 }
 import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 

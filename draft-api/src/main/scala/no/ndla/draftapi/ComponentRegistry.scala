@@ -8,43 +8,24 @@
 
 package no.ndla.draftapi
 
+import no.ndla.common.aws.NdlaS3Client
+import no.ndla.common.converter.CommonConverter
+import no.ndla.common.util.TraitUtil
+import no.ndla.common.{Clock, UUIDUtil}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
-import no.ndla.draftapi.db.migrationwithdependencies.{
-  R__RemoveEmptyStringLanguageFields,
-  R__RemoveStatusPublishedArticles,
-  R__SetArticleLanguageFromTaxonomy,
-  R__SetArticleTypeFromTaxonomy,
-  V20__UpdateH5PDomainForFF,
-  V23__UpdateH5PDomainForFFVisualElement,
-  V33__ConvertLanguageUnknown,
-  V57__MigrateSavedSearch,
-  V66__SetHideBylineForImagesNotCopyrighted,
-  V76__ComputeSearchTraits
-}
+import no.ndla.draftapi.db.migrationwithdependencies.*
 import no.ndla.draftapi.integration.*
+import no.ndla.draftapi.model.api.DraftErrorHelpers
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
 import no.ndla.draftapi.validation.ContentValidator
-import no.ndla.common.{Clock, UUIDUtil}
-import no.ndla.common.aws.NdlaS3Client
-import no.ndla.database.{DBMigrator, DBUtility, DataSource}
-import no.ndla.draftapi.model.api.DraftErrorHelpers
 import no.ndla.network.NdlaClient
-import no.ndla.network.tapir.{
-  ErrorHandling,
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  TapirApplication,
-  TapirController,
-  TapirHealthController
-}
-import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient}
+import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient, TaxonomyApiClient as BaseTaxonomyApiClient}
+import no.ndla.network.tapir.*
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
-import no.ndla.common.converter.CommonConverter
-import no.ndla.common.util.TraitUtil
 
 class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication[DraftApiProperties] {
   implicit lazy val props: DraftApiProperties            = properties
@@ -68,6 +49,7 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
     new NdlaS3Client(props.AttachmentStorageName, props.AttachmentStorageRegion)
   implicit lazy val articleApiClient: ArticleApiClient             = new ArticleApiClient
   implicit lazy val taxonomyApiClient: TaxonomyApiClient           = new TaxonomyApiClient
+  implicit lazy val baseTaxonomyApiClient: BaseTaxonomyApiClient   = new BaseTaxonomyApiClient(props.TaxonomyUrl)
   implicit lazy val learningpathApiClient: LearningpathApiClient   = new LearningpathApiClient
   implicit lazy val h5pApiClient: H5PApiClient                     = new H5PApiClient
   implicit lazy val imageApiClient: ImageApiClient                 = new ImageApiClient
@@ -103,7 +85,8 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
     new V33__ConvertLanguageUnknown,
     new V57__MigrateSavedSearch,
     new V66__SetHideBylineForImagesNotCopyrighted,
-    new V76__ComputeSearchTraits
+    new V76__ComputeSearchTraits,
+    new V78__SetResourceTypeFromTaxonomyAsTag
   )
 
   implicit lazy val swagger: SwaggerController = new SwaggerController(

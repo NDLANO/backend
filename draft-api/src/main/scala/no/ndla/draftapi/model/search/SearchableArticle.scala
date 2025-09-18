@@ -11,8 +11,7 @@ package no.ndla.draftapi.model.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.ArticleTrait
-import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.common.model.api.search.{ArticleTrait, SearchableLanguageList, SearchableLanguageValues}
 
 case class SearchableArticle(
     id: Long,

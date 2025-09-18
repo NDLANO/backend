@@ -18,13 +18,13 @@ import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.Content
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.learningpath.LearningPath
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.search.model.domain.ReindexResult
-import no.ndla.searchapi.integration.{GrepApiClient, TaxonomyApiClient}
+import no.ndla.searchapi.integration.GrepApiClient
 import no.ndla.searchapi.model.api.InvalidIndexBodyException
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.service.search.{

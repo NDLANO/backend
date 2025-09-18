@@ -17,6 +17,7 @@ import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchResult, Search
 import no.ndla.audioapi.model.search.*
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.service.ConverterService
+import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain as common
 import no.ndla.language.Language.{
   findByLanguageOrBestEffort,
@@ -24,7 +25,6 @@ import no.ndla.language.Language.{
   getSupportedLanguages,
   sortLanguagesByPriority
 }
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 
 import scala.util.Try
 

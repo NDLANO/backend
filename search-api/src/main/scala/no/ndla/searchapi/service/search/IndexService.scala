@@ -15,7 +15,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Decoder
 import no.ndla.common.model.domain.Content
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, ReindexResult}
 import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.Props

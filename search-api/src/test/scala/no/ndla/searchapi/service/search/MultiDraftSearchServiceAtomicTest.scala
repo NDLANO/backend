@@ -13,21 +13,20 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{ApiTaxonomyContextDTO, LearningResourceType, SearchType}
+import no.ndla.common.model.api.search.*
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.taxonomy.{Node, NodeType, TaxonomyBundle, TaxonomyContext}
 import no.ndla.common.util.TraitUtil
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
-import no.ndla.searchapi.model.taxonomy.*
-import no.ndla.searchapi.{TestData, TestEnvironment}
-import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.service.ConverterService
+import no.ndla.searchapi.{TestData, TestEnvironment}
 
 import java.util.UUID
 import scala.util.{Success, Try}

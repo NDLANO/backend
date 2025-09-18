@@ -8,26 +8,17 @@
 
 package no.ndla.searchapi.service.search
 
+import no.ndla.common.caching.Memoize
+import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
+import no.ndla.common.model.taxonomy.*
 import no.ndla.common.util.TraitUtil
 import no.ndla.search.SearchLanguage
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.IndexingBundle
-import no.ndla.searchapi.model.grep.{
-  BelongsToObj,
-  GrepKjerneelement,
-  GrepKompetansemaal,
-  GrepKompetansemaalSett,
-  GrepTextObj,
-  GrepTitle,
-  GrepTverrfagligTema,
-  ReferenceObj
-}
+import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
-import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when

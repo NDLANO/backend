@@ -11,6 +11,7 @@ package no.ndla.draftapi.service.search
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain as common
 import no.ndla.draftapi.model.api
@@ -26,7 +27,6 @@ import no.ndla.language.Language.{
   sortLanguagesByPriority
 }
 import no.ndla.network.ApplicationUrl
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import org.jsoup.Jsoup
 
 class SearchConverterService(using converterService: ConverterService) extends StrictLogging {

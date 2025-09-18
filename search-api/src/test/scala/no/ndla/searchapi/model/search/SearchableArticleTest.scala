@@ -9,11 +9,15 @@
 package no.ndla.searchapi.model.search
 
 import no.ndla.common.CirceUtil
-import no.ndla.common.model.api.search.LearningResourceType
+import no.ndla.common.model.api.search.{
+  LanguageValue,
+  LearningResourceType,
+  SearchableLanguageList,
+  SearchableLanguageValues
+}
 import no.ndla.common.model.domain.ArticleMetaImage
 import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.searchapi.TestData.*
 

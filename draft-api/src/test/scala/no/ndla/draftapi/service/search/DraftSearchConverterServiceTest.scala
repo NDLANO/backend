@@ -8,11 +8,11 @@
 
 package no.ndla.draftapi.service.search
 
+import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.*
 import no.ndla.draftapi.model.search.*
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.draftapi.TestData
-import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.search.SearchLanguage
 

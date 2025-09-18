@@ -13,11 +13,11 @@ import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.model.{api, domain}
 import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.mapping.License
 import no.ndla.search.SearchLanguage
-import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 

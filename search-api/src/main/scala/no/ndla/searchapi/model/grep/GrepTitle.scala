@@ -11,8 +11,8 @@ package no.ndla.searchapi.model.grep
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.api.search.LanguageValue
 import no.ndla.mapping.ISO639
-import no.ndla.search.model.LanguageValue
 
 case class GrepTitle(spraak: String, verdi: String)
 

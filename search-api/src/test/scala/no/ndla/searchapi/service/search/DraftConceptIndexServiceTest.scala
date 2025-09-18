@@ -10,12 +10,17 @@ package no.ndla.searchapi.service.search
 
 import io.circe.syntax.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{LearningResourceType, StatusDTO}
+import no.ndla.common.model.api.search.{
+  LanguageValue,
+  LearningResourceType,
+  SearchableLanguageList,
+  SearchableLanguageValues,
+  StatusDTO
+}
 import no.ndla.common.model.domain.Responsible
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.search.SearchableConcept
 import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
