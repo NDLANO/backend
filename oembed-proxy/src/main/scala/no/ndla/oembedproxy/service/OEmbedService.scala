@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.HttpRequestException
 import no.ndla.oembedproxy.model.{InvalidUrlException, OEmbedDTO, OEmbedProvider, ProviderNotSupportedException}
-import org.log4s.MDC
+import org.slf4j.MDC
 import sttp.client3.quick.*
 import sttp.model.HttpVersion
 

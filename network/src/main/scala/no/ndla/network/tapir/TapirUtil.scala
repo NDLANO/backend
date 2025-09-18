@@ -8,15 +8,14 @@
 
 package no.ndla.network.tapir
 
-import io.circe.generic.auto._
-import org.log4s.{Logger, getLogger}
+import com.typesafe.scalalogging.StrictLogging
+import io.circe.generic.auto.*
 import sttp.model.StatusCode
 import sttp.tapir.EndpointOutput.{OneOf, OneOfVariant}
-import sttp.tapir._
-import sttp.tapir.generic.auto._
+import sttp.tapir.*
+import sttp.tapir.generic.auto.*
 
-object TapirUtil {
-  val logger: Logger                                                          = getLogger
+object TapirUtil extends StrictLogging {
   private def variantsForCodes(codes: Seq[Int]): Seq[OneOfVariant[AllErrors]] = codes
     .map(code => {
       val statusCode = StatusCode(code)

@@ -9,6 +9,7 @@
 package no.ndla.network.tapir
 
 import com.sun.net.httpserver.{HttpExchange, HttpServer}
+import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
 import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.ndla.common.RequestLogger
@@ -16,7 +17,7 @@ import no.ndla.common.configuration.BaseProps
 import no.ndla.network.TaxonomyData
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.*
-import org.log4s.{Logger, MDC, getLogger}
+import org.slf4j.MDC
 import sttp.model.HeaderNames.SensitiveHeaders
 import sttp.model.{HeaderNames, StatusCode}
 import sttp.monad.MonadError
@@ -44,13 +45,12 @@ class Routes(using
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
     services: List[TapirController]
-) {
+) extends StrictLogging {
   val activeRequests: AtomicInteger = new AtomicInteger(0)
-  val logger: Logger                = getLogger
   private def failureResponse(error: String, exception: Option[Throwable]): ValuedEndpointOutput[?] = {
     val logMsg = s"Failure handler got: $error"
     exception match {
-      case Some(ex) => logger.error(ex)(logMsg)
+      case Some(ex) => logger.error(logMsg, ex)
       case None     => logger.error(logMsg)
     }
 

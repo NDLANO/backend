@@ -9,8 +9,6 @@
 package no.ndla.network
 
 import no.ndla.network.model.NdlaHttpRequest
-import org.http4s.Request
-import org.typelevel.ci.CIString
 
 object TaxonomyData {
   val TAXONOMY_VERSION_HEADER = "VersionHash"
@@ -25,12 +23,6 @@ object TaxonomyData {
   def fromRequest(request: NdlaHttpRequest): String = {
     request.getHeader(TAXONOMY_VERSION_HEADER).getOrElse(defaultVersion)
   }
-
-  def getFromRequest[F[_]](request: Request[F]): String =
-    request.headers
-      .get(CIString(TAXONOMY_VERSION_HEADER))
-      .map(_.head.value)
-      .getOrElse(defaultVersion)
 
   def get: String = Option(taxonomyVersion.get()).getOrElse(defaultVersion)
 
