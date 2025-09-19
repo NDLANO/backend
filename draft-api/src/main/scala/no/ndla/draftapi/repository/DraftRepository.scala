@@ -137,7 +137,9 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     val count       =
       sql"""
               update ${DBArticle.table}
-              set document=$dataObject, revision=$newRevision, slug=$slug
+              set document=jsonb_set($dataObject,'{notes}',(COALESCE(document->'notes', '[]'::jsonb) || COALESCE($dataObject->'notes', '[]'::jsonb))),
+              revision=$newRevision,
+              slug=$slug
               where article_id=${article.id}
               and revision=$oldRevision
               and revision=(select max(revision) from ${DBArticle.table} where article_id=${article.id})
