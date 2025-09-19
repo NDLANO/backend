@@ -102,7 +102,9 @@ case class DraftSearchParamsDTO(
     @description("Return only results having published date before this date.")
     publishedDateTo: Option[NDLADate],
     @description("Types of hits to appear in the result")
-    resultTypes: Option[List[SearchType]]
+    resultTypes: Option[List[SearchType]],
+    @description("Only return results that have one of the specified tags.")
+    tags: Option[List[String]]
 )
 
 object DraftSearchParamsDTO {

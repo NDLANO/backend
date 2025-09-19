@@ -1196,4 +1196,20 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     hits.head.lastUpdated should be(a[NDLADate])
     hits.head.license should be(Some(License.PublicDomain.toString))
   }
+
+  test("That filtering on tags works") {
+    val Success(search) =
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(tags = List("fugl"), language = "nb")
+      ): @unchecked
+    val Success(search2) =
+      multiDraftSearchService.matchingQuery(
+        multiDraftSearchSettings.copy(tags = List("hulk"), language = "nb")
+      ): @unchecked
+
+    search.totalCount should be(2)
+    search.summaryResults.map(_.id) should be(Seq(1, 2))
+
+    search2.totalCount should be(1)
+  }
 }

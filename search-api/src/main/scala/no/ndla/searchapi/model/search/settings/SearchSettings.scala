@@ -40,7 +40,8 @@ case class SearchSettings(
     articleTypes: List[String],
     filterInactive: Boolean,
     resultTypes: Option[List[SearchType]],
-    nodeTypeFilter: List[NodeType]
+    nodeTypeFilter: List[NodeType],
+    tags: List[String] = List.empty
 )
 
 object SearchSettings {
@@ -74,6 +75,7 @@ object SearchSettings {
         SearchType.Articles,
         SearchType.LearningPaths
       )
-    )
+    ),
+    tags = List.empty
   )
 }
