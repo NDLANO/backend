@@ -31,14 +31,12 @@ object DBArticle extends SQLSyntaxSupport[Draft] {
   def fromResultSet(lp: SyntaxProvider[Draft])(rs: WrappedResultSet): Draft = fromResultSet(lp.resultName)(rs)
 
   def fromResultSet(lp: ResultName[Draft])(rs: WrappedResultSet): Draft = {
-    val meta  = CirceUtil.unsafeParseAs[Draft](rs.string(lp.c("document")))
-    val slug  = rs.stringOpt(lp.c("slug"))
-    val notes = meta.notes.distinct
+    val meta = CirceUtil.unsafeParseAs[Draft](rs.string(lp.c("document")))
+    val slug = rs.stringOpt(lp.c("slug"))
     meta.copy(
       id = Some(rs.long(lp.c("article_id"))),
       revision = Some(rs.int(lp.c("revision"))),
-      slug = slug,
-      notes = notes
+      slug = slug
     )
   }
 }
