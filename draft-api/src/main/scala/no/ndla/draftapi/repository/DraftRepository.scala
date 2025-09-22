@@ -134,10 +134,23 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     val oldRevision = article.revision.getOrElse(0)
     val newRevision = oldRevision + 1
     val slug        = article.slug.map(_.toLowerCase)
-    val count       =
+
+    val oldNotes = sql"""
+        select document->'notes' as notes
+        from ${DBArticle.table}
+        where article_id=${article.id}
+        and revision=$oldRevision
+        and revision=(select max(revision) from ${DBArticle.table} where article_id=${article.id})
+      """.map(editorNotesFromRS).single()
+    val notes = oldNotes match {
+      case Some(n) => n ++ article.notes
+      case None    => article.notes
+    }
+
+    val count =
       sql"""
               update ${DBArticle.table}
-              set document=jsonb_set($dataObject,'{notes}',(document->'notes' || COALESCE($dataObject->'notes', '[]'::jsonb))),
+              set document=jsonb_set($dataObject,'{notes}',(${CirceUtil.toJsonString(notes.distinct)}::jsonb)),
               revision=$newRevision,
               slug=$slug
               where article_id=${article.id}
@@ -146,6 +159,12 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
            """.update()
 
     failIfRevisionMismatch(count, article, newRevision)
+  }
+
+  private def editorNotesFromRS(rs: WrappedResultSet): Seq[EditorNote] = {
+    Option(rs.string("notes"))
+      .map(CirceUtil.unsafeParseAs[Seq[EditorNote]](_))
+      .getOrElse(Seq.empty)
   }
 
   def updateArticleNotes(articleId: Long, notes: Seq[EditorNote])(implicit session: DBSession): Try[Boolean] = {
