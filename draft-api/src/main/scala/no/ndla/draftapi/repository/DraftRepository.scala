@@ -135,12 +135,16 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     val newRevision = oldRevision + 1
     val slug        = article.slug.map(_.toLowerCase)
 
+    val whereClause = sqls"""
+                      where article_id=${article.id}
+                      and revision=$oldRevision
+                      and revision=(select max(revision) from ${DBArticle.table} where article_id=${article.id})
+                      """.stripMargin
+
     val oldNotes = sql"""
         select document->'notes' as notes
         from ${DBArticle.table}
-        where article_id=${article.id}
-        and revision=$oldRevision
-        and revision=(select max(revision) from ${DBArticle.table} where article_id=${article.id})
+          $whereClause
       """.map(editorNotesFromRS).single()
     val notes = oldNotes match {
       case Some(n) => n ++ article.notes
@@ -153,9 +157,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
               set document=jsonb_set($dataObject,'{notes}',(${CirceUtil.toJsonString(notes.distinct)}::jsonb)),
               revision=$newRevision,
               slug=$slug
-              where article_id=${article.id}
-              and revision=$oldRevision
-              and revision=(select max(revision) from ${DBArticle.table} where article_id=${article.id})
+              $whereClause
            """.update()
 
     failIfRevisionMismatch(count, article, newRevision)
