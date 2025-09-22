@@ -14,10 +14,9 @@ import io.circe.syntax.*
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.TapirUtil.stringLiteralSchema
-import no.ndla.common.model.api.search.TitleDTO
+import no.ndla.common.model.api.search.{LanguageValue, TitleDTO}
 import no.ndla.language.Language
 import no.ndla.language.Language.findByLanguageOrBestEffort
-import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.model.api.DescriptionDTO
 import no.ndla.searchapi.model.grep.{
   GrepKjerneelement,

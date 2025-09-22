@@ -10,11 +10,15 @@ package no.ndla.searchapi.service.search
 
 import io.circe.syntax.*
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.ArticleTrait
 import no.ndla.common.model.domain.draft.{DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.*
+import no.ndla.common.util.TraitUtil
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.searchapi.model.domain.IndexingBundle
+import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -24,9 +28,13 @@ import scala.util.Success
 
 class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
 
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-
-  override lazy val draftIndexService: DraftIndexService = new DraftIndexService {
+  override implicit lazy val e4sClient: NdlaE4sClient =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
+  override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  override implicit lazy val draftIndexService: DraftIndexService           = new DraftIndexService {
     override val indexShards = 1
   }
 
@@ -40,9 +48,6 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
     super.beforeAll()
     when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
-
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
 
   test("That mapping contains every field after serialization") {
     val now         = NDLADate.now()
@@ -58,6 +63,7 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
       previousVersionsNotes =
         Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
       revisionMeta = Seq(RevisionMeta(UUID.randomUUID(), now, "hei", RevisionStatus.NeedsRevision)),
+      traits = List(ArticleTrait.H5p),
       copyright = Some(
         DraftCopyright(
           license = Some("hei"),

@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.language.model.WithLanguageAndValue
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 case class DisclaimerDTO(
     @description("The freetext html content of the disclaimer") disclaimer: String,
@@ -23,5 +24,5 @@ object DisclaimerDTO {
 
   implicit def encoder: Encoder[DisclaimerDTO]          = deriveEncoder
   implicit def decoder: Decoder[DisclaimerDTO]          = deriveDecoder
-  implicit def schema: sttp.tapir.Schema[DisclaimerDTO] = sttp.tapir.Schema.derived[DisclaimerDTO]
+  implicit def schema: sttp.tapir.Schema[DisclaimerDTO] = DeriveHelpers.getSchema[DisclaimerDTO]
 }

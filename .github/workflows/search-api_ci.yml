@@ -13,6 +13,10 @@ on:
       - language/**
       - search/**
       - database/**
+      - tapirtesting/**
+      - scalatestsuite/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - search-api/**
@@ -22,6 +26,10 @@ on:
       - language/**
       - search/**
       - database/**
+      - tapirtesting/**
+      - scalatestsuite/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

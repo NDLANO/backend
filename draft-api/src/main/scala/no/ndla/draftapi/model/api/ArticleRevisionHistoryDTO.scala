@@ -9,6 +9,7 @@
 package no.ndla.draftapi.model.api
 
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Information about article revision history")
 case class ArticleRevisionHistoryDTO(
@@ -24,5 +25,5 @@ object ArticleRevisionHistoryDTO {
 
   implicit val encoder: Encoder[ArticleRevisionHistoryDTO]          = deriveEncoder
   implicit val decoder: Decoder[ArticleRevisionHistoryDTO]          = deriveDecoder
-  implicit def schema: sttp.tapir.Schema[ArticleRevisionHistoryDTO] = sttp.tapir.Schema.derived
+  implicit def schema: sttp.tapir.Schema[ArticleRevisionHistoryDTO] = DeriveHelpers.getSchema
 }

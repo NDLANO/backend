@@ -10,8 +10,10 @@ package no.ndla.common
 
 import enumeratum.*
 import io.circe.*
+import io.circe.generic.semiauto.deriveEncoder
 import io.circe.syntax.*
 
+import scala.deriving.Mirror
 import scala.util.{Failure, Try}
 
 object CirceUtil {
@@ -32,6 +34,9 @@ object CirceUtil {
       .recoverWith { ex => Failure(CirceFailure(str, ex)) }
   }
 
+  /** This might throw an exception! Use with care, probably only use this in tests */
+  def unsafeParse(str: String): Json = tryParse(str).get
+
   def tryParseAs[T](str: String)(implicit d: Decoder[T]): Try[T] = tryParse(str).flatMap(_.as[T].toTry)
 
   /** This might throw an exception! Use with care, probably only use this in tests */
@@ -48,11 +53,13 @@ object CirceUtil {
     json.mapObject(_.add("typename", Json.fromString(clazz.getSimpleName)))
   }
 
-  inline def deriveEncoderWithTypename[T](using encoder: Encoder[T]): Encoder[T] =
+  inline def deriveEncoderWithTypename[T](using inline T: Mirror.Of[T]): Encoder[T] = {
+    val baseEncoder = deriveEncoder[T]
     Encoder.instance[T] { value =>
-      val json = encoder.apply(value)
+      val json = baseEncoder.apply(value)
       addTypenameDiscriminator(json, value.getClass)
     }
+  }
 
   private val stringDecoder = implicitly[Decoder[String]]
 

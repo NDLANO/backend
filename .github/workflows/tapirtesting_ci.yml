@@ -10,12 +10,16 @@ on:
       - common/**
       - network/**
       - scalatestsuite/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - tapirtesting/**
       - common/**
       - network/**
       - scalatestsuite/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

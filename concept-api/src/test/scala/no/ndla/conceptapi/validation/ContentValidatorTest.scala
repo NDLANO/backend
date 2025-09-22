@@ -12,13 +12,14 @@ import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.concept.{Concept, ConceptContent}
 import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Author, ContributorType, Responsible, Title}
+import no.ndla.conceptapi.service.ConverterService
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.{Failure, Success}
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
-  override lazy val converterService = new ConverterService
-  override lazy val contentValidator = new ContentValidator
+  override implicit lazy val converterService: ConverterService = new ConverterService
+  override implicit lazy val contentValidator: ContentValidator = new ContentValidator
 
   val baseConcept: Concept = TestData.domainConcept.copy(responsible = Some(Responsible("hei", TestData.today)))
 

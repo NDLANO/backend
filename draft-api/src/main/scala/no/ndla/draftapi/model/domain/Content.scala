@@ -21,6 +21,7 @@ case class UserData(
     savedSearches: Option[Seq[SavedSearchDTO]],
     latestEditedArticles: Option[Seq[String]],
     latestEditedConcepts: Option[Seq[String]],
+    latestEditedLearningpaths: Option[Seq[String]],
     favoriteSubjects: Option[Seq[String]]
 )
 
@@ -51,8 +52,6 @@ object UserData extends SQLSyntaxSupport[UserData] {
 
   def fromResultSet(lp: ResultName[UserData])(rs: WrappedResultSet): UserData = {
     val userData = CirceUtil.unsafeParseAs[UserData](rs.string(lp.c("document")))
-    userData.copy(
-      id = Some(rs.long(lp.c("id")))
-    )
+    userData.copy(id = Some(rs.long(lp.c("id"))))
   }
 }

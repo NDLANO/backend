@@ -13,6 +13,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.language.model.LanguageField
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Title of resource")
 case class TitleWithHtmlDTO(
@@ -27,5 +28,5 @@ case class TitleWithHtmlDTO(
 object TitleWithHtmlDTO {
   implicit val encoder: Encoder[TitleWithHtmlDTO] = deriveEncoder
   implicit val decoder: Decoder[TitleWithHtmlDTO] = deriveDecoder
-  implicit val schema: Schema[TitleWithHtmlDTO]   = Schema.derived
+  implicit val schema: Schema[TitleWithHtmlDTO]   = DeriveHelpers.getSchema
 }

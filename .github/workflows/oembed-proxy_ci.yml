@@ -10,12 +10,18 @@ on:
       - common/**
       - network/**
       - scalatestsuite/**
+      - tapirtesting/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - oembed-proxy/**
       - common/**
       - network/**
       - scalatestsuite/**
+      - tapirtesting/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

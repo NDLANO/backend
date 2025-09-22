@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 import sttp.tapir.Schema
+import no.ndla.common.DeriveHelpers
 
 @description("Information about search-results")
 case class SearchResultDTO(
@@ -26,7 +27,7 @@ object SearchResultDTO {
   implicit def encoder: Encoder[SearchResultDTO] = deriveEncoder
   implicit def decoder: Decoder[SearchResultDTO] = deriveDecoder
   import sttp.tapir.generic.auto.*
-  implicit def schema: Schema[SearchResultDTO] = Schema.derivedSchema
+  implicit def schema: Schema[SearchResultDTO] = DeriveHelpers.getSchema
 }
 
 @description("Information and metadata about codes from GREP API")
@@ -41,7 +42,7 @@ object GrepCodesSearchResultDTO {
   implicit def encoder: Encoder[GrepCodesSearchResultDTO] = deriveEncoder
   implicit def decoder: Decoder[GrepCodesSearchResultDTO] = deriveDecoder
   import sttp.tapir.generic.auto.*
-  implicit def schema: Schema[GrepCodesSearchResultDTO] = Schema.derivedSchema
+  implicit def schema: Schema[GrepCodesSearchResultDTO] = DeriveHelpers.getSchema
 }
 
 @description("Information about tags-search-results")
@@ -57,7 +58,7 @@ object TagsSearchResultDTO {
   implicit def encoder: Encoder[TagsSearchResultDTO] = deriveEncoder
   implicit def decoder: Decoder[TagsSearchResultDTO] = deriveDecoder
   import sttp.tapir.generic.auto.*
-  implicit def schema: Schema[TagsSearchResultDTO] = Schema.derivedSchema
+  implicit def schema: Schema[TagsSearchResultDTO] = DeriveHelpers.getSchema
 }
 
 @description("Information about articles")
@@ -73,5 +74,5 @@ object ArticleDumpDTO {
   implicit def encoder: Encoder[ArticleDumpDTO] = deriveEncoder
   implicit def decoder: Decoder[ArticleDumpDTO] = deriveDecoder
   import sttp.tapir.generic.auto.*
-  implicit def schema: Schema[ArticleDumpDTO] = Schema.derivedSchema
+  implicit def schema: Schema[ArticleDumpDTO] = DeriveHelpers.getSchema
 }

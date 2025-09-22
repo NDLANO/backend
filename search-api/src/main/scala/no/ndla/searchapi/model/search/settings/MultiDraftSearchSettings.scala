@@ -9,13 +9,14 @@
 package no.ndla.searchapi.model.search.settings
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{LearningResourceType, SearchTrait, SearchType}
+import no.ndla.common.model.api.search.{LearningResourceType, ArticleTrait, SearchType}
+import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.DraftStatus
+import no.ndla.common.model.domain.learningpath.LearningPathStatus
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.searchapi.model.domain.Sort
-import no.ndla.common.model.domain.Priority
 
 case class MultiDraftSearchSettings(
     user: TokenUser,
@@ -34,10 +35,10 @@ case class MultiDraftSearchSettings(
     learningResourceTypes: List[LearningResourceType],
     supportedLanguages: List[String],
     relevanceIds: List[String],
-    statusFilter: List[DraftStatus],
+    statusFilter: List[DraftStatus | LearningPathStatus],
     userFilter: List[String],
     grepCodes: List[String],
-    traits: List[SearchTrait],
+    traits: List[ArticleTrait],
     shouldScroll: Boolean,
     searchDecompounded: Boolean,
     aggregatePaths: List[String],

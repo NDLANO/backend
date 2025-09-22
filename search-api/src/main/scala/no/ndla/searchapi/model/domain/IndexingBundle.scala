@@ -9,8 +9,8 @@
 package no.ndla.searchapi.model.domain
 
 import no.ndla.common.model.api.MyNDLABundleDTO
+import no.ndla.common.model.taxonomy.TaxonomyBundle
 import no.ndla.searchapi.model.grep.GrepBundle
-import no.ndla.searchapi.model.taxonomy.TaxonomyBundle
 
 /** Bundle of data to pass around when indexing */
 case class IndexingBundle(

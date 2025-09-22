@@ -10,12 +10,16 @@ on:
       - common/**
       - testbase/**
       - database/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - scalatestsuite/**
       - common/**
       - testbase/**
       - database/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

@@ -18,6 +18,7 @@ import no.ndla.common.model.domain.{Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.language.model.LanguageField
 import scalikejdbc.*
+import no.ndla.common.DeriveHelpers
 
 case class AudioMetaInformation(
     id: Option[Long],
@@ -75,7 +76,7 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   implicit val encoder: Encoder[AudioMetaInformation] = deriveEncoder
   implicit val decoder: Decoder[AudioMetaInformation] = deriveDecoder
   import sttp.tapir.generic.auto.*
-  implicit def schema: Schema[AudioMetaInformation] = Schema.derived
+  implicit def schema: Schema[AudioMetaInformation] = DeriveHelpers.getSchema
 
   def fromResultSet(au: SyntaxProvider[AudioMetaInformation])(rs: WrappedResultSet): AudioMetaInformation =
     fromResultSet(au.resultName)(rs)

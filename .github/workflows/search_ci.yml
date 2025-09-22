@@ -10,12 +10,18 @@ on:
       - language/**
       - common/**
       - mapping/**
+      - scalatestsuite/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - search/**
       - language/**
       - common/**
       - mapping/**
+      - scalatestsuite/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

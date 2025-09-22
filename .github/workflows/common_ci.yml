@@ -8,10 +8,16 @@ on:
     paths:
       - common/**
       - language/**
+      - testbase/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - common/**
       - language/**
+      - testbase/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

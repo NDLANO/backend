@@ -9,6 +9,7 @@
 package no.ndla.draftapi.model.api
 
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Information about notes to add to drafts")
 case class AddMultipleNotesDTO(
@@ -23,5 +24,5 @@ object AddMultipleNotesDTO {
 
   implicit val encoder: Encoder[AddMultipleNotesDTO]          = deriveEncoder
   implicit val decoder: Decoder[AddMultipleNotesDTO]          = deriveDecoder
-  implicit def schema: sttp.tapir.Schema[AddMultipleNotesDTO] = sttp.tapir.Schema.derivedSchema
+  implicit def schema: sttp.tapir.Schema[AddMultipleNotesDTO] = DeriveHelpers.getSchema
 }

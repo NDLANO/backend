@@ -9,15 +9,13 @@
 package no.ndla.imageapi
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.configuration.{BaseProps, HasBaseProps}
-import no.ndla.database.{DatabaseProps, HasDatabaseProps}
+import no.ndla.common.configuration.BaseProps
+import no.ndla.database.DatabaseProps
 import no.ndla.network.{AuthUser, Domains}
 
 import scala.util.Properties.*
 
-trait Props extends HasBaseProps with HasDatabaseProps {
-  lazy val props: ImageApiProperties
-}
+type Props = ImageApiProperties
 
 class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging {
   def ApplicationName            = "image-api"

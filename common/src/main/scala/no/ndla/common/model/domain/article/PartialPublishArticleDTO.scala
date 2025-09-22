@@ -15,6 +15,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{RelatedContent, RelatedContentLinkDTO, UpdateOrDelete}
 import no.ndla.common.model.domain.Availability
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 // format: off
 @description("Partial data about article to publish independently")
@@ -37,5 +38,5 @@ object PartialPublishArticleDTO {
   implicit val encoder: Encoder.AsObject[PartialPublishArticleDTO] = UpdateOrDelete.filterMarkers(deriveEncoder[PartialPublishArticleDTO])
   implicit val decoder: Decoder[PartialPublishArticleDTO] = deriveDecoder[PartialPublishArticleDTO]
   import sttp.tapir.generic.auto.*
-  implicit def schema: sttp.tapir.Schema[PartialPublishArticleDTO] = sttp.tapir.Schema.derivedSchema
+  implicit def schema: sttp.tapir.Schema[PartialPublishArticleDTO] = DeriveHelpers.getSchema
 }

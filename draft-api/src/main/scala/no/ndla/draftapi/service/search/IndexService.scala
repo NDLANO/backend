@@ -8,117 +8,114 @@
 
 package no.ndla.draftapi.service.search
 
+import cats.implicits.*
 import com.sksamuel.elastic4s.ElasticDsl.*
 import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.draftapi.Props
+import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.repository.Repository
-import no.ndla.search.{BaseIndexService, Elastic4sClient, SearchLanguage}
-
-import scala.util.{Failure, Success, Try}
-import cats.implicits.*
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
+import no.ndla.search.{BaseIndexService, SearchLanguage}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
-trait IndexService {
-  this: Elastic4sClient & BaseIndexService & Props & SearchLanguage =>
+trait IndexService[D, T](using props: DraftApiProperties, searchLanguage: SearchLanguage)
+    extends BaseIndexService
+    with StrictLogging {
+  override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
+  val repository: Repository[D]
 
-  abstract class IndexService[D, T <: AnyRef] extends BaseIndexService with StrictLogging {
-    override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
-    val repository: Repository[D]
+  def indexAsync(id: Long, doc: D)(implicit ec: ExecutionContext): Future[Try[D]] = {
+    val fut             = Future { indexDocument(doc) }
+    val logIndexFailure = (id: Long, ex: Throwable) => logger.error(s"Failed to index into $searchIndex, id: $id", ex)
 
-    def indexAsync(id: Long, doc: D)(implicit ec: ExecutionContext): Future[Try[D]] = {
-      val fut             = Future { indexDocument(doc) }
-      val logIndexFailure = (id: Long, ex: Throwable) => logger.error(s"Failed to index into $searchIndex, id: $id", ex)
-
-      fut.onComplete {
-        case Success(Success(_))  => logger.info(s"Successfully indexed into $searchIndex, id: $id")
-        case Success(Failure(ex)) => logIndexFailure(id, ex)
-        case Failure(ex)          => logIndexFailure(id, ex)
-      }
-
-      fut
+    fut.onComplete {
+      case Success(Success(_))  => logger.info(s"Successfully indexed into $searchIndex, id: $id")
+      case Success(Failure(ex)) => logIndexFailure(id, ex)
+      case Failure(ex)          => logIndexFailure(id, ex)
     }
 
-    def createIndexRequests(domainModel: D, indexName: String): Seq[IndexRequest]
+    fut
+  }
 
-    def indexDocument(imported: D): Try[D] = {
-      for {
-        _ <- createIndexIfNotExists()
-        requests = createIndexRequests(imported, searchIndex)
-        _ <- executeRequests(requests)
-      } yield imported
-    }
+  def createIndexRequests(domainModel: D, indexName: String): Seq[IndexRequest]
 
-    def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = synchronized {
-      indexDocumentsInBulk(numShards)(sendToElastic)
-    }
+  def indexDocument(imported: D): Try[D] = {
+    for {
+      _ <- createIndexIfNotExists()
+      requests = createIndexRequests(imported, searchIndex)
+      _ <- executeRequests(requests)
+    } yield imported
+  }
 
-    def sendToElastic(indexName: String): Try[BulkIndexResult] = {
-      getRanges
-        .flatMap(ranges => {
-          ranges.traverse { case (start, end) =>
-            val toIndex = repository.documentsWithIdBetween(start, end)
-            indexDocuments(toIndex, indexName)
-          }
-        })
-        .map(countBulkIndexed)
-    }
+  def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = synchronized {
+    indexDocumentsInBulk(numShards)(sendToElastic)
+  }
 
-    def getRanges: Try[List[(Long, Long)]] = {
-      Try {
-        val (minId, maxId) = repository.minMaxId
-        Seq
-          .range(minId, maxId + 1)
-          .grouped(props.IndexBulkSize)
-          .map(group => (group.head, group.last))
-          .toList
-      }
-    }
-
-    def indexDocuments(contents: Seq[D], indexName: String): Try[BulkIndexResult] = {
-      if (contents.isEmpty) {
-        Success(BulkIndexResult.empty)
-      } else {
-        val requests = contents.flatMap(content => {
-          createIndexRequests(content, indexName)
-        })
-
-        executeRequests(requests) match {
-          case Success(result) =>
-            logger.info(s"Indexed ${result.successful} documents ($searchIndex). No of failed items: ${result.failed}")
-            Success(result)
-          case Failure(ex) => Failure(ex)
+  def sendToElastic(indexName: String): Try[BulkIndexResult] = {
+    getRanges
+      .flatMap(ranges => {
+        ranges.traverse { case (start, end) =>
+          val toIndex = repository.documentsWithIdBetween(start, end)
+          indexDocuments(toIndex, indexName)
         }
+      })
+      .map(countBulkIndexed)
+  }
+
+  def getRanges: Try[List[(Long, Long)]] = {
+    Try {
+      val (minId, maxId) = repository.minMaxId
+      Seq
+        .range(minId, maxId + 1)
+        .grouped(props.IndexBulkSize)
+        .map(group => (group.head, group.last))
+        .toList
+    }
+  }
+
+  def indexDocuments(contents: Seq[D], indexName: String): Try[BulkIndexResult] = {
+    if (contents.isEmpty) {
+      Success(BulkIndexResult.empty)
+    } else {
+      val requests = contents.flatMap(content => {
+        createIndexRequests(content, indexName)
+      })
+
+      executeRequests(requests) match {
+        case Success(result) =>
+          logger.info(s"Indexed ${result.successful} documents ($searchIndex). No of failed items: ${result.failed}")
+          Success(result)
+        case Failure(ex) => Failure(ex)
       }
     }
+  }
 
-    /** Returns Sequence of FieldDefinitions for a given field.
-      *
-      * @param fieldName
-      *   Name of field in mapping.
-      * @param keepRaw
-      *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
-      * @return
-      *   Sequence of FieldDefinitions for a field.
-      */
-    protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
-      if (keepRaw) {
-        SearchLanguage.languageAnalyzers.map(langAnalyzer =>
-          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-            .fielddata(false)
-            .analyzer(langAnalyzer.analyzer)
-            .fields(keywordField("raw"))
-        )
-      } else {
-        SearchLanguage.languageAnalyzers.map(langAnalyzer =>
-          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-            .fielddata(false)
-            .analyzer(langAnalyzer.analyzer)
-        )
-      }
+  /** Returns Sequence of FieldDefinitions for a given field.
+    *
+    * @param fieldName
+    *   Name of field in mapping.
+    * @param keepRaw
+    *   Whether to add a keywordField named raw. Usually used for sorting, aggregations or scripts.
+    * @return
+    *   Sequence of FieldDefinitions for a field.
+    */
+  protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
+    if (keepRaw) {
+      searchLanguage.languageAnalyzers.map(langAnalyzer =>
+        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+          .fielddata(false)
+          .analyzer(langAnalyzer.analyzer)
+          .fields(keywordField("raw"))
+      )
+    } else {
+      searchLanguage.languageAnalyzers.map(langAnalyzer =>
+        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+          .fielddata(false)
+          .analyzer(langAnalyzer.analyzer)
+      )
     }
   }
 }

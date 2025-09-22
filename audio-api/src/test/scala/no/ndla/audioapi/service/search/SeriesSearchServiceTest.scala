@@ -8,21 +8,27 @@
 
 package no.ndla.audioapi.service.search
 
+import no.ndla.audioapi.controller.ControllerErrorHandling
 import no.ndla.audioapi.model.domain.*
 import no.ndla.audioapi.model.{Sort, domain}
+import no.ndla.audioapi.service.ConverterService
 import no.ndla.audioapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.common.model.domain as common
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class SeriesSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
+  override implicit lazy val e4sClient: NdlaE4sClient =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
-  override lazy val seriesSearchService                    = new SeriesSearchService
-  override lazy val seriesIndexService: SeriesIndexService = new SeriesIndexService {
+  override implicit lazy val searchLanguage: SearchLanguage           = new SearchLanguage
+  override implicit lazy val errorHandling: ControllerErrorHandling   = new ControllerErrorHandling
+  override implicit lazy val seriesSearchService: SeriesSearchService = new SeriesSearchService
+  override implicit lazy val seriesIndexService: SeriesIndexService   = new SeriesIndexService {
     override val indexShards = 1
   }
-  override lazy val searchConverterService = new SearchConverterService
-  override lazy val converterService       = new ConverterService
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  override implicit lazy val converterService: ConverterService             = new ConverterService
 
   val seriesToIndex: Seq[Series] = Seq(
     TestData.SampleSeries.copy(

@@ -13,6 +13,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Description of copyright information")
 case class DraftCopyrightDTO(
@@ -29,5 +30,5 @@ case class DraftCopyrightDTO(
 object DraftCopyrightDTO {
   implicit def encoder: Encoder[DraftCopyrightDTO] = deriveEncoder[DraftCopyrightDTO]
   implicit def decoder: Decoder[DraftCopyrightDTO] = deriveDecoder[DraftCopyrightDTO]
-  implicit def schema: Schema[DraftCopyrightDTO]   = Schema.derived[DraftCopyrightDTO]
+  implicit def schema: Schema[DraftCopyrightDTO]   = DeriveHelpers.getSchema[DraftCopyrightDTO]
 }

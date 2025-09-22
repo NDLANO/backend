@@ -13,6 +13,7 @@ import sttp.tapir.Codec.PlainCodec
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 import sttp.tapir.codec.enumeratum.*
+import no.ndla.common.DeriveHelpers
 
 sealed trait PartialArticleFieldsDTO extends EnumEntry
 
@@ -45,5 +46,5 @@ object PartialBulkArticlesDTO {
 
   implicit def encoder: Encoder[PartialBulkArticlesDTO] = deriveEncoder
   implicit def decoder: Decoder[PartialBulkArticlesDTO] = deriveDecoder
-  implicit def schema: Schema[PartialBulkArticlesDTO]   = Schema.derived
+  implicit def schema: Schema[PartialBulkArticlesDTO]   = DeriveHelpers.getSchema
 }

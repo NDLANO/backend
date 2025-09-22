@@ -7,7 +7,9 @@ import mill.scalalib.*
 trait GithubWorkflowPlugin extends ScalaModule {
   def moduleName: String
   def isComponent: Boolean
-  private def depNames              = this.moduleDeps.map(_.moduleDir.baseName)
+  def test: ScalaTests
+  private def depNames =
+    this.moduleDeps.map(_.moduleDir.baseName) ++ test.moduleDeps.map(_.moduleDir.baseName).filterNot(_ == "test")
   private def ciWorkflowPath        = BuildCtx.workspaceRoot / ".github" / "workflows" / s"${moduleName}_ci.yml"
   private def ciReleaseWorkflowPath = BuildCtx.workspaceRoot / ".github" / "workflows" / s"${moduleName}_release.yml"
 
@@ -26,12 +28,15 @@ trait GithubWorkflowPlugin extends ScalaModule {
     Seq(s"$name/**")
   }
 
+  def sharedBuildFiles(): Seq[String] = Seq("modules/**", "build.mill")
+
   def getPaths(name: String, deps: Seq[String]): Seq[String] = {
-    pathsFor(name) ++ deps.flatMap(pathsFor)
+    pathsFor(name) ++ deps.flatMap(pathsFor) ++ sharedBuildFiles()
   }
 
   def getPathsList(name: String, deps: Seq[String]): String = {
-    val paths = getPaths(name, deps)
+    val paths = getPaths(name, deps).distinct
+
     "\n" + paths
       .map(x => s"      - $x")
       .mkString("\n")

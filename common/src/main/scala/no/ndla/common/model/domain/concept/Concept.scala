@@ -15,6 +15,7 @@ import no.ndla.common.model.domain.draft.DraftCopyright
 import no.ndla.common.model.domain.{Content, Responsible, Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
 import sttp.tapir.Schema
+import no.ndla.common.DeriveHelpers
 
 case class Concept(
     id: Option[Long],
@@ -41,5 +42,5 @@ object Concept {
   implicit val encoder: Encoder[Concept] = deriveEncoder
   implicit val decoder: Decoder[Concept] = deriveDecoder
   import sttp.tapir.generic.auto.*
-  implicit def schema: Schema[Concept] = Schema.derivedSchema
+  implicit def schema: Schema[Concept] = DeriveHelpers.getSchema
 }

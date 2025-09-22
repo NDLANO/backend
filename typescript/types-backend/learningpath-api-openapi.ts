@@ -391,6 +391,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/learningpath-api/v2/learningpaths/{learningpath_id}/language/{p1}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete the given language of a learning path
+         * @description Delete the given language of a learning path
+         */
+        delete: operations["deleteLearningpath-apiV2LearningpathsLearningpath_idLanguageP1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/learningpath-api/v2/learningpaths/{learningpath_id}/update-taxonomy": {
         parameters: {
             query?: never;
@@ -583,6 +603,8 @@ export type components = {
             isBasedOn?: number;
             /** @description Message that admins can place on a LearningPath for notifying a owner of issues with the LearningPath */
             message?: string;
+            /** @description The codes from GREP API registered for this draft article */
+            grepCodes: string[];
         };
         /**
          * LearningPathTagsDTO
@@ -665,6 +687,12 @@ export type components = {
             /** @description Information about comments attached to the learningpath */
             comments: components["schemas"]["CommentDTO"][];
             priority: components["schemas"]["Priority"];
+            /** @description A list of revisions planned for the learningpath */
+            revisions: components["schemas"]["RevisionMetaDTO"][];
+            /** @description An introduction for the learningpath */
+            introduction: components["schemas"]["IntroductionDTO"];
+            /** @description A list of codes from GREP API connected to the article */
+            grepCodes: string[];
         };
         /**
          * LearningStepContainerSummaryDTO
@@ -755,14 +783,23 @@ export type components = {
             showTitle: boolean;
             /** @description The type of the step */
             type: string;
-            /** @description Describes the copyright information for the learningstep */
+            /**
+             * @deprecated
+             * @description Describes the copyright information for the learningstep
+             */
             license?: components["schemas"]["LicenseDTO"];
+            /** @description Describes the copyright information for the learningstep */
+            copyright?: components["schemas"]["CopyrightDTO"];
             /** @description The full url to where the complete metainformation about the learningstep can be found */
             metaUrl: string;
             /** @description True if authenticated user may edit this learningstep */
             canEdit: boolean;
             /** @description The status of the learningstep */
             status: string;
+            /** @description The date when this learningstep was created. */
+            created: string;
+            /** @description The date when this learningstep was last updated. */
+            lastUpdated: string;
             /** @description The supported languages of the learningstep */
             supportedLanguages: string[];
         };
@@ -802,6 +839,8 @@ export type components = {
         NewCopyLearningPathV2DTO: {
             /** @description The titles of the learningpath */
             title: string;
+            /** @description The introduction of the learningpath */
+            introduction?: string;
             /** @description The descriptions of the learningpath */
             description?: string;
             /** @description The chosen language */
@@ -844,7 +883,13 @@ export type components = {
             responsibleId?: string;
             /** @description Information about comments attached to the learningpath */
             comments?: components["schemas"]["NewCommentDTO"][];
+            /** @description A list of all revisions of the learningpath */
+            revisionMeta?: components["schemas"]["RevisionMetaDTO"][];
             priority?: components["schemas"]["Priority"];
+            /** @description An introduction */
+            introduction?: string;
+            /** @description A list of codes from GREP API connected to the article */
+            grepCodes?: string[];
         };
         /**
          * NewLearningStepV2DTO
@@ -872,8 +917,13 @@ export type components = {
             showTitle?: boolean;
             /** @description The type of the step */
             type: string;
-            /** @description Describes the copyright information for the learningstep */
+            /**
+             * @deprecated
+             * @description Describes the copyright information for the learningstep
+             */
             license?: string;
+            /** @description Describes the copyright information for the learningstep */
+            copyright?: components["schemas"]["CopyrightDTO"];
         };
         /**
          * NotFoundWithSupportedLanguages
@@ -909,6 +959,20 @@ export type components = {
             responsibleId: string;
             /** @description Date of when the responsible editor was last updated */
             lastUpdated: string;
+        };
+        /**
+         * RevisionMetaDTO
+         * @description Information about the editorial notes
+         */
+        RevisionMetaDTO: {
+            /** @description An unique uuid of the revision. If none supplied, one is generated. */
+            id?: string;
+            /** @description A date on which the article would need to be revised */
+            revisionDate: string;
+            /** @description Notes to keep track of what needs to happen before revision */
+            note: string;
+            /** @description Status of a revision, either 'revised' or 'needs-revision' */
+            status: string;
         };
         /**
          * SearchParamsDTO
@@ -1037,6 +1101,12 @@ export type components = {
             /** @description Information about comments attached to the learningpath */
             comments?: components["schemas"]["UpdatedCommentDTO"][];
             priority?: components["schemas"]["Priority"];
+            /** @description A list of all revisions of the learningpath */
+            revisionMeta?: components["schemas"]["RevisionMetaDTO"][];
+            /** @description An introduction */
+            introduction?: string | null;
+            /** @description A list of codes from GREP API connected to the article */
+            grepCodes?: string[];
         };
         /**
          * UpdatedLearningStepV2DTO
@@ -1049,7 +1119,7 @@ export type components = {
              */
             revision: number;
             /** @description The title of the learningstep */
-            title?: string;
+            title?: string | null;
             /** @description The introduction of the learningstep */
             introduction?: string | null;
             /** @description The chosen language */
@@ -1067,8 +1137,13 @@ export type components = {
             showTitle?: boolean;
             /** @description The type of the step */
             type?: string;
-            /** @description Describes the copyright information for the learningstep */
+            /**
+             * @deprecated
+             * @description Describes the copyright information for the learningstep
+             */
             license?: string;
+            /** @description Describes the copyright information for the learningstep */
+            copyright?: components["schemas"]["CopyrightDTO"] | null;
         };
         /**
          * ValidationErrorBody
@@ -2748,6 +2823,62 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"] | components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "deleteLearningpath-apiV2LearningpathsLearningpath_idLanguageP1": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Id of the learningpath. */
+                learningpath_id: number;
+                /** @description The ISO 639-1 language describing language. */
+                p1: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningPathV2DTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

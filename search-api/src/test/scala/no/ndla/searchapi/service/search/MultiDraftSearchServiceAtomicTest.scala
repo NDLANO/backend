@@ -13,42 +13,46 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{ApiTaxonomyContextDTO, LearningResourceType, SearchType}
+import no.ndla.common.model.api.search.*
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.common.model.taxonomy.{Node, NodeType, TaxonomyBundle, TaxonomyContext}
+import no.ndla.common.util.TraitUtil
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
+import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
-import no.ndla.searchapi.model.taxonomy.*
+import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment}
-import no.ndla.searchapi.SearchTestUtility.*
 
 import java.util.UUID
 import scala.util.{Success, Try}
 
 class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with TestEnvironment {
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
-
-  override lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
+  override implicit lazy val e4sClient: NdlaE4sClient =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
+  override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
+  override implicit lazy val articleIndexService: ArticleIndexService       = new ArticleIndexService {
     override val indexShards = 1
   }
-  override lazy val draftIndexService: DraftIndexService = new DraftIndexService {
+  override implicit lazy val draftIndexService: DraftIndexService = new DraftIndexService {
     override val indexShards = 1
   }
-  override lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+  override implicit lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
     override val indexShards = 1
   }
-  override lazy val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
+  override implicit lazy val draftConceptIndexService: DraftConceptIndexService = new DraftConceptIndexService {
     override val indexShards = 1
   }
-  override lazy val multiDraftSearchService: MultiDraftSearchService = new MultiDraftSearchService {
+  override implicit lazy val multiDraftSearchService: MultiDraftSearchService = new MultiDraftSearchService {
     override val enableExplanations = true
   }
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
 
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
@@ -171,28 +175,83 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       id = Some(4),
       revisionMeta = Seq()
     )
+
+    val lp1 = TestData.learningPath1.copy(
+      id = Some(5),
+      revisionMeta = Seq(
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          today,
+          note = "note",
+          status = RevisionStatus.NeedsRevision
+        ),
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          tomorrow,
+          note = "note",
+          status = RevisionStatus.NeedsRevision
+        ),
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          yesterday,
+          note = "note",
+          status = RevisionStatus.Revised
+        )
+      )
+    )
+    val lp2 = TestData.learningPath1.copy(
+      id = Some(6),
+      revisionMeta = Seq(
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          yesterday.minusDays(10),
+          note = "note",
+          status = RevisionStatus.Revised
+        )
+      )
+    )
+    val lp3 = TestData.learningPath1.copy(
+      id = Some(7),
+      revisionMeta = Seq(
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          yesterday,
+          note = "note",
+          status = RevisionStatus.NeedsRevision
+        )
+      )
+    )
+    val lp4 = TestData.learningPath1.copy(
+      id = Some(8),
+      revisionMeta = Seq()
+    )
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
     draftIndexService.indexDocument(draft4, indexingBundle).get
 
-    blockUntil(() => draftIndexService.countDocuments == 4)
+    learningPathIndexService.indexDocument(lp1, indexingBundle).get
+    learningPathIndexService.indexDocument(lp2, indexingBundle).get
+    learningPathIndexService.indexDocument(lp3, indexingBundle).get
+    learningPathIndexService.indexDocument(lp4, indexingBundle).get
+
+    blockUntil(() => draftIndexService.countDocuments == 4 && learningPathIndexService.countDocuments == 4)
 
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(sort = Sort.ByRevisionDateAsc)
       ): @unchecked
 
-    search1.totalCount should be(4)
-    search1.summaryResults.map(_.id) should be(List(3, 1, 2, 4))
+    search1.totalCount should be(8)
+    search1.summaryResults.map(_.id) should be(List(3, 7, 1, 5, 2, 4, 6, 8))
 
     val Success(search2) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(sort = Sort.ByRevisionDateDesc)
       ): @unchecked
 
-    search2.totalCount should be(4)
-    search2.summaryResults.map(_.id) should be(List(1, 3, 2, 4))
+    search2.totalCount should be(8)
+    search2.summaryResults.map(_.id) should be(List(1, 5, 3, 7, 2, 4, 6, 8))
   }
 
   test("Test that searching for note in revision meta works as expected") {
@@ -249,20 +308,44 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       id = Some(4),
       revisionMeta = Seq()
     )
+    val lp1 = TestData.learningPath1.copy(
+      id = Some(5),
+      revisionMeta = Seq(
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          yesterday.minusDays(10),
+          note = "pudding",
+          status = RevisionStatus.Revised
+        )
+      )
+    )
+    val lp2 = TestData.learningPath1.copy(
+      id = Some(6),
+      revisionMeta = Seq(
+        RevisionMeta(
+          id = UUID.randomUUID(),
+          yesterday,
+          note = "trylleformel",
+          status = RevisionStatus.NeedsRevision
+        )
+      )
+    )
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
     draftIndexService.indexDocument(draft4, indexingBundle).get
+    learningPathIndexService.indexDocument(lp1, indexingBundle).get
+    learningPathIndexService.indexDocument(lp2, indexingBundle).get
 
-    blockUntil(() => draftIndexService.countDocuments == 4)
+    blockUntil(() => draftIndexService.countDocuments == 4 && learningPathIndexService.countDocuments == 2)
 
     val Success(search1) =
       multiDraftSearchService.matchingQuery(
         multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("trylleformel").get))
       ): @unchecked
 
-    search1.totalCount should be(1)
-    search1.summaryResults.map(_.id) should be(List(3))
+    search1.totalCount should be(2)
+    search1.summaryResults.map(_.id) should be(List(3, 6))
   }
 
   test("Test that filtering revision dates works as expected") {
@@ -929,7 +1012,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
           domainModel: Draft,
           indexName: String,
           indexingBundle: IndexingBundle
-      ): Try[IndexRequest] = {
+      ): Try[Option[IndexRequest]] = {
 
         val draft = domainModel.id.get match {
           case 1 =>
@@ -966,7 +1049,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         }
 
         val source = CirceUtil.toJsonString(draft)
-        Success(indexInto(indexName).doc(source).id(domainModel.id.get.toString))
+        Success(Some(indexInto(indexName).doc(source).id(domainModel.id.get.toString)))
       }
     }
 

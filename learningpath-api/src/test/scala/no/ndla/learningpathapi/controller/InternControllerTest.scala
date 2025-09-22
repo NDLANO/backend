@@ -8,9 +8,10 @@
 
 package no.ndla.learningpathapi.controller
 
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.api.learningpath.LearningPathStatsDTO
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{doReturn, never, reset, verify, verifyNoMoreInteractions, when}
@@ -20,11 +21,16 @@ import sttp.client3.quick.*
 import scala.util.{Failure, Success}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  val controller: InternController = new InternController
+  override implicit lazy val clock: Clock                    = mock[Clock]
+  override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
+  override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
+  val controller: InternController                           = new InternController
+  override implicit lazy val services: List[TapirController] = List(controller)
+  override implicit lazy val routes: Routes                  = new Routes
 
   test("that id with value 404 gives OK") {
     resetMocks()
-    when(learningPathRepository.getIdFromExternalId(any[String])(any[DBSession])).thenReturn(Some(404L))
+    when(learningPathRepository.getIdFromExternalId(any[String])(using any[DBSession])).thenReturn(Some(404L))
 
     simpleHttpClient
       .send(
@@ -92,13 +98,15 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   }
 
   test("That GET /stats returns statistics for learning paths") {
-    val count = 42L
-    when(learningPathRepository.myNdlaOwnerLearningPathCount(any)).thenReturn(count)
+    val count  = 42L
+    val owners = 2L
+    when(learningPathRepository.myNdlaLearningPathCount(using any)).thenReturn(count)
+    when(learningPathRepository.myNdlaLearningPathOwnerCount(using any)).thenReturn(owners)
     val res = simpleHttpClient.send(
       quickRequest.get(uri"http://localhost:$serverPort/intern/stats")
     )
     res.code.code should be(200)
     val convertedBody = CirceUtil.unsafeParseAs[LearningPathStatsDTO](res.body)
-    convertedBody should be(LearningPathStatsDTO(count))
+    convertedBody should be(LearningPathStatsDTO(count, owners))
   }
 }

@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 import sttp.tapir.Schema
+import no.ndla.common.DeriveHelpers
 
 @description("Meta description of the article")
 case class ArticleMetaDescriptionDTO(
@@ -24,5 +25,5 @@ case class ArticleMetaDescriptionDTO(
 object ArticleMetaDescriptionDTO {
   implicit def encoder: Encoder[ArticleMetaDescriptionDTO] = deriveEncoder
   implicit def decoder: Decoder[ArticleMetaDescriptionDTO] = deriveDecoder
-  implicit def schema: Schema[ArticleMetaDescriptionDTO]   = Schema.derived[ArticleMetaDescriptionDTO]
+  implicit def schema: Schema[ArticleMetaDescriptionDTO]   = DeriveHelpers.getSchema[ArticleMetaDescriptionDTO]
 }

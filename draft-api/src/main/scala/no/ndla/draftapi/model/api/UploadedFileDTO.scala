@@ -11,6 +11,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 import sttp.tapir.Schema
+import no.ndla.common.DeriveHelpers
 
 @description("Information about the uploaded file")
 case class UploadedFileDTO(
@@ -24,5 +25,5 @@ object UploadedFileDTO {
   implicit val encoder: Encoder[UploadedFileDTO] = deriveEncoder
   implicit val decoder: Decoder[UploadedFileDTO] = deriveDecoder
   import sttp.tapir.generic.auto.*
-  implicit def schema: Schema[UploadedFileDTO] = Schema.derivedSchema
+  implicit def schema: Schema[UploadedFileDTO] = DeriveHelpers.getSchema
 }

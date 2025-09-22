@@ -1,0 +1,68 @@
+package build.modules
+
+import mill.*
+import mill.api.BuildCtx
+import mill.scalalib.*
+
+trait ScalacOptions extends ScalaModule {
+  type EnabledFunc = (version: String) => Boolean
+
+  extension (opts: Seq[NDLAScalaOption])
+    def filterEnabled(version: String): Seq[String] = opts
+      .filter { o => o.enabled(version) }
+      .map(_.name)
+
+  case class NDLAScalaOption(name: String, enabled: EnabledFunc = _ => true)
+
+  private def CI = Task.Input {
+    Task.env.get("CI") match
+      case Some("false") | None => false
+      case _                    => true
+  }
+
+  given Conversion[String, NDLAScalaOption] =
+    name => NDLAScalaOption(name, _ => true)
+  given Conversion[(String, EnabledFunc), NDLAScalaOption] =
+    (name, versionCheck) => NDLAScalaOption(name, versionCheck)
+
+  given Conversion[(String, Boolean), NDLAScalaOption] =
+    (name, enabled) => NDLAScalaOption(name, _ => enabled)
+
+  def sharedScalacOptions: T[Seq[String]] = Task {
+    Seq[NDLAScalaOption](
+      "-Xfatal-warnings" -> CI(),
+      "-encoding",
+      "utf8",
+      "-feature",
+      "-unchecked",
+      "-language:existentials",
+      "-language:experimental.macros",
+      "-language:higherKinds",
+      "-language:implicitConversions",
+      "-deprecation",
+      "-Wunused:nowarn",
+      "-Wunused:implicits",
+      "-Wunused:explicits",
+      "-Wunused:imports",
+      "-Wunused:locals",
+      "-Wunused:params",
+      "-Wunused:privates",
+      "-Yretain-trees",
+      "-Xmax-inlines:50"
+    ).filterEnabled(scalaVersion())
+  }
+
+  def scalacOptionsOnlyRun: T[Seq[String]] = Task {
+    Seq[NDLAScalaOption](
+      "-Wvalue-discard",
+      "-Wnonunit-statement"
+    ).filterEnabled(scalaVersion())
+  }
+
+  def testJavaOptions: T[Seq[String]] = Task {
+    Seq[NDLAScalaOption](
+      "-XX:+EnableDynamicAgentLoading",
+      "-Xshare:off"
+    ).filterEnabled(scalaVersion())
+  }
+}

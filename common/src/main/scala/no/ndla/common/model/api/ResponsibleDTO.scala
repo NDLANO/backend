@@ -10,6 +10,7 @@ package no.ndla.common.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.DeriveHelpers
 import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema.annotations.description
 
@@ -22,5 +23,5 @@ case class ResponsibleDTO(
 object ResponsibleDTO {
   implicit def encoder: Encoder[ResponsibleDTO]          = deriveEncoder
   implicit def decoder: Decoder[ResponsibleDTO]          = deriveDecoder
-  implicit def schema: sttp.tapir.Schema[ResponsibleDTO] = sttp.tapir.Schema.derived[ResponsibleDTO]
+  implicit def schema: sttp.tapir.Schema[ResponsibleDTO] = DeriveHelpers.getSchema[ResponsibleDTO]
 }

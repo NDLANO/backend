@@ -10,6 +10,7 @@ package no.ndla.common.model.api
 
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.common.DeriveHelpers
 import sttp.tapir.Schema.annotations.description
 
 @description("Description of license information")
@@ -22,5 +23,5 @@ case class LicenseDTO(
 object LicenseDTO {
   implicit def encoder: Encoder[LicenseDTO]          = deriveEncoder[LicenseDTO]
   implicit def decoder: Decoder[LicenseDTO]          = deriveDecoder[LicenseDTO]
-  implicit def schema: sttp.tapir.Schema[LicenseDTO] = sttp.tapir.Schema.derived
+  implicit def schema: sttp.tapir.Schema[LicenseDTO] = DeriveHelpers.getSchema
 }

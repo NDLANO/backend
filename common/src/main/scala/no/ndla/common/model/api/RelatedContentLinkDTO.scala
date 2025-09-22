@@ -10,6 +10,7 @@ package no.ndla.common.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.DeriveHelpers
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
@@ -22,5 +23,5 @@ case class RelatedContentLinkDTO(
 object RelatedContentLinkDTO {
   implicit def encoder: Encoder[RelatedContentLinkDTO] = deriveEncoder
   implicit def decoder: Decoder[RelatedContentLinkDTO] = deriveDecoder
-  implicit def schema: Schema[RelatedContentLinkDTO]   = Schema.derived
+  implicit def schema: Schema[RelatedContentLinkDTO]   = DeriveHelpers.getSchema
 }

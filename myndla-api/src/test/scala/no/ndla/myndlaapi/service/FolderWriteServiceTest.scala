@@ -32,8 +32,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
 
   val MaxFolderDepth = 5L
 
-  val service                                                      = new FolderWriteService
-  override lazy val folderConverterService: FolderConverterService = spy(new FolderConverterService)
+  override implicit lazy val folderConverterService: FolderConverterService = spy(new FolderConverterService)
+  val service                                                               = new FolderWriteService
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -56,19 +56,19 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       )
     val wrongFeideId = "nope"
 
-    when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(any, any)(using any)).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(wrongFeideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(folderRepository.folderResourceConnectionCount(any)(any)).thenReturn(Success(0L))
-    when(folderRepository.folderWithId(eqTo(id))(any)).thenReturn(Success(folderWithChildren))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(folderRepository.folderResourceConnectionCount(any)(using any)).thenReturn(Success(0L))
+    when(folderRepository.folderWithId(eqTo(id))(using any)).thenReturn(Success(folderWithChildren))
 
     val x = service.deleteFolder(id, Some("token"))
     x.isFailure should be(true)
     x should be(Failure(AccessDeniedException("You do not have access to this entity.")))
 
-    verify(folderRepository, times(0)).deleteFolder(any)(any[DBSession])
-    verify(folderRepository, times(0)).folderResourceConnectionCount(any)(any[DBSession])
-    verify(folderRepository, times(0)).deleteResource(any)(any[DBSession])
+    verify(folderRepository, times(0)).deleteFolder(any)(using any[DBSession])
+    verify(folderRepository, times(0)).folderResourceConnectionCount(any)(using any[DBSession])
+    verify(folderRepository, times(0)).deleteResource(any)(using any[DBSession])
   }
 
   test("that a user with access can delete a folder") {
@@ -94,31 +94,34 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       val func = i.getArgument[DBSession => Try[Unit]](0)
       func(mock[DBSession])
     })
-    when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(any, any)(using any)).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(folderRepository.folderResourceConnectionCount(any)(any[DBSession])).thenReturn(Success(1L))
-    when(folderRepository.folderWithId(eqTo(mainFolderId))(any)).thenReturn(Success(folder))
-    when(folderReadService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(any))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(folderRepository.folderResourceConnectionCount(any)(using any[DBSession])).thenReturn(Success(1L))
+    when(folderRepository.folderWithId(eqTo(mainFolderId))(using any)).thenReturn(Success(folder))
+    when(folderReadService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(using any))
       .thenReturn(Success(folderWithChildren))
-    when(folderRepository.deleteFolder(any)(any))
+    when(folderRepository.deleteFolder(any)(using any))
       .thenReturn(Success(mainFolderId), Success(subFolder1Id), Success(subFolder2Id))
-    when(folderRepository.deleteFolderUserConnection(eqTo(Some(subFolder2Id)), eqTo(None))(any)).thenReturn(Success(1))
-    when(folderRepository.deleteFolderUserConnection(eqTo(Some(subFolder1Id)), eqTo(None))(any)).thenReturn(Success(1))
-    when(folderRepository.deleteFolderUserConnection(eqTo(Some(mainFolderId)), eqTo(None))(any)).thenReturn(Success(1))
-    when(folderRepository.deleteResource(any)(any[DBSession])).thenReturn(Success(resourceId))
+    when(folderRepository.deleteFolderUserConnection(eqTo(Some(subFolder2Id)), eqTo(None))(using any))
+      .thenReturn(Success(1))
+    when(folderRepository.deleteFolderUserConnection(eqTo(Some(subFolder1Id)), eqTo(None))(using any))
+      .thenReturn(Success(1))
+    when(folderRepository.deleteFolderUserConnection(eqTo(Some(mainFolderId)), eqTo(None))(using any))
+      .thenReturn(Success(1))
+    when(folderRepository.deleteResource(any)(using any[DBSession])).thenReturn(Success(resourceId))
 
     service.deleteFolder(mainFolderId, Some("token")).get should be(mainFolderId)
 
-    verify(folderRepository, times(1)).deleteFolder(eqTo(mainFolderId))(any)
-    verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder1Id))(any)
-    verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any)
-    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(mainFolderId)), eqTo(None))(any)
-    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(subFolder1Id)), eqTo(None))(any)
-    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(subFolder2Id)), eqTo(None))(any)
-    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any)
-    verify(folderRepository, times(1)).deleteResource(eqTo(resourceId))(any)
-    verify(folderReadService, times(1)).getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(any)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(mainFolderId))(using any)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder1Id))(using any)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(using any)
+    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(mainFolderId)), eqTo(None))(using any)
+    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(subFolder1Id)), eqTo(None))(using any)
+    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(subFolder2Id)), eqTo(None))(using any)
+    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(using any)
+    verify(folderRepository, times(1)).deleteResource(eqTo(resourceId))(using any)
+    verify(folderReadService, times(1)).getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(using any)
   }
 
   test("that resource is not deleted if folderResourceConnectionCount() returns 0") {
@@ -144,32 +147,35 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       val func = i.getArgument[DBSession => Try[Unit]](0)
       func(mock[DBSession])
     })
-    when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(any, any)(using any)).thenReturn(Success(List.empty))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(any)).thenReturn(Success(5L))
-    when(folderRepository.folderWithId(eqTo(mainFolderId))(any)).thenReturn(Success(folder))
-    when(folderReadService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(any))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(using any)).thenReturn(Success(5L))
+    when(folderRepository.folderWithId(eqTo(mainFolderId))(using any)).thenReturn(Success(folder))
+    when(folderReadService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(using any))
       .thenReturn(Success(folderWithChildren))
-    when(folderRepository.deleteFolderResourceConnection(eqTo(mainFolderId), eqTo(resourceId))(any))
+    when(folderRepository.deleteFolderResourceConnection(eqTo(mainFolderId), eqTo(resourceId))(using any))
       .thenReturn(Success(resourceId))
-    when(folderRepository.deleteFolderUserConnection(eqTo(Some(subFolder2Id)), eqTo(None))(any)).thenReturn(Success(1))
-    when(folderRepository.deleteFolderUserConnection(eqTo(Some(subFolder1Id)), eqTo(None))(any)).thenReturn(Success(1))
-    when(folderRepository.deleteFolderUserConnection(eqTo(Some(mainFolderId)), eqTo(None))(any)).thenReturn(Success(1))
-    when(folderRepository.deleteFolder(any)(any)).thenReturn(Success(any))
+    when(folderRepository.deleteFolderUserConnection(eqTo(Some(subFolder2Id)), eqTo(None))(using any))
+      .thenReturn(Success(1))
+    when(folderRepository.deleteFolderUserConnection(eqTo(Some(subFolder1Id)), eqTo(None))(using any))
+      .thenReturn(Success(1))
+    when(folderRepository.deleteFolderUserConnection(eqTo(Some(mainFolderId)), eqTo(None))(using any))
+      .thenReturn(Success(1))
+    when(folderRepository.deleteFolder(any)(using any)).thenReturn(Success(any))
 
     service.deleteFolder(mainFolderId, Some("token")) should be(Success(mainFolderId))
 
-    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(mainFolderId)), eqTo(None))(any)
-    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(subFolder1Id)), eqTo(None))(any)
-    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(subFolder2Id)), eqTo(None))(any)
-    verify(folderRepository, times(1)).deleteFolder(eqTo(mainFolderId))(any)
-    verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder1Id))(any)
-    verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(any)
-    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any)
-    verify(folderRepository, times(0)).deleteResource(any)(any)
-    verify(folderRepository, times(1)).deleteFolderResourceConnection(any, any)(any)
-    verify(folderReadService, times(1)).getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(any)
+    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(mainFolderId)), eqTo(None))(using any)
+    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(subFolder1Id)), eqTo(None))(using any)
+    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(subFolder2Id)), eqTo(None))(using any)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(mainFolderId))(using any)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder1Id))(using any)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(subFolder2Id))(using any)
+    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(using any)
+    verify(folderRepository, times(0)).deleteResource(any)(using any)
+    verify(folderRepository, times(1)).deleteFolderResourceConnection(any, any)(using any)
+    verify(folderReadService, times(1)).getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(using any)
   }
 
   test("that deleteConnection only deletes connection when there are several references to a resource") {
@@ -181,28 +187,29 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val folderResource = FolderResource(folderId = folder.id, resourceId = resource.id, rank = 1, clock.now())
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(folder))
-    when(folderRepository.resourceWithId(eqTo(resourceId))(any)).thenReturn(Success(resource))
-    when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(any)).thenReturn(Success(2L))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(Success(folder))
+    when(folderRepository.resourceWithId(eqTo(resourceId))(using any)).thenReturn(Success(resource))
+    when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(using any)).thenReturn(Success(2L))
     when(folderRepository.withTx(any[DBSession => Try[Unit]]())).thenAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Unit]](0)
       func(mock[DBSession])
     })
-    when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
-    when(folderRepository.folderWithFeideId(eqTo(folderId), any)(any)).thenReturn(Success(folder))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(folderId)), any)(any)).thenReturn(Success(List.empty))
-    when(folderRepository.getConnections(eqTo(folderId))(any)).thenReturn(Success(List(folderResource)))
-    when(folderRepository.deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any))
+    when(folderRepository.foldersWithFeideAndParentID(any, any)(using any)).thenReturn(Success(List.empty))
+    when(folderRepository.folderWithFeideId(eqTo(folderId), any)(using any)).thenReturn(Success(folder))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(folderId)), any)(using any))
+      .thenReturn(Success(List.empty))
+    when(folderRepository.getConnections(eqTo(folderId))(using any)).thenReturn(Success(List(folderResource)))
+    when(folderRepository.deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(using any))
       .thenReturn(Success(resourceId))
 
     service.deleteConnection(folderId, resourceId, None).failIfFailure
 
-    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any)
-    verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(any)
-    verify(folderRepository, times(1)).resourceWithId(eqTo(resourceId))(any)
-    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any)
-    verify(folderRepository, times(0)).deleteResource(any)(any)
+    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(using any)
+    verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(using any)
+    verify(folderRepository, times(1)).resourceWithId(eqTo(resourceId))(using any)
+    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(using any)
+    verify(folderRepository, times(0)).deleteResource(any)(using any)
   }
 
   test("that deleteConnection deletes the resource if there is only 1 references to a resource") {
@@ -214,29 +221,30 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val folderResource = FolderResource(folderId = folder.id, resourceId = resource.id, rank = 1, clock.now())
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(folder))
-    when(folderRepository.resourceWithId(eqTo(resourceId))(any)).thenReturn(Success(resource))
-    when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(any)).thenReturn(Success(1L))
-    when(folderRepository.deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(Success(folder))
+    when(folderRepository.resourceWithId(eqTo(resourceId))(using any)).thenReturn(Success(resource))
+    when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(using any)).thenReturn(Success(1L))
+    when(folderRepository.deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(using any))
       .thenReturn(Success(resourceId))
-    when(folderRepository.deleteResource(eqTo(resourceId))(any)).thenReturn(Success(resourceId))
+    when(folderRepository.deleteResource(eqTo(resourceId))(using any)).thenReturn(Success(resourceId))
     when(folderRepository.withTx(any[DBSession => Try[Unit]]())).thenAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Unit]](0)
       func(mock[DBSession])
     })
-    when(folderRepository.folderWithFeideId(eqTo(folderId), any)(any)).thenReturn(Success(folder))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(folderId)), any)(any)).thenReturn(Success(List.empty))
-    when(folderRepository.getConnections(eqTo(folderId))(any)).thenReturn(Success(List(folderResource)))
-    when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.folderWithFeideId(eqTo(folderId), any)(using any)).thenReturn(Success(folder))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(folderId)), any)(using any))
+      .thenReturn(Success(List.empty))
+    when(folderRepository.getConnections(eqTo(folderId))(using any)).thenReturn(Success(List(folderResource)))
+    when(folderRepository.foldersWithFeideAndParentID(any, any)(using any)).thenReturn(Success(List.empty))
 
     service.deleteConnection(folderId, resourceId, None).failIfFailure should be(resourceId)
 
-    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(any)
-    verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(any)
-    verify(folderRepository, times(1)).resourceWithId(eqTo(resourceId))(any)
-    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any)
-    verify(folderRepository, times(1)).deleteResource(eqTo(resourceId))(any)
+    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(using any)
+    verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(using any)
+    verify(folderRepository, times(1)).resourceWithId(eqTo(resourceId))(using any)
+    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(using any)
+    verify(folderRepository, times(1)).deleteResource(eqTo(resourceId))(using any)
   }
 
   test("that deleteConnection exits early if user is not the folder owner") {
@@ -246,18 +254,18 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val folder         = emptyDomainFolder.copy(id = folderId, feideId = "asd")
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(folder))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(Success(folder))
 
     val res = service.deleteConnection(folderId, resourceId, None)
     res.isFailure should be(true)
     res should be(Failure(AccessDeniedException("You do not have access to this entity.")))
 
-    verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(any)
-    verify(folderRepository, times(0)).resourceWithId(eqTo(resourceId))(any)
-    verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(any)
-    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any)
-    verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(any)
+    verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(using any)
+    verify(folderRepository, times(0)).resourceWithId(eqTo(resourceId))(using any)
+    verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(using any)
+    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(using any)
+    verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(using any)
   }
 
   test("that deleteConnection exits early if user is not the resource owner") {
@@ -268,19 +276,21 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val resource       = emptyDomainResource.copy(id = resourceId, feideId = "asd")
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(folder))
-    when(folderRepository.resourceWithId(eqTo(resourceId))(any)).thenReturn(Success(resource))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(Success(folder))
+    when(folderRepository.resourceWithId(eqTo(resourceId))(using any)).thenReturn(Success(resource))
 
     val res = service.deleteConnection(folderId, resourceId, None)
     res.isFailure should be(true)
     res should be(Failure(AccessDeniedException("You do not have access to this entity.")))
 
-    verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(any)
-    verify(folderRepository, times(1)).resourceWithId(eqTo(resourceId))(any)
-    verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(any[DBSession])
-    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(any[DBSession])
-    verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(any[DBSession])
+    verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(using any)
+    verify(folderRepository, times(1)).resourceWithId(eqTo(resourceId))(using any)
+    verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(using any[DBSession])
+    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(using
+      any[DBSession]
+    )
+    verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(using any[DBSession])
   }
 
   test("that createNewResourceOrUpdateExisting creates a resource if it does not already exist") {
@@ -306,18 +316,20 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       )
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(folderRepository.resourceWithPathAndTypeAndFeideId(any, any, any)(any)).thenReturn(Success(None))
-    when(folderRepository.insertResource(any, any, any, any, any)(any)).thenReturn(Success(resource))
-    when(folderRepository.createFolderResourceConnection(any, any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
-      Success(
-        FolderResource(
-          folderId = i.getArgument(0),
-          resourceId = i.getArgument(1),
-          rank = i.getArgument(2),
-          favoritedDate = created
+    when(folderRepository.resourceWithPathAndTypeAndFeideId(any, any, any)(using any)).thenReturn(Success(None))
+    when(folderRepository.insertResource(any, any, any, any, any)(using any)).thenReturn(Success(resource))
+    when(folderRepository.createFolderResourceConnection(any, any, any, any)(using any)).thenAnswer(
+      (i: InvocationOnMock) => {
+        Success(
+          FolderResource(
+            folderId = i.getArgument(0),
+            resourceId = i.getArgument(1),
+            rank = i.getArgument(2),
+            favoritedDate = created
+          )
         )
-      )
-    })
+      }
+    )
 
     service
       .createNewResourceOrUpdateExisting(
@@ -325,14 +337,14 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
         folderId,
         FolderAndDirectChildren(None, Seq.empty, Seq.empty),
         feideId
-      )(mock[DBSession])
+      )(using mock[DBSession])
       .isSuccess should be(true)
 
     verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(
       eqTo(resourcePath),
       eqTo(ResourceType.Article),
       eqTo(feideId)
-    )(
+    )(using
       any
     )
     verify(folderConverterService, times(1)).toDomainResource(eqTo(newResource))
@@ -342,10 +354,12 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       eqTo(ResourceType.Article),
       any,
       any
-    )(any)
-    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any, any)(any)
+    )(using any)
+    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any, any)(using
+      any
+    )
     verify(folderConverterService, times(0)).mergeResource(any, any[NewResourceDTO])
-    verify(folderRepository, times(0)).updateResource(any)(any)
+    verify(folderRepository, times(0)).updateResource(any)(using any)
   }
 
   test(
@@ -372,20 +386,23 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
         connection = None
       )
 
-    when(folderRepository.getConnection(any, any)(any)).thenReturn(Success(None))
+    when(folderRepository.getConnection(any, any)(using any)).thenReturn(Success(None))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(folderRepository.resourceWithPathAndTypeAndFeideId(any, any, any)(any)).thenReturn(Success(Some(resource)))
-    when(folderRepository.updateResource(eqTo(resource))(any)).thenReturn(Success(resource))
-    when(folderRepository.createFolderResourceConnection(any, any, any, any)(any)).thenAnswer((i: InvocationOnMock) => {
-      Success(
-        FolderResource(
-          folderId = i.getArgument(0),
-          resourceId = i.getArgument(1),
-          rank = i.getArgument(2),
-          favoritedDate = i.getArgument(3)
+    when(folderRepository.resourceWithPathAndTypeAndFeideId(any, any, any)(using any))
+      .thenReturn(Success(Some(resource)))
+    when(folderRepository.updateResource(eqTo(resource))(using any)).thenReturn(Success(resource))
+    when(folderRepository.createFolderResourceConnection(any, any, any, any)(using any)).thenAnswer(
+      (i: InvocationOnMock) => {
+        Success(
+          FolderResource(
+            folderId = i.getArgument(0),
+            resourceId = i.getArgument(1),
+            rank = i.getArgument(2),
+            favoritedDate = i.getArgument(3)
+          )
         )
-      )
-    })
+      }
+    )
 
     service
       .createNewResourceOrUpdateExisting(
@@ -393,21 +410,23 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
         folderId,
         FolderAndDirectChildren(None, Seq.empty, Seq.empty),
         feideId
-      )(mock[DBSession])
+      )(using mock[DBSession])
       .get
 
     verify(folderRepository, times(1)).resourceWithPathAndTypeAndFeideId(
       eqTo(resourcePath),
       eqTo(ResourceType.Article),
       eqTo(feideId)
-    )(
+    )(using
       any
     )
     verify(folderConverterService, times(0)).toDomainResource(eqTo(newResource))
-    verify(folderRepository, times(0)).insertResource(any, any, any, any, any)(any)
+    verify(folderRepository, times(0)).insertResource(any, any, any, any, any)(using any)
     verify(folderConverterService, times(1)).mergeResource(eqTo(resource), eqTo(newResource))
-    verify(folderRepository, times(1)).updateResource(eqTo(resource))(any)
-    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any, any)(any)
+    verify(folderRepository, times(1)).updateResource(eqTo(resource))(using any)
+    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any, any)(using
+      any
+    )
   }
 
   test("that deleteFolder deletes correct number of folder-resource-connections and resources") {
@@ -441,60 +460,64 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       )
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success("FEIDEF"))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(folderRepository.folderWithId(eqTo(folder1Id))(any[DBSession])).thenReturn(Success(folder1))
-    when(folderReadService.getSingleFolderWithContent(eqTo(folder1Id), eqTo(true), eqTo(true))(any[DBSession]))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(folderRepository.folderWithId(eqTo(folder1Id))(using any[DBSession])).thenReturn(Success(folder1))
+    when(folderReadService.getSingleFolderWithContent(eqTo(folder1Id), eqTo(true), eqTo(true))(using any[DBSession]))
       .thenReturn(Success(folder1))
-    when(folderRepository.folderResourceConnectionCount(eqTo(resource1Id))(any[DBSession]))
+    when(folderRepository.folderResourceConnectionCount(eqTo(resource1Id))(using any[DBSession]))
       .thenReturn(Success(2L), Success(1L))
-    when(folderRepository.deleteFolderResourceConnection(eqTo(folder1Id), eqTo(resource1Id))(any[DBSession]))
+    when(folderRepository.deleteFolderResourceConnection(eqTo(folder1Id), eqTo(resource1Id))(using any[DBSession]))
       .thenReturn(Success(resource1Id))
-    when(folderRepository.deleteResource(eqTo(resource1Id))(any[DBSession])).thenReturn(Success(resource1Id))
-    when(folderRepository.folderResourceConnectionCount(eqTo(resource2Id))(any[DBSession]))
+    when(folderRepository.deleteResource(eqTo(resource1Id))(using any[DBSession])).thenReturn(Success(resource1Id))
+    when(folderRepository.folderResourceConnectionCount(eqTo(resource2Id))(using any[DBSession]))
       .thenReturn(Success(2L), Success(1L))
-    when(folderRepository.deleteFolderResourceConnection(eqTo(folder2Id), eqTo(resource2Id))(any[DBSession]))
+    when(folderRepository.deleteFolderResourceConnection(eqTo(folder2Id), eqTo(resource2Id))(using any[DBSession]))
       .thenReturn(Success(resource2Id))
-    when(folderRepository.deleteResource(eqTo(resource2Id))(any[DBSession])).thenReturn(Success(resource2Id))
-    when(folderRepository.folderResourceConnectionCount(eqTo(resource3Id))(any[DBSession])).thenReturn(Success(1L))
-    when(folderRepository.deleteResource(eqTo(resource3Id))(any[DBSession])).thenReturn(Success(resource3Id))
-    when(folderRepository.deleteFolder(eqTo(folder3Id))(any[DBSession])).thenReturn(Success(folder3Id))
-    when(folderRepository.deleteFolder(eqTo(folder2Id))(any[DBSession])).thenReturn(Success(folder2Id))
-    when(folderRepository.deleteFolder(eqTo(folder1Id))(any[DBSession])).thenReturn(Success(folder1Id))
-    when(folderRepository.deleteFolderUserConnection(eqTo(Some(folder3Id)), eqTo(None))(any)).thenReturn(Success(0))
-    when(folderRepository.deleteFolderUserConnection(eqTo(Some(folder2Id)), eqTo(None))(any)).thenReturn(Success(0))
-    when(folderRepository.deleteFolderUserConnection(eqTo(Some(folder1Id)), eqTo(None))(any)).thenReturn(Success(0))
+    when(folderRepository.deleteResource(eqTo(resource2Id))(using any[DBSession])).thenReturn(Success(resource2Id))
+    when(folderRepository.folderResourceConnectionCount(eqTo(resource3Id))(using any[DBSession]))
+      .thenReturn(Success(1L))
+    when(folderRepository.deleteResource(eqTo(resource3Id))(using any[DBSession])).thenReturn(Success(resource3Id))
+    when(folderRepository.deleteFolder(eqTo(folder3Id))(using any[DBSession])).thenReturn(Success(folder3Id))
+    when(folderRepository.deleteFolder(eqTo(folder2Id))(using any[DBSession])).thenReturn(Success(folder2Id))
+    when(folderRepository.deleteFolder(eqTo(folder1Id))(using any[DBSession])).thenReturn(Success(folder1Id))
+    when(folderRepository.deleteFolderUserConnection(eqTo(Some(folder3Id)), eqTo(None))(using any))
+      .thenReturn(Success(0))
+    when(folderRepository.deleteFolderUserConnection(eqTo(Some(folder2Id)), eqTo(None))(using any))
+      .thenReturn(Success(0))
+    when(folderRepository.deleteFolderUserConnection(eqTo(Some(folder1Id)), eqTo(None))(using any))
+      .thenReturn(Success(0))
     when(folderRepository.withTx(any[DBSession => Try[Unit]]())).thenAnswer((i: InvocationOnMock) => {
       val func = i.getArgument[DBSession => Try[Unit]](0)
       func(mock[DBSession])
     })
-    when(folderRepository.foldersWithFeideAndParentID(any, any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(any, any)(using any)).thenReturn(Success(List.empty))
 
     val result = service.deleteFolder(folder1Id, Some("FEIDEF"))
     result should be(Success(folder1Id))
 
-    verify(folderReadService, times(1)).getSingleFolderWithContent(eqTo(folder1Id), eqTo(true), eqTo(true))(any)
-    verify(folderRepository, times(5)).folderResourceConnectionCount(any)(any)
-    verify(folderRepository, times(2)).folderResourceConnectionCount(eqTo(resource1Id))(any)
-    verify(folderRepository, times(2)).folderResourceConnectionCount(eqTo(resource2Id))(any)
-    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resource3Id))(any)
+    verify(folderReadService, times(1)).getSingleFolderWithContent(eqTo(folder1Id), eqTo(true), eqTo(true))(using any)
+    verify(folderRepository, times(5)).folderResourceConnectionCount(any)(using any)
+    verify(folderRepository, times(2)).folderResourceConnectionCount(eqTo(resource1Id))(using any)
+    verify(folderRepository, times(2)).folderResourceConnectionCount(eqTo(resource2Id))(using any)
+    verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resource3Id))(using any)
 
-    verify(folderRepository, times(2)).deleteFolderResourceConnection(any, any)(any)
-    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(folder1Id), eqTo(resource1Id))(any)
-    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(folder2Id), eqTo(resource2Id))(any)
+    verify(folderRepository, times(2)).deleteFolderResourceConnection(any, any)(using any)
+    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(folder1Id), eqTo(resource1Id))(using any)
+    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(folder2Id), eqTo(resource2Id))(using any)
 
-    verify(folderRepository, times(3)).deleteResource(any)(any)
-    verify(folderRepository, times(1)).deleteResource(eqTo(resource1Id))(any)
-    verify(folderRepository, times(1)).deleteResource(eqTo(resource2Id))(any)
-    verify(folderRepository, times(1)).deleteResource(eqTo(resource3Id))(any)
+    verify(folderRepository, times(3)).deleteResource(any)(using any)
+    verify(folderRepository, times(1)).deleteResource(eqTo(resource1Id))(using any)
+    verify(folderRepository, times(1)).deleteResource(eqTo(resource2Id))(using any)
+    verify(folderRepository, times(1)).deleteResource(eqTo(resource3Id))(using any)
 
-    verify(folderRepository, times(3)).deleteFolder(any)(any)
-    verify(folderRepository, times(1)).deleteFolder(eqTo(folder1Id))(any)
-    verify(folderRepository, times(1)).deleteFolder(eqTo(folder2Id))(any)
-    verify(folderRepository, times(1)).deleteFolder(eqTo(folder3Id))(any)
+    verify(folderRepository, times(3)).deleteFolder(any)(using any)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(folder1Id))(using any)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(folder2Id))(using any)
+    verify(folderRepository, times(1)).deleteFolder(eqTo(folder3Id))(using any)
 
-    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(folder1Id)), eqTo(None))(any)
-    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(folder2Id)), eqTo(None))(any)
-    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(folder3Id)), eqTo(None))(any)
+    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(folder1Id)), eqTo(None))(using any)
+    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(folder2Id)), eqTo(None))(using any)
+    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(Some(folder3Id)), eqTo(None))(using any)
   }
 
   test("that folder is not created if depth limit is reached") {
@@ -503,23 +526,23 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val newFolder = NewFolderDTO(name = "asd", parentId = Some(parentId.toString), status = None, description = None)
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
     doReturn(Success(parentId))
       .when(folderConverterService)
       .toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
-    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
+    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(using any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(using any))
       .thenReturn(Success(List.empty))
-    when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(MaxFolderDepth))
-    when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.getFoldersDepth(eqTo(parentId))(using any[DBSession])).thenReturn(Success(MaxFolderDepth))
+    when(folderRepository.getConnections(any)(using any)).thenReturn(Success(List.empty))
 
     val Failure(result: ValidationException) = service.newFolder(newFolder, Some(feideId)): @unchecked
     result.errors.head.message should be(
       s"Folder can not be created, max folder depth limit of $MaxFolderDepth reached."
     )
 
-    verify(folderRepository, times(0)).insertFolder(any, any)(any)
+    verify(folderRepository, times(0)).insertFolder(any, any)(using any)
   }
 
   test("that folder is created if depth count is below the limit") {
@@ -561,24 +584,24 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val belowLimit: Long = MaxFolderDepth - 2
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
     doReturn(Success(parentId))
       .when(folderConverterService)
       .toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
-    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
+    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(using any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
-    when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
-    when(folderRepository.insertFolder(any, any)(any[DBSession])).thenReturn(Success(domainFolder))
-    when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
-    when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
-    when(folderReadService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
+    when(folderRepository.getFoldersDepth(eqTo(parentId))(using any[DBSession])).thenReturn(Success(belowLimit))
+    when(folderRepository.insertFolder(any, any)(using any[DBSession])).thenReturn(Success(domainFolder))
+    when(folderRepository.getConnections(any)(using any)).thenReturn(Success(List.empty))
+    when(folderRepository.getConnections(any)(using any)).thenReturn(Success(List.empty))
+    when(folderReadService.getBreadcrumbs(any)(using any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(using any))
       .thenReturn(Success(List.empty))
-    when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
+    when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
 
     service.newFolder(newFolder, Some(feideId)) should be(Success(apiFolder))
 
-    verify(folderRepository, times(1)).insertFolder(any, any)(any)
+    verify(folderRepository, times(1)).insertFolder(any, any)(using any)
   }
 
   test("that folder is not created if name already exists as a sibling") {
@@ -620,17 +643,17 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val belowLimit = MaxFolderDepth - 2
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
     doReturn(Success(parentId))
       .when(folderConverterService)
       .toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
-    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
+    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(using any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
-    when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
-    when(folderRepository.insertFolder(any, any)(any[DBSession])).thenReturn(Success(domainFolder))
-    when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
-    when(folderReadService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
+    when(folderRepository.getFoldersDepth(eqTo(parentId))(using any[DBSession])).thenReturn(Success(belowLimit))
+    when(folderRepository.insertFolder(any, any)(using any[DBSession])).thenReturn(Success(domainFolder))
+    when(folderRepository.getConnections(any)(using any)).thenReturn(Success(List.empty))
+    when(folderReadService.getBreadcrumbs(any)(using any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(using any))
       .thenReturn(Success(List(siblingFolder)))
 
     service.newFolder(newFolder, Some(feideId)) should be(
@@ -639,7 +662,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       )
     )
 
-    verify(folderRepository, times(0)).insertFolder(any, any)(any)
+    verify(folderRepository, times(0)).insertFolder(any, any)(using any)
   }
 
   test("that folder is not updated if name already exists as a sibling") {
@@ -682,18 +705,18 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val belowLimit = MaxFolderDepth - 2
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
     doReturn(Success(parentId))
       .when(folderConverterService)
       .toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
-    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
+    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(using any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
-    when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
-    when(folderReadService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
-    when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
+    when(folderRepository.getFoldersDepth(eqTo(parentId))(using any[DBSession])).thenReturn(Success(belowLimit))
+    when(folderReadService.getBreadcrumbs(any)(using any)).thenReturn(Success(List.empty))
+    when(folderRepository.getConnections(any)(using any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(using any))
       .thenReturn(Success(List(siblingFolder)))
-    when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(existingFolder))
+    when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(Success(existingFolder))
 
     service.updateFolder(folderId, updateFolder, Some(feideId)) should be(
       Failure(
@@ -701,8 +724,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       )
     )
 
-    verify(folderRepository, times(0)).insertFolder(any, any)(any)
-    verify(folderRepository, times(0)).updateFolder(any, any, any)(any)
+    verify(folderRepository, times(0)).insertFolder(any, any)(using any)
+    verify(folderRepository, times(0)).updateFolder(any, any, any)(using any)
   }
 
   test("that folder status is updated even when name is not changed") {
@@ -761,41 +784,42 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val belowLimit = MaxFolderDepth - 2
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
     doReturn(Success(parentId))
       .when(folderConverterService)
       .toUUIDValidated(eqTo(Some(parentId.toString)), eqTo("parentId"))
-    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(any[DBSession]))
+    when(folderRepository.folderWithFeideId(eqTo(parentId), eqTo(feideId))(using any[DBSession]))
       .thenReturn(Success(emptyDomainFolder))
-    when(folderRepository.getFoldersDepth(eqTo(parentId))(any[DBSession])).thenReturn(Success(belowLimit))
-    when(folderReadService.getBreadcrumbs(any)(any)).thenReturn(Success(List.empty))
-    when(folderRepository.getConnections(any)(any)).thenReturn(Success(List.empty))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(any))
+    when(folderRepository.getFoldersDepth(eqTo(parentId))(using any[DBSession])).thenReturn(Success(belowLimit))
+    when(folderReadService.getBreadcrumbs(any)(using any)).thenReturn(Success(List.empty))
+    when(folderRepository.getConnections(any)(using any)).thenReturn(Success(List.empty))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(using any))
       .thenReturn(Success(List(siblingFolder)))
-    when(folderRepository.folderWithId(eqTo(folderId))(any)).thenReturn(Success(existingFolder))
-    when(folderRepository.updateFolder(any, any, any)(any)).thenReturn(Success(mergedFolder))
-    when(userRepository.userWithFeideId(any)(any[DBSession])).thenReturn(Success(None))
+    when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(Success(existingFolder))
+    when(folderRepository.updateFolder(any, any, any)(using any)).thenReturn(Success(mergedFolder))
+    when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
 
     service.updateFolder(folderId, updateFolder, Some(feideId)) should be(Success(expectedFolder))
 
-    verify(folderRepository, times(1)).updateFolder(any, any, any)(any)
+    verify(folderRepository, times(1)).updateFolder(any, any, any)(using any)
   }
 
   test("That deleteAllUserData works as expected") {
     val feideId = "feide"
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(folderRepository.deleteAllUserFolders(any)(any)).thenReturn(Success(1))
-    when(folderRepository.deleteAllUserResources(any)(any)).thenReturn(Success(1))
-    when(userRepository.deleteUser(any)(any)).thenReturn(Success(""))
-    when(folderRepository.deleteFolderUserConnection(eqTo(None), eqTo(Some(feideId)))(any)).thenReturn(Success(eqTo(1)))
+    when(folderRepository.deleteAllUserFolders(any)(using any)).thenReturn(Success(1))
+    when(folderRepository.deleteAllUserResources(any)(using any)).thenReturn(Success(1))
+    when(userRepository.deleteUser(any)(using any)).thenReturn(Success(""))
+    when(folderRepository.deleteFolderUserConnection(eqTo(None), eqTo(Some(feideId)))(using any))
+      .thenReturn(Success(eqTo(1)))
 
     service.deleteAllUserData(Some(feideId)) should be(Success(()))
 
-    verify(folderRepository, times(1)).deleteAllUserFolders(any)(any)
-    verify(folderRepository, times(1)).deleteAllUserResources(any)(any)
-    verify(userRepository, times(1)).deleteUser(any)(any)
-    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(None), eqTo(Some(feideId)))(any)
+    verify(folderRepository, times(1)).deleteAllUserFolders(any)(using any)
+    verify(folderRepository, times(1)).deleteAllUserResources(any)(using any)
+    verify(userRepository, times(1)).deleteUser(any)(using any)
+    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(None), eqTo(Some(feideId)))(using any)
   }
 
   test("That sorting endpoint calls ranking correctly :^)") {
@@ -831,23 +855,23 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       func(mock[DBSession])
     })
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(emptyMyNDLAUser))
-    when(folderRepository.setFolderRank(any, any, any)(any)).thenReturn(Success(()))
-    when(folderRepository.setResourceConnectionRank(any, any, any)(any)).thenReturn(Success(()))
-    when(folderRepository.folderWithFeideId(eqTo(parent.id), any)(any)).thenReturn(Success(parent))
-    when(folderRepository.folderWithFeideId(eqTo(child1.id), any)(any)).thenReturn(Success(child1))
-    when(folderRepository.folderWithFeideId(eqTo(child2.id), any)(any)).thenReturn(Success(child2))
-    when(folderRepository.folderWithFeideId(eqTo(child3.id), any)(any)).thenReturn(Success(child3))
-    when(folderRepository.getConnections(eqTo(parent.id))(any)).thenReturn(Success(List()))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parent.id)), any)(any)).thenReturn(
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(folderRepository.setFolderRank(any, any, any)(using any)).thenReturn(Success(()))
+    when(folderRepository.setResourceConnectionRank(any, any, any)(using any)).thenReturn(Success(()))
+    when(folderRepository.folderWithFeideId(eqTo(parent.id), any)(using any)).thenReturn(Success(parent))
+    when(folderRepository.folderWithFeideId(eqTo(child1.id), any)(using any)).thenReturn(Success(child1))
+    when(folderRepository.folderWithFeideId(eqTo(child2.id), any)(using any)).thenReturn(Success(child2))
+    when(folderRepository.folderWithFeideId(eqTo(child3.id), any)(using any)).thenReturn(Success(child3))
+    when(folderRepository.getConnections(eqTo(parent.id))(using any)).thenReturn(Success(List()))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parent.id)), any)(using any)).thenReturn(
       Success(List(child1, child2, child3))
     )
 
     service.sortFolder(FolderSorting(parent.id), sortRequest, Some("1234")) should be(Success(()))
 
-    verify(folderRepository, times(1)).setFolderRank(eqTo(child1.id), eqTo(1), any)(any)
-    verify(folderRepository, times(1)).setFolderRank(eqTo(child3.id), eqTo(2), any)(any)
-    verify(folderRepository, times(1)).setFolderRank(eqTo(child2.id), eqTo(3), any)(any)
+    verify(folderRepository, times(1)).setFolderRank(eqTo(child1.id), eqTo(1), any)(using any)
+    verify(folderRepository, times(1)).setFolderRank(eqTo(child3.id), eqTo(2), any)(using any)
+    verify(folderRepository, times(1)).setFolderRank(eqTo(child2.id), eqTo(3), any)(using any)
   }
 
   test("that changeStatusToSharedIfParentIsShared actually changes the status if parent is shared") {
@@ -932,7 +956,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   ) {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
 
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
     when(configService.isWriteRestricted).thenReturn(Success(true))
 
     val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
@@ -944,7 +968,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   ) {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
 
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
 
     val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
@@ -956,7 +980,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   ) {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
 
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(false))
 
     val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
@@ -965,7 +989,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("that isOperationAllowedOrAccessDenied denies access if user is student and wants to share a folder") {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
 
     val updatedFolder   = api.UpdatedFolderDTO(name = None, status = Some("shared"), description = None)
     val Failure(result) =
@@ -977,7 +1001,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     "that isOperationAllowedOrAccessDenied denies access if user is student and wants to update a folder during exam"
   ) {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
 
     val updatedFolder   = api.UpdatedFolderDTO(name = Some("asd"), status = None, description = None)
@@ -988,7 +1012,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("that isOperationAllowedOrAccessDenied allows student to update a folder outside of the examination time") {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(false))
 
     val updatedFolder = api.UpdatedFolderDTO(name = Some("asd"), status = None, description = None)
@@ -1000,7 +1024,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     "that isOperationAllowedOrAccessDenied allows teacher to cut the cake and eat it too"
   ) {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
 
     val folderWithUpdatedName   = api.UpdatedFolderDTO(name = Some("asd"), status = None, description = None)
@@ -1019,13 +1043,13 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
     val folder     = emptyDomainFolder.copy(id = folderId, status = FolderStatus.SHARED)
 
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(folderRepository.createFolderUserConnection(any, any, any)(any))
+    when(folderRepository.createFolderUserConnection(any, any, any)(using any))
       .thenReturn(Success(SavedSharedFolder(folderId, feideId, 1)))
-    when(folderRepository.folderWithId(any)(any)).thenReturn(Success(folder))
-    when(folderRepository.getSavedSharedFolders(any)(any)).thenReturn(Success(List.empty))
+    when(folderRepository.folderWithId(any)(using any)).thenReturn(Success(folder))
+    when(folderRepository.getSavedSharedFolders(any)(using any)).thenReturn(Success(List.empty))
 
     val result = service.newSaveSharedFolder(folderId, Some(feideId))
 
@@ -1039,21 +1063,22 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val myNDLAUser    = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
     val folder        = emptyDomainFolder.copy(id = folderId, feideId = feideId, status = FolderStatus.SHARED)
 
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(any)).thenReturn(Success(myNDLAUser))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(folderRepository.getFoldersAndSubfoldersIds(any)(any)).thenReturn(Success(List(folderId, folderIdChild)))
-    when(folderRepository.folderWithId(any)(any)).thenReturn(Success(folder))
-    when(folderRepository.updateFolderStatusInBulk(any, any)(any)).thenReturn(Success(List(folderId)))
-    when(folderRepository.deleteFolderUserConnections(any)(any)).thenReturn(Success(List(folderId, folderIdChild)))
+    when(folderRepository.getFoldersAndSubfoldersIds(any)(using any)).thenReturn(Success(List(folderId, folderIdChild)))
+    when(folderRepository.folderWithId(any)(using any)).thenReturn(Success(folder))
+    when(folderRepository.updateFolderStatusInBulk(any, any)(using any)).thenReturn(Success(List(folderId)))
+    when(folderRepository.deleteFolderUserConnections(any)(using any))
+      .thenReturn(Success(List(folderId, folderIdChild)))
     val result = service.changeStatusOfFolderAndItsSubfolders(folderId, FolderStatus.PRIVATE, Some(feideId))
 
     result.isSuccess should be(true)
 
-    verify(folderRepository, times(1)).getFoldersAndSubfoldersIds(any)(any)
-    verify(folderRepository, times(1)).folderWithId(any)(any)
-    verify(folderRepository, times(1)).updateFolderStatusInBulk(any, any)(any)
-    verify(folderRepository, times(1)).deleteFolderUserConnections(any)(any)
+    verify(folderRepository, times(1)).getFoldersAndSubfoldersIds(any)(using any)
+    verify(folderRepository, times(1)).folderWithId(any)(using any)
+    verify(folderRepository, times(1)).updateFolderStatusInBulk(any, any)(using any)
+    verify(folderRepository, times(1)).deleteFolderUserConnections(any)(using any)
   }
 
 }

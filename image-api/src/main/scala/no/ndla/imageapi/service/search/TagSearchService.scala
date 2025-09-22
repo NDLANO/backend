@@ -14,115 +14,113 @@ import com.sksamuel.elastic4s.requests.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.ResultWindowTooLargeException
-import no.ndla.imageapi.model.api.ErrorHandling
+import no.ndla.imageapi.model.{ImageErrorHelpers, ResultWindowTooLargeException}
 import no.ndla.imageapi.model.domain.{SearchResult, Sort}
 import no.ndla.imageapi.model.search.SearchableTag
 import no.ndla.language.model.Iso639
-import no.ndla.search.Elastic4sClient
+import no.ndla.search.NdlaE4sClient
 
 import scala.util.{Failure, Success, Try}
 
-trait TagSearchService {
-  this: Elastic4sClient & SearchConverterService & SearchService & TagIndexService & SearchConverterService & Props &
-    ErrorHandling & IndexService =>
-  lazy val tagSearchService: TagSearchService
+class TagSearchService(using
+    e4sClient: NdlaE4sClient,
+    searchConverterService: SearchConverterService,
+    tagIndexService: TagIndexService,
+    props: Props
+) extends SearchService[String]
+    with StrictLogging {
+  override val searchIndex: String = props.TagSearchIndex
 
-  class TagSearchService extends SearchService[String] with StrictLogging {
-    override val searchIndex: String        = props.TagSearchIndex
-    override val indexService: IndexService = tagIndexService
+  override def hitToApiModel(hit: String, language: String): Try[String] = {
+    CirceUtil.tryParseAs[SearchableTag](hit).map(_.tag)
+  }
 
-    override def hitToApiModel(hit: String, language: String): Try[String] = {
-      CirceUtil.tryParseAs[SearchableTag](hit).map(_.tag)
+  override def getSortDefinition(sort: Sort, language: String): FieldSort = {
+    sort match {
+      case Sort.ByRelevanceAsc  => fieldSort("_score").sortOrder(SortOrder.Asc)
+      case Sort.ByRelevanceDesc => fieldSort("_score").sortOrder(SortOrder.Desc)
+      case Sort.ByTitleAsc      => fieldSort(s"tag.raw").sortOrder(SortOrder.Asc).missing("_last")
+      case Sort.ByTitleDesc     => fieldSort(s"tag.raw").sortOrder(SortOrder.Desc).missing("_last")
+      case _                    => fieldSort(s"tag.raw").sortOrder(SortOrder.Desc).missing("_last")
     }
+  }
 
-    override def getSortDefinition(sort: Sort, language: String): FieldSort = {
-      sort match {
-        case Sort.ByRelevanceAsc  => fieldSort("_score").sortOrder(SortOrder.Asc)
-        case Sort.ByRelevanceDesc => fieldSort("_score").sortOrder(SortOrder.Desc)
-        case Sort.ByTitleAsc      => fieldSort(s"tag.raw").sortOrder(SortOrder.Asc).missing("_last")
-        case Sort.ByTitleDesc     => fieldSort(s"tag.raw").sortOrder(SortOrder.Desc).missing("_last")
-        case _                    => fieldSort(s"tag.raw").sortOrder(SortOrder.Desc).missing("_last")
-      }
-    }
+  def all(
+      language: String,
+      page: Int,
+      pageSize: Int,
+      sort: Sort
+  ): Try[SearchResult[String]] = executeSearch(language, page, pageSize, sort, boolQuery())
 
-    def all(
-        language: String,
-        page: Int,
-        pageSize: Int,
-        sort: Sort
-    ): Try[SearchResult[String]] = executeSearch(language, page, pageSize, sort, boolQuery())
+  def matchingQuery(
+      query: String,
+      searchLanguage: String,
+      page: Int,
+      pageSize: Int,
+      sort: Sort
+  ): Try[SearchResult[String]] = {
 
-    def matchingQuery(
-        query: String,
-        searchLanguage: String,
-        page: Int,
-        pageSize: Int,
-        sort: Sort
-    ): Try[SearchResult[String]] = {
-
-      val fullQuery = boolQuery()
-        .must(
-          boolQuery().should(
-            matchQuery("tag", query).boost(2),
-            prefixQuery("tag", query)
-          )
+    val fullQuery = boolQuery()
+      .must(
+        boolQuery().should(
+          matchQuery("tag", query).boost(2),
+          prefixQuery("tag", query)
         )
+      )
 
-      executeSearch(searchLanguage, page, pageSize, sort, fullQuery)
+    executeSearch(searchLanguage, page, pageSize, sort, fullQuery)
+  }
+
+  def executeSearch(
+      language: String,
+      page: Int,
+      pageSize: Int,
+      sort: Sort,
+      queryBuilder: BoolQuery
+  ): Try[SearchResult[String]] = {
+
+    val (languageFilter, searchLanguage) = language match {
+      case lang if Iso639.get(lang).isSuccess =>
+        (Some(termQuery("language", lang)), lang)
+      case _ => (None, "*")
     }
 
-    def executeSearch(
-        language: String,
-        page: Int,
-        pageSize: Int,
-        sort: Sort,
-        queryBuilder: BoolQuery
-    ): Try[SearchResult[String]] = {
+    val filters        = List(languageFilter)
+    val filteredSearch = queryBuilder.filter(filters.flatten)
 
-      val (languageFilter, searchLanguage) = language match {
-        case lang if Iso639.get(lang).isSuccess =>
-          (Some(termQuery("language", lang)), lang)
-        case _ => (None, "*")
-      }
+    val (startAt, numResults) = getStartAtAndNumResults(Some(page), Some(pageSize))
+    val requestedResultWindow = pageSize * page
+    if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
+      logger.info(
+        s"Max supported results are $props.ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
+      )
+      Failure(new ResultWindowTooLargeException(ImageErrorHelpers.WINDOW_TOO_LARGE_DESCRIPTION))
+    } else {
+      val searchToExecute = search(searchIndex)
+        .size(numResults)
+        .from(startAt)
+        .trackTotalHits(true)
+        .query(filteredSearch)
+        .sortBy(getSortDefinition(sort, searchLanguage))
 
-      val filters        = List(languageFilter)
-      val filteredSearch = queryBuilder.filter(filters.flatten)
+      val searchWithScroll =
+        if (startAt != 0) { searchToExecute }
+        else { searchToExecute.scroll(props.ElasticSearchScrollKeepAlive) }
 
-      val (startAt, numResults) = getStartAtAndNumResults(Some(page), Some(pageSize))
-      val requestedResultWindow = pageSize * page
-      if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
-        logger.info(
-          s"Max supported results are $props.ElasticSearchIndexMaxResultWindow, user requested $requestedResultWindow"
-        )
-        Failure(new ResultWindowTooLargeException(ImageErrorHelpers.WINDOW_TOO_LARGE_DESCRIPTION))
-      } else {
-        val searchToExecute = search(searchIndex)
-          .size(numResults)
-          .from(startAt)
-          .trackTotalHits(true)
-          .query(filteredSearch)
-          .sortBy(getSortDefinition(sort, searchLanguage))
-
-        val searchWithScroll =
-          if (startAt != 0) { searchToExecute }
-          else { searchToExecute.scroll(props.ElasticSearchScrollKeepAlive) }
-
-        e4sClient.execute(searchWithScroll) match {
-          case Success(response) =>
-            getHits(response.result, language).map(hits =>
-              SearchResult(
-                response.result.totalHits,
-                Some(page),
-                numResults,
-                language,
-                hits,
-                response.result.scrollId
-              )
+      e4sClient.execute(searchWithScroll) match {
+        case Success(response) =>
+          getHits(response.result, language).map(hits =>
+            SearchResult(
+              response.result.totalHits,
+              Some(page),
+              numResults,
+              language,
+              hits,
+              response.result.scrollId
             )
-          case Failure(ex) =>
-            errorHandler(ex)
-        }
+          )
+        case Failure(ex) =>
+          errorHandler(ex)
       }
     }
   }

@@ -19,6 +19,7 @@ import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 
 import java.util.UUID
+import no.ndla.common.DeriveHelpers
 
 case class OwnerDTO(
     @description("Name of the owner") name: String
@@ -50,7 +51,7 @@ object FolderDTO {
   implicit val folderEncoder: Encoder[FolderDTO] = deriveEncoder
   implicit val folderDecoder: Decoder[FolderDTO] = deriveDecoder
   import sttp.tapir.generic.auto.*
-  implicit def schema: Schema[FolderDTO] = Schema.derivedSchema
+  implicit def schema: Schema[FolderDTO] = DeriveHelpers.getSchema
 
   implicit val folderDataEncoder: Encoder[FolderDataDTO] = Encoder.instance { case folder: FolderDTO => folder.asJson }
   implicit val folderDataDecoder: Decoder[FolderDataDTO] = Decoder[FolderDTO].widen

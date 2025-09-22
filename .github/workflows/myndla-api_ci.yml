@@ -12,6 +12,10 @@ on:
       - mapping/**
       - language/**
       - database/**
+      - tapirtesting/**
+      - scalatestsuite/**
+      - modules/**
+      - build.mill
   pull_request:
     paths:
       - myndla-api/**
@@ -20,6 +24,10 @@ on:
       - mapping/**
       - language/**
       - database/**
+      - tapirtesting/**
+      - scalatestsuite/**
+      - modules/**
+      - build.mill
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

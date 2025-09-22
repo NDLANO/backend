@@ -300,6 +300,8 @@ export type components = {
             grepCodes: string[];
             /** @description Value that dictates who gets to see the article. Possible values are: everyone/teacher */
             availability: string;
+            /** @description Traits extracted from the article content */
+            traits: components["schemas"]["ArticleTrait"][];
         };
         /**
          * ArticleTagDTO
@@ -320,6 +322,11 @@ export type components = {
             /** @description ISO 639-1 code that represents the language used in title */
             language: string;
         };
+        /**
+         * ArticleTrait
+         * @enum {string}
+         */
+        ArticleTrait: "VIDEO" | "H5P" | "AUDIO" | "PODCAST";
         /**
          * ArticleV2DTO
          * @description Information about the article
@@ -374,6 +381,8 @@ export type components = {
             /** @description The path to the frontpage article */
             slug?: string;
             disclaimer?: components["schemas"]["DisclaimerDTO"];
+            /** @description Traits extracted from the article content */
+            traits: components["schemas"]["ArticleTrait"][];
         };
         /**
          * AuthorDTO

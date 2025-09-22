@@ -13,6 +13,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.{NDLADate, RelatedContentLink}
 import no.ndla.common.model.domain.*
 import no.ndla.common.implicits.*
+import no.ndla.common.model.api.search.ArticleTrait
 import no.ndla.common.model.domain.language.OptLanguageFields
 
 case class Article(
@@ -38,7 +39,8 @@ case class Article(
     relatedContent: Seq[RelatedContent],
     revisionDate: Option[NDLADate],
     slug: Option[String],
-    disclaimer: OptLanguageFields[String]
+    disclaimer: OptLanguageFields[String],
+    traits: List[ArticleTrait]
 ) extends Content
 
 object Article {

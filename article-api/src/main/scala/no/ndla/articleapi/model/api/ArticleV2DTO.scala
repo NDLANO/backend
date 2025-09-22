@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.ArticleTrait
 import no.ndla.common.model.api.{CopyrightDTO, DisclaimerDTO, RelatedContent, RelatedContentLinkDTO}
 import no.ndla.common.model.domain.article.{ArticleMetaDescriptionDTO, ArticleTagDTO}
 import sttp.tapir.Schema.annotations.description
@@ -67,7 +68,9 @@ case class ArticleV2DTO(
     @description("The path to the frontpage article")
     slug: Option[String],
     @description("The disclaimer of the article")
-    disclaimer: Option[DisclaimerDTO]
+    disclaimer: Option[DisclaimerDTO],
+    @description("Traits extracted from the article content")
+    traits: List[ArticleTrait]
 )
 
 object ArticleV2DTO {

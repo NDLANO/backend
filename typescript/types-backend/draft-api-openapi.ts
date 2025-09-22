@@ -599,6 +599,8 @@ export type components = {
             started: boolean;
             qualityEvaluation?: components["schemas"]["QualityEvaluationDTO"];
             disclaimer?: components["schemas"]["DisclaimerDTO"];
+            /** @description Traits extracted from the article content */
+            traits: components["schemas"]["ArticleTrait"][];
         };
         /**
          * ArticleIntroductionDTO
@@ -733,6 +735,8 @@ export type components = {
             status: components["schemas"]["StatusDTO"];
             /** @description When the article was last updated */
             updated: string;
+            /** @description Traits extracted from the article content */
+            traits: components["schemas"]["ArticleTrait"][];
         };
         /**
          * ArticleTagDTO
@@ -753,6 +757,11 @@ export type components = {
             /** @description ISO 639-1 code that represents the language used in title */
             language: string;
         };
+        /**
+         * ArticleTrait
+         * @enum {string}
+         */
+        ArticleTrait: "VIDEO" | "H5P" | "AUDIO" | "PODCAST";
         /**
          * AuthorDTO
          * @description Information about an author
@@ -1007,8 +1016,11 @@ export type components = {
              */
             statusCode: number;
         };
-        /** PartialArticleFieldsDTO */
-        PartialArticleFieldsDTO: components["schemas"]["availability"] | components["schemas"]["grepCodes"] | components["schemas"]["license"] | components["schemas"]["metaDescription"] | components["schemas"]["published"] | components["schemas"]["relatedContent"] | components["schemas"]["revisionDate"] | components["schemas"]["tags"];
+        /**
+         * PartialArticleFieldsDTO
+         * @enum {string}
+         */
+        PartialArticleFieldsDTO: "availability" | "grepCodes" | "license" | "metaDescription" | "relatedContent" | "tags" | "revisionDate" | "published";
         /**
          * PartialBulkArticlesDTO
          * @description Partial data about articles to publish in bulk
@@ -1228,6 +1240,8 @@ export type components = {
             latestEditedArticles?: string[];
             /** @description User's last edited concepts */
             latestEditedConcepts?: string[];
+            /** @description User's last edited learningpaths */
+            latestEditedLearningpaths?: string[];
             /** @description User's favorite subjects */
             favoriteSubjects?: string[];
         };
@@ -1258,6 +1272,8 @@ export type components = {
             latestEditedArticles?: string[];
             /** @description User's last edited concepts */
             latestEditedConcepts?: string[];
+            /** @description User's last edited learningpaths */
+            latestEditedLearningpaths?: string[];
             /** @description User's favorite subjects */
             favoriteSubjects?: string[];
         };
@@ -1300,22 +1316,6 @@ export type components = {
             /** @description The ISO 639-1 language code describing which article translation this visual element belongs to */
             language: string;
         };
-        /** availability */
-        availability: Record<string, never>;
-        /** grepCodes */
-        grepCodes: Record<string, never>;
-        /** license */
-        license: Record<string, never>;
-        /** metaDescription */
-        metaDescription: Record<string, never>;
-        /** published */
-        published: Record<string, never>;
-        /** relatedContent */
-        relatedContent: Record<string, never>;
-        /** revisionDate */
-        revisionDate: Record<string, never>;
-        /** tags */
-        tags: Record<string, never>;
     };
     responses: never;
     parameters: never;
@@ -2811,6 +2811,14 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -9,7 +9,7 @@
 package no.ndla.draftapi.caching
 
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
-import no.ndla.draftapi.Props
+import no.ndla.draftapi.DraftApiProperties
 
 private[caching] class Memoize[R](
     maxCacheAgeMs: Long,
@@ -21,7 +21,7 @@ private[caching] class Memoize[R](
     def isExpired: Boolean = lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
   }
 
-  private[this] var cache: Option[CacheValue] = None
+  private var cache: Option[CacheValue] = None
 
   private def renewCache(): Unit = {
     val result = f()
@@ -49,8 +49,7 @@ private[caching] class Memoize[R](
   }
 
 }
-trait MemoizeHelpers {
-  this: Props =>
+class MemoizeHelpers(using props: DraftApiProperties) {
   object Memoize {
 
     def apply[R](f: () => R, shouldCacheResult: R => Boolean = (_: R) => true) =

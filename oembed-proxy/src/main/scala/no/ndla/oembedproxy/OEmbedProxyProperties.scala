@@ -8,14 +8,12 @@
 
 package no.ndla.oembedproxy
 
-import no.ndla.common.configuration.{BaseProps, HasBaseProps}
+import no.ndla.common.configuration.BaseProps
 import no.ndla.network.{AuthUser, Domains}
 
 import scala.util.Properties.propOrElse
 
-trait Props extends HasBaseProps {
-  lazy val props: OEmbedProxyProperties
-}
+type Props = OEmbedProxyProperties
 
 class OEmbedProxyProperties extends BaseProps {
   def ApplicationName: String = "oembed-proxy"

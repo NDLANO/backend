@@ -9,6 +9,7 @@
 package no.ndla.draftapi.model.api
 
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Information about search-results")
 case class ArticleSearchResultDTO(
@@ -25,5 +26,5 @@ object ArticleSearchResultDTO {
 
   implicit val encoder: Encoder[ArticleSearchResultDTO]          = deriveEncoder
   implicit val decoder: Decoder[ArticleSearchResultDTO]          = deriveDecoder
-  implicit def schema: sttp.tapir.Schema[ArticleSearchResultDTO] = sttp.tapir.Schema.derivedSchema
+  implicit def schema: sttp.tapir.Schema[ArticleSearchResultDTO] = DeriveHelpers.getSchema
 }

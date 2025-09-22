@@ -36,6 +36,21 @@ abstract class HtmlMigration extends DocumentMigration {
       c.copy(content = converted)
     })
 
+    val convertedTitle = oldArticle.title.map(t => {
+      val converted = convertContent(t.title, t.language)
+      t.copy(title = converted)
+    })
+
+    val convertedIntroduction = oldArticle.introduction.map(i => {
+      val converted = convertContent(i.introduction, i.language)
+      i.copy(introduction = converted)
+    })
+
+    val convertedMetaDescription = oldArticle.metaDescription.map(md => {
+      val converted = convertContent(md.content, md.language)
+      md.copy(content = converted)
+    })
+
     val convertedVisualElement = if (convertVisualElement) {
       oldArticle.visualElement.map(ve => {
         val doc       = stringToJsoupDocument(ve.resource)
@@ -44,7 +59,13 @@ abstract class HtmlMigration extends DocumentMigration {
       })
     } else oldArticle.visualElement
 
-    val newArticle = oldArticle.copy(content = convertedContent, visualElement = convertedVisualElement)
+    val newArticle = oldArticle.copy(
+      title = convertedTitle,
+      introduction = convertedIntroduction,
+      content = convertedContent,
+      metaDescription = convertedMetaDescription,
+      visualElement = convertedVisualElement
+    )
     newArticle.asJson.noSpaces
   }
 }

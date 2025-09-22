@@ -8,6 +8,7 @@
 
 package no.ndla.searchapi.caching
 
+import no.ndla.common.caching.Memoize
 import no.ndla.testbase.UnitTestSuiteBase
 import org.mockito.Mockito.{times, verify, when}
 

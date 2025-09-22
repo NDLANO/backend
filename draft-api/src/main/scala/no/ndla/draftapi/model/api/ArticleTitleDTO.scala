@@ -11,6 +11,7 @@ package no.ndla.draftapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Description of a title")
 case class ArticleTitleDTO(
@@ -22,5 +23,5 @@ case class ArticleTitleDTO(
 object ArticleTitleDTO {
   implicit def encoder: Encoder[ArticleTitleDTO]          = deriveEncoder
   implicit def decoder: Decoder[ArticleTitleDTO]          = deriveDecoder
-  implicit def schema: sttp.tapir.Schema[ArticleTitleDTO] = sttp.tapir.Schema.derived[ArticleTitleDTO]
+  implicit def schema: sttp.tapir.Schema[ArticleTitleDTO] = DeriveHelpers.getSchema[ArticleTitleDTO]
 }

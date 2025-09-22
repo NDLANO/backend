@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Information about a comment attached to an article")
 case class UpdatedCommentDTO(
@@ -24,5 +25,5 @@ case class UpdatedCommentDTO(
 object UpdatedCommentDTO {
   implicit def encoder: Encoder[UpdatedCommentDTO] = deriveEncoder
   implicit def decoder: Decoder[UpdatedCommentDTO] = deriveDecoder
-  implicit def schema: Schema[UpdatedCommentDTO]   = Schema.derived[UpdatedCommentDTO]
+  implicit def schema: Schema[UpdatedCommentDTO]   = DeriveHelpers.getSchema[UpdatedCommentDTO]
 }

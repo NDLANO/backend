@@ -8,14 +8,16 @@
 
 package no.ndla.myndlaapi.e2e
 
-import no.ndla.common.CirceUtil
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.domain.ResourceType.Article
 import no.ndla.common.model.domain.myndla.FolderStatus
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.model.api.FolderDTO
+import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
-import no.ndla.network.clients.FeideExtendedUserInfo
+import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, spy, when, withSettings}
@@ -35,16 +37,18 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   val pgc: PostgreSQLContainer[?]           = postgresContainer.get
   val redisPort: Int                        = redisContainer.get.port
   val myndlaproperties: MyNdlaApiProperties = new MyNdlaApiProperties {
-    override def ApplicationPort: Int       = myndlaApiPort
+    override def ApplicationPort: Int = myndlaApiPort
+
     override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
     override val MetaResource: Prop[String] = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
     override val MetaUserName: Prop[String] = propFromTestValue("META_USER_NAME", pgc.getUsername)
     override val MetaPassword: Prop[String] = propFromTestValue("META_PASSWORD", pgc.getPassword)
     override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
-    override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", "testschema")
+    override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", schemaName)
 
     override def RedisHost: String = "localhost"
-    override def RedisPort: Int    = redisPort
+
+    override def RedisPort: Int = redisPort
   }
 
   val feideId            = "feide"
@@ -52,12 +56,13 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
 
   val myndlaApi: MainClass = new MainClass(myndlaproperties) {
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(myndlaproperties) {
-      override lazy val feideApiClient: FeideApiClient =
+      override implicit lazy val feideApiClient: FeideApiClient =
         mock[FeideApiClient](withSettings.strictness(Strictness.LENIENT))
-      override lazy val clock: SystemClock = mock[SystemClock](withSettings.strictness(Strictness.LENIENT))
-      override lazy val folderRepository: FolderRepository = spy(new FolderRepository)
-      override lazy val userRepository: UserRepository     = spy(new UserRepository)
+      override implicit lazy val clock: Clock = mock[Clock](withSettings.strictness(Strictness.LENIENT))
+      override implicit lazy val folderRepository: FolderRepository = spy(new FolderRepository)
+      override implicit lazy val userRepository: UserRepository     = spy(new UserRepository)
 
+      when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
       when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
       when(feideApiClient.getFeideExtendedUser(any))
@@ -67,11 +72,10 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
           )
         )
       when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
-      when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
     }
   }
 
-  val testClock: myndlaApi.componentRegistry.SystemClock = myndlaApi.componentRegistry.clock
+  val testClock: Clock = myndlaApi.componentRegistry.clock
 
   val myndlaApiBaseUrl: String   = s"http://localhost:$myndlaApiPort"
   val myndlaApiFolderUrl: String = s"$myndlaApiBaseUrl/myndla-api/v1/folders"
@@ -80,8 +84,10 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     super.beforeAll()
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-    Future { myndlaApi.run(Array.empty) }: Unit
-    Thread.sleep(4000)
+    Future {
+      myndlaApi.run(Array.empty)
+    }: Unit
+    blockUntilHealthy(s"$myndlaApiBaseUrl/health/readiness")
   }
 
   override def beforeEach(): Unit = {
@@ -190,6 +196,65 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
       )
   }
 
+  def addResourceToFolder(feideId: String, folderId: UUID, resource: api.NewResourceDTO): api.ResourceDTO = {
+    import io.circe.generic.auto.*
+    val body = CirceUtil.toJsonString(resource)
+
+    val newResource = simpleHttpClient.send(
+      quickRequest
+        .post(uri"$myndlaApiFolderUrl/$folderId/resources")
+        .header("FeideAuthorization", s"Bearer $feideId")
+        .contentType("application/json")
+        .body(body)
+    )
+    if (!newResource.isSuccess)
+      fail(s"Failed to create resource, failed with code ${newResource.code} and body:\n${newResource.body}")
+
+    CirceUtil.unsafeParseAs[api.ResourceDTO](newResource.body)
+  }
+
+  def getFolderResources(feideId: String, folderId: UUID): api.FolderDTO = {
+    val resources = simpleHttpClient.send(
+      quickRequest
+        .get(uri"$myndlaApiFolderUrl/$folderId?include-resources=true")
+        .header("FeideAuthorization", s"Bearer $feideId")
+    )
+    if (!resources.isSuccess)
+      fail(s"Fetching all resources for $feideId failed with code ${resources.code} and body:\n${resources.body}")
+
+    CirceUtil.unsafeParseAs[api.FolderDTO](resources.body)
+  }
+
+  def sortResourcesInFolder(feideId: String, folderId: UUID, resourceIdsInOrder: List[UUID]): Unit = {
+    import io.circe.generic.auto.*
+    val sortData = api.FolderSortRequestDTO(sortedIds = resourceIdsInOrder)
+    val body     = CirceUtil.toJsonString(sortData)
+
+    val sortedResources = simpleHttpClient.send(
+      quickRequest
+        .put(uri"$myndlaApiFolderUrl/sort-resources/$folderId")
+        .header("FeideAuthorization", s"Bearer $feideId")
+        .contentType("application/json")
+        .body(body)
+    )
+    if (!sortedResources.isSuccess)
+      fail(
+        s"Sorting resources in folder $folderId for $feideId failed with code ${sortedResources.code} and body:\n${sortedResources.body}"
+      )
+  }
+
+  def deleteResourceFromFolder(feideId: String, folderId: UUID, resourceId: UUID): Unit = {
+    val response = simpleHttpClient.send(
+      quickRequest
+        .delete(uri"$myndlaApiFolderUrl/$folderId/resources/$resourceId")
+        .header("FeideAuthorization", s"Bearer $feideId")
+    )
+    if (!response.isSuccess)
+      fail(
+        s"Deleting resource $resourceId from folder $folderId for $feideId failed with code ${response.code} and body:\n${response.body}"
+      )
+  }
+
   test("Inserting and sorting folders") {
     val feideId1 = "feide1"
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
@@ -288,4 +353,65 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     foldersForU2AfterSort.sharedFolders(1).rank should be(2)
   }
 
+  test("Saving, sorting and deleting resources in a folder") {
+    // This test fails if you remove the order by clause in fetching resources in FolderRepository
+    val feideId1 = "feide1"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+
+    val f1 = createFolder(feideId1, "folder1")
+
+    val foldersForU1 = getFolders(feideId1)
+    foldersForU1.sharedFolders.length should be(0)
+    foldersForU1.folders.length should be(1)
+    foldersForU1.folders.head.id should be(f1.id)
+    foldersForU1.folders.head.rank should be(1)
+    foldersForU1.folders.head.resources.length should be(0)
+
+    val res1 = addResourceToFolder(
+      feideId = feideId1,
+      folderId = f1.id,
+      resource = api.NewResourceDTO(resourceType = Article, path = "/path/to/1", tags = None, resourceId = "1")
+    )
+    val res2 = addResourceToFolder(
+      feideId = feideId1,
+      folderId = f1.id,
+      resource = api.NewResourceDTO(resourceType = Article, path = "/path/to/2", tags = None, resourceId = "2")
+    )
+    val res3 = addResourceToFolder(
+      feideId = feideId1,
+      folderId = f1.id,
+      resource = api.NewResourceDTO(resourceType = Article, path = "/path/to/3", tags = None, resourceId = "3")
+    )
+    val res4 = addResourceToFolder(
+      feideId = feideId1,
+      folderId = f1.id,
+      resource = api.NewResourceDTO(resourceType = Article, path = "/path/to/4", tags = None, resourceId = "4")
+    )
+    val res5 = addResourceToFolder(
+      feideId = feideId1,
+      folderId = f1.id,
+      resource = api.NewResourceDTO(resourceType = Article, path = "/path/to/5", tags = None, resourceId = "5")
+    )
+
+    val folderAfterAdd = getFolderResources(feideId1, f1.id)
+    folderAfterAdd.resources.length should be(5)
+    folderAfterAdd.resources.map(_.id) should be(List(res1.id, res2.id, res3.id, res4.id, res5.id))
+
+    sortResourcesInFolder(feideId1, f1.id, List(res3.id, res1.id, res2.id, res5.id, res4.id))
+    sortResourcesInFolder(feideId1, f1.id, List(res2.id, res4.id, res3.id, res1.id, res5.id))
+    sortResourcesInFolder(feideId1, f1.id, List(res5.id, res3.id, res2.id, res4.id, res1.id))
+    sortResourcesInFolder(feideId1, f1.id, List(res3.id, res1.id, res2.id, res5.id, res4.id))
+
+    val folderAfterSort = getFolderResources(feideId1, f1.id)
+    folderAfterSort.resources.length should be(5)
+    folderAfterSort.resources.map(_.id) should be(List(res3.id, res1.id, res2.id, res5.id, res4.id))
+
+    deleteResourceFromFolder(feideId1, f1.id, res1.id)
+
+    val folderAfterDelete = getFolderResources(feideId1, f1.id)
+    folderAfterDelete.resources.length should be(4)
+    folderAfterDelete.resources.map(_.id) should be(List(res3.id, res2.id, res5.id, res4.id))
+
+  }
 }

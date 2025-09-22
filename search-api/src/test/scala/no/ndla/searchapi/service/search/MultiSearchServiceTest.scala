@@ -9,44 +9,51 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO, SearchTrait}
+import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO, ArticleTrait}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
+import no.ndla.common.model.domain.learningpath.LearningPathVerificationStatus.CREATED_BY_NDLA
 import no.ndla.common.model.domain.{ArticleType, Availability}
+import no.ndla.common.util.TraitUtil
 import no.ndla.language.Language.AllLanguages
 import no.ndla.mapping.License
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
+import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.model.search.SearchPagination
+import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.searchapi.SearchTestUtility.*
 
 import scala.util.Success
 
 class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-  e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
+  override implicit lazy val e4sClient: NdlaE4sClient =
+    Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
+  override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
+  override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
+  override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
-  override lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
+  override implicit lazy val articleIndexService: ArticleIndexService = new ArticleIndexService {
     override val indexShards = 1
   }
-  override lazy val draftIndexService: DraftIndexService = new DraftIndexService {
+  override implicit lazy val draftIndexService: DraftIndexService = new DraftIndexService {
     override val indexShards = 1
   }
-  override lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
+  override implicit lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
     override val indexShards = 1
   }
-  override lazy val nodeIndexService: NodeIndexService = new NodeIndexService {
+  override implicit lazy val nodeIndexService: NodeIndexService = new NodeIndexService {
     override val indexShards = 1
   }
 
-  override lazy val multiSearchService = new MultiSearchService {
+  override implicit lazy val multiSearchService: MultiSearchService = new MultiSearchService {
     override val enableExplanations = true
   }
-  override lazy val converterService       = new ConverterService
-  override lazy val searchConverterService = new SearchConverterService
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -79,7 +86,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
       blockUntil(() => {
         articleIndexService.countDocuments == articlesToIndex.size &&
-        learningPathIndexService.countDocuments == learningPathsToIndex.size
+        learningPathIndexService.countDocuments == learningPathsToIndex.count(_.verificationStatus == CREATED_BY_NDLA)
       })
     }
   }
@@ -724,15 +731,15 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       ): @unchecked
     search.totalCount should be(1)
     search.summaryResults.head.id should be(12)
-    search.summaryResults.head.traits should be(List(SearchTrait.H5p))
+    search.summaryResults.head.traits should be(List(ArticleTrait.H5p))
   }
 
   test("That search can be filtered by traits") {
     val Success(search) =
-      multiSearchService.matchingQuery(searchSettings.copy(traits = List(SearchTrait.H5p))): @unchecked
+      multiSearchService.matchingQuery(searchSettings.copy(traits = List(ArticleTrait.H5p))): @unchecked
     search.totalCount should be(1)
     search.summaryResults.head.id should be(12)
-    search.summaryResults.head.traits should be(List(SearchTrait.H5p))
+    search.summaryResults.head.traits should be(List(ArticleTrait.H5p))
   }
 
   test("That searches for embed attributes matches") {

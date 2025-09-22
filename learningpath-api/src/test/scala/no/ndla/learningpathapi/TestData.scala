@@ -22,6 +22,7 @@ import no.ndla.language.Language.DefaultLanguage
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.learningpathapi.model.domain.{SearchSettings, Sort}
+import common.learningpath.Introduction
 
 object TestData {
 
@@ -55,9 +56,10 @@ object TestData {
     List(),
     None,
     StepType.INTRODUCTION,
-    None
+    None,
+    today,
+    today
   )
-
   val domainLearningStep2: LearningStep = LearningStep(
     None,
     None,
@@ -70,7 +72,9 @@ object TestData {
     List(),
     None,
     learningpath.StepType.TEXT,
-    None
+    None,
+    today,
+    today
   )
 
   val sampleDomainLearningPath: LearningPath = LearningPath(
@@ -80,6 +84,7 @@ object TestData {
     isBasedOn = None,
     title = List(common.Title("tittel", DefaultLanguage)),
     description = List(Description("deskripsjon", DefaultLanguage)),
+    introduction = List(Introduction("<section><p>introduction</p></section>", DefaultLanguage)),
     coverPhotoId = None,
     duration = Some(60),
     status = LearningPathStatus.PUBLISHED,
@@ -93,7 +98,9 @@ object TestData {
     learningsteps = Some(List(domainLearningStep1, domainLearningStep2)),
     responsible = None,
     comments = Seq.empty,
-    priority = common.Priority.Unspecified
+    priority = common.Priority.Unspecified,
+    revisionMeta = common.RevisionMeta.default,
+    grepCodes = Seq.empty
   )
 
   val searchSettings: SearchSettings = SearchSettings(
@@ -109,6 +116,7 @@ object TestData {
     verificationStatus = None,
     shouldScroll = false,
     articleId = None,
-    status = List(learningpath.LearningPathStatus.PUBLISHED)
+    status = List(learningpath.LearningPathStatus.PUBLISHED),
+    grepCodes = List.empty
   )
 }

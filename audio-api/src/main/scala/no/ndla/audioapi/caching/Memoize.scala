@@ -13,7 +13,7 @@ class Memoize[R](f: () => R, maxAgeMs: Long) extends (() => R) {
     def isExpired: Boolean = lastUpdated + maxAgeMs <= System.currentTimeMillis()
   }
 
-  private[this] var cache: Option[CacheValue] = None
+  private var cache: Option[CacheValue] = None
 
   def apply(): R = {
     cache match {

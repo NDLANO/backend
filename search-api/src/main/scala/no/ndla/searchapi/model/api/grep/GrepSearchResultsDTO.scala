@@ -14,6 +14,7 @@ import no.ndla.common.SchemaImplicits
 import no.ndla.common.TapirUtil.stringLiteralSchema
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
+import no.ndla.common.DeriveHelpers
 
 @description("Information about search-results")
 case class GrepSearchResultsDTO(
@@ -34,6 +35,6 @@ object GrepSearchResultsDTO extends SchemaImplicits {
     implicit val s4: Schema["GrepKompetansemaalDTO"]     = stringLiteralSchema("GrepKompetansemaalDTO")
     implicit val s5: Schema["GrepKjerneelementDTO"]      = stringLiteralSchema("GrepKjerneelementDTO")
     import sttp.tapir.generic.auto.*
-    Schema.derived
+    DeriveHelpers.getSchema
   }
 }

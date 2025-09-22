@@ -11,6 +11,7 @@ package no.ndla.draftapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.LanguageCode
+import no.ndla.common.DeriveHelpers
 import no.ndla.draftapi.model.domain.Sort
 import sttp.tapir.Schema.annotations.description
 
@@ -44,5 +45,5 @@ object ArticleSearchParamsDTO {
   implicit def encoder: Encoder[ArticleSearchParamsDTO] = deriveEncoder
   implicit def decoder: Decoder[ArticleSearchParamsDTO] = deriveDecoder
   import sttp.tapir.generic.auto.*
-  implicit def schema: sttp.tapir.Schema[ArticleSearchParamsDTO] = sttp.tapir.Schema.derivedSchema
+  implicit def schema: sttp.tapir.Schema[ArticleSearchParamsDTO] = DeriveHelpers.getSchema
 }

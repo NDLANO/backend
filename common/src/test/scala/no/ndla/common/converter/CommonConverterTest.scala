@@ -17,9 +17,10 @@ import org.mockito.Mockito.when
 
 import java.util.UUID
 
-class CommonConverterTest extends UnitTestSuiteBase with CommonConverter with Clock with UUIDUtil {
-  override lazy val clock: SystemClock = mock[SystemClock]
-  override lazy val uuidUtil: UUIDUtil = mock[UUIDUtil]
+class CommonConverterTest extends UnitTestSuiteBase {
+  given clock: Clock       = mock[Clock]
+  given uuidUtil: UUIDUtil = mock[UUIDUtil]
+  val commonConverter      = new CommonConverter
   test("that mergeUpdatedCommentsWithExisting creates and updates comments correctly") {
     val uuid = UUID.randomUUID()
     val now  = NDLADate.now()
@@ -37,7 +38,7 @@ class CommonConverterTest extends UnitTestSuiteBase with CommonConverter with Cl
       Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true, solved = false),
       Comment(id = uuid, created = now, updated = now, content = "yoo", isOpen = false, solved = false)
     )
-    CommonConverter.mergeUpdatedCommentsWithExisting(updatedComments, existingComments) should be(expectedComments)
+    commonConverter.mergeUpdatedCommentsWithExisting(updatedComments, existingComments) should be(expectedComments)
   }
 
   test("that mergeUpdatedCommentsWithExisting only keeps updatedComments and deletes rest") {
@@ -57,7 +58,7 @@ class CommonConverterTest extends UnitTestSuiteBase with CommonConverter with Cl
     )
     val expectedComments =
       Seq(Comment(id = uuid, created = now, updated = now, content = "updated keep", isOpen = true, solved = false))
-    val result = CommonConverter.mergeUpdatedCommentsWithExisting(updatedComments, existingComments)
+    val result = commonConverter.mergeUpdatedCommentsWithExisting(updatedComments, existingComments)
     result should be(expectedComments)
   }
 
@@ -69,6 +70,6 @@ class CommonConverterTest extends UnitTestSuiteBase with CommonConverter with Cl
     val newComments     = NewCommentDTO(content = "hei", isOpen = None)
     val expectedComment =
       Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true, solved = false)
-    CommonConverter.newCommentApiToDomain(newComments).copy(id = uuid) should be(expectedComment)
+    commonConverter.newCommentApiToDomain(newComments).copy(id = uuid) should be(expectedComment)
   }
 }

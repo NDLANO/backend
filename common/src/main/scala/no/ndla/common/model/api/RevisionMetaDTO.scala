@@ -10,6 +10,7 @@ package no.ndla.common.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.DeriveHelpers
 import sttp.tapir.Schema.annotations.description
 import no.ndla.common.model.NDLADate
 import sttp.tapir.Schema
@@ -25,5 +26,5 @@ case class RevisionMetaDTO(
 object RevisionMetaDTO {
   implicit def encoder: Encoder[RevisionMetaDTO] = deriveEncoder[RevisionMetaDTO]
   implicit def decoder: Decoder[RevisionMetaDTO] = deriveDecoder[RevisionMetaDTO]
-  implicit def schema: Schema[RevisionMetaDTO]   = Schema.derived[RevisionMetaDTO]
+  implicit def schema: Schema[RevisionMetaDTO]   = DeriveHelpers.getSchema[RevisionMetaDTO]
 }

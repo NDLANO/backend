@@ -10,14 +10,16 @@ package no.ndla.articleapi.service.search
 
 import no.ndla.articleapi.model.search.*
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
-import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.search.SearchLanguage
 
 class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
-  override lazy val searchConverterService = new SearchConverterService
-  val sampleArticle: Article               = TestData.sampleArticleWithPublicDomain.copy()
+  override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
+  override lazy val searchConverterService                  = new SearchConverterService
+  val sampleArticle: Article                                = TestData.sampleArticleWithPublicDomain.copy()
 
   val titles: List[Title] = List(
     Title("Bokmål tittel", "nb"),

@@ -8,6 +8,8 @@
 
 package no.ndla.draftapi.model.domain
 
+import no.ndla.common.DeriveHelpers
+
 case class ImportId(importId: Option[String])
 
 object ImportId {
@@ -18,5 +20,5 @@ object ImportId {
 
   implicit val encoder: Encoder[ImportId] = deriveEncoder
   implicit val decoder: Decoder[ImportId] = deriveDecoder
-  implicit def schema: Schema[ImportId]   = Schema.derivedSchema
+  implicit def schema: Schema[ImportId]   = DeriveHelpers.getSchema
 }

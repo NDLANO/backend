@@ -18,7 +18,8 @@ import org.mockito.Mockito.when
 import scala.util.Success
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
-  override lazy val writeService: WriteService = new WriteService
+  override implicit lazy val converterService: ConverterService = new ConverterService
+  override implicit lazy val writeService: WriteService         = new WriteService
 
   test("That language is deleted for subject page") {
     val subjectPage = TestData.domainSubjectPage.copy(
@@ -32,7 +33,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val result = writeService.deleteSubjectPageLanguage(subjectPage.id.get, "nn")
     result should be(
       Success(
-        ConverterService
+        converterService
           .toApiSubjectPage(TestData.domainSubjectPage, Language.NoLanguage, fallback = true)
           .failIfFailure
       )
@@ -59,7 +60,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(filmFrontPageRepository.update(any)(using any)).thenAnswer(i => Success(i.getArgument(0)))
 
     val result = writeService.deleteFilmFrontPageLanguage("nn")
-    result should be(Success(ConverterService.toApiFilmFrontPage(TestData.domainFilmFrontPage, None)))
+    result should be(Success(converterService.toApiFilmFrontPage(TestData.domainFilmFrontPage, None)))
   }
 
   test("That deleting last language for film front page throws exception") {

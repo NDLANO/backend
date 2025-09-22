@@ -14,9 +14,9 @@ import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 import sttp.tapir.Schema
-import sttp.tapir.SchemaType.SProduct
 import sttp.tapir.FieldName
 import sttp.tapir.SchemaType
+import no.ndla.common.DeriveHelpers
 
 @description("The Menu object")
 case class MenuDTO(
@@ -44,7 +44,7 @@ object MenuDTO {
   implicit val decodeMenuData: Decoder[MenuDataDTO] = Decoder[MenuDTO].widen
 
   import sttp.tapir.generic.auto.*
-  implicit def schema: Schema[MenuDTO] = Schema.derivedSchema
+  implicit def schema: Schema[MenuDTO] = DeriveHelpers.getSchema
 }
 
 sealed trait MenuDataDTO {}
