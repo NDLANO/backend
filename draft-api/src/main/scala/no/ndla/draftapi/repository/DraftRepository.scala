@@ -177,7 +177,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     val count =
       sql"""
               update ${DBArticle.table}
-              set document=document || jsonb_set(document, '{notes}',(document -> 'notes') || $dataObject)
+              set document=jsonb_set(document, '{notes}',(document -> 'notes') || $dataObject)
               where article_id=${articleId}
               and revision=(select max(revision) from ${DBArticle.table} where article_id=${articleId})
            """.update()
