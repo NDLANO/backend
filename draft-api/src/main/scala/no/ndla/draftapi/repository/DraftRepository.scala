@@ -145,6 +145,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
         select document->'notes' as notes
         from ${DBArticle.table}
           $whereClause
+          for update
       """.map(editorNotesFromRS).single()
     val notes = oldNotes match {
       case Some(n) => n ++ article.notes
