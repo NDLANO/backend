@@ -131,19 +131,62 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(article))
 
-    val newRevision = article.revision.getOrElse(0) + 1
     val oldRevision = article.revision.getOrElse(0)
+    val newRevision = oldRevision + 1
     val slug        = article.slug.map(_.toLowerCase)
-    val count       =
+
+    val whereClause = sqls"""
+                      where article_id=${article.id}
+                      and revision=$oldRevision
+                      and revision=(select max(revision) from ${DBArticle.table} where article_id=${article.id})
+                      """.stripMargin
+
+    val oldNotes = sql"""
+        select document->'notes' as notes
+        from ${DBArticle.table}
+          $whereClause
+          for update
+      """.map(editorNotesFromRS).single()
+    val notes = oldNotes match {
+      case Some(n) => n ++ article.notes
+      case None    => article.notes
+    }
+
+    val count =
       sql"""
               update ${DBArticle.table}
-              set document=$dataObject, revision=$newRevision, slug=$slug
-              where article_id=${article.id}
-              and revision=$oldRevision
-              and revision=(select max(revision) from ${DBArticle.table} where article_id=${article.id})
+              set document=jsonb_set($dataObject,'{notes}',(${CirceUtil.toJsonString(notes.distinct)}::jsonb)),
+              revision=$newRevision,
+              slug=$slug
+              $whereClause
            """.update()
 
     failIfRevisionMismatch(count, article, newRevision)
+  }
+
+  private def editorNotesFromRS(rs: WrappedResultSet): Seq[EditorNote] = {
+    Option(rs.string("notes"))
+      .map(CirceUtil.unsafeParseAs[Seq[EditorNote]](_))
+      .getOrElse(Seq.empty)
+  }
+
+  def updateArticleNotes(articleId: Long, notes: Seq[EditorNote])(implicit session: DBSession): Try[Boolean] = {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    dataObject.setValue(CirceUtil.toJsonString(notes))
+
+    val count =
+      sql"""
+              update ${DBArticle.table}
+              set document=jsonb_set(document, '{notes}',(document -> 'notes') || $dataObject)
+              where article_id=${articleId}
+              and revision=(select max(revision) from ${DBArticle.table} where article_id=${articleId})
+           """.update()
+
+    count match {
+      case 1 => Success(true)
+      case _ => Failure(NotFoundException(s"Article with id $articleId does not exist"))
+    }
   }
 
   def withId(articleId: Long)(implicit session: DBSession): Option[Draft] =

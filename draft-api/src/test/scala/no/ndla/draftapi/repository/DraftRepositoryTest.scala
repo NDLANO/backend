@@ -98,6 +98,19 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     repository.withId(art4.id.get)(using ReadOnlyAutoSession).get.content should be(art4.content)
   }
 
+  test("Updating an article with notes should merge the notes") {
+    val art1     = sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty))
+    val inserted = repository.insert(art1)(using AutoSession)
+    val numNotes = inserted.notes.length
+
+    val updatedNotes = Seq(EditorNote("A note", "SomeId", art1.status, NDLADate.now()))
+    repository.updateArticleNotes(art1.id.get, updatedNotes)(using AutoSession)
+
+    val updated = repository.withId(art1.id.get)(using ReadOnlyAutoSession).get
+    updated.notes.length should be(numNotes + 1)
+    updated.revision should be(art1.revision)
+  }
+
   test("That storing an article an retrieving it returns the original article") {
     val art1 = sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty))
     val art2 = sampleArticle.copy(id = Some(2), status = Status(DraftStatus.PUBLISHED, Set.empty))
@@ -359,5 +372,24 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
 
     publishedArticle.comments should be(Seq())
     publishedTopicArticle.comments should be(comments)
+  }
+
+  test("That editornotes are kept both from regular update and through updateArticleNotes") {
+    val now     = NDLADate.now().withNano(0)
+    val article = TestData.sampleDomainArticle.copy(
+      revision = Some(1),
+      notes = Seq(EditorNote("note1", "user1", Status(DraftStatus.PLANNED, Set.empty), now))
+    )
+    val inserted = repository.insert(article)(using AutoSession)
+    repository.updateArticleNotes(1L, Seq(EditorNote("note2", "user2", Status(DraftStatus.PLANNED, Set.empty), now)))(
+      using AutoSession
+    )
+    repository.updateArticle(
+      inserted.copy(
+        notes = article.notes :+ EditorNote("note3", "user3", Status(DraftStatus.PLANNED, Set.empty), now)
+      )
+    )(using AutoSession)
+    val updated = repository.withId(inserted.id.get)(using AutoSession)
+    updated.get.notes.length should be(3)
   }
 }
