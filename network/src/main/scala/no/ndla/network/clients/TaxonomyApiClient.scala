@@ -89,7 +89,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
 
     /** Calls function in separate thread and converts Try to Future */
     def tryToFuture[T](x: Boolean => Try[T]) = Future {
-      requestInfo.setRequestInfo(): Unit
+      requestInfo.setThreadContextRequestInfo(): Unit
       x(shouldUsePublishedTax)
     }.flatMap(Future.fromTry)
 

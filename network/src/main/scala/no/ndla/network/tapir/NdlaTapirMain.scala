@@ -11,22 +11,20 @@ package no.ndla.network.tapir
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Environment.setPropsFromEnv
 import no.ndla.common.configuration.BaseProps
-import no.ndla.common.logging.logTaskTime
 import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.jul.Log4jBridgeHandler
-import sttp.tapir.server.jdkhttp.HttpServer
+import sttp.tapir.server.netty.sync.NettySyncServerBinding
 
 import scala.concurrent.Future
-import scala.concurrent.duration.{Duration, DurationInt}
 import scala.io.Source
-import scala.util.{Try, boundary}
+import scala.util.Try
 
 trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
   val props: BaseProps
   val componentRegistry: T
   def warmup(): Unit
   def beforeStart(): Unit
-  var server: Option[HttpServer] = None
+  var serverBinding: Option[NettySyncServerBinding] = None
 
   private def logCopyrightHeader(): Unit = {
     if (!props.DisableLicense) {
@@ -34,16 +32,12 @@ trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
     }
   }
 
-  def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit = {
-    val server = componentRegistry.routes.startJdkServerAsync(name, port)(warmupFunc)
-    this.server = Some(server)
-    // NOTE: Since JdkHttpServer does not block, we need to block the main thread to keep the application alive
-    synchronized { this.wait() }
-  }
+  def startServerAndWait(name: String, port: Int)(onStartup: NettySyncServerBinding => Unit): Unit =
+    componentRegistry.routes.startServerAndWait(name, port)(onStartup)
 
   private def performWarmup(): Unit = if (!props.disableWarmup) {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val fut = Future {
+    val _ = Future {
       // Since we don't really have a good way to check whether server is ready lets just wait a bit
       Thread.sleep(500)
       val warmupStart = System.currentTimeMillis()
@@ -54,38 +48,20 @@ trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
       val warmupTime = System.currentTimeMillis() - warmupStart
       logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
     }
-
-    fut: Unit
   } else {
     componentRegistry.healthController.setWarmedUp()
   }
 
-  private def waitForActiveRequests(timeout: Duration): Unit = boundary {
-    val startTime      = System.currentTimeMillis()
-    val activeRequests = componentRegistry.routes.activeRequests.get()
-    logTaskTime(s"Waiting for $activeRequests active requests to finish...", timeout, logTaskStart = true) {
-      while (componentRegistry.routes.activeRequests.get() > 0) {
-        if (System.currentTimeMillis() - startTime > timeout.toMillis) {
-          logger.warn(s"Timeout of $timeout reached while waiting for active requests to finish.")
-          boundary.break()
-        }
-        Thread.sleep(100)
-      }
-    }
-  }
-
-  private val gracefulShutdownTimeout   = 30.seconds
   private def setupShutdownHook(): Unit = sys.addShutdownHook {
-    logger.info("Shutting down gracefully...")
     componentRegistry.healthController.setShuttingDown()
-    this.server match {
+    this.serverBinding match {
       case Some(server) =>
-        val gracePeriod = props.ReadinessProbeDetectionTimeoutSeconds
-        logger.info(s"Waiting $gracePeriod for shutdown to be detected before stopping...")
-        Thread.sleep(gracePeriod.toMillis)
-        logger.info("Grace period finished, stopping server after requests are processed...")
-        waitForActiveRequests(gracefulShutdownTimeout)
-        server.stop(0)
+        // Make sure to wait for readiness probe to fail before we stop the server
+        val readinessProbeDelay = props.ReadinessProbeDetectionTimeoutSeconds
+        logger.info(s"Waiting $readinessProbeDelay for shutdown to be detected before stopping...")
+        Thread.sleep(readinessProbeDelay.toMillis)
+        logger.info("Stopping server gracefully...")
+        server.stop()
       case None =>
         logger.error("Got shutdown signal, but no server is running, this seems weird.")
     }
@@ -102,7 +78,8 @@ trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
   private def runServer(): Try[Unit] = {
     logCopyrightHeader()
     setupShutdownHook()
-    Try(startServer(props.ApplicationName, props.ApplicationPort) {
+    Try(startServerAndWait(props.ApplicationName, props.ApplicationPort) { binding =>
+      this.serverBinding = Some(binding)
       beforeStart()
       performWarmup()
     }).recover { ex =>

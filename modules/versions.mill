@@ -14,7 +14,7 @@ object SharedDependencies {
   val CatsEffectV           = "3.6.1"
   val FlywayV               = "11.10.5"
   val PostgresV             = "42.7.7"
-  val TapirV                = "1.11.41"
+  val TapirV                = "1.11.47"
   val ApiSpecV              = "0.11.9"
   val SttpV                 = "3.11.0"
   val CirceV                = "0.14.14"
@@ -79,17 +79,11 @@ object SharedDependencies {
     mvn"com.softwaremill.sttp.tapir::tapir-swagger-ui-bundle:$TapirV",
     mvn"com.softwaremill.sttp.tapir::tapir-enumeratum:$TapirV",
     mvn"com.softwaremill.sttp.tapir::tapir-json-circe:$TapirV",
-    mvn"com.softwaremill.sttp.tapir::tapir-jdkhttp-server:$TapirV",
     mvn"com.softwaremill.sttp.tapir::tapir-netty-server-sync:$TapirV",
     mvn"com.softwaremill.sttp.tapir::tapir-prometheus-metrics:$TapirV",
     mvn"com.softwaremill.sttp.apispec::openapi-circe-yaml:$ApiSpecV",
     tapirTesting // TODO: I think we can just remove this?
-  ).map {
-    // NOTE: tapir-jdkhttp-server includes some logback provider for slf4j
-    //       this conflicts with the existing provider, so lets exclude it.
-    _.exclude("ch.qos.logback" -> "logback-classic")
-      .exclude("ch.qos.logback" -> "logback-core")
-  }
+  )
 
   val catsEffect: Dep = mvn"org.typelevel::cats-effect:$CatsEffectV"
   val catsCore: Dep   = mvn"org.typelevel::cats-core:2.13.0"

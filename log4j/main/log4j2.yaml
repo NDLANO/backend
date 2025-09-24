@@ -31,10 +31,3 @@ Configuration:
       level: warn
       AppenderRef:
         - ref: ${env:LOG_APPENDER:-Console}
-      Filters:
-        - StringMatchFilter:
-            # jdkhttp-server gives this warning when responding headers with 204 status code without contentLen set to -1
-            # since tapir sets this to 0 if there is no header, even when there is no body, so let's ignore this warning.
-            text: "sendResponseHeaders: rCode = 204: forcing contentLen = -1"
-            onMatch: DENY
-            onMismatch: NEUTRAL
