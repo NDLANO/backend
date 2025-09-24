@@ -25,10 +25,6 @@ case class RequestInfo(
     CorrelationID.set(correlationId)
     ApplicationUrl.set(applicationUrl)
   }
-  def setRequestInfo(): Unit = {
-    setThreadContextRequestInfo()
-  }
-
 }
 
 object RequestInfo {

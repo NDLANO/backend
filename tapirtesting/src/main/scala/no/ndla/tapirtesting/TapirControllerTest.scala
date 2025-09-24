@@ -8,13 +8,14 @@
 
 package no.ndla.tapirtesting
 
-import com.sun.net.httpserver.HttpServer
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseProps
 import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.scalatestsuite.UnitTestSuite
+import sttp.tapir.server.netty.sync.NettySyncServerBinding
 
 import scala.compiletime.uninitialized
+import scala.concurrent.duration.DurationInt
 
 trait TapirControllerTest extends UnitTestSuite {
   val controller: TapirController
@@ -31,15 +32,25 @@ trait TapirControllerTest extends UnitTestSuite {
   implicit lazy val services: List[TapirController] = List(controller)
   implicit lazy val routes: Routes                  = new Routes
 
-  var server: HttpServer = uninitialized
+  var server: NettySyncServerBinding = uninitialized
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    server = routes.startJdkServerAsync(s"TapirControllerTest:${this.getClass.getName}", serverPort) {}
+
+    Thread
+      .ofVirtual()
+      .start(() => {
+        routes.startServerAndWait(
+          s"TapirControllerTest:${this.getClass.getName}",
+          serverPort,
+          gracefulShutdownTimeout = 1.seconds
+        ) { server = _ }
+      })
+
     Thread.sleep(1000)
   }
 
-  override def afterAll(): Unit = server.stop(0)
+  override def afterAll(): Unit = server.stop()
 
   test("That no endpoints are shadowed") {
     import sttp.tapir.testing.EndpointVerifier
