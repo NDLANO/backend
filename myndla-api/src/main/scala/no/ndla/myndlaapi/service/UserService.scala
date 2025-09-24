@@ -105,13 +105,8 @@ class UserService(using
     for {
       _ <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
       existingUserData <- getMyNDLAUserOrFail(feideId)
-      combined         <- folderConverterService.mergeUserData(
-        existingUserData,
-        updatedUser,
-        None,
-        feideAccessToken
-      )
-      updated <- userRepository.updateUser(feideId, combined)
+      combined         <- folderConverterService.mergeUserData(existingUserData, updatedUser, None)
+      updated          <- userRepository.updateUser(feideId, combined)
       api = folderConverterService.toApiUserData(updated)
     } yield api
   }

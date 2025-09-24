@@ -20,10 +20,8 @@ import no.ndla.common.model.domain.myndla.{
   MyNDLAGroup as DomainMyNDLAGroup,
   MyNDLAUser as DomainMyNDLAUser
 }
-import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.model.api.{FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.{api, domain}
-import no.ndla.network.model.FeideAccessToken
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -31,7 +29,7 @@ import java.util.UUID
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
-class FolderConverterService(using clock: Clock, nodebb: NodeBBClient) extends StrictLogging {
+class FolderConverterService(using clock: Clock) extends StrictLogging {
   def toApiFolder(
       domainFolder: domain.Folder,
       breadcrumbs: List[api.BreadcrumbDTO],
@@ -225,8 +223,7 @@ class FolderConverterService(using clock: Clock, nodebb: NodeBBClient) extends S
   def mergeUserData(
       domainUserData: DomainMyNDLAUser,
       updatedUser: UpdatedMyNDLAUserDTO,
-      updaterToken: Option[TokenUser],
-      feideToken: Option[FeideAccessToken]
+      updaterToken: Option[TokenUser]
   ): Try[DomainMyNDLAUser] = permitTry {
     val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
     val arenaEnabled     = {
