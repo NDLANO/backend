@@ -59,7 +59,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright = None,
     created = today,
     lastUpdated = today,
-    owner = "me",
+    owner = PRIVATE_OWNER.id,
     showTitle = true,
     status = StepStatus.ACTIVE
   )
@@ -78,7 +78,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright = None,
     created = today,
     lastUpdated = today,
-    owner = "me",
+    owner = PUBLISHED_OWNER.id,
     showTitle = true,
     status = StepStatus.ACTIVE
   )
@@ -1028,8 +1028,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   ) {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
       .thenReturn(Some(PUBLISHED_LEARNINGPATH))
-    when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(using any[DBSession]))
-      .thenReturn(Some(STEP1))
+    when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP2.id.get))(using any[DBSession]))
+      .thenReturn(Some(STEP2))
     when(learningPathRepository.learningStepsFor(eqTo(PUBLISHED_ID))(using any[DBSession]))
       .thenReturn(PUBLISHED_LEARNINGPATH.learningsteps.get)
     when(learningPathRepository.updateLearningStep(any)(using any)).thenAnswer((i: InvocationOnMock) =>
@@ -1043,7 +1043,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedStep =
-      service.updateLearningStepStatusV2(PUBLISHED_ID, STEP1.id.get, StepStatus.DELETED, PUBLISHED_OWNER.toCombined)
+      service.updateLearningStepStatusV2(PUBLISHED_ID, STEP2.id.get, StepStatus.DELETED, PUBLISHED_OWNER.toCombined)
     updatedStep.isSuccess should be(true)
     updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
@@ -1054,7 +1054,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
 
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED, lastUpdated = updatedDate)))(using
+      .updateLearningStep(eqTo(STEP2.copy(status = StepStatus.DELETED, lastUpdated = updatedDate)))(using
         any[DBSession]
       )
     verify(learningPathRepository, times(1)).update(eqTo(expectedUpdatePath))(using any[DBSession])
