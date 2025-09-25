@@ -296,7 +296,11 @@ class ConverterService(using
     )
   }
 
-  def asDomainLearningStep(newLearningStep: NewLearningStepV2DTO, learningPath: LearningPath): Try[LearningStep] = {
+  def asDomainLearningStep(
+      newLearningStep: NewLearningStepV2DTO,
+      learningPath: LearningPath,
+      owner: String
+  ): Try[LearningStep] = {
     val introduction = newLearningStep.introduction
       .filterNot(_.isEmpty)
       .map(Introduction(_, newLearningStep.language))
@@ -340,7 +344,7 @@ class ConverterService(using
         copyright = copyright,
         created = now,
         lastUpdated = now,
-        owner = learningPath.owner, // TODO
+        owner = owner,
         showTitle = newLearningStep.showTitle
       )
     )

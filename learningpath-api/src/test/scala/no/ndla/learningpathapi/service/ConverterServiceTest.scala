@@ -41,6 +41,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       Some("https://creativecommons.org/about/pdm")
     )
   val copyright: api.CopyrightDTO = api.CopyrightDTO(license, List(clinton))
+  val owner                       = TokenUser("me", Set.empty, None)
 
   val apiLearningPath: api.LearningPathV2DTO = api.LearningPathV2DTO(
     id = 1,
@@ -636,9 +637,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         Some(Seq(TestData.domainLearningStep1.copy(seqNo = 0), TestData.domainLearningStep2.copy(seqNo = 1)))
     )
 
-    service.asDomainLearningStep(newLs, lp1).get.seqNo should be(0)
-    service.asDomainLearningStep(newLs, lp2).get.seqNo should be(0)
-    service.asDomainLearningStep(newLs, lp3).get.seqNo should be(2)
+    service.asDomainLearningStep(newLs, lp1, owner.id).get.seqNo should be(0)
+    service.asDomainLearningStep(newLs, lp2, owner.id).get.seqNo should be(0)
+    service.asDomainLearningStep(newLs, lp3, owner.id).get.seqNo should be(2)
   }
 
   test("mergeLearningSteps correctly retains nullable fields") {
