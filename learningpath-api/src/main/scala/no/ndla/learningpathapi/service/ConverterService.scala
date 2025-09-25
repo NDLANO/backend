@@ -340,6 +340,7 @@ class ConverterService(using
         copyright = copyright,
         created = now,
         lastUpdated = now,
+        owner = learningPath.owner, // TODO
         showTitle = newLearningStep.showTitle
       )
     )
@@ -708,7 +709,8 @@ class ConverterService(using
           status = ls.status.entryName,
           created = ls.created,
           lastUpdated = ls.lastUpdated,
-          supportedLanguages = supportedLanguages
+          supportedLanguages = supportedLanguages,
+          ownerId = Some(ls.owner)
         )
       )
     } else {

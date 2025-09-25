@@ -11,7 +11,7 @@ package no.ndla.learningpathapi.e2e
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.learningpath.{LearningPath, StepType, EmbedType}
+import no.ndla.common.model.domain.learningpath.{EmbedType, LearningPath, StepType}
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.*
 import no.ndla.network.clients.MyNDLAApiClient
@@ -26,7 +26,7 @@ import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.Success
 
 class LearningPathAndStepCreationTests
@@ -80,7 +80,7 @@ class LearningPathAndStepCreationTests
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    implicit val ec = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+    implicit val ec: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     Future { learningpathApi.run(Array.empty) }: Unit
     blockUntilHealthy(s"$learningpathApiBaseUrl/health/readiness")
   }

@@ -374,7 +374,7 @@ class UpdateService(using
     }
   }
 
-  def updateWithStepSeqNo(
+  private def updateWithStepSeqNo(
       learningStepId: Long,
       newStatus: StepStatus,
       learningPath: LearningPath,
