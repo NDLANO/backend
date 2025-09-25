@@ -951,6 +951,16 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
+  test(
+    "That updateLearningStepV2 throws an AccessDeniedException when the given user owns the learningpath but NOT the learningstep"
+  ) {
+    when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.learningStepWithId(PRIVATE_ID, STEP1.id.get)).thenReturn(Some(STEP1))
+    val Failure(ex) =
+      service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, PUBLISHED_OWNER.toCombined): @unchecked
+    ex should be(AccessDeniedException("You do not have access to the requested resource."))
+  }
+
   test("That updateLearningStepStatusV2 returns None when the given learningpath does not exist") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(None)
 
