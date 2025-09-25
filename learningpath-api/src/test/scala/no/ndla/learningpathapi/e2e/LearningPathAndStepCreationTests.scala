@@ -80,7 +80,8 @@ class LearningPathAndStepCreationTests
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    implicit val ec: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
+    implicit val ec: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     Future { learningpathApi.run(Array.empty) }: Unit
     blockUntilHealthy(s"$learningpathApiBaseUrl/health/readiness")
   }
