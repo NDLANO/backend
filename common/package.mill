@@ -10,7 +10,7 @@ object `package` extends BaseModule {
   def mvnDeps: T[Seq[Dep]] =
     logging ++
       enumeratum ++
-      tapirHttp4sCirce ++
+      tapirCirce ++
       Seq(
         sttp,
         scalikejdbc,

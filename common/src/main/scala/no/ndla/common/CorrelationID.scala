@@ -8,11 +8,8 @@
 
 package no.ndla.common
 
-import cats.effect.IO
 import no.ndla.common.configuration.Constants
 import org.apache.logging.log4j.ThreadContext
-import org.http4s.Request
-import org.typelevel.ci.CIString
 import sttp.tapir.model.ServerRequest
 
 import java.util.UUID
@@ -22,10 +19,6 @@ object CorrelationID {
 
   def fromRequest(request: ServerRequest): String = {
     getOrGenerate(request.header(Constants.CorrelationIdHeader))
-  }
-
-  def fromRequest(request: Request[IO]): String = {
-    getOrGenerate(request.headers.get(CIString(Constants.CorrelationIdHeader)).map(_.head.value))
   }
 
   def getOrGenerate(x: Option[String]): String = x match {

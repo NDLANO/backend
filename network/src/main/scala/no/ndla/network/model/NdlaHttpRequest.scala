@@ -8,8 +8,6 @@
 
 package no.ndla.network.model
 
-import org.http4s.Request
-import org.typelevel.ci.CIString
 import sttp.tapir.model.ServerRequest
 
 case class NdlaHttpRequest(
@@ -24,7 +22,6 @@ case class NdlaHttpRequest(
 }
 
 object NdlaHttpRequest {
-
   def from(req: ServerRequest): NdlaHttpRequest = {
     val port   = req.uri.port
     val scheme = req.uri.scheme
@@ -36,14 +33,4 @@ object NdlaHttpRequest {
       servletPath = s"/${req.uri.path.mkString("/")}"
     )
   }
-
-  def from[F[+_]](req: Request[F]): NdlaHttpRequest =
-    NdlaHttpRequest(
-      serverPort = req.serverPort.map(_.value).getOrElse(-1),
-      getHeaderFunc = name => req.headers.get(CIString(name)).map(_.head.value),
-      getScheme = req.uri.scheme.map(_.value).getOrElse("http"),
-      serverName = req.serverAddr.map(_.toUriString).getOrElse("localhost"),
-      servletPath = req.uri.path.renderString
-    )
-
 }
