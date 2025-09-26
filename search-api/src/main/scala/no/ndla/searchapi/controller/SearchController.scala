@@ -245,7 +245,8 @@ class SearchController(using
       embedId = q.embedId,
       filterInactive = q.filterInactive.some,
       resultTypes = q.resultTypes.values.flatMap(SearchType.withNameOption).some,
-      nodeTypeFilter = q.nodeTypeFilter.values.flatMap(NodeType.withNameOption).some
+      nodeTypeFilter = q.nodeTypeFilter.values.flatMap(NodeType.withNameOption).some,
+      tags = q.tags.values.some
     )
   }
 
@@ -385,7 +386,8 @@ class SearchController(using
             topics = stringListParam("topics").some,
             publishedDateFrom = dateParamOrNone("published-date-from"),
             publishedDateTo = dateParamOrNone("published-date-to"),
-            resultTypes = stringListParam("result-types").flatMap(SearchType.withNameOption).some
+            resultTypes = stringListParam("result-types").flatMap(SearchType.withNameOption).some,
+            tags = stringListParam("tags").some
           )
         )
 
@@ -495,7 +497,8 @@ class SearchController(using
           articleTypes = params.articleTypes.getOrElse(List.empty),
           filterInactive = params.filterInactive.getOrElse(false),
           resultTypes = params.resultTypes,
-          nodeTypeFilter = params.nodeTypeFilter.getOrElse(List.empty)
+          nodeTypeFilter = params.nodeTypeFilter.getOrElse(List.empty),
+          tags = params.tags.getOrElse(List.empty)
         )
 
     }
@@ -544,7 +547,8 @@ class SearchController(using
           priority = params.priority.getOrElse(List.empty),
           publishedFilterFrom = params.publishedDateFrom,
           publishedFilterTo = params.publishedDateTo,
-          resultTypes = params.resultTypes
+          resultTypes = params.resultTypes,
+          tags = params.tags.getOrElse(List.empty)
         )
     }
   }
