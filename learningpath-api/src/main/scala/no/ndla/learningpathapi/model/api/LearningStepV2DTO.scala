@@ -52,7 +52,9 @@ case class LearningStepV2DTO(
     @description("The date when this learningstep was last updated.")
     lastUpdated: NDLADate,
     @description("The supported languages of the learningstep")
-    supportedLanguages: Seq[String]
+    supportedLanguages: Seq[String],
+    @description("Id identifying the owner of LearningStep")
+    ownerId: Option[String]
 )
 
 object LearningStepV2DTO {

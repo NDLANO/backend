@@ -51,7 +51,8 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     showTitle = true,
     status = StepStatus.ACTIVE,
     created = today,
-    lastUpdated = today
+    lastUpdated = today,
+    owner = "owner"
   )
 
   val trump: Author                    = Author(ContributorType.Writer, "Donald Drumpf")
@@ -72,7 +73,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     verificationStatus = LearningPathVerificationStatus.EXTERNAL,
     created = today,
     lastUpdated = today,
-    owner = "",
+    owner = "owner",
     copyright = copyright,
     isMyNDLAOwner = false,
     responsible = None,

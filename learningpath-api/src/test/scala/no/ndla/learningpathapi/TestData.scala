@@ -45,36 +45,38 @@ object TestData {
   val adminScopeAuthMap: Map[String, String] = Map("Authorization" -> s"Bearer $adminScopeClientToken")
 
   val domainLearningStep1: LearningStep = LearningStep(
-    None,
-    None,
-    None,
-    None,
-    1,
-    List(common.Title("Step1Title", "nb")),
-    List.empty,
-    List(Description("Step1Description", "nb")),
-    List(),
-    None,
-    StepType.INTRODUCTION,
-    None,
-    today,
-    today
+    id = None,
+    revision = None,
+    externalId = None,
+    learningPathId = None,
+    seqNo = 1,
+    title = List(common.Title("Step1Title", "nb")),
+    introduction = List.empty,
+    description = List(Description("Step1Description", "nb")),
+    embedUrl = List(),
+    articleId = None,
+    `type` = StepType.INTRODUCTION,
+    copyright = None,
+    created = today,
+    lastUpdated = today,
+    owner = "me"
   )
   val domainLearningStep2: LearningStep = LearningStep(
-    None,
-    None,
-    None,
-    None,
-    2,
-    List(common.Title("Step2Title", "nb")),
-    List.empty,
-    List(Description("Step2Description", "nb")),
-    List(),
-    None,
-    learningpath.StepType.TEXT,
-    None,
-    today,
-    today
+    id = None,
+    revision = None,
+    externalId = None,
+    learningPathId = None,
+    seqNo = 2,
+    title = List(common.Title("Step2Title", "nb")),
+    introduction = List.empty,
+    description = List(Description("Step2Description", "nb")),
+    embedUrl = List(),
+    articleId = None,
+    `type` = learningpath.StepType.TEXT,
+    copyright = None,
+    created = today,
+    lastUpdated = today,
+    owner = "me"
   )
 
   val sampleDomainLearningPath: LearningPath = LearningPath(

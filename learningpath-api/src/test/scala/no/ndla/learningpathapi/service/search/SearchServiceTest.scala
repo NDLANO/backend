@@ -92,7 +92,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     copyright = Some(LearningpathCopyright(license, Seq.empty)),
     status = StepStatus.ACTIVE,
     created = today,
-    lastUpdated = today
+    lastUpdated = today,
+    owner = "owner"
   )
 
   val PenguinId   = 1L
