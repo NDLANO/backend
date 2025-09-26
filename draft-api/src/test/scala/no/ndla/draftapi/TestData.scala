@@ -572,7 +572,7 @@ object TestData {
   val sampleTitle: common.Title = common.Title("title", "en")
 
   val visualElement: common.VisualElement = common.VisualElement(
-    s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size=""></$EmbedTagName>""",
+    s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="full"></$EmbedTagName>""",
     "nb"
   )
 
