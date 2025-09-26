@@ -701,10 +701,6 @@ export type components = {
             groups: components["schemas"]["MyNDLAGroupDTO"][];
             /** @description Whether arena is explicitly enabled for the user */
             arenaEnabled: boolean;
-            /** @description Whether the user has accepted the use of arena */
-            arenaAccepted: boolean;
-            /** @description Whether the user has accepted the sharing of their name */
-            shareNameAccepted: boolean;
         };
         /** NewFolderDTO */
         NewFolderDTO: {
@@ -907,10 +903,6 @@ export type components = {
             favoriteSubjects?: string[];
             /** @description Whether arena should explicitly be enabled for the user */
             arenaEnabled?: boolean;
-            /** @description Whether the user has accepted the use of arena */
-            arenaAccepted?: boolean;
-            /** @description Whether the user has accepted the sharing of their name */
-            shareNameAccepted?: boolean;
         };
         /** UpdatedResourceDTO */
         UpdatedResourceDTO: {
