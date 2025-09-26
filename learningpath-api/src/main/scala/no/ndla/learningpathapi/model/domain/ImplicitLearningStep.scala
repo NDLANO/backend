@@ -18,7 +18,8 @@ import scala.util.{Failure, Success, Try}
 object ImplicitLearningStep {
   implicit class ImplicitLearningStepMethods(ls: LearningStep) {
     def canEdit(user: CombinedUser): Try[LearningStep] = {
-      if (user.id.contains(ls.owner) || user.isNdla) {
+      // Only allow editing of copied learning steps where article id or embedUrl is set
+      if (user.id.contains(ls.owner) || (ls.articleId.isDefined && ls.embedUrl.isEmpty) || user.isNdla) {
         Success(ls)
       } else {
         Failure(AccessDeniedException("You do not have access to the requested resource."))
