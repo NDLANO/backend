@@ -49,9 +49,7 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     username = "username",
     displayName = "displayName",
     email = "some@example.com",
-    arenaEnabled = true,
-    arenaAccepted = true,
-    shareNameAccepted = false
+    arenaEnabled = true
   )
 
   test("That resources fetching works and doesnt interfere with folder/:id") {

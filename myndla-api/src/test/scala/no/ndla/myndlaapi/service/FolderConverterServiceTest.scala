@@ -428,9 +428,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         username = "example@email.com",
         displayName = "Feide",
         email = "example@email.com",
-        arenaEnabled = false,
-        arenaAccepted = true,
-        shareNameAccepted = false
+        arenaEnabled = false
       )
     val expectedUserData =
       MyNDLAUserDTO(
@@ -443,9 +441,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
         role = UserRole.STUDENT,
         organization = "oslo",
         groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-        arenaEnabled = false,
-        arenaAccepted = true,
-        shareNameAccepted = false
+        arenaEnabled = false
       )
 
     service.toApiUserData(domainUserData) should be(expectedUserData)
@@ -470,30 +466,22 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
     val updatedUserData1 =
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = None,
-        arenaEnabled = None,
-        arenaAccepted = None,
-        shareNameAccepted = None
+        arenaEnabled = None
       )
     val updatedUserData2 =
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq.empty),
-        arenaEnabled = None,
-        arenaAccepted = None,
-        shareNameAccepted = None
+        arenaEnabled = None
       )
     val updatedUserData3 =
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("x", "y", "z")),
-        arenaEnabled = None,
-        arenaAccepted = None,
-        shareNameAccepted = None
+        arenaEnabled = None
       )
 
     val expectedUserData1 = MyNDLAUser(
@@ -514,9 +502,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
     val expectedUserData2 = MyNDLAUser(
       id = 42,
@@ -536,9 +522,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
     val expectedUserData3 = MyNDLAUser(
       id = 42,
@@ -558,18 +542,16 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
 
-    service.mergeUserData(domainUserData, updatedUserData1, None, None).get should be(
+    service.mergeUserData(domainUserData, updatedUserData1, None).get should be(
       expectedUserData1
     )
-    service.mergeUserData(domainUserData, updatedUserData2, None, None).get should be(
+    service.mergeUserData(domainUserData, updatedUserData2, None).get should be(
       expectedUserData2
     )
-    service.mergeUserData(domainUserData, updatedUserData3, None, None).get should be(
+    service.mergeUserData(domainUserData, updatedUserData3, None).get should be(
       expectedUserData3
     )
   }

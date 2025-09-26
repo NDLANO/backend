@@ -1,0 +1,1 @@
+update my_ndla_users set document = document - 'arenaAccepted'
