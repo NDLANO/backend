@@ -278,6 +278,8 @@ export type components = {
             publishedDateTo?: string;
             /** @description Types of hits to appear in the result */
             resultTypes?: components["schemas"]["SearchType"][];
+            /** @description Only return results that have one of the specified tags. */
+            tags?: string[];
         };
         /**
          * ErrorBody
@@ -805,6 +807,8 @@ export type components = {
             resultTypes?: components["schemas"]["SearchType"][];
             /** @description Which node types the search request should return */
             nodeTypeFilter?: components["schemas"]["NodeType"][];
+            /** @description Only return results that have one of the specified tags. */
+            tags?: string[];
         };
         /**
          * SearchSuggestionDTO
@@ -1030,6 +1034,7 @@ export interface operations {
                 traits?: string[];
                 "result-types"?: string[];
                 "node-types"?: string[];
+                tags?: string[];
                 /** @description Whether to include group without resource-types for group-search. Defaults to false. */
                 "missing-group"?: boolean;
             };
@@ -1118,6 +1123,7 @@ export interface operations {
                 traits?: string[];
                 "result-types"?: string[];
                 "node-types"?: string[];
+                tags?: string[];
             };
             header?: {
                 /** @description Header containing FEIDE access token. */
