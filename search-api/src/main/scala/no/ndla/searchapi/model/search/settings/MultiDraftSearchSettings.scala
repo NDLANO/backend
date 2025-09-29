@@ -55,7 +55,7 @@ case class MultiDraftSearchSettings(
     publishedFilterFrom: Option[NDLADate],
     publishedFilterTo: Option[NDLADate],
     resultTypes: Option[List[SearchType]],
-    tags: List[String] = List.empty
+    tags: List[String]
 )
 
 object MultiDraftSearchSettings {

@@ -41,7 +41,7 @@ case class SearchSettings(
     filterInactive: Boolean,
     resultTypes: Option[List[SearchType]],
     nodeTypeFilter: List[NodeType],
-    tags: List[String] = List.empty
+    tags: List[String]
 )
 
 object SearchSettings {
