@@ -1773,7 +1773,8 @@ object TestData {
     articleTypes = List.empty,
     filterInactive = false,
     resultTypes = None,
-    nodeTypeFilter = List.empty
+    nodeTypeFilter = List.empty,
+    tags = List.empty
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(
@@ -1818,7 +1819,8 @@ object TestData {
     priority = List.empty,
     publishedFilterFrom = None,
     publishedFilterTo = None,
-    resultTypes = None
+    resultTypes = None,
+    tags = List.empty
   )
 
   val searchableResourceTypes: List[TaxonomyResourceType] = List(

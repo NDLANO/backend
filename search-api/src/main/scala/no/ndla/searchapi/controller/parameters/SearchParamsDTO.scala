@@ -76,7 +76,9 @@ case class SearchParamsDTO(
     @description("Which types the search request should return")
     resultTypes: Option[List[SearchType]],
     @description("Which node types the search request should return")
-    nodeTypeFilter: Option[List[NodeType]]
+    nodeTypeFilter: Option[List[NodeType]],
+    @description("Only return results that have one of the specified tags.")
+    tags: Option[List[String]]
 )
 
 object SearchParamsDTO {

@@ -295,6 +295,16 @@ class MultiSearchService(using
         Some(termsQuery("traits", settings.traits.map(_.entryName)))
       else None
 
+    val tagsFilter =
+      if (settings.tags.nonEmpty) {
+        Some(
+          boolQuery()
+            .should(
+              settings.tags.map(q => termQuery(s"tags.${settings.language}.exact", q))
+            )
+        )
+      } else None
+
     val embedResourceAndIdFilter =
       buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
@@ -332,6 +342,7 @@ class MultiSearchService(using
       taxonomyContextActiveFilter,
       grepCodesFilter,
       traitsFilter,
+      tagsFilter,
       embedResourceAndIdFilter,
       availabilityFilter
     ).flatten
