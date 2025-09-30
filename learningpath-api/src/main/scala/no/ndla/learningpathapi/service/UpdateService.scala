@@ -19,8 +19,6 @@ import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.model.domain.*
-import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearningPathMethods
-import no.ndla.learningpathapi.model.domain.ImplicitLearningStep.ImplicitLearningStepMethods
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.service.search.SearchIndexService
@@ -342,7 +340,7 @@ class UpdateService(using
                   )
                 )
               case Some(existing) =>
-                existing.canEdit(owner) match {
+                existing.canEditStep(owner) match {
                   case Failure(ex) => boundary.break(Failure(ex))
                   case _           => // continue
                 }
@@ -433,7 +431,7 @@ class UpdateService(using
               case Some(ls) => ls
             }
 
-            stepToUpdate.canEdit(owner) match {
+            stepToUpdate.canEditStep(owner) match {
               case Failure(ex) => boundary.break(Failure(ex))
               case _           => // continue
             }

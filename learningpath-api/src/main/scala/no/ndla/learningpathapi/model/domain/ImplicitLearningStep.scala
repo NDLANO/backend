@@ -15,16 +15,13 @@ import no.ndla.network.model.CombinedUser
 
 import scala.util.{Failure, Success, Try}
 
-object ImplicitLearningStep {
-  implicit class ImplicitLearningStepMethods(ls: LearningStep) {
-    def canEdit(user: CombinedUser): Try[LearningStep] = {
-      // Only allow editing of copied learning steps where article id or embedUrl is set
-      if (user.id.contains(ls.owner) || (ls.articleId.isDefined && ls.embedUrl.isEmpty) || user.isNdla) {
-        Success(ls)
-      } else {
-        Failure(AccessDeniedException("You do not have access to the requested resource."))
-      }
+extension (ls: LearningStep) {
+  def canEditStep(user: CombinedUser): Try[LearningStep] = {
+    // Only allow editing of copied learning steps where article id or embedUrl is set
+    if (user.id.contains(ls.owner) || (ls.articleId.isDefined && ls.embedUrl.isEmpty) || user.isNdla) {
+      Success(ls)
+    } else {
+      Failure(AccessDeniedException("You do not have access to the requested resource."))
     }
-    def canEditLearningStep(user: CombinedUser): Boolean = canEdit(user).isSuccess
   }
 }

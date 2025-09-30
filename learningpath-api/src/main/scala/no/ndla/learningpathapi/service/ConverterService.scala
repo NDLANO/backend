@@ -35,7 +35,7 @@ import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.api.{LearningPathStatusDTO as _, *}
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
-import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearningPathMethods
+import no.ndla.learningpathapi.model.domain.canEditPath
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.validation.LearningPathValidator
@@ -150,7 +150,7 @@ class ConverterService(using
         })
         .getOrElse(Seq.empty)
 
-      val message = lp.message.filter(_ => lp.canEdit(userInfo)).map(asApiMessage)
+      val message = lp.message.filter(_ => lp.canEditPath(userInfo)).map(asApiMessage)
       val owner   = Some(lp.owner).filter(_ => userInfo.isAdmin)
       Success(
         LearningPathV2DTO(
@@ -170,7 +170,7 @@ class ConverterService(using
           lastUpdated = lp.lastUpdated,
           tags = tags,
           copyright = asApiCopyright(lp.copyright),
-          canEdit = lp.canEdit(userInfo),
+          canEdit = lp.canEditPath(userInfo),
           supportedLanguages = supportedLanguages,
           ownerId = owner,
           message = message,
@@ -638,7 +638,7 @@ class ConverterService(using
           .getOrElse(api.IntroductionDTO("", DefaultLanguage))
       )
 
-    val message = learningpath.message.filter(_ => learningpath.canEdit(user)).map(_.message)
+    val message = learningpath.message.filter(_ => learningpath.canEditPath(user)).map(_.message)
 
     Success(
       api.LearningPathSummaryV2DTO(
@@ -709,7 +709,7 @@ class ConverterService(using
           license = copyright.map(_.license),
           copyright = copyright,
           metaUrl = createUrlToLearningStep(ls, lp),
-          canEdit = lp.canEdit(user),
+          canEdit = lp.canEditPath(user),
           status = ls.status.entryName,
           created = ls.created,
           lastUpdated = ls.lastUpdated,

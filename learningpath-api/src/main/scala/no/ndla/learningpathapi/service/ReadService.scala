@@ -14,7 +14,7 @@ import no.ndla.common.model.api as commonApi
 import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.domain.learningpath.{LearningPath, StepStatus, LearningPathStatus as _}
 import no.ndla.learningpathapi.model.api.*
-import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearningPathMethods
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.model.domain.InvalidLpStatusException
 import no.ndla.learningpathapi.repository.LearningPathRepository
