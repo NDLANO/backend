@@ -35,7 +35,7 @@ import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.api.{LearningPathStatusDTO as _, *}
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
-import no.ndla.learningpathapi.model.domain.canEditPath
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.validation.LearningPathValidator
@@ -709,7 +709,7 @@ class ConverterService(using
           license = copyright.map(_.license),
           copyright = copyright,
           metaUrl = createUrlToLearningStep(ls, lp),
-          canEdit = lp.canEditPath(user),
+          canEdit = ls.canEditStep(user),
           status = ls.status.entryName,
           created = ls.created,
           lastUpdated = ls.lastUpdated,

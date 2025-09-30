@@ -24,4 +24,5 @@ extension (ls: LearningStep) {
       Failure(AccessDeniedException("You do not have access to the requested resource."))
     }
   }
+  def canEditStep(userInfo: CombinedUser): Boolean = canEditStep(userInfo).isSuccess
 }
