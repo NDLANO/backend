@@ -16,7 +16,7 @@ import no.ndla.network.model.CombinedUser
 import scala.util.{Failure, Success, Try}
 
 extension (ls: LearningStep) {
-  def canEditStep(user: CombinedUser): Try[LearningStep] = {
+  def canEditLearningStep(user: CombinedUser): Try[LearningStep] = {
     // Only allow editing of copied learning steps where article id or embedUrl is set
     if (user.id.contains(ls.owner) || (ls.articleId.isDefined && ls.embedUrl.isEmpty) || user.isNdla) {
       Success(ls)
@@ -24,5 +24,5 @@ extension (ls: LearningStep) {
       Failure(AccessDeniedException("You do not have access to the requested resource."))
     }
   }
-  def canEditStep(userInfo: CombinedUser): Boolean = canEditStep(userInfo).isSuccess
+  def canEditStep(userInfo: CombinedUser): Boolean = canEditLearningStep(userInfo).isSuccess
 }

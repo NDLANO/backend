@@ -16,38 +16,38 @@ import no.ndla.network.model.CombinedUser
 
 import scala.util.{Failure, Success, Try}
 
-extension (learningpath: LearningPath) {
+extension (learningPath: LearningPath) {
   def canSetStatus(status: LearningPathStatus, user: CombinedUser): Try[LearningPath] = {
     if (status == LearningPathStatus.PUBLISHED && !user.canPublish) {
       Failure(AccessDeniedException("You need to be a publisher to publish learningpaths."))
     } else {
-      canEditLearningpath(user)
+      canEditLearningPath(user)
     }
   }
 
-  def canEditLearningpath(user: CombinedUser): Try[LearningPath] = {
+  def canEditLearningPath(user: CombinedUser): Try[LearningPath] = {
     if (
-      user.id.contains(learningpath.owner) ||
+      user.id.contains(learningPath.owner) ||
       user.isAdmin ||
-      (user.isWriter && learningpath.verificationStatus == LearningPathVerificationStatus.CREATED_BY_NDLA)
+      (user.isWriter && learningPath.verificationStatus == LearningPathVerificationStatus.CREATED_BY_NDLA)
     ) {
-      Success(learningpath)
+      Success(learningPath)
     } else {
       Failure(AccessDeniedException("You do not have access to the requested resource."))
     }
   }
 
   def isOwnerOrPublic(user: CombinedUser): Try[LearningPath] = {
-    if (learningpath.isPrivate) {
-      canEditLearningpath(user)
+    if (learningPath.isPrivate) {
+      canEditLearningPath(user)
     } else {
-      Success(learningpath)
+      Success(learningPath)
     }
   }
 
-  def canEditPath(userInfo: CombinedUser): Boolean = canEditLearningpath(userInfo).isSuccess
+  def canEditPath(userInfo: CombinedUser): Boolean = canEditLearningPath(userInfo).isSuccess
 
-  private def lsLength: Int           = learningpath.learningsteps.map(_.length).getOrElse(0)
+  private def lsLength: Int           = learningPath.learningsteps.map(_.length).getOrElse(0)
   def validateSeqNo(seqNo: Int): Unit = {
     if (seqNo < 0 || seqNo > lsLength - 1) {
       throw new ValidationException(
@@ -57,9 +57,9 @@ extension (learningpath: LearningPath) {
   }
 
   def validateForPublishing(): Try[LearningPath] = {
-    val validationResult = new DurationValidator().validateRequired(learningpath.duration).toList
+    val validationResult = new DurationValidator().validateRequired(learningPath.duration).toList
     if (validationResult.isEmpty)
-      Success(learningpath)
+      Success(learningPath)
     else
       Failure(new ValidationException(errors = validationResult))
   }
