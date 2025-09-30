@@ -35,7 +35,7 @@ import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.api.{LearningPathStatusDTO as _, *}
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
-import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearningPathMethods
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.validation.LearningPathValidator
@@ -150,7 +150,7 @@ class ConverterService(using
         })
         .getOrElse(Seq.empty)
 
-      val message = lp.message.filter(_ => lp.canEdit(userInfo)).map(asApiMessage)
+      val message = lp.message.filter(_ => lp.canEditPath(userInfo)).map(asApiMessage)
       val owner   = Some(lp.owner).filter(_ => userInfo.isAdmin)
       Success(
         LearningPathV2DTO(
@@ -170,7 +170,7 @@ class ConverterService(using
           lastUpdated = lp.lastUpdated,
           tags = tags,
           copyright = asApiCopyright(lp.copyright),
-          canEdit = lp.canEdit(userInfo),
+          canEdit = lp.canEditPath(userInfo),
           supportedLanguages = supportedLanguages,
           ownerId = owner,
           message = message,
@@ -296,7 +296,11 @@ class ConverterService(using
     )
   }
 
-  def asDomainLearningStep(newLearningStep: NewLearningStepV2DTO, learningPath: LearningPath): Try[LearningStep] = {
+  def asDomainLearningStep(
+      newLearningStep: NewLearningStepV2DTO,
+      learningPath: LearningPath,
+      owner: String
+  ): Try[LearningStep] = {
     val introduction = newLearningStep.introduction
       .filterNot(_.isEmpty)
       .map(Introduction(_, newLearningStep.language))
@@ -340,6 +344,7 @@ class ConverterService(using
         copyright = copyright,
         created = now,
         lastUpdated = now,
+        owner = owner,
         showTitle = newLearningStep.showTitle
       )
     )
@@ -633,7 +638,7 @@ class ConverterService(using
           .getOrElse(api.IntroductionDTO("", DefaultLanguage))
       )
 
-    val message = learningpath.message.filter(_ => learningpath.canEdit(user)).map(_.message)
+    val message = learningpath.message.filter(_ => learningpath.canEditPath(user)).map(_.message)
 
     Success(
       api.LearningPathSummaryV2DTO(
@@ -704,11 +709,12 @@ class ConverterService(using
           license = copyright.map(_.license),
           copyright = copyright,
           metaUrl = createUrlToLearningStep(ls, lp),
-          canEdit = lp.canEdit(user),
+          canEdit = ls.canEditStep(user),
           status = ls.status.entryName,
           created = ls.created,
           lastUpdated = ls.lastUpdated,
-          supportedLanguages = supportedLanguages
+          supportedLanguages = supportedLanguages,
+          ownerId = Some(ls.owner)
         )
       )
     } else {

@@ -45,108 +45,117 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   val today: NDLADate = NDLADate.now()
 
   val STEP1: LearningStep = LearningStep(
-    Some(1),
-    Some(1),
-    None,
-    None,
-    0,
-    List(common.Title("Tittel", "nb")),
-    List(),
-    List(),
-    List(),
-    None,
-    StepType.TEXT,
-    None,
-    today,
-    today,
+    id = Some(1),
+    revision = Some(1),
+    externalId = None,
+    learningPathId = None,
+    seqNo = 0,
+    title = List(Title("Tittel", "nb")),
+    introduction = List(),
+    description = List(),
+    embedUrl = List(),
+    articleId = None,
+    `type` = StepType.TEXT,
+    copyright = None,
+    created = today,
+    lastUpdated = today,
+    owner = PRIVATE_OWNER.id,
     showTitle = true,
     status = StepStatus.ACTIVE
   )
   val STEP2: LearningStep = LearningStep(
-    Some(2),
-    Some(1),
-    None,
-    None,
-    1,
-    List(common.Title("Tittel", "nb")),
-    List(),
-    List(),
-    List(),
-    None,
-    StepType.TEXT,
-    None,
-    today,
-    today,
+    id = Some(2),
+    revision = Some(1),
+    externalId = None,
+    learningPathId = None,
+    seqNo = 1,
+    title = List(Title("Tittel", "nb")),
+    introduction = List(),
+    description = List(),
+    embedUrl = List(),
+    articleId = None,
+    `type` = StepType.TEXT,
+    copyright = None,
+    created = today,
+    lastUpdated = today,
+    owner = PUBLISHED_OWNER.id,
+    showTitle = true,
     status = StepStatus.ACTIVE
   )
   val STEP3: LearningStep = LearningStep(
-    Some(3),
-    Some(1),
-    None,
-    None,
-    2,
-    List(common.Title("Tittel", "nb")),
-    List(),
-    List(),
-    List(),
-    None,
-    StepType.TEXT,
-    None,
-    today,
-    today,
+    id = Some(3),
+    revision = Some(1),
+    externalId = None,
+    learningPathId = None,
+    seqNo = 2,
+    title = List(Title("Tittel", "nb")),
+    introduction = List(),
+    description = List(),
+    embedUrl = List(),
+    articleId = None,
+    `type` = StepType.TEXT,
+    copyright = None,
+    created = today,
+    lastUpdated = today,
+    owner = "me",
     showTitle = true,
     status = StepStatus.ACTIVE
   )
   val STEP4: LearningStep = LearningStep(
-    Some(4),
-    Some(1),
-    None,
-    None,
-    3,
-    List(common.Title("Tittel", "nb")),
-    List(),
-    List(),
-    List(),
-    None,
-    StepType.TEXT,
-    None,
-    today,
-    today,
+    id = Some(4),
+    revision = Some(1),
+    externalId = None,
+    learningPathId = None,
+    seqNo = 3,
+    title = List(Title("Tittel", "nb")),
+    introduction = List(),
+    description = List(),
+    embedUrl = List(),
+    articleId = None,
+    `type` = StepType.TEXT,
+    copyright = None,
+    created = today,
+    lastUpdated = today,
+    owner = "me",
+    showTitle = true,
     status = StepStatus.ACTIVE
   )
   val STEP5: LearningStep = LearningStep(
-    Some(5),
-    Some(1),
-    None,
-    None,
-    4,
-    List(common.Title("Tittel", "nb")),
-    List(),
-    List(),
-    List(),
-    None,
-    StepType.TEXT,
-    None,
-    today,
-    today,
+    id = Some(5),
+    revision = Some(1),
+    externalId = None,
+    learningPathId = None,
+    seqNo = 4,
+    title = List(Title("Tittel", "nb")),
+    introduction = List(),
+    description = List(),
+    embedUrl = List(),
+    articleId = None,
+    `type` = StepType.TEXT,
+    copyright = None,
+    created = today,
+    lastUpdated = today,
+    owner = "me",
     showTitle = true,
     status = StepStatus.ACTIVE
   )
   val STEP6: LearningStep = LearningStep(
-    Some(6),
-    Some(1),
-    None,
-    None,
-    5,
-    List(common.Title("Tittel", "nb")),
-    List(),
-    List(),
-    List(),
-    None,
-    StepType.TEXT,
-    None,
-    today,
-    today,
+    id = Some(6),
+    revision = Some(1),
+    externalId = None,
+    learningPathId = None,
+    seqNo = 5,
+    title = List(Title("Tittel", "nb")),
+    introduction = List(),
+    description = List(),
+    embedUrl = List(),
+    articleId = None,
+    `type` = StepType.TEXT,
+    copyright = None,
+    created = today,
+    lastUpdated = today,
+    owner = "me",
+    showTitle = true,
     status = StepStatus.ACTIVE
   )
 
@@ -942,6 +951,16 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
+  test(
+    "That updateLearningStepV2 throws an AccessDeniedException when the given user owns the learningpath but NOT the learningstep"
+  ) {
+    when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
+    when(learningPathRepository.learningStepWithId(PRIVATE_ID, STEP1.id.get)).thenReturn(Some(STEP1))
+    val Failure(ex) =
+      service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, PUBLISHED_OWNER.toCombined): @unchecked
+    ex should be(AccessDeniedException("You do not have access to the requested resource."))
+  }
+
   test("That updateLearningStepStatusV2 returns None when the given learningpath does not exist") {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(None)
 
@@ -1009,8 +1028,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   ) {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession]))
       .thenReturn(Some(PUBLISHED_LEARNINGPATH))
-    when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP1.id.get))(using any[DBSession]))
-      .thenReturn(Some(STEP1))
+    when(learningPathRepository.learningStepWithId(eqTo(PUBLISHED_ID), eqTo(STEP2.id.get))(using any[DBSession]))
+      .thenReturn(Some(STEP2))
     when(learningPathRepository.learningStepsFor(eqTo(PUBLISHED_ID))(using any[DBSession]))
       .thenReturn(PUBLISHED_LEARNINGPATH.learningsteps.get)
     when(learningPathRepository.updateLearningStep(any)(using any)).thenAnswer((i: InvocationOnMock) =>
@@ -1024,7 +1043,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedStep =
-      service.updateLearningStepStatusV2(PUBLISHED_ID, STEP1.id.get, StepStatus.DELETED, PUBLISHED_OWNER.toCombined)
+      service.updateLearningStepStatusV2(PUBLISHED_ID, STEP2.id.get, StepStatus.DELETED, PUBLISHED_OWNER.toCombined)
     updatedStep.isSuccess should be(true)
     updatedStep.get.status should equal(StepStatus.DELETED.entryName)
 
@@ -1035,7 +1054,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       )
 
     verify(learningPathRepository, times(1))
-      .updateLearningStep(eqTo(STEP1.copy(status = StepStatus.DELETED, lastUpdated = updatedDate)))(using
+      .updateLearningStep(eqTo(STEP2.copy(status = StepStatus.DELETED, lastUpdated = updatedDate)))(using
         any[DBSession]
       )
     verify(learningPathRepository, times(1)).update(eqTo(expectedUpdatePath))(using any[DBSession])

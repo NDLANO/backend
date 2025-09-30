@@ -29,6 +29,7 @@ case class LearningStep(
     copyright: Option[LearningpathCopyright],
     created: NDLADate,
     lastUpdated: NDLADate,
+    owner: String,
     showTitle: Boolean = false,
     status: StepStatus = StepStatus.ACTIVE
 ) {

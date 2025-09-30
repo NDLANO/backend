@@ -477,7 +477,7 @@ class LearningpathControllerV2(using
       }
     }
 
-  def updateLearningPath(): ServerEndpoint[Any, Eff] = endpoint.patch
+  private def updateLearningPath(): ServerEndpoint[Any, Eff] = endpoint.patch
     .summary("Update given learningpath")
     .description("Updates the given learningPath")
     .in(pathLearningpathId)
