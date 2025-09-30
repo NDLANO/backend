@@ -45,6 +45,7 @@ object TagRules {
   case class Validation(
       dataType: AttributeType = AttributeType.STRING,
       required: Boolean = false,
+      allowedValues: Set[String] = Set.empty,
       allowedHtml: Set[String] = Set.empty,
       allowedDomains: Set[String] = Set.empty,
       mustCoexistWith: List[TagAttribute] = List.empty
@@ -56,12 +57,14 @@ object TagRules {
       for {
         dataType        <- getOrDefault[AttributeType](cur, "dataType", AttributeType.STRING)
         required        <- getOrDefault(cur, "required", false)
+        allowedValues   <- getOrDefault(cur, "allowedValues", Set.empty[String])
         allowedHtml     <- getOrDefault(cur, "allowedHtml", Set.empty[String])
         allowedDomains  <- getOrDefault(cur, "allowedDomains", Set.empty[String])
         mustCoexistWith <- getOrDefault(cur, "mustCoexistWith", List.empty[TagAttribute])
       } yield Validation(
         dataType = dataType,
         required = required,
+        allowedValues = allowedValues,
         allowedHtml = allowedHtml,
         allowedDomains = allowedDomains,
         mustCoexistWith = mustCoexistWith
@@ -120,10 +123,12 @@ object AttributeType                extends Enum[AttributeType] with CirceEnum[A
   val values: IndexedSeq[AttributeType] = findValues
   case object BOOLEAN extends AttributeType
   case object EMAIL   extends AttributeType
+  case object ENUM    extends AttributeType
   case object JSON    extends AttributeType
   case object LIST    extends AttributeType
   case object NUMBER  extends AttributeType
   case object STRING  extends AttributeType
+  case object TEXT    extends AttributeType
   case object URL     extends AttributeType
 }
 
@@ -296,6 +301,7 @@ object TagAttribute extends Enum[TagAttribute] with CirceEnum[TagAttribute] {
   case object DataResource            extends TagAttribute("data-resource")
   case object DataResource_Id         extends TagAttribute("data-resource_id")
   case object DataSize                extends TagAttribute("data-size")
+  case object DataSkipContent         extends TagAttribute("data-skip-content")
   case object DataSubjectId           extends TagAttribute("data-subject-id")
   case object DataSubtitle            extends TagAttribute("data-subtitle")
   case object DataTag                 extends TagAttribute("data-tag")

@@ -76,6 +76,18 @@ class EmbedTagValidatorTest extends UnitSuite {
     findErrorByMessage(res, "contains attributes with HTML: data-url").size should be(1)
   }
 
+  test("validate should return no validation errors if data-resource is invalid") {
+    val tag = generateTagWithAttrs(
+      Map(
+        TagAttribute.DataResource    -> "whatever",
+        TagAttribute.DataResource_Id -> "1234",
+        TagAttribute.DataCaption     -> "",
+        TagAttribute.DataType        -> "standard"
+      )
+    )
+    TagValidator.validate("content", tag).size should be(1)
+  }
+
   test(
     "validate should return validation error if embed tag does not contain required attributes for data-resource=image"
   ) {
@@ -92,7 +104,7 @@ class EmbedTagValidatorTest extends UnitSuite {
       Map(
         TagAttribute.DataResource    -> ResourceType.Image.toString,
         TagAttribute.DataResource_Id -> "1234",
-        TagAttribute.DataSize        -> "fullbredde",
+        TagAttribute.DataSize        -> "full",
         TagAttribute.DataAlign       -> "",
         TagAttribute.DataAlt         -> "alttext"
       )
@@ -110,7 +122,7 @@ class EmbedTagValidatorTest extends UnitSuite {
       Map(
         TagAttribute.DataResource    -> ResourceType.Image.toString,
         TagAttribute.DataResource_Id -> "1234",
-        TagAttribute.DataSize        -> "fullbredde",
+        TagAttribute.DataSize        -> "full",
         TagAttribute.DataAlt         -> "alternative text",
         TagAttribute.DataCaption     -> "here is a rabbit",
         TagAttribute.DataAlign       -> "left"
@@ -255,7 +267,7 @@ class EmbedTagValidatorTest extends UnitSuite {
         Map(
           TagAttribute.DataResource    -> ResourceType.Image.toString,
           TagAttribute.DataResource_Id -> "1234",
-          TagAttribute.DataSize        -> "fullbredde",
+          TagAttribute.DataSize        -> "full",
           TagAttribute.DataAlt         -> "alternative text",
           TagAttribute.DataCaption     -> "here is a rabbit",
           TagAttribute.DataAlign       -> "left"
@@ -338,7 +350,7 @@ class EmbedTagValidatorTest extends UnitSuite {
       Map(
         TagAttribute.DataResource -> ResourceType.ExternalContent.toString,
         TagAttribute.DataUrl      -> "https://www.youtube.com/watch?v=pCZeVTMEsik",
-        TagAttribute.DataType     -> "iframe"
+        TagAttribute.DataType     -> "external"
       )
     )
     TagValidator.validate("content", tag).size should be(0)
@@ -364,6 +376,29 @@ class EmbedTagValidatorTest extends UnitSuite {
       )
     )
     TagValidator.validate("content", tag).size should be(0)
+  }
+
+  test("validate should fail if ENUM field has wrong value") {
+    val tag = generateTagWithAttrs(
+      Map(
+        TagAttribute.DataResource     -> ResourceType.Image.toString,
+        TagAttribute.DataAlt          -> "123",
+        TagAttribute.DataCaption      -> "123",
+        TagAttribute.DataResource_Id  -> "123",
+        TagAttribute.DataSize         -> "fullscreen",
+        TagAttribute.DataAlign        -> "left",
+        TagAttribute.DataUpperLeftX   -> "0",
+        TagAttribute.DataUpperLeftY   -> "0",
+        TagAttribute.DataLowerRightX  -> "1",
+        TagAttribute.DataLowerRightY  -> "1",
+        TagAttribute.DataFocalX       -> "0",
+        TagAttribute.DataFocalY       -> "1",
+        TagAttribute.DataIsDecorative -> "false"
+      )
+    )
+    val messages = TagValidator.validate("content", tag)
+    messages.size should be(1)
+    messages.head.message.contains("can only contain the following values:") should be(true)
   }
 
   test("validate should fail if only one optional attribute is specified") {
