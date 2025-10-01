@@ -9,7 +9,8 @@
 package no.ndla.search
 
 import com.sksamuel.elastic4s.*
-import com.sksamuel.elastic4s.http.JavaClient
+import com.sksamuel.elastic4s.http.{JavaClient, JavaClientExceptionWrapper}
+import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.configuration.BaseProps
 import no.ndla.search.model.domain.DocumentConflictException
@@ -22,12 +23,16 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Futu
 import scala.util.{Failure, Success, Try}
 import scala.reflect.ClassTag
 
-case class NdlaE4sClient(searchServer: String)(using props: BaseProps) {
-  private var client: ElasticClient = Elastic4sClientFactory.getNonSigningClient(searchServer)
-
-  private def recreateClient(): Unit = client = Elastic4sClientFactory.getNonSigningClient(searchServer)
+case class ExecutionOptions(retryLimit: Int = 5)
+case class NdlaE4sClient(searchServer: String)(using props: BaseProps) extends StrictLogging {
+  private var client: ElasticClient  = Elastic4sClientFactory.getNonSigningClient(searchServer)
+  private def recreateClient(): Unit = {
+    client = Elastic4sClientFactory.getNonSigningClient(searchServer)
+  }
 
   private val elasticTimeout = 10.minutes
+  private val backoffTimeout = 2.seconds
+  private val warnTimeout    = 30.seconds
 
   def showQuery[T](t: T)(implicit handler: Handler[T, ?]): String = client.show(t)
 
@@ -35,7 +40,8 @@ case class NdlaE4sClient(searchServer: String)(using props: BaseProps) {
     ExecutionContext.fromExecutor(Executors.newWorkStealingPool(props.MAX_SEARCH_THREADS))
 
   def executeAsync[T, U: ClassTag](
-      request: T
+      request: T,
+      options: ExecutionOptions
   )(implicit
       handler: Handler[T, U],
       ec: ExecutionContext
@@ -54,20 +60,24 @@ case class NdlaE4sClient(searchServer: String)(using props: BaseProps) {
       case _                                      => recreateClient()
     }
 
-    result
+    result.recoverWith {
+      case ex: JavaClientExceptionWrapper if options.retryLimit > 0 =>
+        logger.warn(s"Connection to Elasticsearch failed, retrying in $backoffTimeout", ex)
+        Thread.sleep(backoffTimeout.toMillis)
+        executeAsync(request, options.copy(retryLimit = options.retryLimit - 1))
+    }
   }
 
   def executeBlocking[T, U](
-      request: T
+      request: T,
+      options: ExecutionOptions
   )(implicit handler: Handler[T, U], ct: ClassTag[U], ec: ExecutionContext): Try[RequestSuccess[U]] = {
-    Try(Await.result(this.executeAsync(request), elasticTimeout)).flatten
+    Try(Await.result(this.executeAsync(request, options), elasticTimeout)).flatten
   }
 
   def execute[T, U](request: T)(implicit handler: Handler[T, U], ct: ClassTag[U]): Try[RequestSuccess[U]] = {
     implicit val ec: ExecutionContextExecutor = clientExecutionContext
-
-    val future = this.executeAsync(request)
-    Try(Await.result(future, elasticTimeout)).flatten
+    executeBlocking(request, ExecutionOptions())
   }
 }
 
