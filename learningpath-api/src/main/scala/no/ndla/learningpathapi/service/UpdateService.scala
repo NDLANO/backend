@@ -431,11 +431,6 @@ class UpdateService(using
               case Some(ls) => ls
             }
 
-            stepToUpdate.canEditLearningStep(owner) match {
-              case Failure(ex) => boundary.break(Failure(ex))
-              case _           => // continue
-            }
-
             val (updatedPath, updatedStep) =
               updateWithStepSeqNo(learningStepId, newStatus, learningPath, stepToUpdate, stepsToChange)
 
