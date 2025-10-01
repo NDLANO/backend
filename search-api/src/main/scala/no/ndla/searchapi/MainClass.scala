@@ -12,6 +12,7 @@ import no.ndla.common.Environment.booleanPropOrFalse
 import no.ndla.common.Warmup
 import no.ndla.network.tapir.NdlaTapirMain
 import no.ndla.searchapi.service.StandaloneIndexing
+import sttp.tapir.server.netty.sync.NettySyncServerBinding
 
 class MainClass(override val props: SearchApiProperties) extends NdlaTapirMain[ComponentRegistry] {
   val componentRegistry = new ComponentRegistry(props)
@@ -28,11 +29,11 @@ class MainClass(override val props: SearchApiProperties) extends NdlaTapirMain[C
 
   override def beforeStart(): Unit = {}
 
-  override def startServer(name: String, port: Int)(warmupFunc: => Unit): Unit = {
+  override def startServerAndWait(name: String, port: Int)(onStartup: NettySyncServerBinding => Unit): Unit = {
     if (booleanPropOrFalse("STANDALONE_INDEXING_ENABLED")) {
       new StandaloneIndexing(props, componentRegistry).doStandaloneIndexing()
     } else {
-      super.startServer(name, port)(warmupFunc)
+      super.startServerAndWait(name, port)(onStartup)
     }
   }
 }

@@ -8,16 +8,15 @@
 
 package no.ndla.frontpageapi.repository
 
+import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax.*
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, FilmFrontPage}
-import org.log4s.Logger
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class FilmFrontPageRepository(using dBFilmFrontPage: DBFilmFrontPage) {
-  val logger: Logger = org.log4s.getLogger
+class FilmFrontPageRepository(using dBFilmFrontPage: DBFilmFrontPage) extends StrictLogging {
   import FilmFrontPage._
 
   def newFilmFrontPage(page: FilmFrontPage)(implicit session: DBSession = AutoSession): Try[FilmFrontPage] = {
@@ -48,11 +47,11 @@ class FilmFrontPageRepository(using dBFilmFrontPage: DBFilmFrontPage) {
     ) match {
       case Success(Some(Success(s)))  => Some(s)
       case Success(Some(Failure(ex))) =>
-        logger.error(ex)("Error while decoding film front page")
+        logger.error("Error while decoding film front page", ex)
         None
       case Success(None) => None
       case Failure(ex)   =>
-        logger.error(ex)("Error while getting film front page from database")
+        logger.error("Error while getting film front page from database", ex)
         None
     }
 
