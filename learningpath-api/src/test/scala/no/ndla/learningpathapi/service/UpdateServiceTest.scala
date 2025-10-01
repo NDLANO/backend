@@ -14,15 +14,17 @@ import no.ndla.common.errors.{
   OperationNotAllowedException,
   ValidationException,
 }
+import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.learningpath.*
+import no.ndla.common.model.domain.myndla.UserRole.EMPLOYEE
 import no.ndla.common.model.domain.{Author, ContributorType, Title, learningpath}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.*
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.mapping.License
-import no.ndla.network.model.CombinedUser
-import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
+import no.ndla.network.model.CombinedUserWithMyNDLAUser
+import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{doAnswer, never, times, verify, when}
@@ -38,9 +40,26 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
   val PUBLISHED_ID: Long = 1
   val PRIVATE_ID: Long   = 2
+  val now: NDLADate      = NDLADate.now()
 
-  val PUBLISHED_OWNER: TokenUser = TokenUser("eier1", Set.empty, None)
-  val PRIVATE_OWNER: TokenUser   = TokenUser("eier2", Set.empty, None)
+  val PUBLISHED_OWNER: TokenUser = TokenUser("eier1", Set(LEARNINGPATH_API_WRITE, LEARNINGPATH_API_PUBLISH), None)
+  val PRIVATE_OWNER: TokenUser   = TokenUser("eier2", Set(LEARNINGPATH_API_WRITE), None)
+
+  val MYNDLA_USER = CombinedUserWithMyNDLAUser(
+    None,
+    MyNDLAUserDTO(
+      id = 1L,
+      feideId = "eier3",
+      username = "eier3",
+      email = "",
+      displayName = "eier3",
+      favoriteSubjects = Seq.empty,
+      role = EMPLOYEE,
+      organization = "",
+      groups = Seq.empty,
+      arenaEnabled = false
+    )
+  )
 
   val today: NDLADate = NDLADate.now()
 
@@ -391,7 +410,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   override def beforeEach(): Unit = {
     service = new UpdateService
     resetMocks()
-    when(readService.canWriteNow(any[CombinedUser])).thenReturn(Success(true))
     when(searchIndexService.deleteDocument(any[LearningPath], any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[LearningPath](0))
     )
@@ -475,12 +493,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That updateLearningPathV2 returns Failure if user is not the owner") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(Some(PRIVATE_LEARNINGPATH))
 
-    val Failure(ex) = service.updateLearningPathV2(
-      PRIVATE_ID,
-      UPDATED_PRIVATE_LEARNINGPATHV2,
-      TokenUser("not_the_owner", Set.empty, None).toCombined,
-    ): @unchecked
-    ex should be(AccessDeniedException("You do not have access to the requested resource."))
+    val Failure(ex) =
+      service.updateLearningPathV2(
+        PRIVATE_ID,
+        UPDATED_PRIVATE_LEARNINGPATHV2,
+        TokenUser("not_the_owner", Set.empty, None).toCombined
+      ): @unchecked
+    ex should be(AccessDeniedException("You do not have permission to perform this action."))
   }
 
   test("That updateLearningPathV2 sets status to UNLISTED if owner is not publisher and status is PUBLISHED") {
@@ -927,7 +946,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(Some(PRIVATE_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(PRIVATE_ID, STEP1.id.get)).thenReturn(Some(STEP1))
     val Failure(ex) =
-      service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, PUBLISHED_OWNER.toCombined): @unchecked
+      service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, MYNDLA_USER): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -937,7 +956,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(PRIVATE_ID, STEP1.id.get)).thenReturn(Some(STEP1))
     val Failure(ex) =
-      service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, PUBLISHED_OWNER.toCombined): @unchecked
+      service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, MYNDLA_USER): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -1119,12 +1138,13 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningStepWithId(eqTo(PRIVATE_ID), eqTo(STEP1.id.get))(using any[DBSession]))
       .thenReturn(Some(STEP1))
 
-    val Failure(exception: ValidationException) =
-      service.updateSeqNo(PRIVATE_ID, STEP1.id.get, 100, PRIVATE_OWNER.toCombined): @unchecked
-
-    exception.errors.length should be(1)
-    exception.errors.head.field should equal("seqNo")
-    exception.errors.head.message should equal("seqNo must be between 0 and 5")
+    intercept[ValidationException] {
+      val Failure(exception: ValidationException) =
+        service.updateSeqNo(PRIVATE_ID, STEP1.id.get, 100, PRIVATE_OWNER.toCombined): @unchecked
+      exception.errors.length should be(1)
+      exception.errors.head.field should equal("seqNo")
+      exception.errors.head.message should equal("seqNo must be between 0 and 5")
+    }
   }
 
   test("That updateSeqNo from 0 to last updates all learningsteps in between") {
@@ -1219,7 +1239,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     verify(learningPathRepository, times(2)).updateLearningStep(any[LearningStep])(using any[DBSession])
   }
 
-  test("new fromExisting2 should allow laugage fields set to unknown") {
+  test("new fromExisting2 should allow language fields set to unknown") {
     val learningpathWithUnknownLang = PUBLISHED_LEARNINGPATH.copy(title = Seq(Title("what språk is this", "unknown")))
 
     when(learningPathRepository.withId(eqTo(learningpathWithUnknownLang.id.get))(using any[DBSession])).thenReturn(
@@ -1229,7 +1249,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     val newCopy = NewCopyLearningPathV2DTO("hehe", None, None, "nb", None, None, None, None)
     service
-      .newFromExistingV2(learningpathWithUnknownLang.id.get, newCopy, TokenUser("me", Set.empty, None).toCombined)
+      .newFromExistingV2(
+        learningpathWithUnknownLang.id.get,
+        newCopy,
+        TokenUser("me", Set(LEARNINGPATH_API_WRITE), None).toCombined
+      )
       .isSuccess should be(true)
   }
 
@@ -1356,7 +1380,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       externalId = None,
       isBasedOn = Some(PUBLISHED_ID),
       status = learningpath.LearningPathStatus.PRIVATE,
-      verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+      verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
       owner = PRIVATE_OWNER.id,
       lastUpdated = now,
     )
@@ -1382,7 +1406,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       externalId = None,
       isBasedOn = None,
       status = learningpath.LearningPathStatus.PRIVATE,
-      verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+      verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
       owner = PRIVATE_OWNER.id,
       lastUpdated = now,
     )
@@ -1400,7 +1424,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       PUBLISHED_LEARNINGPATH_NO_STEPS
     )
 
-    service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
+    service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, MYNDLA_USER)
 
     val expectedNewLearningPath = PUBLISHED_LEARNINGPATH_NO_STEPS.copy(
       id = None,
@@ -1409,8 +1433,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       isBasedOn = Some(PUBLISHED_ID),
       status = learningpath.LearningPathStatus.PRIVATE,
       verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-      owner = PRIVATE_OWNER.id,
-      lastUpdated = now,
+      owner = MYNDLA_USER.id,
+      lastUpdated = now
     )
 
     verify(learningPathRepository, times(1)).insert(eqTo(expectedNewLearningPath))(using any)
@@ -1452,7 +1476,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       externalId = None,
       isBasedOn = Some(PUBLISHED_ID),
       status = learningpath.LearningPathStatus.PRIVATE,
-      verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+      verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
       owner = PRIVATE_OWNER.id,
       lastUpdated = now,
       title = Seq(converterService.asTitle(api.TitleDTO(titlesToOverride, "nb"))),
@@ -1484,7 +1508,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       externalId = None,
       isBasedOn = Some(PUBLISHED_ID),
       status = learningpath.LearningPathStatus.PRIVATE,
-      verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+      verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
       owner = PRIVATE_OWNER.id,
       lastUpdated = now,
       learningsteps = PUBLISHED_LEARNINGPATH
@@ -1549,16 +1573,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val expectedUpdatedPath = PUBLISHED_LEARNINGPATH.copy(lastUpdated = newDate, message = None)
 
     verify(learningPathRepository, times(1)).update(eqTo(expectedUpdatedPath))(using any[DBSession])
-  }
-
-  test("That writeOrAccessDenied denies writes while write restriction is enabled.") {
-    val readMock = mock[ReadService]
-    when(readService.canWriteNow(any[CombinedUser])).thenReturn(Success(false))
-
-    service.writeDuringWriteRestrictionOrAccessDenied(TokenUser("SomeDude", scopes = Set(), None).toCombined) {
-      Success(readMock.tags)
-    }
-    verify(readMock, times(0)).tags
   }
 
   test("That an existing coverphoto can be removed") {
