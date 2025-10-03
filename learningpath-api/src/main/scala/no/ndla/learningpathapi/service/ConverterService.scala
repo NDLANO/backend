@@ -537,7 +537,8 @@ class ConverterService(using
         learningsteps = steps,
         tags = tags,
         coverPhotoId = coverPhotoId,
-        duration = duration
+        duration = duration,
+        isMyNDLAOwner = user.isMyNDLAUser
       )
     }
   }
