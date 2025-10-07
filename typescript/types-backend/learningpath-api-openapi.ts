@@ -676,7 +676,7 @@ export type components = {
             canEdit: boolean;
             /** @description The supported languages for this learningpath */
             supportedLanguages: string[];
-            /** @description Visible if administrator or owner of LearningPath */
+            /** @description Id identifying the owner of the LearningPath */
             ownerId?: string;
             message?: components["schemas"]["MessageDTO"];
             /** @description The date when this learningpath was made available to the public. */
@@ -802,6 +802,8 @@ export type components = {
             lastUpdated: string;
             /** @description The supported languages of the learningstep */
             supportedLanguages: string[];
+            /** @description Id identifying the owner of LearningStep */
+            ownerId?: string;
         };
         /** LicenseDTO */
         LicenseDTO: {
