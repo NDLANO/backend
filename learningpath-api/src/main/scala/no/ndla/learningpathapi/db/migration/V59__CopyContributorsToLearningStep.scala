@@ -14,7 +14,7 @@ import no.ndla.common.model.domain.Author
 import no.ndla.common.model.domain.learningpath.LearningpathCopyright
 import no.ndla.learningpathapi.db.util.*
 
-class V54__CopyContributorsToLearningStep extends LearningPathAndStepMigration {
+class V59__CopyContributorsToLearningStep extends LearningPathAndStepMigration {
   override def convertPathAndSteps(
       lpData: LpDocumentRow,
       stepDatas: List[StepDocumentRow]
@@ -42,7 +42,7 @@ class V54__CopyContributorsToLearningStep extends LearningPathAndStepMigration {
         step
       }
     }
-    return (lpData, updatedSteps)
+    (lpData, updatedSteps)
 
   }
 

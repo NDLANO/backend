@@ -12,10 +12,10 @@ import no.ndla.common.CirceUtil
 import no.ndla.learningpathapi.db.util.{LpDocumentRow, StepDocumentRow}
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 
-class V54__CopyContributorsToLearningStepTest extends UnitSuite with TestEnvironment {
+class V59__CopyContributorsToLearningStepTest extends UnitSuite with TestEnvironment {
 
   test("that license is moved to copyright with empty contributors") {
-    val migration    = new V54__CopyContributorsToLearningStep
+    val migration    = new V59__CopyContributorsToLearningStep
     val learningpath =
       """
         |{
