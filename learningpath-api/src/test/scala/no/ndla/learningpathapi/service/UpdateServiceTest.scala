@@ -1439,6 +1439,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       status = learningpath.LearningPathStatus.PRIVATE,
       verificationStatus = LearningPathVerificationStatus.EXTERNAL,
       owner = MYNDLA_USER.id,
+      isMyNDLAOwner = true,
       lastUpdated = now
     )
 
