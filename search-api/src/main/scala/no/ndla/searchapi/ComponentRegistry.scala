@@ -9,8 +9,9 @@
 package no.ndla.searchapi
 
 import no.ndla.common.Clock
+import no.ndla.common.util.TraitUtil
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient, TaxonomyApiClient}
 import no.ndla.network.tapir.{
   ErrorHelpers,
   Routes,
@@ -39,7 +40,7 @@ class ComponentRegistry(properties: SearchApiProperties) extends TapirApplicatio
   given errorHelpers: ErrorHelpers                   = new ErrorHelpers
   given errorHandling: ControllerErrorHandling       = new ControllerErrorHandling
   given myndlaApiClient: MyNDLAApiClient             = new MyNDLAApiClient
-  given taxonomyApiClient: TaxonomyApiClient         = new TaxonomyApiClient
+  given taxonomyApiClient: TaxonomyApiClient         = new TaxonomyApiClient(props.TaxonomyUrl)
   given grepApiClient: GrepApiClient                 = new GrepApiClient
   given draftApiClient: DraftApiClient               = new DraftApiClient(props.DraftApiUrl)
   given draftConceptApiClient: DraftConceptApiClient = new DraftConceptApiClient(props.ConceptApiUrl)
@@ -50,6 +51,7 @@ class ComponentRegistry(properties: SearchApiProperties) extends TapirApplicatio
   given frontpageApiClient: FrontpageApiClient       = new FrontpageApiClient
 
   given converterService: ConverterService                 = new ConverterService
+  given traitUtil: TraitUtil                               = new TraitUtil
   given searchConverterService: SearchConverterService     = new SearchConverterService
   given articleIndexService: ArticleIndexService           = new ArticleIndexService
   given learningPathIndexService: LearningPathIndexService = new LearningPathIndexService

@@ -236,7 +236,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
 
   def getConnections(folderId: UUID)(implicit session: DBSession = AutoSession): Try[List[FolderResource]] = {
     Try(
-      sql"select resource_id, folder_id, rank, favorited_date from ${FolderResource.table} where folder_id=$folderId"
+      sql"select resource_id, folder_id, rank, favorited_date from ${FolderResource.table} where folder_id=$folderId order by rank ASC"
         .map(rs => {
           for {
             resourceId <- rs.get[Try[UUID]]("resource_id")
@@ -417,7 +417,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       case Some(pid) => sqls"f.parent_id=$pid"
       case None      => sqls"f.parent_id is null"
     }
-    foldersWhere(sqls"$parentIdClause and f.feide_id=$feideId")
+    foldersWhere(sqls"$parentIdClause and f.feide_id=$feideId order by f.rank ASC")
   }
 
   def buildTreeStructureFromListOfChildren(
@@ -435,7 +435,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
               case Some(children) =>
                 val childrenWithTheirChildrenFolders =
                   children
-                    .sortBy(_.id.toString)
+                    .sortBy(_.rank.toString)
                     .map(child => injectChildrenRecursively(child))
 
                 current.copy(subfolders = childrenWithTheirChildrenFolders)

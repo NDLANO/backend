@@ -11,6 +11,7 @@ package no.ndla.draftapi
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.converter.CommonConverter
+import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
@@ -21,7 +22,7 @@ import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient}
+import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient, TaxonomyApiClient as BaseTaxonomyApiClient}
 import no.ndla.network.tapir.{
   ErrorHandling,
   ErrorHelpers,
@@ -58,6 +59,7 @@ trait TestEnvironment extends TapirApplication[DraftApiProperties] with MockitoS
   implicit lazy val tagIndexService: TagIndexService               = mock[TagIndexService]
   implicit lazy val grepCodesSearchService: GrepCodesSearchService = mock[GrepCodesSearchService]
   implicit lazy val grepCodesIndexService: GrepCodesIndexService   = mock[GrepCodesIndexService]
+  implicit lazy val traitUtil: TraitUtil                           = mock[TraitUtil]
 
   implicit lazy val internController: InternController      = mock[InternController]
   implicit lazy val draftController: DraftController        = mock[DraftController]
@@ -87,11 +89,12 @@ trait TestEnvironment extends TapirApplication[DraftApiProperties] with MockitoS
   implicit lazy val e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
   implicit lazy val learningpathApiClient: LearningpathApiClient   = mock[LearningpathApiClient]
 
-  implicit lazy val articleApiClient: ArticleApiClient   = mock[ArticleApiClient]
-  implicit lazy val searchApiClient: SearchApiClient     = mock[SearchApiClient]
-  implicit lazy val taxonomyApiClient: TaxonomyApiClient = mock[TaxonomyApiClient]
-  implicit lazy val h5pApiClient: H5PApiClient           = mock[H5PApiClient]
-  implicit lazy val imageApiClient: ImageApiClient       = mock[ImageApiClient]
+  implicit lazy val articleApiClient: ArticleApiClient           = mock[ArticleApiClient]
+  implicit lazy val searchApiClient: SearchApiClient             = mock[SearchApiClient]
+  implicit lazy val taxonomyApiClient: TaxonomyApiClient         = mock[TaxonomyApiClient]
+  implicit lazy val baseTaxonomyApiClient: BaseTaxonomyApiClient = mock[BaseTaxonomyApiClient]
+  implicit lazy val h5pApiClient: H5PApiClient                   = mock[H5PApiClient]
+  implicit lazy val imageApiClient: ImageApiClient               = mock[ImageApiClient]
 
   implicit lazy val swagger: SwaggerController = mock[SwaggerController]
 }

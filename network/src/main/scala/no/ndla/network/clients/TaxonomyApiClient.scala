@@ -1,24 +1,23 @@
 /*
- * Part of NDLA search-api
+ * Part of NDLA network
  * Copyright (C) 2018 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.searchapi.integration
+package no.ndla.network.clients
 
 import cats.implicits.toTraverseOps
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.caching.Memoize
+import no.ndla.common.errors.TaxonomyException
+import no.ndla.common.model.taxonomy.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
 import no.ndla.network.model.RequestInfo
-import no.ndla.searchapi.Props
-import no.ndla.searchapi.caching.Memoize
-import no.ndla.searchapi.model.api.TaxonomyException
-import no.ndla.searchapi.model.taxonomy.*
 import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
@@ -28,12 +27,10 @@ import scala.concurrent.*
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Success, Try}
 
-class TaxonomyApiClient(using
-    ndlaClient: NdlaClient,
-    props: Props
-) extends StrictLogging {
-  private val TaxonomyApiEndpoint                                             = s"${props.TaxonomyUrl}/v1"
-  private val timeoutSeconds                                                  = 600.seconds
+class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) extends StrictLogging {
+  private val TaxonomyApiEndpoint = s"$taxonomyBaseUrl/v1"
+  private val timeoutSeconds      = 600.seconds
+
   private def getNodes(shouldUsePublishedTax: Boolean): Try[ListBuffer[Node]] =
     get[ListBuffer[Node]](
       s"$TaxonomyApiEndpoint/nodes/",
@@ -83,7 +80,7 @@ class TaxonomyApiClient(using
     new Memoize(1000 * 60, shouldUsePublishedTax => getTaxonomyBundleUncached(shouldUsePublishedTax))
 
   /** The memoized function of this [[getTaxonomyBundle]] should probably be used in most cases */
-  private def getTaxonomyBundleUncached(shouldUsePublishedTax: Boolean): Try[TaxonomyBundle] = {
+  def getTaxonomyBundleUncached(shouldUsePublishedTax: Boolean): Try[TaxonomyBundle] = {
     logger.info(s"Fetching ${if (shouldUsePublishedTax) "published" else "draft"} taxonomy in bulk...")
     val startFetch                            = System.currentTimeMillis()
     implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
@@ -147,6 +144,7 @@ class TaxonomyApiClient(using
     })
   }
 }
+
 case class PaginationPage[T](totalCount: Long, results: List[T])
 object PaginationPage {
   implicit def encoder[T](implicit @unused e: Encoder[T]): Encoder[PaginationPage[T]] = deriveEncoder

@@ -15,7 +15,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Decoder
 import no.ndla.common.model.domain.Content
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, ReindexResult}
 import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
@@ -111,7 +111,7 @@ trait IndexService[D <: Content](using
   val apiClient: SearchApiClient[D]
   override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
-  def createIndexRequest(domainModel: D, indexName: String, indexingBundle: IndexingBundle): Try[IndexRequest]
+  def createIndexRequest(domainModel: D, indexName: String, indexingBundle: IndexingBundle): Try[Option[IndexRequest]]
 
   def indexDocument(imported: D): Try[D] = {
     val grepBundle = grepApiClient.getGrepBundle() match {
@@ -132,9 +132,12 @@ trait IndexService[D <: Content](using
       indexingBundle: IndexingBundle
   ): Try[D] = {
     for {
-      _       <- createIndexIfNotExists()
-      request <- createIndexRequest(imported, searchIndex, indexingBundle)
-      _       <- e4sClient.execute(request)
+      _            <- createIndexIfNotExists()
+      maybeRequest <- createIndexRequest(imported, searchIndex, indexingBundle)
+      _            <- maybeRequest match {
+        case Some(req) => e4sClient.execute(req)
+        case None      => Success(())
+      }
     } yield imported
   }
   def indexDocuments(shouldUsePublishedTax: Boolean)(implicit d: Decoder[D]): Try[ReindexResult] =
@@ -161,11 +164,12 @@ trait IndexService[D <: Content](using
     for {
       grepBundle <- grepApiClient.getGrepBundle()
       indexingBundle = IndexingBundle(grepBundle = Some(grepBundle), None, None)
-      _       <- createIndexIfNotExists()
-      toIndex <- apiClient.getSingle(id)
-      request <- createIndexRequest(toIndex, searchIndex, indexingBundle)
-      _       <- e4sClient.execute {
-        request
+      _            <- createIndexIfNotExists()
+      toIndex      <- apiClient.getSingle(id)
+      maybeRequest <- createIndexRequest(toIndex, searchIndex, indexingBundle)
+      _            <- maybeRequest match {
+        case Some(req) => e4sClient.execute(req)
+        case None      => Success(())
       }
     } yield toIndex
   }
@@ -233,9 +237,10 @@ trait IndexService[D <: Content](using
       val indexRequests          = req.collect { case Success(indexRequest) => indexRequest }
       val failedToCreateRequests = req.collect { case Failure(ex) => Failure(ex) }
 
-      if (indexRequests.nonEmpty) {
+      val filteredRequests = indexRequests.flatten
+      if (filteredRequests.nonEmpty) {
         val response = e4sClient.execute {
-          bulk(indexRequests)
+          bulk(filteredRequests)
         }
 
         response match {

@@ -9,23 +9,23 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.api.search.{MultiSearchSummaryDTO, NodeHitDTO, SearchType}
+import no.ndla.common.model.api.search.*
+import no.ndla.common.model.domain.frontpage.*
 import no.ndla.common.model.domain.frontpage.VisualElementType.Image
-import no.ndla.common.model.domain.frontpage.{AboutSubject, BannerImage, MetaDescription, SubjectPage, VisualElement}
 import no.ndla.common.model.domain.{ArticleContent, Title}
+import no.ndla.common.model.taxonomy.*
+import no.ndla.common.util.TraitUtil
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
-import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
+import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial}
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
-import no.ndla.searchapi.model.taxonomy.*
-import no.ndla.searchapi.{TestData, TestEnvironment}
-import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.service.ConverterService
-import org.mockito.Mockito.*
+import no.ndla.searchapi.{TestData, TestEnvironment}
 import org.mockito.ArgumentMatchers.eq as eqTo
+import org.mockito.Mockito.*
 
 import scala.util.Success
 
@@ -34,6 +34,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   override implicit lazy val converterService: ConverterService             = new ConverterService
   override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
+  override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
   override implicit lazy val articleIndexService: ArticleIndexService       = new ArticleIndexService {
     override val indexShards = 1

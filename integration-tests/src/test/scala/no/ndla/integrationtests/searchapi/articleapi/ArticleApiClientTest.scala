@@ -8,13 +8,14 @@
 
 package no.ndla.integrationtests.searchapi.articleapi
 
-import no.ndla.articleapi.{ArticleApiProperties, TestData => ArticleTestData}
+import no.ndla.articleapi.{ArticleApiProperties, TestData as ArticleTestData}
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.LanguageValue
+import no.ndla.common.util.TraitUtil
 import no.ndla.database.HasDatabaseProps
 import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
-import no.ndla.search.model.LanguageValue
 import no.ndla.searchapi.integration.ArticleApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.service.ConverterService
@@ -35,6 +36,7 @@ class ArticleApiClientTest
     with HasDatabaseProps {
   override implicit lazy val ndlaClient: NdlaClient                         = new NdlaClient
   override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   val articleApiPort: Int                        = findFreePort

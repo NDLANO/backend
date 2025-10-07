@@ -10,40 +10,13 @@ package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.MyNDLABundleDTO
-import no.ndla.common.model.api.search.LearningResourceType
-import no.ndla.common.model.domain.ContributorType
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Author,
-  Availability,
-  EditorNote,
-  Introduction,
-  Priority,
-  Responsible,
-  Status,
-  Tag,
-  Title,
-  VisualElement,
-  draft,
-  RevisionMeta,
-  RevisionStatus
-}
+import no.ndla.common.model.api.search.*
 import no.ndla.common.model.domain.article.{Article, Copyright}
-import no.ndla.common.model.domain.concept.{
-  Concept,
-  ConceptContent,
-  ConceptEditorNote,
-  ConceptStatus,
-  ConceptType,
-  GlossData,
-  GlossExample,
-  WordClass
-}
+import no.ndla.common.model.domain.concept.*
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
+import no.ndla.common.model.domain.learningpath.LearningPathVerificationStatus.EXTERNAL
 import no.ndla.common.model.domain.learningpath.{
   LearningPath,
   LearningPathStatus,
@@ -51,28 +24,19 @@ import no.ndla.common.model.domain.learningpath.{
   LearningpathCopyright,
   Description as LPDescription
 }
+import no.ndla.common.model.domain.{EditorNote, Status, VisualElement, *}
+import no.ndla.common.model.taxonomy.{ResourceType, *}
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.mapping.License
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.*
-import no.ndla.searchapi.model.grep.{
-  BelongsToObj,
-  GrepBundle,
-  GrepKjerneelement,
-  GrepKompetansemaal,
-  GrepLaererplan,
-  GrepTextObj,
-  GrepTitle,
-  GrepTverrfagligTema
-}
+import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
-import no.ndla.searchapi.model.taxonomy.*
 
 import java.net.URI
 import java.util.UUID
@@ -240,7 +204,8 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleDomainArticle: Article = Article(
@@ -266,7 +231,8 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -292,7 +258,8 @@ object TestData {
     Seq.empty,
     None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleArticleWithByNcSa: Article =
@@ -301,7 +268,7 @@ object TestData {
   val sampleArticleWithCopyrighted: Article =
     sampleArticleWithPublicDomain.copy(copyright = copyrighted, published = NDLADate.now())
 
-  val article1: Article = TestData.sampleArticleWithByNcSa.copy(
+  val article1: Article = sampleArticleWithByNcSa.copy(
     id = Option(1),
     title = List(Title("Batmen er på vift med en bil", "nb")),
     content = List(
@@ -318,7 +285,7 @@ object TestData {
     grepCodes = Seq("KM123", "KE12")
   )
 
-  val article2: Article = TestData.sampleArticleWithPublicDomain.copy(
+  val article2: Article = sampleArticleWithPublicDomain.copy(
     id = Option(2),
     title = List(Title("Pingvinen er ute og går", "nb")),
     content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
@@ -495,7 +462,8 @@ object TestData {
     created = today.minusDays(10),
     updated = today.minusDays(5),
     published = today.minusDays(5),
-    articleType = ArticleType.Standard
+    articleType = ArticleType.Standard,
+    traits = List(ArticleTrait.H5p)
   )
 
   val article13: Article = TestData.sampleArticleWithPublicDomain.copy(
@@ -578,7 +546,8 @@ object TestData {
     relatedContent = Seq.empty,
     revisionDate = None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val emptyDomainDraft: Draft = Draft(
@@ -613,7 +582,8 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val draftStatus: Status         = Status(DraftStatus.PLANNED, Set.empty)
@@ -676,7 +646,8 @@ object TestData {
     priority = Priority.Unspecified,
     started = false,
     qualityEvaluation = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
@@ -1001,7 +972,7 @@ object TestData {
     coverPhotoId = None,
     duration = Some(0),
     status = LearningPathStatus.PUBLISHED,
-    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+    verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
     created = today,
     lastUpdated = today,
     tags = List(),
@@ -1089,12 +1060,13 @@ object TestData {
   val learningPath7: LearningPath = DefaultLearningPath.copy(
     id = Some(PrivateId),
     title = List(Title("Private", "en")),
-    description = List(LPDescription("This is private", "en")),
+    description = List(LPDescription("This is private and external", "en")),
     duration = Some(1),
     lastUpdated = today.minusDays(7),
     tags = List(),
     status = PRIVATE,
-    owner = "private"
+    owner = "private",
+    verificationStatus = EXTERNAL
   )
 
   val learningPathsToIndex: List[LearningPath] = List(
@@ -1154,7 +1126,7 @@ object TestData {
         relevanceId = relevance.id,
         relevance = SearchableLanguageValues(Seq(LanguageValue("nb", relevance.name))),
         resourceTypes = resourceTypes.map(rt =>
-          SearchableTaxonomyResourceType(rt.id, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
+          TaxonomyResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
         ),
         parentIds = context.parentIds :+ parent.id,
         isPrimary = isPrimary,
@@ -1801,7 +1773,8 @@ object TestData {
     articleTypes = List.empty,
     filterInactive = false,
     resultTypes = None,
-    nodeTypeFilter = List.empty
+    nodeTypeFilter = List.empty,
+    tags = List.empty
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(
@@ -1818,7 +1791,7 @@ object TestData {
     language = DefaultLanguage,
     license = None,
     page = 1,
-    pageSize = 20,
+    pageSize = 30,
     sort = Sort.ByIdAsc,
     withIdIn = List.empty,
     subjects = List.empty,
@@ -1846,16 +1819,19 @@ object TestData {
     priority = List.empty,
     publishedFilterFrom = None,
     publishedFilterTo = None,
-    resultTypes = None
+    resultTypes = None,
+    tags = List.empty
   )
 
-  val searchableResourceTypes: List[SearchableTaxonomyResourceType] = List(
-    SearchableTaxonomyResourceType(
+  val searchableResourceTypes: List[TaxonomyResourceType] = List(
+    TaxonomyResourceType(
       "urn:resourcetype:subjectMaterial",
+      None,
       SearchableLanguageValues(Seq(LanguageValue("nb", "Fagstoff")))
     ),
-    SearchableTaxonomyResourceType(
+    TaxonomyResourceType(
       "urn:resourcetype:academicArticle",
+      Some("urn:resourcetype:subjectMaterial"),
       SearchableLanguageValues(Seq(LanguageValue("nb", "Fagartikkel")))
     )
   )
@@ -1893,7 +1869,7 @@ object TestData {
         relevanceId = "urn:relevance:core",
         relevance = SearchableLanguageValues(Seq(LanguageValue("nb", "Kjernestoff"))),
         resourceTypes = resourceTypes.map(rt =>
-          SearchableTaxonomyResourceType(rt.id, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
+          TaxonomyResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
         ),
         parentIds = List("urn:topic:1"),
         isPrimary = true,

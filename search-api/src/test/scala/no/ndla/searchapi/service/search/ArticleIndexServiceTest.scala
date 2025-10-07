@@ -11,8 +11,10 @@ package no.ndla.searchapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl.*
 import io.circe.syntax.*
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.api.search.ArticleTrait.H5p
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.*
+import no.ndla.common.util.TraitUtil
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
@@ -27,6 +29,7 @@ import scala.util.Success
 class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
   override implicit lazy val converterService: ConverterService             = new ConverterService
+  override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
   override implicit lazy val e4sClient: NdlaE4sClient                       =
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
@@ -143,7 +146,8 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
         validFrom = None,
         validTo = None,
         processed = false
-      )
+      ),
+      traits = List(H5p)
     )
 
     val searchableToTestWith = searchConverterService

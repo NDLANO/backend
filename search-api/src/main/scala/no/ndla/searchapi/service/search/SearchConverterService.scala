@@ -13,26 +13,9 @@ import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common
 import no.ndla.common.CirceUtil
-import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.MissingIdException
 import no.ndla.common.implicits.*
-import no.ndla.common.model.api.search.{
-  ApiTaxonomyContextDTO,
-  HighlightedFieldDTO,
-  LearningResourceType,
-  MetaDescriptionDTO,
-  MetaImageDTO,
-  MultiSearchResultDTO,
-  MultiSearchSummaryDTO,
-  NodeHitDTO,
-  RevisionMetaDTO,
-  SearchTrait,
-  SearchType,
-  StatusDTO,
-  SubjectPageSummaryDTO,
-  TaxonomyResourceTypeDTO,
-  TitleWithHtmlDTO
-}
+import no.ndla.common.model.api.search.*
 import no.ndla.common.model.api.{AuthorDTO, CommentDTO, LicenseDTO, ResponsibleDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
@@ -45,83 +28,35 @@ import no.ndla.common.model.domain.{
   ArticleType,
   Tag,
   VisualElement,
+  getNextRevision,
   ResourceType as MyNDLAResourceType
 }
-import no.ndla.language.Language.{
-  UnknownLanguage,
-  findByLanguageOrBestEffort,
-  getDefault,
-  getSupportedLanguages,
-  sortLanguagesByPriority
-}
+import no.ndla.common.model.taxonomy.*
+import no.ndla.common.util.TraitUtil
+import no.ndla.language.Language.*
 import no.ndla.language.model.{Iso639, LanguageField}
 import no.ndla.mapping.License.getLicense
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.search.model
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.model.api.*
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.*
-import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.model.{api, domain, search}
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-import org.jsoup.nodes.Entities.EscapeMode
 
-import scala.collection.mutable.ListBuffer
-import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
-import no.ndla.common.model.domain.getNextRevision
 
 class SearchConverterService(using
     taxonomyApiClient: TaxonomyApiClient,
     props: Props,
-    myndlaApiClient: MyNDLAApiClient
+    myndlaApiClient: MyNDLAApiClient,
+    traits: TraitUtil
 ) extends StrictLogging {
-
-  private def parseHtml(html: String): Element = {
-    val document = Jsoup.parseBodyFragment(html)
-    document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
-    document.body()
-  }
-
-  private def getArticleTraits(contents: Seq[ArticleContent]): Seq[SearchTrait] = {
-    contents.flatMap(content => {
-      val traits = ListBuffer[SearchTrait]()
-      parseHtml(content.content)
-        .select(EmbedTagName)
-        .forEach(embed => {
-          val dataResource = embed.attr("data-resource")
-          dataResource match {
-            case "h5p"                 => traits += SearchTrait.H5p
-            case "brightcove" | "nrk"  => traits += SearchTrait.Video
-            case "external" | "iframe" =>
-              val dataUrl = embed.attr("data-url")
-              if (
-                dataUrl.contains("youtu") || dataUrl.contains("vimeo") || dataUrl
-                  .contains("filmiundervisning") || dataUrl.contains("imdb") || dataUrl
-                  .contains("nrk") || dataUrl.contains("khanacademy")
-              ) {
-                traits += SearchTrait.Video
-              }
-            case "audio" =>
-              val dataType = embed.attr("data-type")
-              dataType match {
-                case "podcast" => traits += SearchTrait.Podcast
-                case _         => traits += SearchTrait.Audio
-              }
-            case _ => // Do nothing
-          }
-        })
-      traits
-    })
-  }
+  import traits.*
 
   def nodeHitAsMultiSummary(hit: SearchHit, language: String): Try[NodeHitDTO] = permitTry {
     val searchableNode = CirceUtil.tryParseAs[SearchableNode](hit.sourceAsString).?
@@ -153,33 +88,6 @@ class SearchConverterService(using
       id = subjectPage.id,
       name = subjectPage.name,
       metaDescription = metaDescription
-    )
-  }
-
-  private[service] def getAttributes(html: String): List[String] = {
-    parseHtml(html)
-      .select(EmbedTagName)
-      .asScala
-      .flatMap(getAttributes)
-      .toList
-  }
-
-  private def getAttributes(embed: Element): List[String] = {
-    val attributesToKeep = List(
-      "data-title",
-      "data-caption",
-      "data-alt",
-      "data-link-text",
-      "data-edition",
-      "data-publisher",
-      "data-authors"
-    )
-
-    attributesToKeep.flatMap(attr =>
-      embed.attr(attr) match {
-        case "" => None
-        case a  => Some(a)
-      }
     )
   }
 
@@ -277,7 +185,6 @@ class SearchConverterService(using
         )
     }
 
-    val traits               = getArticleTraits(ai.content)
     val embedAttributes      = getAttributesToIndex(ai.content, ai.visualElement)
     val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(ai.content, ai.visualElement, ai.metaImage)
 
@@ -300,13 +207,13 @@ class SearchConverterService(using
         title = SearchableLanguageValues(
           ai.title.map(title => LanguageValue(title.language, toPlaintext(title.title)))
         ),
-        content = model.SearchableLanguageValues(
+        content = common.model.api.search.SearchableLanguageValues(
           ai.content.map(article => LanguageValue(article.language, toPlaintext(article.content)))
         ),
-        introduction = model.SearchableLanguageValues(
+        introduction = common.model.api.search.SearchableLanguageValues(
           ai.introduction.map(intro => LanguageValue(intro.language, toPlaintext(intro.introduction)))
         ),
-        metaDescription = model.SearchableLanguageValues(
+        metaDescription = common.model.api.search.SearchableLanguageValues(
           ai.metaDescription.map(meta => LanguageValue(meta.language, meta.content))
         ),
         tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
@@ -324,7 +231,7 @@ class SearchConverterService(using
         contextids =
           indexingBundle.taxonomyBundle.map(getTaxonomyContexids(articleId, "article", _)).getOrElse(List.empty),
         grepContexts = getGrepContexts(ai.grepCodes, indexingBundle.grepBundle),
-        traits = traits.toList.distinct,
+        traits = ai.traits,
         embedAttributes = embedAttributes,
         embedResourcesAndIds = embedResourcesAndIds,
         availability = ai.availability.toString,
@@ -438,13 +345,14 @@ class SearchConverterService(using
         SearchableLearningPath(
           domainObject = lp,
           id = lp.id.get,
-          title = model.SearchableLanguageValues(lp.title.map(t => LanguageValue(t.language, t.title))),
-          content = model.SearchableLanguageValues(
+          title =
+            common.model.api.search.SearchableLanguageValues(lp.title.map(t => LanguageValue(t.language, t.title))),
+          content = common.model.api.search.SearchableLanguageValues(
             lp.title.map(t => LanguageValue(t.language, "*"))
           ),
-          description =
-            model.SearchableLanguageValues(lp.description.map(d => LanguageValue(d.language, d.description))),
-          introduction = model.SearchableLanguageValues(
+          description = common.model.api.search
+            .SearchableLanguageValues(lp.description.map(d => LanguageValue(d.language, d.description))),
+          introduction = common.model.api.search.SearchableLanguageValues(
             lp.introduction.map(i => LanguageValue(i.language, i.introduction))
           ),
           coverPhotoId = lp.coverPhotoId,
@@ -501,7 +409,8 @@ class SearchConverterService(using
   }
 
   def asSearchableConcept(c: Concept, indexingBundle: IndexingBundle): Try[SearchableConcept] = permitTry {
-    val title     = model.SearchableLanguageValues(c.title.map(t => LanguageValue(t.language, toPlaintext(t.title))))
+    val title = common.model.api.search
+      .SearchableLanguageValues(c.title.map(t => LanguageValue(t.language, toPlaintext(t.title))))
     val content   = SearchableLanguageValues.fromFieldsMap(c.content)(toPlaintext)
     val tags      = SearchableLanguageList.fromFields(c.tags)
     val favorited = getFavoritedCountFor(indexingBundle, c.id.get.toString, List(MyNDLAResourceType.Concept)).?
@@ -559,7 +468,6 @@ class SearchConverterService(using
       }
     }.getOrElse(List.empty)
 
-    val traits               = getArticleTraits(draft.content)
     val embedAttributes      = getAttributesToIndex(draft.content, draft.visualElement)
     val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(draft.content, draft.visualElement, draft.metaImage)
 
@@ -652,7 +560,7 @@ class SearchConverterService(using
         users = users.distinct,
         previousVersionsNotes = draft.previousVersionsNotes.map(_.note).toList,
         grepContexts = getGrepContexts(draft.grepCodes, indexingBundle.grepBundle),
-        traits = traits.toList.distinct,
+        traits = draft.traits,
         embedAttributes = embedAttributes,
         embedResourcesAndIds = embedResourcesAndIds,
         revisionMeta = draft.revisionMeta.toList,

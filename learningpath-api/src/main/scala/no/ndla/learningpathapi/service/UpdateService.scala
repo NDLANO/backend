@@ -19,7 +19,6 @@ import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.model.domain.*
-import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearningPathMethods
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.service.search.SearchIndexService
@@ -119,7 +118,7 @@ class UpdateService(using
       owner: CombinedUser
   ): Try[LearningPathV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
     for {
-      existing        <- withId(id).flatMap(_.canEditLearningpath(owner))
+      existing        <- withId(id).flatMap(_.canEditLearningPath(owner))
       validatedUpdate <- learningPathValidator.validate(learningPathToUpdate, existing)
       mergedPath = converterService.mergeLearningPaths(existing, validatedUpdate)
       // Imported learningpaths may contain fields with language=unknown.
@@ -144,7 +143,7 @@ class UpdateService(using
     dBUtility.rollbackOnFailure { implicit session =>
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         for {
-          learningPath <- withId(learningPathId).flatMap(_.canEditLearningpath(owner))
+          learningPath <- withId(learningPathId).flatMap(_.canEditLearningPath(owner))
           updatedSteps <- learningPath.learningsteps
             .getOrElse(Seq.empty)
             .traverse(step => deleteLanguageFromStep(step, language, learningPath))
@@ -171,7 +170,7 @@ class UpdateService(using
     dBUtility.rollbackOnFailure { implicit session =>
       writeDuringWriteRestrictionOrAccessDenied(owner) {
         for {
-          learningPath <- withId(learningPathId).flatMap(_.canEditLearningpath(owner))
+          learningPath <- withId(learningPathId).flatMap(_.canEditLearningPath(owner))
           learningStep <- learningPathRepository
             .learningStepWithId(learningPathId, stepId)
             .toTry(NotFoundException(s"Could not find learningpath with id '$learningPathId'."))
@@ -287,11 +286,11 @@ class UpdateService(using
       owner: CombinedUserRequired
   ): Try[LearningStepV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
     optimisticLockRetries(10) {
-      withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
+      withId(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
         case Failure(ex)           => Failure(ex)
         case Success(learningPath) =>
           val validated = for {
-            newStep   <- converterService.asDomainLearningStep(newLearningStep, learningPath)
+            newStep   <- converterService.asDomainLearningStep(newLearningStep, learningPath, owner.id)
             validated <- learningStepValidator.validate(newStep, learningPath)
           } yield validated
 
@@ -329,52 +328,58 @@ class UpdateService(using
       owner: CombinedUserRequired
   ): Try[LearningStepV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
     permitTry {
-      withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
-        case Failure(ex)           => Failure(ex)
-        case Success(learningPath) =>
-          learningPathRepository.learningStepWithId(learningPathId, learningStepId) match {
-            case None =>
-              Failure(
-                NotFoundException(
-                  s"Could not find learningstep with id '$learningStepId' to update with learningpath id '$learningPathId'."
+      boundary {
+        withId(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
+          case Failure(ex)           => Failure(ex)
+          case Success(learningPath) =>
+            learningPathRepository.learningStepWithId(learningPathId, learningStepId) match {
+              case None =>
+                Failure(
+                  NotFoundException(
+                    s"Could not find learningstep with id '$learningStepId' to update with learningpath id '$learningPathId'."
+                  )
                 )
-              )
-            case Some(existing) =>
-              val validated = for {
-                toUpdate  <- converterService.mergeLearningSteps(existing, learningStepToUpdate)
-                validated <- learningStepValidator.validate(toUpdate, learningPath, allowUnknownLanguage = true)
-              } yield validated
+              case Some(existing) =>
+                existing.canEditLearningStep(owner) match {
+                  case Failure(ex) => boundary.break(Failure(ex))
+                  case _           => // continue
+                }
+                val validated = for {
+                  toUpdate  <- converterService.mergeLearningSteps(existing, learningStepToUpdate)
+                  validated <- learningStepValidator.validate(toUpdate, learningPath, allowUnknownLanguage = true)
+                } yield validated
 
-              validated match {
-                case Failure(ex)       => Failure(ex)
-                case Success(toUpdate) =>
-                  val (updatedStep, updatedPath) = learningPathRepository.inTransaction { implicit session =>
-                    val updatedStep =
-                      learningPathRepository.updateLearningStep(toUpdate)
-                    val pathToUpdate = converterService.insertLearningStep(learningPath, updatedStep)
-                    val updatedPath  = learningPathRepository.update(pathToUpdate)
+                validated match {
+                  case Failure(ex)       => Failure(ex)
+                  case Success(toUpdate) =>
+                    val (updatedStep, updatedPath) = learningPathRepository.inTransaction { implicit session =>
+                      val updatedStep =
+                        learningPathRepository.updateLearningStep(toUpdate)
+                      val pathToUpdate = converterService.insertLearningStep(learningPath, updatedStep)
+                      val updatedPath  = learningPathRepository.update(pathToUpdate)
 
-                    (updatedStep, updatedPath)
-                  }
+                      (updatedStep, updatedPath)
+                    }
 
-                  updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
-                    .flatMap(_ =>
-                      converterService.asApiLearningStepV2(
-                        updatedStep,
-                        updatedPath,
-                        learningStepToUpdate.language,
-                        fallback = true,
-                        owner
+                    updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
+                      .flatMap(_ =>
+                        converterService.asApiLearningStepV2(
+                          updatedStep,
+                          updatedPath,
+                          learningStepToUpdate.language,
+                          fallback = true,
+                          owner
+                        )
                       )
-                    )
-              }
+                }
 
-          }
+            }
+        }
       }
     }
   }
 
-  def updateWithStepSeqNo(
+  private def updateWithStepSeqNo(
       learningStepId: Long,
       newStatus: StepStatus,
       learningPath: LearningPath,
@@ -412,7 +417,7 @@ class UpdateService(using
     writeDuringWriteRestrictionOrAccessDenied(owner) {
       boundary {
 
-        withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
+        withId(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
           case Failure(ex)           => Failure(ex)
           case Success(learningPath) =>
             val stepsToChange = learningPathRepository.learningStepsFor(learningPathId)
@@ -450,7 +455,7 @@ class UpdateService(using
   ): Try[LearningStepSeqNoDTO] = {
     writeDuringWriteRestrictionOrAccessDenied(owner) {
       optimisticLockRetries(10) {
-        withId(learningPathId).flatMap(_.canEditLearningpath(owner)) match {
+        withId(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
           case Failure(ex)           => Failure(ex)
           case Success(learningPath) =>
             learningPathRepository.learningStepWithId(learningPathId, learningStepId) match {

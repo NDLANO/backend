@@ -8,27 +8,17 @@
 
 package no.ndla.searchapi.service.search
 
-import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.api.search.SearchTrait
+import no.ndla.common.caching.Memoize
+import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
+import no.ndla.common.model.taxonomy.*
+import no.ndla.common.util.TraitUtil
 import no.ndla.search.SearchLanguage
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.searchapi.caching.Memoize
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.domain.IndexingBundle
-import no.ndla.searchapi.model.grep.{
-  BelongsToObj,
-  GrepKjerneelement,
-  GrepKompetansemaal,
-  GrepKompetansemaalSett,
-  GrepTextObj,
-  GrepTitle,
-  GrepTverrfagligTema,
-  ReferenceObj
-}
+import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.{SearchableArticle, SearchableGrepContext}
-import no.ndla.searchapi.model.taxonomy.*
 import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -36,6 +26,7 @@ import org.mockito.Mockito.when
 import scala.util.{Success, Try}
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
+  override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
   override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
   val sampleArticle: Article = TestData.sampleArticleWithPublicDomain.copy()
@@ -635,60 +626,6 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
         IndexingBundle(Some(grepBundle), Some(emptyBundle), None)
       ): @unchecked
     searchableArticle.grepContexts should equal(grepContexts)
-  }
-
-  test("That asSearchableArticle extracts traits correctly") {
-    val article =
-      TestData.emptyDomainArticle.copy(
-        id = Some(99),
-        content = Seq(
-          ArticleContent(
-            s"Sjekk denne h5p-en <$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName>",
-            "nb"
-          ),
-          ArticleContent(s"Fil <$EmbedTagName data-resource=\"file\" data-path=\"/file/path\"></$EmbedTagName>", "nn")
-        )
-      )
-
-    val Success(searchableArticle) =
-      searchConverterService.asSearchableArticle(
-        article,
-        IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), None)
-      ): @unchecked
-    searchableArticle.traits should equal(List(SearchTrait.H5p))
-
-    val article2 =
-      TestData.emptyDomainArticle.copy(
-        id = Some(99),
-        content = Seq(
-          ArticleContent(
-            s"Skikkelig bra h5p: <$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName>",
-            "nb"
-          ),
-          ArticleContent(
-            s"Fin video <$EmbedTagName data-resource=\"external\" data-url=\"https://youtu.be/id\"></$EmbedTagName>",
-            "nn"
-          ),
-          ArticleContent(
-            s"Movie trailer <$EmbedTagName data-resource=\"iframe\" data-url=\"https://www.imdb.com/video/vi3074735641\"></$EmbedTagName>",
-            "en"
-          )
-        )
-      )
-
-    val Success(searchableArticle2) =
-      searchConverterService.asSearchableArticle(
-        article2,
-        IndexingBundle(Some(TestData.emptyGrepBundle), Some(emptyBundle), None)
-      ): @unchecked
-    searchableArticle2.traits should equal(List(SearchTrait.H5p, SearchTrait.Video))
-  }
-
-  test("That extracting attributes extracts data-title but not all attributes") {
-    val html =
-      s"""<section>Hei<p align="center">Heihei</p><$EmbedTagName class="testklasse" tulleattributt data-resource_id="55" data-title="For ei tittel"></$EmbedTagName>"""
-    val result = searchConverterService.getAttributes(html)
-    result should be(List("For ei tittel"))
   }
 
   test("That asSearchableDraft extracts all users from notes correctly") {

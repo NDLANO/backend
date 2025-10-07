@@ -17,11 +17,11 @@ import no.ndla.articleapi.service.search.*
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.articleapi.model.domain.DBArticle
 import no.ndla.common.Clock
+import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, RedisClient, SearchApiClient}
+import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, SwaggerController, TapirController, TapirHealthController}
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -39,6 +39,7 @@ trait TestEnvironment extends MockitoSugar {
   implicit lazy val searchLanguage: SearchLanguage = mock[SearchLanguage]
   implicit lazy val errorHelpers: ErrorHelpers     = mock[ErrorHelpers]
   implicit lazy val errorHandling: ErrorHandling   = mock[ErrorHandling]
+  implicit lazy val traitUtil: TraitUtil           = mock[TraitUtil]
 
   implicit lazy val articleSearchService: ArticleSearchService = mock[ArticleSearchService]
   implicit lazy val articleIndexService: ArticleIndexService   = mock[ArticleIndexService]
@@ -65,6 +66,7 @@ trait TestEnvironment extends MockitoSugar {
   implicit lazy val redisClient: RedisClient                       = mock[RedisClient]
   implicit lazy val frontpageApiClient: FrontpageApiClient         = mock[FrontpageApiClient]
   implicit lazy val imageApiClient: ImageApiClient                 = mock[ImageApiClient]
+  implicit lazy val taxonomyApiClient: TaxonomyApiClient           = mock[TaxonomyApiClient]
 
   implicit lazy val clock: Clock = mock[Clock]
 

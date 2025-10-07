@@ -11,13 +11,13 @@ package no.ndla.searchapi.controller.parameters
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.LanguageCode
-import no.ndla.common.model.api.search.{SearchTrait, SearchType}
+import no.ndla.common.model.api.search.{ArticleTrait, SearchType}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
-import no.ndla.searchapi.model.taxonomy.NodeType
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 import no.ndla.common.DeriveHelpers
+import no.ndla.common.model.taxonomy.NodeType
 
 case class SearchParamsDTO(
     @description("The page number of the search hits to display.")
@@ -62,7 +62,7 @@ case class SearchParamsDTO(
     @description("A list of codes from GREP API the resources should be filtered by.")
     grepCodes: Option[List[String]],
     @description("A comma separated list of traits the resources should be filtered by.")
-    traits: Option[List[SearchTrait]],
+    traits: Option[List[ArticleTrait]],
     @description("List of index-paths that should be term-aggregated and returned in result.")
     aggregatePaths: Option[List[String]],
     @description(
@@ -76,7 +76,9 @@ case class SearchParamsDTO(
     @description("Which types the search request should return")
     resultTypes: Option[List[SearchType]],
     @description("Which node types the search request should return")
-    nodeTypeFilter: Option[List[NodeType]]
+    nodeTypeFilter: Option[List[NodeType]],
+    @description("Only return results that have one of the specified tags.")
+    tags: Option[List[String]]
 )
 
 object SearchParamsDTO {

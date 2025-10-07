@@ -12,7 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.audioapi.model.domain.CoverPhoto
 import no.ndla.common.model.NDLADate
-import no.ndla.search.model.SearchableLanguageValues
+import no.ndla.common.model.api.search.SearchableLanguageValues
 
 case class SearchableSeries(
     id: String,

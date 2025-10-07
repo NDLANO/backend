@@ -12,8 +12,8 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.domain.Responsible
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.concept.Concept
 
 case class SearchableConcept(

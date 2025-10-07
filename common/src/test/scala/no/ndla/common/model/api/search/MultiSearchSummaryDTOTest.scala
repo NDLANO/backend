@@ -43,7 +43,7 @@ class MultiSearchSummaryDTOTest extends UnitTestSuiteBase {
       supportedLanguages = Seq("en"),
       learningResourceType = LearningResourceType.Article,
       status = None,
-      traits = List(SearchTrait.Video),
+      traits = List(ArticleTrait.Video),
       score = 0.99f,
       highlights = List(),
       paths = List(),

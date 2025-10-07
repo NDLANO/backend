@@ -11,9 +11,9 @@ package no.ndla.imageapi.model.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.imageapi.model.domain.{ImageDimensions, ImageMetaInformation}
 import no.ndla.language.model.WithLanguage
-import no.ndla.search.model.{SearchableLanguageList, SearchableLanguageValues}
 
 case class SearchableImage(
     id: Long,

@@ -20,10 +20,8 @@ import no.ndla.common.model.domain.myndla.{
   MyNDLAGroup as DomainMyNDLAGroup,
   MyNDLAUser as DomainMyNDLAUser
 }
-import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.model.api.{FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.{api, domain}
-import no.ndla.network.model.FeideAccessToken
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -31,7 +29,7 @@ import java.util.UUID
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
-class FolderConverterService(using clock: Clock, nodebb: NodeBBClient) extends StrictLogging {
+class FolderConverterService(using clock: Clock) extends StrictLogging {
   def toApiFolder(
       domainFolder: domain.Folder,
       breadcrumbs: List[api.BreadcrumbDTO],
@@ -187,9 +185,7 @@ class FolderConverterService(using clock: Clock, nodebb: NodeBBClient) extends S
       role = domainUserData.userRole,
       organization = domainUserData.organization,
       groups = domainUserData.groups.map(toApiGroup),
-      arenaEnabled = domainUserData.arenaEnabled,
-      arenaAccepted = domainUserData.arenaAccepted,
-      shareNameAccepted = domainUserData.shareNameAccepted
+      arenaEnabled = domainUserData.arenaEnabled
     )
   }
 
@@ -224,50 +220,10 @@ class FolderConverterService(using clock: Clock, nodebb: NodeBBClient) extends S
     )
   }
 
-  private def getArenaAccepted(
-      arenaEnabled: Boolean,
-      domainUserData: DomainMyNDLAUser,
-      updatedUser: UpdatedMyNDLAUserDTO,
-      feideToken: Option[FeideAccessToken]
-  ): Try[Boolean] = {
-    val arenaAccepted = updatedUser.arenaAccepted match {
-      case Some(true) if arenaEnabled => true
-      case Some(false)                => false
-      case _                          => domainUserData.arenaAccepted
-    }
-
-    def getToken: Try[FeideAccessToken] = feideToken.toTry(
-      ValidationException(
-        "arenaAccepted",
-        "Tried to update arenaAccepted without a token connected to the feide user."
-      )
-    )
-
-    (domainUserData.arenaAccepted, arenaAccepted) match {
-      case (true, false) =>
-        logger.info("User went from `arenaAccepted` true to false, calling nodebb to delete user.")
-        for {
-          token  <- getToken
-          userId <- nodebb.getUserId(token)
-          _      <- nodebb.deleteUser(userId, token)
-        } yield arenaAccepted
-      case (false, true) =>
-        logger.info(
-          s"User with ndla user id ${domainUserData.id} went from `arenaAccepted` false to true, calling nodebb."
-        )
-        for {
-          token <- getToken
-          _     <- nodebb.getUserId(token)
-        } yield arenaAccepted
-      case _ => Success(arenaAccepted)
-    }
-  }
-
   def mergeUserData(
       domainUserData: DomainMyNDLAUser,
       updatedUser: UpdatedMyNDLAUserDTO,
-      updaterToken: Option[TokenUser],
-      feideToken: Option[FeideAccessToken]
+      updaterToken: Option[TokenUser]
   ): Try[DomainMyNDLAUser] = permitTry {
     val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
     val arenaEnabled     = {
@@ -276,9 +232,6 @@ class FolderConverterService(using clock: Clock, nodebb: NodeBBClient) extends S
       else
         domainUserData.arenaEnabled
     }
-
-    val arenaAccepted     = getArenaAccepted(arenaEnabled, domainUserData, updatedUser, feideToken).?
-    val shareNameAccepted = updatedUser.shareNameAccepted.getOrElse(domainUserData.shareNameAccepted)
 
     Success(
       DomainMyNDLAUser(
@@ -292,9 +245,7 @@ class FolderConverterService(using clock: Clock, nodebb: NodeBBClient) extends S
         username = domainUserData.username,
         displayName = domainUserData.displayName,
         email = domainUserData.email,
-        arenaEnabled = arenaEnabled,
-        arenaAccepted = arenaAccepted,
-        shareNameAccepted = shareNameAccepted
+        arenaEnabled = arenaEnabled
       )
     )
   }

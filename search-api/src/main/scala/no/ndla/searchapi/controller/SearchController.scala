@@ -13,7 +13,7 @@ import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
-import no.ndla.common.model.api.search.{LearningResourceType, MultiSearchResultDTO, SearchTrait, SearchType}
+import no.ndla.common.model.api.search.{LearningResourceType, MultiSearchResultDTO, ArticleTrait, SearchType}
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient}
@@ -35,7 +35,6 @@ import no.ndla.searchapi.model.api.grep.GrepSearchResultsDTO
 import no.ndla.searchapi.model.api.{GroupSearchResultDTO, SubjectAggregationsDTO}
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
-import no.ndla.searchapi.model.taxonomy.NodeType
 import no.ndla.searchapi.service.search.{
   GrepSearchService,
   MultiDraftSearchService,
@@ -56,6 +55,7 @@ import sttp.tapir.server.ServerEndpoint
 import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.learningpath.LearningPathStatus
+import no.ndla.common.model.taxonomy.NodeType
 
 class SearchController(using
     multiSearchService: MultiSearchService,
@@ -239,13 +239,14 @@ class SearchController(using
       relevance = q.relevanceFilter.values.some,
       languageFilter = q.languageFilter.values.some,
       grepCodes = q.grepCodes.values.some,
-      traits = q.traits.values.flatMap(SearchTrait.valueOf).some,
+      traits = q.traits.values.flatMap(ArticleTrait.valueOf).some,
       aggregatePaths = q.aggregatePaths.values.some,
       embedResource = q.embedResource.values.some,
       embedId = q.embedId,
       filterInactive = q.filterInactive.some,
       resultTypes = q.resultTypes.values.flatMap(SearchType.withNameOption).some,
-      nodeTypeFilter = q.nodeTypeFilter.values.flatMap(NodeType.withNameOption).some
+      nodeTypeFilter = q.nodeTypeFilter.values.flatMap(NodeType.withNameOption).some,
+      tags = q.tags.values.some
     )
   }
 
@@ -371,7 +372,7 @@ class SearchController(using
             draftStatus = stringListParam("draft-status").some,
             users = stringListParam("users").some,
             grepCodes = stringListParam("grep-codes").some,
-            traits = stringListParam("traits").flatMap(SearchTrait.withNameOption).some,
+            traits = stringListParam("traits").flatMap(ArticleTrait.withNameOption).some,
             aggregatePaths = stringListParam("aggregate-paths").some,
             embedResource = stringListParam("embed-resource").some,
             embedId = stringParamOrNone("embed-id"),
@@ -385,7 +386,8 @@ class SearchController(using
             topics = stringListParam("topics").some,
             publishedDateFrom = dateParamOrNone("published-date-from"),
             publishedDateTo = dateParamOrNone("published-date-to"),
-            resultTypes = stringListParam("result-types").flatMap(SearchType.withNameOption).some
+            resultTypes = stringListParam("result-types").flatMap(SearchType.withNameOption).some,
+            tags = stringListParam("tags").some
           )
         )
 
@@ -495,7 +497,8 @@ class SearchController(using
           articleTypes = params.articleTypes.getOrElse(List.empty),
           filterInactive = params.filterInactive.getOrElse(false),
           resultTypes = params.resultTypes,
-          nodeTypeFilter = params.nodeTypeFilter.getOrElse(List.empty)
+          nodeTypeFilter = params.nodeTypeFilter.getOrElse(List.empty),
+          tags = params.tags.getOrElse(List.empty)
         )
 
     }
@@ -544,7 +547,8 @@ class SearchController(using
           priority = params.priority.getOrElse(List.empty),
           publishedFilterFrom = params.publishedDateFrom,
           publishedFilterTo = params.publishedDateTo,
-          resultTypes = params.resultTypes
+          resultTypes = params.resultTypes,
+          tags = params.tags.getOrElse(List.empty)
         )
     }
   }

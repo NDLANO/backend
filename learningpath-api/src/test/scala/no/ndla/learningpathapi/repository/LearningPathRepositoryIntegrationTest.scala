@@ -74,22 +74,23 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(
-    None,
-    None,
-    None,
-    None,
-    0,
-    List(Title("UNIT-TEST", "unknown")),
-    List(Introduction("UNIT-TEST", "unknown")),
-    List(Description("UNIT-TEST", "unknown")),
-    List(EmbedUrl("http://www.vg.no", "unknown", EmbedType.OEmbed)),
-    None,
-    StepType.TEXT,
-    None,
-    today,
-    today,
+    id = None,
+    revision = None,
+    externalId = None,
+    learningPathId = None,
+    seqNo = 0,
+    title = List(Title("UNIT-TEST", "unknown")),
+    introduction = List(Introduction("UNIT-TEST", "unknown")),
+    description = List(Description("UNIT-TEST", "unknown")),
+    embedUrl = List(EmbedUrl("http://www.vg.no", "unknown", EmbedType.OEmbed)),
+    articleId = None,
+    `type` = StepType.TEXT,
+    copyright = None,
+    created = today,
+    lastUpdated = today,
+    owner = "UNIT-TEST",
     showTitle = true,
-    StepStatus.ACTIVE
+    status = StepStatus.ACTIVE
   )
 
   override def beforeAll(): Unit = {

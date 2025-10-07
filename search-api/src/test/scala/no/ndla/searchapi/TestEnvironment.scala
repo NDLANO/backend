@@ -11,9 +11,10 @@ package no.ndla.searchapi
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.configuration.BaseProps
+import no.ndla.common.util.TraitUtil
 import no.ndla.database.{DBUtility, DatabaseProps}
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, FrontpageApiClient, MyNDLAApiClient, RedisClient, TaxonomyApiClient}
 import no.ndla.network.tapir.{SwaggerController, TapirController, TapirHealthController}
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.controller.{InternController, SearchController}
@@ -50,6 +51,7 @@ trait TestEnvironment extends MockitoSugar with StrictLogging {
   implicit lazy val frontpageApiClient: FrontpageApiClient       = mock[FrontpageApiClient]
   implicit lazy val DBUtil: DBUtility                            = mock[DBUtility]
   implicit lazy val searchLanguage: SearchLanguage               = mock[SearchLanguage]
+  implicit lazy val traitUtil: TraitUtil                         = mock[TraitUtil]
 
   implicit lazy val clock: Clock = mock[Clock]
 

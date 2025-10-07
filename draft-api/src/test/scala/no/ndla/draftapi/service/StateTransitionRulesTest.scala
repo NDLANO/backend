@@ -376,7 +376,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = OptLanguageFields.empty
+      disclaimer = OptLanguageFields.empty,
+      traits = List.empty
     )
     val article = common.article.Article(
       id = Some(articleId),
@@ -401,7 +402,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       relatedContent = Seq.empty,
       revisionDate = None,
       slug = None,
-      disclaimer = OptLanguageFields.empty
+      disclaimer = OptLanguageFields.empty,
+      traits = List.empty
     )
     val status = common.Status(END_CONTROL, Set.empty)
 
@@ -501,7 +503,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = OptLanguageFields.empty
+      disclaimer = OptLanguageFields.empty,
+      traits = List.empty
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == PUBLISHED)
@@ -558,7 +561,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = OptLanguageFields.empty
+      disclaimer = OptLanguageFields.empty,
+      traits = List.empty
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == ARCHIVED)
@@ -619,7 +623,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = OptLanguageFields.empty
+      disclaimer = OptLanguageFields.empty,
+      traits = List.empty
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == UNPUBLISHED)
@@ -681,7 +686,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       priority = Priority.Unspecified,
       started = false,
       qualityEvaluation = None,
-      disclaimer = OptLanguageFields.empty
+      disclaimer = OptLanguageFields.empty,
+      traits = List.empty
     )
     val status                            = common.Status(PUBLISHED, Set.empty)
     val transitionToTest: StateTransition = PUBLISHED -> IN_PROGRESS

@@ -11,9 +11,9 @@ package no.ndla.articleapi.service.search
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, SearchResultV2DTO}
 import no.ndla.articleapi.model.search.*
+import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.language.Language.getDefault
-import no.ndla.search.model.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import org.jsoup.Jsoup
 
 class SearchConverterService extends StrictLogging {
@@ -44,7 +44,8 @@ class SearchConverterService extends StrictLogging {
       articleType = ai.articleType.entryName,
       defaultTitle = defaultTitle.map(t => t.title),
       grepCodes = Some(ai.grepCodes),
-      availability = ai.availability.toString
+      availability = ai.availability.toString,
+      traits = ai.traits
     )
   }
 

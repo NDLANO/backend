@@ -35,7 +35,7 @@ import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.model.api.{LearningPathStatusDTO as _, *}
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
-import no.ndla.learningpathapi.model.domain.ImplicitLearningPath.ImplicitLearningPathMethods
+import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}
 import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.validation.LearningPathValidator
@@ -150,7 +150,7 @@ class ConverterService(using
         })
         .getOrElse(Seq.empty)
 
-      val message = lp.message.filter(_ => lp.canEdit(userInfo)).map(asApiMessage)
+      val message = lp.message.filter(_ => lp.canEditPath(userInfo)).map(asApiMessage)
       val owner   = Some(lp.owner).filter(_ => userInfo.isAdmin)
       Success(
         LearningPathV2DTO(
@@ -170,7 +170,7 @@ class ConverterService(using
           lastUpdated = lp.lastUpdated,
           tags = tags,
           copyright = asApiCopyright(lp.copyright),
-          canEdit = lp.canEdit(userInfo),
+          canEdit = lp.canEditPath(userInfo),
           supportedLanguages = supportedLanguages,
           ownerId = owner,
           message = message,
@@ -274,7 +274,7 @@ class ConverterService(using
       revision = Some(updated.revision),
       title = mergeLanguageFields(existing.title, titles),
       description = mergeLanguageFields(existing.description, descriptions),
-      introduction = mergeLanguageFields(existing.introduction, introductions),
+      introduction = introductions,
       coverPhotoId = updateImageId(existing.coverPhotoId, updated.coverPhotoMetaUrl),
       duration =
         if (updated.duration.isDefined)
@@ -296,7 +296,11 @@ class ConverterService(using
     )
   }
 
-  def asDomainLearningStep(newLearningStep: NewLearningStepV2DTO, learningPath: LearningPath): Try[LearningStep] = {
+  def asDomainLearningStep(
+      newLearningStep: NewLearningStepV2DTO,
+      learningPath: LearningPath,
+      owner: String
+  ): Try[LearningStep] = {
     val introduction = newLearningStep.introduction
       .filterNot(_.isEmpty)
       .map(Introduction(_, newLearningStep.language))
@@ -340,6 +344,7 @@ class ConverterService(using
         copyright = copyright,
         created = now,
         lastUpdated = now,
+        owner = owner,
         showTitle = newLearningStep.showTitle
       )
     )
@@ -366,49 +371,43 @@ class ConverterService(using
   }
 
   def deleteLearningStepLanguage(step: LearningStep, language: String): Try[LearningStep] = {
-    step.title.size match {
-      case 1 =>
-        Failure(
-          errors.OperationNotAllowedException(s"Cannot delete last title for step with id ${step.id.getOrElse(-1)}")
-        )
-      case _ =>
-        Success(
-          step.copy(
-            title = step.title.filterNot(_.language == language),
-            introduction = step.introduction.filterNot(_.language == language),
-            description = step.description.filterNot(_.language == language),
-            embedUrl = step.embedUrl.filterNot(_.language == language),
-            lastUpdated = clock.now()
-          )
-        )
+    val withDeleted = step.copy(
+      title = step.title.filterNot(_.language == language),
+      introduction = step.introduction.filterNot(_.language == language),
+      description = step.description.filterNot(_.language == language),
+      embedUrl = step.embedUrl.filterNot(_.language == language),
+      lastUpdated = clock.now()
+    )
+
+    val id = step.id.getOrElse(-1)
+
+    withDeleted.title.size match {
+      case 0 => Failure(errors.OperationNotAllowedException(s"Cannot delete last title for step with id $id"))
+      case _ => Success(withDeleted)
     }
   }
 
   def deleteLearningPathLanguage(learningPath: LearningPath, language: String): Try[LearningPath] = {
-    learningPath.title.size match {
-      case 1 =>
-        Failure(
-          errors.OperationNotAllowedException(
-            s"Cannot delete last language for learning path with id ${learningPath.id.getOrElse(-1)}"
-          )
-        )
-      case _ =>
-        Success(
-          learningPath.copy(
-            title = learningPath.title.filterNot(_.language == language),
-            description = learningPath.description.filterNot(_.language == language),
-            tags = learningPath.tags.filterNot(_.language == language),
-            lastUpdated = clock.now()
-          )
-        )
+    val id          = learningPath.id.getOrElse(-1)
+    val withDeleted = learningPath.copy(
+      title = learningPath.title.filterNot(_.language == language),
+      description = learningPath.description.filterNot(_.language == language),
+      tags = learningPath.tags.filterNot(_.language == language),
+      lastUpdated = clock.now()
+    )
+
+    withDeleted.title.size match {
+      case 0 =>
+        Failure(errors.OperationNotAllowedException(s"Cannot delete last language for learning path with id $id"))
+      case _ => Success(withDeleted)
     }
   }
 
   def mergeLearningSteps(existing: LearningStep, updated: UpdatedLearningStepV2DTO): Try[LearningStep] = {
     val titles = updated.title match {
-      case None        => existing.title
-      case Some(value) =>
-        mergeLanguageFields(existing.title, Seq(common.Title(value, updated.language)))
+      case Missing           => existing.title
+      case Delete            => existing.title.filterNot(_.language == updated.language)
+      case UpdateWith(value) => mergeLanguageFields(existing.title, Seq(common.Title(value, updated.language)))
     }
 
     val introductions = updated.introduction match {
@@ -538,7 +537,8 @@ class ConverterService(using
         learningsteps = steps,
         tags = tags,
         coverPhotoId = coverPhotoId,
-        duration = duration
+        duration = duration,
+        isMyNDLAOwner = user.isMyNDLAUser
       )
     }
   }
@@ -639,7 +639,7 @@ class ConverterService(using
           .getOrElse(api.IntroductionDTO("", DefaultLanguage))
       )
 
-    val message = learningpath.message.filter(_ => learningpath.canEdit(user)).map(_.message)
+    val message = learningpath.message.filter(_ => learningpath.canEditPath(user)).map(_.message)
 
     Success(
       api.LearningPathSummaryV2DTO(
@@ -710,11 +710,12 @@ class ConverterService(using
           license = copyright.map(_.license),
           copyright = copyright,
           metaUrl = createUrlToLearningStep(ls, lp),
-          canEdit = lp.canEdit(user),
+          canEdit = ls.canEditStep(user),
           status = ls.status.entryName,
           created = ls.created,
           lastUpdated = ls.lastUpdated,
-          supportedLanguages = supportedLanguages
+          supportedLanguages = supportedLanguages,
+          ownerId = Some(ls.owner)
         )
       )
     } else {

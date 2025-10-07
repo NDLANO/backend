@@ -164,6 +164,11 @@ export type components = {
             url: string;
         };
         /**
+         * ArticleTrait
+         * @enum {string}
+         */
+        ArticleTrait: "VIDEO" | "H5P" | "AUDIO" | "PODCAST";
+        /**
          * CommentDTO
          * @description Information about a comment attached to an article
          */
@@ -244,7 +249,7 @@ export type components = {
             /** @description A list of codes from GREP API the resources should be filtered by. */
             grepCodes?: string[];
             /** @description A comma separated list of traits the resources should be filtered by. */
-            traits?: components["schemas"]["SearchTrait"][];
+            traits?: components["schemas"]["ArticleTrait"][];
             /** @description List of index-paths that should be term-aggregated and returned in result. */
             aggregatePaths?: string[];
             /** @description Return only results with embed data-resource the specified resource. Can specify multiple with a comma separated list to filter for one of the embed types. */
@@ -273,6 +278,8 @@ export type components = {
             publishedDateTo?: string;
             /** @description Types of hits to appear in the result */
             resultTypes?: components["schemas"]["SearchType"][];
+            /** @description Only return results that have one of the specified tags. */
+            tags?: string[];
         };
         /**
          * ErrorBody
@@ -606,7 +613,7 @@ export type components = {
             learningResourceType: components["schemas"]["LearningResourceType"];
             status?: components["schemas"]["StatusDTO"];
             /** @description Traits for the resource */
-            traits: components["schemas"]["SearchTrait"][];
+            traits: components["schemas"]["ArticleTrait"][];
             /**
              * Format: float
              * @description Relevance score. The higher the score, the better the document matches your search criteria.
@@ -787,7 +794,7 @@ export type components = {
             /** @description A list of codes from GREP API the resources should be filtered by. */
             grepCodes?: string[];
             /** @description A comma separated list of traits the resources should be filtered by. */
-            traits?: components["schemas"]["SearchTrait"][];
+            traits?: components["schemas"]["ArticleTrait"][];
             /** @description List of index-paths that should be term-aggregated and returned in result. */
             aggregatePaths?: string[];
             /** @description Return only results with embed data-resource the specified resource. Can specify multiple with a comma separated list to filter for one of the embed types. */
@@ -800,6 +807,8 @@ export type components = {
             resultTypes?: components["schemas"]["SearchType"][];
             /** @description Which node types the search request should return */
             nodeTypeFilter?: components["schemas"]["NodeType"][];
+            /** @description Only return results that have one of the specified tags. */
+            tags?: string[];
         };
         /**
          * SearchSuggestionDTO
@@ -821,11 +830,6 @@ export type components = {
             /** @description The list of suggest options for the field */
             options: components["schemas"]["SuggestOptionDTO"][];
         };
-        /**
-         * SearchTrait
-         * @enum {string}
-         */
-        SearchTrait: "VIDEO" | "H5P" | "AUDIO" | "PODCAST";
         /**
          * SearchType
          * @enum {string}
@@ -1030,6 +1034,7 @@ export interface operations {
                 traits?: string[];
                 "result-types"?: string[];
                 "node-types"?: string[];
+                tags?: string[];
                 /** @description Whether to include group without resource-types for group-search. Defaults to false. */
                 "missing-group"?: boolean;
             };
@@ -1118,6 +1123,7 @@ export interface operations {
                 traits?: string[];
                 "result-types"?: string[];
                 "node-types"?: string[];
+                tags?: string[];
             };
             header?: {
                 /** @description Header containing FEIDE access token. */

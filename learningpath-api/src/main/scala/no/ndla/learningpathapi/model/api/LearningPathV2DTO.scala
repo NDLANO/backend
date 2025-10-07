@@ -54,7 +54,7 @@ case class LearningPathV2DTO(
     canEdit: Boolean,
     @description("The supported languages for this learningpath")
     supportedLanguages: Seq[String],
-    @description("Visible if administrator or owner of LearningPath")
+    @description("Id identifying the owner of the LearningPath")
     ownerId: Option[String],
     @description("Message set by administrator. Visible if administrator or owner of LearningPath")
     message: Option[MessageDTO],

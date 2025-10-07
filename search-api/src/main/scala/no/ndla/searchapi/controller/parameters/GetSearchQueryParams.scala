@@ -112,7 +112,10 @@ class GetSearchQueryParams(using props: Props) {
       resultTypes: CommaSeparatedList[String],
       @query("node-types")
       @description("A comma separated list of node types the nodes should be filtered by.")
-      nodeTypeFilter: CommaSeparatedList[String]
+      nodeTypeFilter: CommaSeparatedList[String],
+      @query("tags")
+      @description("Only return results that have one of the specified tags.")
+      tags: CommaSeparatedList[String]
   )
 
   object SearchQueryParams {

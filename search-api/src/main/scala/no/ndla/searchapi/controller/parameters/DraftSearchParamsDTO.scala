@@ -11,7 +11,7 @@ package no.ndla.searchapi.controller.parameters
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{SearchTrait, SearchType}
+import no.ndla.common.model.api.search.{ArticleTrait, SearchType}
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.searchapi.model.domain.Sort
 import sttp.tapir.Schema
@@ -72,7 +72,7 @@ case class DraftSearchParamsDTO(
     @description("A list of codes from GREP API the resources should be filtered by.")
     grepCodes: Option[List[String]],
     @description("A comma separated list of traits the resources should be filtered by.")
-    traits: Option[List[SearchTrait]],
+    traits: Option[List[ArticleTrait]],
     @description("List of index-paths that should be term-aggregated and returned in result.")
     aggregatePaths: Option[List[String]],
     @description(
@@ -102,7 +102,9 @@ case class DraftSearchParamsDTO(
     @description("Return only results having published date before this date.")
     publishedDateTo: Option[NDLADate],
     @description("Types of hits to appear in the result")
-    resultTypes: Option[List[SearchType]]
+    resultTypes: Option[List[SearchType]],
+    @description("Only return results that have one of the specified tags.")
+    tags: Option[List[String]]
 )
 
 object DraftSearchParamsDTO {

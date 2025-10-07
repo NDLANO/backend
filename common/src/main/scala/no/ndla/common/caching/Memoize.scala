@@ -1,12 +1,12 @@
 /*
- * Part of NDLA search-api
+ * Part of NDLA common
  * Copyright (C) 2020 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.searchapi.caching
+package no.ndla.common.caching
 
 import com.typesafe.scalalogging.StrictLogging
 

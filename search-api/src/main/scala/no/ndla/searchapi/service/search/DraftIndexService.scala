@@ -17,10 +17,10 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.api.search.SearchType
 import no.ndla.common.model.domain.draft.Draft
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
-import no.ndla.searchapi.integration.{DraftApiClient, GrepApiClient, SearchApiClient, TaxonomyApiClient}
+import no.ndla.searchapi.integration.{DraftApiClient, GrepApiClient, SearchApiClient}
 import no.ndla.searchapi.model.domain.IndexingBundle
 
 import scala.util.Try
@@ -44,14 +44,16 @@ class DraftIndexService(using
       domainModel: Draft,
       indexName: String,
       indexingBundle: IndexingBundle
-  ): Try[IndexRequest] = {
+  ): Try[Option[IndexRequest]] = {
     searchConverterService.asSearchableDraft(domainModel, indexingBundle).map { searchableDraft =>
       val source = CirceUtil.toJsonString(searchableDraft)
-      indexInto(indexName)
-        .doc(source)
-        .id(domainModel.id.get.toString)
-        .versionType(EXTERNAL_GTE)
-        .version(domainModel.revision.map(_.toLong).get)
+      Some(
+        indexInto(indexName)
+          .doc(source)
+          .id(domainModel.id.get.toString)
+          .versionType(EXTERNAL_GTE)
+          .version(domainModel.revision.map(_.toLong).get)
+      )
     }
   }
 

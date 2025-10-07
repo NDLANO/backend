@@ -459,10 +459,12 @@ object TagValidator {
           f.validation.dataType match {
             case BOOLEAN => validateBooleanField(fieldName, partialErrorMessage, key, value, f)
             case EMAIL   => validateEmailField(fieldName, partialErrorMessage, key, value, f)
+            case ENUM    => validateEnumField(fieldName, partialErrorMessage, key, value, f)
             case JSON    => validateJsonField(fieldName, partialErrorMessage, key, value, f)
             case LIST    => validateListField(fieldName, partialErrorMessage, key, value, f)
             case NUMBER  => validateNumberField(fieldName, partialErrorMessage, key, value, f)
             case STRING  => None
+            case TEXT    => None
             case URL     => validateUrlField(fieldName, partialErrorMessage, key, value, f)
           }
         )
@@ -505,6 +507,27 @@ object TagValidator {
           ValidationMessage(
             fieldName,
             s"$partialErrorMessage and $key=$value must be a valid email address."
+          )
+        )
+
+    }
+  }
+
+  private def validateEnumField(
+      fieldName: String,
+      partialErrorMessage: String,
+      key: TagAttribute,
+      value: String,
+      field: TagRules.Field
+  ): Option[ValidationMessage] = {
+    field.validation.allowedValues.find(_ == value) match {
+      case Some(_) => None
+      case None    =>
+        Some(
+          ValidationMessage(
+            fieldName,
+            s"$partialErrorMessage and $key can only contain the following values: ${field.validation.allowedValues
+                .mkString(", ")}"
           )
         )
 

@@ -295,6 +295,16 @@ class MultiDraftSearchService(using
       if (settings.traits.nonEmpty) Some(termsQuery("traits", settings.traits.map(_.entryName)))
       else None
 
+    val tagsFilter =
+      if (settings.tags.nonEmpty) {
+        Some(
+          boolQuery()
+            .should(
+              settings.tags.map(q => termQuery(s"tags.${settings.language}.exact", q))
+            )
+        )
+      } else None
+
     val embedResourceAndIdFilter =
       buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
@@ -323,16 +333,6 @@ class MultiDraftSearchService(using
     val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
     val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
 
-    val onlyPrivateLearningathsForOwnersFilter = Some(
-      boolQuery().should(
-        boolQuery().not(termQuery("status", LearningPathStatus.PRIVATE.toString)),
-        boolQuery().must(
-          termQuery("status", LearningPathStatus.PRIVATE.toString),
-          termQuery("owner", settings.user.id)
-        )
-      )
-    )
-
     List(
       licenseFilter,
       idFilter,
@@ -349,13 +349,13 @@ class MultiDraftSearchService(using
       usersFilter,
       grepCodesFilter,
       traitsFilter,
+      tagsFilter,
       embedResourceAndIdFilter,
       revisionDateFilter,
       publishedDateFilter,
       responsibleIdFilter,
       priorityFilter,
-      learningResourceType,
-      onlyPrivateLearningathsForOwnersFilter
+      learningResourceType
     ).flatten
   }
 

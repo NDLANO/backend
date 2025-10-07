@@ -20,6 +20,7 @@ import no.ndla.common.model.domain.learningpath.{
   StepType,
   Description as LPDescription
 }
+import no.ndla.common.util.TraitUtil
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
@@ -37,6 +38,7 @@ class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with Un
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   override implicit lazy val searchLanguage: SearchLanguage                     = new SearchLanguage
   override implicit lazy val converterService: ConverterService                 = new ConverterService
+  override implicit lazy val traitUtil: TraitUtil                               = new TraitUtil
   override implicit lazy val searchConverterService: SearchConverterService     = new SearchConverterService
   override implicit lazy val learningPathIndexService: LearningPathIndexService = new LearningPathIndexService {
     override val indexShards = 1
@@ -77,7 +79,8 @@ class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with Un
             ),
             status = StepStatus.ACTIVE,
             created = NDLADate.now(),
-            lastUpdated = NDLADate.now()
+            lastUpdated = NDLADate.now(),
+            owner = "yolo"
           )
         )
       ),

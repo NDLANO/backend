@@ -70,7 +70,7 @@ object CirceUtil {
       stringDecoder(c).flatMap { s =>
         withNameEither(s).left.map { notFound =>
           val enumName = this.getClass.getSimpleName.stripSuffix("$")
-          val enumList = s"[${notFound.enumValues.mkString("'", "','", "'")}]"
+          val enumList = s"[${notFound.enumValues.map(_.entryName).mkString("'", "','", "'")}]"
           val message  = s"'${notFound.notFoundName}' is not a member of enum '$enumName'. Must be one of $enumList"
           DecodingFailure(message, c.history)
         }

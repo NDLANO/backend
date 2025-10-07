@@ -81,7 +81,8 @@ class TestData {
     relatedContent = Seq.empty,
     revisionDate = None,
     slug = None,
-    disclaimer = None
+    disclaimer = None,
+    traits = List.empty
   )
 
   val apiArticleV2: api.ArticleV2DTO = api.ArticleV2DTO(
@@ -122,7 +123,8 @@ class TestData {
     relatedContent = Seq.empty,
     revisionDate = None,
     slug = None,
-    disclaimer = None
+    disclaimer = None,
+    traits = List.empty
   )
 
   val sampleArticleWithPublicDomain: Article = Article(
@@ -135,7 +137,7 @@ class TestData {
     Seq(),
     Seq(
       VisualElement(
-        s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-size=\"large\" data-align=\"center\" data-alt=\"alt\"></$EmbedTagName>",
+        s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-size=\"full\" data-align=\"center\" data-alt=\"alt\"></$EmbedTagName>",
         "en"
       )
     ),
@@ -153,7 +155,8 @@ class TestData {
     relatedContent = Seq.empty,
     revisionDate = Some(NDLADate.now().withNano(0)),
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleDomainArticle: Article = Article(
@@ -179,7 +182,8 @@ class TestData {
     relatedContent = Seq.empty,
     revisionDate = None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -205,7 +209,8 @@ class TestData {
     relatedContent = Seq.empty,
     revisionDate = None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -243,7 +248,8 @@ class TestData {
     relatedContent = Seq.empty,
     revisionDate = None,
     slug = None,
-    disclaimer = OptLanguageFields.empty
+    disclaimer = OptLanguageFields.empty,
+    traits = List.empty
   )
 
   val apiArticleWithHtmlFaultV2: api.ArticleV2DTO = api.ArticleV2DTO(
@@ -288,14 +294,15 @@ class TestData {
     relatedContent = Seq.empty,
     revisionDate = None,
     slug = None,
-    disclaimer = None
+    disclaimer = None,
+    traits = List.empty
   )
 
   val (nodeId, nodeId2)  = ("1234", "4321")
   val sampleTitle: Title = Title("title", "en")
 
   val visualElement: VisualElement = VisualElement(
-    s"""<$EmbedTagName  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size=""></$EmbedTagName>""",
+    s"""<$EmbedTagName  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="full"></$EmbedTagName>""",
     "nb"
   )
 
@@ -323,7 +330,8 @@ class TestData {
       relatedContent = Seq.empty,
       revisionDate = None,
       slug = None,
-      disclaimer = OptLanguageFields.empty
+      disclaimer = OptLanguageFields.empty,
+      traits = List.empty
     )
   }
 

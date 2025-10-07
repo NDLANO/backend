@@ -99,9 +99,7 @@ object TestData {
     username = "",
     displayName = "",
     email = "",
-    arenaEnabled = false,
-    arenaAccepted = false,
-    shareNameAccepted = false
+    arenaEnabled = false
   )
 
 }

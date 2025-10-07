@@ -52,16 +52,12 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
     val updatedUserData =
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("r", "e")),
-        arenaEnabled = None,
-        arenaAccepted = None,
-        shareNameAccepted = None
+        arenaEnabled = None
       )
     val userAfterMerge = MyNDLAUser(
       id = 42,
@@ -81,9 +77,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
     val expected = MyNDLAUserDTO(
       id = 42,
@@ -95,9 +89,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       role = UserRole.STUDENT,
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
 
     doReturn(Success(()))
@@ -119,9 +111,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     val updatedUserData =
       UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(Seq("r", "e")),
-        arenaEnabled = None,
-        arenaAccepted = None,
-        shareNameAccepted = None
+        arenaEnabled = None
       )
 
     doReturn(Success(()))
@@ -176,9 +166,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -190,9 +178,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       role = UserRole.STUDENT,
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
@@ -248,9 +234,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -262,9 +246,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       role = UserRole.STUDENT,
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
 
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
@@ -316,9 +298,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",
@@ -337,9 +317,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       role = UserRole.STUDENT,
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-      arenaEnabled = false,
-      arenaAccepted = true,
-      shareNameAccepted = false
+      arenaEnabled = false
     )
 
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))

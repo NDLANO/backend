@@ -35,9 +35,7 @@ case class MyNDLAUserDTO(
     @description("User role") role: UserRole,
     @description("User root organization") organization: String,
     @description("User groups") groups: Seq[MyNDLAGroupDTO],
-    @description("Whether arena is explicitly enabled for the user") arenaEnabled: Boolean,
-    @description("Whether the user has accepted the use of arena") arenaAccepted: Boolean,
-    @description("Whether the user has accepted the sharing of their name") shareNameAccepted: Boolean
+    @description("Whether arena is explicitly enabled for the user") arenaEnabled: Boolean
 )
 
 object MyNDLAUserDTO {
@@ -49,11 +47,7 @@ case class UpdatedMyNDLAUserDTO(
     @description("Favorite subjects of the user")
     favoriteSubjects: Option[Seq[String]],
     @description("Whether arena should explicitly be enabled for the user")
-    arenaEnabled: Option[Boolean],
-    @description("Whether the user has accepted the use of arena")
-    arenaAccepted: Option[Boolean],
-    @description("Whether the user has accepted the sharing of their name")
-    shareNameAccepted: Option[Boolean]
+    arenaEnabled: Option[Boolean]
 )
 
 object UpdatedMyNDLAUserDTO {

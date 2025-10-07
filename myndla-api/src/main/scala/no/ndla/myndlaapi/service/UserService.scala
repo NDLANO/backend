@@ -92,9 +92,7 @@ class UserService(using
       newFavorites     = (existingUser.favoriteSubjects ++ userData.favoriteSubjects).distinct
       updatedFeideUser = UpdatedMyNDLAUserDTO(
         favoriteSubjects = Some(newFavorites),
-        arenaEnabled = None,
-        arenaAccepted = None,
-        shareNameAccepted = None
+        arenaEnabled = None
       )
       updated <- updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(using session)
     } yield updated
@@ -107,13 +105,8 @@ class UserService(using
     for {
       _ <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
       existingUserData <- getMyNDLAUserOrFail(feideId)
-      combined         <- folderConverterService.mergeUserData(
-        existingUserData,
-        updatedUser,
-        None,
-        feideAccessToken
-      )
-      updated <- userRepository.updateUser(feideId, combined)
+      combined         <- folderConverterService.mergeUserData(existingUserData, updatedUser, None)
+      updated          <- userRepository.updateUser(feideId, combined)
       api = folderConverterService.toApiUserData(updated)
     } yield api
   }
@@ -159,9 +152,7 @@ class UserService(using
         username = feideExtendedUserData.username,
         displayName = feideExtendedUserData.displayName,
         email = feideExtendedUserData.email,
-        arenaEnabled = userRole == UserRole.EMPLOYEE,
-        arenaAccepted = false,
-        shareNameAccepted = true
+        arenaEnabled = userRole == UserRole.EMPLOYEE
       )
       inserted <- userRepository.insertUser(feideId, newUser)(using session)
     } yield inserted
@@ -189,9 +180,7 @@ class UserService(using
       username = feideUser.username,
       displayName = feideUser.displayName,
       email = feideUser.email,
-      arenaEnabled = userData.arenaEnabled || userRole == UserRole.EMPLOYEE,
-      arenaAccepted = userData.arenaAccepted,
-      shareNameAccepted = userData.shareNameAccepted
+      arenaEnabled = userData.arenaEnabled || userRole == UserRole.EMPLOYEE
     )
     userRepository.updateUser(feideId, updatedMyNDLAUser)(using session)
   }
