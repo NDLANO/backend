@@ -15,7 +15,7 @@ import no.ndla.common.model.api.myndla as api
 import no.ndla.network.NdlaClient
 import sttp.client3.quick.*
 
-import scala.util.{Success, Try}
+import scala.util.Try
 
 class MyNDLAApiClient(using props: BaseProps, ndlaClient: NdlaClient) {
   private val statsEndpoint = s"http://${props.MyNDLAApiHost}/myndla-api/v1/stats"
@@ -24,10 +24,6 @@ class MyNDLAApiClient(using props: BaseProps, ndlaClient: NdlaClient) {
   def getUserWithFeideToken(feideToken: String): Try[api.MyNDLAUserDTO] = {
     val req = quickRequest.get(userEndpoint)
     ndlaClient.fetchWithForwardedFeideAuth[api.MyNDLAUserDTO](req, Some(feideToken))
-  }
-
-  def isWriteRestricted: Try[Boolean] = {
-    Success(false)
   }
 
   def getStatsFor(id: String, resourceTypes: List[ResourceType]): Try[List[SingleResourceStatsDTO]] = {

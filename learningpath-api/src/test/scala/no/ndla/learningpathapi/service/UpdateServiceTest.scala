@@ -38,8 +38,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   override implicit lazy val converterService: ConverterService = new ConverterService
   var service: UpdateService                                    = scala.compiletime.uninitialized
 
-  val PUBLISHED_ID: Long = 1
-  val PRIVATE_ID: Long   = 2
+  val PUBLISHED_ID: Long = 1L
+  val PRIVATE_ID: Long   = 2L
   val now: NDLADate      = NDLADate.now()
 
   val PUBLISHED_OWNER: TokenUser = TokenUser("eier1", Set(LEARNINGPATH_API_WRITE, LEARNINGPATH_API_PUBLISH), None)
