@@ -327,20 +327,13 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
   //   res.head.field should equal("revisionMeta")
   // }
 
-  test("That validate returns error when MyNDLA path supports multiple languages") {
+  test("That validate returns ok MyNDLA path supports multiple languages") {
     val learningPath =
       ValidLearningPath.copy(isMyNDLAOwner = true, title = ValidLearningPath.title :+ Title("Tittel", "nn"))
-    validator.validateLearningPath(learningPath, true) should be(
-      Seq(
-        ValidationMessage(
-          "supportedLanguages",
-          "A learning path created in MyNDLA must have exactly one supported language."
-        )
-      )
-    )
+    validator.validateLearningPath(learningPath, true) should be(Seq.empty)
   }
 
-  test("That validate reurns error when MyNDLA path is updated with wrong language") {
+  test("That validate returns error when MyNDLA path is updated with wrong language") {
     val updated  = UPDATED_PRIVATE_LEARNINGPATHV2.copy(title = Some("Tittel"), language = "nn")
     val existing = ValidLearningPath.copy(isMyNDLAOwner = true)
     validator.validateLearningPathUpdate(updated, existing) should be(
