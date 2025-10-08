@@ -30,9 +30,6 @@ class LearningPathValidator(
   private val MY_NDLA_LANGUAGE_MISMATCH =
     "A learning path created in MyNDLA must have exactly one supported language."
 
-  private val MY_NDLA_INVALID_LANGUAGES =
-    "A learning path created in MyNDLA must have exactly one supported language."
-
   private val MISSING_DESCRIPTION = "At least one description is required."
 
   private val INVALID_COVER_PHOTO =
@@ -64,8 +61,7 @@ class LearningPathValidator(
       newLearningPath: LearningPath,
       allowUnknownLanguage: Boolean
   ): Seq[ValidationMessage] = {
-    validateSupportedLanguages(newLearningPath) ++
-      titleValidator.validate(newLearningPath.title, allowUnknownLanguage) ++
+    titleValidator.validate(newLearningPath.title, allowUnknownLanguage) ++
       titleValidator.validate(newLearningPath.title, allowUnknownLanguage) ++
       validateIntroduction(newLearningPath.introduction, allowUnknownLanguage) ++ validateDescription(
         newLearningPath.description,
@@ -87,13 +83,6 @@ class LearningPathValidator(
         updatedLearningPath.language,
         allowUnknownLanguage = true
       )
-
-  private def validateSupportedLanguages(learningPath: LearningPath) =
-    (learningPath.supportedLanguages.size, learningPath.isMyNDLAOwner) match {
-      case (1, true)  => List()
-      case (_, true)  => List(ValidationMessage("supportedLanguages", MY_NDLA_INVALID_LANGUAGES))
-      case (_, false) => List()
-    }
 
   def validateIntroduction(
       introductions: Seq[Introduction],
