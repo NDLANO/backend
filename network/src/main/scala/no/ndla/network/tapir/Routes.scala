@@ -8,15 +8,17 @@
 
 package no.ndla.network.tapir
 
-import com.sun.net.httpserver.{HttpExchange, HttpServer}
+import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
 import io.prometheus.metrics.model.registry.PrometheusRegistry
 import no.ndla.common.RequestLogger
-import no.ndla.common.configuration.BaseProps
 import no.ndla.network.TaxonomyData
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.*
-import org.log4s.{Logger, MDC, getLogger}
+import org.playframework.netty.http.StreamedHttpRequest
+import org.slf4j.MDC
+import ox.channels.{Channel, ChannelClosed}
+import ox.{Chunk, never, supervised, useInScope}
 import sttp.model.HeaderNames.SensitiveHeaders
 import sttp.model.{HeaderNames, StatusCode}
 import sttp.monad.MonadError
@@ -27,30 +29,25 @@ import sttp.tapir.server.interceptor.RequestInterceptor.RequestResultEffectTrans
 import sttp.tapir.server.interceptor.decodefailure.DefaultDecodeFailureHandler
 import sttp.tapir.server.interceptor.exception.{ExceptionContext, ExceptionHandler}
 import sttp.tapir.server.interceptor.reject.{RejectContext, RejectHandler}
-import sttp.tapir.server.interceptor.{RequestInterceptor, RequestResult}
-import sttp.tapir.server.jdkhttp.{JdkHttpServer, JdkHttpServerOptions}
+import sttp.tapir.server.interceptor.{CustomiseInterceptors, RequestInterceptor, RequestResult}
 import sttp.tapir.server.metrics.MetricLabels
 import sttp.tapir.server.metrics.prometheus.PrometheusMetrics
 import sttp.tapir.server.model.ValuedEndpointOutput
+import sttp.tapir.server.netty.NettyConfig
+import sttp.tapir.server.netty.sync.{NettySyncServer, NettySyncServerBinding, NettySyncServerOptions}
 import sttp.tapir.{AttributeKey, EndpointInput, statusCode}
 
-import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
-import java.nio.charset.StandardCharsets.UTF_8
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{ExecutorService, Executors}
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 class Routes(using
-    props: BaseProps,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
     services: List[TapirController]
-) {
-  val activeRequests: AtomicInteger = new AtomicInteger(0)
-  val logger: Logger                = getLogger
+) extends StrictLogging {
   private def failureResponse(error: String, exception: Option[Throwable]): ValuedEndpointOutput[?] = {
     val logMsg = s"Failure handler got: $error"
     exception match {
-      case Some(ex) => logger.error(ex)(logMsg)
+      case Some(ex) => logger.error(logMsg, ex)
       case None     => logger.error(logMsg)
     }
 
@@ -81,7 +78,7 @@ class Routes(using
     case _                               => false
   }
 
-  case class NdlaRejectHandler[A[_]]() extends RejectHandler[A] {
+  private case class NdlaRejectHandler[A[_]]() extends RejectHandler[A] {
 
     override def apply(ctx: RejectContext)(implicit monad: MonadError[A]): A[Option[ValuedEndpointOutput[?]]] = {
       val statusCodeAndBody = if (hasMethodMismatch(ctx.failure)) {
@@ -95,7 +92,7 @@ class Routes(using
     }
   }
 
-  object JDKMiddleware {
+  private object TapirMiddleware {
     private def shouldLogRequest(req: ServerRequest): Boolean = {
       if (req.uri.path.size == 1) {
         if (req.uri.path.head == "metrics") return false
@@ -105,8 +102,8 @@ class Routes(using
     }
 
     private def setBeforeMDC(info: RequestInfo, req: ServerRequest): Unit = {
-      MDC.put("requestPath", RequestLogger.pathWithQueryParams(req)): Unit
-      MDC.put("method", req.method.toString()): Unit
+      MDC.put("requestPath", RequestLogger.pathWithQueryParams(req))
+      MDC.put("method", req.method.toString())
 
       if (info.taxonomyVersion != TaxonomyData.defaultVersion) {
         MDC.put("taxonomyVersion", info.taxonomyVersion): Unit
@@ -115,9 +112,10 @@ class Routes(using
 
     private val beforeTime      = new AttributeKey[Long]("beforeTime")
     private val activityTracked = new AttributeKey[Boolean]("activityTracked")
-    private val requestBody     = new AttributeKey[Array[Byte]]("requestBody")
+    private val requestBody     = new AttributeKey[Channel[Chunk[Byte]]]("requestBody")
 
-    def before(req: ServerRequest): ServerRequest = {
+    private val requestBodyLoggingCutoff     = 1 * 1024 * 1024 // 1 MB
+    def before: RequestInterceptor[Identity] = RequestInterceptor.transformServerRequest { req =>
       val requestInfo = RequestInfo.fromRequest(req)
       requestInfo.setThreadContextRequestInfo()
       setBeforeMDC(requestInfo, req)
@@ -125,36 +123,19 @@ class Routes(using
 
       val shouldLog = shouldLogRequest(req)
       if (shouldLog) {
-        activeRequests.incrementAndGet()
-        val s = RequestLogger.beforeRequestLogString(req)
-        logger.info(s)
+        logger.info(RequestLogger.beforeRequestLogString(req))
       }
 
-      bufferRequestBody(req)
-        .attribute(beforeTime, startTime)
-        .attribute(activityTracked, shouldLog)
-    }
+      val bodyLoggingRequest = req.underlying match {
+        case sr: StreamedHttpRequest =>
+          val requestBodyChannel = Channel.unlimited[Chunk[Byte]]
+          val newUnderlying      = NettyStreamedRequestWrapper(sr, requestBodyChannel, requestBodyLoggingCutoff)
+          req.withUnderlying(newUnderlying).attribute(requestBody, requestBodyChannel)
 
-    private def combineBodyStream(data: Array[Byte], is: InputStream): InputStream = {
-      if (is.available() == 0) new ByteArrayInputStream(data)
-      else {
-        logger.debug("Request body larger than logging cutoff of 1 MB")
-        new SequenceInputStream(new ByteArrayInputStream(data), is)
+        case _ => req
       }
-    }
 
-    private val requestBodyLoggingCutoff                                 = 1 * 1024 * 1024 // 1 MB
-    private def bufferRequestBody(request: ServerRequest): ServerRequest = {
-      val exchange = request.underlying.asInstanceOf[HttpExchange]
-      val is       = exchange.getRequestBody
-      if (is.available() == 0) {
-        request
-      } else {
-        val firstMegaByte       = is.readNBytes(requestBodyLoggingCutoff)
-        val combinedInputStream = combineBodyStream(firstMegaByte, is)
-        exchange.setStreams(combinedInputStream, exchange.getResponseBody)
-        request.attribute(requestBody, firstMegaByte)
-      }
+      bodyLoggingRequest.attribute(beforeTime, startTime).attribute(activityTracked, shouldLog)
     }
 
     class after extends RequestResultEffectTransform[Identity] {
@@ -166,10 +147,14 @@ class Routes(using
         }
 
       private def addRequestBodyMDC(req: ServerRequest): Unit =
-        req.attribute(requestBody).foreach { body =>
-          if (body.nonEmpty) {
-            val requestBodyStr = new String(body, UTF_8)
-            MDC.put("requestBody", requestBodyStr): Unit
+        req.attribute(requestBody).foreach { bodyChannel =>
+          val sb = StringBuilder()
+          bodyChannel.doneOrClosed(): Unit
+          bodyChannel.foreachOrError(chunk => sb.append(chunk.asStringUtf8)) match {
+            case ChannelClosed.Error(t) => logger.warn("Error reading request body for logging", t)
+            case ()                     =>
+              val body = sb.result()
+              MDC.put("requestBody", body)
           }
         }
 
@@ -190,7 +175,7 @@ class Routes(using
             addHeaderMDC(req)
           }
 
-          MDC.put("reqLatencyMs", s"$latency"): Unit
+          MDC.put("reqLatencyMs", s"$latency")
 
           val s = RequestLogger.afterRequestLogString(
             method = req.method.toString(),
@@ -202,14 +187,51 @@ class Routes(using
 
           if (code >= 500) logger.error(s)
           else logger.info(s)
-
-          activeRequests.decrementAndGet(): Unit
         }
 
         RequestInfo.clear()
         MDC.clear()
         result
       }
+    }
+  }
+
+  def startServerAndWait(name: String, port: Int, gracefulShutdownTimeout: FiniteDuration = 30.seconds)(
+      onStartup: NettySyncServerBinding => Unit
+  ): Unit = {
+    val prometheusMetrics =
+      PrometheusMetrics.default[Identity](namespace = "tapir", registry = registry, labels = metricLabels)
+
+    val options = NettySyncServerOptions.customiseInterceptors
+      .defaultHandlers(err => failureResponse(err, None))
+      .rejectHandler(NdlaRejectHandler[Identity]())
+      .exceptionHandler(NdlaExceptionHandler[Identity]())
+      .decodeFailureHandler(decodeFailureHandler[Identity])
+      .serverLog(None)
+      .metricsInterceptor(prometheusMetrics.metricsInterceptor())
+      .prependInterceptor(TapirMiddleware.before)
+      .prependInterceptor(RequestInterceptor.transformResultEffect(new TapirMiddleware.after))
+      .options
+
+    val config = NettyConfig.default
+      .withGracefulShutdownTimeout(gracefulShutdownTimeout)
+      .connectionTimeout(30.seconds) // Use same connection timeout as Netty default
+      .requestTimeout(55.minutes)    // Allow for long-running requests (e.g., internal indexing endpoints)
+      .idleTimeout(60.minutes)       // --||--
+    val endpoints = services.flatMap(_.builtEndpoints)
+
+    logger.info(s"Starting $name on port $port")
+
+    supervised {
+      val serverBinding = useInScope(
+        NettySyncServer(options, config)
+          .addEndpoints(endpoints)
+          .addEndpoint(prometheusMetrics.metricsEndpoint)
+          .port(port)
+          .start()
+      )(_.stop())
+      onStartup(serverBinding)
+      never
     }
   }
 
@@ -226,39 +248,4 @@ class Routes(using
       }
     )
   )
-
-  def startJdkServerAsync(name: String, port: Int)(warmupFunc: => Unit): HttpServer = {
-    val prometheusMetrics = PrometheusMetrics
-      .default[Identity](namespace = "tapir", registry = registry, labels = metricLabels)
-
-    // val executor: ExecutorService = Executors.newVirtualThreadPerTaskExecutor()
-    val executor: ExecutorService = Executors.newWorkStealingPool(props.TAPIR_THREADS)
-
-    val options: JdkHttpServerOptions = JdkHttpServerOptions.customiseInterceptors
-      .defaultHandlers(err => failureResponse(err, None))
-      .rejectHandler(NdlaRejectHandler[Identity]())
-      .exceptionHandler(NdlaExceptionHandler[Identity]())
-      .decodeFailureHandler(decodeFailureHandler[Identity])
-      .serverLog(None)
-      .metricsInterceptor(prometheusMetrics.metricsInterceptor())
-      .prependInterceptor(RequestInterceptor.transformServerRequest[Identity](JDKMiddleware.before))
-      .prependInterceptor(RequestInterceptor.transformResultEffect(new JDKMiddleware.after))
-      .options
-
-    val endpoints = services.flatMap(_.builtEndpoints)
-
-    logger.info(s"Starting $name on port $port")
-
-    val server = JdkHttpServer()
-      .options(options)
-      .executor(executor)
-      .addEndpoints(endpoints)
-      .addEndpoint(prometheusMetrics.metricsEndpoint)
-      .port(port)
-      .start()
-
-    warmupFunc
-
-    server
-  }
 }

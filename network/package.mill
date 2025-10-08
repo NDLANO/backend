@@ -11,7 +11,7 @@ object `package` extends BaseModule {
     SharedDependencies.sttp,
     SharedDependencies.jedis,
     SharedDependencies.jwtCirce
-  ) ++ SharedDependencies.tapirHttp4sCirce
+  ) ++ SharedDependencies.tapirCirce
   override def moduleDeps = Seq(build.common)
   object test extends TestBase
 }

@@ -9,7 +9,7 @@ object `package` extends BaseModule, DockerComponent {
   def mvnDeps: T[Seq[Dep]] =
     SharedDependencies.logging ++
       SharedDependencies.enumeratum ++
-      SharedDependencies.tapirHttp4sCirce ++
+      SharedDependencies.tapirCirce ++
       SharedDependencies.database ++
       Seq(
         SharedDependencies.sttp,

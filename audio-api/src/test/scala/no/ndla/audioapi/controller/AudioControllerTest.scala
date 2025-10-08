@@ -19,10 +19,9 @@ import no.ndla.common.model.api.{CopyrightDTO, LicenseDTO}
 import no.ndla.mapping.License
 import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
-import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.{doNothing, reset, times, verify, when, withSettings}
-import org.mockito.quality.Strictness
+import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.tagobjects.Retryable
 import org.scalatest.{Canceled, Failed, Outcome, Retries}
 import sttp.client3.quick.*
@@ -149,12 +148,8 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
   }
 
   test("That POST / returns 500 if an unexpected error occurs") {
-    val runtimeMock = mock[RuntimeException](withSettings.strictness(Strictness.LENIENT))
-    doNothing().when(runtimeMock).printStackTrace()
-    when(runtimeMock.getMessage).thenReturn("Something (not really) wrong (this is a test hehe)")
-
-    when(writeService.storeNewAudio(any[NewAudioMetaInformationDTO], any, any))
-      .thenReturn(Failure(runtimeMock))
+    val exception = new RuntimeException("Something (not really) wrong (this is a test hehe)")
+    when(writeService.storeNewAudio(any[NewAudioMetaInformationDTO], any, any)).thenReturn(Failure(exception))
 
     val file     = multipart("file", fileBody)
     val metadata = multipart("metadata", sampleNewAudioMeta)
