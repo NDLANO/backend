@@ -227,6 +227,7 @@ class Routes(using
         NettySyncServer(options, config)
           .addEndpoints(endpoints)
           .addEndpoint(prometheusMetrics.metricsEndpoint)
+          .host("0.0.0.0")
           .port(port)
           .start()
       )(_.stop())
