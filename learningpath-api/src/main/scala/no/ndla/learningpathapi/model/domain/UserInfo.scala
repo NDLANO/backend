@@ -25,12 +25,12 @@ object UserInfo {
     }
 
   implicit class LearningpathTokenUser(self: TokenUser) {
-    def isAdmin: Boolean                        = self.permissions.contains(LEARNINGPATH_API_ADMIN)
-    def isPublisher: Boolean                    = self.permissions.contains(LEARNINGPATH_API_PUBLISH)
-    def isWriter: Boolean                       = self.permissions.contains(LEARNINGPATH_API_WRITE)
-    def canWriteDuringWriteRestriction: Boolean = isAdmin || isPublisher || isWriter
-    def canPublish: Boolean                     = isAdmin || isPublisher
-    def isNdla: Boolean                         = self.permissions.nonEmpty
+    def isAdmin: Boolean     = self.permissions.contains(LEARNINGPATH_API_ADMIN)
+    def isPublisher: Boolean = self.permissions.contains(LEARNINGPATH_API_PUBLISH)
+    def isWriter: Boolean    = self.permissions.contains(LEARNINGPATH_API_WRITE)
+    def canWrite: Boolean    = isAdmin || isPublisher || isWriter
+    def canPublish: Boolean  = isAdmin || isPublisher
+    def isNdla: Boolean      = self.permissions.nonEmpty
   }
 
   implicit class LearningpathCombinedUser(self: CombinedUser) {
@@ -40,12 +40,12 @@ object UserInfo {
       tokenId.orElse(feideId)
     }
 
-    def permissions: Set[Permission]            = self.tokenUser.map(_.permissions).getOrElse(Set.empty)
-    def isAdmin: Boolean                        = self.permissions.contains(LEARNINGPATH_API_ADMIN)
-    def isPublisher: Boolean                    = self.permissions.contains(LEARNINGPATH_API_PUBLISH)
-    def isWriter: Boolean                       = self.permissions.contains(LEARNINGPATH_API_WRITE)
-    def canWriteDuringWriteRestriction: Boolean = isAdmin || isPublisher || isWriter
-    def canPublish: Boolean                     = isAdmin || isPublisher
-    def isNdla: Boolean                         = self.permissions.nonEmpty
+    def permissions: Set[Permission] = self.tokenUser.map(_.permissions).getOrElse(Set.empty)
+    def isAdmin: Boolean             = self.permissions.contains(LEARNINGPATH_API_ADMIN)
+    def isPublisher: Boolean         = self.permissions.contains(LEARNINGPATH_API_PUBLISH)
+    def isWriter: Boolean            = self.permissions.contains(LEARNINGPATH_API_WRITE)
+    def canWrite: Boolean            = self.isEmployee || isAdmin || isPublisher || isWriter
+    def canPublish: Boolean          = isAdmin || isPublisher
+    def isNdla: Boolean              = self.permissions.nonEmpty
   }
 }

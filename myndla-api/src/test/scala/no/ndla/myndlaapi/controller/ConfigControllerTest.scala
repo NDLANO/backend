@@ -37,7 +37,7 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment with Tapir
       .thenReturn(
         Success(
           ConfigMetaDTO(
-            ConfigKey.LearningpathWriteRestricted.entryName,
+            ConfigKey.MyNDLAWriteRestricted.entryName,
             Left(true),
             NDLADate.now(),
             "someoneCool"
@@ -47,7 +47,7 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment with Tapir
 
     val response1 = simpleHttpClient.send(
       quickRequest
-        .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.LearningpathWriteRestricted.entryName}")
+        .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.MyNDLAWriteRestricted.entryName}")
         .body("{\"value\": true}")
         .header("Authorization", s"Bearer $adminScopeClientToken")
     )
@@ -55,7 +55,7 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment with Tapir
 
     val response2 = simpleHttpClient.send(
       quickRequest
-        .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.LearningpathWriteRestricted.entryName}")
+        .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.MyNDLAWriteRestricted.entryName}")
         .body("{\"value\": true}")
         .header("Authorization", s"Bearer $adminAndWriteScopeClientToken")
     )
