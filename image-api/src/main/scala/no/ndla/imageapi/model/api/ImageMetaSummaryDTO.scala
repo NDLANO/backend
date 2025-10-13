@@ -30,7 +30,8 @@ case class ImageMetaSummaryDTO(
                                 @description("The time and date of last update") lastUpdated: NDLADate,
                                 @description("The size of the image in bytes") fileSize: Long,
                                 @description("The mimetype of the image") contentType: String,
-                                @description("Dimensions of the image") imageDimensions: Option[ImageDimensionsDTO]
+                                @description("Dimensions of the image") imageDimensions: Option[ImageDimensionsDTO],
+                                @description("Whether the image is inactive or not") inactive: Boolean
 )
 
 object ImageMetaSummaryDTO {

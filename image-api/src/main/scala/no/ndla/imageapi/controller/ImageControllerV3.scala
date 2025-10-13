@@ -85,7 +85,8 @@ class ImageControllerV3(using
       shouldScroll: Boolean,
       modelReleasedStatus: Seq[ModelReleasedStatus.Value],
       user: Option[TokenUser],
-      userFilter: List[String]
+      userFilter: List[String],
+      inactive: Option[Boolean]
   ) = {
     val settings = query match {
       case Some(searchString) =>
@@ -101,7 +102,8 @@ class ImageControllerV3(using
           podcastFriendly = podcastFriendly,
           shouldScroll = shouldScroll,
           modelReleased = modelReleasedStatus,
-          userFilter = userFilter
+          userFilter = userFilter,
+          inactive = inactive
         )
       case None =>
         SearchSettings(
@@ -116,7 +118,8 @@ class ImageControllerV3(using
           podcastFriendly = podcastFriendly,
           shouldScroll = shouldScroll,
           modelReleased = modelReleasedStatus,
-          userFilter = userFilter
+          userFilter = userFilter,
+          inactive = inactive
         )
     }
     for {
@@ -146,6 +149,7 @@ class ImageControllerV3(using
     .in(scrollId)
     .in(modelReleased)
     .in(userFilter)
+    .in(inactive)
     .errorOut(errorOutputsFor(400))
     .out(jsonBody[SearchResultV3DTO])
     .out(EndpointOutput.derived[DynamicHeaders])
@@ -165,7 +169,8 @@ class ImageControllerV3(using
               podcastFriendly,
               scrollId,
               modelReleased,
-              userFilter
+              userFilter,
+              inactive
             ) =>
           scrollSearchOr(scrollId, language.code, user) {
             val sort                = Sort.valueOf(sortStr)
@@ -186,7 +191,8 @@ class ImageControllerV3(using
               shouldScroll,
               modelReleasedStatus,
               user,
-              userFilter.values
+              userFilter.values,
+              inactive
             )
           }.handleErrorsOrOk
       }
@@ -220,6 +226,7 @@ class ImageControllerV3(using
           val modelReleasedStatus =
             searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
           val userFilter = searchParams.users.getOrElse(List.empty)
+          val inactive   = searchParams.inactive
 
           searchV3(
             minimumSize,
@@ -234,7 +241,8 @@ class ImageControllerV3(using
             shouldScroll,
             modelReleasedStatus,
             user,
-            userFilter
+            userFilter,
+            inactive
           )
         }.handleErrorsOrOk
       }

@@ -153,6 +153,11 @@ class ImageSearchService(using
         (None, "*")
       }
 
+    val inactiveFilter = settings.inactive match {
+      case Some(true) => None
+      case _          => Some(boolQuery().should(termQuery("inactive", false.toString)))
+    }
+
     val modelReleasedFilter = Option.when(settings.modelReleased.nonEmpty)(
       boolQuery().should(settings.modelReleased.map(mrs => termQuery("modelReleased", mrs.toString)))
     )
@@ -166,7 +171,8 @@ class ImageSearchService(using
       case nonEmptyList => Some(termsQuery("users", nonEmptyList))
     }
 
-    val filters        = List(languageFilter, licenseFilter, sizeFilter, modelReleasedFilter, podcastFilter, userFilter)
+    val filters =
+      List(languageFilter, licenseFilter, sizeFilter, modelReleasedFilter, inactiveFilter, podcastFilter, userFilter)
     val filteredSearch = queryBuilder.filter(filters.flatten)
 
     val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

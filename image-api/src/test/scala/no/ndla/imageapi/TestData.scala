@@ -61,7 +61,8 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
   )
 
   val apiElg: ImageMetaInformationV2DTO = api.ImageMetaInformationV2DTO(
@@ -162,7 +163,8 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
   )
 
   val jerv: ImageMetaInformation = new ImageMetaInformation(
@@ -199,7 +201,8 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
   )
 
   val mink = new ImageMetaInformation(
@@ -236,7 +239,8 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
   )
 
   val rein = new ImageMetaInformation(
@@ -273,7 +277,8 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
   )
 
   val nonexisting: ImageMetaInformation = new ImageMetaInformation(
@@ -310,7 +315,8 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
   )
 
   val nonexistingWithoutThumb = new ImageMetaInformation(
@@ -347,7 +353,8 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
   )
 
   val testdata: List[ImageMetaInformation] = List(elg, bjorn, jerv, mink, rein)
@@ -382,6 +389,7 @@ class TestData {
     podcastFriendly = None,
     shouldScroll = false,
     modelReleased = Seq.empty,
-    userFilter = List.empty
+    userFilter = List.empty,
+    inactive = None
   )
 }

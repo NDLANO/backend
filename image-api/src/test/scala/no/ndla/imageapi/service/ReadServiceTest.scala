@@ -114,7 +114,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       created = TestData.updated(),
       createdBy = "ndla124",
       modelReleased = ModelReleasedStatus.YES,
-      editorNotes = Seq.empty
+      editorNotes = Seq.empty,
+      inactive = false
     )
 
     when(imageRepository.withId(1)).thenReturn(Some(imageElg))
