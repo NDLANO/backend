@@ -15,7 +15,7 @@ import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.Mockito.{reset, times, verify, when}
 import sttp.client3.quick.*
 
 import scala.util.Success
@@ -50,17 +50,17 @@ class FileControllerTest extends UnitSuite with TestEnvironment with TapirContro
     CirceUtil.unsafeParseAs[UploadedFileDTO](resp.body) should be(uploaded)
   }
 
-//  test("That uploading a file fails with 400 if no file is specified") {
-//    reset(writeService)
-//    val resp = simpleHttpClient.send(
-//      quickRequest
-//        .post(uri"http://localhost:$serverPort/draft-api/v1/files")
-//        .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
-//    )
-//
-//    resp.code.code should be(400)
-//    verify(writeService, times(0)).storeFile(any[domain.UploadedFile])
-//  }
+  test("That uploading a file fails with 400 if no file is specified") {
+    reset(writeService)
+    val resp = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/draft-api/v1/files")
+        .headers(Map("Authorization" -> TestData.authHeaderWithWriteRole))
+    )
+
+    resp.code.code should be(400)
+    verify(writeService, times(0)).storeFile(any[domain.UploadedFile])
+  }
 
   test("That uploading a file requires publishing rights") {
 
