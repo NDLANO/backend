@@ -1,17 +1,18 @@
 /*
- * Part of NDLA learningpath-api
+ * Part of NDLA common
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.learningpathapi.model.domain.config
+package no.ndla.common.model.domain.config
 
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
-import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
+import no.ndla.testbase.UnitTestSuiteBase
 
-class ConfigMetaTest extends UnitSuite with UnitTestEnvironment {
+class ConfigMetaTest extends UnitTestSuiteBase {
 
   test("That validation exists for all configuration parameters") {
     ConfigKey.values.foreach(key => {
@@ -19,7 +20,7 @@ class ConfigMetaTest extends UnitSuite with UnitTestEnvironment {
         ConfigMeta(
           key = key,
           value = BooleanValue(true),
-          updatedAt = TestData.today,
+          updatedAt = NDLADate.now(),
           updatedBy = "OneCoolKid"
         ).validate
       } catch {
