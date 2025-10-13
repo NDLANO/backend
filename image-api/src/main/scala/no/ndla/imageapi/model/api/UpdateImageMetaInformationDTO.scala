@@ -21,7 +21,8 @@ case class UpdateImageMetaInformationDTO(
     @description("Describes the copyright information for the image") copyright: Option[CopyrightDTO],
     @description("Searchable tags for the image") tags: Option[Seq[String]],
     @description("Caption for the image") caption: Option[String],
-    @description("Describes if the model has released use of the image") modelReleased: Option[String]
+    @description("Describes if the model has released use of the image") modelReleased: Option[String],
+    @description("Whether the image is inactive") inactive: Option[Boolean]
 )
 
 object UpdateImageMetaInformationDTO {

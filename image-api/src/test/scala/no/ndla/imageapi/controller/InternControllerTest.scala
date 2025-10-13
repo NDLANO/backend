@@ -91,7 +91,8 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
   )
 
   override def beforeEach(): Unit = {

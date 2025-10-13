@@ -41,7 +41,9 @@ case class ImageMetaInformationV3DTO(
     @description("Describes the changes made to the image, only visible to editors")
     editorNotes: Option[Seq[EditorNoteDTO]],
     @description("Describes the image file")
-    image: ImageFileDTO
+    image: ImageFileDTO,
+    @description("Describes if the image is inactive or not")
+    inactive: Boolean
 )
 
 object ImageMetaInformationV3DTO {

@@ -84,7 +84,8 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
       imageFiles = asSearchableImageFiles(image.images.getOrElse(Seq.empty)),
       podcastFriendly = podcastFriendly,
       domainObject = image,
-      users = users
+      users = users,
+      inactive = image.inactive
     )
   }
 
@@ -147,7 +148,8 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
         contentType = imageFile.contentType,
         imageDimensions = imageFile.dimensions.map { case domain.ImageDimensions(width, height) =>
           api.ImageDimensionsDTO(width, height)
-        }
+        },
+        inactive = searchableImage.inactive
       )
     })
   }
