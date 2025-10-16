@@ -20,6 +20,7 @@ import sttp.tapir.Schema.annotations.description
 
 import java.util.UUID
 import no.ndla.common.DeriveHelpers
+import no.ndla.common.model.api.UpdateOrDelete
 
 case class OwnerDTO(
     @description("Name of the owner") name: String
@@ -104,6 +105,7 @@ case class NewFolderDTO(
 )
 
 case class UpdatedFolderDTO(
+    @description("Id of parent folder") parentId: UpdateOrDelete[String],
     @description("Folder name") name: Option[String],
     @description("Status of the folder (private, shared)") status: Option[String],
     @description("Description of the folder") description: Option[String]

@@ -10,6 +10,7 @@ package no.ndla.myndlaapi.service
 
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.Missing
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, UserRole}
 import no.ndla.myndlaapi.TestData.{emptyDomainFolder, emptyDomainResource, emptyMyNDLAUser}
@@ -670,7 +671,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId      = "FEIDE"
     val folderId     = UUID.randomUUID()
     val parentId     = UUID.randomUUID()
-    val updateFolder = api.UpdatedFolderDTO(name = Some("asd"), status = None, description = None)
+    val updateFolder = api.UpdatedFolderDTO(parentId = Missing, name = Some("asd"), status = None, description = None)
 
     val existingFolder = domain.Folder(
       id = folderId,
@@ -733,7 +734,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId      = "FEIDE"
     val folderId     = UUID.randomUUID()
     val parentId     = UUID.randomUUID()
-    val updateFolder = api.UpdatedFolderDTO(name = None, status = Some("shared"), description = None)
+    val updateFolder =
+      api.UpdatedFolderDTO(parentId = Missing, name = None, status = Some("shared"), description = None)
 
     val existingFolder = domain.Folder(
       id = folderId,
@@ -991,7 +993,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
 
-    val updatedFolder   = api.UpdatedFolderDTO(name = None, status = Some("shared"), description = None)
+    val updatedFolder =
+      api.UpdatedFolderDTO(parentId = Missing, name = None, status = Some("shared"), description = None)
     val Failure(result) =
       service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder): @unchecked
     result.getMessage should be("You do not have necessary permissions to share folders.")
@@ -1004,7 +1007,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
 
-    val updatedFolder   = api.UpdatedFolderDTO(name = Some("asd"), status = None, description = None)
+    val updatedFolder = api.UpdatedFolderDTO(parentId = Missing, name = Some("asd"), status = None, description = None)
     val Failure(result) =
       service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder): @unchecked
     result.getMessage should be("You do not have write access while write restriction is active.")
@@ -1015,7 +1018,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(false))
 
-    val updatedFolder = api.UpdatedFolderDTO(name = Some("asd"), status = None, description = None)
+    val updatedFolder = api.UpdatedFolderDTO(parentId = Missing, name = Some("asd"), status = None, description = None)
     val result        = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), updatedFolder)
     result.isSuccess should be(true)
   }
@@ -1027,8 +1030,10 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
 
-    val folderWithUpdatedName   = api.UpdatedFolderDTO(name = Some("asd"), status = None, description = None)
-    val folderWithUpdatedStatus = api.UpdatedFolderDTO(name = None, status = Some("shared"), description = None)
+    val folderWithUpdatedName =
+      api.UpdatedFolderDTO(parentId = Missing, name = Some("asd"), status = None, description = None)
+    val folderWithUpdatedStatus =
+      api.UpdatedFolderDTO(parentId = Missing, name = None, status = Some("shared"), description = None)
     val result1 = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), folderWithUpdatedName)
     val result2 = service.isOperationAllowedOrAccessDenied("feideid", Some("accesstoken"), folderWithUpdatedStatus)
     result1.isSuccess should be(true)
