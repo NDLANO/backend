@@ -73,7 +73,7 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
   lazy val Domain: String       = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
   val ImageApiV2UrlBase: String = Domain + ImageControllerV2Path + "/"
   val ImageApiV3UrlBase: String = Domain + ImageControllerV3Path + "/"
-  val RawImageUrlBase: String   = Domain + RawControllerPath
+  val RawImageUrlBase: String   = propOrElse("CLOUDFRONT_DOMAIN", Domain + RawControllerPath + "/")
 
   override def MetaMigrationLocation: String      = "no/ndla/imageapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")
