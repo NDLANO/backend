@@ -17,6 +17,6 @@ trait ImageStream {
   def stream: InputStream
   def fileName: String
   def fileShortName: String = fileName.substring(0, fileName.lastIndexOf("."))
-  def format: String = fileName.substring(fileName.lastIndexOf(".") + 1)
+  def format: String        = fileName.substring(fileName.lastIndexOf(".") + 1)
   lazy val sourceImage: BufferedImage
 }

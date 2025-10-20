@@ -180,7 +180,7 @@ class RawController(using
     }
     imageStorage
       .uploadFromStream(
-        s"${image.fileShortName}_width=${imageParams.width}_height=${imageParams.height}.${image.format}",
+        s"${image.fileShortName}_width=${imageParams.width.getOrElse(0)}_height=${imageParams.height.getOrElse(0)}.${image.format}",
         resized.get.stream,
         resized.get.contentType,
         resized.get.contentLength

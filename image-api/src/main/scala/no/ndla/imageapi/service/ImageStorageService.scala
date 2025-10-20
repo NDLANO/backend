@@ -62,9 +62,10 @@ class ImageStorageService(using
   }
 
   def get(imageKey: String, imageParams: ImageParams): Try[(ImageStream, Boolean)] = {
-    val lastPeriod = imageKey.lastIndexOf(".")
-    val (pre, post) = imageKey.splitAt(lastPeriod)
-    val maybeFileName = s"${pre}_width=${imageParams.width}_height=${imageParams.height}${post}"
+    val lastPeriod    = imageKey.lastIndexOf(".")
+    val (pre, post)   = imageKey.splitAt(lastPeriod)
+    val maybeFileName =
+      s"${pre}_width=${imageParams.width.getOrElse(0)}_height=${imageParams.height.getOrElse(0)}${post}"
     if (head(maybeFileName)) {
       getObject(maybeFileName, true)
     } else {
