@@ -95,9 +95,10 @@ class RawController(using
       }
     }
     val nonResizableMimeTypes = List("image/gif", "image/svg", "image/svg+xml")
-    imageStorage.get(imageName) match {
-      case Success(img) if nonResizableMimeTypes.contains(img.contentType.toLowerCase) => Success(img)
-      case Success(img)                                                                =>
+    imageStorage.get(imageName, imageParams) match {
+      case Success((img, true))                                                                 => Success(img)
+      case Success((img, false)) if nonResizableMimeTypes.contains(img.contentType.toLowerCase) => Success(img)
+      case Success((img, _))                                                                    =>
         crop(img, imageParams)
           .flatMap(stream => dynamicCropOrResize(stream, imageParams))
           .recoverWith {
@@ -171,11 +172,20 @@ class RawController(using
   }
 
   private def resize(image: ImageStream, imageParams: ImageParams): Try[ImageStream] = {
-    (imageParams.width, imageParams.height) match {
+    val resized = (imageParams.width, imageParams.height) match {
       case (Some(width), Some(height)) => imageConverter.resize(image, width.toInt, height.toInt)
       case (Some(width), _)            => imageConverter.resizeWidth(image, width.toInt)
       case (_, Some(height))           => imageConverter.resizeHeight(image, height.toInt)
       case _                           => Success(image)
     }
+    imageStorage
+      .uploadFromStream(
+        s"${image.fileShortName}_width=${imageParams.width}_height=${imageParams.height}.${image.format}",
+        resized.get.stream,
+        resized.get.contentType,
+        resized.get.contentLength
+      )
+      .map(_ => resized.get): Unit
+    resized
   }
 }

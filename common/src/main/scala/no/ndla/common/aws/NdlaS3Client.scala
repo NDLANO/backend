@@ -14,6 +14,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.{S3Client, S3ClientBuilder}
 
+import java.io.InputStream
 import scala.util.Try
 
 class NdlaS3Client(bucket: String, region: Option[String]) {
@@ -71,6 +72,38 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
     }
 
     val requestBody = RequestBody.fromFile(uploadedFile.file)
+
+    client.putObject(
+      porWithCacheControl.build(),
+      requestBody
+    )
+  }
+
+  def putObject(
+      key: String,
+      file: UploadedFile | InputStream,
+      contentType: String,
+      contentLength: Long,
+      cacheControl: Option[String]
+  ): Try[PutObjectResponse] = Try {
+    val por = PutObjectRequest
+      .builder()
+      .contentLength(contentLength)
+      .contentType(contentType)
+      .key(key)
+      .bucket(bucket)
+
+    val porWithCacheControl = cacheControl match {
+      case Some(value) => por.cacheControl(value)
+      case None        => por
+    }
+
+    val requestBody: RequestBody = file match {
+      case file1: UploadedFile =>
+        RequestBody.fromFile(file1.file)
+      case file2: InputStream =>
+        RequestBody.fromInputStream(file2, contentLength)
+    }
 
     client.putObject(
       porWithCacheControl.build(),

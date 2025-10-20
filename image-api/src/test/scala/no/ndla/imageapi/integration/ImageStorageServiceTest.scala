@@ -43,7 +43,7 @@ class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
     val s3Object = NdlaS3Object("bucket", "existing", TestData.NdlaLogoImage.stream, ContentType, 0)
     when(s3Client.getObject(any)).thenReturn(Success(s3Object))
 
-    val image = imageStorage.get("existing")
+    val image = imageStorage.get("existing", imageParams)
     assert(image.isSuccess)
     assert(image.get.contentType == ContentType)
     assert(image.get.sourceImage != null)
@@ -51,7 +51,7 @@ class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
 
   test("That AmazonImageStorage.get returns None when the key does not exist") {
     when(s3Client.getObject(any)).thenReturn(Failure(NoSuchKeyException.builder().build()))
-    assert(imageStorage.get("nonexisting").isFailure)
+    assert(imageStorage.get("nonexisting", imageParams).isFailure)
   }
 
 }

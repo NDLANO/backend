@@ -13,8 +13,10 @@ import java.io.InputStream
 
 trait ImageStream {
   def contentType: String
+  def contentLength: Long
   def stream: InputStream
   def fileName: String
+  def fileShortName: String = fileName.substring(0, fileName.lastIndexOf("."))
   def format: String = fileName.substring(fileName.lastIndexOf(".") + 1)
   lazy val sourceImage: BufferedImage
 }
