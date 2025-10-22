@@ -1,15 +1,17 @@
-# Dependency graph cycle lint
+# Dependency Graph Tool
 
-This module is a module to parse all the scala files in the repository to detect if we have any cycical dependencies across classes that are initialized in the `ComponentRegistry` files.
+## Overview
+- Scala 3 command-line utility that scans the repository for Scala classes and reports cyclical dependencies between modules.
+- Intended for local developer use to keep cross-module dependencies acyclic; invoked by running the Mill target `./mill dependency-graph.run`.
 
-Ideally this should probably be a build-system (mill) plugin, but we will have to wait until [this](https://github.com/com-lihaoyi/mill/pull/5790) is released.
+## How It Works
+- `Main.scala` detects module directories by searching for `package.mill` files (excluding `modules` and `dependency-graph` itself).
+- For each module, `ScalaFileParser` parses Scala sources using Scalameta and loads SemanticDB artefacts to extract symbol references.
+- `CycleDetector.scala` constructs a directed graph of intra-module dependencies and prints cycles, while `Logger.scala` provides simple structured logging.
+- Filters skip test, model, and Scala 2 compatibility sources (`filterFile` in `Main.scala`) to focus on production Scala 3 code paths.
 
-# Usage
+## Usage
+1. Ensure SemanticDB is generated (Mill compilation produces `.semanticdb` files automatically).
+2. Run `./mill dependency-graph.run` from the repository root.
+3. Inspect the logs to identify modules/classes that participate in cyclic references and refactor accordingly.
 
-```
-# need to stand in the root of the project
-cd $NDLA_HOME/backend
-
-./mill _.semanticDbData
-./mill dependency-graph.run
-```

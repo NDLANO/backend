@@ -1,23 +1,54 @@
-# audio-api
+# Audio API
 
-![CI](https://github.com/NDLANO/audio-api/workflows/CI/badge.svg)
+## Overview
+- Tapir-based service for managing NDLA audio assets and series, covering metadata CRUD, file uploads, tagging, random access, and transcription workflows.
+- Entrypoint `Main.scala`/`MainClass.scala` loads configuration, applies Flyway migrations, and performs warm-up requests before surfacing health checks.
 
-## Usage
+## Architecture
+```mermaid
+graph TD
+    Client -->|REST| AudioController
+    Client --> SeriesController
+    Client --> TranscriptionController
+    AudioController -->|validate & map| ValidationService
+    AudioController -->|CRUD| AudioRepository
+    SeriesController --> SeriesRepository
+    AudioRepository -->|SQL| DataSource[(PostgreSQL)]
+    SeriesRepository --> DataSource
+    AudioController -->|search/index| ReadService
+    ReadService -->|Elastic| NdlaE4sClient
+    WriteService -->|side effects| ImageApiClient
+    TranscriptionController --> TranscriptionService
+    TranscriptionService --> BrightcoveClient
+    TranscriptionService --> NdlaAWSTranscribeClient
+    TranscriptionService --> TranscribeS3Client
+    ComponentRegistry --> RedisClient
+    ComponentRegistry --> NdlaS3Client
+```
 
-API for accessing audio from NDLA. Adds, lists and/or returns an `Audio` file with metadata. Implements Elasticsearch for search within the audio database.
+## Key Components
+- `src/main/scala/no/ndla/audioapi/ComponentRegistry.scala`: wires database, Redis cache, Elastic4s search client, NDLA downstream clients, AWS S3/Transcribe clients, repositories, services, and controllers.
+- `controller/AudioController.scala` & `controller/SeriesController.scala`: define public CRUD/search endpoints, bulk tag queries, and media upload flows for audio files and series.
+- `controller/TranscriptionController.scala`: exposes operations for extracting audio from Brightcove videos, kicking off AWS Transcribe jobs, and polling their status.
+- `service/ReadService.scala`, `service/WriteService.scala`, `service/ConverterService.scala`, and `service/ValidationService.scala`: encapsulate business logic for metadata transformation, persistence, validation, and Elastic index synchronization.
+- `service/TranscriptionService.scala`: orchestrates audio extraction (via FFmpeg/JAVE), S3 storage, and AWS Transcribe job management, including deduplication of in-flight jobs.
+- `repository/AudioRepository.scala` & `repository/SeriesRepository.scala`: database layer for metadata, tags, revisions, and series ordering.
+- `integration/NDLAS3Client.scala` & `integration/TranscribeS3Client.scala`: typed wrappers around NDLA-managed S3 buckets used for storing originals, derivatives, and transcription artefacts.
 
-To interact with the api, you need valid security credentials.
-To write data to the api, you need write role access.
+## Data Stores & External Dependencies
+- **PostgreSQL** via ScalikeJDBC for persistent metadata.
+- **ElasticSearch** for search and listing support, powered by `service/search` helpers.
+- **Redis** memoization for expensive lookups (`caching/Memoize.scala` helpers).
+- **AWS S3** buckets for raw uploads and transcription artefacts, mediated through `NdlaS3Client` and `TranscribeS3Client`.
+- **AWS Transcribe** for speech-to-text, via `NdlaAWSTranscribeClient`.
+- **Brightcove** integration to fetch video sources prior to transcription.
 
-### Avaliable Endpoints
+## Operational Notes
+- Transcription jobs are idempotent—`TranscriptionService` checks existing S3 artefacts and job states before launching new AWS jobs.
+- File uploads stream to S3; metadata writes and deletions propagate into Elastic indexes to keep search results consistent.
+- Warm-up requests hit both search and CRUD endpoints to populate caches before the instance comes online.
 
-- `GET /audio-api/v1/audio/` - Fetch a json-object containing a *list* with *all audio files available*.
-- `GET /audio-api/v1/audio/<id>` - Fetch a json-object containing the *audio id* of the *audio file* that needs to be fecthed.
-- `POST /audio-api/v1/audio/` - Upload a *new audio file* provided with metadata.
-- `PUT /audio-api/v1/audio/<id>` - Update the *audio file* provided with metadata.
-- `GET /audio-api/v1/series/` - Fetch a json-object containing a *list* with *all podcast series available*.
-- `GET /audio-api/v1/series/<id>` - Fetch a json-object containing the *series id* of the *podcast series* that needs to be fecthed.
-- `POST /audio-api/v1/series/` - Upload a *new podcast series* provided with metadata.
-- `PUT /audio-api/v1/series/<id>` - Update the *podcast series* provided with metadata.
+## Testing & Tooling
+- Execute module tests with `./mill audio-api.test`. Test sources use common fixtures from `tapirtesting` and `scalatestsuite`.
+- Generate OpenAPI + TypeScript definitions with `./mill audio-api.generateTypescript` to keep front-end contracts in sync.
 
-For a more detailed documentation of the API, please refer to the [API documentation](https://api.ndla.no) (Staging: [API documentation](https://staging.api.ndla.no)).
