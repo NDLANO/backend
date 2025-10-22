@@ -78,7 +78,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
   )
 
   override def beforeEach(): Unit = {
@@ -299,6 +300,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
+      None,
       None
     )
 
@@ -322,6 +324,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       "nb",
       Some("Title"),
       UpdateWith("AltText"),
+      None,
       None,
       None,
       None,
@@ -361,7 +364,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       ),
       Some(List("a", "b", "c")),
       Some("Caption"),
-      Some(ModelReleasedStatus.NO.toString)
+      Some(ModelReleasedStatus.NO.toString),
+      None
     )
 
     val expectedResult = existing.copy(
@@ -420,6 +424,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       "nn",
       None,
       Missing,
+      None,
       None,
       None,
       None,
@@ -552,7 +557,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       copyright = None,
       tags = None,
       caption = None,
-      modelReleased = None
+      modelReleased = None,
+      inactive = None
     )
     val image = domain.ImageFileData(
       id = 1,
@@ -646,7 +652,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       copyright = None,
       tags = None,
       caption = None,
-      modelReleased = None
+      modelReleased = None,
+      inactive = None
     )
     val image = domain.ImageFileData(
       id = 1,

@@ -93,7 +93,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.NO,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
   )
 
   val image2 = new ImageMetaInformation(
@@ -109,7 +110,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.NOT_APPLICABLE,
-    editorNotes = Seq(EditorNote(NDLADate.now(), "someone", "Lillehjelper"))
+    editorNotes = Seq(EditorNote(NDLADate.now(), "someone", "Lillehjelper")),
+    inactive = false
   )
 
   val image3 = new ImageMetaInformation(
@@ -125,7 +127,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
   )
 
   val image4 = new ImageMetaInformation(
@@ -141,7 +144,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
   )
 
   val image5 = new ImageMetaInformation(
@@ -161,7 +165,29 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
+    inactive = false
+  )
+
+  val image6 = new ImageMetaInformation(
+    id = Some(6),
+    titles = List(
+      ImageTitle("En gjeng med folk på restaurant", "und"),
+      ImageTitle("A bunch of people at a restaurant", "en"),
+      ImageTitle("Ein gjeng med folk på restaurant", "nn")
+    ),
+    alttexts = Seq(ImageAltText("En stor middag", "und"), ImageAltText("Ein stor middag", "nn")),
+    images = Some(Seq(podcastImage)),
+    copyright = byNcSa,
+    tags = Seq(),
+    captions = Seq(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty,
+    inactive = true
   )
 
   override def beforeAll(): Unit = {
@@ -175,6 +201,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       imageIndexService.indexDocument(image3).get
       imageIndexService.indexDocument(image4).get
       imageIndexService.indexDocument(image5).get
+      imageIndexService.indexDocument(image6).get
 
       val servletRequest = mock[NdlaHttpRequest]
       when(servletRequest.getHeader(any[String])).thenReturn(Some("http"))
@@ -182,7 +209,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       when(servletRequest.servletPath).thenReturn("/image-api/v2/images/")
       ApplicationUrl.set(servletRequest)
 
-      blockUntil(() => imageSearchService.countDocuments() == 5)
+      blockUntil(() => imageSearchService.countDocuments() == 6)
     }
   }
 
@@ -640,5 +667,15 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     ): @unchecked
 
     searchResult1.results.map(_.id) should be(Seq("5"))
+  }
+
+  test("That including inactive images work") {
+    val Success(searchResult) = imageSearchService.matchingQuery(
+      searchSettings.copy(inactive = Some(true)),
+      None
+    ): @unchecked
+
+    searchResult.totalCount should be(6)
+    searchResult.results.last.id should be("6")
   }
 }

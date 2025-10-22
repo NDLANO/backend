@@ -95,7 +95,8 @@ class ImageControllerV2(using
       podcastFriendly: Option[Boolean],
       shouldScroll: Boolean,
       modelReleasedStatus: Seq[ModelReleasedStatus.Value],
-      user: Option[TokenUser]
+      user: Option[TokenUser],
+      inactive: Option[Boolean]
   ) = {
     val settings = query match {
       case Some(searchString) =>
@@ -111,7 +112,8 @@ class ImageControllerV2(using
           podcastFriendly = podcastFriendly,
           shouldScroll = shouldScroll,
           modelReleased = modelReleasedStatus,
-          userFilter = List.empty
+          userFilter = List.empty,
+          inactive = inactive
         )
       case None =>
         SearchSettings(
@@ -126,7 +128,8 @@ class ImageControllerV2(using
           podcastFriendly = podcastFriendly,
           shouldScroll = shouldScroll,
           modelReleased = modelReleasedStatus,
-          userFilter = List.empty
+          userFilter = List.empty,
+          inactive = inactive
         )
     }
 
@@ -153,6 +156,7 @@ class ImageControllerV2(using
     .in(podcastFriendly)
     .in(scrollId)
     .in(modelReleased)
+    .in(inactive)
     .errorOut(errorOutputsFor(400))
     .out(jsonBody[SearchResultDTO])
     .out(EndpointOutput.derived[DynamicHeaders])
@@ -170,7 +174,8 @@ class ImageControllerV2(using
               pageSize,
               podcastFriendly,
               scrollId,
-              modelReleased
+              modelReleased,
+              inactive
             ) =>
           scrollSearchOr(scrollId, language, user) {
             val sort                = Sort.valueOf(sortStr)
@@ -189,7 +194,8 @@ class ImageControllerV2(using
               podcastFriendly,
               shouldScroll,
               modelReleasedStatus,
-              user
+              user,
+              inactive
             )
           }.handleErrorsOrOk
       }
@@ -216,6 +222,7 @@ class ImageControllerV2(using
         val podcastFriendly     = searchParams.podcastFriendly
         val sort                = searchParams.sort
         val shouldScroll        = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
+        val inactive            = searchParams.inactive
         val modelReleasedStatus =
           searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
 
@@ -231,7 +238,8 @@ class ImageControllerV2(using
           podcastFriendly,
           shouldScroll,
           modelReleasedStatus,
-          user
+          user,
+          inactive
         )
       }.handleErrorsOrOk
     })

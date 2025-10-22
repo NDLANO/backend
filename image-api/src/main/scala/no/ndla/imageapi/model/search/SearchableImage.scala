@@ -30,7 +30,8 @@ case class SearchableImage(
     imageFiles: Seq[SearchableImageFile],
     podcastFriendly: Boolean,
     domainObject: ImageMetaInformation,
-    users: Seq[String]
+    users: Seq[String],
+    inactive: Boolean
 )
 
 object SearchableImage {

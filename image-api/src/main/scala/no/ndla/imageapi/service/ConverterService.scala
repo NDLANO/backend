@@ -126,7 +126,8 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
             createdBy = imageMeta.createdBy,
             modelRelease = imageMeta.modelReleased.toString,
             editorNotes = editorNotes,
-            image = apiImageFile
+            image = apiImageFile,
+            inactive = imageMeta.inactive
           )
       )
     })
@@ -273,7 +274,8 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
         created = now,
         updated = now,
         modelReleased = modelStatus,
-        editorNotes = Seq(domain.EditorNote(now, user.id, "Image created."))
+        editorNotes = Seq(domain.EditorNote(now, user.id, "Image created.")),
+        inactive = false
       )
     })
   }
