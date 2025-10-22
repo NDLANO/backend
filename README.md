@@ -117,19 +117,28 @@ graph TD
 ## Repository Layout
 | Path | Description |
 | --- | --- |
-| `article-api/`, `audio-api/`, `concept-api/`, `draft-api/`, `frontpage-api/`, `image-api/`, `learningpath-api/`, `myndla-api/`, `oembed-proxy/`, `search-api/` | Deployable HTTP services, each with `package.mill`, `Main.scala`, `ComponentRegistry.scala`, controllers, repositories, services, and migrations. |
-| `common/` | Shared utilities (configuration, logging, AWS helpers, caching, converters, validation primitives, tapir helpers). |
-| `network/` | Shared HTTP client infrastructure, tapir server harness (`NdlaTapirMain`), Swagger utilities, authentication helpers, and client wrappers for internal APIs and Redis. |
-| `database/` | Database helpers (`DataSource`, Flyway-powered `DBMigrator`, migration utilities). |
-| `search/` | Elasticsearch abstractions (`NdlaE4sClient`, language helpers, search models). |
-| `mapping/`, `validation/`, `language/` | Domain-specific helper libraries for mapping, validation rules, and ISO language tag handling. |
-| `integration-tests/` | Cross-service integration suites using Testcontainers and shared fixtures. |
-| `dependency-graph/` | Static analysis that detects ComponentRegistry dependency cycles via SemanticDB. |
-| `scalatestsuite/`, `testbase/`, `tapirtesting/` | Shared testing infrastructure, fixtures, and tapir test helpers. |
-| `modules/` | Custom Mill traits (e.g., `BaseModule`, `OpenAPITSPlugin`, `DockerComponent`) that standardize build behaviour across services. |
-| `typescript/types-backend/` | Generated OpenAPI specifications and TypeScript bindings for frontend consumers. |
-| `build.mill`, `build.sh`, `fmt.sh`, `checkfmt.sh` | Repository-level build entry points and helper scripts. |
-| `log4j/` | Logging configuration baked into each service’s resource set. |
+| [`article-api/`](article-api/) | Deployable Article service (Tapir controllers, repositories, migrations, search/index wiring). |
+| [`audio-api/`](audio-api/) | Audio and series service with S3 storage and AWS Transcribe orchestration. |
+| [`concept-api/`](concept-api/) | Concept glossary service with draft/published flows and Elastic indexing. |
+| [`draft-api/`](draft-api/) | Editorial draft workspace with attachment handling and multi-service integrations. |
+| [`frontpage-api/`](frontpage-api/) | Curated frontpage/subject/film page management APIs. |
+| [`image-api/`](image-api/) | Image metadata, storage, and search service. |
+| [`learningpath-api/`](learningpath-api/) | Learning path CRUD, validation, and search orchestration. |
+| [`myndla-api/`](myndla-api/) | Personalized MyNDLA service (folders, robots, configs). |
+| [`oembed-proxy/`](oembed-proxy/) | External oEmbed proxy and cache layer. |
+| [`search-api/`](search-api/) | Aggregated search surface across NDLA resources. |
+| [`common/`](common/) | Shared utilities (configuration, logging, converters, AWS helpers). |
+| [`network/`](network/) | Tapir bootstrapping, HTTP clients, auth/Redis helpers. |
+| [`database/`](database/) | Pooled data source, Flyway migration runner, DB utilities. |
+| [`search/`](search/) | Elasticsearch abstractions and index helpers. |
+| [`mapping/`](mapping/), [`validation/`](validation/), [`language/`](language/) | Domain helper libraries for code mappings, validation rules, and ISO languages. |
+| [`integration-tests/`](integration-tests/) | Cross-service integration test harness. |
+| [`dependency-graph/`](dependency-graph/) | CLI for detecting Scala dependency cycles. |
+| [`modules/`](modules/) | Custom Mill traits (`BaseModule`, `OpenAPITSPlugin`, `DockerComponent`, etc.). |
+| [`tapirtesting/`](tapirtesting/), [`testbase/`](testbase/), `scalatestsuite/` | Shared testing infrastructure and Tapir fixtures. |
+| [`typescript/types-backend/`](typescript/types-backend/) | Generated OpenAPI specs and TypeScript bindings for frontend consumers. |
+| [`build.mill`](build.mill), [`build.sh`](build.sh), [`fmt.sh`](fmt.sh), [`checkfmt.sh`](checkfmt.sh) | Repository-level build entry points and helper scripts. |
+| [`log4j/`](log4j/) | Logging configuration baked into each service’s resource set. |
 
 ## Runtime Architecture
 Every deployable service follows the same composition pattern:
