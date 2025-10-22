@@ -834,6 +834,8 @@ export type components = {
          * @description Stats for single resource
          */
         SingleResourceStatsDTO: {
+            /** @description The resource type */
+            resourceType: string;
             /** @description Id of the resource */
             id: string;
             /**
