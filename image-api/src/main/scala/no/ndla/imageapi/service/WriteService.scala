@@ -9,6 +9,9 @@
 package no.ndla.imageapi.service
 
 import cats.implicits.*
+import com.sksamuel.scrimage.ImmutableImage
+import com.sksamuel.scrimage.format.{Format, FormatDetector}
+import com.sksamuel.scrimage.webp.WebpWriter
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.errors.{MissingIdException, ValidationException}
@@ -31,8 +34,9 @@ import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
 
-import java.io.ByteArrayInputStream
+import java.io.{BufferedInputStream, ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
 import java.lang.Math.max
+import java.nio.file.{Files, Path}
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success, Try}
 
@@ -42,6 +46,7 @@ class WriteService(using
     imageRepository: ImageRepository,
     imageIndexService: ImageIndexService,
     imageStorage: ImageStorageService,
+    imageConverter: ImageConverter,
     tagIndexService: TagIndexService,
     clock: Clock,
     random: Random,
@@ -126,6 +131,11 @@ class WriteService(using
           .images
           .getOrElse(Seq.empty)
           .traverse(image => {
+            image
+              .variants
+              .foreach { variant =>
+                imageStorage.deleteObject(s"${image.getFileStem}/${variant.entryName}.webp")
+              }
             imageStorage.deleteObject(image.fileName)
           })
         val indexDeleted = imageIndexService.deleteDocument(imageId).flatMap(tagIndexService.deleteDocument)
@@ -186,7 +196,7 @@ class WriteService(using
     val missingIdException = MissingIdException("Could not find id of stored metadata. This is a bug.")
     val imageId            = insertedMeta.id.toTry(missingIdException).?
 
-    val uploadedImage = uploadImage(file).?
+    val uploadedImage = uploadImageWithVariants(file).?
 
     val imageDocument = converterService.toImageDocument(uploadedImage, language)
     val image         = imageRepository.insertImageFile(imageId, uploadedImage.fileName, imageDocument).?
@@ -340,7 +350,7 @@ class WriteService(using
     val imageForLang  = oldImage.images.getOrElse(Seq.empty).find(_.language == language)
     val allOtherPaths = oldImage.images.getOrElse(Seq.empty).filterNot(_.language == language).map(_.fileName)
 
-    val uploaded = uploadImage(newFile).?
+    val uploaded = uploadImageWithVariants(newFile).?
 
     val imageFileFrom = (existingImageFileMeta: ImageFileData) => {
       domain.ImageFileData(
@@ -349,6 +359,7 @@ class WriteService(using
         size = uploaded.size,
         contentType = uploaded.contentType,
         dimensions = uploaded.dimensions,
+        variants = uploaded.dimensions.map(ImageVariantSize.forDimensions).getOrElse(Seq.empty),
         language = existingImageFileMeta.language,
         imageMetaId = existingImageFileMeta.imageMetaId,
       )
@@ -424,47 +435,69 @@ class WriteService(using
     }
   }
 
-  private def uploadImageWithName(file: UploadedFile, fileName: String): Try[UploadedImage] = {
-    val contentType = file.contentType.getOrElse("")
-    val bytes       = file.stream.readAllBytes()
-    val image       = Try(Option(ImageIO.read(new ByteArrayInputStream(bytes))))
+  private[service] def uploadImageWithVariants(file: UploadedFile): Try[UploadedImage] = permitTry {
+    val extension      = file.fileName.flatMap(getFileExtension).getOrElse("")
+    val uniqueFileStem = LazyList
+      .continually(random.string(12))
+      .dropWhile(stem => imageStorage.objectExists(s"$stem$extension"))
+      .head
+    val fileName = s"$uniqueFileStem$extension"
 
-    val dimensions = image match {
-      case Failure(ex) =>
-        logger.error("Something went wrong when getting imageDimensions", ex)
-        Some(ImageDimensions(0, 0))
-      case Success(Some(image)) => Some(ImageDimensions(image.getWidth, image.getHeight))
-      case Success(None)        =>
-        val isSVG = new String(bytes).toLowerCase.contains("<svg")
-        // Since SVG are vector-images size doesn't make sense
-        if (isSVG) None
-        else {
-          logger.error("Something _weird_ went wrong when getting imageDimensions")
-          Some(ImageDimensions(0, 0))
-        }
+    val uploadedOriginalImage = uploadImageAsIs(file, fileName).?
+
+    // Use buffered stream with mark to avoid creating multiple streams
+    val fileStream = new BufferedInputStream(new FileInputStream(file.file))
+    fileStream.mark(32)
+    val isProcessableImage = Try(FormatDetector.detect(fileStream).get()) match {
+      case Failure(_)                              => false
+      case Success(format) if format == Format.GIF => false
+      case _                                       => true
     }
 
+    if (isProcessableImage) {
+      fileStream.reset()
+      val img        = Try(ImmutableImage.loader().fromStream(fileStream)).?
+      val dimensions = ImageDimensions(img.width, img.height)
+      val variants   = ImageVariantSize
+        .forDimensions(dimensions)
+        .map { variantSize =>
+          val resizedImage     = imageConverter.resizeToVariantSize(img, variantSize)
+          val variantBucketKey = s"$uniqueFileStem/${variantSize.entryName}.webp"
+          val imageBytes       = resizedImage.bytes(WebpWriter.DEFAULT)
+          val stream           = new ByteArrayInputStream(imageBytes)
+          imageStorage.uploadFromStream(variantBucketKey, stream, imageBytes.length, "image/webp").map(_ => variantSize)
+        }
+        .sequence match {
+        case Success(s)  => s
+        case Failure(ex) =>
+          logger.error("Something went wrong when uploading image variants", ex)
+          Seq.empty
+      }
+
+      Success(uploadedOriginalImage.copy(dimensions = Some(dimensions), variants = variants))
+    } else {
+      Success(uploadedOriginalImage)
+    }
+  }
+
+  private def uploadImageAsIs(file: UploadedFile, fileName: String): Try[UploadedImage] = {
+    val contentType = file.contentType.getOrElse("")
     imageStorage
       .uploadFromStream(fileName, file)
       .map(filePath => {
-        UploadedImage(filePath, file.fileSize, contentType, dimensions)
+        UploadedImage(filePath, file.fileSize, contentType, None, Seq.empty)
       })
   }
+}
 
-  private[service] def uploadImage(file: UploadedFile): Try[UploadedImage] = {
-    val extension = file.fileName.flatMap(getFileExtension).getOrElse("")
-    val fileName  = LazyList.continually(randomFileName(extension)).dropWhile(imageStorage.objectExists).head
-    uploadImageWithName(file, fileName)
-  }
-
-  private[service] def randomFileName(extension: String, length: Int = 12): String = {
-    val extensionWithDot =
-      if (extension.headOption.contains('.')) extension
-      else if (extension.nonEmpty) s".$extension"
-      else ""
-
-    val randomLength = max(length - extensionWithDot.length, 1)
-    val randomString = random.string(randomLength)
-    s"$randomString$extensionWithDot"
+object Fisk {
+  @main
+  def run() = {
+    val file = new BufferedInputStream(
+      new FileInputStream(
+        "/Users/amatho/Downloads/Amandus Søve Thorsrud , Knowit Objectnet_Amandus Søve Thorsrud , Knowit Objectnet_Knowit_34077.jpg"
+      )
+    )
+    println(FormatDetector.detect(file))
   }
 }

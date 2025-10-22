@@ -52,7 +52,13 @@ object ImageCaption {
   implicit val encoder: Encoder[ImageCaption] = deriveEncoder
   implicit val decoder: Decoder[ImageCaption] = deriveDecoder
 }
-case class UploadedImage(fileName: String, size: Long, contentType: String, dimensions: Option[ImageDimensions])
+case class UploadedImage(
+    fileName: String,
+    size: Long,
+    contentType: String,
+    dimensions: Option[ImageDimensions],
+    variants: Seq[ImageVariantSize],
+)
 
 object UploadedImage {
   implicit val encoder: Encoder[UploadedImage] = deriveEncoder

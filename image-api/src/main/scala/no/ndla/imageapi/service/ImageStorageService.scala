@@ -70,6 +70,11 @@ class ImageStorageService(using s3Client: => NdlaS3Client, readService: ReadServ
     s3Client.putObject(storageKey, uploadedFile, props.S3NewFileCacheControlHeader.some).map(_ => storageKey)
   }
 
+  def uploadFromStream(storageKey: String, stream: InputStream, contentLength: Long, contentType: String): Try[String] =
+    s3Client
+      .putObject(storageKey, stream, contentLength, contentType, props.S3NewFileCacheControlHeader.some)
+      .map(_ => storageKey)
+
   def updateContentType(storageKey: String, contentType: String): Try[Unit] = for {
     meta    <- s3Client.headObject(storageKey)
     metadata = meta.metadata()

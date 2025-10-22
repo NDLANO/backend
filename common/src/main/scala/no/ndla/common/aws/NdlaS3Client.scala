@@ -14,6 +14,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.{S3Client, S3ClientBuilder}
 
+import java.io.InputStream
 import scala.util.Try
 
 class NdlaS3Client(bucket: String, region: Option[String]) {
@@ -69,6 +70,25 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
     val requestBody = RequestBody.fromFile(uploadedFile.file)
 
     client.putObject(porWithCacheControl.build(), requestBody)
+  }
+
+  def putObject(
+      key: String,
+      stream: InputStream,
+      contentLength: Long,
+      contentType: String,
+      cacheControl: Option[String],
+  ): Try[PutObjectResponse] = {
+    val por = PutObjectRequest.builder().contentLength(contentLength).contentType(contentType).key(key).bucket(bucket)
+
+    val porWithCacheControl = cacheControl match {
+      case Some(value) => por.cacheControl(value)
+      case None        => por
+    }
+
+    val requestBody = RequestBody.fromInputStream(stream, contentLength)
+
+    Try(client.putObject(porWithCacheControl.build(), requestBody))
   }
 
   def updateMetadata(key: String, metadata: java.util.Map[String, String]): Try[?] = Try {
