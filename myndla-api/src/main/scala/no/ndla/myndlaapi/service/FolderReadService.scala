@@ -354,13 +354,12 @@ class FolderReadService(using
     val result =
       resourceIds.map(id => {
         val countList = resourceTypes.map(rt => {
-          folderRepository.numberOfFavouritesForResource(id, rt).?
+          rt -> folderRepository.numberOfFavouritesForResource(id, rt).?
         })
-        SingleResourceStatsDTO(id, countList.sum)
-
+        countList.map(cl => SingleResourceStatsDTO(cl._1, id, cl._2))
       })
 
-    Success(result)
+    Success(result.flatten)
   }
 
   private def exportUserDataAuthenticated(
