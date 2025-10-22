@@ -353,13 +353,13 @@ class TestData {
   val testdata: List[ImageMetaInformation] = List(elg, bjorn, jerv, mink, rein)
 
   case class DiskImage(filename: String) extends ImageStream {
-    override def contentType: String = s"image/$format"
-
-    override def stream: InputStream = getClass.getResourceAsStream(s"/$filename")
-    override def fileName: String    = filename
-
+    override def contentType: String             = s"image/$format"
+    override def stream: InputStream             = getClass.getResourceAsStream(s"/$filename")
+    override def fileName: String                = filename
+    override def contentLength: Long             = stream.available().toLong
     override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
-    lazy val rawBytes: String                    = scala.io.Source.fromInputStream(stream).mkString
+
+    lazy val rawBytes: String = scala.io.Source.fromInputStream(stream).mkString
   }
 
   val NdlaLogoImage: DiskImage    = DiskImage("ndla_logo.jpg")

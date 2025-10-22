@@ -451,7 +451,7 @@ class WriteService(using
     }
 
     imageStorage
-      .uploadFromStream(fileName, file)
+      .uploadFromFile(fileName, file)
       .map(filePath => {
         UploadedImage(filePath, file.fileSize, contentType, dimensions)
       })

@@ -88,6 +88,7 @@ class ImageConverter(using
     new ImageStream {
       override def stream: ByteArrayInputStream    = new ByteArrayInputStream(outputStream.toByteArray)
       override def contentType: String             = originalImage.contentType
+      override def contentLength: Long             = outputStream.size().toLong
       override def fileName: String                = originalImage.fileName
       override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
     }
