@@ -23,17 +23,17 @@ import scala.jdk.CollectionConverters.*
 
 import scala.util.{Failure, Success, Try}
 
-class LearningPathValidator(
-    descriptionRequired: Boolean = false
-)(using languageValidator: LanguageValidator, titleValidator: TitleValidator, props: Props) {
+class LearningPathValidator(descriptionRequired: Boolean = false)(using
+    languageValidator: LanguageValidator,
+    titleValidator: TitleValidator,
+    props: Props,
+) {
 
-  private val MY_NDLA_LANGUAGE_MISMATCH =
-    "A learning path created in MyNDLA must have exactly one supported language."
+  private val MY_NDLA_LANGUAGE_MISMATCH = "A learning path created in MyNDLA must have exactly one supported language."
 
   private val MISSING_DESCRIPTION = "At least one description is required."
 
-  private val INVALID_COVER_PHOTO =
-    "The url to the coverPhoto must point to an image in NDLA Image API."
+  private val INVALID_COVER_PHOTO = "The url to the coverPhoto must point to an image in NDLA Image API."
 
   val noHtmlTextValidator              = new TextValidator(allowHtml = false)
   private val allowedHtmlTextValidator = new TextValidator(allowHtml = true)
@@ -41,16 +41,12 @@ class LearningPathValidator(
 
   def validate(newLearningPath: LearningPath, allowUnknownLanguage: Boolean = false): Try[LearningPath] = {
     validateLearningPath(newLearningPath, allowUnknownLanguage) match {
-      case head :: tail =>
-        Failure(ValidationException(errors = head :: tail))
-      case _ => Success(newLearningPath)
+      case head :: tail => Failure(ValidationException(errors = head :: tail))
+      case _            => Success(newLearningPath)
     }
   }
 
-  def validate(
-      updatedLearningPath: UpdatedLearningPathV2DTO,
-      existing: LearningPath
-  ): Try[UpdatedLearningPathV2DTO] = {
+  def validate(updatedLearningPath: UpdatedLearningPathV2DTO, existing: LearningPath): Try[UpdatedLearningPathV2DTO] = {
     validateLearningPathUpdate(updatedLearningPath, existing) match {
       case head :: tail => Failure(ValidationException(errors = head :: tail))
       case _            => Success(updatedLearningPath)
@@ -59,13 +55,13 @@ class LearningPathValidator(
 
   private[validation] def validateLearningPath(
       newLearningPath: LearningPath,
-      allowUnknownLanguage: Boolean
+      allowUnknownLanguage: Boolean,
   ): Seq[ValidationMessage] = {
     titleValidator.validate(newLearningPath.title, allowUnknownLanguage) ++
       titleValidator.validate(newLearningPath.title, allowUnknownLanguage) ++
       validateIntroduction(newLearningPath.introduction, allowUnknownLanguage) ++ validateDescription(
         newLearningPath.description,
-        allowUnknownLanguage
+        allowUnknownLanguage,
       ) ++
       validateDuration(newLearningPath.duration).toList ++
       validateTags(newLearningPath.tags, allowUnknownLanguage) ++
@@ -75,19 +71,11 @@ class LearningPathValidator(
 
   private[validation] def validateLearningPathUpdate(
       updatedLearningPath: UpdatedLearningPathV2DTO,
-      existing: LearningPath
-  ): Seq[ValidationMessage] =
-    validateUpdateLanguage(updatedLearningPath, existing) ++
-      languageValidator.validate(
-        "language",
-        updatedLearningPath.language,
-        allowUnknownLanguage = true
-      )
+      existing: LearningPath,
+  ): Seq[ValidationMessage] = validateUpdateLanguage(updatedLearningPath, existing) ++
+    languageValidator.validate("language", updatedLearningPath.language, allowUnknownLanguage = true)
 
-  def validateIntroduction(
-      introductions: Seq[Introduction],
-      allowUnknownLanguage: Boolean
-  ): Seq[ValidationMessage] = {
+  def validateIntroduction(introductions: Seq[Introduction], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
     introductions.flatMap(introduction => {
       allowedHtmlTextValidator.validate("introduction", introduction.introduction).toList ++
         validateIntroductionRoot("introduction.introduction", introduction.introduction).toList ++
@@ -101,11 +89,10 @@ class LearningPathValidator(
     val topLevelTags     = stringToJsoupDocument(html).children().asScala.map(_.tagName()).filter(_ == legalTopLevelTag)
     topLevelTags.size match {
       case 1 => None
-      case _ =>
-        Some(
+      case _ => Some(
           ValidationMessage(
             field,
-            s"A learningpath introduction must be a single <section> block. Found ${topLevelTags.size} top-level blocks."
+            s"A learningpath introduction must be a single <section> block. Found ${topLevelTags.size} top-level blocks.",
           )
         )
     }
@@ -113,20 +100,14 @@ class LearningPathValidator(
 
   private def validateDescription(
       descriptions: Seq[Description],
-      allowUnknownLanguage: Boolean
+      allowUnknownLanguage: Boolean,
   ): Seq[ValidationMessage] = {
     (descriptionRequired, descriptions.isEmpty) match {
       case (false, true) => List()
-      case (true, true)  =>
-        List(ValidationMessage("description", MISSING_DESCRIPTION))
-      case (_, false) =>
-        descriptions.flatMap(description => {
-          noHtmlTextValidator
-            .validate("description.description", description.description)
-            .toList :::
-            languageValidator
-              .validate("description.language", description.language, allowUnknownLanguage)
-              .toList
+      case (true, true)  => List(ValidationMessage("description", MISSING_DESCRIPTION))
+      case (_, false)    => descriptions.flatMap(description => {
+          noHtmlTextValidator.validate("description.description", description.description).toList :::
+            languageValidator.validate("description.language", description.language, allowUnknownLanguage).toList
         })
     }
   }
@@ -154,12 +135,8 @@ class LearningPathValidator(
 
   private def validateTags(tags: Seq[Tag], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
     tags.flatMap(tagList => {
-      tagList.tags
-        .flatMap(noHtmlTextValidator.validate("tags.tags", _))
-        .toList :::
-        languageValidator
-          .validate("tags.language", tagList.language, allowUnknownLanguage)
-          .toList
+      tagList.tags.flatMap(noHtmlTextValidator.validate("tags.tags", _)).toList :::
+        languageValidator.validate("tags.language", tagList.language, allowUnknownLanguage).toList
     })
   }
 
@@ -183,10 +160,9 @@ class LearningPathValidator(
 
   private def validateRevisionMeta(lp: LearningPath): Seq[ValidationMessage] = lp.isMyNDLAOwner match {
     case true  => Seq.empty
-    case false =>
-      lp.revisionMeta.find(rm =>
-        rm.status == RevisionStatus.NeedsRevision && rm.revisionDate.isAfter(NDLADate.now())
-      ) match {
+    case false => lp
+        .revisionMeta
+        .find(rm => rm.status == RevisionStatus.NeedsRevision && rm.revisionDate.isAfter(NDLADate.now())) match {
         // case None =>
         //   Seq(ValidationMessage("revisionMeta", "A learningpath must contain at least one planned revision date"))
         case _ => Seq.empty
@@ -195,7 +171,7 @@ class LearningPathValidator(
 
   private def validateUpdateLanguage(
       updatedLearningPath: UpdatedLearningPathV2DTO,
-      existing: LearningPath
+      existing: LearningPath,
   ): Seq[ValidationMessage] = {
     if (existing.isMyNDLAOwner && updatedLearningPath.language != existing.supportedLanguages.head) {
       Seq(ValidationMessage("language", MY_NDLA_LANGUAGE_MISMATCH))

@@ -19,8 +19,7 @@ class OEmbedProxyProperties extends BaseProps {
   def ApplicationName: String = "oembed-proxy"
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
 
-  val Auth0LoginEndpoint: String =
-    s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
+  val Auth0LoginEndpoint: String = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
 
   val JSonProviderUrl                 = "https://oembed.com/providers.json"
   val ProviderListCacheAgeInMs: Long  = 1000 * 60 * 60 * 24 // 24 hour caching
@@ -28,24 +27,22 @@ class OEmbedProxyProperties extends BaseProps {
 
   val NdlaFrontendOembedServiceUrl: String = Map(
     "local" -> "http://ndla-frontend.ndla-local/oembed",
-    "prod"  -> "https://ndla.no/oembed"
+    "prod"  -> "https://ndla.no/oembed",
   ).getOrElse(Environment, s"https://$Environment.ndla.no/oembed")
 
   val NdlaApiOembedProvider: String = Domain
 
   val NdlaApprovedUrl: List[String] = Map(
     "local" -> List("http://localhost:3000/*", "http://localhost:30017/*", "http://ndla-frontend.ndla-local/*"),
-    "prod"  -> List("https?://www.ndla.no/*", "https?://ndla.no/*", "https?://beta.ndla.no/*")
+    "prod"  -> List("https?://www.ndla.no/*", "https?://ndla.no/*", "https?://beta.ndla.no/*"),
   ).getOrElse(Environment, List(s"https?://ndla-frontend.$Environment.ndla.no/*", s"https?://$Environment.ndla.no/*"))
 
-  val NdlaH5POembedProvider: String = Map(
-    "staging" -> "https://h5p-staging.ndla.no",
-    "prod"    -> "https://h5p.ndla.no"
-  ).getOrElse(Environment, "https://h5p-test.ndla.no")
+  val NdlaH5POembedProvider: String = Map("staging" -> "https://h5p-staging.ndla.no", "prod" -> "https://h5p.ndla.no")
+    .getOrElse(Environment, "https://h5p-test.ndla.no")
 
   val NdlaH5PApprovedUrl: String = Map(
     "staging" -> "https://h5p-staging.ndla.no/resource/*",
-    "prod"    -> "https://h5p.ndla.no/resource/*"
+    "prod"    -> "https://h5p.ndla.no/resource/*",
   ).getOrElse(Environment, "https://h5p-test.ndla.no/resource/*")
 
   val OembedProxyControllerMountPoint = "/oembed-proxy/v1/oembed"

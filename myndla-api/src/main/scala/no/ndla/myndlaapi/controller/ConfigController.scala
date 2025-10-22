@@ -26,17 +26,18 @@ class ConfigController(using
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
     configService: ConfigService,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   override val serviceName: String = "config"
 
   override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
 
-  val pathConfigKey: EndpointInput.PathCapture[ConfigKey] =
-    path[ConfigKey]("config-key")
-      .description(s"The of configuration value. Can only be one of '${ConfigKey.all.mkString("', '")}'")
+  val pathConfigKey: EndpointInput.PathCapture[ConfigKey] = path[ConfigKey]("config-key").description(
+    s"The of configuration value. Can only be one of '${ConfigKey.all.mkString("', '")}'"
+  )
 
-  def getConfig: ServerEndpoint[Any, Eff] = endpoint.get
+  def getConfig: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get db configuration by key")
     .description("Get db configuration by key")
     .in(pathConfigKey)
@@ -46,7 +47,8 @@ class ConfigController(using
       configService.getConfig(configKey)
     }
 
-  def updateConfig: ServerEndpoint[Any, Eff] = endpoint.post
+  def updateConfig: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Update configuration used by api.")
     .description("Update configuration used by api.")
     .in(pathConfigKey)
@@ -60,8 +62,5 @@ class ConfigController(using
       }
     }
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    getConfig,
-    updateConfig
-  )
+  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getConfig, updateConfig)
 }

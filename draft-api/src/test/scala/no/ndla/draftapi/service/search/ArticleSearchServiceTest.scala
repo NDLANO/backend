@@ -44,7 +44,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
     List(),
     None,
     None,
-    false
+    false,
   )
 
   val publicDomain: DraftCopyright = DraftCopyright(
@@ -55,7 +55,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
     List(),
     None,
     None,
-    false
+    false,
   )
 
   val copyrighted: DraftCopyright = DraftCopyright(
@@ -66,153 +66,176 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
     List(),
     None,
     None,
-    false
+    false,
   )
 
   val today: NDLADate = NDLADate.now()
 
-  val article1: Draft = TestData.sampleArticleWithByNcSa.copy(
-    id = Option(1),
-    title = List(Title("Batmen er på vift med en bil", "nb")),
-    introduction = List(Introduction("Batmen", "nb")),
-    content = List(
-      ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
-    ),
-    tags = List(Tag(List("fugl"), "nb")),
-    created = today.minusDays(4),
-    updated = today.minusDays(3)
-  )
+  val article1: Draft = TestData
+    .sampleArticleWithByNcSa
+    .copy(
+      id = Option(1),
+      title = List(Title("Batmen er på vift med en bil", "nb")),
+      introduction = List(Introduction("Batmen", "nb")),
+      content = List(
+        ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
+      ),
+      tags = List(Tag(List("fugl"), "nb")),
+      created = today.minusDays(4),
+      updated = today.minusDays(3),
+    )
 
-  val article2: Draft = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(2),
-    title = List(Title("Pingvinen er ute og går", "nb")),
-    introduction = List(Introduction("Pingvinen", "nb")),
-    content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
-    tags = List(Tag(List("fugl"), "nb")),
-    created = today.minusDays(4),
-    updated = today.minusDays(2)
-  )
+  val article2: Draft = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(2),
+      title = List(Title("Pingvinen er ute og går", "nb")),
+      introduction = List(Introduction("Pingvinen", "nb")),
+      content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
+      tags = List(Tag(List("fugl"), "nb")),
+      created = today.minusDays(4),
+      updated = today.minusDays(2),
+    )
 
-  val article3: Draft = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(3),
-    title = List(Title("Donald Duck kjører bil", "nb")),
-    introduction = List(Introduction("Donald Duck", "nb")),
-    content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
-    tags = List(Tag(List("and"), "nb")),
-    created = today.minusDays(4),
-    updated = today.minusDays(1)
-  )
+  val article3: Draft = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(3),
+      title = List(Title("Donald Duck kjører bil", "nb")),
+      introduction = List(Introduction("Donald Duck", "nb")),
+      content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
+      tags = List(Tag(List("and"), "nb")),
+      created = today.minusDays(4),
+      updated = today.minusDays(1),
+    )
 
-  val article4: Draft = TestData.sampleArticleWithCopyrighted.copy(
-    id = Option(4),
-    title = List(Title("Superman er ute og flyr", "nb")),
-    introduction = List(Introduction("Superman", "nb")),
-    content =
-      List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
-    tags = List(Tag(List("supermann"), "nb")),
-    created = today.minusDays(4),
-    updated = today
-  )
+  val article4: Draft = TestData
+    .sampleArticleWithCopyrighted
+    .copy(
+      id = Option(4),
+      title = List(Title("Superman er ute og flyr", "nb")),
+      introduction = List(Introduction("Superman", "nb")),
+      content =
+        List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
+      tags = List(Tag(List("supermann"), "nb")),
+      created = today.minusDays(4),
+      updated = today,
+    )
 
-  val article5: Draft = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(5),
-    title = List(Title("Hulken løfter biler", "nb")),
-    introduction = List(Introduction("Hulken", "nb")),
-    content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
-    tags = List(Tag(List("hulk"), "nb")),
-    created = today.minusDays(40),
-    updated = today.minusDays(35),
-    notes = Seq(
-      EditorNote(
-        "kakemonster",
-        TestData.userWithWriteAccess.id,
-        Status(DraftStatus.PLANNED, Set.empty),
-        NDLADate.now()
-      )
-    ),
-    previousVersionsNotes = Seq(
-      EditorNote(
-        "kyllingkanon",
-        TestData.userWithWriteAccess.id,
-        Status(DraftStatus.PLANNED, Set.empty),
-        NDLADate.now()
-      )
-    ),
-    grepCodes = Seq("KM1234")
-  )
+  val article5: Draft = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(5),
+      title = List(Title("Hulken løfter biler", "nb")),
+      introduction = List(Introduction("Hulken", "nb")),
+      content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
+      tags = List(Tag(List("hulk"), "nb")),
+      created = today.minusDays(40),
+      updated = today.minusDays(35),
+      notes = Seq(
+        EditorNote(
+          "kakemonster",
+          TestData.userWithWriteAccess.id,
+          Status(DraftStatus.PLANNED, Set.empty),
+          NDLADate.now(),
+        )
+      ),
+      previousVersionsNotes = Seq(
+        EditorNote(
+          "kyllingkanon",
+          TestData.userWithWriteAccess.id,
+          Status(DraftStatus.PLANNED, Set.empty),
+          NDLADate.now(),
+        )
+      ),
+      grepCodes = Seq("KM1234"),
+    )
 
-  val article6: Draft = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(6),
-    title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
-    introduction = List(Introduction("Loke og Tor", "nb")),
-    content = List(
-      ArticleContent(
-        "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
-        "nb"
-      )
-    ),
-    tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
-    created = today.minusDays(30),
-    updated = today.minusDays(25)
-  )
+  val article6: Draft = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(6),
+      title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
+      introduction = List(Introduction("Loke og Tor", "nb")),
+      content = List(
+        ArticleContent(
+          "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
+          "nb",
+        )
+      ),
+      tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
+      created = today.minusDays(30),
+      updated = today.minusDays(25),
+    )
 
-  val article7: Draft = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(7),
-    title = List(Title("Yggdrasil livets tre", "nb")),
-    introduction = List(Introduction("Yggdrasil", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
-    tags = List(Tag(List("yggdrasil"), "nb")),
-    created = today.minusDays(20),
-    updated = today.minusDays(15)
-  )
+  val article7: Draft = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(7),
+      title = List(Title("Yggdrasil livets tre", "nb")),
+      introduction = List(Introduction("Yggdrasil", "nb")),
+      content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
+      tags = List(Tag(List("yggdrasil"), "nb")),
+      created = today.minusDays(20),
+      updated = today.minusDays(15),
+    )
 
-  val article8: Draft = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(8),
-    title = List(Title("Baldur har mareritt", "nb")),
-    introduction = List(Introduction("Baldur", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
-    tags = List(Tag(List("baldur"), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
+  val article8: Draft = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(8),
+      title = List(Title("Baldur har mareritt", "nb")),
+      introduction = List(Introduction("Baldur", "nb")),
+      content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
+      tags = List(Tag(List("baldur"), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
 
-  val article9: Draft = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(9),
-    title = List(Title("Baldur har mareritt om Ragnarok", "nb")),
-    introduction = List(Introduction("Baldur", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
-    tags = List(Tag(List("baldur"), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
+  val article9: Draft = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(9),
+      title = List(Title("Baldur har mareritt om Ragnarok", "nb")),
+      introduction = List(Introduction("Baldur", "nb")),
+      content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
+      tags = List(Tag(List("baldur"), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
 
-  val article10: Draft = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(10),
-    title = List(Title("This article is in english", "en")),
-    introduction = List(Introduction("Engulsk", "en")),
-    content = List(ArticleContent("<p>Something something <em>english</em> What about", "en")),
-    tags = List(Tag(List("englando"), "en")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
+  val article10: Draft = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(10),
+      title = List(Title("This article is in english", "en")),
+      introduction = List(Introduction("Engulsk", "en")),
+      content = List(ArticleContent("<p>Something something <em>english</em> What about", "en")),
+      tags = List(Tag(List("englando"), "en")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
 
-  val article11: Draft = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(11),
-    title = List(Title("Katter", "nb"), Title("Cats", "en"), Title("Baloi", "biz")),
-    introduction = List(
-      Introduction("Katter er store", "nb"),
-      Introduction("Cats are big", "en"),
-      Introduction("Cats are biz", "biz")
-    ),
-    content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
-    tags = List(Tag(List("katt"), "nb"), Tag(List("cat"), "en")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
+  val article11: Draft = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(11),
+      title = List(Title("Katter", "nb"), Title("Cats", "en"), Title("Baloi", "biz")),
+      introduction = List(
+        Introduction("Katter er store", "nb"),
+        Introduction("Cats are big", "en"),
+        Introduction("Cats are biz", "biz"),
+      ),
+      content =
+        List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
+      tags = List(Tag(List("katt"), "nb"), Tag(List("cat"), "en")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -259,29 +282,20 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("all should return only articles of a given type if a type filter is specified") {
     val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        articleTypes = Seq(ArticleType.TopicArticle.entryName)
-      )
+      searchSettings.copy(articleTypes = Seq(ArticleType.TopicArticle.entryName))
     ): @unchecked
     results.totalCount should be(3)
     results.results.map(_.id) should be(Seq(8, 9, 11))
 
     val Success(results2) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        searchLanguage = props.DefaultLanguage,
-        articleTypes = ArticleType.all
-      )
+      searchSettings.copy(searchLanguage = props.DefaultLanguage, articleTypes = ArticleType.all)
     ): @unchecked
     results2.totalCount should be(9)
   }
 
   test("That all returns all documents ordered by id ascending") {
-    val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByIdAsc
-      )
-    ): @unchecked
-    val hits = results.results
+    val Success(results) = articleSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdAsc)): @unchecked
+    val hits             = results.results
     results.totalCount should be(9)
     hits.head.id should be(1)
     hits(1).id should be(2)
@@ -295,24 +309,16 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
   }
 
   test("That all returns all documents ordered by id descending") {
-    val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByIdDesc
-      )
-    ): @unchecked
-    val hits = results.results
+    val Success(results) = articleSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdDesc)): @unchecked
+    val hits             = results.results
     results.totalCount should be(9)
     hits.head.id should be(11)
     hits.last.id should be(1)
   }
 
   test("That all returns all documents ordered by title ascending") {
-    val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByTitleAsc
-      )
-    ): @unchecked
-    val hits = results.results
+    val Success(results) = articleSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByTitleAsc)): @unchecked
+    val hits             = results.results
     results.totalCount should be(9)
     hits.head.id should be(8)
     hits(1).id should be(9)
@@ -326,12 +332,8 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
   }
 
   test("That all returns all documents ordered by title descending") {
-    val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByTitleDesc
-      )
-    ): @unchecked
-    val hits = results.results
+    val Success(results) = articleSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByTitleDesc)): @unchecked
+    val hits             = results.results
     results.totalCount should be(9)
     hits.head.id should be(7)
     hits(1).id should be(2)
@@ -345,11 +347,8 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
   }
 
   test("That all returns all documents ordered by lastUpdated descending") {
-    val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByLastUpdatedDesc
-      )
-    ): @unchecked
+    val Success(results) =
+      articleSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedDesc)): @unchecked
     val hits = results.results
     results.totalCount should be(9)
     hits.head.id should be(3)
@@ -357,11 +356,8 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
   }
 
   test("That all returns all documents ordered by lastUpdated ascending") {
-    val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByLastUpdatedAsc
-      )
-    ): @unchecked
+    val Success(results) =
+      articleSearchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedAsc)): @unchecked
     val hits = results.results
     results.totalCount should be(9)
     hits.map(_.id) should be(Seq(5, 6, 7, 8, 9, 11, 1, 2, 3))
@@ -369,10 +365,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("That all filtering on license only returns documents with given license") {
     val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        license = Some(License.PublicDomain.toString),
-        sort = Sort.ByTitleAsc
-      )
+      searchSettings.copy(license = Some(License.PublicDomain.toString), sort = Sort.ByTitleAsc)
     ): @unchecked
     val hits = results.results
     results.totalCount should be(8)
@@ -380,12 +373,8 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
   }
 
   test("That all filtered by id only returns documents with the given ids") {
-    val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        withIdIn = List(1, 3)
-      )
-    ): @unchecked
-    val hits = results.results
+    val Success(results) = articleSearchService.matchingQuery(searchSettings.copy(withIdIn = List(1, 3))): @unchecked
+    val hits             = results.results
     results.totalCount should be(2)
     hits.head.id should be(1)
     hits.last.id should be(3)
@@ -393,11 +382,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("That paging returns only hits on current page and not more than page-size") {
     val Success(page1) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        page = 1,
-        pageSize = 2,
-        sort = Sort.ByTitleAsc
-      )
+      searchSettings.copy(page = 1, pageSize = 2, sort = Sort.ByTitleAsc)
     ): @unchecked
     val hits1 = page1.results
     page1.totalCount should be(9)
@@ -407,11 +392,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
     hits1.last.id should be(9)
 
     val Success(page2) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        page = 2,
-        pageSize = 2,
-        sort = Sort.ByTitleAsc
-      )
+      searchSettings.copy(page = 2, pageSize = 2, sort = Sort.ByTitleAsc)
     ): @unchecked
 
     val hits2 = page2.results
@@ -427,7 +408,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
       searchSettings.copy(
         query = Some("bil"),
         sort = Sort.ByRelevanceDesc,
-        articleTypes = Seq(ArticleType.TopicArticle.entryName)
+        articleTypes = Seq(ArticleType.TopicArticle.entryName),
       )
     ): @unchecked
     results.totalCount should be(0)
@@ -436,7 +417,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
       searchSettings.copy(
         query = Some("bil"),
         sort = Sort.ByRelevanceDesc,
-        articleTypes = Seq(ArticleType.Standard.entryName)
+        articleTypes = Seq(ArticleType.Standard.entryName),
       )
     ): @unchecked
 
@@ -445,10 +426,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("That search matches title and html-content ordered by relevance descending") {
     val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("bil"),
-        sort = Sort.ByRelevanceDesc
-      )
+      searchSettings.copy(query = Some("bil"), sort = Sort.ByRelevanceDesc)
     ): @unchecked
 
     val hits = results.results
@@ -458,11 +436,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {
     val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("bil"),
-        withIdIn = List(3),
-        sort = Sort.ByRelevanceDesc
-      )
+      searchSettings.copy(query = Some("bil"), withIdIn = List(3), sort = Sort.ByRelevanceDesc)
     ): @unchecked
     val hits = results.results
     results.totalCount should be(1)
@@ -471,10 +445,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("That search matches title") {
     val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("Pingvinen"),
-        sort = Sort.ByTitleAsc
-      )
+      searchSettings.copy(query = Some("Pingvinen"), sort = Sort.ByTitleAsc)
     ): @unchecked
     val hits = results.results
     results.totalCount should be(1)
@@ -482,12 +453,8 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
   }
 
   test("That search matches tags") {
-    val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("and"),
-        sort = Sort.ByTitleAsc
-      )
-    ): @unchecked
+    val Success(results) =
+      articleSearchService.matchingQuery(searchSettings.copy(query = Some("and"), sort = Sort.ByTitleAsc)): @unchecked
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(3)
@@ -495,10 +462,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("That search does not return superman since it has license copyrighted and license is not specified") {
     val Success(results) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("supermann"),
-        sort = Sort.ByTitleAsc
-      )
+      searchSettings.copy(query = Some("supermann"), sort = Sort.ByTitleAsc)
     ): @unchecked
     results.totalCount should be(0)
   }
@@ -508,7 +472,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
       searchSettings.copy(
         query = Some("supermann"),
         license = Some(License.Copyrighted.toString),
-        sort = Sort.ByTitleAsc
+        sort = Sort.ByTitleAsc,
       )
     ): @unchecked
     val hits = results.results
@@ -518,37 +482,25 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("Searching with logical AND only returns results with all terms") {
     val Success(search1) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("bilde + bil"),
-        sort = Sort.ByTitleAsc
-      )
+      searchSettings.copy(query = Some("bilde + bil"), sort = Sort.ByTitleAsc)
     ): @unchecked
     val hits1 = search1.results
     hits1.map(_.id) should equal(Seq(1, 3, 5))
 
     val Success(search2) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("batmen + bil"),
-        sort = Sort.ByTitleAsc
-      )
+      searchSettings.copy(query = Some("batmen + bil"), sort = Sort.ByTitleAsc)
     ): @unchecked
     val hits2 = search2.results
     hits2.map(_.id) should equal(Seq(1))
 
     val Success(search3) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("bil + bilde - flaggermusmann"),
-        sort = Sort.ByTitleAsc
-      )
+      searchSettings.copy(query = Some("bil + bilde - flaggermusmann"), sort = Sort.ByTitleAsc)
     ): @unchecked
     val hits3 = search3.results
     hits3.map(_.id) should equal(Seq(1, 3, 5))
 
     val Success(search4) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("bil - hulken"),
-        sort = Sort.ByTitleAsc
-      )
+      searchSettings.copy(query = Some("bil - hulken"), sort = Sort.ByTitleAsc)
     ): @unchecked
     val hits4 = search4.results
     hits4.map(_.id) should equal(Seq(1, 3, 5))
@@ -556,10 +508,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("search in content should be ranked lower than introduction and title") {
     val Success(search) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("mareritt + ragnarok"),
-        sort = Sort.ByRelevanceDesc
-      )
+      searchSettings.copy(query = Some("mareritt + ragnarok"), sort = Sort.ByRelevanceDesc)
     ): @unchecked
     val hits = search.results
     hits.map(_.id) should equal(Seq(9, 8))
@@ -567,10 +516,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("searching for notes should return relevant results") {
     val Success(search) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("kakemonster"),
-        sort = Sort.ByRelevanceDesc
-      )
+      searchSettings.copy(query = Some("kakemonster"), sort = Sort.ByRelevanceDesc)
     ): @unchecked
     search.totalCount should be(1)
     search.results.head.id should be(5)
@@ -578,11 +524,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("Search for all languages should return all articles in correct language") {
     val Success(search) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        searchLanguage = Language.AllLanguages,
-        sort = Sort.ByIdAsc,
-        pageSize = 100
-      )
+      searchSettings.copy(searchLanguage = Language.AllLanguages, sort = Sort.ByIdAsc, pageSize = 100)
     ): @unchecked
     val hits = search.results
 
@@ -607,7 +549,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         searchLanguage = Language.AllLanguages,
         license = Some(License.Copyrighted.toString),
         sort = Sort.ByTitleAsc,
-        pageSize = 100
+        pageSize = 100,
       )
     ): @unchecked
     val hits = search.results
@@ -618,18 +560,10 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("Searching with query for all languages should return language that matched") {
     val Success(searchEn) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("Big"),
-        searchLanguage = Language.AllLanguages,
-        sort = Sort.ByRelevanceDesc
-      )
+      searchSettings.copy(query = Some("Big"), searchLanguage = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
     ): @unchecked
     val Success(searchNb) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("Store"),
-        searchLanguage = Language.AllLanguages,
-        sort = Sort.ByRelevanceDesc
-      )
+      searchSettings.copy(query = Some("Store"), searchLanguage = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
     ): @unchecked
 
     searchEn.totalCount should equal(1)
@@ -645,11 +579,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("That searching with fallback parameter returns article in language priority even if doesnt match on language") {
     val Success(search) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        withIdIn = List(9, 10, 11),
-        searchLanguage = "en",
-        fallback = true
-      )
+      searchSettings.copy(withIdIn = List(9, 10, 11), searchLanguage = "en", fallback = true)
     ): @unchecked
 
     search.totalCount should equal(3)
@@ -690,7 +620,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         searchLanguage = Language.AllLanguages,
         fallback = true,
         pageSize = pageSize,
-        shouldScroll = true
+        shouldScroll = true,
       )
     ): @unchecked
 
@@ -715,7 +645,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         searchLanguage = Language.AllLanguages,
         fallback = true,
         pageSize = 1,
-        shouldScroll = true
+        shouldScroll = true,
       )
     ): @unchecked
     val Success(scroll) = articleSearchService.scroll(initialSearch.scrollId.get, "*"): @unchecked
@@ -731,10 +661,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   test("searching for previousnotes should return relevant results") {
     val Success(search) = articleSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("kyllingkanon"),
-        sort = Sort.ByRelevanceDesc
-      )
+      searchSettings.copy(query = Some("kyllingkanon"), sort = Sort.ByRelevanceDesc)
     ): @unchecked
 
     search.totalCount should be(1)
@@ -747,7 +674,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         query = Some("\"in english\""),
         searchLanguage = "nb",
         sort = Sort.ByRelevanceDesc,
-        fallback = true
+        fallback = true,
       )
     ): @unchecked
 
@@ -760,7 +687,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
         searchLanguage = "nb",
         sort = Sort.ByRelevanceDesc,
         fallback = true,
-        grepCodes = Seq("KM1234")
+        grepCodes = Seq("KM1234"),
       )
     ): @unchecked
     search.totalCount should be(1)

@@ -15,5 +15,5 @@ case class SearchResult(
     pageSize: Int,
     language: String,
     results: Seq[LearningPathSummaryV2DTO],
-    scrollId: Option[String]
+    scrollId: Option[String],
 )

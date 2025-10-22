@@ -391,7 +391,7 @@ object Iso639List_8 {
       Some("L"),
       "Southern Sotho",
       Some("Sesotho"),
-      None
+      None,
     ),
     Iso639Val("sou", None, None, None, Some("I"), Some("L"), "Southern Thai", None, None),
     Iso639Val("sov", None, None, None, Some("I"), Some("L"), "Sonsorol", None, None),
@@ -823,6 +823,6 @@ object Iso639List_8 {
     Iso639Val("tlh", Some("tlh"), Some("tlh"), None, Some("I"), Some("C"), "Klingon", None, None),
     Iso639Val("tli", Some("tli"), Some("tli"), None, Some("I"), Some("L"), "Tlingit", None, None),
     Iso639Val("tlj", None, None, None, Some("I"), Some("L"), "Talinga-Bwisi", None, None),
-    Iso639Val("tlk", None, None, None, Some("I"), Some("L"), "Taloki", None, None)
+    Iso639Val("tlk", None, None, None, Some("I"), Some("L"), "Taloki", None, None),
   )
 }

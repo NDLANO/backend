@@ -19,7 +19,7 @@ import no.ndla.imageapi.service.search.{
   ImageSearchService,
   SearchConverterService,
   TagIndexService,
-  TagSearchService
+  TagSearchService,
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
@@ -30,7 +30,7 @@ import no.ndla.network.tapir.{
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 import no.ndla.search.NdlaE4sClient
 import org.scalatestplus.mockito.MockitoSugar

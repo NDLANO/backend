@@ -43,17 +43,18 @@ class ReadService(using
     converterService: ConverterService,
     articleSearchService: ArticleSearchService,
     props: Props,
-    frontpageApiClient: FrontpageApiClient
+    frontpageApiClient: FrontpageApiClient,
 ) extends StrictLogging {
-  def getInternalIdByExternalId(externalId: String): Option[api.ArticleIdV2DTO] =
-    articleRepository.getIdFromExternalId(externalId).map(api.ArticleIdV2DTO.apply)
+  def getInternalIdByExternalId(externalId: String): Option[api.ArticleIdV2DTO] = articleRepository
+    .getIdFromExternalId(externalId)
+    .map(api.ArticleIdV2DTO.apply)
 
   def withIdV2(
       id: Long,
       language: String,
       fallback: Boolean,
       revision: Option[Int],
-      feideAccessToken: Option[String]
+      feideAccessToken: Option[String],
   ): Try[Cachable[api.ArticleV2DTO]] = {
     val article = revision match {
       case Some(rev) => articleRepository.withIdAndRevision(id, rev)
@@ -61,19 +62,17 @@ class ReadService(using
     }
 
     article.mapArticle(addUrlsOnEmbedResources) match {
-      case None                               => Failure(NotFoundException(s"The article with id $id was not found"))
-      case Some(ArticleRow(_, _, _, _, None)) => Failure(ArticleErrorHelpers.ArticleGoneException())
+      case None                                                                                         => Failure(NotFoundException(s"The article with id $id was not found"))
+      case Some(ArticleRow(_, _, _, _, None))                                                           => Failure(ArticleErrorHelpers.ArticleGoneException())
       case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
         Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
-      case Some(ArticleRow(_, _, _, _, Some(article))) =>
-        feideApiClient
+      case Some(ArticleRow(_, _, _, _, Some(article))) => feideApiClient
           .getFeideExtendedUser(feideAccessToken)
           .flatMap(feideUser =>
             article.availability match {
               case Availability.teacher if !feideUser.isTeacher =>
                 Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
-              case _ =>
-                Cachable.no(converterService.toApiArticleV2(article, language, fallback))
+              case _ => Cachable.no(converterService.toApiArticleV2(article, language, fallback))
             }
           )
     }
@@ -81,31 +80,29 @@ class ReadService(using
 
   private def getDomainArticleBySlug(slug: String): Try[Article] = {
     articleRepository.withSlug(slug).mapArticle(addUrlsOnEmbedResources) match {
-      case None => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
+      case None                                        => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
       case Some(ArticleRow(_, _, _, _, None))          => Failure(ArticleErrorHelpers.ArticleGoneException())
       case Some(ArticleRow(_, _, _, _, Some(article))) => Success(article)
     }
   }
 
-  def getArticleBySlug(
-      slug: String,
-      language: String,
-      fallback: Boolean
-  ): Try[Cachable[api.ArticleV2DTO]] = getDomainArticleBySlug(slug).flatMap {
-    case article if article.availability == Availability.everyone =>
-      val res: Try[Cachable[api.ArticleV2DTO]] =
-        Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
-      res
-    case article =>
-      val res: Try[Cachable[api.ArticleV2DTO]] =
-        Cachable.no(converterService.toApiArticleV2(article, language, fallback))
-      res
-  }
+  def getArticleBySlug(slug: String, language: String, fallback: Boolean): Try[Cachable[api.ArticleV2DTO]] =
+    getDomainArticleBySlug(slug).flatMap {
+      case article if article.availability == Availability.everyone =>
+        val res: Try[Cachable[api.ArticleV2DTO]] =
+          Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
+        res
+      case article =>
+        val res: Try[Cachable[api.ArticleV2DTO]] =
+          Cachable.no(converterService.toApiArticleV2(article, language, fallback))
+        res
+    }
 
   private[service] def addUrlsOnEmbedResources(article: Article): Article = {
-    val articleWithUrls = article.content.map(content => content.copy(content = addUrlOnResource(content.content)))
-    val visualElementWithUrls =
-      article.visualElement.map(visual => visual.copy(resource = addUrlOnResource(visual.resource)))
+    val articleWithUrls       = article.content.map(content => content.copy(content = addUrlOnResource(content.content)))
+    val visualElementWithUrls = article
+      .visualElement
+      .map(visual => visual.copy(resource = addUrlOnResource(visual.resource)))
 
     article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
   }
@@ -115,12 +112,7 @@ class ReadService(using
     converterService.toApiArticleTags(tags, tagsCount, pageSize, offset, language)
   }
 
-  def getArticlesByPage(
-      pageNo: Int,
-      pageSize: Int,
-      lang: String,
-      fallback: Boolean
-  ): api.ArticleDumpDTO = {
+  def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean): api.ArticleDumpDTO = {
     val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
     val results                    = articleRepository
       .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
@@ -131,8 +123,9 @@ class ReadService(using
 
   def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDumpDTO = {
     val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-    val results                    =
-      articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize).map(addUrlsOnEmbedResources)
+    val results                    = articleRepository
+      .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
+      .map(addUrlsOnEmbedResources)
 
     api.ArticleDomainDumpDTO(articleRepository.articleCount, pageNo, pageSize, results)
   }
@@ -156,8 +149,7 @@ class ReadService(using
       case resourceType if embedTag.hasAttr(TagAttribute.DataResource_Id.toString) =>
         val id = embedTag.attr(TagAttribute.DataResource_Id.toString)
         Some((resourceType, id))
-      case _ =>
-        None
+      case _ => None
     }
 
     typeAndPathOption match {
@@ -165,10 +157,7 @@ class ReadService(using
         val baseUrl   = Url.parse(props.externalApiUrls(resourceType))
         val pathParts = Path.parse(path).parts
 
-        embedTag.attr(
-          s"${TagAttribute.DataUrl}",
-          baseUrl.addPathParts(pathParts).toString
-        ): Unit
+        embedTag.attr(s"${TagAttribute.DataUrl}", baseUrl.addPathParts(pathParts).toString): Unit
       case _ =>
     }
   }
@@ -180,8 +169,9 @@ class ReadService(using
     }
   }
 
-  def getArticleIdsByExternalId(externalId: String): Option[api.ArticleIdsDTO] =
-    articleRepository.getArticleIdsFromExternalId(externalId).map(converterService.toApiArticleIds)
+  def getArticleIdsByExternalId(externalId: String): Option[api.ArticleIdsDTO] = articleRepository
+    .getArticleIdsFromExternalId(externalId)
+    .map(converterService.toApiArticleIds)
 
   def search(
       query: Option[String],
@@ -195,7 +185,7 @@ class ReadService(using
       fallback: Boolean,
       grepCodes: Seq[String],
       shouldScroll: Boolean,
-      feideAccessToken: Option[String]
+      feideAccessToken: Option[String],
   ): Try[Cachable[SearchResult[ArticleSummaryV2DTO]]] = {
     val availabilities = feideApiClient.getFeideExtendedUser(feideAccessToken) match {
       case Success(user)                     => user.availabilities
@@ -206,45 +196,47 @@ class ReadService(using
     }
 
     val settings = query.emptySomeToNone match {
-      case Some(q) =>
-        SearchSettings(
+      case Some(q) => SearchSettings(
           query = Some(q),
           withIdIn = idList,
           language = language,
           license = license,
           page = page,
-          pageSize = if (idList.isEmpty) pageSize else idList.size,
+          pageSize =
+            if (idList.isEmpty) pageSize
+            else idList.size,
           sort = sort.getOrElse(Sort.ByRelevanceDesc),
-          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+          if (articleTypesFilter.isEmpty) ArticleType.all
+          else articleTypesFilter,
           fallback = fallback,
           grepCodes = grepCodes,
           shouldScroll = shouldScroll,
-          availability = availabilities
+          availability = availabilities,
         )
 
-      case None =>
-        SearchSettings(
+      case None => SearchSettings(
           query = None,
           withIdIn = idList,
           language = language,
           license = license,
           page = page,
-          pageSize = if (idList.isEmpty) pageSize else idList.size,
+          pageSize =
+            if (idList.isEmpty) pageSize
+            else idList.size,
           sort = sort.getOrElse(Sort.ByIdAsc),
-          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+          if (articleTypesFilter.isEmpty) ArticleType.all
+          else articleTypesFilter,
           fallback = fallback,
           grepCodes = grepCodes,
           shouldScroll = shouldScroll,
-          availability = availabilities
+          availability = availabilities,
         )
     }
 
     val result       = articleSearchService.matchingQuery(settings)
     val isRestricted = !settings.availability.distinct.forall(_ == Availability.everyone)
-    if (isRestricted)
-      Cachable.no(result)
-    else
-      Cachable.yes(result)
+    if (isRestricted) Cachable.no(result)
+    else Cachable.yes(result)
   }
 
   private def getAvailabilityFilter(feideAccessToken: Option[String]): Option[Availability] = {
@@ -268,15 +260,19 @@ class ReadService(using
       fallback: Boolean,
       page: Int,
       pageSize: Int,
-      feideAccessToken: Option[String]
+      feideAccessToken: Option[String],
   ): Try[Seq[api.ArticleV2DTO]] = {
     if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
     else {
       val offset         = (page - 1) * pageSize
-      val domainArticles =
-        articleRepository.withIds(articleIds, offset, pageSize).toArticles.map(addUrlsOnEmbedResources)
+      val domainArticles = articleRepository
+        .withIds(articleIds, offset, pageSize)
+        .toArticles
+        .map(addUrlsOnEmbedResources)
       val isFeideNeeded = domainArticles.exists(article => article.availability == Availability.teacher)
-      val filtered = if (isFeideNeeded) applyAvailabilityFilter(feideAccessToken, domainArticles) else domainArticles
+      val filtered      =
+        if (isFeideNeeded) applyAvailabilityFilter(feideAccessToken, domainArticles)
+        else domainArticles
       filtered.traverse(article => converterService.toApiArticleV2(article, language, fallback))
     }
   }
@@ -284,21 +280,28 @@ class ReadService(using
   @tailrec
   private def findArticleMenu(article: api.ArticleV2DTO, menus: List[MenuDTO]): Try[MenuDTO] = {
     if (menus.isEmpty) Failure(NotFoundException(s"Could not find menu for article with id ${article.id}"))
-    else
-      menus.find(_.articleId == article.id) match {
-        case Some(value) => Success(value)
-        case None        =>
-          val submenus = menus.flatMap(m => m.menu.map { case x: MenuDTO => x })
-          findArticleMenu(article, submenus)
-      }
+    else menus.find(_.articleId == article.id) match {
+      case Some(value) => Success(value)
+      case None        =>
+        val submenus = menus.flatMap(m =>
+          m.menu
+            .map { case x: MenuDTO =>
+              x
+            }
+        )
+        findArticleMenu(article, submenus)
+    }
   }
 
   private def getArticlesForRSSFeed(menu: MenuDTO): Try[Cachable[List[api.ArticleV2DTO]]] = {
-    val articleIds = menu.menu.map { case x: MenuDTO => x.articleId }
-    val articles   =
-      articleIds.traverse(id =>
-        withIdV2(id, Language.DefaultLanguage, fallback = true, revision = None, feideAccessToken = None)
-      )
+    val articleIds = menu
+      .menu
+      .map { case x: MenuDTO =>
+        x.articleId
+      }
+    val articles = articleIds.traverse(id =>
+      withIdV2(id, Language.DefaultLanguage, fallback = true, revision = None, feideAccessToken = None)
+    )
     articles.map(Cachable.merge)
   }
 
@@ -316,7 +319,7 @@ class ReadService(using
     .map(slug => s"${props.ndlaFrontendUrl}/about/$slug")
     .getOrElse(s"${props.ndlaFrontendUrl}/article/$id")
 
-  private val allBlankLinesRegex = """(?m)^\s*$[\r\n]*""".r
+  private val allBlankLinesRegex                                                                  = """(?m)^\s*$[\r\n]*""".r
   private def toRSSXML(parentArticle: api.ArticleV2DTO, articles: List[api.ArticleV2DTO]): String = {
     val rss = s"""<?xml version="1.0" encoding="utf-8"?>
          |<rss version="2.0">

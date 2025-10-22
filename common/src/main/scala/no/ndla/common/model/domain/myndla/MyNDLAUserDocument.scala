@@ -21,7 +21,7 @@ case class MyNDLAUserDocument(
     username: String,
     displayName: String,
     email: String,
-    arenaEnabled: Boolean
+    arenaEnabled: Boolean,
 ) {
   def toFullUser(id: Long, feideId: String): MyNDLAUser = {
     MyNDLAUser(
@@ -35,7 +35,7 @@ case class MyNDLAUserDocument(
       username = username,
       displayName = displayName,
       email = email,
-      arenaEnabled = arenaEnabled
+      arenaEnabled = arenaEnabled,
     )
   }
 }

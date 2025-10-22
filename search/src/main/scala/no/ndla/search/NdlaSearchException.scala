@@ -14,13 +14,12 @@ case class NdlaSearchException[T](
     message: String,
     rf: Option[RequestFailure] = None,
     ex: Option[Throwable] = None,
-    request: Option[T] = None
+    request: Option[T] = None,
 ) extends RuntimeException(message)
 
 object NdlaSearchException {
   def apply[T](request: T, rf: RequestFailure): NdlaSearchException[T] = {
-    val msg =
-      s"""Got error from elasticsearch:
+    val msg = s"""Got error from elasticsearch:
         |  Status: ${rf.status}
         |  Error: ${rf.error}
         |  Caused by request: $request

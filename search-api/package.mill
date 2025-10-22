@@ -6,15 +6,10 @@ import build.modules.{BaseModule, DockerComponent, SharedDependencies}
 
 object `package` extends BaseModule, DockerComponent {
   override def moduleName  = "search-api"
-  def mvnDeps: T[Seq[Dep]] =
-    SharedDependencies.logging ++
-      SharedDependencies.enumeratum ++
-      SharedDependencies.tapirCirce ++
-      Seq(
-        SharedDependencies.sttp,
-        SharedDependencies.scalaUri,
-        SharedDependencies.jsoup
-      )
+  def mvnDeps: T[Seq[Dep]] = SharedDependencies.logging ++
+    SharedDependencies.enumeratum ++
+    SharedDependencies.tapirCirce ++
+    Seq(SharedDependencies.sttp, SharedDependencies.scalaUri, SharedDependencies.jsoup)
   override def moduleDeps =
     Seq(build.common, build.network, build.mapping, build.language, build.search, build.database)
   object test extends TestBase {

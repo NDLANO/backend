@@ -20,6 +20,6 @@ object SwaggerDocControllerConfig {
     mountPoint = "learningpath-api" / "api-docs",
     description = "Services for accessing learningpaths",
     authUrl = props.Auth0LoginEndpoint,
-    scopes = scopes
+    scopes = scopes,
   )
 }

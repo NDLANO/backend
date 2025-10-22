@@ -43,7 +43,7 @@ class DraftController(using
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
     myNDLAApiClient: MyNDLAApiClient,
-    stateTransitionRules: StateTransitionRules
+    stateTransitionRules: StateTransitionRules,
 ) extends TapirController {
   override val serviceName: String         = "drafts"
   override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
@@ -51,24 +51,24 @@ class DraftController(using
   private val queryParam =
     query[Option[String]]("query").description("Return only articles with content matching the specified query.")
   private val optionalArticleId =
-    query[Option[Long]]("articleId")
-      .description("The ID of the article to generate a status state machine for")
+    query[Option[Long]]("articleId").description("The ID of the article to generate a status state machine for")
   private val pathArticleId = path[Long]("article_id").description("Id of the article that is to be fetched")
   private val pathNodeId    = path[String]("node_id").description("Id of the taxonomy node to process")
-  private val articleTypes  = listQuery[String]("articleTypes")
-    .description("Return only articles of specific type(s). To provide multiple types, separate by comma (,).")
-  private val articleIds = listQuery[Long]("ids")
-    .description(
-      "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."
-    )
+  private val articleTypes  = listQuery[String]("articleTypes").description(
+    "Return only articles of specific type(s). To provide multiple types, separate by comma (,)."
+  )
+  private val articleIds = listQuery[Long]("ids").description(
+    "Return only articles that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+  )
   private val filter          = query[Option[String]]("filter").description("A filter to include a specific entry")
   private val filterNot       = query[Option[String]]("filterNot").description("A filter to remove a specific entry")
   private val pathStatus      = path[String]("STATUS").description("An article status")
   private val copiedTitleFlag = query[Boolean]("copied-title-postfix")
     .description("Add a string to the title marking this article as a copy, defaults to 'true'.")
     .default(true)
-  private val grepCodes = listQuery[String]("grep-codes")
-    .description("A comma separated list of codes from GREP API the resources should be filtered by.")
+  private val grepCodes = listQuery[String]("grep-codes").description(
+    "A comma separated list of codes from GREP API the resources should be filtered by."
+  )
   private val articleSlug = path[String]("slug").description("Slug of the article that is to be fetched.")
   private val pageNo      = query[Int]("page")
     .description("The page number of the search hits to display.")
@@ -78,11 +78,9 @@ class DraftController(using
     .description("The number of search hits to display for each page.")
     .default(props.DefaultPageSize)
     .validate(Validator.min(0))
-  private val sort = query[Option[String]]("sort").description(
-    """The sorting used on results.
+  private val sort = query[Option[String]]("sort").description("""The sorting used on results.
              The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
-             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
-  )
+             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin)
   private val language = query[LanguageCode]("language")
     .description("The ISO 639-1 language code describing language.")
     .default(LanguageCode(Language.AllLanguages))
@@ -93,8 +91,7 @@ class DraftController(using
     .description("Fallback to existing language if language is specified.")
     .default(false)
   private val scrollId = query[Option[String]]("search-context").description(
-    s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${props.InitialScrollContextKeywords
-        .mkString("[", ",", "]")}.
+    s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${props.InitialScrollContextKeywords.mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.name}' and '${this.fallback.name}'.
          |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after ${props.ElasticSearchScrollKeepAlive}).
          |If you are not paginating past ${props.ElasticSearchIndexMaxResultWindow} hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
@@ -125,7 +122,7 @@ class DraftController(using
     getArticleBySlug,
     migrateOutdatedGreps,
     addNotes,
-    deleteCurrentRevision
+    deleteCurrentRevision,
   )
 
   /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
@@ -152,7 +149,8 @@ class DraftController(using
     }
   }
 
-  def getTagSearch: ServerEndpoint[Any, Eff] = endpoint.get
+  def getTagSearch: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Retrieves a list of all previously used tags in articles")
     .description("Retrieves a list of all previously used tags in articles")
     .in("tag-search")
@@ -181,36 +179,40 @@ class DraftController(using
       articleTypesFilter: Seq[String],
       fallback: Boolean,
       grepCodes: Seq[String],
-      shouldScroll: Boolean
+      shouldScroll: Boolean,
   ): Try[(ArticleSearchResultDTO, DynamicHeaders)] = {
     val searchSettings = query match {
-      case Some(q) =>
-        SearchSettings(
+      case Some(q) => SearchSettings(
           query = Some(q),
           withIdIn = idList,
           searchLanguage = language,
           license = license,
           page = page,
-          pageSize = if (idList.isEmpty) pageSize else idList.size,
+          pageSize =
+            if (idList.isEmpty) pageSize
+            else idList.size,
           sort = sort.getOrElse(Sort.ByRelevanceDesc),
-          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+          if (articleTypesFilter.isEmpty) ArticleType.all
+          else articleTypesFilter,
           fallback = fallback,
           grepCodes = grepCodes,
-          shouldScroll = shouldScroll
+          shouldScroll = shouldScroll,
         )
-      case None =>
-        SearchSettings(
+      case None => SearchSettings(
           query = None,
           withIdIn = idList,
           searchLanguage = language,
           license = license,
           page = page,
-          pageSize = if (idList.isEmpty) pageSize else idList.size,
+          pageSize =
+            if (idList.isEmpty) pageSize
+            else idList.size,
           sort = sort.getOrElse(Sort.ByTitleAsc),
-          if (articleTypesFilter.isEmpty) ArticleType.all else articleTypesFilter,
+          if (articleTypesFilter.isEmpty) ArticleType.all
+          else articleTypesFilter,
           fallback = fallback,
           grepCodes = grepCodes,
-          shouldScroll = shouldScroll
+          shouldScroll = shouldScroll,
         )
     }
 
@@ -223,7 +225,8 @@ class DraftController(using
     }
   }
 
-  def getGrepCodes: ServerEndpoint[Any, Eff] = endpoint.get
+  def getGrepCodes: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("grep-codes")
     .summary("Retrieves a list of all previously used grepCodes in articles")
     .description("Retrieves a list of all previously used grepCodes in articles")
@@ -241,7 +244,8 @@ class DraftController(using
       }
     }
 
-  def getAllArticles: ServerEndpoint[Any, Eff] = endpoint.get
+  def getAllArticles: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Show all articles")
     .description("Shows all articles. You can search it too.")
     .in(articleTypes)
@@ -272,9 +276,8 @@ class DraftController(using
               maybeSort,
               scrollId,
               grepCodes,
-              fallback
-            ) =>
-          scrollSearchOr(scrollId, language) {
+              fallback,
+            ) => scrollSearchOr(scrollId, language) {
             val sort               = Sort.valueOf(maybeSort.getOrElse(""))
             val idList             = articleIds.values
             val articleTypesFilter = articleTypes.values
@@ -291,13 +294,14 @@ class DraftController(using
               articleTypesFilter,
               fallback,
               grepCodes.values,
-              shouldScroll
+              shouldScroll,
             )
           }
       }
     }
 
-  def postSearch: ServerEndpoint[Any, Eff] = endpoint.post
+  def postSearch: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("search")
     .summary("Show all articles")
     .description("Shows all articles. You can search it too.")
@@ -331,12 +335,13 @@ class DraftController(using
           articleTypesFilter.getOrElse(List.empty),
           fallback,
           grepCodes.getOrElse(List.empty),
-          shouldScroll
+          shouldScroll,
         )
       }
     }
 
-  def getArticleById: ServerEndpoint[Any, Eff] = endpoint.get
+  def getArticleById: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in(pathArticleId)
     .summary("Show article with a specified Id")
     .description("Shows the article for the specified id.")
@@ -357,7 +362,8 @@ class DraftController(using
       }
     }
 
-  def getArticlesByIds: ServerEndpoint[Any, Eff] = endpoint.get
+  def getArticlesByIds: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("ids")
     .summary("Fetch articles that matches ids parameter.")
     .description("Returns articles that matches ids parameter.")
@@ -371,18 +377,12 @@ class DraftController(using
     .requirePermission(DRAFT_API_WRITE)
     .serverLogicPure { _ =>
       { case (articleIds, fallback, language, pageSize, page) =>
-        readService
-          .getArticlesByIds(
-            articleIds.values,
-            language.code,
-            fallback,
-            page.toLong,
-            pageSize.toLong
-          )
+        readService.getArticlesByIds(articleIds.values, language.code, fallback, page.toLong, pageSize.toLong)
       }
     }
 
-  def getHistoricArticleById: ServerEndpoint[Any, Eff] = endpoint.get
+  def getHistoricArticleById: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in(pathArticleId / "history")
     .summary("Get all saved articles with a specified Id, latest revision first")
     .description(
@@ -395,13 +395,12 @@ class DraftController(using
     .requirePermission(DRAFT_API_WRITE)
     .serverLogicPure { _ =>
       { case (articleId, language, fallback) =>
-        readService
-          .getArticles(articleId, language.code, fallback)
-          .asRight
+        readService.getArticles(articleId, language.code, fallback).asRight
       }
     }
 
-  def getArticleRevisionHistory: ServerEndpoint[Any, Eff] = endpoint.get
+  def getArticleRevisionHistory: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in(pathArticleId / "revision-history")
     .summary("Get the revision history for an article")
     .description("Get an object that describes the revision history for a specific article")
@@ -416,7 +415,8 @@ class DraftController(using
       }
     }
 
-  def getInternalIdByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
+  def getInternalIdByExternalId: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("external_id" / path[Long]("deprecated_node_id"))
     .summary("Get internal id of article for a specified ndla_node_id")
     .description("Get internal id of article for a specified ndla_node_id")
@@ -432,7 +432,8 @@ class DraftController(using
       }
     }
 
-  def getLicenses: ServerEndpoint[Any, Eff] = endpoint.get
+  def getLicenses: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("licenses")
     .summary("Show all valid licenses")
     .description("Shows all valid licenses")
@@ -441,7 +442,9 @@ class DraftController(using
     .in(filterNot)
     .in(filter)
     .serverLogicPure { case (filterNot, filter) =>
-      val licenses: Seq[LicenseDefinition] = mapping.License.getLicenses
+      val licenses: Seq[LicenseDefinition] = mapping
+        .License
+        .getLicenses
         .filter {
           case license: LicenseDefinition if filter.isDefined => license.license.toString.contains(filter.get)
           case _                                              => true
@@ -451,12 +454,11 @@ class DraftController(using
           case _                                                 => false
         }
 
-      licenses
-        .map(x => LicenseDTO(x.license.toString, Option(x.description), x.url))
-        .asRight
+      licenses.map(x => LicenseDTO(x.license.toString, Option(x.description), x.url)).asRight
     }
 
-  def newArticle: ServerEndpoint[Any, Eff] = endpoint.post
+  def newArticle: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Create a new article")
     .description("Creates a new article")
     .in(jsonBody[NewArticleDTO])
@@ -467,7 +469,8 @@ class DraftController(using
       writeService.newArticle(newArticle, user)
     }
 
-  def updateArticle: ServerEndpoint[Any, Eff] = endpoint.patch
+  def updateArticle: ServerEndpoint[Any, Eff] = endpoint
+    .patch
     .in(pathArticleId)
     .summary("Update an existing article")
     .description("Update an existing article")
@@ -480,7 +483,8 @@ class DraftController(using
       writeService.updateArticle(articleId, updatedArticle, user)
     }
 
-  def updateArticleStatus: ServerEndpoint[Any, Eff] = endpoint.put
+  def updateArticleStatus: ServerEndpoint[Any, Eff] = endpoint
+    .put
     .in(pathArticleId / "status" / pathStatus)
     .summary("Update status of an article")
     .description("Update status of an article")
@@ -489,13 +493,12 @@ class DraftController(using
     .requirePermission(DRAFT_API_WRITE)
     .serverLogicPure { user =>
       { case (id, status) =>
-        DraftStatus
-          .valueOfOrError(status)
-          .flatMap(writeService.updateArticleStatus(_, id, user))
+        DraftStatus.valueOfOrError(status).flatMap(writeService.updateArticleStatus(_, id, user))
       }
     }
 
-  def addNotes: ServerEndpoint[Any, Eff] = endpoint.post
+  def addNotes: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("notes")
     .summary("Add notes to a draft")
     .description("Add notes to a draft")
@@ -503,9 +506,14 @@ class DraftController(using
     .errorOut(errorOutputsFor(401, 403, 404, 409))
     .out(noContent)
     .requirePermission(DRAFT_API_WRITE)
-    .serverLogicPure { user => { input => writeService.addNotesToDrafts(input, user) } }
+    .serverLogicPure { user =>
+      { input =>
+        writeService.addNotesToDrafts(input, user)
+      }
+    }
 
-  def validateArticle: ServerEndpoint[Any, Eff] = endpoint.put
+  def validateArticle: ServerEndpoint[Any, Eff] = endpoint
+    .put
     .in(pathArticleId / "validate")
     .summary("Validate an article")
     .description("Validate an article")
@@ -526,7 +534,8 @@ class DraftController(using
       }
     }
 
-  def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .in(pathArticleId / "language" / pathLanguage)
     .summary("Delete language from article")
     .description("Delete language from article")
@@ -539,7 +548,8 @@ class DraftController(using
       }
     }
 
-  def getStatusStateMachine: ServerEndpoint[Any, Eff] = endpoint.get
+  def getStatusStateMachine: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("status-state-machine")
     .summary("Get status state machine")
     .description("Get status state machine")
@@ -553,7 +563,8 @@ class DraftController(using
       }
     }
 
-  def cloneArticle: ServerEndpoint[Any, Eff] = endpoint.post
+  def cloneArticle: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("clone" / pathArticleId)
     .summary("Create a new article with the content of the article with the specified id")
     .description("Create a new article with the content of the article with the specified id")
@@ -565,13 +576,13 @@ class DraftController(using
     .requirePermission(DRAFT_API_WRITE)
     .serverLogicPure { user =>
       { case (articleId, language, fallback, copiedTitlePostfix) =>
-        writeService
-          .copyArticleFromId(articleId, user, language.code, fallback, copiedTitlePostfix)
+        writeService.copyArticleFromId(articleId, user, language.code, fallback, copiedTitlePostfix)
 
       }
     }
 
-  def partialPublish: ServerEndpoint[Any, Eff] = endpoint.post
+  def partialPublish: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("partial-publish" / pathArticleId)
     .summary("Partial publish selected fields")
     .description("Partial publish selected fields")
@@ -583,19 +594,19 @@ class DraftController(using
     .requirePermission(DRAFT_API_WRITE)
     .serverLogicPure { user =>
       { case (articleId, language, fallback, articleFieldsToUpdate) =>
-        writeService
-          .partialPublishAndConvertToApiArticle(
-            articleId,
-            articleFieldsToUpdate,
-            language.code,
-            fallback,
-            user
-          )
+        writeService.partialPublishAndConvertToApiArticle(
+          articleId,
+          articleFieldsToUpdate,
+          language.code,
+          fallback,
+          user,
+        )
 
       }
     }
 
-  def partialPublishMultiple: ServerEndpoint[Any, Eff] = endpoint.post
+  def partialPublishMultiple: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("partial-publish")
     .summary("Partial publish selected fields for multiple articles")
     .description("Partial publish selected fields for multiple articles")
@@ -606,13 +617,13 @@ class DraftController(using
     .requirePermission(DRAFT_API_WRITE)
     .serverLogicPure { user =>
       { case (language, partialBulk) =>
-        writeService
-          .partialPublishMultiple(language.code, partialBulk, user)
+        writeService.partialPublishMultiple(language.code, partialBulk, user)
 
       }
     }
 
-  def copyRevisionDates: ServerEndpoint[Any, Eff] = endpoint.post
+  def copyRevisionDates: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("copyRevisionDates" / pathNodeId)
     .summary("Copy revision dates from the node with this id to _all_ children in taxonomy")
     .description("Copy revision dates from the node with this id to _all_ children in taxonomy")
@@ -626,7 +637,8 @@ class DraftController(using
       }
     }
 
-  def getArticleBySlug: ServerEndpoint[Any, Eff] = endpoint.get
+  def getArticleBySlug: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("slug" / articleSlug)
     .summary("Show article with a specified slug")
     .description("Shows the article for the specified slug.")
@@ -646,7 +658,8 @@ class DraftController(using
       }
     }
 
-  def migrateOutdatedGreps: ServerEndpoint[Any, Eff] = endpoint.post
+  def migrateOutdatedGreps: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("migrate-greps")
     .summary("Iterate all articles and migrate outdated grep codes")
     .description("Iterate all articles and migrate outdated grep codes")
@@ -657,7 +670,8 @@ class DraftController(using
       writeService.migrateOutdatedGreps(user).handleErrorsOrOk
     }
 
-  def deleteCurrentRevision: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteCurrentRevision: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .in(pathArticleId / "current-revision")
     .summary("Delete the current revision of an article")
     .description("Delete the current revision of an article")

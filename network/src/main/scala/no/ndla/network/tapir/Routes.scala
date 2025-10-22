@@ -39,11 +39,8 @@ import sttp.tapir.{AttributeKey, EndpointInput, statusCode}
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
-class Routes(using
-    errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling,
-    services: List[TapirController]
-) extends StrictLogging {
+class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, services: List[TapirController])
+    extends StrictLogging {
   private def failureResponse(error: String, exception: Option[Throwable]): ValuedEndpointOutput[?] = {
     val logMsg = s"Failure handler got: $error"
     exception match {
@@ -55,13 +52,9 @@ class Routes(using
   }
 
   private def decodeFailureHandler[T[_]]: DefaultDecodeFailureHandler[T] =
-    DefaultDecodeFailureHandler[T]
-      .response(failureMsg => {
-        ValuedEndpointOutput(
-          jsonBody[AllErrors],
-          errorHelpers.badRequest(failureMsg)
-        )
-      })
+    DefaultDecodeFailureHandler[T].response(failureMsg => {
+      ValuedEndpointOutput(jsonBody[AllErrors], errorHelpers.badRequest(failureMsg))
+    })
 
   private case class NdlaExceptionHandler[T[_]]() extends ExceptionHandler[T] {
     override def apply(ctx: ExceptionContext)(implicit monad: MonadError[T]): T[Option[ValuedEndpointOutput[?]]] = {
@@ -73,21 +66,26 @@ class Routes(using
     }
   }
 
-  private def hasMethodMismatch(f: RequestResult.Failure): Boolean = f.failures.map(_.failingInput).exists {
-    case _: EndpointInput.FixedMethod[_] => true
-    case _                               => false
-  }
+  private def hasMethodMismatch(f: RequestResult.Failure): Boolean = f
+    .failures
+    .map(_.failingInput)
+    .exists {
+      case _: EndpointInput.FixedMethod[_] => true
+      case _                               => false
+    }
 
   private case class NdlaRejectHandler[A[_]]() extends RejectHandler[A] {
 
     override def apply(ctx: RejectContext)(implicit monad: MonadError[A]): A[Option[ValuedEndpointOutput[?]]] = {
-      val statusCodeAndBody = if (hasMethodMismatch(ctx.failure)) {
-        ValuedEndpointOutput(jsonBody[ErrorBody], errorHelpers.methodNotAllowed)
-          .prepend(statusCode, StatusCode.MethodNotAllowed)
-      } else {
-        ValuedEndpointOutput(jsonBody[ErrorBody], errorHelpers.notFound)
-          .prepend(statusCode, StatusCode.NotFound)
-      }
+      val statusCodeAndBody =
+        if (hasMethodMismatch(ctx.failure)) {
+          ValuedEndpointOutput(jsonBody[ErrorBody], errorHelpers.methodNotAllowed).prepend(
+            statusCode,
+            StatusCode.MethodNotAllowed,
+          )
+        } else {
+          ValuedEndpointOutput(jsonBody[ErrorBody], errorHelpers.notFound).prepend(statusCode, StatusCode.NotFound)
+        }
       monad.unit(Some(statusCodeAndBody))
     }
   }
@@ -140,14 +138,18 @@ class Routes(using
 
     class after extends RequestResultEffectTransform[Identity] {
       private val sensitiveHeaders                       = SensitiveHeaders + "feideauthorization"
-      private def addHeaderMDC(req: ServerRequest): Unit =
-        req.headers.foreach { header =>
-          val value = if (HeaderNames.isSensitive(header, sensitiveHeaders)) "[REDACTED]" else header.value
+      private def addHeaderMDC(req: ServerRequest): Unit = req
+        .headers
+        .foreach { header =>
+          val value =
+            if (HeaderNames.isSensitive(header, sensitiveHeaders)) "[REDACTED]"
+            else header.value
           MDC.put(s"requestHeader.${header.name.toLowerCase}", value)
         }
 
-      private def addRequestBodyMDC(req: ServerRequest): Unit =
-        req.attribute(requestBody).foreach { bodyChannel =>
+      private def addRequestBodyMDC(req: ServerRequest): Unit = req
+        .attribute(requestBody)
+        .foreach { bodyChannel =>
           val sb = StringBuilder()
           bodyChannel.doneOrClosed(): Unit
           bodyChannel.foreachOrError(chunk => sb.append(chunk.asStringUtf8)) match {
@@ -182,7 +184,7 @@ class Routes(using
             requestPath = s"/${req.uri.path.mkString("/")}",
             queryString = req.queryParameters.toString(false),
             latency = latency,
-            responseCode = code
+            responseCode = code,
           )
 
           if (code >= 500) logger.error(s)
@@ -202,7 +204,8 @@ class Routes(using
     val prometheusMetrics =
       PrometheusMetrics.default[Identity](namespace = "tapir", registry = registry, labels = metricLabels)
 
-    val options = NettySyncServerOptions.customiseInterceptors
+    val options = NettySyncServerOptions
+      .customiseInterceptors
       .defaultHandlers(err => failureResponse(err, None))
       .rejectHandler(NdlaRejectHandler[Identity]())
       .exceptionHandler(NdlaExceptionHandler[Identity]())
@@ -212,8 +215,12 @@ class Routes(using
       .prependInterceptor(TapirMiddleware.before)
       .prependInterceptor(RequestInterceptor.transformResultEffect(new TapirMiddleware.after))
       .options
+      // Temporary fix for multipart files being deleted before endpoint logic
+      // TODO: Remove when https://github.com/softwaremill/tapir/issues/4886 is fixed
+      .copy(multipartMinSizeForDisk = Some(1024 * 1024 * 100))
 
-    val config = NettyConfig.default
+    val config = NettyConfig
+      .default
       .withGracefulShutdownTimeout(gracefulShutdownTimeout)
       .connectionTimeout(30.seconds) // Use same connection timeout as Netty default
       .requestTimeout(55.minutes)    // Allow for long-running requests (e.g., internal indexing endpoints)
@@ -239,14 +246,18 @@ class Routes(using
   private val registry: PrometheusRegistry = new PrometheusRegistry()
   private val metricLabels: MetricLabels   = MetricLabels(
     forRequest = List(
-      "path"   -> { case (ep, _) => ep.showPathTemplate(showQueryParam = None) },
-      "method" -> { case (_, req) => req.method.method }
+      "path" -> { case (ep, _) =>
+        ep.showPathTemplate(showQueryParam = None)
+      },
+      "method" -> { case (_, req) =>
+        req.method.method
+      },
     ),
     forResponse = List(
       "status" -> {
         case Right(r) => Some(r.code.code.toString)
         case Left(_)  => Some("5xx")
       }
-    )
+    ),
   )
 }

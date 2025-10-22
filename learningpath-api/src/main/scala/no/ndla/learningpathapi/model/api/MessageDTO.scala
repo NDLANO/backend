@@ -14,8 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Administrator message left on learningpaths")
 case class MessageDTO(
-    @description("Message left on a learningpath by administrator") message: String,
-    @description("When the message was left") date: NDLADate
+    @description("Message left on a learningpath by administrator")
+    message: String,
+    @description("When the message was left")
+    date: NDLADate,
 )
 
 object MessageDTO {

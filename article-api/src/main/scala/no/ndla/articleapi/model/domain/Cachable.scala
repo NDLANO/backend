@@ -20,16 +20,15 @@ import scala.util.Try
   * One would use the class by using `Cachable.yes(value)` (Or `Cachable.no(value)`) for values that can be cached and
   * then use `returnValue.Ok()` in the controller to get the resutling type with headers in a tuple.
   */
-case class Cachable[T](
-    value: T,
-    canBeCached: Boolean
-) {
+case class Cachable[T](value: T, canBeCached: Boolean) {
 
   /** Return a tuple of [[T]] and [[DynamicHeaders]] type with the value as jsonbody and correct 'cache-control' header
     * applied.
     */
   def Ok(headers: List[Header] = List.empty): (T, DynamicHeaders) = {
-    val cacheHeaders = if (canBeCached) List.empty else List(Header.cacheControl(CacheDirective.Private))
+    val cacheHeaders =
+      if (canBeCached) List.empty
+      else List(Header.cacheControl(CacheDirective.Private))
     value -> DynamicHeaders(headers ++ cacheHeaders)
   }
 
@@ -57,21 +56,11 @@ object Cachable {
     Cachable(cachables.map(_.value), canBeCached)
   }
 
-  def yes[T <: Try[U], U](value: T): Try[Cachable[U]] =
-    value.map(v => Cachable.yes(v))
+  def yes[T <: Try[U], U](value: T): Try[Cachable[U]] = value.map(v => Cachable.yes(v))
 
-  def no[T <: Try[U], U](value: T): Try[Cachable[U]] =
-    value.map(v => Cachable.no(v))
+  def no[T <: Try[U], U](value: T): Try[Cachable[U]] = value.map(v => Cachable.no(v))
 
-  def yes[T](value: T): Cachable[T] =
-    new Cachable(
-      value = value,
-      canBeCached = true
-    )
+  def yes[T](value: T): Cachable[T] = new Cachable(value = value, canBeCached = true)
 
-  def no[T](value: T): Cachable[T] =
-    new Cachable(
-      value = value,
-      canBeCached = false
-    )
+  def no[T](value: T): Cachable[T] = new Cachable(value = value, canBeCached = false)
 }

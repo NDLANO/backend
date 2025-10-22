@@ -30,14 +30,14 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
           common.Tag(Seq("konge", "bror"), "nb"),
           common.Tag(Seq("konge", "brur"), "nn"),
           common.Tag(Seq("king", "bro"), "en"),
-          common.Tag(Seq("zing", "xiongdi"), "zh")
+          common.Tag(Seq("zing", "xiongdi"), "zh"),
         ),
         List(
           common.Tag(Seq("konge", "lol", "meme"), "nb"),
           common.Tag(Seq("konge", "lel", "meem"), "nn"),
           common.Tag(Seq("king", "lul", "maymay"), "en"),
-          common.Tag(Seq("zing", "kek", "mimi"), "zh")
-        )
+          common.Tag(Seq("zing", "kek", "mimi"), "zh"),
+        ),
       )
     )
 
@@ -58,15 +58,16 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val visualElements = Seq(
       VisualElement(
         s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\"></$EmbedTagName>",
-        "nb"
+        "nb",
       ),
       VisualElement(
         s"<$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\"></$EmbedTagName>",
-        "nn"
-      )
+        "nn",
+      ),
     )
-    when(publishedConceptRepository.withId(any))
-      .thenReturn(Some(TestData.sampleConcept.copy(visualElement = visualElements)))
+    when(publishedConceptRepository.withId(any)).thenReturn(
+      Some(TestData.sampleConcept.copy(visualElement = visualElements))
+    )
     val concept = service.publishedConceptWithId(id = 1L, language = "nb", fallback = true, Some(userInfo))
     concept.get.visualElement.get.visualElement should equal(
       s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\" data-url=\"http://api-gateway.ndla-local/image-api/v2/images/1\"></$EmbedTagName>"

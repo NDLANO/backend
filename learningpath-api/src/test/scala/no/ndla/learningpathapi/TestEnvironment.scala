@@ -25,7 +25,7 @@ import no.ndla.network.tapir.{
   Routes,
   SwaggerController,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import org.mockito.Mockito.mockingDetails
@@ -90,7 +90,7 @@ trait TestEnvironment extends TapirApplication[LearningpathApiProperties] with M
     e4sClient,
     oembedProxyClient,
     feideApiClient,
-    myndlaApiClient
+    myndlaApiClient,
   )
 
   def resetMocks(): Unit = {

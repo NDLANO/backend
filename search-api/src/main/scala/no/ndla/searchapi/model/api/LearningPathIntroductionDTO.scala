@@ -12,6 +12,8 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Introduction of learningPath")
 case class LearningPathIntroductionDTO(
-    @description("The freetext introduction of the learningpath") introduction: String,
-    @description("ISO 639-1 code that represents the language used in introduction") language: String
+    @description("The freetext introduction of the learningpath")
+    introduction: String,
+    @description("ISO 639-1 code that represents the language used in introduction")
+    language: String,
 ) extends WithLanguage

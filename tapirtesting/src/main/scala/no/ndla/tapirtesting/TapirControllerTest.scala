@@ -42,8 +42,10 @@ trait TapirControllerTest extends UnitTestSuite {
         routes.startServerAndWait(
           s"TapirControllerTest:${this.getClass.getName}",
           serverPort,
-          gracefulShutdownTimeout = 1.seconds
-        ) { s => server = Some(s) }
+          gracefulShutdownTimeout = 1.seconds,
+        ) { s =>
+          server = Some(s)
+        }
       })
 
     Thread.sleep(1000)

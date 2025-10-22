@@ -27,13 +27,14 @@ class FilmPageController(using
     writeService: WriteService,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
 ) extends TapirController {
-  override val serviceName: String         = "filmfrontpage"
-  override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
-  private val pathLanguage = path[String]("language").description("The ISO 639-1 language code describing language.")
+  override val serviceName: String                       = "filmfrontpage"
+  override val prefix: EndpointInput[Unit]               = "frontpage-api" / "v1" / serviceName
+  private val pathLanguage                               = path[String]("language").description("The ISO 639-1 language code describing language.")
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    endpoint.get
+    endpoint
+      .get
       .summary("Get data to display on the film front page")
       .in(query[Option[String]]("language"))
       .out(jsonBody[FilmFrontPageDTO])
@@ -44,18 +45,22 @@ class FilmPageController(using
           case None    => errorHelpers.notFound.asLeft
         }
       },
-    endpoint.post
+    endpoint
+      .post
       .summary("Update film front page")
       .errorOut(errorOutputsFor(400, 401, 403, 404, 422))
       .in(jsonBody[NewOrUpdatedFilmFrontPageDTO])
       .out(jsonBody[FilmFrontPageDTO])
       .requirePermission(FRONTPAGE_API_WRITE)
       .serverLogicPure { _ => filmFrontPage =>
-        writeService.updateFilmFrontPage(filmFrontPage).partialOverride { case ex: ValidationException =>
-          errorHelpers.unprocessableEntity(ex.getMessage)
-        }
+        writeService
+          .updateFilmFrontPage(filmFrontPage)
+          .partialOverride { case ex: ValidationException =>
+            errorHelpers.unprocessableEntity(ex.getMessage)
+          }
       },
-    endpoint.delete
+    endpoint
+      .delete
       .in("language" / pathLanguage)
       .summary("Delete language from film front page")
       .description("Delete language from film front page")
@@ -64,6 +69,6 @@ class FilmPageController(using
       .requirePermission(FRONTPAGE_API_WRITE)
       .serverLogicPure { _ => language =>
         writeService.deleteFilmFrontPageLanguage(language)
-      }
+      },
   )
 }

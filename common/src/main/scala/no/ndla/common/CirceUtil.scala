@@ -31,7 +31,9 @@ object CirceUtil {
     parser
       .parse(str)
       .toTry
-      .recoverWith { ex => Failure(CirceFailure(str, ex)) }
+      .recoverWith { ex =>
+        Failure(CirceFailure(str, ex))
+      }
   }
 
   /** This might throw an exception! Use with care, probably only use this in tests */
@@ -68,12 +70,14 @@ object CirceUtil {
     this: Enum[A] =>
     override implicit val circeDecoder: Decoder[A] = (c: HCursor) =>
       stringDecoder(c).flatMap { s =>
-        withNameEither(s).left.map { notFound =>
-          val enumName = this.getClass.getSimpleName.stripSuffix("$")
-          val enumList = s"[${notFound.enumValues.map(_.entryName).mkString("'", "','", "'")}]"
-          val message  = s"'${notFound.notFoundName}' is not a member of enum '$enumName'. Must be one of $enumList"
-          DecodingFailure(message, c.history)
-        }
+        withNameEither(s)
+          .left
+          .map { notFound =>
+            val enumName = this.getClass.getSimpleName.stripSuffix("$")
+            val enumList = s"[${notFound.enumValues.map(_.entryName).mkString("'", "','", "'")}]"
+            val message  = s"'${notFound.notFoundName}' is not a member of enum '$enumName'. Must be one of $enumList"
+            DecodingFailure(message, c.history)
+          }
       }
   }
 

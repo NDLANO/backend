@@ -19,5 +19,5 @@ case class ArticleApiSearchResult(
     url: String,
     license: String,
     articleType: String,
-    supportedLanguages: Seq[String]
+    supportedLanguages: Seq[String],
 )

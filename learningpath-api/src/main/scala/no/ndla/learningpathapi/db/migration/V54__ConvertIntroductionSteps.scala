@@ -23,7 +23,7 @@ class V54__ConvertIntroductionSteps extends LearningPathAndStepMigration, Strict
 
   override def convertPathAndSteps(
       lpData: LpDocumentRow,
-      stepDatas: List[StepDocumentRow]
+      stepDatas: List[StepDocumentRow],
   ): (LpDocumentRow, List[StepDocumentRow]) = {
     val sortedSteps = stepDatas.sortBy(step => {
       val doc = CirceUtil.tryParse(step.learningStepDocument).get
@@ -38,10 +38,9 @@ class V54__ConvertIntroductionSteps extends LearningPathAndStepMigration, Strict
     val introduction = stepToDelete.flatMap(getLpIntroduction)
 
     (stepToDelete, introduction) match {
-      case (Some(toDelete), Some(intro)) =>
-        (
+      case (Some(toDelete), Some(intro)) => (
           convertPath(lpData, intro),
-          convertSteps(stepDatas.filterNot(_.learningStepId == toDelete.learningStepId), toDelete)
+          convertSteps(stepDatas.filterNot(_.learningStepId == toDelete.learningStepId), toDelete),
         )
       case _ => (lpData, stepDatas)
     }
@@ -62,16 +61,32 @@ class V54__ConvertIntroductionSteps extends LearningPathAndStepMigration, Strict
   }
 
   private def convertSteps(steps: List[StepDocumentRow], deletedStep: StepDocumentRow) = {
-    val deletedSeqNo =
-      CirceUtil.tryParse(deletedStep.learningStepDocument).get.hcursor.get[Option[Long]]("seqNo").toTry.get.get
+    val deletedSeqNo = CirceUtil
+      .tryParse(deletedStep.learningStepDocument)
+      .get
+      .hcursor
+      .get[Option[Long]]("seqNo")
+      .toTry
+      .get
+      .get
     steps.map(step => {
       val oldStep = CirceUtil.tryParse(step.learningStepDocument).get
       val oldSeq  = oldStep.hcursor.get[Option[Long]]("seqNo").toTry.get.get
       oldSeq > deletedSeqNo match {
         case false => step
-        case true  =>
-          step.copy(learningStepDocument =
-            oldStep.mapObject(doc => doc.remove("seqNo").add("seqNo", (oldSeq - 1).asJson)).noSpaces
+        case true  => step.copy(learningStepDocument =
+            oldStep
+              .mapObject(doc =>
+                doc
+                  .remove("seqNo")
+                  .add(
+                    "seqNo",
+                    (
+                      oldSeq - 1
+                    ).asJson,
+                  )
+              )
+              .noSpaces
           )
       }
     })

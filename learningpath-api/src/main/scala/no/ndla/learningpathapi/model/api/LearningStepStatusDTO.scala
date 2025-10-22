@@ -14,7 +14,8 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Status information about a learningpath")
 case class LearningStepStatusDTO(
-    @description("The status of the learningstep") status: String
+    @description("The status of the learningstep")
+    status: String
 )
 
 object LearningStepStatusDTO {

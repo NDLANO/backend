@@ -15,18 +15,14 @@ import sttp.tapir.EndpointInput
 import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
-class StatsController(using
-    errorHandling: ErrorHandling,
-    errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
-) extends TapirController {
+class StatsController(using errorHandling: ErrorHandling, errorHelpers: ErrorHelpers, myNDLAApiClient: MyNDLAApiClient)
+    extends TapirController {
   override val serviceName: String                       = "stats"
   override val prefix: EndpointInput[Unit]               = "learningpath-api" / "v1" / serviceName
-  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    getStats
-  )
+  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getStats)
 
-  private def getStats: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getStats: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get stats for my-ndla usage.")
     .description("Get stats for my-ndla usage.")
     .deprecated()

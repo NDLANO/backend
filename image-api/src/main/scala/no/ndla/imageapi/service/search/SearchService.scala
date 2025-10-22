@@ -26,40 +26,37 @@ abstract class SearchService[T](using
     e4sClient: NdlaE4sClient,
     indexService: IndexService,
     searchConverterService: SearchConverterService,
-    props: Props
+    props: Props,
 ) extends StrictLogging {
   val searchIndex: String
 
   def hitToApiModel(hit: String, language: String): Try[T]
 
-  def scroll(scrollId: String, language: String): Try[SearchResult[T]] =
-    e4sClient
-      .execute {
-        searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
-      }
-      .flatMap(response => {
-        getHits(response.result, language).map(hits =>
-          SearchResult(
-            totalCount = response.result.totalHits,
-            page = None,
-            pageSize = response.result.hits.hits.length,
-            language = language,
-            results = hits,
-            scrollId = response.result.scrollId
-          )
+  def scroll(scrollId: String, language: String): Try[SearchResult[T]] = e4sClient
+    .execute {
+      searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
+    }
+    .flatMap(response => {
+      getHits(response.result, language).map(hits =>
+        SearchResult(
+          totalCount = response.result.totalHits,
+          page = None,
+          pageSize = response.result.hits.hits.length,
+          language = language,
+          results = hits,
+          scrollId = response.result.scrollId,
         )
-      })
+      )
+    })
 
   def createEmptyIndexIfNoIndexesExist(): Unit = {
-    val noIndexesExist =
-      indexService.findAllIndexes(searchIndex).map(_.isEmpty).getOrElse(true)
+    val noIndexesExist = indexService.findAllIndexes(searchIndex).map(_.isEmpty).getOrElse(true)
     if (noIndexesExist) {
       indexService.createIndexWithGeneratedName match {
         case Success(_) =>
           logger.info("Created empty index")
           scheduleIndexDocuments()
-        case Failure(f) =>
-          logger.error(s"Failed to create empty index: $f")
+        case Failure(f) => logger.error(s"Failed to create empty index: $f")
       }
     } else {
       logger.info("Existing index(es) kept intact")
@@ -98,13 +95,16 @@ abstract class SearchService[T](using
   def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {
     val numResults = pageSize match {
       case Some(num) =>
-        if (num > 0) num.min(props.MaxPageSize) else props.DefaultPageSize
+        if (num > 0) num.min(props.MaxPageSize)
+        else props.DefaultPageSize
       case None => props.DefaultPageSize
     }
 
     val startAt = page match {
-      case Some(sa) => (sa - 1).max(0) * numResults
-      case None     => 0
+      case Some(sa) => (
+          sa - 1
+        ).max(0) * numResults
+      case None => 0
     }
 
     (startAt, numResults)
@@ -112,14 +112,11 @@ abstract class SearchService[T](using
 
   protected def errorHandler[E](exception: Throwable): Failure[E] = {
     exception match {
-      case e: NdlaSearchException[?] =>
-        e.rf.map(_.status).getOrElse(0) match {
+      case e: NdlaSearchException[?] => e.rf.map(_.status).getOrElse(0) match {
           case notFound: Int if notFound == 404 =>
             logger.error(s"Index ${props.SearchIndex} not found. Scheduling a reindex.")
             scheduleIndexDocuments()
-            Failure(
-              IndexNotFoundException(s"Index ${props.SearchIndex} not found. Scheduling a reindex")
-            )
+            Failure(IndexNotFoundException(s"Index ${props.SearchIndex} not found. Scheduling a reindex"))
           case _ =>
             logger.error(e.getMessage)
             Failure(NdlaSearchException(s"Unable to execute search in ${props.SearchIndex}", e))
@@ -133,8 +130,7 @@ abstract class SearchService[T](using
 
     f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
     f.foreach {
-      case Success(reindexResult) =>
-        logger.info(
+      case Success(reindexResult) => logger.info(
           s"Completed indexing of ${reindexResult.totalIndexed} documents ($searchIndex) in ${reindexResult.millisUsed} ms."
         )
       case Failure(ex) => logger.warn(ex.getMessage, ex)

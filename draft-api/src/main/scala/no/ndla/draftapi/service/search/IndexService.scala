@@ -28,7 +28,9 @@ trait IndexService[D, T](using props: DraftApiProperties, searchLanguage: Search
   val repository: Repository[D]
 
   def indexAsync(id: Long, doc: D)(implicit ec: ExecutionContext): Future[Try[D]] = {
-    val fut             = Future { indexDocument(doc) }
+    val fut = Future {
+      indexDocument(doc)
+    }
     val logIndexFailure = (id: Long, ex: Throwable) => logger.error(s"Failed to index into $searchIndex, id: $id", ex)
 
     fut.onComplete {
@@ -44,9 +46,9 @@ trait IndexService[D, T](using props: DraftApiProperties, searchLanguage: Search
 
   def indexDocument(imported: D): Try[D] = {
     for {
-      _ <- createIndexIfNotExists()
+      _       <- createIndexIfNotExists()
       requests = createIndexRequests(imported, searchIndex)
-      _ <- executeRequests(requests)
+      _       <- executeRequests(requests)
     } yield imported
   }
 
@@ -68,11 +70,7 @@ trait IndexService[D, T](using props: DraftApiProperties, searchLanguage: Search
   def getRanges: Try[List[(Long, Long)]] = {
     Try {
       val (minId, maxId) = repository.minMaxId
-      Seq
-        .range(minId, maxId + 1)
-        .grouped(props.IndexBulkSize)
-        .map(group => (group.head, group.last))
-        .toList
+      Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
     }
   }
 
@@ -104,18 +102,20 @@ trait IndexService[D, T](using props: DraftApiProperties, searchLanguage: Search
     */
   protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
     if (keepRaw) {
-      searchLanguage.languageAnalyzers.map(langAnalyzer =>
-        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-          .fielddata(false)
-          .analyzer(langAnalyzer.analyzer)
-          .fields(keywordField("raw"))
-      )
+      searchLanguage
+        .languageAnalyzers
+        .map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .fielddata(false)
+            .analyzer(langAnalyzer.analyzer)
+            .fields(keywordField("raw"))
+        )
     } else {
-      searchLanguage.languageAnalyzers.map(langAnalyzer =>
-        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-          .fielddata(false)
-          .analyzer(langAnalyzer.analyzer)
-      )
+      searchLanguage
+        .languageAnalyzers
+        .map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}").fielddata(false).analyzer(langAnalyzer.analyzer)
+        )
     }
   }
 }

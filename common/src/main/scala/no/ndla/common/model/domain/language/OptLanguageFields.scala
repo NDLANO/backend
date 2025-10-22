@@ -15,9 +15,7 @@ import no.ndla.language.Language
 import no.ndla.language.model.{BaseWithLanguageAndValue, WithLanguageAndValue}
 import sttp.tapir.Schema
 
-case class OptLanguageFields[T: Encoder: Decoder](
-    internal: Map[String, Either[NotWantedKeyT, Option[T]]]
-) {
+case class OptLanguageFields[T: Encoder: Decoder](internal: Map[String, Either[NotWantedKeyT, Option[T]]]) {
   type InternalMapType = Map[String, Either[NotWantedKeyT, Option[T]]]
 
   def get(language: String): Option[OptionalLanguageValue[T]] = {
@@ -30,26 +28,32 @@ case class OptLanguageFields[T: Encoder: Decoder](
     }
   }
 
-  def map[R](f: WithLanguageAndValue[Option[T]] => R): Seq[R] = internal.map { case (language, value) =>
-    value match {
-      case Right(Some(value)) => f(BaseWithLanguageAndValue(language, Some(value)))
-      case _                  => f(BaseWithLanguageAndValue(language, None))
+  def map[R](f: WithLanguageAndValue[Option[T]] => R): Seq[R] = internal
+    .map { case (language, value) =>
+      value match {
+        case Right(Some(value)) => f(BaseWithLanguageAndValue(language, Some(value)))
+        case _                  => f(BaseWithLanguageAndValue(language, None))
+      }
     }
-  }.toSeq
+    .toSeq
 
-  def mapExisting[R](f: WithLanguageAndValue[T] => R): Seq[R] = internal.flatMap { case (language, value) =>
-    value match {
-      case Right(Some(value)) => Some(f(BaseWithLanguageAndValue(language, value)))
-      case _                  => None
+  def mapExisting[R](f: WithLanguageAndValue[T] => R): Seq[R] = internal
+    .flatMap { case (language, value) =>
+      value match {
+        case Right(Some(value)) => Some(f(BaseWithLanguageAndValue(language, value)))
+        case _                  => None
+      }
     }
-  }.toSeq
+    .toSeq
 
-  def getWithLanguageFields: Seq[WithLanguageAndValue[T]] = internal.flatMap { case (language, value) =>
-    value match {
-      case Right(Some(value)) => Some(BaseWithLanguageAndValue(language, value))
-      case _                  => None
+  def getWithLanguageFields: Seq[WithLanguageAndValue[T]] = internal
+    .flatMap { case (language, value) =>
+      value match {
+        case Right(Some(value)) => Some(BaseWithLanguageAndValue(language, value))
+        case _                  => None
+      }
     }
-  }.toSeq
+    .toSeq
 
   def findByLanguageOrBestEffort(language: String): Option[WithLanguageAndValue[T]] = {
     get(language) match {
@@ -139,25 +143,25 @@ object OptLanguageFields {
     case Left(_)      => Json.obj(NotWantedKey -> Json.True)
   }
 
-  implicit def eitherDecoder[T](implicit d: Decoder[T]): Decoder[Either[NotWantedKeyT, Option[T]]] = Decoder.instance {
-    cursor =>
+  implicit def eitherDecoder[T](implicit d: Decoder[T]): Decoder[Either[NotWantedKeyT, Option[T]]] =
+    Decoder.instance { cursor =>
       val x              = cursor.downField(NotWantedKey)
       val notWantedField = x.as[Option[Boolean]]
       notWantedField match {
-        case Right(Some(true)) =>
-          Right(Left(NotWantedKey))
-        case _ =>
-          cursor.as[Option[T]].map(Right(_))
+        case Right(Some(true)) => Right(Left(NotWantedKey))
+        case _                 => cursor.as[Option[T]].map(Right(_))
       }
-  }
+    }
 
   implicit def encoder[T: Encoder]: Encoder[OptLanguageFields[T]] = Encoder.instance { lf =>
     lf.internal.asJson
   }
 
   implicit def decoder[T: Decoder: Encoder]: Decoder[OptLanguageFields[T]] = Decoder.instance { json =>
-    json.as[Map[String, Either[NotWantedKeyT, Option[T]]]].map { m =>
-      OptLanguageFields(m)
-    }
+    json
+      .as[Map[String, Either[NotWantedKeyT, Option[T]]]]
+      .map { m =>
+        OptLanguageFields(m)
+      }
   }
 }

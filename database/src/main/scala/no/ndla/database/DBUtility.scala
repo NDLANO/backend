@@ -39,8 +39,9 @@ class DBUtility extends StrictLogging {
     }
   }
 
-  def readOnly[T](func: DBSession => T): T =
-    DB.readOnly { session => func(session) }
+  def readOnly[T](func: DBSession => T): T = DB.readOnly { session =>
+    func(session)
+  }
 
   /** Builds a where clause from a list of conditions. If the list is empty, an empty SQLSyntax object with no where
     * clause is returned.
@@ -50,15 +51,17 @@ class DBUtility extends StrictLogging {
     * @return
     *   A SQLSyntax object representing the where clause.
     */
-  def buildWhereClause(conditions: Seq[SQLSyntax]): SQLSyntax = if (conditions.nonEmpty) {
-    val cc = conditions.foldLeft((true, sqls"where ")) { case (acc, cur) =>
-      (
-        false,
-        if (acc._1) sqls"${acc._2} $cur" else sqls"${acc._2} and $cur"
-      )
-    }
-    cc._2
-  } else sqls""
+  def buildWhereClause(conditions: Seq[SQLSyntax]): SQLSyntax =
+    if (conditions.nonEmpty) {
+      val cc = conditions.foldLeft((true, sqls"where ")) { case (acc, cur) =>
+        (
+          false,
+          if (acc._1) sqls"${acc._2} $cur"
+          else sqls"${acc._2} and $cur",
+        )
+      }
+      cc._2
+    } else sqls""
 
   def asRawJsonb(value: String): ParameterBinderWithValue = {
     val obj = new PGobject()

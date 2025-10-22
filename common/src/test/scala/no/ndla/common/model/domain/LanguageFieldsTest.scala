@@ -20,7 +20,7 @@ class LanguageFieldsTest extends UnitTestSuiteBase {
     val fields = Seq(
       BaseWithLanguageAndValue("nb", "bokmål"),
       BaseWithLanguageAndValue("nn", "nynorsk"),
-      BaseWithLanguageAndValue("en", "english")
+      BaseWithLanguageAndValue("en", "english"),
     )
 
     val languageFields = LanguageFields.fromFields(fields)
@@ -34,7 +34,7 @@ class LanguageFieldsTest extends UnitTestSuiteBase {
     val fields = Seq(
       BaseWithLanguageAndValue("nb", "bokmål"),
       BaseWithLanguageAndValue("nn", "nynorsk"),
-      BaseWithLanguageAndValue("en", "english")
+      BaseWithLanguageAndValue("en", "english"),
     )
 
     val languageFields = LanguageFields.fromFields(fields)
@@ -45,10 +45,7 @@ class LanguageFieldsTest extends UnitTestSuiteBase {
   }
 
   test("That language fields are found by language or best effort according to language priority when opt") {
-    val fields = Seq(
-      BaseWithLanguageAndValue("nb", "bokmål"),
-      BaseWithLanguageAndValue("en", "english")
-    )
+    val fields = Seq(BaseWithLanguageAndValue("nb", "bokmål"), BaseWithLanguageAndValue("en", "english"))
 
     val languageFields = OptLanguageFields.fromFields(fields).withUnwanted("nn")
 
@@ -62,7 +59,7 @@ class LanguageFieldsTest extends UnitTestSuiteBase {
 
     val fields = Seq(
       BaseWithLanguageAndValue[OptionalLanguageValue[String]]("nb", Exists("bokmål")),
-      BaseWithLanguageAndValue[OptionalLanguageValue[String]]("nn", NotWanted())
+      BaseWithLanguageAndValue[OptionalLanguageValue[String]]("nn", NotWanted()),
     )
 
     val languageFields = LanguageFields.fromFields(fields)

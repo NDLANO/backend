@@ -28,8 +28,7 @@ abstract class DocumentMigration extends TableMigration[DocumentRow] {
     sql"""update $tableNameSQL
           set $columnNameSQL = $dataObject
           where id = ${rowData.id}
-       """
-      .update()
+       """.update()
   }
 
   def convertColumn(value: String): String

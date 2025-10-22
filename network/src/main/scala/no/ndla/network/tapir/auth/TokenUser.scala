@@ -20,12 +20,7 @@ import sttp.tapir.*
 import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success, Try}
 
-case class TokenUser(
-    id: String,
-    permissions: Set[Permission],
-    jwt: JWTClaims,
-    originalToken: Option[String]
-) {
+case class TokenUser(id: String, permissions: Set[Permission], jwt: JWTClaims, originalToken: Option[String]) {
   def hasPermission(permission: Permission): Boolean             = permissions.contains(permission)
   def hasPermissions(permissions: Iterable[Permission]): Boolean = permissions.forall(hasPermission)
   def toCombined: CombinedUserWithTokenUser                      = CombinedUserWithTokenUser(this, None)
@@ -48,9 +43,9 @@ object TokenUser {
         scope = scopes.map(_.entryName).toList,
         ndla_id = id.some,
         user_name = id.some,
-        jti = None
+        jti = None,
       ),
-      token
+      token,
     )
 
   }
@@ -67,11 +62,8 @@ object TokenUser {
     val clientId = jWTExtractor.extractClientId()
 
     userId.orElse(clientId).orElse(userName) match {
-      case Some(userInfoName) =>
-        Success(
-          TokenUser(userInfoName, Permission.fromStrings(roles), Some(token))
-        )
-      case None => Failure(UserInfoException())
+      case Some(userInfoName) => Success(TokenUser(userInfoName, Permission.fromStrings(roles), Some(token)))
+      case None               => Failure(UserInfoException())
     }
   }
 
@@ -90,11 +82,11 @@ object TokenUser {
     case Success(value) => DecodeResult.Value(value)
   }
 
-  private implicit val userinfoCodec: Codec[String, TokenUser, TextPlain] = Codec.string.mapDecode(decode)(encode)
-  private val authScheme                                                  = AuthenticationScheme.Bearer.name
-  private val codec = implicitly[Codec[List[String], Option[TokenUser], CodecFormat.TextPlain]]
-  private def filterHeaders(headers: List[String]) = headers.filter(_.toLowerCase.startsWith(authScheme.toLowerCase))
-  private def stringPrefixWithSpace                = Mapping.stringPrefixCaseInsensitiveForList(authScheme + " ")
+  private implicit val userinfoCodec: Codec[String, TokenUser, TextPlain]  = Codec.string.mapDecode(decode)(encode)
+  private val authScheme                                                   = AuthenticationScheme.Bearer.name
+  private val codec                                                        = implicitly[Codec[List[String], Option[TokenUser], CodecFormat.TextPlain]]
+  private def filterHeaders(headers: List[String])                         = headers.filter(_.toLowerCase.startsWith(authScheme.toLowerCase))
+  private def stringPrefixWithSpace                                        = Mapping.stringPrefixCaseInsensitiveForList(authScheme + " ")
   private val authCodec: Codec[List[String], Option[TokenUser], TextPlain] = Codec
     .id[List[String], CodecFormat.TextPlain](codec.format, Schema.binary)
     .map(filterHeaders(_))(identity)
@@ -103,20 +95,16 @@ object TokenUser {
     .schema(codec.schema)
 
   def oauth2Input(permissions: Seq[Permission]): EndpointInput.Auth[Option[TokenUser], AuthType.ScopedOAuth2] = {
-    val authType: AuthType.ScopedOAuth2 = EndpointInput.AuthType
-      .OAuth2(
-        None,
-        None,
-        ListMap.from(permissions.map(p => p.entryName -> p.entryName)),
-        None
-      )
+    val authType: AuthType.ScopedOAuth2 = EndpointInput
+      .AuthType
+      .OAuth2(None, None, ListMap.from(permissions.map(p => p.entryName -> p.entryName)), None)
       .requiredScopes(permissions.map(_.entryName))
 
     EndpointInput.Auth(
       input = sttp.tapir.header(HeaderNames.Authorization)(using authCodec),
       challenge = WWWAuthenticateChallenge.bearer,
       authType = authType,
-      info = AuthInfo.Empty.securitySchemeName("oauth2")
+      info = AuthInfo.Empty.securitySchemeName("oauth2"),
     )
   }
 }

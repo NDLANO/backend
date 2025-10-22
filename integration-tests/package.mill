@@ -19,7 +19,7 @@ object `package` extends BaseModule {
       build.`learningpath-api`,
       build.`learningpath-api`.test,
       build.`search-api`,
-      build.`search-api`.test
+      build.`search-api`.test,
     )
   }
 }

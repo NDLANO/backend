@@ -40,7 +40,7 @@ class FeideApiClientTest extends UnitSuite {
 
     val studentWithEmployee = user.copy(
       eduPersonAffiliation = Seq("member", "student", "employee"),
-      eduPersonPrimaryAffiliation = Some("student")
+      eduPersonPrimaryAffiliation = Some("student"),
     )
     assert(!studentWithEmployee.isTeacher)
   }

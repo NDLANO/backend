@@ -28,15 +28,12 @@ object Priority extends Enum[Priority] with CirceEnum[Priority] {
   def all: Seq[String]                     = Priority.values.map(_.entryName)
   def valueOf(s: String): Option[Priority] = Priority.withNameOption(s)
 
-  def valueOfOrError(s: String): Try[Priority] =
-    valueOf(s) match {
-      case Some(p) => Success(p)
-      case None    =>
-        val validPriorities = values.map(_.toString).mkString(", ")
-        Failure(
-          ValidationException("priority", s"'$s' is not a valid priority. Must be one of $validPriorities")
-        )
-    }
+  def valueOfOrError(s: String): Try[Priority] = valueOf(s) match {
+    case Some(p) => Success(p)
+    case None    =>
+      val validPriorities = values.map(_.toString).mkString(", ")
+      Failure(ValidationException("priority", s"'$s' is not a valid priority. Must be one of $validPriorities"))
+  }
 
   implicit def schema: Schema[Priority]    = schemaForEnumEntry[Priority]
   implicit def codec: PlainCodec[Priority] = plainCodecEnumEntry[Priority]

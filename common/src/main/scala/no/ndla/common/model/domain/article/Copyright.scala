@@ -20,7 +20,7 @@ case class Copyright(
     rightsholders: Seq[Author],
     validFrom: Option[NDLADate],
     validTo: Option[NDLADate],
-    processed: Boolean
+    processed: Boolean,
 )
 
 object Copyright {

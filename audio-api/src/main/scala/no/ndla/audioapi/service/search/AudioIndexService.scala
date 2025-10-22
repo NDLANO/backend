@@ -29,7 +29,7 @@ class AudioIndexService(using
     seriesIndexService: SeriesIndexService,
     audioRepository: AudioRepository,
     props: Props,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends IndexService[AudioMetaInformation, SearchableAudioInformation]
     with StrictLogging {
   override val documentType: String        = props.SearchDocument
@@ -38,10 +38,8 @@ class AudioIndexService(using
 
   override def createIndexRequests(domainModel: AudioMetaInformation, indexName: String): Try[Seq[IndexRequest]] = {
     domainModel.id match {
-      case None =>
-        Failure(MissingIdException(s"Missing id when creating index request for $indexName. This is a bug."))
-      case Some(domainId) =>
-        searchConverterService
+      case None           => Failure(MissingIdException(s"Missing id when creating index request for $indexName. This is a bug."))
+      case Some(domainId) => searchConverterService
           .asSearchableAudioInformation(domainModel)
           .map(sai => {
             val source = CirceUtil.toJsonString(sai)
@@ -60,22 +58,15 @@ class AudioIndexService(using
       nestedField("series").fields(seriesIndexService.seriesIndexFields),
       nestedField("podcastMeta").fields(
         keywordField("language"),
-        ObjectField(
-          "coverPhoto",
-          properties = Seq(
-            keywordField("imageId"),
-            keywordField("altText")
-          )
-        )
-      )
+        ObjectField("coverPhoto", properties = Seq(keywordField("imageId"), keywordField("altText"))),
+      ),
     )
 
-    val dynamics =
-      generateLanguageSupportedFieldList("titles", keepRaw = true) ++
-        generateLanguageSupportedFieldList("tags") ++
-        generateLanguageSupportedFieldList("manuscript") ++
-        generateLanguageSupportedFieldList("filePaths") ++
-        generateLanguageSupportedFieldList("podcastMetaIntroduction")
+    val dynamics = generateLanguageSupportedFieldList("titles", keepRaw = true) ++
+      generateLanguageSupportedFieldList("tags") ++
+      generateLanguageSupportedFieldList("manuscript") ++
+      generateLanguageSupportedFieldList("filePaths") ++
+      generateLanguageSupportedFieldList("podcastMetaIntroduction")
 
     properties(fields ++ dynamics)
   }

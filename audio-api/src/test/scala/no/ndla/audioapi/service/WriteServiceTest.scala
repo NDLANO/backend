@@ -46,7 +46,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     None,
     None,
     None,
-    None
+    None,
   )
 
   val updatedAudioMeta: UpdatedAudioMetaInformationDTO = UpdatedAudioMetaInformationDTO(
@@ -58,7 +58,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     audioType = None,
     podcastMeta = None,
     manuscript = None,
-    seriesId = None
+    seriesId = None,
   )
 
   val updated: NDLADate       = NDLADate.of(2017, 4, 1, 12, 15, 32)
@@ -70,16 +70,18 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     converterService.toDomainAudioMetaInformation(newAudioMeta, someAudio, None, testUser)
   val updated1: model.NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
-  val publicDomain: common.article.Copyright = common.article.Copyright(
-    License.PublicDomain.toString,
-    Some("Metropolis"),
-    List(common.Author(ContributorType.Writer, "Bruce Wayne")),
-    Seq(),
-    Seq(),
-    None,
-    None,
-    false
-  )
+  val publicDomain: common.article.Copyright = common
+    .article
+    .Copyright(
+      License.PublicDomain.toString,
+      Some("Metropolis"),
+      List(common.Author(ContributorType.Writer, "Bruce Wayne")),
+      Seq(),
+      Seq(),
+      None,
+      None,
+      false,
+    )
 
   val multiLangAudio: domain.AudioMetaInformation = domain.AudioMetaInformation(
     Some(4),
@@ -87,19 +89,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     List(
       common.Title("Donald Duck kjører bil", "nb"),
       common.Title("Donald Duck kjører bil", "nn"),
-      common.Title("Donald Duck drives a car", "en")
+      common.Title("Donald Duck drives a car", "en"),
     ),
     List(
       domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
       domain.Audio("file2.mp3", "audio/mpeg", 1024, "nn"),
-      domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")
+      domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
     ),
     publicDomain,
-    List(
-      common.Tag(List("and"), "nb"),
-      common.Tag(List("and"), "nn"),
-      common.Tag(List("duck"), "en")
-    ),
+    List(common.Tag(List("and"), "nb"), common.Tag(List("and"), "nn"), common.Tag(List("duck"), "en")),
     "ndla124",
     updated1,
     created,
@@ -107,7 +105,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     AudioType.Standard,
     Seq.empty,
     None,
-    None
+    None,
   )
 
   override def beforeEach(): Unit = {
@@ -125,19 +123,19 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(s3Client)
 
     when(s3Client.deleteObject(any[String])).thenReturn(Success(mock[DeleteObjectResponse]))
-    when(audioRepository.insert(any[domain.AudioMetaInformation])(using any[DBSession]))
-      .thenReturn(domainAudioMeta.copy(id = Some(1), revision = Some(1)))
+    when(audioRepository.insert(any[domain.AudioMetaInformation])(using any[DBSession])).thenReturn(
+      domainAudioMeta.copy(id = Some(1), revision = Some(1))
+    )
   }
 
   test("converter to domain should set updatedBy from authUser and updated date") {
     when(clock.now()).thenReturn(updated)
-    val domain =
-      converterService.toDomainAudioMetaInformation(
-        newAudioMeta,
-        Audio(newFileName1, "audio/mp3", 1024, "en"),
-        None,
-        testUser
-      )
+    val domain = converterService.toDomainAudioMetaInformation(
+      newAudioMeta,
+      Audio(newFileName1, "audio/mp3", 1024, "en"),
+      None,
+      testUser,
+    )
     domain.updatedBy should equal("ndla54321")
     domain.updated should equal(updated)
   }
@@ -167,8 +165,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("uploadFile should return Failure if storeFile fails to upload") {
-    when(s3Client.putObject(any, any))
-      .thenReturn(Failure(new RuntimeException("Failed to save file")))
+    when(s3Client.putObject(any, any)).thenReturn(Failure(new RuntimeException("Failed to save file")))
 
     val result = writeService.uploadFile(filePartMock, "en")
 
@@ -190,8 +187,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("storeNewAudio should return Failure if filetype is invalid") {
-    when(validationService.validateAudioFile(any))
-      .thenReturn(Seq(ValidationMessage("some-field", "some-message")))
+    when(validationService.validateAudioFile(any)).thenReturn(Seq(ValidationMessage("some-field", "some-message")))
     when(s3Client.putObject(any, any)).thenReturn(Success(mock[PutObjectResponse]))
 
     writeService.storeNewAudio(newAudioMeta, filePartMock, testUser).isFailure should be(true)
@@ -211,12 +207,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         any[domain.AudioMetaInformation],
         any[Option[domain.AudioMetaInformation]],
         any[Option[domain.Series]],
-        any[Option[String]]
+        any[Option[String]],
       )
+    ).thenReturn(Failure(new ValidationException(errors = Seq())))
+    when(s3Client.putObject(any, any)).thenReturn(
+      Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT)))
     )
-      .thenReturn(Failure(new ValidationException(errors = Seq())))
-    when(s3Client.putObject(any, any))
-      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
 
     writeService.storeNewAudio(newAudioMeta, filePartMock, testUser).isFailure should be(true)
     verify(audioRepository, times(0)).insert(any[domain.AudioMetaInformation])(using any[DBSession])
@@ -231,12 +227,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         any[domain.AudioMetaInformation],
         any[Option[domain.AudioMetaInformation]],
         any[Option[domain.Series]],
-        any[Option[String]]
+        any[Option[String]],
       )
+    ).thenReturn(Success(domainAudioMeta))
+    when(s3Client.putObject(any, any)).thenReturn(
+      Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT)))
     )
-      .thenReturn(Success(domainAudioMeta))
-    when(s3Client.putObject(any, any))
-      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
     when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(audioRepository.insert(any[domain.AudioMetaInformation])(using any[DBSession])).thenThrow(new RuntimeException)
 
@@ -252,12 +248,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         any[domain.AudioMetaInformation],
         any[Option[domain.AudioMetaInformation]],
         any[Option[domain.Series]],
-        any[Option[String]]
+        any[Option[String]],
       )
+    ).thenReturn(Success(domainAudioMeta))
+    when(s3Client.putObject(any, any)).thenReturn(
+      Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT)))
     )
-      .thenReturn(Success(domainAudioMeta))
-    when(s3Client.putObject(any, any))
-      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
     when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Failure(new RuntimeException))
     when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Failure(new RuntimeException))
@@ -274,12 +270,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         any[domain.AudioMetaInformation],
         any[Option[domain.AudioMetaInformation]],
         any[Option[domain.Series]],
-        any[Option[String]]
+        any[Option[String]],
       )
+    ).thenReturn(Success(domainAudioMeta))
+    when(s3Client.putObject(any, any)).thenReturn(
+      Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT)))
     )
-      .thenReturn(Success(domainAudioMeta))
-    when(s3Client.putObject(any, any))
-      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
     when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
@@ -304,7 +300,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
-      None
+      None,
     )
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, None, testUser).get
     merged.titles.length should be(1)
@@ -321,7 +317,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
-      None
+      None,
     )
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, None, testUser).get
     merged.titles.length should be(2)
@@ -339,7 +335,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
-      None
+      None,
     )
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, None, testUser).get
     merged.titles.length should be(1)
@@ -359,7 +355,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
-      None
+      None,
     )
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio), testUser).get
     merged.titles.length should be(1)
@@ -381,7 +377,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
-      None
+      None,
     )
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio), testUser).get
     merged.titles.length should be(2)
@@ -414,8 +410,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("that updateAudio returns Failure when audio upload fails") {
     when(audioRepository.withId(1)).thenReturn(Some(domainAudioMeta))
     when(validationService.validateAudioFile(any)).thenReturn(Seq.empty)
-    when(s3Client.putObject(any, any))
-      .thenReturn(Failure(new RuntimeException("Something happened")))
+    when(s3Client.putObject(any, any)).thenReturn(Failure(new RuntimeException("Something happened")))
 
     val result = writeService.updateAudio(1, updatedAudioMeta, Some(filePartMock), testUser)
     result.isFailure should be(true)
@@ -425,18 +420,18 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("that updateAudio returns Failure when meta validation fails") {
     when(audioRepository.withId(1)).thenReturn(Some(domainAudioMeta))
     when(validationService.validateAudioFile(any)).thenReturn(Seq.empty)
-    when(s3Client.putObject(any, any))
-      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.putObject(any, any)).thenReturn(
+      Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT)))
+    )
     when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(
       validationService.validate(
         any[domain.AudioMetaInformation],
         any[Option[domain.AudioMetaInformation]],
         any[Option[domain.Series]],
-        any[Option[String]]
+        any[Option[String]],
       )
-    )
-      .thenReturn(Failure(new ValidationException(errors = Seq())))
+    ).thenReturn(Failure(new ValidationException(errors = Seq())))
 
     val result = writeService.updateAudio(1, updatedAudioMeta, Some(filePartMock), testUser)
     result.isFailure should be(true)
@@ -448,20 +443,21 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("that updateAudio returns Failure when meta update fails") {
     when(audioRepository.withId(1)).thenReturn(Some(domainAudioMeta))
     when(validationService.validateAudioFile(any)).thenReturn(Seq.empty)
-    when(s3Client.putObject(any, any))
-      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.putObject(any, any)).thenReturn(
+      Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT)))
+    )
     when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(
       validationService.validate(
         any[domain.AudioMetaInformation],
         any[Option[domain.AudioMetaInformation]],
         any[Option[domain.Series]],
-        any[Option[String]]
+        any[Option[String]],
       )
+    ).thenReturn(Success(domainAudioMeta))
+    when(audioRepository.update(any[domain.AudioMetaInformation], any[Long])).thenThrow(
+      new RuntimeException("Something happened")
     )
-      .thenReturn(Success(domainAudioMeta))
-    when(audioRepository.update(any[domain.AudioMetaInformation], any[Long]))
-      .thenThrow(new RuntimeException("Something happened"))
 
     val result = writeService.updateAudio(1, updatedAudioMeta, Some(filePartMock), testUser)
     result.isFailure should be(true)
@@ -475,18 +471,18 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(audioRepository.withId(1)).thenReturn(Some(domainAudioMeta))
     when(validationService.validateAudioFile(any)).thenReturn(Seq.empty)
-    when(s3Client.putObject(any, any))
-      .thenReturn(Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT))))
+    when(s3Client.putObject(any, any)).thenReturn(
+      Success(mock[PutObjectResponse](withSettings.strictness(Strictness.LENIENT)))
+    )
     when(s3Client.headObject(any)).thenReturn(Success(s3ObjectMock))
     when(
       validationService.validate(
         any[domain.AudioMetaInformation],
         any[Option[domain.AudioMetaInformation]],
         any[Option[domain.Series]],
-        any[Option[String]]
+        any[Option[String]],
       )
-    )
-      .thenReturn(Success(domainAudioMeta))
+    ).thenReturn(Success(domainAudioMeta))
     when(audioRepository.update(any[domain.AudioMetaInformation], any[Long])).thenReturn(Success(afterInsert))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
@@ -529,51 +525,36 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       titles = List(
         common.Title("Donald Duck kjører bil", "nb"),
         common.Title("Donald Duck kjører bil", "nn"),
-        common.Title("Donald Duck drives a car", "en")
+        common.Title("Donald Duck drives a car", "en"),
       ),
       filePaths = List(
         domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
         domain.Audio("file2.mp3", "audio/mpeg", 1024, "nn"),
-        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")
+        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
       ),
-      tags = List(
-        common.Tag(List("and"), "nb"),
-        common.Tag(List("and"), "nn"),
-        common.Tag(List("duck"), "en")
-      ),
+      tags = List(common.Tag(List("and"), "nb"), common.Tag(List("and"), "nn"), common.Tag(List("duck"), "en")),
       manuscript = List(
         domain.Manuscript("Manuskript", "nb"),
         domain.Manuscript("Manuskript", "nn"),
-        domain.Manuscript("Manuscript", "en")
+        domain.Manuscript("Manuscript", "en"),
       ),
       podcastMeta = List(
         domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nb"),
         domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nn"),
-        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en")
-      )
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en"),
+      ),
     )
 
     val expectedAudio = audio.copy(
-      titles = List(
-        common.Title("Donald Duck kjører bil", "nb"),
-        common.Title("Donald Duck drives a car", "en")
-      ),
-      filePaths = List(
-        domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
-        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")
-      ),
-      tags = List(
-        common.Tag(List("and"), "nb"),
-        common.Tag(List("duck"), "en")
-      ),
-      manuscript = List(
-        domain.Manuscript("Manuskript", "nb"),
-        domain.Manuscript("Manuscript", "en")
-      ),
+      titles = List(common.Title("Donald Duck kjører bil", "nb"), common.Title("Donald Duck drives a car", "en")),
+      filePaths =
+        List(domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"), domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")),
+      tags = List(common.Tag(List("and"), "nb"), common.Tag(List("duck"), "en")),
+      manuscript = List(domain.Manuscript("Manuskript", "nb"), domain.Manuscript("Manuscript", "en")),
       podcastMeta = List(
         domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nb"),
-        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en")
-      )
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en"),
+      ),
     )
 
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
@@ -589,12 +570,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         any[domain.AudioMetaInformation],
         any[Option[domain.AudioMetaInformation]],
         any[Option[domain.Series]],
-        any[Option[String]]
+        any[Option[String]],
       )
+    ).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
+    when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument[domain.AudioMetaInformation](0))
     )
-      .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
-    when(audioIndexService.indexDocument(any[domain.AudioMetaInformation]))
-      .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
     when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[domain.AudioMetaInformation](0))
     )
@@ -612,15 +593,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val audioId = 5555.toLong
     val audio   = multiLangAudio.copy(
       id = Some(audioId),
-      titles = List(
-        common.Title("Donald Duck drives a car", "en")
-      ),
-      filePaths = List(
-        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")
-      ),
-      tags = List(
-        common.Tag(List("duck"), "en")
-      )
+      titles = List(common.Title("Donald Duck drives a car", "en")),
+      filePaths = List(domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")),
+      tags = List(common.Tag(List("duck"), "en")),
     )
 
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
@@ -639,7 +614,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(
       validationService.validatePodcastEpisodes(
         any[Seq[(Long, Option[domain.AudioMetaInformation])]],
-        any[Option[Long]]
+        any[Option[Long]],
       )
     ).thenAnswer((i: InvocationOnMock) => {
       val inputArgument  = i.getArgument[Seq[(Long, Option[domain.AudioMetaInformation])]](0)
@@ -665,8 +640,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val id = i.getArgument[Long](0)
       series.episodes.get.find(_.id.contains(id))
     })
-    when(seriesRepository.insert(any[domain.SeriesWithoutId])(using any[DBSession]))
-      .thenReturn(Failure(new RuntimeException("weird failure there buddy")))
+    when(seriesRepository.insert(any[domain.SeriesWithoutId])(using any[DBSession])).thenReturn(
+      Failure(new RuntimeException("weird failure there buddy"))
+    )
 
     val updateSeries = api.NewSeriesDTO(
       title = "nyTittel",
@@ -676,7 +652,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       episodes = Set(1),
       language = "nb",
       revision = Some(55),
-      hasRSS = Some(true)
+      hasRSS = Some(true),
     )
 
     writeService.newSeries(updateSeries).isFailure should be(true)
@@ -704,8 +680,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val id = i.getArgument[Long](0)
       series.episodes.get.find(_.id.contains(id))
     })
-    when(seriesRepository.update(any[domain.Series])(using any[DBSession]))
-      .thenReturn(Failure(new OptimisticLockException("hei")))
+    when(seriesRepository.update(any[domain.Series])(using any[DBSession])).thenReturn(
+      Failure(new OptimisticLockException("hei"))
+    )
     setupSuccessfulSeriesValidation()
 
     val updateSeries = api.NewSeriesDTO(
@@ -716,7 +693,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       episodes = Set(1),
       language = "nb",
       revision = Some(55),
-      hasRSS = None
+      hasRSS = None,
     )
 
     writeService.updateSeries(1, updateSeries).isFailure should be(true)
@@ -747,16 +724,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     })
     when(audioRepository.setSeriesId(any[Long], any[Option[Long]])(using any[DBSession])).thenReturn(Success(1L))
 
-    when(seriesRepository.insert(any[domain.SeriesWithoutId])(using any[DBSession]))
-      .thenAnswer((i: InvocationOnMock) => {
-        Success(
-          domain.Series.fromId(
-            id = 1,
-            revision = 1,
-            i.getArgument[domain.SeriesWithoutId](0)
-          )
-        )
-      })
+    when(seriesRepository.insert(any[domain.SeriesWithoutId])(using any[DBSession])).thenAnswer(
+      (i: InvocationOnMock) => {
+        Success(domain.Series.fromId(id = 1, revision = 1, i.getArgument[domain.SeriesWithoutId](0)))
+      }
+    )
 
     val updateSeries = api.NewSeriesDTO(
       title = "nyTittel",
@@ -766,7 +738,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       episodes = Set(1),
       language = "nb",
       revision = Some(55),
-      hasRSS = Some(false)
+      hasRSS = Some(false),
     )
 
     val result = writeService.newSeries(updateSeries)
@@ -783,10 +755,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(audioIndexService)
     reset(seriesIndexService)
 
-    val episodesMap = Map(
-      1L -> TestData.samplePodcast.copy(id = Some(1)),
-      2L -> TestData.samplePodcast.copy(id = Some(2))
-    )
+    val episodesMap =
+      Map(1L -> TestData.samplePodcast.copy(id = Some(1)), 2L -> TestData.samplePodcast.copy(id = Some(2)))
 
     val series = TestData.SampleSeries
 
@@ -815,7 +785,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       episodes = Set(2),
       language = "nb",
       revision = Some(55),
-      hasRSS = Some(true)
+      hasRSS = Some(true),
     )
 
     val result = writeService.updateSeries(1L, updateSeries)
@@ -830,9 +800,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(audioRepository)
     reset(seriesRepository)
 
-    val episodesMap = Map(
-      1L -> TestData.samplePodcast.copy(id = Some(1))
-    )
+    val episodesMap = Map(1L -> TestData.samplePodcast.copy(id = Some(1)))
 
     val series = TestData.SampleSeries
 
@@ -855,7 +823,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       episodes = Set(1),
       language = "nb",
       revision = Some(55),
-      hasRSS = Some(true)
+      hasRSS = Some(true),
     )
 
     val result = writeService.updateSeries(1, updateSeries)
@@ -874,7 +842,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
-      None
+      None,
     )
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, None, testUser).get
     merged.tags.length should be(1)
@@ -892,18 +860,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       titles = List(
         common.Title("Donald Duck kjører bil", "nb"),
         common.Title("Donald Duck kjører bil", "nn"),
-        common.Title("Donald Duck drives a car", "en")
+        common.Title("Donald Duck drives a car", "en"),
       ),
       filePaths = List(
         domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
         domain.Audio("file2.mp3", "audio/mpeg", 1024, "nn"),
-        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")
+        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
       ),
-      tags = List(
-        common.Tag(List("and"), "nb"),
-        common.Tag(List("and"), "nn"),
-        common.Tag(List("duck"), "en")
-      )
+      tags = List(common.Tag(List("and"), "nb"), common.Tag(List("and"), "nn"), common.Tag(List("duck"), "en")),
     )
 
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
@@ -916,12 +880,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         any[domain.AudioMetaInformation],
         any[Option[domain.AudioMetaInformation]],
         any[Option[domain.Series]],
-        any[Option[String]]
+        any[Option[String]],
       )
+    ).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
+    when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument[domain.AudioMetaInformation](0))
     )
-      .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
-    when(audioIndexService.indexDocument(any[domain.AudioMetaInformation]))
-      .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
 
     writeService.deleteAudioLanguageVersion(audioId, "nn")
 
@@ -941,18 +905,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       titles = List(
         common.Title("Donald Duck kjører bil", "nb"),
         common.Title("Donald Duck kjører bil", "nn"),
-        common.Title("Donald Duck drives a car", "en")
+        common.Title("Donald Duck drives a car", "en"),
       ),
       filePaths = List(
         domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
         domain.Audio("file2.mp3", "audio/mpeg", 1024, "nn"),
-        domain.Audio("file2.mp3", "audio/mpeg", 1024, "en")
+        domain.Audio("file2.mp3", "audio/mpeg", 1024, "en"),
       ),
-      tags = List(
-        common.Tag(List("and"), "nb"),
-        common.Tag(List("and"), "nn"),
-        common.Tag(List("duck"), "en")
-      )
+      tags = List(common.Tag(List("and"), "nb"), common.Tag(List("and"), "nn"), common.Tag(List("duck"), "en")),
     )
 
     when(audioRepository.withId(audioId)).thenReturn(Some(audio))
@@ -964,12 +924,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         any[domain.AudioMetaInformation],
         any[Option[domain.AudioMetaInformation]],
         any[Option[domain.Series]],
-        any[Option[String]]
+        any[Option[String]],
       )
+    ).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
+    when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument[domain.AudioMetaInformation](0))
     )
-      .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
-    when(audioIndexService.indexDocument(any[domain.AudioMetaInformation]))
-      .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[domain.AudioMetaInformation](0)))
 
     writeService.deleteAudioLanguageVersion(audioId, "nn")
 
@@ -988,18 +948,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       titles = List(
         common.Title("Donald Duck kjører bil", "nb"),
         common.Title("Donald Duck kjører bil", "nn"),
-        common.Title("Donald Duck drives a car", "en")
+        common.Title("Donald Duck drives a car", "en"),
       ),
       filePaths = List(
         domain.Audio("file1.mp3", "audio/mpeg", 1024, "nb"),
         domain.Audio("file2.mp3", "audio/mpeg", 1024, "nn"),
-        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en")
+        domain.Audio("file3.mp3", "audio/mpeg", 1024, "en"),
       ),
-      tags = List(
-        common.Tag(List("and"), "nb"),
-        common.Tag(List("and"), "nn"),
-        common.Tag(List("duck"), "en")
-      )
+      tags = List(common.Tag(List("and"), "nb"), common.Tag(List("and"), "nn"), common.Tag(List("duck"), "en")),
     )
 
     val afterInsert = audio.copy(id = Some(5555L), revision = Some(1))
@@ -1014,10 +970,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         any[domain.AudioMetaInformation],
         any[Option[domain.AudioMetaInformation]],
         any[Option[domain.Series]],
-        any[Option[String]]
+        any[Option[String]],
       )
-    )
-      .thenReturn(Success(audio))
+    ).thenReturn(Success(audio))
     when(audioRepository.update(any[domain.AudioMetaInformation], any[Long])).thenReturn(Success(afterInsert))
     when(audioIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[domain.AudioMetaInformation])).thenReturn(Success(afterInsert))

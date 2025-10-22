@@ -12,6 +12,8 @@ import sttp.tapir.Schema.annotations.description
 
 @description("User folder data")
 case class UserFolderDTO(
-    @description("The users own folders") folders: List[FolderDTO],
-    @description("The shared folder the user has saved") sharedFolders: List[FolderDTO]
+    @description("The users own folders")
+    folders: List[FolderDTO],
+    @description("The shared folder the user has saved")
+    sharedFolders: List[FolderDTO],
 )

@@ -14,7 +14,7 @@ class LicenseTest extends UnitSuite {
       LicenseDefinition(
         License.CC_BY,
         "Creative Commons Attribution 4.0 International",
-        Some("https://creativecommons.org/licenses/by/4.0/")
+        Some("https://creativecommons.org/licenses/by/4.0/"),
       )
     )
     License.getLicense("CC-BY-4.0") should equal(expectedResult)
@@ -25,22 +25,18 @@ class LicenseTest extends UnitSuite {
   }
 
   test("getLicenses returns a list of all licenses") {
-    val byLicense =
-      LicenseDefinition(
-        License.CC_BY,
-        "Creative Commons Attribution 4.0 International",
-        Some("https://creativecommons.org/licenses/by/4.0/")
-      )
+    val byLicense = LicenseDefinition(
+      License.CC_BY,
+      "Creative Commons Attribution 4.0 International",
+      Some("https://creativecommons.org/licenses/by/4.0/"),
+    )
 
     License.getLicenses.size should equal(10)
-    License.getLicenses
-      .find(_.license.toString == "CC-BY-4.0")
-      .get should equal(byLicense)
+    License.getLicenses.find(_.license.toString == "CC-BY-4.0").get should equal(byLicense)
   }
 
   test("getLicense returns a NA license") {
-    val expectedResult =
-      Some(LicenseDefinition(License.NA, "Not Applicable", None))
+    val expectedResult = Some(LicenseDefinition(License.NA, "Not Applicable", None))
     License.getLicense("N/A") should equal(expectedResult)
   }
 }

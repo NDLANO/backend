@@ -14,7 +14,7 @@ import no.ndla.common.model.api.search.{
   LanguageValue,
   LearningResourceType,
   SearchableLanguageList,
-  SearchableLanguageValues
+  SearchableLanguageValues,
 }
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.{
@@ -23,7 +23,7 @@ import no.ndla.common.model.domain.{
   Responsible,
   Status as CommonStatus,
   RevisionMeta,
-  RevisionStatus
+  RevisionStatus,
 }
 import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
@@ -42,33 +42,18 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       Seq(
         LanguageValue("nn", "Eg kjøyrar rundt i min fine bil"),
         LanguageValue("nb", "Jeg kjører rundt i tutut"),
-        LanguageValue("en", "I'm in my mums car wroomwroom")
+        LanguageValue("en", "I'm in my mums car wroomwroom"),
       )
     )
 
-    val introductions = SearchableLanguageValues(
-      Seq(
-        LanguageValue("en", "Wroom wroom")
-      )
-    )
+    val introductions = SearchableLanguageValues(Seq(LanguageValue("en", "Wroom wroom")))
 
-    val metaDescriptions = SearchableLanguageValues(
-      Seq(
-        LanguageValue("nb", "Mammas bil")
-      )
-    )
+    val metaDescriptions = SearchableLanguageValues(Seq(LanguageValue("nb", "Mammas bil")))
 
-    val tags = SearchableLanguageList(
-      Seq(
-        LanguageValue("en", Seq("Mum", "Car", "Wroom"))
-      )
-    )
+    val tags = SearchableLanguageList(Seq(LanguageValue("en", Seq("Mum", "Car", "Wroom"))))
 
     val embedAttrs = SearchableLanguageList(
-      Seq(
-        LanguageValue("nb", Seq("En norsk", "To norsk")),
-        LanguageValue("en", Seq("One english"))
-      )
+      Seq(LanguageValue("nb", Seq("En norsk", "To norsk")), LanguageValue("en", Seq("One english")))
     )
 
     val embedResourcesAndIds =
@@ -82,14 +67,14 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
         id = UUID.randomUUID(),
         revisionDate = today,
         note = "some note",
-        status = RevisionStatus.NeedsRevision
+        status = RevisionStatus.NeedsRevision,
       ),
       RevisionMeta(
         id = UUID.randomUUID(),
         revisionDate = olddate,
         note = "some other note",
-        status = RevisionStatus.NeedsRevision
-      )
+        status = RevisionStatus.NeedsRevision,
+      ),
     )
 
     val original = SearchableDraft(
@@ -115,7 +100,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       previousVersionsNotes = List("OldNote"),
       grepContexts = List(
         SearchableGrepContext("K123", Some("some title"), "Published"),
-        SearchableGrepContext("K456", Some("some title 2"), "Published")
+        SearchableGrepContext("K456", Some("some title 2"), "Published"),
       ),
       traits = List.empty,
       embedAttributes = embedAttrs,
@@ -123,20 +108,19 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       revisionMeta = revisionMeta,
       nextRevision = revisionMeta.lastOption,
       responsible = Some(Responsible("some responsible", TestData.today)),
-      domainObject = TestData.draft1.copy(
-        status = CommonStatus(DraftStatus.IN_PROGRESS, Set(DraftStatus.PUBLISHED)),
-        notes = Seq(
-          EditorNote(
-            note = "Hei",
-            user = "user",
-            timestamp = TestData.today,
-            status = CommonStatus(
-              current = DraftStatus.IN_PROGRESS,
-              other = Set(DraftStatus.PUBLISHED)
+      domainObject = TestData
+        .draft1
+        .copy(
+          status = CommonStatus(DraftStatus.IN_PROGRESS, Set(DraftStatus.PUBLISHED)),
+          notes = Seq(
+            EditorNote(
+              note = "Hei",
+              user = "user",
+              timestamp = TestData.today,
+              status = CommonStatus(current = DraftStatus.IN_PROGRESS, other = Set(DraftStatus.PUBLISHED)),
             )
-          )
-        )
-      ),
+          ),
+        ),
       priority = Priority.Unspecified,
       defaultParentTopicName = titles.defaultValue,
       parentTopicName = titles,
@@ -147,7 +131,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       published = TestData.today,
       favorited = 0,
       learningResourceType = LearningResourceType.Article,
-      typeName = List.empty
+      typeName = List.empty,
     )
 
     val json         = CirceUtil.toJsonString(original)

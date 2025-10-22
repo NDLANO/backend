@@ -18,9 +18,7 @@ import scalikejdbc.{DB, DBSession, *}
 class V58__MigrateSavedSearchUrls extends BaseJavaMigration {
 
   private def countAllRows(implicit session: DBSession): Option[Long] = {
-    sql"select count(*) from userdata where document is not NULL"
-      .map(rs => rs.long("count"))
-      .single()
+    sql"select count(*) from userdata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
   private def allRows(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
@@ -36,13 +34,14 @@ class V58__MigrateSavedSearchUrls extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update userdata set document = $dataObject where id = $id"
-      .update()
+    sql"update userdata set document = $dataObject where id = $id".update()
   }
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
-    .withinTx { session => migrateRows(using session) }
+    .withinTx { session =>
+      migrateRows(using session)
+    }
 
   private def migrateRows(implicit session: DBSession): Unit = {
     val count        = countAllRows.get
@@ -63,17 +62,19 @@ class V58__MigrateSavedSearchUrls extends BaseJavaMigration {
 
     val newUserData = V58_UserData(
       userId = oldUserData.userId,
-      savedSearches = oldUserData.savedSearches.map(el =>
-        el.map { value =>
-          V58_SavedSearch(
-            value.searchUrl.replace("/concept", "/content").replace("status=", "draft-status="),
-            value.searchPhrase
-          )
-        }
-      ),
+      savedSearches = oldUserData
+        .savedSearches
+        .map(el =>
+          el.map { value =>
+            V58_SavedSearch(
+              value.searchUrl.replace("/concept", "/content").replace("status=", "draft-status="),
+              value.searchPhrase,
+            )
+          }
+        ),
       latestEditedArticles = oldUserData.latestEditedArticles,
       latestEditedConcepts = oldUserData.latestEditedConcepts,
-      favoriteSubjects = oldUserData.favoriteSubjects
+      favoriteSubjects = oldUserData.favoriteSubjects,
     )
     newUserData.asJson.noSpaces
   }
@@ -89,7 +90,7 @@ case class V58_UserData(
     savedSearches: Option[Seq[V58_SavedSearch]],
     latestEditedArticles: Option[Seq[String]],
     latestEditedConcepts: Option[Seq[String]],
-    favoriteSubjects: Option[Seq[String]]
+    favoriteSubjects: Option[Seq[String]],
 )
 object V58_UserData {
   implicit val decoder: Decoder[V58_UserData] = deriveDecoder

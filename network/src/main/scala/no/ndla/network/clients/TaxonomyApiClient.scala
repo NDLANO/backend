@@ -31,49 +31,50 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
   private val TaxonomyApiEndpoint = s"$taxonomyBaseUrl/v1"
   private val timeoutSeconds      = 600.seconds
 
-  private def getNodes(shouldUsePublishedTax: Boolean): Try[ListBuffer[Node]] =
-    get[ListBuffer[Node]](
-      s"$TaxonomyApiEndpoint/nodes/",
-      headers = getVersionHashHeader(shouldUsePublishedTax),
-      Seq(
-        "nodeType"        -> List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC).mkString(","),
-        "includeContexts" -> "true",
-        "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax)
-      )
-    )
+  private def getNodes(shouldUsePublishedTax: Boolean): Try[ListBuffer[Node]] = get[ListBuffer[Node]](
+    s"$TaxonomyApiEndpoint/nodes/",
+    headers = getVersionHashHeader(shouldUsePublishedTax),
+    Seq(
+      "nodeType"        -> List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC).mkString(","),
+      "includeContexts" -> "true",
+      "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
+    ),
+  )
 
-  private def getResources(shouldUsePublishedTax: Boolean): Try[List[Node]] =
-    getPaginated[Node](
-      s"$TaxonomyApiEndpoint/nodes/search",
-      headers = getVersionHashHeader(shouldUsePublishedTax),
-      Seq(
-        "pageSize"        -> "500",
-        "nodeType"        -> NodeType.RESOURCE.toString,
-        "includeContexts" -> "true",
-        "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax)
-      )
-    )
+  private def getResources(shouldUsePublishedTax: Boolean): Try[List[Node]] = getPaginated[Node](
+    s"$TaxonomyApiEndpoint/nodes/search",
+    headers = getVersionHashHeader(shouldUsePublishedTax),
+    Seq(
+      "pageSize"        -> "500",
+      "nodeType"        -> NodeType.RESOURCE.toString,
+      "includeContexts" -> "true",
+      "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
+    ),
+  )
 
   def getTaxonomyContext(
       contentUri: String,
       filterVisibles: Boolean,
       filterContexts: Boolean,
-      shouldUsePublishedTax: Boolean
+      shouldUsePublishedTax: Boolean,
   ): Try[List[TaxonomyContext]] = {
     val contexts = get[List[TaxonomyContext]](
       s"$TaxonomyApiEndpoint/queries/$contentUri",
       headers = getVersionHashHeader(shouldUsePublishedTax),
-      params = Seq("filterVisibles" -> filterVisibles.toString)
+      params = Seq("filterVisibles" -> filterVisibles.toString),
     )
-    if (filterContexts) contexts.map(list => list.filter(c => c.rootId.contains("subject"))) else contexts
+    if (filterContexts) contexts.map(list => list.filter(c => c.rootId.contains("subject")))
+    else contexts
   }
 
   private def getIsVisibleParam(shouldUsePublishedTax: Boolean) = {
-    if (shouldUsePublishedTax) "" else "false"
+    if (shouldUsePublishedTax) ""
+    else "false"
   }
 
   private def getVersionHashHeader(shouldUsePublishedTax: Boolean): Map[String, String] = {
-    if (shouldUsePublishedTax) Map.empty else Map(TAXONOMY_VERSION_HEADER -> defaultVersion)
+    if (shouldUsePublishedTax) Map.empty
+    else Map(TAXONOMY_VERSION_HEADER -> defaultVersion)
   }
 
   val getTaxonomyBundle: Memoize[Boolean, Try[TaxonomyBundle]] =
@@ -81,7 +82,10 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
 
   /** The memoized function of this [[getTaxonomyBundle]] should probably be used in most cases */
   def getTaxonomyBundleUncached(shouldUsePublishedTax: Boolean): Try[TaxonomyBundle] = {
-    logger.info(s"Fetching ${if (shouldUsePublishedTax) "published" else "draft"} taxonomy in bulk...")
+    logger.info(
+      s"Fetching ${if (shouldUsePublishedTax) "published"
+        else "draft"} taxonomy in bulk..."
+    )
     val startFetch                            = System.currentTimeMillis()
     implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
 
@@ -114,17 +118,16 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
   private def get[A: Decoder](url: String, headers: Map[String, String], params: Seq[(String, String)]): Try[A] = {
     ndlaClient.fetchWithForwardedAuth[A](
       quickRequest.get(uri"$url?$params").headers(headers).readTimeout(timeoutSeconds),
-      None
+      None,
     )
   }
 
   private def getPaginated[T: Decoder](
       url: String,
       headers: Map[String, String],
-      params: Seq[(String, String)]
+      params: Seq[(String, String)],
   ): Try[List[T]] = {
-    def fetchPage(p: Seq[(String, String)]): Try[PaginationPage[T]] =
-      get[PaginationPage[T]](url, headers, p)
+    def fetchPage(p: Seq[(String, String)]): Try[PaginationPage[T]] = get[PaginationPage[T]](url, headers, p)
 
     val pageSize   = params.toMap.getOrElse("pageSize", "100").toInt
     val pageParams = params :+ ("page" -> "1")
@@ -147,6 +150,12 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
 
 case class PaginationPage[T](totalCount: Long, results: List[T])
 object PaginationPage {
-  implicit def encoder[T](implicit @unused e: Encoder[T]): Encoder[PaginationPage[T]] = deriveEncoder
-  implicit def decoder[T](implicit @unused d: Decoder[T]): Decoder[PaginationPage[T]] = deriveDecoder
+  implicit def encoder[T](implicit
+      @unused
+      e: Encoder[T]
+  ): Encoder[PaginationPage[T]] = deriveEncoder
+  implicit def decoder[T](implicit
+      @unused
+      d: Decoder[T]
+  ): Decoder[PaginationPage[T]] = deriveDecoder
 }

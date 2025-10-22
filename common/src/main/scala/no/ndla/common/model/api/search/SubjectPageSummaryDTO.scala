@@ -13,11 +13,7 @@ import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
 @description("DTO for subject page summary in search results")
-case class SubjectPageSummaryDTO(
-    id: Long,
-    name: String,
-    metaDescription: MetaDescriptionDTO
-)
+case class SubjectPageSummaryDTO(id: Long, name: String, metaDescription: MetaDescriptionDTO)
 
 object SubjectPageSummaryDTO {
   implicit val encoder: Encoder[SubjectPageSummaryDTO] = deriveEncoder

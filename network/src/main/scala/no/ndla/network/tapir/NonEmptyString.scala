@@ -33,21 +33,17 @@ object NonEmptyString {
 
   private def validateString(underlying: String): Boolean = underlying.trim.nonEmpty
 
-  def fromOptString(s: Option[String]): Option[NonEmptyString] =
-    s.filter(validateString).map(f => new NonEmptyString(f))
-  def fromString(s: String): Option[NonEmptyString] =
-    Option.when(validateString(s))(new NonEmptyString(s))
+  def fromOptString(s: Option[String]): Option[NonEmptyString] = s
+    .filter(validateString)
+    .map(f => new NonEmptyString(f))
+  def fromString(s: String): Option[NonEmptyString] = Option.when(validateString(s))(new NonEmptyString(s))
 
-  implicit val schema: Schema[NonEmptyString]            = Schema.string
-  implicit val schemaOpt: Schema[Option[NonEmptyString]] = Schema.string.asOption
+  implicit val schema: Schema[NonEmptyString]                                                      = Schema.string
+  implicit val schemaOpt: Schema[Option[NonEmptyString]]                                           = Schema.string.asOption
   implicit val queryParamCodec: Codec[List[String], Option[NonEmptyString], CodecFormat.TextPlain] = {
     Codec
       .id[List[String], TextPlain](TextPlain(), Schema.string)
-      .mapDecode(x =>
-        DecodeResult.Value(
-          fromOptString(x.headOption)
-        )
-      )(x => x.map(_.underlying).toList)
+      .mapDecode(x => DecodeResult.Value(fromOptString(x.headOption)))(x => x.map(_.underlying).toList)
   }
 
   implicit def circeOptionDecoder: Decoder[Option[NonEmptyString]] = Decoder.withReattempt {
@@ -60,12 +56,13 @@ object NonEmptyString {
   private val decodingFailureReason = DecodingFailure.Reason.CustomReason(parseErrorMessage)
 
   implicit def circeDecoder: Decoder[NonEmptyString] = (c: HCursor) =>
-    c.as[String].flatMap { str =>
-      fromString(str) match {
-        case Some(value) => Right(value)
-        case None        => Left(DecodingFailure(decodingFailureReason, c))
+    c.as[String]
+      .flatMap { str =>
+        fromString(str) match {
+          case Some(value) => Right(value)
+          case None        => Left(DecodingFailure(decodingFailureReason, c))
+        }
       }
-    }
 
   implicit def circeEncoder: Encoder[NonEmptyString] = (a: NonEmptyString) => Json.fromString(a.underlying)
 

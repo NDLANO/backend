@@ -14,8 +14,10 @@ import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import sttp.tapir.Schema.annotations.description
 
 case class ExportedUserDataDTO(
-    @description("The users data") userData: MyNDLAUserDTO,
-    @description("The users folders") folders: List[FolderDTO]
+    @description("The users data")
+    userData: MyNDLAUserDTO,
+    @description("The users folders")
+    folders: List[FolderDTO],
 )
 
 object ExportedUserDataDTO {

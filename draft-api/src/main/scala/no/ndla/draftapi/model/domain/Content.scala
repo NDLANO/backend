@@ -22,7 +22,7 @@ case class UserData(
     latestEditedArticles: Option[Seq[String]],
     latestEditedConcepts: Option[Seq[String]],
     latestEditedLearningpaths: Option[Seq[String]],
-    favoriteSubjects: Option[Seq[String]]
+    favoriteSubjects: Option[Seq[String]],
 )
 
 object DBArticle extends SQLSyntaxSupport[Draft] {
@@ -33,11 +33,7 @@ object DBArticle extends SQLSyntaxSupport[Draft] {
   def fromResultSet(lp: ResultName[Draft])(rs: WrappedResultSet): Draft = {
     val meta = CirceUtil.unsafeParseAs[Draft](rs.string(lp.c("document")))
     val slug = rs.stringOpt(lp.c("slug"))
-    meta.copy(
-      id = Some(rs.long(lp.c("article_id"))),
-      revision = Some(rs.int(lp.c("revision"))),
-      slug = slug
-    )
+    meta.copy(id = Some(rs.long(lp.c("article_id"))), revision = Some(rs.int(lp.c("revision"))), slug = slug)
   }
 }
 
@@ -47,8 +43,7 @@ object UserData extends SQLSyntaxSupport[UserData] {
   implicit val encoder: Encoder[UserData] = deriveEncoder
   implicit val decoder: Decoder[UserData] = deriveDecoder
 
-  def fromResultSet(lp: SyntaxProvider[UserData])(rs: WrappedResultSet): UserData =
-    fromResultSet(lp.resultName)(rs)
+  def fromResultSet(lp: SyntaxProvider[UserData])(rs: WrappedResultSet): UserData = fromResultSet(lp.resultName)(rs)
 
   def fromResultSet(lp: ResultName[UserData])(rs: WrappedResultSet): UserData = {
     val userData = CirceUtil.unsafeParseAs[UserData](rs.string(lp.c("document")))

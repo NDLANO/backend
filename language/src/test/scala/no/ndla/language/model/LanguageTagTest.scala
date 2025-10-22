@@ -31,27 +31,27 @@ class LanguageTagTest extends UnitSuite {
   }
 
   test("that apply throws LanguageNotSupportedException when invalid number of subtags") {
-    intercept[LanguageNotSupportedException](
-      LanguageTag("eng-latn-gb-invalid")
-    ).getMessage should equal("The language tag 'eng-latn-gb-invalid' is not supported.")
+    intercept[LanguageNotSupportedException](LanguageTag("eng-latn-gb-invalid")).getMessage should equal(
+      "The language tag 'eng-latn-gb-invalid' is not supported."
+    )
   }
 
   test("that LanguageSubtagNotSupportedException is thrown when invalid iso639-code") {
-    intercept[LanguageSubtagNotSupportedException](
-      LanguageTag("abasd")
-    ).getMessage should equal("The language subtag 'abasd' is not supported.")
+    intercept[LanguageSubtagNotSupportedException](LanguageTag("abasd")).getMessage should equal(
+      "The language subtag 'abasd' is not supported."
+    )
   }
 
   test("that ScriptSubtagNotSupportedException is thrown when invalid iso15924-code") {
-    intercept[ScriptSubtagNotSupportedException](
-      LanguageTag("eng-abcd")
-    ).getMessage should equal("The script subtag 'abcd' is not supported.")
+    intercept[ScriptSubtagNotSupportedException](LanguageTag("eng-abcd")).getMessage should equal(
+      "The script subtag 'abcd' is not supported."
+    )
   }
 
   test("that RegionSubtagNotSupportedException is thrown when invalid iso3166-code") {
-    intercept[RegionSubtagNotSupportedException](
-      LanguageTag("eng-22")
-    ).getMessage should equal("The region subtag '22' is not supported.")
+    intercept[RegionSubtagNotSupportedException](LanguageTag("eng-22")).getMessage should equal(
+      "The region subtag '22' is not supported."
+    )
   }
 
   test("that displayName only returns 'language' when no script or region subtag") {

@@ -15,7 +15,7 @@ case class NewOrUpdatedAboutSubjectDTO(
     title: String,
     description: String,
     language: String,
-    visualElement: NewOrUpdatedVisualElementDTO
+    visualElement: NewOrUpdatedVisualElementDTO,
 )
 object NewOrUpdatedAboutSubjectDTO {
 

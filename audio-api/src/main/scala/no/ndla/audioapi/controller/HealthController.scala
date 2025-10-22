@@ -18,20 +18,23 @@ class HealthController(using
     audioRepository: AudioRepository,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
-    errorHandling: ControllerErrorHandling
+    errorHandling: ControllerErrorHandling,
 ) extends TapirHealthController {
 
   override def checkReadiness(): Either[String, String] = {
     audioRepository
       .getRandomAudio()
       .flatMap(audio => {
-        audio.filePaths.headOption.map(filePath => {
-          if (s3Client.objectExists(filePath.filePath)) {
-            Right("Healthy")
-          } else {
-            Left("Internal server error")
-          }
-        })
+        audio
+          .filePaths
+          .headOption
+          .map(filePath => {
+            if (s3Client.objectExists(filePath.filePath)) {
+              Right("Healthy")
+            } else {
+              Left("Internal server error")
+            }
+          })
       })
       .getOrElse(Right("Healthy"))
   }

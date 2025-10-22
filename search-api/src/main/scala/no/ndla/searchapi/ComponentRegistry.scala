@@ -18,14 +18,14 @@ import no.ndla.network.tapir.{
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.controller.{
   ControllerErrorHandling,
   InternController,
   SearchController,
-  SwaggerDocControllerConfig
+  SwaggerDocControllerConfig,
 }
 import no.ndla.searchapi.integration.*
 import no.ndla.searchapi.service.search.*
@@ -68,12 +68,8 @@ class ComponentRegistry(properties: SearchApiProperties) extends TapirApplicatio
   given internController: InternController      = new InternController
 
   given swagger: SwaggerController = new SwaggerController(
-    List[TapirController](
-      searchController,
-      internController,
-      healthController
-    ),
-    SwaggerDocControllerConfig.swaggerInfo
+    List[TapirController](searchController, internController, healthController),
+    SwaggerDocControllerConfig.swaggerInfo,
   )
 
   given services: List[TapirController] = swagger.getServices()

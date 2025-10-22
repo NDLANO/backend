@@ -25,7 +25,7 @@ class TagIndexService(using
     searchConverterService: SearchConverterService,
     audioRepository: AudioRepository,
     props: Props,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends IndexService[AudioMetaInformation, SearchableTag]
     with StrictLogging {
   override val documentType: String                         = props.AudioTagSearchDocument
@@ -44,11 +44,6 @@ class TagIndexService(using
   }
 
   def getMapping: MappingDefinition = {
-    properties(
-      List(
-        textField("tag"),
-        keywordField("language")
-      )
-    )
+    properties(List(textField("tag"), keywordField("language")))
   }
 }

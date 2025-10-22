@@ -15,7 +15,7 @@ import no.ndla.learningpathapi.db.util.*
 class V53__AddDatesToLearningStep extends LearningPathAndStepMigration {
   override def convertPathAndSteps(
       lpData: LpDocumentRow,
-      stepDatas: List[StepDocumentRow]
+      stepDatas: List[StepDocumentRow],
   ): (LpDocumentRow, List[StepDocumentRow]) = {
     val learningpath = CirceUtil.unsafeParse(lpData.learningPathDocument)
     val created      = learningpath.hcursor.get[String]("created") match {

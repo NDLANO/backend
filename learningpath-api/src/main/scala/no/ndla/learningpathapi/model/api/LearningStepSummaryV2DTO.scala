@@ -23,7 +23,7 @@ case class LearningStepSummaryV2DTO(
     @description("The type of the step")
     `type`: String,
     @description("The full url to where the complete metainformation about the learningstep can be found")
-    metaUrl: String
+    metaUrl: String,
 )
 
 object LearningStepSummaryV2DTO {

@@ -5,15 +5,11 @@ import build.modules.{BaseModule, SharedDependencies, DockerComponent}
 
 object `package` extends BaseModule, DockerComponent {
   override def moduleName  = "frontpage-api"
-  def mvnDeps: T[Seq[Dep]] =
-    SharedDependencies.logging ++
-      SharedDependencies.enumeratum ++
-      SharedDependencies.tapirCirce ++
-      SharedDependencies.database ++
-      Seq(
-        SharedDependencies.sttp,
-        SharedDependencies.catsEffect
-      )
+  def mvnDeps: T[Seq[Dep]] = SharedDependencies.logging ++
+    SharedDependencies.enumeratum ++
+    SharedDependencies.tapirCirce ++
+    SharedDependencies.database ++
+    Seq(SharedDependencies.sttp, SharedDependencies.catsEffect)
   override def moduleDeps = Seq(build.common, build.network, build.mapping, build.language, build.database)
   object test extends TestBase {
     override def moduleDeps = super.moduleDeps ++ Seq(build.tapirtesting, build.scalatestsuite)

@@ -19,11 +19,8 @@ import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
-abstract class IndexService(using
-    e4sClient: NdlaE4sClient,
-    searchLanguage: SearchLanguage,
-    props: Props
-) extends BaseIndexService
+abstract class IndexService(using e4sClient: NdlaE4sClient, searchLanguage: SearchLanguage, props: Props)
+    extends BaseIndexService
     with StrictLogging {
   override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
   val repository: Repository[ImageMetaInformation]
@@ -32,9 +29,9 @@ abstract class IndexService(using
 
   def indexDocument(imported: ImageMetaInformation): Try[ImageMetaInformation] = {
     for {
-      _ <- createIndexIfNotExists()
+      _       <- createIndexIfNotExists()
       requests = createIndexRequests(imported, searchIndex)
-      _ <- executeRequests(requests)
+      _       <- executeRequests(requests)
     } yield imported
   }
 
@@ -56,11 +53,7 @@ abstract class IndexService(using
   def getRanges: Try[List[(Long, Long)]] = {
     Try {
       val (minId, maxId) = repository.minMaxId
-      Seq
-        .range(minId, maxId + 1)
-        .grouped(props.IndexBulkSize)
-        .map(group => (group.head, group.last))
-        .toList
+      Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
     }
   }
 

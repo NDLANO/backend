@@ -17,5 +17,5 @@ case class ImageApiSearchResult(
     previewUrl: String,
     metaUrl: String,
     license: String,
-    supportedLanguages: Seq[String]
+    supportedLanguages: Seq[String],
 )

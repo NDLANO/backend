@@ -21,7 +21,7 @@ import no.ndla.common.model.domain.learningpath.{
   LearningStep,
   LearningpathCopyright,
   StepStatus,
-  StepType
+  StepType,
 }
 import no.ndla.common.model.domain.{Author, ContributorType, Priority, RevisionMeta, Tag, Title}
 import no.ndla.learningpathapi.*
@@ -52,7 +52,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     status = StepStatus.ACTIVE,
     created = today,
     lastUpdated = today,
-    owner = "owner"
+    owner = "owner",
   )
 
   val trump: Author                    = Author(ContributorType.Writer, "Donald Drumpf")
@@ -80,7 +80,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     comments = Seq.empty,
     priority = Priority.Unspecified,
     revisionMeta = RevisionMeta.default,
-    grepCodes = Seq.empty
+    grepCodes = Seq.empty,
   )
 
   override def beforeEach(): Unit = {
@@ -93,41 +93,40 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validate returns error message when description contains illegal html") {
-    val validationErrors =
-      validator.validateLearningStep(
-        ValidLearningStep.copy(description = List(Description("<h1>Ugyldig</h1>", "nb"))),
-        ValidLearningPath,
-        false
-      )
+    val validationErrors = validator.validateLearningStep(
+      ValidLearningStep.copy(description = List(Description("<h1>Ugyldig</h1>", "nb"))),
+      ValidLearningPath,
+      false,
+    )
     validationErrors.size should be(1)
     validationErrors.head.field should equal("description")
   }
 
   test("That validate returns error when description has an illegal language") {
-    when(languageValidator.validate("language", "bergensk", false))
-      .thenReturn(Some(ValidationMessage("language", "Error")))
-    when(titleValidator.validate(ValidLearningStep.title, false))
-      .thenReturn(List())
+    when(languageValidator.validate("language", "bergensk", false)).thenReturn(
+      Some(ValidationMessage("language", "Error"))
+    )
+    when(titleValidator.validate(ValidLearningStep.title, false)).thenReturn(List())
     when(languageValidator.validate("language", "nb", false)).thenReturn(None)
     val validationErrors = validator.validateLearningStep(
       ValidLearningStep.copy(description = List(Description("<strong>Gyldig beskrivelse</strong>", "bergensk"))),
       ValidLearningPath,
-      false
+      false,
     )
     validationErrors.size should be(1)
     validationErrors.head.field should equal("language")
   }
 
   test("That DescriptionValidator validates both description text and language") {
-    when(languageValidator.validate("language", "bergensk", false))
-      .thenReturn(Some(ValidationMessage("language", "Error")))
-    when(titleValidator.validate(ValidLearningStep.title, false))
-      .thenReturn(List())
+    when(languageValidator.validate("language", "bergensk", false)).thenReturn(
+      Some(ValidationMessage("language", "Error"))
+    )
+    when(titleValidator.validate(ValidLearningStep.title, false)).thenReturn(List())
     when(languageValidator.validate("language", "nb", false)).thenReturn(None)
     val validationErrors = validator.validateLearningStep(
       ValidLearningStep.copy(description = List(Description("<h1>Ugyldig</h1>", "bergensk"))),
       ValidLearningPath,
-      false
+      false,
     )
     validationErrors.size should be(2)
     validationErrors.head.field should equal("description")
@@ -136,16 +135,16 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   test("That validate returns error for all invalid descriptions") {
     val validationErrors = validator.validateLearningStep(
-      ValidLearningStep.copy(
-        description = List(
+      ValidLearningStep.copy(description =
+        List(
           Description("<strong>Gyldig</strong>", "nb"),
           Description("<h2>Også gyldig</h2>", "nb"),
           Description("<h1>Ugyldig</h1>", "nb"),
-          Description("<h4>Også ugyldig</h4>", "nb")
+          Description("<h4>Også ugyldig</h4>", "nb"),
         )
       ),
       ValidLearningPath,
-      false
+      false,
     )
 
     validationErrors.size should be(2)
@@ -157,7 +156,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(embedUrl = List(EmbedUrl("<strong>ikke gyldig</strong>", "nb", EmbedType.OEmbed))),
       ValidLearningPath,
-      false
+      false,
     )
     validationMessages.size should be(1)
     validationMessages.head.field should equal("embedUrl.url")
@@ -166,14 +165,14 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   test("That validate returns error when embedUrl.language is invalid") {
     when(languageValidator.validate("language", "nb", false)).thenReturn(None)
-    when(titleValidator.validate(ValidLearningStep.title, false))
-      .thenReturn(List())
-    when(languageValidator.validate("language", "bergensk", false))
-      .thenReturn(Some(ValidationMessage("language", "Error")))
+    when(titleValidator.validate(ValidLearningStep.title, false)).thenReturn(List())
+    when(languageValidator.validate("language", "bergensk", false)).thenReturn(
+      Some(ValidationMessage("language", "Error"))
+    )
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(embedUrl = List(EmbedUrl("https://www.ndla.no/123", "bergensk", EmbedType.OEmbed))),
       ValidLearningPath,
-      false
+      false,
     )
     validationMessages.size should be(1)
     validationMessages.head.field should equal("language")
@@ -181,15 +180,15 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   test("That validate returns error for both embedUrl.url and embedUrl.language") {
     when(languageValidator.validate("language", "nb", false)).thenReturn(None)
-    when(titleValidator.validate(ValidLearningStep.title, false))
-      .thenReturn(List())
-    when(languageValidator.validate("language", "bergensk", false))
-      .thenReturn(Some(ValidationMessage("language", "Error")))
+    when(titleValidator.validate(ValidLearningStep.title, false)).thenReturn(List())
+    when(languageValidator.validate("language", "bergensk", false)).thenReturn(
+      Some(ValidationMessage("language", "Error"))
+    )
 
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(embedUrl = List(EmbedUrl("<h1>Ugyldig</h1>", "bergensk", EmbedType.OEmbed))),
       ValidLearningPath,
-      false
+      false,
     )
     validationMessages.size should be(2)
     validationMessages.head.field should equal("embedUrl.url")
@@ -198,21 +197,21 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   test("That all embedUrls are validated") {
     when(languageValidator.validate("language", "nb", false)).thenReturn(None)
-    when(titleValidator.validate(ValidLearningStep.title, false))
-      .thenReturn(List())
-    when(languageValidator.validate("language", "bergensk", false))
-      .thenReturn(Some(ValidationMessage("language", "Error")))
+    when(titleValidator.validate(ValidLearningStep.title, false)).thenReturn(List())
+    when(languageValidator.validate("language", "bergensk", false)).thenReturn(
+      Some(ValidationMessage("language", "Error"))
+    )
     when(languageValidator.validate("language", "nb", false)).thenReturn(None)
 
     val validationMessages = validator.validateLearningStep(
-      ValidLearningStep.copy(
-        embedUrl = List(
+      ValidLearningStep.copy(embedUrl =
+        List(
           EmbedUrl("<h1>Ugyldig</h1>", "nb", EmbedType.OEmbed),
-          EmbedUrl("https://www.ndla.no/123", "bergensk", EmbedType.OEmbed)
+          EmbedUrl("https://www.ndla.no/123", "bergensk", EmbedType.OEmbed),
         )
       ),
       ValidLearningPath,
-      false
+      false,
     )
     validationMessages.size should be(2)
     validationMessages.head.field should equal("embedUrl.url")
@@ -221,16 +220,14 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
 
   test("Embedurls containing only paths should be legal") {
     when(languageValidator.validate("language", "nb", false)).thenReturn(None)
-    when(titleValidator.validate(ValidLearningStep.title, false))
-      .thenReturn(List())
+    when(titleValidator.validate(ValidLearningStep.title, false)).thenReturn(List())
 
     val validationMessages = validator.validateLearningStep(
-      ValidLearningStep.copy(
-        embedUrl =
-          List(EmbedUrl("/subjects/subject:9/topic:1:179373/topic:1:170165/resource:1:16145", "nb", EmbedType.OEmbed))
+      ValidLearningStep.copy(embedUrl =
+        List(EmbedUrl("/subjects/subject:9/topic:1:179373/topic:1:170165/resource:1:16145", "nb", EmbedType.OEmbed))
       ),
       ValidLearningPath,
-      false
+      false,
     )
     validationMessages.size should be(0)
   }
@@ -240,7 +237,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     val validationMessages = validator.validateLearningStep(
       ValidLearningStep.copy(copyright = Some(LearningpathCopyright(license, Seq.empty))),
       ValidLearningPath,
-      false
+      false,
     )
     validationMessages.size should be(1)
     validationMessages.head.field should equal("license")
@@ -253,12 +250,11 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That error is returned when no descriptions, embedUrls or articleId are defined") {
-    val validationErrors =
-      validator.validateLearningStep(
-        ValidLearningStep.copy(description = List(), embedUrl = Seq(), articleId = None),
-        ValidLearningPath,
-        false
-      )
+    val validationErrors = validator.validateLearningStep(
+      ValidLearningStep.copy(description = List(), embedUrl = Seq(), articleId = None),
+      ValidLearningPath,
+      false,
+    )
     validationErrors.size should be(1)
     validationErrors.head.field should equal("description|embedUrl|articleId")
     validationErrors.head.message should equal(
@@ -285,7 +281,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
       Seq(
         ValidationMessage(
           "supportedLanguages",
-          "A learning step created in MyNDLA must have exactly one supported language."
+          "A learning step created in MyNDLA must have exactly one supported language.",
         )
       )
     )

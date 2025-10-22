@@ -15,8 +15,7 @@ import scalikejdbc.*
 object DBConcept extends SQLSyntaxSupport[Concept] {
   override val tableName = "conceptdata"
 
-  def fromResultSet(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept =
-    fromResultSet(lp.resultName)(rs)
+  def fromResultSet(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept = fromResultSet(lp.resultName)(rs)
 
   def fromResultSet(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
 
@@ -41,7 +40,7 @@ object DBConcept extends SQLSyntaxSupport[Concept] {
       meta.responsible,
       meta.conceptType,
       meta.glossData,
-      meta.editorNotes
+      meta.editorNotes,
     )
   }
 }

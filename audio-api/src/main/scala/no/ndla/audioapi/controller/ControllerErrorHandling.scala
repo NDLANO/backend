@@ -18,12 +18,8 @@ import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHandling, ErrorHelpers,
 import org.postgresql.util.PSQLException
 import no.ndla.search.NdlaSearchException
 
-class ControllerErrorHandling(using
-    props: Props,
-    dataSource: => DataSource,
-    errorHelpers: ErrorHelpers,
-    clock: Clock
-) extends ErrorHandling {
+class ControllerErrorHandling(using props: Props, dataSource: => DataSource, errorHelpers: ErrorHelpers, clock: Clock)
+    extends ErrorHandling {
   import errorHelpers.*
   val fileTooBigDescription: String =
     s"The file is too big. Max file size is ${props.MaxAudioFileSizeBytes / 1024 / 1024} MiB"
@@ -34,9 +30,8 @@ class ControllerErrorHandling(using
   class ResultWindowTooLargeException(message: String = WINDOW_TOO_LARGE_DESCRIPTION) extends RuntimeException(message)
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
-    case a: AccessDeniedException => ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403)
-    case v: ValidationException   =>
-      ValidationErrorBody(VALIDATION, "Validation Error", clock.now(), Some(v.errors), 400)
+    case a: AccessDeniedException          => ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403)
+    case v: ValidationException            => ValidationErrorBody(VALIDATION, "Validation Error", clock.now(), Some(v.errors), 400)
     case hre: HttpRequestException         => ErrorBody(REMOTE_ERROR, hre.getMessage, clock.now(), 502)
     case rw: ResultWindowTooLargeException => ErrorBody(WINDOW_TOO_LARGE, rw.getMessage, clock.now(), 422)
     case i: ImportException                => ErrorBody(IMPORT_FAILED, i.getMessage, clock.now(), 422)
@@ -47,7 +42,9 @@ class ControllerErrorHandling(using
       dataSource.connectToDatabase()
       ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)
     case NdlaSearchException(_, Some(rf), _, _)
-        if rf.error.rootCause
+        if rf
+          .error
+          .rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       invalidSearchContext
     case jafe: JobAlreadyFoundException => ErrorBody(JOB_ALREADY_FOUND, jafe.getMessage, clock.now(), 400)

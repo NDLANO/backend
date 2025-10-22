@@ -52,12 +52,7 @@ object ImageCaption {
   implicit val encoder: Encoder[ImageCaption] = deriveEncoder
   implicit val decoder: Decoder[ImageCaption] = deriveDecoder
 }
-case class UploadedImage(
-    fileName: String,
-    size: Long,
-    contentType: String,
-    dimensions: Option[ImageDimensions]
-)
+case class UploadedImage(fileName: String, size: Long, contentType: String, dimensions: Option[ImageDimensions])
 
 object UploadedImage {
   implicit val encoder: Encoder[UploadedImage] = deriveEncoder
@@ -81,22 +76,21 @@ object ModelReleasedStatus extends Enumeration {
   val NOT_APPLICABLE: Value = Value("not-applicable")
   val NOT_SET: Value        = Value("not-set")
 
-  def valueOfOrError(s: String): Try[this.Value] =
-    valueOf(s) match {
-      case Some(st) => Success(st)
-      case None     =>
-        val validStatuses = values.map(_.toString).mkString(", ")
-        Failure(
-          new ValidationException(
-            errors = Seq(
-              ValidationMessage(
-                "modelReleased",
-                s"'$s' is not a valid model released status. Must be one of $validStatuses"
-              )
+  def valueOfOrError(s: String): Try[this.Value] = valueOf(s) match {
+    case Some(st) => Success(st)
+    case None     =>
+      val validStatuses = values.map(_.toString).mkString(", ")
+      Failure(
+        new ValidationException(errors =
+          Seq(
+            ValidationMessage(
+              "modelReleased",
+              s"'$s' is not a valid model released status. Must be one of $validStatuses",
             )
           )
         )
-    }
+      )
+  }
 
   def valueOf(s: String): Option[this.Value] = values.find(_.toString == s)
 

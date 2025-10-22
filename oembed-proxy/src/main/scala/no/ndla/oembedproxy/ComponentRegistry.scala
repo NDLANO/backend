@@ -17,7 +17,7 @@ import no.ndla.network.tapir.{
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.oembedproxy.controller.{ControllerErrorHandling, OEmbedProxyController, SwaggerDocControllerConfig}
@@ -35,10 +35,8 @@ class ComponentRegistry(properties: OEmbedProxyProperties) extends TapirApplicat
   given healthController: TapirHealthController      = new TapirHealthController
   given oEmbedProxyController: OEmbedProxyController = new OEmbedProxyController
 
-  given swagger: SwaggerController = new SwaggerController(
-    List(oEmbedProxyController, healthController),
-    SwaggerDocControllerConfig.swaggerInfo
-  )
+  given swagger: SwaggerController =
+    new SwaggerController(List(oEmbedProxyController, healthController), SwaggerDocControllerConfig.swaggerInfo)
 
   given services: List[TapirController] = swagger.getServices()
   given routes: Routes                  = new Routes

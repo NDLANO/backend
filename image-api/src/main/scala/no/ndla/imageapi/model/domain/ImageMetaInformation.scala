@@ -29,7 +29,7 @@ case class ImageMetaInformation(
     created: NDLADate,
     createdBy: String,
     modelReleased: ModelReleasedStatus.Value,
-    editorNotes: Seq[EditorNote]
+    editorNotes: Seq[EditorNote],
 )
 
 object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
@@ -60,7 +60,7 @@ object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
       created = meta.created,
       createdBy = meta.createdBy,
       modelReleased = meta.modelReleased,
-      editorNotes = meta.editorNotes
+      editorNotes = meta.editorNotes,
     )
   }
 }

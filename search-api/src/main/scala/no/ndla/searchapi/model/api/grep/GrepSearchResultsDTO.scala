@@ -18,11 +18,16 @@ import no.ndla.common.DeriveHelpers
 
 @description("Information about search-results")
 case class GrepSearchResultsDTO(
-    @description("The total number of resources matching this query") totalCount: Long,
-    @description("For which page results are shown from") page: Int,
-    @description("The number of results per page") pageSize: Int,
-    @description("The chosen search language") language: String,
-    @description("The search results") results: Seq[GrepResultDTO]
+    @description("The total number of resources matching this query")
+    totalCount: Long,
+    @description("For which page results are shown from")
+    page: Int,
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The chosen search language")
+    language: String,
+    @description("The search results")
+    results: Seq[GrepResultDTO],
 )
 
 object GrepSearchResultsDTO extends SchemaImplicits {

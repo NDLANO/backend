@@ -29,7 +29,7 @@ class GrepCodesSearchService(using
     searchConverterService: SearchConverterService,
     grepCodesIndexService: => GrepCodesIndexService,
     props: DraftApiProperties,
-    draftErrorHelpers: DraftErrorHelpers
+    draftErrorHelpers: DraftErrorHelpers,
 ) extends SearchService[String]
     with StrictLogging {
   override val searchIndex: String = props.DraftGrepCodesSearchIndex
@@ -42,22 +42,14 @@ class GrepCodesSearchService(using
   }
 
   def matchingQuery(query: String, page: Int, pageSize: Int): Try[LanguagelessSearchResult[String]] = {
-    val fullQuery = boolQuery()
-      .must(
-        boolQuery().should(
-          matchQuery("grepCode", query.toLowerCase).boost(2),
-          prefixQuery("grepCode", query.toLowerCase)
-        )
-      )
+    val fullQuery = boolQuery().must(
+      boolQuery().should(matchQuery("grepCode", query.toLowerCase).boost(2), prefixQuery("grepCode", query.toLowerCase))
+    )
 
     executeSearch(page, pageSize, fullQuery)
   }
 
-  def executeSearch(
-      page: Int,
-      pageSize: Int,
-      queryBuilder: BoolQuery
-  ): Try[LanguagelessSearchResult[String]] = {
+  def executeSearch(page: Int, pageSize: Int, queryBuilder: BoolQuery): Try[LanguagelessSearchResult[String]] = {
     val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
     val requestedResultWindow = pageSize * page
     if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
@@ -74,22 +66,23 @@ class GrepCodesSearchService(using
         .sortBy(fieldSort("_score").sortOrder(SortOrder.Desc))
 
       val searchWithScroll =
-        if (startAt != 0) { searchToExecute }
-        else { searchToExecute.scroll(props.ElasticSearchScrollKeepAlive) }
+        if (startAt != 0) {
+          searchToExecute
+        } else {
+          searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
+        }
 
       e4sClient.execute(searchWithScroll) match {
-        case Success(response) =>
-          Success(
+        case Success(response) => Success(
             LanguagelessSearchResult(
               response.result.totalHits,
               Some(page),
               numResults,
               getHits(response.result, Language.AllLanguages),
-              response.result.scrollId
+              response.result.scrollId,
             )
           )
-        case Failure(ex) =>
-          errorHandler(ex)
+        case Failure(ex) => errorHandler(ex)
       }
     }
   }
@@ -103,8 +96,7 @@ class GrepCodesSearchService(using
 
     f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
     f.foreach {
-      case Success(reindexResult) =>
-        logger.info(
+      case Success(reindexResult) => logger.info(
           s"Completed indexing of grepCodes of ${reindexResult.totalIndexed} articles in ${reindexResult.millisUsed} ms."
         )
       case Failure(ex) => logger.warn(ex.getMessage, ex)

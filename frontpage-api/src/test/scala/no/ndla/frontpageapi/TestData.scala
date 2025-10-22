@@ -20,7 +20,7 @@ import no.ndla.common.model.domain.frontpage.{
   MovieThemeName,
   SubjectPage,
   VisualElement,
-  VisualElementType
+  VisualElementType,
 }
 import no.ndla.frontpageapi.model.api.{NewSubjectPageDTO, UpdatedSubjectPageDTO}
 import no.ndla.frontpageapi.model.domain.FilmFrontPage
@@ -37,14 +37,14 @@ object TestData {
         "Om Samfunnsfag",
         "Dette er samfunnsfag",
         "nb",
-        VisualElement(VisualElementType.Image, "123", Some("alt text"))
+        VisualElement(VisualElementType.Image, "123", Some("alt text")),
       )
     ),
     Seq(MetaDescription("meta", "nb")),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
-    List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
+    List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
   )
   val domainSubjectJson: String = domainSubjectPage.asJson.noSpaces
 
@@ -57,41 +57,42 @@ object TestData {
         "Om Samfunnsfag",
         "Dette er oppdatert om samfunnsfag",
         "nb",
-        frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+        frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text")),
       )
     ),
-    Seq(
-      frontpage.MetaDescription("meta", "nb")
-    ),
+    Seq(frontpage.MetaDescription("meta", "nb")),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
     List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
-    List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
+    List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
   )
 
-  val apiSubjectPage: SubjectPageDTO = model.api.frontpage.SubjectPageDTO(
-    1,
-    "Samfunnsfag",
-    BannerImageDTO(
-      Some("http://api-gateway.ndla-local/image-api/raw/id/29668"),
-      Some(29668),
-      "http://api-gateway.ndla-local/image-api/raw/id/29668",
-      29668
-    ),
-    Some(
-      AboutSubjectDTO(
-        "Om Samfunnsfag",
-        "Dette er samfunnsfag",
-        VisualElementDTO("image", "http://api-gateway.ndla-local/image-api/raw/id/123", Some("alt text"))
-      )
-    ),
-    Some("meta"),
-    List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
-    List("nb"),
-    List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
-    List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
-    List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")
-  )
+  val apiSubjectPage: SubjectPageDTO = model
+    .api
+    .frontpage
+    .SubjectPageDTO(
+      1,
+      "Samfunnsfag",
+      BannerImageDTO(
+        Some("http://api-gateway.ndla-local/image-api/raw/id/29668"),
+        Some(29668),
+        "http://api-gateway.ndla-local/image-api/raw/id/29668",
+        29668,
+      ),
+      Some(
+        AboutSubjectDTO(
+          "Om Samfunnsfag",
+          "Dette er samfunnsfag",
+          VisualElementDTO("image", "http://api-gateway.ndla-local/image-api/raw/id/123", Some("alt text")),
+        )
+      ),
+      Some("meta"),
+      List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
+      List("nb"),
+      List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
+      List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
+      List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"),
+    )
 
   val apiNewSubjectPage: NewSubjectPageDTO = api.NewSubjectPageDTO(
     "Samfunnsfag",
@@ -102,14 +103,14 @@ object TestData {
         "Om Samfunnsfag",
         "Dette er samfunnsfag",
         "nb",
-        api.NewOrUpdatedVisualElementDTO("image", "123", Some("alt text"))
+        api.NewOrUpdatedVisualElementDTO("image", "123", Some("alt text")),
       )
     ),
     Seq(api.NewOrUpdatedMetaDescriptionDTO("meta", "nb")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
-    Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"))
+    Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
   )
 
   val apiUpdatedSubjectPage: UpdatedSubjectPageDTO = api.UpdatedSubjectPageDTO(
@@ -122,7 +123,7 @@ object TestData {
           "Om Samfunnsfag",
           "Dette er oppdatert om samfunnsfag",
           "nb",
-          api.NewOrUpdatedVisualElementDTO("image", "123", Some("alt text"))
+          api.NewOrUpdatedVisualElementDTO("image", "123", Some("alt text")),
         )
       )
     ),
@@ -130,7 +131,7 @@ object TestData {
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
     Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
-    Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"))
+    Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
   )
 
   val domainFilmFrontPage: FilmFrontPage = domain.FilmFrontPage(
@@ -140,26 +141,23 @@ object TestData {
         "Film",
         "Film faget",
         "nb",
-        frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+        frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text")),
       ),
       frontpage.AboutSubject(
         "Film",
         "Subject film",
         "en",
-        frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text"))
-      )
+        frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text")),
+      ),
     ),
     Seq(
       MovieTheme(
-        Seq(
-          MovieThemeName("Første filmtema", "nb"),
-          frontpage.MovieThemeName("First movie theme", "en")
-        ),
-        Seq("movieref1", "movieref2")
+        Seq(MovieThemeName("Første filmtema", "nb"), frontpage.MovieThemeName("First movie theme", "en")),
+        Seq("movieref1", "movieref2"),
       )
     ),
     Seq(),
-    None
+    None,
   )
 
   val apiFilmFrontPage: api.FilmFrontPageDTO = api.FilmFrontPageDTO("", Seq(), Seq(), Seq(), None, Seq())

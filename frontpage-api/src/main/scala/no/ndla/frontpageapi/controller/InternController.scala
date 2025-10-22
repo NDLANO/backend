@@ -27,14 +27,15 @@ class InternController(using
     readService: ReadService,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
 ) extends TapirController {
   import errorHandling.*
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    endpoint.get
+    endpoint
+      .get
       .in("subjectpage" / "external" / path[String]("externalId").description("old NDLA node id"))
       .summary("Get subject page id from external id")
       .out(jsonBody[SubjectPageIdDTO])
@@ -46,7 +47,8 @@ class InternController(using
           case Failure(ex)       => returnLeftError(ex)
         }
       },
-    endpoint.get
+    endpoint
+      .get
       .in("dump" / "subjectpage")
       .in(query[Int]("page").default(1))
       .in(query[Int]("page-size").default(100))
@@ -54,13 +56,14 @@ class InternController(using
       .serverLogicPure { case (pageNo, pageSize) =>
         readService.getSubjectPageDomainDump(pageNo, pageSize).asRight
       },
-    endpoint.get
+    endpoint
+      .get
       .in("dump" / "subjectpage" / path[Long]("subjectId"))
       .out(jsonBody[SubjectPage])
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { subjectId =>
         readService.domainSubjectPage(subjectId)
-      }
+      },
   )
 
 }

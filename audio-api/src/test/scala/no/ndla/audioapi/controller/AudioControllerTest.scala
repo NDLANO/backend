@@ -46,18 +46,20 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
     outcome match {
       case Success(Failed(_)) | Success(Canceled(_)) | Failure(_) =>
         println(s"'${test.name}' failed, retrying $count more times...")
-        if (count == 1) super.withFixture(test) else withFixture(test, count - 1)
+        if (count == 1) super.withFixture(test)
+        else withFixture(test, count - 1)
       case Success(other) =>
         val attemptNum = maxRetries - (count - 1)
         println(s"Retryable test '${test.name}' succeeded on attempt $attemptNum")
         other
     }
   }
-  override def withFixture(test: NoArgTest): Outcome = if (isRetryable(test)) {
-    withFixture(test, maxRetries)
-  } else {
-    super.withFixture(test)
-  }
+  override def withFixture(test: NoArgTest): Outcome =
+    if (isRetryable(test)) {
+      withFixture(test, maxRetries)
+    } else {
+      super.withFixture(test)
+    }
 
   when(clock.now()).thenCallRealMethod()
 
@@ -72,8 +74,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
 
   val fileBody: Array[Byte] = Array[Byte](0x49, 0x44, 0x33)
 
-  val sampleNewAudioMeta: String =
-    s"""
+  val sampleNewAudioMeta: String = s"""
       |{
       |    "title": "Test",
       |    "language": "nb",
@@ -93,12 +94,11 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
     """.stripMargin
 
   test("That POST / returns 401 if no auth-header") {
-    val request =
-      quickRequest
-        .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
-        .contentType("multipart/form-data")
-        .readTimeout(Duration.Inf)
-        .multipartBody(multipart("metadata", sampleNewAudioMeta))
+    val request = quickRequest
+      .post(uri"http://localhost:$serverPort/audio-api/v1/audio")
+      .contentType("multipart/form-data")
+      .readTimeout(Duration.Inf)
+      .multipartBody(multipart("metadata", sampleNewAudioMeta))
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(401)
@@ -116,22 +116,21 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
   }
 
   test("That POST / returns 200 if everything is fine and dandy", Retryable) {
-    val sampleAudioMeta =
-      api.AudioMetaInformationDTO(
-        1,
-        1,
-        TitleDTO("title", "nb"),
-        AudioDTO("", "", -1, "nb"),
-        CopyrightDTO(LicenseDTO(License.CC_BY.toString, None, None), None, Seq(), Seq(), Seq(), None, None, false),
-        TagDTO(Seq(), "nb"),
-        Seq("nb"),
-        "podcast",
-        None,
-        None,
-        None,
-        TestData.yesterday,
-        TestData.today
-      )
+    val sampleAudioMeta = api.AudioMetaInformationDTO(
+      1,
+      1,
+      TitleDTO("title", "nb"),
+      AudioDTO("", "", -1, "nb"),
+      CopyrightDTO(LicenseDTO(License.CC_BY.toString, None, None), None, Seq(), Seq(), Seq(), None, None, false),
+      TagDTO(Seq(), "nb"),
+      Seq("nb"),
+      "podcast",
+      None,
+      None,
+      None,
+      TestData.yesterday,
+      TestData.today,
+    )
     when(writeService.storeNewAudio(any[NewAudioMetaInformationDTO], any, any)).thenReturn(Success(sampleAudioMeta))
 
     val file     = multipart("file", fileBody)
@@ -191,21 +190,11 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
   test("That scrollId is in header, and not in body") {
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = domain.SearchResult[api.AudioSummaryDTO](
-      0,
-      Some(1),
-      10,
-      "nb",
-      Seq.empty,
-      Some(scrollId)
-    )
+    val searchResponse = domain.SearchResult[api.AudioSummaryDTO](0, Some(1), 10, "nb", Seq.empty, Some(scrollId))
     when(audioSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
     when(searchConverterService.asApiAudioSummarySearchResult(any)).thenCallRealMethod()
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/audio-api/v1/audio")
-    )
+    val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/audio-api/v1/audio"))
     response.code.code should be(200)
     response.body.contains(scrollId) should be(false)
     response.header("search-context").get should be(scrollId)
@@ -215,20 +204,12 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
     reset(audioSearchService)
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = domain.SearchResult[api.AudioSummaryDTO](
-      0,
-      Some(1),
-      10,
-      "nb",
-      Seq.empty,
-      Some(scrollId)
-    )
+    val searchResponse = domain.SearchResult[api.AudioSummaryDTO](0, Some(1), 10, "nb", Seq.empty, Some(scrollId))
 
     when(audioSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
     val response = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/audio-api/v1/audio?search-context=$scrollId")
+      quickRequest.get(uri"http://localhost:$serverPort/audio-api/v1/audio?search-context=$scrollId")
     )
     response.code.code should be(200)
 
@@ -240,14 +221,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
     reset(audioSearchService)
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = domain.SearchResult[api.AudioSummaryDTO](
-      0,
-      Some(1),
-      10,
-      "nb",
-      Seq.empty,
-      Some(scrollId)
-    )
+    val searchResponse = domain.SearchResult[api.AudioSummaryDTO](0, Some(1), 10, "nb", Seq.empty, Some(scrollId))
 
     when(audioSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
@@ -267,20 +241,11 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
     reset(audioSearchService)
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = domain.SearchResult[api.AudioSummaryDTO](
-      0,
-      Some(1),
-      10,
-      "nb",
-      Seq.empty,
-      Some(scrollId)
-    )
+    val searchResponse = domain.SearchResult[api.AudioSummaryDTO](0, Some(1), 10, "nb", Seq.empty, Some(scrollId))
 
     when(audioSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
 
-    val expectedSettings = TestData.searchSettings.copy(
-      shouldScroll = true
-    )
+    val expectedSettings = TestData.searchSettings.copy(shouldScroll = true)
 
     val response = simpleHttpClient.send(
       quickRequest
@@ -295,8 +260,9 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
   }
 
   test("That deleting language returns audio if exists") {
-    when(writeService.deleteAudioLanguageVersion(1, "nb"))
-      .thenReturn(Success(Some(TestData.DefaultApiImageMetaInformation)))
+    when(writeService.deleteAudioLanguageVersion(1, "nb")).thenReturn(
+      Success(Some(TestData.DefaultApiImageMetaInformation))
+    )
 
     val request = quickRequest
       .delete(uri"http://localhost:$serverPort/audio-api/v1/audio/1/language/nb")
@@ -312,8 +278,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
   }
 
   test("That deleting language returns 204 if last") {
-    when(writeService.deleteAudioLanguageVersion(1, "nb"))
-      .thenReturn(Success(None))
+    when(writeService.deleteAudioLanguageVersion(1, "nb")).thenReturn(Success(None))
 
     val request = quickRequest
       .delete(uri"http://localhost:$serverPort/audio-api/v1/audio/1/language/nb")
@@ -338,7 +303,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
       None,
       None,
       TestData.yesterday,
-      TestData.today
+      TestData.today,
     )
     val two   = one.copy(id = 2, title = TitleDTO("two", "nb"))
     val three = one.copy(id = 3, title = TitleDTO("three", "nb"))
@@ -347,10 +312,8 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
 
     when(readService.getAudiosByIds(any, any)).thenReturn(Success(expectedResult))
 
-    val response = simpleHttpClient.send(
-      quickRequest
-        .get(uri"http://localhost:$serverPort/audio-api/v1/audio/ids/?ids=1,2,3")
-    )
+    val response =
+      simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/audio-api/v1/audio/ids/?ids=1,2,3"))
     response.code.code should be(200)
     val parsedBody = unsafeParseAs[List[api.AudioMetaInformationDTO]](response.body)
     parsedBody should be(expectedResult)
@@ -360,14 +323,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
 
   test("That GET /?query= doesnt pass empty-string search parameter") {
     reset(audioSearchService, searchConverterService)
-    val searchResponse = domain.SearchResult[api.AudioSummaryDTO](
-      0,
-      Some(1),
-      10,
-      "nb",
-      Seq.empty,
-      None
-    )
+    val searchResponse = domain.SearchResult[api.AudioSummaryDTO](0, Some(1), 10, "nb", Seq.empty, None)
 
     when(audioSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(searchResponse))
     when(searchConverterService.asApiAudioSummarySearchResult(any)).thenCallRealMethod()
@@ -382,22 +338,21 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
   }
 
   test("That uploading a file bigger than max filesize returns 413", Retryable) {
-    val sampleAudioMeta =
-      api.AudioMetaInformationDTO(
-        1,
-        1,
-        TitleDTO("title", "nb"),
-        AudioDTO("", "", -1, "nb"),
-        CopyrightDTO(LicenseDTO(License.CC_BY.toString, None, None), None, Seq(), Seq(), Seq(), None, None, false),
-        TagDTO(Seq(), "nb"),
-        Seq("nb"),
-        "podcast",
-        None,
-        None,
-        None,
-        TestData.yesterday,
-        TestData.today
-      )
+    val sampleAudioMeta = api.AudioMetaInformationDTO(
+      1,
+      1,
+      TitleDTO("title", "nb"),
+      AudioDTO("", "", -1, "nb"),
+      CopyrightDTO(LicenseDTO(License.CC_BY.toString, None, None), None, Seq(), Seq(), Seq(), None, None, false),
+      TagDTO(Seq(), "nb"),
+      Seq("nb"),
+      "podcast",
+      None,
+      None,
+      None,
+      TestData.yesterday,
+      TestData.today,
+    )
     when(writeService.storeNewAudio(any[NewAudioMetaInformationDTO], any, any)).thenReturn(Success(sampleAudioMeta))
 
     val tooBigFile =

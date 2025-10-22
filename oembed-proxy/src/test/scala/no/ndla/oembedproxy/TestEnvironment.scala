@@ -18,7 +18,7 @@ import no.ndla.network.tapir.{
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 import no.ndla.oembedproxy.controller.OEmbedProxyController
 import no.ndla.oembedproxy.service.{OEmbedService, ProviderService}
@@ -51,7 +51,7 @@ trait TestEnvironment extends TapirApplication[OEmbedProxyProperties] with Mocki
       healthController,
       swagger,
       routes,
-      errorHelpers
+      errorHelpers,
     )
   }
 }

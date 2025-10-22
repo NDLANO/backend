@@ -32,17 +32,14 @@ class FileController(using
     props: DraftApiProperties,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   override val serviceName: String         = "files"
   override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
 
   private val filePath = query[Option[String]]("path").description("Path to file. Eg: resources/awdW2CaX.png")
 
-  val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    uploadFile,
-    deleteFile
-  )
+  val endpoints: List[ServerEndpoint[Any, Eff]] = List(uploadFile, deleteFile)
 
   def doWithStream[T](filePart: Part[File])(f: domain.UploadedFile => Try[T]): Try[T] = {
     val file = domain.UploadedFile.fromFilePart(filePart)
@@ -50,7 +47,8 @@ class FileController(using
     else file.doWithStream(f)
   }
 
-  def uploadFile: ServerEndpoint[Any, Eff] = endpoint.post
+  def uploadFile: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Uploads provided file")
     .description("Uploads provided file")
     .in(multipartBody[FileForm])
@@ -65,7 +63,8 @@ class FileController(using
       }
     }
 
-  def deleteFile: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteFile: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .summary("Deletes provided file")
     .description("Deletes provided file")
     .out(noContent)
@@ -74,17 +73,12 @@ class FileController(using
     .requirePermission(DRAFT_API_WRITE)
     .serverLogicPure { _ =>
       {
-        case Some(fp) =>
-          writeService.deleteFile(fp) match {
+        case Some(fp) => writeService.deleteFile(fp) match {
             case Failure(ex) => errorHandling.returnLeftError(ex)
             case Success(_)  => Right(())
           }
-        case None =>
-          errorHandling.returnLeftError(
-            ValidationException(
-              this.filePath.name,
-              "The request must contain a file path query parameter"
-            )
+        case None => errorHandling.returnLeftError(
+            ValidationException(this.filePath.name, "The request must contain a file path query parameter")
           )
       }
     }

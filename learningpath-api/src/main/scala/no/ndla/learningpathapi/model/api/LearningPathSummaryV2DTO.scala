@@ -50,7 +50,7 @@ case class LearningPathSummaryV2DTO(
     )
     message: Option[String],
     @description("The codes from GREP API registered for this draft article")
-    grepCodes: Seq[String]
+    grepCodes: Seq[String],
 )
 
 object LearningPathSummaryV2DTO {

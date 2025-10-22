@@ -16,21 +16,22 @@ import org.flywaydb.core.api.output.MigrateResult
 
 import scala.jdk.CollectionConverters.*
 
-case class DBMigrator(migrations: JavaMigration*)(using
-    dataSource: DataSource,
-    props: DatabaseProps
-) extends StrictLogging {
+case class DBMigrator(migrations: JavaMigration*)(using dataSource: DataSource, props: DatabaseProps)
+    extends StrictLogging {
   private def logMigrationResult(result: MigrateResult): Unit = {
     logger.info(s"Num database migrations executed: ${result.migrationsExecuted}")
     val warnings = result.warnings.asScala
     if (warnings.nonEmpty) {
       logger.info(s"With warnings: \n${warnings.mkString("\n")}")
     }
-    result.migrations.asScala.foreach { mo =>
-      logger.info(
-        s"Executed ${mo.`type`} migration: ${mo.category} ${mo.version} '${mo.description}' in ${mo.executionTime} ms"
-      )
-    }
+    result
+      .migrations
+      .asScala
+      .foreach { mo =>
+        logger.info(
+          s"Executed ${mo.`type`} migration: ${mo.category} ${mo.version} '${mo.description}' in ${mo.executionTime} ms"
+        )
+      }
   }
 
   def migrate(): Unit = logTaskTime("database migration", logTaskStart = true) {

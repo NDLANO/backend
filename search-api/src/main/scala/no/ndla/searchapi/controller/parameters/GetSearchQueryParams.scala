@@ -29,13 +29,10 @@ class GetSearchQueryParams(using props: Props) {
       @query("page-size")
       @description("The number of search hits to display for each page.")
       @default(props.DefaultPageSize)
-      pageSize: Int
+      pageSize: Int,
   )
 
-  case class GetParamsWrapper(
-      pagination: PaginationParams,
-      searchParams: SearchQueryParams
-  )
+  case class GetParamsWrapper(pagination: PaginationParams, searchParams: SearchQueryParams)
 
   case class SearchQueryParams(
       @query("article-types")
@@ -115,7 +112,7 @@ class GetSearchQueryParams(using props: Props) {
       nodeTypeFilter: CommaSeparatedList[String],
       @query("tags")
       @description("Only return results that have one of the specified tags.")
-      tags: CommaSeparatedList[String]
+      tags: CommaSeparatedList[String],
   )
 
   object SearchQueryParams {

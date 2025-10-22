@@ -30,7 +30,7 @@ case class SearchableImage(
     imageFiles: Seq[SearchableImageFile],
     podcastFriendly: Boolean,
     domainObject: ImageMetaInformation,
-    users: Seq[String]
+    users: Seq[String],
 )
 
 object SearchableImage {
@@ -44,7 +44,7 @@ case class SearchableImageFile(
     fileSize: Long,
     contentType: String,
     dimensions: Option[ImageDimensions],
-    language: String
+    language: String,
 ) extends WithLanguage
 
 object SearchableImageFile {

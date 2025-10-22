@@ -28,9 +28,7 @@ class V4__add_language_to_about extends BaseJavaMigration {
     }
 
   private def subjectPageData(implicit session: DBSession): List[V2_DBSubjectPage] = {
-    sql"select id, document from subjectpage"
-      .map(rs => V2_DBSubjectPage(rs.long("id"), rs.string("document")))
-      .list()
+    sql"select id, document from subjectpage".map(rs => V2_DBSubjectPage(rs.long("id"), rs.string("document"))).list()
   }
 
   def convertSubjectpage(subjectPageData: V2_DBSubjectPage): Option[V2_DBSubjectPage] = {
@@ -49,7 +47,7 @@ class V4__add_language_to_about extends BaseJavaMigration {
           mostRead = value.mostRead,
           editorsChoices = value.editorsChoices,
           latestContent = value.latestContent,
-          goTo = value.goTo
+          goTo = value.goTo,
         )
         Some(V2_DBSubjectPage(subjectPageData.id, newSubjectPage.asJson.noSpacesDropNull))
       case Failure(_) => None
@@ -65,8 +63,7 @@ class V4__add_language_to_about extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(subjectPageData.document)
 
-    sql"update subjectpage set document = $dataObject where id = ${subjectPageData.id}"
-      .update()
+    sql"update subjectpage set document = $dataObject where id = ${subjectPageData.id}".update()
   }
 }
 
@@ -83,7 +80,7 @@ case class V4_SubjectFrontPageData(
     mostRead: List[String],
     editorsChoices: List[String],
     latestContent: Option[List[String]],
-    goTo: List[String]
+    goTo: List[String],
 )
 object V4_SubjectFrontPageData {
   implicit val encoder: Encoder[V4_SubjectFrontPageData] = deriveEncoder

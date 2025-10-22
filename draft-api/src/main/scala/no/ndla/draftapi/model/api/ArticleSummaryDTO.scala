@@ -44,7 +44,7 @@ case class ArticleSummaryDTO(
     @description("When the article was last updated")
     updated: NDLADate,
     @description("Traits extracted from the article content")
-    traits: List[ArticleTrait]
+    traits: List[ArticleTrait],
 )
 
 object ArticleSummaryDTO {

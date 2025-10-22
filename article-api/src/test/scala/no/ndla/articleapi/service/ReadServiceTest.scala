@@ -24,7 +24,7 @@ import no.ndla.common.model.domain.{
   Availability,
   Description,
   Title,
-  VisualElement
+  VisualElement,
 }
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.validation.{ResourceType, TagAttribute}
@@ -68,20 +68,21 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size=""></$EmbedTagName>"""
     val visualElementAfter =
       s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" data-url="http://api-gateway.ndla-local/image-api/v2/images/1"></$EmbedTagName>"""
-    val article = TestData.sampleArticleWithByNcSa.copy(
-      content = Seq(articleContent1),
-      visualElement = Seq(VisualElement(visualElementBefore, "nb"))
-    )
+    val article = TestData
+      .sampleArticleWithByNcSa
+      .copy(content = Seq(articleContent1), visualElement = Seq(VisualElement(visualElementBefore, "nb")))
 
     when(articleRepository.withId(eqTo(1L))(any)).thenReturn(Some(toArticleRow(article)))
     when(articleRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List("54321"))
 
     val expectedResult: Try[Cachable[api.ArticleV2DTO]] = Cachable.yes(
       converterService.toApiArticleV2(
-        article
-          .copy(content = Seq(expectedArticleContent1), visualElement = Seq(VisualElement(visualElementAfter, "nb"))),
+        article.copy(
+          content = Seq(expectedArticleContent1),
+          visualElement = Seq(VisualElement(visualElementAfter, "nb")),
+        ),
         "nb",
-        false
+        false,
       )
     )
     readService.withIdV2(1, "nb", fallback = false, None, None) should equal(expectedResult)
@@ -92,8 +93,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("addIdAndUrlOnResource adds id but not url on embed resources without a data-resource_id attribute") {
-    val articleContent3 = articleContent1.copy(
-      content = s"""<$EmbedTagName $resourceAttr="$h5pType" $urlAttr="http://some.h5p.org"></$EmbedTagName>"""
+    val articleContent3 = articleContent1.copy(content =
+      s"""<$EmbedTagName $resourceAttr="$h5pType" $urlAttr="http://some.h5p.org"></$EmbedTagName>"""
     )
     readService.addUrlOnResource(articleContent3.content) should equal(articleContent3.content)
   }
@@ -109,8 +110,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("addIdAndUrlOnResource adds urls on all content translations in an article") {
-    val article =
-      TestData.sampleArticleWithByNcSa.copy(content = Seq(articleContent1, articleContent2), visualElement = Seq.empty)
+    val article = TestData
+      .sampleArticleWithByNcSa
+      .copy(content = Seq(articleContent1, articleContent2), visualElement = Seq.empty)
     val article1ExpectedResult = articleContent1.copy(content =
       s"""<$EmbedTagName $resourceIdAttr="123" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/123"></$EmbedTagName><$EmbedTagName $resourceIdAttr="1234" $resourceAttr="$imageType" $urlAttr="$externalImageApiUrl/1234"></$EmbedTagName>"""
     )
@@ -149,7 +151,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       fallback = false,
       grepCodes = Seq.empty,
       shouldScroll = false,
-      feideAccessToken = None
+      feideAccessToken = None,
     )
 
     val expectedSettings = SearchSettings(
@@ -164,7 +166,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       fallback = false,
       grepCodes = Seq.empty,
       shouldScroll = false,
-      availability = Seq.empty
+      availability = Seq.empty,
     )
 
     verify(articleSearchService, times(1)).matchingQuery(expectedSettings)
@@ -178,21 +180,21 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.everyone)
 
-    when(articleRepository.withIds(any, any, any)(using any))
-      .thenReturn(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
+    when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
+      Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3))
+    )
     when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(List(""), List(""), List(""))
 
-    val result =
-      readService
-        .getArticlesByIds(
-          articleIds = ids,
-          language = "nb",
-          fallback = true,
-          page = 1,
-          pageSize = 10,
-          feideAccessToken = None
-        )
-        .get
+    val result = readService
+      .getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10,
+        feideAccessToken = None,
+      )
+      .get
     result.length should be(3)
 
     verify(feideApiClient, times(0)).getFeideExtendedUser(Some(feideId))
@@ -207,21 +209,21 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("employee"), None, "", None)
 
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
-    when(articleRepository.withIds(any, any, any)(using any))
-      .thenReturn(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
+    when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
+      Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3))
+    )
     when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(List(""), List(""), List(""))
 
-    val result =
-      readService
-        .getArticlesByIds(
-          articleIds = ids,
-          language = "nb",
-          fallback = true,
-          page = 1,
-          pageSize = 10,
-          feideAccessToken = Some(feideId)
-        )
-        .get
+    val result = readService
+      .getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10,
+        feideAccessToken = Some(feideId),
+      )
+      .get
     result.length should be(3)
 
     verify(feideApiClient, times(1)).getFeideExtendedUser(Some(feideId))
@@ -236,21 +238,21 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("student"), None, "", None)
 
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
-    when(articleRepository.withIds(any, any, any)(using any))
-      .thenReturn(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
+    when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
+      Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3))
+    )
     when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(List(""), List(""), List(""))
 
-    val result =
-      readService
-        .getArticlesByIds(
-          articleIds = ids,
-          language = "nb",
-          fallback = true,
-          page = 1,
-          pageSize = 10,
-          feideAccessToken = Some(feideId)
-        )
-        .get
+    val result = readService
+      .getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10,
+        feideAccessToken = Some(feideId),
+      )
+      .get
     result.length should be(2)
     result.map(res => res.availability).contains("teacher") should be(false)
 
@@ -264,22 +266,22 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
 
-    when(articleRepository.withIds(any, any, any)(using any))
-      .thenReturn(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
+    when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
+      Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3))
+    )
     when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(List(""), List(""), List(""))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new RuntimeException))
 
-    val result =
-      readService
-        .getArticlesByIds(
-          articleIds = ids,
-          language = "nb",
-          fallback = true,
-          page = 1,
-          pageSize = 10,
-          feideAccessToken = None
-        )
-        .get
+    val result = readService
+      .getArticlesByIds(
+        articleIds = ids,
+        language = "nb",
+        fallback = true,
+        page = 1,
+        pageSize = 10,
+        feideAccessToken = None,
+      )
+      .get
     result.length should be(2)
     result.map(res => res.availability).contains("teacher") should be(false)
 
@@ -288,57 +290,59 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("that getArticlesByIds fails if no ids were given") {
     reset(articleRepository)
-    val result =
-      readService
-        .getArticlesByIds(
-          articleIds = List.empty,
-          language = "nb",
-          fallback = true,
-          page = 1,
-          pageSize = 10,
-          feideAccessToken = None
-        )
-    result.failed.get
-      .asInstanceOf[ValidationException]
-      .errors
-      .head
-      .message should be("Query parameter 'ids' is missing")
+    val result = readService.getArticlesByIds(
+      articleIds = List.empty,
+      language = "nb",
+      fallback = true,
+      page = 1,
+      pageSize = 10,
+      feideAccessToken = None,
+    )
+    result.failed.get.asInstanceOf[ValidationException].errors.head.message should be(
+      "Query parameter 'ids' is missing"
+    )
 
     verify(articleRepository, times(0)).withIds(any, any, any)(using any)
   }
 
   test("That xml is generated correctly for frontpage articles") {
     val date          = NDLADate.now()
-    val parentArticle = TestData.sampleDomainArticle.copy(
-      id = Some(1),
-      title = Seq(Title("Parent title", "nb")),
-      metaDescription = Seq(Description("Parent description", "nb")),
-      metaImage = Seq(ArticleMetaImage("1000", "alt", "nb")),
-      slug = Some("some-slug"),
-      published = date
-    )
+    val parentArticle = TestData
+      .sampleDomainArticle
+      .copy(
+        id = Some(1),
+        title = Seq(Title("Parent title", "nb")),
+        metaDescription = Seq(Description("Parent description", "nb")),
+        metaImage = Seq(ArticleMetaImage("1000", "alt", "nb")),
+        slug = Some("some-slug"),
+        published = date,
+      )
 
-    val article1 = TestData.sampleDomainArticle.copy(
-      id = Some(2),
-      title = Seq(Title("Article1 title", "nb")),
-      metaDescription = Seq(Description("Article1 description", "nb")),
-      metaImage = Seq(ArticleMetaImage("1000", "alt", "nb")),
-      slug = Some("slug-one"),
-      published = date
-    )
+    val article1 = TestData
+      .sampleDomainArticle
+      .copy(
+        id = Some(2),
+        title = Seq(Title("Article1 title", "nb")),
+        metaDescription = Seq(Description("Article1 description", "nb")),
+        metaImage = Seq(ArticleMetaImage("1000", "alt", "nb")),
+        slug = Some("slug-one"),
+        published = date,
+      )
 
-    val article2 = TestData.sampleDomainArticle.copy(
-      id = Some(3),
-      title = Seq(Title("Article2 title", "nb")),
-      metaDescription = Seq(Description("Article2 description", "nb")),
-      metaImage = Seq(),
-      slug = Some("slug-two"),
-      published = date
-    )
+    val article2 = TestData
+      .sampleDomainArticle
+      .copy(
+        id = Some(3),
+        title = Seq(Title("Article2 title", "nb")),
+        metaDescription = Seq(Description("Article2 description", "nb")),
+        metaImage = Seq(),
+        slug = Some("slug-two"),
+        published = date,
+      )
 
     val frontPage = FrontPageDTO(
       100,
-      List(MenuDTO(1, List(MenuDTO(2, List.empty, Some(true)), MenuDTO(3, List.empty, Some(true))), Some(false)))
+      List(MenuDTO(1, List(MenuDTO(2, List.empty, Some(true)), MenuDTO(3, List.empty, Some(true))), Some(false))),
     )
 
     val rowOne   = Some(ArticleRow(1, 1, 1, Some("some-slug"), Some(parentArticle)))
@@ -355,8 +359,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.withId(eqTo(3L))(any)).thenReturn(rowThree)
 
     val xml = readService.getArticleFrontpageRSS("some-slug").get.value
-    xml should be(
-      s"""<?xml version="1.0" encoding="utf-8"?>
+    xml should be(s"""<?xml version="1.0" encoding="utf-8"?>
         |<rss version="2.0">
         |  <channel>
         |    <title>Parent title</title>
@@ -376,8 +379,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         |      <pubDate>${date.asString}</pubDate>
         |    </item>
         |  </channel>
-        |</rss>""".stripMargin
-    )
+        |</rss>""".stripMargin)
 
   }
 }

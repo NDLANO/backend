@@ -36,17 +36,12 @@ case class NdlaE4sClient(searchServer: String)(using props: BaseProps) {
 
   def executeAsync[T, U: ClassTag](
       request: T
-  )(implicit
-      handler: Handler[T, U],
-      ec: ExecutionContext
-  ): Future[Try[RequestSuccess[U]]] = {
+  )(implicit handler: Handler[T, U], ec: ExecutionContext): Future[Try[RequestSuccess[U]]] = {
     val response = client.execute(request)
     val result   = response.map {
-      case RequestSuccess(status, body, headers, result) =>
-        Success(RequestSuccess[U](status, body, headers, result))
-      case RequestFailure(status, _, _, error) if status == 409 =>
-        Failure(DocumentConflictException(error.reason))
-      case failure: RequestFailure => Failure(NdlaSearchException(request, failure))
+      case RequestSuccess(status, body, headers, result)        => Success(RequestSuccess[U](status, body, headers, result))
+      case RequestFailure(status, _, _, error) if status == 409 => Failure(DocumentConflictException(error.reason))
+      case failure: RequestFailure                              => Failure(NdlaSearchException(request, failure))
     }
 
     result.onComplete {
@@ -96,11 +91,6 @@ object Elastic4sClientFactory {
   def getNonSigningClient(searchServer: String): ElasticClient = {
     val props                 = getProperties(searchServer, 9200)
     val requestConfigCallback = new RequestConfigCallbackWithTimeout
-    ElasticClient(
-      JavaClient(
-        props,
-        requestConfigCallback
-      )
-    )
+    ElasticClient(JavaClient(props, requestConfigCallback))
   }
 }

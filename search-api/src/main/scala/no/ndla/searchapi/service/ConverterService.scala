@@ -24,7 +24,7 @@ import no.ndla.searchapi.model.api.{
   LearningPathIntroductionDTO,
   LearningpathResultDTO,
   LearningpathResultsDTO,
-  SearchResultsDTO
+  SearchResultsDTO,
 }
 import no.ndla.searchapi.model.api.article.ArticleIntroductionDTO
 import no.ndla.searchapi.model.domain.*
@@ -46,7 +46,7 @@ class ConverterService(using props: Props) {
       articles.totalCount,
       articles.page,
       articles.pageSize,
-      articles.results.map(articleSearchResultToApi)
+      articles.results.map(articleSearchResultToApi),
     )
   }
 
@@ -56,20 +56,18 @@ class ConverterService(using props: Props) {
       TitleWithHtmlDTO(article.title.title, article.title.htmlTitle, article.title.language),
       article.introduction.map(i => ArticleIntroductionDTO(i.introduction, i.htmlIntroduction, i.language)),
       article.articleType,
-      article.supportedLanguages
+      article.supportedLanguages,
     )
   }
 
-  private def learningpathSearchResultsToApi(
-      learningpaths: LearningpathApiSearchResults
-  ): LearningpathResultsDTO = {
+  private def learningpathSearchResultsToApi(learningpaths: LearningpathApiSearchResults): LearningpathResultsDTO = {
     LearningpathResultsDTO(
       "learningpaths",
       learningpaths.language,
       learningpaths.totalCount,
       learningpaths.page,
       learningpaths.pageSize,
-      learningpaths.results.map(learningpathSearchResultToApi)
+      learningpaths.results.map(learningpathSearchResultToApi),
     )
   }
 
@@ -78,7 +76,7 @@ class ConverterService(using props: Props) {
       learningpath.id,
       TitleDTO(learningpath.title.title, learningpath.title.language),
       LearningPathIntroductionDTO(learningpath.introduction.introduction, learningpath.introduction.language),
-      learningpath.supportedLanguages
+      learningpath.supportedLanguages,
     )
   }
 
@@ -89,7 +87,7 @@ class ConverterService(using props: Props) {
       images.totalCount,
       images.page,
       images.pageSize,
-      images.results.map(imageSearchResultToApi)
+      images.results.map(imageSearchResultToApi),
     )
   }
 
@@ -106,7 +104,7 @@ class ConverterService(using props: Props) {
       ImageAltTextDTO(image.altText.alttext, image.altText.language),
       previewUrl.toString,
       metaUrl.toString,
-      image.supportedLanguages
+      image.supportedLanguages,
     )
   }
 
@@ -117,7 +115,7 @@ class ConverterService(using props: Props) {
       audios.totalCount,
       audios.page,
       audios.pageSize,
-      audios.results.map(audioSearchResultToApi)
+      audios.results.map(audioSearchResultToApi),
     )
   }
 
@@ -130,7 +128,7 @@ class ConverterService(using props: Props) {
       audio.id,
       model.api.search.TitleDTO(audio.title.title, audio.title.language),
       url,
-      audio.supportedLanguages
+      audio.supportedLanguages,
     )
   }
 }

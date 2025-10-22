@@ -14,8 +14,10 @@ import no.ndla.language.model.WithLanguage
 import sttp.tapir.Schema.annotations.description
 
 case class LearningPathTagsDTO(
-    @description("The searchable tags. Must be plain text") tags: Seq[String],
-    @description("ISO 639-1 code that represents the language used in tag") language: String
+    @description("The searchable tags. Must be plain text")
+    tags: Seq[String],
+    @description("ISO 639-1 code that represents the language used in tag")
+    language: String,
 ) extends WithLanguage
 
 object LearningPathTagsDTO {

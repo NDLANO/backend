@@ -28,10 +28,7 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorServic
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration.DurationInt
 
-class V57__MigrateSavedSearch(using
-    ndlaClient: => NdlaClient,
-    props: DraftApiProperties
-) extends BaseJavaMigration {
+class V57__MigrateSavedSearch(using ndlaClient: => NdlaClient, props: DraftApiProperties) extends BaseJavaMigration {
   val auth0Domain   = AuthUser.getAuth0HostForEnv(props.Environment)
   val managementUri = uri"https://$auth0Domain/oauth/token"
   val auth0Audience = s"https://$auth0Domain/api/v2/"
@@ -63,7 +60,7 @@ class V57__MigrateSavedSearch(using
       client_id = props.auth0ManagementClientId,
       client_secret = props.auth0ManagementClientSecret,
       audience = auth0Audience,
-      grant_type = "client_credentials"
+      grant_type = "client_credentials",
     )
 
     val jsonStr = CirceUtil.toJsonString(inputBody)
@@ -72,9 +69,7 @@ class V57__MigrateSavedSearch(using
 
     Try {
       val res = simpleHttpClient.send(req)
-      CirceUtil
-        .unsafeParseAs[Auth0TokenResponse](res.body)
-        .access_token
+      CirceUtil.unsafeParseAs[Auth0TokenResponse](res.body).access_token
     }
   }
 
@@ -86,8 +81,7 @@ class V57__MigrateSavedSearch(using
 
     Try {
       val res = simpleHttpClient.send(req)
-      CirceUtil
-        .unsafeParseAs[Auth0Users](res.body)
+      CirceUtil.unsafeParseAs[Auth0Users](res.body)
     }
   }
 
@@ -96,18 +90,16 @@ class V57__MigrateSavedSearch(using
       ExecutionContext.fromExecutorService(Executors.newWorkStealingPool(10))
     val firstPage     = fetchAuth0UsersByQuery(managementToken, 0).?
     val numberOfPages = Math.ceil(firstPage.total.toDouble / firstPage.length.toDouble)
-    val users         = (1 to numberOfPages.toInt).foldLeft(List[Future[Auth0Users]](Future(firstPage))) {
-      case (acc, pageNumber) =>
-        val x = Future(fetchAuth0UsersByQuery(managementToken, pageNumber.toLong).?)
-        acc :+ x
+    val users         = (
+      1 to numberOfPages.toInt
+    ).foldLeft(List[Future[Auth0Users]](Future(firstPage))) { case (acc, pageNumber) =>
+      val x = Future(fetchAuth0UsersByQuery(managementToken, pageNumber.toLong).?)
+      acc :+ x
     }
     val fut = Future.sequence(users)
     Try {
       val awaited = Await.result(fut, 10.minutes)
-      awaited
-        .flatMap(_.users)
-        .map(x => x.app_metadata.ndla_id -> x)
-        .toMap
+      awaited.flatMap(_.users).map(x => x.app_metadata.ndla_id -> x).toMap
     }
   }
 
@@ -118,9 +110,7 @@ class V57__MigrateSavedSearch(using
   private val taxonomyTimeout     = 20.seconds
 
   def countAllRows(implicit session: DBSession): Option[Long] = {
-    sql"select count(*) from userdata where document is not NULL"
-      .map(rs => rs.long("count"))
-      .single()
+    sql"select count(*) from userdata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
   def allRows(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
@@ -136,13 +126,14 @@ class V57__MigrateSavedSearch(using
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update userdata set document = $dataObject where id = $id"
-      .update()
+    sql"update userdata set document = $dataObject where id = $id".update()
   }
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
-    .withinTx { session => migrateRows(using session) }
+    .withinTx { session =>
+      migrateRows(using session)
+    }
 
   def migrateRows(implicit session: DBSession): Unit = {
     val count        = countAllRows.get
@@ -163,21 +154,22 @@ class V57__MigrateSavedSearch(using
         .get(uri"$url".withParams(params*))
         .readTimeout(taxonomyTimeout)
         .header(props.TaxonomyVersionHeader, TaxonomyData.get),
-      None
+      None,
     )
   }
 
   private def getNode(id: String): Try[Node] = {
     get[Node](s"$TaxonomyApiEndpoint/nodes/$id") match {
-      case Failure(_) =>
-        Failure(api.NotFoundException(s"No topics with id $id"))
+      case Failure(_)    => Failure(api.NotFoundException(s"No topics with id $id"))
       case Success(node) => Try(node)
     }
   }
 
   private def getResourceType(id: String): Try[ResourceTypeMigration] =
     get[ResourceTypeMigration](s"$TaxonomyApiEndpoint/resource-types/$id") match {
-      case Failure(_)            => { Failure(api.NotFoundException(s"No resource type with id $id")) }
+      case Failure(_) => {
+        Failure(api.NotFoundException(s"No resource type with id $id"))
+      }
       case Success(resourceType) => Try(resourceType)
     }
 
@@ -202,7 +194,8 @@ class V57__MigrateSavedSearch(using
   def convertDocument(document: String): String = {
     val oldUserData = parser.parse(document).flatMap(_.as[V55_UserData]).toTry.get
 
-    val searchPhrases = oldUserData.savedSearches
+    val searchPhrases = oldUserData
+      .savedSearches
       .getOrElse(Seq.empty)
       .map(s => {
         val parsed       = uri"$s"
@@ -216,8 +209,7 @@ class V57__MigrateSavedSearch(using
               case "urn:lmaSubjects" => s"$acc + Mine LMA-fag"
               case "urn:daSubjects"  => s"$acc + Mine DA-fag"
               case "urn:saSubjects"  => s"$acc + Mine SA-fag"
-              case _                 =>
-                getNode(v) match {
+              case _                 => getNode(v) match {
                   case Failure(_)    => acc
                   case Success(node) => s"$acc + ${node.name}"
                 }
@@ -227,9 +219,10 @@ class V57__MigrateSavedSearch(using
             v match {
               case "topic-article"     => s"$acc + Emne"
               case "frontpage-article" => s"$acc + Om-NDLA-artikkel"
-              case _                   =>
-                getResourceType(v) match {
-                  case Failure(_)            => { acc }
+              case _                   => getResourceType(v) match {
+                  case Failure(_) => {
+                    acc
+                  }
                   case Success(resourceType) => s"$acc + ${resourceType.name}"
                 }
             }
@@ -312,12 +305,17 @@ class V57__MigrateSavedSearch(using
 
     val newUserData = V57_UserData(
       userId = oldUserData.userId,
-      savedSearches = oldUserData.savedSearches.map(el =>
-        el.zipWithIndex.map { case (value, index) => V57_SavedSearch(value, searchPhrases(index)) }
-      ),
+      savedSearches = oldUserData
+        .savedSearches
+        .map(el =>
+          el.zipWithIndex
+            .map { case (value, index) =>
+              V57_SavedSearch(value, searchPhrases(index))
+            }
+        ),
       latestEditedArticles = oldUserData.latestEditedArticles,
       latestEditedConcepts = oldUserData.latestEditedConcepts,
-      favoriteSubjects = oldUserData.favoriteSubjects
+      favoriteSubjects = oldUserData.favoriteSubjects,
     )
     newUserData.asJson.noSpaces
   }
@@ -333,7 +331,7 @@ case class V57_UserData(
     savedSearches: Option[Seq[V57_SavedSearch]],
     latestEditedArticles: Option[Seq[String]],
     latestEditedConcepts: Option[Seq[String]],
-    favoriteSubjects: Option[Seq[String]]
+    favoriteSubjects: Option[Seq[String]],
 )
 
 object V57_UserData {
@@ -346,17 +344,14 @@ case class V55_UserData(
     savedSearches: Option[Seq[String]],
     latestEditedArticles: Option[Seq[String]],
     latestEditedConcepts: Option[Seq[String]],
-    favoriteSubjects: Option[Seq[String]]
+    favoriteSubjects: Option[Seq[String]],
 )
 object V55_UserData {
   implicit def encoder: Encoder[V55_UserData] = deriveEncoder
   implicit def decoder: Decoder[V55_UserData] = deriveDecoder
 }
 
-case class TranslationMigration(
-    name: String,
-    language: String
-)
+case class TranslationMigration(name: String, language: String)
 object TranslationMigration {
   implicit def encoder: Encoder[TranslationMigration] = deriveEncoder
   implicit def decoder: Decoder[TranslationMigration] = deriveDecoder
@@ -367,7 +362,7 @@ case class ResourceTypeMigration(
     name: String,
     translations: Seq[TranslationMigration],
     supportedLanguages: Seq[String],
-    subtypes: Option[Seq[ResourceTypeMigration]]
+    subtypes: Option[Seq[ResourceTypeMigration]],
 )
 object ResourceTypeMigration {
   implicit def encoder: Encoder[ResourceTypeMigration] = deriveEncoder

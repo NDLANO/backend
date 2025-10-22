@@ -26,7 +26,7 @@ case class SeriesWithoutId(
     updated: NDLADate,
     created: NDLADate,
     description: Seq[Description],
-    hasRSS: Boolean
+    hasRSS: Boolean,
 )
 object SeriesWithoutId {
   implicit val encoder: Encoder[SeriesWithoutId] = deriveEncoder
@@ -45,7 +45,7 @@ case class Series(
     updated: NDLADate,
     created: NDLADate,
     description: Seq[Description],
-    hasRSS: Boolean
+    hasRSS: Boolean,
 ) {
   lazy val supportedLanguages: Seq[String] = getSupportedLanguages(title, description)
   def withoutId: SeriesWithoutId           = SeriesWithoutId(
@@ -55,7 +55,7 @@ case class Series(
     updated = updated,
     created = created,
     description = description,
-    hasRSS = hasRSS
+    hasRSS = hasRSS,
   )
 }
 
@@ -75,23 +75,16 @@ object Series extends SQLSyntaxSupport[Series] {
       updated = series.updated,
       created = series.created,
       description = series.description,
-      hasRSS = series.hasRSS
+      hasRSS = series.hasRSS,
     )
   }
 
-  def fromResultSet(s: SyntaxProvider[Series])(rs: WrappedResultSet): Try[Series] =
-    fromResultSet(s.resultName)(rs)
+  def fromResultSet(s: SyntaxProvider[Series])(rs: WrappedResultSet): Try[Series] = fromResultSet(s.resultName)(rs)
 
   def fromResultSet(s: ResultName[Series])(rs: WrappedResultSet): Try[Series] = {
     val jsonStr = rs.string(s.c("document"))
     val meta    = CirceUtil.tryParseAs[SeriesWithoutId](jsonStr)
 
-    meta.map(m =>
-      fromId(
-        id = rs.long(s.c("id")),
-        revision = rs.int(s.c("revision")),
-        series = m
-      )
-    )
+    meta.map(m => fromId(id = rs.long(s.c("id")), revision = rs.int(s.c("revision")), series = m))
   }
 }

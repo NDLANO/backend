@@ -87,7 +87,9 @@ trait CopyrightHeaderPlugin extends ScalaModule {
   private def handleMissingCopyright(lines: List[String]) = {
     val cop                 = copyrightTemplate(currentYear, Some(moduleName))
     val copyrightLines      = cop.split("\n").toList
-    val linesAfterCopyright = if (lines.headOption.contains("")) List.empty else List("")
+    val linesAfterCopyright =
+      if (lines.headOption.contains("")) List.empty
+      else List("")
     copyrightLines ++ linesAfterCopyright ++ lines
   }
 

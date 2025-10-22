@@ -26,7 +26,8 @@ case class SearchParamsDTO(
     fallback: Option[Boolean],
     @description("Return only images with full size larger than submitted value in bytes.")
     minimumSize: Option[Int],
-    @deprecated @description("Return copyrighted images. May be omitted.")
+    @deprecated
+    @description("Return copyrighted images. May be omitted.")
     includeCopyrighted: Option[Boolean],
     @description(
       """The sorting used on results. The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id. Default is by -relevance (desc) when query is set, and title (asc) when query is empty."""
@@ -43,7 +44,7 @@ case class SearchParamsDTO(
     @description("Return only images with one of the provided values for modelReleased.")
     modelReleased: Option[Seq[String]],
     @description("Filter editors of the image(s). Multiple values can be specified in a comma separated list.")
-    users: Option[List[String]]
+    users: Option[List[String]],
 )
 
 object SearchParamsDTO {

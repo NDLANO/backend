@@ -57,19 +57,18 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(myndlaproperties) {
       override implicit lazy val feideApiClient: FeideApiClient =
         mock[FeideApiClient](withSettings.strictness(Strictness.LENIENT))
-      override implicit lazy val clock: Clock = mock[Clock](withSettings.strictness(Strictness.LENIENT))
+      override implicit lazy val clock: Clock                       = mock[Clock](withSettings.strictness(Strictness.LENIENT))
       override implicit lazy val folderRepository: FolderRepository = spy(new FolderRepository)
       override implicit lazy val userRepository: UserRepository     = spy(new UserRepository)
 
       when(feideApiClient.getFeideID(any)).thenReturn(Success("q"))
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
       when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
-      when(feideApiClient.getFeideExtendedUser(any))
-        .thenReturn(
-          Success(
-            FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no")))
-          )
+      when(feideApiClient.getFeideExtendedUser(any)).thenReturn(
+        Success(
+          FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no")))
         )
+      )
       when(feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
       when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
     }
@@ -84,7 +83,9 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     super.beforeAll()
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-    Future { myndlaApi.run(Array.empty) }: Unit
+    Future {
+      myndlaApi.run(Array.empty)
+    }: Unit
     blockUntilHealthy(s"$myndlaApiBaseUrl/health/readiness")
   }
 
@@ -111,47 +112,50 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val updatedParentId    = folder.parentId.map(_ => newId)
     val updatedBreadcrumbs = folder.breadcrumbs.map(_.copy(id = newId))
     val updatedResources   = folder.resources.map(_.copy(id = newId))
-    val updatedSubfolders  = folder.subfolders.map { case child: FolderDTO => replaceIdRecursively(child, newId) }
+    val updatedSubfolders  = folder
+      .subfolders
+      .map { case child: FolderDTO =>
+        replaceIdRecursively(child, newId)
+      }
 
     folder.copy(
       id = updatedId,
       parentId = updatedParentId,
       subfolders = updatedSubfolders,
       resources = updatedResources,
-      breadcrumbs = updatedBreadcrumbs
+      breadcrumbs = updatedBreadcrumbs,
     )
   }
 
   def prepareFolderToClone(): UUID = {
     val folderRepository = myndlaApi.componentRegistry.folderRepository
-    val parent           =
-      NewFolderData(
-        parentId = None,
-        name = "parent",
-        status = FolderStatus.SHARED,
-        rank = 1,
-        description = Some("samling 0")
-      )
+    val parent           = NewFolderData(
+      parentId = None,
+      name = "parent",
+      status = FolderStatus.SHARED,
+      rank = 1,
+      description = Some("samling 0"),
+    )
     val pId     = folderRepository.insertFolder(feideId, folderData = parent).get.id
     val pChild1 = NewFolderData(
       parentId = Some(pId),
       name = "p_child1",
       status = FolderStatus.SHARED,
       rank = 1,
-      description = Some("samling 1")
+      description = Some("samling 1"),
     )
     val pChild2 = NewFolderData(
       parentId = Some(pId),
       name = "p_child2",
       status = FolderStatus.SHARED,
       rank = 2,
-      description = Some("samling 2")
+      description = Some("samling 2"),
     )
     folderRepository.insertFolder(feideId, folderData = pChild1)
     folderRepository.insertFolder(feideId, folderData = pChild2)
 
     val document = ResourceDocument(tags = List("a", "b"), resourceId = "1")
-    val rId = folderRepository.insertResource(feideId, "/path", ResourceType.Article, testClock.now(), document).get.id
+    val rId      = folderRepository.insertResource(feideId, "/path", ResourceType.Article, testClock.now(), document).get.id
     folderRepository.createFolderResourceConnection(pId, rId, 1, testClock.now())
 
     pId
@@ -180,7 +184,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 1"),
-      owner = Some(OwnerDTO(""))
+      owner = Some(OwnerDTO("")),
     )
 
     val parentChild2 = api.FolderDTO(
@@ -197,7 +201,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 2"),
-      owner = Some(OwnerDTO(""))
+      owner = Some(OwnerDTO("")),
     )
 
     val parentChild3 = api.ResourceDTO(
@@ -207,7 +211,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       created = testClock.now(),
       tags = List(), // No tags since we are not the owner
       resourceId = "1",
-      rank = Some(1)
+      rank = Some(1),
     )
 
     val expectedFolder = api.FolderDTO(
@@ -223,7 +227,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 0"),
-      owner = Some(OwnerDTO(""))
+      owner = Some(OwnerDTO("")),
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -258,15 +262,15 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       name = "doesnt matter",
       status = FolderStatus.PRIVATE,
       rank = 10,
-      description = None
+      description = None,
     )
-    val noCloneId = folderRepository.insertFolder(feideId, folderData = folderThatShouldNotBeCloned).get.id
+    val noCloneId                    = folderRepository.insertFolder(feideId, folderData = folderThatShouldNotBeCloned).get.id
     val folderThatShouldNotBeCloned2 = NewFolderData(
       parentId = Some(noCloneId),
       name = "doesnt matter2",
       status = FolderStatus.PRIVATE,
       rank = 11,
-      description = Some("spilleringenrolle")
+      description = Some("spilleringenrolle"),
     )
     folderRepository.insertFolder(feideId, folderData = folderThatShouldNotBeCloned2).get.id
     val childrenFolderThatShouldNotBeCloned = NewFolderData(
@@ -274,7 +278,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       name = "doesnt matter3",
       status = FolderStatus.PRIVATE,
       rank = 1,
-      description = None
+      description = None,
     )
     folderRepository.insertFolder(feideId, folderData = childrenFolderThatShouldNotBeCloned).get.id
 
@@ -292,7 +296,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 1"),
-      owner = Some(OwnerDTO(""))
+      owner = Some(OwnerDTO("")),
     )
 
     val parentChild2 = api.FolderDTO(
@@ -309,7 +313,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 2"),
-      owner = Some(OwnerDTO(""))
+      owner = Some(OwnerDTO("")),
     )
 
     val parentChild3 = api.ResourceDTO(
@@ -319,7 +323,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       created = testClock.now(),
       tags = List(), // No tags since we are not the owner
       resourceId = "1",
-      rank = Some(1)
+      rank = Some(1),
     )
 
     val expectedFolder = api.FolderDTO(
@@ -335,19 +339,18 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 0"),
-      owner = Some(OwnerDTO(""))
+      owner = Some(OwnerDTO("")),
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     destinationFoldersBefore.get.length should be(0)
 
-    val response =
-      simpleHttpClient.send(
-        quickRequest
-          .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId")
-          .readTimeout(10.seconds)
-          .header("FeideAuthorization", s"Bearer asd")
-      )
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId")
+        .readTimeout(10.seconds)
+        .header("FeideAuthorization", s"Bearer asd")
+    )
 
     val destinationFoldersAfter = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     destinationFoldersAfter.get.length should be(1)
@@ -365,14 +368,13 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val customId       = UUID.randomUUID()
     val parentId       = Some(customId)
 
-    val destinationFolder =
-      NewFolderData(
-        parentId = None,
-        name = "destination",
-        status = FolderStatus.PRIVATE,
-        rank = 1,
-        description = Some("desc hue")
-      )
+    val destinationFolder = NewFolderData(
+      parentId = None,
+      name = "destination",
+      status = FolderStatus.PRIVATE,
+      rank = 1,
+      description = Some("desc hue"),
+    )
     val destinationFolderId = folderRepository.insertFolder(destinationFeideId, folderData = destinationFolder).get.id
 
     val parentChild1 = api.FolderDTO(
@@ -383,7 +385,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       breadcrumbs = List(
         BreadcrumbDTO(id = customId, name = destinationFolder.name),
         BreadcrumbDTO(id = customId, name = "parent"),
-        BreadcrumbDTO(id = customId, name = "p_child1")
+        BreadcrumbDTO(id = customId, name = "p_child1"),
       ),
       subfolders = List.empty,
       resources = List.empty,
@@ -392,7 +394,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 1"),
-      owner = Some(OwnerDTO(""))
+      owner = Some(OwnerDTO("")),
     )
 
     val parentChild2 = api.FolderDTO(
@@ -403,7 +405,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       breadcrumbs = List(
         BreadcrumbDTO(id = customId, name = destinationFolder.name),
         BreadcrumbDTO(id = customId, name = "parent"),
-        BreadcrumbDTO(id = customId, name = "p_child2")
+        BreadcrumbDTO(id = customId, name = "p_child2"),
       ),
       subfolders = List.empty,
       resources = List.empty,
@@ -412,7 +414,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 2"),
-      owner = Some(OwnerDTO(""))
+      owner = Some(OwnerDTO("")),
     )
 
     val parentChild3 = api.ResourceDTO(
@@ -422,7 +424,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       created = testClock.now(),
       tags = List(), // No tags since we are not the owner
       resourceId = "1",
-      rank = Some(1)
+      rank = Some(1),
     )
 
     val parent = api.FolderDTO(
@@ -432,7 +434,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       parentId = parentId,
       breadcrumbs = List(
         BreadcrumbDTO(id = customId, name = destinationFolder.name),
-        BreadcrumbDTO(id = customId, name = "parent")
+        BreadcrumbDTO(id = customId, name = "parent"),
       ),
       subfolders = List(parentChild1, parentChild2),
       resources = List(parentChild3),
@@ -441,14 +443,16 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 0"),
-      owner = Some(OwnerDTO(""))
+      owner = Some(OwnerDTO("")),
     )
 
     val response = simpleHttpClient.send(
       quickRequest
         .post(
-          uri"$myndlaApiFolderUrl/clone/$sourceFolderId"
-            .withParam("destination-folder-id", destinationFolderId.toString)
+          uri"$myndlaApiFolderUrl/clone/$sourceFolderId".withParam(
+            "destination-folder-id",
+            destinationFolderId.toString,
+          )
         )
         .readTimeout(10.seconds)
         .header("FeideAuthorization", s"Bearer asd")
@@ -465,15 +469,12 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val sourceFolderId = prepareFolderToClone()
     val wrongId        = UUID.randomUUID()
 
-    val response = simpleHttpClient
-      .send(
-        quickRequest
-          .post(
-            uri"$myndlaApiFolderUrl/clone/$sourceFolderId".addParam("destination-folder-id", wrongId.toString)
-          )
-          .header("FeideAuthorization", s"Bearer asd")
-          .readTimeout(10.seconds)
-      )
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(uri"$myndlaApiFolderUrl/clone/$sourceFolderId".addParam("destination-folder-id", wrongId.toString))
+        .header("FeideAuthorization", s"Bearer asd")
+        .readTimeout(10.seconds)
+    )
 
     val error = parser.parse(response.body).toTry.get
     error.hcursor.downField("code").as[String].toTry.get should be("NOT_FOUND")
@@ -490,8 +491,9 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val sourceFolderId   = prepareFolderToClone()
 
     // We want to fail on only the connection insertion
-    when(myndlaApi.componentRegistry.folderRepository.insertResourceConnectionInBulk(any)(using any))
-      .thenReturn(Failure(new RuntimeException("bad")))
+    when(myndlaApi.componentRegistry.folderRepository.insertResourceConnectionInBulk(any)(using any)).thenReturn(
+      Failure(new RuntimeException("bad"))
+    )
 
     val destinationFoldersBefore   = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
     val destinationResourcesBefore = folderRepository.resourcesWithFeideId(destinationFeideId, 10)
@@ -520,13 +522,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     when(testClock.now()).thenReturn(shareTime)
     val folderRepository  = myndlaApi.componentRegistry.folderRepository
     val destinationFolder =
-      NewFolderData(
-        parentId = None,
-        name = "destination",
-        status = FolderStatus.PRIVATE,
-        rank = 1,
-        description = None
-      )
+      NewFolderData(parentId = None, name = "destination", status = FolderStatus.PRIVATE, rank = 1, description = None)
     val destinationFolderId = folderRepository.insertFolder(destinationFeideId, folderData = destinationFolder).get.id
 
     val response = simpleHttpClient.send(
@@ -558,7 +554,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       name = "child",
       status = FolderStatus.PRIVATE,
       rank = 1,
-      description = None
+      description = None,
     )
     val childId    = folderRepository.insertFolder(feideId, folderData = child).get.id
     val childChild = NewFolderData(
@@ -566,7 +562,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       name = "childchild",
       status = FolderStatus.PRIVATE,
       rank = 1,
-      description = None
+      description = None,
     )
     val childChildId = folderRepository.insertFolder(feideId, folderData = childChild).get.id
 
@@ -583,7 +579,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       subfolders = List(),
       shared = Some(shared),
       description = None,
-      user = None
+      user = None,
     )
     val expectedChild: domain.Folder = domain.Folder(
       id = childId,
@@ -598,7 +594,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       subfolders = List(expectedChildChild),
       shared = Some(shared),
       description = None,
-      user = None
+      user = None,
     )
     val expectedParent: domain.Folder = domain.Folder(
       id = parentId,
@@ -613,7 +609,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       subfolders = List(expectedChild),
       shared = Some(shared),
       description = None,
-      user = None
+      user = None,
     )
 
     val response = simpleHttpClient.send(
@@ -637,13 +633,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     when(testClock.now()).thenReturn(created, updated)
     val folderRepository  = myndlaApi.componentRegistry.folderRepository
     val destinationFolder =
-      NewFolderData(
-        parentId = None,
-        name = "destination",
-        status = FolderStatus.PRIVATE,
-        rank = 1,
-        description = None
-      )
+      NewFolderData(parentId = None, name = "destination", status = FolderStatus.PRIVATE, rank = 1, description = None)
     val destinationFolderId = folderRepository.insertFolder(destinationFeideId, folderData = destinationFolder).get.id
 
     val response = simpleHttpClient.send(
@@ -664,14 +654,13 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     val folderRepository = myndlaApi.componentRegistry.folderRepository
 
-    val toCopy =
-      NewFolderData(
-        parentId = None,
-        name = "toCopy",
-        status = FolderStatus.SHARED,
-        rank = 1,
-        description = Some("desc hue")
-      )
+    val toCopy = NewFolderData(
+      parentId = None,
+      name = "toCopy",
+      status = FolderStatus.SHARED,
+      rank = 1,
+      description = Some("desc hue"),
+    )
     val toCopyId = folderRepository.insertFolder(feideId, toCopy).get.id
 
     val existingChild = NewFolderData(
@@ -679,18 +668,17 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       name = "toCopyChild",
       status = FolderStatus.SHARED,
       rank = 1,
-      description = Some("desc hue")
+      description = Some("desc hue"),
     )
     folderRepository.insertFolder(feideId, existingChild).failIfFailure
 
-    val destinationFolder =
-      NewFolderData(
-        parentId = None,
-        name = "destination",
-        status = FolderStatus.SHARED,
-        rank = 1,
-        description = Some("desc hue")
-      )
+    val destinationFolder = NewFolderData(
+      parentId = None,
+      name = "destination",
+      status = FolderStatus.SHARED,
+      rank = 1,
+      description = Some("desc hue"),
+    )
     val destinationId = folderRepository.insertFolder(feideId, destinationFolder).get.id
 
     val conflictingChild = NewFolderData(
@@ -698,27 +686,22 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       name = "toCopy",
       status = FolderStatus.SHARED,
       rank = 1,
-      description = Some("desc hue")
+      description = Some("desc hue"),
     )
     folderRepository.insertFolder(feideId, conflictingChild).failIfFailure
 
     val response = simpleHttpClient.send(
       quickRequest
-        .post(
-          uri"$myndlaApiFolderUrl/clone/$toCopyId"
-            .withParam("destination-folder-id", destinationId.toString)
-        )
+        .post(uri"$myndlaApiFolderUrl/clone/$toCopyId".withParam("destination-folder-id", destinationId.toString))
         .readTimeout(10.seconds)
         .header("FeideAuthorization", s"Bearer asd")
     )
     response.code.code should be(200)
 
-    val allFolders = myndlaApi.componentRegistry.folderReadService
-      .getFolders(
-        includeSubfolders = true,
-        includeResources = true,
-        Some(feideId)
-      )
+    val allFolders = myndlaApi
+      .componentRegistry
+      .folderReadService
+      .getFolders(includeSubfolders = true, includeResources = true, Some(feideId))
       .get
       .folders
 
@@ -759,7 +742,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 1"),
-      owner = Some(OwnerDTO(""))
+      owner = Some(OwnerDTO("")),
     )
 
     val parentChild2 = api.FolderDTO(
@@ -776,7 +759,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 2"),
-      owner = Some(OwnerDTO(""))
+      owner = Some(OwnerDTO("")),
     )
 
     val parentChild3 = api.ResourceDTO(
@@ -786,7 +769,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       created = testClock.now(),
       tags = List(), // No tags since we are not the owner
       resourceId = "1",
-      rank = Some(1)
+      rank = Some(1),
     )
 
     val expectedFolder = api.FolderDTO(
@@ -802,7 +785,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 0"),
-      owner = Some(OwnerDTO(""))
+      owner = Some(OwnerDTO("")),
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -837,15 +820,13 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       destinationFoldersAfter2.get.length should be(2)
 
       def replaceCrumbsRecursively(f: api.FolderDTO, before: String, after: String): api.FolderDTO = {
-        val updatedSubfolders = f.subfolders.map { case child: FolderDTO =>
-          replaceCrumbsRecursively(child, before, after)
-        }
+        val updatedSubfolders = f
+          .subfolders
+          .map { case child: FolderDTO =>
+            replaceCrumbsRecursively(child, before, after)
+          }
         val updatedCrumbs = f.breadcrumbs.map(b => b.copy(name = b.name.replace(before, after)))
-        f.copy(
-          name = f.name.replace(before, after),
-          breadcrumbs = updatedCrumbs,
-          subfolders = updatedSubfolders
-        )
+        f.copy(name = f.name.replace(before, after), breadcrumbs = updatedCrumbs, subfolders = updatedSubfolders)
       }
 
       val bod2          = response2.body

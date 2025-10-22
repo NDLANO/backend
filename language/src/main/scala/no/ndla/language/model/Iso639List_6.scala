@@ -490,7 +490,7 @@ object Iso639List_6 {
       Some("L"),
       "South Ndebele",
       Some("isiNdebele seSewula"),
-      None
+      None,
     ),
     Iso639Val("nbm", None, None, None, Some("I"), Some("L"), "Ngbaka Ma'bo", None, None),
     Iso639Val("nbn", None, None, None, Some("I"), Some("L"), "Kuri", None, None),
@@ -762,7 +762,7 @@ object Iso639List_6 {
       Some("L"),
       "Norwegian Nynorsk",
       Some("Norsk (nynorsk)"),
-      None
+      None,
     ),
     Iso639Val("nnp", None, None, None, Some("I"), Some("L"), "Wancho Naga", None, None),
     Iso639Val("nnq", None, None, None, Some("I"), Some("L"), "Ngindo", None, None),
@@ -784,7 +784,7 @@ object Iso639List_6 {
       Some("L"),
       "Norwegian Bokmål",
       Some("Norsk (bokmål)"),
-      None
+      None,
     ),
     Iso639Val("noc", None, None, None, Some("I"), Some("L"), "Nuk", None, None),
     Iso639Val("nod", None, None, None, Some("I"), Some("L"), "Northern Thai", None, None),
@@ -842,6 +842,6 @@ object Iso639List_6 {
     Iso639Val("nrp", None, None, None, Some("I"), Some("A"), "North Picene", None, None),
     Iso639Val("nrr", None, None, None, Some("I"), Some("E"), "Norra", None, None),
     Iso639Val("nrt", None, None, None, Some("I"), Some("E"), "Northern Kalapuya", None, None),
-    Iso639Val("nru", None, None, None, Some("I"), Some("L"), "Narua", None, None)
+    Iso639Val("nru", None, None, None, Some("I"), Some("L"), "Narua", None, None),
   )
 }

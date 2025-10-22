@@ -20,9 +20,7 @@ import scala.collection.Seq
 class V59__RenameAlignAttributeTable extends BaseJavaMigration {
 
   private def countAllRows(implicit session: DBSession): Option[Long] = {
-    sql"select count(*) from articledata where document is not NULL"
-      .map(rs => rs.long("count"))
-      .single()
+    sql"select count(*) from articledata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
   private def allRows(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
@@ -38,13 +36,14 @@ class V59__RenameAlignAttributeTable extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update articledata set document = $dataObject where id = $id"
-      .update()
+    sql"update articledata set document = $dataObject where id = $id".update()
   }
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
-    .withinTx { session => migrateRows(using session) }
+    .withinTx { session =>
+      migrateRows(using session)
+    }
 
   private def migrateRows(implicit session: DBSession): Unit = {
     val count        = countAllRows.get
@@ -62,11 +61,7 @@ class V59__RenameAlignAttributeTable extends BaseJavaMigration {
 
   private def convertHtml(str: String): String = {
     val document = Jsoup.parseBodyFragment(str)
-    document
-      .outputSettings()
-      .escapeMode(EscapeMode.xhtml)
-      .prettyPrint(false)
-      .indentAmount(0)
+    document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false).indentAmount(0)
 
     document
       .select("td[align],th[align]")
@@ -76,9 +71,7 @@ class V59__RenameAlignAttributeTable extends BaseJavaMigration {
         cell.removeAttr("align"): Unit
       })
 
-    document
-      .select("td[valign],th[valign]")
-      .forEach(cell => cell.removeAttr("valign"): Unit)
+    document.select("td[valign],th[valign]").forEach(cell => cell.removeAttr("valign"): Unit)
 
     val result = document.select("body").first().html()
     result
@@ -91,17 +84,17 @@ class V59__RenameAlignAttributeTable extends BaseJavaMigration {
     if (cursor.downField("content").focus.isEmpty) {
       document
     } else {
-      val newJson =
-        oldArticle.hcursor
-          .downField("content")
-          .withFocus(f => {
-            f.mapArray(contents => {
-              contents.map { content =>
-                content.mapObject(f => f.mapValues(str => str.mapString(s => convertHtml(s))))
-              }
-            })
-
+      val newJson = oldArticle
+        .hcursor
+        .downField("content")
+        .withFocus(f => {
+          f.mapArray(contents => {
+            contents.map { content =>
+              content.mapObject(f => f.mapValues(str => str.mapString(s => convertHtml(s))))
+            }
           })
+
+        })
       newJson.top.get.noSpaces
     }
   }

@@ -19,17 +19,17 @@ import io.circe.syntax.EncoderOps
 
 class V25__SubjectNameAsTagsPublished(
     properties: ConceptApiProperties,
-    prefetchedSubjects: Option[List[TaxonomySubject]] = None
+    prefetchedSubjects: Option[List[TaxonomySubject]] = None,
 ) extends DocumentMigration
     with StrictLogging {
   override val columnName: String = "document"
   override val tableName: String  = "publishedconceptdata"
 
-  def toMap(subject: TaxonomySubject): Map[String, String] =
-    subject.translations
-      .map(t => t.language -> t.name)
-      .toMap
-      .withDefaultValue(subject.name)
+  def toMap(subject: TaxonomySubject): Map[String, String] = subject
+    .translations
+    .map(t => t.language -> t.name)
+    .toMap
+    .withDefaultValue(subject.name)
 
   lazy val subjects: List[TaxonomySubject] = prefetchedSubjects match {
     case Some(value) => value
@@ -40,7 +40,11 @@ class V25__SubjectNameAsTagsPublished(
   }
 
   lazy val subjectIdToTranslationsMap: Map[String, Map[String, String]] = {
-    subjects.map { subject => subject.id -> toMap(subject) }.toMap
+    subjects
+      .map { subject =>
+        subject.id -> toMap(subject)
+      }
+      .toMap
   }
 
   private def getLanguagesOfField(fieldName: String, json: Json): List[String] = {
@@ -79,10 +83,12 @@ class V25__SubjectNameAsTagsPublished(
           }
         }
 
-        oldDocument.mapObject {
-          case o if !o.contains("tags") => o
-          case o                        => o.remove("tags").add("tags", newTags.asJson)
-        }.noSpaces
+        oldDocument
+          .mapObject {
+            case o if !o.contains("tags") => o
+            case o                        => o.remove("tags").add("tags", newTags.asJson)
+          }
+          .noSpaces
 
       case _ => document
     }

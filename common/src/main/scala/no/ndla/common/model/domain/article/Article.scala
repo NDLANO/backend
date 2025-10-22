@@ -40,7 +40,7 @@ case class Article(
     revisionDate: Option[NDLADate],
     slug: Option[String],
     disclaimer: OptLanguageFields[String],
-    traits: List[ArticleTrait]
+    traits: List[ArticleTrait],
 ) extends Content
 
 object Article {

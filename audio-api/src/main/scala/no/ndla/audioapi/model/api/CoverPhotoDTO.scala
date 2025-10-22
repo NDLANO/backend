@@ -12,9 +12,12 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Meta information about podcast audio")
 case class CoverPhotoDTO(
-    @description("Id for the coverPhoto in image-api") id: String,
-    @description("Url to the coverPhoto") url: String,
-    @description("Alttext for the coverPhoto") altText: String
+    @description("Id for the coverPhoto in image-api")
+    id: String,
+    @description("Url to the coverPhoto")
+    url: String,
+    @description("Alttext for the coverPhoto")
+    altText: String,
 )
 
 object CoverPhotoDTO {

@@ -36,7 +36,7 @@ class ContentURIUtilTest extends UnitTestSuiteBase {
         Failure(
           NotUrnPatternException("Pattern \"one\" passed to `parseArticleIdAndRevision` did not match urn pattern.")
         ),
-        None
+        None,
       )
     )
   }

@@ -7,6 +7,6 @@ object `package` extends ScalaModule {
   def scalaVersion = "3.7.2"
   def mvnDeps      = Seq(
     mvn"org.scalameta::scalameta:${SharedDependencies.ScalaMetaVersion}",
-    mvn"org.scalameta:semanticdb-shared_2.13:${SharedDependencies.ScalaMetaVersion}"
+    mvn"org.scalameta:semanticdb-shared_2.13:${SharedDependencies.ScalaMetaVersion}",
   )
 }

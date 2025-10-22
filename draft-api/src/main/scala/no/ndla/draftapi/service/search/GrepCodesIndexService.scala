@@ -24,7 +24,7 @@ class GrepCodesIndexService(using
     draftRepository: DraftRepository,
     props: Props,
     e4sClient: NdlaE4sClient,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends IndexService[Draft, SearchableGrepCode]
     with StrictLogging {
   override val documentType: String          = props.DraftGrepCodesSearchDocument

@@ -22,14 +22,14 @@ object OEmbedConverterService {
     queryParamsToTransfer match {
       case Vector() => oembed
       case _        =>
-        val newHtml = oembed.html
+        val newHtml = oembed
+          .html
           .map(Jsoup.parseBodyFragment)
           .map(document => {
-            Option(document.select("iframe[src]").first)
-              .foreach(element => {
-                val newUrl = element.attr("src").addParams(queryParamsToTransfer).toString
-                element.attr("src", newUrl)
-              })
+            Option(document.select("iframe[src]").first).foreach(element => {
+              val newUrl = element.attr("src").addParams(queryParamsToTransfer).toString
+              element.attr("src", newUrl)
+            })
             document
               .body()
               .html()
@@ -51,12 +51,12 @@ object OEmbedConverterService {
 
   def idToYoutubeUrl(videoId: String): String = s"https://youtu.be/$videoId"
 
-  def removeQueryString(url: String): String =
-    Url.parse(url).removeQueryString().toString
+  def removeQueryString(url: String): String = Url.parse(url).removeQueryString().toString
 
-  def removeQueryStringAndFragment(url: String): String =
-    Url.parse(removeQueryString(url)).withFragment(None).toString
+  def removeQueryStringAndFragment(url: String): String = Url.parse(removeQueryString(url)).withFragment(None).toString
 
-  private def filterQueryNames(url: String, allowedQueryParamNames: Set[String]): String =
-    Url.parse(url).filterQueryNames(allowedQueryParamNames.contains).toString
+  private def filterQueryNames(url: String, allowedQueryParamNames: Set[String]): String = Url
+    .parse(url)
+    .filterQueryNames(allowedQueryParamNames.contains)
+    .toString
 }

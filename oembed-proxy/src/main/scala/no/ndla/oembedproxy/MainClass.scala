@@ -22,6 +22,5 @@ class MainClass(override val props: OEmbedProxyProperties) extends NdlaTapirMain
     componentRegistry.healthController.setWarmedUp()
   }
 
-  override def beforeStart(): Unit =
-    componentRegistry.providerService.loadProviders(): Unit
+  override def beforeStart(): Unit = componentRegistry.providerService.loadProviders(): Unit
 }

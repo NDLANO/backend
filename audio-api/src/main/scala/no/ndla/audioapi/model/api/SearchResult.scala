@@ -14,11 +14,16 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 @description("Information about audio summary search-results")
 case class AudioSummarySearchResultDTO(
-    @description("The total number of articles matching this query") totalCount: Long,
-    @description("For which page results are shown from") page: Option[Int],
-    @description("The number of results per page") pageSize: Int,
-    @description("The chosen search language") language: String,
-    @description("The search results") results: Seq[AudioSummaryDTO]
+    @description("The total number of articles matching this query")
+    totalCount: Long,
+    @description("For which page results are shown from")
+    page: Option[Int],
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The chosen search language")
+    language: String,
+    @description("The search results")
+    results: Seq[AudioSummaryDTO],
 )
 
 object AudioSummarySearchResultDTO {
@@ -28,11 +33,16 @@ object AudioSummarySearchResultDTO {
 
 @description("Information about series summary search-results")
 case class SeriesSummarySearchResultDTO(
-    @description("The total number of articles matching this query") totalCount: Long,
-    @description("For which page results are shown from") page: Option[Int],
-    @description("The number of results per page") pageSize: Int,
-    @description("The chosen search language") language: String,
-    @description("The search results") results: Seq[SeriesSummaryDTO]
+    @description("The total number of articles matching this query")
+    totalCount: Long,
+    @description("For which page results are shown from")
+    page: Option[Int],
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The chosen search language")
+    language: String,
+    @description("The search results")
+    results: Seq[SeriesSummaryDTO],
 )
 object SeriesSummarySearchResultDTO {
   implicit val encoder: Encoder[SeriesSummarySearchResultDTO] = deriveEncoder
@@ -41,11 +51,16 @@ object SeriesSummarySearchResultDTO {
 
 @description("Information about tags-search-results")
 case class TagsSearchResultDTO(
-    @description("The total number of tags matching this query") totalCount: Long,
-    @description("For which page results are shown from") page: Int,
-    @description("The number of results per page") pageSize: Int,
-    @description("The chosen search language") language: String,
-    @description("The search results") results: Seq[String]
+    @description("The total number of tags matching this query")
+    totalCount: Long,
+    @description("For which page results are shown from")
+    page: Int,
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The chosen search language")
+    language: String,
+    @description("The search results")
+    results: Seq[String],
 )
 object TagsSearchResultDTO {
   implicit val encoder: Encoder[TagsSearchResultDTO] = deriveEncoder

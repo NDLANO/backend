@@ -40,7 +40,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       failedApiCall,
       failedApiCall,
       failedApiCall,
-      Success(ContentIdDTO(10))
+      Success(ContentIdDTO(10)),
     )
 
     simpleHttpClient.send(
@@ -57,30 +57,21 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(readService.importIdOfArticle("1234")).thenReturn(None)
 
     {
-      val res = simpleHttpClient.send(
-        quickRequest
-          .get(uri"http://localhost:$serverPort/intern/import-id/1234")
-      )
+      val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/import-id/1234"))
       res.code.code should be(404)
     }
 
     when(readService.importIdOfArticle("1234")).thenReturn(Some(ImportId(Some(uuid))))
 
     {
-      val res = simpleHttpClient.send(
-        quickRequest
-          .get(uri"http://localhost:$serverPort/intern/import-id/1234")
-      )
+      val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/import-id/1234"))
       res.code.code should be(200)
       res.body should be(s"""{"importId":"$uuid"}""".stripMargin)
     }
   }
 
   test("That DELETE /index removes all indexes") {
-    reset(
-      articleIndexService,
-      tagIndexService
-    )
+    reset(articleIndexService, tagIndexService)
 
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
     when(tagIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index7", "index8")))
@@ -90,10 +81,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(tagIndexService).deleteIndexWithName(Some("index8"))
 
     {
-      val res = simpleHttpClient.send(
-        quickRequest
-          .delete(uri"http://localhost:$serverPort/intern/index")
-      )
+      val res = simpleHttpClient.send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
       res.code.code should be(200)
       res.body should equal("Deleted 4 indexes")
     }
@@ -111,11 +99,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   }
 
   test("That DELETE /index fails if at least one index isn't found, and no indexes are deleted") {
-    reset(
-      articleIndexService,
-      tagIndexService,
-      grepCodesIndexService
-    )
+    reset(articleIndexService, tagIndexService, grepCodesIndexService)
 
     doReturn(Failure(new RuntimeException("Failed to find indexes")), Nil*)
       .when(articleIndexService)
@@ -124,10 +108,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(articleIndexService).deleteIndexWithName(Some("index2"))
 
     {
-      val res = simpleHttpClient.send(
-        quickRequest
-          .delete(uri"http://localhost:$serverPort/intern/index")
-      )
+      val res = simpleHttpClient.send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
       res.code.code should be(500)
       res.body should equal("Failed to find indexes")
     }
@@ -138,10 +119,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test(
     "That DELETE /index fails if at least one index couldn't be deleted, but the other indexes are deleted regardless"
   ) {
-    reset(
-      articleIndexService,
-      tagIndexService
-    )
+    reset(articleIndexService, tagIndexService)
 
     when(articleIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index1", "index2")))
     when(tagIndexService.findAllIndexes(any[String])).thenReturn(Success(List("index7", "index8")))
@@ -154,10 +132,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(tagIndexService).deleteIndexWithName(Some("index8"))
 
     {
-      val res = simpleHttpClient.send(
-        quickRequest
-          .delete(uri"http://localhost:$serverPort/intern/index")
-      )
+      val res = simpleHttpClient.send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
       res.code.code should be(500)
       res.body should equal(
         "Failed to delete 1 index: No index with name 'index2' exists. 3 indexes were deleted successfully."

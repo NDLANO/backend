@@ -40,7 +40,7 @@ object TestData {
     created = NDLADate.now(),
     tags = List.empty,
     resourceId = "1",
-    connection = None
+    connection = None,
   )
 
   val emptyDomainFolder: domain.Folder = domain.Folder(
@@ -56,21 +56,13 @@ object TestData {
     updated = today,
     shared = None,
     description = None,
-    user = None
+    user = None,
   )
 
-  val baseFolderDocument: NewFolderData = NewFolderData(
-    parentId = None,
-    name = "some-name",
-    status = FolderStatus.PRIVATE,
-    rank = 1,
-    description = None
-  )
+  val baseFolderDocument: NewFolderData =
+    NewFolderData(parentId = None, name = "some-name", status = FolderStatus.PRIVATE, rank = 1, description = None)
 
-  val baseResourceDocument: ResourceDocument = ResourceDocument(
-    tags = List.empty,
-    resourceId = "1"
-  )
+  val baseResourceDocument: ResourceDocument = ResourceDocument(tags = List.empty, resourceId = "1")
 
   val emptyApiFolder: api.FolderDTO = api.FolderDTO(
     id = UUID.randomUUID(),
@@ -85,7 +77,7 @@ object TestData {
     updated = today,
     shared = None,
     description = None,
-    owner = None
+    owner = None,
   )
 
   val emptyMyNDLAUser: MyNDLAUser = MyNDLAUser(
@@ -99,7 +91,7 @@ object TestData {
     username = "",
     displayName = "",
     email = "",
-    arenaEnabled = false
+    arenaEnabled = false,
   )
 
 }

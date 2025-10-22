@@ -14,9 +14,12 @@ import io.circe.{Decoder, Encoder}
 
 @description("Meta information about podcast audio")
 case class PodcastMetaDTO(
-    @description("Introduction for the podcast") introduction: String,
-    @description("Cover photo for the podcast") coverPhoto: CoverPhotoDTO,
-    @description("ISO 639-1 code that represents the language used in the title") language: String
+    @description("Introduction for the podcast")
+    introduction: String,
+    @description("Cover photo for the podcast")
+    coverPhoto: CoverPhotoDTO,
+    @description("ISO 639-1 code that represents the language used in the title")
+    language: String,
 )
 
 object PodcastMetaDTO {

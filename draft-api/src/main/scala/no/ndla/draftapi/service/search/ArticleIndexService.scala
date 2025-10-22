@@ -25,7 +25,7 @@ class ArticleIndexService(using
     draftRepository: DraftRepository,
     e4sClient: NdlaE4sClient,
     searchLanguage: SearchLanguage,
-    props: Props
+    props: Props,
 ) extends IndexService[Draft, SearchableArticle]
     with StrictLogging {
   override val documentType: String          = props.DraftSearchDocument
@@ -51,7 +51,7 @@ class ArticleIndexService(using
       keywordField("users"),
       keywordField("grepCodes"),
       keywordField("traits"),
-      ObjectField("status", properties = Seq(keywordField("current"), keywordField("other")))
+      ObjectField("status", properties = Seq(keywordField("current"), keywordField("other"))),
     )
     val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
       generateLanguageSupportedFieldList("content") ++

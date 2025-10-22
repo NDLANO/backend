@@ -23,6 +23,6 @@ object SwaggerDocControllerConfig {
       "Meta-data like title, tags, language and license are searchable and also provided in the results. " +
       "The media file is provided as an URL with the mime type.",
     authUrl = props.Auth0LoginEndpoint,
-    scopes = scopes
+    scopes = scopes,
   )
 }

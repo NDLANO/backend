@@ -34,10 +34,9 @@ case class AudioMetaInformation(
     audioType: AudioType.Value = AudioType.Standard,
     manuscript: Seq[Manuscript],
     seriesId: Option[Long],
-    series: Option[Series]
+    series: Option[Series],
 ) {
-  lazy val supportedLanguages: Seq[String] =
-    getSupportedLanguages(titles, podcastMeta, manuscript, filePaths, tags)
+  lazy val supportedLanguages: Seq[String] = getSupportedLanguages(titles, podcastMeta, manuscript, filePaths, tags)
 }
 
 object AudioType extends Enumeration {
@@ -87,7 +86,7 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
     meta.copy(
       id = Some(rs.long(au.c("id"))),
       revision = Some(rs.int(au.c("revision"))),
-      seriesId = rs.longOpt(au.c("series_id"))
+      seriesId = rs.longOpt(au.c("series_id")),
     )
   }
 

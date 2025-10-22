@@ -18,11 +18,7 @@ class SearchableLanguageValuesTest extends UnitTestSuiteBase {
   test("That SearchableLanguageValues serialization and deserialization results in same object") {
     import io.circe.syntax.*
     val searchableLanguageValues = SearchableLanguageValues(
-      Seq(
-        LanguageValue("nb", "Norsk"),
-        LanguageValue("nn", "Nynorsk"),
-        LanguageValue("en", "English")
-      )
+      Seq(LanguageValue("nb", "Norsk"), LanguageValue("nn", "Nynorsk"), LanguageValue("en", "English"))
     )
 
     val jsonStr      = searchableLanguageValues.asJson.noSpaces
@@ -43,11 +39,7 @@ class SearchableLanguageValuesTest extends UnitTestSuiteBase {
   test("That SearchableLanguageValues serialization results in object with language as key") {
     import io.circe.syntax.*
     val searchableLanguageValues = SearchableLanguageValues(
-      Seq(
-        LanguageValue("nb", "Norsk"),
-        LanguageValue("nn", "Nynorsk"),
-        LanguageValue("en", "English")
-      )
+      Seq(LanguageValue("nb", "Norsk"), LanguageValue("nn", "Nynorsk"), LanguageValue("en", "English"))
     )
 
     val json         = searchableLanguageValues.asJson.noSpaces
@@ -61,7 +53,7 @@ class SearchableLanguageValuesTest extends UnitTestSuiteBase {
       Seq(
         LanguageValue("nb", List("Norsk", "Norskere", "Norskest")),
         LanguageValue("nn", List("Nynorsk", "Nynorskere", "Nynorskest")),
-        LanguageValue("en", List("English", "Englisher", "Englishest"))
+        LanguageValue("en", List("English", "Englisher", "Englishest")),
       )
     )
 
@@ -76,7 +68,7 @@ class SearchableLanguageValuesTest extends UnitTestSuiteBase {
       Seq(
         LanguageValue("nb", List("Norsk", "Norskere", "Norskest")),
         LanguageValue("nn", List("Nynorsk", "Nynorskere", "Nynorskest")),
-        LanguageValue("en", List("English", "Englisher", "Englishest"))
+        LanguageValue("en", List("English", "Englisher", "Englishest")),
       )
     )
 

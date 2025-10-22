@@ -36,15 +36,9 @@ sealed trait PropValue[T] {
   val key: String
 }
 
-case class LoadedProp[T](
-    key: String,
-    value: T
-) extends PropValue[T]
+case class LoadedProp[T](key: String, value: T) extends PropValue[T]
 
-case class FailedProp[T](
-    key: String,
-    failure: Throwable
-) extends PropValue[T]
+case class FailedProp[T](key: String, failure: Throwable) extends PropValue[T]
 
 object Prop {
   implicit def propToString(prop: Prop[?]): String = prop.toString

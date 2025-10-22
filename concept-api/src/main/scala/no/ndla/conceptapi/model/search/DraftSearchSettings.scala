@@ -27,7 +27,7 @@ case class DraftSearchSettings(
     embedId: Option[String],
     responsibleIdFilter: List[String],
     conceptType: Option[String],
-    aggregatePaths: List[String]
+    aggregatePaths: List[String],
 )
 
 object DraftSearchSettings {
@@ -47,7 +47,7 @@ object DraftSearchSettings {
       embedId = None,
       responsibleIdFilter = List.empty,
       conceptType = None,
-      aggregatePaths = List.empty
+      aggregatePaths = List.empty,
     )
   }
 }

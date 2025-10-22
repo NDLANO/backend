@@ -13,8 +13,12 @@ import sttp.tapir.Schema.annotations.description
 
 @description("All the subjectpages")
 case class SubjectPageDomainDumpDTO(
-    @description("The total number of articles in the database") totalCount: Long,
-    @description("For which page results are shown from") page: Int,
-    @description("The number of results per page") pageSize: Int,
-    @description("The search results") results: Seq[SubjectPage]
+    @description("The total number of articles in the database")
+    totalCount: Long,
+    @description("For which page results are shown from")
+    page: Int,
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The search results")
+    results: Seq[SubjectPage],
 )

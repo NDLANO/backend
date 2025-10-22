@@ -29,7 +29,7 @@ class TagSearchService(using
     tagIndexService: TagIndexService,
     props: Props,
     errorHandling: ControllerErrorHandling,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends StrictLogging
     with SearchService[String] {
   import errorHandling.ResultWindowTooLargeException
@@ -45,30 +45,16 @@ class TagSearchService(using
       case _                                  => "*"
     }
 
-    val fullQuery = boolQuery()
-      .must(
-        boolQuery().should(
-          matchQuery("tag", query).boost(2),
-          prefixQuery("tag", query)
-        )
-      )
+    val fullQuery = boolQuery().must(boolQuery().should(matchQuery("tag", query).boost(2), prefixQuery("tag", query)))
 
     executeSearch(language, page, pageSize, fullQuery)
   }
 
-  def executeSearch(
-      language: String,
-      page: Int,
-      pageSize: Int,
-      queryBuilder: BoolQuery
-  ): Try[SearchResult[String]] = {
+  def executeSearch(language: String, page: Int, pageSize: Int, queryBuilder: BoolQuery): Try[SearchResult[String]] = {
 
     val languageFilter =
       if (language == "*") None
-      else
-        Some(
-          termQuery("language", language)
-        )
+      else Some(termQuery("language", language))
 
     val filters        = List(languageFilter)
     val filteredSearch = queryBuilder.filter(filters.flatten)
@@ -89,23 +75,24 @@ class TagSearchService(using
         .sortBy(fieldSort("_score").sortOrder(SortOrder.Desc))
 
       val searchWithScroll =
-        if (startAt != 0) { searchToExecute }
-        else { searchToExecute.scroll(props.ElasticSearchScrollKeepAlive) }
+        if (startAt != 0) {
+          searchToExecute
+        } else {
+          searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
+        }
 
       e4sClient.execute(searchWithScroll) match {
-        case Success(response) =>
-          getHits(response.result, language).map(hits =>
+        case Success(response) => getHits(response.result, language).map(hits =>
             SearchResult(
               totalCount = response.result.totalHits,
               page = Some(page),
               pageSize = numResults,
               language = language,
               results = hits,
-              scrollId = response.result.scrollId
+              scrollId = response.result.scrollId,
             )
           )
-        case Failure(ex) =>
-          errorHandler(ex)
+        case Failure(ex) => errorHandler(ex)
       }
     }
   }
@@ -119,8 +106,7 @@ class TagSearchService(using
 
     f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
     f.foreach {
-      case Success(reindexResult) =>
-        logger.info(
+      case Success(reindexResult) => logger.info(
           s"Completed indexing of tags of ${reindexResult.totalIndexed} articles in ${reindexResult.millisUsed} ms."
         )
       case Failure(ex) => logger.warn(ex.getMessage, ex)

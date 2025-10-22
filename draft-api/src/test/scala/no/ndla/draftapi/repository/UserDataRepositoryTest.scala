@@ -43,8 +43,7 @@ class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironme
       case Success(c) =>
         c.close()
         true
-      case _ =>
-        false
+      case _ => false
     }
   }
 
@@ -82,8 +81,9 @@ class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironme
   test("that withId and withUserId returns the same userdata") {
     this.resetIdSequence()
 
-    val data1 =
-      TestData.emptyDomainUserData.copy(userId = "first", savedSearches = Some(Seq(SavedSearchDTO("eple", "eple"))))
+    val data1 = TestData
+      .emptyDomainUserData
+      .copy(userId = "first", savedSearches = Some(Seq(SavedSearchDTO("eple", "eple"))))
     val data2 = TestData.emptyDomainUserData.copy(userId = "second", latestEditedArticles = Some(Seq("kake")))
     val data3 = TestData.emptyDomainUserData.copy(userId = "third", favoriteSubjects = Some(Seq("bok")))
 
@@ -99,27 +99,33 @@ class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironme
   test("that updating updates all fields correctly") {
     val initialUserData1 = TestData.emptyDomainUserData.copy(userId = "first")
 
-    val initialUserData2 = TestData.emptyDomainUserData.copy(
-      userId = "second",
-      savedSearches = Some(Seq(SavedSearchDTO("Seiddit", "Seiddit"), SavedSearchDTO("Emina", "Emina"))),
-      latestEditedArticles = Some(Seq("article:6", "article:9")),
-      favoriteSubjects = Some(Seq("methematics", "PEBCAK-studies"))
-    )
+    val initialUserData2 = TestData
+      .emptyDomainUserData
+      .copy(
+        userId = "second",
+        savedSearches = Some(Seq(SavedSearchDTO("Seiddit", "Seiddit"), SavedSearchDTO("Emina", "Emina"))),
+        latestEditedArticles = Some(Seq("article:6", "article:9")),
+        favoriteSubjects = Some(Seq("methematics", "PEBCAK-studies")),
+      )
 
     val inserted1 = repository.insert(initialUserData1)
     val inserted2 = repository.insert(initialUserData2)
 
-    val updatedUserData1 = inserted1.get.copy(
-      savedSearches = Some(Seq(SavedSearchDTO("1", "1"), SavedSearchDTO("2", "2"))),
-      latestEditedArticles = Some(Seq("3", "4")),
-      favoriteSubjects = Some(Seq("5", "6"))
-    )
+    val updatedUserData1 = inserted1
+      .get
+      .copy(
+        savedSearches = Some(Seq(SavedSearchDTO("1", "1"), SavedSearchDTO("2", "2"))),
+        latestEditedArticles = Some(Seq("3", "4")),
+        favoriteSubjects = Some(Seq("5", "6")),
+      )
 
-    val updatedUserData2 = inserted2.get.copy(
-      savedSearches = Some(Seq(SavedSearchDTO("a", "a"), SavedSearchDTO("b", "b"))),
-      latestEditedArticles = None,
-      favoriteSubjects = Some(Seq.empty)
-    )
+    val updatedUserData2 = inserted2
+      .get
+      .copy(
+        savedSearches = Some(Seq(SavedSearchDTO("a", "a"), SavedSearchDTO("b", "b"))),
+        latestEditedArticles = None,
+        favoriteSubjects = Some(Seq.empty),
+      )
 
     val res1 = repository.update(updatedUserData1)
     val res2 = repository.update(updatedUserData2)

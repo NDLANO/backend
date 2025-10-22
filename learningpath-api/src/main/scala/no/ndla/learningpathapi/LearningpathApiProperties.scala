@@ -45,7 +45,7 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
       case "prod"  => "ndla.no"
       case "local" => "localhost:30017"
       case _       => s"$Environment.ndla.no"
-    }
+    },
   )
 
   def NdlaFrontendProtocol: String = propOrElse(
@@ -53,23 +53,14 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
     Environment match {
       case "local" => "http"
       case _       => "https"
-    }
+    },
   )
 
   def EnvironmentUrls(env: String): Set[String] = {
-    Set(
-      s"$env.ndla.no",
-      s"www.$env.ndla.no",
-      s"ndla-frontend.$env.api.ndla.no"
-    )
+    Set(s"$env.ndla.no", s"www.$env.ndla.no", s"ndla-frontend.$env.api.ndla.no")
   }
 
-  def NdlaFrontendHostNames: Set[String] = Set(
-    "ndla.no",
-    "www.ndla.no",
-    s"ndla-frontend.api.ndla.no",
-    "localhost"
-  ) ++
+  def NdlaFrontendHostNames: Set[String] = Set("ndla.no", "www.ndla.no", s"ndla-frontend.api.ndla.no", "localhost") ++
     EnvironmentUrls(Environment) ++
     EnvironmentUrls("test") ++
     EnvironmentUrls("staging")
@@ -102,11 +93,10 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
     "sub",
     "sup",
     "u",
-    "ul"
+    "ul",
   )
 
-  def SearchServer: String =
-    propOrElse("SEARCH_SERVER", "http://search-learningpath-api.ndla-local")
+  def SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-learningpath-api.ndla-local")
 
   override def MetaMigrationLocation: String      = "no/ndla/learningpathapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")

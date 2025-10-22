@@ -15,11 +15,10 @@ import no.ndla.common.model.api.{FrontPageDTO, MenuDTO}
 
 class FrontPageTest extends UnitSuite with TestEnvironment {
   test("test that circe encoding and decoding works for recursive types") {
-    val before =
-      FrontPageDTO(
-        1,
-        List(MenuDTO(2, List(MenuDTO(3, List(MenuDTO(4, List(), Some(false))), Some(false))), Some(false)))
-      )
+    val before = FrontPageDTO(
+      1,
+      List(MenuDTO(2, List(MenuDTO(3, List(MenuDTO(4, List(), Some(false))), Some(false))), Some(false))),
+    )
     val jsonString = before.asJson.noSpaces
     val parsed     = parse(jsonString).toTry.get
     val converted  = parsed.as[FrontPageDTO].toTry.get

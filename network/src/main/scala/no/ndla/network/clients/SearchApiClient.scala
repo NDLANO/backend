@@ -39,18 +39,15 @@ class SearchApiClient(SearchApiBaseUrl: String)(using ndlaClient: NdlaClient) ex
 
       future.onComplete { completed =>
         completed.flatten match {
-          case Success(_) =>
-            logger.info(
+          case Success(_) => logger.info(
               s"Successfully indexed $name with id '$id' and revision '$revision' after $attempt attempts in search-api"
             )
           case Failure(ex: HttpRequestException) if ex.is409 =>
             logger.info(s"$name with id '$id' and revision '$revision' already exists in search index. Skipping.")
-          case Failure(_) if attempt < indexRetryCount =>
-            attemptIndex(document, user, attempt + 1)
-          case Failure(ex) =>
-            logger.error(
+          case Failure(_) if attempt < indexRetryCount => attemptIndex(document, user, attempt + 1)
+          case Failure(ex)                             => logger.error(
               s"Failed to index $name with id '$id' and revision '$revision' after $attempt attempts in search-api",
-              ex
+              ex,
             )
         }
       }
@@ -60,11 +57,7 @@ class SearchApiClient(SearchApiBaseUrl: String)(using ndlaClient: NdlaClient) ex
   }
 
   def deleteDocument(id: Long, name: String): Long = {
-    ndlaClient.doRequest(
-      quickRequest
-        .delete(uri"$InternalEndpoint/$name/$id")
-        .readTimeout(indexTimeout)
-    ): Unit
+    ndlaClient.doRequest(quickRequest.delete(uri"$InternalEndpoint/$name/$id").readTimeout(indexTimeout)): Unit
     id
   }
 
@@ -73,9 +66,7 @@ class SearchApiClient(SearchApiBaseUrl: String)(using ndlaClient: NdlaClient) ex
       data: B,
       user: Option[TokenUser],
       params: (String, String)*
-  )(implicit
-      executionContext: ExecutionContext
-  ): Future[Try[A]] = {
+  )(implicit executionContext: ExecutionContext): Future[Try[A]] = {
     Future {
       ndlaClient.fetchWithForwardedAuth[A](
         quickRequest
@@ -83,7 +74,7 @@ class SearchApiClient(SearchApiBaseUrl: String)(using ndlaClient: NdlaClient) ex
           .body(CirceUtil.toJsonString(data))
           .readTimeout(indexTimeout)
           .header("content-type", "application/json", replaceExisting = true),
-        user
+        user,
       )
     }
   }
@@ -93,10 +84,14 @@ class SearchApiClient(SearchApiBaseUrl: String)(using ndlaClient: NdlaClient) ex
       SearchEndpointPublished,
       user,
       "embed-resource" -> "content-link,related-content",
-      "embed-id"       -> s"$articleId"
+      "embed-id"       -> s"$articleId",
     ) match {
-      case Success(value) => value.results.collect { case x: MultiSearchSummaryDTO => x }
-      case Failure(_)     => Seq.empty
+      case Success(value) => value
+          .results
+          .collect { case x: MultiSearchSummaryDTO =>
+            x
+          }
+      case Failure(_) => Seq.empty
     }
   }
 
@@ -105,10 +100,6 @@ class SearchApiClient(SearchApiBaseUrl: String)(using ndlaClient: NdlaClient) ex
   }
 
   def convertGrepCodes(grepCodes: Seq[String], user: TokenUser): Try[Map[String, String]] = {
-    get[Map[String, String]](
-      s"${SearchEndpointPublished}grep/replacements",
-      user,
-      "codes" -> grepCodes.mkString(",")
-    )
+    get[Map[String, String]](s"${SearchEndpointPublished}grep/replacements", user, "codes" -> grepCodes.mkString(","))
   }
 }

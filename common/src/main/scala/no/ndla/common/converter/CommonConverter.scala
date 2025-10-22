@@ -24,7 +24,7 @@ class CommonConverter(using clock: Clock, uuidUtil: UUIDUtil) {
       updated = clock.now(),
       content = comment.content,
       isOpen = comment.isOpen.getOrElse(true),
-      solved = false
+      solved = false,
     )
   }
   def commentDomainToApi(comment: Comment): CommentDTO = {
@@ -34,32 +34,33 @@ class CommonConverter(using clock: Clock, uuidUtil: UUIDUtil) {
       created = comment.created,
       updated = comment.updated,
       isOpen = comment.isOpen,
-      solved = comment.solved
+      solved = comment.solved,
     )
   }
   def mergeUpdatedCommentsWithExisting(
       updatedComments: List[UpdatedCommentDTO],
-      existingComments: Seq[Comment]
+      existingComments: Seq[Comment],
   ): Seq[Comment] = {
     updatedComments.map(updatedComment => {
       existingComments.find(cc => updatedComment.id.contains(cc.id.toString)) match {
         case Some(existingComment) =>
           val isContentChanged = updatedComment.content != existingComment.content
-          val newUpdated       = if (isContentChanged) clock.now() else existingComment.updated
+          val newUpdated       =
+            if (isContentChanged) clock.now()
+            else existingComment.updated
           existingComment.copy(
             updated = newUpdated,
             content = updatedComment.content,
             isOpen = updatedComment.isOpen.getOrElse(true),
-            solved = updatedComment.solved.getOrElse(false)
+            solved = updatedComment.solved.getOrElse(false),
           )
-        case None =>
-          Comment(
+        case None => Comment(
             id = uuidUtil.randomUUID(),
             created = clock.now(),
             updated = clock.now(),
             content = updatedComment.content,
             isOpen = updatedComment.isOpen.getOrElse(true),
-            solved = updatedComment.solved.getOrElse(false)
+            solved = updatedComment.solved.getOrElse(false),
           )
       }
     })
@@ -70,7 +71,7 @@ class CommonConverter(using clock: Clock, uuidUtil: UUIDUtil) {
       id = revisionMeta.id.map(UUID.fromString).getOrElse(uuidUtil.randomUUID()),
       revisionDate = revisionMeta.revisionDate,
       note = revisionMeta.note,
-      status = RevisionStatus.fromStringDefault(revisionMeta.status)
+      status = RevisionStatus.fromStringDefault(revisionMeta.status),
     )
   }
 
@@ -79,7 +80,7 @@ class CommonConverter(using clock: Clock, uuidUtil: UUIDUtil) {
       id = Some(revisionMeta.id.toString),
       revisionDate = revisionMeta.revisionDate,
       note = revisionMeta.note,
-      status = revisionMeta.status.entryName
+      status = revisionMeta.status.entryName,
     )
   }
 }

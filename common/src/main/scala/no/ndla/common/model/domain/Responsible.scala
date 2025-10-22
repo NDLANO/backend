@@ -12,10 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 
-case class Responsible(
-    responsibleId: String,
-    lastUpdated: NDLADate
-)
+case class Responsible(responsibleId: String, lastUpdated: NDLADate)
 
 object Responsible {
   implicit val encoder: Encoder[Responsible] = deriveEncoder

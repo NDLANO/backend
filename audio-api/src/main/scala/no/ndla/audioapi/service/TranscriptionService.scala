@@ -31,7 +31,7 @@ class TranscriptionService(using
     s3TranscribeClient: => TranscribeS3Client,
     props: Props,
     brightcoveClient: NdlaBrightcoveClient,
-    transcribeClient: => NdlaAWSTranscribeClient
+    transcribeClient: => NdlaAWSTranscribeClient,
 ) extends StrictLogging {
 
   def transcribeVideo(videoId: String, language: String, maxSpeakers: Int): Try[Unit] = {
@@ -42,18 +42,15 @@ class TranscriptionService(using
       case Success(TranscriptionNonComplete(TranscriptionJobStatus.IN_PROGRESS)) =>
         logger.info(s"Transcription already in progress for videoId: $videoId")
         return Failure(JobAlreadyFoundException(s"Transcription already in progress for videoId: $videoId"))
-      case _ =>
-        logger.info(s"No existing transcription job for videoId: $videoId")
+      case _ => logger.info(s"No existing transcription job for videoId: $videoId")
     }
 
     getAudioExtractionStatus(videoId, language) match {
-      case Success(_) =>
-        logger.info(s"Audio already extracted for videoId: $videoId")
+      case Success(_) => logger.info(s"Audio already extracted for videoId: $videoId")
       case Failure(_) =>
         logger.info(s"Audio extraction required for videoId: $videoId")
         extractAudioFromVideo(videoId, language) match {
-          case Success(_) =>
-            logger.info(s"Audio extracted for videoId: $videoId")
+          case Success(_)         => logger.info(s"Audio extracted for videoId: $videoId")
           case Failure(exception) =>
             return Failure(new RuntimeException(s"Failed to extract audio for videoId: $videoId", exception))
 
@@ -74,7 +71,7 @@ class TranscriptionService(using
       languageCode,
       props.TranscribeStorageName,
       outputKey,
-      maxSpeakers
+      maxSpeakers,
     ) match {
       case Success(_) =>
         logger.info(s"Transcription job started for videoId: $videoId")
@@ -84,24 +81,23 @@ class TranscriptionService(using
     }
   }
 
-  def getVideoTranscription(
-      videoId: String,
-      language: String
-  ): Try[TranscriptionResult] = {
+  def getVideoTranscription(videoId: String, language: String): Try[TranscriptionResult] = {
     val jobName = s"transcribe-video-$videoId-$language"
 
-    transcribeClient.getTranscriptionJob(jobName).flatMap { transcriptionJobResponse =>
-      val transcriptionJob       = transcriptionJobResponse.transcriptionJob()
-      val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus()
+    transcribeClient
+      .getTranscriptionJob(jobName)
+      .flatMap { transcriptionJobResponse =>
+        val transcriptionJob       = transcriptionJobResponse.transcriptionJob()
+        val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus()
 
-      if (transcriptionJobStatus == TranscriptionJobStatus.COMPLETED) {
-        val transcribeUri = s"transcription/$language/$videoId.vtt"
+        if (transcriptionJobStatus == TranscriptionJobStatus.COMPLETED) {
+          val transcribeUri = s"transcription/$language/$videoId.vtt"
 
-        getObjectFromS3(transcribeUri).map(TranscriptionComplete(_))
-      } else {
-        Success(TranscriptionNonComplete(transcriptionJobStatus))
+          getObjectFromS3(transcribeUri).map(TranscriptionComplete(_))
+        } else {
+          Success(TranscriptionNonComplete(transcriptionJobStatus))
+        }
       }
-    }
   }
 
   def transcribeAudio(
@@ -109,7 +105,7 @@ class TranscriptionService(using
       audioId: Long,
       language: String,
       maxSpeakers: Int,
-      format: String
+      format: String,
   ): Try[Unit] = {
     getAudioTranscription(audioId, language) match {
       case Success(Right(_)) =>
@@ -118,8 +114,7 @@ class TranscriptionService(using
       case Success(Left("IN_PROGRESS")) =>
         logger.info(s"Transcription already in progress for videoId: $audioName")
         return Failure(JobAlreadyFoundException(s"Transcription already in progress for audio: $audioName"))
-      case _ =>
-        logger.info(s"No existing transcription job for audio name: $audioName")
+      case _ => logger.info(s"No existing transcription job for audio name: $audioName")
     }
     val audioUri = s"s3://${props.StorageName}/$audioName"
     logger.info(s"Transcribing audio from: $audioUri")
@@ -135,7 +130,7 @@ class TranscriptionService(using
       props.TranscribeStorageName,
       outputKey,
       maxSpeakers,
-      includeSubtitles = false
+      includeSubtitles = false,
     ) match {
       case Success(_) =>
         logger.info(s"Transcription job started for audio: $audioName")
@@ -148,34 +143,38 @@ class TranscriptionService(using
   def getAudioTranscription(audioId: Long, language: String): Try[Either[String, String]] = {
     val jobName = s"transcribe-audio-$audioId-$language"
 
-    transcribeClient.getTranscriptionJob(jobName).flatMap { transcriptionJobResponse =>
-      val transcriptionJob       = transcriptionJobResponse.transcriptionJob()
-      val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus().toString
+    transcribeClient
+      .getTranscriptionJob(jobName)
+      .flatMap { transcriptionJobResponse =>
+        val transcriptionJob       = transcriptionJobResponse.transcriptionJob()
+        val transcriptionJobStatus = transcriptionJob.transcriptionJobStatus().toString
 
-      if (transcriptionJobStatus == "COMPLETED") {
-        val transcribeUri = s"audio-transcription/$language/$audioId"
+        if (transcriptionJobStatus == "COMPLETED") {
+          val transcribeUri = s"audio-transcription/$language/$audioId"
 
-        getObjectFromS3(transcribeUri).map(Right(_))
-      } else {
-        Success(Left(transcriptionJobStatus))
+          getObjectFromS3(transcribeUri).map(Right(_))
+        } else {
+          Success(Left(transcriptionJobStatus))
+        }
       }
-    }
   }
 
   private def getObjectFromS3(Uri: String): Try[String] = {
-    s3TranscribeClient.getObject(Uri).map { s3Object =>
-      val content = scala.io.Source.fromInputStream(s3Object.stream).mkString
-      s3Object.stream.close()
-      content
-    }
+    s3TranscribeClient
+      .getObject(Uri)
+      .map { s3Object =>
+        val content = scala.io.Source.fromInputStream(s3Object.stream).mkString
+        s3Object.stream.close()
+        content
+      }
   }
 
   def extractAudioFromVideo(videoId: String, language: String): Try[Unit] = {
     val accountId = props.BrightcoveAccountId
     val videoUrl  = getVideo(accountId, videoId) match {
       case Success(sources) if sources.nonEmpty => sources.head
-      case Success(_)  => return Failure(new RuntimeException(s"No video sources found for videoId: $videoId"))
-      case Failure(ex) => return Failure(new RuntimeException(s"Failed to get video sources: $ex"))
+      case Success(_)                           => return Failure(new RuntimeException(s"No video sources found for videoId: $videoId"))
+      case Failure(ex)                          => return Failure(new RuntimeException(s"Failed to get video sources: $ex"))
     }
     val videoFile = downloadVideo(videoId, videoUrl) match {
       case Success(file) => file
@@ -206,7 +205,7 @@ class TranscriptionService(using
           fileName = Some(s"audio_$videoId.mp3"),
           fileSize = audioFile.length(),
           contentType = Some("audio/mpeg"),
-          file = audioFile
+          file = audioFile,
         )
         s3TranscribeClient.putObject(s3Key, uploadedFile) match {
           case Success(_) =>
@@ -215,8 +214,7 @@ class TranscriptionService(using
               _ <- Try(audioFile.delete())
               _ <- Try(videoFile.delete())
             } yield ()
-          case Failure(ex) =>
-            Failure(new RuntimeException(s"Failed to upload audio file to S3.", ex))
+          case Failure(ex) => Failure(new RuntimeException(s"Failed to upload audio file to S3.", ex))
         }
       case Failure(exception) => Failure(exception)
     }
@@ -234,13 +232,14 @@ class TranscriptionService(using
     val clientSecret = props.BrightcoveClientSecret
 
     for {
-      token   <- brightcoveClient.getToken(clientId, clientSecret)
-      sources <- brightcoveClient.getVideoSource(accountId, videoId, token)
+      token     <- brightcoveClient.getToken(clientId, clientSecret)
+      sources   <- brightcoveClient.getVideoSource(accountId, videoId, token)
       mp4Sources = sources
         .filter(source => source.hcursor.get[String]("container").toOption.contains("MP4"))
         .map(source => source.hcursor.get[String]("src").toOption.getOrElse(""))
       result <-
-        if (mp4Sources.nonEmpty) Success(mp4Sources) else Failure(new RuntimeException("No MP4 sources found"))
+        if (mp4Sources.nonEmpty) Success(mp4Sources)
+        else Failure(new RuntimeException("No MP4 sources found"))
     } yield result
   }
 

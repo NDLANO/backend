@@ -28,8 +28,9 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   val validDisclaimer                                           =
     """<p><strong>hallo!</strong><ndlaembed data-content-id="123" data-open-in="current-context" data-resource="content-link" data-content-type="article">test</ndlaembed></p>"""
 
-  val articleToValidate: Draft =
-    TestData.sampleArticleWithByNcSa.copy(responsible = Some(Responsible("hei", TestData.today)))
+  val articleToValidate: Draft = TestData
+    .sampleArticleWithByNcSa
+    .copy(responsible = Some(Responsible("hei", TestData.today)))
 
   test("validateArticle does not throw an exception on a valid document") {
     val article = articleToValidate.copy(content = Seq(ArticleContent(validDocument, "nb")))
@@ -51,7 +52,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should throw an error if introduction contains HTML tags") {
     val article = articleToValidate.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      introduction = Seq(Introduction("<p>introduction</p>", "nb"))
+      introduction = Seq(Introduction("<p>introduction</p>", "nb")),
     )
     contentValidator.validateArticle(article).isFailure should be(false)
   }
@@ -59,7 +60,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should not throw an error if introduction contains plain text") {
     val article = articleToValidate.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      introduction = Seq(Introduction("introduction", "nb"))
+      introduction = Seq(Introduction("introduction", "nb")),
     )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
@@ -67,12 +68,12 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should throw an error if disclaimer contains illegal HTML tags") {
     val article = articleToValidate.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      disclaimer = OptLanguageFields.withValue("<p><hallo>hei</hallo></p>", "nb")
+      disclaimer = OptLanguageFields.withValue("<p><hallo>hei</hallo></p>", "nb"),
     )
     val Failure(error: ValidationException) = contentValidator.validateArticle(article): @unchecked
     val expected                            = ValidationException(
       "disclaimer.nb",
-      "The content contains illegal tags and/or attributes. Allowed HTML tags are: h3, msgroup, a, article, sub, sup, mtext, msrow, tbody, mtd, pre, thead, figcaption, mover, msup, semantics, ol, span, mroot, munder, h4, mscarries, dt, nav, mtr, ndlaembed, li, br, mrow, merror, mphantom, u, audio, ul, maligngroup, mfenced, annotation, div, strong, section, i, mspace, malignmark, mfrac, code, h2, td, aside, em, mstack, button, dl, th, tfoot, math, tr, b, blockquote, msline, col, annotation-xml, mstyle, caption, mpadded, mo, mlongdiv, msubsup, p, munderover, maction, menclose, h1, details, mmultiscripts, msqrt, mscarry, mstac, mi, mglyph, mlabeledtr, mtable, mprescripts, summary, mn, msub, ms, table, colgroup, dd"
+      "The content contains illegal tags and/or attributes. Allowed HTML tags are: h3, msgroup, a, article, sub, sup, mtext, msrow, tbody, mtd, pre, thead, figcaption, mover, msup, semantics, ol, span, mroot, munder, h4, mscarries, dt, nav, mtr, ndlaembed, li, br, mrow, merror, mphantom, u, audio, ul, maligngroup, mfenced, annotation, div, strong, section, i, mspace, malignmark, mfrac, code, h2, td, aside, em, mstack, button, dl, th, tfoot, math, tr, b, blockquote, msline, col, annotation-xml, mstyle, caption, mpadded, mo, mlongdiv, msubsup, p, munderover, maction, menclose, h1, details, mmultiscripts, msqrt, mscarry, mstac, mi, mglyph, mlabeledtr, mtable, mprescripts, summary, mn, msub, ms, table, colgroup, dd",
     )
     error should be(expected)
   }
@@ -80,7 +81,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should not throw an error if disclaimer contains legal HTML tags") {
     val article = articleToValidate.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      disclaimer = OptLanguageFields.withValue(validDisclaimer, "nb")
+      disclaimer = OptLanguageFields.withValue(validDisclaimer, "nb"),
     )
     contentValidator.validateArticle(article).isSuccess should be(true)
 
@@ -89,7 +90,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should throw an error if metaDescription contains HTML tags") {
     val article = articleToValidate.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      metaDescription = Seq(Description(validDisclaimer, "nb"))
+      metaDescription = Seq(Description(validDisclaimer, "nb")),
     )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
@@ -97,7 +98,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should throw an error if metaDescription contains plain text") {
     val article = articleToValidate.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      metaDescription = Seq(Description(validDocument, "nb"))
+      metaDescription = Seq(Description(validDocument, "nb")),
     )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
@@ -105,7 +106,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should not throw an error if metaDescription contains plain text") {
     val article = articleToValidate.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      metaDescription = Seq(Description("meta description", "nb"))
+      metaDescription = Seq(Description("meta description", "nb")),
     )
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
@@ -113,16 +114,14 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle should throw an error if title contains HTML tags") {
     val article = articleToValidate.copy(
       content = Seq(ArticleContent(validDocument, "nb")),
-      title = Seq(Title(validDocument, "nb"))
+      title = Seq(Title(validDocument, "nb")),
     )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
   test("validateArticle should not throw an error if title contains plain text") {
-    val article = articleToValidate.copy(
-      content = Seq(ArticleContent(validDocument, "nb")),
-      title = Seq(Title("title", "nb"))
-    )
+    val article =
+      articleToValidate.copy(content = Seq(ArticleContent(validDocument, "nb")), title = Seq(Title("title", "nb")))
     contentValidator.validateArticle(article).isSuccess should be(true)
   }
 
@@ -176,8 +175,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle throws an exception on an article with html in tags") {
-    val article =
-      articleToValidate.copy(tags = Seq(Tag(Seq("<h1>vann</h1>", "snø", "sol"), "nb")))
+    val article = articleToValidate.copy(tags = Seq(Tag(Seq("<h1>vann</h1>", "snø", "sol"), "nb")))
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
@@ -187,8 +185,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle throws an exception on an article where metaImageId is not a number") {
-    val article =
-      articleToValidate.copy(metaImage = Seq(ArticleMetaImage("not a number", "alttext", "en")))
+    val article = articleToValidate.copy(metaImage = Seq(ArticleMetaImage("not a number", "alttext", "en")))
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
@@ -205,15 +202,15 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle throws an exception on an article with an invalid license") {
-    val article = articleToValidate.copy(
-      copyright = Some(DraftCopyright(Some("beerware"), None, Seq(), List(), List(), None, None, false))
+    val article = articleToValidate.copy(copyright =
+      Some(DraftCopyright(Some("beerware"), None, Seq(), List(), List(), None, None, false))
     )
     contentValidator.validateArticle(article).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with a valid license") {
-    val article = articleToValidate.copy(
-      copyright = Some(
+    val article = articleToValidate.copy(copyright =
+      Some(
         DraftCopyright(
           Some(CC_BY_SA.toString),
           None,
@@ -222,7 +219,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           List(),
           None,
           None,
-          false
+          false,
         )
       )
     )
@@ -230,8 +227,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle throws an exception on an article with html in copyright origin") {
-    val article = articleToValidate.copy(
-      copyright = Some(
+    val article = articleToValidate.copy(copyright =
+      Some(
         DraftCopyright(
           Some(License.CC_BY_SA.toString),
           Some("<h1>origin</h1>"),
@@ -240,7 +237,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           List(),
           None,
           None,
-          false
+          false,
         )
       )
     )
@@ -248,8 +245,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle does not throw an exception on an article with plain text in copyright origin") {
-    val article = articleToValidate.copy(
-      copyright = Some(
+    val article = articleToValidate.copy(copyright =
+      Some(
         DraftCopyright(
           Some(CC_BY_SA.toString),
           Some("plain text"),
@@ -258,7 +255,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           List(),
           None,
           None,
-          false
+          false,
         )
       )
     )
@@ -266,8 +263,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle does not throw an exception on an article with plain text in authors field") {
-    val article = articleToValidate.copy(
-      copyright = Some(
+    val article = articleToValidate.copy(copyright =
+      Some(
         DraftCopyright(
           Some(CC_BY_SA.toString),
           None,
@@ -276,7 +273,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           List(),
           None,
           None,
-          false
+          false,
         )
       )
     )
@@ -284,8 +281,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validateArticle throws an exception on an article with html in authors field") {
-    val article = articleToValidate.copy(
-      copyright = Some(
+    val article = articleToValidate.copy(copyright =
+      Some(
         DraftCopyright(
           Some(License.CC_BY_SA.toString),
           None,
@@ -294,7 +291,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           List(),
           None,
           None,
-          false
+          false,
         )
       )
     )
@@ -316,8 +313,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validation should fail if metaImage altText contains html") {
-    val article =
-      articleToValidate.copy(metaImage = Seq(ArticleMetaImage("1234", "<b>Ikke krutte god<b>", "nb")))
+    val article                            = articleToValidate.copy(metaImage = Seq(ArticleMetaImage("1234", "<b>Ikke krutte god<b>", "nb")))
     val Failure(res1: ValidationException) = contentValidator.validateArticle(article): @unchecked
     res1.errors should be(
       Seq(ValidationMessage("metaImage.alt", "The content contains illegal html-characters. No HTML is allowed"))
@@ -328,12 +324,9 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validation should fail if metaImageId is an empty string") {
-    val Failure(res: ValidationException) =
-      contentValidator.validateArticle(
-        articleToValidate.copy(
-          metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))
-        )
-      ): @unchecked
+    val Failure(res: ValidationException) = contentValidator.validateArticle(
+      articleToValidate.copy(metaImage = Seq(ArticleMetaImage("", "alt-text", "nb")))
+    ): @unchecked
 
     res.errors.length should be(1)
     res.errors.head.field should be("metaImageId")
@@ -342,11 +335,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validation should fail if revisionMeta does not have unplanned revisions") {
     val Failure(res: ValidationException) =
-      contentValidator.validateArticle(
-        articleToValidate.copy(
-          revisionMeta = Seq.empty
-        )
-      ): @unchecked
+      contentValidator.validateArticle(articleToValidate.copy(revisionMeta = Seq.empty)): @unchecked
 
     res.errors.length should be(1)
     res.errors.head.field should be("revisionMeta")
@@ -354,13 +343,9 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validation should fail if slug field is present but articleType is not frontpage-article") {
-    val Failure(res: ValidationException) =
-      contentValidator.validateArticle(
-        articleToValidate.copy(
-          articleType = ArticleType.TopicArticle,
-          slug = Some("pepe")
-        )
-      ): @unchecked
+    val Failure(res: ValidationException) = contentValidator.validateArticle(
+      articleToValidate.copy(articleType = ArticleType.TopicArticle, slug = Some("pepe"))
+    ): @unchecked
 
     res.errors.length should be(1)
     res.errors.head.field should be("articleType")
@@ -370,13 +355,9 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validation should fail if articleType frontpage-article but sluig is None") {
-    val Failure(res: ValidationException) =
-      contentValidator.validateArticle(
-        articleToValidate.copy(
-          articleType = ArticleType.FrontpageArticle,
-          slug = None
-        )
-      ): @unchecked
+    val Failure(res: ValidationException) = contentValidator.validateArticle(
+      articleToValidate.copy(articleType = ArticleType.FrontpageArticle, slug = None)
+    ): @unchecked
 
     res.errors.length should be(1)
     res.errors.head.field should be("slug")
@@ -386,13 +367,9 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("validation should fail if slug string is invalid") {
-    val Failure(res: ValidationException) =
-      contentValidator.validateArticle(
-        articleToValidate.copy(
-          articleType = ArticleType.FrontpageArticle,
-          slug = Some("ugyldig slug")
-        )
-      ): @unchecked
+    val Failure(res: ValidationException) = contentValidator.validateArticle(
+      articleToValidate.copy(articleType = ArticleType.FrontpageArticle, slug = Some("ugyldig slug"))
+    ): @unchecked
 
     res.errors.length should be(1)
     res.errors.head.field should be("slug")
@@ -400,13 +377,14 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That we only validate the given language with validateArticleOnLanguage") {
-    val article =
-      TestData.sampleDomainArticle.copy(
+    val article = TestData
+      .sampleDomainArticle
+      .copy(
         id = Some(5),
         content =
           Seq(ArticleContent("<section> Valid Content </section>", "nb"), ArticleContent("<div> content <div", "nn")),
         responsible = Some(Responsible("hei", TestData.today)),
-        revisionMeta = RevisionMeta.default
+        revisionMeta = RevisionMeta.default,
       )
 
     contentValidator.validateArticleOnLanguage(article, Some("nb")).failIfFailure
@@ -417,56 +395,46 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("That validation succeeds if only editor fields are updated") {
-    val oldArticle =
-      TestData.sampleDomainArticle.copy(
-        id = Some(5),
-        revision = Some(1),
-        responsible = None,
-        revisionMeta = RevisionMeta.default
-      )
-    val article =
-      oldArticle.copy(
-        id = Some(5),
-        revision = Some(2),
-        responsible = None,
-        revisionMeta = RevisionMeta.default ++ RevisionMeta.default,
-        notes = Seq(
-          EditorNote("note1", "editor", oldArticle.status, TestData.today),
-          EditorNote("note2", "editor", oldArticle.status, TestData.today)
-        ),
-        comments = Seq(
-          Comment(UUID.randomUUID(), TestData.today, TestData.today, "Fin kommentar a gitt", true, false),
-          Comment(UUID.randomUUID(), TestData.today, TestData.today, "Fin kommentar igjen a gitt", true, false)
-        )
-      )
+    val oldArticle = TestData
+      .sampleDomainArticle
+      .copy(id = Some(5), revision = Some(1), responsible = None, revisionMeta = RevisionMeta.default)
+    val article = oldArticle.copy(
+      id = Some(5),
+      revision = Some(2),
+      responsible = None,
+      revisionMeta = RevisionMeta.default ++ RevisionMeta.default,
+      notes = Seq(
+        EditorNote("note1", "editor", oldArticle.status, TestData.today),
+        EditorNote("note2", "editor", oldArticle.status, TestData.today),
+      ),
+      comments = Seq(
+        Comment(UUID.randomUUID(), TestData.today, TestData.today, "Fin kommentar a gitt", true, false),
+        Comment(UUID.randomUUID(), TestData.today, TestData.today, "Fin kommentar igjen a gitt", true, false),
+      ),
+    )
 
     val result = contentValidator.validateArticleOnLanguage(Some(oldArticle), article, Some("nb"))
     result.get should be(article)
   }
 
   test("That validation fails if only editor fields are updated and editor validation fails") {
-    val oldArticle =
-      TestData.sampleDomainArticle.copy(
-        id = Some(5),
-        revision = Some(1),
-        responsible = None,
-        revisionMeta = Seq.empty
-      )
-    val article =
-      oldArticle.copy(
-        id = Some(5),
-        revision = Some(2),
-        responsible = None,
-        revisionMeta = Seq.empty,
-        notes = Seq(
-          EditorNote("note1", "editor", oldArticle.status, TestData.today),
-          EditorNote("note2", "editor", oldArticle.status, TestData.today)
-        ),
-        comments = Seq(
-          Comment(UUID.randomUUID(), TestData.today, TestData.today, "Fin kommentar a gitt", true, false),
-          Comment(UUID.randomUUID(), TestData.today, TestData.today, "Fin kommentar igjen a gitt", true, false)
-        )
-      )
+    val oldArticle = TestData
+      .sampleDomainArticle
+      .copy(id = Some(5), revision = Some(1), responsible = None, revisionMeta = Seq.empty)
+    val article = oldArticle.copy(
+      id = Some(5),
+      revision = Some(2),
+      responsible = None,
+      revisionMeta = Seq.empty,
+      notes = Seq(
+        EditorNote("note1", "editor", oldArticle.status, TestData.today),
+        EditorNote("note2", "editor", oldArticle.status, TestData.today),
+      ),
+      comments = Seq(
+        Comment(UUID.randomUUID(), TestData.today, TestData.today, "Fin kommentar a gitt", true, false),
+        Comment(UUID.randomUUID(), TestData.today, TestData.today, "Fin kommentar igjen a gitt", true, false),
+      ),
+    )
 
     val result = contentValidator.validateArticleOnLanguage(Some(oldArticle), article, Some("nb"))
     result.isFailure should be(true)

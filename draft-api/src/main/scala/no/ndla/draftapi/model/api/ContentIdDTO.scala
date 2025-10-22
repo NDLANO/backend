@@ -15,7 +15,10 @@ import sttp.tapir.Schema
 import no.ndla.common.DeriveHelpers
 
 @description("Id for a single Article")
-case class ContentIdDTO(@description("The unique id of the article") id: Long)
+case class ContentIdDTO(
+    @description("The unique id of the article")
+    id: Long
+)
 
 object ContentIdDTO {
   implicit val encoder: Encoder[ContentIdDTO] = deriveEncoder

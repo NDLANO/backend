@@ -51,20 +51,19 @@ case class Draft(
     started: Boolean,
     qualityEvaluation: Option[QualityEvaluation],
     disclaimer: OptLanguageFields[String],
-    traits: List[ArticleTrait]
+    traits: List[ArticleTrait],
 ) extends Content {
 
-  def supportedLanguages: Seq[String] =
-    getSupportedLanguages(
-      title,
-      visualElement,
-      introduction,
-      metaDescription,
-      tags,
-      content,
-      metaImage,
-      disclaimer.getWithLanguageFields
-    )
+  def supportedLanguages: Seq[String] = getSupportedLanguages(
+    title,
+    visualElement,
+    introduction,
+    metaDescription,
+    tags,
+    content,
+    metaImage,
+    disclaimer.getWithLanguageFields,
+  )
 }
 
 object Draft {

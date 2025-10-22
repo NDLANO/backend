@@ -15,8 +15,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Representation of a title")
 case class TitleDTO(
-    @description("The title of the content. Must be plain text") title: String,
-    @description("ISO 639-1 code that represents the language used in title") language: String
+    @description("The title of the content. Must be plain text")
+    title: String,
+    @description("ISO 639-1 code that represents the language used in title")
+    language: String,
 ) extends LanguageField[String] {
   override def value: String    = title
   override def isEmpty: Boolean = title.isEmpty

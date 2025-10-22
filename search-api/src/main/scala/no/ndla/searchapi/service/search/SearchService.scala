@@ -25,7 +25,7 @@ import no.ndla.common.model.api.search.{
   MultiSummaryBaseDTO,
   SearchSuggestionDTO,
   SearchType,
-  SuggestOptionDTO
+  SuggestOptionDTO,
 }
 import no.ndla.language.Language
 import no.ndla.language.model.Iso639
@@ -45,7 +45,7 @@ abstract class SearchService(using
     e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
     props: Props,
-    searchLanguageHelp: SearchLanguage
+    searchLanguageHelp: SearchLanguage,
 ) extends StrictLogging {
   val searchIndex: List[String]
   val indexServices: List[BaseIndexService]
@@ -66,28 +66,22 @@ abstract class SearchService(using
   private def hitToApiModel(hit: SearchHit, language: String, filterInactive: Boolean): Try[MultiSummaryBaseDTO] = {
     val indexName = hit.index.split("_").headOption.traverse(x => props.indexToSearchType(x))
     indexName.flatMap {
-      case Some(SearchType.Articles) =>
-        searchConverterService.articleHitAsMultiSummary(hit, language, filterInactive)
-      case Some(SearchType.Drafts) =>
-        searchConverterService.draftHitAsMultiSummary(hit, language, filterInactive)
+      case Some(SearchType.Articles)      => searchConverterService.articleHitAsMultiSummary(hit, language, filterInactive)
+      case Some(SearchType.Drafts)        => searchConverterService.draftHitAsMultiSummary(hit, language, filterInactive)
       case Some(SearchType.LearningPaths) =>
         searchConverterService.learningpathHitAsMultiSummary(hit, language, filterInactive)
-      case Some(SearchType.Concepts) =>
-        searchConverterService.conceptHitAsMultiSummary(hit, language)
-      case Some(SearchType.Nodes) =>
-        searchConverterService.nodeHitAsMultiSummary(hit, language)
-      case Some(SearchType.Grep) =>
+      case Some(SearchType.Concepts) => searchConverterService.conceptHitAsMultiSummary(hit, language)
+      case Some(SearchType.Nodes)    => searchConverterService.nodeHitAsMultiSummary(hit, language)
+      case Some(SearchType.Grep)     =>
         Failure(NdlaSearchException("Got hit from grep index (SearchType.Grep) in `hitToApiModel`. This is a bug."))
-      case None =>
-        Failure(NdlaSearchException("Index type was bad when determining search result type."))
+      case None => Failure(NdlaSearchException("Index type was bad when determining search result type."))
     }
   }
 
-  def languageQuery(query: NonEmptyString, field: String, boost: Double, language: String): List[Query] =
-    List(
-      buildSimpleStringQuery(query, field, boost, language, fallback = true, decompounded = true).some,
-      buildMatchQueryForField(query, field, language, fallback = true, boost)
-    ).flatten
+  def languageQuery(query: NonEmptyString, field: String, boost: Double, language: String): List[Query] = List(
+    buildSimpleStringQuery(query, field, boost, language, fallback = true, decompounded = true).some,
+    buildMatchQueryForField(query, field, language, fallback = true, boost),
+  ).flatten
 
   def buildBreadcrumbQuery(query: NonEmptyString, language: String, fallback: Boolean, boost: Double): List[Query] = {
     if (simpleStringQueryOperators.exists(query.underlying.contains)) return List.empty
@@ -102,7 +96,7 @@ abstract class SearchService(using
       field: String,
       language: String,
       fallback: Boolean,
-      boost: Double
+      boost: Double,
   ): List[Query] = {
     if (simpleStringQueryOperators.exists(query.underlying.contains)) return List.empty
 
@@ -110,35 +104,38 @@ abstract class SearchService(using
       case lang if Iso639.get(lang).isSuccess => lang
       case _                                  => Language.AllLanguages
     }
-    val matchQueries = if (searchLanguage == Language.AllLanguages || fallback) {
-      searchLanguageHelp.languageAnalyzers
-        .map { cur =>
-          List(
-            matchPhrasePrefixQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost),
-            matchPhraseQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost * 1.2)
-          )
-        }
-        .toList
-        .flatten
-    } else {
-      List(
-        matchPhrasePrefixQuery(s"$field.$language", query.underlying).boost(boost),
-        matchPhraseQuery(s"$field.$language", query.underlying).boost(boost * 1.2)
-      )
-    }
+    val matchQueries =
+      if (searchLanguage == Language.AllLanguages || fallback) {
+        searchLanguageHelp
+          .languageAnalyzers
+          .map { cur =>
+            List(
+              matchPhrasePrefixQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost),
+              matchPhraseQuery(s"$field.${cur.languageTag.toString}", query.underlying).boost(boost * 1.2),
+            )
+          }
+          .toList
+          .flatten
+      } else {
+        List(
+          matchPhrasePrefixQuery(s"$field.$language", query.underlying).boost(boost),
+          matchPhraseQuery(s"$field.$language", query.underlying).boost(boost * 1.2),
+        )
+      }
 
-    val termQueries = if (searchLanguage == Language.AllLanguages || fallback) {
-      searchLanguageHelp.languageAnalyzers.map { cur =>
-        prefixQuery(s"$field.${cur.languageTag.toString}.raw", query.underlying).boost(boost * 2)
-      }.toList
-    } else {
-      List(prefixQuery(s"$field.$language", query.underlying).boost(boost * 2))
-    }
+    val termQueries =
+      if (searchLanguage == Language.AllLanguages || fallback) {
+        searchLanguageHelp
+          .languageAnalyzers
+          .map { cur =>
+            prefixQuery(s"$field.${cur.languageTag.toString}.raw", query.underlying).boost(boost * 2)
+          }
+          .toList
+      } else {
+        List(prefixQuery(s"$field.$language", query.underlying).boost(boost * 2))
+      }
 
-    List(
-      matchQueries,
-      termQueries
-    ).flatten
+    List(matchQueries, termQueries).flatten
   }
 
   def buildSimpleStringQuery(
@@ -147,7 +144,7 @@ abstract class SearchService(using
       boost: Double,
       language: String,
       fallback: Boolean,
-      decompounded: Boolean
+      decompounded: Boolean,
   ): SimpleStringQuery = {
     val searchLanguage = language match {
       case lang if Iso639.get(lang).isSuccess => lang
@@ -155,16 +152,18 @@ abstract class SearchService(using
     }
 
     if (searchLanguage == Language.AllLanguages || fallback) {
-      searchLanguageHelp.languageAnalyzers.foldLeft(
-        SimpleStringQuery(query.underlying, quote_field_suffix = Some(".exact"))
-      )((acc, cur) => {
-        val base = acc.field(s"$field.${cur.languageTag.toString}", boost)
-        if (decompounded) base.field(s"$field.${cur.languageTag.toString}.decompounded", 0.1) else base
-      })
+      searchLanguageHelp
+        .languageAnalyzers
+        .foldLeft(SimpleStringQuery(query.underlying, quote_field_suffix = Some(".exact")))((acc, cur) => {
+          val base = acc.field(s"$field.${cur.languageTag.toString}", boost)
+          if (decompounded) base.field(s"$field.${cur.languageTag.toString}.decompounded", 0.1)
+          else base
+        })
     } else {
       val base =
         SimpleStringQuery(query.underlying, quote_field_suffix = Some(".exact")).field(s"$field.$language", boost)
-      if (decompounded) base.field(s"$field.$language.decompounded", 0.1) else base
+      if (decompounded) base.field(s"$field.$language.decompounded", 0.1)
+      else base
     }
   }
 
@@ -173,7 +172,7 @@ abstract class SearchService(using
       resource: List[String],
       id: Option[String],
       language: String,
-      fallback: Boolean
+      fallback: Boolean,
   ): List[Query] = {
     val resourceQueries = boolQuery().should(resource.map(q => termQuery(s"$path.resource", q)))
     val idQuery         = id.map(q => termQuery(s"$path.id", q))
@@ -187,7 +186,7 @@ abstract class SearchService(using
       resource: List[String],
       id: Option[String],
       language: String,
-      fallback: Boolean
+      fallback: Boolean,
   ): Option[NestedQuery] = {
     if (resource.isEmpty && id.isEmpty) {
       None
@@ -195,7 +194,7 @@ abstract class SearchService(using
       Some(
         nestedQuery(
           "embedResourcesAndIds",
-          boolQuery().must(buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback))
+          boolQuery().must(buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback)),
         ).ignoreUnmapped(true)
       )
     }
@@ -210,7 +209,7 @@ abstract class SearchService(using
   protected def getHits(
       response: SearchResponse,
       language: String,
-      filterInactive: Boolean
+      filterInactive: Boolean,
   ): Try[Seq[MultiSummaryBaseDTO]] = {
     response.totalHits match {
       case count if count > 0 =>
@@ -218,9 +217,8 @@ abstract class SearchService(using
 
         resultArray.traverse(result => {
           val matchedLanguage = language match {
-            case Language.AllLanguages =>
-              searchConverterService.getLanguageFromHit(result).getOrElse(language)
-            case _ => language
+            case Language.AllLanguages => searchConverterService.getLanguageFromHit(result).getOrElse(language)
+            case _                     => language
           }
           hitToApiModel(result, matchedLanguage, filterInactive)
         })
@@ -232,11 +230,9 @@ abstract class SearchService(using
     query
       .map(q => {
         val searchLanguage =
-          if (language == Language.AllLanguages || fallback) props.DefaultLanguage else language
-        Seq(
-          suggestion(q, "title", searchLanguage),
-          suggestion(q, "content", searchLanguage)
-        )
+          if (language == Language.AllLanguages || fallback) props.DefaultLanguage
+          else language
+        Seq(suggestion(q, "title", searchLanguage), suggestion(q, "content", searchLanguage))
       })
       .getOrElse(Seq.empty)
   }
@@ -250,9 +246,12 @@ abstract class SearchService(using
   }
 
   protected def getSuggestions(response: SearchResponse): Seq[MultiSearchSuggestionDTO] = {
-    response.suggestions.map { case (key, value) =>
-      MultiSearchSuggestionDTO(name = key, suggestions = getSuggestion(value))
-    }.toSeq
+    response
+      .suggestions
+      .map { case (key, value) =>
+        MultiSearchSuggestionDTO(name = key, suggestions = getSuggestion(value))
+      }
+      .toSeq
   }
 
   private def getSuggestion(results: Seq[SuggestionResult]): Seq[SearchSuggestionDTO] = {
@@ -261,7 +260,7 @@ abstract class SearchService(using
         text = result.text,
         offset = result.offset,
         length = result.length,
-        options = result.options.map(mapToSuggestOption)
+        options = result.options.map(mapToSuggestOption),
       )
     )
   }
@@ -269,10 +268,7 @@ abstract class SearchService(using
   private def mapToSuggestOption(optionsMap: Map[String, Any]): SuggestOptionDTO = {
     val text  = optionsMap.getOrElse("text", "")
     val score = optionsMap.getOrElse("score", 1)
-    SuggestOptionDTO(
-      text.asInstanceOf[String],
-      score.asInstanceOf[Double]
-    )
+    SuggestOptionDTO(text.asInstanceOf[String], score.asInstanceOf[Double])
   }
 
   def scroll(scrollId: String, language: String): Try[SearchResult] = {
@@ -292,7 +288,7 @@ abstract class SearchService(using
             results = hits,
             suggestions = suggestions,
             aggregations = aggregations,
-            scrollId = response.result.scrollId
+            scrollId = response.result.scrollId,
           )
         })
       })
@@ -300,7 +296,8 @@ abstract class SearchService(using
 
   protected def sortField(field: String, order: SortOrder, missingLast: Boolean = true): FieldSort = {
     val sortDefinition = fieldSort(field).sortOrder(order)
-    if (missingLast) sortDefinition.missing("_last") else sortDefinition
+    if (missingLast) sortDefinition.missing("_last")
+    else sortDefinition
   }
 
   protected def defaultSort(default: String, withLanguage: String, order: SortOrder, language: String): FieldSort = {
@@ -310,15 +307,8 @@ abstract class SearchService(using
     }
 
     sortLanguage match {
-      case Language.AllLanguages =>
-        fieldSort(default)
-          .sortOrder(order)
-          .missing("_last")
-      case _ =>
-        fieldSort(s"$withLanguage.$sortLanguage.raw")
-          .sortOrder(order)
-          .missing("_last")
-          .unmappedType("keyword")
+      case Language.AllLanguages => fieldSort(default).sortOrder(order).missing("_last")
+      case _                     => fieldSort(s"$withLanguage.$sortLanguage.raw").sortOrder(order).missing("_last").unmappedType("keyword")
     }
   }
 
@@ -372,18 +362,25 @@ abstract class SearchService(using
   def printExplanations(value: RequestSuccess[SearchResponse]): Unit = {
     def _printExpl(hitId: String, ex: Explanation, indent: Int = 0): Unit = {
       logger.info(s"${"  " * indent}${ex.value}: ${ex.description}")
-      ex.details.foreach { d => _printExpl(hitId, d, indent + 1) }
+      ex.details
+        .foreach { d =>
+          _printExpl(hitId, d, indent + 1)
+        }
     }
 
     if (enableExplanations) {
-      value.result.hits.hits.foreach { hit =>
-        val hitId = s"${hit.index}:${hit.id}"
-        logger.info(s"EXPLAIN START $hitId:")
-        hit.explanation match {
-          case Some(ex) => _printExpl(hitId, ex)
-          case None     => println("No explanation found...")
+      value
+        .result
+        .hits
+        .hits
+        .foreach { hit =>
+          val hitId = s"${hit.index}:${hit.id}"
+          logger.info(s"EXPLAIN START $hitId:")
+          hit.explanation match {
+            case Some(ex) => _printExpl(hitId, ex)
+            case None     => println("No explanation found...")
+          }
         }
-      }
     }
   }
 }

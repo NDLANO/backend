@@ -38,7 +38,7 @@ case class ArticleSearchParamsDTO(
     @description("Fallback to some existing language if language is specified.")
     fallback: Option[Boolean],
     @description("Return only articles containing codes from GREP API")
-    grepCodes: Option[List[String]]
+    grepCodes: Option[List[String]],
 )
 
 object ArticleSearchParamsDTO {

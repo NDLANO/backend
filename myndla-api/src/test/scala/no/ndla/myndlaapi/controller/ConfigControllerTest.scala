@@ -33,17 +33,9 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment with Tapir
   override implicit lazy val services: List[TapirController]        = List(controller)
 
   test("That updating config returns 200 if all is good") {
-    when(configService.updateConfig(any[ConfigKey], any[ConfigMetaValueDTO], any[TokenUser]))
-      .thenReturn(
-        Success(
-          ConfigMetaDTO(
-            ConfigKey.LearningpathWriteRestricted.entryName,
-            Left(true),
-            NDLADate.now(),
-            "someoneCool"
-          )
-        )
-      )
+    when(configService.updateConfig(any[ConfigKey], any[ConfigMetaValueDTO], any[TokenUser])).thenReturn(
+      Success(ConfigMetaDTO(ConfigKey.LearningpathWriteRestricted.entryName, Left(true), NDLADate.now(), "someoneCool"))
+    )
 
     val response1 = simpleHttpClient.send(
       quickRequest

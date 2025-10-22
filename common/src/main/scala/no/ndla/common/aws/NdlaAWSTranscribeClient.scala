@@ -31,7 +31,7 @@ class NdlaAWSTranscribeClient(region: Option[String]) {
       outputKey: String,
       maxSpeakers: Int,
       includeSubtitles: Boolean = true,
-      outputSubtitleFormat: String = "VTT"
+      outputSubtitleFormat: String = "VTT",
   ): Try[StartTranscriptionJobResponse] = Try {
     val requestBuilder = StartTranscriptionJobRequest
       .builder()
@@ -41,32 +41,21 @@ class NdlaAWSTranscribeClient(region: Option[String]) {
       .languageCode(languageCode)
       .outputBucketName(outputBucket)
       .outputKey(outputKey)
-      .settings(
-        Settings
-          .builder()
-          .showSpeakerLabels(true)
-          .maxSpeakerLabels(maxSpeakers)
-          .build()
-      )
+      .settings(Settings.builder().showSpeakerLabels(true).maxSpeakerLabels(maxSpeakers).build())
 
-    val toBuild = if (includeSubtitles) {
-      requestBuilder.subtitles(
-        Subtitles
-          .builder()
-          .formats(SubtitleFormat.valueOf(outputSubtitleFormat))
-          .build()
-      )
-    } else { requestBuilder }
+    val toBuild =
+      if (includeSubtitles) {
+        requestBuilder.subtitles(Subtitles.builder().formats(SubtitleFormat.valueOf(outputSubtitleFormat)).build())
+      } else {
+        requestBuilder
+      }
 
     client.startTranscriptionJob(toBuild.build())
   }
 
   def getTranscriptionJob(jobName: String): Try[GetTranscriptionJobResponse] = {
     Try {
-      val request = GetTranscriptionJobRequest
-        .builder()
-        .transcriptionJobName(jobName)
-        .build()
+      val request = GetTranscriptionJobRequest.builder().transcriptionJobName(jobName).build()
       client.getTranscriptionJob(request)
     }.recoverWith { case e: BadRequestException =>
       val nfe = no.ndla.common.errors.NotFoundException("Transcription job not found")
@@ -85,10 +74,7 @@ class NdlaAWSTranscribeClient(region: Option[String]) {
   }
 
   def deleteTranscriptionJob(jobName: String): Try[DeleteTranscriptionJobResponse] = Try {
-    val request = DeleteTranscriptionJobRequest
-      .builder()
-      .transcriptionJobName(jobName)
-      .build()
+    val request = DeleteTranscriptionJobRequest.builder().transcriptionJobName(jobName).build()
 
     client.deleteTranscriptionJob(request)
   }

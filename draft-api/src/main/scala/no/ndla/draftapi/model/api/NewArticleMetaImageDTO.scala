@@ -15,8 +15,10 @@ import sttp.tapir.Schema.annotations.description
 import no.ndla.common.DeriveHelpers
 
 case class NewArticleMetaImageDTO(
-    @description("The image-api id of the meta image") id: String,
-    @description("The alt text of the meta image") alt: String
+    @description("The image-api id of the meta image")
+    id: String,
+    @description("The alt text of the meta image")
+    alt: String,
 )
 
 object NewArticleMetaImageDTO {

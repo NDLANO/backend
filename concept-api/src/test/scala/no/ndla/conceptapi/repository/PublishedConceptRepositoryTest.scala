@@ -58,24 +58,15 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
 
   test("That inserting and updating works") {
     val consistentDate = NDLADate.fromUnixTime(0)
-    val concept1       = TestData.domainConcept.copy(
-      id = Some(10),
-      title = Seq(common.Title("Yes", "nb")),
-      created = consistentDate,
-      updated = consistentDate
-    )
-    val concept2 = TestData.domainConcept.copy(
-      id = Some(10),
-      title = Seq(common.Title("No", "nb")),
-      created = consistentDate,
-      updated = consistentDate
-    )
-    val concept3 = TestData.domainConcept.copy(
-      id = Some(11),
-      title = Seq(common.Title("Yolo", "nb")),
-      created = consistentDate,
-      updated = consistentDate
-    )
+    val concept1       = TestData
+      .domainConcept
+      .copy(id = Some(10), title = Seq(common.Title("Yes", "nb")), created = consistentDate, updated = consistentDate)
+    val concept2 = TestData
+      .domainConcept
+      .copy(id = Some(10), title = Seq(common.Title("No", "nb")), created = consistentDate, updated = consistentDate)
+    val concept3 = TestData
+      .domainConcept
+      .copy(id = Some(11), title = Seq(common.Title("Yolo", "nb")), created = consistentDate, updated = consistentDate)
 
     repository.insertOrUpdate(concept1)
     repository.insertOrUpdate(concept3)
@@ -89,18 +80,12 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
 
   test("That deletion works as expected") {
     val consistentDate = NDLADate.fromUnixTime(0)
-    val concept1       = TestData.domainConcept.copy(
-      id = Some(10),
-      title = Seq(common.Title("Yes", "nb")),
-      created = consistentDate,
-      updated = consistentDate
-    )
-    val concept2 = TestData.domainConcept.copy(
-      id = Some(11),
-      title = Seq(common.Title("Yolo", "nb")),
-      created = consistentDate,
-      updated = consistentDate
-    )
+    val concept1       = TestData
+      .domainConcept
+      .copy(id = Some(10), title = Seq(common.Title("Yes", "nb")), created = consistentDate, updated = consistentDate)
+    val concept2 = TestData
+      .domainConcept
+      .copy(id = Some(11), title = Seq(common.Title("Yolo", "nb")), created = consistentDate, updated = consistentDate)
 
     repository.insertOrUpdate(concept1)
     repository.insertOrUpdate(concept2)
@@ -116,28 +101,29 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
   }
 
   test("Fetching concepts tags works as expected") {
-    val concept1 =
-      TestData.domainConcept.copy(
+    val concept1 = TestData
+      .domainConcept
+      .copy(
         id = Some(1),
         tags = Seq(
           common.Tag(Seq("konge", "bror"), "nb"),
           common.Tag(Seq("konge", "brur"), "nn"),
           common.Tag(Seq("king", "bro"), "en"),
-          common.Tag(Seq("zing", "xiongdi"), "zh")
-        )
+          common.Tag(Seq("zing", "xiongdi"), "zh"),
+        ),
       )
-    val concept2 =
-      TestData.domainConcept.copy(
+    val concept2 = TestData
+      .domainConcept
+      .copy(
         id = Some(2),
         tags = Seq(
           common.Tag(Seq("konge", "lol", "meme"), "nb"),
           common.Tag(Seq("konge", "lel", "meem"), "nn"),
           common.Tag(Seq("king", "lul", "maymay"), "en"),
-          common.Tag(Seq("zing", "kek", "mimi"), "zh")
-        )
+          common.Tag(Seq("zing", "kek", "mimi"), "zh"),
+        ),
       )
-    val concept3 =
-      TestData.domainConcept.copy(id = Some(3), tags = Seq())
+    val concept3 = TestData.domainConcept.copy(id = Some(3), tags = Seq())
 
     repository.insertOrUpdate(concept1)
     repository.insertOrUpdate(concept2)
@@ -149,14 +135,14 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
           common.Tag(Seq("konge", "bror"), "nb"),
           common.Tag(Seq("konge", "brur"), "nn"),
           common.Tag(Seq("king", "bro"), "en"),
-          common.Tag(Seq("zing", "xiongdi"), "zh")
+          common.Tag(Seq("zing", "xiongdi"), "zh"),
         ),
         List(
           common.Tag(Seq("konge", "lol", "meme"), "nb"),
           common.Tag(Seq("konge", "lel", "meem"), "nn"),
           common.Tag(Seq("king", "lul", "maymay"), "en"),
-          common.Tag(Seq("zing", "kek", "mimi"), "zh")
-        )
+          common.Tag(Seq("zing", "kek", "mimi"), "zh"),
+        ),
       )
     )
   }
@@ -183,25 +169,31 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
   }
 
   test("That getByPage returns all concepts in database") {
-    val con1 = TestData.domainConcept.copy(
-      id = Some(1),
-      content = Seq(ConceptContent("Hei", "nb")),
-      created = NDLADate.fromUnixTime(0),
-      updated = NDLADate.fromUnixTime(0)
-    )
-    val con2 = TestData.domainConcept.copy(
-      id = Some(2),
-      revision = Some(100),
-      content = Seq(concept.ConceptContent("På", "nb")),
-      created = NDLADate.fromUnixTime(0),
-      updated = NDLADate.fromUnixTime(0)
-    )
-    val con3 = TestData.domainConcept.copy(
-      id = Some(3),
-      content = Seq(concept.ConceptContent("Deg", "nb")),
-      created = NDLADate.fromUnixTime(0),
-      updated = NDLADate.fromUnixTime(0)
-    )
+    val con1 = TestData
+      .domainConcept
+      .copy(
+        id = Some(1),
+        content = Seq(ConceptContent("Hei", "nb")),
+        created = NDLADate.fromUnixTime(0),
+        updated = NDLADate.fromUnixTime(0),
+      )
+    val con2 = TestData
+      .domainConcept
+      .copy(
+        id = Some(2),
+        revision = Some(100),
+        content = Seq(concept.ConceptContent("På", "nb")),
+        created = NDLADate.fromUnixTime(0),
+        updated = NDLADate.fromUnixTime(0),
+      )
+    val con3 = TestData
+      .domainConcept
+      .copy(
+        id = Some(3),
+        content = Seq(concept.ConceptContent("Deg", "nb")),
+        created = NDLADate.fromUnixTime(0),
+        updated = NDLADate.fromUnixTime(0),
+      )
 
     val Success(ins1) = repository.insertOrUpdate(con1): @unchecked
     val Success(ins2) = repository.insertOrUpdate(con2): @unchecked

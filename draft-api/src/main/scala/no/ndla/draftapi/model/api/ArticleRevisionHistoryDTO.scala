@@ -16,7 +16,7 @@ case class ArticleRevisionHistoryDTO(
     @description("The revisions of an article, with the latest revision being the first in the list")
     revisions: Seq[ArticleDTO],
     @description("Whether or not the current revision is safe to delete")
-    canDeleteCurrentRevision: Boolean
+    canDeleteCurrentRevision: Boolean,
 )
 
 object ArticleRevisionHistoryDTO {

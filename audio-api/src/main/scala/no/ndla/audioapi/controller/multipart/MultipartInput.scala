@@ -16,18 +16,12 @@ import sttp.tapir.json.circe.*
 
 import java.io.File
 
-case class MetaDataAndFileForm(
-    metadata: NewAudioMetaInformationDTO,
-    file: Part[File]
-)
+case class MetaDataAndFileForm(metadata: NewAudioMetaInformationDTO, file: Part[File])
 object MetaDataAndFileForm {
   implicit val codec: JsonCodec[NewAudioMetaInformationDTO] = circeCodec[NewAudioMetaInformationDTO]
 }
 
-case class MetaDataAndOptFileForm(
-    metadata: UpdatedAudioMetaInformationDTO,
-    file: Option[Part[File]]
-)
+case class MetaDataAndOptFileForm(metadata: UpdatedAudioMetaInformationDTO, file: Option[Part[File]])
 object MetaDataAndOptFileForm {
   implicit val codec: JsonCodec[UpdatedAudioMetaInformationDTO] = circeCodec[UpdatedAudioMetaInformationDTO]
 }

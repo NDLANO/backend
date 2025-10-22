@@ -812,6 +812,6 @@ object Iso639List_9 {
     Iso639Val("xet", None, None, None, Some("I"), Some("L"), "Xetá", None, None),
     Iso639Val("xeu", None, None, None, Some("I"), Some("L"), "Keoru-Ahia", None, None),
     Iso639Val("xfa", None, None, None, Some("I"), Some("A"), "Faliscan", None, None),
-    Iso639Val("xga", None, None, None, Some("I"), Some("A"), "Galatian", None, None)
+    Iso639Val("xga", None, None, None, Some("I"), Some("A"), "Galatian", None, None),
   )
 }

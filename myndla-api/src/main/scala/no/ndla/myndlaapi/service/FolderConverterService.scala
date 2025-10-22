@@ -18,7 +18,7 @@ import no.ndla.common.model.domain.myndla
 import no.ndla.common.model.domain.myndla.{
   FolderStatus,
   MyNDLAGroup as DomainMyNDLAGroup,
-  MyNDLAUser as DomainMyNDLAUser
+  MyNDLAUser as DomainMyNDLAUser,
 }
 import no.ndla.myndlaapi.model.api.{FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.{api, domain}
@@ -34,23 +34,22 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
       domainFolder: domain.Folder,
       breadcrumbs: List[api.BreadcrumbDTO],
       feideUser: Option[DomainMyNDLAUser],
-      isOwner: Boolean
+      isOwner: Boolean,
   ): Try[FolderDTO] = {
     def loop(
         folder: domain.Folder,
         crumbs: List[api.BreadcrumbDTO],
-        feideUser: Option[DomainMyNDLAUser]
-    ): Try[FolderDTO] = folder.subfolders
+        feideUser: Option[DomainMyNDLAUser],
+    ): Try[FolderDTO] = folder
+      .subfolders
       .traverse(folder => {
-        val newCrumb = api.BreadcrumbDTO(
-          id = folder.id,
-          name = folder.name
-        )
+        val newCrumb  = api.BreadcrumbDTO(id = folder.id, name = folder.name)
         val newCrumbs = crumbs :+ newCrumb
         loop(folder, newCrumbs, feideUser)
       })
       .flatMap(subFolders =>
-        folder.resources
+        folder
+          .resources
           .traverse(r => toApiResource(r, isOwner))
           .map(resources => {
             api.FolderDTO(
@@ -66,7 +65,7 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
               updated = folder.updated,
               shared = folder.shared,
               description = folder.description,
-              owner = feideUser.map(user => OwnerDTO(user.displayName))
+              owner = feideUser.map(user => OwnerDTO(user.displayName)),
             )
           })
       )
@@ -99,7 +98,7 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
       updated = clock.now(),
       shared = shared,
       description = description,
-      user = existing.user
+      user = existing.user,
     )
   }
 
@@ -115,7 +114,7 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
       created = existing.created,
       tags = tags,
       resourceId = resourceId,
-      connection = None
+      connection = None,
     )
   }
 
@@ -130,7 +129,7 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
       created = existing.created,
       tags = tags,
       resourceId = newResource.resourceId,
-      connection = existing.connection
+      connection = existing.connection,
     )
   }
 
@@ -138,8 +137,10 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
     val resourceType = domainResource.resourceType
     val path         = domainResource.path
     val created      = domainResource.created
-    val tags         = if (isOwner) domainResource.tags else List.empty
-    val resourceId   = domainResource.resourceId
+    val tags         =
+      if (isOwner) domainResource.tags
+      else List.empty
+    val resourceId = domainResource.resourceId
 
     Success(
       api.ResourceDTO(
@@ -149,16 +150,12 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
         created = created,
         tags = tags,
         resourceId = resourceId,
-        rank = domainResource.connection.map(_.rank)
+        rank = domainResource.connection.map(_.rank),
       )
     )
   }
 
-  def toNewFolderData(
-      newFolder: api.NewFolderDTO,
-      parentId: Option[UUID],
-      newRank: Int
-  ): Try[domain.NewFolderData] = {
+  def toNewFolderData(newFolder: api.NewFolderDTO, parentId: Option[UUID], newRank: Int): Try[domain.NewFolderData] = {
     val newStatus = myndla.FolderStatus.valueOf(newFolder.status).getOrElse(myndla.FolderStatus.PRIVATE)
 
     Success(
@@ -167,41 +164,38 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
         name = newFolder.name,
         status = newStatus,
         rank = newRank,
-        description = newFolder.description
+        description = newFolder.description,
       )
     )
   }
 
-  def toApiUserData(
-      domainUserData: DomainMyNDLAUser
-  ): model.api.myndla.MyNDLAUserDTO = {
-    model.api.myndla.MyNDLAUserDTO(
-      id = domainUserData.id,
-      feideId = domainUserData.feideId,
-      username = domainUserData.username,
-      email = domainUserData.email,
-      displayName = domainUserData.displayName,
-      favoriteSubjects = domainUserData.favoriteSubjects,
-      role = domainUserData.userRole,
-      organization = domainUserData.organization,
-      groups = domainUserData.groups.map(toApiGroup),
-      arenaEnabled = domainUserData.arenaEnabled
-    )
+  def toApiUserData(domainUserData: DomainMyNDLAUser): model.api.myndla.MyNDLAUserDTO = {
+    model
+      .api
+      .myndla
+      .MyNDLAUserDTO(
+        id = domainUserData.id,
+        feideId = domainUserData.feideId,
+        username = domainUserData.username,
+        email = domainUserData.email,
+        displayName = domainUserData.displayName,
+        favoriteSubjects = domainUserData.favoriteSubjects,
+        role = domainUserData.userRole,
+        organization = domainUserData.organization,
+        groups = domainUserData.groups.map(toApiGroup),
+        arenaEnabled = domainUserData.arenaEnabled,
+      )
   }
 
   def getArenaEnabled(userData: DomainMyNDLAUser, arenaEnabledOrgs: List[String]): Boolean =
     userData.arenaEnabled || arenaEnabledOrgs.contains(userData.organization)
 
-  def domainToApiModel[Domain, Api](
-      domainObjects: List[Domain],
-      f: Domain => Try[Api]
-  ): Try[List[Api]] = {
+  def domainToApiModel[Domain, Api](domainObjects: List[Domain], f: Domain => Try[Api]): Try[List[Api]] = {
 
     @tailrec
     def loop(domainObjects: List[Domain], acc: List[Api]): Try[List[Api]] = {
       domainObjects match {
-        case ::(head, next) =>
-          f(head) match {
+        case ::(head, next) => f(head) match {
             case Failure(exception) => Failure(exception)
             case Success(apiObject) => loop(next, acc :+ apiObject)
           }
@@ -212,25 +206,28 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
   }
 
   private def toApiGroup(group: DomainMyNDLAGroup): model.api.myndla.MyNDLAGroupDTO = {
-    model.api.myndla.MyNDLAGroupDTO(
-      id = group.id,
-      displayName = group.displayName,
-      isPrimarySchool = group.isPrimarySchool,
-      parentId = group.parentId
-    )
+    model
+      .api
+      .myndla
+      .MyNDLAGroupDTO(
+        id = group.id,
+        displayName = group.displayName,
+        isPrimarySchool = group.isPrimarySchool,
+        parentId = group.parentId,
+      )
   }
 
   def mergeUserData(
       domainUserData: DomainMyNDLAUser,
       updatedUser: UpdatedMyNDLAUserDTO,
-      updaterToken: Option[TokenUser]
+      updaterToken: Option[TokenUser],
   ): Try[DomainMyNDLAUser] = permitTry {
     val favoriteSubjects = updatedUser.favoriteSubjects.getOrElse(domainUserData.favoriteSubjects)
     val arenaEnabled     = {
-      if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN))
-        updatedUser.arenaEnabled.getOrElse(domainUserData.arenaEnabled)
-      else
-        domainUserData.arenaEnabled
+      if (updaterToken.hasPermission(LEARNINGPATH_API_ADMIN)) updatedUser
+        .arenaEnabled
+        .getOrElse(domainUserData.arenaEnabled)
+      else domainUserData.arenaEnabled
     }
 
     Success(
@@ -245,30 +242,21 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
         username = domainUserData.username,
         displayName = domainUserData.displayName,
         email = domainUserData.email,
-        arenaEnabled = arenaEnabled
+        arenaEnabled = arenaEnabled,
       )
     )
   }
 
   def toDomainResource(newResource: api.NewResourceDTO): domain.ResourceDocument = {
     val tags = newResource.tags.getOrElse(List.empty)
-    domain.ResourceDocument(
-      tags = tags,
-      resourceId = newResource.resourceId
-    )
+    domain.ResourceDocument(tags = tags, resourceId = newResource.resourceId)
   }
 
   def toUUIDValidated(maybeValue: Option[String], paramName: String): Try[UUID] = {
     val maybeUUID = maybeValue.map(value => Try(UUID.fromString(value)))
     maybeUUID match {
       case Some(Success(uuid)) => Success(uuid)
-      case _                   =>
-        Failure(
-          ValidationException(
-            paramName,
-            s"Invalid value for $paramName. Only UUID's allowed."
-          )
-        )
+      case _                   => Failure(ValidationException(paramName, s"Invalid value for $paramName. Only UUID's allowed."))
     }
   }
 

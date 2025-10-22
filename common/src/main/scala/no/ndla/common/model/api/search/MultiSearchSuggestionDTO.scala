@@ -14,8 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Information about search-suggestions")
 case class MultiSearchSuggestionDTO(
-    @description("The name of the field suggested for") name: String,
-    @description("The list of suggestions for given field") suggestions: Seq[SearchSuggestionDTO]
+    @description("The name of the field suggested for")
+    name: String,
+    @description("The list of suggestions for given field")
+    suggestions: Seq[SearchSuggestionDTO],
 )
 
 object MultiSearchSuggestionDTO {
@@ -25,10 +27,14 @@ object MultiSearchSuggestionDTO {
 
 @description("Search suggestion for query-text")
 case class SearchSuggestionDTO(
-    @description("The search query suggestions are made for") text: String,
-    @description("The offset in the search query") offset: Int,
-    @description("The position index in the search query") length: Int,
-    @description("The list of suggest options for the field") options: Seq[SuggestOptionDTO]
+    @description("The search query suggestions are made for")
+    text: String,
+    @description("The offset in the search query")
+    offset: Int,
+    @description("The position index in the search query")
+    length: Int,
+    @description("The list of suggest options for the field")
+    options: Seq[SuggestOptionDTO],
 )
 
 object SearchSuggestionDTO {
@@ -38,8 +44,10 @@ object SearchSuggestionDTO {
 
 @description("Search suggestion options for the terms in the query")
 case class SuggestOptionDTO(
-    @description("The suggested text") text: String,
-    @description("The score of the suggestion") score: Double
+    @description("The suggested text")
+    text: String,
+    @description("The score of the suggestion")
+    score: Double,
 )
 
 object SuggestOptionDTO {

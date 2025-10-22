@@ -15,7 +15,7 @@ import no.ndla.common.model.api.search.{
   LearningResourceType,
   SearchableLanguageList,
   SearchableLanguageValues,
-  StatusDTO
+  StatusDTO,
 }
 import no.ndla.common.model.domain.Responsible
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
@@ -66,7 +66,7 @@ class DraftConceptIndexServiceTest extends ElasticsearchIntegrationSuite with Un
       domainObject = TestData.sampleNbDomainConcept,
       favorited = 0,
       learningResourceType = LearningResourceType.Concept,
-      typeName = List("concept")
+      typeName = List("concept"),
     )
     val searchableFields = searchableToTestWith.asJson
     val fields           = getFields(searchableFields, None, Seq("domainObject"))
@@ -78,7 +78,11 @@ class DraftConceptIndexServiceTest extends ElasticsearchIntegrationSuite with Un
       val hasStatic  = staticMappingFields.contains(field)
       val hasDynamic = dynamicMappingFields.contains(field)
 
-      if (!(hasStatic || hasDynamic)) {
+      if (
+        !(
+          hasStatic || hasDynamic
+        )
+      ) {
         fail(s"'$field' was not found in mapping, i think you would want to add it to the index mapping?")
       }
     }

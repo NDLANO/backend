@@ -54,7 +54,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       List(),
       None,
       None,
-      false
+      false,
     ),
     ImageTagDTO(Seq.empty, "nb"),
     ImageCaptionDTO("", "nb"),
@@ -63,7 +63,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     "ndla124",
     ModelReleasedStatus.YES.toString,
     None,
-    None
+    None,
   )
 
   val DefaultDomainImageMetaInformation = new ImageMetaInformation(
@@ -79,7 +79,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
           contentType = "",
           dimensions = None,
           language = "und",
-          imageMetaId = 1
+          imageMetaId = 1,
         )
       )
     ),
@@ -91,7 +91,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   override def beforeEach(): Unit = {
@@ -103,28 +103,21 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   test("That GET /extern/abc returns 404") {
     when(imageRepository.withExternalId(eqTo("abc"))).thenReturn(None)
-    simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/intern/extern/abc")
-      )
-      .code
-      .code should be(404)
+    simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/abc")).code.code should be(
+      404
+    )
   }
 
   test("That GET /extern/123 returns 404 if 123 is not found") {
     when(imageRepository.withExternalId(eqTo("123"))).thenReturn(None)
-    simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/intern/extern/123")
-      )
-      .code
-      .code should be(404)
+    simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/123")).code.code should be(
+      404
+    )
   }
 
   test("That GET /extern/123 returns 200 and imagemeta when found") {
     when(imageRepository.withExternalId(eqTo("123"))).thenReturn(Some(DefaultDomainImageMetaInformation))
-    val res = simpleHttpClient
-      .send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/123"))
+    val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/123"))
     res.code.code should be(200)
     CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](res.body) should equal(DefaultApiImageMetaInformation)
   }
@@ -134,8 +127,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(imageIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil*).when(imageIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil*).when(imageIndexService).deleteIndexWithName(Some("index3"))
-    val res = simpleHttpClient
-      .send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
+    val res = simpleHttpClient.send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
     res.code.code should be(200)
     res.body should be("Deleted 3 indexes")
     verify(imageIndexService).findAllIndexes(props.SearchIndex)
@@ -152,8 +144,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(imageIndexService).deleteIndexWithName(Some("index1"))
     doReturn(Success(""), Nil*).when(imageIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil*).when(imageIndexService).deleteIndexWithName(Some("index3"))
-    val res = simpleHttpClient
-      .send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
+    val res = simpleHttpClient.send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
     res.code.code should equal(500)
     res.body should equal("Failed to find indexes")
     verify(imageIndexService, never).deleteIndexWithName(any[Option[String]])
@@ -168,8 +159,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       .when(imageIndexService)
       .deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil*).when(imageIndexService).deleteIndexWithName(Some("index3"))
-    val res = simpleHttpClient
-      .send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
+    val res = simpleHttpClient.send(quickRequest.delete(uri"http://localhost:$serverPort/intern/index"))
     res.code.code should equal(500)
     res.body should equal(
       "Failed to delete 1 index: No index with name 'index2' exists. 2 indexes were deleted successfully."

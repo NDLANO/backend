@@ -23,7 +23,7 @@ import no.ndla.network.tapir.{
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 
 class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplication[FrontpageApiProperties] {
@@ -54,14 +54,8 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   given healthController: TapirHealthController      = new TapirHealthController
 
   given swagger: SwaggerController = new SwaggerController(
-    List(
-      subjectPageController,
-      frontPageController,
-      filmPageController,
-      internController,
-      healthController
-    ),
-    SwaggerDocControllerConfig.swaggerInfo
+    List(subjectPageController, frontPageController, filmPageController, internController, healthController),
+    SwaggerDocControllerConfig.swaggerInfo,
   )
 
   given services: List[TapirController] = swagger.getServices()

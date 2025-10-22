@@ -13,12 +13,8 @@ import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 
 import java.time.Duration
 
-case class PgContainer(
-    PostgresqlVersion: String,
-    username: String,
-    password: String,
-    dbName: String
-) extends PostgreSQLContainer(s"postgres:$PostgresqlVersion") {
+case class PgContainer(PostgresqlVersion: String, username: String, password: String, dbName: String)
+    extends PostgreSQLContainer(s"postgres:$PostgresqlVersion") {
   this.setWaitStrategy(new HostPortWaitStrategy().withStartupTimeout(Duration.ofSeconds(100)))
 
   def setPassword(password: String): Unit = this.withPassword(password)

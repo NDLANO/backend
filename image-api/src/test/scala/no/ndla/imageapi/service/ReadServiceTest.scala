@@ -50,8 +50,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val testUrl      = s"${props.Domain}/image-api/v2/images/1"
     val testRawUrl   = s"${props.Domain}/image-api/raw/Elg.jpg"
     val dateString   = TestData.updated().asString
-    val expectedBody =
-      s"""{
+    val expectedBody = s"""{
          |  "id":"1",
          |  "metaUrl":"$testUrl",
          |  "title":{"title":"Elg i busk","language":"nb"},
@@ -93,7 +92,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
             contentType = "image/jpeg",
             dimensions = None,
             language = "nb",
-            imageMetaId = 1
+            imageMetaId = 1,
           )
         )
       ),
@@ -105,7 +104,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         List(common.Author(ContributorType.Supplier, "Leverans Leveransensen")),
         None,
         None,
-        false
+        false,
       ),
       tags = List(common.Tag(List("rovdyr", "elg"), "nb")),
       captions = List(domain.ImageCaption("Elg i busk", "nb")),
@@ -114,7 +113,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       created = TestData.updated(),
       createdBy = "ndla124",
       modelReleased = ModelReleasedStatus.YES,
-      editorNotes = Seq.empty
+      editorNotes = Seq.empty,
     )
 
     when(imageRepository.withId(1)).thenReturn(Some(imageElg))
@@ -139,18 +138,10 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That filenames stored with encoded characters works as expected") {
-    val imageUrl = "Gr%C3%B8nnsaker%20er%20kilde%20for%20mange%20vitaminer%20(Foto:%20Bj%C3%B8rg%20Aurebekk).jpg"
+    val imageUrl         = "Gr%C3%B8nnsaker%20er%20kilde%20for%20mange%20vitaminer%20(Foto:%20Bj%C3%B8rg%20Aurebekk).jpg"
     val expectedFileName = "Grønnsaker er kilde for mange vitaminer (Foto: Bjørg Aurebekk).jpg"
     when(imageRepository.withId(1)).thenReturn(
-      Some(
-        TestData.bjorn.copy(images =
-          Some(
-            Seq(
-              TestData.bjorn.images.get.head.copy(fileName = imageUrl)
-            )
-          )
-        )
-      )
+      Some(TestData.bjorn.copy(images = Some(Seq(TestData.bjorn.images.get.head.copy(fileName = imageUrl)))))
     )
 
     readService.getImageFileName(1, Some("nb")) should be(Success(Some(expectedFileName)))

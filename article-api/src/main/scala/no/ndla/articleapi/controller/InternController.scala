@@ -45,14 +45,15 @@ class InternController(using
     props: Props,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController
     with StrictLogging {
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 
-  def index: ServerEndpoint[Any, Eff] = endpoint.post
+  def index: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("index")
     .in(query[Option[Int]]("numShards"))
     .out(stringBody)
@@ -60,7 +61,9 @@ class InternController(using
     .serverLogicPure(numShards => {
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-      val articleIndex = Future { articleIndexService.indexDocuments(numShards) }
+      val articleIndex = Future {
+        articleIndexService.indexDocuments(numShards)
+      }
 
       Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
         case Success(articleResult) =>
@@ -74,16 +77,21 @@ class InternController(using
       }
     })
 
-  def deleteIndex: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteIndex: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .in("index")
     .out(stringBody)
     .errorOut(stringInternalServerError)
     .serverLogicPure { _ =>
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-      def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
+      def pluralIndex(n: Int) =
+        if (n == 1) "1 index"
+        else s"$n indexes"
 
-      val articleIndex = Future { articleIndexService.findAllIndexes(props.ArticleSearchIndex) }
+      val articleIndex = Future {
+        articleIndexService.findAllIndexes(props.ArticleSearchIndex)
+      }
 
       Await.result(articleIndex, Duration(10, TimeUnit.MINUTES)) match {
         case Failure(articleFail)    => Left(articleFail.getMessage)
@@ -104,12 +112,14 @@ class InternController(using
       }
     }
 
-  def getIds: ServerEndpoint[Any, Eff] = endpoint.get
+  def getIds: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("ids")
     .out(jsonBody[Seq[ArticleIds]])
     .serverLogicPure(_ => articleRepository.getAllIds.asRight)
 
-  def getByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
+  def getByExternalId: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("id")
     .in(path[String]("external_id"))
     .out(jsonBody[Long])
@@ -121,7 +131,8 @@ class InternController(using
       }
     })
 
-  def dumpApiArticles: ServerEndpoint[Any, Eff] = endpoint.get
+  def dumpApiArticles: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("articles")
     .in(query[Int]("page").default(1))
     .in(query[Int]("page-size").default(250))
@@ -132,7 +143,8 @@ class InternController(using
       readService.getArticlesByPage(pageNo, pageSize, language, fallback).asRight
     }
 
-  def dumpDomainArticles: ServerEndpoint[Any, Eff] = endpoint.get
+  def dumpDomainArticles: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("dump" / "article")
     .in(query[Int]("page").default(1))
     .in(query[Int]("page-size").default(250))
@@ -141,7 +153,8 @@ class InternController(using
       readService.getArticleDomainDump(pageNo, pageSize).asRight
     }
 
-  def dumpSingleDomainArticle: ServerEndpoint[Any, Eff] = endpoint.get
+  def dumpSingleDomainArticle: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("dump" / "article" / path[Long]("article_id"))
     .out(jsonBody[Article])
     .errorOut(statusCode(StatusCode.NotFound).and(emptyOutput))
@@ -152,19 +165,20 @@ class InternController(using
       }
     }
 
-  def validateArticle: ServerEndpoint[Any, Eff] = endpoint.post
+  def validateArticle: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("validate" / "article")
     .in(query[Boolean]("import_validate").default(false))
     .in(jsonBody[Article])
     .out(jsonBody[Article])
     .errorOut(errorOutputsFor(400))
     .serverLogicPure { case (importValidate, article) =>
-      contentValidator
-        .validateArticle(article, isImported = importValidate)
+      contentValidator.validateArticle(article, isImported = importValidate)
 
     }
 
-  def updateArticle: ServerEndpoint[Any, Eff] = endpoint.post
+  def updateArticle: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("article" / path[Long]("id"))
     .in(listQuery[String]("external-id"))
     .in(query[Boolean]("use-import-validation").default(false))
@@ -175,17 +189,17 @@ class InternController(using
     .requirePermission(ARTICLE_API_WRITE)
     .serverLogicPure { _ => params =>
       val (id, externalIds, useImportValidation, useSoftValidation, article) = params
-      writeService
-        .updateArticle(
-          article.copy(id = Some(id)),
-          externalIds.values.filterNot(_.isEmpty),
-          useImportValidation,
-          useSoftValidation,
-          skipValidation = false
-        )()
+      writeService.updateArticle(
+        article.copy(id = Some(id)),
+        externalIds.values.filterNot(_.isEmpty),
+        useImportValidation,
+        useSoftValidation,
+        skipValidation = false,
+      )()
     }
 
-  def deleteArticle: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteArticle: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .in("article" / path[Long]("id"))
     .in(query[Option[Int]]("revision"))
     .errorOut(errorOutputsFor(401, 403, 404))
@@ -196,7 +210,8 @@ class InternController(using
       writeService.deleteArticle(id, revision)
     }
 
-  def unpublishArticle: ServerEndpoint[Any, Eff] = endpoint.post
+  def unpublishArticle: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("article" / path[Long]("id") / "unpublish")
     .in(query[Option[Int]]("revision"))
     .errorOut(errorOutputsFor(401, 403, 404))
@@ -207,7 +222,8 @@ class InternController(using
       writeService.unpublishArticle(id, revision)
     }
 
-  def partialPublishArticle: ServerEndpoint[Any, Eff] = endpoint.patch
+  def partialPublishArticle: ServerEndpoint[Any, Eff] = endpoint
+    .patch
     .in("partial-publish" / path[Long]("article_id"))
     .in(jsonBody[PartialPublishArticleDTO])
     .in(query[String]("language").default(Language.AllLanguages))
@@ -218,22 +234,19 @@ class InternController(using
     .serverLogicPure { _ => params =>
       val (articleId, partialUpdateBody, language, fallback) = params
 
-      writeService.partialUpdate(
-        articleId,
-        partialUpdateBody,
-        language,
-        fallback,
-        isInBulk = false
-      )()
+      writeService.partialUpdate(articleId, partialUpdateBody, language, fallback, isInBulk = false)()
     }
 
-  def partialPublishMultiple: ServerEndpoint[Any, Eff] = endpoint.patch
+  def partialPublishMultiple: ServerEndpoint[Any, Eff] = endpoint
+    .patch
     .in("partial-publish")
     .in(jsonBody[PartialPublishArticlesBulkDTO])
     .errorOut(errorOutputsFor(401, 403, 404))
     .out(emptyOutput)
     .requirePermission(ARTICLE_API_WRITE)
-    .serverLogicPure { _ => input => writeService.partialUpdateBulk(input) }
+    .serverLogicPure { _ => input =>
+      writeService.partialUpdateBulk(input)
+    }
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
     index,
@@ -248,6 +261,6 @@ class InternController(using
     deleteArticle,
     unpublishArticle,
     partialPublishArticle,
-    partialPublishMultiple
+    partialPublishMultiple,
   )
 }

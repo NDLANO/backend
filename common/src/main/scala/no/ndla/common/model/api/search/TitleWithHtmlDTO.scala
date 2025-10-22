@@ -17,9 +17,12 @@ import no.ndla.common.DeriveHelpers
 
 @description("Title of resource")
 case class TitleWithHtmlDTO(
-    @description("The freetext title of the resource") title: String,
-    @description("The freetext html-version title of the article") htmlTitle: String,
-    @description("ISO 639-1 code that represents the language used in title") language: String
+    @description("The freetext title of the resource")
+    title: String,
+    @description("The freetext html-version title of the article")
+    htmlTitle: String,
+    @description("ISO 639-1 code that represents the language used in title")
+    language: String,
 ) extends LanguageField[String] {
   override def value: String    = title
   override def isEmpty: Boolean = title.isEmpty

@@ -13,7 +13,7 @@ import no.ndla.common.model.api.search.{
   LanguageValue,
   LearningResourceType,
   SearchableLanguageList,
-  SearchableLanguageValues
+  SearchableLanguageValues,
 }
 import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
 import no.ndla.common.model.domain.{ContributorType, Priority, Responsible, RevisionMeta, getNextRevision}
@@ -33,7 +33,7 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       Seq(
         LanguageValue("nn", "Eg kjøyrar rundt i min fine bil"),
         LanguageValue("nb", "Jeg kjører rundt i tutut"),
-        LanguageValue("en", "I'm in my mums car wroomwroom")
+        LanguageValue("en", "I'm in my mums car wroomwroom"),
       )
     )
 
@@ -41,20 +41,16 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       Seq(
         LanguageValue("nb", "<section><p>Dette er en introduksjon</p></section>"),
         LanguageValue("nn", "<section><p>Dette er ein introduksjon</p></section>"),
-        LanguageValue("en", "<section><p>This is an introduction</p></section>")
+        LanguageValue("en", "<section><p>This is an introduction</p></section>"),
       )
     )
 
-    val tags = SearchableLanguageList(
-      Seq(
-        LanguageValue("en", Seq("Mum", "Car", "Wroom"))
-      )
-    )
+    val tags = SearchableLanguageList(Seq(LanguageValue("en", Seq("Mum", "Car", "Wroom"))))
 
     val learningsteps = List(
       SearchableLearningStep(stepType = StepType.INTRODUCTION.toString),
       SearchableLearningStep(stepType = StepType.SUMMARY.toString),
-      SearchableLearningStep(stepType = StepType.TEXT.toString)
+      SearchableLearningStep(stepType = StepType.TEXT.toString),
     )
 
     val original = SearchableLearningPath(
@@ -78,7 +74,7 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       license = License.CC_BY_SA.toString,
       copyright = CopyrightDTO(
         LicenseDTO(License.CC_BY_SA.toString, Some("bysasaa"), None),
-        Seq(AuthorDTO(ContributorType.Supplier, "Jonas"), AuthorDTO(ContributorType.Originator, "Kakemonsteret"))
+        Seq(AuthorDTO(ContributorType.Supplier, "Jonas"), AuthorDTO(ContributorType.Originator, "Kakemonsteret")),
       ),
       isBasedOn = Some(1001),
       supportedLanguages = List("nb", "en", "nn"),
@@ -99,7 +95,7 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       revisionMeta = RevisionMeta.default.toList,
       nextRevision = RevisionMeta.default.getNextRevision,
       grepCodes = List("grep1", "grep2"),
-      responsible = Some(Responsible("some responsible", TestData.today))
+      responsible = Some(Responsible("some responsible", TestData.today)),
     )
 
     val json         = CirceUtil.toJsonString(original)

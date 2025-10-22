@@ -15,14 +15,22 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Search result for group search")
 case class GroupSearchResultDTO(
-    @description("The total number of resources matching this query") totalCount: Long,
-    @description("For which page results are shown from") page: Option[Int],
-    @description("The number of results per page") pageSize: Int,
-    @description("The chosen search language") language: String,
-    @description("The search results") results: Seq[MultiSummaryBaseDTO],
-    @description("The suggestions for other searches") suggestions: Seq[MultiSearchSuggestionDTO],
-    @description("The aggregated fields if specified in query") aggregations: Seq[MultiSearchTermsAggregationDTO],
-    @description("Type of resources in this object") resourceType: String
+    @description("The total number of resources matching this query")
+    totalCount: Long,
+    @description("For which page results are shown from")
+    page: Option[Int],
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The chosen search language")
+    language: String,
+    @description("The search results")
+    results: Seq[MultiSummaryBaseDTO],
+    @description("The suggestions for other searches")
+    suggestions: Seq[MultiSearchSuggestionDTO],
+    @description("The aggregated fields if specified in query")
+    aggregations: Seq[MultiSearchTermsAggregationDTO],
+    @description("Type of resources in this object")
+    resourceType: String,
 )
 
 object GroupSearchResultDTO {

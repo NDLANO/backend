@@ -35,7 +35,7 @@ case class NewLearningStepV2DTO(
     @deprecated
     license: Option[String],
     @description("Describes the copyright information for the learningstep")
-    copyright: Option[CopyrightDTO]
+    copyright: Option[CopyrightDTO],
 )
 
 object NewLearningStepV2DTO {

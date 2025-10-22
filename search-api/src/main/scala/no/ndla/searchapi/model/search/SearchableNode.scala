@@ -23,7 +23,7 @@ case class SearchableNode(
     context: Option[SearchableTaxonomyContext],
     contexts: List[SearchableTaxonomyContext],
     grepContexts: List[SearchableGrepContext],
-    typeName: List[String]
+    typeName: List[String],
 )
 
 object SearchableNode {

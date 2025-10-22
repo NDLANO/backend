@@ -29,11 +29,10 @@ object ArticleType extends Enum[ArticleType] with CirceEnum[ArticleType] {
   def all: Seq[String]                        = ArticleType.values.map(_.entryName)
   def valueOf(s: String): Option[ArticleType] = ArticleType.withNameOption(s)
 
-  def valueOfOrError(s: String): ArticleType =
-    valueOf(s).getOrElse(
-      throw ValidationException(
-        "articleType",
-        s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."
-      )
+  def valueOfOrError(s: String): ArticleType = valueOf(s).getOrElse(
+    throw ValidationException(
+      "articleType",
+      s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}.",
     )
+  )
 }

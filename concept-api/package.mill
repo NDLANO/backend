@@ -5,18 +5,17 @@ import build.modules.{BaseModule, SharedDependencies, DockerComponent}
 
 object `package` extends BaseModule, DockerComponent {
   override def moduleName  = "concept-api"
-  def mvnDeps: T[Seq[Dep]] =
-    SharedDependencies.logging ++
-      SharedDependencies.enumeratum ++
-      SharedDependencies.tapirCirce ++
-      SharedDependencies.database ++
-      Seq(
-        SharedDependencies.scalaUri,
-        SharedDependencies.sttp,
-        SharedDependencies.jsoup,
-        SharedDependencies.catsEffect,
-        SharedDependencies.catsCore
-      )
+  def mvnDeps: T[Seq[Dep]] = SharedDependencies.logging ++
+    SharedDependencies.enumeratum ++
+    SharedDependencies.tapirCirce ++
+    SharedDependencies.database ++
+    Seq(
+      SharedDependencies.scalaUri,
+      SharedDependencies.sttp,
+      SharedDependencies.jsoup,
+      SharedDependencies.catsEffect,
+      SharedDependencies.catsCore,
+    )
   override def moduleDeps =
     Seq(build.common, build.network, build.mapping, build.language, build.search, build.database, build.validation)
   object test extends TestBase {

@@ -8,9 +8,7 @@
 
 package no.ndla.common.model.taxonomy
 
-case class TaxonomyBundle(
-    nodes: List[Node]
-) {
+case class TaxonomyBundle(nodes: List[Node]) {
 
   val nodeByContentUri: Map[String, List[Node]] = {
     val contentUriToNodes = nodes.flatMap(t => t.contentUri.map(cu => cu -> t))

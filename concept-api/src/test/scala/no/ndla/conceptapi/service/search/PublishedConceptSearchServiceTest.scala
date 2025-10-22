@@ -46,7 +46,7 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
     List(),
     None,
     None,
-    false
+    false,
   )
 
   val publicDomain: DraftCopyright = DraftCopyright(
@@ -57,7 +57,7 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
     List(),
     None,
     None,
-    false
+    false,
   )
 
   val copyrighted: DraftCopyright = DraftCopyright(
@@ -68,121 +68,145 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
     List(),
     None,
     None,
-    false
+    false,
   )
 
   val today: LocalDateTime = LocalDateTime.now()
 
-  val concept1: Concept = TestData.sampleConcept.copy(
-    id = Option(1),
-    title = List(Title("Batmen er på vift med en bil", "nb")),
-    content = List(
-      ConceptContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
-    ),
-    copyright = Some(publicDomain)
-  )
-
-  val concept2: Concept = TestData.sampleConcept.copy(
-    id = Option(2),
-    title = List(Title("pingvinen er ute og går", "nb")),
-    content = List(ConceptContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
-    copyright = Some(publicDomain)
-  )
-
-  val concept3: Concept = TestData.sampleConcept.copy(
-    id = Option(3),
-    title = List(Title("Donald Duck kjører bil", "nb")),
-    content = List(ConceptContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
-    copyright = Some(copyrighted)
-  )
-
-  val concept4: Concept = TestData.sampleConcept.copy(
-    id = Option(4),
-    title = List(Title("Superman er ute og flyr", "nb")),
-    content =
-      List(ConceptContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
-    copyright = Some(copyrighted)
-  )
-
-  val concept5: Concept = TestData.sampleConcept.copy(
-    id = Option(5),
-    title = List(Title("Hulken løfter biler", "nb")),
-    content = List(ConceptContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
-    copyright = Some(byNcSa)
-  )
-
-  val concept6: Concept = TestData.sampleConcept.copy(
-    id = Option(6),
-    title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
-    content = List(
-      ConceptContent(
-        "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
-        "nb"
-      )
-    ),
-    copyright = Some(byNcSa)
-  )
-
-  val concept7: Concept = TestData.sampleConcept.copy(
-    id = Option(7),
-    title = List(Title("Yggdrasil livets tre", "nb")),
-    content = List(ConceptContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
-    copyright = Some(byNcSa)
-  )
-
-  val concept8: Concept = TestData.sampleConcept.copy(
-    id = Option(8),
-    title = List(Title("Baldur har mareritt", "nb")),
-    content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
-    copyright = Some(byNcSa)
-  )
-
-  val concept9: Concept = TestData.sampleConcept.copy(
-    id = Option(9),
-    title = List(Title("baldur har mareritt om Ragnarok", "nb")),
-    content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
-    copyright = Some(byNcSa),
-    tags = Seq(Tag(Seq("stor", "klovn"), "nb"))
-  )
-
-  val concept10: Concept = TestData.sampleConcept.copy(
-    id = Option(10),
-    title = List(Title("Unrelated", "en"), Title("Urelatert", "nb")),
-    content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb")),
-    copyright = Some(byNcSa),
-    updated = NDLADate.now().minusDays(1),
-    tags = Seq(Tag(Seq("cageowl"), "en"), Tag(Seq("burugle"), "nb")),
-    visualElement = List(
-      VisualElement(
-        s"""<$EmbedTagName data-resource="image" data-url="test.url"></$EmbedTagName><$EmbedTagName data-resource="brightcove" data-url="test.url2" data-videoid="test.id2"></$EmbedTagName>""",
-        "nb"
-      )
+  val concept1: Concept = TestData
+    .sampleConcept
+    .copy(
+      id = Option(1),
+      title = List(Title("Batmen er på vift med en bil", "nb")),
+      content = List(
+        ConceptContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
+      ),
+      copyright = Some(publicDomain),
     )
-  )
 
-  val concept11: Concept = TestData.sampleConcept.copy(
-    id = Option(11),
-    title = List(Title("\"englando\"", "en")),
-    content = List(ConceptContent("englandocontent", "en")),
-    copyright = Some(byNcSa)
-  )
-
-  val concept12: Concept = TestData.sampleConcept.copy(
-    id = Option(12),
-    title = List(Title("glose", "nb")),
-    content = List(ConceptContent("glose", "nb")),
-    copyright = Some(byNcSa),
-    conceptType = ConceptType.GLOSS,
-    glossData = Some(
-      GlossData(
-        gloss = "glossorama",
-        wordClass = WordClass.NOUN,
-        originalLanguage = "de",
-        transcriptions = Map.empty,
-        examples = List.empty
-      )
+  val concept2: Concept = TestData
+    .sampleConcept
+    .copy(
+      id = Option(2),
+      title = List(Title("pingvinen er ute og går", "nb")),
+      content = List(ConceptContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
+      copyright = Some(publicDomain),
     )
-  )
+
+  val concept3: Concept = TestData
+    .sampleConcept
+    .copy(
+      id = Option(3),
+      title = List(Title("Donald Duck kjører bil", "nb")),
+      content = List(ConceptContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
+      copyright = Some(copyrighted),
+    )
+
+  val concept4: Concept = TestData
+    .sampleConcept
+    .copy(
+      id = Option(4),
+      title = List(Title("Superman er ute og flyr", "nb")),
+      content =
+        List(ConceptContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
+      copyright = Some(copyrighted),
+    )
+
+  val concept5: Concept = TestData
+    .sampleConcept
+    .copy(
+      id = Option(5),
+      title = List(Title("Hulken løfter biler", "nb")),
+      content = List(ConceptContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
+      copyright = Some(byNcSa),
+    )
+
+  val concept6: Concept = TestData
+    .sampleConcept
+    .copy(
+      id = Option(6),
+      title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
+      content = List(
+        ConceptContent(
+          "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
+          "nb",
+        )
+      ),
+      copyright = Some(byNcSa),
+    )
+
+  val concept7: Concept = TestData
+    .sampleConcept
+    .copy(
+      id = Option(7),
+      title = List(Title("Yggdrasil livets tre", "nb")),
+      content = List(ConceptContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
+      copyright = Some(byNcSa),
+    )
+
+  val concept8: Concept = TestData
+    .sampleConcept
+    .copy(
+      id = Option(8),
+      title = List(Title("Baldur har mareritt", "nb")),
+      content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
+      copyright = Some(byNcSa),
+    )
+
+  val concept9: Concept = TestData
+    .sampleConcept
+    .copy(
+      id = Option(9),
+      title = List(Title("baldur har mareritt om Ragnarok", "nb")),
+      content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
+      copyright = Some(byNcSa),
+      tags = Seq(Tag(Seq("stor", "klovn"), "nb")),
+    )
+
+  val concept10: Concept = TestData
+    .sampleConcept
+    .copy(
+      id = Option(10),
+      title = List(Title("Unrelated", "en"), Title("Urelatert", "nb")),
+      content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb")),
+      copyright = Some(byNcSa),
+      updated = NDLADate.now().minusDays(1),
+      tags = Seq(Tag(Seq("cageowl"), "en"), Tag(Seq("burugle"), "nb")),
+      visualElement = List(
+        VisualElement(
+          s"""<$EmbedTagName data-resource="image" data-url="test.url"></$EmbedTagName><$EmbedTagName data-resource="brightcove" data-url="test.url2" data-videoid="test.id2"></$EmbedTagName>""",
+          "nb",
+        )
+      ),
+    )
+
+  val concept11: Concept = TestData
+    .sampleConcept
+    .copy(
+      id = Option(11),
+      title = List(Title("\"englando\"", "en")),
+      content = List(ConceptContent("englandocontent", "en")),
+      copyright = Some(byNcSa),
+    )
+
+  val concept12: Concept = TestData
+    .sampleConcept
+    .copy(
+      id = Option(12),
+      title = List(Title("glose", "nb")),
+      content = List(ConceptContent("glose", "nb")),
+      copyright = Some(byNcSa),
+      conceptType = ConceptType.GLOSS,
+      glossData = Some(
+        GlossData(
+          gloss = "glossorama",
+          wordClass = WordClass.NOUN,
+          originalLanguage = "de",
+          transcriptions = Map.empty,
+          examples = List.empty,
+        )
+      ),
+    )
 
   val searchSettings: search.SearchSettings = search.SearchSettings(
     withIdIn = List.empty,
@@ -197,7 +221,7 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
     embedResource = List.empty,
     embedId = None,
     conceptType = None,
-    aggregatePaths = List.empty
+    aggregatePaths = List.empty,
   )
 
   override def beforeAll(): Unit = {
@@ -307,8 +331,9 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
   }
 
   test("That all returns all documents ordered by lastUpdated descending") {
-    val results =
-      publishedConceptSearchService.all(searchSettings.copy(pageSize = 20, sort = Sort.ByLastUpdatedDesc)).get
+    val results = publishedConceptSearchService
+      .all(searchSettings.copy(pageSize = 20, sort = Sort.ByLastUpdatedDesc))
+      .get
     val hits = results.results
     results.totalCount should be(11)
     hits.map(_.id) should be(Seq(10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12))
@@ -323,10 +348,12 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
   }
 
   test("That paging returns only hits on current page and not more than page-size") {
-    val page1 =
-      publishedConceptSearchService.all(searchSettings.copy(page = 1, pageSize = 2, sort = Sort.ByTitleAsc)).get
-    val page2 =
-      publishedConceptSearchService.all(searchSettings.copy(page = 2, pageSize = 2, sort = Sort.ByTitleAsc)).get
+    val page1 = publishedConceptSearchService
+      .all(searchSettings.copy(page = 1, pageSize = 2, sort = Sort.ByTitleAsc))
+      .get
+    val page2 = publishedConceptSearchService
+      .all(searchSettings.copy(page = 2, pageSize = 2, sort = Sort.ByTitleAsc))
+      .get
 
     val hits1 = page1.results
     page1.totalCount should be(11)
@@ -344,8 +371,9 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
   }
 
   test("That search matches title and content ordered by relevance descending") {
-    val results =
-      publishedConceptSearchService.matchingQuery("bil", searchSettings.copy(sort = Sort.ByRelevanceDesc)).get
+    val results = publishedConceptSearchService
+      .matchingQuery("bil", searchSettings.copy(sort = Sort.ByRelevanceDesc))
+      .get
     val hits = results.results
 
     results.totalCount should be(3)
@@ -353,8 +381,9 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
   }
 
   test("That search matches title") {
-    val results =
-      publishedConceptSearchService.matchingQuery("Pingvinen", searchSettings.copy(sort = Sort.ByTitleAsc)).get
+    val results = publishedConceptSearchService
+      .matchingQuery("Pingvinen", searchSettings.copy(sort = Sort.ByTitleAsc))
+      .get
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(2)
@@ -369,80 +398,66 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
 
   test("That search for title with exact parameter matches correct number of concepts") {
     val results = publishedConceptSearchService
-      .matchingQuery(
-        "baldur har mareritt",
-        searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true)
-      )
+      .matchingQuery("baldur har mareritt", searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
       .get
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(8)
 
-    val results2 =
-      publishedConceptSearchService
-        .matchingQuery(
-          "Pingvinen",
-          searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true)
-        )
-        .get
+    val results2 = publishedConceptSearchService
+      .matchingQuery("Pingvinen", searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
+      .get
     results2.totalCount should be(0)
 
-    val results3 =
-      publishedConceptSearchService
-        .matchingQuery(
-          "baldur har MARERITT",
-          searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true)
-        )
-        .get
+    val results3 = publishedConceptSearchService
+      .matchingQuery("baldur har MARERITT", searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
+      .get
     val hits3 = results3.results
     results3.totalCount should be(1)
     hits3.head.id should be(8)
   }
 
   test("Searching with logical AND only returns results with all terms") {
-    val search1 =
-      publishedConceptSearchService.matchingQuery("bilde + bil", searchSettings.copy(sort = Sort.ByTitleAsc)).get
+    val search1 = publishedConceptSearchService
+      .matchingQuery("bilde + bil", searchSettings.copy(sort = Sort.ByTitleAsc))
+      .get
     val hits1 = search1.results
     hits1.map(_.id) should equal(Seq(1, 3, 5))
 
-    val search2 =
-      publishedConceptSearchService.matchingQuery("batmen + bil", searchSettings.copy(sort = Sort.ByTitleAsc)).get
+    val search2 = publishedConceptSearchService
+      .matchingQuery("batmen + bil", searchSettings.copy(sort = Sort.ByTitleAsc))
+      .get
     val hits2 = search2.results
     hits2.map(_.id) should equal(Seq(1))
 
-    val search3 =
-      publishedConceptSearchService
-        .matchingQuery(
-          "bil + bilde + -flaggermusmann",
-          searchSettings.copy(sort = Sort.ByTitleAsc)
-        )
-        .get
+    val search3 = publishedConceptSearchService
+      .matchingQuery("bil + bilde + -flaggermusmann", searchSettings.copy(sort = Sort.ByTitleAsc))
+      .get
     val hits3 = search3.results
     hits3.map(_.id) should equal(Seq(3, 5))
 
-    val search4 =
-      publishedConceptSearchService.matchingQuery("bil + -hulken", searchSettings.copy(sort = Sort.ByTitleAsc)).get
+    val search4 = publishedConceptSearchService
+      .matchingQuery("bil + -hulken", searchSettings.copy(sort = Sort.ByTitleAsc))
+      .get
     val hits4 = search4.results
     hits4.map(_.id) should equal(Seq(1, 3))
   }
 
   test("search in content should be ranked lower than title") {
-    val search =
-      publishedConceptSearchService
-        .matchingQuery(
-          "mareritt + ragnarok",
-          searchSettings.copy(sort = Sort.ByRelevanceDesc)
-        )
-        .get
+    val search = publishedConceptSearchService
+      .matchingQuery("mareritt + ragnarok", searchSettings.copy(sort = Sort.ByRelevanceDesc))
+      .get
     val hits = search.results
     hits.map(_.id) should equal(Seq(9, 8))
   }
 
   test("Search should return language it is matched in") {
-    val searchEn =
-      publishedConceptSearchService.matchingQuery("Unrelated", searchSettings.copy(searchLanguage = "*")).get
-    val searchNb =
-      publishedConceptSearchService.matchingQuery("Urelatert", searchSettings.copy(searchLanguage = "*")).get
+    val searchEn = publishedConceptSearchService
+      .matchingQuery("Unrelated", searchSettings.copy(searchLanguage = "*"))
+      .get
+    val searchNb = publishedConceptSearchService
+      .matchingQuery("Urelatert", searchSettings.copy(searchLanguage = "*"))
+      .get
 
     searchEn.totalCount should be(1)
     searchEn.results.head.title.language should be("en")
@@ -458,8 +473,9 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
   }
 
   test("Search for all languages should return all concepts in correct language") {
-    val search =
-      publishedConceptSearchService.all(searchSettings.copy(searchLanguage = Language.AllLanguages, pageSize = 100)).get
+    val search = publishedConceptSearchService
+      .all(searchSettings.copy(searchLanguage = Language.AllLanguages, pageSize = 100))
+      .get
     val hits = search.results
 
     search.totalCount should equal(12)
@@ -480,10 +496,9 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
   }
 
   test("That searching with fallback parameter returns concept in language priority even if doesnt match on language") {
-    val search =
-      publishedConceptSearchService
-        .all(searchSettings.copy(withIdIn = List(9, 10, 11), searchLanguage = "en", fallback = true))
-        .get
+    val search = publishedConceptSearchService
+      .all(searchSettings.copy(withIdIn = List(9, 10, 11), searchLanguage = "en", fallback = true))
+      .get
 
     search.totalCount should equal(3)
     search.results.head.id should equal(9)
@@ -498,12 +513,9 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
     val pageSize    = 2
     val expectedIds = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12).sliding(pageSize, pageSize).toList
 
-    val initialSearch =
-      publishedConceptSearchService
-        .all(
-          searchSettings.copy(searchLanguage = "*", pageSize = pageSize, fallback = true, shouldScroll = true)
-        )
-        .get
+    val initialSearch = publishedConceptSearchService
+      .all(searchSettings.copy(searchLanguage = "*", pageSize = pageSize, fallback = true, shouldScroll = true))
+      .get
 
     val scroll1 = publishedConceptSearchService.scroll(initialSearch.scrollId.get, "*").get
     val scroll2 = publishedConceptSearchService.scroll(scroll1.scrollId.get, "*").get
@@ -526,133 +538,97 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
     search.totalCount should be(1)
     search.results.map(_.id) should be(Seq(10))
 
-    val search1 =
-      publishedConceptSearchService.all(searchSettings.copy(searchLanguage = "*", tagsToFilterBy = Set("burugle"))).get
+    val search1 = publishedConceptSearchService
+      .all(searchSettings.copy(searchLanguage = "*", tagsToFilterBy = Set("burugle")))
+      .get
     search1.totalCount should be(1)
     search1.results.map(_.id) should be(Seq(10))
 
-    val search2 =
-      publishedConceptSearchService.all(searchSettings.copy(searchLanguage = "en", tagsToFilterBy = Set("burugle"))).get
+    val search2 = publishedConceptSearchService
+      .all(searchSettings.copy(searchLanguage = "en", tagsToFilterBy = Set("burugle")))
+      .get
     search2.totalCount should be(0)
 
-    val search3 =
-      publishedConceptSearchService
-        .all(
-          searchSettings.copy(searchLanguage = "en", fallback = true, tagsToFilterBy = Set("burugle"))
-        )
-        .get
+    val search3 = publishedConceptSearchService
+      .all(searchSettings.copy(searchLanguage = "en", fallback = true, tagsToFilterBy = Set("burugle")))
+      .get
     search3.totalCount should be(1)
     search3.results.map(_.id) should be(Seq(10))
   }
 
   test("that search on embedId matches visual element") {
-    val search =
-      publishedConceptSearchService
-        .all(searchSettings.copy(searchLanguage = Language.AllLanguages, embedId = Some("test.url")))
-        .get
+    val search = publishedConceptSearchService
+      .all(searchSettings.copy(searchLanguage = Language.AllLanguages, embedId = Some("test.url")))
+      .get
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
   }
 
   test("that search on embedResource matches visual element") {
-    val search =
-      publishedConceptSearchService
-        .all(
-          searchSettings.copy(searchLanguage = Language.AllLanguages, embedResource = List("brightcove"))
-        )
-        .get
+    val search = publishedConceptSearchService
+      .all(searchSettings.copy(searchLanguage = Language.AllLanguages, embedResource = List("brightcove")))
+      .get
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
   }
 
   test("that search on embedId matches meta image") {
-    val search =
-      publishedConceptSearchService
-        .all(
-          searchSettings.copy(searchLanguage = Language.AllLanguages, embedId = Some("test.url"))
-        )
-        .get
+    val search = publishedConceptSearchService
+      .all(searchSettings.copy(searchLanguage = Language.AllLanguages, embedId = Some("test.url")))
+      .get
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
   }
 
   test("that search on query parameter as embedId matches meta image") {
-    val search =
-      publishedConceptSearchService
-        .matchingQuery(
-          "test.url",
-          searchSettings.copy()
-        )
-        .get
+    val search = publishedConceptSearchService.matchingQuery("test.url", searchSettings.copy()).get
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
   }
 
   test("that search on query parameter as embedResource matches visual element") {
-    val search =
-      publishedConceptSearchService
-        .matchingQuery(
-          "brightcove",
-          searchSettings.copy()
-        )
-        .get
+    val search = publishedConceptSearchService.matchingQuery("brightcove", searchSettings.copy()).get
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
   }
 
   test("that search on query parameter as embedId matches visual element") {
-    val search =
-      publishedConceptSearchService
-        .matchingQuery(
-          "test.url",
-          searchSettings.copy()
-        )
-        .get
+    val search = publishedConceptSearchService.matchingQuery("test.url", searchSettings.copy()).get
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
   }
 
   test("that search on query parameter matches on concept id") {
-    val search =
-      publishedConceptSearchService
-        .matchingQuery(
-          "2",
-          searchSettings.copy()
-        )
-        .get
+    val search = publishedConceptSearchService.matchingQuery("2", searchSettings.copy()).get
 
     search.totalCount should be(1)
     search.results.head.id should be(2)
   }
 
   test("that search on embedId and embedResource only returns results with an embed matching both params") {
-    val search =
-      publishedConceptSearchService
-        .all(
-          searchSettings
-            .copy(searchLanguage = Language.AllLanguages, embedResource = List("image"), embedId = Some("test.url"))
+    val search = publishedConceptSearchService
+      .all(
+        searchSettings.copy(
+          searchLanguage = Language.AllLanguages,
+          embedResource = List("image"),
+          embedId = Some("test.url"),
         )
-        .get
+      )
+      .get
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
   }
 
   test("That search on embed id supports embed with multiple id attributes") {
-    val search1 =
-      publishedConceptSearchService
-        .all(searchSettings.copy(embedId = Some("test.url2")))
-        .get
-    val search2 =
-      publishedConceptSearchService
-        .all(searchSettings.copy(embedId = Some("test.id2")))
-        .get
+    val search1 = publishedConceptSearchService.all(searchSettings.copy(embedId = Some("test.url2"))).get
+    val search2 = publishedConceptSearchService.all(searchSettings.copy(embedId = Some("test.id2"))).get
 
     search1.totalCount should be(1)
     search1.results.head.id should be(10)
@@ -662,58 +638,39 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
   }
 
   test("That search on exactTitleMatch only matches exact") {
-    val search1 =
-      publishedConceptSearchService
-        .matchingQuery(
-          "\"urelatert noe noe\"",
-          searchSettings.copy(fallback = true, exactTitleMatch = true)
-        )
-        .get
+    val search1 = publishedConceptSearchService
+      .matchingQuery("\"urelatert noe noe\"", searchSettings.copy(fallback = true, exactTitleMatch = true))
+      .get
     search1.totalCount should be(0)
 
-    val search2 =
-      publishedConceptSearchService
-        .matchingQuery(
-          "et urelatert noe noe",
-          searchSettings.copy(fallback = true, exactTitleMatch = true)
-        )
-        .get
+    val search2 = publishedConceptSearchService
+      .matchingQuery("et urelatert noe noe", searchSettings.copy(fallback = true, exactTitleMatch = true))
+      .get
     search2.totalCount should be(0)
 
-    val search3 =
-      publishedConceptSearchService
-        .matchingQuery(
-          "\"englando\"",
-          searchSettings.copy(fallback = true, exactTitleMatch = true)
-        )
-        .get
+    val search3 = publishedConceptSearchService
+      .matchingQuery("\"englando\"", searchSettings.copy(fallback = true, exactTitleMatch = true))
+      .get
     search3.totalCount should be(1)
     search3.results.head.id should be(11)
 
-    val search4 =
-      publishedConceptSearchService
-        .matchingQuery(
-          "unrelated",
-          searchSettings.copy(fallback = true, exactTitleMatch = true)
-        )
-        .get
+    val search4 = publishedConceptSearchService
+      .matchingQuery("unrelated", searchSettings.copy(fallback = true, exactTitleMatch = true))
+      .get
     search4.totalCount should be(1)
     search4.results.head.id should be(10)
 
-    val search5 =
-      publishedConceptSearchService
-        .matchingQuery(
-          "batmen",
-          searchSettings.copy(fallback = true, exactTitleMatch = true)
-        )
-        .get
+    val search5 = publishedConceptSearchService
+      .matchingQuery("batmen", searchSettings.copy(fallback = true, exactTitleMatch = true))
+      .get
     search5.totalCount should be(0)
 
   }
 
   test("search results should return copyright info") {
-    val search =
-      publishedConceptSearchService.matchingQuery("hulk", searchSettings.copy(sort = Sort.ByRelevanceDesc)).get
+    val search = publishedConceptSearchService
+      .matchingQuery("hulk", searchSettings.copy(sort = Sort.ByRelevanceDesc))
+      .get
     val hits = search.results
     hits.map(_.id) should equal(Seq(5))
     hits.head.copyright.head.origin should be(Some("Gotham City"))
@@ -747,8 +704,8 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
       buckets = Seq(
         Bucket(License.CC_BY_NC_SA.toString, 7),
         Bucket(License.Copyrighted.toString, 2),
-        Bucket(License.PublicDomain.toString, 2)
-      )
+        Bucket(License.PublicDomain.toString, 2),
+      ),
     )
 
     val result = publishedConceptSearchService.all(settings).get

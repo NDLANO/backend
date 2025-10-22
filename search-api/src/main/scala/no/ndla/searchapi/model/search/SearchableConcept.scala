@@ -15,7 +15,7 @@ import no.ndla.common.model.api.search.{
   LearningResourceType,
   SearchableLanguageList,
   SearchableLanguageValues,
-  StatusDTO
+  StatusDTO,
 }
 import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.concept.Concept
@@ -40,7 +40,7 @@ case class SearchableConcept(
     domainObject: Concept,
     favorited: Long,
     learningResourceType: LearningResourceType,
-    typeName: List[String]
+    typeName: List[String],
 )
 
 object SearchableConcept {

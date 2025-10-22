@@ -15,9 +15,12 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Information about the editorial notes")
 case class RevisionMetaDTO(
-    @description("A date on which the article would need to be revised") revisionDate: NDLADate,
-    @description("Notes to keep track of what needs to happen before revision") note: String,
-    @description("Status of a revision, either 'revised' or 'needs-revision'") status: String
+    @description("A date on which the article would need to be revised")
+    revisionDate: NDLADate,
+    @description("Notes to keep track of what needs to happen before revision")
+    note: String,
+    @description("Status of a revision, either 'revised' or 'needs-revision'")
+    status: String,
 )
 
 object RevisionMetaDTO {

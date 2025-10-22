@@ -20,7 +20,7 @@ case class SearchableSeries(
     descriptions: SearchableLanguageValues,
     episodes: Option[Seq[SearchableAudioInformation]],
     coverPhoto: CoverPhoto,
-    lastUpdated: NDLADate
+    lastUpdated: NDLADate,
 )
 
 object SearchableSeries {

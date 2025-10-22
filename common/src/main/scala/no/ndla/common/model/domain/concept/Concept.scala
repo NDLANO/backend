@@ -32,10 +32,9 @@ case class Concept(
     responsible: Option[Responsible],
     conceptType: ConceptType,
     glossData: Option[GlossData],
-    editorNotes: Seq[ConceptEditorNote]
+    editorNotes: Seq[ConceptEditorNote],
 ) extends Content {
-  def supportedLanguages: Set[String] =
-    getSupportedLanguages(title, content, tags, visualElement).toSet
+  def supportedLanguages: Set[String] = getSupportedLanguages(title, content, tags, visualElement).toSet
 }
 
 object Concept {

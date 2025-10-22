@@ -13,11 +13,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.language.model.WithLanguage
 
 /** Metadata fields for [[AudioType.Podcast]] type audios */
-case class PodcastMeta(
-    introduction: String,
-    coverPhoto: CoverPhoto,
-    language: String
-) extends WithLanguage
+case class PodcastMeta(introduction: String, coverPhoto: CoverPhoto, language: String) extends WithLanguage
 
 object PodcastMeta {
   implicit val encoder: Encoder[PodcastMeta] = deriveEncoder

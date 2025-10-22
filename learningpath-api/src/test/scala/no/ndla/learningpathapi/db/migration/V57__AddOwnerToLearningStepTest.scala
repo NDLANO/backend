@@ -16,8 +16,7 @@ class V57__AddOwnerToLearningStepTest extends UnitSuite with TestEnvironment {
 
   test("that learningstep gets dates from learningpath") {
     val migration    = new V57__AddOwnerToLearningStep
-    val learningpath =
-      """
+    val learningpath = """
         |{
         |  "license": "CC BY-NC-SA 4.0",
         |  "title": "Test path",
@@ -26,16 +25,14 @@ class V57__AddOwnerToLearningStepTest extends UnitSuite with TestEnvironment {
         |  "owner": "me"
         |}
         |""".stripMargin
-    val stepWithoutOwner =
-      """
+    val stepWithoutOwner = """
         |{
         |  "title": "Test Step",
         |  "description": "This is a test step."
         |}
         |""".stripMargin
 
-    val expectedDocument =
-      """
+    val expectedDocument = """
         |{
         |  "title": "Test Step",
         |  "description": "This is a test step.",

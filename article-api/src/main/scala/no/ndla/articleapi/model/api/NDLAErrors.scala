@@ -21,7 +21,7 @@ import no.ndla.network.tapir.{
   ErrorHelpers,
   NotFoundWithSupportedLanguages,
   TapirErrorHandling,
-  ValidationErrorBody
+  ValidationErrorBody,
 }
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}
 import org.postgresql.util.PSQLException
@@ -31,21 +31,18 @@ class LegacyErrorHandling(using
     clock: Clock,
     dataSource: DataSource,
     errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
 ) extends TapirErrorHandling
     with StrictLogging {
 
   import errorHelpers.*
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
-    case a: AccessDeniedException if a.unauthorized =>
-      ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 401)
-    case a: AccessDeniedException =>
-      ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403)
-    case v: ValidationException =>
+    case a: AccessDeniedException if a.unauthorized => ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 401)
+    case a: AccessDeniedException                   => ErrorBody(ACCESS_DENIED, a.getMessage, clock.now(), 403)
+    case v: ValidationException                     =>
       ValidationErrorBody(VALIDATION, VALIDATION_DESCRIPTION, clock.now(), messages = v.errors.some, 400)
-    case _: IndexNotFoundException =>
-      ErrorBody(INDEX_MISSING, INDEX_MISSING, clock.now(), 500)
+    case _: IndexNotFoundException                      => ErrorBody(INDEX_MISSING, INDEX_MISSING, clock.now(), 500)
     case NotFoundException(message, sl) if sl.isEmpty   => notFoundWithMsg(message)
     case NotFoundException(message, supportedLanguages) =>
       NotFoundWithSupportedLanguages(NOT_FOUND, message, clock.now(), supportedLanguages, 404)
@@ -55,7 +52,9 @@ class LegacyErrorHandling(using
       dataSource.connectToDatabase()
       ErrorBody(DATABASE_UNAVAILABLE, DATABASE_UNAVAILABLE_DESCRIPTION, clock.now(), 500)
     case NdlaSearchException(_, Some(rf), _, _)
-        if rf.error.rootCause
+        if rf
+          .error
+          .rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       ErrorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, clock.now(), 400)
     case age: ArticleErrorHelpers.ArticleGoneException =>

@@ -20,7 +20,7 @@ case class ArticleIntroductionDTO(
     @description("The html introduction content")
     htmlIntroduction: String,
     @description("The ISO 639-1 language code describing which article translation this introduction belongs to")
-    language: String
+    language: String,
 )
 
 object ArticleIntroductionDTO {

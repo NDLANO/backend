@@ -14,5 +14,5 @@ case class AudioApiSearchResult(
     title: AudioApiTitle,
     url: String,
     license: String,
-    supportedLanguages: Seq[String]
+    supportedLanguages: Seq[String],
 )

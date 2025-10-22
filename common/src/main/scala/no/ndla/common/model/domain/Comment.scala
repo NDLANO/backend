@@ -14,14 +14,7 @@ import no.ndla.common.model.NDLADate
 
 import java.util.UUID
 
-case class Comment(
-    id: UUID,
-    created: NDLADate,
-    updated: NDLADate,
-    content: String,
-    isOpen: Boolean,
-    solved: Boolean
-)
+case class Comment(id: UUID, created: NDLADate, updated: NDLADate, content: String, isOpen: Boolean, solved: Boolean)
 
 object Comment {
   implicit val encoder: Encoder[Comment] = deriveEncoder

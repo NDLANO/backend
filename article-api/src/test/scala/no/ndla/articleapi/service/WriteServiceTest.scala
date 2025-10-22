@@ -29,8 +29,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   val articleId = 13L
 
-  val article: Article =
-    TestData.sampleArticleWithPublicDomain.copy(id = Some(articleId), created = yesterday, updated = yesterday)
+  val article: Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(id = Some(articleId), created = yesterday, updated = yesterday)
 
   override def beforeEach(): Unit = {
     Mockito.reset(articleIndexService, articleRepository)
@@ -44,20 +45,21 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
     when(articleRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List("1234"))
     when(clock.now()).thenReturn(today)
-    when(contentValidator.validateArticle(any[Article], any[Boolean]))
-      .thenAnswer((invocation: InvocationOnMock) => Success(invocation.getArgument[Article](0)))
+    when(contentValidator.validateArticle(any[Article], any[Boolean])).thenAnswer((invocation: InvocationOnMock) =>
+      Success(invocation.getArgument[Article](0))
+    )
   }
 
   test("That updateArticle indexes the updated article") {
     reset(articleIndexService, searchApiClient)
 
     val articleToUpdate    = TestData.sampleDomainArticle.copy(id = Some(10), updated = yesterday)
-    val updatedAndInserted = articleToUpdate
-      .copy(revision = articleToUpdate.revision.map(_ + 1), updated = today)
+    val updatedAndInserted = articleToUpdate.copy(revision = articleToUpdate.revision.map(_ + 1), updated = today)
 
     when(articleRepository.withId(eqTo(10L))(any)).thenReturn(Some(toArticleRow(articleToUpdate)))
-    when(articleRepository.updateArticleFromDraftApi(any[Article], any)(using any[DBSession]))
-      .thenReturn(Success(updatedAndInserted))
+    when(articleRepository.updateArticleFromDraftApi(any[Article], any)(using any[DBSession])).thenReturn(
+      Success(updatedAndInserted)
+    )
 
     when(articleIndexService.indexDocument(any[Article])).thenReturn(Success(updatedAndInserted))
     when(searchApiClient.indexDocument(any[String], any[Article], any[Option[TokenUser]])(using any, any, any))
@@ -68,7 +70,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       List.empty,
       useImportValidation = false,
       useSoftValidation = false,
-      skipValidation = false
+      skipValidation = false,
     )()
 
     val argCap1: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
@@ -78,7 +80,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(searchApiClient, times(1)).indexDocument(any[String], argCap2.capture(), any[Option[TokenUser]])(using
       any,
       any,
-      any
+      any,
     )
 
     val captured1 = argCap1.getValue
@@ -92,8 +94,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(articleIndexService, searchApiClient)
     val articleIdToUnpublish = 11L
 
-    when(articleRepository.unpublishMaxRevision(any[Long])(using any[DBSession]))
-      .thenReturn(Success(articleIdToUnpublish))
+    when(articleRepository.unpublishMaxRevision(any[Long])(using any[DBSession])).thenReturn(
+      Success(articleIdToUnpublish)
+    )
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
     when(searchApiClient.deleteDocument(any[Long], any[String])).thenReturn(articleIdToUnpublish)
 

@@ -16,7 +16,7 @@ import no.ndla.myndlaapi.controller.{
   FolderController,
   RobotController,
   StatsController,
-  UserController
+  UserController,
 }
 import no.ndla.myndlaapi.integration.{LearningPathApiClient, SearchApiClient}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
@@ -27,7 +27,7 @@ import no.ndla.myndlaapi.service.{
   FolderReadService,
   FolderWriteService,
   RobotService,
-  UserService
+  UserService,
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
@@ -37,7 +37,7 @@ import no.ndla.network.tapir.{
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar

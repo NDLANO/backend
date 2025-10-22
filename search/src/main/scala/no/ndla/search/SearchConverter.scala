@@ -25,19 +25,11 @@ object SearchConverter {
   }
 
   def getEmbedValues(html: String, language: String): List[EmbedValues] = {
-    parseHtml(html)
-      .select(EmbedTagName)
-      .asScala
-      .map(embed => getEmbedValuesFromEmbed(embed, language))
-      .toList
+    parseHtml(html).select(EmbedTagName).asScala.map(embed => getEmbedValuesFromEmbed(embed, language)).toList
   }
 
   private def getEmbedValuesFromEmbed(embed: Element, language: String): EmbedValues =
-    EmbedValues(
-      resource = getEmbedResource(embed),
-      id = getEmbedIds(embed),
-      language = language
-    )
+    EmbedValues(resource = getEmbedResource(embed), id = getEmbedIds(embed), language = language)
 
   private def getEmbedResource(embed: Element): Option[String] = {
     embed.attr("data-resource") match {
@@ -46,13 +38,8 @@ object SearchConverter {
     }
   }
 
-  private val AttributesToKeep = List(
-    "data-videoid",
-    "data-url",
-    "data-resource_id",
-    "data-content-id",
-    "data-article-id"
-  )
+  private val AttributesToKeep =
+    List("data-videoid", "data-url", "data-resource_id", "data-content-id", "data-article-id")
 
   private def stripIdPostfix(str: String): String = {
     // NOTE: Some video ids can contain data like timestamp (`&t=123`)

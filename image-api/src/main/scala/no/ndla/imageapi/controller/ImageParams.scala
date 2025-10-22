@@ -64,6 +64,6 @@ object ImageParams {
     focalX = None,
     focalY = None,
     ratio = None,
-    language = None
+    language = None,
   )
 }

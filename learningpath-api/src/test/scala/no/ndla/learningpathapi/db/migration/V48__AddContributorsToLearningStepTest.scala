@@ -16,24 +16,21 @@ class V48__AddContributorsToLearningStepTest extends UnitSuite with TestEnvironm
 
   test("that license is moved to copyright with empty contributors") {
     val migration   = new V48__AddContributorsToLearningStep
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "license": "CC BY-NC-SA 4.0",
         |  "title": "Test Step",
         |  "description": "This is a test step."
         |}
         |""".stripMargin
-    val oldDocumentNoLicense =
-      """
+    val oldDocumentNoLicense = """
         |{
         |  "title": "Test Step",
         |  "description": "This is a test step."
         |}
         |""".stripMargin
 
-    val expectedDocument =
-      """
+    val expectedDocument = """
         |{
         |  "copyright": { "license": "CC BY-NC-SA 4.0", "contributors": [] },
         |  "title": "Test Step",

@@ -30,21 +30,21 @@ import no.ndla.common.model.domain.{
   Tag,
   Title,
   VisualElement,
-  article
+  article,
 }
 import no.ndla.common.model.domain.article.{
   Article,
   ArticleMetaDescriptionDTO,
   ArticleTagDTO,
   Copyright,
-  PartialPublishArticleDTO
+  PartialPublishArticleDTO,
 }
 import no.ndla.language.Language.{
   AllLanguages,
   UnknownLanguage,
   findByLanguageOrBestEffort,
   getSupportedLanguages,
-  sortLanguagesByPriority
+  sortLanguagesByPriority,
 }
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.ApplicationUrl
@@ -62,12 +62,14 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
     */
   def getLanguageFromHit(result: SearchHit): Option[String] = {
     def keyToLanguage(keys: Iterable[String]): Option[String] = {
-      val keyLanguages = keys.toList.flatMap(key =>
-        key.split('.').toList match {
-          case _ :: language :: _ => Some(language)
-          case _                  => None
-        }
-      )
+      val keyLanguages = keys
+        .toList
+        .flatMap(key =>
+          key.split('.').toList match {
+            case _ :: language :: _ => Some(language)
+            case _                  => None
+          }
+        )
 
       sortLanguagesByPriority(keyLanguages).headOption
     }
@@ -76,10 +78,8 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
     val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
     matchLanguage match {
-      case Some(lang) =>
-        Some(lang)
-      case _ =>
-        keyToLanguage(result.sourceAsMap.keys)
+      case Some(lang) => Some(lang)
+      case _          => keyToLanguage(result.sourceAsMap.keys)
     }
   }
 
@@ -95,15 +95,16 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
   def hitAsArticleSummaryV2(hitString: String, language: String): ArticleSummaryV2DTO = {
     val searchableArticle = CirceUtil.unsafeParseAs[SearchableArticle](hitString)
 
-    val titles        = searchableArticle.title.languageValues.map(lv => Title(lv.value, lv.language))
-    val introductions =
-      searchableArticle.introduction.languageValues.map(lv => Introduction(lv.value, lv.language))
-    val metaDescriptions =
-      searchableArticle.metaDescription.languageValues.map(lv => Description(lv.value, lv.language))
-    val metaImages =
-      searchableArticle.metaImage.map(image => ArticleMetaImage(image.imageId, image.altText, image.language))
-    val visualElements =
-      searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.language))
+    val titles           = searchableArticle.title.languageValues.map(lv => Title(lv.value, lv.language))
+    val introductions    = searchableArticle.introduction.languageValues.map(lv => Introduction(lv.value, lv.language))
+    val metaDescriptions = searchableArticle
+      .metaDescription
+      .languageValues
+      .map(lv => Description(lv.value, lv.language))
+    val metaImages = searchableArticle
+      .metaImage
+      .map(image => ArticleMetaImage(image.imageId, image.altText, image.language))
+    val visualElements = searchableArticle.visualElement.languageValues.map(lv => VisualElement(lv.value, lv.language))
 
     val supportedLanguages = getSupportedLanguages(titles, visualElements, introductions, metaImages)
 
@@ -131,7 +132,7 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
       supportedLanguages = supportedLanguages,
       grepCodes = searchableArticle.grepCodes.getOrElse(List.empty),
       availability = availability,
-      traits = searchableArticle.traits
+      traits = searchableArticle.traits,
     )
   }
 
@@ -153,10 +154,10 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
 
   def updateExistingMetaDescriptionField(
       existingMetaDesc: Seq[Description],
-      updatedMetaDesc: Seq[Description]
+      updatedMetaDesc: Seq[Description],
   ): Seq[Description] = {
     val newMetaDescriptions = updatedMetaDesc.filter(tag => existingMetaDesc.map(_.language).contains(tag.language))
-    val metaDescToKeep = existingMetaDesc.filterNot(tag => newMetaDescriptions.map(_.language).contains(tag.language))
+    val metaDescToKeep      = existingMetaDesc.filterNot(tag => newMetaDescriptions.map(_.language).contains(tag.language))
     newMetaDescriptions ++ metaDescToKeep
   }
 
@@ -166,19 +167,19 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
     val newLicense      = partialArticle.license.getOrElse(existingArticle.copyright.license)
 
     val newMeta = partialArticle.metaDescription match {
-      case Some(metaDesc) =>
-        updateExistingMetaDescriptionField(
+      case Some(metaDesc) => updateExistingMetaDescriptionField(
           existingArticle.metaDescription,
-          metaDesc.map(m => Description(m.metaDescription, m.language))
+          metaDesc.map(m => Description(m.metaDescription, m.language)),
         )
       case None => existingArticle.metaDescription
     }
-    val newRelatedContent =
-      partialArticle.relatedContent.map(toDomainRelatedContent).getOrElse(existingArticle.relatedContent)
+    val newRelatedContent = partialArticle
+      .relatedContent
+      .map(toDomainRelatedContent)
+      .getOrElse(existingArticle.relatedContent)
     val newTags = partialArticle.tags match {
-      case Some(tags) =>
-        updateExistingTagsField(existingArticle.tags, tags.map(t => Tag(t.tags, t.language)))
-      case None => existingArticle.tags
+      case Some(tags) => updateExistingTagsField(existingArticle.tags, tags.map(t => Tag(t.tags, t.language)))
+      case None       => existingArticle.tags
     }
 
     val newRevisionDate = partialArticle.revisionDate match {
@@ -196,7 +197,7 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
       relatedContent = newRelatedContent,
       tags = newTags,
       revisionDate = newRevisionDate,
-      published = newPublishedDate
+      published = newPublishedDate,
     )
   }
 
@@ -216,7 +217,7 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
       copyright.rightsholders.map(_.toDomain),
       copyright.validFrom,
       copyright.validTo,
-      copyright.processed
+      copyright.processed,
     )
   }
 
@@ -233,15 +234,11 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
       article.metaDescription,
       article.tags,
       article.content,
-      article.metaImage
+      article.metaImage,
     )
   }
 
-  def toApiArticleV2(
-      article: Article,
-      language: String,
-      fallback: Boolean
-  ): Try[api.ArticleV2DTO] = {
+  def toApiArticleV2(article: Article, language: String, fallback: Boolean): Try[api.ArticleV2DTO] = {
     val supportedLanguages = getSupportedArticleLanguages(article)
     val isLanguageNeutral  = supportedLanguages.contains(UnknownLanguage.toString) && supportedLanguages.length == 1
 
@@ -262,9 +259,7 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
         .getOrElse(api.ArticleContentV2DTO("", UnknownLanguage.toString))
       val metaImage  = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
       val copyright  = toApiCopyright(article.copyright)
-      val disclaimer = article.disclaimer
-        .findByLanguageOrBestEffort(language)
-        .map(DisclaimerDTO.fromLanguageValue)
+      val disclaimer = article.disclaimer.findByLanguageOrBestEffort(language).map(DisclaimerDTO.fromLanguageValue)
 
       Success(
         api.ArticleV2DTO(
@@ -293,14 +288,14 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
           revisionDate = article.revisionDate,
           slug = article.slug,
           disclaimer = disclaimer,
-          traits = article.traits
+          traits = article.traits,
         )
       )
     } else {
       Failure(
         NotFoundException(
           s"The article with id ${article.id.get} and language $language was not found",
-          supportedLanguages
+          supportedLanguages,
         )
       )
     }
@@ -311,10 +306,7 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
   }
 
   private def toApiArticleContentV2(content: ArticleContent): api.ArticleContentV2DTO = {
-    api.ArticleContentV2DTO(
-      content.content,
-      content.language
-    )
+    api.ArticleContentV2DTO(content.content, content.language)
   }
 
   private def toApiRelatedContent(relatedContent: RelatedContent): common.model.api.RelatedContent = {
@@ -334,7 +326,7 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
       copyright.rightsholders.map(_.toApi),
       copyright.validFrom,
       copyright.validTo,
-      copyright.processed
+      copyright.processed,
     )
   }
 
@@ -361,7 +353,7 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
     api.ArticleIntroductionDTO(
       Jsoup.parseBodyFragment(intro.introduction).body().text(),
       intro.introduction,
-      intro.language
+      intro.language,
     )
   }
 
@@ -373,7 +365,7 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
     api.ArticleMetaImageDTO(
       s"${props.externalApiUrls("raw-image")}/${metaImage.imageId}",
       metaImage.altText,
-      metaImage.language
+      metaImage.language,
     )
   }
 
@@ -386,7 +378,7 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
       tagsCount: Long,
       pageSize: Int,
       offset: Int,
-      language: String
+      language: String,
   ): api.TagsSearchResultDTO = {
     api.TagsSearchResultDTO(tagsCount, offset, pageSize, language, tags)
   }

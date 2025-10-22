@@ -26,10 +26,7 @@ object OembedResponse {
   implicit val decoder: Decoder[OembedResponse] = deriveDecoder
 }
 
-class OembedProxyClient(using
-    ndlaClient: NdlaClient,
-    props: Props
-) extends StrictLogging {
+class OembedProxyClient(using ndlaClient: NdlaClient, props: Props) extends StrictLogging {
   private val OembedProxyTimeout = 90.seconds
   private val OembedProxyBaseUrl = s"http://${props.ApiGatewayHost}/oembed-proxy/v1"
 
@@ -41,7 +38,7 @@ class OembedProxyClient(using
         val elem = Option(soup.selectFirst("iframe"))
         Option(elem.map(_.attr("src")).filterNot(_.isEmpty)).flatten match {
           case Some(url) => Success(url)
-          case None => Failure(InvalidOembedResponse(s"Could not parse url in html from oembed-response for '$url'"))
+          case None      => Failure(InvalidOembedResponse(s"Could not parse url in html from oembed-response for '$url'"))
         }
     }
   }

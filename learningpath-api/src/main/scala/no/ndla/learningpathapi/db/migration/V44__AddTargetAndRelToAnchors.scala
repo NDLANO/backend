@@ -21,7 +21,8 @@ class V44__AddTargetAndRelToAnchors extends DocumentMigration {
 
   override def convertColumn(value: String): String = {
     val oldDocument = parser.parse(value).toTry.get
-    val description = oldDocument.hcursor
+    val description = oldDocument
+      .hcursor
       .downField("description")
       .as[Option[List[OldDescription]]]
       .toTry
@@ -30,12 +31,11 @@ class V44__AddTargetAndRelToAnchors extends DocumentMigration {
 
     val newDescription = description.map(d => convertDescription(d))
 
-    val newDocument = oldDocument.hcursor
+    val newDocument = oldDocument
+      .hcursor
       .withFocus {
         _.mapObject { obj =>
-          obj
-            .remove("description")
-            .add("description", newDescription.asJson)
+          obj.remove("description").add("description", newDescription.asJson)
         }
       }
 
@@ -44,11 +44,7 @@ class V44__AddTargetAndRelToAnchors extends DocumentMigration {
 
   def convertHtml(str: String): String = {
     val document = Jsoup.parseBodyFragment(str)
-    document
-      .outputSettings()
-      .escapeMode(EscapeMode.xhtml)
-      .prettyPrint(false)
-      .indentAmount(0)
+    document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false).indentAmount(0)
 
     document
       .select("a")

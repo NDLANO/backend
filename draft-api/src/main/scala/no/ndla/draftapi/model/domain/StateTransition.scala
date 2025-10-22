@@ -22,12 +22,12 @@ case class StateTransition(
     requiredPermissions: Set[Permission],
     illegalStatuses: Set[DraftStatus],
     private val ignorePermissionsIf: Option[(Set[Permission], IgnoreFunction)],
-    requiredStatuses: Set[DraftStatus]
+    requiredStatuses: Set[DraftStatus],
 ) {
 
-  def keepCurrentOnTransition: StateTransition                = copy(addCurrentStateToOthersOnTransition = true)
-  def keepStates(toKeep: Set[DraftStatus]): StateTransition   = copy(otherStatesToKeepOnTransition = toKeep)
-  def withSideEffect(sideEffect: SideEffect): StateTransition = copy(sideEffects = sideEffects :+ sideEffect)
+  def keepCurrentOnTransition: StateTransition                                  = copy(addCurrentStateToOthersOnTransition = true)
+  def keepStates(toKeep: Set[DraftStatus]): StateTransition                     = copy(otherStatesToKeepOnTransition = toKeep)
+  def withSideEffect(sideEffect: SideEffect): StateTransition                   = copy(sideEffects = sideEffects :+ sideEffect)
   def requireStatusesForTransition(required: Set[DraftStatus]): StateTransition = copy(requiredStatuses = required)
 
   def require(permissions: Set[Permission], ignoreRoleRequirementIf: Option[IgnoreFunction] = None): StateTransition =
@@ -38,16 +38,14 @@ case class StateTransition(
       case Some((oldRoles, ignoreFunc)) => ignoreFunc(maybeArticle, this) && user.hasPermissions(oldRoles)
       case None                         => false
     }
-    val hasRequiredStatuses =
-      maybeArticle match {
-        case Some(article) => requiredStatuses.forall(draftStatus => article.status.other.contains(draftStatus))
-        case None          => requiredStatuses.isEmpty
-      }
+    val hasRequiredStatuses = maybeArticle match {
+      case Some(article) => requiredStatuses.forall(draftStatus => article.status.other.contains(draftStatus))
+      case None          => requiredStatuses.isEmpty
+    }
     (ignore || user.hasPermissions(this.requiredPermissions)) && hasRequiredStatuses
   }
 
-  def withIllegalStatuses(illegalStatuses: Set[DraftStatus]): StateTransition =
-    copy(illegalStatuses = illegalStatuses)
+  def withIllegalStatuses(illegalStatuses: Set[DraftStatus]): StateTransition = copy(illegalStatuses = illegalStatuses)
 }
 
 object StateTransition {
@@ -62,7 +60,7 @@ object StateTransition {
       Set(DRAFT_API_WRITE),
       Set(),
       None,
-      Set()
+      Set(),
     )
   }
 }

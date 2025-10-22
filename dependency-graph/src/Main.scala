@@ -13,19 +13,13 @@ object Main {
     modules.foreach(parseModule)
   }
 
-  def ignoredModules = List(
-    "modules",
-    "dependency-graph"
-  )
+  def ignoredModules = List("modules", "dependency-graph")
 
   def detectModules(): List[String] = {
     val currentDir = new File(".")
     if (currentDir.exists && currentDir.isDirectory) {
       val dirs = currentDir.listFiles.filter(_.isDirectory).toList
-      dirs
-        .filter(d => new File(d, "package.mill").exists)
-        .map(_.getName)
-        .filterNot(ignoredModules.contains)
+      dirs.filter(d => new File(d, "package.mill").exists).map(_.getName).filterNot(ignoredModules.contains)
 
     } else {
       throw new RuntimeException("Current directory is not a valid directory and that is weird.")

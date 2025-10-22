@@ -26,8 +26,8 @@ class ScalaJedis(host: String, port: Int, environment: String) extends StrictLog
     }
   }
 
-  def expire(key: String, seconds: Long): Try[Long]         = Try(jedis.expire(key, seconds)).handleJedisError(0L)
-  def hget(key: String, field: String): Try[Option[String]] = Try(Option(jedis.hget(key, field))).handleJedisError(None)
+  def expire(key: String, seconds: Long): Try[Long]              = Try(jedis.expire(key, seconds)).handleJedisError(0L)
+  def hget(key: String, field: String): Try[Option[String]]      = Try(Option(jedis.hget(key, field))).handleJedisError(None)
   def hset(key: String, field: String, value: String): Try[Long] =
     Try(jedis.hset(key, field, value)).handleJedisError(0L)
   def ttl(key: String): Try[Long] = Try(jedis.ttl(key)).handleJedisError(0L)

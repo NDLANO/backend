@@ -5,27 +5,14 @@ import build.modules.{BaseModule, DockerComponent, SharedDependencies}
 
 object `package` extends BaseModule, DockerComponent {
   override def moduleName  = "learningpath-api"
-  def mvnDeps: T[Seq[Dep]] =
-    SharedDependencies.logging ++
-      SharedDependencies.enumeratum ++
-      SharedDependencies.tapirCirce ++
-      SharedDependencies.database ++
-      Seq(
-        SharedDependencies.scalaUri,
-        SharedDependencies.sttp,
-        SharedDependencies.catsEffect,
-        SharedDependencies.jsoup
-      )
+  def mvnDeps: T[Seq[Dep]] = SharedDependencies.logging ++
+    SharedDependencies.enumeratum ++
+    SharedDependencies.tapirCirce ++
+    SharedDependencies.database ++
+    Seq(SharedDependencies.scalaUri, SharedDependencies.sttp, SharedDependencies.catsEffect, SharedDependencies.jsoup)
 
-  override def moduleDeps: Seq[JavaModule] = Seq(
-    build.common,
-    build.network,
-    build.mapping,
-    build.language,
-    build.validation,
-    build.search,
-    build.database
-  )
+  override def moduleDeps: Seq[JavaModule] =
+    Seq(build.common, build.network, build.mapping, build.language, build.validation, build.search, build.database)
 
   object test extends TestBase {
     override def moduleDeps: Seq[JavaModule] = super.moduleDeps ++ Seq(build.tapirtesting, build.scalatestsuite)

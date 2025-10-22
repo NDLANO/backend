@@ -40,8 +40,7 @@ class PageControllerTest extends UnitSuite with TestEnvironment with TapirContro
 
   val malformedNewFrontPage: String = """{"malformed": "x"}"""
 
-  val sampleNewFrontPage: String =
-    """{
+  val sampleNewFrontPage: String = """{
       |  "articleId": 15,
       |  "menu": [
       |    {
@@ -71,32 +70,29 @@ class PageControllerTest extends UnitSuite with TestEnvironment with TapirContro
     """.stripMargin
 
   test("That POST / returns 401 if no auth-header") {
-    val request =
-      quickRequest
-        .post(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
-        .readTimeout(Duration.Inf)
+    val request = quickRequest
+      .post(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
+      .readTimeout(Duration.Inf)
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(401)
   }
 
   test("That POST / returns 403 if auth header does not have expected role") {
-    val request =
-      quickRequest
-        .post(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
-        .readTimeout(Duration.Inf)
-        .headers(Map("Authorization" -> authHeaderWithWrongRole))
+    val request = quickRequest
+      .post(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
+      .readTimeout(Duration.Inf)
+      .headers(Map("Authorization" -> authHeaderWithWrongRole))
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(403)
   }
 
   test("That POST / returns 403 if auth header does not have any roles") {
-    val request =
-      quickRequest
-        .post(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
-        .readTimeout(Duration.Inf)
-        .headers(Map("Authorization" -> authHeaderWithoutAnyRoles))
+    val request = quickRequest
+      .post(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
+      .readTimeout(Duration.Inf)
+      .headers(Map("Authorization" -> authHeaderWithoutAnyRoles))
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(403)
@@ -105,12 +101,11 @@ class PageControllerTest extends UnitSuite with TestEnvironment with TapirContro
   test("That POST / returns 200 if auth header does have correct role") {
     when(writeService.createFrontPage(any)).thenReturn(Success(FrontPageDTO(1, List())))
 
-    val request =
-      quickRequest
-        .post(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
-        .readTimeout(Duration.Inf)
-        .headers(Map("Authorization" -> authHeaderWithAdminRole))
-        .body(sampleNewFrontPage)
+    val request = quickRequest
+      .post(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
+      .readTimeout(Duration.Inf)
+      .headers(Map("Authorization" -> authHeaderWithAdminRole))
+      .body(sampleNewFrontPage)
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)
@@ -119,12 +114,11 @@ class PageControllerTest extends UnitSuite with TestEnvironment with TapirContro
   test("That POST / returns 400 if auth header does have correct role but the json body is malformed") {
     when(writeService.createFrontPage(any)).thenReturn(Success(model.api.FrontPageDTO(1, List())))
 
-    val request =
-      quickRequest
-        .post(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
-        .readTimeout(Duration.Inf)
-        .headers(Map("Authorization" -> authHeaderWithAdminRole))
-        .body(malformedNewFrontPage)
+    val request = quickRequest
+      .post(uri"http://localhost:$serverPort/frontpage-api/v1/frontpage")
+      .readTimeout(Duration.Inf)
+      .headers(Map("Authorization" -> authHeaderWithAdminRole))
+      .body(malformedNewFrontPage)
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(400)

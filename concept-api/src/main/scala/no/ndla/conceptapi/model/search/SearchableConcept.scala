@@ -36,7 +36,7 @@ case class SearchableConcept(
     gloss: Option[String],
     domainObject: Concept,
     sortableConceptType: SearchableLanguageValues,
-    defaultSortableConceptType: Option[String]
+    defaultSortableConceptType: Option[String],
 )
 
 object SearchableConcept {

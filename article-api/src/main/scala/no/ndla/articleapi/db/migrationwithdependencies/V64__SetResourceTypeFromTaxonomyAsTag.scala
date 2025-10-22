@@ -40,8 +40,7 @@ class V64__SetResourceTypeFromTaxonomyAsTag()(using taxonomyClient: TaxonomyApiC
     sql"""update $tableNameSQL
           set $columnNameSQL = $dataObject
           where id = ${rowData.id}
-       """
-      .update()
+       """.update()
   }
 
   def convertColumn(articleId: Long, document: String): String = {
@@ -49,12 +48,12 @@ class V64__SetResourceTypeFromTaxonomyAsTag()(using taxonomyClient: TaxonomyApiC
       case Some(n) => n.headOption
       case None    => return document
     }
-    if node.isEmpty then return document
+    if node.isEmpty then
+      return document
 
-    val resourceTypes =
-      node
-        .flatMap(n => n.context.map(c => c.resourceTypes.filter(rt => rt.parentId.isDefined).map(rt => rt.name)))
-        .getOrElse(List.empty)
+    val resourceTypes = node
+      .flatMap(n => n.context.map(c => c.resourceTypes.filter(rt => rt.parentId.isDefined).map(rt => rt.name)))
+      .getOrElse(List.empty)
 
     val oldDocument = parser.parse(document).toTry.get
     val tags        = oldDocument.hcursor.downField("tags").as[Option[Seq[Tag]]].toTry.get.getOrElse(Seq.empty)
@@ -63,8 +62,12 @@ class V64__SetResourceTypeFromTaxonomyAsTag()(using taxonomyClient: TaxonomyApiC
       acc :+ (tag.language, Set.from(tag.tags))
     }
     val newTags = uniqueTagsByLang.map((tag) => {
-      val newTags =
-        resourceTypes.flatMap(rt => rt.languageValues.collect { case lng if lng.language == tag._1 => lng.value })
+      val newTags = resourceTypes.flatMap(rt =>
+        rt.languageValues
+          .collect {
+            case lng if lng.language == tag._1 => lng.value
+          }
+      )
       Tag(language = tag._1, tags = tag._2.concat(newTags).toList)
     })
     val updatedDocument = oldDocument.hcursor.downField("tags").withFocus(_ => newTags.asJson)

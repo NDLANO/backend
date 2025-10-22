@@ -54,7 +54,8 @@ case class SearchParamsDTO(
     @description(
       """A list of relevances the learning resources should be filtered by.
         |If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
-        |If levels are specified the learning resource must have specified relevances in relation to a specified level.""".stripMargin
+        |If levels are specified the learning resource must have specified relevances in relation to a specified level."""
+        .stripMargin
     )
     relevance: Option[List[String]],
     @description("A list of ISO 639-1 language codes that the learning resource can be available in.")
@@ -78,7 +79,7 @@ case class SearchParamsDTO(
     @description("Which node types the search request should return")
     nodeTypeFilter: Option[List[NodeType]],
     @description("Only return results that have one of the specified tags.")
-    tags: Option[List[String]]
+    tags: Option[List[String]],
 )
 
 object SearchParamsDTO {

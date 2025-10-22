@@ -21,9 +21,7 @@ import scalikejdbc.{DB, DBSession, *}
 
 class V49__RemoveConceptListEmbeds extends BaseJavaMigration {
   private def countAllRows(implicit session: DBSession): Option[Long] = {
-    sql"select count(*) from contentdata where document is not NULL"
-      .map(rs => rs.long("count"))
-      .single()
+    sql"select count(*) from contentdata where document is not NULL".map(rs => rs.long("count")).single()
   }
 
   private def allRows(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
@@ -39,13 +37,14 @@ class V49__RemoveConceptListEmbeds extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(document)
 
-    sql"update contentdata set document = $dataObject where id = $id"
-      .update()
+    sql"update contentdata set document = $dataObject where id = $id".update()
   }
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
-    .withinTx { session => migrateRows(using session) }
+    .withinTx { session =>
+      migrateRows(using session)
+    }
 
   private def migrateRows(implicit session: DBSession): Unit = {
     val count        = countAllRows.get

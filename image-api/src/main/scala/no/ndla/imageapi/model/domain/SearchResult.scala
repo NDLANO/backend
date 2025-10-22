@@ -14,5 +14,5 @@ case class SearchResult[T](
     pageSize: Int,
     language: String,
     results: Seq[T],
-    scrollId: Option[String]
+    scrollId: Option[String],
 )

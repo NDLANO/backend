@@ -18,7 +18,7 @@ case class SearchableLearningStep(
     articleId: Option[Long],
     status: String,
     titles: SearchableLanguageValues,
-    descriptions: SearchableLanguageValues
+    descriptions: SearchableLanguageValues,
 )
 
 object SearchableLearningStep {

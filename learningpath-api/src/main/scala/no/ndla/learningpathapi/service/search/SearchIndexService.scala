@@ -31,7 +31,7 @@ class SearchIndexService(using
     learningPathRepository: LearningPathRepository,
     searchApiClient: SearchApiClient,
     props: Props,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends BaseIndexService
     with StrictLogging {
   override val documentType: String       = props.SearchDocument
@@ -44,19 +44,16 @@ class SearchIndexService(using
   }
 
   def indexDocument(learningPath: LearningPath): Try[LearningPath] = for {
-    _ <- createIndexIfNotExists()
+    _         <- createIndexIfNotExists()
     searchable = searchConverterServiceComponent.asSearchableLearningpath(learningPath)
     source     = CirceUtil.toJsonString(searchable)
-    _ <- e4sClient.execute(deleteById(searchIndex, learningPath.id.get.toString))
-    _ <- e4sClient.execute(
-      indexInto(searchIndex)
-        .doc(source)
-        .id(learningPath.id.get.toString)
-    )
+    _         <- e4sClient.execute(deleteById(searchIndex, learningPath.id.get.toString))
+    _         <- e4sClient.execute(indexInto(searchIndex).doc(source).id(learningPath.id.get.toString))
   } yield learningPath
 
   def deleteDocument(learningPath: LearningPath, user: Option[TokenUser]): Try[LearningPath] = {
-    learningPath.id
+    learningPath
+      .id
       .map(id => {
         for {
           _ <- createIndexIfNotExists()
@@ -72,25 +69,20 @@ class SearchIndexService(using
   }
 
   private def sendToElastic(indexName: String): Try[BulkIndexResult] = {
-    getRanges
-      .flatMap(ranges => {
-        ranges
-          .traverse { case (start, end) =>
-            val toIndex = learningPathRepository.learningPathsWithIdBetween(start, end)
-            indexLearningPaths(toIndex, indexName).map(numIndexed => (numIndexed, toIndex.size))
-          }
-          .map(countIndexed)
-      })
+    getRanges.flatMap(ranges => {
+      ranges
+        .traverse { case (start, end) =>
+          val toIndex = learningPathRepository.learningPathsWithIdBetween(start, end)
+          indexLearningPaths(toIndex, indexName).map(numIndexed => (numIndexed, toIndex.size))
+        }
+        .map(countIndexed)
+    })
   }
 
   private def getRanges: Try[List[(Long, Long)]] = {
     Try {
       val (minId, maxId) = learningPathRepository.minMaxId
-      Seq
-        .range(minId, maxId)
-        .grouped(props.IndexBulkSize)
-        .map(group => (group.head, group.last + 1))
-        .toList
+      Seq.range(minId, maxId).grouped(props.IndexBulkSize).map(group => (group.head, group.last + 1)).toList
     }
   }
 
@@ -102,9 +94,7 @@ class SearchIndexService(using
       val requests    = searchables.map(lp => {
         val source = CirceUtil.toJsonString(lp)
 
-        indexInto(indexName)
-          .doc(source)
-          .id(lp.id.toString)
+        indexInto(indexName).doc(source).id(lp.id.toString)
       })
 
       val response = e4sClient.execute(bulk(requests))
@@ -113,10 +103,11 @@ class SearchIndexService(using
           logger.info(s"Indexed ${learningPaths.size} documents")
           Success(learningPaths.size)
         case Success(RequestSuccess(_, _, _, result)) =>
-          val failed = result.items.collect {
-            case item if item.error.isDefined =>
-              s"'${item.id}: ${item.error.get.reason}'"
-          }
+          val failed = result
+            .items
+            .collect {
+              case item if item.error.isDefined => s"'${item.id}: ${item.error.get.reason}'"
+            }
 
           logger.error(s"Failed to index ${failed.length} items: ${failed.mkString(", ")}")
           Failure(ElasticIndexingException(s"Failed to index ${failed.size}/${learningPaths.size} learningpaths"))
@@ -141,26 +132,16 @@ class SearchIndexService(using
         textField("stepType"),
         keywordField("embedUrl"),
         keywordField("status"),
-        intField("articleId")
+        intField("articleId"),
       ),
       ObjectField(
         "copyright",
         properties = Seq(
-          ObjectField(
-            "license",
-            properties = Seq(
-              textField("license"),
-              textField("description"),
-              textField("url")
-            )
-          ),
-          nestedField("contributors").fields(
-            textField("type"),
-            textField("name")
-          )
-        )
+          ObjectField("license", properties = Seq(textField("license"), textField("description"), textField("url"))),
+          nestedField("contributors").fields(textField("type"), textField("name")),
+        ),
       ),
-      intField("isBasedOn")
+      intField("isBasedOn"),
     )
     val dynamics = generateLanguageSupportedFieldList("titles", keepRaw = true) ++
       generateLanguageSupportedFieldList("introductions") ++
@@ -172,18 +153,19 @@ class SearchIndexService(using
 
   protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
     if (keepRaw) {
-      searchLanguage.languageAnalyzers.map(langAnalyzer =>
-        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-          .analyzer(langAnalyzer.analyzer)
-          .fields(
-            keywordField("raw")
-          )
-      )
+      searchLanguage
+        .languageAnalyzers
+        .map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .analyzer(langAnalyzer.analyzer)
+            .fields(keywordField("raw"))
+        )
     } else {
-      searchLanguage.languageAnalyzers.map(langAnalyzer =>
-        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-          .analyzer(langAnalyzer.analyzer)
-      )
+      searchLanguage
+        .languageAnalyzers
+        .map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}").analyzer(langAnalyzer.analyzer)
+        )
     }
   }
 }

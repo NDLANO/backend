@@ -15,9 +15,12 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Note about a change that happened to the image")
 case class EditorNoteDTO(
-    @description("Timestamp of the change") timestamp: NDLADate,
-    @description("Who triggered the change") updatedBy: String,
-    @description("Editorial note") note: String
+    @description("Timestamp of the change")
+    timestamp: NDLADate,
+    @description("Who triggered the change")
+    updatedBy: String,
+    @description("Editorial note")
+    note: String,
 )
 
 object EditorNoteDTO {

@@ -19,8 +19,7 @@ class Memoize[R](maxCacheAgeMs: Long, retryTimeInMs: Long, f: () => R, autoRefre
 
   case class CacheValue(value: R, lastUpdated: Long) {
 
-    def isExpired: Boolean =
-      lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
+    def isExpired: Boolean = lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
   }
 
   private var cache: Option[CacheValue] = None
@@ -30,8 +29,7 @@ class Memoize[R](maxCacheAgeMs: Long, retryTimeInMs: Long, f: () => R, autoRefre
       cache = Some(CacheValue(f(), System.currentTimeMillis()))
     } catch {
       case mex: DoNotUpdateMemoizeException =>
-        val retryTime = System
-          .currentTimeMillis() - maxCacheAgeMs + retryTimeInMs
+        val retryTime = System.currentTimeMillis() - maxCacheAgeMs + retryTimeInMs
         cache = Some(CacheValue(cache.get.value, retryTime))
         logger.warn(
           s"Caught ${mex.getClass.getName}, with message: '${mex.getMessage}', will not update cached output."

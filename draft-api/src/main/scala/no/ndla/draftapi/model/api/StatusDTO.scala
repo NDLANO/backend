@@ -14,8 +14,10 @@ import sttp.tapir.Schema.annotations.description
 import no.ndla.common.DeriveHelpers
 
 case class StatusDTO(
-    @description("The current status of the article") current: String,
-    @description("Previous statuses this article has been in") other: Seq[String]
+    @description("The current status of the article")
+    current: String,
+    @description("Previous statuses this article has been in")
+    other: Seq[String],
 )
 
 object StatusDTO {

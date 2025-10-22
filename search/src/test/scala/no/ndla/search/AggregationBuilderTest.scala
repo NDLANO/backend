@@ -34,13 +34,7 @@ class AggregationBuilderTest extends UnitTestSuiteBase {
       keywordField("grepContexts.code"),
       textField("grepContexts.title"),
       keywordField("traits"),
-      ObjectField(
-        "responsible",
-        properties = Seq(
-          keywordField("responsibleId"),
-          dateField("lastUpdated")
-        )
-      ),
+      ObjectField("responsible", properties = Seq(keywordField("responsibleId"), dateField("lastUpdated"))),
       nestedField("contexts").fields(
         keywordField("publicId"),
         keywordField("path"),
@@ -50,25 +44,19 @@ class AggregationBuilderTest extends UnitTestSuiteBase {
         keywordField("relevanceId"),
         booleanField("isActive"),
         booleanField("isPrimary"),
-        nestedField("resourceTypes").fields(
-          keywordField("id")
-        )
+        nestedField("resourceTypes").fields(keywordField("id")),
       ),
       nestedField("embedResourcesAndIds").fields(
         keywordField("resource"),
         keywordField("id"),
-        keywordField("language")
+        keywordField("language"),
       ),
-      nestedField("metaImage").fields(
-        keywordField("imageId"),
-        keywordField("altText"),
-        keywordField("language")
-      ),
+      nestedField("metaImage").fields(keywordField("imageId"), keywordField("altText"), keywordField("language")),
       nestedField("revisionMeta").fields(
         keywordField("id"),
         dateField("revisionDate"),
         keywordField("note"),
-        keywordField("status")
+        keywordField("status"),
       ),
       keywordField("nextRevision.id"),
       keywordField("nextRevision.status"),
@@ -77,19 +65,14 @@ class AggregationBuilderTest extends UnitTestSuiteBase {
       keywordField("priority"),
       keywordField("defaultParentTopicName"),
       keywordField("defaultRoot"),
-      keywordField("defaultResourceTypeName")
+      keywordField("defaultResourceTypeName"),
     )
     properties(fields)
   }
 
   test("That building single termsAggregation works as expected") {
     val res1 = AggregationBuilder.buildTermsAggregation(Seq("draftStatus.current"), List(testMapping))
-    res1 should be(
-      Seq(
-        termsAgg("draftStatus.current", "draftStatus.current")
-          .size(50)
-      )
-    )
+    res1 should be(Seq(termsAgg("draftStatus.current", "draftStatus.current").size(50)))
   }
 
   test("That building nested termsAggregation works as expected") {
@@ -107,13 +90,11 @@ class AggregationBuilderTest extends UnitTestSuiteBase {
     val res1 = AggregationBuilder.buildTermsAggregation(Seq("contexts.resourceTypes.id"), List(testMapping))
     res1 should be(
       Seq(
-        nestedAggregation("contexts", "contexts")
-          .subAggregations(
-            nestedAggregation("resourceTypes", "contexts.resourceTypes")
-              .subAggregations(
-                termsAgg("id", "contexts.resourceTypes.id").size(50)
-              )
+        nestedAggregation("contexts", "contexts").subAggregations(
+          nestedAggregation("resourceTypes", "contexts.resourceTypes").subAggregations(
+            termsAgg("id", "contexts.resourceTypes.id").size(50)
           )
+        )
       )
     )
   }
@@ -121,19 +102,17 @@ class AggregationBuilderTest extends UnitTestSuiteBase {
   test("That aggregating paths that requires merging works as expected") {
     val res1 = AggregationBuilder.buildTermsAggregation(
       Seq("contexts.contextType", "contexts.resourceTypes.id"),
-      List(testMapping)
+      List(testMapping),
     )
 
     res1 should be(
       Seq(
-        nestedAggregation("contexts", "contexts")
-          .subAggregations(
-            nestedAggregation("resourceTypes", "contexts.resourceTypes")
-              .subAggregations(
-                termsAgg("id", "contexts.resourceTypes.id").size(50)
-              ),
-            termsAgg("contextType", "contexts.contextType").size(50)
-          )
+        nestedAggregation("contexts", "contexts").subAggregations(
+          nestedAggregation("resourceTypes", "contexts.resourceTypes").subAggregations(
+            termsAgg("id", "contexts.resourceTypes.id").size(50)
+          ),
+          termsAgg("contextType", "contexts.contextType").size(50),
+        )
       )
     )
   }
@@ -141,20 +120,18 @@ class AggregationBuilderTest extends UnitTestSuiteBase {
   test("That building multiple termsAggregation works as expected") {
     val res1 = AggregationBuilder.buildTermsAggregation(
       Seq("draftStatus.current", "draftStatus.other", "contexts.contextType", "contexts.resourceTypes.id"),
-      List(testMapping)
+      List(testMapping),
     )
     res1 should be(
       Seq(
         termsAgg("draftStatus.current", "draftStatus.current").size(50),
         termsAgg("draftStatus.other", "draftStatus.other").size(50),
-        nestedAggregation("contexts", "contexts")
-          .subAggregations(
-            nestedAggregation("resourceTypes", "contexts.resourceTypes")
-              .subAggregations(
-                termsAgg("id", "contexts.resourceTypes.id").size(50)
-              ),
-            termsAgg("contextType", "contexts.contextType").size(50)
-          )
+        nestedAggregation("contexts", "contexts").subAggregations(
+          nestedAggregation("resourceTypes", "contexts.resourceTypes").subAggregations(
+            termsAgg("id", "contexts.resourceTypes.id").size(50)
+          ),
+          termsAgg("contextType", "contexts.contextType").size(50),
+        ),
       )
     )
   }

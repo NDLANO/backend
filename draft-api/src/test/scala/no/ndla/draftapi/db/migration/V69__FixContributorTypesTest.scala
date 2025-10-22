@@ -15,8 +15,7 @@ class V69__FixContributorTypesTest extends UnitSuite with TestEnvironment {
   val migration = new V69__FixContributorTypes
 
   test("That copyright has correct contributor types") {
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "id": null,
         |  "slug": null,
@@ -171,8 +170,7 @@ class V69__FixContributorTypesTest extends UnitSuite with TestEnvironment {
         |  ]
         |}
         |""".stripMargin
-    val newDocument =
-      """
+    val newDocument = """
         |{
         |  "id": null,
         |  "slug": null,
@@ -333,8 +331,7 @@ class V69__FixContributorTypesTest extends UnitSuite with TestEnvironment {
   }
 
   test("That migration handles broken copyright data") {
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "id": null,
         |  "slug": null,
@@ -466,8 +463,7 @@ class V69__FixContributorTypesTest extends UnitSuite with TestEnvironment {
         |  ]
         |}
         |""".stripMargin
-    val newDocument =
-      """
+    val newDocument = """
         |{
         |  "id": null,
         |  "slug": null,

@@ -15,10 +15,14 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Information about the editorial notes")
 case class EditorNoteDTO(
-    @description("Editorial note") note: String,
-    @description("User which saved the note") updatedBy: String,
-    @description("Status of concept at saved time") status: StatusDTO,
-    @description("Timestamp of when note was saved") timestamp: NDLADate
+    @description("Editorial note")
+    note: String,
+    @description("User which saved the note")
+    updatedBy: String,
+    @description("Status of concept at saved time")
+    status: StatusDTO,
+    @description("Timestamp of when note was saved")
+    timestamp: NDLADate,
 )
 
 object EditorNoteDTO {

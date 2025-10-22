@@ -13,8 +13,7 @@ import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment {
   val migration = new V74__StripWhitespaceAfterPeriod()
 
-  val originalArticle: String =
-    """<section>
+  val originalArticle: String = """<section>
       |    <h2>Generelt om vurdering av eksamen</h2>
       |    <p>Skriftlig eksamen i fremmedspråk består av to deler: lesing og skriving. Kandidaten får poeng for hver oppgave, og summen av disse poengene gir den endelige karakteren.</p>
       |    <p>Lesing teller 35 prosent av totalkarakteren, mens skriving teller 65 prosent. NB! Kandidaten må bestå både lesedelen og skrivedelen for å bestå hele eksamen (dvs. få minst karakteren 2 i begge).</p>
@@ -374,8 +373,7 @@ class V74__StripWhitespaceAfterPeriodTest extends UnitSuite with TestEnvironment
       |	   </details>
       |</section>""".stripMargin
 
-  val migratedArticle: String =
-    """<section>
+  val migratedArticle: String = """<section>
       |    <h2>Generelt om vurdering av eksamen</h2>
       |    <p>Skriftlig eksamen i fremmedspråk består av to deler: lesing og skriving. Kandidaten får poeng for hver oppgave, og summen av disse poengene gir den endelige karakteren.</p>
       |    <p>Lesing teller 35 prosent av totalkarakteren, mens skriving teller 65 prosent. NB! Kandidaten må bestå både lesedelen og skrivedelen for å bestå hele eksamen (dvs. få minst karakteren 2 i begge).</p>

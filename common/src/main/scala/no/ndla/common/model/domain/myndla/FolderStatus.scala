@@ -43,10 +43,6 @@ object FolderStatus extends Enumeration {
   implicit val queryParamCodec: Codec[List[String], Option[FolderStatus.Value], CodecFormat.TextPlain] = {
     Codec
       .id[List[String], TextPlain](TextPlain(), Schema.string)
-      .mapDecode(x =>
-        DecodeResult.Value(
-          valueOf(x.headOption)
-        )
-      )(x => x.map(_.toString).toList)
+      .mapDecode(x => DecodeResult.Value(valueOf(x.headOption)))(x => x.map(_.toString).toList)
   }
 }

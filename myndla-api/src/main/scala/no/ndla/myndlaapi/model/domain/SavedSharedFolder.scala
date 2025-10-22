@@ -16,11 +16,7 @@ import scalikejdbc.*
 import java.util.UUID
 import scala.util.Try
 
-case class SavedSharedFolder(
-    folderId: UUID,
-    feideId: FeideID,
-    rank: Int
-) {}
+case class SavedSharedFolder(folderId: UUID, feideId: FeideID, rank: Int) {}
 
 object SavedSharedFolder extends SQLSyntaxSupport[SavedSharedFolder] {
   implicit val encoder: Encoder[SavedSharedFolder] = deriveEncoder
@@ -38,10 +34,6 @@ object SavedSharedFolder extends SQLSyntaxSupport[SavedSharedFolder] {
       folderId <- rs.get[Try[UUID]](colNameWrapper("folder_id"))
       feideId  <- Try(rs.string(colNameWrapper("feide_id")))
       rank     <- Try(rs.int(colNameWrapper("rank")))
-    } yield SavedSharedFolder(
-      folderId = folderId,
-      feideId = feideId,
-      rank = rank
-    )
+    } yield SavedSharedFolder(folderId = folderId, feideId = feideId, rank = rank)
   }
 }

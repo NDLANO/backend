@@ -11,4 +11,7 @@ package no.ndla.articleapi.model.api
 import sttp.tapir.Schema.annotations.description
 
 @description("Id for a single Article")
-case class ArticleIdV2DTO(@description("The unique id of the article") id: Long)
+case class ArticleIdV2DTO(
+    @description("The unique id of the article")
+    id: Long
+)

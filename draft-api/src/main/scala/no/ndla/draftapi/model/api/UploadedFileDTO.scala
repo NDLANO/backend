@@ -15,10 +15,14 @@ import no.ndla.common.DeriveHelpers
 
 @description("Information about the uploaded file")
 case class UploadedFileDTO(
-    @description("Uploaded file's basename") filename: String,
-    @description("Uploaded file's mime type") mime: String,
-    @description("Uploaded file's file extension") extension: String,
-    @description("Full path of uploaded file") path: String
+    @description("Uploaded file's basename")
+    filename: String,
+    @description("Uploaded file's mime type")
+    mime: String,
+    @description("Uploaded file's file extension")
+    extension: String,
+    @description("Full path of uploaded file")
+    path: String,
 )
 
 object UploadedFileDTO {

@@ -32,7 +32,7 @@ case class NewConceptDTO(
     @description("Type of concept. 'concept', or 'gloss'")
     conceptType: String,
     @description("Information about the gloss")
-    glossData: Option[GlossDataDTO]
+    glossData: Option[GlossDataDTO],
 )
 
 object NewConceptDTO {

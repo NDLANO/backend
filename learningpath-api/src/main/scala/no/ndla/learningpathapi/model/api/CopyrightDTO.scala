@@ -15,8 +15,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Description of copyright information")
 case class CopyrightDTO(
-    @description("Describes the license of the learningpath") license: LicenseDTO,
-    @description("List of authors") contributors: Seq[AuthorDTO]
+    @description("Describes the license of the learningpath")
+    license: LicenseDTO,
+    @description("List of authors")
+    contributors: Seq[AuthorDTO],
 )
 
 object CopyrightDTO {

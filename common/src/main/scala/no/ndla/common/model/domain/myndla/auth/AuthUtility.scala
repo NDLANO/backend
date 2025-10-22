@@ -16,9 +16,9 @@ import sttp.tapir.EndpointInput.{AuthInfo, AuthType}
 import scala.collection.immutable.ListMap
 
 object AuthUtility {
-  private val authScheme                           = AuthenticationScheme.Bearer.name
-  private def filterHeaders(headers: List[String]) = headers.filter(_.toLowerCase.startsWith(authScheme.toLowerCase))
-  private def stringPrefixWithSpace                = Mapping.stringPrefixCaseInsensitiveForList(authScheme + " ")
+  private val authScheme                                                  = AuthenticationScheme.Bearer.name
+  private def filterHeaders(headers: List[String])                        = headers.filter(_.toLowerCase.startsWith(authScheme.toLowerCase))
+  private def stringPrefixWithSpace                                       = Mapping.stringPrefixCaseInsensitiveForList(authScheme + " ")
   val feideTokenAuthCodec: Codec[List[String], Option[String], TextPlain] = {
     val codec = implicitly[Codec[List[String], Option[String], CodecFormat.TextPlain]]
     Codec
@@ -30,7 +30,8 @@ object AuthUtility {
   }
 
   def feideOauth() = {
-    val authType: AuthType.ScopedOAuth2 = EndpointInput.AuthType
+    val authType: AuthType.ScopedOAuth2 = EndpointInput
+      .AuthType
       .OAuth2(None, None, ListMap.empty, None)
       .requiredScopes(Seq.empty)
 
@@ -38,7 +39,7 @@ object AuthUtility {
       input = sttp.tapir.header("FeideAuthorization")(using feideTokenAuthCodec),
       challenge = WWWAuthenticateChallenge.bearer,
       authType = authType,
-      info = AuthInfo.Empty.securitySchemeName("oauth2")
+      info = AuthInfo.Empty.securitySchemeName("oauth2"),
     )
   }
 

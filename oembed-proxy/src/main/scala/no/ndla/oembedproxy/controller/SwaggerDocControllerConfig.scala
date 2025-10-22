@@ -19,6 +19,6 @@ object SwaggerDocControllerConfig {
     mountPoint = "oembed-proxy" / "api-docs",
     description = "Convert any NDLA resource to an oEmbed embeddable resource.",
     authUrl = props.Auth0LoginEndpoint,
-    scopes = ListMap.empty
+    scopes = ListMap.empty,
   )
 }

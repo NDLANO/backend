@@ -18,14 +18,17 @@ import sttp.tapir.*
 class TapirHealthController(using
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
 ) extends TapirController
     with Warmup {
-  @volatile private var isShuttingDown: Boolean = false
-  override val enableSwagger: Boolean           = false
-  val prefix: EndpointInput[Unit]               = "health"
+  @volatile
+  private var isShuttingDown: Boolean = false
+  override val enableSwagger: Boolean = false
+  val prefix: EndpointInput[Unit]     = "health"
 
-  def setShuttingDown(): Unit = { isShuttingDown = true }
+  def setShuttingDown(): Unit = {
+    isShuttingDown = true
+  }
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = { case e: Throwable =>
     errorHelpers.generic
@@ -39,21 +42,24 @@ class TapirHealthController(using
   }
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    endpoint.get
+    endpoint
+      .get
       .description("Readiness probe. Returns 200 if the service is ready to serve traffic.")
       .in("readiness")
       .out(stringBody)
       .errorOut(statusCode(StatusCode.InternalServerError).and(stringBody))
       .serverLogicPure(_ => checkReadiness()),
-    endpoint.get
+    endpoint
+      .get
       .description("Liveness probe. Returns 200 if the service is alive, but not necessarily ready.")
       .in("liveness")
       .out(stringBody)
       .errorOut(statusCode(StatusCode.InternalServerError).and(stringBody))
       .serverLogicPure(_ => checkLiveness()),
-    endpoint.get
+    endpoint
+      .get
       .out(stringBody)
       .errorOut(statusCode(StatusCode.InternalServerError).and(stringBody))
-      .serverLogicPure(_ => checkLiveness())
+      .serverLogicPure(_ => checkLiveness()),
   )
 }

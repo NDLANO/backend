@@ -33,10 +33,8 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
     *   or `None` if it was not.
     */
   def withId(id: Long, includeEpisodes: Boolean = true): Try[Option[Series]] = {
-    if (includeEpisodes)
-      serieWhere(sqls"se.id = $id")
-    else
-      serieWhereNoEpisodes(sqls"se.id = $id")
+    if (includeEpisodes) serieWhere(sqls"se.id = $id")
+    else serieWhereNoEpisodes(sqls"se.id = $id")
   }
 
   def deleteWithId(id: Long)(implicit session: DBSession = AutoSession): Try[Int] = {
@@ -44,8 +42,7 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
       sql"""
            delete from ${Series.table}
            where id=$id
-           """
-        .update()
+           """.update()
     }
   }
 
@@ -56,14 +53,11 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
 
     val newRevision = series.revision + 1
 
-    Try(
-      sql"""
+    Try(sql"""
             update ${Series.table}
             set document=$dataObject, revision=$newRevision
             where id=${series.id} and revision=${series.revision}
-           """
-        .update()
-    ) match {
+           """.update()) match {
       case Failure(ex)                  => Failure(ex)
       case Success(count) if count != 1 =>
         val message =
@@ -82,13 +76,10 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(newSeries))
 
-    Try(
-      sql"""
+    Try(sql"""
            insert into ${Series.table}(document, revision)
            values ($dataObject, $startRevision)
-           """
-        .updateAndReturnGeneratedKey()
-    ).map(id => Series.fromId(id, startRevision, newSeries))
+           """.updateAndReturnGeneratedKey()).map(id => Series.fromId(id, startRevision, newSeries))
   }
 
   override def minMaxId(implicit session: DBSession = ReadOnlyAutoSession): Try[(Long, Long)] = {
@@ -108,25 +99,21 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
     seriesWhere(sqls"se.id between $min and $max")
   }
 
-  private def serieWhereNoEpisodes(whereClause: SQLSyntax)(implicit
-      session: DBSession = ReadOnlyAutoSession
-  ): Try[Option[Series]] = {
+  private def serieWhereNoEpisodes(
+      whereClause: SQLSyntax
+  )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Series]] = {
     val se = Series.syntax("se")
 
-    Try(
-      sql"""
+    Try(sql"""
            select ${se.result.*}
            from ${Series.as(se)}
            where $whereClause
-           """
-        .map(Series.fromResultSet(se.resultName))
-        .single()
-    ).flatMap(_.sequence)
+           """.map(Series.fromResultSet(se.resultName)).single()).flatMap(_.sequence)
   }
 
-  private def serieWhere(whereClause: SQLSyntax)(implicit
-      session: DBSession = ReadOnlyAutoSession
-  ): Try[Option[Series]] = {
+  private def serieWhere(
+      whereClause: SQLSyntax
+  )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Series]] = {
     val se = Series.syntax("se")
     val au = AudioMetaInformation.syntax("au")
 
@@ -146,9 +133,9 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
     ).flatMap(_.sequence)
   }
 
-  private def seriesWhere(whereClause: SQLSyntax)(implicit
-      session: DBSession = ReadOnlyAutoSession
-  ): Try[List[Series]] = {
+  private def seriesWhere(
+      whereClause: SQLSyntax
+  )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Series]] = {
     val se = Series.syntax("se")
     val au = AudioMetaInformation.syntax("au")
 

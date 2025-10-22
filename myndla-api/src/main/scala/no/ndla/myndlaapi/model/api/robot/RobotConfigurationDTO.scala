@@ -13,11 +13,7 @@ import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
 @description("DTO for robot configuration")
-case class RobotConfigurationDTO(
-    title: String,
-    version: String,
-    settings: RobotSettingsDTO
-)
+case class RobotConfigurationDTO(title: String, version: String, settings: RobotSettingsDTO)
 
 object RobotConfigurationDTO {
   implicit val encoder: Encoder[RobotConfigurationDTO] = deriveEncoder[RobotConfigurationDTO]
@@ -30,7 +26,7 @@ case class RobotSettingsDTO(
     systemprompt: Option[String],
     question: Option[String],
     temperature: String,
-    model: String
+    model: String,
 )
 
 object RobotSettingsDTO {

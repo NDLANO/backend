@@ -24,7 +24,7 @@ class ImageIndexService(using
     e4sClient: NdlaE4sClient,
     imageRepository: ImageRepository,
     props: Props,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends IndexService {
   override val documentType: String                         = props.SearchDocument
   override val searchIndex: String                          = props.SearchIndex
@@ -39,18 +39,20 @@ class ImageIndexService(using
 
   protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
     if (keepRaw) {
-      searchLanguage.languageAnalyzers.map(langAnalyzer =>
-        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-          .fielddata(false)
-          .analyzer(langAnalyzer.analyzer)
-          .fields(keywordField("raw"))
-      )
+      searchLanguage
+        .languageAnalyzers
+        .map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .fielddata(false)
+            .analyzer(langAnalyzer.analyzer)
+            .fields(keywordField("raw"))
+        )
     } else {
-      searchLanguage.languageAnalyzers.map(langAnalyzer =>
-        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-          .fielddata(false)
-          .analyzer(langAnalyzer.analyzer)
-      )
+      searchLanguage
+        .languageAnalyzers
+        .map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}").fielddata(false).analyzer(langAnalyzer.analyzer)
+        )
     }
   }
 
@@ -68,14 +70,8 @@ class ImageIndexService(using
       nestedField("imageFiles").fields(
         intField("imageSize"),
         textField("previewUrl"),
-        ObjectField(
-          "dimensions",
-          properties = Seq(
-            intField("width"),
-            intField("height")
-          )
-        )
-      )
+        ObjectField("dimensions", properties = Seq(intField("width"), intField("height"))),
+      ),
     )
 
     val dynamics = generateLanguageSupportedFieldList("titles", keepRaw = true) ++

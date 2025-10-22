@@ -37,7 +37,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           rightsholders = Seq.empty,
           validFrom = None,
           validTo = None,
-          false
+          false,
         )
       ),
       created = TestData.today,
@@ -49,7 +49,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       responsible = Some(Responsible("hei", TestData.today)),
       conceptType = ConceptType.CONCEPT,
       glossData = None,
-      editorNotes = Seq.empty
+      editorNotes = Seq.empty,
     )
     val status            = Status(ConceptStatus.IN_PROGRESS, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.PUBLISHED)
@@ -82,7 +82,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           rightsholders = Seq.empty,
           validFrom = None,
           validTo = None,
-          false
+          false,
         )
       ),
       created = TestData.today,
@@ -94,7 +94,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       responsible = Some(Responsible("hei", TestData.today)),
       conceptType = ConceptType.CONCEPT,
       glossData = None,
-      editorNotes = Seq.empty
+      editorNotes = Seq.empty,
     )
     val status            = Status(ConceptStatus.IN_PROGRESS, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.ARCHIVED)
@@ -102,11 +102,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(writeService.unpublishConcept(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Concept](0)))
     for (t <- transitionsToTest) {
       val fromDraft = concept.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
-      val result    = stateTransitionRules.doTransition(
-        fromDraft,
-        ConceptStatus.ARCHIVED,
-        TestData.userWithWriteAndPublishAccess
-      )
+      val result    =
+        stateTransitionRules.doTransition(fromDraft, ConceptStatus.ARCHIVED, TestData.userWithWriteAndPublishAccess)
 
       if (result.get.responsible.isDefined) {
         fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
@@ -130,7 +127,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           rightsholders = Seq.empty,
           validFrom = None,
           validTo = None,
-          false
+          false,
         )
       ),
       created = TestData.today,
@@ -142,7 +139,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       responsible = Some(Responsible("hei", TestData.today)),
       conceptType = ConceptType.CONCEPT,
       glossData = None,
-      editorNotes = Seq.empty
+      editorNotes = Seq.empty,
     )
     val status            = Status(ConceptStatus.IN_PROGRESS, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == ConceptStatus.UNPUBLISHED)
@@ -150,11 +147,8 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(writeService.unpublishConcept(any)).thenAnswer((i: InvocationOnMock) => Success(i.getArgument[Concept](0)))
     for (t <- transitionsToTest) {
       val fromDraft = concept.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
-      val result    = stateTransitionRules.doTransition(
-        fromDraft,
-        ConceptStatus.UNPUBLISHED,
-        TestData.userWithWriteAndPublishAccess
-      )
+      val result    =
+        stateTransitionRules.doTransition(fromDraft, ConceptStatus.UNPUBLISHED, TestData.userWithWriteAndPublishAccess)
 
       if (result.get.responsible.isDefined) {
         fail(s"${t.from} -> ${t.to} did not reset responsible >:( Look at the sideeffects in `StateTransitionRules`")
@@ -177,7 +171,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
           rightsholders = Seq.empty,
           validFrom = None,
           validTo = None,
-          false
+          false,
         )
       ),
       created = TestData.today,
@@ -189,7 +183,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       responsible = None,
       conceptType = ConceptType.CONCEPT,
       glossData = None,
-      editorNotes = Seq.empty
+      editorNotes = Seq.empty,
     )
     val status                            = Status(ConceptStatus.PUBLISHED, Set.empty)
     val transitionToTest: StateTransition = ConceptStatus.PUBLISHED -> ConceptStatus.IN_PROGRESS

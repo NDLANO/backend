@@ -16,10 +16,14 @@ import no.ndla.common.DeriveHelpers
 
 @description("Information about articles")
 case class ConceptDomainDump(
-    @description("The total number of concepts in the database") totalCount: Long,
-    @description("For which page results are shown from") page: Int,
-    @description("The number of results per page") pageSize: Int,
-    @description("The search results") results: Seq[DomainConcept]
+    @description("The total number of concepts in the database")
+    totalCount: Long,
+    @description("For which page results are shown from")
+    page: Int,
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The search results")
+    results: Seq[DomainConcept],
 )
 
 object ConceptDomainDump {

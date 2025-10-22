@@ -68,7 +68,9 @@ class ArticleApiClientTest
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     articleApi = new articleapi.MainClass(articleApiProperties)
-    Future { articleApi.run(Array.empty) }: Unit
+    Future {
+      articleApi.run(Array.empty)
+    }: Unit
     blockUntilHealthy(s"$articleApiBaseUrl/health/readiness")
   }
 
@@ -79,16 +81,18 @@ class ArticleApiClientTest
   val idResponse: ContentIdDTO                                  = ContentIdDTO(1)
   override implicit lazy val converterService: ConverterService = new ConverterService
 
-  val testCopyright: common.draft.DraftCopyright = common.draft.DraftCopyright(
-    Some("CC-BY-SA-4.0"),
-    Some("Origin"),
-    Seq(common.Author(ContributorType.Writer, "John doe")),
-    Seq.empty,
-    Seq.empty,
-    None,
-    None,
-    false
-  )
+  val testCopyright: common.draft.DraftCopyright = common
+    .draft
+    .DraftCopyright(
+      Some("CC-BY-SA-4.0"),
+      Some("Origin"),
+      Seq(common.Author(ContributorType.Writer, "John doe")),
+      Seq.empty,
+      Seq.empty,
+      None,
+      None,
+      false,
+    )
 
   val testArticle: Draft = Draft(
     id = Some(1),
@@ -120,7 +124,7 @@ class ArticleApiClientTest
         id = UUID.randomUUID(),
         note = "Revision",
         revisionDate = NDLADate.now(),
-        status = common.RevisionStatus.NeedsRevision
+        status = common.RevisionStatus.NeedsRevision,
       )
     ),
     responsible = None,
@@ -130,7 +134,7 @@ class ArticleApiClientTest
     started = false,
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val exampleToken =
@@ -142,22 +146,27 @@ class ArticleApiClientTest
     implicit lazy val props: ArticleApiProperties = articleApiProperties
     val td                                        = new TestData
 
-    def setupArticles(): Try[Boolean] =
-      (1L to 10)
-        .map(id => {
-          articleApi.componentRegistry.articleRepository
-            .updateArticleFromDraftApi(
-              td.sampleDomainArticle.copy(
+    def setupArticles(): Try[Boolean] = (
+      1L to 10
+    ).map(id => {
+        articleApi
+          .componentRegistry
+          .articleRepository
+          .updateArticleFromDraftApi(
+            td.sampleDomainArticle
+              .copy(
                 id = Some(id),
                 updated = NDLADate.fromUnixTime(0),
                 created = NDLADate.fromUnixTime(0),
-                published = NDLADate.fromUnixTime(0)
+                published = NDLADate.fromUnixTime(0),
               ),
-              List(s"1$id")
-            )
-        })
-        .collectFirst { case Failure(ex) => Failure(ex) }
-        .getOrElse(Success(true))
+            List(s"1$id"),
+          )
+      })
+      .collectFirst { case Failure(ex) =>
+        Failure(ex)
+      }
+      .getOrElse(Success(true))
   }
 
   val dataFixer = new LocalArticleApiTestData
@@ -167,13 +176,7 @@ class ArticleApiClientTest
 
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
-    val response         = articleApiClient.updateArticle(
-      1,
-      testArticle,
-      List("1234"),
-      useSoftValidation = false,
-      authUser
-    )
+    val response         = articleApiClient.updateArticle(1, testArticle, List("1234"), useSoftValidation = false, authUser)
     response.isSuccess should be(true)
   }
 
@@ -219,7 +222,7 @@ class ArticleApiClientTest
       draft = invalidArticle,
       externalIds = List.empty,
       useSoftValidation = false,
-      user = authUser
+      user = authUser,
     )
 
     result.isSuccess should be(false)

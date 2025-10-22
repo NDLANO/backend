@@ -14,8 +14,9 @@ import sttp.client3.quick._
 import scala.concurrent.duration.DurationInt
 
 trait Warmup {
-  @volatile var isWarmedUp: Boolean = false
-  def setWarmedUp(): Unit           = this.isWarmedUp = true
+  @volatile
+  var isWarmedUp: Boolean = false
+  def setWarmedUp(): Unit = this.isWarmedUp = true
 }
 
 object Warmup extends StrictLogging {
@@ -23,10 +24,7 @@ object Warmup extends StrictLogging {
     val startTime = System.currentTimeMillis()
     val url       = uri"http://localhost:$port?$params".withWholePath(path)
 
-    val request = quickRequest
-      .get(url)
-      .readTimeout(15.seconds)
-      .header("X-Correlation-ID", "WARMUP")
+    val request = quickRequest.get(url).readTimeout(15.seconds).header("X-Correlation-ID", "WARMUP")
 
     val response = simpleHttpClient.send(request)
     val time     = System.currentTimeMillis() - startTime

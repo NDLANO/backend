@@ -14,13 +14,14 @@ import no.ndla.common.model.api.search.LearningResourceType
 
 trait TaxonomyFiltering {
 
-  private val notConceptType = LearningResourceType.values
+  private val notConceptType = LearningResourceType
+    .values
     .filter(x => x != LearningResourceType.Concept && x != LearningResourceType.Gloss)
     .map(_.entryName)
 
   private val mustBeConceptQuery = termsQuery(
     "learningResourceType",
-    Seq(LearningResourceType.Concept.entryName, LearningResourceType.Gloss.entryName)
+    Seq(LearningResourceType.Concept.entryName, LearningResourceType.Gloss.entryName),
   )
 
   private val mustNotBeConceptQuery = termsQuery("learningResourceType", notConceptType)
@@ -42,40 +43,32 @@ trait TaxonomyFiltering {
 
   protected def relevanceFilter(relevanceIds: List[String], subjectIds: List[String]): Option[BoolQuery] =
     if (relevanceIds.isEmpty) None
-    else
-      Some(
-        boolQuery().should(
-          relevanceIds.map(relevanceId =>
-            nestedQuery(
-              "contexts",
-              boolQuery().must(
-                termQuery("contexts.relevanceId", relevanceId),
-                boolQuery().should(subjectIds.map(sId => termQuery("contexts.rootId", sId)))
-              )
-            )
+    else Some(
+      boolQuery().should(
+        relevanceIds.map(relevanceId =>
+          nestedQuery(
+            "contexts",
+            boolQuery().must(
+              termQuery("contexts.relevanceId", relevanceId),
+              boolQuery().should(subjectIds.map(sId => termQuery("contexts.rootId", sId))),
+            ),
           )
         )
       )
+    )
 
-  private val booleanMust: (String, String) => BoolQuery = (field: String, id: String) =>
-    boolQuery().must(termQuery(field, id))
+  private val booleanMust: (String, String) => BoolQuery =
+    (field: String, id: String) => boolQuery().must(termQuery(field, id))
 
   protected def subjectFilter(subjects: List[String], filterInactive: Boolean): Option[Query] =
     if (subjects.isEmpty) None
     else {
       val subjectQueries = subjects.map(subjectId =>
         if (filterInactive)
-          boolQuery().must(
-            booleanMust("contexts.rootId", subjectId),
-            booleanMust("contexts.isActive", "true")
-          )
+          boolQuery().must(booleanMust("contexts.rootId", subjectId), booleanMust("contexts.isActive", "true"))
         else booleanMust("contexts.rootId", subjectId)
       )
-      Some(
-        mustBeConceptOr(
-          nestedQuery("contexts", boolQuery().should(subjectQueries)).ignoreUnmapped(true)
-        )
-      )
+      Some(mustBeConceptOr(nestedQuery("contexts", boolQuery().should(subjectQueries)).ignoreUnmapped(true)))
     }
 
   protected def topicFilter(topics: List[String], filterInactive: Boolean): Option[Query] =
@@ -83,10 +76,7 @@ trait TaxonomyFiltering {
     else {
       val subjectQueries = topics.map(subjectId =>
         if (filterInactive)
-          boolQuery().must(
-            booleanMust("contexts.parentIds", subjectId),
-            booleanMust("contexts.isActive", "true")
-          )
+          boolQuery().must(booleanMust("contexts.parentIds", subjectId), booleanMust("contexts.isActive", "true"))
         else booleanMust("contexts.parentIds", subjectId)
       )
       Some(mustBeConceptOr(nestedQuery("contexts", boolQuery().should(subjectQueries)).ignoreUnmapped(true)))
@@ -95,19 +85,15 @@ trait TaxonomyFiltering {
   protected def resourceTypeFilter(resourceTypes: List[String], filterByNoResourceType: Boolean): Option[Query] = {
     if (resourceTypes.isEmpty) {
       if (filterByNoResourceType) {
-        Some(
-          boolQuery().not(
-            nestedQuery("contexts", existsQuery("contexts.resourceTypeIds"))
-          )
-        )
-      } else { None }
+        Some(boolQuery().not(nestedQuery("contexts", existsQuery("contexts.resourceTypeIds"))))
+      } else {
+        None
+      }
     } else {
       Some(
         nestedQuery(
           "contexts",
-          boolQuery().should(
-            resourceTypes.map(resourceTypeId => termQuery("contexts.resourceTypeIds", resourceTypeId))
-          )
+          boolQuery().should(resourceTypes.map(resourceTypeId => termQuery("contexts.resourceTypeIds", resourceTypeId))),
         )
       )
     }

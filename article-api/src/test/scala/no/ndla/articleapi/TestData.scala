@@ -21,28 +21,26 @@ import no.ndla.mapping.License
 class TestData {
   private val publicDomainCopyright =
     Copyright(License.PublicDomain.toString, None, List(), List(), List(), None, None, false)
-  private val byNcSaCopyright =
-    Copyright(
-      License.CC_BY_NC_SA.toString,
-      Some("Gotham City"),
-      List(Author(ContributorType.Writer, "DC Comics")),
-      List(),
-      List(),
-      None,
-      None,
-      false
-    )
-  private val copyrighted =
-    Copyright(
-      License.Copyrighted.toString,
-      Some("New York"),
-      List(Author(ContributorType.Writer, "Clark Kent")),
-      List(),
-      List(),
-      None,
-      None,
-      false
-    )
+  private val byNcSaCopyright = Copyright(
+    License.CC_BY_NC_SA.toString,
+    Some("Gotham City"),
+    List(Author(ContributorType.Writer, "DC Comics")),
+    List(),
+    List(),
+    None,
+    None,
+    false,
+  )
+  private val copyrighted = Copyright(
+    License.Copyrighted.toString,
+    Some("New York"),
+    List(Author(ContributorType.Writer, "Clark Kent")),
+    List(),
+    List(),
+    None,
+    None,
+    false,
+  )
   private val today = NDLADate.now().withNano(0)
 
   val (articleId, externalId) = (1L, "751234")
@@ -53,16 +51,18 @@ class TestData {
     revision = 1,
     title = api.ArticleTitleDTO("title", "title", "nb"),
     content = api.ArticleContentV2DTO("this is content", "nb"),
-    copyright = model.api.CopyrightDTO(
-      model.api.LicenseDTO("licence", None, None),
-      Some("origin"),
-      Seq(model.api.AuthorDTO(ContributorType.Editorial, "Per")),
-      List(),
-      List(),
-      None,
-      None,
-      false
-    ),
+    copyright = model
+      .api
+      .CopyrightDTO(
+        model.api.LicenseDTO("licence", None, None),
+        Some("origin"),
+        Seq(model.api.AuthorDTO(ContributorType.Editorial, "Per")),
+        List(),
+        List(),
+        None,
+        None,
+        false,
+      ),
     tags = ArticleTagDTO(Seq("tag"), "nb"),
     requiredLibraries = Seq(api.RequiredLibraryDTO("JS", "JavaScript", "url")),
     visualElement = None,
@@ -82,7 +82,7 @@ class TestData {
     revisionDate = None,
     slug = None,
     disclaimer = None,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val apiArticleV2: api.ArticleV2DTO = api.ArticleV2DTO(
@@ -91,20 +91,24 @@ class TestData {
     2,
     api.ArticleTitleDTO("title", "title", "nb"),
     api.ArticleContentV2DTO("content", "nb"),
-    model.api.CopyrightDTO(
-      model.api.LicenseDTO(
-        "CC-BY-4.0",
-        Some("Creative Commons Attribution 4.0 International"),
-        Some("https://creativecommons.org/licenses/by/4.0/")
+    model
+      .api
+      .CopyrightDTO(
+        model
+          .api
+          .LicenseDTO(
+            "CC-BY-4.0",
+            Some("Creative Commons Attribution 4.0 International"),
+            Some("https://creativecommons.org/licenses/by/4.0/"),
+          ),
+        None,
+        List(),
+        List(),
+        List(),
+        None,
+        None,
+        false,
       ),
-      None,
-      List(),
-      List(),
-      List(),
-      None,
-      None,
-      false
-    ),
     article.ArticleTagDTO(Seq("tag"), "nb"),
     Seq(),
     None,
@@ -124,7 +128,7 @@ class TestData {
     revisionDate = None,
     slug = None,
     disclaimer = None,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val sampleArticleWithPublicDomain: Article = Article(
@@ -138,7 +142,7 @@ class TestData {
     Seq(
       VisualElement(
         s"<$EmbedTagName data-resource=\"image\" data-resource_id=\"1\" data-size=\"full\" data-align=\"center\" data-alt=\"alt\"></$EmbedTagName>",
-        "en"
+        "en",
       )
     ),
     Seq(Introduction("This is an introduction", "en")),
@@ -156,7 +160,7 @@ class TestData {
     revisionDate = Some(NDLADate.now().withNano(0)),
     slug = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val sampleDomainArticle: Article = Article(
@@ -183,7 +187,7 @@ class TestData {
     revisionDate = None,
     slug = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -210,7 +214,7 @@ class TestData {
     revisionDate = None,
     slug = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -227,7 +231,7 @@ class TestData {
         |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
         |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
       """.stripMargin,
-        "en"
+        "en",
       )
     ),
     Copyright(License.PublicDomain.toString, None, Seq(), Seq(), Seq(), None, None, false),
@@ -249,7 +253,7 @@ class TestData {
     revisionDate = None,
     slug = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val apiArticleWithHtmlFaultV2: api.ArticleV2DTO = api.ArticleV2DTO(
@@ -263,9 +267,10 @@ class TestData {
         |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
         |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
       """.stripMargin,
-      "en"
+      "en",
     ),
-    model.api
+    model
+      .api
       .CopyrightDTO(
         model.api.LicenseDTO(License.PublicDomain.toString, None, None),
         None,
@@ -274,7 +279,7 @@ class TestData {
         Seq(),
         None,
         None,
-        false
+        false,
       ),
     article.ArticleTagDTO(Seq.empty, "en"),
     Seq.empty,
@@ -295,7 +300,7 @@ class TestData {
     revisionDate = None,
     slug = None,
     disclaimer = None,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val (nodeId, nodeId2)  = ("1234", "4321")
@@ -303,7 +308,7 @@ class TestData {
 
   val visualElement: VisualElement = VisualElement(
     s"""<$EmbedTagName  data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="full"></$EmbedTagName>""",
-    "nb"
+    "nb",
   )
 
   def sampleDomainArticleWithLanguage(lang: String): Article = {
@@ -331,7 +336,7 @@ class TestData {
       revisionDate = None,
       slug = None,
       disclaimer = OptLanguageFields.empty,
-      traits = List.empty
+      traits = List.empty,
     )
   }
 
@@ -349,7 +354,7 @@ class TestData {
     fallback = false,
     grepCodes = Seq.empty,
     shouldScroll = false,
-    availability = Seq.empty
+    availability = Seq.empty,
   )
 
 }

@@ -18,18 +18,14 @@ class SearchLanguage(using props: BaseProps) {
 
   val NynorskTokenFilters: List[TokenFilter] = List(
     StopTokenFilter("norwegian_stop", language = Some("norwegian")),
-    StemmerTokenFilter("nynorsk_stemmer", lang = "light_nynorsk")
+    StemmerTokenFilter("nynorsk_stemmer", lang = "light_nynorsk"),
   )
 
   // Must be included in search index settings
   val NynorskLanguageAnalyzer: CustomAnalyzer = CustomAnalyzer(
     name = Nynorsk,
     tokenizer = "standard",
-    tokenFilters = List(
-      "lowercase",
-      "norwegian_stop",
-      "nynorsk_stemmer"
-    )
+    tokenFilters = List("lowercase", "norwegian_stop", "nynorsk_stemmer"),
   )
 
   val standardAnalyzer = "standard"
@@ -74,7 +70,7 @@ class SearchLanguage(using props: BaseProps) {
     LanguageAnalyzer(LanguageTag("th"), LanguageAnalyzers.thai),
     LanguageAnalyzer(LanguageTag("tr"), LanguageAnalyzers.turkish),
     LanguageAnalyzer(LanguageTag("ukr"), standardAnalyzer),
-    LanguageAnalyzer(UnknownLanguage, standardAnalyzer)
+    LanguageAnalyzer(UnknownLanguage, standardAnalyzer),
   ).filter { analyzer =>
     // NOTE: Since we use the indexers to determine which fields should be mapped
     //       we need to limit them to not exceed the elasticsearch limit of fields in a index.

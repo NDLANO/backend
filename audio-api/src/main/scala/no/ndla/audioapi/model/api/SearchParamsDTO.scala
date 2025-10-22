@@ -37,7 +37,7 @@ case class SearchParamsDTO(
     )
     filterBySeries: Option[Boolean],
     @description("Return all matched audios whether they exist on selected language or not.")
-    fallback: Option[Boolean]
+    fallback: Option[Boolean],
 )
 
 object SearchParamsDTO {

@@ -24,17 +24,16 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
   override lazy val searchConverterService                  = new SearchConverterService
 
-  val byNcSa: Copyright =
-    Copyright(
-      License.CC_BY_NC_SA.toString,
-      Some("Gotham City"),
-      List(Author(ContributorType.Writer, "DC Comics")),
-      Seq(),
-      Seq(),
-      None,
-      None,
-      false
-    )
+  val byNcSa: Copyright = Copyright(
+    License.CC_BY_NC_SA.toString,
+    Some("Gotham City"),
+    List(Author(ContributorType.Writer, "DC Comics")),
+    Seq(),
+    Seq(),
+    None,
+    None,
+    false,
+  )
   def updated(): NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   def created(): NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
@@ -45,7 +44,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Title("Titre francais", "fr"),
     Title("Deutsch titel", "de"),
     Title("Titulo espanol", "es"),
-    Title("Nekonata titolo", "unknown")
+    Title("Nekonata titolo", "unknown"),
   )
 
   val apiTitles: List[api.TitleDTO] = List(
@@ -55,14 +54,14 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     api.TitleDTO("Titre francais", "fr"),
     api.TitleDTO("Deutsch titel", "de"),
     api.TitleDTO("Titulo espanol", "es"),
-    api.TitleDTO("Nekonata titolo", "unknown")
+    api.TitleDTO("Nekonata titolo", "unknown"),
   )
 
   val audioFiles: Seq[Audio] = Seq(
     Audio("file.mp3", "audio/mpeg", 1024, "nb"),
     Audio("file2.mp3", "audio/mpeg", 2048, "nb"),
     Audio("file3.mp3", "audio/mpeg", 4096, "nb"),
-    Audio("file4.mp3", "audio/mpeg", 8192, "nb")
+    Audio("file4.mp3", "audio/mpeg", 8192, "nb"),
   )
 
   val audioTags: Seq[Tag] = Seq(
@@ -72,28 +71,29 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Tag(Seq("got", "tired"), "fr"),
     Tag(Seq("of", "translating"), "de"),
     Tag(Seq("all", "of"), "es"),
-    Tag(Seq("the", "words"), "unknown")
+    Tag(Seq("the", "words"), "unknown"),
   )
 
-  val sampleAudio: domain.AudioMetaInformation =
-    domain.AudioMetaInformation(
-      Some(1),
-      Some(1),
-      domainTitles,
-      audioFiles,
-      byNcSa,
-      audioTags,
-      "ndla124",
-      updated(),
-      created(),
-      Seq.empty,
-      AudioType.Standard,
-      Seq.empty,
-      None,
-      None
-    )
+  val sampleAudio: domain.AudioMetaInformation = domain.AudioMetaInformation(
+    Some(1),
+    Some(1),
+    domainTitles,
+    audioFiles,
+    byNcSa,
+    audioTags,
+    "ndla124",
+    updated(),
+    created(),
+    Seq.empty,
+    AudioType.Standard,
+    Seq.empty,
+    None,
+    None,
+  )
 
-  override def beforeAll(): Unit = { super.beforeAll() }
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+  }
 
   test("That asSearchableAudioInformation converts titles with correct language") {
     val searchableAudio = searchConverterService.asSearchableAudioInformation(sampleAudio)

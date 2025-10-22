@@ -51,46 +51,39 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
 
   test("That mapping contains every field after serialization") {
     val now         = NDLADate.now()
-    val domainDraft = TestData.draft1.copy(
-      content = Seq(
-        ArticleContent(
-          """<section><h1>hei</h1><ndlaembed data-resource="image" data-title="heidu" data-resource_id="1"></ndlaembed><ndlaembed data-resource="h5p" data-title="yo"></ndlaembed></section>""",
-          "nb"
-        )
-      ),
-      status = Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)),
-      notes = Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
-      previousVersionsNotes =
-        Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
-      revisionMeta = Seq(RevisionMeta(UUID.randomUUID(), now, "hei", RevisionStatus.NeedsRevision)),
-      traits = List(ArticleTrait.H5p),
-      copyright = Some(
-        DraftCopyright(
-          license = Some("hei"),
-          origin = Some("ho"),
-          creators = Seq(Author(ContributorType.Writer, "Jonas")),
-          processors = Seq(Author(ContributorType.Writer, "Jonas")),
-          rightsholders = Seq(Author(ContributorType.Writer, "Jonas")),
-          validFrom = Some(now),
-          validTo = Some(now),
-          false
-        )
-      ),
-      responsible = Some(
-        Responsible(
-          "yolo",
-          now
-        )
+    val domainDraft = TestData
+      .draft1
+      .copy(
+        content = Seq(
+          ArticleContent(
+            """<section><h1>hei</h1><ndlaembed data-resource="image" data-title="heidu" data-resource_id="1"></ndlaembed><ndlaembed data-resource="h5p" data-title="yo"></ndlaembed></section>""",
+            "nb",
+          )
+        ),
+        status = Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)),
+        notes = Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
+        previousVersionsNotes =
+          Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
+        revisionMeta = Seq(RevisionMeta(UUID.randomUUID(), now, "hei", RevisionStatus.NeedsRevision)),
+        traits = List(ArticleTrait.H5p),
+        copyright = Some(
+          DraftCopyright(
+            license = Some("hei"),
+            origin = Some("ho"),
+            creators = Seq(Author(ContributorType.Writer, "Jonas")),
+            processors = Seq(Author(ContributorType.Writer, "Jonas")),
+            rightsholders = Seq(Author(ContributorType.Writer, "Jonas")),
+            validFrom = Some(now),
+            validTo = Some(now),
+            false,
+          )
+        ),
+        responsible = Some(Responsible("yolo", now)),
       )
-    )
     val searchableToTestWith = searchConverterService
       .asSearchableDraft(
         domainDraft,
-        IndexingBundle(
-          Some(TestData.emptyGrepBundle),
-          Some(TestData.taxonomyTestBundle),
-          None
-        )
+        IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), None),
       )
       .get
 
@@ -104,7 +97,11 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
       val hasStatic  = staticMappingFields.contains(field)
       val hasDynamic = dynamicMappingFields.contains(field)
 
-      if (!(hasStatic || hasDynamic)) {
+      if (
+        !(
+          hasStatic || hasDynamic
+        )
+      ) {
         fail(s"'$field' was not found in mapping, i think you would want to add it to the index mapping?")
       }
     }

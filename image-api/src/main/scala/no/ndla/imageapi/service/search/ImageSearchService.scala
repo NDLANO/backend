@@ -33,7 +33,7 @@ class ImageSearchService(using
     e4sClient: NdlaE4sClient,
     imageIndexService: ImageIndexService,
     searchConverterService: SearchConverterService,
-    props: Props
+    props: Props,
 ) extends SearchService[(SearchableImage, MatchedLanguage)]
     with StrictLogging {
   private val noCopyright          = boolQuery().not(termQuery("license", License.Copyrighted.toString))
@@ -51,14 +51,12 @@ class ImageSearchService(using
     }
 
     sort match {
-      case Sort.ByTitleAsc =>
-        sortLanguage match {
+      case Sort.ByTitleAsc => sortLanguage match {
           case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Asc).missing("_last")
           case _   =>
             fieldSort(s"titles.$sortLanguage.raw").sortOrder(SortOrder.Asc).missing("_last").unmappedType("long")
         }
-      case Sort.ByTitleDesc =>
-        sortLanguage match {
+      case Sort.ByTitleDesc => sortLanguage match {
           case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Desc).missing("_last")
           case _   =>
             fieldSort(s"titles.$sortLanguage.raw").sortOrder(SortOrder.Desc).missing("_last").unmappedType("long")
@@ -74,36 +72,33 @@ class ImageSearchService(using
 
   private def convertToV2(
       result: Try[SearchResult[(SearchableImage, MatchedLanguage)]],
-      user: Option[TokenUser]
-  ): Try[SearchResult[ImageMetaSummaryDTO]] =
-    for {
-      searchResult <- result
-      summaries    <- searchResult.results.traverse { case (image, language) =>
+      user: Option[TokenUser],
+  ): Try[SearchResult[ImageMetaSummaryDTO]] = for {
+    searchResult <- result
+    summaries    <- searchResult
+      .results
+      .traverse { case (image, language) =>
         searchConverterService.asImageMetaSummary(image, language, user)
       }
-      convertedResult = searchResult.copy(results = summaries)
-    } yield convertedResult
+    convertedResult = searchResult.copy(results = summaries)
+  } yield convertedResult
 
   def scrollV2(scrollId: String, language: String, user: Option[TokenUser]): Try[SearchResult[ImageMetaSummaryDTO]] =
-    convertToV2(
-      scroll(scrollId, language),
-      user
-    )
+    convertToV2(scroll(scrollId, language), user)
 
   def matchingQuery(settings: SearchSettings, user: Option[TokenUser]): Try[SearchResult[ImageMetaSummaryDTO]] =
-    convertToV2(
-      matchingQueryV3(settings, user),
-      user
-    )
+    convertToV2(matchingQueryV3(settings, user), user)
 
   def matchingQueryV3(
       settings: SearchSettings,
-      user: Option[TokenUser]
+      user: Option[TokenUser],
   ): Try[SearchResult[(SearchableImage, MatchedLanguage)]] = {
     val fullSearch = settings.query.emptySomeToNone match {
       case None        => boolQuery()
       case Some(query) =>
-        val language = if (settings.fallback) "*" else settings.language
+        val language =
+          if (settings.fallback) "*"
+          else settings.language
 
         val queries = Seq(
           simpleStringQuery(query).field(s"titles.$language", 2),
@@ -111,7 +106,7 @@ class ImageSearchService(using
           simpleStringQuery(query).field(s"caption.$language", 2),
           simpleStringQuery(query).field(s"tags.$language", 2),
           simpleStringQuery(query).field("contributors", 1),
-          idsQuery(query)
+          idsQuery(query),
         )
 
         val maybeNoteQuery = Option.when(user.hasPermission(IMAGE_API_WRITE)) {
@@ -126,7 +121,7 @@ class ImageSearchService(using
 
   def executeSearch(
       queryBuilder: BoolQuery,
-      settings: SearchSettings
+      settings: SearchSettings,
   ): Try[SearchResult[(SearchableImage, MatchedLanguage)]] = {
 
     val licenseFilter = settings.license match {
@@ -136,19 +131,14 @@ class ImageSearchService(using
     }
 
     val sizeFilter = settings.minimumSize match {
-      case Some(size) =>
-        Some(
-          nestedQuery("imageFiles", rangeQuery("imageFiles.fileSize").gte(size.toLong))
-        )
-      case _ => None
+      case Some(size) => Some(nestedQuery("imageFiles", rangeQuery("imageFiles.fileSize").gte(size.toLong)))
+      case _          => None
     }
 
     val (languageFilter, searchLanguage) =
       if (Iso639.get(settings.language).isSuccess) {
-        if (settings.fallback)
-          (None, "*")
-        else
-          (Some(existsQuery(s"titles.${settings.language}")), settings.language)
+        if (settings.fallback) (None, "*")
+        else (Some(existsQuery(s"titles.${settings.language}")), settings.language)
       } else {
         (None, "*")
       }
@@ -177,31 +167,31 @@ class ImageSearchService(using
       )
       Failure(new ResultWindowTooLargeException(ImageErrorHelpers.WINDOW_TOO_LARGE_DESCRIPTION))
     } else {
-      val searchToExecute =
-        search(searchIndex)
-          .size(numResults)
-          .trackTotalHits(true)
-          .from(startAt)
-          .highlighting(highlight("*"))
-          .query(filteredSearch)
-          .sortBy(getSortDefinition(settings.sort, searchLanguage))
+      val searchToExecute = search(searchIndex)
+        .size(numResults)
+        .trackTotalHits(true)
+        .from(startAt)
+        .highlighting(highlight("*"))
+        .query(filteredSearch)
+        .sortBy(getSortDefinition(settings.sort, searchLanguage))
 
       // Only add scroll param if it is first page
       val searchWithScroll =
         if (startAt == 0 && settings.shouldScroll) {
           searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
-        } else { searchToExecute }
+        } else {
+          searchToExecute
+        }
 
       e4sClient.execute(searchWithScroll) match {
-        case Success(response) =>
-          getHits(response.result, settings.language).map(hits => {
+        case Success(response) => getHits(response.result, settings.language).map(hits => {
             SearchResult(
               response.result.totalHits,
               Some(settings.page.getOrElse(1)),
               numResults,
               searchLanguage,
               hits,
-              response.result.scrollId
+              response.result.scrollId,
             )
           })
         case Failure(ex) => errorHandler(ex)

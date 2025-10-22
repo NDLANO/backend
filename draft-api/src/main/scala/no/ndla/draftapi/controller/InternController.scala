@@ -47,7 +47,7 @@ class InternController(using
     props: DraftApiProperties,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController
     with StrictLogging {
   import errorHandling.*
@@ -56,18 +56,18 @@ class InternController(using
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 
-  def createIndexFuture(
-      indexService: IndexService[?, ?],
-      numShards: Option[Int]
-  )(implicit ec: ExecutionContext): Future[Try[ReindexResult]] = {
+  def createIndexFuture(indexService: IndexService[?, ?], numShards: Option[Int])(implicit
+      ec: ExecutionContext
+  ): Future[Try[ReindexResult]] = {
 
-    val fut = Future { indexService.indexDocuments(numShards) }
+    val fut = Future {
+      indexService.indexDocuments(numShards)
+    }
 
     val logEx = (ex: Throwable) => logger.error(s"Something went wrong when indexing ${indexService.documentType}:", ex)
 
     fut.onComplete {
-      case Success(Success(result)) =>
-        logger.info(
+      case Success(Success(result)) => logger.info(
           s"Successfully indexed ${result.totalIndexed} ${indexService.documentType}'s in ${result.millisUsed}ms"
         )
       case Failure(ex)          => logEx(ex)
@@ -87,10 +87,11 @@ class InternController(using
     deleteArticle,
     dumpArticles,
     dumpSingleArticle,
-    postDump
+    postDump,
   )
 
-  def postIndex: ServerEndpoint[Any, Eff] = endpoint.post
+  def postIndex: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("index")
     .in(query[Option[Int]]("numShards"))
     .out(stringBody)
@@ -115,14 +116,23 @@ class InternController(using
       }
     }
 
-  def deleteIndexLogic(@unused x: Unit): Either[String, String] = {
+  def deleteIndexLogic(
+      @unused
+      x: Unit
+  ): Either[String, String] = {
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-    def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
+    def pluralIndex(n: Int) =
+      if (n == 1) "1 index"
+      else s"$n indexes"
 
     val indexes = for {
-      articleIndex <- Future { articleIndexService.findAllIndexes(props.DraftSearchIndex) }
-      tagIndex     <- Future { tagIndexService.findAllIndexes(props.DraftTagSearchIndex) }
+      articleIndex <- Future {
+        articleIndexService.findAllIndexes(props.DraftSearchIndex)
+      }
+      tagIndex <- Future {
+        tagIndexService.findAllIndexes(props.DraftTagSearchIndex)
+      }
     } yield (articleIndex, tagIndex)
 
     val deleteResults: Seq[Try[?]] = Await.result(indexes, Duration(10, TimeUnit.MINUTES)) match {
@@ -152,13 +162,15 @@ class InternController(using
 
   }
 
-  def deleteIndex: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteIndex: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .in("index")
     .out(stringBody)
     .errorOut(stringInternalServerError)
     .serverLogicPure(deleteIndexLogic)
 
-  def getIds: ServerEndpoint[Any, Eff] = endpoint.get
+  def getIds: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("ids")
     .in(query[Option[String]]("status"))
     .errorOut(errorOutputsFor(400))
@@ -172,7 +184,8 @@ class InternController(using
       }
     }
 
-  def importExternalId: ServerEndpoint[Any, Eff] = endpoint.get
+  def importExternalId: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("import-id" / path[String]("external_id"))
     .errorOut(errorOutputsFor(400, 404))
     .out(jsonBody[ImportId])
@@ -183,7 +196,8 @@ class InternController(using
       }
     }
 
-  def getByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
+  def getByExternalId: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("id" / path[String]("external_id"))
     .out(jsonBody[Long])
     .errorOut(errorOutputsFor(404))
@@ -194,7 +208,8 @@ class InternController(using
       }
     }
 
-  def getArticles: ServerEndpoint[Any, Eff] = endpoint.get
+  def getArticles: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("articles")
     .in(query[Int]("page").default(1))
     .in(query[Int]("page-size").default(250))
@@ -210,7 +225,7 @@ class InternController(using
       id: Long,
       user: TokenUser,
       maxRetries: Int = 10,
-      retries: Int = 0
+      retries: Int = 0,
   ): Try[ContentIdDTO] = {
     articleApiClient.deleteArticle(id, user) match {
       case Failure(_) if retries <= maxRetries => deleteArticleWithRetries(id, user, maxRetries, retries + 1)
@@ -219,18 +234,19 @@ class InternController(using
     }
   }
 
-  def deleteArticle: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteArticle: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .in("article" / path[Long]("id"))
     .out(jsonBody[ContentIdDTO])
     .errorOut(errorOutputsFor(404))
     .requirePermission(DRAFT_API_WRITE)
     .serverLogicPure { user => id =>
-      deleteArticleWithRetries(id, user)
-        .flatMap(id => writeService.deleteArticle(id.id))
+      deleteArticleWithRetries(id, user).flatMap(id => writeService.deleteArticle(id.id))
 
     }
 
-  def dumpArticles: ServerEndpoint[Any, Eff] = endpoint.get
+  def dumpArticles: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("dump" / "article")
     .in(query[Int]("page").default(1))
     .in(query[Int]("page-size").default(250))
@@ -239,7 +255,8 @@ class InternController(using
       readService.getArticleDomainDump(pageNo, pageSize).asRight
     }
 
-  def dumpSingleArticle: ServerEndpoint[Any, Eff] = endpoint.get
+  def dumpSingleArticle: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("dump" / "article" / path[Long]("id"))
     .errorOut(errorOutputsFor(404))
     .out(jsonBody[Draft])
@@ -250,7 +267,8 @@ class InternController(using
       }
     }
 
-  def postDump: ServerEndpoint[Any, Eff] = endpoint.post
+  def postDump: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("dump" / "article")
     .in(jsonBody[Draft])
     .errorOut(errorOutputsFor(400, 500))

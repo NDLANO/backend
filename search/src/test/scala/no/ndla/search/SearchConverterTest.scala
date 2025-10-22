@@ -18,13 +18,7 @@ class SearchConverterTest extends UnitTestSuiteBase {
     val html    =
       s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="image" data-resource_id="$imageId"></ndlaembed>"""
 
-    val expected = List(
-      EmbedValues(
-        id = List(imageId),
-        resource = Some("image"),
-        language = "nb"
-      )
-    )
+    val expected = List(EmbedValues(id = List(imageId), resource = Some("image"), language = "nb"))
 
     SearchConverter.getEmbedValues(html, "nb") should be(expected)
 
@@ -36,13 +30,7 @@ class SearchConverterTest extends UnitTestSuiteBase {
     val html           =
       s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="video" data-videoid="$videoIdAndData"></ndlaembed>"""
 
-    val expected = List(
-      EmbedValues(
-        id = List(videoId),
-        resource = Some("video"),
-        language = "nb"
-      )
-    )
+    val expected = List(EmbedValues(id = List(videoId), resource = Some("video"), language = "nb"))
 
     SearchConverter.getEmbedValues(html, "nb") should be(expected)
   }

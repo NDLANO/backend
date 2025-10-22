@@ -35,10 +35,9 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
     }
   }
 
-  def emptyTestDatabase: Boolean =
-    DB autoCommit (implicit session => {
-      sql"delete from imagemetadata;".execute()(using session)
-    })
+  def emptyTestDatabase: Boolean = DB autoCommit (implicit session => {
+    sql"delete from imagemetadata;".execute()(using session)
+  })
 
   override def beforeAll(): Unit = {
     super.beforeAll()

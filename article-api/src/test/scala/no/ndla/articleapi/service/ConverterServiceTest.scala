@@ -23,13 +23,13 @@ import no.ndla.common.model.domain.{
   RequiredLibrary,
   Tag,
   Title,
-  article
+  article,
 }
 import no.ndla.common.model.domain.article.{
   ArticleMetaDescriptionDTO,
   ArticleTagDTO,
   Copyright,
-  PartialPublishArticleDTO
+  PartialPublishArticleDTO,
 }
 import no.ndla.mapping.License
 import org.mockito.Mockito.when
@@ -52,11 +52,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toApiLicense converts a short license string to a license object with description and url") {
     service.toApiLicense("CC-BY-4.0") should equal(
-      model.api.LicenseDTO(
-        "CC-BY-4.0",
-        Some("Creative Commons Attribution 4.0 International"),
-        Some("https://creativecommons.org/licenses/by/4.0/")
-      )
+      model
+        .api
+        .LicenseDTO(
+          "CC-BY-4.0",
+          Some("Creative Commons Attribution 4.0 International"),
+          Some("https://creativecommons.org/licenses/by/4.0/"),
+        )
     )
   }
 
@@ -66,7 +68,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       api.ArticleTitleDTO(
         "Title with ukrainian word",
         "Title with <span data-language=\"uk\">ukrainian</span> word",
-        "en"
+        "en",
       )
     )
   }
@@ -88,7 +90,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val result = service.toApiArticleV2(
       TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ Title("hehe", "und")),
       "nb",
-      false
+      false,
     )
     result.get.supportedLanguages should be(Seq("nb", "und"))
   }
@@ -177,10 +179,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedTags  = Seq(
       Tag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"),
       Tag(Seq("new-nn-tag1"), "nn"),
-      Tag(Seq("new-es-tag1", "new-es-tag2"), "es")
+      Tag(Seq("new-es-tag1", "new-es-tag2"), "es"),
     )
-    val expectedTags =
-      Seq(Tag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"), Tag(Seq("Guten", "Tag"), "de"))
+    val expectedTags = Seq(Tag(Seq("new-nb-tag1", "new-nb-tag2", "new-nb-tag3"), "nb"), Tag(Seq("Guten", "Tag"), "de"))
 
     service.updateExistingTagsField(existingTags, updatedTags) should be(expectedTags)
     service.updateExistingTagsField(existingTags, Seq.empty) should be(existingTags)
@@ -189,13 +190,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("That updateExistingArticleMetaDescription updates metaDesc correctly") {
     val existingMetaDesc = Seq(Description("nb-content", "nb"), Description("en-content", "en"))
-    val updatedMetaDesc  = Seq(
-      Description("new-nb-content", "nb"),
-      Description("new-nn-content", "nn"),
-      Description("new-es-content", "es")
-    )
-    val expectedMetaDesc =
-      Seq(Description("new-nb-content", "nb"), Description("en-content", "en"))
+    val updatedMetaDesc  =
+      Seq(Description("new-nb-content", "nb"), Description("new-nn-content", "nn"), Description("new-es-content", "es"))
+    val expectedMetaDesc = Seq(Description("new-nb-content", "nb"), Description("en-content", "en"))
 
     service.updateExistingMetaDescriptionField(existingMetaDesc, updatedMetaDesc) should be(expectedMetaDesc)
     service.updateExistingMetaDescriptionField(existingMetaDesc, Seq.empty) should be(existingMetaDesc)
@@ -203,98 +200,104 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateArticleFields updates all fields") {
-    val existingArticle = TestData.sampleDomainArticle.copy(
-      availability = Availability.everyone,
-      grepCodes = Seq("old", "code"),
-      copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
-      metaDescription = Seq(Description("gammelDesc", "nb")),
-      relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
-      tags = Seq(Tag(Seq("gammel", "Tag"), "nb"))
-    )
+    val existingArticle = TestData
+      .sampleDomainArticle
+      .copy(
+        availability = Availability.everyone,
+        grepCodes = Seq("old", "code"),
+        copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
+        metaDescription = Seq(Description("gammelDesc", "nb")),
+        relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
+        tags = Seq(Tag(Seq("gammel", "Tag"), "nb")),
+      )
 
     val revisionDate = NDLADate.now()
 
-    val partialArticle =
-      PartialPublishArticleDTO(
-        availability = Some(Availability.teacher),
-        grepCodes = Some(Seq("New", "grep", "codes")),
-        license = Some("newLicense"),
-        metaDescription = Some(Seq(ArticleMetaDescriptionDTO("nyDesc", "nb"))),
-        relatedContent = Some(
-          Seq(
-            Left(commonApi.RelatedContentLinkDTO("New Title", "New Url")),
-            Left(commonApi.RelatedContentLinkDTO("Newer Title", "Newer Url")),
-            Right(42L)
-          )
-        ),
-        tags = Some(Seq(ArticleTagDTO(Seq("nye", "Tags"), "nb"))),
-        revisionDate = UpdateWith(revisionDate),
-        published = Some(revisionDate)
-      )
-    val updatedArticle = TestData.sampleDomainArticle.copy(
-      availability = Availability.teacher,
-      grepCodes = Seq("New", "grep", "codes"),
-      copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
-      metaDescription = Seq(Description("nyDesc", "nb")),
-      relatedContent = Seq(
-        Left(RelatedContentLink("New Title", "New Url")),
-        Left(RelatedContentLink("Newer Title", "Newer Url")),
-        Right(42L)
+    val partialArticle = PartialPublishArticleDTO(
+      availability = Some(Availability.teacher),
+      grepCodes = Some(Seq("New", "grep", "codes")),
+      license = Some("newLicense"),
+      metaDescription = Some(Seq(ArticleMetaDescriptionDTO("nyDesc", "nb"))),
+      relatedContent = Some(
+        Seq(
+          Left(commonApi.RelatedContentLinkDTO("New Title", "New Url")),
+          Left(commonApi.RelatedContentLinkDTO("Newer Title", "Newer Url")),
+          Right(42L),
+        )
       ),
-      tags = Seq(Tag(Seq("nye", "Tags"), "nb")),
-      revisionDate = Some(revisionDate),
-      published = revisionDate
+      tags = Some(Seq(ArticleTagDTO(Seq("nye", "Tags"), "nb"))),
+      revisionDate = UpdateWith(revisionDate),
+      published = Some(revisionDate),
     )
+    val updatedArticle = TestData
+      .sampleDomainArticle
+      .copy(
+        availability = Availability.teacher,
+        grepCodes = Seq("New", "grep", "codes"),
+        copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
+        metaDescription = Seq(Description("nyDesc", "nb")),
+        relatedContent = Seq(
+          Left(RelatedContentLink("New Title", "New Url")),
+          Left(RelatedContentLink("Newer Title", "Newer Url")),
+          Right(42L),
+        ),
+        tags = Seq(Tag(Seq("nye", "Tags"), "nb")),
+        revisionDate = Some(revisionDate),
+        published = revisionDate,
+      )
 
     service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)
 
   }
 
   test("That updateArticleFields does not create new fields") {
-    val existingArticle = TestData.sampleDomainArticle.copy(
-      availability = Availability.everyone,
-      grepCodes = Seq("old", "code"),
-      copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
-      metaDescription = Seq(Description("oldDesc", "de")),
-      relatedContent =
-        Seq(Left(RelatedContentLink("title1", "url1")), Left(RelatedContentLink("old title", "old url"))),
-      tags = Seq(Tag(Seq("Gluten", "Tag"), "de"))
-    )
+    val existingArticle = TestData
+      .sampleDomainArticle
+      .copy(
+        availability = Availability.everyone,
+        grepCodes = Seq("old", "code"),
+        copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
+        metaDescription = Seq(Description("oldDesc", "de")),
+        relatedContent =
+          Seq(Left(RelatedContentLink("title1", "url1")), Left(RelatedContentLink("old title", "old url"))),
+        tags = Seq(Tag(Seq("Gluten", "Tag"), "de")),
+      )
 
     val revisionDate   = NDLADate.now()
-    val partialArticle =
-      article.PartialPublishArticleDTO(
-        availability = Some(Availability.teacher),
-        grepCodes = Some(Seq("New", "grep", "codes")),
-        license = Some("newLicense"),
-        metaDescription = Some(
-          Seq(
-            article.ArticleMetaDescriptionDTO("nyDesc", "nb"),
-            article.ArticleMetaDescriptionDTO("newDesc", "en"),
-            article.ArticleMetaDescriptionDTO("neuDesc", "de")
-          )
-        ),
-        relatedContent = Some(Seq(Right(42L), Right(420L), Right(4200L))),
-        tags = Some(
-          Seq(
-            article.ArticleTagDTO(Seq("nye", "Tags"), "nb"),
-            article.ArticleTagDTO(Seq("new", "Tagss"), "en"),
-            article.ArticleTagDTO(Seq("Guten", "Tag"), "de")
-          )
-        ),
-        revisionDate = UpdateWith(revisionDate),
-        published = Some(revisionDate)
-      )
-    val updatedArticle = TestData.sampleDomainArticle.copy(
-      availability = Availability.teacher,
-      grepCodes = Seq("New", "grep", "codes"),
-      copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
-      metaDescription = Seq(Description("neuDesc", "de")),
-      relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
-      tags = Seq(Tag(Seq("Guten", "Tag"), "de")),
-      revisionDate = Some(revisionDate),
-      published = revisionDate
+    val partialArticle = article.PartialPublishArticleDTO(
+      availability = Some(Availability.teacher),
+      grepCodes = Some(Seq("New", "grep", "codes")),
+      license = Some("newLicense"),
+      metaDescription = Some(
+        Seq(
+          article.ArticleMetaDescriptionDTO("nyDesc", "nb"),
+          article.ArticleMetaDescriptionDTO("newDesc", "en"),
+          article.ArticleMetaDescriptionDTO("neuDesc", "de"),
+        )
+      ),
+      relatedContent = Some(Seq(Right(42L), Right(420L), Right(4200L))),
+      tags = Some(
+        Seq(
+          article.ArticleTagDTO(Seq("nye", "Tags"), "nb"),
+          article.ArticleTagDTO(Seq("new", "Tagss"), "en"),
+          article.ArticleTagDTO(Seq("Guten", "Tag"), "de"),
+        )
+      ),
+      revisionDate = UpdateWith(revisionDate),
+      published = Some(revisionDate),
     )
+    val updatedArticle = TestData
+      .sampleDomainArticle
+      .copy(
+        availability = Availability.teacher,
+        grepCodes = Seq("New", "grep", "codes"),
+        copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
+        metaDescription = Seq(Description("neuDesc", "de")),
+        relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
+        tags = Seq(Tag(Seq("Guten", "Tag"), "de")),
+        revisionDate = Some(revisionDate),
+        published = revisionDate,
+      )
 
     service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)
   }

@@ -16,7 +16,7 @@ import no.ndla.draftapi.model.api.{
   ArticleVersioningException,
   DraftErrorHelpers,
   GenerateIDException,
-  NotFoundException
+  NotFoundException,
 }
 import no.ndla.draftapi.model.domain.*
 import no.ndla.network.tapir.auth.TokenUser
@@ -67,11 +67,15 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
               .map(u => EditorNote("Artikkelen har blitt lagret som ny versjon", u.id, article.status, clock.now()))
               .toList,
             previousVersionsNotes = article.previousVersionsNotes ++ article.notes,
-            responsible = if (keepDraftData) article.responsible else None,
-            priority = if (keepDraftData) article.priority else Priority.Unspecified,
+            responsible =
+              if (keepDraftData) article.responsible
+              else None,
+            priority =
+              if (keepDraftData) article.priority
+              else Priority.Unspecified,
             comments =
               if (keepDraftData | article.articleType == ArticleType.TopicArticle) article.comments
-              else Seq.empty
+              else Seq.empty,
           )
 
           val dataObject = new PGobject()
@@ -80,8 +84,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
           val uuid = Try(importId.map(UUID.fromString)).toOption.flatten
           val slug = article.slug.map(_.toLowerCase)
 
-          val dbId: Long =
-            sql"""
+          val dbId: Long = sql"""
                  insert into ${DBArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id, slug)
                  values (ARRAY[$externalIds]::text[],
                          ARRAY[$externalSubjectIds]::text[],
@@ -100,10 +103,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
 
   def newEmptyArticleId()(implicit session: DBSession): Try[Long] = {
     Try(
-      sql"SELECT NEXTVAL('article_id_sequence') as article_id"
-        .map(rs => rs.long("article_id"))
-        .single
-        .apply()
+      sql"SELECT NEXTVAL('article_id_sequence') as article_id".map(rs => rs.long("article_id")).single.apply()
     ) match {
       case Success(Some(articleId)) =>
         logger.info(s"Generated new article id: $articleId")
@@ -152,8 +152,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
       case None    => article.notes
     }
 
-    val count =
-      sql"""
+    val count = sql"""
               update ${DBArticle.table}
               set document=jsonb_set($dataObject,'{notes}',(${CirceUtil.toJsonString(notes.distinct)}::jsonb)),
               revision=$newRevision,
@@ -165,9 +164,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
   }
 
   private def editorNotesFromRS(rs: WrappedResultSet): Seq[EditorNote] = {
-    Option(rs.string("notes"))
-      .map(CirceUtil.unsafeParseAs[Seq[EditorNote]](_))
-      .getOrElse(Seq.empty)
+    Option(rs.string("notes")).map(CirceUtil.unsafeParseAs[Seq[EditorNote]](_)).getOrElse(Seq.empty)
   }
 
   def updateArticleNotes(articleId: Long, notes: Seq[EditorNote])(implicit session: DBSession): Try[Boolean] = {
@@ -175,8 +172,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(notes))
 
-    val count =
-      sql"""
+    val count = sql"""
               update ${DBArticle.table}
               set document=jsonb_set(document, '{notes}',(document -> 'notes') || $dataObject)
               where article_id=${articleId}
@@ -189,14 +185,11 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     }
   }
 
-  def withId(articleId: Long)(implicit session: DBSession): Option[Draft] =
-    articleWhere(
-      sqls"""
+  def withId(articleId: Long)(implicit session: DBSession): Option[Draft] = articleWhere(sqls"""
               ar.article_id=${articleId.toInt}
               ORDER BY revision
               DESC LIMIT 1
-              """
-    )
+              """)
 
   def withIds(articleIds: List[Long], offset: Long, pageSize: Long)(implicit
       session: DBSession = ReadOnlyAutoSession
@@ -215,16 +208,13 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
         )
         offset $offset
         limit $pageSize
-         """
-      .map(DBArticle.fromResultSet(ar))
-      .list()
+         """.map(DBArticle.fromResultSet(ar)).list()
   }
 
   def idsWithStatus(status: DraftStatus)(implicit session: DBSession): Try[List[ArticleIds]] = {
     val ar = DBArticle.syntax("ar")
     Try(
-      sql"select article_id, external_id from ${DBArticle
-          .as(ar)} where ar.document is not NULL and ar.document#>>'{status,current}' = ${status.toString}"
+      sql"select article_id, external_id from ${DBArticle.as(ar)} where ar.document is not NULL and ar.document#>>'{status,current}' = ${status.toString}"
         .map(rs => ArticleIds(rs.long("article_id"), externalIdsFromResultSet(rs)))
         .list()
     )
@@ -260,7 +250,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
         .toList()
     ).flatMap {
       case List(current, previous) => Success((current, previous))
-      case _ => Failure(NotFoundException(s"Article with id $articleId has fewer than 2 revisions"))
+      case _                       => Failure(NotFoundException(s"Article with id $articleId has fewer than 2 revisions"))
     }
   }
 
@@ -308,12 +298,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
 
   def getAllIds(implicit session: DBSession): Seq[ArticleIds] = {
     sql"select article_id, max(external_id) as external_id from ${DBArticle.table} group by article_id order by article_id asc"
-      .map(rs =>
-        ArticleIds(
-          rs.long("article_id"),
-          externalIdsFromResultSet(rs)
-        )
-      )
+      .map(rs => ArticleIds(rs.long("article_id"), externalIdsFromResultSet(rs)))
       .list()
   }
 
@@ -339,9 +324,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
            order by row_id
            offset $offset
            limit $pageSize
-      """
-      .map(DBArticle.fromResultSet(ar))
-      .list()
+      """.map(DBArticle.fromResultSet(ar)).list()
   }
 
   def minMaxArticleId(implicit session: DBSession): (Long, Long) = {
@@ -381,9 +364,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
              where b.article_id = ar.article_id
            )
 
-           """
-      .map(DBArticle.fromResultSet(ar))
-      .list()
+           """.map(DBArticle.fromResultSet(ar)).list()
   }
 
   override def documentsWithIdBetween(min: Long, max: Long)(implicit
@@ -403,14 +384,10 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
              where b.article_id = ar.article_id
            )
 
-           """
-      .map(DBArticle.fromResultSet(ar))
-      .list()
+           """.map(DBArticle.fromResultSet(ar)).list()
   }
 
-  private def articleWhere(
-      whereClause: SQLSyntax
-  )(implicit session: DBSession): Option[Draft] = {
+  private def articleWhere(whereClause: SQLSyntax)(implicit session: DBSession): Option[Draft] = {
     val ar = DBArticle.syntax("ar")
 
     sql"select ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL and $whereClause "
@@ -418,12 +395,9 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
       .single()
   }
 
-  def articlesWithId(articleId: Long): List[Draft] =
-    articlesWhere(sqls"ar.article_id = $articleId").toList
+  def articlesWithId(articleId: Long): List[Draft] = articlesWhere(sqls"ar.article_id = $articleId").toList
 
-  private def articlesWhere(
-      whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): Seq[Draft] = {
+  private def articlesWhere(whereClause: SQLSyntax)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Draft] = {
     val ar = DBArticle.syntax("ar")
     sql"select ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL and $whereClause"
       .map(DBArticle.fromResultSet(ar))
@@ -442,9 +416,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
   def withSlug(slug: String)(implicit session: DBSession): Option[Draft] =
     articleWhere(sqls"ar.slug=${slug.toLowerCase} ORDER BY revision DESC LIMIT 1")
 
-  def slugExists(slug: String, articleId: Option[Long])(implicit
-      session: DBSession = ReadOnlyAutoSession
-  ): Boolean = {
+  def slugExists(slug: String, articleId: Option[Long])(implicit session: DBSession = ReadOnlyAutoSession): Boolean = {
     val sq = articleId match {
       case None     => sql"select count(*) from ${DBArticle.table} where slug = ${slug.toLowerCase}"
       case Some(id) =>

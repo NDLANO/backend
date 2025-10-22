@@ -47,7 +47,7 @@ class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       key = ConfigKey.LearningpathWriteRestricted,
       value = BooleanValue(true),
       updatedAt = NDLADate.fromUnixTime(0),
-      updatedBy = "ndlaUser1"
+      updatedBy = "ndlaUser1",
     )
 
     repository.updateConfigParam(newConfig)
@@ -61,7 +61,7 @@ class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       key = ConfigKey.LearningpathWriteRestricted,
       value = BooleanValue(true),
       updatedAt = NDLADate.fromUnixTime(0),
-      updatedBy = "ndlaUser1"
+      updatedBy = "ndlaUser1",
     )
 
     repository.updateConfigParam(originalConfig)
@@ -72,7 +72,7 @@ class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       key = ConfigKey.LearningpathWriteRestricted,
       value = BooleanValue(false),
       updatedAt = NDLADate.fromUnixTime(10000),
-      updatedBy = "ndlaUser2"
+      updatedBy = "ndlaUser2",
     )
 
     repository.updateConfigParam(updatedConfig)

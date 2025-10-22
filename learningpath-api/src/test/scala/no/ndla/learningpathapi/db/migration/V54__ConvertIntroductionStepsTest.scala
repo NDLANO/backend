@@ -21,8 +21,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val oldStepDocument =
-      """
+    val oldStepDocument = """
         |{
         | "type": "INTRODUCTION",
         | "seqNo": 0,
@@ -75,8 +74,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val deletedStepDocument =
-      """
+    val deletedStepDocument = """
         |{
         | "type": "INTRODUCTION",
         | "seqNo": "0",
@@ -92,8 +90,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val oldStepDocument =
-      """
+    val oldStepDocument = """
         |{
         | "type": "INTRODUCTION",
         | "seqNo": 1,
@@ -130,11 +127,10 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
 
     val expectedPathJson = CirceUtil.tryParse(expectedPathDocument).get
 
-    val (lpData, stepData) =
-      migration.convertPathAndSteps(
-        LpDocumentRow(1, oldPathDocument),
-        List(StepDocumentRow(1, deletedStepDocument), StepDocumentRow(2, oldStepDocument))
-      )
+    val (lpData, stepData) = migration.convertPathAndSteps(
+      LpDocumentRow(1, oldPathDocument),
+      List(StepDocumentRow(1, deletedStepDocument), StepDocumentRow(2, oldStepDocument)),
+    )
 
     val resultPathJson = CirceUtil.tryParse(lpData.learningPathDocument).get
     resultPathJson should be(expectedPathJson)
@@ -149,8 +145,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val oldStepDocument =
-      """
+    val oldStepDocument = """
         |{
         | "type": "INTRODUCTION",
         | "seqNo": 0,
@@ -185,10 +180,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
     val expectedPathJson = CirceUtil.tryParse(expectedPathDocument).get
 
     val (lpData, stepData) =
-      migration.convertPathAndSteps(
-        LpDocumentRow(1, oldPathDocument),
-        List(StepDocumentRow(1, oldStepDocument))
-      )
+      migration.convertPathAndSteps(LpDocumentRow(1, oldPathDocument), List(StepDocumentRow(1, oldStepDocument)))
 
     val resultPathJson = CirceUtil.tryParse(lpData.learningPathDocument).get
     resultPathJson should be(expectedPathJson)
@@ -204,8 +196,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val textDocument =
-      """
+    val textDocument = """
         |{
         | "type": "TEXT",
         | "seqNo": 0,
@@ -225,8 +216,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val introDocument =
-      """
+    val introDocument = """
         |{
         | "type": "INTRODUCTION",
         | "seqNo": 1,
@@ -252,11 +242,10 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
           |}
         """.stripMargin
 
-    val (lpData, stepData) =
-      migration.convertPathAndSteps(
-        LpDocumentRow(1, oldPathDocument),
-        List(StepDocumentRow(1, textDocument), StepDocumentRow(2, introDocument))
-      )
+    val (lpData, stepData) = migration.convertPathAndSteps(
+      LpDocumentRow(1, oldPathDocument),
+      List(StepDocumentRow(1, textDocument), StepDocumentRow(2, introDocument)),
+    )
 
     val expectedPathJson = CirceUtil.tryParse(expectedPathDocument).get
 
@@ -272,8 +261,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val oldStepDocument =
-      """
+    val oldStepDocument = """
         |{
         | "type": "INTRODUCTION",
         | "seqNo": 0,
@@ -303,10 +291,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
     val expectedPathJson = CirceUtil.tryParse(expectedPathDocument).get
 
     val (lpData, stepData) =
-      migration.convertPathAndSteps(
-        LpDocumentRow(1, oldPathDocument),
-        List(StepDocumentRow(1, oldStepDocument))
-      )
+      migration.convertPathAndSteps(LpDocumentRow(1, oldPathDocument), List(StepDocumentRow(1, oldStepDocument)))
 
     val resultPathJson = CirceUtil.tryParse(lpData.learningPathDocument).get
     resultPathJson should be(expectedPathJson)
@@ -322,8 +307,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val firstStepDocument =
-      """
+    val firstStepDocument = """
         |{
         | "type": "INTRODUCTION",
         | "seqNo": 0,
@@ -339,8 +323,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val secondStepDocument =
-      """
+    val secondStepDocument = """
         |{
         | "type": "TEXT",
         | "seqNo": 1,
@@ -356,8 +339,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val thirdStepDocument =
-      """
+    val thirdStepDocument = """
         |{
         | "type": "INTRODUCTION",
         | "seqNo": 2,
@@ -373,8 +355,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val fourthStepDocument =
-      """
+    val fourthStepDocument = """
         |{
         | "type": "TEXT",
         | "seqNo": 3,
@@ -390,8 +371,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val fifthStepDocument =
-      """
+    val fifthStepDocument = """
         |{
         | "type": "TEXT",
         | "seqNo": 4,
@@ -407,8 +387,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val firstExpectedStepDocument =
-      """
+    val firstExpectedStepDocument = """
         |{
         | "type": "INTRODUCTION",
         | "seqNo": 0,
@@ -424,8 +403,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val secondExpectedStepDocument =
-      """
+    val secondExpectedStepDocument = """
         |{
         | "type": "TEXT",
         | "seqNo": 1,
@@ -441,8 +419,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val thirdExpectedStepDocument =
-      """
+    val thirdExpectedStepDocument = """
         |{
         | "type": "TEXT",
         | "seqNo": 2,
@@ -458,8 +435,7 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
         |}
         |""".stripMargin
 
-    val fourthExpectedStepDocument =
-      """
+    val fourthExpectedStepDocument = """
         |{
         | "type": "TEXT",
         | "seqNo": 3,
@@ -488,17 +464,16 @@ class V54__ConvertIntroductionStepsTest extends UnitSuite, TestEnvironment {
 
     val expectedPathJson = CirceUtil.tryParse(expectedPathDocument).get
 
-    val (lpData, stepData) =
-      migration.convertPathAndSteps(
-        LpDocumentRow(1, oldPathDocument),
-        List(
-          StepDocumentRow(1, firstStepDocument),
-          StepDocumentRow(2, secondStepDocument),
-          StepDocumentRow(3, thirdStepDocument),
-          StepDocumentRow(4, fourthStepDocument),
-          StepDocumentRow(5, fifthStepDocument)
-        )
-      )
+    val (lpData, stepData) = migration.convertPathAndSteps(
+      LpDocumentRow(1, oldPathDocument),
+      List(
+        StepDocumentRow(1, firstStepDocument),
+        StepDocumentRow(2, secondStepDocument),
+        StepDocumentRow(3, thirdStepDocument),
+        StepDocumentRow(4, fourthStepDocument),
+        StepDocumentRow(5, fifthStepDocument),
+      ),
+    )
 
     val resultPathJson = CirceUtil.tryParse(lpData.learningPathDocument).get
     resultPathJson should be(expectedPathJson)

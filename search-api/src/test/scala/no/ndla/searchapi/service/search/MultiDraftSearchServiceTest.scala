@@ -76,24 +76,27 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   private def expectedAllPublicDrafts(language: String) = {
-    val x = if (language == "*") { draftsToIndex }
-    else {
-      draftsToIndex.filter(_.title.map(_.language).contains(language))
-    }
+    val x =
+      if (language == "*") {
+        draftsToIndex
+      } else {
+        draftsToIndex.filter(_.title.map(_.language).contains(language))
+      }
     x.filterNot(_.status.current == DraftStatus.ARCHIVED).filterNot(_.status.current == DraftStatus.UNPUBLISHED)
   }
 
   private def expectedAllPublicLearningPaths(language: String) = {
-    val x = if (language == "*") { learningPathsToIndex }
-    else {
-      learningPathsToIndex.filter(_.title.map(_.language).contains(language))
-    }
+    val x =
+      if (language == "*") {
+        learningPathsToIndex
+      } else {
+        learningPathsToIndex.filter(_.title.map(_.language).contains(language))
+      }
     x.filter(_.verificationStatus == CREATED_BY_NDLA).filter(_.copyright.license != License.Copyrighted.toString)
   }
 
-  private def idsForLang(language: String) =
-    expectedAllPublicDrafts(language).map(_.id.get) ++
-      expectedAllPublicLearningPaths(language).map(_.id.get)
+  private def idsForLang(language: String) = expectedAllPublicDrafts(language).map(_.id.get) ++
+    expectedAllPublicLearningPaths(language).map(_.id.get)
 
   private def titlesForLang(language: String) = {
     expectedAllPublicDrafts(language).map(_.title.find(_.language == language || language == "*").get.title) ++
@@ -166,14 +169,12 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That paging returns only hits on current page and not more than page-size") {
-    val Success(page1) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(page = 1, pageSize = 2, sort = Sort.ByIdAsc)
-      ): @unchecked
-    val Success(page2) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(page = 2, pageSize = 2, sort = Sort.ByIdAsc)
-      ): @unchecked
+    val Success(page1) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(page = 1, pageSize = 2, sort = Sort.ByIdAsc)
+    ): @unchecked
+    val Success(page2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(page = 2, pageSize = 2, sort = Sort.ByIdAsc)
+    ): @unchecked
     val expected = idsForLang("nb")
     val hits1    = page1.summaryResults
     val hits2    = page2.summaryResults
@@ -190,23 +191,21 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That search matches title and html-content ordered by relevance descending") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("bil").get), sort = Sort.ByRelevanceDesc)
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("bil").get), sort = Sort.ByRelevanceDesc)
+    ): @unchecked
     results.totalCount should be(3)
     results.summaryResults.map(_.id) should be(Seq(1, 5, 3))
   }
 
   test("That search combined with filter by id only returns documents matching the query with one of the given ids") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("bil").get),
-          sort = Sort.ByRelevanceDesc,
-          withIdIn = List(3)
-        )
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("bil").get),
+        sort = Sort.ByRelevanceDesc,
+        withIdIn = List(3),
+      )
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(3)
@@ -214,10 +213,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That search matches title") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("Pingvinen").get), sort = Sort.ByTitleAsc)
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("Pingvinen").get), sort = Sort.ByTitleAsc)
+    ): @unchecked
 
     results.summaryResults.map(_.contexts.head.contextType) should be(Seq("learningpath", "standard"))
     results.summaryResults.map(_.id) should be(Seq(1, 2))
@@ -225,10 +223,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That search matches updatedBy") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(sort = Sort.ByIdAsc, userFilter = List("ndalId54321"))
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(sort = Sort.ByIdAsc, userFilter = List("ndalId54321"))
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(13)
     hits.head.id should be(1)
@@ -237,10 +234,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That search matches notes") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(sort = Sort.ByIdAsc, userFilter = List("ndalId12345"))
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(sort = Sort.ByIdAsc, userFilter = List("ndalId12345"))
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(5)
@@ -248,10 +244,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That search matches tags") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("and").get), sort = Sort.ByTitleAsc)
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("and").get), sort = Sort.ByTitleAsc)
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(2)
     hits.head.id should be(3)
@@ -260,37 +255,28 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That search returns superman since license is specified as copyrighted") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("supermann").get),
-          license = Some(License.Copyrighted.toString),
-          sort = Sort.ByTitleAsc
-        )
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("supermann").get),
+        license = Some(License.Copyrighted.toString),
+        sort = Sort.ByTitleAsc,
+      )
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(4)
   }
 
   test("Searching with logical AND only returns results with all terms") {
-    val Success(search1) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("bilde + bil").get),
-          sort = Sort.ByTitleAsc
-        )
-      ): @unchecked
+    val Success(search1) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("bilde + bil").get), sort = Sort.ByTitleAsc)
+    ): @unchecked
     val hits1 = search1.summaryResults
     hits1.map(_.id) should equal(Seq(1, 3, 5))
 
-    val Success(search2) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("batmen + bil").get),
-          sort = Sort.ByTitleAsc
-        )
-      ): @unchecked
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("batmen + bil").get), sort = Sort.ByTitleAsc)
+    ): @unchecked
     val hits2 = search2.summaryResults
     hits2.map(_.id) should equal(Seq(1))
   }
@@ -299,29 +285,27 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     val Success(search1) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(
         query = Some(NonEmptyString.fromString("-flaggermusmann + (bil + bilde)").get),
-        sort = Sort.ByTitleAsc
+        sort = Sort.ByTitleAsc,
       )
     ): @unchecked
     search1.summaryResults.map(_.id) should equal(Seq(3, 5))
 
-    val Success(search2) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("bil + -hulken").get),
-          sort = Sort.ByTitleAsc
-        )
-      ): @unchecked
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("bil + -hulken").get),
+        sort = Sort.ByTitleAsc,
+      )
+    ): @unchecked
     search2.summaryResults.map(_.id) should equal(Seq(1, 3))
   }
 
   test("search in content should be ranked lower than introduction and title") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("mareritt+ragnarok").get),
-          sort = Sort.ByRelevanceDesc
-        )
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("mareritt+ragnarok").get),
+        sort = Sort.ByRelevanceDesc,
+      )
+    ): @unchecked
     val hits = search.summaryResults
     hits.map(_.id) should equal(Seq(9, 8))
   }
@@ -335,10 +319,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("Search for all languages should return all articles in correct language") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(language = AllLanguages, pageSize = 100)
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = AllLanguages, pageSize = 100)
+    ): @unchecked
     val hits = search.summaryResults
 
     search.totalCount should equal(idsForLang("*").size)
@@ -366,13 +349,12 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("Search for all languages should return all languages if copyrighted") {
     val Success(search) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings
-        .copy(
-          language = AllLanguages,
-          license = Some(License.Copyrighted.toString),
-          pageSize = 100,
-          sort = Sort.ByTitleAsc
-        )
+      multiDraftSearchSettings.copy(
+        language = AllLanguages,
+        license = Some(License.Copyrighted.toString),
+        pageSize = 100,
+        sort = Sort.ByTitleAsc,
+      )
     ): @unchecked
     val hits = search.summaryResults
 
@@ -382,16 +364,18 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("Searching with query for all languages should return language that matched") {
     val Success(searchEn) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings
-        .copy(query = Some(NonEmptyString.fromString("Cats").get), language = AllLanguages, sort = Sort.ByRelevanceDesc)
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("Cats").get),
+        language = AllLanguages,
+        sort = Sort.ByRelevanceDesc,
+      )
     ): @unchecked
     val Success(searchNb) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings
-        .copy(
-          query = Some(NonEmptyString.fromString("Katter").get),
-          language = AllLanguages,
-          sort = Sort.ByRelevanceDesc
-        )
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("Katter").get),
+        language = AllLanguages,
+        sort = Sort.ByRelevanceDesc,
+      )
     ): @unchecked
 
     searchEn.totalCount should equal(1)
@@ -415,12 +399,11 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("metadescription is searchable") {
     val Success(search) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings
-        .copy(
-          query = Some(NonEmptyString.fromString("hurr dirr").get),
-          language = AllLanguages,
-          sort = Sort.ByRelevanceDesc
-        )
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("hurr dirr").get),
+        language = AllLanguages,
+        sort = Sort.ByRelevanceDesc,
+      )
     ): @unchecked
 
     search.totalCount should equal(1)
@@ -430,10 +413,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That searching with fallback parameter returns article in language priority even if doesnt match on language") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(fallback = true, language = "en", withIdIn = List(9, 10, 11))
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(fallback = true, language = "en", withIdIn = List(9, 10, 11))
+    ): @unchecked
 
     search.totalCount should equal(3)
     search.summaryResults.head.id should equal(9)
@@ -445,29 +427,26 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That filtering for subjects works as expected") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(language = "*", subjects = List("urn:subject:2"))
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", subjects = List("urn:subject:2"))
+    ): @unchecked
     search.totalCount should be(7)
     search.summaryResults.map(_.id) should be(Seq(1, 5, 5, 6, 7, 11, 12))
   }
 
   test("That filtering for subjects with inactive contexts works as expected") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(language = "*", subjects = List("urn:subject:2"), filterInactive = true)
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", subjects = List("urn:subject:2"), filterInactive = true)
+    ): @unchecked
     search.totalCount should be(4)
     search.summaryResults.flatMap(_.contexts).toList.length should be(5)
     search.summaryResults.map(_.id) should be(Seq(5, 6, 11, 12))
   }
 
   test("That filtering for subjects returns all drafts with any of listed subjects") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(subjects = List("urn:subject:2", "urn:subject:1"))
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(subjects = List("urn:subject:2", "urn:subject:1"))
+    ): @unchecked
     search.totalCount should be(15)
     search.summaryResults.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 11, 12))
   }
@@ -480,24 +459,21 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That filtering for resource-types works as expected") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(resourceTypes = List("urn:resourcetype:academicArticle"))
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(resourceTypes = List("urn:resourcetype:academicArticle"))
+    ): @unchecked
     search.totalCount should be(2)
     search.summaryResults.map(_.id) should be(Seq(2, 5))
 
-    val Success(search2) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(resourceTypes = List("urn:resourcetype:subjectMaterial"))
-      ): @unchecked
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(resourceTypes = List("urn:resourcetype:subjectMaterial"))
+    ): @unchecked
     search2.totalCount should be(8)
     search2.summaryResults.map(_.id) should be(Seq(1, 2, 3, 4, 5, 6, 7, 12))
 
-    val Success(search3) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(resourceTypes = List("urn:resourcetype:learningpath"))
-      ): @unchecked
+    val Success(search3) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(resourceTypes = List("urn:resourcetype:learningpath"))
+    ): @unchecked
     search3.totalCount should be(4)
     search3.summaryResults.map(_.id) should be(Seq(1, 2, 3, 4))
   }
@@ -506,7 +482,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     val Success(search) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(
         language = "*",
-        learningResourceTypes = List(LearningResourceType.Article, LearningResourceType.TopicArticle)
+        learningResourceTypes = List(LearningResourceType.Article, LearningResourceType.TopicArticle),
       )
     ): @unchecked
 
@@ -516,10 +492,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That filtering out inactive contexts works as expected") {
     val Success(search) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(
-        language = "*",
-        filterInactive = false
-      )
+      multiDraftSearchSettings.copy(language = "*", filterInactive = false)
     ): @unchecked
 
     val totalCount   = search.totalCount
@@ -527,10 +500,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     val contextCount = search.summaryResults.flatMap(_.contexts).toList.length
 
     val Success(search2) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(
-        language = "*",
-        filterInactive = true
-      )
+      multiDraftSearchSettings.copy(language = "*", filterInactive = true)
     ): @unchecked
 
     totalCount should be > search2.totalCount
@@ -585,35 +555,29 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That filtering on supportedLanguages works") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(language = "*", supportedLanguages = List("en"))
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", supportedLanguages = List("en"))
+    ): @unchecked
     search.totalCount should be(9)
     search.summaryResults.map(_.id) should be(Seq(2, 3, 4, 5, 6, 10, 11, 13, 15))
 
-    val Success(search2) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(language = "*", supportedLanguages = List("en", "nb"), pageSize = 100)
-      ): @unchecked
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", supportedLanguages = List("en", "nb"), pageSize = 100)
+    ): @unchecked
     search2.totalCount should be(21)
-    search2.summaryResults.map(_.id) should be(
-      Seq(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16)
-    )
+    search2.summaryResults.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16))
 
-    val Success(search3) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(language = "*", supportedLanguages = List("nb"))
-      ): @unchecked
+    val Success(search3) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", supportedLanguages = List("nb"))
+    ): @unchecked
     search3.totalCount should be(18)
     search3.summaryResults.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 16))
   }
 
   test("That filtering on supportedLanguages should still prioritize the selected language") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(language = "nb", supportedLanguages = List("en"))
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "nb", supportedLanguages = List("en"))
+    ): @unchecked
 
     search.totalCount should be(6)
     search.summaryResults.map(_.id) should be(Seq(2, 3, 4, 11, 13, 15))
@@ -621,10 +585,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That meta image are returned when searching") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(language = "en", withIdIn = List(10))
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "en", withIdIn = List(10))
+    ): @unchecked
 
     search.totalCount should be(1)
     search.summaryResults.head.id should be(10)
@@ -634,27 +597,24 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That search matches notes on drafts, but not on other content") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(noteQuery = Some(NonEmptyString.fromString("kakemonster").get))
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(noteQuery = Some(NonEmptyString.fromString("kakemonster").get))
+    ): @unchecked
 
     search.totalCount should be(1)
     search.summaryResults.head.id should be(5)
 
-    val Success(search2) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(noteQuery = Some(NonEmptyString.fromString("Katter").get))
-      ): @unchecked
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(noteQuery = Some(NonEmptyString.fromString("Katter").get))
+    ): @unchecked
 
     search2.totalCount should be(0)
   }
 
   test("That search matches notes on drafts, even if query is regular query") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("kakemonster").get))
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("kakemonster").get))
+    ): @unchecked
 
     search.totalCount should be(1)
     search.summaryResults.head.id should be(5)
@@ -673,7 +633,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     val Success(search1) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(
         query = Some(NonEmptyString.fromString("Kjekspolitiet").get),
-        language = AllLanguages
+        language = AllLanguages,
       )
     ): @unchecked
     search1.totalCount should be(1)
@@ -700,7 +660,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     val Success(search3) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(
         language = AllLanguages,
-        relevanceIds = List("urn:relevance:supplementary", "urn:relevance:core")
+        relevanceIds = List("urn:relevance:supplementary", "urn:relevance:core"),
       )
     ): @unchecked
     search3.summaryResults.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7, 8, 9, 10, 11, 12, 15))
@@ -708,8 +668,11 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That filtering by relevance and subject only returns for relevances in filtered subjects") {
     val Success(search1) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings
-        .copy(language = AllLanguages, subjects = List("urn:subject:2"), relevanceIds = List("urn:relevance:core"))
+      multiDraftSearchSettings.copy(
+        language = AllLanguages,
+        subjects = List("urn:subject:2"),
+        relevanceIds = List("urn:relevance:core"),
+      )
     ): @unchecked
 
     search1.summaryResults.map(_.id) should be(Seq(1, 5, 6, 7, 11))
@@ -756,7 +719,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchSettings.copy(
         language = AllLanguages,
         learningResourceTypes = List(LearningResourceType.Article, LearningResourceType.TopicArticle),
-        statusFilter = List(DraftStatus.IN_PROGRESS)
+        statusFilter = List(DraftStatus.IN_PROGRESS),
       )
     ): @unchecked
     search1.summaryResults.map(_.id) should be(Seq(10, 11))
@@ -765,7 +728,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchSettings.copy(
         language = AllLanguages,
         learningResourceTypes = List(LearningResourceType.Article, LearningResourceType.TopicArticle),
-        statusFilter = List(DraftStatus.IMPORTED)
+        statusFilter = List(DraftStatus.IMPORTED),
       )
     ): @unchecked
     search2.summaryResults.map(_.id) should be(Seq())
@@ -775,7 +738,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
         language = AllLanguages,
         learningResourceTypes = List(LearningResourceType.Article, LearningResourceType.TopicArticle),
         statusFilter = List(DraftStatus.IMPORTED),
-        includeOtherStatuses = true
+        includeOtherStatuses = true,
       )
     ): @unchecked
     search3.summaryResults.map(_.id) should be(Seq(12))
@@ -793,14 +756,12 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That search matches previous notes on drafts") {
-    val Success(search1) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("kultgammeltnotat").get))
-      ): @unchecked
-    val Success(search2) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(noteQuery = Some(NonEmptyString.fromString("kultgammeltnotat").get))
-      ): @unchecked
+    val Success(search1) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("kultgammeltnotat").get))
+    ): @unchecked
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(noteQuery = Some(NonEmptyString.fromString("kultgammeltnotat").get))
+    ): @unchecked
 
     search1.totalCount should be(1)
     search1.summaryResults.head.id should be(5)
@@ -823,21 +784,18 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("excluded drafts should only be returned if filtered by status") {
-    val Success(search1) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.ARCHIVED))
-      ): @unchecked
-    val Success(search2) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.UNPUBLISHED))
-      ): @unchecked
-    val Success(search3) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          withIdIn = List(14, 17), // 14 is archived, 17 is unpublished
-          statusFilter = List.empty
-        )
-      ): @unchecked
+    val Success(search1) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.ARCHIVED))
+    ): @unchecked
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.UNPUBLISHED))
+    ): @unchecked
+    val Success(search3) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        withIdIn = List(14, 17), // 14 is archived, 17 is unpublished
+        statusFilter = List.empty,
+      )
+    ): @unchecked
 
     search1.summaryResults.map(_.id) should be(Seq(14))
     search2.summaryResults.map(_.id) should be(Seq(17))
@@ -846,8 +804,11 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("that search with query returns suggestion for query") {
     val Success(search) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings
-        .copy(query = Some(NonEmptyString.fromString("bil").get), language = AllLanguages, sort = Sort.ByRelevanceDesc)
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("bil").get),
+        language = AllLanguages,
+        sort = Sort.ByRelevanceDesc,
+      )
     ): @unchecked
 
     search.totalCount should equal(3)
@@ -860,12 +821,11 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That compound words are matched when searched wrongly if enabled") {
     val Success(search1) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings
-        .copy(
-          query = Some(NonEmptyString.fromString("Helse søster").get),
-          language = AllLanguages,
-          searchDecompounded = true
-        )
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("Helse søster").get),
+        language = AllLanguages,
+        searchDecompounded = true,
+      )
     ): @unchecked
 
     search1.totalCount should be(1)
@@ -875,7 +835,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchSettings.copy(
         query = Some(NonEmptyString.fromString("Helse søster").get),
         language = "nb",
-        searchDecompounded = true
+        searchDecompounded = true,
       )
     ): @unchecked
 
@@ -885,12 +845,11 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That compound words are matched when searched wrongly if disabled") {
     val Success(search1) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings
-        .copy(
-          query = Some(NonEmptyString.fromString("Helse søster").get),
-          language = AllLanguages,
-          searchDecompounded = false
-        )
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("Helse søster").get),
+        language = AllLanguages,
+        searchDecompounded = false,
+      )
     ): @unchecked
 
     search1.totalCount should be(0)
@@ -900,7 +859,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchSettings.copy(
         query = Some(NonEmptyString.fromString("Helse søster").get),
         language = "nb",
-        searchDecompounded = false
+        searchDecompounded = false,
       )
     ): @unchecked
 
@@ -924,10 +883,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That searches for embedResource does not partial match") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(embedResource = List("conc"), embedId = Some("55"))
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(embedResource = List("conc"), embedId = Some("55"))
+    ): @unchecked
     results.totalCount should be(0)
   }
 
@@ -940,29 +898,26 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That searches on embedId and embedResource matches when using other parameters") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("Ekstra").get),
-          embedResource = List("image"),
-          embedId = Some("55")
-        )
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("Ekstra").get),
+        embedResource = List("image"),
+        embedId = Some("55"),
+      )
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(12)
   }
 
   test("That searches on embedResource and embedId doesn't match when other parameters have no hits") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings
-          .copy(
-            query = Some(NonEmptyString.fromString("aaaaaaaaaaaaaaaaaaaaaaaaaaaa").get),
-            embedResource = List("concept"),
-            embedId = Some("77")
-          )
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("aaaaaaaaaaaaaaaaaaaaaaaaaaaa").get),
+        embedResource = List("concept"),
+        embedId = Some("77"),
+      )
+    ): @unchecked
     results.totalCount should be(0)
   }
 
@@ -975,40 +930,36 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That search on embed data-url matches") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(embedId = Some("http://test.test"))
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(embedId = Some("http://test.test"))
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(12)
   }
 
   test("That search on query as embed data-resource_id matches") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("77").get))
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("77").get))
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(12)
   }
 
   test("That search on query as embed data-resource matches") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("video").get))
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("video").get))
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(12)
   }
 
   test("That search on query as article id matches") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("11").get))
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("11").get))
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(11)
@@ -1023,20 +974,18 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That search on embed id with language filter does only return correct language") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(language = "en", embedId = Some("222"))
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "en", embedId = Some("222"))
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(13)
   }
 
   test("That search on embed id with language filter=all matches") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(language = "*", embedId = Some("222"))
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", embedId = Some("222"))
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(2)
     hits.map(_.id) should be(Seq(12, 13))
@@ -1051,115 +1000,104 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That search on meta image url matches ") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(language = "*", embedId = Some("123"))
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", embedId = Some("123"))
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.map(_.id) should be(Seq(10))
   }
 
   test("That exact word search works for special characters") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("\"delt-streng\"").get), language = "*")
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("\"delt-streng\"").get), language = "*")
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.map(_.id) should be(Seq(15))
   }
 
   test("That exact word search works for special characters with escape") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("\"delt\\-streng\"").get), language = "*")
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("\"delt\\-streng\"").get), language = "*")
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.map(_.id) should be(Seq(15))
   }
 
   test("That multiple exact words can be searched") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("\"delt!streng\" \"delt?streng\"").get),
-          language = "*"
-        )
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("\"delt!streng\" \"delt?streng\"").get),
+        language = "*",
+      )
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.map(_.id) should be(Seq(13))
   }
 
   test("That multiple exact words can be searched with + operator") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("\"delt!streng\"+\"delt-streng\"").get),
-          language = "*"
-        )
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("\"delt!streng\"+\"delt-streng\"").get),
+        language = "*",
+      )
+    ): @unchecked
     results.totalCount should be(0)
   }
 
   test("That multiple exact words can be searched with - operator") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("\"delt!streng\"+-\"delt-streng\"").get),
-          language = "*"
-        )
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("\"delt!streng\"+-\"delt-streng\"").get),
+        language = "*",
+      )
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.map(_.id) should be(Seq(13))
   }
 
   test("That exact and regular words can be searched with - operator") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("\"delt!streng\"+-Helsesøster").get),
-          language = "*"
-        )
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("\"delt!streng\"+-Helsesøster").get),
+        language = "*",
+      )
+    ): @unchecked
     results.totalCount should be(0)
   }
 
   test("That exact and regular words can be searched with + operator") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("\"delt!streng\" + Helsesøster").get),
-          language = "*"
-        )
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("\"delt!streng\" + Helsesøster").get),
+        language = "*",
+      )
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.map(_.id) should be(Seq(13))
   }
 
   test("That exact search on word with spaces matches") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("\"artikkeltekst med fire deler\"").get),
-          language = "*"
-        )
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("\"artikkeltekst med fire deler\"").get),
+        language = "*",
+      )
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.map(_.id) should be(Seq(12))
   }
 
   test("That searches on embedId and embedResource only returns results with an embed matching both params.") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings
-          .copy(language = AllLanguages, embedResource = List("concept"), embedId = Some("222"))
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = AllLanguages, embedResource = List("concept"), embedId = Some("222"))
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(12)
@@ -1167,13 +1105,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That search on embed id supports embed with multiple id attributes") {
     val Success(search1) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(embedId = Some("test-image.id"))
-      ): @unchecked
+      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(embedId = Some("test-image.id"))): @unchecked
     val Success(search2) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(embedId = Some("test-image.url"))
-      ): @unchecked
+      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(embedId = Some("test-image.url"))): @unchecked
 
     search1.totalCount should be(1)
     search1.summaryResults.head.id should be(12)
@@ -1183,14 +1117,13 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That search result has license and lastUpdated data") {
-    val Success(results) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("bil").get),
-          sort = Sort.ByRelevanceDesc,
-          withIdIn = List(3)
-        )
-      ): @unchecked
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("bil").get),
+        sort = Sort.ByRelevanceDesc,
+        withIdIn = List(3),
+      )
+    ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.lastUpdated should be(a[NDLADate])
@@ -1198,14 +1131,12 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   test("That filtering on tags works") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(tags = List("fugl"), language = "nb")
-      ): @unchecked
-    val Success(search2) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(tags = List("hulk"), language = "nb")
-      ): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(tags = List("fugl"), language = "nb")
+    ): @unchecked
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(tags = List("hulk"), language = "nb")
+    ): @unchecked
 
     search.totalCount should be(2)
     search.summaryResults.map(_.id) should be(Seq(1, 2))

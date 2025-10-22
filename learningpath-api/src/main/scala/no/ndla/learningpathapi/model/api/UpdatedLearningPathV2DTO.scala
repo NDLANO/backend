@@ -16,28 +16,36 @@ import no.ndla.common.model.domain.Priority
 
 @description("Meta information for a new learningpath")
 case class UpdatedLearningPathV2DTO(
-    @description("The revision number for this learningpath") revision: Int,
-    @description("The title of the learningpath") title: Option[String],
-    @description("The chosen language") language: String,
-    @description("The description of the learningpath") description: Option[String],
-    @description("Url to cover-photo in NDLA image-api.") coverPhotoMetaUrl: UpdateOrDelete[String],
-    @description("The duration of the learningpath in minutes. Must be greater than 0") duration: Option[Int],
-    @description("Searchable tags for the learningpath") tags: Option[Seq[String]],
-    @description("Describes the copyright information for the learningpath") copyright: Option[CopyrightDTO],
-    @description("Whether to delete a message connected to a learningpath by an administrator.") deleteMessage: Option[
-      Boolean
-    ],
-    @description("NDLA ID representing the editor responsible for this learningpath") responsibleId: UpdateOrDelete[
-      String
-    ],
-    @description("Information about comments attached to the learningpath") comments: Option[List[UpdatedCommentDTO]],
-    @description(
-      "If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified"
-    ) priority: Option[Priority],
-    @description("A list of all revisions of the learningpath") revisionMeta: Option[Seq[RevisionMetaDTO]],
-    @description("An introduction") introduction: UpdateOrDelete[String],
+    @description("The revision number for this learningpath")
+    revision: Int,
+    @description("The title of the learningpath")
+    title: Option[String],
+    @description("The chosen language")
+    language: String,
+    @description("The description of the learningpath")
+    description: Option[String],
+    @description("Url to cover-photo in NDLA image-api.")
+    coverPhotoMetaUrl: UpdateOrDelete[String],
+    @description("The duration of the learningpath in minutes. Must be greater than 0")
+    duration: Option[Int],
+    @description("Searchable tags for the learningpath")
+    tags: Option[Seq[String]],
+    @description("Describes the copyright information for the learningpath")
+    copyright: Option[CopyrightDTO],
+    @description("Whether to delete a message connected to a learningpath by an administrator.")
+    deleteMessage: Option[Boolean],
+    @description("NDLA ID representing the editor responsible for this learningpath")
+    responsibleId: UpdateOrDelete[String],
+    @description("Information about comments attached to the learningpath")
+    comments: Option[List[UpdatedCommentDTO]],
+    @description("If the learningpath should be prioritized. Possible values are prioritized, on-hold, unspecified")
+    priority: Option[Priority],
+    @description("A list of all revisions of the learningpath")
+    revisionMeta: Option[Seq[RevisionMetaDTO]],
+    @description("An introduction")
+    introduction: UpdateOrDelete[String],
     @description("A list of codes from GREP API connected to the article")
-    grepCodes: Option[Seq[String]]
+    grepCodes: Option[Seq[String]],
 )
 
 object UpdatedLearningPathV2DTO {

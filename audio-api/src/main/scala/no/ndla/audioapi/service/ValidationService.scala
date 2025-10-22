@@ -28,23 +28,15 @@ class ValidationService(using converterService: ConverterService) {
 
   def validatePodcastEpisodes(
       episodes: Seq[(Long, Option[AudioMetaInformation])],
-      seriesId: Option[Long]
+      seriesId: Option[Long],
   ): Try[Seq[AudioMetaInformation]] = {
     val validated = episodes.map {
-      case (id, Some(ep)) =>
-        validatePodcastEpisode(id, ep, seriesId) match {
+      case (id, Some(ep)) => validatePodcastEpisode(id, ep, seriesId) match {
           case Nil  => Right(ep)
           case msgs => Left(msgs)
         }
       case (id, None) =>
-        Left(
-          Seq(
-            ValidationMessage(
-              s"episodes.$id",
-              s"Provided episode with id '$id' was not found in the database."
-            )
-          )
-        )
+        Left(Seq(ValidationMessage(s"episodes.$id", s"Provided episode with id '$id' was not found in the database.")))
     }
 
     val (errors, eps) = validated.separate
@@ -56,16 +48,12 @@ class ValidationService(using converterService: ConverterService) {
   private def validatePodcastEpisode(
       episodeId: Long,
       episode: AudioMetaInformation,
-      seriesId: Option[Long]
+      seriesId: Option[Long],
   ): Seq[ValidationMessage] = {
     val correctTypeError =
-      if (episode.audioType != AudioType.Podcast)
-        Seq(
-          ValidationMessage(
-            s"episodes.$episodeId",
-            s"Provided episode $episodeId, is not of '${AudioType.Podcast}' type"
-          )
-        )
+      if (episode.audioType != AudioType.Podcast) Seq(
+        ValidationMessage(s"episodes.$episodeId", s"Provided episode $episodeId, is not of '${AudioType.Podcast}' type")
+      )
       else Seq.empty
 
     val overrideSeriesIdError = episode.seriesId match {
@@ -73,7 +61,7 @@ class ValidationService(using converterService: ConverterService) {
         Some(
           ValidationMessage(
             s"episodes.$episodeId",
-            s"Provided episode $episodeId, is already a part of a series (With id: '$episodeSeriesId')."
+            s"Provided episode $episodeId, is already a part of a series (With id: '$episodeSeriesId').",
           )
         )
       case _ => None
@@ -90,8 +78,7 @@ class ValidationService(using converterService: ConverterService) {
     Option.when(!validMimeTypes.contains(actualMimeType)) {
       ValidationMessage(
         "files",
-        s"The file ${audioFile.partName} is not a valid audio file. Only valid types are '${validMimeTypes
-            .mkString(",")}', but was '$actualMimeType'"
+        s"The file ${audioFile.partName} is not a valid audio file. Only valid types are '${validMimeTypes.mkString(",")}', but was '$actualMimeType'",
       )
     }
   }
@@ -100,10 +87,7 @@ class ValidationService(using converterService: ConverterService) {
     val fn             = audioFile.fileName.getOrElse("").stripPrefix("\"").stripSuffix("\"")
     val isValidFileExt = fn.toLowerCase.endsWith(".mp3")
     Option.when(!isValidFileExt) {
-      ValidationMessage(
-        "files",
-        s"The file '${audioFile.partName}' does not have a known file extension. Must be .mp3"
-      )
+      ValidationMessage("files", s"The file '${audioFile.partName}' does not have a known file extension. Must be .mp3")
     }
   }
 
@@ -115,12 +99,14 @@ class ValidationService(using converterService: ConverterService) {
       audio: domain.AudioMetaInformation,
       oldAudio: Option[domain.AudioMetaInformation],
       partOfSeries: Option[domain.Series],
-      language: Option[String]
+      language: Option[String],
   ): Try[domain.AudioMetaInformation] = {
 
     val oldTitleLanguages = oldAudio.map(_.titles.map(_.language)).getOrElse(Seq())
     val oldTagsLanguages  = oldAudio.map(_.tags.map(_.language)).getOrElse(Seq())
-    val oldLanguages      = (oldTitleLanguages ++ oldTagsLanguages).distinct
+    val oldLanguages      = (
+      oldTitleLanguages ++ oldTagsLanguages
+    ).distinct
 
     val validationMessages = validateNonEmpty("title", audio.titles).toSeq ++
       audio.titles.flatMap(title => validateNonEmpty("title", title.language)) ++
@@ -136,36 +122,22 @@ class ValidationService(using converterService: ConverterService) {
 
   private def validateEpisodeIfSeries(
       audio: AudioMetaInformation,
-      series: Option[domain.Series]
+      series: Option[domain.Series],
   ): Seq[ValidationMessage] = {
     if (audio.seriesId.isDefined) {
       val correctTypeError =
         if (audio.audioType != AudioType.Podcast)
-          Some(
-            ValidationMessage(
-              s"seriesId",
-              s"Audio must be of '${AudioType.Podcast}' type to add to series."
-            )
-          )
+          Some(ValidationMessage(s"seriesId", s"Audio must be of '${AudioType.Podcast}' type to add to series."))
         else None
 
       val seriesExistsError =
         if (audio.seriesId.isDefined && series.isEmpty)
-          Some(
-            ValidationMessage(
-              s"seriesId",
-              s"Series specified did not exist."
-            )
-          )
+          Some(ValidationMessage(s"seriesId", s"Series specified did not exist."))
         else None
 
       val hasPodcastMetaError = validateNonEmpty(s"podcastMeta", audio.podcastMeta)
 
-      Seq(
-        correctTypeError,
-        seriesExistsError,
-        hasPodcastMetaError
-      ).flatten
+      Seq(correctTypeError, seriesExistsError, hasPodcastMetaError).flatten
     } else Seq.empty
   }
 
@@ -202,13 +174,12 @@ class ValidationService(using converterService: ConverterService) {
 
     val sizeValidationMessage =
       if (isBigEnough && isSmallEnough) Seq.empty
-      else
-        Seq(
-          ValidationMessage(
-            fieldName,
-            s"Podcast cover images must be minimum $minImageSize and maximum $maxImageSize to be valid. The supplied image was ${imageWidth}x$imageHeight."
-          )
+      else Seq(
+        ValidationMessage(
+          fieldName,
+          s"Podcast cover images must be minimum $minImageSize and maximum $maxImageSize to be valid. The supplied image was ${imageWidth}x$imageHeight.",
         )
+      )
 
     squareValidationMessage ++ sizeValidationMessage
   }
@@ -227,21 +198,22 @@ class ValidationService(using converterService: ConverterService) {
   def validatePodcastMeta(
       audioType: AudioType.Value,
       meta: Seq[PodcastMeta],
-      language: Option[String]
+      language: Option[String],
   ): Seq[ValidationMessage] = {
     if (meta.nonEmpty && audioType != AudioType.Podcast) {
       Seq(
         ValidationMessage(
           "podcastMeta",
-          s"Cannot specify podcastMeta fields for audioType other than '${AudioType.Podcast}'"
+          s"Cannot specify podcastMeta fields for audioType other than '${AudioType.Podcast}'",
         )
       )
     } else {
       meta.flatMap(m => {
         val introductionErrors = validateNonEmpty("podcastMeta.introduction", m.introduction).toSeq
-        val coverPhotoErrors   = if (language.contains(m.language)) {
-          validatePodcastCoverPhoto("podcastMeta.coverPhoto", m.coverPhoto)
-        } else Seq.empty
+        val coverPhotoErrors   =
+          if (language.contains(m.language)) {
+            validatePodcastCoverPhoto("podcastMeta.coverPhoto", m.coverPhoto)
+          } else Seq.empty
 
         introductionErrors ++ coverPhotoErrors
       })
@@ -260,27 +232,22 @@ class ValidationService(using converterService: ConverterService) {
   }
 
   private def validateMinimumLength(fieldPath: String, content: String, minLength: Int): Option[ValidationMessage] =
-    if (content.trim.length < minLength)
-      Some(
-        ValidationMessage(
-          fieldPath,
-          s"This field does not meet the minimum length requirement of $minLength characters"
-        )
-      )
-    else
-      None
+    if (content.trim.length < minLength) Some(
+      ValidationMessage(fieldPath, s"This field does not meet the minimum length requirement of $minLength characters")
+    )
+    else None
 
   def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
     validateLicense(copyright.license).toList ++
       validateAuthorLicenseCorrelation(
         Some(copyright.license),
-        copyright.rightsholders ++ copyright.processors ++ copyright.creators
+        copyright.rightsholders ++ copyright.processors ++ copyright.creators,
       ) ++
       copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, ContributorType.creators)) ++
       copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, ContributorType.processors)) ++
-      copyright.rightsholders.flatMap(a =>
-        validateAuthor("copyright.rightsholders", a, ContributorType.rightsholders)
-      ) ++
+      copyright
+        .rightsholders
+        .flatMap(a => validateAuthor("copyright.rightsholders", a, ContributorType.rightsholders)) ++
       copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
   }
 
@@ -293,20 +260,22 @@ class ValidationService(using converterService: ConverterService) {
 
   private def validateAuthorLicenseCorrelation(
       license: Option[String],
-      authors: Seq[Author]
+      authors: Seq[Author],
   ): Seq[ValidationMessage] = {
     val errorMessage = (lic: String) =>
       ValidationMessage("license.license", s"At least one copyright holder is required when license is $lic")
     license match {
       case None      => Seq()
-      case Some(lic) => if (lic == "N/A" || authors.nonEmpty) Seq() else Seq(errorMessage(lic))
+      case Some(lic) =>
+        if (lic == "N/A" || authors.nonEmpty) Seq()
+        else Seq(errorMessage(lic))
     }
   }
 
   private def validateAuthor(
       fieldPath: String,
       author: Author,
-      allowedTypes: Seq[ContributorType]
+      allowedTypes: Seq[ContributorType],
   ): Seq[ValidationMessage] = {
     containsNoHtml(s"$fieldPath.name", author.name).toList ++
       validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes).toList ++
@@ -316,7 +285,7 @@ class ValidationService(using converterService: ConverterService) {
   private def validateAuthorType(
       fieldPath: String,
       `type`: ContributorType,
-      allowedTypes: Seq[ContributorType]
+      allowedTypes: Seq[ContributorType],
   ): Option[ValidationMessage] = {
     if (allowedTypes.contains(`type`)) {
       None
@@ -343,7 +312,7 @@ class ValidationService(using converterService: ConverterService) {
   private def validateLanguage(
       fieldPath: String,
       languageCode: String,
-      oldLanguages: Seq[String]
+      oldLanguages: Seq[String],
   ): Option[ValidationMessage] = {
     if (languageCodeSupported639(languageCode) || oldLanguages.contains(languageCode)) {
       None

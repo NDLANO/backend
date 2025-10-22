@@ -54,7 +54,7 @@ case class LearningStepV2DTO(
     @description("The supported languages of the learningstep")
     supportedLanguages: Seq[String],
     @description("Id identifying the owner of LearningStep")
-    ownerId: Option[String]
+    ownerId: Option[String],
 )
 
 object LearningStepV2DTO {

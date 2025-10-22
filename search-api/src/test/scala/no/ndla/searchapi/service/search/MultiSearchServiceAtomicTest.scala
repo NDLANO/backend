@@ -72,24 +72,28 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     IndexingBundle(Some(TestData.grepBundle), Some(TestData.taxonomyTestBundle), Some(TestData.myndlaTestBundle))
 
   test("That search on embed id supports embed with multiple resources") {
-    val article1 = TestData.article1.copy(
-      id = Some(1),
-      content = Seq(
-        ArticleContent(
-          s"""<section><div data-type="related-content"><$EmbedTagName data-article-id="3" data-resource="related-content"></$EmbedTagName></div></section>""",
-          "nb"
-        )
+    val article1 = TestData
+      .article1
+      .copy(
+        id = Some(1),
+        content = Seq(
+          ArticleContent(
+            s"""<section><div data-type="related-content"><$EmbedTagName data-article-id="3" data-resource="related-content"></$EmbedTagName></div></section>""",
+            "nb",
+          )
+        ),
       )
-    )
-    val article2 = TestData.article1.copy(
-      id = Some(2),
-      content = Seq(
-        ArticleContent(
-          s"""<section><$EmbedTagName data-content-id="3" data-resource="content-link">Test?</$EmbedTagName></section>""",
-          "nb"
-        )
+    val article2 = TestData
+      .article1
+      .copy(
+        id = Some(2),
+        content = Seq(
+          ArticleContent(
+            s"""<section><$EmbedTagName data-content-id="3" data-resource="content-link">Test?</$EmbedTagName></section>""",
+            "nb",
+          )
+        ),
       )
-    )
     val article3 = TestData.article1.copy(id = Some(3))
     articleIndexService.indexDocument(article1, indexingBundle).get
     articleIndexService.indexDocument(article2, indexingBundle).get
@@ -99,18 +103,16 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
       articleIndexService.countDocuments == 3
     })
 
-    val Success(search1) =
-      multiSearchService.matchingQuery(
-        TestData.searchSettings.copy(embedId = Some("3"), embedResource = List("content-link"))
-      ): @unchecked
+    val Success(search1) = multiSearchService.matchingQuery(
+      TestData.searchSettings.copy(embedId = Some("3"), embedResource = List("content-link"))
+    ): @unchecked
 
     search1.totalCount should be(1)
     search1.summaryResults.map(_.id) should be(List(2))
 
-    val Success(search2) =
-      multiSearchService.matchingQuery(
-        TestData.searchSettings.copy(embedId = Some("3"), embedResource = List("content-link", "related-content"))
-      ): @unchecked
+    val Success(search2) = multiSearchService.matchingQuery(
+      TestData.searchSettings.copy(embedId = Some("3"), embedResource = List("content-link", "related-content"))
+    ): @unchecked
 
     search2.totalCount should be(2)
     search2.summaryResults.map(_.id) should be(List(1, 2))
@@ -140,7 +142,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         contextId = "asdf2345",
         isVisible = true,
         isActive = true,
-        url = "/f/sub1/asdf2345"
+        url = "/f/sub1/asdf2345",
       )
       val subject_1 = Node(
         context_1.publicId,
@@ -153,7 +155,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.SUBJECT,
         List(context_1.contextId),
         Some(context_1),
-        List(context_1)
+        List(context_1),
       )
       // Hidden topic with visible subject
       val topic_1 = Node(
@@ -167,7 +169,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.TOPIC,
         List("asdf2346"),
         None,
-        List.empty
+        List.empty,
       )
       topic_1.contexts = generateContexts(
         topic_1,
@@ -178,7 +180,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = false,
-        isActive = true
+        isActive = true,
       )
       // Visible subtopic
       val topic_2 = Node(
@@ -192,7 +194,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.TOPIC,
         List("asdf2347"),
         None,
-        List.empty
+        List.empty,
       )
       topic_2.contexts = generateContexts(
         topic_2,
@@ -203,7 +205,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = false,
-        isActive = true
+        isActive = true,
       )
       // Visible topic
       val topic_3 = Node(
@@ -217,7 +219,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.TOPIC,
         List("asdf2348"),
         None,
-        List.empty
+        List.empty,
       )
       topic_3.contexts = generateContexts(
         topic_3,
@@ -228,7 +230,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = true,
-        isActive = true
+        isActive = true,
       )
       // Visible resource with hidden parent topic
       val resource_1 = Node(
@@ -242,7 +244,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.RESOURCE,
         List("asdf2349"),
         None,
-        List.empty
+        List.empty,
       )
       resource_1.contexts = generateContexts(
         resource_1,
@@ -253,7 +255,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = false,
-        isActive = true
+        isActive = true,
       )
       // Visible resource with visible parent topic
       val resource_2 = Node(
@@ -267,7 +269,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.RESOURCE,
         List("asdf2350"),
         None,
-        List.empty
+        List.empty,
       )
       resource_2.contexts = generateContexts(
         resource_2,
@@ -278,17 +280,10 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = true,
-        isActive = true
+        isActive = true,
       )
 
-      val nodes = List(
-        resource_1,
-        resource_2,
-        topic_1,
-        topic_2,
-        topic_3,
-        subject_1
-      )
+      val nodes = List(resource_1, resource_2, topic_1, topic_2, topic_3, subject_1)
 
       TaxonomyBundle(nodes = nodes)
     }
@@ -296,11 +291,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     articleIndexService
       .indexDocument(
         article1,
-        IndexingBundle(
-          Some(TestData.grepBundle),
-          Some(taxonomyBundle),
-          Some(TestData.myndlaTestBundle)
-        )
+        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle)),
       )
       .get
 
@@ -308,12 +299,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
       articleIndexService.countDocuments == 1
     })
 
-    val result = multiSearchService
-      .matchingQuery(
-        TestData.searchSettings.copy(
-        )
-      )
-      .get
+    val result = multiSearchService.matchingQuery(TestData.searchSettings.copy()).get
 
     result.summaryResults.head.contexts.map(_.publicId) should be(Seq("urn:resource:2"))
   }
@@ -341,7 +327,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         contextId = "asdf2351",
         isVisible = true,
         isActive = true,
-        url = "/f/sub1/asdf2351"
+        url = "/f/sub1/asdf2351",
       )
       val subject_1 = Node(
         context_1.publicId,
@@ -354,7 +340,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.SUBJECT,
         List(context_1.contextId),
         Some(context_1),
-        List(context_1)
+        List(context_1),
       )
       // Hidden topic with visible subject
       val topic_1 = Node(
@@ -368,7 +354,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.TOPIC,
         List("asdf2352"),
         None,
-        List.empty
+        List.empty,
       )
       topic_1.contexts = generateContexts(
         topic_1,
@@ -379,7 +365,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = false,
-        isActive = true
+        isActive = true,
       ) // TODO: use visible from node also
       // Visible subtopic
       val topic_2 = Node(
@@ -393,7 +379,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.TOPIC,
         List("asdf2353"),
         None,
-        List.empty
+        List.empty,
       )
       topic_2.contexts = generateContexts(
         topic_2,
@@ -404,7 +390,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = true,
-        isActive = true
+        isActive = true,
       )
       // Visible topic
       val topic_3 = Node(
@@ -418,7 +404,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.TOPIC,
         List("asdf2354"),
         None,
-        List.empty
+        List.empty,
       )
       topic_3.contexts = generateContexts(
         topic_3,
@@ -429,15 +415,10 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = true,
-        isActive = true
+        isActive = true,
       )
 
-      val nodes = List(
-        topic_1,
-        topic_2,
-        topic_3,
-        subject_1
-      )
+      val nodes = List(topic_1, topic_2, topic_3, subject_1)
 
       TaxonomyBundle(nodes = nodes)
     }
@@ -445,11 +426,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     articleIndexService
       .indexDocument(
         article1,
-        IndexingBundle(
-          Some(TestData.grepBundle),
-          Some(taxonomyBundle),
-          Some(TestData.myndlaTestBundle)
-        )
+        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle)),
       )
       .get
 
@@ -457,12 +434,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
       articleIndexService.countDocuments == 1
     })
 
-    val result = multiSearchService
-      .matchingQuery(
-        TestData.searchSettings.copy(
-        )
-      )
-      .get
+    val result = multiSearchService.matchingQuery(TestData.searchSettings.copy()).get
 
     result.summaryResults.head.contexts.map(_.publicId) should be(Seq("urn:topic:3"))
   }
@@ -492,7 +464,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         contextId = "asdf2355",
         isVisible = true,
         isActive = true,
-        url = "/f/sub1/asdf2355"
+        url = "/f/sub1/asdf2355",
       )
       val subject_1 = Node(
         context_1.publicId,
@@ -505,7 +477,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.SUBJECT,
         List(context_1.contextId),
         Some(context_1),
-        List(context_1)
+        List(context_1),
       )
       val context_2 = TaxonomyContext(
         publicId = "urn:subject:2",
@@ -522,7 +494,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         contextId = "asdf2356",
         isVisible = true,
         isActive = true,
-        url = "/f/sub2/asdf2356"
+        url = "/f/sub2/asdf2356",
       )
       val subject_2 = Node(
         context_2.publicId,
@@ -535,7 +507,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.SUBJECT,
         List(context_2.contextId),
         Some(context_2),
-        List(context_2)
+        List(context_2),
       )
       val topic_1 = Node(
         "urn:topic:1",
@@ -548,7 +520,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.TOPIC,
         List("asdf2357"),
         None,
-        List.empty
+        List.empty,
       )
       topic_1.contexts = generateContexts(
         topic_1,
@@ -559,7 +531,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = true,
-        isActive = true
+        isActive = true,
       )
       val topic_2 = Node(
         "urn:topic:2",
@@ -572,7 +544,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.TOPIC,
         List("asdf2358"),
         None,
-        List.empty
+        List.empty,
       )
       topic_2.contexts = generateContexts(
         topic_2,
@@ -583,7 +555,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = true,
-        isActive = true
+        isActive = true,
       )
       val topic_3 = Node(
         "urn:topic:3",
@@ -596,7 +568,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.TOPIC,
         List("asdf2359"),
         None,
-        List.empty
+        List.empty,
       )
       topic_3.contexts = generateContexts(
         topic_3,
@@ -607,7 +579,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = true,
-        isActive = true
+        isActive = true,
       )
       val topic_4 = Node(
         "urn:topic:4",
@@ -620,7 +592,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.TOPIC,
         List("asdf2360"),
         None,
-        List.empty
+        List.empty,
       )
       topic_4.contexts = generateContexts(
         topic_4,
@@ -631,7 +603,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = true,
-        isActive = true
+        isActive = true,
       )
       val topic_5 = Node(
         "urn:topic:5",
@@ -644,7 +616,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         NodeType.TOPIC,
         List("asdf2361"),
         None,
-        List.empty
+        List.empty,
       )
       topic_5.contexts = generateContexts(
         topic_5,
@@ -655,18 +627,10 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         core,
         isPrimary = true,
         isVisible = true,
-        isActive = true
+        isActive = true,
       )
 
-      val nodes = List(
-        topic_1,
-        topic_2,
-        topic_3,
-        topic_4,
-        topic_5,
-        subject_1,
-        subject_2
-      )
+      val nodes = List(topic_1, topic_2, topic_3, topic_4, topic_5, subject_1, subject_2)
 
       TaxonomyBundle(nodes = nodes)
     }
@@ -674,31 +638,31 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     articleIndexService
       .indexDocument(
         article1,
-        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle)),
       )
       .get
     articleIndexService
       .indexDocument(
         article2,
-        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle)),
       )
       .get
     articleIndexService
       .indexDocument(
         article3,
-        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle)),
       )
       .get
     articleIndexService
       .indexDocument(
         article4,
-        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle)),
       )
       .get
     articleIndexService
       .indexDocument(
         article5,
-        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle))
+        IndexingBundle(Some(TestData.grepBundle), Some(taxonomyBundle), Some(TestData.myndlaTestBundle)),
       )
       .get
 
@@ -707,20 +671,15 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     })
 
     val result = multiSearchService
-      .matchingQuery(
-        TestData.searchSettings.copy(
-          aggregatePaths = List("contexts.rootId")
-        )
-      )
+      .matchingQuery(TestData.searchSettings.copy(aggregatePaths = List("contexts.rootId")))
       .get
 
-    val expectedAggs =
-      TermAggregation(
-        field = List("contexts", "rootId"),
-        sumOtherDocCount = 0,
-        docCountErrorUpperBound = 0,
-        buckets = List(Bucket("urn:subject:1", 3), Bucket("urn:subject:2", 2))
-      )
+    val expectedAggs = TermAggregation(
+      field = List("contexts", "rootId"),
+      sumOtherDocCount = 0,
+      docCountErrorUpperBound = 0,
+      buckets = List(Bucket("urn:subject:1", 3), Bucket("urn:subject:2", 2)),
+    )
     result.aggregations should be(Seq(expectedAggs))
   }
 
@@ -753,10 +712,10 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               contextId = "asdf2362",
               isVisible = true,
               isActive = true,
-              url = "/f/apekatt-fag/asdf2362"
+              url = "/f/apekatt-fag/asdf2362",
             )
           ),
-          contexts = List()
+          contexts = List(),
         ),
         Node(
           id = "urn:subject:19285",
@@ -784,11 +743,11 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               contextId = "asdf2362",
               isVisible = true,
               isActive = true,
-              url = "/f/snabel-fag/asdf2362"
+              url = "/f/snabel-fag/asdf2362",
             )
           ),
-          contexts = List()
-        )
+          contexts = List(),
+        ),
       ) ++
         indexingBundle.taxonomyBundle.get.nodes
     )
@@ -804,7 +763,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           editorsChoices = List(),
           connectedTo = List(),
           buildsOn = List(),
-          leadsTo = List()
+          leadsTo = List(),
         )
       )
     ).when(frontpageApiClient).getSubjectPage(eqTo(1L))
@@ -820,24 +779,15 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           editorsChoices = List(),
           connectedTo = List(),
           buildsOn = List(),
-          leadsTo = List()
+          leadsTo = List(),
         )
       )
     ).when(frontpageApiClient).getSubjectPage(eqTo(2L))
 
-    val article1 = TestData.article1.copy(
-      id = Some(1),
-      title = Seq(Title("Apekatt en", "nb"))
-    )
-    val article2 = TestData.article1.copy(
-      id = Some(2),
-      title = Seq(Title("Apekatt to", "nb"))
-    )
-    val article3 = TestData.article1.copy(
-      id = Some(3),
-      title = Seq(Title("Noe helt annet", "nb"))
-    )
-    val bundle = indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))
+    val article1 = TestData.article1.copy(id = Some(1), title = Seq(Title("Apekatt en", "nb")))
+    val article2 = TestData.article1.copy(id = Some(2), title = Seq(Title("Apekatt to", "nb")))
+    val article3 = TestData.article1.copy(id = Some(3), title = Seq(Title("Noe helt annet", "nb")))
+    val bundle   = indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))
 
     nodeIndexService.indexDocuments(None, bundle).get
     articleIndexService.indexDocument(article1, bundle).get
@@ -850,32 +800,25 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
       indexedNodes == 23 && indexedArticles == 3
     })
 
-    val search1 =
-      multiSearchService.matchingQuery(
-        TestData.searchSettings.copy(
+    val search1 = multiSearchService.matchingQuery(
+      TestData
+        .searchSettings
+        .copy(
           sort = Sort.ByRelevanceDesc,
           query = NonEmptyString.fromString("Apekatt"),
           nodeTypeFilter = List(NodeType.SUBJECT),
-          resultTypes = Some(
-            List(
-              SearchType.Nodes,
-              SearchType.Articles
-            )
-          )
+          resultTypes = Some(List(SearchType.Nodes, SearchType.Articles)),
         )
-      )
+    )
 
     search1.get.totalCount should be(3)
-    search1.get.results.map {
-      case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
-      case x: NodeHitDTO            => s"Node:${x.id}"
-    } should be(
-      List(
-        "Node:urn:subject:19284",
-        "Multi:1",
-        "Multi:2"
-      )
-    )
+    search1
+      .get
+      .results
+      .map {
+        case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
+        case x: NodeHitDTO            => s"Node:${x.id}"
+      } should be(List("Node:urn:subject:19284", "Multi:1", "Multi:2"))
   }
 
   test("That type keywords affects search order") {
@@ -907,10 +850,10 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               contextId = "asdf2362",
               isVisible = true,
               isActive = true,
-              url = "/f/apekatt/asdf2362"
+              url = "/f/apekatt/asdf2362",
             )
           ),
-          contexts = List()
+          contexts = List(),
         ),
         Node(
           id = "urn:subject:19285",
@@ -938,11 +881,11 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               contextId = "asdf2362",
               isVisible = true,
               isActive = true,
-              url = "/f/snabel/asdf2362"
+              url = "/f/snabel/asdf2362",
             )
           ),
-          contexts = List()
-        )
+          contexts = List(),
+        ),
       ) ++
         indexingBundle.taxonomyBundle.get.nodes
     )
@@ -958,18 +901,14 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               title = "Apekatt",
               description = "Apekatt about beskrivelse",
               language = "nb",
-              visualElement = VisualElement(
-                `type` = Image,
-                id = "123",
-                alt = None
-              )
+              visualElement = VisualElement(`type` = Image, id = "123", alt = None),
             )
           ),
           metaDescription = Seq(MetaDescription("Apekatt beskrivelse", "nb")),
           editorsChoices = List(),
           connectedTo = List(),
           buildsOn = List(),
-          leadsTo = List()
+          leadsTo = List(),
         )
       )
     ).when(frontpageApiClient).getSubjectPage(eqTo(1L))
@@ -985,24 +924,15 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           editorsChoices = List(),
           connectedTo = List(),
           buildsOn = List(),
-          leadsTo = List()
+          leadsTo = List(),
         )
       )
     ).when(frontpageApiClient).getSubjectPage(eqTo(2L))
 
-    val article1 = TestData.article1.copy(
-      id = Some(1),
-      title = Seq(Title("Apekatt en", "nb"))
-    )
-    val article2 = TestData.article1.copy(
-      id = Some(2),
-      title = Seq(Title("Apekatt to", "nb"))
-    )
-    val article3 = TestData.article1.copy(
-      id = Some(3),
-      title = Seq(Title("Noe helt annet", "nb"))
-    )
-    val bundle = indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))
+    val article1 = TestData.article1.copy(id = Some(1), title = Seq(Title("Apekatt en", "nb")))
+    val article2 = TestData.article1.copy(id = Some(2), title = Seq(Title("Apekatt to", "nb")))
+    val article3 = TestData.article1.copy(id = Some(3), title = Seq(Title("Noe helt annet", "nb")))
+    val bundle   = indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))
 
     nodeIndexService.indexDocuments(None, bundle).get
     articleIndexService.indexDocument(article1, bundle).get
@@ -1015,57 +945,43 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
       indexedNodes == 23 && indexedArticles == 3
     })
 
-    val search1 =
-      multiSearchService.matchingQuery(
-        TestData.searchSettings.copy(
+    val search1 = multiSearchService.matchingQuery(
+      TestData
+        .searchSettings
+        .copy(
           sort = Sort.ByRelevanceDesc,
           query = NonEmptyString.fromString("Apekatt"),
           nodeTypeFilter = List(NodeType.SUBJECT),
-          resultTypes = Some(
-            List(
-              SearchType.Nodes,
-              SearchType.Articles
-            )
-          )
+          resultTypes = Some(List(SearchType.Nodes, SearchType.Articles)),
         )
-      )
-
-    search1.get.results.map {
-      case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
-      case x: NodeHitDTO            => s"Node:${x.id}"
-    } should be(
-      List(
-        "Node:urn:subject:19284",
-        "Multi:1",
-        "Multi:2"
-      )
     )
 
-    val search2 =
-      multiSearchService.matchingQuery(
-        TestData.searchSettings.copy(
+    search1
+      .get
+      .results
+      .map {
+        case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
+        case x: NodeHitDTO            => s"Node:${x.id}"
+      } should be(List("Node:urn:subject:19284", "Multi:1", "Multi:2"))
+
+    val search2 = multiSearchService.matchingQuery(
+      TestData
+        .searchSettings
+        .copy(
           sort = Sort.ByRelevanceDesc,
           query = NonEmptyString.fromString("Apekatt artikkel"),
           nodeTypeFilter = List(NodeType.SUBJECT),
-          resultTypes = Some(
-            List(
-              SearchType.Nodes,
-              SearchType.Articles
-            )
-          )
+          resultTypes = Some(List(SearchType.Nodes, SearchType.Articles)),
         )
-      )
-
-    search2.get.results.map {
-      case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
-      case x: NodeHitDTO            => s"Node:${x.id}"
-    } should be(
-      List(
-        "Multi:1",
-        "Multi:2",
-        "Node:urn:subject:19284"
-      )
     )
+
+    search2
+      .get
+      .results
+      .map {
+        case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
+        case x: NodeHitDTO            => s"Node:${x.id}"
+      } should be(List("Multi:1", "Multi:2", "Node:urn:subject:19284"))
   }
 
   test("that searching for about description of subject pages gives matches") {
@@ -1097,10 +1013,10 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               contextId = "asdf2362",
               isVisible = true,
               isActive = true,
-              url = "/f/apekatt/asdf2362"
+              url = "/f/apekatt/asdf2362",
             )
           ),
-          contexts = List()
+          contexts = List(),
         ),
         Node(
           id = "urn:subject:19285",
@@ -1128,11 +1044,11 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               contextId = "asdf2362",
               isVisible = true,
               isActive = true,
-              url = "/f/snabel/asdf2362"
+              url = "/f/snabel/asdf2362",
             )
           ),
-          contexts = List()
-        )
+          contexts = List(),
+        ),
       ) ++
         indexingBundle.taxonomyBundle.get.nodes
     )
@@ -1143,19 +1059,12 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           id = Some(1),
           name = "Apekatt",
           bannerImage = BannerImage(None, 5),
-          about = Seq(
-            AboutSubject(
-              "Krutt",
-              "Beskrivels",
-              "nb",
-              VisualElement(Image, "123", None)
-            )
-          ),
+          about = Seq(AboutSubject("Krutt", "Beskrivels", "nb", VisualElement(Image, "123", None))),
           metaDescription = Seq(MetaDescription("Apekatt beskrivelse", "nb")),
           editorsChoices = List(),
           connectedTo = List(),
           buildsOn = List(),
-          leadsTo = List()
+          leadsTo = List(),
         )
       )
     ).when(frontpageApiClient).getSubjectPage(eqTo(1L))
@@ -1171,24 +1080,15 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
           editorsChoices = List(),
           connectedTo = List(),
           buildsOn = List(),
-          leadsTo = List()
+          leadsTo = List(),
         )
       )
     ).when(frontpageApiClient).getSubjectPage(eqTo(2L))
 
-    val article1 = TestData.article1.copy(
-      id = Some(1),
-      title = Seq(Title("Apekatt en", "nb"))
-    )
-    val article2 = TestData.article1.copy(
-      id = Some(2),
-      title = Seq(Title("Apekatt to", "nb"))
-    )
-    val article3 = TestData.article1.copy(
-      id = Some(3),
-      title = Seq(Title("Noe helt annet", "nb"))
-    )
-    val bundle = indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))
+    val article1 = TestData.article1.copy(id = Some(1), title = Seq(Title("Apekatt en", "nb")))
+    val article2 = TestData.article1.copy(id = Some(2), title = Seq(Title("Apekatt to", "nb")))
+    val article3 = TestData.article1.copy(id = Some(3), title = Seq(Title("Noe helt annet", "nb")))
+    val bundle   = indexingBundle.copy(taxonomyBundle = Some(taxonomyBundle))
 
     nodeIndexService.indexDocuments(None, bundle).get
     articleIndexService.indexDocument(article1, bundle).get
@@ -1201,48 +1101,42 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
       indexedNodes == 23 && indexedArticles == 3
     })
 
-    val search1 =
-      multiSearchService.matchingQuery(
-        TestData.searchSettings.copy(
+    val search1 = multiSearchService.matchingQuery(
+      TestData
+        .searchSettings
+        .copy(
           sort = Sort.ByRelevanceDesc,
           query = NonEmptyString.fromString("Krutt"),
           nodeTypeFilter = List(NodeType.SUBJECT),
-          resultTypes = Some(
-            List(
-              SearchType.Nodes,
-              SearchType.Articles
-            )
-          )
+          resultTypes = Some(List(SearchType.Nodes, SearchType.Articles)),
         )
-      )
-
-    search1.get.results.map {
-      case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
-      case x: NodeHitDTO            => s"Node:${x.id}"
-    } should be(
-      List("Node:urn:subject:19284")
     )
 
-    val search2 =
-      multiSearchService.matchingQuery(
-        TestData.searchSettings.copy(
+    search1
+      .get
+      .results
+      .map {
+        case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
+        case x: NodeHitDTO            => s"Node:${x.id}"
+      } should be(List("Node:urn:subject:19284"))
+
+    val search2 = multiSearchService.matchingQuery(
+      TestData
+        .searchSettings
+        .copy(
           sort = Sort.ByRelevanceDesc,
           query = NonEmptyString.fromString("Kamelon"),
           nodeTypeFilter = List(NodeType.SUBJECT),
-          resultTypes = Some(
-            List(
-              SearchType.Nodes,
-              SearchType.Articles
-            )
-          )
+          resultTypes = Some(List(SearchType.Nodes, SearchType.Articles)),
         )
-      )
-
-    search2.get.results.map {
-      case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
-      case x: NodeHitDTO            => s"Node:${x.id}"
-    } should be(
-      List("Node:urn:subject:19285")
     )
+
+    search2
+      .get
+      .results
+      .map {
+        case x: MultiSearchSummaryDTO => s"Multi:${x.id}"
+        case x: NodeHitDTO            => s"Node:${x.id}"
+      } should be(List("Node:urn:subject:19285"))
   }
 }

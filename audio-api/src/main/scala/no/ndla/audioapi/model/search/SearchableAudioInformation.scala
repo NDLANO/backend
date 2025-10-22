@@ -14,10 +14,7 @@ import no.ndla.audioapi.model.domain.CoverPhoto
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 
-case class SearchablePodcastMeta(
-    coverPhoto: CoverPhoto,
-    language: String
-)
+case class SearchablePodcastMeta(coverPhoto: CoverPhoto, language: String)
 
 object SearchablePodcastMeta {
   implicit val encoder: Encoder[SearchablePodcastMeta] = deriveEncoder
@@ -25,10 +22,7 @@ object SearchablePodcastMeta {
 }
 
 // Only used to calculate supportedLanguages
-case class SearchableAudio(
-    filePath: String,
-    language: String
-)
+case class SearchableAudio(filePath: String, language: String)
 
 object SearchableAudio {
   implicit val encoder: Encoder[SearchableAudio] = deriveEncoder
@@ -48,7 +42,7 @@ case class SearchableAudioInformation(
     podcastMetaIntroduction: SearchableLanguageValues,
     podcastMeta: Seq[SearchablePodcastMeta],
     manuscript: SearchableLanguageValues,
-    series: Option[SearchableSeries]
+    series: Option[SearchableSeries],
 )
 
 object SearchableAudioInformation {

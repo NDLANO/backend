@@ -424,7 +424,7 @@ object Iso639List_3 {
       Some("L"),
       "Gbaya (Central African Republic)",
       None,
-      None
+      None,
     ),
     Iso639Val("gbb", None, None, None, Some("I"), Some("L"), "Kaytetye", None, None),
     Iso639Val("gbd", None, None, None, Some("I"), Some("L"), "Karadjeri", None, None),
@@ -579,7 +579,7 @@ object Iso639List_3 {
       Some("H"),
       "Middle High German (ca. 1050-1500)",
       None,
-      None
+      None,
     ),
     Iso639Val("gml", None, None, None, Some("I"), Some("H"), "Middle Low German", None, None),
     Iso639Val("gmm", None, None, None, Some("I"), Some("L"), "Gbaya-Mbodomo", None, None),
@@ -624,7 +624,7 @@ object Iso639List_3 {
       Some("H"),
       "Old High German (ca. 750-1050)",
       None,
-      None
+      None,
     ),
     Iso639Val("goi", None, None, None, Some("I"), Some("L"), "Gobasi", None, None),
     Iso639Val("goj", None, None, None, Some("I"), Some("L"), "Gowlan", None, None),
@@ -791,7 +791,7 @@ object Iso639List_3 {
       Some("L"),
       "Serbo-Croatian",
       None,
-      Some("Code element for 639-1 has been deprecated")
+      Some("Code element for 639-1 has been deprecated"),
     ),
     Iso639Val("hbu", None, None, None, Some("I"), Some("L"), "Habu", None, None),
     Iso639Val("hca", None, None, None, Some("I"), Some("L"), "Andaman Creole Hindi", None, None),
@@ -852,6 +852,6 @@ object Iso639List_3 {
     Iso639Val("hmk", None, None, None, Some("I"), Some("E"), "Maek", None, None),
     Iso639Val("hml", None, None, None, Some("I"), Some("L"), "Luopohe Hmong", None, None),
     Iso639Val("hmm", None, None, None, Some("I"), Some("L"), "Central Mashan Hmong", None, None),
-    Iso639Val("hmn", Some("hmn"), Some("hmn"), None, Some("M"), Some("L"), "Hmong", None, None)
+    Iso639Val("hmn", Some("hmn"), Some("hmn"), None, Some("M"), Some("L"), "Hmong", None, None),
   )
 }

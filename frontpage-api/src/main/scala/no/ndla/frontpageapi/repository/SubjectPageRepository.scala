@@ -35,20 +35,17 @@ class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) extends StrictLo
     })
   }
 
-  def updateSubjectPage(
-      subj: SubjectPage
-  )(implicit session: DBSession = AutoSession): Try[SubjectPage] = {
+  def updateSubjectPage(subj: SubjectPage)(implicit session: DBSession = AutoSession): Try[SubjectPage] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(subj.copy(id = None).asJson.noSpacesDropNull)
 
-    Try(sql"update ${dBSubjectPage.DBSubjectPage.table} set document=${dataObject} where id=${subj.id}".update())
-      .map(_ => subj)
+    Try(sql"update ${dBSubjectPage.DBSubjectPage.table} set document=${dataObject} where id=${subj.id}".update()).map(
+      _ => subj
+    )
   }
 
-  def all(offset: Int, limit: Int)(implicit
-      session: DBSession = ReadOnlyAutoSession
-  ): Try[List[SubjectPage]] = {
+  def all(offset: Int, limit: Int)(implicit session: DBSession = ReadOnlyAutoSession): Try[List[SubjectPage]] = {
     val su = dBSubjectPage.DBSubjectPage.syntax("su")
     Try {
       sql"""
@@ -58,15 +55,11 @@ class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) extends StrictLo
             order by su.id
             offset $offset
             limit $limit
-         """
-        .map(dBSubjectPage.DBSubjectPage.fromDb(su))
-        .list()
-        .sequence
+         """.map(dBSubjectPage.DBSubjectPage.fromDb(su)).list().sequence
     }.flatten
   }
 
-  def withId(subjectId: Long): Try[Option[SubjectPage]] =
-    subjectPageWhere(sqls"su.id=${subjectId.toInt}")
+  def withId(subjectId: Long): Try[Option[SubjectPage]] = subjectPageWhere(sqls"su.id=${subjectId.toInt}")
 
   def withIds(subjectIds: List[Long], offset: Int, pageSize: Int)(implicit
       session: DBSession = AutoSession
@@ -79,10 +72,7 @@ class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) extends StrictLo
           and su.id in ($subjectIds)
           offset $offset
           limit $pageSize
-         """
-      .map(dBSubjectPage.DBSubjectPage.fromDb(su))
-      .list()
-      .sequence
+         """.map(dBSubjectPage.DBSubjectPage.fromDb(su)).list().sequence
   }.flatten
 
   def getIdFromExternalId(externalId: String)(implicit sesstion: DBSession = AutoSession): Try[Option[Long]] = {
@@ -95,9 +85,7 @@ class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) extends StrictLo
 
   def exists(subjectId: Long)(implicit sesstion: DBSession = AutoSession): Try[Boolean] = {
     Try(
-      sql"select id from ${dBSubjectPage.DBSubjectPage.table} where id=${subjectId}"
-        .map(rs => rs.long("id"))
-        .single()
+      sql"select id from ${dBSubjectPage.DBSubjectPage.table} where id=${subjectId}".map(rs => rs.long("id")).single()
     ).map(_.isDefined)
   }
 

@@ -13,11 +13,16 @@ import no.ndla.common.DeriveHelpers
 
 @description("Information about user data")
 case class UpdatedUserDataDTO(
-    @description("User's saved searches") savedSearches: Option[Seq[SavedSearchDTO]],
-    @description("User's last edited articles") latestEditedArticles: Option[Seq[String]],
-    @description("User's last edited concepts") latestEditedConcepts: Option[Seq[String]],
-    @description("User's last edited learningpaths") latestEditedLearningpaths: Option[Seq[String]],
-    @description("User's favorite subjects") favoriteSubjects: Option[Seq[String]]
+    @description("User's saved searches")
+    savedSearches: Option[Seq[SavedSearchDTO]],
+    @description("User's last edited articles")
+    latestEditedArticles: Option[Seq[String]],
+    @description("User's last edited concepts")
+    latestEditedConcepts: Option[Seq[String]],
+    @description("User's last edited learningpaths")
+    latestEditedLearningpaths: Option[Seq[String]],
+    @description("User's favorite subjects")
+    favoriteSubjects: Option[Seq[String]],
 )
 
 object UpdatedUserDataDTO {

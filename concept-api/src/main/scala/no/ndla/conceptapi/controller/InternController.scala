@@ -36,7 +36,7 @@ class InternController(using
     publishedConceptRepository: PublishedConceptRepository,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   import errorHandling.*
   override val prefix: EndpointInput[Unit] = "intern"
@@ -49,10 +49,11 @@ class InternController(using
     dumpSingleDraftConcept,
     dumpPublishedConcept,
     dumpSinglePublishedConcept,
-    postDraftConcept
+    postDraftConcept,
   )
 
-  def postIndex: ServerEndpoint[Any, Eff] = endpoint.post
+  def postIndex: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("index")
     .in(query[Option[Int]]("numShards"))
     .out(stringBody)
@@ -84,7 +85,9 @@ class InternController(using
     }
 
   def deleteIndexes[T <: IndexService](indexService: T): Try[String] = {
-    def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
+    def pluralIndex(n: Int) =
+      if (n == 1) "1 index"
+      else s"$n indexes"
     indexService.findAllIndexes match {
       case Failure(ex) =>
         logger.error("Could not find indexes to delete.")
@@ -103,7 +106,8 @@ class InternController(using
     }
   }
 
-  def deleteIndex: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteIndex: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .in("index")
     .out(stringBody)
     .errorOut(statusCode(StatusCode.InternalServerError).and(stringBody))
@@ -122,15 +126,15 @@ class InternController(using
       val result1 = deleteIndexes(draftConceptIndexService)
       val result2 = deleteIndexes(publishedConceptIndexService)
 
-      val msg =
-        s"""${logDeleteResult(result1)}
+      val msg = s"""${logDeleteResult(result1)}
              |${logDeleteResult(result2)}""".stripMargin
 
       if (result1.isFailure || result2.isFailure) msg.asLeft
       else msg.asRight
     }
 
-  def dumpDraftConcept: ServerEndpoint[Any, Eff] = endpoint.get
+  def dumpDraftConcept: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("dump" / "draft-concept")
     .out(jsonBody[ConceptDomainDump])
     .in(query[Int]("page").default(1))
@@ -139,7 +143,8 @@ class InternController(using
       readService.getDraftConceptDomainDump(pageNo, pageSize).asRight
     }
 
-  def dumpSingleDraftConcept: ServerEndpoint[Any, Eff] = endpoint.get
+  def dumpSingleDraftConcept: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("dump" / "draft-concept" / path[Long]("id"))
     .out(jsonBody[Concept])
     .errorOut(errorOutputsFor(400, 404))
@@ -150,7 +155,8 @@ class InternController(using
       }
     }
 
-  def dumpPublishedConcept: ServerEndpoint[Any, Eff] = endpoint.get
+  def dumpPublishedConcept: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("dump" / "concept")
     .out(jsonBody[ConceptDomainDump])
     .in(query[Int]("page").default(1))
@@ -159,7 +165,8 @@ class InternController(using
       readService.getPublishedConceptDomainDump(pageNo, pageSize).asRight
     }
 
-  def dumpSinglePublishedConcept: ServerEndpoint[Any, Eff] = endpoint.get
+  def dumpSinglePublishedConcept: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("dump" / "concept" / path[Long]("id"))
     .out(jsonBody[Concept])
     .errorOut(errorOutputsFor(400, 404))
@@ -170,7 +177,8 @@ class InternController(using
       }
     }
 
-  def postDraftConcept: ServerEndpoint[Any, Eff] = endpoint.post
+  def postDraftConcept: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("dump" / "draft-concept")
     .in(jsonBody[Concept])
     .out(jsonBody[Concept])

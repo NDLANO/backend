@@ -20,7 +20,7 @@ case class SearchableGrepElement(
     belongsTo: List[String],
     gjenbrukAv: Option[String],
     erstattesAv: List[String],
-    domainObject: GrepElement
+    domainObject: GrepElement,
 )
 
 object SearchableGrepElement {

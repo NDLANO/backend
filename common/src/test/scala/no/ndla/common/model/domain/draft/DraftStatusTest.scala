@@ -27,7 +27,7 @@ class DraftStatusTest extends UnitTestSuiteBase {
       PUBLISHED,
       REPUBLISH,
       UNPUBLISHED,
-      ARCHIVED
+      ARCHIVED,
     )
     DraftStatus.values.sorted should be(expected)
   }

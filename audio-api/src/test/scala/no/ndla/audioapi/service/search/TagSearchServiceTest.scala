@@ -32,45 +32,19 @@ class TagSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnviro
   override implicit lazy val converterService: ConverterService             = new ConverterService
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
-  val audio1: AudioMetaInformation = TestData.sampleAudio.copy(
-    tags = Seq(
-      common.Tag(
-        Seq("test", "testing", "testemer"),
-        "nb"
-      )
-    )
-  )
+  val audio1: AudioMetaInformation = TestData
+    .sampleAudio
+    .copy(tags = Seq(common.Tag(Seq("test", "testing", "testemer"), "nb")))
 
-  val audio2: AudioMetaInformation = TestData.sampleAudio.copy(
-    tags = Seq(
-      common.Tag(
-        Seq("test"),
-        "en"
-      )
-    )
-  )
+  val audio2: AudioMetaInformation = TestData.sampleAudio.copy(tags = Seq(common.Tag(Seq("test"), "en")))
 
-  val audio3: AudioMetaInformation = TestData.sampleAudio.copy(
-    tags = Seq(
-      common.Tag(
-        Seq("hei", "test", "testing"),
-        "nb"
-      ),
-      common.Tag(
-        Seq("test"),
-        "en"
-      )
-    )
-  )
+  val audio3: AudioMetaInformation = TestData
+    .sampleAudio
+    .copy(tags = Seq(common.Tag(Seq("hei", "test", "testing"), "nb"), common.Tag(Seq("test"), "en")))
 
-  val audio4: AudioMetaInformation = TestData.sampleAudio.copy(
-    tags = Seq(
-      common.Tag(
-        Seq("kyllingfilet", "filetkylling"),
-        "nb"
-      )
-    )
-  )
+  val audio4: AudioMetaInformation = TestData
+    .sampleAudio
+    .copy(tags = Seq(common.Tag(Seq("kyllingfilet", "filetkylling"), "nb")))
 
   val audiosToIndex: Seq[AudioMetaInformation] = Seq(audio1, audio2, audio3, audio4)
 

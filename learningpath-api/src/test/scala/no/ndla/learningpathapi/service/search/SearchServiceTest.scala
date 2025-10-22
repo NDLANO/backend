@@ -19,7 +19,7 @@ import no.ndla.common.model.domain.learningpath.{
   LearningStep,
   LearningpathCopyright,
   StepStatus,
-  StepType
+  StepType,
 }
 import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title, learningpath}
 import no.ndla.language.Language
@@ -38,8 +38,8 @@ import no.ndla.learningpathapi.model.api.CopyrightDTO
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
-  override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
-  override implicit lazy val e4sClient: NdlaE4sClient       = Elastic4sClientFactory.getClient(elasticSearchHost.get)
+  override implicit lazy val searchLanguage: SearchLanguage                          = new SearchLanguage
+  override implicit lazy val e4sClient: NdlaE4sClient                                = Elastic4sClientFactory.getClient(elasticSearchHost.get)
   override implicit lazy val searchConverterService: SearchConverterServiceComponent =
     new SearchConverterServiceComponent
   override implicit lazy val searchIndexService: SearchIndexService = new SearchIndexService {
@@ -74,7 +74,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     comments = Seq.empty,
     priority = Priority.Unspecified,
     revisionMeta = RevisionMeta.default,
-    grepCodes = Seq.empty
+    grepCodes = Seq.empty,
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(
@@ -93,7 +93,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     status = StepStatus.ACTIVE,
     created = today,
     lastUpdated = today,
-    owner = "owner"
+    owner = "owner",
   )
 
   val PenguinId   = 1L
@@ -124,7 +124,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         id = Some(1),
         revision = Some(1),
         title = List(Title("Active step", "nb")),
-        embedUrl = List(EmbedUrl("https://ndla.no/article/1", "nb", EmbedType.OEmbed))
+        embedUrl = List(EmbedUrl("https://ndla.no/article/1", "nb", EmbedType.OEmbed)),
       )
 
       val deletedStep = DefaultLearningStep.copy(
@@ -132,7 +132,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         revision = Some(1),
         title = List(Title("Deleted step", "nb")),
         embedUrl = List(EmbedUrl("https://ndla.no/article/2", "nb", EmbedType.OEmbed)),
-        status = StepStatus.DELETED
+        status = StepStatus.DELETED,
       )
 
       val thePenguin = DefaultLearningPath.copy(
@@ -144,7 +144,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         lastUpdated = yesterday,
         tags = List(Tag(Seq("superhelt", "kanikkefly"), "nb")),
         learningsteps = Some(List(activeStep)),
-        grepCodes = Seq("KM123", "KM456")
+        grepCodes = Seq("KM123", "KM456"),
       )
 
       val batman = DefaultLearningPath.copy(
@@ -156,7 +156,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         lastUpdated = today,
         tags = List(Tag(Seq("superhelt", "kanfly"), "nb")),
         learningsteps = Some(List(activeStep, deletedStep)),
-        grepCodes = Seq("KM456", "KM789")
+        grepCodes = Seq("KM456", "KM789"),
       )
 
       val theDuck = DefaultLearningPath.copy(
@@ -169,7 +169,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         tags = List(Tag(Seq("disney", "kanfly"), "nb")),
         learningsteps = Some(List(deletedStep)),
         verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
-        grepCodes = Seq("KM123", "KM456", "KM789")
+        grepCodes = Seq("KM123", "KM456", "KM789"),
       )
 
       val unrelated = DefaultLearningPath.copy(
@@ -180,7 +180,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         created = yesterday,
         lastUpdated = tomorrowp1,
         tags = List(),
-        grepCodes = Seq("KM111", "KM222")
+        grepCodes = Seq("KM111", "KM222"),
       )
 
       val englando = DefaultLearningPath.copy(
@@ -191,7 +191,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         created = yesterday,
         lastUpdated = tomorrowp2,
         tags = List(),
-        grepCodes = Seq("KM333", "KM444")
+        grepCodes = Seq("KM333", "KM444"),
       )
 
       val brumle = DefaultLearningPath.copy(
@@ -203,7 +203,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         lastUpdated = tomorrowp2,
         tags = List(),
         status = LearningPathStatus.UNLISTED,
-        grepCodes = Seq("KM123", "KM456")
+        grepCodes = Seq("KM123", "KM456"),
       )
 
       searchIndexService.indexDocument(thePenguin).get
@@ -223,7 +223,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         language = Some("hurr durr I'm a language"),
         page = Some(1),
         fallback = true,
-        sort = Sort.ByIdDesc
+        sort = Sort.ByIdDesc,
       )
     ): @unchecked
     res.results.length should be(res.totalCount)
@@ -236,7 +236,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         language = Some("hurr durr I'm a language"),
         page = Some(1),
         fallback = false,
-        sort = Sort.ByIdDesc
+        sort = Sort.ByIdDesc,
       )
     ): @unchecked
     res.results.length should be(res.totalCount)
@@ -267,12 +267,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
   }
 
   test("That all learningpaths are returned ordered by title descending") {
-    val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByTitleDesc
-      )
-    ): @unchecked
-    val hits = searchResult.results
+    val Success(searchResult) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByTitleDesc)): @unchecked
+    val hits                  = searchResult.results
     searchResult.totalCount should be(4)
 
     hits.head.id should be(UnrelatedId)
@@ -283,12 +279,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
   }
 
   test("That all learningpaths are returned ordered by title ascending") {
-    val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByTitleAsc
-      )
-    ): @unchecked
-    val hits = searchResult.results
+    val Success(searchResult) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByTitleAsc)): @unchecked
+    val hits                  = searchResult.results
 
     searchResult.totalCount should be(4)
     hits.head.id should be(BatmanId)
@@ -298,12 +290,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
   }
 
   test("That all learningpaths are returned ordered by id descending") {
-    val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByIdDesc
-      )
-    ): @unchecked
-    val hits = searchResult.results
+    val Success(searchResult) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdDesc)): @unchecked
+    val hits                  = searchResult.results
 
     searchResult.totalCount should be(4)
     hits.head.id should be(UnrelatedId)
@@ -313,12 +301,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
   }
 
   test("That all learningpaths are returned ordered by id ascending") {
-    val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByIdAsc,
-        language = Some("*")
-      )
-    ): @unchecked
+    val Success(searchResult) =
+      searchService.matchingQuery(searchSettings.copy(sort = Sort.ByIdAsc, language = Some("*"))): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(5)
@@ -330,35 +314,24 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
   }
 
   test("That order by durationDesc orders search result by duration descending") {
-    val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByDurationDesc
-      )
-    ): @unchecked
-    val hits = searchResult.results
+    val Success(searchResult) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByDurationDesc)): @unchecked
+    val hits                  = searchResult.results
 
     searchResult.totalCount should be(4)
     hits.head.id should be(UnrelatedId)
   }
 
   test("That order ByDurationAsc orders search result by duration ascending") {
-    val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByDurationAsc
-      )
-    ): @unchecked
-    val hits = searchResult.results
+    val Success(searchResult) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByDurationAsc)): @unchecked
+    val hits                  = searchResult.results
 
     searchResult.totalCount should be(4)
     hits.head.id should be(PenguinId)
   }
 
   test("That order ByLastUpdatedDesc orders search result by last updated date descending") {
-    val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByLastUpdatedDesc
-      )
-    ): @unchecked
+    val Success(searchResult) =
+      searchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedDesc)): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -367,11 +340,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
   }
 
   test("That order ByLastUpdatedAsc orders search result by last updated date ascending") {
-    val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByLastUpdatedAsc
-      )
-    ): @unchecked
+    val Success(searchResult) =
+      searchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedAsc)): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(4)
@@ -381,11 +351,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   test("That all filtered by id only returns learningpaths with the given ids") {
     val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        withIdIn = List(1, 2),
-        sort = Sort.ByTitleAsc,
-        language = Some(Language.AllLanguages)
-      )
+      searchSettings.copy(withIdIn = List(1, 2), sort = Sort.ByTitleAsc, language = Some(Language.AllLanguages))
     ): @unchecked
     val hits = searchResult.results
 
@@ -396,12 +362,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   test("That searching returns matching documents with unmatching language if fallback is enabled") {
     val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("Pingvinen"),
-        sort = Sort.ByTitleAsc,
-        language = Some("en"),
-        fallback = true
-      )
+      searchSettings.copy(query = Some("Pingvinen"), sort = Sort.ByTitleAsc, language = Some("en"), fallback = true)
     ): @unchecked
 
     searchResult.totalCount should be(1)
@@ -409,24 +370,15 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   test("That searching returns no matching documents with unmatching language if fallback is disabled ") {
     val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("Pingvinen"),
-        sort = Sort.ByTitleAsc,
-        language = Some("en"),
-        fallback = false
-      )
+      searchSettings.copy(query = Some("Pingvinen"), sort = Sort.ByTitleAsc, language = Some("en"), fallback = false)
     ): @unchecked
 
     searchResult.totalCount should be(0)
   }
 
   test("That searching only returns documents matching the query") {
-    val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("heltene"),
-        sort = Sort.ByTitleAsc
-      )
-    ): @unchecked
+    val Success(searchResult) =
+      searchService.matchingQuery(searchSettings.copy(query = Some("heltene"), sort = Sort.ByTitleAsc)): @unchecked
     val hits = searchResult.results
 
     searchResult.totalCount should be(1)
@@ -439,7 +391,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         withIdIn = List(3),
         query = Some("morsom"),
         sort = Sort.ByTitleAsc,
-        language = Some(Language.AllLanguages)
+        language = Some(Language.AllLanguages),
       )
     ): @unchecked
     val hits = searchResult.results
@@ -450,11 +402,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   test("That searching only returns documents matching the query in the specified language") {
     val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("guy"),
-        sort = Sort.ByTitleAsc,
-        language = Some("en")
-      )
+      searchSettings.copy(query = Some("guy"), sort = Sort.ByTitleAsc, language = Some("en"))
     ): @unchecked
     val hits = searchResult.results
 
@@ -464,11 +412,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   test("That searching only returns documents matching the query in the specified standard analyzed language") {
     val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("djinba"),
-        sort = Sort.ByTitleAsc,
-        language = Some("djb")
-      )
+      searchSettings.copy(query = Some("djinba"), sort = Sort.ByTitleAsc, language = Some("djb"))
     ): @unchecked
     val hits = searchResult.results
 
@@ -477,23 +421,15 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
   }
 
   test("That searching returns nothing if language is not indexed") {
-    val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByTitleAsc,
-        language = Some("kra")
-      )
-    ): @unchecked
+    val Success(searchResult) =
+      searchService.matchingQuery(searchSettings.copy(sort = Sort.ByTitleAsc, language = Some("kra"))): @unchecked
 
     searchResult.totalCount should be(0)
   }
 
   test("That filtering on tag only returns documents where the tag is present") {
     val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByTitleAsc,
-        taggedWith = Some("superhelt"),
-        language = Some("nb")
-      )
+      searchSettings.copy(sort = Sort.ByTitleAsc, taggedWith = Some("superhelt"), language = Some("nb"))
     ): @unchecked
     val hits = searchResult.results
 
@@ -506,11 +442,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     "That filtering on tag combined with search only returns documents where the tag is present and the search matches the query"
   ) {
     val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("heltene"),
-        taggedWith = Some("kanfly"),
-        sort = Sort.ByTitleAsc
-      )
+      searchSettings.copy(query = Some("heltene"), taggedWith = Some("kanfly"), sort = Sort.ByTitleAsc)
     ): @unchecked
     val hits = searchResult.results
 
@@ -520,10 +452,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   test("That searching and ordering by relevance is returning Donald before Batman when searching for tough weirdos") {
     val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("tøff rar"),
-        sort = Sort.ByRelevanceDesc
-      )
+      searchSettings.copy(query = Some("tøff rar"), sort = Sort.ByRelevanceDesc)
     ): @unchecked
     val hits = searchResult.results
 
@@ -536,10 +465,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     "That searching and ordering by relevance is returning Donald before Batman and the penguin when searching for duck, bat and bird"
   ) {
     val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("and flaggermus fugl"),
-        sort = Sort.ByRelevanceDesc
-      )
+      searchSettings.copy(query = Some("and flaggermus fugl"), sort = Sort.ByRelevanceDesc)
     ): @unchecked
     val hits = searchResult.results
 
@@ -553,11 +479,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     "That searching and ordering by relevance is not returning Penguin when searching for duck, bat and bird, but filtering on kanfly"
   ) {
     val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("and flaggermus fugl"),
-        taggedWith = Some("kanfly"),
-        sort = Sort.ByRelevanceDesc
-      )
+      searchSettings.copy(query = Some("and flaggermus fugl"), taggedWith = Some("kanfly"), sort = Sort.ByRelevanceDesc)
     ): @unchecked
     val hits = searchResult.results
 
@@ -568,10 +490,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   test("That a search for flaggremsu returns Donald but not Batman if it is misspelled") {
     val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("and flaggremsu"),
-        sort = Sort.ByRelevanceDesc
-      )
+      searchSettings.copy(query = Some("and flaggremsu"), sort = Sort.ByRelevanceDesc)
     ): @unchecked
     val hits = searchResult.results
 
@@ -581,18 +500,12 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   test("That searching with logical operators works") {
     val Success(searchResult1) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("kjeltring + batman"),
-        sort = Sort.ByRelevanceAsc
-      )
+      searchSettings.copy(query = Some("kjeltring + batman"), sort = Sort.ByRelevanceAsc)
     ): @unchecked
     searchResult1.totalCount should be(0)
 
     val Success(searchResult2) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("tøff + morsom + -and"),
-        sort = Sort.ByRelevanceAsc
-      )
+      searchSettings.copy(query = Some("tøff + morsom + -and"), sort = Sort.ByRelevanceAsc)
     ): @unchecked
     val hits2 = searchResult2.results
 
@@ -600,10 +513,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     hits2.head.id should be(BatmanId)
 
     val Success(searchResult3) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("tøff | morsom | kjeltring"),
-        sort = Sort.ByIdAsc
-      )
+      searchSettings.copy(query = Some("tøff | morsom | kjeltring"), sort = Sort.ByIdAsc)
     ): @unchecked
     val hits3 = searchResult3.results
 
@@ -613,18 +523,10 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   test("That searching for multiple languages returns result in matched language") {
     val Success(searchNb) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("Urelatert"),
-        language = Some(Language.AllLanguages),
-        sort = Sort.ByTitleAsc
-      )
+      searchSettings.copy(query = Some("Urelatert"), language = Some(Language.AllLanguages), sort = Sort.ByTitleAsc)
     ): @unchecked
     val Success(searchEn) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("Unrelated"),
-        language = Some(Language.AllLanguages),
-        sort = Sort.ByTitleAsc
-      )
+      searchSettings.copy(query = Some("Unrelated"), language = Some(Language.AllLanguages), sort = Sort.ByTitleAsc)
     ): @unchecked
 
     searchEn.totalCount should be(1)
@@ -644,10 +546,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   test("That searching for all languages returns multiple languages") {
     val Success(search) = searchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByTitleAsc,
-        language = Some(Language.AllLanguages)
-      )
+      searchSettings.copy(sort = Sort.ByTitleAsc, language = Some(Language.AllLanguages))
     ): @unchecked
 
     search.totalCount should be(5)
@@ -662,22 +561,14 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   test("that supportedLanguages are sorted correctly") {
     val Success(search) = searchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("Batman"),
-        sort = Sort.ByTitleAsc,
-        language = Some(Language.AllLanguages)
-      )
+      searchSettings.copy(query = Some("Batman"), sort = Sort.ByTitleAsc, language = Some(Language.AllLanguages))
     ): @unchecked
     search.results.head.supportedLanguages should be(Seq("nb", "en"))
   }
 
   test("That searching with fallback still returns searched language if specified") {
-    val Success(search) = searchService.matchingQuery(
-      searchSettings.copy(
-        language = Some("en"),
-        fallback = true
-      )
-    ): @unchecked
+    val Success(search) =
+      searchService.matchingQuery(searchSettings.copy(language = Some("en"), fallback = true)): @unchecked
 
     search.totalCount should be(5)
     search.results.head.id should be(PenguinId)
@@ -699,7 +590,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         language = Some(Language.AllLanguages),
         pageSize = Some(pageSize),
         fallback = true,
-        shouldScroll = true
+        shouldScroll = true,
       )
     ): @unchecked
 
@@ -721,7 +612,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         query = Some("flaggermus"),
         language = Some(Language.AllLanguages),
         verificationStatus = Some("EXTERNAL"),
-        sort = Sort.ByTitleAsc
+        sort = Sort.ByTitleAsc,
       )
     ): @unchecked
     val hits = searchResult.results
@@ -737,7 +628,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         language = Some(Language.AllLanguages),
         verificationStatus = Some("CREATED_BY_NDLA"),
-        sort = Sort.ByTitleAsc
+        sort = Sort.ByTitleAsc,
       )
     ): @unchecked
     val hits = searchResult.results
@@ -748,10 +639,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   test("That regular searches only includes published learningpaths") {
     val Success(searchResult) = searchService.matchingQuery(
-      searchSettings.copy(
-        sort = Sort.ByIdAsc,
-        language = Some(Language.AllLanguages)
-      )
+      searchSettings.copy(sort = Sort.ByIdAsc, language = Some(Language.AllLanguages))
     ): @unchecked
 
     searchResult.totalCount should be(5)
@@ -763,7 +651,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages),
-        status = List(learningpath.LearningPathStatus.PUBLISHED, learningpath.LearningPathStatus.UNLISTED)
+        status = List(learningpath.LearningPathStatus.PUBLISHED, learningpath.LearningPathStatus.UNLISTED),
       )
     ): @unchecked
 
@@ -774,7 +662,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages),
-        status = List(learningpath.LearningPathStatus.UNLISTED)
+        status = List(learningpath.LearningPathStatus.UNLISTED),
       )
     ): @unchecked
 
@@ -787,7 +675,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages),
-        withPaths = List("https://ndla.no/article/1", "https://ndla.no/article/2")
+        withPaths = List("https://ndla.no/article/1", "https://ndla.no/article/2"),
       )
     ): @unchecked
 
@@ -798,7 +686,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages),
-        withPaths = List("https://ndla.no/article/2")
+        withPaths = List("https://ndla.no/article/2"),
       )
     ): @unchecked
 
@@ -810,7 +698,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
       searchSettings.copy(
         sort = Sort.ByIdAsc,
         language = Some(Language.AllLanguages),
-        grepCodes = List("KM123", "KM456")
+        grepCodes = List("KM123", "KM456"),
       )
     ): @unchecked
 

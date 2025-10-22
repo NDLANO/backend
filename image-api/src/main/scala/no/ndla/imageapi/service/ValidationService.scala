@@ -20,30 +20,25 @@ import org.jsoup.safety.Safelist
 
 import scala.util.{Failure, Success, Try}
 
-class ValidationService(using
-    props: Props
-) {
+class ValidationService(using props: Props) {
 
   def validateImageFile(imageFile: UploadedFile): Option[ValidationMessage] = {
     val fn = imageFile.fileName.getOrElse("").stripPrefix("\"").stripSuffix("\"")
-    if (!hasValidFileExtension(fn, props.ValidFileExtensions))
-      return Some(
-        ValidationMessage(
-          "file",
-          s"The file $fn does not have a known file extension. Must be one of ${props.ValidFileExtensions
-              .mkString(",")}"
-        )
+    if (!hasValidFileExtension(fn, props.ValidFileExtensions)) return Some(
+      ValidationMessage(
+        "file",
+        s"The file $fn does not have a known file extension. Must be one of ${props.ValidFileExtensions.mkString(",")}",
       )
+    )
 
     val actualMimeType = imageFile.contentType.getOrElse("")
 
-    if (!props.ValidMimeTypes.contains(actualMimeType))
-      return Some(
-        ValidationMessage(
-          "file",
-          s"The file $fn is not a valid image file. Only valid type is '${props.ValidMimeTypes.mkString(",")}', but was '$actualMimeType'"
-        )
+    if (!props.ValidMimeTypes.contains(actualMimeType)) return Some(
+      ValidationMessage(
+        "file",
+        s"The file $fn is not a valid image file. Only valid type is '${props.ValidMimeTypes.mkString(",")}', but was '$actualMimeType'",
       )
+    )
 
     None
   }
@@ -58,7 +53,9 @@ class ValidationService(using
     val oldAltTextLanguages = oldImage.map(_.alttexts.map(_.language)).getOrElse(Seq())
     val oldCaptionLanguages = oldImage.map(_.captions.map(_.language)).getOrElse(Seq())
 
-    val oldLanguages = (oldTitleLanguages ++ oldTagLanguages ++ oldAltTextLanguages ++ oldCaptionLanguages).distinct
+    val oldLanguages = (
+      oldTitleLanguages ++ oldTagLanguages ++ oldAltTextLanguages ++ oldCaptionLanguages
+    ).distinct
 
     val validationMessages = image.titles.flatMap(title => validateTitle("title", title, oldLanguages)) ++
       validateCopyright(image.copyright) ++
@@ -70,11 +67,7 @@ class ValidationService(using
     else Failure(new ValidationException(errors = validationMessages))
   }
 
-  private def validateTitle(
-      fieldPath: String,
-      title: ImageTitle,
-      oldLanguages: Seq[String]
-  ): Seq[ValidationMessage] = {
+  private def validateTitle(fieldPath: String, title: ImageTitle, oldLanguages: Seq[String]): Seq[ValidationMessage] = {
     containsNoHtml(fieldPath, title.title).toList ++
       validateLanguage(fieldPath, title.language, oldLanguages)
   }
@@ -82,7 +75,7 @@ class ValidationService(using
   private def validateAltText(
       fieldPath: String,
       altText: ImageAltText,
-      oldLanguages: Seq[String]
+      oldLanguages: Seq[String],
   ): Seq[ValidationMessage] = {
     containsNoHtml(fieldPath, altText.alttext).toList ++
       validateLanguage(fieldPath, altText.language, oldLanguages)
@@ -91,7 +84,7 @@ class ValidationService(using
   private def validateCaption(
       fieldPath: String,
       caption: ImageCaption,
-      oldLanguages: Seq[String]
+      oldLanguages: Seq[String],
   ): Seq[ValidationMessage] = {
     containsNoHtml(fieldPath, caption.caption).toList ++
       validateLanguage(fieldPath, caption.language, oldLanguages)
@@ -101,13 +94,13 @@ class ValidationService(using
     validateLicense(copyright.license).toList ++
       validateAuthorLicenseCorrelation(
         Some(copyright.license),
-        copyright.rightsholders ++ copyright.creators ++ copyright.processors
+        copyright.rightsholders ++ copyright.creators ++ copyright.processors,
       ) ++
       copyright.creators.flatMap(a => validateAuthor("copyright.creators", a, ContributorType.creators)) ++
       copyright.processors.flatMap(a => validateAuthor("copyright.processors", a, ContributorType.processors)) ++
-      copyright.rightsholders.flatMap(a =>
-        validateAuthor("copyright.rightsholders", a, ContributorType.rightsholders)
-      ) ++
+      copyright
+        .rightsholders
+        .flatMap(a => validateAuthor("copyright.rightsholders", a, ContributorType.rightsholders)) ++
       copyright.origin.flatMap(origin => containsNoHtml("copyright.origin", origin))
   }
 
@@ -123,14 +116,16 @@ class ValidationService(using
       ValidationMessage("license.license", s"At least one copyright holder is required when license is $lic")
     license match {
       case None      => Seq()
-      case Some(lic) => if (lic == "N/A" || authors.nonEmpty) Seq() else Seq(errorMessage(lic))
+      case Some(lic) =>
+        if (lic == "N/A" || authors.nonEmpty) Seq()
+        else Seq(errorMessage(lic))
     }
   }
 
   private def validateAuthor(
       fieldPath: String,
       author: Author,
-      allowedTypes: Seq[ContributorType]
+      allowedTypes: Seq[ContributorType],
   ): Seq[ValidationMessage] = {
     containsNoHtml(s"$fieldPath.name", author.name).toList ++
       validateAuthorType(s"$fieldPath.type", author.`type`, allowedTypes) ++
@@ -140,7 +135,7 @@ class ValidationService(using
   private def validateAuthorType(
       fieldPath: String,
       `type`: ContributorType,
-      allowedTypes: Seq[ContributorType]
+      allowedTypes: Seq[ContributorType],
   ): Option[ValidationMessage] = {
     if (allowedTypes.contains(`type`)) {
       None
@@ -150,15 +145,10 @@ class ValidationService(using
   }
 
   private def validateMinimumLength(fieldPath: String, content: String, minLength: Int): Option[ValidationMessage] =
-    if (content.trim.length < minLength)
-      Some(
-        ValidationMessage(
-          fieldPath,
-          s"This field does not meet the minimum length requirement of $minLength characters"
-        )
-      )
-    else
-      None
+    if (content.trim.length < minLength) Some(
+      ValidationMessage(fieldPath, s"This field does not meet the minimum length requirement of $minLength characters")
+    )
+    else None
 
   private def validateTags(tags: Seq[Tag], oldLanguages: Seq[String]): Seq[ValidationMessage] = {
     tags.flatMap(tagList => {
@@ -178,7 +168,7 @@ class ValidationService(using
   private def validateLanguage(
       fieldPath: String,
       languageCode: String,
-      oldLanguages: Seq[String]
+      oldLanguages: Seq[String],
   ): Option[ValidationMessage] = {
 
     if (languageCodeSupported6391(languageCode) || oldLanguages.contains(languageCode)) {

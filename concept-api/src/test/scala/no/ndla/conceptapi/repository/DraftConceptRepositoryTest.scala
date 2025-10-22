@@ -99,28 +99,29 @@ class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite
   }
 
   test("Fetching concepts tags works as expected") {
-    val concept1 =
-      TestData.domainConcept.copy(
+    val concept1 = TestData
+      .domainConcept
+      .copy(
         id = Some(1),
         tags = Seq(
           common.Tag(Seq("konge", "bror"), "nb"),
           common.Tag(Seq("konge", "brur"), "nn"),
           common.Tag(Seq("king", "bro"), "en"),
-          common.Tag(Seq("zing", "xiongdi"), "zh")
-        )
+          common.Tag(Seq("zing", "xiongdi"), "zh"),
+        ),
       )
-    val concept2 =
-      TestData.domainConcept.copy(
+    val concept2 = TestData
+      .domainConcept
+      .copy(
         id = Some(2),
         tags = Seq(
           common.Tag(Seq("konge", "lol", "meme"), "nb"),
           common.Tag(Seq("konge", "lel", "meem"), "nn"),
           common.Tag(Seq("king", "lul", "maymay"), "en"),
-          common.Tag(Seq("zing", "kek", "mimi"), "zh")
-        )
+          common.Tag(Seq("zing", "kek", "mimi"), "zh"),
+        ),
       )
-    val concept3 =
-      TestData.domainConcept.copy(id = Some(3), tags = Seq())
+    val concept3 = TestData.domainConcept.copy(id = Some(3), tags = Seq())
 
     repository.insert(concept1)
     repository.insert(concept2)
@@ -132,26 +133,28 @@ class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite
           common.Tag(Seq("konge", "bror"), "nb"),
           common.Tag(Seq("konge", "brur"), "nn"),
           common.Tag(Seq("king", "bro"), "en"),
-          common.Tag(Seq("zing", "xiongdi"), "zh")
+          common.Tag(Seq("zing", "xiongdi"), "zh"),
         ),
         List(
           common.Tag(Seq("konge", "lol", "meme"), "nb"),
           common.Tag(Seq("konge", "lel", "meem"), "nn"),
           common.Tag(Seq("king", "lul", "maymay"), "en"),
-          common.Tag(Seq("zing", "kek", "mimi"), "zh")
-        )
+          common.Tag(Seq("zing", "kek", "mimi"), "zh"),
+        ),
       )
     )
   }
 
   test("getTags returns non-duplicate tags and correct number of them") {
-    val sampleArticle1 = TestData.domainConcept.copy(tags =
-      Seq(common.Tag(Seq("abc", "bcd", "ddd"), "nb"), common.Tag(Seq("abc", "bcd"), "nn"))
-    )
-    val sampleArticle2 =
-      TestData.domainConcept.copy(tags = Seq(common.Tag(Seq("bcd", "cde"), "nb"), common.Tag(Seq("bcd", "cde"), "nn")))
-    val sampleArticle3 =
-      TestData.domainConcept.copy(tags = Seq(common.Tag(Seq("def"), "nb"), common.Tag(Seq("d", "def", "asd"), "nn")))
+    val sampleArticle1 = TestData
+      .domainConcept
+      .copy(tags = Seq(common.Tag(Seq("abc", "bcd", "ddd"), "nb"), common.Tag(Seq("abc", "bcd"), "nn")))
+    val sampleArticle2 = TestData
+      .domainConcept
+      .copy(tags = Seq(common.Tag(Seq("bcd", "cde"), "nb"), common.Tag(Seq("bcd", "cde"), "nn")))
+    val sampleArticle3 = TestData
+      .domainConcept
+      .copy(tags = Seq(common.Tag(Seq("def"), "nb"), common.Tag(Seq("d", "def", "asd"), "nn")))
     val sampleArticle4 = TestData.domainConcept.copy(tags = Seq.empty)
 
     repository.insert(sampleArticle1)
@@ -210,7 +213,7 @@ class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite
       revision = None,
       content = Seq(concept.ConceptContent("Originalpls", "nb")),
       created = NDLADate.fromUnixTime(0),
-      updated = NDLADate.fromUnixTime(0)
+      updated = NDLADate.fromUnixTime(0),
     )
 
     val insertedConcept = repository.insert(art1)
@@ -240,17 +243,17 @@ class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite
     val con1 = domainConcept.copy(
       content = Seq(concept.ConceptContent("Hei", "nb")),
       created = NDLADate.fromUnixTime(0),
-      updated = NDLADate.fromUnixTime(0)
+      updated = NDLADate.fromUnixTime(0),
     )
     val con2 = domainConcept.copy(
       content = Seq(concept.ConceptContent("På", "nb")),
       created = NDLADate.fromUnixTime(0),
-      updated = NDLADate.fromUnixTime(0)
+      updated = NDLADate.fromUnixTime(0),
     )
     val con3 = domainConcept.copy(
       content = Seq(concept.ConceptContent("Deg", "nb")),
       created = NDLADate.fromUnixTime(0),
-      updated = NDLADate.fromUnixTime(0)
+      updated = NDLADate.fromUnixTime(0),
     )
 
     val ins1 = repository.insert(con1)

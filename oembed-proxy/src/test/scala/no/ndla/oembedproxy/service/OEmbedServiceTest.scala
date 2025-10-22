@@ -23,21 +23,15 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
   val ndlaProvider: OEmbedProvider = OEmbedProvider(
     "ndla",
     "https://ndla.no",
-    List(OEmbedEndpoint(Some(List("https://ndla.no/*")), "https://ndla.no/oembed", None, None, None))
+    List(OEmbedEndpoint(Some(List("https://ndla.no/*")), "https://ndla.no/oembed", None, None, None)),
   )
 
   val youtubeProvider: OEmbedProvider = OEmbedProvider(
     "YouTube",
     "https://www.youtube.com/",
     List(
-      OEmbedEndpoint(
-        Some(List("https://www.youtube.com/*")),
-        "https://www.youtube.com/oembed",
-        Some(true),
-        None,
-        None
-      )
-    )
+      OEmbedEndpoint(Some(List("https://www.youtube.com/*")), "https://www.youtube.com/oembed", Some(true), None, None)
+    ),
   )
 
   val OEmbedResponse: OEmbedDTO = OEmbedDTO(
@@ -56,11 +50,11 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
     None,
     None,
     None,
-    Some("<iframe src='http://ndla.no/en/node/128905/oembed' allowfullscreen></iframe>")
+    Some("<iframe src='http://ndla.no/en/node/128905/oembed' allowfullscreen></iframe>"),
   )
 
-  override implicit lazy val oEmbedService: OEmbedService = new OEmbedService(Some(List(ndlaProvider, youtubeProvider)))
-  val providerMemoize                                     = new Memoize(0, 0, () => List[OEmbedProvider](), false)
+  override implicit lazy val oEmbedService: OEmbedService     = new OEmbedService(Some(List(ndlaProvider, youtubeProvider)))
+  val providerMemoize                                         = new Memoize(0, 0, () => List[OEmbedProvider](), false)
   override implicit lazy val providerService: ProviderService = new ProviderService {
     override val loadProviders: Memoize[List[OEmbedProvider]] = providerMemoize
   }
@@ -71,16 +65,16 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That get returns a failure with HttpRequestException when receiving http error") {
-    when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(using any))
-      .thenReturn(Failure(new HttpRequestException("An error occured")))
+    when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(using any)).thenReturn(
+      Failure(new HttpRequestException("An error occured"))
+    )
     val oembedTry = oEmbedService.get("https://www.youtube.com/abc", None, None)
     oembedTry.isFailure should be(true)
     oembedTry.failure.exception.getMessage should equal("An error occured")
   }
 
   test("That get returns a Success with an oEmbed when http call is successful") {
-    when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(using any))
-      .thenReturn(Success(OEmbedResponse))
+    when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(using any)).thenReturn(Success(OEmbedResponse))
     val oembedTry = oEmbedService.get("https://ndla.no/abc", None, None)
     oembedTry.isSuccess should be(true)
     oembedTry.get.`type` should equal("rich")

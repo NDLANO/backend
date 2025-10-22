@@ -24,48 +24,46 @@ object License extends Enumeration {
     LicenseDefinition(
       CC0,
       "Creative Commons Zero",
-      Some("https://creativecommons.org/publicdomain/zero/1.0/legalcode")
+      Some("https://creativecommons.org/publicdomain/zero/1.0/legalcode"),
     ),
     LicenseDefinition(PublicDomain, "Public Domain Mark", Some("https://creativecommons.org/about/pdm")),
     LicenseDefinition(Copyrighted, "Copyrighted", None),
     LicenseDefinition(
       CC_BY,
       "Creative Commons Attribution 4.0 International",
-      Some("https://creativecommons.org/licenses/by/4.0/")
+      Some("https://creativecommons.org/licenses/by/4.0/"),
     ),
     LicenseDefinition(
       CC_BY_SA,
       "Creative Commons Attribution-ShareAlike 4.0 International",
-      Some("https://creativecommons.org/licenses/by-sa/4.0/")
+      Some("https://creativecommons.org/licenses/by-sa/4.0/"),
     ),
     LicenseDefinition(
       CC_BY_NC,
       "Creative Commons Attribution-NonCommercial 4.0 International",
-      Some("https://creativecommons.org/licenses/by-nc/4.0/")
+      Some("https://creativecommons.org/licenses/by-nc/4.0/"),
     ),
     LicenseDefinition(
       CC_BY_ND,
       "Creative Commons Attribution-NoDerivs 4.0 International",
-      Some("https://creativecommons.org/licenses/by-nd/4.0/")
+      Some("https://creativecommons.org/licenses/by-nd/4.0/"),
     ),
     LicenseDefinition(
       CC_BY_NC_SA,
       "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
-      Some("https://creativecommons.org/licenses/by-nc-sa/4.0/")
+      Some("https://creativecommons.org/licenses/by-nc-sa/4.0/"),
     ),
     LicenseDefinition(
       CC_BY_NC_ND,
       "Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International",
-      Some("https://creativecommons.org/licenses/by-nc-nd/4.0/")
+      Some("https://creativecommons.org/licenses/by-nc-nd/4.0/"),
     ),
-    LicenseDefinition(NA, "Not Applicable", None)
+    LicenseDefinition(NA, "Not Applicable", None),
   )
 
-  private val licenseToLicenseDefinitionsMap =
-    licenseToLicenseDefinitionsSeq.map(x => x.license.toString -> x).toMap
+  private val licenseToLicenseDefinitionsMap = licenseToLicenseDefinitionsSeq.map(x => x.license.toString -> x).toMap
 
-  def getLicense(code: String): Option[LicenseDefinition] =
-    licenseToLicenseDefinitionsMap.get(code)
+  def getLicense(code: String): Option[LicenseDefinition] = licenseToLicenseDefinitionsMap.get(code)
 
   def getLicenses: Seq[LicenseDefinition] = licenseToLicenseDefinitionsSeq
 }

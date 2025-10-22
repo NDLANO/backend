@@ -38,34 +38,29 @@ class PublishedConceptController(using
     conceptControllerHelpers: ConceptControllerHelpers,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   import conceptControllerHelpers.*
 
   override val serviceName: String         = "concepts"
   override val prefix: EndpointInput[Unit] = "concept-api" / "v1" / serviceName
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    getTags,
-    getConceptById,
-    getAllConcepts,
-    postSearchConcepts
-  )
+  override val endpoints: List[ServerEndpoint[Any, Eff]] =
+    List(getTags, getConceptById, getAllConcepts, postSearchConcepts)
 
   private def scrollSearchOr(scrollId: Option[String], language: LanguageCode)(
       orFunction: => Try[(ConceptSearchResultDTO, DynamicHeaders)]
-  ): Try[(ConceptSearchResultDTO, DynamicHeaders)] =
-    scrollId match {
-      case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
-        publishedConceptSearchService.scroll(scroll, language.code) match {
-          case Success(scrollResult) =>
-            val body    = searchConverterService.asApiConceptSearchResult(scrollResult)
-            val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
-            Success((body, headers))
-          case Failure(ex) => Failure(ex)
-        }
-      case _ => orFunction
-    }
+  ): Try[(ConceptSearchResultDTO, DynamicHeaders)] = scrollId match {
+    case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
+      publishedConceptSearchService.scroll(scroll, language.code) match {
+        case Success(scrollResult) =>
+          val body    = searchConverterService.asApiConceptSearchResult(scrollResult)
+          val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
+          Success((body, headers))
+        case Failure(ex) => Failure(ex)
+      }
+    case _ => orFunction
+  }
 
   private def search(
       query: Option[String],
@@ -81,7 +76,7 @@ class PublishedConceptController(using
       embedResource: List[String],
       embedId: Option[String],
       conceptType: Option[String],
-      aggregatePaths: List[String]
+      aggregatePaths: List[String],
   ) = {
     val settings = SearchSettings(
       withIdIn = idList,
@@ -96,7 +91,7 @@ class PublishedConceptController(using
       embedResource = embedResource,
       embedId = embedId,
       conceptType = conceptType,
-      aggregatePaths = aggregatePaths
+      aggregatePaths = aggregatePaths,
     )
 
     val result = query.emptySomeToNone match {
@@ -115,7 +110,8 @@ class PublishedConceptController(using
 
   }
 
-  def getConceptById: ServerEndpoint[Any, Eff] = endpoint.get
+  def getConceptById: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Show concept with a specified id")
     .description("Shows the concept for the specified id.")
     .in(pathConceptId)
@@ -130,7 +126,8 @@ class PublishedConceptController(using
       }
     }
 
-  def getAllConcepts: ServerEndpoint[Any, Eff] = endpoint.get
+  def getAllConcepts: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Show all concepts")
     .description("Shows all concepts. You can search it too.")
     .in(queryParam)
@@ -165,9 +162,8 @@ class PublishedConceptController(using
             embedResource,
             embedId,
             conceptType,
-            aggregatePaths
-          ) =>
-        scrollSearchOr(scrollId, language) {
+            aggregatePaths,
+          ) => scrollSearchOr(scrollId, language) {
           val sort         = Sort.valueOf(sortStr)
           val shouldScroll = scrollId.exists(props.InitialScrollContextKeywords.contains)
 
@@ -185,12 +181,13 @@ class PublishedConceptController(using
             embedResource.values,
             embedId,
             conceptType,
-            aggregatePaths.values
+            aggregatePaths.values,
           )
         }
     }
 
-  def postSearchConcepts: ServerEndpoint[Any, Eff] = endpoint.post
+  def postSearchConcepts: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Show all concepts")
     .description("Shows all concepts. You can search it too.")
     .in("search")
@@ -230,20 +227,19 @@ class PublishedConceptController(using
           embedResource.getOrElse(List.empty),
           embedId,
           conceptType,
-          aggregatePaths.getOrElse(List.empty)
+          aggregatePaths.getOrElse(List.empty),
         )
       }
     }
 
-  def getTags: ServerEndpoint[Any, Eff] = endpoint.get
+  def getTags: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Returns a list of all tags in the specified subjects")
     .description("Returns a list of all tags in the specified subjects")
     .in("tags")
     .in(language)
     .in(fallback)
-    .out(
-      statusCode(StatusCode.Ok).and(jsonBody[List[String]])
-    )
+    .out(statusCode(StatusCode.Ok).and(jsonBody[List[String]]))
     .errorOut(errorOutputsFor(400, 403, 404))
     .serverLogicPure { case (language, fallback) =>
       readService.allTagsFromConcepts(language.code, fallback).asRight

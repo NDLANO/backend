@@ -20,7 +20,7 @@ import no.ndla.articleapi.db.migrationwithdependencies.{
   V62__ComputeSearchTraits,
   V64__SetResourceTypeFromTaxonomyAsTag,
   V8__CopyrightFormatUpdated,
-  V9__TranslateUntranslatedAuthors
+  V9__TranslateUntranslatedAuthors,
 }
 import no.ndla.articleapi.integration.*
 import no.ndla.articleapi.model.domain.DBArticle
@@ -39,7 +39,7 @@ import no.ndla.network.tapir.{
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
@@ -87,16 +87,12 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
     new V33__ConvertLanguageUnknown(props),
     new V55__SetHideBylineForImagesNotCopyrighted(props),
     new V62__ComputeSearchTraits,
-    new V64__SetResourceTypeFromTaxonomyAsTag
+    new V64__SetResourceTypeFromTaxonomyAsTag,
   )
 
   given swagger: SwaggerController = new SwaggerController(
-    List[TapirController](
-      articleControllerV2,
-      internController,
-      healthController
-    ),
-    SwaggerDocControllerConfig.swaggerInfo
+    List[TapirController](articleControllerV2, internController, healthController),
+    SwaggerDocControllerConfig.swaggerInfo,
   )
 
   given services: List[TapirController] = swagger.getServices()

@@ -8,7 +8,7 @@ object `package` extends BaseModule {
   override def isComponent: Boolean = false
   def mvnDeps: T[Seq[Dep]]          = SharedDependencies.logging ++ SharedDependencies.database ++ Seq(
     SharedDependencies.jsoup,
-    SharedDependencies.scalaUri
+    SharedDependencies.scalaUri,
   )
   override def moduleDeps: Seq[JavaModule] = Seq(build.common, build.network)
   object test extends TestBase

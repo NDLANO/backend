@@ -32,200 +32,224 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   override implicit lazy val converterService: ConverterService             = new ConverterService
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
-  val byNcSa: Copyright =
-    Copyright(
-      CC_BY_NC_SA.toString,
-      Some("Gotham City"),
-      List(Author(ContributorType.Writer, "DC Comics")),
-      List(),
-      List(),
-      None,
-      None,
-      false
-    )
+  val byNcSa: Copyright = Copyright(
+    CC_BY_NC_SA.toString,
+    Some("Gotham City"),
+    List(Author(ContributorType.Writer, "DC Comics")),
+    List(),
+    List(),
+    None,
+    None,
+    false,
+  )
 
-  val publicDomain: Copyright =
-    Copyright(
-      PublicDomain.toString,
-      Some("Metropolis"),
-      List(Author(ContributorType.Writer, "Bruce Wayne")),
-      List(),
-      List(),
-      None,
-      None,
-      false
-    )
+  val publicDomain: Copyright = Copyright(
+    PublicDomain.toString,
+    Some("Metropolis"),
+    List(Author(ContributorType.Writer, "Bruce Wayne")),
+    List(),
+    List(),
+    None,
+    None,
+    false,
+  )
 
-  val copyrighted: Copyright =
-    Copyright(
-      Copyrighted.toString,
-      Some("New York"),
-      List(Author(ContributorType.Writer, "Clark Kent")),
-      List(),
-      List(),
-      None,
-      None,
-      false
-    )
+  val copyrighted: Copyright = Copyright(
+    Copyrighted.toString,
+    Some("New York"),
+    List(Author(ContributorType.Writer, "Clark Kent")),
+    List(),
+    List(),
+    None,
+    None,
+    false,
+  )
 
   val today: NDLADate = NDLADate.now()
 
-  val article1: article.Article = TestData.sampleArticleWithByNcSa.copy(
-    id = Option(1),
-    title = List(Title("Batmen er på vift med en bil", "nb")),
-    introduction = List(Introduction("Batmen", "nb")),
-    content = List(
-      ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
-    ),
-    tags = List(Tag(List("fugl"), "nb")),
-    created = today.minusDays(4),
-    updated = today.minusDays(3),
-    metaImage = List(ArticleMetaImage("5555", "Alt text is here friend", "nb")),
-    grepCodes = Seq("KV123", "KV456")
-  )
+  val article1: article.Article = TestData
+    .sampleArticleWithByNcSa
+    .copy(
+      id = Option(1),
+      title = List(Title("Batmen er på vift med en bil", "nb")),
+      introduction = List(Introduction("Batmen", "nb")),
+      content = List(
+        ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
+      ),
+      tags = List(Tag(List("fugl"), "nb")),
+      created = today.minusDays(4),
+      updated = today.minusDays(3),
+      metaImage = List(ArticleMetaImage("5555", "Alt text is here friend", "nb")),
+      grepCodes = Seq("KV123", "KV456"),
+    )
 
-  val article2: article.Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(2),
-    title = List(Title("Pingvinen er ute og går", "nb")),
-    introduction = List(Introduction("Pingvinen", "nb")),
-    content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
-    tags = List(Tag(List("fugl"), "nb")),
-    created = today.minusDays(4),
-    updated = today.minusDays(2),
-    grepCodes = Seq("KV123", "KV456")
-  )
+  val article2: article.Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(2),
+      title = List(Title("Pingvinen er ute og går", "nb")),
+      introduction = List(Introduction("Pingvinen", "nb")),
+      content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
+      tags = List(Tag(List("fugl"), "nb")),
+      created = today.minusDays(4),
+      updated = today.minusDays(2),
+      grepCodes = Seq("KV123", "KV456"),
+    )
 
-  val article3: article.Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(3),
-    title = List(Title("Donald Duck kjører bil", "nb")),
-    introduction = List(Introduction("Donald Duck", "nb")),
-    content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
-    tags = List(Tag(List("and"), "nb")),
-    created = today.minusDays(4),
-    updated = today.minusDays(1),
-    grepCodes = Seq("KV456")
-  )
+  val article3: article.Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(3),
+      title = List(Title("Donald Duck kjører bil", "nb")),
+      introduction = List(Introduction("Donald Duck", "nb")),
+      content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
+      tags = List(Tag(List("and"), "nb")),
+      created = today.minusDays(4),
+      updated = today.minusDays(1),
+      grepCodes = Seq("KV456"),
+    )
 
-  val article4: article.Article = TestData.sampleArticleWithCopyrighted.copy(
-    id = Option(4),
-    title = List(Title("Superman er ute og flyr", "nb")),
-    introduction = List(Introduction("Superman", "nb")),
-    content =
-      List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
-    tags = List(Tag(List("supermann"), "nb")),
-    created = today.minusDays(4),
-    updated = today
-  )
+  val article4: article.Article = TestData
+    .sampleArticleWithCopyrighted
+    .copy(
+      id = Option(4),
+      title = List(Title("Superman er ute og flyr", "nb")),
+      introduction = List(Introduction("Superman", "nb")),
+      content =
+        List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
+      tags = List(Tag(List("supermann"), "nb")),
+      created = today.minusDays(4),
+      updated = today,
+    )
 
-  val article5: article.Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(5),
-    title = List(Title("Hulken løfter biler", "nb")),
-    introduction = List(Introduction("Hulken", "nb")),
-    content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
-    tags = List(Tag(List("hulk"), "nb")),
-    created = today.minusDays(40),
-    updated = today.minusDays(35)
-  )
+  val article5: article.Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(5),
+      title = List(Title("Hulken løfter biler", "nb")),
+      introduction = List(Introduction("Hulken", "nb")),
+      content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
+      tags = List(Tag(List("hulk"), "nb")),
+      created = today.minusDays(40),
+      updated = today.minusDays(35),
+    )
 
-  val article6: article.Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(6),
-    title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
-    introduction = List(Introduction("Loke og Tor", "nb")),
-    content = List(
-      ArticleContent(
-        "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
-        "nb"
-      )
-    ),
-    tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
-    created = today.minusDays(30),
-    updated = today.minusDays(25)
-  )
+  val article6: article.Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(6),
+      title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
+      introduction = List(Introduction("Loke og Tor", "nb")),
+      content = List(
+        ArticleContent(
+          "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
+          "nb",
+        )
+      ),
+      tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
+      created = today.minusDays(30),
+      updated = today.minusDays(25),
+    )
 
-  val article7: article.Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(7),
-    title = List(Title("Yggdrasil livets tre", "nb")),
-    introduction = List(Introduction("Yggdrasil", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
-    tags = List(Tag(List("yggdrasil"), "nb")),
-    created = today.minusDays(20),
-    updated = today.minusDays(15)
-  )
+  val article7: article.Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(7),
+      title = List(Title("Yggdrasil livets tre", "nb")),
+      introduction = List(Introduction("Yggdrasil", "nb")),
+      content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
+      tags = List(Tag(List("yggdrasil"), "nb")),
+      created = today.minusDays(20),
+      updated = today.minusDays(15),
+    )
 
-  val article8: article.Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(8),
-    title = List(Title("Baldur har mareritt", "nb")),
-    introduction = List(Introduction("Baldur", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
-    tags = List(Tag(List("baldur"), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
+  val article8: article.Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(8),
+      title = List(Title("Baldur har mareritt", "nb")),
+      introduction = List(Introduction("Baldur", "nb")),
+      content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
+      tags = List(Tag(List("baldur"), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
 
-  val article9: article.Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(9),
-    title = List(Title("En Baldur har mareritt om Ragnarok", "nb")),
-    introduction = List(Introduction("Baldur", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
-    tags = List(Tag(List("baldur"), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
+  val article9: article.Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(9),
+      title = List(Title("En Baldur har mareritt om Ragnarok", "nb")),
+      introduction = List(Introduction("Baldur", "nb")),
+      content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
+      tags = List(Tag(List("baldur"), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
 
-  val article10: article.Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(10),
-    title = List(Title("This article is in english", "en")),
-    introduction = List(Introduction("Engulsk", "en")),
-    content = List(ArticleContent("<p>Something something <em>english</em> What about", "en")),
-    tags = List(Tag(List("englando"), "en")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
+  val article10: article.Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(10),
+      title = List(Title("This article is in english", "en")),
+      introduction = List(Introduction("Engulsk", "en")),
+      content = List(ArticleContent("<p>Something something <em>english</em> What about", "en")),
+      tags = List(Tag(List("englando"), "en")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
 
-  val article11: article.Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(11),
-    title = List(Title("Katter", "nb"), Title("Cats", "en"), Title("Baloi", "biz")),
-    introduction = List(
-      Introduction("Katter er store", "nb"),
-      Introduction("Cats are big", "en"),
-      Introduction("Cats are baloi", "biz")
-    ),
-    metaDescription = List(Description("hurr durr ima sheep", "en")),
-    content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
-    tags = List(Tag(List("ikkehund"), "nb"), Tag(List("notdog"), "en")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
+  val article11: article.Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(11),
+      title = List(Title("Katter", "nb"), Title("Cats", "en"), Title("Baloi", "biz")),
+      introduction = List(
+        Introduction("Katter er store", "nb"),
+        Introduction("Cats are big", "en"),
+        Introduction("Cats are baloi", "biz"),
+      ),
+      metaDescription = List(Description("hurr durr ima sheep", "en")),
+      content =
+        List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
+      tags = List(Tag(List("ikkehund"), "nb"), Tag(List("notdog"), "en")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
 
-  val article12: article.Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(12),
-    title = List(Title("availability - Hemmelig lærer artikkel", "nb")),
-    introduction = List(Introduction("Lærer", "nb")),
-    metaDescription = List(Description("lærer", "nb")),
-    content = List(ArticleContent("<p>Lærer</p>", "nb")),
-    tags = List(Tag(List("lærer"), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.Standard,
-    availability = Availability.teacher
-  )
+  val article12: article.Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(12),
+      title = List(Title("availability - Hemmelig lærer artikkel", "nb")),
+      introduction = List(Introduction("Lærer", "nb")),
+      metaDescription = List(Description("lærer", "nb")),
+      content = List(ArticleContent("<p>Lærer</p>", "nb")),
+      tags = List(Tag(List("lærer"), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.Standard,
+      availability = Availability.teacher,
+    )
 
-  val article13: article.Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(13),
-    title = List(Title("availability - Hemmelig student artikkel", "nb")),
-    introduction = List(Introduction("Student", "nb")),
-    metaDescription = List(Description("student", "nb")),
-    content = List(ArticleContent("<p>Student</p>", "nb")),
-    tags = List(Tag(List("student"), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.Standard,
-    availability = Availability.everyone
-  )
+  val article13: article.Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(13),
+      title = List(Title("availability - Hemmelig student artikkel", "nb")),
+      introduction = List(Introduction("Student", "nb")),
+      metaDescription = List(Description("student", "nb")),
+      content = List(ArticleContent("<p>Student</p>", "nb")),
+      tags = List(Tag(List("student"), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.Standard,
+      availability = Availability.everyone,
+    )
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
     super.beforeAll()
@@ -340,10 +364,12 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   }
 
   test("That paging returns only hits on current page and not more than page-size") {
-    val page1 =
-      articleSearchService.matchingQuery(TestData.testSettings.copy(sort = Sort.ByTitleAsc, page = 1, pageSize = 2)).get
-    val page2 =
-      articleSearchService.matchingQuery(TestData.testSettings.copy(sort = Sort.ByTitleAsc, page = 2, pageSize = 2)).get
+    val page1 = articleSearchService
+      .matchingQuery(TestData.testSettings.copy(sort = Sort.ByTitleAsc, page = 1, pageSize = 2))
+      .get
+    val page2 = articleSearchService
+      .matchingQuery(TestData.testSettings.copy(sort = Sort.ByTitleAsc, page = 2, pageSize = 2))
+      .get
 
     val hits1 = page1.results
     val hits2 = page2.results
@@ -361,23 +387,24 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
 
   test("matchingQuery should filter results based on an article type filter") {
     val results = articleSearchService.matchingQuery(
-      TestData.testSettings
+      TestData
+        .testSettings
         .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.TopicArticle.entryName))
     )
     results.get.totalCount should be(0)
 
     val results2 = articleSearchService.matchingQuery(
-      TestData.testSettings
+      TestData
+        .testSettings
         .copy(query = Some("bil"), sort = Sort.ByRelevanceDesc, articleTypes = Seq(ArticleType.Standard.entryName))
     )
     results2.get.totalCount should be(3)
   }
 
   test("That search matches title and html-content ordered by relevance descending") {
-    val results =
-      articleSearchService
-        .matchingQuery(TestData.testSettings.copy(query = Some("bil"), sort = Sort.ByRelevanceDesc))
-        .get
+    val results = articleSearchService
+      .matchingQuery(TestData.testSettings.copy(query = Some("bil"), sort = Sort.ByRelevanceDesc))
+      .get
     val hits = results.results
     results.totalCount should be(3)
     hits.map(_.id) should be(Seq(1, 5, 3))
@@ -394,35 +421,35 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   }
 
   test("That search matches title") {
-    val results =
-      articleSearchService
-        .matchingQuery(TestData.testSettings.copy(query = Some("Pingvinen"), sort = Sort.ByTitleAsc))
-        .get
+    val results = articleSearchService
+      .matchingQuery(TestData.testSettings.copy(query = Some("Pingvinen"), sort = Sort.ByTitleAsc))
+      .get
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(2)
   }
 
   test("That search matches tags") {
-    val results =
-      articleSearchService.matchingQuery(TestData.testSettings.copy(query = Some("and"), sort = Sort.ByTitleAsc)).get
+    val results = articleSearchService
+      .matchingQuery(TestData.testSettings.copy(query = Some("and"), sort = Sort.ByTitleAsc))
+      .get
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(3)
   }
 
   test("That search does not return superman since it has license copyrighted and license is not specified") {
-    val results =
-      articleSearchService
-        .matchingQuery(TestData.testSettings.copy(query = Some("supermann"), sort = Sort.ByTitleAsc))
-        .get
+    val results = articleSearchService
+      .matchingQuery(TestData.testSettings.copy(query = Some("supermann"), sort = Sort.ByTitleAsc))
+      .get
     results.totalCount should be(0)
   }
 
   test("That search returns superman since license is specified as copyrighted") {
     val results = articleSearchService
       .matchingQuery(
-        TestData.testSettings
+        TestData
+          .testSettings
           .copy(query = Some("supermann"), sort = Sort.ByTitleAsc, license = Some(Copyrighted.toString))
       )
       .get
@@ -432,47 +459,34 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   }
 
   test("Searching with logical AND only returns results with all terms") {
-    val search1 =
-      articleSearchService
-        .matchingQuery(
-          TestData.testSettings.copy(query = Some("bilde + bil"), sort = Sort.ByTitleAsc)
-        )
-        .get
+    val search1 = articleSearchService
+      .matchingQuery(TestData.testSettings.copy(query = Some("bilde + bil"), sort = Sort.ByTitleAsc))
+      .get
     val hits1 = search1.results
     hits1.map(_.id) should equal(Seq(1, 3, 5))
 
-    val search2 =
-      articleSearchService
-        .matchingQuery(
-          TestData.testSettings.copy(query = Some("batmen + bil"), sort = Sort.ByTitleAsc)
-        )
-        .get
+    val search2 = articleSearchService
+      .matchingQuery(TestData.testSettings.copy(query = Some("batmen + bil"), sort = Sort.ByTitleAsc))
+      .get
     val hits2 = search2.results
     hits2.map(_.id) should equal(Seq(1))
 
     val search3 = articleSearchService
-      .matchingQuery(
-        TestData.testSettings.copy(query = Some("bil + bilde + -flaggermusmann"), sort = Sort.ByTitleAsc)
-      )
+      .matchingQuery(TestData.testSettings.copy(query = Some("bil + bilde + -flaggermusmann"), sort = Sort.ByTitleAsc))
       .get
     val hits3 = search3.results
     hits3.map(_.id) should equal(Seq(3, 5))
 
-    val search4 =
-      articleSearchService
-        .matchingQuery(
-          TestData.testSettings.copy(query = Some("bil + -hulken"), sort = Sort.ByTitleAsc)
-        )
-        .get
+    val search4 = articleSearchService
+      .matchingQuery(TestData.testSettings.copy(query = Some("bil + -hulken"), sort = Sort.ByTitleAsc))
+      .get
     val hits4 = search4.results
     hits4.map(_.id) should equal(Seq(1, 3))
   }
 
   test("search in content should be ranked lower than introduction and title") {
     val search = articleSearchService
-      .matchingQuery(
-        TestData.testSettings.copy(query = Some("mareritt+ragnarok"), sort = Sort.ByRelevanceDesc)
-      )
+      .matchingQuery(TestData.testSettings.copy(query = Some("mareritt+ragnarok"), sort = Sort.ByRelevanceDesc))
       .get
     val hits = search.results
     hits.map(_.id) should equal(Seq(9, 8))
@@ -488,10 +502,9 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   }
 
   test("Search for all languages should return all articles in correct language") {
-    val search =
-      articleSearchService
-        .matchingQuery(TestData.testSettings.copy(language = Language.AllLanguages, pageSize = 100))
-        .get
+    val search = articleSearchService
+      .matchingQuery(TestData.testSettings.copy(language = Language.AllLanguages, pageSize = 100))
+      .get
     val hits = search.results
 
     search.totalCount should equal(11)
@@ -512,12 +525,14 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   test("Search for all languages should return all languages if copyrighted") {
     val search = articleSearchService
       .matchingQuery(
-        TestData.testSettings.copy(
-          language = Language.AllLanguages,
-          license = Some(Copyrighted.toString),
-          sort = Sort.ByTitleAsc,
-          pageSize = 100
-        )
+        TestData
+          .testSettings
+          .copy(
+            language = Language.AllLanguages,
+            license = Some(Copyrighted.toString),
+            sort = Sort.ByTitleAsc,
+            pageSize = 100,
+          )
       )
       .get
     val hits = search.results
@@ -534,7 +549,8 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
       .get
     val searchNb = articleSearchService
       .matchingQuery(
-        TestData.testSettings
+        TestData
+          .testSettings
           .copy(query = Some("Katter"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
       )
       .get
@@ -553,7 +569,8 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   test("metadescription is searchable") {
     val search = articleSearchService
       .matchingQuery(
-        TestData.testSettings
+        TestData
+          .testSettings
           .copy(query = Some("hurr dirr"), language = Language.AllLanguages, sort = Sort.ByRelevanceDesc)
       )
       .get
@@ -565,12 +582,9 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   }
 
   test("That searching with fallback parameter returns article in language priority even if doesnt match on language") {
-    val search =
-      articleSearchService
-        .matchingQuery(
-          TestData.testSettings.copy(withIdIn = List(9, 10, 11), language = "en", fallback = true)
-        )
-        .get
+    val search = articleSearchService
+      .matchingQuery(TestData.testSettings.copy(withIdIn = List(9, 10, 11), language = "en", fallback = true))
+      .get
 
     search.totalCount should equal(3)
     search.results.head.id should equal(9)
@@ -582,8 +596,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   }
 
   test("That searching for language not in analyzer works as expected") {
-    val search =
-      articleSearchService.matchingQuery(TestData.testSettings.copy(language = "biz")).get
+    val search = articleSearchService.matchingQuery(TestData.testSettings.copy(language = "biz")).get
 
     search.totalCount should equal(1)
     search.results.head.id should equal(11)
@@ -591,22 +604,19 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   }
 
   test("That searching for language not in index works as expected") {
-    val search =
-      articleSearchService.matchingQuery(TestData.testSettings.copy(language = "mix")).get
+    val search = articleSearchService.matchingQuery(TestData.testSettings.copy(language = "mix")).get
 
     search.totalCount should equal(0)
   }
 
   test("That searching for not supported language does not break") {
-    val search =
-      articleSearchService.matchingQuery(TestData.testSettings.copy(language = "asdf")).get
+    val search = articleSearchService.matchingQuery(TestData.testSettings.copy(language = "asdf")).get
 
     search.totalCount should equal(0)
   }
 
   test("That metaImage altText is included in the search") {
-    val search =
-      articleSearchService.matchingQuery(TestData.testSettings.copy(withIdIn = List(1), fallback = true)).get
+    val search = articleSearchService.matchingQuery(TestData.testSettings.copy(withIdIn = List(1), fallback = true)).get
     search.totalCount should be(1)
     search.results.head.metaImage should be(
       Some(
@@ -619,17 +629,13 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     val pageSize    = 2
     val expectedIds = List(1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13).sliding(pageSize, pageSize).toList
 
-    val initialSearch =
-      articleSearchService
-        .matchingQuery(
-          TestData.testSettings.copy(
-            language = Language.AllLanguages,
-            pageSize = pageSize,
-            fallback = true,
-            shouldScroll = true
-          )
-        )
-        .get
+    val initialSearch = articleSearchService
+      .matchingQuery(
+        TestData
+          .testSettings
+          .copy(language = Language.AllLanguages, pageSize = pageSize, fallback = true, shouldScroll = true)
+      )
+      .get
 
     val scroll1 = articleSearchService.scroll(initialSearch.scrollId.get, "*").get
     val scroll2 = articleSearchService.scroll(scroll1.scrollId.get, "*").get
@@ -646,17 +652,11 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   }
 
   test("That highlighting works when scrolling") {
-    val initialSearch =
-      articleSearchService
-        .matchingQuery(
-          TestData.testSettings.copy(
-            query = Some("about"),
-            pageSize = 1,
-            fallback = true,
-            shouldScroll = true
-          )
-        )
-        .get
+    val initialSearch = articleSearchService
+      .matchingQuery(
+        TestData.testSettings.copy(query = Some("about"), pageSize = 1, fallback = true, shouldScroll = true)
+      )
+      .get
 
     val scroll = articleSearchService.scroll(initialSearch.scrollId.get, "*").get
 
@@ -675,8 +675,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     search1.totalCount should be(2)
     search1.results.map(_.id) should be(Seq(1, 2))
 
-    val search2 =
-      articleSearchService.matchingQuery(TestData.testSettings.copy(grepCodes = Seq("KV123", "KV456"))).get
+    val search2 = articleSearchService.matchingQuery(TestData.testSettings.copy(grepCodes = Seq("KV123", "KV456"))).get
     search2.totalCount should be(3)
     search2.results.map(_.id) should be(Seq(1, 2, 3))
 
@@ -692,12 +691,9 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
       )
       .get
 
-    val search2 =
-      articleSearchService
-        .matchingQuery(
-          TestData.testSettings.copy(query = Some("availability"), availability = Seq.empty)
-        )
-        .get
+    val search2 = articleSearchService
+      .matchingQuery(TestData.testSettings.copy(query = Some("availability"), availability = Seq.empty))
+      .get
 
     search1.results.map(_.id) should be(Seq(13))
     search2.results.map(_.id) should be(Seq(13))
@@ -716,7 +712,8 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
   test("That 'teachers' sees teacher articles in search") {
     val search1 = articleSearchService
       .matchingQuery(
-        TestData.testSettings
+        TestData
+          .testSettings
           .copy(query = Some("availability"), availability = Seq(Availability.teacher, Availability.everyone))
       )
       .get

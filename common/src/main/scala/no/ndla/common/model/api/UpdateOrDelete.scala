@@ -29,17 +29,21 @@ final case class UpdateWith[A](value: A) extends UpdateOrDelete[A]
 object UpdateOrDelete {
   val schemaName = s"UpdateOrDeleteInnerSchema-${UUID.randomUUID()}"
 
-  implicit def schema[T](implicit subschema: Schema[T]): Schema[UpdateOrDelete[T]] =
-    subschema.nullable.asOption.as[UpdateOrDelete[T]]
+  implicit def schema[T](implicit subschema: Schema[T]): Schema[UpdateOrDelete[T]] = subschema
+    .nullable
+    .asOption
+    .as[UpdateOrDelete[T]]
 
-  implicit def decodeUpdateOrDelete[A](implicit decodeA: Decoder[A]): Decoder[UpdateOrDelete[A]] =
-    Decoder.withReattempt {
+  implicit def decodeUpdateOrDelete[A](implicit decodeA: Decoder[A]): Decoder[UpdateOrDelete[A]] = Decoder
+    .withReattempt {
       case c: FailedCursor if !c.incorrectFocus => Right(Missing)
-      case c                                    =>
-        Decoder.decodeOption[A].tryDecode(c).map {
-          case Some(a) => UpdateWith(a)
-          case None    => Delete
-        }
+      case c                                    => Decoder
+          .decodeOption[A]
+          .tryDecode(c)
+          .map {
+            case Some(a) => UpdateWith(a)
+            case None    => Delete
+          }
     }
 
   private val marker: String   = s"$$marker-${UUID.randomUUID()}-marker$$"
@@ -51,10 +55,9 @@ object UpdateOrDelete {
     case Missing       => markerJson
   }
 
-  def filterMarkers[A](encoder: Encoder.AsObject[A]): Encoder.AsObject[A] =
-    encoder.mapJsonObject(
-      _.filter { case (_, value) =>
-        value != markerJson
-      }
-    )
+  def filterMarkers[A](encoder: Encoder.AsObject[A]): Encoder.AsObject[A] = encoder.mapJsonObject(
+    _.filter { case (_, value) =>
+      value != markerJson
+    }
+  )
 }

@@ -51,9 +51,8 @@ package object implicits {
 
   implicit class ctxctx[A](self: Try[A]) {
     def ?(using
-        @unused(
-          "This parameter is only to make sure we dont throw exceptions outside of a caught context"
-        ) ctx: PermittedTryContext
+        @unused("This parameter is only to make sure we dont throw exceptions outside of a caught context")
+        ctx: PermittedTryContext
     ): A = {
       self match {
         case Failure(ex)    => throw ControlFlowException(ex)
@@ -62,9 +61,8 @@ package object implicits {
     }
 
     def ??(using
-        @unused(
-          "This parameter is only to make sure we dont throw exceptions outside of a caught context"
-        ) ctx: PermittedTryContext
+        @unused("This parameter is only to make sure we dont throw exceptions outside of a caught context")
+        ctx: PermittedTryContext
     ): Unit = {
       self match {
         case Failure(ex) => throw ControlFlowException(ex)
@@ -96,10 +94,9 @@ package object implicits {
   implicit def eitherDecoder[A: Decoder, B: Decoder]: Decoder[Either[A, B]] = Decoder.instance { c =>
     c.value.as[B] match {
       case Right(value) => Right(Right(value))
-      case Left(_)      =>
-        c.value.as[A] match {
+      case Left(_)      => c.value.as[A] match {
           case Right(value) => Right(Left(value))
-          case Left(_) => Left(DecodingFailure(Reason.CustomReason(s"Could not match ${c.value} to Either type"), c))
+          case Left(_)      => Left(DecodingFailure(Reason.CustomReason(s"Could not match ${c.value} to Either type"), c))
         }
     }
   }

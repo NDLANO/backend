@@ -27,7 +27,7 @@ class SeriesIndexService(using
     searchConverterService: SearchConverterService,
     seriesRepository: SeriesRepository,
     props: Props,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends IndexService[Series, SearchableSeries]
     with StrictLogging {
   override val documentType: String         = props.SeriesSearchDocument
@@ -44,15 +44,10 @@ class SeriesIndexService(using
   }
 
   val seriesIndexFields: Seq[ElasticField] =
-    List(
-      intField("id"),
-      keywordField("defaultTitle"),
-      dateField("lastUpdated")
-    )
+    List(intField("id"), keywordField("defaultTitle"), dateField("lastUpdated"))
 
-  val seriesDynamics =
-    generateLanguageSupportedFieldList("titles", keepRaw = true) ++
-      generateLanguageSupportedFieldList("descriptions", keepRaw = true)
+  val seriesDynamics = generateLanguageSupportedFieldList("titles", keepRaw = true) ++
+    generateLanguageSupportedFieldList("descriptions", keepRaw = true)
 
   def getMapping: MappingDefinition = properties(seriesIndexFields ++ seriesDynamics)
 }

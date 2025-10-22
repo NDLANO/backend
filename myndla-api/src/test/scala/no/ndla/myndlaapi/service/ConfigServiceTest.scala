@@ -30,53 +30,45 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
     resetMocks()
   }
 
-  val testConfigMeta: ConfigMeta = ConfigMeta(
-    ConfigKey.LearningpathWriteRestricted,
-    value = BooleanValue(true),
-    TestData.today,
-    "EnKulFyr"
-  )
+  val testConfigMeta: ConfigMeta =
+    ConfigMeta(ConfigKey.LearningpathWriteRestricted, value = BooleanValue(true), TestData.today, "EnKulFyr")
 
   test("That updating config returns failure for non-admin users") {
-    when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession]))
-      .thenReturn(Success(testConfigMeta))
+    when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession])).thenReturn(Success(testConfigMeta))
     val Failure(ex) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       ConfigMetaValueDTO(true),
-      TokenUser("Kari", Set(LEARNINGPATH_API_PUBLISH), None)
+      TokenUser("Kari", Set(LEARNINGPATH_API_PUBLISH), None),
     ): @unchecked
     ex.isInstanceOf[AccessDeniedException] should be(true)
   }
 
   test("That updating config returns success if all is good") {
-    when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession]))
-      .thenReturn(Success(testConfigMeta))
+    when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession])).thenReturn(Success(testConfigMeta))
     val Success(_) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       ConfigMetaValueDTO(true),
-      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None)
+      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None),
     ): @unchecked
   }
 
   test("That validation fails if IsWriteRestricted is not a boolean") {
-    when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession]))
-      .thenReturn(Success(testConfigMeta))
+    when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession])).thenReturn(Success(testConfigMeta))
     val Failure(ex) = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       ConfigMetaValueDTO(List("123")),
-      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None)
+      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None),
     ): @unchecked
 
     ex.isInstanceOf[ValidationException] should be(true)
   }
 
   test("That validation succeeds if IsWriteRestricted is a boolean") {
-    when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession]))
-      .thenReturn(Success(testConfigMeta))
+    when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession])).thenReturn(Success(testConfigMeta))
     val res = service.updateConfig(
       ConfigKey.LearningpathWriteRestricted,
       ConfigMetaValueDTO(true),
-      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None)
+      TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None),
     )
     res.isSuccess should be(true)
   }

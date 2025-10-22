@@ -16,10 +16,7 @@ import no.ndla.common.model.domain.getNextRevision
 object DraftUtil {
 
   /** Returns fields to publish _if_ partial-publishing requirements are satisfied, otherwise returns empty set. */
-  def shouldPartialPublish(
-      existingArticle: Option[Draft],
-      changedArticle: Draft
-  ): Set[api.PartialArticleFieldsDTO] = {
+  def shouldPartialPublish(existingArticle: Option[Draft], changedArticle: Draft): Set[api.PartialArticleFieldsDTO] = {
     val isPublished = changedArticle.status.current == PUBLISHED || changedArticle.status.other.contains(PUBLISHED)
 
     if (isPublished) {
@@ -36,7 +33,7 @@ object DraftUtil {
   private def compareField(
       field: api.PartialArticleFieldsDTO,
       old: Draft,
-      changed: Draft
+      changed: Draft,
   ): Option[api.PartialArticleFieldsDTO] = {
     import api.PartialArticleFieldsDTO.*
     val shouldInclude = field match {

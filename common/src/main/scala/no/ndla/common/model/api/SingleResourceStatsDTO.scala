@@ -14,8 +14,12 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Stats for single resource")
 case class SingleResourceStatsDTO(
-    @description("Id of the resource") id: String,
-    @description("The number of times the resource has been favorited") favourites: Long
+    @description("The resource type")
+    resourceType: String,
+    @description("Id of the resource")
+    id: String,
+    @description("The number of times the resource has been favorited")
+    favourites: Long,
 )
 
 object SingleResourceStatsDTO {

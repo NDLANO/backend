@@ -56,8 +56,7 @@ class V49__FixLanguageMyNDLALearningPathTest extends UnitSuite, TestEnvironment 
         |  "isMyNDLAOwner": true
         |}
         |""".stripMargin
-    val oldStepDocument =
-      """
+    val oldStepDocument = """
         |{
         |  "title": [
         |    {

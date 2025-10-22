@@ -24,6 +24,6 @@ object SwaggerDocControllerConfig {
       "The API can resize and crop transitions on the returned images to enable use in special contexts, e.g. " +
       "low bandwidth scenarios",
     authUrl = props.Auth0LoginEndpoint,
-    scopes = scopes
+    scopes = scopes,
   )
 }

@@ -23,7 +23,8 @@ class V43__FixContributorTypes extends DocumentMigration {
     val copyright    = oldDocument.hcursor.downField("copyright")
     val contributors = convertList(copyright, "contributors")
 
-    val newDocument = oldDocument.hcursor
+    val newDocument = oldDocument
+      .hcursor
       .downField("copyright")
       .withFocus(_.mapObject(_.remove("contributors").add("contributors", contributors.asJson)))
     newDocument.top.get.noSpaces

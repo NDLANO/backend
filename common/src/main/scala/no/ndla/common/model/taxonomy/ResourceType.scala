@@ -12,5 +12,5 @@ case class ResourceType(
     id: String,
     name: String,
     subtypes: Option[List[ResourceType]],
-    translations: List[TaxonomyTranslation]
+    translations: List[TaxonomyTranslation],
 )

@@ -20,8 +20,10 @@ trait DockerComponent extends ScalaModule, DockerModule {
       val newEntryPoint        = s"ENTRYPOINT [$quotedEntryPointArgs]"
 
       oldFile.linesIterator.toList match {
-        case init :+ _ => (init :+ newEntryPoint).mkString("\n")
-        case _         => throw new RuntimeException("Bad dockerfile generated. Look at DockerComponent.mill")
+        case init :+ _ => (
+            init :+ newEntryPoint
+          ).mkString("\n")
+        case _ => throw new RuntimeException("Bad dockerfile generated. Look at DockerComponent.mill")
       }
     }
   }
@@ -33,7 +35,7 @@ trait DockerComponent extends ScalaModule, DockerModule {
       Assembly.Rule.ExcludePattern(".*/module-info.class"),
       Assembly.Rule.ExcludePattern(".*/io.netty.versions.properties"),
       Assembly.Rule.Append("META-INF/services/org.flywaydb.core.extensibility.Plugin", "\n"),
-      Assembly.Rule.Append("mime.types", "\n")
+      Assembly.Rule.Append("mime.types", "\n"),
     )
   }
 }

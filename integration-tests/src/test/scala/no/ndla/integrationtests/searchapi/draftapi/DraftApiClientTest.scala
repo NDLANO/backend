@@ -70,7 +70,9 @@ class DraftApiClientTest
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     draftApi = new draftapi.MainClass(draftApiProperties)
-    Future { draftApi.run(Array.empty) }: Unit
+    Future {
+      draftApi.run(Array.empty)
+    }: Unit
     blockUntilHealthy(s"$draftApiBaseUrl/health/readiness")
   }
 
@@ -80,17 +82,24 @@ class DraftApiClientTest
 
   private def setupArticles() = {
     DBUtil.withSession { implicit session =>
-      (1L to 10)
-        .map(id => {
-          draftApi.componentRegistry.draftRepository.insert(
-            draftapi.TestData.sampleDomainArticle.copy(
-              id = Some(id),
-              updated = NDLADate.fromUnixTime(0),
-              created = NDLADate.fromUnixTime(0),
-              published = NDLADate.fromUnixTime(0)
-            )
+      (
+        1L to 10
+      ).map(id => {
+        draftApi
+          .componentRegistry
+          .draftRepository
+          .insert(
+            draftapi
+              .TestData
+              .sampleDomainArticle
+              .copy(
+                id = Some(id),
+                updated = NDLADate.fromUnixTime(0),
+                created = NDLADate.fromUnixTime(0),
+                published = NDLADate.fromUnixTime(0),
+              )
           )
-        })
+      })
     }
   }
 
@@ -106,15 +115,10 @@ class DraftApiClientTest
 
     val chunks       = draftApiClient.getChunks.toList
     val fetchedDraft = chunks.head.get.head
-    val searchable   = searchConverterService
-      .asSearchableDraft(
-        fetchedDraft,
-        IndexingBundle(
-          Some(searchapi.TestData.emptyGrepBundle),
-          Some(searchapi.TestData.taxonomyTestBundle),
-          None
-        )
-      )
+    val searchable   = searchConverterService.asSearchableDraft(
+      fetchedDraft,
+      IndexingBundle(Some(searchapi.TestData.emptyGrepBundle), Some(searchapi.TestData.taxonomyTestBundle), None),
+    )
 
     searchable.isSuccess should be(true)
     searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "title")))

@@ -24,7 +24,7 @@ class WriteService(using
     frontPageRepository: FrontPageRepository,
     filmFrontPageRepository: FilmFrontPageRepository,
     props: Props,
-    converterService: ConverterService
+    converterService: ConverterService,
 ) {
 
   def newSubjectPage(subject: api.NewSubjectPageDTO): Try[SubjectPageDTO] = {
@@ -35,11 +35,7 @@ class WriteService(using
     } yield converted
   }
 
-  def updateSubjectPage(
-      id: Long,
-      subject: api.NewSubjectPageDTO,
-      language: String
-  ): Try[SubjectPageDTO] = {
+  def updateSubjectPage(id: Long, subject: api.NewSubjectPageDTO, language: String): Try[SubjectPageDTO] = {
     subjectPageRepository.exists(id) match {
       case Success(exists) if exists =>
         for {
@@ -47,8 +43,7 @@ class WriteService(using
           subjectPage   <- subjectPageRepository.updateSubjectPage(domainSubject)
           converted     <- converterService.toApiSubjectPage(subjectPage, language, fallback = true)
         } yield converted
-      case Success(_) =>
-        Failure(SubjectPageNotFoundException(id))
+      case Success(_)  => Failure(SubjectPageNotFoundException(id))
       case Failure(ex) => Failure(ex)
     }
   }
@@ -57,18 +52,16 @@ class WriteService(using
       id: Long,
       subject: api.UpdatedSubjectPageDTO,
       language: String,
-      fallback: Boolean
+      fallback: Boolean,
   ): Try[SubjectPageDTO] = {
     subjectPageRepository.withId(id) match {
       case Failure(ex)                    => Failure(ex)
-      case Success(Some(existingSubject)) =>
-        for {
+      case Success(Some(existingSubject)) => for {
           domainSubject <- converterService.toDomainSubjectPage(existingSubject, subject)
           subjectPage   <- subjectPageRepository.updateSubjectPage(domainSubject)
           converted     <- converterService.toApiSubjectPage(subjectPage, language, fallback)
         } yield converted
-      case Success(None) =>
-        newFromUpdatedSubjectPage(subject) match {
+      case Success(None) => newFromUpdatedSubjectPage(subject) match {
           case None =>
             Failure(ValidationException("subjectpage", s"Subjectpage can't be converted to NewSubjectFrontPageData"))
           case Some(newSubjectPage) => updateSubjectPage(id, newSubjectPage, language)
@@ -93,7 +86,7 @@ class WriteService(using
       editorsChoices = updatedSubjectPage.editorsChoices,
       connectedTo = updatedSubjectPage.connectedTo,
       buildsOn = updatedSubjectPage.buildsOn,
-      leadsTo = updatedSubjectPage.leadsTo
+      leadsTo = updatedSubjectPage.leadsTo,
     )
   }
 
@@ -115,8 +108,7 @@ class WriteService(using
 
   def deleteSubjectPageLanguage(id: Long, language: String): Try[SubjectPageDTO] = {
     subjectPageRepository.withId(id) match {
-      case Success(Some(subjectPage)) =>
-        subjectPage.supportedLanguages.size match {
+      case Success(Some(subjectPage)) => subjectPage.supportedLanguages.size match {
           case 1 => Failure(OperationNotAllowedException("Only one language left"))
           case _ =>
             val about           = subjectPage.about.filter(_.language != language)
@@ -132,13 +124,13 @@ class WriteService(using
 
   def deleteFilmFrontPageLanguage(language: String): Try[api.FilmFrontPageDTO] = {
     filmFrontPageRepository.get match {
-      case Some(page) =>
-        page.supportedLanguages.size match {
+      case Some(page) => page.supportedLanguages.size match {
           case 1 => Failure(OperationNotAllowedException("Only one language left"))
           case _ =>
             val about       = page.about.filter(_.language != language)
-            val movieThemes =
-              page.movieThemes.map(movieTheme => movieTheme.copy(name = movieTheme.name.filter(_.language != language)))
+            val movieThemes = page
+              .movieThemes
+              .map(movieTheme => movieTheme.copy(name = movieTheme.name.filter(_.language != language)))
             filmFrontPageRepository
               .update(page.copy(about = about, movieThemes = movieThemes))
               .map(converterService.toApiFilmFrontPage(_, None))

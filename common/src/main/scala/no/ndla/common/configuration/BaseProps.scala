@@ -27,22 +27,27 @@ trait BaseProps extends StrictLogging {
 
   def throwIfFailedProps(): Unit = {
     val failedProps: List[FailedProp[?]] = {
-      loadedProps.values.toList.collect { case Prop(FailedProp(key, ex)) => FailedProp(key, ex) }
+      loadedProps
+        .values
+        .toList
+        .collect { case Prop(FailedProp(key, ex)) =>
+          FailedProp(key, ex)
+        }
     }
 
     if (failedProps.nonEmpty) {
-      val failedKeys = failedProps
-        .map(failed => failed.key)
-        .mkString("[", ", ", "]")
+      val failedKeys = failedProps.map(failed => failed.key).mkString("[", ", ", "]")
 
       val mainException = EnvironmentNotFoundException(s"Unable to load the following properties: $failedKeys")
-      failedProps.map { case FailedProp(_, ex) => mainException.addSuppressed(ex) }: Unit
+      failedProps.map { case FailedProp(_, ex) =>
+        mainException.addSuppressed(ex)
+      }: Unit
       throw mainException
     }
   }
 
-  def intPropOrDefault(name: String, default: Int): Int = propOrNone(name).flatMap(_.toIntOption).getOrElse(default)
-  def booleanPropOrNone(name: String): Option[Boolean]  = propOrNone(name).flatMap(_.toBooleanOption)
+  def intPropOrDefault(name: String, default: Int): Int             = propOrNone(name).flatMap(_.toIntOption).getOrElse(default)
+  def booleanPropOrNone(name: String): Option[Boolean]              = propOrNone(name).flatMap(_.toBooleanOption)
   def booleanPropOrElse(name: String, default: => Boolean): Boolean = booleanPropOrNone(name).getOrElse(default)
 
   /** Test method to update props for tests */
@@ -57,10 +62,8 @@ trait BaseProps extends StrictLogging {
 
   def prop(key: String): Prop[String] = {
     val propToAdd = propOrNone(key) match {
-      case Some(value) =>
-        Prop.successful(key, value)
-      case None =>
-        Prop.failed[String](key)
+      case Some(value) => Prop.successful(key, value)
+      case None        => Prop.failed[String](key)
     }
     loadedProps.put(key, propToAdd): Unit
     propToAdd
@@ -68,8 +71,7 @@ trait BaseProps extends StrictLogging {
 
   def propMap[T, R](prop: Prop[T])(f: T => R): Prop[R] = {
     val newProp = prop.reference match {
-      case LoadedProp(k, v) =>
-        Try(f(v)) match {
+      case LoadedProp(k, v) => Try(f(v)) match {
           case Failure(exception) =>
             val nfe = EnvironmentNotFoundException.singleKey(k)
             nfe.initCause(exception)
@@ -124,8 +126,9 @@ trait BaseProps extends StrictLogging {
   def TaxonomyUrl: String        = s"http://$TaxonomyApiHost"
   def disableWarmup: Boolean     = booleanPropOrElse("DISABLE_WARMUP", default = false)
 
-  def SupportedLanguages: List[String] =
-    propOrElse("SUPPORTED_LANGUAGES", "nb,nn,en,sma,se,de,es,zh,ukr").split(",").toList
+  def SupportedLanguages: List[String] = propOrElse("SUPPORTED_LANGUAGES", "nb,nn,en,sma,se,de,es,zh,ukr")
+    .split(",")
+    .toList
 
   def ndlaFrontendUrl: String = Environment match {
     case "local" => "http://localhost:30017"

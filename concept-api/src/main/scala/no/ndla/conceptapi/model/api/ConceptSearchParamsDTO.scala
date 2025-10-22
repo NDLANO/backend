@@ -43,7 +43,7 @@ case class ConceptSearchParamsDTO(
     @description("The type of concepts to return.")
     conceptType: Option[String],
     @description("A list of index paths to aggregate over")
-    aggregatePaths: Option[List[String]]
+    aggregatePaths: Option[List[String]],
 )
 
 object ConceptSearchParamsDTO {

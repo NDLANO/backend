@@ -14,8 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Title of the image")
 case class ImageTitleDTO(
-    @description("The freetext title of the image") title: String,
-    @description("ISO 639-1 code that represents the language used in title") language: String
+    @description("The freetext title of the image")
+    title: String,
+    @description("ISO 639-1 code that represents the language used in title")
+    language: String,
 )
 
 object ImageTitleDTO {

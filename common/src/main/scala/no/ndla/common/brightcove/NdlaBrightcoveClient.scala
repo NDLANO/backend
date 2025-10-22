@@ -17,7 +17,7 @@ import no.ndla.common.errors.{
   TokenDecodingException,
   TokenRetrievalException,
   VideoSourceParsingException,
-  VideoSourceRetrievalException
+  VideoSourceRetrievalException,
 }
 
 import scala.util.{Failure, Success, Try}
@@ -32,13 +32,12 @@ class NdlaBrightcoveClient(using props: BaseProps) {
   private val backend = HttpClientSyncBackend()
 
   def getToken(clientID: String, clientSecret: String): Try[String] = {
-    val request =
-      basicRequest.auth
-        .basic(clientID, clientSecret)
-        .post(uri"${props.BrightCoveAuthUri}?grant_type=client_credentials")
+    val request = basicRequest
+      .auth
+      .basic(clientID, clientSecret)
+      .post(uri"${props.BrightCoveAuthUri}?grant_type=client_credentials")
     Try(request.send(backend).body) match {
-      case Success(Right(jsonString)) =>
-        decode[TokenResponse](jsonString) match {
+      case Success(Right(jsonString)) => decode[TokenResponse](jsonString) match {
           case Right(tokenResponse) => Success(tokenResponse.access_token)
           case Left(error)          =>
             Failure(new TokenDecodingException(s"Failed to decode token response: ${error.getMessage}"))
@@ -51,26 +50,21 @@ class NdlaBrightcoveClient(using props: BaseProps) {
   def getVideoSource(accountId: String, videoId: String, bearerToken: String): Try[Vector[Json]] = {
 
     val videoSourceUrl = props.BrightCoveVideoUri(accountId, videoId)
-    val request        = basicRequest
-      .header("Authorization", s"Bearer $bearerToken")
-      .get(videoSourceUrl)
+    val request        = basicRequest.header("Authorization", s"Bearer $bearerToken").get(videoSourceUrl)
 
     implicit val backend = HttpClientSyncBackend()
 
     Try(request.send(backend).body) match {
-      case Success(Right(jsonString)) =>
-        parse(jsonString) match {
-          case Right(json) =>
-            json.asArray match {
+      case Success(Right(jsonString)) => parse(jsonString) match {
+          case Right(json) => json.asArray match {
               case Some(videoSources) => Success(videoSources)
               case None               => Failure(new VideoSourceParsingException("Failed to parse video source"))
             }
           case Left(error) =>
             Failure(new VideoSourceParsingException(s"Failed to parse video source: ${error.getMessage}"))
         }
-      case Success(Left(error)) =>
-        Failure(new VideoSourceRetrievalException(s"Failed to get video source: ${error}"))
-      case Failure(exception) => Failure(new VideoSourceRetrievalException(exception.getMessage))
+      case Success(Left(error)) => Failure(new VideoSourceRetrievalException(s"Failed to get video source: ${error}"))
+      case Failure(exception)   => Failure(new VideoSourceRetrievalException(exception.getMessage))
     }
   }
 }

@@ -16,8 +16,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Information about the responsible")
 case class ResponsibleDTO(
-    @description("NDLA ID of responsible editor") responsibleId: String,
-    @description("Date of when the responsible editor was last updated") lastUpdated: NDLADate
+    @description("NDLA ID of responsible editor")
+    responsibleId: String,
+    @description("Date of when the responsible editor was last updated")
+    lastUpdated: NDLADate,
 )
 
 object ResponsibleDTO {

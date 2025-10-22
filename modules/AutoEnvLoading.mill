@@ -19,19 +19,18 @@ trait AutoEnvLoading extends ScalaModule {
   private val envFilePaths = Seq(
     BuildCtx.workspaceRoot / ".env",
     BuildCtx.workspaceRoot / s".env.$moduleName",
-    BuildCtx.workspaceRoot / moduleName / ".env"
+    BuildCtx.workspaceRoot / moduleName / ".env",
   )
 
   private def envFileLines = Task.Input {
     println(s"Loading environment variables from: ${envFilePaths.mkString("[", ", ", "]")}")
-    envFilePaths
-      .flatMap { filename =>
-        if (!os.exists(filename)) {
-          Seq.empty
-        } else {
-          os.read.lines(filename)
-        }
+    envFilePaths.flatMap { filename =>
+      if (!os.exists(filename)) {
+        Seq.empty
+      } else {
+        os.read.lines(filename)
       }
+    }
   }
 
   private def loadedEnvMap = Task {

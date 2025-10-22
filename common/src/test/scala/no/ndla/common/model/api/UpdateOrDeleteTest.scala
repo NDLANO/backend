@@ -16,29 +16,17 @@ class UpdateOrDeleteTest extends UnitTestSuiteBase {
     import io.circe.syntax.*
     import io.circe.Encoder
     import io.circe.generic.semiauto.deriveEncoder
-    case class ApiObject(
-        normalField: String,
-        deletableField: UpdateOrDelete[String]
-    )
+    case class ApiObject(normalField: String, deletableField: UpdateOrDelete[String])
 
     object ApiObject {
       implicit val encoder: Encoder[ApiObject] = UpdateOrDelete.filterMarkers(deriveEncoder)
     }
 
-    val x = ApiObject(
-      "hei",
-      Missing
-    )
+    val x = ApiObject("hei", Missing)
 
-    val y = ApiObject(
-      "hei",
-      Delete
-    )
+    val y = ApiObject("hei", Delete)
 
-    val z = ApiObject(
-      "hei",
-      UpdateWith("næmmen")
-    )
+    val z = ApiObject("hei", UpdateWith("næmmen"))
 
     val res1 = x.asJson.noSpaces
     val res2 = y.asJson.noSpaces
@@ -54,10 +42,7 @@ class UpdateOrDeleteTest extends UnitTestSuiteBase {
     import io.circe.generic.semiauto.deriveDecoder
     import io.circe.parser.parse
 
-    case class ApiObject(
-        normalField: String,
-        deletableField: UpdateOrDelete[String]
-    )
+    case class ApiObject(normalField: String, deletableField: UpdateOrDelete[String])
 
     object ApiObject {
       implicit val decoder: Decoder[ApiObject] = deriveDecoder
@@ -67,24 +52,9 @@ class UpdateOrDeleteTest extends UnitTestSuiteBase {
     val res2 = parse("""{"normalField":"hei","deletableField":null}""").flatMap(_.as[ApiObject]).toTry.get
     val res3 = parse("""{"normalField":"hei","deletableField":"næmmen"}""").flatMap(_.as[ApiObject]).toTry.get
 
-    res1 should be(
-      ApiObject(
-        "hei",
-        Missing
-      )
-    )
-    res2 should be(
-      ApiObject(
-        "hei",
-        Delete
-      )
-    )
-    res3 should be(
-      ApiObject(
-        "hei",
-        UpdateWith("næmmen")
-      )
-    )
+    res1 should be(ApiObject("hei", Missing))
+    res2 should be(ApiObject("hei", Delete))
+    res3 should be(ApiObject("hei", UpdateWith("næmmen")))
   }
 
 }

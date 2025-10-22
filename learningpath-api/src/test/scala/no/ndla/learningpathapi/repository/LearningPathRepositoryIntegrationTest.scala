@@ -21,7 +21,7 @@ import no.ndla.common.model.domain.learningpath.{
   LearningpathCopyright,
   Message,
   StepStatus,
-  StepType
+  StepType,
 }
 import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.learningpathapi.*
@@ -70,7 +70,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     comments = Seq.empty,
     priority = Priority.Unspecified,
     revisionMeta = RevisionMeta.default,
-    grepCodes = Seq.empty
+    grepCodes = Seq.empty,
   )
 
   val DefaultLearningStep: LearningStep = LearningStep(
@@ -90,7 +90,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     lastUpdated = today,
     owner = "UNIT-TEST",
     showTitle = true,
-    status = StepStatus.ACTIVE
+    status = StepStatus.ACTIVE,
   )
 
   override def beforeAll(): Unit = {
@@ -202,21 +202,10 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     val learningPath1 = repository.insert(DefaultLearningPath)
     val learningPath2 = repository.insert(DefaultLearningPath)
 
-    val copiedLearningPath1 = repository.insert(
-      learningPath1.copy(
-        id = None,
-        isBasedOn = learningPath1.id
-      )
-    )
-    val copiedLearningPath2 = repository.insert(
-      learningPath1.copy(
-        id = None,
-        isBasedOn = learningPath1.id
-      )
-    )
+    val copiedLearningPath1 = repository.insert(learningPath1.copy(id = None, isBasedOn = learningPath1.id))
+    val copiedLearningPath2 = repository.insert(learningPath1.copy(id = None, isBasedOn = learningPath1.id))
 
-    val learningPaths =
-      repository.learningPathsWithIsBasedOn(learningPath1.id.get)
+    val learningPaths = repository.learningPathsWithIsBasedOn(learningPath1.id.get)
 
     learningPaths.map(_.id) should contain(copiedLearningPath1.id)
     learningPaths.map(_.id) should contain(copiedLearningPath2.id)
@@ -235,11 +224,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     val publicPath = repository.insert(
       DefaultLearningPath.copy(
         status = LearningPathStatus.PUBLISHED,
-        tags = List(
-          Tag(Seq("aaa"), "nb"),
-          Tag(Seq("bbb"), "nn"),
-          Tag(Seq("ccc"), "en")
-        )
+        tags = List(Tag(Seq("aaa"), "nb"), Tag(Seq("bbb"), "nn"), Tag(Seq("ccc"), "en")),
       )
     )
 
@@ -259,24 +244,18 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     val publicPath1 = repository.insert(
       DefaultLearningPath.copy(
         status = LearningPathStatus.PUBLISHED,
-        tags = List(Tag(Seq("aaa"), "nb"), Tag(Seq("aaa"), "nn"))
+        tags = List(Tag(Seq("aaa"), "nb"), Tag(Seq("aaa"), "nn")),
       )
     )
     val publicPath2 = repository.insert(
-      DefaultLearningPath.copy(
-        status = LearningPathStatus.PUBLISHED,
-        tags = List(Tag(Seq("aaa", "bbb"), "nb"))
-      )
+      DefaultLearningPath.copy(status = LearningPathStatus.PUBLISHED, tags = List(Tag(Seq("aaa", "bbb"), "nb")))
     )
 
     val publicTags = repository.allPublishedTags
     publicTags should contain(Tag(Seq("aaa", "bbb"), "nb"))
     publicTags should contain(Tag(Seq("aaa"), "nn"))
 
-    publicTags
-      .find(_.language.contains("nb"))
-      .map(_.tags.count(_ == "aaa"))
-      .getOrElse(0) should be(1)
+    publicTags.find(_.language.contains("nb")).map(_.tags.count(_ == "aaa")).getOrElse(0) should be(1)
 
     repository.deletePath(publicPath1.id.get)
     repository.deletePath(publicPath2.id.get)
@@ -291,15 +270,15 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
           List(
             Author(ContributorType.Writer, "James Bond"),
             Author(ContributorType.Writer, "Christian Bond"),
-            Author(ContributorType.Writer, "Jens Petrius")
-          )
-        )
+            Author(ContributorType.Writer, "Jens Petrius"),
+          ),
+        ),
       )
     )
 
     val privatePath = repository.insert(
-      DefaultLearningPath.copy(
-        copyright = LearningpathCopyright("by", List(Author(ContributorType.Writer, "Test testesen")))
+      DefaultLearningPath.copy(copyright =
+        LearningpathCopyright("by", List(Author(ContributorType.Writer, "Test testesen")))
       )
     )
 
@@ -322,9 +301,9 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
           List(
             Author(ContributorType.Writer, "James Bond"),
             Author(ContributorType.Writer, "Christian Bond"),
-            Author(ContributorType.Writer, "Jens Petrius")
-          )
-        )
+            Author(ContributorType.Writer, "Jens Petrius"),
+          ),
+        ),
       )
     )
     val publicPath2 = repository.insert(
@@ -332,8 +311,8 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
         status = LearningPathStatus.PUBLISHED,
         copyright = LearningpathCopyright(
           "by",
-          List(Author(ContributorType.Writer, "James Bond"), Author(ContributorType.Writer, "Test testesen"))
-        )
+          List(Author(ContributorType.Writer, "James Bond"), Author(ContributorType.Writer, "Test testesen")),
+        ),
       )
     )
 
@@ -361,19 +340,14 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     val savedLearningPath = repository.withId(learningPath.id.get)
     savedLearningPath.isDefined should be(true)
     savedLearningPath.get.learningsteps.get.size should be(2)
-    savedLearningPath.get.learningsteps.get
-      .forall(_.status == StepStatus.ACTIVE) should be(true)
+    savedLearningPath.get.learningsteps.get.forall(_.status == StepStatus.ACTIVE) should be(true)
 
     repository.deletePath(learningPath.id.get)
   }
 
   test("That getLearningPathByPage returns correct result when pageSize is smaller than amount of steps") {
     when(clock.now()).thenReturn(NDLADate.fromUnixTime(0))
-    val steps = List(
-      DefaultLearningStep,
-      DefaultLearningStep,
-      DefaultLearningStep
-    )
+    val steps = List(DefaultLearningStep, DefaultLearningStep, DefaultLearningStep)
 
     val learningPath =
       repository.insert(DefaultLearningPath.copy(learningsteps = Some(steps), status = LearningPathStatus.PUBLISHED))
@@ -388,11 +362,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That getLearningPathByPage returns only published results") {
-    val steps = List(
-      DefaultLearningStep,
-      DefaultLearningStep,
-      DefaultLearningStep
-    )
+    val steps = List(DefaultLearningStep, DefaultLearningStep, DefaultLearningStep)
 
     val learningPath1 =
       repository.insert(DefaultLearningPath.copy(learningsteps = Some(steps), status = LearningPathStatus.PRIVATE))
@@ -414,17 +384,13 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
 
   test("That inserted and fetched entry stays the same") {
     when(clock.now()).thenReturn(today)
-    val steps = Vector(
-      DefaultLearningStep,
-      DefaultLearningStep,
-      DefaultLearningStep
-    )
+    val steps = Vector(DefaultLearningStep, DefaultLearningStep, DefaultLearningStep)
 
     val path = DefaultLearningPath.copy(
       learningsteps = Some(steps),
       status = LearningPathStatus.PRIVATE,
       owner = "123",
-      message = Some(Message("this is message", "kwawk", clock.now()))
+      message = Some(Message("this is message", "kwawk", clock.now())),
     )
 
     val inserted = repository.insert(path)
@@ -443,7 +409,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     val learningpaths = repository.pageWithIds(
       Seq(learningPath1.id.get, learningPath2.id.get, learningPath3.id.get, learningPath4.id.get),
       10,
-      0
+      0,
     )
     learningpaths.length should be(4)
   }
@@ -457,9 +423,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
 
   def deleteAllWithOwner(owner: String): Unit = {
     repository.inTransaction { implicit session =>
-      repository
-        .withOwner(owner)
-        .foreach(lp => repository.deletePath(lp.id.get))
+      repository.withOwner(owner).foreach(lp => repository.deletePath(lp.id.get))
     }
   }
 }

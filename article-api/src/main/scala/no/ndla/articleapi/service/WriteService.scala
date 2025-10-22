@@ -32,7 +32,7 @@ class WriteService(using
     contentValidator: ContentValidator,
     articleIndexService: ArticleIndexService,
     searchApiClient: SearchApiClient,
-    dBUtility: DBUtility
+    dBUtility: DBUtility,
 ) extends StrictLogging {
   private val executor: ExecutorService            = Executors.newSingleThreadExecutor
   implicit val ec: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(executor)
@@ -42,38 +42,39 @@ class WriteService(using
       externalIds: List[String],
       useSoftValidation: Boolean,
       skipValidation: Boolean,
-      useImportValidation: Boolean
+      useImportValidation: Boolean,
   ): Try[Article] = {
-    val strictValidationResult = contentValidator.validateArticle(
-      article,
-      isImported = externalIds.nonEmpty || useImportValidation
-    )
+    val strictValidationResult =
+      contentValidator.validateArticle(article, isImported = externalIds.nonEmpty || useImportValidation)
 
-    val softOrStrictValidationResult = if (useSoftValidation && !skipValidation) {
-      (
-        strictValidationResult,
-        contentValidator.softValidateArticle(article, isImported = useImportValidation)
-      ) match {
-        case (Failure(strictEx: ValidationException), Success(art)) =>
-          val strictErrors = strictEx.errors
-            .map(msg => {
-              s"\t'${msg.field}' => '${msg.message}'"
-            })
-            .mkString("\n\t")
+    val softOrStrictValidationResult =
+      if (useSoftValidation && !skipValidation) {
+        (
+          strictValidationResult,
+          contentValidator.softValidateArticle(article, isImported = useImportValidation),
+        ) match {
+          case (Failure(strictEx: ValidationException), Success(art)) =>
+            val strictErrors = strictEx
+              .errors
+              .map(msg => {
+                s"\t'${msg.field}' => '${msg.message}'"
+              })
+              .mkString("\n\t")
 
-          logger.warn(
-            s"Article with id '${art.id.getOrElse(-1)}' was updated with soft validation while strict validation failed with the following errors:\n$strictErrors"
-          )
-          Success(art)
-        case (_, Success(art)) => Success(art)
-        case (_, Failure(ex))  => Failure(ex)
-      }
-    } else strictValidationResult
+            logger.warn(
+              s"Article with id '${art.id.getOrElse(-1)}' was updated with soft validation while strict validation failed with the following errors:\n$strictErrors"
+            )
+            Success(art)
+          case (_, Success(art)) => Success(art)
+          case (_, Failure(ex))  => Failure(ex)
+        }
+      } else strictValidationResult
 
     (skipValidation, softOrStrictValidationResult) match {
       case (true, Failure(ex: ValidationException)) =>
         logger.warn(
-          s"Article with id '${article.id.getOrElse(-1)}' was updated with validation skipped and failed with the following errors:\n${ex.errors
+          s"Article with id '${article.id.getOrElse(-1)}' was updated with validation skipped and failed with the following errors:\n${ex
+              .errors
               .map(msg => {
                 s"\t'${msg.field}' => '${msg.message}'"
               })
@@ -89,9 +90,9 @@ class WriteService(using
       externalIds: List[String],
       useImportValidation: Boolean,
       useSoftValidation: Boolean,
-      skipValidation: Boolean
+      skipValidation: Boolean,
   )(session: DBSession = AutoSession): Try[Article] = for {
-    _ <- performArticleValidation(article, externalIds, useSoftValidation, skipValidation, useImportValidation)
+    _             <- performArticleValidation(article, externalIds, useSoftValidation, skipValidation, useImportValidation)
     domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds)(using session)
     _             <- articleIndexService.indexDocument(domainArticle)
     _             <- Try(searchApiClient.indexDocument("article", domainArticle, None))
@@ -102,10 +103,10 @@ class WriteService(using
       partialArticle: PartialPublishArticleDTO,
       language: String,
       fallback: Boolean,
-      isInBulk: Boolean
+      isInBulk: Boolean,
   )(session: DBSession = AutoSession): Try[api.ArticleV2DTO] = {
     articleRepository.withId(articleId)(session).toArticle match {
-      case None => Failure(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
+      case None                  => Failure(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
       case Some(existingArticle) =>
         val newArticle  = converterService.updateArticleFields(existingArticle, partialArticle)
         val externalIds = articleRepository.getExternalIdsFromId(articleId)(using session)
@@ -115,7 +116,7 @@ class WriteService(using
             externalIds,
             useImportValidation = false,
             useSoftValidation = true,
-            skipValidation = isInBulk
+            skipValidation = isInBulk,
           )(session)
           converted <- converterService.toApiArticleV2(insertedArticle, language, fallback)
         } yield converted
@@ -125,20 +126,18 @@ class WriteService(using
   def partialUpdateBulk(bulkInput: PartialPublishArticlesBulkDTO): Try[Unit] = {
     dBUtility
       .rollbackOnFailure { session =>
-        bulkInput.idTo.toList.traverse { case (id, ppa) =>
-          val updateResult = partialUpdate(
-            id,
-            ppa,
-            Language.AllLanguages,
-            fallback = true,
-            isInBulk = true
-          )(session).map(_ => ())
+        bulkInput
+          .idTo
+          .toList
+          .traverse { case (id, ppa) =>
+            val updateResult = partialUpdate(id, ppa, Language.AllLanguages, fallback = true, isInBulk = true)(session)
+              .map(_ => ())
 
-          updateResult.recoverWith { case _: NotFoundException =>
-            logger.warn(s"Article with id '$id' was not found when bulk partial publishing")
-            Success(())
+            updateResult.recoverWith { case _: NotFoundException =>
+              logger.warn(s"Article with id '$id' was not found when bulk partial publishing")
+              Success(())
+            }
           }
-        }
       }
       .map(_ => ())
   }

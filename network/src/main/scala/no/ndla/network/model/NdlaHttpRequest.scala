@@ -15,7 +15,7 @@ case class NdlaHttpRequest(
     getScheme: String,
     getHeaderFunc: String => Option[String],
     serverName: String,
-    servletPath: String
+    servletPath: String,
 ) {
   def getHeader(name: String): Option[String] = getHeaderFunc(name)
   def getToken: Option[String]                = getHeader("Authorization").map(_.replace("Bearer ", ""))
@@ -30,7 +30,7 @@ object NdlaHttpRequest {
       getHeaderFunc = name => req.header(name),
       getScheme = scheme.getOrElse("http"),
       serverName = req.uri.host.getOrElse("localhost"),
-      servletPath = s"/${req.uri.path.mkString("/")}"
+      servletPath = s"/${req.uri.path.mkString("/")}",
     )
   }
 }

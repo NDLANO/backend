@@ -21,35 +21,29 @@ class ReadService(using
     seriesRepository: SeriesRepository,
     converterService: ConverterService,
     tagSearchService: TagSearchService,
-    searchConverterService: SearchConverterService
+    searchConverterService: SearchConverterService,
 ) {
 
   def seriesWithId(seriesId: Long, language: Option[String]): Try[api.SeriesDTO] = {
     seriesRepository.withId(seriesId) match {
       case Failure(ex)   => Failure(ex)
-      case Success(None) =>
-        Failure(
-          NotFoundException(
-            s"The series with id '$seriesId' and language '${language.getOrElse("")}' was not found."
-          )
+      case Success(None) => Failure(
+          NotFoundException(s"The series with id '$seriesId' and language '${language.getOrElse("")}' was not found.")
         )
       case Success(Some(series)) => converterService.toApiSeries(series, language)
     }
   }
 
   def getAllTags(input: String, pageSize: Int, page: Int, language: String): Try[api.TagsSearchResultDTO] = {
-    val result = tagSearchService.matchingQuery(
-      query = input,
-      searchLanguage = language,
-      page = page,
-      pageSize = pageSize
-    )
+    val result =
+      tagSearchService.matchingQuery(query = input, searchLanguage = language, page = page, pageSize = pageSize)
 
     result.map(searchConverterService.tagSearchResultAsApiResult)
   }
 
-  def withId(id: Long, language: Option[String]): Option[api.AudioMetaInformationDTO] =
-    audioRepository.withId(id).flatMap(audio => converterService.toApiAudioMetaInformation(audio, language).toOption)
+  def withId(id: Long, language: Option[String]): Option[api.AudioMetaInformationDTO] = audioRepository
+    .withId(id)
+    .flatMap(audio => converterService.toApiAudioMetaInformation(audio, language).toOption)
 
   def withExternalId(externalId: String, language: Option[String]): Option[api.AudioMetaInformationDTO] =
     audioRepository

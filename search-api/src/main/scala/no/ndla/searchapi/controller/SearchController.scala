@@ -28,7 +28,7 @@ import no.ndla.searchapi.controller.parameters.{
   GetSearchQueryParams,
   GrepSearchInputDTO,
   SearchParamsDTO,
-  SubjectAggsInputDTO
+  SubjectAggsInputDTO,
 }
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.grep.GrepSearchResultsDTO
@@ -40,7 +40,7 @@ import no.ndla.searchapi.service.search.{
   MultiDraftSearchService,
   MultiSearchService,
   SearchConverterService,
-  SearchService
+  SearchService,
 }
 import sttp.model.QueryParams
 
@@ -66,7 +66,7 @@ class SearchController(using
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
     grepSearchService: GrepSearchService,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
 
   val getSearchQueryParams: GetSearchQueryParams = new GetSearchQueryParams
@@ -77,9 +77,7 @@ class SearchController(using
   override val prefix: EndpointInput[Unit] = "search-api" / "v1" / serviceName
 
   private val includeMissingResourceTypeGroup = query[Boolean]("missing-group")
-    .description(
-      "Whether to include group without resource-types for group-search. Defaults to false."
-    )
+    .description("Whether to include group without resource-types for group-search. Defaults to false.")
     .default(false)
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
@@ -90,10 +88,11 @@ class SearchController(using
     postSearchLearningResources,
     subjectAggs,
     searchGrep,
-    getGrepReplacements
+    getGrepReplacements,
   )
 
-  def subjectAggs: ServerEndpoint[Any, Eff] = endpoint.post
+  def subjectAggs: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("List subjects with aggregated data about their contents")
     .description("List subjects with aggregated data about their contents")
     .in("subjects")
@@ -106,7 +105,8 @@ class SearchController(using
       multiDraftSearchService.aggregateSubjects(subjects, userInfo)
     }
 
-  def groupSearch: ServerEndpoint[Any, Eff] = endpoint.get
+  def groupSearch: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Search across multiple groups of learning resources")
     .description("Search across multiple groups of learning resources")
     .in("group")
@@ -136,43 +136,48 @@ class SearchController(using
     */
   private def groupSearch(
       settings: SearchSettings,
-      includeMissingResourceTypeGroup: Boolean
+      includeMissingResourceTypeGroup: Boolean,
   ): Either[AllErrors, Seq[GroupSearchResultDTO]] = {
-    val numMissingRtThreads = if (includeMissingResourceTypeGroup) 1 else 0
-    val numGroups           = settings.resourceTypes.size + settings.learningResourceTypes.size + numMissingRtThreads
+    val numMissingRtThreads =
+      if (includeMissingResourceTypeGroup) 1
+      else 0
+    val numGroups = settings.resourceTypes.size + settings.learningResourceTypes.size + numMissingRtThreads
     if (numGroups >= 1) {
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(Math.max(numGroups, 1)))
 
-      val rtSearches = settings.resourceTypes.map(group =>
-        Future {
-          searchInGroup(group, settings.copy(resourceTypes = List(group), learningResourceTypes = List.empty))
-        }
-      )
+      val rtSearches = settings
+        .resourceTypes
+        .map(group =>
+          Future {
+            searchInGroup(group, settings.copy(resourceTypes = List(group), learningResourceTypes = List.empty))
+          }
+        )
 
-      val lrSearches = settings.learningResourceTypes.map(group =>
-        Future {
-          searchInGroup(
-            group.toString,
-            settings.copy(resourceTypes = List.empty, learningResourceTypes = List(group))
-          )
-        }
-      )
+      val lrSearches = settings
+        .learningResourceTypes
+        .map(group =>
+          Future {
+            searchInGroup(
+              group.toString,
+              settings.copy(resourceTypes = List.empty, learningResourceTypes = List(group)),
+            )
+          }
+        )
 
       val withoutRt =
-        if (includeMissingResourceTypeGroup)
-          Seq(
-            Future {
-              searchInGroup(
-                "missing",
-                settings.copy(
-                  resourceTypes = List.empty,
-                  learningResourceTypes = List(LearningResourceType.Article),
-                  filterByNoResourceType = true
-                )
-              )
-            }
-          )
+        if (includeMissingResourceTypeGroup) Seq(
+          Future {
+            searchInGroup(
+              "missing",
+              settings.copy(
+                resourceTypes = List.empty,
+                learningResourceTypes = List(LearningResourceType.Article),
+                filterByNoResourceType = true,
+              ),
+            )
+          }
+        )
         else Seq.empty
 
       val searches = rtSearches ++ lrSearches ++ withoutRt
@@ -180,11 +185,17 @@ class SearchController(using
       val futureSearches    = Future.sequence(searches)
       val completedSearches = Await.result(futureSearches, Duration(1, MINUTES))
 
-      val failedSearches = completedSearches.collect { case Failure(ex) => ex }
+      val failedSearches = completedSearches.collect { case Failure(ex) =>
+        ex
+      }
       if (failedSearches.nonEmpty) {
         returnLeftError(failedSearches.head)
       } else {
-        completedSearches.collect { case Success(r) => r }.asRight
+        completedSearches
+          .collect { case Success(r) =>
+            r
+          }
+          .asRight
       }
     } else {
       List.empty.asRight
@@ -210,8 +221,8 @@ class SearchController(using
       case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
         for {
           scrollResult <- scroller.scroll(scroll, language.code)
-          body    = searchConverterService.toApiMultiSearchResult(scrollResult)
-          headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
+          body          = searchConverterService.toApiMultiSearchResult(scrollResult)
+          headers       = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
         } yield (body, headers)
       case _ => orFunction
     }
@@ -246,11 +257,12 @@ class SearchController(using
       filterInactive = q.filterInactive.some,
       resultTypes = q.resultTypes.values.flatMap(SearchType.withNameOption).some,
       nodeTypeFilter = q.nodeTypeFilter.values.flatMap(NodeType.withNameOption).some,
-      tags = q.tags.values.some
+      tags = q.tags.values.some,
     )
   }
 
-  def searchLearningResources: ServerEndpoint[Any, Eff] = endpoint.get
+  def searchLearningResources: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Find learning resources")
     .description("Shows all learning resources. You can search too.")
     .errorOut(errorOutputsFor(400, 401, 403))
@@ -274,7 +286,8 @@ class SearchController(using
       }
     }
 
-  def postSearchLearningResources: ServerEndpoint[Any, Eff] = endpoint.post
+  def postSearchLearningResources: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Find learning resources")
     .description("Shows all learning resources. You can search too.")
     .errorOut(errorOutputsFor(400))
@@ -283,17 +296,18 @@ class SearchController(using
     .in(jsonBody[Option[SearchParamsDTO]].schema(SearchParamsDTO.schema.asOption))
     .in(feideHeader)
     .serverLogicPure { case (searchParams, feideToken) =>
-      getAvailability(feideToken)
-        .flatMap(availability => {
-          val settings = asSettings(searchParams, availability)
-          scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiSearchService) {
-            multiSearchService.matchingQuery(settings).map { searchResult =>
+      getAvailability(feideToken).flatMap(availability => {
+        val settings = asSettings(searchParams, availability)
+        scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiSearchService) {
+          multiSearchService
+            .matchingQuery(settings)
+            .map { searchResult =>
               val result  = searchConverterService.toApiMultiSearchResult(searchResult)
               val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
               (result, headers)
             }
-          }
-        })
+        }
+      })
     }
 
   def intParamOrNone(name: String)(implicit queryParams: QueryParams): Option[Int] = {
@@ -304,45 +318,41 @@ class SearchController(using
       })
   }
 
-  def intParamOrDefault(name: String, default: => Int)(implicit queryParams: QueryParams): Int =
-    intParamOrNone(name)
-      .getOrElse(default)
+  def intParamOrDefault(name: String, default: => Int)(implicit queryParams: QueryParams): Int = intParamOrNone(name)
+    .getOrElse(default)
 
-  def stringParamOrDefault(name: String, default: => String)(implicit queryParams: QueryParams): String =
-    queryParams
-      .get(name)
-      .getOrElse(default)
+  def stringParamOrDefault(name: String, default: => String)(implicit queryParams: QueryParams): String = queryParams
+    .get(name)
+    .getOrElse(default)
 
-  def stringParamOrNone(name: String)(implicit queryParams: QueryParams): Option[String] =
-    queryParams.get(name).filterNot(_.isEmpty)
+  def stringParamOrNone(name: String)(implicit queryParams: QueryParams): Option[String] = queryParams
+    .get(name)
+    .filterNot(_.isEmpty)
 
-  def stringListParam(name: String)(implicit queryParams: QueryParams): List[String] =
-    queryParams
-      .get(name)
-      .map(_.split(",").toList)
-      .getOrElse(List.empty)
+  def stringListParam(name: String)(implicit queryParams: QueryParams): List[String] = queryParams
+    .get(name)
+    .map(_.split(",").toList)
+    .getOrElse(List.empty)
 
-  def dateParamOrNone(name: String)(implicit queryParams: QueryParams): Option[NDLADate] =
-    queryParams
-      .get(name)
-      .flatMap(str => NDLADate.fromString(str).toOption)
+  def dateParamOrNone(name: String)(implicit queryParams: QueryParams): Option[NDLADate] = queryParams
+    .get(name)
+    .flatMap(str => NDLADate.fromString(str).toOption)
 
-  def longListParam(name: String)(implicit queryParams: QueryParams): List[Long] =
-    queryParams
-      .get(name)
-      .map(x => x.split(",").toList.flatMap(_.toLongOption))
-      .getOrElse(List.empty)
+  def longListParam(name: String)(implicit queryParams: QueryParams): List[Long] = queryParams
+    .get(name)
+    .map(x => x.split(",").toList.flatMap(_.toLongOption))
+    .getOrElse(List.empty)
 
-  def booleanParamOrNone(name: String)(implicit queryParams: QueryParams): Option[Boolean] =
-    queryParams.get(name).flatMap(_.toBooleanOption)
+  def booleanParamOrNone(name: String)(implicit queryParams: QueryParams): Option[Boolean] = queryParams
+    .get(name)
+    .flatMap(_.toBooleanOption)
 
-  def searchDraftLearningResourcesGet: ServerEndpoint[Any, Eff] = endpoint.get
+  def searchDraftLearningResourcesGet: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Find draft learning resources")
-    .description(
-      """Shows all draft learning resources. You can search too.
+    .description("""Shows all draft learning resources. You can search too.
           |Query parameters are undocumented, but are the same as the body for the POST endpoint, except `kebab-case`.
-          |""".stripMargin
-    )
+          |""".stripMargin)
     .in("editorial")
     .in(queryParams)
     .errorOut(errorOutputsFor(400, 401, 403))
@@ -387,22 +397,25 @@ class SearchController(using
             publishedDateFrom = dateParamOrNone("published-date-from"),
             publishedDateTo = dateParamOrNone("published-date-to"),
             resultTypes = stringListParam("result-types").flatMap(SearchType.withNameOption).some,
-            tags = stringListParam("tags").some
+            tags = stringListParam("tags").some,
           )
         )
 
         val settings = asDraftSettings(searchParams, userInfo)
         scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiDraftSearchService) {
-          multiDraftSearchService.matchingQuery(settings).map { searchResult =>
-            val result  = searchConverterService.toApiMultiSearchResult(searchResult)
-            val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
-            (result, headers)
-          }
+          multiDraftSearchService
+            .matchingQuery(settings)
+            .map { searchResult =>
+              val result  = searchConverterService.toApiMultiSearchResult(searchResult)
+              val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
+              (result, headers)
+            }
         }
       }
     }
 
-  def searchDraftLearningResources: ServerEndpoint[Any, Eff] = endpoint.post
+  def searchDraftLearningResources: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Find draft learning resources")
     .description("Shows all draft learning resources. You can search too.")
     .in("editorial")
@@ -414,24 +427,30 @@ class SearchController(using
     .serverLogicPure { userInfo => searchParams =>
       val settings = asDraftSettings(searchParams, userInfo)
       scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiDraftSearchService) {
-        multiDraftSearchService.matchingQuery(settings).map { searchResult =>
-          val result  = searchConverterService.toApiMultiSearchResult(searchResult)
-          val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
-          (result, headers)
-        }
+        multiDraftSearchService
+          .matchingQuery(settings)
+          .map { searchResult =>
+            val result  = searchConverterService.toApiMultiSearchResult(searchResult)
+            val headers = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
+            (result, headers)
+          }
       }
     }
 
-  def searchGrep: ServerEndpoint[Any, Eff] = endpoint.post
+  def searchGrep: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Search for grep codes")
     .description("Search for grep codes")
     .in("grep")
     .in(jsonBody[GrepSearchInputDTO])
     .out(jsonBody[GrepSearchResultsDTO])
     .errorOut(errorOutputsFor(400, 401, 403))
-    .serverLogicPure { input => grepSearchService.searchGreps(input) }
+    .serverLogicPure { input =>
+      grepSearchService.searchGreps(input)
+    }
 
-  def getGrepReplacements: ServerEndpoint[Any, Eff] = endpoint.get
+  def getGrepReplacements: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get grep replacements")
     .in("grep" / "replacements")
     .in(
@@ -451,14 +470,10 @@ class SearchController(using
   private def getAvailability(feideToken: Option[String]): Try[List[Availability]] = {
     feideToken match {
       case None        => Success(List.empty)
-      case Some(token) =>
-        feideApiClient.getFeideExtendedUser(Some(token)) match {
+      case Some(token) => feideApiClient.getFeideExtendedUser(Some(token)) match {
           case Success(user)                      => Success(user.availabilities.toList)
           case Failure(ex: AccessDeniedException) =>
-            logger.info(
-              s"Access denied when fetching user from feide with accessToken '$token': ${ex.getMessage}",
-              ex
-            )
+            logger.info(s"Access denied when fetching user from feide with accessToken '$token': ${ex.getMessage}", ex)
             Success(List.empty)
           case Failure(ex) =>
             logger.error(s"Error when fetching user from feide with accessToken '$token': ${ex.getMessage}", ex)
@@ -498,7 +513,7 @@ class SearchController(using
           filterInactive = params.filterInactive.getOrElse(false),
           resultTypes = params.resultTypes,
           nodeTypeFilter = params.nodeTypeFilter.getOrElse(List.empty),
-          tags = params.tags.getOrElse(List.empty)
+          tags = params.tags.getOrElse(List.empty),
         )
 
     }
@@ -548,7 +563,7 @@ class SearchController(using
           publishedFilterFrom = params.publishedDateFrom,
           publishedFilterTo = params.publishedDateTo,
           resultTypes = params.resultTypes,
-          tags = params.tags.getOrElse(List.empty)
+          tags = params.tags.getOrElse(List.empty),
         )
     }
   }

@@ -16,8 +16,7 @@ class V53__AddDatesToLearningStepTest extends UnitSuite with TestEnvironment {
 
   test("that learningstep gets dates from learningpath") {
     val migration    = new V53__AddDatesToLearningStep
-    val learningpath =
-      """
+    val learningpath = """
         |{
         |  "license": "CC BY-NC-SA 4.0",
         |  "title": "Test Step",
@@ -25,16 +24,14 @@ class V53__AddDatesToLearningStepTest extends UnitSuite with TestEnvironment {
         |  "created": "2024-01-01T00:00:00Z"
         |}
         |""".stripMargin
-    val stepWithoutDates =
-      """
+    val stepWithoutDates = """
         |{
         |  "title": "Test Step",
         |  "description": "This is a test step."
         |}
         |""".stripMargin
 
-    val expectedDocument =
-      """
+    val expectedDocument = """
         |{
         |  "title": "Test Step",
         |  "description": "This is a test step.",

@@ -18,8 +18,7 @@ class LanguageTest extends UnitSuite {
   }
 
   test("That mergeLanguageFields returns original list when updated is empty") {
-    val existing =
-      Seq(ArticleTitle("Tittel 1", "nb"), ArticleTitle("Tittel 2", "nn"), ArticleTitle("Tittel 3", "und"))
+    val existing = Seq(ArticleTitle("Tittel 1", "nb"), ArticleTitle("Tittel 2", "nn"), ArticleTitle("Tittel 3", "und"))
     Language.mergeLanguageFields(existing, Seq()) should equal(existing)
   }
 
@@ -81,25 +80,9 @@ class LanguageTest extends UnitSuite {
     val sv      = LangClass("hej", "sv")
     val apekatt = LangClass("finnes ikke", "apekatt")
 
-    val l = Seq(
-      en,
-      nb,
-      und,
-      de,
-      apekatt,
-      sv
-    )
+    val l = Seq(en, nb, und, de, apekatt, sv)
 
-    Language.sortByLanguagePriority(l) should be(
-      Seq(
-        nb,
-        en,
-        de,
-        sv,
-        und,
-        apekatt
-      )
-    )
+    Language.sortByLanguagePriority(l) should be(Seq(nb, en, de, sv, und, apekatt))
 
   }
 }

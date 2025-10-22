@@ -21,7 +21,7 @@ import no.ndla.common.model.domain.article.{
   ArticleMetaDescriptionDTO,
   ArticleTagDTO,
   PartialPublishArticleDTO,
-  PartialPublishArticlesBulkDTO
+  PartialPublishArticlesBulkDTO,
 }
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.draftapi.Props
@@ -37,12 +37,7 @@ import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Try}
 import common.getNextRevision
 
-class ArticleApiClient(
-    ArticleBaseUrl: String
-)(using
-    ndlaClient: NdlaClient,
-    converterService: ConverterService
-) {
+class ArticleApiClient(ArticleBaseUrl: String)(using ndlaClient: NdlaClient, converterService: ConverterService) {
   def this()(using ndlaClient: NdlaClient, converterService: ConverterService, props: Props) =
     this(s"http://${props.ArticleApiHost}")
 
@@ -50,16 +45,9 @@ class ArticleApiClient(
   private val deleteTimeout    = 10.seconds
   private val timeout          = 15.seconds
 
-  def partialPublishArticle(
-      id: Long,
-      article: PartialPublishArticleDTO,
-      user: TokenUser
-  ): Try[Long] = {
-    patchWithData[ArticleApiId, PartialPublishArticleDTO](
-      s"$InternalEndpoint/partial-publish/$id",
-      article,
-      Some(user)
-    ).map(res => res.id)
+  def partialPublishArticle(id: Long, article: PartialPublishArticleDTO, user: TokenUser): Try[Long] = {
+    patchWithData[ArticleApiId, PartialPublishArticleDTO](s"$InternalEndpoint/partial-publish/$id", article, Some(user))
+      .map(res => res.id)
   }
 
   def updateArticle(
@@ -67,13 +55,12 @@ class ArticleApiClient(
       draft: Draft,
       externalIds: List[String],
       useSoftValidation: Boolean,
-      user: TokenUser
+      user: TokenUser,
   ): Try[Draft] = {
     val extParam = Option.when(externalIds.nonEmpty)("external-id" -> externalIds.mkString(","))
-    val params   = List(
-      "use-import-validation" -> false.toString,
-      "use-soft-validation"   -> useSoftValidation.toString
-    ) ++ extParam.toSeq
+    val params   =
+      List("use-import-validation" -> false.toString, "use-soft-validation" -> useSoftValidation.toString) ++ extParam
+        .toSeq
     for {
       converted <- converterService.toArticleApiArticle(draft)
       _         <- postWithData[common.article.Article, common.article.Article](
@@ -97,37 +84,34 @@ class ArticleApiClient(
   def validateArticle(
       article: common.article.Article,
       importValidate: Boolean,
-      user: Option[TokenUser]
+      user: Option[TokenUser],
   ): Try[common.article.Article] = {
     postWithData[common.article.Article, common.article.Article](
       s"$InternalEndpoint/validate/article",
       article,
       user,
-      ("import_validate", importValidate.toString)
+      ("import_validate", importValidate.toString),
     ) match {
       case Failure(ex: HttpRequestException) =>
         val validationError = ex.httpResponse.map(r => CirceUtil.unsafeParseAs[ArticleApiValidationErrorDTO](r.body))
         Failure(
           new ValidationException(
             "Failed to validate article in article-api",
-            validationError.map(_.messages).getOrElse(Seq.empty)
+            validationError.map(_.messages).getOrElse(Seq.empty),
           )
         )
       case x => x
     }
   }
 
-  def bulkPartialPublishArticles(
-      ids: Map[Long, PartialPublishArticleDTO],
-      user: TokenUser
-  ): Try[Unit] = {
+  def bulkPartialPublishArticles(ids: Map[Long, PartialPublishArticleDTO], user: TokenUser): Try[Unit] = {
     val articles = PartialPublishArticlesBulkDTO(idTo = ids)
     patchWithDataRaw[PartialPublishArticlesBulkDTO](
       s"$InternalEndpoint/partial-publish",
       articles,
       Some(user),
       // NOTE: Long timeout since this potentially updates a bunch of articles
-      10.minutes
+      10.minutes,
     ).unit
   }
 
@@ -138,7 +122,7 @@ class ArticleApiClient(
   private def delete[A: Decoder](endpointUrl: String, user: Option[TokenUser], params: (String, String)*): Try[A] = {
     ndlaClient.fetchWithForwardedAuth[A](
       quickRequest.delete(uri"$endpointUrl".withParams(params*)).readTimeout(deleteTimeout),
-      user
+      user,
     )
   }
 
@@ -155,7 +139,7 @@ class ArticleApiClient(
         .body(CirceUtil.toJsonString(data))
         .header("content-type", "application/json", replaceExisting = true)
         .readTimeout(timeout),
-      user
+      user,
     )
   }
 
@@ -171,7 +155,7 @@ class ArticleApiClient(
         .body(CirceUtil.toJsonString(data))
         .header("content-type", "application/json", replaceExisting = true)
         .readTimeout(timeout),
-      user
+      user,
     )
   }
 
@@ -186,36 +170,30 @@ class ArticleApiClient(
         .post(uri"$endpointUrl".withParams(params*))
         .body(CirceUtil.toJsonString(data))
         .header("content-type", "application/json", replaceExisting = true),
-      user
+      user,
     )
   }
 }
 
 implicit class PartialPublishArticleDTOImplicits(self: PartialPublishArticleDTO) {
-  def withLicense(license: Option[String]): PartialPublishArticleDTO  = self.copy(license = license)
-  def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticleDTO = self.copy(grepCodes = grepCodes.some)
+  def withLicense(license: Option[String]): PartialPublishArticleDTO              = self.copy(license = license)
+  def withGrepCodes(grepCodes: Seq[String]): PartialPublishArticleDTO             = self.copy(grepCodes = grepCodes.some)
   def withTags(tags: Seq[common.Tag], language: String): PartialPublishArticleDTO =
-    self.copy(tags =
-      tags
-        .find(t => t.language == language)
-        .toSeq
-        .map(t => ArticleTagDTO(t.tags, t.language))
-        .some
-    )
+    self.copy(tags = tags.find(t => t.language == language).toSeq.map(t => ArticleTagDTO(t.tags, t.language)).some)
   def withTags(tags: Seq[common.Tag]): PartialPublishArticleDTO =
     self.copy(tags = tags.map(t => ArticleTagDTO(t.tags, t.language)).some)
   def withRelatedContent(relatedContent: Seq[common.RelatedContent]): PartialPublishArticleDTO = {
-    val api = relatedContent.map { rc => rc.leftMap { rcl => RelatedContentLinkDTO(rcl.title, rcl.url) } }
+    val api = relatedContent.map { rc =>
+      rc.leftMap { rcl =>
+        RelatedContentLinkDTO(rcl.title, rcl.url)
+      }
+    }
     self.copy(relatedContent = api.some)
   }
 
   def withMetaDescription(meta: Seq[common.Description], language: String): PartialPublishArticleDTO =
     self.copy(metaDescription =
-      meta
-        .find(m => m.language == language)
-        .map(m => ArticleMetaDescriptionDTO(m.content, m.language))
-        .toSeq
-        .some
+      meta.find(m => m.language == language).map(m => ArticleMetaDescriptionDTO(m.content, m.language)).toSeq.some
     )
   def withMetaDescription(meta: Seq[common.Description]): PartialPublishArticleDTO = {
     val api = meta.map(m => ArticleMetaDescriptionDTO(m.content, m.language))

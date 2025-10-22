@@ -32,10 +32,7 @@ class FrontPageRepository(using dBFrontPage: DBFrontPage) extends StrictLogging 
   }
 
   private def deleteAllBut(id: Long)(implicit session: DBSession): Try[Long] = {
-    Try(
-      sql"delete from ${dBFrontPage.DBFrontPageData.table} where id<>${id} "
-        .update()
-    ).map(_ => id)
+    Try(sql"delete from ${dBFrontPage.DBFrontPageData.table} where id<>${id} ".update()).map(_ => id)
   }
 
   def getFrontPage(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[FrontPage]] = Try {

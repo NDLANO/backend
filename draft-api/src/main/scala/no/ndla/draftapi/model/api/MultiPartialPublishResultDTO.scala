@@ -14,8 +14,10 @@ import no.ndla.common.DeriveHelpers
 
 @description("Single failed result")
 case class PartialPublishFailureDTO(
-    @description("Id of the article in question") id: Long,
-    @description("Error message") message: String
+    @description("Id of the article in question")
+    id: Long,
+    @description("Error message")
+    message: String,
 )
 
 object PartialPublishFailureDTO {
@@ -29,8 +31,10 @@ object PartialPublishFailureDTO {
 
 @description("A list of articles that were partial published to article-api")
 case class MultiPartialPublishResultDTO(
-    @description("Successful ids") successes: Seq[Long],
-    @description("Failed ids with error messages") failures: Seq[PartialPublishFailureDTO]
+    @description("Successful ids")
+    successes: Seq[Long],
+    @description("Failed ids with error messages")
+    failures: Seq[PartialPublishFailureDTO],
 )
 
 object MultiPartialPublishResultDTO {

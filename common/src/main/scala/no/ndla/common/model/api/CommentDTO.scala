@@ -16,12 +16,18 @@ import no.ndla.common.DeriveHelpers
 
 @description("Information about a comment attached to an article")
 case class CommentDTO(
-    @description("Id of the comment") id: String,
-    @description("Content of the comment") content: String,
-    @description("When the comment was created") created: NDLADate,
-    @description("When the comment was last updated") updated: NDLADate,
-    @description("If the comment is open or closed") isOpen: Boolean,
-    @description("If the comment is solved or not") solved: Boolean
+    @description("Id of the comment")
+    id: String,
+    @description("Content of the comment")
+    content: String,
+    @description("When the comment was created")
+    created: NDLADate,
+    @description("When the comment was last updated")
+    updated: NDLADate,
+    @description("If the comment is open or closed")
+    isOpen: Boolean,
+    @description("If the comment is solved or not")
+    solved: Boolean,
 )
 
 object CommentDTO {

@@ -20,7 +20,7 @@ import no.ndla.imageapi.service.search.{
   ImageSearchService,
   SearchConverterService,
   TagIndexService,
-  TagSearchService
+  TagSearchService,
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
@@ -34,10 +34,7 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given errorHelpers: ErrorHelpers   = new ErrorHelpers
   given errorHandling: ErrorHandling = new ControllerErrorHandling
 
-  given migrator: DBMigrator = DBMigrator(
-    new V6__AddAgreementToImages,
-    new V7__TranslateUntranslatedAuthors
-  )
+  given migrator: DBMigrator = DBMigrator(new V6__AddAgreementToImages, new V7__TranslateUntranslatedAuthors)
 
   given s3Client: NdlaS3Client                         = new NdlaS3Client(props.StorageName, props.StorageRegion)
   given ndlaClient: NdlaClient                         = new NdlaClient
@@ -65,14 +62,8 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given healthController: HealthController   = new HealthController
 
   given swagger: SwaggerController = new SwaggerController(
-    List[TapirController](
-      imageControllerV2,
-      imageControllerV3,
-      rawController,
-      internController,
-      healthController
-    ),
-    SwaggerDocControllerConfig.swaggerInfo
+    List[TapirController](imageControllerV2, imageControllerV3, rawController, internController, healthController),
+    SwaggerDocControllerConfig.swaggerInfo,
   )
 
   given services: List[TapirController] = swagger.getServices()

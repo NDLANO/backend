@@ -23,14 +23,14 @@ import java.awt.{Color, Transparency}
 import scala.util.{Success, Try}
 
 case class PixelPoint(x: Int, y: Int) // A point given with pixles
-case class PercentPoint(x: Double, y: Double) { // A point given with values from MinValue to MaxValue. MinValue,MinValue is top-left, MaxValue,MaxValue is bottom-right
+case class PercentPoint(
+    x: Double,
+    y: Double,
+) { // A point given with values from MinValue to MaxValue. MinValue,MinValue is top-left, MaxValue,MaxValue is bottom-right
   import PercentPoint.*
-  if (!inRange(x) || !inRange(y))
-    throw new ValidationException(
-      errors = Seq(
-        ValidationMessage("PercentPoint", s"Invalid value for a PixelPoint. Must be in range $MinValue-$MaxValue")
-      )
-    )
+  if (!inRange(x) || !inRange(y)) throw new ValidationException(errors =
+    Seq(ValidationMessage("PercentPoint", s"Invalid value for a PixelPoint. Must be in range $MinValue-$MaxValue"))
+  )
 
   lazy val normalizedX: Double = normalise(x)
   lazy val normalizedY: Double = normalise(y)
@@ -44,9 +44,7 @@ object PercentPoint {
   private def normalise(coord: Double): Double = coord / MaxValue.toDouble
 }
 
-class ImageConverter(using
-    props: Props
-) extends StrictLogging {
+class ImageConverter(using props: Props) extends StrictLogging {
 
   /** This method adds a white background to a [[BufferedImage]], useful for removing transparent pixels for image types
     * that doesn't support transparency
@@ -72,7 +70,9 @@ class ImageConverter(using
     val shouldRemoveTransparency = onlyOpaqueTypes.contains(originalImage.contentType) &&
       bufferedImage.getColorModel.getTransparency != Transparency.OPAQUE
 
-    val newImage = if (shouldRemoveTransparency) fillTransparentPixels(bufferedImage) else bufferedImage
+    val newImage =
+      if (shouldRemoveTransparency) fillTransparentPixels(bufferedImage)
+      else bufferedImage
 
     if (writerIter.hasNext) {
       val writer = writerIter.next
@@ -101,8 +101,7 @@ class ImageConverter(using
       if (minWidth >= props.ImageScalingUltraMinSize && minWidth <= props.ImageScalingUltraMaxSize)
         Scalr.Method.ULTRA_QUALITY
       else Scalr.Method.AUTOMATIC
-    Try(Scalr.resize(sourceImage, method, minWidth, minHeight))
-      .map(resized => toImageStream(resized, originalImage))
+    Try(Scalr.resize(sourceImage, method, minWidth, minHeight)).map(resized => toImageStream(resized, originalImage))
   }
 
   private def resize(originalImage: ImageStream, mode: Mode, targetSize: Int): Try[ImageStream] = {
@@ -124,12 +123,11 @@ class ImageConverter(using
       image: ImageStream,
       sourceImage: BufferedImage,
       topLeft: PixelPoint,
-      bottomRight: PixelPoint
+      bottomRight: PixelPoint,
   ): Try[ImageStream] = {
     val (width, height) = getWidthHeight(topLeft, bottomRight, sourceImage)
 
-    Try(Scalr.crop(sourceImage, topLeft.x, topLeft.y, width, height))
-      .map(cropped => toImageStream(cropped, image))
+    Try(Scalr.crop(sourceImage, topLeft.x, topLeft.y, width, height)).map(cropped => toImageStream(cropped, image))
   }
 
   def crop(originalImage: ImageStream, start: PercentPoint, end: PercentPoint): Try[ImageStream] = {
@@ -156,7 +154,7 @@ class ImageConverter(using
       percentFocalPoint: PercentPoint,
       targetWidthOpt: Option[Int],
       targetHeightOpt: Option[Int],
-      ratioOpt: Option[Double]
+      ratioOpt: Option[Double],
   ): Try[ImageStream] = {
     val sourceImage               = image.sourceImage
     val focalPoint                = toPixelPoint(percentFocalPoint, sourceImage)
@@ -169,11 +167,21 @@ class ImageConverter(using
       case (Some(w), None, _)    =>
         val actualTargetWidth             = min(imageWidth, w)
         val widthReductionPercent: Double = actualTargetWidth.toDouble / imageWidth.toDouble
-        (w, (imageHeight * widthReductionPercent).toInt)
+        (
+          w,
+          (
+            imageHeight * widthReductionPercent
+          ).toInt,
+        )
       case (None, Some(h), _) =>
         val actualTargetHeight             = min(imageHeight, h)
         val heightReductionPercent: Double = actualTargetHeight.toDouble / imageHeight.toDouble
-        ((imageWidth * heightReductionPercent).toInt, actualTargetHeight)
+        (
+          (
+            imageWidth * heightReductionPercent
+          ).toInt,
+          actualTargetHeight,
+        )
     }
 
     val (startY, endY) = getStartEndCoords(focalPoint.y, targetHeight, imageHeight)
@@ -193,7 +201,7 @@ class ImageConverter(using
   private[service] def transformCoordinates(
       image: BufferedImage,
       start: PercentPoint,
-      end: PercentPoint
+      end: PercentPoint,
   ): (PixelPoint, PixelPoint) = {
     val topLeft     = PercentPoint(min(start.x, end.x), min(start.y, end.y))
     val bottomRight = PercentPoint(max(start.x, end.x), max(start.y, end.y))
@@ -203,7 +211,14 @@ class ImageConverter(using
 
   private def toPixelPoint(point: PercentPoint, image: BufferedImage) = {
     val (width, height) = (image.getWidth, image.getHeight)
-    PixelPoint((point.normalizedX * width).toInt, (point.normalizedY * height).toInt)
+    PixelPoint(
+      (
+        point.normalizedX * width
+      ).toInt,
+      (
+        point.normalizedY * height
+      ).toInt,
+    )
   }
 
   private[service] def getWidthHeight(start: PixelPoint, end: PixelPoint, image: BufferedImage): (Int, Int) = {

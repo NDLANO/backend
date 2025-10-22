@@ -17,10 +17,14 @@ import no.ndla.common.DeriveHelpers
 
 @description("Information about learningpaths")
 case class LearningPathDomainDumpDTO(
-    @description("The total number of learningpaths in the database") totalCount: Long,
-    @description("For which page results are shown from") page: Int,
-    @description("The number of results per page") pageSize: Int,
-    @description("The search results") results: Seq[LearningPath]
+    @description("The total number of learningpaths in the database")
+    totalCount: Long,
+    @description("For which page results are shown from")
+    page: Int,
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The search results")
+    results: Seq[LearningPath],
 )
 
 object LearningPathDomainDumpDTO {
@@ -32,10 +36,14 @@ object LearningPathDomainDumpDTO {
 
 @description("Information about learningsteps")
 case class LearningStepDomainDumpDTO(
-    @description("The total number of learningsteps in the database") totalCount: Long,
-    @description("For which page results are shown from") page: Int,
-    @description("The number of results per page") pageSize: Int,
-    @description("The search results") results: Seq[LearningStep]
+    @description("The total number of learningsteps in the database")
+    totalCount: Long,
+    @description("For which page results are shown from")
+    page: Int,
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The search results")
+    results: Seq[LearningStep],
 )
 
 object LearningStepDomainDumpDTO {

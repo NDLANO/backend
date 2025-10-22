@@ -39,11 +39,12 @@ class ReadService(using
     userDataRepository: UserDataRepository,
     writeService: => WriteService,
     props: Props,
-    dbUtility: DBUtility
+    dbUtility: DBUtility,
 ) {
 
-  def getInternalArticleIdByExternalId(externalId: Long): Option[api.ContentIdDTO] =
-    draftRepository.getIdFromExternalId(externalId.toString)(using ReadOnlyAutoSession).map(id => api.ContentIdDTO(id))
+  def getInternalArticleIdByExternalId(externalId: Long): Option[api.ContentIdDTO] = draftRepository
+    .getIdFromExternalId(externalId.toString)(using ReadOnlyAutoSession)
+    .map(id => api.ContentIdDTO(id))
 
   def withId(id: Long, language: String, fallback: Boolean = false): Try[api.ArticleDTO] = {
     draftRepository.withId(id)(using ReadOnlyAutoSession).map(addUrlsOnEmbedResources) match {
@@ -64,15 +65,18 @@ class ReadService(using
       .articlesWithId(id)
       .map(addUrlsOnEmbedResources)
       .map(article => converterService.toApiArticle(article, language, fallback))
-      .collect { case Success(article) => article }
+      .collect { case Success(article) =>
+        article
+      }
       .sortBy(_.revision)
       .reverse
   }
 
   private[service] def addUrlsOnEmbedResources(article: Draft): Draft = {
-    val articleWithUrls = article.content.map(content => content.copy(content = addUrlOnResource(content.content)))
-    val visualElementWithUrls =
-      article.visualElement.map(visual => visual.copy(resource = addUrlOnResource(visual.resource)))
+    val articleWithUrls       = article.content.map(content => content.copy(content = addUrlOnResource(content.content)))
+    val visualElementWithUrls = article
+      .visualElement
+      .map(visual => visual.copy(resource = addUrlOnResource(visual.resource)))
 
     article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
   }
@@ -103,12 +107,8 @@ class ReadService(using
   }
 
   def getAllTags(input: String, pageSize: Int, page: Int, language: String): Try[api.TagsSearchResultDTO] = {
-    val result = tagSearchService.matchingQuery(
-      query = input,
-      searchLanguage = language,
-      page = page,
-      pageSize = pageSize
-    )
+    val result =
+      tagSearchService.matchingQuery(query = input, searchLanguage = language, page = page, pageSize = pageSize)
 
     result.map(searchConverterService.tagSearchResultAsApiResult)
   }
@@ -132,8 +132,7 @@ class ReadService(using
       case resourceType if embedTag.hasAttr(TagAttribute.DataResource_Id.toString) =>
         val id = embedTag.attr(TagAttribute.DataResource_Id.toString)
         Some((resourceType, id))
-      case _ =>
-        None
+      case _ => None
     }
 
     typeAndPathOption match {
@@ -141,10 +140,7 @@ class ReadService(using
         val baseUrl   = Url.parse(props.externalApiUrls(resourceType))
         val pathParts = Path.parse(path).parts
 
-        embedTag.attr(
-          s"${TagAttribute.DataUrl}",
-          baseUrl.addPathParts(pathParts).toString
-        ): Unit
+        embedTag.attr(s"${TagAttribute.DataUrl}", baseUrl.addPathParts(pathParts).toString): Unit
       case _ =>
     }
   }
@@ -155,8 +151,7 @@ class ReadService(using
 
   def getUserData(userId: String): Try[api.UserDataDTO] = {
     userDataRepository.withUserId(userId) match {
-      case None =>
-        writeService.newUserData(userId) match {
+      case None => writeService.newUserData(userId) match {
           case Success(newUserData) => Success(newUserData)
           case Failure(exception)   => Failure(exception)
         }
@@ -169,7 +164,7 @@ class ReadService(using
       language: String,
       fallback: Boolean,
       page: Long,
-      pageSize: Long
+      pageSize: Long,
   ): Try[Seq[api.ArticleDTO]] = {
     val offset = (page - 1) * pageSize
     for {
@@ -183,34 +178,33 @@ class ReadService(using
     } yield api
   }
 
-  def getArticleRevisionHistory(
-      articleId: Long,
-      language: String,
-      fallback: Boolean
-  ): Try[ArticleRevisionHistoryDTO] = boundary {
-    val drafts = draftRepository
-      .articlesWithId(articleId)
-      .map(addUrlsOnEmbedResources)
-      .sortBy(
-        _.revision.getOrElse(
-          boundary.break(
-            Failure(api.NotFoundException(s"Revision was missing for draft of article with id $articleId"))
-          )
+  def getArticleRevisionHistory(articleId: Long, language: String, fallback: Boolean): Try[ArticleRevisionHistoryDTO] =
+    boundary {
+      val drafts = draftRepository
+        .articlesWithId(articleId)
+        .map(addUrlsOnEmbedResources)
+        .sortBy(
+          _.revision
+            .getOrElse(
+              boundary.break(
+                Failure(api.NotFoundException(s"Revision was missing for draft of article with id $articleId"))
+              )
+            )
         )
-      )
-      .reverse
+        .reverse
 
-    val canDeleteCurrentRevision = drafts match {
-      case current :: previous :: _
-          if current.status.current != PUBLISHED && shouldPartialPublish(Some(previous), current).isEmpty =>
-        true
-      case _ => false
+      val canDeleteCurrentRevision = drafts match {
+        case current :: previous :: _
+            if current.status.current != PUBLISHED && shouldPartialPublish(Some(previous), current).isEmpty => true
+        case _ => false
+      }
+
+      val articles = drafts
+        .map(article => converterService.toApiArticle(article, language, fallback))
+        .collect { case Success(article) =>
+          article
+        }
+
+      Success(ArticleRevisionHistoryDTO(articles, canDeleteCurrentRevision))
     }
-
-    val articles = drafts
-      .map(article => converterService.toApiArticle(article, language, fallback))
-      .collect { case Success(article) => article }
-
-    Success(ArticleRevisionHistoryDTO(articles, canDeleteCurrentRevision))
-  }
 }

@@ -31,7 +31,7 @@ import no.ndla.searchapi.model.grep.{
   GrepKompetansemaal,
   GrepKompetansemaalSett,
   GrepLaererplan,
-  GrepTverrfagligTema
+  GrepTverrfagligTema,
 }
 import no.ndla.searchapi.model.search.SearchableGrepElement
 
@@ -42,7 +42,7 @@ class GrepSearchService(using
     grepIndexService: GrepIndexService,
     e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends SearchService
     with StrictLogging {
   override val searchIndex: List[String]             = List(SearchType.Grep).map(props.SearchIndex)
@@ -61,24 +61,26 @@ class GrepSearchService(using
 
   protected def buildCodeQueries(codePrefixes: Set[String], codes: Set[String]): Option[Query] = {
 
-    val prefixQueries = (codePrefixes ++ codes).toList.flatMap { prefix =>
-      List(
-        prefixQuery("code", prefix).boost(50),
-        prefixQuery("belongsTo", prefix).boost(50)
-      )
-    }
+    val prefixQueries = (
+      codePrefixes ++ codes
+    ).toList
+      .flatMap { prefix =>
+        List(prefixQuery("code", prefix).boost(50), prefixQuery("belongsTo", prefix).boost(50))
+      }
 
     val codeQueries = codes.flatMap { query =>
       List(
         matchQuery("code", query).boost(50),
         termQuery("code", query).boost(50),
         matchQuery("belongsTo", query).boost(50),
-        termQuery("belongsTo", query).boost(50)
+        termQuery("belongsTo", query).boost(50),
       )
     }
 
     val queries = prefixQueries ++ codeQueries
-    Option.when(queries.nonEmpty) { boolQuery().should(queries) }
+    Option.when(queries.nonEmpty) {
+      boolQuery().should(queries)
+    }
   }
 
   def extractCodesFromQuery(query: String): Set[String] = {
@@ -99,20 +101,13 @@ class GrepSearchService(using
         val codeQueries  = buildCodeQueries(codePrefixes, codes)
         val titleQuery   = languageQuery(q, "title", 6, searchLanguage)
 
-        boolQuery()
-          .withShould(titleQuery)
-          .withShould(codeQueries)
-          .minimumShouldMatch(1)
+        boolQuery().withShould(titleQuery).withShould(codeQueries).minimumShouldMatch(1)
       case None => boolQuery()
     }
     query.filter(getFilters(input))
   }
 
-  private def getFilters(input: GrepSearchInputDTO): List[Query] =
-    List(
-      idsFilter(input),
-      prefixFilter(input)
-    ).flatten
+  private def getFilters(input: GrepSearchInputDTO): List[Query] = List(idsFilter(input), prefixFilter(input)).flatten
 
   private def idsFilter(input: GrepSearchInputDTO): Option[Query] = input.codes match {
     case Some(ids) if ids.nonEmpty => termsQuery("code", ids).some
@@ -121,32 +116,30 @@ class GrepSearchService(using
 
   private def prefixFilter(input: GrepSearchInputDTO): Option[Query] = input.prefixFilter match {
     case Some(prefixes) if prefixes.nonEmpty =>
-      Some(
-        boolQuery().should(
-          prefixes.map(prefix => prefixQuery("code", prefix))
-        )
-      )
+      Some(boolQuery().should(prefixes.map(prefix => prefixQuery("code", prefix))))
     case _ => None
   }
 
   private def getSingleCodeById(code: String): Try[Option[SearchableGrepElement]] = {
-    val searchToExecute = search(searchIndex)
-      .query(termQuery("code", code))
-      .trackTotalHits(true)
+    val searchToExecute = search(searchIndex).query(termQuery("code", code)).trackTotalHits(true)
 
-    e4sClient.execute(searchToExecute).flatMap { response =>
-      withGrepHits(response, hit => hitToSearchable(hit)).flatMap {
-        case head :: Nil => Success(Some(head))
-        case Nil         => Success(None)
-        case _           => Failure(new RuntimeException(s"Multiple hits for code $code"))
+    e4sClient
+      .execute(searchToExecute)
+      .flatMap { response =>
+        withGrepHits(response, hit => hitToSearchable(hit)).flatMap {
+          case head :: Nil => Success(Some(head))
+          case Nil         => Success(None)
+          case _           => Failure(new RuntimeException(s"Multiple hits for code $code"))
+        }
       }
-    }
   }
 
   private def executeAsSearchableGreps(searchToExecute: SearchRequest) = {
-    e4sClient.execute(searchToExecute).flatMap { response =>
-      withGrepHits(response, hit => hitToSearchable(hit))
-    }
+    e4sClient
+      .execute(searchToExecute)
+      .flatMap { response =>
+        withGrepHits(response, hit => hitToSearchable(hit))
+      }
   }
 
   def getCodesById(codes: List[String]): Try[List[SearchableGrepElement]] = {
@@ -178,26 +171,24 @@ class GrepSearchService(using
       .trackTotalHits(true)
       .sortBy(sort)
 
-    e4sClient.execute(searchToExecute).flatMap { response =>
-      withGrepHits(response, hit => hitToResult(hit, searchLanguage)).map { results =>
-        GrepSearchResultsDTO(
-          totalCount = response.result.totalHits,
-          page = pagination.page,
-          pageSize = searchPageSize,
-          language = searchLanguage,
-          results = results
-        )
+    e4sClient
+      .execute(searchToExecute)
+      .flatMap { response =>
+        withGrepHits(response, hit => hitToResult(hit, searchLanguage)).map { results =>
+          GrepSearchResultsDTO(
+            totalCount = response.result.totalHits,
+            page = pagination.page,
+            pageSize = searchPageSize,
+            language = searchLanguage,
+            results = results,
+          )
+        }
       }
-    }
   }
 
   def getReuseOf(code: String): Try[List[SearchableGrepElement]] = {
     val filter          = termQuery("gjenbrukAv", code)
-    val searchToExecute = search(searchIndex)
-      .query(boolQuery().filter(filter))
-      .from(0)
-      .size(1000)
-      .trackTotalHits(true)
+    val searchToExecute = search(searchIndex).query(boolQuery().filter(filter)).from(0).size(1000).trackTotalHits(true)
     executeAsSearchableGreps(searchToExecute)
   }
 
@@ -212,7 +203,14 @@ class GrepSearchService(using
   }
 
   private def withGrepHits[T](response: RequestSuccess[SearchResponse], f: SearchHit => Try[T]): Try[List[T]] = {
-    response.result.hits.hits.toList.traverse { hit => f(hit) }
+    response
+      .result
+      .hits
+      .hits
+      .toList
+      .traverse { hit =>
+        f(hit)
+      }
   }
 
   private def getCoreElementReplacement(core: GrepKjerneelement): Try[String] = permitTry {
@@ -249,11 +247,7 @@ class GrepSearchService(using
 
   private def elementsWithLpCode(code: String): Try[List[SearchableGrepElement]] = {
     val filter          = termQuery("laereplanCode", code)
-    val searchToExecute = search(searchIndex)
-      .query(boolQuery().filter(filter))
-      .from(0)
-      .size(1000)
-      .trackTotalHits(true)
+    val searchToExecute = search(searchIndex).query(boolQuery().filter(filter)).from(0).size(1000).trackTotalHits(true)
     executeAsSearchableGreps(searchToExecute)
   }
 
@@ -263,9 +257,8 @@ class GrepSearchService(using
       case head :: Nil =>
         logger.info(s"Replacing ${goal.kode} with ${head.code}")
         Success(head.code)
-      case Nil =>
-        Success(goal.kode)
-      case _ =>
+      case Nil => Success(goal.kode)
+      case _   =>
         logger.warn(s"Multiple replacements for goal ${goal.kode}")
         Success(goal.kode)
     }
@@ -303,8 +296,16 @@ class GrepSearchService(using
       logger.error(msg)
     }
 
-    val convertedCodes   = foundOldCodes.traverse { oc => findReplacementCode(oc) }.?
+    val convertedCodes = foundOldCodes
+      .traverse { oc =>
+        findReplacementCode(oc)
+      }
+      .?
     val missingCodesList = missingCodes.map(x => x -> x)
-    Success((convertedCodes ++ missingCodesList).toMap)
+    Success(
+      (
+        convertedCodes ++ missingCodesList
+      ).toMap
+    )
   }
 }

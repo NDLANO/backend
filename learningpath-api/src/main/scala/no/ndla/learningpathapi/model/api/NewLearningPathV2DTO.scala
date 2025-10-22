@@ -42,7 +42,7 @@ case class NewLearningPathV2DTO(
     @description("An introduction")
     introduction: Option[String],
     @description("A list of codes from GREP API connected to the article")
-    grepCodes: Option[Seq[String]]
+    grepCodes: Option[Seq[String]],
 )
 
 object NewLearningPathV2DTO {

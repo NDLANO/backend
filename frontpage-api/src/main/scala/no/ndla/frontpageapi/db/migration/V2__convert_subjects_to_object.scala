@@ -27,16 +27,13 @@ class V2__convert_subjects_to_object extends BaseJavaMigration {
     }
 
   def frontPageData(implicit session: DBSession): Option[V1_DBFrontPage] = {
-    sql"select id, document from mainfrontpage"
-      .map(rs => V1_DBFrontPage(rs.long("id"), rs.string("document")))
-      .single()
+    sql"select id, document from mainfrontpage".map(rs => V1_DBFrontPage(rs.long("id"), rs.string("document"))).single()
   }
 
   def convertSubjects(frontPage: V1_DBFrontPage): Option[V2_FrontPageData] = {
     parse(frontPage.document).flatMap(_.as[V1_DBFrontPageData]).toTry match {
-      case Success(value) =>
-        Some(V2_FrontPageData(value.topical, toDomainCategories(value.categories)))
-      case Failure(_) => None
+      case Success(value) => Some(V2_FrontPageData(value.topical, toDomainCategories(value.categories)))
+      case Failure(_)     => None
     }
   }
 
@@ -49,8 +46,7 @@ class V2__convert_subjects_to_object extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(frontPageData.asJson.noSpacesDropNull)
 
-    sql"update mainfrontpage set document = $dataObject"
-      .update()
+    sql"update mainfrontpage set document = $dataObject".update()
   }
 }
 

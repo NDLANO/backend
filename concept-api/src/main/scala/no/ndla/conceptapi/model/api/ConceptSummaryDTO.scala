@@ -49,7 +49,7 @@ case class ConceptSummaryDTO(
     @description("Information about the gloss")
     glossData: Option[GlossDataDTO],
     @description("A translated name of the concept type")
-    conceptTypeName: String
+    conceptTypeName: String,
 )
 
 object ConceptSummaryDTO {

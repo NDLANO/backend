@@ -21,15 +21,11 @@ class V11__frontpage_hide_level_flag extends BaseJavaMigration {
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
-      frontPageData
-        .map(convertFrontpage)
-        .foreach(update)
+      frontPageData.map(convertFrontpage).foreach(update)
     }
 
   private def frontPageData(implicit session: DBSession): List[V11__DBFrontPage] = {
-    sql"select id, document from mainfrontpage"
-      .map(rs => V11__DBFrontPage(rs.long("id"), rs.string("document")))
-      .list()
+    sql"select id, document from mainfrontpage".map(rs => V11__DBFrontPage(rs.long("id"), rs.string("document"))).list()
   }
 
   implicit class JsonObjectOps(obj: JsonObject) {
@@ -69,8 +65,7 @@ class V11__frontpage_hide_level_flag extends BaseJavaMigration {
     val pgObject = new PGobject()
     pgObject.setType("jsonb")
     pgObject.setValue(frontPageData.document)
-    sql"update mainfrontpage set document = $pgObject where id = ${frontPageData.id}"
-      .update()
+    sql"update mainfrontpage set document = $pgObject where id = ${frontPageData.id}".update()
   }
 }
 

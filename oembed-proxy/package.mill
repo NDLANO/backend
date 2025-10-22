@@ -8,11 +8,7 @@ import os.Path
 object `package` extends BaseModule, DockerComponent {
   override def moduleName  = "oembed-proxy"
   def mvnDeps: T[Seq[Dep]] = SharedDependencies.logging ++
-    SharedDependencies.tapir ++ Seq(
-      SharedDependencies.scalaUri,
-      SharedDependencies.sttp,
-      SharedDependencies.jsoup
-    )
+    SharedDependencies.tapir ++ Seq(SharedDependencies.scalaUri, SharedDependencies.sttp, SharedDependencies.jsoup)
   override def moduleDeps = Seq(build.common, build.network, build.scalatestsuite)
   object test extends TestBase {
     override def moduleDeps = super.moduleDeps :+ build.tapirtesting

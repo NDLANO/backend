@@ -22,7 +22,7 @@ case class ArticleApiSearchResults(
     page: Int,
     pageSize: Int,
     language: String,
-    results: Seq[ArticleApiSearchResult]
+    results: Seq[ArticleApiSearchResult],
 ) extends ApiSearchResults
 
 case class ImageApiSearchResults(
@@ -30,7 +30,7 @@ case class ImageApiSearchResults(
     page: Int,
     pageSize: Int,
     language: String,
-    results: Seq[ImageApiSearchResult]
+    results: Seq[ImageApiSearchResult],
 ) extends ApiSearchResults
 
 case class LearningpathApiSearchResults(
@@ -38,7 +38,7 @@ case class LearningpathApiSearchResults(
     page: Int,
     pageSize: Int,
     language: String,
-    results: Seq[LearningpathApiSearchResult]
+    results: Seq[LearningpathApiSearchResult],
 ) extends ApiSearchResults
 
 case class AudioApiSearchResults(
@@ -46,5 +46,5 @@ case class AudioApiSearchResults(
     page: Int,
     pageSize: Int,
     language: String,
-    results: Seq[AudioApiSearchResult]
+    results: Seq[AudioApiSearchResult],
 ) extends ApiSearchResults

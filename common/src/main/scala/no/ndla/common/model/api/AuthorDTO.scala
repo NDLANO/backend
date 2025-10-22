@@ -21,12 +21,9 @@ case class AuthorDTO(
     @description("The description of the author. Eg. Photographer or Supplier")
     `type`: ContributorType,
     @description("The name of the of the author")
-    name: String
+    name: String,
 ) {
-  def toDomain: domain.Author = domain.Author(
-    `type` = this.`type`,
-    name = this.name
-  )
+  def toDomain: domain.Author = domain.Author(`type` = this.`type`, name = this.name)
 }
 
 object AuthorDTO {

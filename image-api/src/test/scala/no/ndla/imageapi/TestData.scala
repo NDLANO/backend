@@ -40,7 +40,7 @@ class TestData {
           contentType = "image/jpeg",
           dimensions = None,
           language = "nb",
-          1
+          1,
         )
       )
     ),
@@ -52,7 +52,7 @@ class TestData {
       List(Author(ContributorType.Supplier, "Leverans Leveransensen")),
       None,
       None,
-      false
+      false,
     ),
     tags = List(Tag(List("rovdyr", "elg"), "nb")),
     captions = List(ImageCaption("Elg i busk", "nb")),
@@ -61,7 +61,7 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val apiElg: ImageMetaInformationV2DTO = api.ImageMetaInformationV2DTO(
@@ -76,7 +76,7 @@ class TestData {
       commonApi.LicenseDTO(
         License.CC_BY_NC_SA.toString,
         Some("Creative Commons Attribution-NonCommercial-ShareAlike 4.0 Generic"),
-        Some("https://creativecommons.org/licenses/by-nc-sa/4.0/")
+        Some("https://creativecommons.org/licenses/by-nc-sa/4.0/"),
       ),
       Some("http://www.scanpix.no"),
       List(commonApi.AuthorDTO(ContributorType.Photographer, "Test Testesen")),
@@ -84,7 +84,7 @@ class TestData {
       List(),
       None,
       None,
-      false
+      false,
     ),
     api.ImageTagDTO(List("rovdyr", "elg"), "nb"),
     api.ImageCaptionDTO("Elg i busk", "nb"),
@@ -93,7 +93,7 @@ class TestData {
     "ndla123",
     ModelReleasedStatus.YES.toString,
     None,
-    None
+    None,
   )
 
   val apiBjorn: ImageMetaInformationV2DTO = ImageMetaInformationV2DTO(
@@ -108,7 +108,7 @@ class TestData {
       commonApi.LicenseDTO(
         License.CC_BY_NC_SA.toString,
         Some("Creative Commons Attribution-NonCommercial-ShareAlike 2.0 Generic"),
-        Some("https://creativecommons.org/licenses/by-nc-sa/2.0/")
+        Some("https://creativecommons.org/licenses/by-nc-sa/2.0/"),
       ),
       Some("http://www.scanpix.no"),
       List(commonApi.AuthorDTO(ContributorType.Photographer, "Test Testesen")),
@@ -116,7 +116,7 @@ class TestData {
       List(),
       None,
       None,
-      false
+      false,
     ),
     tags = api.ImageTagDTO(List("rovdyr", "bjørn"), "nb"),
     caption = api.ImageCaptionDTO("Bjørn i busk", "nb"),
@@ -125,7 +125,7 @@ class TestData {
     createdBy = "ndla124",
     modelRelease = ModelReleasedStatus.YES.toString,
     editorNotes = None,
-    imageDimensions = None
+    imageDimensions = None,
   )
 
   val bjorn = new ImageMetaInformation(
@@ -141,7 +141,7 @@ class TestData {
           contentType = "image/jpeg",
           dimensions = None,
           language = "nb",
-          2
+          2,
         )
       )
     ),
@@ -153,7 +153,7 @@ class TestData {
       List(),
       None,
       None,
-      false
+      false,
     ),
     tags = List(Tag(List("rovdyr", "bjørn"), "nb")),
     captions = List(ImageCaption("Bjørn i busk", "nb")),
@@ -162,7 +162,7 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val jerv: ImageMetaInformation = new ImageMetaInformation(
@@ -178,7 +178,7 @@ class TestData {
           contentType = "image/jpeg",
           dimensions = None,
           language = "nb",
-          3
+          3,
         )
       )
     ),
@@ -190,7 +190,7 @@ class TestData {
       List(),
       None,
       None,
-      false
+      false,
     ),
     tags = List(Tag(List("rovdyr", "jerv"), "nb")),
     captions = List(ImageCaption("Jerv på stein", "nb")),
@@ -199,7 +199,7 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val mink = new ImageMetaInformation(
@@ -215,7 +215,7 @@ class TestData {
           contentType = "image/jpeg",
           dimensions = None,
           language = "nb",
-          4
+          4,
         )
       )
     ),
@@ -227,7 +227,7 @@ class TestData {
       List(),
       None,
       None,
-      false
+      false,
     ),
     tags = List(Tag(List("rovdyr", "mink"), "nb")),
     captions = List(ImageCaption("Overrasket mink", "nb")),
@@ -236,7 +236,7 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val rein = new ImageMetaInformation(
@@ -252,7 +252,7 @@ class TestData {
           contentType = "image/jpeg",
           dimensions = None,
           language = "nb",
-          5
+          5,
         )
       )
     ),
@@ -264,7 +264,7 @@ class TestData {
       List(),
       None,
       None,
-      false
+      false,
     ),
     tags = List(Tag(List("rovdyr", "rein", "jakt"), "nb")),
     captions = List(ImageCaption("Rein har fanget rødtopp", "nb")),
@@ -273,7 +273,7 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val nonexisting: ImageMetaInformation = new ImageMetaInformation(
@@ -289,7 +289,7 @@ class TestData {
           contentType = "image/jpeg",
           dimensions = None,
           language = "nb",
-          6
+          6,
         )
       )
     ),
@@ -301,7 +301,7 @@ class TestData {
       List(),
       None,
       None,
-      false
+      false,
     ),
     tags = List(Tag(List("rovdyr", "krokodille"), "nb")),
     captions = List(ImageCaption("Krokodille på krok", "nb")),
@@ -310,7 +310,7 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val nonexistingWithoutThumb = new ImageMetaInformation(
@@ -326,7 +326,7 @@ class TestData {
           contentType = "image/jpeg",
           dimensions = None,
           language = "nb",
-          6
+          6,
         )
       )
     ),
@@ -338,7 +338,7 @@ class TestData {
       List(),
       None,
       None,
-      false
+      false,
     ),
     tags = List(Tag(List("bison"), "nb")),
     captions = List(ImageCaption("Bison på sletten", "nb")),
@@ -347,7 +347,7 @@ class TestData {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val testdata: List[ImageMetaInformation] = List(elg, bjorn, jerv, mink, rein)
@@ -366,9 +366,10 @@ class TestData {
   val NdlaLogoGIFImage: DiskImage = DiskImage("ndla_logo.gif")
   val CCLogoSvgImage: DiskImage   = DiskImage("cc.svg")
 
-  val ChildrensImage: DiskImage = DiskImage(
-    "children-drawing-582306_640.jpg"
-  ) // From https://pixabay.com/en/children-drawing-home-tree-meadow-582306/
+  val ChildrensImage: DiskImage =
+    DiskImage(
+      "children-drawing-582306_640.jpg"
+    ) // From https://pixabay.com/en/children-drawing-home-tree-meadow-582306/
 
   val searchSettings: SearchSettings = SearchSettings(
     query = None,
@@ -382,6 +383,6 @@ class TestData {
     podcastFriendly = None,
     shouldScroll = false,
     modelReleased = Seq.empty,
-    userFilter = List.empty
+    userFilter = List.empty,
   )
 }

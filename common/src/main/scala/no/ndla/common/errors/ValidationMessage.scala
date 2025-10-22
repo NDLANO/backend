@@ -17,7 +17,7 @@ case class ValidationMessage(
     @description("The field the error occured in")
     field: String,
     @description("The validation message")
-    message: String
+    message: String,
 )
 
 object ValidationMessage {

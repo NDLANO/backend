@@ -35,10 +35,7 @@ object ConfigMetaValue {
     case strList @ StringListValue(_) => strList.asJson
   }
   implicit def decoder: Decoder[ConfigMetaValue] = {
-    List[Decoder[ConfigMetaValue]](
-      Decoder[BooleanValue].widen,
-      Decoder[StringListValue].widen
-    ).reduceLeft(_ or _)
+    List[Decoder[ConfigMetaValue]](Decoder[BooleanValue].widen, Decoder[StringListValue].widen).reduceLeft(_ or _)
   }
 
   def from(configMetaValue: api.config.ConfigMetaValueDTO): ConfigMetaValue = configMetaValue.value match {
@@ -48,12 +45,7 @@ object ConfigMetaValue {
 
 }
 
-case class ConfigMeta(
-    key: ConfigKey,
-    value: ConfigMetaValue,
-    updatedAt: NDLADate,
-    updatedBy: String
-) {
+case class ConfigMeta(key: ConfigKey, value: ConfigMetaValue, updatedAt: NDLADate, updatedBy: String) {
 
   def valueToEither: Either[Boolean, List[String]] = {
     value match {
@@ -66,10 +58,8 @@ case class ConfigMeta(
     value match {
       case BooleanValue(_) => Success(this)
       case _               =>
-        val validationMessage = ValidationMessage(
-          "value",
-          s"Value of '${configKey.entryName}' must be a boolean string ('true' or 'false')"
-        )
+        val validationMessage =
+          ValidationMessage("value", s"Value of '${configKey.entryName}' must be a boolean string ('true' or 'false')")
         Failure(new ValidationException(s"Invalid config value specified.", Seq(validationMessage)))
     }
   }
@@ -78,10 +68,8 @@ case class ConfigMeta(
     value match {
       case StringListValue(_) => Success(this)
       case _                  =>
-        val validationMessage = ValidationMessage(
-          "value",
-          s"Value of '${configKey.entryName}' must be a list of strings"
-        )
+        val validationMessage =
+          ValidationMessage("value", s"Value of '${configKey.entryName}' must be a list of strings")
         Failure(new ValidationException(s"Invalid config value specified.", Seq(validationMessage)))
     }
   }

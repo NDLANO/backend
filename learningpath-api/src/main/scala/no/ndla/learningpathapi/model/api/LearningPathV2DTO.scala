@@ -73,7 +73,7 @@ case class LearningPathV2DTO(
     @description("An introduction for the learningpath")
     introduction: IntroductionDTO,
     @description("A list of codes from GREP API connected to the article")
-    grepCodes: Seq[String]
+    grepCodes: Seq[String],
 )
 
 object LearningPathV2DTO {

@@ -34,7 +34,7 @@ import no.ndla.searchapi.service.search.{
   GrepIndexService,
   IndexService,
   LearningPathIndexService,
-  NodeIndexService
+  NodeIndexService,
 }
 import sttp.model.StatusCode
 
@@ -58,7 +58,7 @@ class InternController(using
     grepIndexService: GrepIndexService,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController
     with StrictLogging {
   import errorHelpers.*
@@ -71,16 +71,18 @@ class InternController(using
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 
-  private def resolveResultFutures(
-      indexResults: List[Future[(String, Try[ReindexResult])]]
-  ): Either[String, String] = {
+  private def resolveResultFutures(indexResults: List[Future[(String, Try[ReindexResult])]]): Either[String, String] = {
 
     val futureIndexed    = Future.sequence(indexResults)
     val completedIndexed = Await.result(futureIndexed, Duration(60, TimeUnit.MINUTES))
 
-    completedIndexed.collect { case (name, Failure(ex)) => (name, ex) } match {
+    completedIndexed.collect { case (name, Failure(ex)) =>
+      (name, ex)
+    } match {
       case Nil =>
-        val successful = completedIndexed.collect { case (name, Success(r)) => (name, r) }
+        val successful = completedIndexed.collect { case (name, Success(r)) =>
+          (name, r)
+        }
 
         val indexResults = successful
           .map({ case (name: String, reindexResult: ReindexResult) =>
@@ -115,32 +117,37 @@ class InternController(using
     reindexGrep,
     reindexLearningpath,
     reindexNode,
-    reindexConcept
+    reindexConcept,
   )
 
-  def deleteDocument: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteDocument: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .in(path[String]("type") / path[Long]("id"))
     .out(noContent)
     .errorOut(errorOutputsFor(400))
     .serverLogicPure { case (indexType, documentId) =>
-      (indexType match {
-        case articleIndexService.documentType      => articleIndexService.deleteDocument(documentId)
-        case draftIndexService.documentType        => draftIndexService.deleteDocument(documentId)
-        case learningPathIndexService.documentType => learningPathIndexService.deleteDocument(documentId)
-        case draftConceptIndexService.documentType => draftConceptIndexService.deleteDocument(documentId)
-        case _                                     => Success(())
-      }).map(_ => ())
+      (
+        indexType match {
+          case articleIndexService.documentType      => articleIndexService.deleteDocument(documentId)
+          case draftIndexService.documentType        => draftIndexService.deleteDocument(documentId)
+          case learningPathIndexService.documentType => learningPathIndexService.deleteDocument(documentId)
+          case draftConceptIndexService.documentType => draftConceptIndexService.deleteDocument(documentId)
+          case _                                     => Success(())
+        }
+      ).map(_ => ())
     }
 
   private def parseBody[T: Decoder](body: String): Try[T] = {
     CirceUtil
       .tryParseAs[T](body)
-      .recoverWith { case _ => Failure(InvalidIndexBodyException()) }
+      .recoverWith { case _ =>
+        Failure(InvalidIndexBodyException())
+      }
   }
 
   private def indexRequestWithService[T <: Content: Decoder](
       indexService: IndexService[T],
-      body: String
+      body: String,
   ): Either[AllErrors, T] = {
     parseBody[T](body).flatMap(x => indexService.indexDocument(x)) match {
       case Success(doc) => doc.asRight
@@ -150,7 +157,8 @@ class InternController(using
     }
   }
 
-  def indexSingleDocument: ServerEndpoint[Any, Eff] = endpoint.post
+  def indexSingleDocument: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in(path[String]("type"))
     .in(stringBody)
     .out(
@@ -158,7 +166,7 @@ class InternController(using
         oneOfVariant(jsonBody[Article]),
         oneOfVariant(jsonBody[Draft]),
         oneOfVariant(jsonBody[LearningPath]),
-        oneOfVariant(jsonBody[Concept])
+        oneOfVariant(jsonBody[Concept]),
       )
     )
     .errorOut(errorOutputsFor(400, 409))
@@ -168,14 +176,14 @@ class InternController(using
         case draftIndexService.documentType        => indexRequestWithService(draftIndexService, body)
         case learningPathIndexService.documentType => indexRequestWithService(learningPathIndexService, body)
         case draftConceptIndexService.documentType => indexRequestWithService(draftConceptIndexService, body)
-        case _                                     =>
-          badRequest(
+        case _                                     => badRequest(
             s"Bad type passed to POST /:type/, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}', '${draftConceptIndexService.documentType}'"
           ).asLeft
       }
     }
 
-  def reindexById: ServerEndpoint[Any, Eff] = endpoint.post
+  def reindexById: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("reindex" / path[String]("type") / path[Long]("id"))
     .errorOut(errorOutputsFor(400))
     .out(
@@ -183,7 +191,7 @@ class InternController(using
         oneOfVariant(jsonBody[Article]),
         oneOfVariant(jsonBody[Draft]),
         oneOfVariant(jsonBody[LearningPath]),
-        oneOfVariant(jsonBody[Concept])
+        oneOfVariant(jsonBody[Concept]),
       )
     )
     .serverLogicPure { case (indexType, id) =>
@@ -192,14 +200,14 @@ class InternController(using
         case draftIndexService.documentType        => draftIndexService.reindexDocument(id)
         case learningPathIndexService.documentType => learningPathIndexService.reindexDocument(id)
         case draftConceptIndexService.documentType => draftConceptIndexService.reindexDocument(id)
-        case _                                     =>
-          badRequest(
+        case _                                     => badRequest(
             s"Bad type passed to POST /:type/:id, must be one of: '${articleIndexService.documentType}', '${draftIndexService.documentType}', '${learningPathIndexService.documentType}', '${draftConceptIndexService.documentType}'"
           ).asLeft
       }
     }
 
-  def reindexDraft: ServerEndpoint[Any, Eff] = endpoint.post
+  def reindexDraft: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("index" / "draft")
     .in(query[Option[Int]]("numShards"))
     .errorOut(stringInternalServerError)
@@ -214,7 +222,8 @@ class InternController(using
       resolveResultFutures(List(draftIndex))
     }
 
-  def reindexConcept: ServerEndpoint[Any, Eff] = endpoint.post
+  def reindexConcept: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("index" / "concept")
     .in(query[Option[Int]]("numShards"))
     .errorOut(stringInternalServerError)
@@ -229,7 +238,8 @@ class InternController(using
       resolveResultFutures(List(conceptIndex))
     }
 
-  def reindexArticle: ServerEndpoint[Any, Eff] = endpoint.post
+  def reindexArticle: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("index" / "article")
     .in(query[Option[Int]]("numShards"))
     .errorOut(stringInternalServerError)
@@ -244,7 +254,8 @@ class InternController(using
       resolveResultFutures(List(articleIndex))
     }
 
-  def reindexGrep: ServerEndpoint[Any, Eff] = endpoint.post
+  def reindexGrep: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("index" / "grep")
     .in(query[Option[Int]]("numShards"))
     .errorOut(stringInternalServerError)
@@ -259,7 +270,8 @@ class InternController(using
       resolveResultFutures(List(grepIndex))
     }
 
-  def reindexNode: ServerEndpoint[Any, Eff] = endpoint.post
+  def reindexNode: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("index" / "node")
     .in(query[Option[Int]]("numShards"))
     .errorOut(stringInternalServerError)
@@ -274,7 +286,8 @@ class InternController(using
       resolveResultFutures(List(grepIndex))
     }
 
-  def reindexLearningpath: ServerEndpoint[Any, Eff] = endpoint.post
+  def reindexLearningpath: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("index" / "learningpath")
     .in(query[Option[Int]]("numShards"))
     .errorOut(stringInternalServerError)
@@ -289,7 +302,8 @@ class InternController(using
       resolveResultFutures(List(learningPathIndex))
     }
 
-  def reindexShards: ServerEndpoint[Any, Eff] = endpoint.post
+  def reindexShards: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("reindex" / "shards" / path[Int]("num_shards"))
     .errorOut(errorOutputsFor(400))
     .out(stringBody)
@@ -316,7 +330,8 @@ class InternController(using
       }
     }
 
-  def reindexReplicas: ServerEndpoint[Any, Eff] = endpoint.post
+  def reindexReplicas: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("reindex" / "replicas" / path[Int]("num_replicas"))
     .errorOut(errorOutputsFor(400))
     .out(stringBody)
@@ -342,18 +357,20 @@ class InternController(using
       }
     }
 
-  def postIndex: ServerEndpoint[Any, Eff] = endpoint.post
+  def postIndex: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("index")
     .in(query[Boolean]("run-in-background").default(false))
     .in(query[Option[Int]]("numShards"))
     .errorOut(errorOutputsFor(400))
     .out(
       oneOf[Option[String]](
-        oneOfVariantValueMatcher(statusCode(StatusCode.Ok).and(jsonBody[Option[String]])) { case Some(_) => true },
+        oneOfVariantValueMatcher(statusCode(StatusCode.Ok).and(jsonBody[Option[String]])) { case Some(_) =>
+          true
+        },
         oneOfVariantValueMatcher(statusCode(StatusCode.Accepted).and(emptyOutputAs[Option[String]](None))) {
-          case None =>
-            true
-        }
+          case None => true
+        },
       )
     )
     .serverLogicPure { case (runInBackground, numShards) =>
@@ -379,13 +396,13 @@ class InternController(using
           val publishedIndexingBundle = IndexingBundle(
             grepBundle = Some(grepBundle),
             taxonomyBundle = Some(taxonomyBundlePublished),
-            myndlaBundle = Some(myndlaBundle)
+            myndlaBundle = Some(myndlaBundle),
           )
 
           val draftIndexingBundle = IndexingBundle(
             grepBundle = Some(grepBundle),
             taxonomyBundle = Some(taxonomyBundleDraft),
-            myndlaBundle = Some(myndlaBundle)
+            myndlaBundle = Some(myndlaBundle),
           )
 
           val requestInfo = RequestInfo.fromThreadContext()
@@ -413,7 +430,7 @@ class InternController(using
             Future {
               requestInfo.setThreadContextRequestInfo()
               ("nodes", nodeIndexService.indexDocuments(numShards, publishedIndexingBundle))
-            }
+            },
           )
           if (runInBackground) {
             None.asRight

@@ -36,8 +36,10 @@ object PartialArticleFieldsDTO extends Enum[PartialArticleFieldsDTO] with CirceE
 
 @description("Partial data about articles to publish in bulk")
 case class PartialBulkArticlesDTO(
-    @description("A list of article ids to partially publish") articleIds: Seq[Long],
-    @description("A list of fields that should be partially published") fields: Seq[PartialArticleFieldsDTO]
+    @description("A list of article ids to partially publish")
+    articleIds: Seq[Long],
+    @description("A list of fields that should be partially published")
+    fields: Seq[PartialArticleFieldsDTO],
 )
 
 object PartialBulkArticlesDTO {

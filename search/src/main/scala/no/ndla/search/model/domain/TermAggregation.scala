@@ -13,5 +13,5 @@ case class TermAggregation(
     field: Seq[String],
     sumOtherDocCount: Int,
     docCountErrorUpperBound: Int,
-    buckets: Seq[Bucket]
+    buckets: Seq[Bucket],
 )

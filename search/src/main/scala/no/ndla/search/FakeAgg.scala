@@ -30,16 +30,21 @@ sealed trait FakeAgg {
     if (toMerge.name == this.name && toMerge.getClass == this.getClass) {
       val subIdx = toMerge.subAggregations.zipWithIndex
 
-      val (mergedLSubIdxes, mergedSubs) =
-        this.subAggregations.foldLeft((Seq.empty[Int], Seq.empty[FakeAgg]))((acc, thisSub) => {
+      val (mergedLSubIdxes, mergedSubs) = this
+        .subAggregations
+        .foldLeft((Seq.empty[Int], Seq.empty[FakeAgg]))((acc, thisSub) => {
           val (mergedIdxes, result) = acc
 
           // Attempts to merge all sub-aggregations from `toMerge` and keeps track of the merged ids
           val merged = subIdx
             .filterNot(s => mergedIdxes.contains(s._2))
             .view
-            .map { case (subToMerge, idx) => (thisSub.merge(subToMerge), idx) }
-            .collectFirst { case (Some(mergedAgg), idx) => (mergedAgg, idx) }
+            .map { case (subToMerge, idx) =>
+              (thisSub.merge(subToMerge), idx)
+            }
+            .collectFirst { case (Some(mergedAgg), idx) =>
+              (mergedAgg, idx)
+            }
 
           val newMergedLSubs = mergedIdxes ++ merged.map(_._2).toSeq
           val mergedAggs     = result :+ merged.map(_._1).getOrElse(thisSub)
@@ -48,10 +53,16 @@ sealed trait FakeAgg {
         })
 
       // All unmerged sub-aggregations gets appended to the regular sub-aggregations
-      val extras = subIdx.filterNot { case (_, idx) => mergedLSubIdxes.contains(idx) }.map(_._1)
+      val extras = subIdx
+        .filterNot { case (_, idx) =>
+          mergedLSubIdxes.contains(idx)
+        }
+        .map(_._1)
 
       Some(this.withSubs(mergedSubs ++ extras))
-    } else { None }
+    } else {
+      None
+    }
   }
 }
 
@@ -62,8 +73,9 @@ object FakeAgg {
     *   `Seq(FakeNestedAgg("a"), FakeNestedAgg("b"), "FakeTermAgg("c"))` will become: Some( FakeNestedAgg("a",
     *   subAggregations = Seq( FakeNestedAgg("b", subAggregations = Seq( FakeTermAgg("c") )) )) )
     */
-  def seqAggsToSubAggs(aggs: Seq[FakeAgg]): Option[FakeAgg] =
-    aggs.reverse.foldLeft(None: Option[FakeAgg])((acc, cur) => {
+  def seqAggsToSubAggs(aggs: Seq[FakeAgg]): Option[FakeAgg] = aggs
+    .reverse
+    .foldLeft(None: Option[FakeAgg])((acc, cur) => {
       acc match {
         case None       => Some(cur)
         case Some(subs) =>

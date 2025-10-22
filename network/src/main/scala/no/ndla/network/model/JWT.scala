@@ -23,7 +23,7 @@ case class JWTClaims(
     scope: List[String],
     ndla_id: Option[String],
     user_name: Option[String],
-    jti: Option[String]
+    jti: Option[String],
 )
 
 case class ClaimsJSON(
@@ -31,7 +31,7 @@ case class ClaimsJSON(
     scope: Option[String],
     `https://ndla.no/ndla_id`: Option[String],
     `https://ndla.no/user_name`: Option[String],
-    permissions: Option[List[String]]
+    permissions: Option[List[String]],
 )
 
 object ClaimsJSON {
@@ -51,7 +51,7 @@ object JWTClaims {
       scope = List.empty,
       ndla_id = None,
       user_name = None,
-      jti = None
+      jti = None,
     )
 
   }
@@ -60,7 +60,9 @@ object JWTClaims {
     val content        = CirceUtil.unsafeParseAs[ClaimsJSON](claims.content)
     val oldScopes      = content.scope.map(_.split(' ').toList).getOrElse(List.empty)
     val newPermissions = content.permissions.getOrElse(List.empty)
-    val mergedScopes   = (oldScopes ++ newPermissions).distinct
+    val mergedScopes   = (
+      oldScopes ++ newPermissions
+    ).distinct
 
     new JWTClaims(
       claims.issuer,
@@ -72,7 +74,7 @@ object JWTClaims {
       mergedScopes,
       content.`https://ndla.no/ndla_id`,
       content.`https://ndla.no/user_name`,
-      claims.jwtId
+      claims.jwtId,
     )
   }
 }

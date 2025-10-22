@@ -26,7 +26,7 @@ class FrontpageApiClient(using props: BaseProps, ndlaClient: NdlaClient) {
   private def get[A: Decoder](url: String, headers: Map[String, String], params: Seq[(String, String)]): Try[A] = {
     ndlaClient.fetchWithForwardedAuth[A](
       quickRequest.get(uri"$url?$params").headers(headers).readTimeout(timeout),
-      None
+      None,
     )
   }
 

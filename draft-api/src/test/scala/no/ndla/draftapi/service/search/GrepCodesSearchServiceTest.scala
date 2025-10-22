@@ -30,21 +30,13 @@ class GrepCodesSearchServiceTest extends ElasticsearchIntegrationSuite with Test
   override implicit lazy val converterService: ConverterService             = new ConverterService
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
-  val article1: Draft = TestData.sampleDomainArticle.copy(
-    grepCodes = Seq("KE101", "KE115", "TT555")
-  )
+  val article1: Draft = TestData.sampleDomainArticle.copy(grepCodes = Seq("KE101", "KE115", "TT555"))
 
-  val article2: Draft = TestData.sampleDomainArticle.copy(
-    grepCodes = Seq("KE105")
-  )
+  val article2: Draft = TestData.sampleDomainArticle.copy(grepCodes = Seq("KE105"))
 
-  val article3: Draft = TestData.sampleDomainArticle.copy(
-    grepCodes = Seq("KM105")
-  )
+  val article3: Draft = TestData.sampleDomainArticle.copy(grepCodes = Seq("KM105"))
 
-  val article4: Draft = TestData.sampleDomainArticle.copy(
-    grepCodes = Seq()
-  )
+  val article4: Draft = TestData.sampleDomainArticle.copy(grepCodes = Seq())
 
   val articlesToIndex: Seq[Draft] = Seq(article1, article2, article3, article4)
 

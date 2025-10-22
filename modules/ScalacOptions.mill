@@ -9,7 +9,9 @@ trait ScalacOptions extends ScalaModule {
 
   extension (opts: Seq[NDLAScalaOption])
     def filterEnabled(version: String): Seq[String] = opts
-      .filter { o => o.enabled(version) }
+      .filter { o =>
+        o.enabled(version)
+      }
       .map(_.name)
 
   case class NDLAScalaOption(name: String, enabled: EnabledFunc = _ => true)
@@ -20,13 +22,10 @@ trait ScalacOptions extends ScalaModule {
       case _                    => true
   }
 
-  given Conversion[String, NDLAScalaOption] =
-    name => NDLAScalaOption(name, _ => true)
-  given Conversion[(String, EnabledFunc), NDLAScalaOption] =
-    (name, versionCheck) => NDLAScalaOption(name, versionCheck)
+  given Conversion[String, NDLAScalaOption]                = name => NDLAScalaOption(name, _ => true)
+  given Conversion[(String, EnabledFunc), NDLAScalaOption] = (name, versionCheck) => NDLAScalaOption(name, versionCheck)
 
-  given Conversion[(String, Boolean), NDLAScalaOption] =
-    (name, enabled) => NDLAScalaOption(name, _ => enabled)
+  given Conversion[(String, Boolean), NDLAScalaOption] = (name, enabled) => NDLAScalaOption(name, _ => enabled)
 
   def sharedScalacOptions: T[Seq[String]] = Task {
     Seq[NDLAScalaOption](
@@ -48,21 +47,15 @@ trait ScalacOptions extends ScalaModule {
       "-Wunused:params",
       "-Wunused:privates",
       "-Yretain-trees",
-      "-Xmax-inlines:50"
+      "-Xmax-inlines:50",
     ).filterEnabled(scalaVersion())
   }
 
   def scalacOptionsOnlyRun: T[Seq[String]] = Task {
-    Seq[NDLAScalaOption](
-      "-Wvalue-discard",
-      "-Wnonunit-statement"
-    ).filterEnabled(scalaVersion())
+    Seq[NDLAScalaOption]("-Wvalue-discard", "-Wnonunit-statement").filterEnabled(scalaVersion())
   }
 
   def testJavaOptions: T[Seq[String]] = Task {
-    Seq[NDLAScalaOption](
-      "-XX:+EnableDynamicAgentLoading",
-      "-Xshare:off"
-    ).filterEnabled(scalaVersion())
+    Seq[NDLAScalaOption]("-XX:+EnableDynamicAgentLoading", "-Xshare:off").filterEnabled(scalaVersion())
   }
 }

@@ -18,7 +18,7 @@ class DraftConceptIndexService(using
     searchConverterService: SearchConverterService,
     props: Props,
     e4sClient: NdlaE4sClient,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends IndexService {
   override val documentType: String            = props.ConceptSearchDocument
   override val searchIndex: String             = props.DraftConceptSearchIndex

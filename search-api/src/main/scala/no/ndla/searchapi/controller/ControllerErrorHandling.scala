@@ -21,8 +21,7 @@ class ControllerErrorHandling(using errorHelpers: ErrorHelpers, clock: Clock) ex
 
   val TAXONOMY_FAILURE         = "TAXONOMY_FAILURE"
   val INVALID_BODY             = "INVALID_BODY"
-  val INVALID_BODY_DESCRIPTION =
-    "Unable to index the requested document because body was invalid."
+  val INVALID_BODY_DESCRIPTION = "Unable to index the requested document because body was invalid."
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
     case rw: ResultWindowTooLargeException => errorBody(WINDOW_TOO_LARGE, rw.getMessage, 422)
@@ -34,7 +33,9 @@ class ControllerErrorHandling(using errorHelpers: ErrorHelpers, clock: Clock) ex
     case ade: AccessDeniedException   => forbiddenMsg(ade.getMessage)
     case _: DocumentConflictException => indexConflict
     case NdlaSearchException(_, Some(rf), _, _)
-        if rf.error.rootCause
+        if rf
+          .error
+          .rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       invalidSearchContext
   }

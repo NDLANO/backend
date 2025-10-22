@@ -14,8 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Value that appears in the search aggregation")
 case class TermValueDTO(
-    @description("Value that appeared in result") value: String,
-    @description("Number of times the value appeared in result") count: Int
+    @description("Value that appeared in result")
+    value: String,
+    @description("Number of times the value appeared in result")
+    count: Int,
 )
 
 object TermValueDTO {

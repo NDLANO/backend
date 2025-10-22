@@ -57,7 +57,7 @@ case class OEmbedDTO(
     @description(
       "The HTML required to embed a video player. The HTML should have no padding or margins. Consumers may wish to load the HTML in an off-domain iframe to avoid XSS vulnerabilities. Required if type is video/rich."
     )
-    html: Option[String]
+    html: Option[String],
 )
 
 object OEmbedDTO {

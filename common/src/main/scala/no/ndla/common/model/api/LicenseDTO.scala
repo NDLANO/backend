@@ -15,9 +15,12 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Description of license information")
 case class LicenseDTO(
-    @description("The name of the license") license: String,
-    @description("Description of the license") description: Option[String],
-    @description("Url to where the license can be found") url: Option[String]
+    @description("The name of the license")
+    license: String,
+    @description("Description of the license")
+    description: Option[String],
+    @description("Url to where the license can be found")
+    url: Option[String],
 )
 
 object LicenseDTO {

@@ -67,8 +67,9 @@ class UserDataControllerTest extends UnitSuite with TestEnvironment with TapirCo
   }
 
   test("PATCH / should return 200 if user has access roles and data has been updated correctly") {
-    when(writeService.updateUserData(any[UpdatedUserDataDTO], any[TokenUser]))
-      .thenReturn(Success(TestData.emptyApiUserData))
+    when(writeService.updateUserData(any[UpdatedUserDataDTO], any[TokenUser])).thenReturn(
+      Success(TestData.emptyApiUserData)
+    )
 
     val res = simpleHttpClient.send(
       quickRequest

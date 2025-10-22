@@ -22,16 +22,15 @@ class SearchApiClient(using ndlaClient: NdlaClient, props: Props) extends Strict
   private val internEndpoint = s"${props.SearchApiUrl}/intern"
 
   private def reindex(id: String, documentType: String): Try[Unit] = {
-    val req =
-      quickRequest
-        .post(uri"$internEndpoint/reindex/$documentType/$id")
-        .readTimeout(60.seconds)
+    val req = quickRequest.post(uri"$internEndpoint/reindex/$documentType/$id").readTimeout(60.seconds)
     ndlaClient.fetchRaw(req).map(_ => ())
   }
 
   private def reindexAsync(id: String, documentType: String): Unit = {
     val ec     = ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-    val future = Future { reindex(id, documentType) }(using ec)
+    val future = Future {
+      reindex(id, documentType)
+    }(using ec)
 
     future.onComplete { result =>
       result.flatten match {

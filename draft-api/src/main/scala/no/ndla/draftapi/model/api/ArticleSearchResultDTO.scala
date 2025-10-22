@@ -13,10 +13,14 @@ import no.ndla.common.DeriveHelpers
 
 @description("Information about search-results")
 case class ArticleSearchResultDTO(
-    @description("The total number of articles matching this query") totalCount: Long,
-    @description("For which page results are shown from") page: Option[Int],
-    @description("The number of results per page") pageSize: Int,
-    @description("The search results") results: Seq[ArticleSummaryDTO]
+    @description("The total number of articles matching this query")
+    totalCount: Long,
+    @description("For which page results are shown from")
+    page: Option[Int],
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The search results")
+    results: Seq[ArticleSummaryDTO],
 )
 
 object ArticleSearchResultDTO {

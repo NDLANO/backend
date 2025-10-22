@@ -22,7 +22,7 @@ import no.ndla.common.model.domain.learningpath.{
   LearningPathStatus,
   LearningPathVerificationStatus,
   LearningpathCopyright,
-  Description as LPDescription
+  Description as LPDescription,
 }
 import no.ndla.common.model.domain.{EditorNote, Status, VisualElement, *}
 import no.ndla.common.model.taxonomy.{ResourceType, *}
@@ -46,28 +46,26 @@ object TestData {
 
   private val publicDomainCopyright =
     Copyright(License.PublicDomain.toString, None, List(), List(), List(), None, None, false)
-  private val byNcSaCopyright =
-    Copyright(
-      License.CC_BY_NC_SA.toString,
-      Some("Gotham City"),
-      List(Author(ContributorType.Writer, "DC Comics")),
-      List(),
-      List(),
-      None,
-      None,
-      false
-    )
-  private val copyrighted =
-    Copyright(
-      License.Copyrighted.toString,
-      Some("New York"),
-      List(Author(ContributorType.Writer, "Clark Kent")),
-      List(),
-      List(),
-      None,
-      None,
-      false
-    )
+  private val byNcSaCopyright = Copyright(
+    License.CC_BY_NC_SA.toString,
+    Some("Gotham City"),
+    List(Author(ContributorType.Writer, "DC Comics")),
+    List(),
+    List(),
+    None,
+    None,
+    false,
+  )
+  private val copyrighted = Copyright(
+    License.Copyrighted.toString,
+    Some("New York"),
+    List(Author(ContributorType.Writer, "Clark Kent")),
+    List(),
+    List(),
+    None,
+    None,
+    false,
+  )
   val today: NDLADate = NDLADate.now().withNano(0)
 
   val sampleArticleTitle: ArticleApiTitle                 = ArticleApiTitle("tittell", "tittell", "nb")
@@ -89,7 +87,7 @@ object TestData {
         "http://articles/1",
         "by",
         "standard",
-        Seq("nb", "en")
+        Seq("nb", "en"),
       ),
       ArticleApiSearchResult(
         2,
@@ -99,9 +97,9 @@ object TestData {
         "http://articles/2",
         "by",
         "standard",
-        Seq("nb", "en")
-      )
-    )
+        Seq("nb", "en"),
+      ),
+    ),
   )
 
   val sampleImageSearch: ImageApiSearchResults = ImageApiSearchResults(
@@ -117,7 +115,7 @@ object TestData {
         "http://images/1.jpg",
         "http://images/1",
         "by",
-        Seq("en")
+        Seq("en"),
       ),
       ImageApiSearchResult(
         "1",
@@ -126,9 +124,9 @@ object TestData {
         "http://images/1.jpg",
         "http://images/1",
         "by",
-        Seq("en")
-      )
-    )
+        Seq("en"),
+      ),
+    ),
   )
 
   val sampleLearningpath: LearningpathApiSearchResults = LearningpathApiSearchResults(
@@ -149,7 +147,7 @@ object TestData {
         "2016-07-06T09:08:08Z",
         LearningPathApiTags(Seq(), "nb"),
         Seq("nb"),
-        None
+        None,
       ),
       LearningpathApiSearchResult(
         2,
@@ -163,9 +161,9 @@ object TestData {
         "2016-07-06T09:08:08Z",
         LearningPathApiTags(Seq(), "nb"),
         Seq("nb"),
-        None
-      )
-    )
+        None,
+      ),
+    ),
   )
 
   val sampleAudio: AudioApiSearchResults = AudioApiSearchResults(
@@ -175,8 +173,8 @@ object TestData {
     language = "nb",
     results = Seq(
       AudioApiSearchResult(1, AudioApiTitle("en title", "nb"), "http://audio/1", "by", Seq("nb")),
-      AudioApiSearchResult(2, AudioApiTitle("ny tlttle", "nb"), "http://audio/2", "by", Seq("nb"))
-    )
+      AudioApiSearchResult(2, AudioApiTitle("ny tlttle", "nb"), "http://audio/2", "by", Seq("nb")),
+    ),
   )
 
   val (articleId, externalId) = (1L, "751234")
@@ -205,7 +203,7 @@ object TestData {
     None,
     slug = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val sampleDomainArticle: Article = Article(
@@ -232,7 +230,7 @@ object TestData {
     None,
     slug = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -259,7 +257,7 @@ object TestData {
     None,
     slug = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val sampleArticleWithByNcSa: Article =
@@ -282,18 +280,17 @@ object TestData {
     created = today.minusDays(4),
     updated = today.minusDays(3),
     published = today.minusDays(3),
-    grepCodes = Seq("KM123", "KE12")
+    grepCodes = Seq("KM123", "KE12"),
   )
 
   val article2: Article = sampleArticleWithPublicDomain.copy(
     id = Option(2),
     title = List(Title("Pingvinen er ute og går", "nb")),
     content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
-    copyright = publicDomainCopyright
-      .copy(
-        creators = List(Author(ContributorType.Writer, "Pjolter")),
-        processors = List(Author(ContributorType.Editorial, "Svims"))
-      ),
+    copyright = publicDomainCopyright.copy(
+      creators = List(Author(ContributorType.Writer, "Pjolter")),
+      processors = List(Author(ContributorType.Editorial, "Svims")),
+    ),
     tags = List(Tag(List("fugl"), "nb")),
     visualElement = List.empty,
     introduction = List(Introduction("Pingvinen", "nb")),
@@ -301,210 +298,229 @@ object TestData {
     created = today.minusDays(4),
     updated = today.minusDays(2),
     published = today.minusDays(2),
-    grepCodes = Seq("KE34", "KM123")
+    grepCodes = Seq("KE34", "KM123"),
   )
 
-  val article3: Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(3),
-    title = List(Title("Donald Duck kjører bil", "nb")),
-    content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
-    tags = List(Tag(List("and"), "nb")),
-    visualElement = List.empty,
-    introduction = List(Introduction("Donald Duck", "nb")),
-    metaDescription = List.empty,
-    created = today.minusDays(4),
-    updated = today.minusDays(1),
-    published = today.minusDays(1),
-    grepCodes = Seq("TT2", "KM123")
-  )
+  val article3: Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(3),
+      title = List(Title("Donald Duck kjører bil", "nb")),
+      content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
+      tags = List(Tag(List("and"), "nb")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Donald Duck", "nb")),
+      metaDescription = List.empty,
+      created = today.minusDays(4),
+      updated = today.minusDays(1),
+      published = today.minusDays(1),
+      grepCodes = Seq("TT2", "KM123"),
+    )
 
-  val article4: Article = TestData.sampleArticleWithCopyrighted.copy(
-    id = Option(4),
-    title = List(Title("Superman er ute og flyr", "nb")),
-    content =
-      List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
-    tags = List(Tag(List("supermann"), "nb")),
-    visualElement = List.empty,
-    introduction = List(Introduction("Superman", "nb")),
-    metaDescription = List.empty,
-    created = today.minusDays(4),
-    updated = today,
-    published = today
-  )
+  val article4: Article = TestData
+    .sampleArticleWithCopyrighted
+    .copy(
+      id = Option(4),
+      title = List(Title("Superman er ute og flyr", "nb")),
+      content =
+        List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
+      tags = List(Tag(List("supermann"), "nb")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Superman", "nb")),
+      metaDescription = List.empty,
+      created = today.minusDays(4),
+      updated = today,
+      published = today,
+    )
 
-  val article5: Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(5),
-    title = List(Title("Hulken løfter biler", "nb")),
-    content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
-    tags = List(Tag(List("hulk"), "nb")),
-    visualElement = List.empty,
-    introduction = List(Introduction("Hulken", "nb")),
-    metaDescription = List.empty,
-    created = today.minusDays(40),
-    updated = today.minusDays(35),
-    published = today.minusDays(35),
-    grepCodes = Seq("KE12", "TT2")
-  )
+  val article5: Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(5),
+      title = List(Title("Hulken løfter biler", "nb")),
+      content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
+      tags = List(Tag(List("hulk"), "nb")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Hulken", "nb")),
+      metaDescription = List.empty,
+      created = today.minusDays(40),
+      updated = today.minusDays(35),
+      published = today.minusDays(35),
+      grepCodes = Seq("KE12", "TT2"),
+    )
 
-  val article6: Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(6),
-    title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
-    content = List(
-      ArticleContent(
-        "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
-        "nb"
-      )
-    ),
-    tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
-    visualElement = List.empty,
-    introduction = List(Introduction("Loke og Tor", "nb")),
-    metaDescription = List.empty,
-    created = today.minusDays(30),
-    updated = today.minusDays(25),
-    published = today.minusDays(25)
-  )
-
-  val article7: Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(7),
-    title = List(Title("Yggdrasil livets tre", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
-    tags = List(Tag(List("yggdrasil"), "nb")),
-    visualElement = List.empty,
-    introduction = List(Introduction("Yggdrasil", "nb")),
-    metaDescription = List.empty,
-    created = today.minusDays(20),
-    updated = today.minusDays(15),
-    published = today.minusDays(15)
-  )
-
-  val article8: Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(8),
-    title = List(Title("Baldur har mareritt", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
-    tags = List(Tag(List("baldur"), "nb")),
-    visualElement = List.empty,
-    introduction = List(Introduction("Baldur", "nb")),
-    metaDescription = List.empty,
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    published = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
-
-  val article9: Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(9),
-    title = List(Title("En Baldur har mareritt om Ragnarok", "nb")),
-    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
-    tags = List(Tag(List("baldur"), "nb")),
-    visualElement = List.empty,
-    introduction = List(Introduction("Baldur", "nb")),
-    metaDescription = List.empty,
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    published = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
-
-  val article10: Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(10),
-    title = List(Title("This article is in english", "en")),
-    content =
-      List(ArticleContent("<p>artikkeltekst med fire deler</p><p>Something something <em>english</em> What", "en")),
-    tags = List(Tag(List("englando"), "en")),
-    visualElement = List.empty,
-    introduction = List(Introduction("Engulsk", "en")),
-    metaDescription = List.empty,
-    metaImage = List(ArticleMetaImage("442", "alt", "en")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    published = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
-
-  val article11: Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(11),
-    title = List(Title("Katter", "nb"), Title("Cats", "en"), Title("Chhattisgarhi", "hne")),
-    content = List(
-      ArticleContent(
-        s"<p>Søkeord: delt?streng delt!streng delt&streng</p><$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\" /><p>Noe om en katt</p>",
-        "nb"
+  val article6: Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(6),
+      title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
+      content = List(
+        ArticleContent(
+          "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
+          "nb",
+        )
       ),
-      ArticleContent("<p>Something about a cat</p>", "en"),
-      ArticleContent("<p>Something about a Chhattisgarhi cat</p>", "hne")
-    ),
-    tags = List(Tag(List("ikkehund"), "nb"), Tag(List("notdog"), "en")),
-    visualElement = List.empty,
-    introduction = List(Introduction("Katter er store", "nb"), Introduction("Cats are big", "en")),
-    metaDescription = List(common.Description("hurr durr ima sheep", "en")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    published = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
+      tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Loke og Tor", "nb")),
+      metaDescription = List.empty,
+      created = today.minusDays(30),
+      updated = today.minusDays(25),
+      published = today.minusDays(25),
+    )
 
-  val article12: Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(12),
-    title = List(Title("Ekstrastoff", "nb"), Title("extra", "en")),
-    content = List(
-      ArticleContent(
-        s"Helsesøster H5P <p>delt-streng</p><$EmbedTagName data-title=\"Flubber\" data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName><$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName><$EmbedTagName data-videoid=\"77\" data-resource=\"video\"></$EmbedTagName><$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"></$EmbedTagName><$EmbedTagName data-resource=\"video\" data-url=\"http://test\" data-resource_id=\"test-id1\"></$EmbedTagName>",
-        "nb"
+  val article7: Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(7),
+      title = List(Title("Yggdrasil livets tre", "nb")),
+      content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
+      tags = List(Tag(List("yggdrasil"), "nb")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Yggdrasil", "nb")),
+      metaDescription = List.empty,
+      created = today.minusDays(20),
+      updated = today.minusDays(15),
+      published = today.minusDays(15),
+    )
+
+  val article8: Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(8),
+      title = List(Title("Baldur har mareritt", "nb")),
+      content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
+      tags = List(Tag(List("baldur"), "nb")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Baldur", "nb")),
+      metaDescription = List.empty,
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      published = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
+
+  val article9: Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(9),
+      title = List(Title("En Baldur har mareritt om Ragnarok", "nb")),
+      content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
+      tags = List(Tag(List("baldur"), "nb")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Baldur", "nb")),
+      metaDescription = List.empty,
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      published = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
+
+  val article10: Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(10),
+      title = List(Title("This article is in english", "en")),
+      content =
+        List(ArticleContent("<p>artikkeltekst med fire deler</p><p>Something something <em>english</em> What", "en")),
+      tags = List(Tag(List("englando"), "en")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Engulsk", "en")),
+      metaDescription = List.empty,
+      metaImage = List(ArticleMetaImage("442", "alt", "en")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      published = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
+
+  val article11: Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(11),
+      title = List(Title("Katter", "nb"), Title("Cats", "en"), Title("Chhattisgarhi", "hne")),
+      content = List(
+        ArticleContent(
+          s"<p>Søkeord: delt?streng delt!streng delt&streng</p><$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\" /><p>Noe om en katt</p>",
+          "nb",
+        ),
+        ArticleContent("<p>Something about a cat</p>", "en"),
+        ArticleContent("<p>Something about a Chhattisgarhi cat</p>", "hne"),
       ),
-      ArticleContent(
-        s"Header <$EmbedTagName data-resource_id=\"222\" /><$EmbedTagName data-resource=\"concept\"></$EmbedTagName>",
-        "en"
-      )
-    ),
-    tags = List(Tag(List(""), "nb")),
-    visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"333\"></$EmbedTagName>", "nb")),
-    introduction = List(Introduction("Ekstra", "nb")),
-    metaDescription = List(common.Description("", "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    published = today.minusDays(5),
-    articleType = ArticleType.Standard,
-    traits = List(ArticleTrait.H5p)
-  )
+      tags = List(Tag(List("ikkehund"), "nb"), Tag(List("notdog"), "en")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Katter er store", "nb"), Introduction("Cats are big", "en")),
+      metaDescription = List(common.Description("hurr durr ima sheep", "en")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      published = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
 
-  val article13: Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(13),
-    title = List(Title("Hemmelig og utilgjengelig", "nb")),
-    content = List(
-      ArticleContent(
-        "Hemmelig",
-        "nb"
-      )
-    ),
-    tags = List(Tag(List(""), "nb")),
-    visualElement = List(),
-    introduction = List(Introduction("Intro", "nb")),
-    metaDescription = List(common.Description("", "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    published = today.minusDays(5),
-    articleType = ArticleType.Standard,
-    availability = Availability.teacher
-  )
+  val article12: Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(12),
+      title = List(Title("Ekstrastoff", "nb"), Title("extra", "en")),
+      content = List(
+        ArticleContent(
+          s"Helsesøster H5P <p>delt-streng</p><$EmbedTagName data-title=\"Flubber\" data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName><$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName><$EmbedTagName data-videoid=\"77\" data-resource=\"video\"></$EmbedTagName><$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"></$EmbedTagName><$EmbedTagName data-resource=\"video\" data-url=\"http://test\" data-resource_id=\"test-id1\"></$EmbedTagName>",
+          "nb",
+        ),
+        ArticleContent(
+          s"Header <$EmbedTagName data-resource_id=\"222\" /><$EmbedTagName data-resource=\"concept\"></$EmbedTagName>",
+          "en",
+        ),
+      ),
+      tags = List(Tag(List(""), "nb")),
+      visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"333\"></$EmbedTagName>", "nb")),
+      introduction = List(Introduction("Ekstra", "nb")),
+      metaDescription = List(common.Description("", "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      published = today.minusDays(5),
+      articleType = ArticleType.Standard,
+      traits = List(ArticleTrait.H5p),
+    )
 
-  val article14: Article = TestData.sampleArticleWithPublicDomain.copy(
-    id = Option(14),
-    title = List(Title("Forsideartikkel", "nb")),
-    slug = Some("forsideartikkel"),
-    content = List(
-      ArticleContent(
-        s"Forsideartikkel <p>avsnitt</p><$EmbedTagName data-resource=\"concept\" data-content-id=\"123\" data-title=\"Forklaring\" data-type=\"block\"></$EmbedTagName>",
-        "nb"
-      )
-    ),
-    tags = List(Tag(List(""), "nb")),
-    visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"345\"></$EmbedTagName>", "nb")),
-    introduction = List(Introduction("Ekstra", "nb")),
-    metaDescription = List(common.Description("", "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    published = today.minusDays(5),
-    articleType = ArticleType.FrontpageArticle
-  )
+  val article13: Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(13),
+      title = List(Title("Hemmelig og utilgjengelig", "nb")),
+      content = List(ArticleContent("Hemmelig", "nb")),
+      tags = List(Tag(List(""), "nb")),
+      visualElement = List(),
+      introduction = List(Introduction("Intro", "nb")),
+      metaDescription = List(common.Description("", "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      published = today.minusDays(5),
+      articleType = ArticleType.Standard,
+      availability = Availability.teacher,
+    )
+
+  val article14: Article = TestData
+    .sampleArticleWithPublicDomain
+    .copy(
+      id = Option(14),
+      title = List(Title("Forsideartikkel", "nb")),
+      slug = Some("forsideartikkel"),
+      content = List(
+        ArticleContent(
+          s"Forsideartikkel <p>avsnitt</p><$EmbedTagName data-resource=\"concept\" data-content-id=\"123\" data-title=\"Forklaring\" data-type=\"block\"></$EmbedTagName>",
+          "nb",
+        )
+      ),
+      tags = List(Tag(List(""), "nb")),
+      visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"345\"></$EmbedTagName>", "nb")),
+      introduction = List(Introduction("Ekstra", "nb")),
+      metaDescription = List(common.Description("", "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      published = today.minusDays(5),
+      articleType = ArticleType.FrontpageArticle,
+    )
 
   val articlesToIndex: Seq[Article] = List(
     article1,
@@ -520,7 +536,7 @@ object TestData {
     article11,
     article12,
     article13,
-    article14
+    article14,
   )
 
   val emptyDomainArticle: Article = Article(
@@ -547,7 +563,7 @@ object TestData {
     revisionDate = None,
     slug = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val emptyDomainDraft: Draft = Draft(
@@ -583,7 +599,7 @@ object TestData {
     started = false,
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val draftStatus: Status         = Status(DraftStatus.PLANNED, Set.empty)
@@ -600,7 +616,7 @@ object TestData {
     List(),
     None,
     None,
-    false
+    false,
   )
 
   val draftCopyrighted: DraftCopyright = draft.DraftCopyright(
@@ -611,7 +627,7 @@ object TestData {
     List(),
     None,
     None,
-    false
+    false,
   )
 
   val sampleDraftWithPublicDomain: Draft = Draft(
@@ -647,293 +663,312 @@ object TestData {
     started = false,
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
   val sampleDraftWithCopyrighted: Draft = sampleDraftWithPublicDomain.copy(copyright = Some(draftCopyrighted))
 
-  val draft1: Draft = TestData.sampleDraftWithByNcSa.copy(
-    id = Option(1),
-    title = List(Title("Batmen er på vift med en bil", "nb")),
-    introduction = List(Introduction("Batmen", "nb")),
-    metaDescription = List.empty,
-    visualElement = List.empty,
-    content = List(
-      ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
-    ),
-    tags = List(Tag(List("fugl"), "nb")),
-    created = today.minusDays(4),
-    updated = today.minusDays(3),
-    copyright = Some(draftByNcSaCopyright.copy(creators = List(Author(ContributorType.Writer, "Kjekspolitiet")))),
-    grepCodes = Seq("K123", "K456")
-  )
-
-  val draft2: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(2),
-    title = List(Title("Pingvinen er ute og går", "nb")),
-    introduction = List(Introduction("Pingvinen", "nb")),
-    metaDescription = List.empty,
-    visualElement = List.empty,
-    content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
-    tags = List(Tag(List("fugl"), "nb")),
-    created = today.minusDays(4),
-    updated = today.minusDays(2),
-    copyright = Some(
-      draftPublicDomainCopyright
-        .copy(
-          creators = List(Author(ContributorType.Writer, "Pjolter")),
-          processors = List(Author(ContributorType.Editorial, "Svims"))
-        )
-    ),
-    grepCodes = Seq("K456", "K123")
-  )
-
-  val draft3: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(3),
-    title = List(Title("Donald Duck kjører bil", "nb")),
-    introduction = List(Introduction("Donald Duck", "nb")),
-    metaDescription = List.empty,
-    visualElement = List.empty,
-    content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
-    tags = List(Tag(List("and"), "nb")),
-    created = today.minusDays(4),
-    updated = today.minusDays(1),
-    grepCodes = Seq("K123")
-  )
-
-  val draft4: Draft = TestData.sampleDraftWithCopyrighted.copy(
-    id = Option(4),
-    title = List(Title("Superman er ute og flyr", "nb")),
-    introduction = List(Introduction("Superman", "nb")),
-    metaDescription = List.empty,
-    visualElement = List.empty,
-    content =
-      List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
-    tags = List(Tag(List("supermann"), "nb")),
-    created = today.minusDays(4),
-    updated = today
-  )
-
-  val draft5: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(5),
-    title = List(Title("Hulken løfter biler", "nb")),
-    introduction = List(Introduction("Hulken", "nb")),
-    metaDescription = List.empty,
-    visualElement = List.empty,
-    content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
-    tags = List(Tag(List("hulk"), "nb")),
-    created = today.minusDays(40),
-    updated = today.minusDays(35),
-    notes = List(
-      EditorNote(
-        "kakemonster",
-        "ndalId54321",
-        Status(DraftStatus.PLANNED, Set.empty),
-        today.minusDays(30)
-      )
-    ),
-    previousVersionsNotes = List(
-      EditorNote(
-        "kultgammeltnotat",
-        "ndalId12345",
-        Status(DraftStatus.PLANNED, Set.empty),
-        today.minusDays(31)
-      )
-    ),
-    grepCodes = Seq("K456")
-  )
-
-  val draft6: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(6),
-    title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
-    introduction = List(Introduction("Loke og Tor", "nb")),
-    metaDescription = List.empty,
-    visualElement = List.empty,
-    content = List(
-      ArticleContent(
-        "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
-        "nb"
-      )
-    ),
-    tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
-    created = today.minusDays(30),
-    updated = today.minusDays(25)
-  )
-
-  val draft7: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(7),
-    title = List(Title("Yggdrasil livets tre", "nb")),
-    introduction = List(Introduction("Yggdrasil", "nb")),
-    metaDescription = List.empty,
-    visualElement = List.empty,
-    content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
-    tags = List(Tag(List("yggdrasil"), "nb")),
-    created = today.minusDays(20),
-    updated = today.minusDays(15)
-  )
-
-  val draft8: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(8),
-    title = List(Title("Baldur har mareritt", "nb")),
-    introduction = List(Introduction("Baldur", "nb")),
-    metaDescription = List.empty,
-    visualElement = List.empty,
-    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
-    tags = List(Tag(List("baldur"), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
-
-  val draft9: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(9),
-    title = List(Title("Baldur har mareritt om Ragnarok", "nb")),
-    introduction = List(Introduction("Baldur", "nb")),
-    metaDescription = List.empty,
-    visualElement = List.empty,
-    content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
-    tags = List(Tag(List("baldur"), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
-
-  val draft10: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(10),
-    status = Status(DraftStatus.IN_PROGRESS, Set.empty),
-    title = List(Title("This article is in english", "en")),
-    introduction = List(Introduction("Engulsk", "en")),
-    metaDescription = List.empty,
-    visualElement = List.empty,
-    content = List(ArticleContent("<p>Something something <em>english</em> What", "en")),
-    tags = List(Tag(List("englando"), "en")),
-    metaImage = List(ArticleMetaImage("123", "alt", "en")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
-
-  val draft11: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(11),
-    status = Status(DraftStatus.IN_PROGRESS, Set.empty),
-    title = List(Title("Katter", "nb"), Title("Cats", "en")),
-    introduction = List(Introduction("Katter er store", "nb"), Introduction("Cats are big", "en")),
-    content = List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
-    tags = List(Tag(List("katt"), "nb"), Tag(List("cat"), "en")),
-    metaDescription = List(common.Description("hurr dirr ima sheep", "en")),
-    visualElement = List.empty,
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
-
-  val draft12: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(12),
-    status = importedDraftStatus,
-    title = List(Title("Ekstrastoff", "nb")),
-    introduction = List(Introduction("Ekstra", "nb")),
-    metaDescription = List(common.Description("", "nb")),
-    content = List(
-      ArticleContent(
-        s"<section><p>artikkeltekst med fire deler</p><$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\"></$EmbedTagName><$EmbedTagName data-resource=\"image\" data-resource_id=\"test-image.id\"  data-url=\"test-image.url\"></$EmbedTagName><$EmbedTagName data-resource=\"image\" data-resource_id=\"55\"></$EmbedTagName><$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName><$EmbedTagName data-videoid=\"77\" data-resource=\"video\"></$EmbedTagName><$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"></$EmbedTagName><$EmbedTagName data-resource=\"video\"  data-url=\"http://test.test\"></$EmbedTagName>",
-        "nb"
-      )
-    ),
-    visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"333\">", "nb")),
-    tags = List(Tag(List(""), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5)
-  )
-
-  val draft13: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(13),
-    title = List(Title("Luringen", "nb"), Title("English title", "en"), Title("Chhattisgarhi title", "hne")),
-    introduction = List(Introduction("Luringen", "nb")),
-    metaDescription = List(common.Description("", "nb")),
-    content = List(
-      ArticleContent("<section><p>Helsesøster</p><p>Søkeord: delt?streng delt!streng delt&streng</p></section>", "nb"),
-      ArticleContent(
-        s"Header <$EmbedTagName data-resource_id=\"222\" /><$EmbedTagName data-resource=\"concept\"></$EmbedTagName>",
-        "en"
+  val draft1: Draft = TestData
+    .sampleDraftWithByNcSa
+    .copy(
+      id = Option(1),
+      title = List(Title("Batmen er på vift med en bil", "nb")),
+      introduction = List(Introduction("Batmen", "nb")),
+      metaDescription = List.empty,
+      visualElement = List.empty,
+      content = List(
+        ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
       ),
-      ArticleContent(
-        s"Header in Chhattisgarhi <$EmbedTagName data-resource_id=\"222\" /><$EmbedTagName data-resource=\"concept\"></$EmbedTagName>",
-        "hne"
-      )
-    ),
-    visualElement = List.empty,
-    tags = List(Tag(List(""), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    updatedBy = "someotheruser",
-    articleType = ArticleType.TopicArticle
-  )
-
-  val draft14: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(14),
-    title = List(Title("Slettet", "nb")),
-    introduction = List(Introduction("Slettet", "nb")),
-    metaDescription = List(common.Description("", "nb")),
-    content = List(ArticleContent("", "nb")),
-    visualElement = List.empty,
-    tags = List(Tag(List(""), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    status = Status(
-      current = DraftStatus.ARCHIVED,
-      other = Set.empty
+      tags = List(Tag(List("fugl"), "nb")),
+      created = today.minusDays(4),
+      updated = today.minusDays(3),
+      copyright = Some(draftByNcSaCopyright.copy(creators = List(Author(ContributorType.Writer, "Kjekspolitiet")))),
+      grepCodes = Seq("K123", "K456"),
     )
-  )
 
-  val draft15: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(15),
-    title = List(Title("Engler og demoner", "nb")),
-    introduction = List(Introduction("Religion", "nb")),
-    metaDescription = List(common.Description("metareligion", "nb")),
-    content = List(
-      ArticleContent("<section><p>Vanlig i gamle testamentet</p><p>delt-streng</p></section>", "nb"),
-      ArticleContent("<p>Christianity!</p>", "en")
-    ),
-    visualElement = List.empty,
-    tags = List(Tag(List("engel"), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
+  val draft2: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(2),
+      title = List(Title("Pingvinen er ute og går", "nb")),
+      introduction = List(Introduction("Pingvinen", "nb")),
+      metaDescription = List.empty,
+      visualElement = List.empty,
+      content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
+      tags = List(Tag(List("fugl"), "nb")),
+      created = today.minusDays(4),
+      updated = today.minusDays(2),
+      copyright = Some(
+        draftPublicDomainCopyright.copy(
+          creators = List(Author(ContributorType.Writer, "Pjolter")),
+          processors = List(Author(ContributorType.Editorial, "Svims")),
+        )
+      ),
+      grepCodes = Seq("K456", "K123"),
+    )
 
-  val draft16: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(16),
-    title = List(Title("Engler og demoner", "nb")),
-    slug = Some("engler-og-demoner"),
-    introduction = List(Introduction("Religion", "nb")),
-    metaDescription = List(common.Description("metareligion", "nb")),
-    content = List(
-      ArticleContent("<section><p>Vanlig i gamle testamentet</p></section>", "nb")
-    ),
-    visualElement = List.empty,
-    tags = List(Tag(List("engel"), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.FrontpageArticle
-  )
+  val draft3: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(3),
+      title = List(Title("Donald Duck kjører bil", "nb")),
+      introduction = List(Introduction("Donald Duck", "nb")),
+      metaDescription = List.empty,
+      visualElement = List.empty,
+      content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
+      tags = List(Tag(List("and"), "nb")),
+      created = today.minusDays(4),
+      updated = today.minusDays(1),
+      grepCodes = Seq("K123"),
+    )
 
-  val draft17: Draft = TestData.sampleDraftWithPublicDomain.copy(
-    id = Option(17),
-    status = Status(DraftStatus.UNPUBLISHED, Set.empty),
-    title = List(Title("Engler og demoner", "nb")),
-    slug = Some("engler-og-demoner"),
-    introduction = List(Introduction("Religion", "nb")),
-    metaDescription = List(common.Description("metareligion", "nb")),
-    content = List(
-      ArticleContent("<section><p>Vanlig i gamle testamentet</p></section>", "nb")
-    ),
-    visualElement = List.empty,
-    tags = List(Tag(List("engel"), "nb")),
-    created = today.minusDays(10),
-    updated = today.minusDays(5),
-    articleType = ArticleType.TopicArticle
-  )
+  val draft4: Draft = TestData
+    .sampleDraftWithCopyrighted
+    .copy(
+      id = Option(4),
+      title = List(Title("Superman er ute og flyr", "nb")),
+      introduction = List(Introduction("Superman", "nb")),
+      metaDescription = List.empty,
+      visualElement = List.empty,
+      content =
+        List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
+      tags = List(Tag(List("supermann"), "nb")),
+      created = today.minusDays(4),
+      updated = today,
+    )
+
+  val draft5: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(5),
+      title = List(Title("Hulken løfter biler", "nb")),
+      introduction = List(Introduction("Hulken", "nb")),
+      metaDescription = List.empty,
+      visualElement = List.empty,
+      content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
+      tags = List(Tag(List("hulk"), "nb")),
+      created = today.minusDays(40),
+      updated = today.minusDays(35),
+      notes =
+        List(EditorNote("kakemonster", "ndalId54321", Status(DraftStatus.PLANNED, Set.empty), today.minusDays(30))),
+      previousVersionsNotes = List(
+        EditorNote("kultgammeltnotat", "ndalId12345", Status(DraftStatus.PLANNED, Set.empty), today.minusDays(31))
+      ),
+      grepCodes = Seq("K456"),
+    )
+
+  val draft6: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(6),
+      title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
+      introduction = List(Introduction("Loke og Tor", "nb")),
+      metaDescription = List.empty,
+      visualElement = List.empty,
+      content = List(
+        ArticleContent(
+          "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
+          "nb",
+        )
+      ),
+      tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
+      created = today.minusDays(30),
+      updated = today.minusDays(25),
+    )
+
+  val draft7: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(7),
+      title = List(Title("Yggdrasil livets tre", "nb")),
+      introduction = List(Introduction("Yggdrasil", "nb")),
+      metaDescription = List.empty,
+      visualElement = List.empty,
+      content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
+      tags = List(Tag(List("yggdrasil"), "nb")),
+      created = today.minusDays(20),
+      updated = today.minusDays(15),
+    )
+
+  val draft8: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(8),
+      title = List(Title("Baldur har mareritt", "nb")),
+      introduction = List(Introduction("Baldur", "nb")),
+      metaDescription = List.empty,
+      visualElement = List.empty,
+      content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
+      tags = List(Tag(List("baldur"), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
+
+  val draft9: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(9),
+      title = List(Title("Baldur har mareritt om Ragnarok", "nb")),
+      introduction = List(Introduction("Baldur", "nb")),
+      metaDescription = List.empty,
+      visualElement = List.empty,
+      content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
+      tags = List(Tag(List("baldur"), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
+
+  val draft10: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(10),
+      status = Status(DraftStatus.IN_PROGRESS, Set.empty),
+      title = List(Title("This article is in english", "en")),
+      introduction = List(Introduction("Engulsk", "en")),
+      metaDescription = List.empty,
+      visualElement = List.empty,
+      content = List(ArticleContent("<p>Something something <em>english</em> What", "en")),
+      tags = List(Tag(List("englando"), "en")),
+      metaImage = List(ArticleMetaImage("123", "alt", "en")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
+
+  val draft11: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(11),
+      status = Status(DraftStatus.IN_PROGRESS, Set.empty),
+      title = List(Title("Katter", "nb"), Title("Cats", "en")),
+      introduction = List(Introduction("Katter er store", "nb"), Introduction("Cats are big", "en")),
+      content =
+        List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
+      tags = List(Tag(List("katt"), "nb"), Tag(List("cat"), "en")),
+      metaDescription = List(common.Description("hurr dirr ima sheep", "en")),
+      visualElement = List.empty,
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
+
+  val draft12: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(12),
+      status = importedDraftStatus,
+      title = List(Title("Ekstrastoff", "nb")),
+      introduction = List(Introduction("Ekstra", "nb")),
+      metaDescription = List(common.Description("", "nb")),
+      content = List(
+        ArticleContent(
+          s"<section><p>artikkeltekst med fire deler</p><$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\"></$EmbedTagName><$EmbedTagName data-resource=\"image\" data-resource_id=\"test-image.id\"  data-url=\"test-image.url\"></$EmbedTagName><$EmbedTagName data-resource=\"image\" data-resource_id=\"55\"></$EmbedTagName><$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName><$EmbedTagName data-videoid=\"77\" data-resource=\"video\"></$EmbedTagName><$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"></$EmbedTagName><$EmbedTagName data-resource=\"video\"  data-url=\"http://test.test\"></$EmbedTagName>",
+          "nb",
+        )
+      ),
+      visualElement = List(VisualElement(s"<$EmbedTagName data-resource_id=\"333\">", "nb")),
+      tags = List(Tag(List(""), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+    )
+
+  val draft13: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(13),
+      title = List(Title("Luringen", "nb"), Title("English title", "en"), Title("Chhattisgarhi title", "hne")),
+      introduction = List(Introduction("Luringen", "nb")),
+      metaDescription = List(common.Description("", "nb")),
+      content = List(
+        ArticleContent(
+          "<section><p>Helsesøster</p><p>Søkeord: delt?streng delt!streng delt&streng</p></section>",
+          "nb",
+        ),
+        ArticleContent(
+          s"Header <$EmbedTagName data-resource_id=\"222\" /><$EmbedTagName data-resource=\"concept\"></$EmbedTagName>",
+          "en",
+        ),
+        ArticleContent(
+          s"Header in Chhattisgarhi <$EmbedTagName data-resource_id=\"222\" /><$EmbedTagName data-resource=\"concept\"></$EmbedTagName>",
+          "hne",
+        ),
+      ),
+      visualElement = List.empty,
+      tags = List(Tag(List(""), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      updatedBy = "someotheruser",
+      articleType = ArticleType.TopicArticle,
+    )
+
+  val draft14: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(14),
+      title = List(Title("Slettet", "nb")),
+      introduction = List(Introduction("Slettet", "nb")),
+      metaDescription = List(common.Description("", "nb")),
+      content = List(ArticleContent("", "nb")),
+      visualElement = List.empty,
+      tags = List(Tag(List(""), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      status = Status(current = DraftStatus.ARCHIVED, other = Set.empty),
+    )
+
+  val draft15: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(15),
+      title = List(Title("Engler og demoner", "nb")),
+      introduction = List(Introduction("Religion", "nb")),
+      metaDescription = List(common.Description("metareligion", "nb")),
+      content = List(
+        ArticleContent("<section><p>Vanlig i gamle testamentet</p><p>delt-streng</p></section>", "nb"),
+        ArticleContent("<p>Christianity!</p>", "en"),
+      ),
+      visualElement = List.empty,
+      tags = List(Tag(List("engel"), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
+
+  val draft16: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(16),
+      title = List(Title("Engler og demoner", "nb")),
+      slug = Some("engler-og-demoner"),
+      introduction = List(Introduction("Religion", "nb")),
+      metaDescription = List(common.Description("metareligion", "nb")),
+      content = List(ArticleContent("<section><p>Vanlig i gamle testamentet</p></section>", "nb")),
+      visualElement = List.empty,
+      tags = List(Tag(List("engel"), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.FrontpageArticle,
+    )
+
+  val draft17: Draft = TestData
+    .sampleDraftWithPublicDomain
+    .copy(
+      id = Option(17),
+      status = Status(DraftStatus.UNPUBLISHED, Set.empty),
+      title = List(Title("Engler og demoner", "nb")),
+      slug = Some("engler-og-demoner"),
+      introduction = List(Introduction("Religion", "nb")),
+      metaDescription = List(common.Description("metareligion", "nb")),
+      content = List(ArticleContent("<section><p>Vanlig i gamle testamentet</p></section>", "nb")),
+      visualElement = List.empty,
+      tags = List(Tag(List("engel"), "nb")),
+      created = today.minusDays(10),
+      updated = today.minusDays(5),
+      articleType = ArticleType.TopicArticle,
+    )
 
   val draftsToIndex: List[Draft] = List(
     draft1,
@@ -952,7 +987,7 @@ object TestData {
     draft14,
     draft15,
     draft16,
-    draft17
+    draft17,
   )
 
   val paul: Author                        = Author(ContributorType.Writer, "Truly Weird Rand Paul")
@@ -983,7 +1018,7 @@ object TestData {
     comments = Seq.empty,
     priority = Priority.Unspecified,
     revisionMeta = RevisionMeta.default,
-    grepCodes = Seq.empty
+    grepCodes = Seq.empty,
   )
 
   val PenguinId   = 1L
@@ -1001,7 +1036,7 @@ object TestData {
     duration = Some(1),
     lastUpdated = today.minusDays(34),
     tags = List(Tag(List("superhelt", "kanikkefly"), "nb")),
-    grepCodes = Seq("KM123", "KM456")
+    grepCodes = Seq("KM123", "KM456"),
   )
 
   val learningPath2: LearningPath = DefaultLearningPath.copy(
@@ -1011,7 +1046,7 @@ object TestData {
     duration = Some(2),
     lastUpdated = today.minusDays(3),
     tags = List(Tag(Seq("superhelt", "kanfly"), "nb")),
-    grepCodes = Seq("KM123", "KM789")
+    grepCodes = Seq("KM123", "KM789"),
   )
 
   val learningPath3: LearningPath = DefaultLearningPath.copy(
@@ -1021,20 +1056,17 @@ object TestData {
     duration = Some(3),
     lastUpdated = today.minusDays(4),
     tags = List(Tag(Seq("disney", "kanfly"), "nb")),
-    grepCodes = Seq("KM456", "KM789")
+    grepCodes = Seq("KM456", "KM789"),
   )
 
   val learningPath4: LearningPath = DefaultLearningPath.copy(
     id = Some(UnrelatedId),
     title = List(Title("Unrelated", "en"), Title("Urelatert", "nb")),
-    description = List(
-      LPDescription("This is unrelated", "en"),
-      LPDescription("Dette er en urelatert", "nb")
-    ),
+    description = List(LPDescription("This is unrelated", "en"), LPDescription("Dette er en urelatert", "nb")),
     duration = Some(4),
     lastUpdated = today.minusDays(5),
     tags = List(),
-    grepCodes = Seq("KM999", "KM888")
+    grepCodes = Seq("KM999", "KM888"),
   )
 
   val learningPath5: LearningPath = DefaultLearningPath.copy(
@@ -1045,7 +1077,7 @@ object TestData {
     lastUpdated = today.minusDays(6),
     tags = List(),
     copyright = copyright.copy(contributors = List(Author(ContributorType.Writer, "Svims"))),
-    grepCodes = Seq("KM123", "KM456")
+    grepCodes = Seq("KM123", "KM456"),
   )
 
   val learningPath6: LearningPath = DefaultLearningPath.copy(
@@ -1054,7 +1086,7 @@ object TestData {
     description = List(LPDescription("This is kek", "en")),
     duration = Some(5),
     lastUpdated = today.minusDays(7),
-    tags = List()
+    tags = List(),
   )
 
   val learningPath7: LearningPath = DefaultLearningPath.copy(
@@ -1066,18 +1098,11 @@ object TestData {
     tags = List(),
     status = PRIVATE,
     owner = "private",
-    verificationStatus = EXTERNAL
+    verificationStatus = EXTERNAL,
   )
 
-  val learningPathsToIndex: List[LearningPath] = List(
-    learningPath1,
-    learningPath2,
-    learningPath3,
-    learningPath4,
-    learningPath5,
-    learningPath6,
-    learningPath7
-  )
+  val learningPathsToIndex: List[LearningPath] =
+    List(learningPath1, learningPath2, learningPath3, learningPath4, learningPath5, learningPath6, learningPath7)
 
   val core: Relevance = Relevance("urn:relevance:core", "Kjernestoff", List.empty)
   val supp: Relevance = Relevance("urn:relevance:supplementary", "Tilleggsstoff", List.empty)
@@ -1089,7 +1114,7 @@ object TestData {
   val guidance: ResourceType        = ResourceType("urn:resourcetype:guidance", "Veiledning", None, List.empty)
   val subjectMaterial: ResourceType =
     ResourceType("urn:resourcetype:subjectMaterial", "Fagstoff", Some(List(academicArticle, guidance)), List.empty)
-  val nested: ResourceType = ResourceType("urn:resourcetype:nested", "SuperNested ResourceType", None, List.empty)
+  val nested: ResourceType            = ResourceType("urn:resourcetype:nested", "SuperNested ResourceType", None, List.empty)
   val teacherEvaluation: ResourceType =
     ResourceType("urn:resourcetype:teacherEvaluation", "Lærervurdering", None, List.empty)
   val selfEvaluation: ResourceType = ResourceType("urn:resourcetype:selfEvaluation", "Egenvurdering", None, List.empty)
@@ -1099,7 +1124,7 @@ object TestData {
     "urn:resourcetype:reviewResource",
     "Vurderingsressurs",
     Some(List(teacherEvaluation, selfEvaluation, peerEvaluation)),
-    List.empty
+    List.empty,
   )
   val resourceTypes: List[ResourceType] = List(rtLearningpath, subjectMaterial, reviewResource)
 
@@ -1112,30 +1137,32 @@ object TestData {
       relevance: Relevance,
       isPrimary: Boolean,
       isVisible: Boolean,
-      isActive: Boolean
+      isActive: Boolean,
   ): List[TaxonomyContext] = {
-    parent.contexts.map(context => {
-      val path = s"${context.path}/${URI.create(node.id).getSchemeSpecificPart}"
-      TaxonomyContext(
-        publicId = node.id,
-        rootId = root.id,
-        root = SearchableLanguageValues(Seq(LanguageValue("nb", root.name))),
-        path = path,
-        breadcrumbs = SearchableLanguageList.addValue(context.breadcrumbs, parent.name),
-        contextType = contextType,
-        relevanceId = relevance.id,
-        relevance = SearchableLanguageValues(Seq(LanguageValue("nb", relevance.name))),
-        resourceTypes = resourceTypes.map(rt =>
-          TaxonomyResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
-        ),
-        parentIds = context.parentIds :+ parent.id,
-        isPrimary = isPrimary,
-        contextId = Random.alphanumeric.take(12).mkString,
-        isVisible = parent.metadata.map(m => m.visible && isVisible).getOrElse(isVisible),
-        isActive = isActive,
-        url = path
-      )
-    })
+    parent
+      .contexts
+      .map(context => {
+        val path = s"${context.path}/${URI.create(node.id).getSchemeSpecificPart}"
+        TaxonomyContext(
+          publicId = node.id,
+          rootId = root.id,
+          root = SearchableLanguageValues(Seq(LanguageValue("nb", root.name))),
+          path = path,
+          breadcrumbs = SearchableLanguageList.addValue(context.breadcrumbs, parent.name),
+          contextType = contextType,
+          relevanceId = relevance.id,
+          relevance = SearchableLanguageValues(Seq(LanguageValue("nb", relevance.name))),
+          resourceTypes = resourceTypes.map(rt =>
+            TaxonomyResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
+          ),
+          parentIds = context.parentIds :+ parent.id,
+          isPrimary = isPrimary,
+          contextId = Random.alphanumeric.take(12).mkString,
+          isVisible = parent.metadata.map(m => m.visible && isVisible).getOrElse(isVisible),
+          isActive = isActive,
+          url = path,
+        )
+      })
   }
 
   val context_1: TaxonomyContext = TaxonomyContext(
@@ -1153,7 +1180,7 @@ object TestData {
     contextId = "asdf1234",
     isVisible = true,
     isActive = true,
-    url = "/f/matte/asdf1234"
+    url = "/f/matte/asdf1234",
   )
   val subject_1: Node = Node(
     context_1.publicId,
@@ -1166,7 +1193,7 @@ object TestData {
     NodeType.SUBJECT,
     List(context_1.contextId),
     Some(context_1),
-    List(context_1)
+    List(context_1),
   )
   val context_2: TaxonomyContext = TaxonomyContext(
     publicId = "urn:subject:2",
@@ -1183,7 +1210,7 @@ object TestData {
     contextId = "asdf1235",
     isVisible = true,
     isActive = true,
-    url = "/f/historie/asdf1235"
+    url = "/f/historie/asdf1235",
   )
   val subject_2: Node = Node(
     context_2.publicId,
@@ -1196,7 +1223,7 @@ object TestData {
     NodeType.SUBJECT,
     List(context_2.contextId),
     Some(context_2),
-    List(context_2)
+    List(context_2),
   )
   val context_3: TaxonomyContext = TaxonomyContext(
     publicId = "urn:subject:3",
@@ -1213,7 +1240,7 @@ object TestData {
     contextId = "asdf1236",
     isVisible = false,
     isActive = true,
-    url = "/f/religion/asdf1236"
+    url = "/f/religion/asdf1236",
   )
   val subject_3: Node = Node(
     context_3.publicId,
@@ -1226,7 +1253,7 @@ object TestData {
     NodeType.SUBJECT,
     List(context_3.contextId),
     Some(context_3),
-    List(context_3)
+    List(context_3),
   )
   val topic_1: Node = Node(
     "urn:topic:1",
@@ -1239,7 +1266,7 @@ object TestData {
     NodeType.TOPIC,
     List("asdf1237"),
     None,
-    List.empty
+    List.empty,
   )
   topic_1.contexts =
     generateContexts(topic_1, subject_1, subject_1, List.empty, Some("topic-article"), core, true, true, true)
@@ -1254,7 +1281,7 @@ object TestData {
     NodeType.TOPIC,
     List("asdf1238"),
     None,
-    List.empty
+    List.empty,
   )
   topic_2.contexts =
     generateContexts(topic_2, subject_1, topic_1, List.empty, Some("topic-article"), core, true, true, true)
@@ -1269,7 +1296,7 @@ object TestData {
     NodeType.TOPIC,
     List("asdf1239"),
     None,
-    List.empty
+    List.empty,
   )
   topic_3.contexts =
     generateContexts(topic_3, subject_1, subject_1, List.empty, Some("topic-article"), core, true, true, true)
@@ -1284,7 +1311,7 @@ object TestData {
     NodeType.TOPIC,
     List("asdf1240"),
     None,
-    List.empty
+    List.empty,
   )
   topic_4.contexts =
     generateContexts(topic_4, subject_2, subject_2, List.empty, Some("topic-article"), core, true, true, true)
@@ -1299,7 +1326,7 @@ object TestData {
     NodeType.TOPIC,
     List("asdf1241"),
     None,
-    List.empty
+    List.empty,
   )
   topic_5.contexts =
     generateContexts(topic_5, subject_3, subject_3, List.empty, Some("topic-article"), supp, true, true, true)
@@ -1314,7 +1341,7 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1242"),
     None,
-    List.empty
+    List.empty,
   )
   resource_1.contexts = generateContexts(
     resource_1,
@@ -1325,30 +1352,10 @@ object TestData {
     core,
     true,
     true,
-    true
+    true,
   ) ++
-    generateContexts(
-      resource_1,
-      subject_1,
-      topic_1,
-      List(subjectMaterial),
-      Some("standard"),
-      core,
-      true,
-      true,
-      true
-    ) ++
-    generateContexts(
-      resource_1,
-      subject_2,
-      topic_4,
-      List(subjectMaterial),
-      Some("standard"),
-      core,
-      true,
-      true,
-      false
-    )
+    generateContexts(resource_1, subject_1, topic_1, List(subjectMaterial), Some("standard"), core, true, true, true) ++
+    generateContexts(resource_1, subject_2, topic_4, List(subjectMaterial), Some("standard"), core, true, true, false)
   val resource_2: Node = Node(
     "urn:resource:2",
     article2.title.head.title,
@@ -1360,7 +1367,7 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1243"),
     None,
-    List.empty
+    List.empty,
   )
   resource_2.contexts = generateContexts(
     resource_2,
@@ -1371,7 +1378,7 @@ object TestData {
     supp,
     true,
     true,
-    true
+    true,
   )
   val resource_3: Node = Node(
     "urn:resource:3",
@@ -1384,19 +1391,10 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1244"),
     None,
-    List.empty
+    List.empty,
   )
-  resource_3.contexts = generateContexts(
-    resource_3,
-    subject_1,
-    topic_3,
-    List(subjectMaterial),
-    Some("standard"),
-    supp,
-    true,
-    true,
-    true
-  )
+  resource_3.contexts =
+    generateContexts(resource_3, subject_1, topic_3, List(subjectMaterial), Some("standard"), supp, true, true, true)
   val resource_4: Node = Node(
     "urn:resource:4",
     article4.title.head.title,
@@ -1408,19 +1406,10 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1245"),
     None,
-    List.empty
+    List.empty,
   )
-  resource_4.contexts = generateContexts(
-    resource_4,
-    subject_1,
-    topic_2,
-    List(subjectMaterial),
-    Some("standard"),
-    supp,
-    true,
-    true,
-    true
-  )
+  resource_4.contexts =
+    generateContexts(resource_4, subject_1, topic_2, List(subjectMaterial), Some("standard"), supp, true, true, true)
   val resource_5: Node = Node(
     "urn:resource:5",
     article5.title.head.title,
@@ -1432,7 +1421,7 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1246"),
     None,
-    List.empty
+    List.empty,
   )
   resource_5.contexts = generateContexts(
     resource_5,
@@ -1443,7 +1432,7 @@ object TestData {
     core,
     true,
     true,
-    false
+    false,
   ) ++
     generateContexts(
       resource_5,
@@ -1454,7 +1443,7 @@ object TestData {
       core,
       true,
       true,
-      true
+      true,
     )
   val resource_6: Node = Node(
     "urn:resource:6",
@@ -1467,19 +1456,10 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1247"),
     None,
-    List.empty
+    List.empty,
   )
-  resource_6.contexts = generateContexts(
-    resource_6,
-    subject_2,
-    topic_4,
-    List(subjectMaterial),
-    Some("standard"),
-    core,
-    true,
-    true,
-    true
-  )
+  resource_6.contexts =
+    generateContexts(resource_6, subject_2, topic_4, List(subjectMaterial), Some("standard"), core, true, true, true)
   val resource_7: Node = Node(
     "urn:resource:7",
     article7.title.head.title,
@@ -1491,7 +1471,7 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1248"),
     None,
-    List.empty
+    List.empty,
   )
   resource_7.contexts = generateContexts(
     resource_7,
@@ -1502,7 +1482,7 @@ object TestData {
     core,
     true,
     true,
-    false
+    false,
   )
   val resource_8: Node = Node(
     "urn:resource:8",
@@ -1515,19 +1495,10 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1249"),
     None,
-    List.empty
+    List.empty,
   )
-  resource_8.contexts = generateContexts(
-    resource_8,
-    subject_1,
-    topic_1,
-    List(rtLearningpath),
-    Some("learningpath"),
-    supp,
-    true,
-    true,
-    true
-  )
+  resource_8.contexts =
+    generateContexts(resource_8, subject_1, topic_1, List(rtLearningpath), Some("learningpath"), supp, true, true, true)
   val resource_9: Node = Node(
     "urn:resource:9",
     learningPath2.title.head.title,
@@ -1539,19 +1510,10 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1250"),
     None,
-    List.empty
+    List.empty,
   )
-  resource_9.contexts = generateContexts(
-    resource_9,
-    subject_1,
-    topic_1,
-    List(rtLearningpath),
-    Some("learningpath"),
-    core,
-    true,
-    true,
-    true
-  )
+  resource_9.contexts =
+    generateContexts(resource_9, subject_1, topic_1, List(rtLearningpath), Some("learningpath"), core, true, true, true)
   val resource_10: Node = Node(
     "urn:resource:10",
     learningPath3.title.head.title,
@@ -1563,7 +1525,7 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1251"),
     None,
-    List.empty
+    List.empty,
   )
   resource_10.contexts = generateContexts(
     resource_10,
@@ -1574,7 +1536,7 @@ object TestData {
     core,
     true,
     true,
-    true
+    true,
   )
   val resource_11: Node = Node(
     "urn:resource:11",
@@ -1587,7 +1549,7 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1252"),
     None,
-    List.empty
+    List.empty,
   )
   resource_11.contexts = generateContexts(
     resource_11,
@@ -1598,7 +1560,7 @@ object TestData {
     supp,
     true,
     true,
-    true
+    true,
   )
   val resource_12: Node = Node(
     "urn:resource:12",
@@ -1611,7 +1573,7 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1253"),
     None,
-    List.empty
+    List.empty,
   )
   resource_12.contexts = generateContexts(
     resource_12,
@@ -1622,7 +1584,7 @@ object TestData {
     supp,
     true,
     true,
-    true
+    true,
   )
   val resource_13: Node = Node(
     "urn:resource:13",
@@ -1635,7 +1597,7 @@ object TestData {
     NodeType.RESOURCE,
     List("asdf1254", "asdf1255"), // asdf1255 is a deleted context
     None,
-    List.empty
+    List.empty,
   )
   resource_13.contexts = generateContexts(
     resource_13,
@@ -1646,19 +1608,9 @@ object TestData {
     core,
     true,
     true,
-    true
+    true,
   ) ++
-    generateContexts(
-      resource_13,
-      subject_2,
-      topic_4,
-      List(subjectMaterial),
-      Some("standard"),
-      supp,
-      true,
-      true,
-      true
-    )
+    generateContexts(resource_13, subject_2, topic_4, List(subjectMaterial), Some("standard"), supp, true, true, true)
 
   val nodes: List[Node] = List(
     subject_1,
@@ -1681,7 +1633,7 @@ object TestData {
     resource_10,
     resource_11,
     resource_12,
-    resource_13
+    resource_13,
   )
 
   val taxonomyTestBundle: TaxonomyBundle = TaxonomyBundle(nodes = nodes)
@@ -1693,7 +1645,7 @@ object TestData {
     kompetansemaal = List.empty,
     kompetansemaalsett = List.empty,
     tverrfagligeTemaer = List.empty,
-    laereplaner = List.empty
+    laereplaner = List.empty,
   )
 
   val grepBundle: GrepBundle = emptyGrepBundle.copy(
@@ -1703,15 +1655,15 @@ object TestData {
         GrepStatusDTO.Published,
         tittel = GrepTextObj(List(GrepTitle("default", "Utforsking og problemløysing"))),
         beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
-        `tilhoerer-laereplan` = BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP1")
+        `tilhoerer-laereplan` = BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP1"),
       ),
       GrepKjerneelement(
         kode = "KE34",
         GrepStatusDTO.Published,
         tittel = GrepTextObj(List(GrepTitle("default", "Abstraksjon og generalisering"))),
         beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
-        `tilhoerer-laereplan` = BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP2")
-      )
+        `tilhoerer-laereplan` = BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP2"),
+      ),
     ),
     kompetansemaal = List(
       GrepKompetansemaal(
@@ -1721,31 +1673,23 @@ object TestData {
           List(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))
         ),
         `tilhoerer-laereplan` = BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP1"),
-        `tilhoerer-kompetansemaalsett` = BelongsToObj(
-          "KMS1",
-          GrepStatusDTO.Published,
-          "Dette er KMS1"
-        ),
+        `tilhoerer-kompetansemaalsett` = BelongsToObj("KMS1", GrepStatusDTO.Published, "Dette er KMS1"),
         `tilknyttede-tverrfaglige-temaer` = List(),
         `tilknyttede-kjerneelementer` = List(),
-        `gjenbruk-av` = None
+        `gjenbruk-av` = None,
       )
     ),
     tverrfagligeTemaer = List(
-      GrepTverrfagligTema(
-        "TT2",
-        GrepStatusDTO.Published,
-        Seq(GrepTitle("default", "Demokrati og medborgerskap"))
-      )
+      GrepTverrfagligTema("TT2", GrepStatusDTO.Published, Seq(GrepTitle("default", "Demokrati og medborgerskap")))
     ),
     laereplaner = List(
       GrepLaererplan(
         "LP1",
         GrepStatusDTO.Published,
         GrepTextObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)"))),
-        `erstattes-av` = List.empty
+        `erstattes-av` = List.empty,
       )
-    )
+    ),
   )
 
   val searchSettings: SearchSettings = SearchSettings(
@@ -1774,7 +1718,7 @@ object TestData {
     filterInactive = false,
     resultTypes = None,
     nodeTypeFilter = List.empty,
-    tags = List.empty
+    tags = List.empty,
   )
 
   val multiDraftSearchSettings: MultiDraftSearchSettings = MultiDraftSearchSettings(
@@ -1783,7 +1727,7 @@ object TestData {
       Set(DRAFT_API_WRITE),
       Some(
         "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJkcmFmdHM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.5jpF98NxQZlkQQ5-rxVO3oTkNOQRQLDlAexyDnLiZFY"
-      )
+      ),
     ),
     query = None,
     noteQuery = None,
@@ -1820,97 +1764,80 @@ object TestData {
     publishedFilterFrom = None,
     publishedFilterTo = None,
     resultTypes = None,
-    tags = List.empty
+    tags = List.empty,
   )
 
   val searchableResourceTypes: List[TaxonomyResourceType] = List(
     TaxonomyResourceType(
       "urn:resourcetype:subjectMaterial",
       None,
-      SearchableLanguageValues(Seq(LanguageValue("nb", "Fagstoff")))
+      SearchableLanguageValues(Seq(LanguageValue("nb", "Fagstoff"))),
     ),
     TaxonomyResourceType(
       "urn:resourcetype:academicArticle",
       Some("urn:resourcetype:subjectMaterial"),
-      SearchableLanguageValues(Seq(LanguageValue("nb", "Fagartikkel")))
-    )
+      SearchableLanguageValues(Seq(LanguageValue("nb", "Fagartikkel"))),
+    ),
   )
 
-  val singleSearchableTaxonomyContext: SearchableTaxonomyContext =
-    SearchableTaxonomyContext(
+  val singleSearchableTaxonomyContext: SearchableTaxonomyContext = SearchableTaxonomyContext(
+    publicId = "urn:resource:101",
+    contextId = "contextId",
+    rootId = "urn:subject:1",
+    path = "/subject:3/topic:1/topic:151/resource:101",
+    breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq("Matte", "Østen for solen", "Vesten for månen")))),
+    contextType = LearningResourceType.Article.toString,
+    relevanceId = "urn:relevance:core",
+    resourceTypeIds = searchableResourceTypes.map(_.id),
+    parentIds = List("urn:topic:1"),
+    isPrimary = true,
+    isActive = true,
+    isVisible = true,
+    url = "/subject:3/topic:1/topic:151/resource:101",
+    domainObject = TaxonomyContext(
       publicId = "urn:resource:101",
-      contextId = "contextId",
       rootId = "urn:subject:1",
+      root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
       path = "/subject:3/topic:1/topic:151/resource:101",
-      breadcrumbs = SearchableLanguageList(
-        Seq(
-          LanguageValue("nb", Seq("Matte", "Østen for solen", "Vesten for månen"))
-        )
-      ),
-      contextType = LearningResourceType.Article.toString,
+      breadcrumbs =
+        SearchableLanguageList(Seq(LanguageValue("nb", Seq("Matte", "Østen for solen", "Vesten for månen")))),
+      contextType = Some(LearningResourceType.Article.toString),
       relevanceId = "urn:relevance:core",
-      resourceTypeIds = searchableResourceTypes.map(_.id),
+      relevance = SearchableLanguageValues(Seq(LanguageValue("nb", "Kjernestoff"))),
+      resourceTypes = resourceTypes.map(rt =>
+        TaxonomyResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
+      ),
       parentIds = List("urn:topic:1"),
       isPrimary = true,
-      isActive = true,
+      contextId = Random.alphanumeric.take(12).mkString,
       isVisible = true,
+      isActive = true,
       url = "/subject:3/topic:1/topic:151/resource:101",
-      domainObject = TaxonomyContext(
-        publicId = "urn:resource:101",
-        rootId = "urn:subject:1",
-        root = SearchableLanguageValues(Seq(LanguageValue("nb", "Matte"))),
-        path = "/subject:3/topic:1/topic:151/resource:101",
-        breadcrumbs = SearchableLanguageList(
-          Seq(
-            LanguageValue("nb", Seq("Matte", "Østen for solen", "Vesten for månen"))
-          )
-        ),
-        contextType = Some(LearningResourceType.Article.toString),
-        relevanceId = "urn:relevance:core",
-        relevance = SearchableLanguageValues(Seq(LanguageValue("nb", "Kjernestoff"))),
-        resourceTypes = resourceTypes.map(rt =>
-          TaxonomyResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
-        ),
-        parentIds = List("urn:topic:1"),
-        isPrimary = true,
-        contextId = Random.alphanumeric.take(12).mkString,
-        isVisible = true,
-        isActive = true,
-        url = "/subject:3/topic:1/topic:151/resource:101"
-      )
-    )
-
-  val searchableTaxonomyContexts: List[SearchableTaxonomyContext] = List(
-    singleSearchableTaxonomyContext
+    ),
   )
 
-  val searchableTitles: SearchableLanguageValues = SearchableLanguageValues.from(
-    "nb" -> "Christian Tut",
-    "en" -> "Christian Honk"
-  )
+  val searchableTaxonomyContexts: List[SearchableTaxonomyContext] = List(singleSearchableTaxonomyContext)
+
+  val searchableTitles: SearchableLanguageValues =
+    SearchableLanguageValues.from("nb" -> "Christian Tut", "en" -> "Christian Honk")
 
   val searchableContents: SearchableLanguageValues = SearchableLanguageValues.from(
     "nn" -> "Eg kjøyrar rundt i min fine bil",
     "nb" -> "Jeg kjører rundt i tutut",
-    "en" -> "I'm in my mums car wroomwroom"
+    "en" -> "I'm in my mums car wroomwroom",
   )
 
-  val searchableVisualElements: SearchableLanguageValues = SearchableLanguageValues.from(
-    "nn" -> "image",
-    "nb" -> "image"
-  )
+  val searchableVisualElements: SearchableLanguageValues =
+    SearchableLanguageValues.from("nn" -> "image", "nb" -> "image")
 
   val searchableIntroductions: SearchableLanguageValues    = SearchableLanguageValues.from("en" -> "Wroom wroom")
   val searchableMetaDescriptions: SearchableLanguageValues = SearchableLanguageValues.from("nb" -> "Mammas bil")
-  val searchableTags: SearchableLanguageList       = SearchableLanguageList.from("en" -> Seq("Mum", "Car", "Wroom"))
-  val searchableEmbedAttrs: SearchableLanguageList = SearchableLanguageList.from(
-    "nb" -> Seq("En norsk", "To norsk"),
-    "en" -> Seq("One english")
-  )
+  val searchableTags: SearchableLanguageList               = SearchableLanguageList.from("en" -> Seq("Mum", "Car", "Wroom"))
+  val searchableEmbedAttrs: SearchableLanguageList         =
+    SearchableLanguageList.from("nb" -> Seq("En norsk", "To norsk"), "en" -> Seq("One english"))
 
-  val searchableEmbedResourcesAndIds: List[EmbedValues] = List(
-    EmbedValues(resource = Some("test resource 1"), id = List("test id 1"), language = "nb")
-  )
+  val searchableEmbedResourcesAndIds: List[EmbedValues] =
+    List(EmbedValues(resource = Some("test resource 1"), id = List("test id 1"), language = "nb"))
 
   val olddate: NDLADate = today.minusDays(5)
 
@@ -1919,14 +1846,14 @@ object TestData {
       id = UUID.randomUUID(),
       revisionDate = today,
       note = "some note",
-      status = RevisionStatus.NeedsRevision
+      status = RevisionStatus.NeedsRevision,
     ),
     RevisionMeta(
       id = UUID.randomUUID(),
       revisionDate = olddate,
       note = "some other note",
-      status = RevisionStatus.NeedsRevision
-    )
+      status = RevisionStatus.NeedsRevision,
+    ),
   )
   val searchableDraft: SearchableDraft = SearchableDraft(
     id = 100,
@@ -1956,20 +1883,19 @@ object TestData {
     revisionMeta = searchableRevisionMeta,
     nextRevision = searchableRevisionMeta.lastOption,
     responsible = Some(Responsible("some responsible", TestData.today)),
-    domainObject = TestData.draft1.copy(
-      status = Status(DraftStatus.IN_PROGRESS, Set(DraftStatus.PUBLISHED)),
-      notes = Seq(
-        EditorNote(
-          note = "Hei",
-          user = "user",
-          timestamp = TestData.today,
-          status = Status(
-            current = DraftStatus.IN_PROGRESS,
-            other = Set(DraftStatus.PUBLISHED)
+    domainObject = TestData
+      .draft1
+      .copy(
+        status = Status(DraftStatus.IN_PROGRESS, Set(DraftStatus.PUBLISHED)),
+        notes = Seq(
+          EditorNote(
+            note = "Hei",
+            user = "user",
+            timestamp = TestData.today,
+            status = Status(current = DraftStatus.IN_PROGRESS, other = Set(DraftStatus.PUBLISHED)),
           )
-        )
-      )
-    ),
+        ),
+      ),
     priority = Priority.Unspecified,
     defaultParentTopicName = searchableTitles.defaultValue,
     parentTopicName = searchableTitles,
@@ -1980,7 +1906,7 @@ object TestData {
     published = TestData.today,
     favorited = 0,
     learningResourceType = LearningResourceType.Article,
-    typeName = List()
+    typeName = List(),
   )
 
   val sampleNbDomainConcept: Concept = Concept(
@@ -1993,15 +1919,17 @@ object TestData {
     updated = today,
     updatedBy = Seq("noen"),
     tags = Seq(common.Tag(Seq("stor", "kaktus"), "nb")),
-    status = no.ndla.common.model.domain.concept.Status(
-      ConceptStatus.LANGUAGE,
-      Set(ConceptStatus.PUBLISHED)
-    ),
+    status = no.ndla.common.model.domain.concept.Status(ConceptStatus.LANGUAGE, Set(ConceptStatus.PUBLISHED)),
     visualElement = Seq(
-      no.ndla.common.model.domain.concept.VisualElement(
-        s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full"></$EmbedTagName>""",
-        "nb"
-      )
+      no.ndla
+        .common
+        .model
+        .domain
+        .concept
+        .VisualElement(
+          s"""<$EmbedTagName data-caption="some capt" data-align="" data-resource_id="1" data-resource="image" data-alt="some alt" data-size="full"></$EmbedTagName>""",
+          "nb",
+        )
     ),
     responsible = Some(Responsible("some-id", today)),
     conceptType = ConceptType.CONCEPT,
@@ -2011,15 +1939,7 @@ object TestData {
         wordClass = WordClass.TIME_WORD,
         originalLanguage = "nb",
         transcriptions = Map("pling" -> "plong"),
-        examples = List(
-          List(
-            GlossExample(
-              example = "hei",
-              language = "nb",
-              transcriptions = Map("nb" -> "lai")
-            )
-          )
-        )
+        examples = List(List(GlossExample(example = "hei", language = "nb", transcriptions = Map("nb" -> "lai")))),
       )
     ),
     editorNotes = Seq(
@@ -2027,9 +1947,9 @@ object TestData {
         note = "hei",
         user = "some-id",
         status = no.ndla.common.model.domain.concept.Status(ConceptStatus.LANGUAGE, Set(ConceptStatus.PUBLISHED)),
-        timestamp = today
+        timestamp = today,
       )
-    )
+    ),
   )
 
 }

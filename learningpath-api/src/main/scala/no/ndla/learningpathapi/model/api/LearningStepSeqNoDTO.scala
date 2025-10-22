@@ -14,7 +14,8 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Information about the sequence number for a step")
 case class LearningStepSeqNoDTO(
-    @description("The sequence number for the learningstep") seqNo: Int
+    @description("The sequence number for the learningstep")
+    seqNo: Int
 )
 
 object LearningStepSeqNoDTO {

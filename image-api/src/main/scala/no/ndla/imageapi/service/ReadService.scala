@@ -27,13 +27,13 @@ class ReadService(using
     converterService: ConverterService,
     imageRepository: ImageRepository,
     tagSearchService: TagSearchService,
-    searchConverterService: SearchConverterService
+    searchConverterService: SearchConverterService,
 ) extends StrictLogging {
 
   def withIdV3(
       imageId: Long,
       language: Option[String],
-      user: Option[TokenUser]
+      user: Option[TokenUser],
   ): Try[Option[ImageMetaInformationV3DTO]] = {
     imageRepository
       .withId(imageId)
@@ -45,24 +45,20 @@ class ReadService(using
       pageSize: Int,
       page: Int,
       language: String,
-      sort: Sort
+      sort: Sort,
   ): Try[api.TagsSearchResultDTO] = {
     val result = tagSearchService.matchingQuery(
       query = input,
       searchLanguage = language,
       page = page,
       pageSize = pageSize,
-      sort = sort
+      sort = sort,
     )
 
     result.map(searchConverterService.tagSearchResultAsApiResult)
   }
 
-  def withId(
-      imageId: Long,
-      language: Option[String],
-      user: Option[TokenUser]
-  ): Try[Option[ImageMetaInformationV2DTO]] =
+  def withId(imageId: Long, language: Option[String], user: Option[TokenUser]): Try[Option[ImageMetaInformationV2DTO]] =
     imageRepository
       .withId(imageId)
       .traverse(image => converterService.asApiImageMetaInformationWithApplicationUrlV2(image, language, user))
@@ -70,43 +66,36 @@ class ReadService(using
   def getImagesByIdsV3(
       ids: List[Long],
       language: Option[String],
-      user: Option[TokenUser]
+      user: Option[TokenUser],
   ): Try[List[ImageMetaInformationV3DTO]] = {
     if (ids.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
-    else
-      imageRepository
-        .withIds(ids)
-        .traverse(image => converterService.asApiImageMetaInformationV3(image, language, user))
+    else imageRepository
+      .withIds(ids)
+      .traverse(image => converterService.asApiImageMetaInformationV3(image, language, user))
   }
 
-  private def handleIdPathParts(pathParts: List[String]): Try[ImageMetaInformation] =
-    Try(pathParts(3).toLong) match {
-      case Failure(_)  => Failure(InvalidUrlException("Could not extract id from id url."))
-      case Success(id) =>
-        imageRepository.withId(id) match {
-          case Some(image) => Success(image)
-          case None => Failure(new ImageNotFoundException(s"Extracted id '$id', but no image with that id was found"))
-        }
-    }
+  private def handleIdPathParts(pathParts: List[String]): Try[ImageMetaInformation] = Try(pathParts(3).toLong) match {
+    case Failure(_)  => Failure(InvalidUrlException("Could not extract id from id url."))
+    case Success(id) => imageRepository.withId(id) match {
+        case Some(image) => Success(image)
+        case None        => Failure(new ImageNotFoundException(s"Extracted id '$id', but no image with that id was found"))
+      }
+  }
 
   private def urlEncodePath(path: String) = UrlPath.parse(path).toString
 
-  private def handleRawPathParts(pathParts: List[String]): Try[ImageMetaInformation] =
-    pathParts.lift(2) match {
-      case Some(path) if path.nonEmpty => getImageMetaFromFilePath(path)
-      case _                           => Failure(InvalidUrlException("Could not extract path from url."))
-    }
+  private def handleRawPathParts(pathParts: List[String]): Try[ImageMetaInformation] = pathParts.lift(2) match {
+    case Some(path) if path.nonEmpty => getImageMetaFromFilePath(path)
+    case _                           => Failure(InvalidUrlException("Could not extract path from url."))
+  }
 
   def getImageFromFilePath(path: String): Try[ImageFileData] = {
     val encodedPath = urlEncodePath(path)
     imageRepository.getImageFromFilePath(encodedPath) match {
       case Some(image) =>
-        image.images
-          .getOrElse(Seq.empty)
-          .find(i => i.fileName.dropWhile(_ == '/') == path.dropWhile(_ == '/')) match {
+        image.images.getOrElse(Seq.empty).find(i => i.fileName.dropWhile(_ == '/') == path.dropWhile(_ == '/')) match {
           case Some(img) => Success(img)
-          case None      =>
-            Failure(
+          case None      => Failure(
               ImageConversionException(
                 s"Image path '$path' was found in database, but not found in metadata. This is a bug."
               )
@@ -150,10 +139,6 @@ class ReadService(using
       imageFileMeta <- findByLanguageOrBestEffort(imageMeta.images.getOrElse(Seq.empty), language)
     } yield imageFileMeta
 
-    imageMeta.traverse(meta =>
-      UrlPath
-        .parseTry(meta.fileName)
-        .map(_.toStringRaw.dropWhile(_ == '/'))
-    )
+    imageMeta.traverse(meta => UrlPath.parseTry(meta.fileName).map(_.toStringRaw.dropWhile(_ == '/')))
   }
 }

@@ -43,7 +43,7 @@ class AudioController(using
     props: Props,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   val maxAudioFileSizeBytes: Int           = props.MaxAudioFileSizeBytes
   override val serviceName: String         = "audio"
@@ -52,10 +52,9 @@ class AudioController(using
   private val queryString = query[Option[NonEmptyString]]("query")
     .description("Return only results with titles or tags matching the specified query.")
     .schema(NonEmptyString.schemaOpt)
-  private val language =
-    query[Option[LanguageCode]]("language")
-      .description("The ISO 639-1 language code describing language.")
-      .default(Some(LanguageCode(Language.AllLanguages)))
+  private val language = query[Option[LanguageCode]]("language")
+    .description("The ISO 639-1 language code describing language.")
+    .default(Some(LanguageCode(Language.AllLanguages)))
   private val license  = query[Option[String]]("license").description("Return only audio with provided license.")
   private val pageNo   = query[Option[Int]]("page").description("The page number of the search hits to display.")
   private val pageSize = query[Option[Int]]("page-size").description(
@@ -64,23 +63,18 @@ class AudioController(using
   private val audioIds = listQuery[Long]("ids").description(
     "Return only audios that have one of the provided ids. To provide multiple ids, separate by comma (,)."
   )
-  private val sort = query[Option[String]]("sort").description(
-    s"""The sorting used on results.
+  private val sort = query[Option[String]]("sort").description(s"""The sorting used on results.
              The following are supported: ${Sort.all.mkString(", ")}.
-             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
-  )
+             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin)
   private val scrollId = query[Option[String]]("search-context").description(
-    s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${props.InitialScrollContextKeywords
-        .mkString("[", ",", "]")}.
+    s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${props.InitialScrollContextKeywords.mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.name}'.
          |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after ${props.ElasticSearchScrollKeepAlive}).
          |If you are not paginating past ${props.ElasticSearchIndexMaxResultWindow} hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
          |""".stripMargin
   )
-  private val audioType = query[Option[String]]("audio-type").description(
-    s"""Only return types of the specified value.
-         |Possible values are ${AudioType.all.mkString("'", ", ", "'")}""".stripMargin
-  )
+  private val audioType = query[Option[String]]("audio-type").description(s"""Only return types of the specified value.
+         |Possible values are ${AudioType.all.mkString("'", ", ", "'")}""".stripMargin)
   private val seriesFilter = query[Option[Boolean]]("filter-by-series").description(
     """Filter result by whether they are a part of a series or not.
         |'true' will return only audios that are a part of a series.
@@ -94,7 +88,8 @@ class AudioController(using
 
   import sttp.tapir.json.circe._
 
-  def getSearch: ServerEndpoint[Any, Eff] = endpoint.get
+  def getSearch: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Find audio files")
     .description("Shows all the audio files in the ndla.no database. You can search it too.")
     .out(EndpointOutput.derived[SummaryWithHeader])
@@ -124,12 +119,13 @@ class AudioController(using
             shouldScroll,
             audioType,
             seriesFilter,
-            fallback.getOrElse(false)
+            fallback.getOrElse(false),
           )
         }
     }
 
-  def postSearch: ServerEndpoint[Any, Eff] = endpoint.post
+  def postSearch: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Find audio files")
     .description("Shows all the audio files in the ndla.no database. You can search it too.")
     .in("search")
@@ -150,12 +146,13 @@ class AudioController(using
           shouldScroll,
           searchParams.audioType,
           searchParams.filterBySeries,
-          searchParams.fallback.getOrElse(false)
+          searchParams.fallback.getOrElse(false),
         )
       }
     }
 
-  def getSingle: ServerEndpoint[Any, Eff] = endpoint.get
+  def getSingle: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch information for audio file")
     .description("Shows info of the audio with submitted id.")
     .in(pathAudioId)
@@ -169,7 +166,8 @@ class AudioController(using
       }
     }
 
-  def getIds: ServerEndpoint[Any, Eff] = endpoint.get
+  def getIds: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("ids")
     .in(audioIds)
     .in(language)
@@ -184,7 +182,8 @@ class AudioController(using
       readService.getAudiosByIds(audioIds.values, language.map(_.code)).map(_.toArray)
     }
 
-  def deleteAudio: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteAudio: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .summary("Deletes audio with the specified id")
     .description("Deletes audio with the specified id")
     .in(pathAudioId)
@@ -195,7 +194,8 @@ class AudioController(using
       writeService.deleteAudioAndFiles(audioId).map(_ => ())
     }
 
-  def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .summary("Delete language version of audio metadata.")
     .description("Delete language version of audio metadata.")
     .in(pathAudioId)
@@ -213,7 +213,8 @@ class AudioController(using
       }
     }
 
-  def postNewAudio: ServerEndpoint[Any, Eff] = endpoint.post
+  def postNewAudio: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Upload a new audio file with meta information")
     .description("Upload a new audio file with meta data")
     .in(multipartBody[MetaDataAndFileForm])
@@ -222,15 +223,12 @@ class AudioController(using
     .requirePermission(AUDIO_API_WRITE)
     .serverLogicPure { user => formData =>
       doWithStream(formData.file) { uploadedFile =>
-        writeService.storeNewAudio(
-          formData.metadata,
-          uploadedFile,
-          user
-        )
+        writeService.storeNewAudio(formData.metadata, uploadedFile, user)
       }
     }
 
-  def putUpdateAudio: ServerEndpoint[Any, Eff] = endpoint.put
+  def putUpdateAudio: ServerEndpoint[Any, Eff] = endpoint
+    .put
     .summary("Upload audio for a different language or update metadata for an existing audio-file")
     .description("Update the metadata for an existing language, or upload metadata for a new language.")
     .in(pathAudioId)
@@ -242,17 +240,16 @@ class AudioController(using
       {
         val (id, formData) = input
         formData.file match {
-          case Some(f) =>
-            doWithStream(f) { stream =>
+          case Some(f) => doWithStream(f) { stream =>
               writeService.updateAudio(id, formData.metadata, Some(stream), user)
             }
-          case None =>
-            writeService.updateAudio(id, formData.metadata, None, user)
+          case None => writeService.updateAudio(id, formData.metadata, None, user)
         }
       }
     }
 
-  def tagSearch: ServerEndpoint[Any, Eff] = endpoint.get
+  def tagSearch: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Retrieves a list of all previously used tags in audios")
     .description("Retrieves a list of all previously used tags in audios")
     .in("tag-search")
@@ -277,17 +274,8 @@ class AudioController(using
       readService.getAllTags(query.underlyingOrElse(""), pageSize, pageNo, language.code)
     }
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    getSearch,
-    postSearch,
-    getIds,
-    tagSearch,
-    getSingle,
-    deleteAudio,
-    deleteLanguage,
-    postNewAudio,
-    putUpdateAudio
-  )
+  override val endpoints: List[ServerEndpoint[Any, Eff]] =
+    List(getSearch, postSearch, getIds, tagSearch, getSingle, deleteAudio, deleteLanguage, postNewAudio, putUpdateAudio)
 
   def doWithStream[T](filePart: Part[File])(f: UploadedFile => Try[T]): Try[T] = {
     val file = UploadedFile.fromFilePart(filePart)
@@ -299,7 +287,7 @@ class AudioController(using
       @jsonbody
       body: AudioSummarySearchResultDTO,
       @header("search-context")
-      searchContext: Option[String]
+      searchContext: Option[String],
   )
 
   /** Does a scroll with [[AudioSearchService]] If no scrollId is specified execute the function @orFunction in the
@@ -312,17 +300,16 @@ class AudioController(using
     */
   private def scrollSearchOr(scrollId: Option[String], language: String)(
       orFunction: => Try[SummaryWithHeader]
-  ): Try[SummaryWithHeader] =
-    scrollId match {
-      case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
-        audioSearchService.scroll(scroll, language) match {
-          case Success(scrollResult) =>
-            val body = searchConverterService.asApiAudioSummarySearchResult(scrollResult)
-            Success(SummaryWithHeader(body = body, searchContext = scrollResult.scrollId))
-          case Failure(ex) => Failure(ex)
-        }
-      case _ => orFunction
-    }
+  ): Try[SummaryWithHeader] = scrollId match {
+    case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
+      audioSearchService.scroll(scroll, language) match {
+        case Success(scrollResult) =>
+          val body = searchConverterService.asApiAudioSummarySearchResult(scrollResult)
+          Success(SummaryWithHeader(body = body, searchContext = scrollResult.scrollId))
+        case Failure(ex) => Failure(ex)
+      }
+    case _ => orFunction
+  }
 
   private def search(
       query: Option[String],
@@ -334,11 +321,10 @@ class AudioController(using
       shouldScroll: Boolean,
       audioType: Option[String],
       seriesFilter: Option[Boolean],
-      fallback: Boolean
+      fallback: Boolean,
   ): Try[SummaryWithHeader] = {
     val searchSettings = query.emptySomeToNone match {
-      case Some(q) =>
-        SearchSettings(
+      case Some(q) => SearchSettings(
           query = Some(q),
           language = language.map(Language.languageOrParam),
           license = license,
@@ -348,11 +334,10 @@ class AudioController(using
           shouldScroll = shouldScroll,
           audioType = audioType.flatMap(AudioType.valueOf),
           seriesFilter = seriesFilter,
-          fallback = fallback
+          fallback = fallback,
         )
 
-      case None =>
-        SearchSettings(
+      case None => SearchSettings(
           query = None,
           language = language.map(Language.languageOrParam),
           license = license,
@@ -362,16 +347,15 @@ class AudioController(using
           shouldScroll = shouldScroll,
           audioType = audioType.flatMap(AudioType.valueOf),
           seriesFilter = seriesFilter,
-          fallback = fallback
+          fallback = fallback,
         )
     }
 
     audioSearchService.matchingQuery(searchSettings) match {
-      case Success(searchResult) =>
-        Success(
+      case Success(searchResult) => Success(
           SummaryWithHeader(
             body = searchConverterService.asApiAudioSummarySearchResult(searchResult),
-            searchContext = searchResult.scrollId
+            searchContext = searchResult.scrollId,
           )
         )
       case Failure(ex) => Failure(ex)

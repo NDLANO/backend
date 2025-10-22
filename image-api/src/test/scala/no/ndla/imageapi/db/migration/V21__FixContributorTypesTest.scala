@@ -14,8 +14,7 @@ import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 class V21__FixContributorTypesTest extends UnitSuite with TestEnvironment {
   test("That copyright has correct contributor types") {
     val migration   = new V21__FixContributorTypes
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "tags": [
         |    {
@@ -77,8 +76,7 @@ class V21__FixContributorTypesTest extends UnitSuite with TestEnvironment {
         |  "modelReleased": "not-applicable"
         |}
         |""".stripMargin
-    val newDocument =
-      """
+    val newDocument = """
         |{
         |  "tags": [
         |    {

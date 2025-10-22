@@ -24,7 +24,7 @@ class TagIndexService(using
     draftRepository: DraftRepository,
     e4sClient: NdlaE4sClient,
     searchLanguage: SearchLanguage,
-    props: Props
+    props: Props,
 ) extends IndexService[Draft, SearchableTag]
     with StrictLogging {
   override val documentType: String          = props.DraftTagSearchDocument
@@ -41,11 +41,6 @@ class TagIndexService(using
   }
 
   def getMapping: MappingDefinition = {
-    properties(
-      List(
-        textField("tag"),
-        keywordField("language")
-      )
-    )
+    properties(List(textField("tag"), keywordField("language")))
   }
 }

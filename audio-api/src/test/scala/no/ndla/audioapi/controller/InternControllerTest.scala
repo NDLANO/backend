@@ -46,7 +46,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     AudioType.Standard,
     Seq.empty,
     None,
-    None
+    None,
   )
 
   val DefaultDomainAudioNoLanguage: AudioMetaInformation = domain.AudioMetaInformation(
@@ -63,7 +63,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     AudioType.Standard,
     Seq.empty,
     None,
-    None
+    None,
   )
 
   test("That DELETE /index removes all indexes") {
@@ -73,9 +73,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(audioIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil*).when(audioIndexService).deleteIndexWithName(Some("index3"))
 
-    val request =
-      quickRequest
-        .delete(uri"http://localhost:$serverPort/intern/index")
+    val request  = quickRequest.delete(uri"http://localhost:$serverPort/intern/index")
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)
     response.body should be("Deleted 3 indexes")
@@ -96,9 +94,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     doReturn(Success(""), Nil*).when(audioIndexService).deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil*).when(audioIndexService).deleteIndexWithName(Some("index3"))
 
-    val request =
-      quickRequest
-        .delete(uri"http://localhost:$serverPort/intern/index")
+    val request  = quickRequest.delete(uri"http://localhost:$serverPort/intern/index")
     val response = simpleHttpClient.send(request)
     response.code.code should be(500)
     response.body should be("Failed to find indexes")
@@ -117,9 +113,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       .deleteIndexWithName(Some("index2"))
     doReturn(Success(""), Nil*).when(audioIndexService).deleteIndexWithName(Some("index3"))
 
-    val request =
-      quickRequest
-        .delete(uri"http://localhost:$serverPort/intern/index")
+    val request  = quickRequest.delete(uri"http://localhost:$serverPort/intern/index")
     val response = simpleHttpClient.send(request)
     response.code.code should be(500)
     response.body should be(

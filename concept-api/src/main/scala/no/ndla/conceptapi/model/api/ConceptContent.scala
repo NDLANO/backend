@@ -14,9 +14,12 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Information about the concept")
 case class ConceptContent(
-    @description("The content of this concept") content: String,
-    @description("The html content of this concept") htmlContent: String,
-    @description("The language of this concept") language: String
+    @description("The content of this concept")
+    content: String,
+    @description("The html content of this concept")
+    htmlContent: String,
+    @description("The language of this concept")
+    language: String,
 )
 
 object ConceptContent {

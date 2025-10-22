@@ -27,7 +27,7 @@ case class SearchableTaxonomyContext(
     isPrimary: Boolean,
     isActive: Boolean,
     isVisible: Boolean,
-    url: String
+    url: String,
 )
 
 object SearchableTaxonomyContext {

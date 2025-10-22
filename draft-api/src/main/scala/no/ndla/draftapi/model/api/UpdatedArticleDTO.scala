@@ -18,7 +18,7 @@ import no.ndla.common.model.api.{
   RelatedContentLinkDTO,
   RevisionMetaDTO,
   UpdateOrDelete,
-  UpdatedCommentDTO
+  UpdatedCommentDTO,
 }
 import sttp.tapir.Schema.annotations.description
 import no.ndla.common.model.domain.Priority
@@ -84,7 +84,7 @@ case class UpdatedArticleDTO(
     @description("The quality evaluation of the article. Consist of a score from 1 to 5 and a comment.")
     qualityEvaluation: Option[QualityEvaluationDTO],
     @description("The disclaimer of the article")
-    disclaimer: Option[String]
+    disclaimer: Option[String],
 )
 
 object UpdatedArticleDTO {

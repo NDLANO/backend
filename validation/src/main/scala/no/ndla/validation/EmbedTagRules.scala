@@ -20,20 +20,16 @@ object EmbedTagRules {
     attrRules.all
   } toSet
 
-  def attributesForResourceType(resourceType: ResourceType): TagRules.TagAttributeRules =
-    attributeRules(resourceType)
+  def attributesForResourceType(resourceType: ResourceType): TagRules.TagAttributeRules = attributeRules(resourceType)
 
   private def embedRulesToJson: Map[ResourceType, TagRules.TagAttributeRules] = {
     val classLoader = getClass.getClassLoader
     val jsonStr     = Source.fromResource("embed-tag-rules.json", classLoader).mkString
     val attrs       = TagRules.convertJsonStrToAttributeRules(jsonStr)
 
-    def strToResourceType(str: String): ResourceType =
-      ResourceType
-        .withNameOption(str)
-        .getOrElse(
-          throw new ConfigurationException(s"Missing declaration of resource type '$str' in ResourceType enum")
-        )
+    def strToResourceType(str: String): ResourceType = ResourceType
+      .withNameOption(str)
+      .getOrElse(throw new ConfigurationException(s"Missing declaration of resource type '$str' in ResourceType enum"))
 
     attrs.map { case (resourceType, attrRules) =>
       strToResourceType(resourceType) -> attrRules

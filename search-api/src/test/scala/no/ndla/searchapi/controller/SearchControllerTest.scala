@@ -56,9 +56,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
       domain.SearchResult(0, Some(1), 10, "nb", Seq.empty, suggestions = Seq.empty, aggregations = Seq.empty)
     when(multiSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(multiResult))
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/search-api/v1/search/")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/search-api/v1/search/"))
       .code
       .code should be(200)
   }
@@ -68,9 +66,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
       domain.SearchResult(0, Some(1), 10, "nb", Seq.empty, suggestions = Seq.empty, aggregations = Seq.empty)
     when(multiSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(multiResult))
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/search-api/v1/search/?resource-types=test")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/search-api/v1/search/?resource-types=test"))
       .code
       .code should be(200)
   }
@@ -83,10 +79,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     val multiResult = domain.SearchResult(0, None, 10, "nb", Seq.empty, Seq.empty, Seq.empty, Some(validScrollId))
 
     when(multiSearchService.matchingQuery(any[SearchSettings])).thenReturn(Success(multiResult))
-    val response = simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/search-api/v1/search/")
-      )
+    val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/search-api/v1/search/"))
     response.code.code should be(200)
     response.headers("search-context").head should be(validScrollId)
     verify(multiSearchService, times(1)).matchingQuery(any[SearchSettings])
@@ -100,12 +93,11 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     val multiResult = domain.SearchResult(0, None, 10, "nb", Seq.empty, Seq.empty, Seq.empty, Some(validScrollId))
 
     when(multiDraftSearchService.matchingQuery(any[MultiDraftSearchSettings])).thenReturn(Success(multiResult))
-    val response = simpleHttpClient
-      .send(
-        quickRequest
-          .post(uri"http://localhost:$serverPort/search-api/v1/search/editorial/")
-          .headers(authHeadersWithWriteRole)
-      )
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/search-api/v1/search/editorial/")
+        .headers(authHeadersWithWriteRole)
+    )
     response.code.code should be(200)
     response.headers("search-context").head should be(validScrollId)
     verify(multiDraftSearchService, times(1)).matchingQuery(any[MultiDraftSearchSettings])
@@ -122,10 +114,9 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     when(multiSearchService.scroll(eqTo(validScrollId), eqTo("nn"))).thenReturn(Success(multiResult))
     val response = simpleHttpClient.send(
-      quickRequest
-        .get(
-          uri"http://localhost:$serverPort/search-api/v1/search/?search-context=$validScrollId&language=nn&fallback=true"
-        )
+      quickRequest.get(
+        uri"http://localhost:$serverPort/search-api/v1/search/?search-context=$validScrollId&language=nn&fallback=true"
+      )
     )
     response.code.code should be(200)
     response.headers("search-context").head should be(newValidScrollId)
@@ -144,9 +135,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(multiDraftSearchService.scroll(eqTo(validScrollId), eqTo("nn"))).thenReturn(Success(multiResult))
     val response = simpleHttpClient.send(
       quickRequest
-        .post(
-          uri"http://localhost:$serverPort/search-api/v1/search/editorial/"
-        )
+        .post(uri"http://localhost:$serverPort/search-api/v1/search/editorial/")
         .body(s"""{"scrollId":"$validScrollId","language":"nn","fallback":true}""")
         .headers(authHeadersWithWriteRole)
     )
@@ -174,23 +163,16 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val response = simpleHttpClient.send(
       quickRequest
-        .post(
-          uri"http://localhost:$serverPort/search-api/v1/search/editorial/"
-        )
+        .post(uri"http://localhost:$serverPort/search-api/v1/search/editorial/")
         .body("""{"scrollId":"initial","language":"nn","fallback":true}""")
         .headers(authHeadersWithWriteRole)
     )
     response.code.code should be(200)
     response.headers("search-context").head should be(newValidScrollId)
 
-    val expectedSettings =
-      TestData.multiDraftSearchSettings.copy(
-        fallback = true,
-        language = "nn",
-        pageSize = 10,
-        shouldScroll = true,
-        sort = Sort.ByRelevanceDesc
-      )
+    val expectedSettings = TestData
+      .multiDraftSearchSettings
+      .copy(fallback = true, language = "nn", pageSize = 10, shouldScroll = true, sort = Sort.ByRelevanceDesc)
 
     verify(multiDraftSearchService, times(0)).scroll(any[String], any[String])
     verify(multiDraftSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
@@ -209,22 +191,21 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val response = simpleHttpClient.send(
       quickRequest
-        .get(
-          uri"http://localhost:$serverPort/search-api/v1/search/?search-context=initial&language=nn&fallback=true"
-        )
+        .get(uri"http://localhost:$serverPort/search-api/v1/search/?search-context=initial&language=nn&fallback=true")
         .headers(authHeadersWithWriteRole)
     )
     response.code.code should be(200)
     response.headers("search-context").head should be(newValidScrollId)
 
-    val expectedSettings =
-      TestData.searchSettings.copy(
+    val expectedSettings = TestData
+      .searchSettings
+      .copy(
         fallback = true,
         language = "nn",
         pageSize = 10,
         shouldScroll = true,
         sort = Sort.ByRelevanceDesc,
-        resultTypes = Some(List.empty)
+        resultTypes = Some(List.empty),
       )
 
     verify(multiDraftSearchService, times(0)).scroll(any[String], any[String])
@@ -239,16 +220,11 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
     when(multiSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
 
-    val baseSettings = TestData.searchSettings.copy(
-      language = "*",
-      pageSize = 10,
-      sort = Sort.ByRelevanceDesc,
-      resultTypes = Some(List.empty)
-    )
+    val baseSettings = TestData
+      .searchSettings
+      .copy(language = "*", pageSize = 10, sort = Sort.ByRelevanceDesc, resultTypes = Some(List.empty))
 
-    val response = simpleHttpClient.send(
-      quickRequest.get(uri"http://localhost:$serverPort/search-api/v1/search/")
-    )
+    val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/search-api/v1/search/"))
 
     val expectedSettings = baseSettings.copy(availability = List())
     response.code.code should be(200)
@@ -263,18 +239,15 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
       eduPersonAffiliation = Seq("employee", "staff"),
       eduPersonPrimaryAffiliation = None,
       eduPersonPrincipalName = "example@email.com",
-      mail = Some(Seq("example@email.com"))
+      mail = Some(Seq("example@email.com")),
     )
     val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacheruser))
     when(multiSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
 
-    val baseSettings = TestData.searchSettings.copy(
-      language = "*",
-      pageSize = 10,
-      sort = Sort.ByRelevanceDesc,
-      resultTypes = Some(List.empty)
-    )
+    val baseSettings = TestData
+      .searchSettings
+      .copy(language = "*", pageSize = 10, sort = Sort.ByRelevanceDesc, resultTypes = Some(List.empty))
     val teacherToken = "abcd"
 
     val response = simpleHttpClient.send(
@@ -282,12 +255,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
         .get(uri"http://localhost:$serverPort/search-api/v1/search/")
         .header("FeideAuthorization", teacherToken)
     )
-    val expectedSettings = baseSettings.copy(
-      availability = List(
-        Availability.everyone,
-        Availability.teacher
-      )
-    )
+    val expectedSettings = baseSettings.copy(availability = List(Availability.everyone, Availability.teacher))
     response.code.code should be(200)
     verify(multiSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
     verify(feideApiClient, times(1)).getFeideExtendedUser(eqTo(Some(teacherToken)))
@@ -300,9 +268,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val response = simpleHttpClient.send(
       quickRequest
-        .post(
-          uri"http://localhost:$serverPort/search-api/v1/search/editorial/"
-        )
+        .post(uri"http://localhost:$serverPort/search-api/v1/search/editorial/")
         .body("""{"revisionDateFrom":"2025-01-02T13:39:05Z","revisionDateTo":"2025-01-02T13:39:05Z"}""")
         .headers(authHeadersWithWriteRole)
     )

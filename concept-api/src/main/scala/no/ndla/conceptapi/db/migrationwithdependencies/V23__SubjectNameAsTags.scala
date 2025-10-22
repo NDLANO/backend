@@ -22,19 +22,17 @@ case class TaxonomySubject(id: String, name: String, translations: List[Taxonomy
 case class LanguageObject(language: String)
 case class TagsObject(tags: List[String], language: String)
 
-class V23__SubjectNameAsTags(
-    properties: ConceptApiProperties,
-    prefetchedSubjects: Option[List[TaxonomySubject]] = None
-) extends DocumentMigration
+class V23__SubjectNameAsTags(properties: ConceptApiProperties, prefetchedSubjects: Option[List[TaxonomySubject]] = None)
+    extends DocumentMigration
     with StrictLogging {
   override val columnName: String = "document"
   override val tableName: String  = "conceptdata"
 
-  def toMap(subject: TaxonomySubject): Map[String, String] =
-    subject.translations
-      .map(t => t.language -> t.name)
-      .toMap
-      .withDefaultValue(subject.name)
+  def toMap(subject: TaxonomySubject): Map[String, String] = subject
+    .translations
+    .map(t => t.language -> t.name)
+    .toMap
+    .withDefaultValue(subject.name)
 
   lazy val subjects: List[TaxonomySubject] = prefetchedSubjects match {
     case Some(value) => value
@@ -45,7 +43,11 @@ class V23__SubjectNameAsTags(
   }
 
   lazy val subjectIdToTranslationsMap: Map[String, Map[String, String]] = {
-    subjects.map { subject => subject.id -> toMap(subject) }.toMap
+    subjects
+      .map { subject =>
+        subject.id -> toMap(subject)
+      }
+      .toMap
   }
 
   private def getLanguagesOfField(fieldName: String, json: Json): List[String] = {
@@ -84,10 +86,12 @@ class V23__SubjectNameAsTags(
           }
         }
 
-        oldDocument.mapObject {
-          case o if !o.contains("tags") => o
-          case o                        => o.remove("tags").add("tags", newTags.asJson)
-        }.noSpaces
+        oldDocument
+          .mapObject {
+            case o if !o.contains("tags") => o
+            case o                        => o.remove("tags").add("tags", newTags.asJson)
+          }
+          .noSpaces
 
       case _ => document
     }

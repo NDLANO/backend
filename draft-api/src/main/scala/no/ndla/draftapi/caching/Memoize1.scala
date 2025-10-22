@@ -15,7 +15,7 @@ private[caching] class Memoize[R](
     maxCacheAgeMs: Long,
     f: () => R,
     autoRefreshCache: Boolean,
-    shouldCacheResult: R => Boolean
+    shouldCacheResult: R => Boolean,
 ) extends (() => Option[R]) {
   case class CacheValue(value: R, lastUpdated: Long) {
     def isExpired: Boolean = lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
@@ -26,8 +26,7 @@ private[caching] class Memoize[R](
   private def renewCache(): Unit = {
     val result = f()
 
-    if (shouldCacheResult(result))
-      cache = Some(CacheValue(result, System.currentTimeMillis()))
+    if (shouldCacheResult(result)) cache = Some(CacheValue(result, System.currentTimeMillis()))
   }
 
   if (autoRefreshCache) {

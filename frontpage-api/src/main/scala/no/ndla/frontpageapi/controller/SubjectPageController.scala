@@ -30,14 +30,14 @@ class SubjectPageController(using
     props: Props,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
 ) extends TapirController {
   override val serviceName: String         = "subjectpage"
   override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 
   private val pathSubjectPageId = path[Long]("subjectpage-id").description("The subjectpage id")
-  private val pathLanguage      = path[LanguageCode]("language")
-    .description("The ISO 639-1 language code describing language.")
+  private val pathLanguage      =
+    path[LanguageCode]("language").description("The ISO 639-1 language code describing language.")
   private val pageNo = query[Int]("page")
     .description("The page number of the search hits to display.")
     .default(1)
@@ -46,10 +46,9 @@ class SubjectPageController(using
     .description("The number of search hits to display for each page.")
     .default(props.DefaultPageSize)
     .validate(Validator.min(0))
-  private val ids = listQuery[Long]("ids")
-    .description(
-      "Return only subject pages that have one of the provided ids. To provide multiple ids, separate by comma (,)."
-    )
+  private val ids = listQuery[Long]("ids").description(
+    "Return only subject pages that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+  )
   private val language = query[LanguageCode]("language")
     .description("The ISO 639-1 language code describing language.")
     .default(LanguageCode(props.DefaultLanguage))
@@ -57,7 +56,8 @@ class SubjectPageController(using
     .description("Fallback to existing language if language is specified.")
     .default(false)
 
-  def getAllSubjectPages: ServerEndpoint[Any, Eff] = endpoint.get
+  def getAllSubjectPages: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch all subjectpages")
     .in(pageNo)
     .in(pageSize)
@@ -69,7 +69,8 @@ class SubjectPageController(using
       readService.subjectPages(page, pageSize, language.code, fallback)
     }
 
-  def getSingleSubjectPage: ServerEndpoint[Any, Eff] = endpoint.get
+  def getSingleSubjectPage: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get data to display on a subject page")
     .in(pathSubjectPageId)
     .in(language)
@@ -80,7 +81,8 @@ class SubjectPageController(using
       readService.subjectPage(id, language.code, fallback)
     }
 
-  def getSubjectPagesByIds: ServerEndpoint[Any, Eff] = endpoint.get
+  def getSubjectPagesByIds: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch subject pages that matches ids parameter")
     .in("ids")
     .in(ids)
@@ -91,12 +93,17 @@ class SubjectPageController(using
     .out(jsonBody[List[SubjectPageDTO]])
     .errorOut(errorOutputsFor(400, 404))
     .serverLogicPure { case (ids, language, fallback, pageSize, page) =>
-      val parsedPageSize = if (pageSize < 1) props.DefaultPageSize else pageSize
-      val parsedPage     = if (page < 1) 1 else page
+      val parsedPageSize =
+        if (pageSize < 1) props.DefaultPageSize
+        else pageSize
+      val parsedPage =
+        if (page < 1) 1
+        else page
       readService.getSubjectPageByIds(ids.values, language.code, fallback, parsedPageSize, parsedPage)
     }
 
-  def createNewSubjectPage: ServerEndpoint[Any, Eff] = endpoint.post
+  def createNewSubjectPage: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Create new subject page")
     .in(jsonBody[NewSubjectPageDTO])
     .out(jsonBody[SubjectPageDTO])
@@ -112,7 +119,8 @@ class SubjectPageController(using
       }
     }
 
-  def updateSubjectPage: ServerEndpoint[Any, Eff] = endpoint.patch
+  def updateSubjectPage: ServerEndpoint[Any, Eff] = endpoint
+    .patch
     .summary("Update subject page")
     .in(jsonBody[UpdatedSubjectPageDTO])
     .in(pathSubjectPageId)
@@ -131,7 +139,8 @@ class SubjectPageController(using
       }
     }
 
-  def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .in(pathSubjectPageId / "language" / pathLanguage)
     .summary("Delete language from subject page")
     .description("Delete language from subject page")
@@ -150,6 +159,6 @@ class SubjectPageController(using
     getSingleSubjectPage,
     createNewSubjectPage,
     updateSubjectPage,
-    deleteLanguage
+    deleteLanguage,
   )
 }

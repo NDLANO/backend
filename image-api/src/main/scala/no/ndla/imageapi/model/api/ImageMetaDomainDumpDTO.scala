@@ -15,10 +15,14 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Information about image meta dump")
 case class ImageMetaDomainDumpDTO(
-    @description("The total number of images in the database") totalCount: Long,
-    @description("For which page results are shown from") page: Int,
-    @description("The number of results per page") pageSize: Int,
-    @description("The search results") results: Seq[ImageMetaInformation]
+    @description("The total number of images in the database")
+    totalCount: Long,
+    @description("For which page results are shown from")
+    page: Int,
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The search results")
+    results: Seq[ImageMetaInformation],
 )
 
 object ImageMetaDomainDumpDTO {

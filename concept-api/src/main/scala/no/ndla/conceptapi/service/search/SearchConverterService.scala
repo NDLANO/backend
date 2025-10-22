@@ -26,19 +26,15 @@ import no.ndla.language.Language.{
   UnknownLanguage,
   findByLanguageOrBestEffort,
   getSupportedLanguages,
-  sortLanguagesByPriority
+  sortLanguagesByPriority,
 }
 import no.ndla.search.AggregationBuilder.toApiMultiTermsAggregation
 import no.ndla.search.SearchConverter.getEmbedValues
 import no.ndla.search.model.domain.EmbedValues
 import org.jsoup.Jsoup
 
-class SearchConverterService(using
-    converterService: ConverterService
-) extends StrictLogging {
-  private def getEmbedResourcesAndIdsToIndex(
-      visualElement: Seq[VisualElement]
-  ): List[EmbedValues] = {
+class SearchConverterService(using converterService: ConverterService) extends StrictLogging {
+  private def getEmbedResourcesAndIdsToIndex(visualElement: Seq[VisualElement]): List[EmbedValues] = {
     val visualElementTuples = visualElement.flatMap(v => getEmbedValues(v.visualElement, v.language))
     visualElementTuples.toList
 
@@ -50,7 +46,7 @@ class SearchConverterService(using
         origin = c.origin,
         creators = c.creators,
         rightsholders = c.rightsholders,
-        processors = c.processors
+        processors = c.processors,
       )
     })
   }
@@ -61,26 +57,16 @@ class SearchConverterService(using
       c.content.map(content => LanguageValue(content.language, Jsoup.parseBodyFragment(content.content).text()))
     )
     val tags          = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags)))
-    val visualElement = SearchableLanguageValues(
-      c.visualElement.map(element => LanguageValue(element.language, element.visualElement))
-    )
+    val visualElement =
+      SearchableLanguageValues(c.visualElement.map(element => LanguageValue(element.language, element.visualElement)))
 
     val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(c.visualElement)
     val copyright            = asSearchableCopyright(c.copyright)
 
     val sortableConceptType = c.conceptType match {
       case ConceptType.CONCEPT =>
-        SearchableLanguageValues.from(
-          "nb" -> "Forklaring",
-          "nn" -> "Forklaring",
-          "en" -> "Concept"
-        )
-      case _ =>
-        SearchableLanguageValues.from(
-          "nb" -> "Glose",
-          "nn" -> "Glose",
-          "en" -> "Gloss"
-        )
+        SearchableLanguageValues.from("nb" -> "Forklaring", "nn" -> "Forklaring", "en" -> "Concept")
+      case _ => SearchableLanguageValues.from("nb" -> "Glose", "nn" -> "Glose", "en" -> "Gloss")
     }
 
     SearchableConcept(
@@ -103,7 +89,7 @@ class SearchConverterService(using
       gloss = c.glossData.map(_.gloss),
       domainObject = c,
       sortableConceptType = sortableConceptType,
-      defaultSortableConceptType = sortableConceptType.defaultValue
+      defaultSortableConceptType = sortableConceptType.defaultValue,
     )
   }
 
@@ -112,8 +98,10 @@ class SearchConverterService(using
     val titles            = searchableConcept.title.languageValues.map(lv => Title(lv.value, lv.language))
     val contents          = searchableConcept.content.languageValues.map(lv => ConceptContent(lv.value, lv.language))
     val tags              = searchableConcept.tags.languageValues.map(lv => Tag(lv.value, lv.language))
-    val visualElements    =
-      searchableConcept.visualElement.languageValues.map(lv => concept.VisualElement(lv.value, lv.language))
+    val visualElements    = searchableConcept
+      .visualElement
+      .languageValues
+      .map(lv => concept.VisualElement(lv.value, lv.language))
 
     val supportedLanguages = getSupportedLanguages(titles, contents)
 
@@ -124,25 +112,27 @@ class SearchConverterService(using
       .map(converterService.toApiConceptContent)
       .getOrElse(api.ConceptContent("", "", UnknownLanguage.toString()))
     val tag           = findByLanguageOrBestEffort(tags, language).map(converterService.toApiTags)
-    val visualElement =
-      findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
-    val license   = converterService.toApiLicense(searchableConcept.license)
-    val copyright = searchableConcept.copyright.map(c => {
-      commonApi.DraftCopyrightDTO(
-        license = Some(license),
-        origin = c.origin,
-        creators = c.creators.map(_.toApi),
-        processors = c.processors.map(_.toApi),
-        rightsholders = c.rightsholders.map(_.toApi),
-        validFrom = None,
-        validTo = None,
-        processed = false
-      )
-    })
+    val visualElement = findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
+    val license       = converterService.toApiLicense(searchableConcept.license)
+    val copyright     = searchableConcept
+      .copyright
+      .map(c => {
+        commonApi.DraftCopyrightDTO(
+          license = Some(license),
+          origin = c.origin,
+          creators = c.creators.map(_.toApi),
+          processors = c.processors.map(_.toApi),
+          rightsholders = c.rightsholders.map(_.toApi),
+          validFrom = None,
+          validTo = None,
+          processed = false,
+        )
+      })
 
     val responsible     = searchableConcept.responsible.map(r => ResponsibleDTO(r.responsibleId, r.lastUpdated))
     val glossData       = converterService.toApiGlossData(searchableConcept.domainObject.glossData)
-    val conceptTypeName = searchableConcept.sortableConceptType
+    val conceptTypeName = searchableConcept
+      .sortableConceptType
       .getLanguageOrDefault(language)
       .getOrElse(searchableConcept.conceptType)
 
@@ -163,7 +153,7 @@ class SearchConverterService(using
       responsible = responsible,
       conceptType = searchableConcept.conceptType,
       glossData = glossData,
-      conceptTypeName = conceptTypeName
+      conceptTypeName = conceptTypeName,
     )
   }
 
@@ -176,12 +166,14 @@ class SearchConverterService(using
     */
   def getLanguageFromHit(result: SearchHit): Option[String] = {
     def keyToLanguage(keys: Iterable[String]): Option[String] = {
-      val keyLanguages = keys.toList.flatMap(key =>
-        key.split('.').toList match {
-          case _ :: language :: _ => Some(language)
-          case _                  => None
-        }
-      )
+      val keyLanguages = keys
+        .toList
+        .flatMap(key =>
+          key.split('.').toList match {
+            case _ :: language :: _ => Some(language)
+            case _                  => None
+          }
+        )
 
       sortLanguagesByPriority(keyLanguages).headOption
     }
@@ -190,27 +182,22 @@ class SearchConverterService(using
     val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
     matchLanguage match {
-      case Some(lang) =>
-        Some(lang)
-      case _ =>
-        keyToLanguage(result.sourceAsMap.keys)
+      case Some(lang) => Some(lang)
+      case _          => keyToLanguage(result.sourceAsMap.keys)
     }
   }
 
-  def asApiConceptSearchResult(searchResult: SearchResult[api.ConceptSummaryDTO]): ConceptSearchResultDTO =
-    api.ConceptSearchResultDTO(
+  def asApiConceptSearchResult(searchResult: SearchResult[api.ConceptSummaryDTO]): ConceptSearchResultDTO = api
+    .ConceptSearchResultDTO(
       searchResult.totalCount,
       searchResult.page,
       searchResult.pageSize,
       searchResult.language,
       searchResult.results,
-      searchResult.aggregations.map(toApiMultiTermsAggregation)
+      searchResult.aggregations.map(toApiMultiTermsAggregation),
     )
 
   def toApiStatus(status: Status): api.StatusDTO = {
-    api.StatusDTO(
-      current = status.current,
-      other = status.other
-    )
+    api.StatusDTO(current = status.current, other = status.other)
   }
 }

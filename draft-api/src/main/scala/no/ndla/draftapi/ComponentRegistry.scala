@@ -86,18 +86,12 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
     new V57__MigrateSavedSearch,
     new V66__SetHideBylineForImagesNotCopyrighted,
     new V76__ComputeSearchTraits,
-    new V78__SetResourceTypeFromTaxonomyAsTag
+    new V78__SetResourceTypeFromTaxonomyAsTag,
   )
 
   implicit lazy val swagger: SwaggerController = new SwaggerController(
-    List[TapirController](
-      draftController,
-      fileController,
-      userDataController,
-      internController,
-      healthController
-    ),
-    SwaggerDocControllerConfig.swaggerInfo
+    List[TapirController](draftController, fileController, userDataController, internController, healthController),
+    SwaggerDocControllerConfig.swaggerInfo,
   )
 
   implicit lazy val services: List[TapirController] = swagger.getServices()

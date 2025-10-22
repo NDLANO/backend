@@ -17,8 +17,8 @@ import sttp.tapir.server.netty.sync.NettySyncServerBinding
 class MainClass(override val props: SearchApiProperties) extends NdlaTapirMain[ComponentRegistry] {
   val componentRegistry = new ComponentRegistry(props)
 
-  private def warmupRequest = (path: String, options: Map[String, String]) =>
-    Warmup.warmupRequest(props.ApplicationPort, path, options)
+  private def warmupRequest =
+    (path: String, options: Map[String, String]) => Warmup.warmupRequest(props.ApplicationPort, path, options)
 
   override def warmup(): Unit = {
     warmupRequest("/search-api/v1/search", Map("query" -> "norge"))

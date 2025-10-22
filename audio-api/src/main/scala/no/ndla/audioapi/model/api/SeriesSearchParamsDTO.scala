@@ -27,5 +27,5 @@ case class SeriesSearchParamsDTO(
     @description("A search context retrieved from the response header of a previous search.")
     scrollId: Option[String],
     @description("Return all matched series whether they exist on selected language or not.")
-    fallback: Option[Boolean]
+    fallback: Option[Boolean],
 )

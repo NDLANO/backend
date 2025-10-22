@@ -43,17 +43,15 @@ case class LearningPath(
     priority: Priority,
     revisionMeta: Seq[RevisionMeta],
     introduction: Seq[Introduction],
-    grepCodes: Seq[String]
+    grepCodes: Seq[String],
 ) extends Content {
 
   def supportedLanguages: Seq[String] = {
     val stepLanguages = learningsteps.getOrElse(Seq.empty).flatMap(_.supportedLanguages)
 
-    (getSupportedLanguages(
-      title,
-      description,
-      tags
-    ) ++ stepLanguages).distinct
+    (
+      getSupportedLanguages(title, description, tags) ++ stepLanguages
+    ).distinct
   }
 
   def isPrivate: Boolean   = Seq(LearningPathStatus.PRIVATE, LearningPathStatus.READY_FOR_SHARING).contains(status)
