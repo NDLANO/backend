@@ -13,9 +13,7 @@ import no.ndla.draftapi.integration.ImageApiClient
 import org.jsoup.nodes.Element
 import scalikejdbc.{SQLSyntax, scalikejdbcSQLInterpolationImplicitDef}
 
-class V66__SetHideBylineForImagesNotCopyrighted(using
-    imageApiClient: => ImageApiClient
-) extends HtmlMigration {
+class V66__SetHideBylineForImagesNotCopyrighted(using imageApiClient: => ImageApiClient) extends HtmlMigration {
   override val tableName: String            = "articledata a"
   override val columnName: String           = "document"
   private lazy val columnNameSQL: SQLSyntax = SQLSyntax.createUnsafely(columnName)
@@ -42,11 +40,10 @@ class V66__SetHideBylineForImagesNotCopyrighted(using
         if (noHideByline) {
           val imageId = embed.attr("data-resource_id")
           val image   = images.find(i => i.id == imageId)
-          embed
-            .attr(
-              "data-hide-byline",
-              s"${image.exists(i => !i.copyright.license.license.equals("COPYRIGHTED"))}"
-            ): Unit
+          embed.attr(
+            "data-hide-byline",
+            s"${image.exists(i => !i.copyright.license.license.equals("COPYRIGHTED"))}",
+          ): Unit
         }
       })
     doc

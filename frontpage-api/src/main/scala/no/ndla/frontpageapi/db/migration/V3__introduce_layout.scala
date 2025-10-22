@@ -35,9 +35,7 @@ class V3__introduce_layout extends BaseJavaMigration {
     }
 
   private def subjectPageData(implicit session: DBSession): List[V2_DBSubjectPage] = {
-    sql"select id, document from subjectpage"
-      .map(rs => V2_DBSubjectPage(rs.long("id"), rs.string("document")))
-      .list()
+    sql"select id, document from subjectpage".map(rs => V2_DBSubjectPage(rs.long("id"), rs.string("document"))).list()
   }
 
   private def convertSubjectpage(subjectPageData: V2_DBSubjectPage): Option[V2_DBSubjectPage] = {
@@ -47,7 +45,9 @@ class V3__introduce_layout extends BaseJavaMigration {
           id = value.id,
           name = value.name,
           filters = value.filters,
-          layout = if (value.displayInTwoColumns) "double" else "single",
+          layout =
+            if (value.displayInTwoColumns) "double"
+            else "single",
           twitter = value.twitter,
           facebook = value.facebook,
           bannerImage = value.bannerImage,
@@ -56,7 +56,7 @@ class V3__introduce_layout extends BaseJavaMigration {
           mostRead = value.mostRead,
           editorsChoices = value.editorsChoices,
           latestContent = value.latestContent,
-          goTo = value.goTo
+          goTo = value.goTo,
         )
         Some(V2_DBSubjectPage(subjectPageData.id, newSubjectPage.asJson.noSpacesDropNull))
       case Failure(_) => None
@@ -68,8 +68,7 @@ class V3__introduce_layout extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(subjectPageData.document)
 
-    sql"update subjectpage set document = $dataObject where id = ${subjectPageData.id}"
-      .update()
+    sql"update subjectpage set document = $dataObject where id = ${subjectPageData.id}".update()
   }
 }
 
@@ -91,7 +90,7 @@ case class V2_SubjectFrontPageData(
     mostRead: List[String],
     editorsChoices: List[String],
     latestContent: Option[List[String]],
-    goTo: List[String]
+    goTo: List[String],
 )
 case class V2_BannerImage(mobileImageId: Long, desktopImageId: Long)
 object V2_BannerImage {
@@ -122,7 +121,7 @@ case class V3_SubjectFrontPageData(
     mostRead: List[String],
     editorsChoices: List[String],
     latestContent: Option[List[String]],
-    goTo: List[String]
+    goTo: List[String],
 )
 object V3_SubjectFrontPageData {
   implicit val encoder: Encoder[V3_SubjectFrontPageData] = deriveEncoder

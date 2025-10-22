@@ -25,7 +25,7 @@ case class SubjectPage(
     editorsChoices: List[String],
     connectedTo: List[String],
     buildsOn: List[String],
-    leadsTo: List[String]
+    leadsTo: List[String],
 ) {
 
   def supportedLanguages: Seq[String] = getSupportedLanguages(about, metaDescription)

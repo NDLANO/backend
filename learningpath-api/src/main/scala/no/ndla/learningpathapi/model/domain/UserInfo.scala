@@ -17,12 +17,11 @@ import scala.util.{Failure, Success}
 import scala.util.Try
 
 object UserInfo {
-  def getWithUserIdOrAdmin(user: CombinedUser): Try[CombinedUser] =
-    user match {
-      case user if user.isAdmin                                    => Success(user)
-      case user if user.tokenUser.flatMap(_.jwt.ndla_id).isDefined => Success(user)
-      case _ => Failure(AccessDeniedException("You do not have access to the requested resource."))
-    }
+  def getWithUserIdOrAdmin(user: CombinedUser): Try[CombinedUser] = user match {
+    case user if user.isAdmin                                    => Success(user)
+    case user if user.tokenUser.flatMap(_.jwt.ndla_id).isDefined => Success(user)
+    case _                                                       => Failure(AccessDeniedException("You do not have access to the requested resource."))
+  }
 
   implicit class LearningpathTokenUser(self: TokenUser) {
     def isAdmin: Boolean                        = self.permissions.contains(LEARNINGPATH_API_ADMIN)

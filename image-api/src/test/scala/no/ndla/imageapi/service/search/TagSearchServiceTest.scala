@@ -36,45 +36,17 @@ class TagSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite 
     override val searchIndex: String = indexName
   }
 
-  val image1: ImageMetaInformation = TestData.elg.copy(
-    tags = Seq(
-      common.Tag(
-        Seq("test", "testing", "testemer"),
-        "nb"
-      )
-    )
-  )
+  val image1: ImageMetaInformation = TestData.elg.copy(tags = Seq(common.Tag(Seq("test", "testing", "testemer"), "nb")))
 
-  val image2: ImageMetaInformation = TestData.elg.copy(
-    tags = Seq(
-      common.Tag(
-        Seq("test"),
-        "en"
-      )
-    )
-  )
+  val image2: ImageMetaInformation = TestData.elg.copy(tags = Seq(common.Tag(Seq("test"), "en")))
 
-  val image3: ImageMetaInformation = TestData.elg.copy(
-    tags = Seq(
-      common.Tag(
-        Seq("hei", "test", "testing"),
-        "nb"
-      ),
-      common.Tag(
-        Seq("test"),
-        "en"
-      )
-    )
-  )
+  val image3: ImageMetaInformation = TestData
+    .elg
+    .copy(tags = Seq(common.Tag(Seq("hei", "test", "testing"), "nb"), common.Tag(Seq("test"), "en")))
 
-  val image4: ImageMetaInformation = TestData.elg.copy(
-    tags = Seq(
-      common.Tag(
-        Seq("kyllingfilet", "filetkylling"),
-        "nb"
-      )
-    )
-  )
+  val image4: ImageMetaInformation = TestData
+    .elg
+    .copy(tags = Seq(common.Tag(Seq("kyllingfilet", "filetkylling"), "nb")))
 
   val imagesToIndex: Seq[ImageMetaInformation] = Seq(image1, image2, image3, image4)
 

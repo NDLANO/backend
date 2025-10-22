@@ -26,10 +26,7 @@ import sttp.client3.quick.*
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 
-class TaxonomyApiClient(using
-    ndlaClient: NdlaClient,
-    props: Props
-) extends StrictLogging {
+class TaxonomyApiClient(using ndlaClient: NdlaClient, props: Props) extends StrictLogging {
   private val TaxonomyApiEndpoint = s"${props.TaxonomyUrl}/v1"
   private val taxonomyTimeout     = 20.seconds
 
@@ -56,19 +53,16 @@ class TaxonomyApiClient(using
       case Some(title) =>
         val updated = nodes.map(updateTitleAndTranslations(_, title, titles, user))
         updated
-          .collect { case Failure(ex) => ex }
+          .collect { case Failure(ex) =>
+            ex
+          }
           .foreach(ex => logger.warn(s"Taxonomy update failed with: ${ex.getMessage}"))
         Traverse[List].sequence(updated.toList)
       case None => Failure(new RuntimeException("This is a bug, no name was found for published article."))
     }
   }
 
-  private def updateTitleAndTranslations(
-      node: Node,
-      defaultTitle: Title,
-      titles: Seq[Title],
-      user: TokenUser
-  ) = {
+  private def updateTitleAndTranslations(node: Node, defaultTitle: Title, titles: Seq[Title], user: TokenUser) = {
     val strippedTitles    = titles.map(title => title.copy(title = Jsoup.parseBodyFragment(title.title).body().text()))
     val nodeResult        = updateNode(node.withName(Jsoup.parseBodyFragment(defaultTitle.title).body().text()), user)
     val translationResult = updateTranslations(node.id, strippedTitles, user)
@@ -89,11 +83,7 @@ class TaxonomyApiClient(using
     }
   }
 
-  private def updateTranslations(
-      id: String,
-      titles: Seq[Title],
-      user: TokenUser
-  ) = {
+  private def updateTranslations(id: String, titles: Seq[Title], user: TokenUser) = {
     val tries = titles.map(t => updateNodeTranslation(id, t.language, t.title, user))
     Traverse[List].sequence(tries.toList)
   }
@@ -108,7 +98,8 @@ class TaxonomyApiClient(using
     get[List[Translation]](s"$TaxonomyApiEndpoint/nodes/$nodeId/translations")
 
   private def deleteTranslation(nodeId: String, translation: Translation, user: TokenUser) = {
-    translation.language
+    translation
+      .language
       .map(language => {
         delete(s"$TaxonomyApiEndpoint/nodes/$nodeId/translations/$language", user)
       })
@@ -132,11 +123,7 @@ class TaxonomyApiClient(using
     get[TaxonomyMetadata](s"$TaxonomyApiEndpoint/nodes/$nodeId/metadata")
   }
 
-  private def updateMetadata(
-      nodeId: String,
-      body: TaxonomyMetadata,
-      user: TokenUser
-  ): Try[TaxonomyMetadata] = {
+  private def updateMetadata(nodeId: String, body: TaxonomyMetadata, user: TokenUser): Try[TaxonomyMetadata] = {
     putRaw[TaxonomyMetadata](s"$TaxonomyApiEndpoint/nodes/$nodeId/metadata", body, user)
   }
 
@@ -146,7 +133,7 @@ class TaxonomyApiClient(using
         .get(uri"$url".withParams(params*))
         .readTimeout(taxonomyTimeout)
         .header(props.TaxonomyVersionHeader, TaxonomyData.get),
-      None
+      None,
     )
   }
 
@@ -158,23 +145,22 @@ class TaxonomyApiClient(using
   def getChildNodes(uri: String): Try[List[Node]] =
     get[List[Node]](s"$TaxonomyApiEndpoint/nodes/$uri/nodes", "recursive" -> "true")
 
-  def getChildResources(uri: String): Try[List[Node]] =
-    get[List[Node]](s"$TaxonomyApiEndpoint/nodes/$uri/resources")
+  def getChildResources(uri: String): Try[List[Node]] = get[List[Node]](s"$TaxonomyApiEndpoint/nodes/$uri/resources")
 
   private[integration] def delete(url: String, user: TokenUser, params: (String, String)*): Try[Unit] =
     ndlaClient.fetchRawWithForwardedAuth(
-      quickRequest
-        .delete(uri"$url".withParams(params*))
-        .readTimeout(taxonomyTimeout),
-      Some(user)
+      quickRequest.delete(uri"$url".withParams(params*)).readTimeout(taxonomyTimeout),
+      Some(user),
     ) match {
       case Failure(ex) => Failure(ex)
       case Success(_)  => Success(())
     }
 
-  private[integration] def putRaw[B <: AnyRef](url: String, data: B, user: TokenUser)(implicit
-      d: Encoder[B]
-  ): Try[B] = {
+  private[integration] def putRaw[B <: AnyRef](
+      url: String,
+      data: B,
+      user: TokenUser,
+  )(implicit d: Encoder[B]): Try[B] = {
     val uri = uri"$url"
     logger.info(s"Doing call to $uri")
     val request = quickRequest

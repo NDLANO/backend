@@ -13,5 +13,5 @@ case class LanguagelessSearchResult[T](
     page: Option[Int],
     pageSize: Int,
     results: Seq[T],
-    scrollId: Option[String]
+    scrollId: Option[String],
 )

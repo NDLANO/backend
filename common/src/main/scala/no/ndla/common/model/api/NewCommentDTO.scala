@@ -16,8 +16,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Information about a comment attached to an article")
 case class NewCommentDTO(
-    @description("Content of the comment") content: String,
-    @description("If the comment is open or closed") isOpen: Option[Boolean]
+    @description("Content of the comment")
+    content: String,
+    @description("If the comment is open or closed")
+    isOpen: Option[Boolean],
 )
 
 object NewCommentDTO {

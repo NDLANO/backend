@@ -29,106 +29,63 @@ class PublishedConceptSearchService(using
     e4sClient: NdlaE4sClient,
     publishedConceptIndexService: PublishedConceptIndexService,
     searchConverterService: SearchConverterService,
-    props: Props
+    props: Props,
 ) extends StrictLogging
     with SearchService[api.ConceptSummaryDTO] {
   override val searchIndex: String = props.PublishedConceptSearchIndex
 
-  override def hitToApiModel(
-      hitString: String,
-      language: String
-  ): api.ConceptSummaryDTO =
-    searchConverterService.hitAsConceptSummary(hitString, language)
+  override def hitToApiModel(hitString: String, language: String): api.ConceptSummaryDTO = searchConverterService
+    .hitAsConceptSummary(hitString, language)
 
-  def all(settings: SearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] =
-    executeSearch(boolQuery(), settings)
+  def all(settings: SearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] = executeSearch(boolQuery(), settings)
 
-  def matchingQuery(
-      query: String,
-      settings: SearchSettings
-  ): Try[SearchResult[api.ConceptSummaryDTO]] = {
+  def matchingQuery(query: String, settings: SearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] = {
     val language =
-      if (settings.fallback) "*" else settings.searchLanguage
+      if (settings.fallback) "*"
+      else settings.searchLanguage
 
-    val fullQuery = if (settings.exactTitleMatch) {
-      boolQuery().must(
-        simpleStringQuery(query)
-          .flags(SimpleQueryStringFlag.NONE)
-          .field(s"title.$language.lower")
-      )
-    } else {
-      boolQuery().must(
-        boolQuery()
-          .should(
+    val fullQuery =
+      if (settings.exactTitleMatch) {
+        boolQuery().must(simpleStringQuery(query).flags(SimpleQueryStringFlag.NONE).field(s"title.$language.lower"))
+      } else {
+        boolQuery().must(
+          boolQuery().should(
             List(
               simpleStringQuery(query).field(s"title.$language", 2),
               simpleStringQuery(query).field(s"content.$language", 1),
               simpleStringQuery(query).field(s"gloss", 1),
-              idsQuery(query)
+              idsQuery(query),
             ) ++
-              buildNestedEmbedField(
-                List(query),
-                None,
-                settings.searchLanguage,
-                settings.fallback
-              ) ++
-              buildNestedEmbedField(
-                List.empty,
-                Some(query),
-                settings.searchLanguage,
-                settings.fallback
-              )
+              buildNestedEmbedField(List(query), None, settings.searchLanguage, settings.fallback) ++
+              buildNestedEmbedField(List.empty, Some(query), settings.searchLanguage, settings.fallback)
           )
-      )
-    }
+        )
+      }
     executeSearch(fullQuery, settings)
   }
 
-  def executeSearch(
-      queryBuilder: BoolQuery,
-      settings: SearchSettings
-  ): Try[SearchResult[api.ConceptSummaryDTO]] = {
+  def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[api.ConceptSummaryDTO]] = {
     val idFilter =
-      if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-    val typeFilter =
-      settings.conceptType.map(ct => termsQuery("conceptType", ct))
-    val tagFilter = languageOrFilter(
-      settings.tagsToFilterBy,
-      "tags",
-      settings.searchLanguage,
-      settings.fallback
-    )
+      if (settings.withIdIn.isEmpty) None
+      else Some(idsQuery(settings.withIdIn))
+    val typeFilter = settings.conceptType.map(ct => termsQuery("conceptType", ct))
+    val tagFilter  = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
 
     val (languageFilter, searchLanguage) = settings.searchLanguage match {
-      case "" | AllLanguages =>
-        (None, "*")
-      case lang =>
-        if (settings.fallback)
-          (None, "*")
-        else
-          (Some(existsQuery(s"title.$lang")), lang)
+      case "" | AllLanguages => (None, "*")
+      case lang              =>
+        if (settings.fallback) (None, "*")
+        else (Some(existsQuery(s"title.$lang")), lang)
     }
 
     val embedResourceAndIdFilter =
-      buildNestedEmbedField(
-        settings.embedResource,
-        settings.embedId,
-        settings.searchLanguage,
-        settings.fallback
-      )
+      buildNestedEmbedField(settings.embedResource, settings.embedId, settings.searchLanguage, settings.fallback)
 
-    val filters = List(
-      idFilter,
-      typeFilter,
-      languageFilter,
-      tagFilter,
-      embedResourceAndIdFilter
-    )
+    val filters = List(idFilter, typeFilter, languageFilter, tagFilter, embedResourceAndIdFilter)
 
     val filteredSearch = queryBuilder.filter(filters.flatten)
 
-    val (startAt, numResults) =
-      getStartAtAndNumResults(settings.page, settings.pageSize)
+    val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
     val requestedResultWindow = settings.pageSize * settings.page
     if (requestedResultWindow > props.ElasticSearchIndexMaxResultWindow) {
       logger.info(
@@ -136,24 +93,22 @@ class PublishedConceptSearchService(using
       )
       Failure(ResultWindowTooLargeException.default)
     } else {
-      val aggregations = buildTermsAggregation(
-        settings.aggregatePaths,
-        List(publishedConceptIndexService.getMapping)
-      )
-      val searchToExecute =
-        search(searchIndex)
-          .size(numResults)
-          .from(startAt)
-          .trackTotalHits(true)
-          .query(filteredSearch)
-          .highlighting(highlight("*"))
-          .aggs(aggregations)
-          .sortBy(getSortDefinition(settings.sort, searchLanguage))
+      val aggregations    = buildTermsAggregation(settings.aggregatePaths, List(publishedConceptIndexService.getMapping))
+      val searchToExecute = search(searchIndex)
+        .size(numResults)
+        .from(startAt)
+        .trackTotalHits(true)
+        .query(filteredSearch)
+        .highlighting(highlight("*"))
+        .aggs(aggregations)
+        .sortBy(getSortDefinition(settings.sort, searchLanguage))
 
       val searchWithScroll =
         if (startAt == 0 && settings.shouldScroll) {
           searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
-        } else { searchToExecute }
+        } else {
+          searchToExecute
+        }
 
       e4sClient.execute(searchWithScroll) match {
         case Success(response) =>
@@ -166,7 +121,7 @@ class PublishedConceptSearchService(using
               language = searchLanguage,
               results = getHits(response.result, settings.searchLanguage),
               aggregations = aggResult,
-              scrollId = response.result.scrollId
+              scrollId = response.result.scrollId,
             )
           )
         case Failure(ex) => errorHandler(ex)
@@ -184,9 +139,7 @@ class PublishedConceptSearchService(using
     f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
     f.foreach {
       case Success(reindexResult) =>
-        logger.info(
-          s"Completed indexing of ${reindexResult.totalIndexed} concepts in ${reindexResult.millisUsed} ms."
-        )
+        logger.info(s"Completed indexing of ${reindexResult.totalIndexed} concepts in ${reindexResult.millisUsed} ms.")
       case Failure(ex) => logger.warn(ex.getMessage, ex)
     }
   }

@@ -14,5 +14,5 @@ case class FilmFrontPageDTO(
     movieThemes: Seq[MovieThemeDTO],
     slideShow: Seq[String],
     article: Option[String],
-    supportedLanguages: Seq[String]
+    supportedLanguages: Seq[String],
 )

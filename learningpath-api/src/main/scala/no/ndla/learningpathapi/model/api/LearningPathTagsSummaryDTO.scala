@@ -13,9 +13,12 @@ import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
 case class LearningPathTagsSummaryDTO(
-    @description("The chosen language. Default is 'nb'") language: String,
-    @description("The supported languages for these tags") supportedLanguages: Seq[String],
-    @description("The searchable tags. Must be plain text") tags: Seq[String]
+    @description("The chosen language. Default is 'nb'")
+    language: String,
+    @description("The supported languages for these tags")
+    supportedLanguages: Seq[String],
+    @description("The searchable tags. Must be plain text")
+    tags: Seq[String],
 )
 
 object LearningPathTagsSummaryDTO {

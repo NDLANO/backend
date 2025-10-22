@@ -79,15 +79,7 @@ trait OpenAPITSPlugin extends ScalaModule {
     val source = readOpenAPIFile()
     val json   = io.circe.parser.parse(source.mkString).toTry.get
 
-    json.hcursor
-      .downField("components")
-      .downField("schemas")
-      .focus
-      .get
-      .hcursor
-      .keys
-      .get
-      .toList
+    json.hcursor.downField("components").downField("schemas").focus.get.hcursor.keys.get.toList
   }
 
 }

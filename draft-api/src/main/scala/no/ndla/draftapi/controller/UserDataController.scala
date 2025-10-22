@@ -23,17 +23,15 @@ class UserDataController(using
     writeService: WriteService,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   override val serviceName: String         = "user-data"
   override val prefix: EndpointInput[Unit] = "draft-api" / "v1" / serviceName
 
-  val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    getUserData,
-    updateUserData
-  )
+  val endpoints: List[ServerEndpoint[Any, Eff]] = List(getUserData, updateUserData)
 
-  def getUserData: ServerEndpoint[Any, Eff] = endpoint.get
+  def getUserData: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Retrieves user's data")
     .description("Retrieves user's data")
     .out(jsonBody[UserDataDTO])
@@ -43,7 +41,8 @@ class UserDataController(using
       readService.getUserData(userInfo.id)
     }
 
-  def updateUserData: ServerEndpoint[Any, Eff] = endpoint.patch
+  def updateUserData: ServerEndpoint[Any, Eff] = endpoint
+    .patch
     .summary("Update data of logged in user")
     .description("Update data of logged in user")
     .in(jsonBody[UpdatedUserDataDTO])

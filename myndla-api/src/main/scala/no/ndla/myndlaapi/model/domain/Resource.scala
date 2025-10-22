@@ -28,18 +28,17 @@ case class ResourceDocument(tags: List[String], resourceId: String) {
       resourceType: ResourceType,
       feideId: String,
       created: NDLADate,
-      connection: Option[FolderResource]
-  ): Resource =
-    Resource(
-      id = id,
-      feideId = feideId,
-      path = path,
-      resourceType = resourceType,
-      tags = tags,
-      created = created,
-      resourceId = resourceId,
-      connection = connection
-    )
+      connection: Option[FolderResource],
+  ): Resource = Resource(
+    id = id,
+    feideId = feideId,
+    path = path,
+    resourceType = resourceType,
+    tags = tags,
+    created = created,
+    resourceId = resourceId,
+    connection = connection,
+  )
 }
 
 object ResourceDocument {
@@ -55,7 +54,7 @@ case class Resource(
     resourceType: ResourceType,
     tags: List[String],
     resourceId: String,
-    connection: Option[FolderResource]
+    connection: Option[FolderResource],
 ) extends FeideContent
     with Rankable
     with CopyableResource {
@@ -89,18 +88,16 @@ object Resource extends SQLSyntaxSupport[Resource] {
   private def fromResultSet(rs: WrappedResultSet, withConnection: Boolean): Try[Resource] =
     fromResultSet(s => s, withConnection)(rs)
 
-  private def fromResultSetSyntaxProvider(
-      colNameWrapper: String => String,
-      sp: SyntaxProvider[FolderResource]
-  )(rs: WrappedResultSet): Try[Resource] = {
+  private def fromResultSetSyntaxProvider(colNameWrapper: String => String, sp: SyntaxProvider[FolderResource])(
+      rs: WrappedResultSet
+  ): Try[Resource] = {
     val connection = FolderResource.fromResultSet(sp)(rs).toOption
     toResource(colNameWrapper, connection)(rs)
   }
 
-  private def fromResultSet(
-      colNameWrapper: String => String,
-      withConnection: Boolean
-  )(rs: WrappedResultSet): Try[Resource] = {
+  private def fromResultSet(colNameWrapper: String => String, withConnection: Boolean)(
+      rs: WrappedResultSet
+  ): Try[Resource] = {
     val connection =
       if (withConnection) FolderResource.fromResultSet(colNameWrapper, rs).toOption
       else None
@@ -112,13 +109,13 @@ object Resource extends SQLSyntaxSupport[Resource] {
   ): Try[Resource] = {
     import no.ndla.myndlaapi.uuidBinder
     for {
-      id <- rs.get[Try[UUID]](colNameWrapper("id"))
+      id             <- rs.get[Try[UUID]](colNameWrapper("id"))
       jsonString      = rs.string(colNameWrapper("document"))
       feideId         = rs.string(colNameWrapper("feide_id"))
       created         = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("created")))
       path            = rs.string(colNameWrapper("path"))
       resourceTypeStr = rs.string(colNameWrapper("resource_type"))
-      resourceType <- ResourceType
+      resourceType   <- ResourceType
         .withNameOption(resourceTypeStr)
         .toTry(NDLASQLException(s"Invalid resource type when reading resource with id '$id' from database"))
       metaData <- CirceUtil.tryParseAs[ResourceDocument](jsonString)

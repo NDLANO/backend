@@ -14,7 +14,7 @@ import no.ndla.conceptapi.controller.{
   ConceptControllerHelpers,
   DraftConceptController,
   InternController,
-  PublishedConceptController
+  PublishedConceptController,
 }
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.*
@@ -30,7 +30,7 @@ import no.ndla.network.tapir.{
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar

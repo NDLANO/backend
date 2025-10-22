@@ -73,10 +73,8 @@ class NonEmptyStringTest extends UnitSuite {
 
     val expectedString = """{"cantbeempty":"spirrevipp","yolo":"heisann"}"""
 
-    val toConvert = SomeObject(
-      cantbeempty = NonEmptyString.fromString("spirrevipp"),
-      yolo = NonEmptyString.fromString("heisann").get
-    )
+    val toConvert =
+      SomeObject(cantbeempty = NonEmptyString.fromString("spirrevipp"), yolo = NonEmptyString.fromString("heisann").get)
 
     val jsonString = toConvert.asJson.noSpaces
     jsonString should be(expectedString)

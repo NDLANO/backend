@@ -24,8 +24,7 @@ class UserDataRepository extends StrictLogging {
       dataObject.setType("jsonb")
       dataObject.setValue(CirceUtil.toJsonString(userData))
 
-      val userDataId: Long =
-        sql"""
+      val userDataId: Long = sql"""
         insert into ${UserData.table} (user_id, document) values (${userData.userId}, $dataObject)
         """.updateAndReturnGeneratedKey()
 
@@ -56,19 +55,15 @@ class UserDataRepository extends StrictLogging {
       .getOrElse(0)
   }
 
-  def withId(id: Long): Option[UserData] =
-    userDataWhere(sqls"ud.id=${id.toInt}")
+  def withId(id: Long): Option[UserData] = userDataWhere(sqls"ud.id=${id.toInt}")
 
-  def withUserId(userId: String): Option[UserData] =
-    userDataWhere(sqls"ud.user_id=$userId")
+  def withUserId(userId: String): Option[UserData] = userDataWhere(sqls"ud.user_id=$userId")
 
   private def userDataWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = ReadOnlyAutoSession): Option[UserData] = {
     val ud = UserData.syntax("ud")
-    sql"select ${ud.result.*} from ${UserData.as(ud)} where $whereClause"
-      .map(UserData.fromResultSet(ud))
-      .single()
+    sql"select ${ud.result.*} from ${UserData.as(ud)} where $whereClause".map(UserData.fromResultSet(ud)).single()
   }
 
 }

@@ -13,10 +13,8 @@ import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 
 class LanguageValidator {
   private def languageCodeSupported6391(languageCode: String, allowUnknownLanguage: Boolean): Boolean = {
-    val languageCodes = get6391CodeFor6392CodeMappings.values.toSeq ++ (if (allowUnknownLanguage)
-                                                                          Seq("unknown", "und")
-                                                                        else
-                                                                          Seq.empty)
+    val languageCodes = get6391CodeFor6392CodeMappings.values.toSeq ++ (if (allowUnknownLanguage) Seq("unknown", "und")
+                                                                        else Seq.empty)
     languageCodes.contains(languageCode)
   }
 

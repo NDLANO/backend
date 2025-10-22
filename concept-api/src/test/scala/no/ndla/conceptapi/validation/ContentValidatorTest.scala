@@ -49,9 +49,8 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("Copyright validation succeeds if license is omitted and copyright holders are empty") {
-    val concept =
-      baseConcept.copy(copyright = Some(DraftCopyright(None, None, Seq(), Seq(), Seq(), None, None, false)))
-    val result = contentValidator.validateConcept(concept)
+    val concept = baseConcept.copy(copyright = Some(DraftCopyright(None, None, Seq(), Seq(), Seq(), None, None, false)))
+    val result  = contentValidator.validateConcept(concept)
     result should be(Success(concept))
   }
 
@@ -77,7 +76,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           Seq(),
           None,
           None,
-          false
+          false,
         )
       )
     )

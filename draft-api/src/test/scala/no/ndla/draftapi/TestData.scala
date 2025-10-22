@@ -44,37 +44,33 @@ object TestData {
   val userWithAdminAccess: TokenUser   =
     TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH, DRAFT_API_ADMIN), None)
 
-  val publicDomainCopyright: common.draft.DraftCopyright =
-    common.draft.DraftCopyright(
-      Some(License.PublicDomain.toString),
-      Some(""),
-      List.empty,
+  val publicDomainCopyright: common.draft.DraftCopyright = common
+    .draft
+    .DraftCopyright(Some(License.PublicDomain.toString), Some(""), List.empty, List(), List(), None, None, false)
+  private val byNcSaCopyright = common
+    .draft
+    .DraftCopyright(
+      Some(CC_BY_NC_SA.toString),
+      Some("Gotham City"),
+      List(common.Author(ContributorType.Writer, "DC Comics")),
       List(),
       List(),
       None,
       None,
-      false
+      false,
     )
-  private val byNcSaCopyright = common.draft.DraftCopyright(
-    Some(CC_BY_NC_SA.toString),
-    Some("Gotham City"),
-    List(common.Author(ContributorType.Writer, "DC Comics")),
-    List(),
-    List(),
-    None,
-    None,
-    false
-  )
-  private val copyrighted = common.draft.DraftCopyright(
-    Some(License.Copyrighted.toString),
-    Some("New York"),
-    List(common.Author(ContributorType.Writer, "Clark Kent")),
-    List(),
-    List(),
-    None,
-    None,
-    false
-  )
+  private val copyrighted = common
+    .draft
+    .DraftCopyright(
+      Some(License.Copyrighted.toString),
+      Some("New York"),
+      List(common.Author(ContributorType.Writer, "Clark Kent")),
+      List(),
+      List(),
+      None,
+      None,
+      false,
+    )
   val today: NDLADate = NDLADate.now()
 
   val (articleId, externalId) = (1L, "751234")
@@ -95,7 +91,7 @@ object TestData {
         List(),
         None,
         None,
-        false
+        false,
       )
     ),
     tags = Some(api.ArticleTagDTO(Seq("tag"), "nb")),
@@ -124,7 +120,7 @@ object TestData {
     started = false,
     qualityEvaluation = None,
     disclaimer = None,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val blankUpdatedArticle: UpdatedArticleDTO = api.UpdatedArticleDTO(
@@ -155,14 +151,11 @@ object TestData {
     comments = None,
     priority = None,
     qualityEvaluation = None,
-    disclaimer = None
+    disclaimer = None,
   )
 
-  val sampleApiUpdateArticle: UpdatedArticleDTO = blankUpdatedArticle.copy(
-    revision = 1,
-    language = Some("nb"),
-    title = Some("tittel")
-  )
+  val sampleApiUpdateArticle: UpdatedArticleDTO =
+    blankUpdatedArticle.copy(revision = 1, language = Some("nb"), title = Some("tittel"))
 
   val articleHit1: String = """
                       |{
@@ -201,22 +194,24 @@ object TestData {
     title = Some(api.ArticleTitleDTO("title", "title", "nb")),
     content = Some(api.ArticleContentDTO("content", "nb")),
     copyright = Some(
-      model.api.DraftCopyrightDTO(
-        license = Some(
-          commonApi.LicenseDTO(
-            CC_BY.toString,
-            Some("Creative Commons Attribution 4.0 International"),
-            Some("https://creativecommons.org/licenses/by/4.0/")
-          )
-        ),
-        origin = Some(""),
-        creators = Seq.empty,
-        processors = List(),
-        rightsholders = List(),
-        validFrom = None,
-        validTo = None,
-        processed = false
-      )
+      model
+        .api
+        .DraftCopyrightDTO(
+          license = Some(
+            commonApi.LicenseDTO(
+              CC_BY.toString,
+              Some("Creative Commons Attribution 4.0 International"),
+              Some("https://creativecommons.org/licenses/by/4.0/"),
+            )
+          ),
+          origin = Some(""),
+          creators = Seq.empty,
+          processors = List(),
+          rightsholders = List(),
+          validFrom = None,
+          validTo = None,
+          processed = false,
+        )
     ),
     tags = None,
     requiredLibraries = Seq.empty,
@@ -244,7 +239,7 @@ object TestData {
     started = false,
     qualityEvaluation = None,
     disclaimer = None,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val apiArticleUserTest: api.ArticleDTO = api.ArticleDTO(
@@ -255,22 +250,24 @@ object TestData {
     title = Some(api.ArticleTitleDTO("title", "title", "nb")),
     content = Some(api.ArticleContentDTO("content", "nb")),
     copyright = Some(
-      model.api.DraftCopyrightDTO(
-        license = Some(
-          commonApi.LicenseDTO(
-            CC_BY.toString,
-            Some("Creative Commons Attribution 4.0 International"),
-            Some("https://creativecommons.org/licenses/by/4.0/")
-          )
-        ),
-        origin = Some(""),
-        creators = Seq.empty,
-        processors = List(),
-        rightsholders = List(),
-        validFrom = None,
-        validTo = None,
-        processed = false
-      )
+      model
+        .api
+        .DraftCopyrightDTO(
+          license = Some(
+            commonApi.LicenseDTO(
+              CC_BY.toString,
+              Some("Creative Commons Attribution 4.0 International"),
+              Some("https://creativecommons.org/licenses/by/4.0/"),
+            )
+          ),
+          origin = Some(""),
+          creators = Seq.empty,
+          processors = List(),
+          rightsholders = List(),
+          validFrom = None,
+          validTo = None,
+          processed = false,
+        )
     ),
     tags = None,
     requiredLibraries = Seq.empty,
@@ -298,7 +295,7 @@ object TestData {
     started = false,
     qualityEvaluation = None,
     disclaimer = None,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val sampleTopicArticle: Draft = Draft(
@@ -334,7 +331,7 @@ object TestData {
     started = false,
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val sampleArticleWithPublicDomain: Draft = Draft(
@@ -370,7 +367,7 @@ object TestData {
     started = false,
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val sampleDomainArticle: Draft = Draft(
@@ -408,7 +405,7 @@ object TestData {
     started = false,
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val newArticle: NewArticleDTO = api.NewArticleDTO(
@@ -422,16 +419,18 @@ object TestData {
     None,
     None,
     Some(
-      model.api.DraftCopyrightDTO(
-        Some(commonApi.LicenseDTO(License.PublicDomain.toString, None, None)),
-        Some(""),
-        Seq.empty,
-        Seq.empty,
-        Seq.empty,
-        None,
-        None,
-        false
-      )
+      model
+        .api
+        .DraftCopyrightDTO(
+          Some(commonApi.LicenseDTO(License.PublicDomain.toString, None, None)),
+          Some(""),
+          Seq.empty,
+          Seq.empty,
+          Seq.empty,
+          None,
+          None,
+          false,
+        )
     ),
     None,
     "standard",
@@ -447,13 +446,11 @@ object TestData {
     None,
     None,
     None,
-    None
+    None,
   )
 
-  val sampleArticleWithByNcSa: Draft =
-    sampleArticleWithPublicDomain.copy(copyright = Some(byNcSaCopyright))
-  val sampleArticleWithCopyrighted: Draft =
-    sampleArticleWithPublicDomain.copy(copyright = Some(copyrighted))
+  val sampleArticleWithByNcSa: Draft      = sampleArticleWithPublicDomain.copy(copyright = Some(byNcSaCopyright))
+  val sampleArticleWithCopyrighted: Draft = sampleArticleWithPublicDomain.copy(copyright = Some(copyrighted))
 
   val sampleDomainArticleWithHtmlFault: Draft = Draft(
     id = Option(articleId),
@@ -467,20 +464,22 @@ object TestData {
           |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
           |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
     """.stripMargin,
-        "en"
+        "en",
       )
     ),
     copyright = Some(
-      common.draft.DraftCopyright(
-        Some(License.PublicDomain.toString),
-        Some(""),
-        Seq.empty,
-        Seq.empty,
-        Seq.empty,
-        None,
-        None,
-        false
-      )
+      common
+        .draft
+        .DraftCopyright(
+          Some(License.PublicDomain.toString),
+          Some(""),
+          Seq.empty,
+          Seq.empty,
+          Seq.empty,
+          None,
+          None,
+          false,
+        )
     ),
     tags = Seq.empty,
     requiredLibraries = Seq.empty,
@@ -508,7 +507,7 @@ object TestData {
     started = false,
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val apiArticleWithHtmlFaultV2: api.ArticleDTO = api.ArticleDTO(
@@ -524,20 +523,22 @@ object TestData {
           |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
           |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
       """.stripMargin,
-        "en"
+        "en",
       )
     ),
     copyright = Some(
-      model.api.DraftCopyrightDTO(
-        Some(commonApi.LicenseDTO(License.PublicDomain.toString, None, None)),
-        Some(""),
-        Seq.empty,
-        Seq.empty,
-        Seq.empty,
-        None,
-        None,
-        false
-      )
+      model
+        .api
+        .DraftCopyrightDTO(
+          Some(commonApi.LicenseDTO(License.PublicDomain.toString, None, None)),
+          Some(""),
+          Seq.empty,
+          Seq.empty,
+          Seq.empty,
+          None,
+          None,
+          false,
+        )
     ),
     tags = Some(api.ArticleTagDTO(Seq.empty, "en")),
     requiredLibraries = Seq.empty,
@@ -565,7 +566,7 @@ object TestData {
     started = false,
     qualityEvaluation = None,
     disclaimer = None,
-    traits = List.empty
+    traits = List.empty,
   )
 
   val (nodeId, nodeId2)         = ("1234", "4321")
@@ -573,29 +574,27 @@ object TestData {
 
   val visualElement: common.VisualElement = common.VisualElement(
     s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="full"></$EmbedTagName>""",
-    "nb"
+    "nb",
   )
 
-  val emptyDomainUserData: domain.UserData =
-    domain.UserData(
-      id = None,
-      userId = "",
-      savedSearches = None,
-      latestEditedArticles = None,
-      latestEditedConcepts = None,
-      latestEditedLearningpaths = None,
-      favoriteSubjects = None
-    )
+  val emptyDomainUserData: domain.UserData = domain.UserData(
+    id = None,
+    userId = "",
+    savedSearches = None,
+    latestEditedArticles = None,
+    latestEditedConcepts = None,
+    latestEditedLearningpaths = None,
+    favoriteSubjects = None,
+  )
 
-  val emptyApiUserData: api.UserDataDTO =
-    api.UserDataDTO(
-      userId = "",
-      savedSearches = None,
-      latestEditedArticles = None,
-      favoriteSubjects = None,
-      latestEditedConcepts = None,
-      latestEditedLearningpaths = None
-    )
+  val emptyApiUserData: api.UserDataDTO = api.UserDataDTO(
+    userId = "",
+    savedSearches = None,
+    latestEditedArticles = None,
+    favoriteSubjects = None,
+    latestEditedConcepts = None,
+    latestEditedLearningpaths = None,
+  )
 
   val statusWithPublished: common.Status      = common.Status(PUBLISHED, Set.empty)
   val statusWithPlanned: common.Status        = common.Status(PLANNED, Set.empty)
@@ -620,6 +619,6 @@ object TestData {
     articleTypes = Seq.empty,
     fallback = false,
     grepCodes = Seq.empty,
-    shouldScroll = false
+    shouldScroll = false,
   )
 }

@@ -15,15 +15,9 @@ import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 class SearchableLearningStepTest extends UnitSuite with TestEnvironment {
 
   test("That serializing a SearchableLearningStep to json and deserializing back to object does not change content") {
-    val original1 = SearchableLearningStep(
-      stepType = StepType.INTRODUCTION.toString
-    )
-    val original2 = SearchableLearningStep(
-      stepType = StepType.QUIZ.toString
-    )
-    val original3 = SearchableLearningStep(
-      stepType = StepType.TEXT.toString
-    )
+    val original1 = SearchableLearningStep(stepType = StepType.INTRODUCTION.toString)
+    val original2 = SearchableLearningStep(stepType = StepType.QUIZ.toString)
+    val original3 = SearchableLearningStep(stepType = StepType.TEXT.toString)
 
     val json1         = CirceUtil.toJsonString(original1)
     val json2         = CirceUtil.toJsonString(original2)

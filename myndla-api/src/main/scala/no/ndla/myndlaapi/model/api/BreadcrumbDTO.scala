@@ -15,8 +15,10 @@ import sttp.tapir.Schema.annotations.description
 import java.util.UUID
 
 case class BreadcrumbDTO(
-    @description("UUID of the folder") id: UUID,
-    @description("Folder name") name: String
+    @description("UUID of the folder")
+    id: UUID,
+    @description("Folder name")
+    name: String,
 )
 
 object BreadcrumbDTO {

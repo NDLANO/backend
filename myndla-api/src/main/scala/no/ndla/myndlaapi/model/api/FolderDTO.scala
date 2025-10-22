@@ -22,7 +22,8 @@ import java.util.UUID
 import no.ndla.common.DeriveHelpers
 
 case class OwnerDTO(
-    @description("Name of the owner") name: String
+    @description("Name of the owner")
+    name: String
 )
 
 object OwnerDTO {
@@ -31,19 +32,32 @@ object OwnerDTO {
 }
 
 case class FolderDTO(
-    @description("UUID of the folder") id: UUID,
-    @description("Folder name") name: String,
-    @description("Folder status") status: String,
-    @description("UUID of parent folder") parentId: Option[UUID],
-    @description("List of parent folders to resource") breadcrumbs: List[BreadcrumbDTO],
-    @description("List of subfolders") subfolders: List[FolderDataDTO],
-    @description("List of resources") resources: List[ResourceDTO],
-    @description("Where the folder is sorted within its parent") rank: Int,
-    @description("When the folder was created") created: NDLADate,
-    @description("When the folder was updated") updated: NDLADate,
-    @description("When the folder was last shared") shared: Option[NDLADate],
-    @description("Description of the folder") description: Option[String],
-    @description("Owner of the folder, if the owner have opted in to share their name") owner: Option[OwnerDTO]
+    @description("UUID of the folder")
+    id: UUID,
+    @description("Folder name")
+    name: String,
+    @description("Folder status")
+    status: String,
+    @description("UUID of parent folder")
+    parentId: Option[UUID],
+    @description("List of parent folders to resource")
+    breadcrumbs: List[BreadcrumbDTO],
+    @description("List of subfolders")
+    subfolders: List[FolderDataDTO],
+    @description("List of resources")
+    resources: List[ResourceDTO],
+    @description("Where the folder is sorted within its parent")
+    rank: Int,
+    @description("When the folder was created")
+    created: NDLADate,
+    @description("When the folder was updated")
+    updated: NDLADate,
+    @description("When the folder was last shared")
+    shared: Option[NDLADate],
+    @description("Description of the folder")
+    description: Option[String],
+    @description("Owner of the folder, if the owner have opted in to share their name")
+    owner: Option[OwnerDTO],
 ) extends FolderDataDTO
     with CopyableFolder
 
@@ -53,7 +67,9 @@ object FolderDTO {
   import sttp.tapir.generic.auto.*
   implicit def schema: Schema[FolderDTO] = DeriveHelpers.getSchema
 
-  implicit val folderDataEncoder: Encoder[FolderDataDTO] = Encoder.instance { case folder: FolderDTO => folder.asJson }
+  implicit val folderDataEncoder: Encoder[FolderDataDTO] = Encoder.instance { case folder: FolderDTO =>
+    folder.asJson
+  }
   implicit val folderDataDecoder: Decoder[FolderDataDTO] = Decoder[FolderDTO].widen
 }
 
@@ -76,7 +92,7 @@ object FolderDataDTO {
       updated: NDLADate,
       shared: Option[NDLADate],
       description: Option[String],
-      username: Option[String]
+      username: Option[String],
   ): FolderDataDTO = {
     FolderDTO(
       id,
@@ -91,32 +107,46 @@ object FolderDataDTO {
       updated,
       shared,
       description,
-      username.map(name => OwnerDTO(name))
+      username.map(name => OwnerDTO(name)),
     )
   }
 }
 
 case class NewFolderDTO(
-    @description("Folder name") name: String,
-    @description("Id of parent folder") parentId: Option[String],
-    @description("Status of the folder (private, shared)") status: Option[String],
-    @description("Description of the folder") description: Option[String]
+    @description("Folder name")
+    name: String,
+    @description("Id of parent folder")
+    parentId: Option[String],
+    @description("Status of the folder (private, shared)")
+    status: Option[String],
+    @description("Description of the folder")
+    description: Option[String],
 )
 
 case class UpdatedFolderDTO(
-    @description("Folder name") name: Option[String],
-    @description("Status of the folder (private, shared)") status: Option[String],
-    @description("Description of the folder") description: Option[String]
+    @description("Folder name")
+    name: Option[String],
+    @description("Status of the folder (private, shared)")
+    status: Option[String],
+    @description("Description of the folder")
+    description: Option[String],
 )
 
 case class ResourceDTO(
-    @description("Unique ID of the resource") id: UUID,
-    @description("Type of the resource. (Article, Learningpath)") resourceType: ResourceType,
-    @description("Relative path of this resource") path: String,
-    @description("When the resource was created") created: NDLADate,
-    @description("List of tags") tags: List[String],
-    @description("The id of the resource, useful for fetching metadata for the resource") resourceId: String,
-    @description("The which rank the resource appears in a sorted sequence") rank: Option[Int]
+    @description("Unique ID of the resource")
+    id: UUID,
+    @description("Type of the resource. (Article, Learningpath)")
+    resourceType: ResourceType,
+    @description("Relative path of this resource")
+    path: String,
+    @description("When the resource was created")
+    created: NDLADate,
+    @description("List of tags")
+    tags: List[String],
+    @description("The id of the resource, useful for fetching metadata for the resource")
+    resourceId: String,
+    @description("The which rank the resource appears in a sorted sequence")
+    rank: Option[Int],
 ) extends CopyableResource
 
 object ResourceDTO {
@@ -125,13 +155,19 @@ object ResourceDTO {
 }
 
 case class NewResourceDTO(
-    @description("Type of the resource. (Article, Learningpath)") resourceType: ResourceType,
-    @description("Relative path of this resource") path: String,
-    @description("List of tags") tags: Option[List[String]],
-    @description("The id of the resource, useful for fetching metadata for the resource") resourceId: String
+    @description("Type of the resource. (Article, Learningpath)")
+    resourceType: ResourceType,
+    @description("Relative path of this resource")
+    path: String,
+    @description("List of tags")
+    tags: Option[List[String]],
+    @description("The id of the resource, useful for fetching metadata for the resource")
+    resourceId: String,
 )
 
 case class UpdatedResourceDTO(
-    @description("List of tags") tags: Option[List[String]],
-    @description("The id of the resource, useful for fetching metadata for the resource") resourceId: Option[String]
+    @description("List of tags")
+    tags: Option[List[String]],
+    @description("The id of the resource, useful for fetching metadata for the resource")
+    resourceId: Option[String],
 )

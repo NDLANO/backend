@@ -29,31 +29,29 @@ class StatsController(using
     folderReadService: FolderReadService,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   override val serviceName: String                   = "stats"
   override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
 
-  def getStats: ServerEndpoint[Any, Eff] = endpoint.get
+  def getStats: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get stats")
     .description("Get stats")
     .out(jsonBody[StatsDTO])
     .errorOut(errorOutputsFor(404))
     .serverLogicPure { _ =>
-      folderReadService.getStats
-        .recoverNoneWith(Failure(NotFoundException("No stats found")))
+      folderReadService.getStats.recoverNoneWith(Failure(NotFoundException("No stats found")))
     }
 
-  private val pathResourceType =
-    path[CommaSeparated[String]]("resourceType")
-      .description(
-        s"The type of the resource to look up. Comma separated list to support ${ResourceType.Multidisciplinary}. Possible values ${ResourceType.values
-            .mkString(", ")}"
-      )
+  private val pathResourceType = path[CommaSeparated[String]]("resourceType").description(
+    s"The type of the resource to look up. Comma separated list to support ${ResourceType.Multidisciplinary}. Possible values ${ResourceType.values.mkString(", ")}"
+  )
   private val pathResourceIds =
     path[CommaSeparated[String]]("resourceIds").description("IDs of the resources to look up")
 
-  private def getFolderResourceFavorites: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getFolderResourceFavorites: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get folder resource favorites")
     .description("Get folder resource favorites")
     .in("favorites" / pathResourceType / pathResourceIds)
@@ -63,7 +61,8 @@ class StatsController(using
       folderReadService.getFavouriteStatsForResource(resourceIds.values, resourceType.values)
     }
 
-  private def getAllTheFavorites: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getAllTheFavorites: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get number of favorites for favorited resources")
     .description("Get number of favorites for favorited resources")
     .in("favorites")
@@ -73,9 +72,6 @@ class StatsController(using
       folderReadService.getAllTheFavorites
     }
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    getStats,
-    getAllTheFavorites,
-    getFolderResourceFavorites
-  )
+  override val endpoints: List[ServerEndpoint[Any, Eff]] =
+    List(getStats, getAllTheFavorites, getFolderResourceFavorites)
 }

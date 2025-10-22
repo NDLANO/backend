@@ -11,10 +11,7 @@ package no.ndla.searchapi.model.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 
-case class SearchableStatus(
-    current: String,
-    other: Seq[String]
-)
+case class SearchableStatus(current: String, other: Seq[String])
 
 object SearchableStatus {
   implicit val encoder: Encoder[SearchableStatus] = deriveEncoder

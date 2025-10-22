@@ -14,13 +14,16 @@ import no.ndla.language.Language
 import no.ndla.language.model.{BaseWithLanguageAndValue, WithLanguageAndValue}
 
 case class LanguageFields[T](internal: Map[String, T]) {
-  def getWithLanguageFields: Seq[WithLanguageAndValue[T]] = internal.map { case (language, value) =>
-    BaseWithLanguageAndValue(language, value)
-  }.toSeq
-  def get(language: String): Option[WithLanguageAndValue[T]] =
-    internal.get(language).map(BaseWithLanguageAndValue(language, _))
-  def findByLanguageOrBestEffort(language: String): Option[WithLanguageAndValue[T]] =
-    Language.findByLanguageOrBestEffort(getWithLanguageFields, language)
+  def getWithLanguageFields: Seq[WithLanguageAndValue[T]] = internal
+    .map { case (language, value) =>
+      BaseWithLanguageAndValue(language, value)
+    }
+    .toSeq
+  def get(language: String): Option[WithLanguageAndValue[T]] = internal
+    .get(language)
+    .map(BaseWithLanguageAndValue(language, _))
+  def findByLanguageOrBestEffort(language: String): Option[WithLanguageAndValue[T]] = Language
+    .findByLanguageOrBestEffort(getWithLanguageFields, language)
 }
 
 object LanguageFields {
@@ -30,9 +33,15 @@ object LanguageFields {
     LanguageFields(underlyingMap)
   }
 
-  implicit def encoder[T: Encoder]: Encoder[LanguageFields[T]] = Encoder.instance { lf => lf.internal.asJson }
+  implicit def encoder[T: Encoder]: Encoder[LanguageFields[T]] = Encoder.instance { lf =>
+    lf.internal.asJson
+  }
   implicit def decoder[T: Decoder]: Decoder[LanguageFields[T]] = Decoder.instance { json =>
-    json.as[Map[String, T]].map { m => LanguageFields(m) }
+    json
+      .as[Map[String, T]]
+      .map { m =>
+        LanguageFields(m)
+      }
 
   }
 }

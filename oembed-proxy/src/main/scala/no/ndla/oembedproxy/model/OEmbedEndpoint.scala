@@ -16,14 +16,13 @@ case class OEmbedEndpoint(
     url: String,
     discovery: Option[Boolean],
     formats: Option[List[String]],
-    mandatoryQueryParams: Option[List[(String, String)]]
+    mandatoryQueryParams: Option[List[(String, String)]],
 ) {
 
   def supports(url: String): Boolean = {
     schemes match {
       case None              => false
-      case Some(schemesList) =>
-        schemesList.exists(scheme => matches(scheme, url))
+      case Some(schemesList) => schemesList.exists(scheme => matches(scheme, url))
     }
   }
 

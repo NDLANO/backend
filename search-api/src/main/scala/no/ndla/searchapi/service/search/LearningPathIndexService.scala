@@ -34,7 +34,7 @@ class LearningPathIndexService(using
     searchLanguage: SearchLanguage,
     taxonomyApiClient: TaxonomyApiClient,
     grepApiClient: GrepApiClient,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends StrictLogging
     with IndexService[LearningPath] {
   override val documentType: String                     = "learningpath"
@@ -44,21 +44,23 @@ class LearningPathIndexService(using
   override def createIndexRequest(
       domainModel: LearningPath,
       indexName: String,
-      indexingBundle: IndexingBundle
+      indexingBundle: IndexingBundle,
   ): Try[Option[IndexRequest]] = {
     if (domainModel.verificationStatus != CREATED_BY_NDLA) {
       Success(None)
     } else {
-      searchConverterService.asSearchableLearningPath(domainModel, indexingBundle).map { searchableLearningPath =>
-        val source = CirceUtil.toJsonString(searchableLearningPath)
-        Some(
-          indexInto(indexName)
-            .doc(source)
-            .id(domainModel.id.get.toString)
-            .versionType(EXTERNAL_GTE)
-            .version(domainModel.revision.map(_.toLong).get)
-        )
-      }
+      searchConverterService
+        .asSearchableLearningPath(domainModel, indexingBundle)
+        .map { searchableLearningPath =>
+          val source = CirceUtil.toJsonString(searchableLearningPath)
+          Some(
+            indexInto(indexName)
+              .doc(source)
+              .id(domainModel.id.get.toString)
+              .versionType(EXTERNAL_GTE)
+              .version(domainModel.revision.map(_.toLong).get)
+          )
+        }
     }
   }
 
@@ -80,39 +82,21 @@ class LearningPathIndexService(using
       textField("authors"),
       keywordField("license"),
       longField("favorited"),
-      nestedField("learningsteps").fields(
-        textField("stepType")
-      ),
+      nestedField("learningsteps").fields(textField("stepType")),
       nestedField("revisionMeta").fields(
         keywordField("id"),
         dateField("revisionDate"),
         keywordField("note"),
-        keywordField("status")
+        keywordField("status"),
       ),
       ObjectField(
         "copyright",
         properties = Seq(
-          ObjectField(
-            "license",
-            properties = Seq(
-              textField("license"),
-              textField("description"),
-              textField("url")
-            )
-          ),
-          nestedField("contributors").fields(
-            textField("type"),
-            textField("name")
-          )
-        )
+          ObjectField("license", properties = Seq(textField("license"), textField("description"), textField("url"))),
+          nestedField("contributors").fields(textField("type"), textField("name")),
+        ),
       ),
-      ObjectField(
-        "responsible",
-        properties = Seq(
-          keywordField("responsibleId"),
-          dateField("lastUpdated")
-        )
-      ),
+      ObjectField("responsible", properties = Seq(keywordField("responsibleId"), dateField("lastUpdated"))),
       intField("isBasedOn"),
       keywordField("supportedLanguages"),
       getTaxonomyContextMapping("context"),
@@ -121,30 +105,27 @@ class LearningPathIndexService(using
       nestedField("embedResourcesAndIds").fields(
         keywordField("resource"),
         keywordField("id"),
-        keywordField("language")
+        keywordField("language"),
       ),
       keywordField("nextRevision.id"),
       keywordField("nextRevision.status"),
       textField("nextRevision.note"),
-      dateField(
-        "nextRevision.revisionDate"
-      ),
+      dateField("nextRevision.revisionDate"),
       keywordField("priority"),
       keywordField("defaultParentTopicName"),
       keywordField("defaultRoot"),
-      keywordField("defaultResourceTypeName")
+      keywordField("defaultResourceTypeName"),
     )
-    val dynamics =
-      languageValuesMapping("title", keepRaw = true) ++
-        languageValuesMapping("content") ++
-        languageValuesMapping("description") ++
-        languageValuesMapping("tags", keepRaw = true) ++
-        languageValuesMapping("relevance") ++
-        languageValuesMapping("breadcrumbs") ++
-        languageValuesMapping("name", keepRaw = true) ++
-        languageValuesMapping("parentTopicName", keepRaw = true) ++
-        languageValuesMapping("resourceTypeName", keepRaw = true) ++
-        languageValuesMapping("primaryRoot", keepRaw = true)
+    val dynamics = languageValuesMapping("title", keepRaw = true) ++
+      languageValuesMapping("content") ++
+      languageValuesMapping("description") ++
+      languageValuesMapping("tags", keepRaw = true) ++
+      languageValuesMapping("relevance") ++
+      languageValuesMapping("breadcrumbs") ++
+      languageValuesMapping("name", keepRaw = true) ++
+      languageValuesMapping("parentTopicName", keepRaw = true) ++
+      languageValuesMapping("resourceTypeName", keepRaw = true) ++
+      languageValuesMapping("primaryRoot", keepRaw = true)
 
     properties(fields ++ dynamics)
   }

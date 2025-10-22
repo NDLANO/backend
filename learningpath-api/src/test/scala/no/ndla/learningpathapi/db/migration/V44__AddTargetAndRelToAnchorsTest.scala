@@ -15,8 +15,7 @@ class V44__AddTargetAndRelToAnchorsTest extends UnitSuite with TestEnvironment {
 
   test("that urls are converted to anchors with target and rel") {
     val migration   = new V44__AddTargetAndRelToAnchors
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "description": [
         |    {
@@ -27,8 +26,7 @@ class V44__AddTargetAndRelToAnchorsTest extends UnitSuite with TestEnvironment {
         |}
         |""".stripMargin
 
-    val expectedDocument =
-      """
+    val expectedDocument = """
         |{
         |  "description": [
         |    {
@@ -44,8 +42,7 @@ class V44__AddTargetAndRelToAnchorsTest extends UnitSuite with TestEnvironment {
 
   test("that no html descriptions are left alone") {
     val migration   = new V44__AddTargetAndRelToAnchors
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "description": [
         |    {

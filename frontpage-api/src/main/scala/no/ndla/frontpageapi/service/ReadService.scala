@@ -25,7 +25,7 @@ class ReadService(using
     subjectPageRepository: SubjectPageRepository,
     frontPageRepository: FrontPageRepository,
     filmFrontPageRepository: FilmFrontPageRepository,
-    converterService: ConverterService
+    converterService: ConverterService,
 ) {
 
   private def validateSubjectPageIdsOrError(subjectIds: List[Long]): Try[List[Long]] = {
@@ -54,18 +54,14 @@ class ReadService(using
     converted.toTry(SubjectPageNotFoundException(id))
   }
 
-  def subjectPages(
-      page: Int,
-      pageSize: Int,
-      language: String,
-      fallback: Boolean
-  ): Try[List[SubjectPageDTO]] = permitTry {
-    val offset    = pageSize * (page - 1)
-    val data      = subjectPageRepository.all(offset, pageSize).?
-    val converted = data.map(converterService.toApiSubjectPage(_, language, fallback))
-    val filtered  = filterOutNotFoundExceptions(converted)
-    filtered.sequence
-  }
+  def subjectPages(page: Int, pageSize: Int, language: String, fallback: Boolean): Try[List[SubjectPageDTO]] =
+    permitTry {
+      val offset    = pageSize * (page - 1)
+      val data      = subjectPageRepository.all(offset, pageSize).?
+      val converted = data.map(converterService.toApiSubjectPage(_, language, fallback))
+      val filtered  = filterOutNotFoundExceptions(converted)
+      filtered.sequence
+    }
 
   private def filterOutNotFoundExceptions[T](exceptions: List[Try[T]]): List[Try[T]] = {
     exceptions.filter {
@@ -80,7 +76,7 @@ class ReadService(using
       language: String,
       fallback: Boolean,
       pageSize: Int,
-      page: Int
+      page: Int,
   ): Try[List[SubjectPageDTO]] = {
     val offset = (page - 1) * pageSize
     for {
@@ -96,10 +92,12 @@ class ReadService(using
   }
 
   def getFrontPage: Try[FrontPageDTO] = {
-    frontPageRepository.getFrontPage.flatMap {
-      case None        => Failure(common.NotFoundException("Front page was not found"))
-      case Some(value) => Success(converterService.toApiFrontPage(value))
-    }
+    frontPageRepository
+      .getFrontPage
+      .flatMap {
+        case None        => Failure(common.NotFoundException("Front page was not found"))
+        case Some(value) => Success(converterService.toApiFrontPage(value))
+      }
   }
 
   def filmFrontPage(language: Option[String]): Option[api.FilmFrontPageDTO] = {

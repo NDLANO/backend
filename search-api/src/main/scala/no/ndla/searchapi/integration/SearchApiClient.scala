@@ -31,9 +31,7 @@ trait SearchApiClient[T](using ndlaClient: NdlaClient, props: Props) extends Str
     val path = s"$dumpDomainPath/$id"
     get[T](path, Map.empty, timeout = 120000) match {
       case Failure(ex) =>
-        logger.error(
-          s"Could not fetch single $name (id: $id) from '$baseUrl/$path'"
-        )
+        logger.error(s"Could not fetch single $name (id: $id) from '$baseUrl/$path'")
         Failure(ex)
       case Success(value) => Success(value)
     }
@@ -49,9 +47,11 @@ trait SearchApiClient[T](using ndlaClient: NdlaClient, props: Props) extends Str
         val numPages = ceil(dbCount.toDouble / pageSize.toDouble).toInt
         val pages    = Seq.range(1, numPages + 1)
 
-        val iterator: Iterator[Try[Seq[T]]] = pages.iterator.map(p => {
-          getChunk(p, pageSize).map(_.results)
-        })
+        val iterator: Iterator[Try[Seq[T]]] = pages
+          .iterator
+          .map(p => {
+            getChunk(p, pageSize).map(_.results)
+          })
 
         iterator
       case Failure(ex) =>
@@ -61,11 +61,8 @@ trait SearchApiClient[T](using ndlaClient: NdlaClient, props: Props) extends Str
   }
 
   protected def getChunk(page: Int, pageSize: Int)(implicit d: Decoder[T]): Try[DomainDumpResults[T]] = {
-    val params = Map(
-      "page"      -> page.toString,
-      "page-size" -> pageSize.toString
-    )
-    val reqs = RequestInfo.fromThreadContext()
+    val params = Map("page" -> page.toString, "page-size" -> pageSize.toString)
+    val reqs   = RequestInfo.fromThreadContext()
     reqs.setThreadContextRequestInfo()
     get[DomainDumpResults[T]](dumpDomainPath, params, timeout = 120000) match {
       case Success(result) =>

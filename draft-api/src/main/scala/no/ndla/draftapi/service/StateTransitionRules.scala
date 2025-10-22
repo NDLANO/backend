@@ -34,14 +34,14 @@ class StateTransitionRules(using
     learningpathApiClient: => LearningpathApiClient,
     h5pApiClient: => H5PApiClient,
     converterService: ConverterService,
-    searchApiClient: => SearchApiClient
+    searchApiClient: => SearchApiClient,
 ) {
-  private[service] val checkIfArticleIsInUse: SideEffect =
-    SideEffect.withDraftAndUser("checkIfArticleIsInUse")((article: Draft, user: TokenUser) =>
+  private[service] val checkIfArticleIsInUse: SideEffect = SideEffect.withDraftAndUser("checkIfArticleIsInUse")(
+    (article: Draft, user: TokenUser) =>
       doIfArticleIsNotInUse(article.id.getOrElse(1), user) {
         Success(article)
       }
-    )
+  )
 
   private val resetResponsible: SideEffect = SideEffect.withDraft("resetResponsible") { article =>
     Success(article.copy(responsible = None))
@@ -53,44 +53,42 @@ class StateTransitionRules(using
       Success(article.copy(responsible = Some(responsible)))
     })
 
-  private[service] val unpublishArticle: SideEffect =
-    SideEffect.withDraftAndUser("unpublishArticle")((article: Draft, user: TokenUser) =>
+  private[service] val unpublishArticle: SideEffect = SideEffect.withDraftAndUser("unpublishArticle")(
+    (article: Draft, user: TokenUser) =>
       doIfArticleIsNotInUse(article.id.getOrElse(1), user) {
         articleApiClient.unpublishArticle(article, user)
       }
-    )
+  )
 
-  private val validateArticleApiArticle: SideEffect =
-    SideEffect(
-      "validateArticleApiArticle",
-      (draft: Draft, user: TokenUser) => {
-        val validatedArticle = converterService.toArticleApiArticle(draft) match {
-          case Failure(ex)      => Failure(ex)
-          case Success(article) => articleApiClient.validateArticle(article, importValidate = false, Some(user))
-        }
-        validatedArticle.map(_ => draft)
+  private val validateArticleApiArticle: SideEffect = SideEffect(
+    "validateArticleApiArticle",
+    (draft: Draft, user: TokenUser) => {
+      val validatedArticle = converterService.toArticleApiArticle(draft) match {
+        case Failure(ex)      => Failure(ex)
+        case Success(article) => articleApiClient.validateArticle(article, importValidate = false, Some(user))
       }
-    )
+      validatedArticle.map(_ => draft)
+    },
+  )
 
-  private def publishArticleSideEffect(useSoftValidation: Boolean): SideEffect =
-    SideEffect(
-      "publishArticleSideEffect",
-      (article, user) =>
-        article.id match {
-          case Some(id) =>
-            val externalIds = draftRepository.getExternalIdsFromId(id)(using ReadOnlyAutoSession)
-            val h5pPaths    = converterService.getEmbeddedH5PPaths(article)
-            h5pApiClient.publishH5Ps(h5pPaths, user): Unit
+  private def publishArticleSideEffect(useSoftValidation: Boolean): SideEffect = SideEffect(
+    "publishArticleSideEffect",
+    (article, user) =>
+      article.id match {
+        case Some(id) =>
+          val externalIds = draftRepository.getExternalIdsFromId(id)(using ReadOnlyAutoSession)
+          val h5pPaths    = converterService.getEmbeddedH5PPaths(article)
+          h5pApiClient.publishH5Ps(h5pPaths, user): Unit
 
-            val taxonomyT   = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
-            val articleUdpT = articleApiClient.updateArticle(id, article, externalIds, useSoftValidation, user)
-            val failures    = Seq(taxonomyT, articleUdpT).collectFirst { case Failure(ex) =>
-              Failure(ex)
-            }
-            failures.getOrElse(articleUdpT)
-          case _ => Failure(NotFoundException("This is a bug, article to publish has no id."))
-        }
-    )
+          val taxonomyT   = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
+          val articleUdpT = articleApiClient.updateArticle(id, article, externalIds, useSoftValidation, user)
+          val failures    = Seq(taxonomyT, articleUdpT).collectFirst { case Failure(ex) =>
+            Failure(ex)
+          }
+          failures.getOrElse(articleUdpT)
+        case _ => Failure(NotFoundException("This is a bug, article to publish has no id."))
+      },
+  )
 
   private val publishArticle            = publishArticleSideEffect(useSoftValidation = false)
   private val publishWithSoftValidation = publishArticleSideEffect(useSoftValidation = true)
@@ -101,7 +99,9 @@ class StateTransitionRules(using
       case Some(art) =>
         val hasBeenPublished          = art.status.current == PUBLISHED || art.status.other.contains(PUBLISHED)
         val isFromPublishedTransition = transition.from == PUBLISHED
-        !(hasBeenPublished || isFromPublishedTransition)
+        !(
+          hasBeenPublished || isFromPublishedTransition
+        )
     }
   })
 
@@ -191,7 +191,7 @@ class StateTransitionRules(using
       from: DraftStatus,
       to: DraftStatus,
       user: TokenUser,
-      current: Draft
+      current: Draft,
   ): Option[StateTransition] = {
     StateTransitions
       .find(transition => transition.from == from && transition.to == to)
@@ -200,8 +200,7 @@ class StateTransitionRules(using
 
   private def validateTransition(draft: Draft, transition: StateTransition): Try[Unit] = {
     val statusRequiresResponsible       = DraftStatus.thatRequiresResponsible.contains(transition.to)
-    val statusFromPublishedToInProgress =
-      draft.status.current == PUBLISHED && transition.to == IN_PROGRESS
+    val statusFromPublishedToInProgress = draft.status.current == PUBLISHED && transition.to == IN_PROGRESS
     if (statusRequiresResponsible && draft.responsible.isEmpty && !statusFromPublishedToInProgress) {
       return Failure(
         IllegalStatusStateTransition(
@@ -212,9 +211,8 @@ class StateTransitionRules(using
 
     val containsIllegalStatuses = draft.status.other.intersect(transition.illegalStatuses)
     if (containsIllegalStatuses.nonEmpty) {
-      val illegalStateTransition = IllegalStatusStateTransition(
-        s"Cannot go to ${transition.to} when article contains $containsIllegalStatuses"
-      )
+      val illegalStateTransition =
+        IllegalStatusStateTransition(s"Cannot go to ${transition.to} when article contains $containsIllegalStatuses")
       return Failure(illegalStateTransition)
     }
 
@@ -226,29 +224,30 @@ class StateTransitionRules(using
       to: DraftStatus,
       newStatus: common.Status,
       user: TokenUser,
-      isImported: Boolean
+      isImported: Boolean,
   ) = {
-    if (current.status.current != to)
-      current.notes :+ common.EditorNote(
-        "Status endret",
-        if (isImported) "System" else user.id,
-        newStatus,
-        clock.now()
-      )
+    if (current.status.current != to) current.notes :+ common.EditorNote(
+      "Status endret",
+      if (isImported) "System"
+      else user.id,
+      newStatus,
+      clock.now(),
+    )
     else current.notes
   }
 
   private[service] def doTransitionWithoutSideEffect(
       current: Draft,
       to: DraftStatus,
-      user: TokenUser
+      user: TokenUser,
   ): (Try[Draft], Seq[SideEffect]) = {
     getTransition(current.status.current, to, user, current) match {
-      case Some(t) =>
-        validateTransition(current, t) match {
+      case Some(t) => validateTransition(current, t) match {
           case Failure(ex) => (Failure(ex), Seq.empty)
           case Success(_)  =>
-            val currentToOther   = if (t.addCurrentStateToOthersOnTransition) Set(current.status.current) else Set()
+            val currentToOther =
+              if (t.addCurrentStateToOthersOnTransition) Set(current.status.current)
+              else Set()
             val other            = current.status.other.intersect(t.otherStatesToKeepOnTransition) ++ currentToOther
             val newStatus        = common.Status(to, other)
             val newEditorNotes   = newEditorNotesForTransition(current, to, newStatus, user, isImported = false)
@@ -257,9 +256,8 @@ class StateTransitionRules(using
             (Success(convertedArticle), t.sideEffects)
         }
       case None =>
-        val illegalStateTransition = IllegalStatusStateTransition(
-          s"Cannot go to $to when article is ${current.status.current}"
-        )
+        val illegalStateTransition =
+          IllegalStatusStateTransition(s"Cannot go to $to when article is ${current.status.current}")
         (Failure(illegalStateTransition), Seq.empty)
     }
   }
@@ -270,25 +268,20 @@ class StateTransitionRules(using
     }
   }
 
-  def doTransition(
-      current: Draft,
-      to: DraftStatus,
-      user: TokenUser
-  ): Try[Draft] = {
+  def doTransition(current: Draft, to: DraftStatus, user: TokenUser): Try[Draft] = {
     debugLog("---doTransition start---")
     val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user)
     debugLog(s"\tGot convertedArticle: $convertedArticle")
     debugLog(s"\tGot sideEffects: [${sideEffects.map(_.name).mkString(",")}]")
     val result = convertedArticle.flatMap(articleBeforeSideEffect => {
-      sideEffects
-        .foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
-          debugLog(s"\tAttempting to run sideEffect: ${sideEffect.name}")
-          accumulatedArticle.flatMap(a => {
-            val result = sideEffect.run(a, user)
-            debugLog(s"\tRan sideEffect: ${sideEffect.name} with result: $result")
-            result
-          })
+      sideEffects.foldLeft(Try(articleBeforeSideEffect))((accumulatedArticle, sideEffect) => {
+        debugLog(s"\tAttempting to run sideEffect: ${sideEffect.name}")
+        accumulatedArticle.flatMap(a => {
+          val result = sideEffect.run(a, user)
+          debugLog(s"\tRan sideEffect: ${sideEffect.name} with result: $result")
+          result
         })
+      })
     })
     debugLog("---doTransition end---")
     result
@@ -302,40 +295,33 @@ class StateTransitionRules(using
   }
 
   private def doIfArticleIsNotInUse(articleId: Long, user: TokenUser)(callback: => Try[Draft]): Try[Draft] =
-    (
-      searchApiClient.publishedWhereUsed(articleId, user),
-      learningPathsUsingArticle(articleId, user)
-    ) match {
+    (searchApiClient.publishedWhereUsed(articleId, user), learningPathsUsingArticle(articleId, user)) match {
       case (Nil, Nil)                                 => callback
       case (publishedUsingArticle, pathsUsingArticle) =>
-        val learningPathIds = pathsUsingArticle.map(lp => s"${lp.id} (${lp.title.title})")
-        val publishedIds    = publishedUsingArticle.map(art => s"${art.id} (${art.title.title})")
+        val learningPathIds                                                   = pathsUsingArticle.map(lp => s"${lp.id} (${lp.title.title})")
+        val publishedIds                                                      = publishedUsingArticle.map(art => s"${art.id} (${art.title.title})")
         def errorMessage(ids: Seq[?], msg: String): Option[ValidationMessage] =
           Option.when(ids.nonEmpty)(ValidationMessage("status.current", msg))
 
         val learningPathMessage = errorMessage(
           learningPathIds,
-          s"Learningpath(s) ${learningPathIds.mkString(", ")} contains a learning step that uses this article"
+          s"Learningpath(s) ${learningPathIds.mkString(", ")} contains a learning step that uses this article",
         )
-        val publishedMessage = errorMessage(
-          publishedIds,
-          s"Article is in use in these published article(s) ${publishedIds.mkString(", ")}"
-        )
+        val publishedMessage =
+          errorMessage(publishedIds, s"Article is in use in these published article(s) ${publishedIds.mkString(", ")}")
         Failure(new ValidationException(errors = learningPathMessage.toSeq ++ publishedMessage.toSeq))
     }
 
   private[service] def buildTransitionsMap(user: TokenUser, article: Option[Draft]): Map[String, List[String]] =
-    StateTransitions.groupBy(_.from).map { case (from, to) =>
-      from.toString -> to
-        .filter(_.hasRequiredProperties(user, article))
-        .map(_.to.toString)
-        .toList
-    }
+    StateTransitions
+      .groupBy(_.from)
+      .map { case (from, to) =>
+        from.toString -> to.filter(_.hasRequiredProperties(user, article)).map(_.to.toString).toList
+      }
 
   def stateTransitionsToApi(user: TokenUser, articleId: Option[Long]): Try[Map[String, List[String]]] =
     articleId match {
-      case Some(id) =>
-        draftRepository.withId(id)(using ReadOnlyAutoSession) match {
+      case Some(id) => draftRepository.withId(id)(using ReadOnlyAutoSession) match {
           case Some(article) => Success(buildTransitionsMap(user, Some(article)))
           case None          => Failure(NotFoundException("The article does not exist"))
         }

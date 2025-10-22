@@ -14,8 +14,10 @@ import io.circe.{Decoder, Encoder}
 
 @description("Description of the tags of the audio")
 case class TagDTO(
-    @description("The searchable tag.") tags: Seq[String],
-    @description("ISO 639-1 code that represents the language used in tag") language: String
+    @description("The searchable tag.")
+    tags: Seq[String],
+    @description("ISO 639-1 code that represents the language used in tag")
+    language: String,
 )
 
 object TagDTO {

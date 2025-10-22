@@ -38,8 +38,7 @@ class NdlaClient {
     doFetch(addCorrelationId(addForwardedFeideAuth(request, feideToken)))
   }
 
-  def fetchRaw(request: NdlaRequest): Try[Response[String]] =
-    doRequest(addCorrelationId(request))
+  def fetchRaw(request: NdlaRequest): Try[Response[String]] = doRequest(addCorrelationId(request))
 
   /** Useful if response body is not json. */
   def fetchRawWithForwardedAuth(request: NdlaRequest, tokenUser: Option[TokenUser]): Try[Response[String]] = {
@@ -61,7 +60,7 @@ class NdlaClient {
         Failure(
           new HttpRequestException(
             s"Received error ${response.code} ${response.statusText} when calling ${request.uri}. Body was ${response.body}",
-            Some(response)
+            Some(response),
           )
         )
       }

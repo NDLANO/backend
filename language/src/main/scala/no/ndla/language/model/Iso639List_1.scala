@@ -22,7 +22,7 @@ object Iso639List_1 {
       Some("Language_Type"),
       "Ref_Name",
       None,
-      Some("Comment")
+      Some("Comment"),
     ),
     Iso639Val("aaa", None, None, None, Some("I"), Some("L"), "Ghotuo", None, None),
     Iso639Val("aab", None, None, None, Some("I"), Some("L"), "Alumu-Tesu", None, None),
@@ -381,7 +381,7 @@ object Iso639List_1 {
       Some("A"),
       "Official Aramaic (700-300 BCE)",
       None,
-      None
+      None,
     ),
     Iso639Val("ard", None, None, None, Some("I"), Some("E"), "Arabana", None, None),
     Iso639Val("are", None, None, None, Some("I"), Some("L"), "Western Arrarnta", None, None),
@@ -832,6 +832,6 @@ object Iso639List_1 {
     Iso639Val("bln", None, None, None, Some("I"), Some("L"), "Southern Catanduanes Bikol", None, None),
     Iso639Val("blo", None, None, None, Some("I"), Some("L"), "Anii", None, None),
     Iso639Val("blp", None, None, None, Some("I"), Some("L"), "Blablanga", None, None),
-    Iso639Val("blq", None, None, None, Some("I"), Some("L"), "Baluan-Pam", None, None)
+    Iso639Val("blq", None, None, None, Some("I"), Some("L"), "Baluan-Pam", None, None),
   )
 }

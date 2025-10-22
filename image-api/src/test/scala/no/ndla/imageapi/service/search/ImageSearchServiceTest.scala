@@ -54,7 +54,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     List(),
     None,
     None,
-    false
+    false,
   )
 
   val publicDomain: Copyright = Copyright(
@@ -65,7 +65,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     List(),
     None,
     None,
-    false
+    false,
   )
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
@@ -77,7 +77,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     List(),
     None,
     None,
-    false
+    false,
   )
 
   val image1 = new ImageMetaInformation(
@@ -93,7 +93,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.NO,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val image2 = new ImageMetaInformation(
@@ -109,7 +109,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.NOT_APPLICABLE,
-    editorNotes = Seq(EditorNote(NDLADate.now(), "someone", "Lillehjelper"))
+    editorNotes = Seq(EditorNote(NDLADate.now(), "someone", "Lillehjelper")),
   )
 
   val image3 = new ImageMetaInformation(
@@ -125,7 +125,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val image4 = new ImageMetaInformation(
@@ -141,7 +141,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val image5 = new ImageMetaInformation(
@@ -149,7 +149,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     titles = List(
       ImageTitle("Dette er et urelatert bilde", "und"),
       ImageTitle("This is a unrelated photo", "en"),
-      ImageTitle("Nynoreg", "nn")
+      ImageTitle("Nynoreg", "nn"),
     ),
     alttexts = Seq(ImageAltText("urelatert alttext", "und"), ImageAltText("Nynoreg", "nn")),
     images = Some(Seq(podcastImage)),
@@ -161,7 +161,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     created = updated,
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   override def beforeAll(): Unit = {
@@ -199,18 +199,14 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   ) {
     val page            = 74
     val expectedStartAt = (page - 1) * props.DefaultPageSize
-    imageSearchService.getStartAtAndNumResults(Some(page), None) should equal(
-      (expectedStartAt, props.DefaultPageSize)
-    )
+    imageSearchService.getStartAtAndNumResults(Some(page), None) should equal((expectedStartAt, props.DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
     val page            = 123
     val pageSize        = 43
     val expectedStartAt = (page - 1) * pageSize
-    imageSearchService.getStartAtAndNumResults(Some(page), Some(pageSize)) should equal(
-      (expectedStartAt, pageSize)
-    )
+    imageSearchService.getStartAtAndNumResults(Some(page), Some(pageSize)) should equal((expectedStartAt, pageSize))
   }
 
   test("That all returns all documents ordered by id ascending") {
@@ -260,11 +256,10 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   }
 
   test("That both minimum-size and license filters are applied.") {
-    val Success(searchResult) =
-      imageSearchService.matchingQuery(
-        searchSettings.copy(minimumSize = Some(500), license = Some(PublicDomain.toString)),
-        None
-      ): @unchecked
+    val Success(searchResult) = imageSearchService.matchingQuery(
+      searchSettings.copy(minimumSize = Some(500), license = Some(PublicDomain.toString)),
+      None,
+    ): @unchecked
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("2")
@@ -280,11 +275,10 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   }
 
   test("That search matches title") {
-    val Success(searchResult) =
-      imageSearchService.matchingQuery(
-        searchSettings.copy(query = Some("Pingvinen"), language = "nb"),
-        None
-      ): @unchecked
+    val Success(searchResult) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("Pingvinen"), language = "nb"),
+      None,
+    ): @unchecked
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
     searchResult.results.head.id should be("2")
@@ -334,26 +328,15 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   }
 
   test("Searching with logical AND only returns results with all terms") {
-    val Success(search1) =
-      imageSearchService.matchingQuery(
-        searchSettings.copy(
-          query = Some("batmen AND bil"),
-          language = "nb",
-          page = Some(1),
-          pageSize = Some(10)
-        ),
-        None
-      ): @unchecked
+    val Success(search1) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("batmen AND bil"), language = "nb", page = Some(1), pageSize = Some(10)),
+      None,
+    ): @unchecked
     search1.results.map(_.id) should equal(Seq("1", "3"))
 
     val Success(search2) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("batmen | pingvinen"),
-        language = "nb",
-        page = Some(1),
-        pageSize = Some(10)
-      ),
-      None
+      searchSettings.copy(query = Some("batmen | pingvinen"), language = "nb", page = Some(1), pageSize = Some(10)),
+      None,
     ): @unchecked
     search2.results.map(_.id) should equal(Seq("1", "2"))
 
@@ -362,32 +345,22 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
         query = Some("bilde + -flaggermusmann"),
         language = "nb",
         page = Some(1),
-        pageSize = Some(10)
+        pageSize = Some(10),
       ),
-      None
+      None,
     ): @unchecked
     search3.results.map(_.id) should equal(Seq("2", "3"))
 
     val Success(search4) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("batmen + bil"),
-        language = "nb",
-        page = Some(1),
-        pageSize = Some(10)
-      ),
-      None
+      searchSettings.copy(query = Some("batmen + bil"), language = "nb", page = Some(1), pageSize = Some(10)),
+      None,
     ): @unchecked
     search4.results.map(_.id) should equal(Seq("1"))
   }
 
   test("Searching for multiple languages should returned matched language") {
-    val Success(searchResult1) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("urelatert"),
-        language = "*"
-      ),
-      None
-    ): @unchecked
+    val Success(searchResult1) =
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("urelatert"), language = "*"), None): @unchecked
     searchResult1.totalCount should be(1)
     searchResult1.results.size should be(1)
     searchResult1.results.head.id should be("5")
@@ -395,12 +368,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     searchResult1.results.head.altText.language should equal("und")
 
     val Success(searchResult2) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("unrelated"),
-        language = "*",
-        sort = Sort.ByTitleDesc
-      ),
-      None
+      searchSettings.copy(query = Some("unrelated"), language = "*", sort = Sort.ByTitleDesc),
+      None,
     ): @unchecked
     searchResult2.totalCount should be(1)
     searchResult2.results.size should be(1)
@@ -411,21 +380,18 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("Searching for unused languages should returned nothing") {
     val Success(searchResult1) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        language = "ait" // Arikem
+      searchSettings.copy(language =
+        "ait" // Arikem
       ),
-      None
+      None,
     ): @unchecked
     searchResult1.totalCount should be(0)
   }
 
   test("That field should be returned in another language if match does not contain searchLanguage") {
     val Success(searchResult) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("unrelated"),
-        language = "en"
-      ),
-      None
+      searchSettings.copy(query = Some("unrelated"), language = "en"),
+      None,
     ): @unchecked
     searchResult.totalCount should be(1)
     searchResult.results.size should be(1)
@@ -433,13 +399,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     searchResult.results.head.title.language should equal("en")
     searchResult.results.head.altText.language should equal("nn")
 
-    val Success(searchResult2) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("nynoreg"),
-        language = "nn"
-      ),
-      None
-    ): @unchecked
+    val Success(searchResult2) =
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("nynoreg"), language = "nn"), None): @unchecked
     searchResult2.totalCount should be(1)
     searchResult2.results.size should be(1)
     searchResult2.results.head.id should be("5")
@@ -448,13 +409,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   }
 
   test("That supportedLanguages returns in order") {
-    val Success(result) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("nynoreg"),
-        language = "nn"
-      ),
-      None
-    ): @unchecked
+    val Success(result) =
+      imageSearchService.matchingQuery(searchSettings.copy(query = Some("nynoreg"), language = "nn"), None): @unchecked
     result.totalCount should be(1)
     result.results.size should be(1)
 
@@ -466,11 +422,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val expectedIds = List("1", "2", "3", "4", "5").sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        pageSize = Some(pageSize),
-        shouldScroll = true
-      ),
-      None
+      searchSettings.copy(pageSize = Some(pageSize), shouldScroll = true),
+      None,
     ): @unchecked
 
     val Success(scroll1) = imageSearchService.scrollV2(initialSearch.scrollId.get, "*", None): @unchecked
@@ -488,11 +441,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val expectedIds = List[Long](1, 2, 3, 4, 5).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) = imageSearchService.matchingQueryV3(
-      searchSettings.copy(
-        pageSize = Some(pageSize),
-        shouldScroll = true
-      ),
-      None
+      searchSettings.copy(pageSize = Some(pageSize), shouldScroll = true),
+      None,
     ): @unchecked
 
     val Success(scroll1) = imageSearchService.scroll(initialSearch.scrollId.get, "*"): @unchecked
@@ -506,34 +456,23 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   }
 
   test("That title search works as expected, and doesn't crash in combination with language") {
-    val Success(searchResult1) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        language = "nb",
-        sort = Sort.ByTitleDesc
-      ),
-      None
-    ): @unchecked
+    val Success(searchResult1) =
+      imageSearchService.matchingQuery(searchSettings.copy(language = "nb", sort = Sort.ByTitleDesc), None): @unchecked
 
     searchResult1.results.map(_.id) should be(Seq("2", "3", "1"))
   }
 
   test("That searching for notes only works for editors") {
     val Success(searchResult1) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("lillehjelper"),
-        language = "*"
-      ),
-      None
+      searchSettings.copy(query = Some("lillehjelper"), language = "*"),
+      None,
     ): @unchecked
 
     searchResult1.results.map(_.id) should be(Seq())
 
     val Success(searchResult2) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("lillehjelper"),
-        language = "*"
-      ),
-      Some(TokenUser("someeditor", Set(IMAGE_API_WRITE), None))
+      searchSettings.copy(query = Some("lillehjelper"), language = "*"),
+      Some(TokenUser("someeditor", Set(IMAGE_API_WRITE), None)),
     ): @unchecked
 
     searchResult2.results.map(_.id) should be(Seq("2"))
@@ -541,52 +480,31 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering for modelReleased works as expected") {
     import ModelReleasedStatus.*
-    val Success(searchResult1) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        language = "*",
-        modelReleased = Seq(NO)
-      ),
-      None
-    ): @unchecked
+    val Success(searchResult1) =
+      imageSearchService.matchingQuery(searchSettings.copy(language = "*", modelReleased = Seq(NO)), None): @unchecked
 
     searchResult1.results.map(_.id) should be(Seq("1"))
 
     val Success(searchResult2) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        language = "*",
-        modelReleased = Seq(NOT_APPLICABLE)
-      ),
-      None
+      searchSettings.copy(language = "*", modelReleased = Seq(NOT_APPLICABLE)),
+      None,
     ): @unchecked
 
     searchResult2.results.map(_.id) should be(Seq("2"))
 
-    val Success(searchResult3) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        language = "*",
-        modelReleased = Seq(YES)
-      ),
-      None
-    ): @unchecked
+    val Success(searchResult3) =
+      imageSearchService.matchingQuery(searchSettings.copy(language = "*", modelReleased = Seq(YES)), None): @unchecked
 
     searchResult3.results.map(_.id) should be(Seq("3", "4", "5"))
 
-    val Success(searchResult4) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        language = "*",
-        modelReleased = Seq.empty
-      ),
-      None
-    ): @unchecked
+    val Success(searchResult4) =
+      imageSearchService.matchingQuery(searchSettings.copy(language = "*", modelReleased = Seq.empty), None): @unchecked
 
     searchResult4.results.map(_.id) should be(Seq("1", "2", "3", "4", "5"))
 
     val Success(searchResult5) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        language = "*",
-        modelReleased = Seq(NO, NOT_APPLICABLE)
-      ),
-      None
+      searchSettings.copy(language = "*", modelReleased = Seq(NO, NOT_APPLICABLE)),
+      None,
     ): @unchecked
 
     searchResult5.results.map(_.id) should be(Seq("1", "2"))
@@ -604,11 +522,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("Searching for languages with fallback should return result in specified language") {
     val Success(searchResult1) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("urelatert"),
-        language = "und"
-      ),
-      None
+      searchSettings.copy(query = Some("urelatert"), language = "und"),
+      None,
     ): @unchecked
     searchResult1.totalCount should be(1)
     searchResult1.results.size should be(1)
@@ -617,11 +532,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     searchResult1.results.head.title.language should equal("und")
 
     val Success(searchResult2) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("unrelated"),
-        language = "en"
-      ),
-      None
+      searchSettings.copy(query = Some("unrelated"), language = "en"),
+      None,
     ): @unchecked
     searchResult2.totalCount should be(1)
     searchResult2.results.size should be(1)
@@ -632,11 +544,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering for podcast-friendly works as expected") {
     val Success(searchResult1) = imageSearchService.matchingQuery(
-      searchSettings.copy(
-        language = "*",
-        podcastFriendly = Some(true)
-      ),
-      None
+      searchSettings.copy(language = "*", podcastFriendly = Some(true)),
+      None,
     ): @unchecked
 
     searchResult1.results.map(_.id) should be(Seq("5"))

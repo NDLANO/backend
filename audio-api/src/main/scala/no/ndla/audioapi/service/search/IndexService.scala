@@ -21,11 +21,8 @@ import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
-abstract class IndexService[D, T](using
-    e4sClient: NdlaE4sClient,
-    props: Props,
-    searchLanguage: SearchLanguage
-) extends BaseIndexService
+abstract class IndexService[D, T](using e4sClient: NdlaE4sClient, props: Props, searchLanguage: SearchLanguage)
+    extends BaseIndexService
     with StrictLogging {
   override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
@@ -49,27 +46,20 @@ abstract class IndexService[D, T](using
   }
 
   def sendToElastic(indexName: String): Try[BulkIndexResult] = {
-    getRanges
-      .flatMap(ranges => {
-        ranges
-          .traverse { case (start, end) =>
-            repository
-              .documentsWithIdBetween(start, end)
-              .flatMap(toIndex => indexDocuments(toIndex, indexName))
-          }
-          .map(countBulkIndexed)
-      })
+    getRanges.flatMap(ranges => {
+      ranges
+        .traverse { case (start, end) =>
+          repository.documentsWithIdBetween(start, end).flatMap(toIndex => indexDocuments(toIndex, indexName))
+        }
+        .map(countBulkIndexed)
+    })
   }
 
   def getRanges: Try[List[(Long, Long)]] = {
     val minMaxT = repository.minMaxId
     minMaxT.flatMap { case (minId, maxId) =>
       Try {
-        Seq
-          .range(minId, maxId + 1)
-          .grouped(props.IndexBulkSize)
-          .map(group => (group.head, group.last))
-          .toList
+        Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
       }
     }
 
@@ -83,9 +73,7 @@ abstract class IndexService[D, T](using
       requests.flatMap(rs => {
         executeRequests(rs.flatten) match {
           case Success(result) =>
-            logger.info(
-              s"Indexed ${result.successful} documents ($searchIndex). No of failed items: ${result.failed}"
-            )
+            logger.info(s"Indexed ${result.successful} documents ($searchIndex). No of failed items: ${result.failed}")
             Success(result)
           case Failure(ex) => Failure(ex)
         }
@@ -106,15 +94,19 @@ abstract class IndexService[D, T](using
     */
   protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
     if (keepRaw) {
-      searchLanguage.languageAnalyzers.map(langAnalyzer =>
-        textField(s"$fieldName.${langAnalyzer.languageTag.toString()}")
-          .analyzer(langAnalyzer.analyzer)
-          .fields(keywordField("raw"))
-      )
+      searchLanguage
+        .languageAnalyzers
+        .map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString()}")
+            .analyzer(langAnalyzer.analyzer)
+            .fields(keywordField("raw"))
+        )
     } else {
-      searchLanguage.languageAnalyzers.map(langAnalyzer =>
-        textField(s"$fieldName.${langAnalyzer.languageTag.toString()}").analyzer(langAnalyzer.analyzer)
-      )
+      searchLanguage
+        .languageAnalyzers
+        .map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString()}").analyzer(langAnalyzer.analyzer)
+        )
     }
   }
 }

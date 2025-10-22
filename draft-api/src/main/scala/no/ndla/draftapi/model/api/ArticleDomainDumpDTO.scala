@@ -14,10 +14,14 @@ import no.ndla.common.DeriveHelpers
 
 @description("Information about articles")
 case class ArticleDomainDumpDTO(
-    @description("The total number of articles in the database") totalCount: Long,
-    @description("For which page results are shown from") page: Int,
-    @description("The number of results per page") pageSize: Int,
-    @description("The search results") results: Seq[draft.Draft]
+    @description("The total number of articles in the database")
+    totalCount: Long,
+    @description("For which page results are shown from")
+    page: Int,
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The search results")
+    results: Seq[draft.Draft],
 )
 
 object ArticleDomainDumpDTO {

@@ -35,5 +35,5 @@ case class ArticleSearchParamsDTO(
     @description("A search context retrieved from the response header of a previous search.")
     scrollId: Option[String],
     @description("A comma separated list of codes from GREP API to filter by.")
-    grepCodes: Option[Seq[String]]
+    grepCodes: Option[Seq[String]],
 )

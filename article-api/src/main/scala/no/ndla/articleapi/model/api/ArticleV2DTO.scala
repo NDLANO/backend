@@ -70,7 +70,7 @@ case class ArticleV2DTO(
     @description("The disclaimer of the article")
     disclaimer: Option[DisclaimerDTO],
     @description("Traits extracted from the article content")
-    traits: List[ArticleTrait]
+    traits: List[ArticleTrait],
 )
 
 object ArticleV2DTO {

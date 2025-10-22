@@ -25,7 +25,8 @@ class V58__FixContributorTypes extends DocumentMigration {
     val processors    = convertList(copyright, "processors")
     val rightsholders = convertList(copyright, "rightsholders")
 
-    val newDocument = oldDocument.hcursor
+    val newDocument = oldDocument
+      .hcursor
       .downField("copyright")
       .withFocus(_.mapObject(_.remove("creators").add("creators", creators.asJson)))
       .withFocus(_.mapObject(_.remove("processors").add("processors", processors.asJson)))

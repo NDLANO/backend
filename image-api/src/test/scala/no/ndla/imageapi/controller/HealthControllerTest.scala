@@ -20,7 +20,7 @@ import no.ndla.imageapi.model.domain.{
   ImageFileData,
   ImageMetaInformation,
   ImageTitle,
-  ModelReleasedStatus
+  ModelReleasedStatus,
 }
 import no.ndla.tapirtesting.TapirControllerTest
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
@@ -41,17 +41,16 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val created: NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
-  val copyrighted: Copyright =
-    Copyright(
-      License.Copyrighted.toString,
-      Some("New York"),
-      Seq(Author(ContributorType.Writer, "Clark Kent")),
-      Seq(),
-      Seq(),
-      None,
-      None,
-      processed = false
-    )
+  val copyrighted: Copyright = Copyright(
+    License.Copyrighted.toString,
+    Some("New York"),
+    Seq(Author(ContributorType.Writer, "Clark Kent")),
+    Seq(),
+    Seq(),
+    None,
+    None,
+    processed = false,
+  )
 
   val imageMeta: ImageMetaInformation = ImageMetaInformation(
     Some(1),
@@ -66,7 +65,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     created,
     "ndla124",
     ModelReleasedStatus.NOT_APPLICABLE,
-    Seq.empty
+    Seq.empty,
   )
 
   test("that /health/readiness returns 200 on success") {
@@ -74,9 +73,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(imageRepository.getRandomImage()).thenReturn(Some(imageMeta))
     when(imageStorage.objectExists("file.jpg")).thenReturn(true)
 
-    val request =
-      quickRequest
-        .get(uri"http://localhost:$serverPort/health/readiness")
+    val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)
@@ -84,9 +81,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   test("that /health/liveness returns 200") {
     healthControllerResponse = 200
-    val request =
-      quickRequest
-        .get(uri"http://localhost:$serverPort/health/liveness")
+    val request = quickRequest.get(uri"http://localhost:$serverPort/health/liveness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)
@@ -97,9 +92,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(imageRepository.getRandomImage()).thenReturn(Some(imageMeta))
     when(imageStorage.objectExists("file.jpg")).thenReturn(false)
 
-    val request =
-      quickRequest
-        .get(uri"http://localhost:$serverPort/health/readiness")
+    val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(500)

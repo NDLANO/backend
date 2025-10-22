@@ -18,16 +18,18 @@ class HealthController(using
     imageRepository: ImageRepository,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
 ) extends TapirHealthController {
 
   override def checkReadiness(): Either[String, String] = {
     imageRepository
       .getRandomImage()
       .flatMap(image => {
-        image.images
+        image
+          .images
           .flatMap(imgMeta => {
-            imgMeta.headOption
+            imgMeta
+              .headOption
               .map(img => {
                 if (imageStorageService.objectExists(img.fileName)) {
                   Right("Healthy")

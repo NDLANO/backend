@@ -27,16 +27,15 @@ class CommonConverterTest extends UnitTestSuiteBase {
     when(clock.now()).thenReturn(now)
     when(uuidUtil.randomUUID()).thenReturn(uuid)
 
-    val updatedComments =
-      List(
-        UpdatedCommentDTO(id = None, content = "hei", isOpen = Some(true), solved = Some(false)),
-        UpdatedCommentDTO(id = Some(uuid.toString), content = "yoo", isOpen = Some(false), solved = Some(false))
-      )
+    val updatedComments = List(
+      UpdatedCommentDTO(id = None, content = "hei", isOpen = Some(true), solved = Some(false)),
+      UpdatedCommentDTO(id = Some(uuid.toString), content = "yoo", isOpen = Some(false), solved = Some(false)),
+    )
     val existingComments =
       Seq(Comment(id = uuid, created = now, updated = now, content = "nja", isOpen = true, solved = false))
     val expectedComments = Seq(
       Comment(id = uuid, created = now, updated = now, content = "hei", isOpen = true, solved = false),
-      Comment(id = uuid, created = now, updated = now, content = "yoo", isOpen = false, solved = false)
+      Comment(id = uuid, created = now, updated = now, content = "yoo", isOpen = false, solved = false),
     )
     commonConverter.mergeUpdatedCommentsWithExisting(updatedComments, existingComments) should be(expectedComments)
   }
@@ -54,7 +53,7 @@ class CommonConverterTest extends UnitTestSuiteBase {
     val existingComments = Seq(
       Comment(id = uuid, created = now, updated = now, content = "keep", isOpen = true, solved = false),
       Comment(id = uuid2, created = now, updated = now, content = "delete", isOpen = true, solved = false),
-      Comment(id = uuid3, created = now, updated = now, content = "delete", isOpen = true, solved = false)
+      Comment(id = uuid3, created = now, updated = now, content = "delete", isOpen = true, solved = false),
     )
     val expectedComments =
       Seq(Comment(id = uuid, created = now, updated = now, content = "updated keep", isOpen = true, solved = false))

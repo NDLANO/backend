@@ -39,7 +39,7 @@ object Permission extends Enum[Permission] with CirceEnum[Permission] {
   def fromStrings(s: List[String]): Set[Permission] = s.flatMap(fromString).toSet
   implicit val schema: Schema[Permission]           = schemaForEnumEntry[Permission]
 
-  def thatStartsWith(start: String): List[Permission] = values.filter(_.entryName.startsWith(start)).toList
+  def thatStartsWith(start: String): List[Permission]                 = values.filter(_.entryName.startsWith(start)).toList
   def toSwaggerMap(scopes: List[Permission]): ListMap[String, String] =
     ListMap.from(scopes.map(s => s.entryName -> s.entryName))
 }

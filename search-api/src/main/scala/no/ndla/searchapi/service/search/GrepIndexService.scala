@@ -30,7 +30,7 @@ class GrepIndexService(using
     props: Props,
     grepApiClient: GrepApiClient,
     e4sClient: NdlaE4sClient,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends BulkIndexingService
     with StrictLogging {
   override val documentType: String       = "grep"
@@ -45,7 +45,7 @@ class GrepIndexService(using
       keywordField("laereplanCode").normalizer("lower"),
       keywordField("gjenbrukAv").normalizer("lower"),
       keywordField("erstattesAv").normalizer("lower"),
-      ObjectField("domainObject", enabled = Some(false))
+      ObjectField("domainObject", enabled = Some(false)),
     )
 
     val dynamics = languageValuesMapping("title", keepRaw = true)
@@ -65,19 +65,19 @@ class GrepIndexService(using
   }
 
   private def sendChunkToElastic(chunk: List[GrepElement], indexName: String): Try[BulkIndexResult] = {
-    chunk
-      .traverse(grepElement => createIndexRequest(grepElement, indexName))
-      .map(executeRequests)
-      .flatten
+    chunk.traverse(grepElement => createIndexRequest(grepElement, indexName)).map(executeRequests).flatten
   }
 
   def sendToElastic(grepBundle: Option[GrepBundle], indexName: String): Try[BulkIndexResult] = permitTry {
-    val bundle = (grepBundle match {
-      case Some(value) => Success(value)
-      case None        => grepApiClient.getGrepBundle()
-    }).?
+    val bundle = (
+      grepBundle match {
+        case Some(value) => Success(value)
+        case None        => grepApiClient.getGrepBundle()
+      }
+    ).?
 
-    bundle.grepContext
+    bundle
+      .grepContext
       .grouped(props.IndexBulkSize)
       .toList
       .traverse(group => sendChunkToElastic(group, indexName))

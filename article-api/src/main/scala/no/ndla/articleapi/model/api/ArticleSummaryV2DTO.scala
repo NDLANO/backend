@@ -42,5 +42,5 @@ case class ArticleSummaryV2DTO(
     @description("Value that dictates who gets to see the article. Possible values are: everyone/teacher")
     availability: String,
     @description("Traits extracted from the article content")
-    traits: List[ArticleTrait]
+    traits: List[ArticleTrait],
 )

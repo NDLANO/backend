@@ -82,15 +82,20 @@ class LearningPathAndStepCreationTests
     super.beforeAll()
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
-    Future { learningpathApi.run(Array.empty) }: Unit
+    Future {
+      learningpathApi.run(Array.empty)
+    }: Unit
     blockUntilHealthy(s"$learningpathApiBaseUrl/health/readiness")
   }
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    learningpathApi.componentRegistry.learningPathRepository.inTransaction(implicit session => {
-      learningpathApi.componentRegistry.learningPathRepository.deleteAllPathsAndSteps(using session)
-    })
+    learningpathApi
+      .componentRegistry
+      .learningPathRepository
+      .inTransaction(implicit session => {
+        learningpathApi.componentRegistry.learningPathRepository.deleteAllPathsAndSteps(using session)
+      })
   }
 
   override def afterAll(): Unit = {
@@ -114,7 +119,7 @@ class LearningPathAndStepCreationTests
       comments = None,
       priority = None,
       revisionMeta = None,
-      grepCodes = None
+      grepCodes = None,
     )
 
     val x = CirceUtil.toJsonString(dto)
@@ -127,7 +132,9 @@ class LearningPathAndStepCreationTests
         .header("Authorization", s"Bearer $fakeToken")
         .readTimeout(10.seconds)
     )
-    if (shouldSucceed) { res.code.code should be(201) }
+    if (shouldSucceed) {
+      res.code.code should be(201)
+    }
     CirceUtil.unsafeParseAs[LearningPathV2DTO](res.body)
   }
 
@@ -137,17 +144,12 @@ class LearningPathAndStepCreationTests
       introduction = None,
       description = None,
       language = "nb",
-      embedUrl = Some(
-        EmbedUrlV2DTO(
-          url = "https://www.example.com/",
-          embedType = EmbedType.External.entryName
-        )
-      ),
+      embedUrl = Some(EmbedUrlV2DTO(url = "https://www.example.com/", embedType = EmbedType.External.entryName)),
       articleId = None,
       showTitle = false,
       `type` = StepType.TEXT.toString,
       license = None,
-      copyright = None
+      copyright = None,
     )
     val x   = CirceUtil.toJsonString(dto)
     val res = simpleHttpClient.send(
@@ -158,7 +160,9 @@ class LearningPathAndStepCreationTests
         .header("Authorization", s"Bearer $fakeToken")
         .readTimeout(10.seconds)
     )
-    if (shouldSucceed) { res.code.code should be(201) }
+    if (shouldSucceed) {
+      res.code.code should be(201)
+    }
     CirceUtil.unsafeParseAs[LearningStepV2DTO](res.body)
   }
 
@@ -170,7 +174,9 @@ class LearningPathAndStepCreationTests
         .header("Authorization", s"Bearer $fakeToken")
         .readTimeout(10.seconds)
     )
-    if (shouldSucceed) { res.code.code should be(200) }
+    if (shouldSucceed) {
+      res.code.code should be(200)
+    }
     CirceUtil.unsafeParseAs[LearningPathV2DTO](res.body)
   }
 

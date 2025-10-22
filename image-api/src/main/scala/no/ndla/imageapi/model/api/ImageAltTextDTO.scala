@@ -14,8 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Alt-text of an image")
 case class ImageAltTextDTO(
-    @description("The alternative text for the image") alttext: String,
-    @description("ISO 639-1 code that represents the language used in the alternative text") language: String
+    @description("The alternative text for the image")
+    alttext: String,
+    @description("ISO 639-1 code that represents the language used in the alternative text")
+    language: String,
 )
 
 object ImageAltTextDTO {

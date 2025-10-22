@@ -40,7 +40,7 @@ class ContentValidator(using
     articleApiClient: ArticleApiClient,
     converterService: ConverterService,
     draftRepository: DraftRepository,
-    props: DraftApiProperties
+    props: DraftApiProperties,
 ) extends StrictLogging {
   private val inlineHtmlTags       = props.InlineHtmlTags
   private val introductionHtmlTags = props.IntroductionHtmlTags
@@ -58,7 +58,7 @@ class ContentValidator(using
     Option.when(draft.responsible.isEmpty && statusRequiresResponsible) {
       ValidationMessage(
         "responsibleId",
-        s"Responsible needs to be set if the status is not ${DraftStatus.thatDoesNotRequireResponsible}"
+        s"Responsible needs to be set if the status is not ${DraftStatus.thatDoesNotRequireResponsible}",
       )
     }
   }
@@ -80,7 +80,7 @@ class ContentValidator(using
       title = article.title.filter(_.language == language),
       tags = article.tags.filter(_.language == language),
       visualElement = article.visualElement.filter(_.language == language),
-      metaImage = article.metaImage.filter(_.language == language)
+      metaImage = article.metaImage.filter(_.language == language),
     )
   }
 
@@ -89,23 +89,21 @@ class ContentValidator(using
   def validateArticle(oldArticle: Option[Draft], article: Draft): Try[Draft] = {
     val shouldValidateEntireArticle = !onlyUpdatedEditorialFields(oldArticle, article)
     val regularValidationErrors     =
-      if (shouldValidateEntireArticle)
-        article.content.flatMap(c => validateArticleContent(c)) ++
-          article.introduction.flatMap(i => validateIntroduction(i)) ++
-          validateArticleDisclaimer(article.disclaimer) ++
-          article.metaDescription.flatMap(m => validateMetaDescription(m)) ++
-          validateTitles(article.title) ++
-          article.copyright.map(x => validateCopyright(x)).toSeq.flatten ++
-          validateTags(article.tags) ++
-          article.requiredLibraries.flatMap(validateRequiredLibrary) ++
-          article.metaImage.flatMap(validateMetaImage) ++
-          article.visualElement.flatMap(v => validateVisualElement(v)) ++
-          validateSlug(article.slug, article.articleType, article.id, draftRepository.slugExists) ++
-          validateResponsible(article)
+      if (shouldValidateEntireArticle) article.content.flatMap(c => validateArticleContent(c)) ++
+        article.introduction.flatMap(i => validateIntroduction(i)) ++
+        validateArticleDisclaimer(article.disclaimer) ++
+        article.metaDescription.flatMap(m => validateMetaDescription(m)) ++
+        validateTitles(article.title) ++
+        article.copyright.map(x => validateCopyright(x)).toSeq.flatten ++
+        validateTags(article.tags) ++
+        article.requiredLibraries.flatMap(validateRequiredLibrary) ++
+        article.metaImage.flatMap(validateMetaImage) ++
+        article.visualElement.flatMap(v => validateVisualElement(v)) ++
+        validateSlug(article.slug, article.articleType, article.id, draftRepository.slugExists) ++
+        validateResponsible(article)
       else Seq.empty
 
-    val editorialValidationErrors =
-      validateRevisionMeta(article.revisionMeta, article.status)
+    val editorialValidationErrors = validateRevisionMeta(article.revisionMeta, article.status)
 
     val validationErrors = regularValidationErrors ++ editorialValidationErrors
 
@@ -121,19 +119,18 @@ class ContentValidator(using
     existingArticle match {
       case None             => false
       case Some(oldArticle) =>
-        val withComparableValues =
-          (article: Draft) =>
-            converterService
-              .withSortedLanguageFields(article)
-              .copy(
-                revision = None,
-                notes = Seq.empty,
-                editorLabels = Seq.empty,
-                comments = List.empty,
-                updated = NDLADate.MIN,
-                revisionMeta = Seq.empty,
-                updatedBy = ""
-              )
+        val withComparableValues = (article: Draft) =>
+          converterService
+            .withSortedLanguageFields(article)
+            .copy(
+              revision = None,
+              notes = Seq.empty,
+              editorLabels = Seq.empty,
+              comments = List.empty,
+              updated = NDLADate.MIN,
+              revisionMeta = Seq.empty,
+              updatedBy = "",
+            )
 
         withComparableValues(oldArticle) == withComparableValues(changedArticle)
     }
@@ -142,8 +139,7 @@ class ContentValidator(using
   def validateArticleApiArticle(id: Long, importValidate: Boolean, user: TokenUser): Try[ContentIdDTO] = {
     draftRepository.withId(id)(using ReadOnlyAutoSession) match {
       case None        => Failure(NotFoundException(s"Article with id $id does not exist"))
-      case Some(draft) =>
-        converterService
+      case Some(draft) => converterService
           .toArticleApiArticle(draft)
           .flatMap(article => articleApiClient.validateArticle(article, importValidate, Some(user)))
           .map(_ => ContentIdDTO(id))
@@ -154,12 +150,11 @@ class ContentValidator(using
       id: Long,
       updatedArticle: UpdatedArticleDTO,
       importValidate: Boolean,
-      user: TokenUser
+      user: TokenUser,
   ): Try[ContentIdDTO] = {
     draftRepository.withId(id)(using ReadOnlyAutoSession) match {
       case None           => Failure(NotFoundException(s"Article with id $id does not exist"))
-      case Some(existing) =>
-        converterService
+      case Some(existing) => converterService
           .toDomainArticle(existing, updatedArticle, user)
           .flatMap(converterService.toArticleApiArticle)
           .flatMap(articleApiClient.validateArticle(_, importValidate, Some(user)))
@@ -174,11 +169,13 @@ class ContentValidator(using
   }
 
   private def validateArticleDisclaimer(disclaimers: OptLanguageFields[String]): Seq[ValidationMessage] = {
-    disclaimers.mapExisting { disclaimer =>
-      val field = s"disclaimer.${disclaimer.language}"
-      TextValidator.validate(field, disclaimer.value, allLegalTags).toList ++
-        validateLanguage("disclaimer.language", disclaimer.language)
-    }.flatten
+    disclaimers
+      .mapExisting { disclaimer =>
+        val field = s"disclaimer.${disclaimer.language}"
+        TextValidator.validate(field, disclaimer.value, allLegalTags).toList ++
+          validateLanguage("disclaimer.language", disclaimer.language)
+      }
+      .flatten
   }
 
   private def rootElementContainsOnlySectionBlocks(field: String, html: String): Option[ValidationMessage] = {
@@ -192,7 +189,7 @@ class ContentValidator(using
       Some(
         ValidationMessage(
           field,
-          s"An article must consist of one or more <section> blocks. Illegal tag(s) are $illegalTags "
+          s"An article must consist of one or more <section> blocks. Illegal tag(s) are $illegalTags ",
         )
       )
     }
@@ -204,7 +201,7 @@ class ContentValidator(using
         "visualElement",
         content.resource,
         allLegalTags,
-        requiredToOptional = Map("image" -> Seq("data-caption"))
+        requiredToOptional = Map("image" -> Seq("data-caption")),
       )
       .toList ++ validateLanguage("language", content.language)
   }
@@ -215,13 +212,7 @@ class ContentValidator(using
       rm.status == RevisionStatus.NeedsRevision && rm.revisionDate.isAfter(NDLADate.now())
     ) match {
       case Some(_) => Seq.empty
-      case None    =>
-        Seq(
-          ValidationMessage(
-            "revisionMeta",
-            "An article must contain at least one planned revision date"
-          )
-        )
+      case None    => Seq(ValidationMessage("revisionMeta", "An article must contain at least one planned revision date"))
     }
   }
 
@@ -236,15 +227,13 @@ class ContentValidator(using
   }
 
   private def validateTitles(titles: Seq[Title]): Seq[ValidationMessage] = {
-    if (titles.isEmpty)
-      Seq(
-        ValidationMessage(
-          "title",
-          "An article must contain at least one title. Perhaps you tried to delete the only title in the article?"
-        )
+    if (titles.isEmpty) Seq(
+      ValidationMessage(
+        "title",
+        "An article must contain at least one title. Perhaps you tried to delete the only title in the article?",
       )
-    else
-      titles.flatMap(t => validateTitle(t.title, t.language))
+    )
+    else titles.flatMap(t => validateTitle(t.title, t.language))
   }
 
   private def validateTitle(title: String, language: String): Seq[ValidationMessage] = {
@@ -256,12 +245,16 @@ class ContentValidator(using
 
   private def validateCopyright(copyright: DraftCopyright): Seq[ValidationMessage] = {
     val licenseMessage       = copyright.license.map(validateLicense).toSeq.flatten
-    val contributorsMessages =
-      copyright.creators.flatMap(a => validateAuthor(a, ContributorType.creators)) ++ copyright.processors.flatMap(a =>
-        validateAuthor(a, ContributorType.processors)
-      ) ++ copyright.rightsholders.flatMap(a => validateAuthor(a, ContributorType.rightsholders))
-    val originMessage =
-      copyright.origin.map(origin => TextValidator.validate("copyright.origin", origin, Set.empty)).toSeq.flatten
+    val contributorsMessages = copyright.creators.flatMap(a => validateAuthor(a, ContributorType.creators)) ++ copyright
+      .processors
+      .flatMap(a => validateAuthor(a, ContributorType.processors)) ++ copyright
+      .rightsholders
+      .flatMap(a => validateAuthor(a, ContributorType.rightsholders))
+    val originMessage = copyright
+      .origin
+      .map(origin => TextValidator.validate("copyright.origin", origin, Set.empty))
+      .toSeq
+      .flatten
 
     licenseMessage ++ contributorsMessages ++ originMessage
   }
@@ -282,7 +275,7 @@ class ContentValidator(using
   private def validateAuthorType(
       fieldPath: String,
       `type`: ContributorType,
-      allowedTypes: Seq[ContributorType]
+      allowedTypes: Seq[ContributorType],
   ): Option[ValidationMessage] = {
     if (allowedTypes.contains(`type`)) {
       None
@@ -306,14 +299,15 @@ class ContentValidator(using
       Some(
         ValidationMessage(
           "requiredLibraries.url",
-          s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}"
+          s"${requiredLibrary.url} is not a permitted script. Allowed scripts are: ${permittedLibraries.mkString(",")}",
         )
       )
     }
   }
 
-  private def validateMetaImage(metaImage: ArticleMetaImage): Seq[ValidationMessage] =
-    (validateMetaImageId(metaImage.imageId) ++ validateMetaImageAltText(metaImage.altText)).toSeq
+  private def validateMetaImage(metaImage: ArticleMetaImage): Seq[ValidationMessage] = (
+    validateMetaImageId(metaImage.imageId) ++ validateMetaImageAltText(metaImage.altText)
+  ).toSeq
 
   private def validateMetaImageAltText(altText: String): Seq[ValidationMessage] =
     TextValidator.validate("metaImage.alt", altText, Set.empty)
@@ -338,20 +332,14 @@ class ContentValidator(using
   private def validateLength(fieldPath: String, content: String, maxLength: Int): Option[ValidationMessage] = {
     if (content.length > maxLength)
       Some(ValidationMessage(fieldPath, s"This field exceeds the maximum permitted length of $maxLength characters"))
-    else
-      None
+    else None
   }
 
   private def validateMinimumLength(fieldPath: String, content: String, minLength: Int): Option[ValidationMessage] =
-    if (content.trim.length < minLength)
-      Some(
-        ValidationMessage(
-          fieldPath,
-          s"This field does not meet the minimum length requirement of $minLength characters"
-        )
-      )
-    else
-      None
+    if (content.trim.length < minLength) Some(
+      ValidationMessage(fieldPath, s"This field does not meet the minimum length requirement of $minLength characters")
+    )
+    else None
 
   private def languageCodeSupported639(languageCode: String): Boolean = Iso639.get(languageCode).isSuccess
 

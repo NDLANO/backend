@@ -38,10 +38,9 @@ object LearningPathStatus       extends Enum[LearningPathStatus] with CirceEnum[
   def valueOfOrError(status: String): Try[LearningPathStatus] = {
     valueOf(status) match {
       case Some(status) => Success(status)
-      case None         =>
-        Failure(
-          new ValidationException(
-            errors = List(ValidationMessage("status", s"'$status' is not a valid publishingstatus."))
+      case None         => Failure(
+          new ValidationException(errors =
+            List(ValidationMessage("status", s"'$status' is not a valid publishingstatus."))
           )
         )
     }

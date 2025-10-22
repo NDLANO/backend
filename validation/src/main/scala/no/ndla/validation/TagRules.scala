@@ -20,7 +20,7 @@ object TagRules {
       fields: Set[Field],
       mustBeDirectChildOf: Option[ParentTag],
       children: Option[ChildrenRule],
-      mustContainAtLeastOneOptionalAttribute: Option[Boolean]
+      mustContainAtLeastOneOptionalAttribute: Option[Boolean],
   ) {
     lazy val all: Set[TagAttribute] = fields.map(f => f.name)
 
@@ -34,11 +34,9 @@ object TagRules {
     def withOptionalRequired(toBeOptional: Seq[String]): TagAttributeRules = {
       val toBeOptionalEnums = toBeOptional.map(TagAttribute.withName)
       val otherFields       = fields.filterNot(f => toBeOptionalEnums.contains(f.name))
-      val flipped = fields.diff(otherFields).map(f => f.copy(validation = f.validation.copy(required = false)))
+      val flipped           = fields.diff(otherFields).map(f => f.copy(validation = f.validation.copy(required = false)))
 
-      this.copy(
-        fields = flipped ++ otherFields
-      )
+      this.copy(fields = flipped ++ otherFields)
     }
   }
 
@@ -48,7 +46,7 @@ object TagRules {
       allowedValues: Set[String] = Set.empty,
       allowedHtml: Set[String] = Set.empty,
       allowedDomains: Set[String] = Set.empty,
-      mustCoexistWith: List[TagAttribute] = List.empty
+      mustCoexistWith: List[TagAttribute] = List.empty,
   )
 
   private object Validation {
@@ -67,7 +65,7 @@ object TagRules {
         allowedValues = allowedValues,
         allowedHtml = allowedHtml,
         allowedDomains = allowedDomains,
-        mustCoexistWith = mustCoexistWith
+        mustCoexistWith = mustCoexistWith,
       )
     }
 

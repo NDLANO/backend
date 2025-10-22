@@ -36,7 +36,7 @@ object TextValidator {
       fieldPath: String,
       text: String,
       allowedTags: Set[String],
-      requiredToOptional: Map[String, Seq[String]] = Map.empty
+      requiredToOptional: Map[String, Seq[String]] = Map.empty,
   ): Seq[ValidationMessage] = {
     if (allowedTags.isEmpty) {
       validateNoHtmlTags(fieldPath, text).toList
@@ -49,7 +49,7 @@ object TextValidator {
       fieldPath: String,
       text: String,
       allowedTags: Set[String] = HtmlTagRules.allLegalTags,
-      requiredToOptional: Map[String, Seq[String]] = Map.empty
+      requiredToOptional: Map[String, Seq[String]] = Map.empty,
   ): Seq[ValidationMessage] = {
 
     val errorWith = (msg: String) => Seq(ValidationMessage(fieldPath, msg))
@@ -73,11 +73,12 @@ object TextValidator {
       fieldPath: String,
       text: String,
       requiredToOptional: Map[String, Seq[String]],
-      allowedTags: Set[String]
+      allowedTags: Set[String],
   ): Seq[ValidationMessage] = {
 
     val whiteList = new Safelist().addTags(allowedTags.toSeq*)
-    HtmlTagRules.allLegalTags
+    HtmlTagRules
+      .allLegalTags
       .filter(tag => HtmlTagRules.legalAttributesForTag(tag).nonEmpty)
       .foreach(tag => whiteList.addAttributes(tag, HtmlTagRules.legalAttributesForTag(tag).toSeq*))
 

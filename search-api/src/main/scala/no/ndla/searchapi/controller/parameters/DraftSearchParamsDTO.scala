@@ -51,7 +51,8 @@ case class DraftSearchParamsDTO(
     @description(
       """A list of relevances the learning resources should be filtered by.
           |If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
-          |If levels are specified the learning resource must have specified relevances in relation to a specified level.""".stripMargin
+          |If levels are specified the learning resource must have specified relevances in relation to a specified level."""
+        .stripMargin
     )
     relevance: Option[List[String]],
     @description(
@@ -104,7 +105,7 @@ case class DraftSearchParamsDTO(
     @description("Types of hits to appear in the result")
     resultTypes: Option[List[SearchType]],
     @description("Only return results that have one of the specified tags.")
-    tags: Option[List[String]]
+    tags: Option[List[String]],
 )
 
 object DraftSearchParamsDTO {

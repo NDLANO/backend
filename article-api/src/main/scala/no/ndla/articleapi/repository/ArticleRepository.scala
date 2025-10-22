@@ -55,8 +55,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
   }
 
   def unpublishMaxRevision(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
-    val numRows =
-      sql"""
+    val numRows = sql"""
              update ${dbArticle.Article.table}
              set document=null
              where article_id=$articleId
@@ -70,8 +69,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
   }
 
   def unpublish(articleId: Long, revision: Int)(implicit session: DBSession = AutoSession): Try[Long] = {
-    val numRows =
-      sql"""
+    val numRows = sql"""
              update ${dbArticle.Article.table}
              set document=null, slug=null
              where article_id=$articleId
@@ -85,8 +83,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
   }
 
   def deleteMaxRevision(articleId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
-    val numRows =
-      sql"""
+    val numRows = sql"""
              delete from ${dbArticle.Article.table}
              where article_id = $articleId
              and revision=(select max(revision) from ${dbArticle.Article.table} where article_id=$articleId)
@@ -100,8 +97,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
   }
 
   def delete(articleId: Long, revision: Int)(implicit session: DBSession = AutoSession): Try[Long] = {
-    val numRows =
-      sql"""
+    val numRows = sql"""
              delete from ${dbArticle.Article.table}
              where article_id = $articleId
              and revision=$revision
@@ -114,26 +110,20 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
     }
   }
 
-  def withSlug(slug: String): Option[ArticleRow] = articleWhere(
-    sqls"ar.slug=${slug.toLowerCase} ORDER BY revision DESC LIMIT 1"
-  )
+  def withSlug(slug: String): Option[ArticleRow] =
+    articleWhere(sqls"ar.slug=${slug.toLowerCase} ORDER BY revision DESC LIMIT 1")
 
-  def withId(articleId: Long)(session: DBSession = ReadOnlyAutoSession): Option[ArticleRow] =
-    articleWhere(
-      sqls"""
+  def withId(articleId: Long)(session: DBSession = ReadOnlyAutoSession): Option[ArticleRow] = articleWhere(sqls"""
               ar.article_id=${articleId.toInt}
               ORDER BY revision DESC
               LIMIT 1
-              """
-    )(using session)
+              """)(using session)
 
   def withIdAndRevision(articleId: Long, revision: Int): Option[ArticleRow] = {
-    articleWhere(
-      sqls"""
+    articleWhere(sqls"""
               ar.article_id=${articleId.toInt}
               and ar.revision=$revision
-              """
-    )
+              """)
   }
 
   def withIds(articleIds: List[Long], offset: Int, pageSize: Int)(implicit
@@ -153,9 +143,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
         )
         offset $offset
         limit $pageSize
-         """
-      .map(dbArticle.Article.fromResultSet(ar))
-      .list()
+         """.map(dbArticle.Article.fromResultSet(ar)).list()
   }
 
   def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
@@ -165,9 +153,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
            where $externalId = any(external_id)
            order by revision desc
            limit 1
-         """
-      .map(rs => rs.long("article_id"))
-      .single()
+         """.map(rs => rs.long("article_id")).single()
   }
 
   def getRevisions(articleId: Long)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Int] = {
@@ -176,9 +162,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
             from ${dbArticle.Article.table}
             where article_id=$articleId
             and document is not NULL;
-         """
-      .map(rs => rs.int("revision"))
-      .list()
+         """.map(rs => rs.int("revision")).list()
   }
 
   private def externalIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {
@@ -195,20 +179,12 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
            where article_id=${id.toInt}
            order by revision desc
            limit 1
-         """
-      .map(externalIdsFromResultSet)
-      .single()
-      .getOrElse(List.empty)
+         """.map(externalIdsFromResultSet).single().getOrElse(List.empty)
   }
 
   def getAllIds(implicit session: DBSession = AutoSession): Seq[ArticleIds] = {
     sql"select article_id, external_id from ${dbArticle.Article.table}"
-      .map(rs =>
-        ArticleIds(
-          rs.long("article_id"),
-          externalIdsFromResultSet(rs)
-        )
-      )
+      .map(rs => ArticleIds(rs.long("article_id"), externalIdsFromResultSet(rs)))
       .list()
   }
 
@@ -224,10 +200,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
                  ) _
            where revision = max_revision
            and doc is not null
-      """
-      .map(rs => rs.long("count"))
-      .single()
-      .getOrElse(0)
+      """.map(rs => rs.long("count")).single().getOrElse(0)
   }
 
   def getArticlesByPage(pageSize: Int, offset: Int)(implicit session: DBSession = AutoSession): Seq[Article] = {
@@ -246,10 +219,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
            order by row_id
            offset $offset
            limit $pageSize
-      """
-      .map(dbArticle.Article.fromResultSet(ar))
-      .list()
-      .toArticles
+      """.map(dbArticle.Article.fromResultSet(ar)).list().toArticles
   }
 
   def getTags(input: String, pageSize: Int, offset: Int, language: String)(implicit
@@ -257,7 +227,9 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
   ): (Seq[String], Long) = {
     val sanitizedInput    = input.replaceAll("%", "")
     val sanitizedLanguage = language.replaceAll("%", "")
-    val langOrAll         = if (sanitizedLanguage == "*" || sanitizedLanguage == "") "%" else sanitizedLanguage
+    val langOrAll         =
+      if (sanitizedLanguage == "*" || sanitizedLanguage == "") "%"
+      else sanitizedLanguage
 
     val tags = sql"""select tags from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
@@ -267,21 +239,15 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
               where sorted_tags.tags ilike ${sanitizedInput + '%'}
               offset $offset
               limit $pageSize
-                      """
-      .map(rs => rs.string("tags"))
-      .list()
+                      """.map(rs => rs.string("tags")).list()
 
-    val tagsCount =
-      sql"""
+    val tagsCount = sql"""
               select count(*) from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
               (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${dbArticle.Article.table}) _
               where tagObj->>'language' like  $langOrAll) all_tags
               where all_tags.tags ilike ${sanitizedInput + '%'};
-           """
-        .map(rs => rs.int("count"))
-        .single()
-        .getOrElse(0)
+           """.map(rs => rs.int("count")).single().getOrElse(0)
 
     (tags, tagsCount.toLong)
 
@@ -298,9 +264,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
     }
   }
 
-  def documentsWithIdBetween(min: Long, max: Long)(implicit
-      session: DBSession = ReadOnlyAutoSession
-  ): Seq[Article] = {
+  def documentsWithIdBetween(min: Long, max: Long)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Article] = {
     val article         = dbArticle.Article.syntax("a")
     val subqueryArticle = dbArticle.Article.syntax("b")
 
@@ -314,10 +278,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
             from ${dbArticle.Article.as(subqueryArticle)}
             where b.article_id = a.article_id
           )
-         """
-      .map(dbArticle.Article.fromResultSet(article))
-      .list()
-      .toArticles
+         """.map(dbArticle.Article.fromResultSet(article)).list().toArticles
   }
 
   private def articleWhere(
@@ -328,9 +289,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
            select ${ar.result.*}
            from ${dbArticle.Article.as(ar)}
            where $whereClause
-         """
-      .map(dbArticle.Article.fromResultSet(ar))
-      .single()
+         """.map(dbArticle.Article.fromResultSet(ar)).single()
   }
 
   def getArticleIdsFromExternalId(
@@ -341,18 +300,11 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
         from ${dbArticle.Article.as(ar)}
         where $externalId=ANY(ar.external_id)
         and ar.document is not NULL"""
-      .map(rs =>
-        ArticleIds(
-          rs.long("article_id"),
-          externalIdsFromResultSet(rs)
-        )
-      )
+      .map(rs => ArticleIds(rs.long("article_id"), externalIdsFromResultSet(rs)))
       .single()
   }
 
-  def slugExists(slug: String, articleId: Option[Long])(implicit
-      session: DBSession = ReadOnlyAutoSession
-  ): Boolean = {
+  def slugExists(slug: String, articleId: Option[Long])(implicit session: DBSession = ReadOnlyAutoSession): Boolean = {
     val sq = articleId match {
       case None     => sql"select count(*) from ${dbArticle.Article.table} where slug = ${slug.toLowerCase}"
       case Some(id) =>

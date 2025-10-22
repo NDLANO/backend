@@ -14,8 +14,8 @@ import no.ndla.network.tapir.NdlaTapirMain
 class MainClass(override val props: ImageApiProperties) extends NdlaTapirMain[ComponentRegistry] {
   val componentRegistry = new ComponentRegistry(props)
 
-  private def warmupRequest = (path: String, options: Map[String, String]) =>
-    Warmup.warmupRequest(props.ApplicationPort, path, options)
+  private def warmupRequest =
+    (path: String, options: Map[String, String]) => Warmup.warmupRequest(props.ApplicationPort, path, options)
 
   override def warmup(): Unit = {
     warmupRequest("/image-api/v2/images", Map("query" -> "norge", "fallback" -> "true"))

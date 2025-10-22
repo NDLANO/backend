@@ -39,7 +39,7 @@ case class Node(
     nodeType: NodeType,
     contextids: List[String],
     context: Option[TaxonomyContext],
-    var contexts: List[TaxonomyContext]
+    var contexts: List[TaxonomyContext],
 )
 
 object Node {
@@ -57,19 +57,7 @@ object Node {
       contextids   <- c.downField("contextids").as[List[String]]
       context      <- c.downField("context").as[Option[TaxonomyContext]]
       contexts     <- c.downField("contexts").as[List[TaxonomyContext]]
-    } yield Node(
-      id,
-      name,
-      contentUri,
-      path,
-      url,
-      metadata,
-      translations,
-      nodeType,
-      contextids,
-      context,
-      contexts
-    )
+    } yield Node(id, name, contentUri, path, url, metadata, translations, nodeType, contextids, context, contexts)
 
   })
 }
@@ -90,7 +78,7 @@ case class TaxonomyContext(
     contextId: String,
     isVisible: Boolean,
     isActive: Boolean,
-    url: String
+    url: String,
 )
 
 object TaxonomyContext {
@@ -110,11 +98,7 @@ object TaxonomyTranslation {
   })
 }
 
-case class TaxonomyResourceType(
-    id: String,
-    parentId: Option[String],
-    name: SearchableLanguageValues
-)
+case class TaxonomyResourceType(id: String, parentId: Option[String], name: SearchableLanguageValues)
 
 object TaxonomyResourceType {
   implicit val decoder: Decoder[TaxonomyResourceType] = deriveDecoder

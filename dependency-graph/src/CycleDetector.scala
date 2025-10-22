@@ -8,10 +8,7 @@ object CycleDetector {
 
   case class DependencyEdge(from: ClassIdentifier, to: ClassIdentifier)
 
-  case class DependencyGraph(
-      nodes: Set[ClassIdentifier],
-      edges: Set[DependencyEdge]
-  ) {
+  case class DependencyGraph(nodes: Set[ClassIdentifier], edges: Set[DependencyEdge]) {
     def dependenciesOf(classId: ClassIdentifier): Set[ClassIdentifier] = {
       edges.filter(_.from == classId).map(_.to)
     }
@@ -23,10 +20,7 @@ object CycleDetector {
 
   case class DependencyEdgeWithIndirection(from: ClassIdentifier, to: ClassIdentifier, isIndirect: Boolean)
 
-  case class EnhancedDependencyGraph(
-      nodes: Set[ClassIdentifier],
-      edges: Set[DependencyEdgeWithIndirection]
-  ) {
+  case class EnhancedDependencyGraph(nodes: Set[ClassIdentifier], edges: Set[DependencyEdgeWithIndirection]) {
     def dependenciesOf(classId: ClassIdentifier): Set[ClassIdentifier] = {
       edges.filter(_.from == classId).map(_.to)
     }
@@ -44,12 +38,12 @@ object CycleDetector {
     val classMap = classes.map(c => ClassIdentifier(c.name, c.packageName) -> c).toMap
     val nodes    = classMap.keySet
     val edges    = for {
-      cls <- classes
-      fromId = ClassIdentifier(cls.name, cls.packageName)
-      arg        <- cls.arguments
-      argPackage <- arg.packageName
+      cls           <- classes
+      fromId         = ClassIdentifier(cls.name, cls.packageName)
+      arg           <- cls.arguments
+      argPackage    <- arg.packageName
       actualTypeName = extractClassName(arg.argType)
-      toId <- classMap.keys.find(id => id.name == actualTypeName && id.packageName == argPackage)
+      toId          <- classMap.keys.find(id => id.name == actualTypeName && id.packageName == argPackage)
     } yield DependencyEdge(fromId, toId)
 
     DependencyGraph(nodes, edges.toSet)
@@ -59,23 +53,24 @@ object CycleDetector {
     val classMap = classes.map(c => ClassIdentifier(c.name, c.packageName) -> c).toMap
     val nodes    = classMap.keySet
     val edges    = for {
-      cls <- classes
-      fromId = ClassIdentifier(cls.name, cls.packageName)
-      arg        <- cls.arguments
-      argPackage <- arg.packageName
+      cls           <- classes
+      fromId         = ClassIdentifier(cls.name, cls.packageName)
+      arg           <- cls.arguments
+      argPackage    <- arg.packageName
       actualTypeName = extractClassName(arg.argType)
-      toId <- classMap.keys.find(id => id.name == actualTypeName && id.packageName == argPackage)
+      toId          <- classMap.keys.find(id => id.name == actualTypeName && id.packageName == argPackage)
     } yield DependencyEdgeWithIndirection(fromId, toId, arg.isLazyFunctionType)
 
     EnhancedDependencyGraph(nodes, edges.toSet)
   }
 
   def extractClassName(argType: String): String = {
-    val cleanType = if (argType.trim.startsWith("=>")) {
-      argType.trim.stripPrefix("=>").trim
-    } else {
-      argType.trim
-    }
+    val cleanType =
+      if (argType.trim.startsWith("=>")) {
+        argType.trim.stripPrefix("=>").trim
+      } else {
+        argType.trim
+      }
 
     val genericPattern = """^(\w+)\[(.+)\]$""".r
     cleanType match {
@@ -95,18 +90,22 @@ object CycleDetector {
 
       if (directCycles.nonEmpty) {
         Logger.error(s"Found ${directCycles.size} direct cyclical dependencies:")
-        directCycles.zipWithIndex.foreach { case ((cycle, _), index) =>
-          Logger.warn(s"  Cycle ${index + 1}: ${cycle.mkString(" -> ")} -> ${cycle.head}")
-        }
+        directCycles
+          .zipWithIndex
+          .foreach { case ((cycle, _), index) =>
+            Logger.warn(s"  Cycle ${index + 1}: ${cycle.mkString(" -> ")} -> ${cycle.head}")
+          }
       }
 
       if (indirectCycles.nonEmpty) {
         Logger.info(
           s"Found ${indirectCycles.size} cyclical dependencies broken by indirection (=>) - these are generally safe:"
         )
-        indirectCycles.zipWithIndex.foreach { case ((cycle, _), index) =>
-          Logger.info(s"  Indirect cycle ${index + 1}: ${cycle.mkString(" -> ")} -> ${cycle.head}")
-        }
+        indirectCycles
+          .zipWithIndex
+          .foreach { case ((cycle, _), index) =>
+            Logger.info(s"  Indirect cycle ${index + 1}: ${cycle.mkString(" -> ")} -> ${cycle.head}")
+          }
       }
 
       // Exit with status code 1 if any direct cycles were found
@@ -148,7 +147,9 @@ object CycleDetector {
         localVisited += node
         recursionStack += node
         val dependencies = graph.dependenciesOf(node)
-        dependencies.foreach { dep => dfs(dep, node :: path) }
+        dependencies.foreach { dep =>
+          dfs(dep, node :: path)
+        }
         recursionStack -= node
       }
 
@@ -158,7 +159,11 @@ object CycleDetector {
       }
     }
 
-    graph.nodes.foreach { node => dfsFromNode(node) }
+    graph
+      .nodes
+      .foreach { node =>
+        dfsFromNode(node)
+      }
 
     // Additional check for direct 2-node cycles that might be missed by DFS
     val directCycles = for {
@@ -173,7 +178,9 @@ object CycleDetector {
       (cycle, !hasBrokenIndirection)
     }
 
-    val allCycles = (cycles ++ directCycles).distinct
+    val allCycles = (
+      cycles ++ directCycles
+    ).distinct
 
     // Filter out cycles that are not actually valid paths
     val validCycles = allCycles.filter { case (cycle, _) =>
@@ -184,9 +191,11 @@ object CycleDetector {
         graph.dependenciesOf(nodeA).contains(nodeB) && graph.dependenciesOf(nodeB).contains(nodeA)
       } else {
         // For longer cycles, verify each step in the path
-        cycle.zip(cycle.tail :+ cycle.head).forall { case (from, to) =>
-          graph.dependenciesOf(from).contains(to)
-        }
+        cycle
+          .zip(cycle.tail :+ cycle.head)
+          .forall { case (from, to) =>
+            graph.dependenciesOf(from).contains(to)
+          }
       }
     }
 

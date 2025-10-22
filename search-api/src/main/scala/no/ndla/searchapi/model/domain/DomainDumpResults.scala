@@ -16,6 +16,12 @@ import scala.annotation.unused
 case class DomainDumpResults[T](totalCount: Long, page: Int, pageSize: Int, results: Seq[T])
 
 object DomainDumpResults {
-  implicit def encoder[T](implicit @unused e: Encoder[T]): Encoder[DomainDumpResults[T]] = deriveEncoder
-  implicit def decoder[T](implicit @unused d: Decoder[T]): Decoder[DomainDumpResults[T]] = deriveDecoder
+  implicit def encoder[T](implicit
+      @unused
+      e: Encoder[T]
+  ): Encoder[DomainDumpResults[T]] = deriveEncoder
+  implicit def decoder[T](implicit
+      @unused
+      d: Decoder[T]
+  ): Decoder[DomainDumpResults[T]] = deriveDecoder
 }

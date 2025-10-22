@@ -18,7 +18,7 @@ case class UploadedFile(
     fileName: Option[String],
     fileSize: Long,
     contentType: Option[String],
-    file: File
+    file: File,
 ) {
   def doWithStream[T](f: UploadedFile => Try[T]): Try[T] = {
     try f(this)
@@ -40,7 +40,7 @@ object UploadedFile {
       fileSize = file.length(),
       contentType = filePart.contentType,
       fileName = fileName,
-      file = file
+      file = file,
     )
   }
 }

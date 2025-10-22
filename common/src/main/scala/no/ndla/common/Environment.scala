@@ -26,8 +26,10 @@ object Environment {
 
   def setPropsFromEnv(): Unit = {
     val envMap = System.getenv()
-    envMap.asScala.foreach { case (key, value) =>
-      System.setProperty(key, value)
-    }
+    envMap
+      .asScala
+      .foreach { case (key, value) =>
+        System.setProperty(key, value)
+      }
   }
 }

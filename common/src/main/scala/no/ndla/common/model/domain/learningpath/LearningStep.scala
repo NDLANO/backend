@@ -31,15 +31,10 @@ case class LearningStep(
     lastUpdated: NDLADate,
     owner: String,
     showTitle: Boolean = false,
-    status: StepStatus = StepStatus.ACTIVE
+    status: StepStatus = StepStatus.ACTIVE,
 ) {
   def supportedLanguages: Seq[String] = {
-    getSupportedLanguages(
-      title,
-      introduction,
-      description,
-      embedUrl
-    )
+    getSupportedLanguages(title, introduction, description, embedUrl)
   }
 }
 

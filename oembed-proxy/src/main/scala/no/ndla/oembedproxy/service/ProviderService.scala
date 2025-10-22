@@ -18,7 +18,7 @@ import no.ndla.oembedproxy.service.OEmbedConverterService.{
   addYoutubeTimestampIfdefinedInRequest,
   handleYoutubeRequestUrl,
   removeQueryString,
-  removeQueryStringAndFragment
+  removeQueryStringAndFragment,
 }
 
 import scala.util.{Failure, Success}
@@ -26,20 +26,10 @@ import sttp.client3.quick.*
 
 class ProviderService(using ndlaClient: NdlaClient, props: OEmbedProxyProperties) extends StrictLogging {
   val NdlaFrontendEndpoint: OEmbedEndpoint =
-    OEmbedEndpoint(
-      Some(props.NdlaApprovedUrl),
-      props.NdlaFrontendOembedServiceUrl,
-      None,
-      None,
-      None
-    )
+    OEmbedEndpoint(Some(props.NdlaApprovedUrl), props.NdlaFrontendOembedServiceUrl, None, None, None)
 
   val NdlaApiProvider: OEmbedProvider =
-    OEmbedProvider(
-      "NDLA Api",
-      props.NdlaApiOembedProvider,
-      List(NdlaFrontendEndpoint)
-    )
+    OEmbedProvider("NDLA Api", props.NdlaApiOembedProvider, List(NdlaFrontendEndpoint))
 
   val YoutubeEndpoint: OEmbedEndpoint = OEmbedEndpoint(
     Some(
@@ -49,13 +39,13 @@ class ProviderService(using ndlaClient: NdlaClient, props: OEmbedProxyProperties
         "http(s?)://youtu.be/*",
         "http(s?)://*.youtube.com/playlist\\?list=*",
         "http(s?)://youtube.com/playlist\\?list=*",
-        "http(s?)://*.youtube.com/shorts*"
+        "http(s?)://*.youtube.com/shorts*",
       )
     ),
     "https://www.youtube.com/oembed",
     None,
     None,
-    None
+    None,
   )
 
   val YoutubeProvider: OEmbedProvider = OEmbedProvider(
@@ -63,7 +53,7 @@ class ProviderService(using ndlaClient: NdlaClient, props: OEmbedProxyProperties
     "https://www.youtube.com",
     List(YoutubeEndpoint),
     handleYoutubeRequestUrl,
-    addYoutubeTimestampIfdefinedInRequest
+    addYoutubeTimestampIfdefinedInRequest,
   )
 
   val H5PApprovedUrls: List[String] = List(props.NdlaH5PApprovedUrl)
@@ -71,8 +61,7 @@ class ProviderService(using ndlaClient: NdlaClient, props: OEmbedProxyProperties
   val H5PEndpoint: OEmbedEndpoint =
     OEmbedEndpoint(Some(H5PApprovedUrls), s"${props.NdlaH5POembedProvider}/oembed", None, None, None)
 
-  val H5PProvider: OEmbedProvider =
-    OEmbedProvider("H5P", props.NdlaH5POembedProvider, List(H5PEndpoint))
+  val H5PProvider: OEmbedProvider = OEmbedProvider("H5P", props.NdlaH5POembedProvider, List(H5PEndpoint))
 
   val TedApprovedUrls: List[String] = List(
     "https://www.ted.com/talks/*",
@@ -86,7 +75,7 @@ class ProviderService(using ndlaClient: NdlaClient, props: OEmbedProxyProperties
     "https://embed.ted.com/talks/*",
     "http://embed.ted.com/talks/*",
     "www.embed.ted.com/talks/*",
-    "embed.ted.com/talks/*"
+    "embed.ted.com/talks/*",
   )
 
   val TedEndpoint: OEmbedEndpoint =
@@ -96,13 +85,7 @@ class ProviderService(using ndlaClient: NdlaClient, props: OEmbedProxyProperties
   val IssuuApprovedUrls: List[String] = List("http://issuu.com/*", "https://issuu.com/*")
 
   val IssuuEndpoint: OEmbedEndpoint =
-    OEmbedEndpoint(
-      Some(IssuuApprovedUrls),
-      "https://issuu.com/oembed",
-      None,
-      None,
-      Some(List(("iframe", "true")))
-    )
+    OEmbedEndpoint(Some(IssuuApprovedUrls), "https://issuu.com/oembed", None, None, Some(List(("iframe", "true"))))
 
   val IssuuProvider: OEmbedProvider =
     OEmbedProvider("Issuu", "https://issuu.com", List(IssuuEndpoint), removeQueryStringAndFragment)
@@ -122,9 +105,7 @@ class ProviderService(using ndlaClient: NdlaClient, props: OEmbedProxyProperties
     providersTry match {
       // Only keep providers with at least one endpoint with at least one url
       case Success(providers) =>
-        providers
-          .filter(_.endpoints.nonEmpty)
-          .filter(_.endpoints.forall(endpoint => endpoint.url.nonEmpty))
+        providers.filter(_.endpoints.nonEmpty).filter(_.endpoints.forall(endpoint => endpoint.url.nonEmpty))
       case Failure(ex) =>
         logger.error(s"Failed to load providers from ${request.uri}.")
         throw new DoNotUpdateMemoizeException(ex.getMessage)

@@ -41,43 +41,25 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      groups = Seq(
-        MyNDLAGroup(
-          id = "id",
-          displayName = "oslo",
-          isPrimarySchool = false,
-          parentId = None
-        )
-      ),
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
     )
-    val updatedUserData =
-      UpdatedMyNDLAUserDTO(
-        favoriteSubjects = Some(Seq("r", "e")),
-        arenaEnabled = None
-      )
-    val userAfterMerge = MyNDLAUser(
+    val updatedUserData = UpdatedMyNDLAUserDTO(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None)
+    val userAfterMerge  = MyNDLAUser(
       id = 42,
       feideId = feideId,
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      groups = Seq(
-        MyNDLAGroup(
-          id = "id",
-          displayName = "oslo",
-          isPrimarySchool = false,
-          parentId = None
-        )
-      ),
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
     )
     val expected = MyNDLAUserDTO(
       id = 42,
@@ -89,7 +71,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       role = UserRole.STUDENT,
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
-      arenaEnabled = false
+      arenaEnabled = false,
     )
 
     doReturn(Success(()))
@@ -108,11 +90,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That updateUserData fails if user does not exist") {
     val feideId         = "feide"
-    val updatedUserData =
-      UpdatedMyNDLAUserDTO(
-        favoriteSubjects = Some(Seq("r", "e")),
-        arenaEnabled = None
-      )
+    val updatedUserData = UpdatedMyNDLAUserDTO(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None)
 
     doReturn(Success(()))
       .when(folderWriteService)
@@ -138,16 +116,15 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(false))
 
     val feideId     = "feide"
-    val feideGroups =
-      Seq(
-        FeideGroup(
-          id = "id",
-          `type` = FeideGroup.FC_ORG,
-          displayName = "oslo",
-          membership = Membership(primarySchool = Some(true)),
-          parent = None
-        )
+    val feideGroups = Seq(
+      FeideGroup(
+        id = "id",
+        `type` = FeideGroup.FC_ORG,
+        displayName = "oslo",
+        membership = Membership(primarySchool = Some(true)),
+        parent = None,
       )
+    )
     val domainUserData = MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -155,18 +132,11 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now(),
       organization = "oslo",
-      groups = Seq(
-        MyNDLAGroup(
-          id = "id",
-          displayName = "oslo",
-          isPrimarySchool = true,
-          parentId = None
-        )
-      ),
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -178,14 +148,14 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       role = UserRole.STUDENT,
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-      arenaEnabled = false
+      arenaEnabled = false,
     )
     val feideUserInfo = FeideExtendedUserInfo(
       displayName = "David",
       eduPersonAffiliation = Seq("student"),
       None,
       eduPersonPrincipalName = "example@email.com",
-      mail = Some(Seq("example@email.com"))
+      mail = Some(Seq("example@email.com")),
     )
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
@@ -194,8 +164,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     when(feideApiClient.getFeideGroups(Some(feideId))).thenReturn(Success(feideGroups))
     when(feideApiClient.getOrganization(any)).thenReturn(Success("oslo"))
     when(userRepository.userWithFeideId(any)(using any)).thenReturn(Success(None))
-    when(userRepository.insertUser(any, any[MyNDLAUserDocument])(using any))
-      .thenReturn(Success(domainUserData))
+    when(userRepository.insertUser(any, any[MyNDLAUserDocument])(using any)).thenReturn(Success(domainUserData))
 
     service.getMyNDLAUserData(Some(feideId)).get should be(apiUserData)
 
@@ -223,18 +192,11 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().plusDays(1),
       organization = "oslo",
-      groups = Seq(
-        MyNDLAGroup(
-          id = "id",
-          displayName = "oslo",
-          isPrimarySchool = true,
-          parentId = None
-        )
-      ),
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -246,7 +208,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       role = UserRole.STUDENT,
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-      arenaEnabled = false
+      arenaEnabled = false,
     )
 
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
@@ -270,16 +232,15 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(true))
 
     val feideId     = "feide"
-    val feideGroups =
-      Seq(
-        FeideGroup(
-          id = "id",
-          `type` = FeideGroup.FC_ORG,
-          displayName = "oslo",
-          membership = Membership(primarySchool = Some(true)),
-          parent = None
-        )
+    val feideGroups = Seq(
+      FeideGroup(
+        id = "id",
+        `type` = FeideGroup.FC_ORG,
+        displayName = "oslo",
+        membership = Membership(primarySchool = Some(true)),
+        parent = None,
       )
+    )
     val domainUserData = MyNDLAUser(
       id = 42,
       feideId = feideId,
@@ -287,25 +248,18 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       userRole = UserRole.STUDENT,
       lastUpdated = clock.now().minusDays(1),
       organization = "oslo",
-      groups = Seq(
-        MyNDLAGroup(
-          id = "id",
-          displayName = "oslo",
-          isPrimarySchool = true,
-          parentId = None
-        )
-      ),
+      groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
-      arenaEnabled = false
+      arenaEnabled = false,
     )
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",
       eduPersonAffiliation = Seq.empty,
       None,
       eduPersonPrincipalName = "example@email.com",
-      mail = Some(Seq("example@email.com"))
+      mail = Some(Seq("example@email.com")),
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -317,7 +271,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       role = UserRole.STUDENT,
       organization = "oslo",
       groups = Seq(MyNDLAGroupDTO(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
-      arenaEnabled = false
+      arenaEnabled = false,
     )
 
     when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))

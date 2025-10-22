@@ -20,14 +20,11 @@ case class LanguageValue[T](language: String, value: T) extends LanguageField[T]
 case class SearchableLanguageValues(languageValues: Seq[LanguageValue[String]]) {
   def map[T](f: LanguageValue[String] => T): Seq[T] = languageValues.map(lv => f(lv))
 
-  def getLanguage(language: String): Option[String] =
-    languageValues.find(_.language == language).map(_.value)
+  def getLanguage(language: String): Option[String] = languageValues.find(_.language == language).map(_.value)
 
-  def getLanguageOrDefault(language: String): Option[String] =
-    getLanguage(language).orElse(defaultValue)
+  def getLanguageOrDefault(language: String): Option[String] = getLanguage(language).orElse(defaultValue)
 
-  def defaultValue: Option[String] =
-    Language.getDefault(languageValues).map(_.value)
+  def defaultValue: Option[String] = Language.getDefault(languageValues).map(_.value)
 }
 
 object SearchableLanguageValues {
@@ -37,10 +34,11 @@ object SearchableLanguageValues {
   }
   implicit val decoder: Decoder[SearchableLanguageValues] = Decoder.withReattempt {
     case c: FailedCursor if !c.incorrectFocus => Right(SearchableLanguageValues(Seq.empty))
-    case c                                    =>
-      c.as[Map[String, String]].map { map =>
-        SearchableLanguageValues.from(map.toSeq*)
-      }
+    case c                                    => c
+        .as[Map[String, String]]
+        .map { map =>
+          SearchableLanguageValues.from(map.toSeq*)
+        }
   }
 
   def empty: SearchableLanguageValues = SearchableLanguageValues(Seq.empty)
@@ -52,7 +50,9 @@ object SearchableLanguageValues {
     SearchableLanguageValues(fields.map(f => LanguageValue(f.language, func(f))))
 
   def from(values: (String, String)*): SearchableLanguageValues = {
-    val languageValues = values.map { case (language, value) => LanguageValue(language, value) }
+    val languageValues = values.map { case (language, value) =>
+      LanguageValue(language, value)
+    }
     SearchableLanguageValues(languageValues)
   }
 
@@ -73,9 +73,17 @@ object SearchableLanguageList {
     mapToEncode.asJson
   }
   implicit val decoder: Decoder[SearchableLanguageList] = Decoder.instance { cursor =>
-    cursor.as[Map[String, Seq[String]]].map { map =>
-      SearchableLanguageList(map.map { case (language, value) => LanguageValue(language, value) }.toSeq)
-    }
+    cursor
+      .as[Map[String, Seq[String]]]
+      .map { map =>
+        SearchableLanguageList(
+          map
+            .map { case (language, value) =>
+              LanguageValue(language, value)
+            }
+            .toSeq
+        )
+      }
   }
 
   def fromFields(fields: Seq[LanguageField[Seq[String]]]): SearchableLanguageList =
@@ -88,7 +96,9 @@ object SearchableLanguageList {
   }
 
   def from(values: (String, Seq[String])*): SearchableLanguageList = {
-    val languageValues = values.map { case (language, value) => LanguageValue(language, value) }
+    val languageValues = values.map { case (language, value) =>
+      LanguageValue(language, value)
+    }
     SearchableLanguageList(languageValues)
   }
 

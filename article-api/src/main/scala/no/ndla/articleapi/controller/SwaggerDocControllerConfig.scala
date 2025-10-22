@@ -14,9 +14,7 @@ import no.ndla.network.tapir.SwaggerInfo
 import sttp.tapir.*
 
 object SwaggerDocControllerConfig {
-  private val scopes = Permission.toSwaggerMap(
-    Permission.thatStartsWith("articles") :+ Permission.DRAFT_API_WRITE
-  )
+  private val scopes = Permission.toSwaggerMap(Permission.thatStartsWith("articles") :+ Permission.DRAFT_API_WRITE)
 
   def swaggerInfo(using props: Props): SwaggerInfo = SwaggerInfo(
     mountPoint = "article-api" / "api-docs",
@@ -25,6 +23,6 @@ object SwaggerDocControllerConfig {
       "returned articles, and typical examples of this are language and license.\n" +
       "Includes endpoints to filter Articles on different levels, and retrieve single articles.",
     authUrl = props.Auth0LoginEndpoint,
-    scopes = scopes
+    scopes = scopes,
   )
 }

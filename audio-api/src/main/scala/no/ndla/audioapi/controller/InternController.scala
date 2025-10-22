@@ -38,14 +38,15 @@ class InternController(using
     props: Props,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
   private val internalErrorStringBody      = statusCode(StatusCode.InternalServerError).and(stringBody)
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    endpoint.get
+    endpoint
+      .get
       .in("external")
       .in(path[String]("external_id"))
       .in(query[Option[String]]("language"))
@@ -53,7 +54,8 @@ class InternController(using
       .serverLogicPure { case (externalId, language) =>
         readService.withExternalId(externalId, language).asRight
       },
-    endpoint.post
+    endpoint
+      .post
       .in("index")
       .in(query[Option[Int]]("numShards"))
       .out(stringBody)
@@ -62,13 +64,14 @@ class InternController(using
         (
           audioIndexService.indexDocuments(numShards),
           tagIndexService.indexDocuments(numShards),
-          seriesIndexService.indexDocuments(numShards)
+          seriesIndexService.indexDocuments(numShards),
         ) match {
           case (Success(audioReindexResult), Success(tagReindexResult), Success(seriesReIndexResult)) =>
             val result =
               s"""Completed indexing of ${audioReindexResult.totalIndexed} audios in ${audioReindexResult.millisUsed} ms.
                    |Completed indexing of ${tagReindexResult.totalIndexed} tags in ${tagReindexResult.millisUsed} ms.
-                   |Completed indexing of ${seriesReIndexResult.totalIndexed} series in ${seriesReIndexResult.millisUsed} ms.""".stripMargin
+                   |Completed indexing of ${seriesReIndexResult.totalIndexed} series in ${seriesReIndexResult.millisUsed} ms."""
+                .stripMargin
             logger.info(result)
             result.asRight
           case (Failure(f), _, _) =>
@@ -82,12 +85,15 @@ class InternController(using
             f.getMessage.asLeft
         }
       },
-    endpoint.delete
+    endpoint
+      .delete
       .in("index")
       .errorOut(internalErrorStringBody)
       .out(stringBody)
       .serverLogicPure { _ =>
-        def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
+        def pluralIndex(n: Int) =
+          if (n == 1) "1 index"
+          else s"$n indexes"
         audioIndexService.findAllIndexes(props.SearchIndex) match {
           case Failure(f)       => f.getMessage.asLeft
           case Success(indexes) =>
@@ -106,7 +112,8 @@ class InternController(using
             }
         }
       },
-    endpoint.get
+    endpoint
+      .get
       .in("dump" / "audio")
       .in(query[Int]("page").default(1))
       .in(query[Int]("page-size").default(250))
@@ -115,7 +122,8 @@ class InternController(using
       .serverLogicPure { case (pageNo, pageSize) =>
         readService.getMetaAudioDomainDump(pageNo, pageSize).asRight
       },
-    endpoint.get
+    endpoint
+      .get
       .in("dump" / "audio")
       .in(path[Long]("id"))
       .errorOut(errorOutputsFor(400, 404))
@@ -126,10 +134,13 @@ class InternController(using
           case None        => errorHandling.returnLeftError(NotFoundException(s"Could not find audio with id: '$id'"))
         }
       },
-    endpoint.post
+    endpoint
+      .post
       .in("dump" / "audio")
       .in(jsonBody[AudioMetaInformation])
       .out(jsonBody[AudioMetaInformation])
-      .serverLogicPure { domainMeta => audioRepository.insert(domainMeta).asRight }
+      .serverLogicPure { domainMeta =>
+        audioRepository.insert(domainMeta).asRight
+      },
   )
 }

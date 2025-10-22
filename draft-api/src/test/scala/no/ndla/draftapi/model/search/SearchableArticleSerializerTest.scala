@@ -37,7 +37,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     previousNotes = Seq("Søte", "Jordbær"),
     grepCodes = Seq("KM1337", "KM5432"),
     status = SearchableStatus(DraftStatus.PUBLISHED, Set.empty),
-    traits = List(Video)
+    traits = List(Video),
   )
 
   test("That deserialization and serialization of SearchableArticle works as expected") {

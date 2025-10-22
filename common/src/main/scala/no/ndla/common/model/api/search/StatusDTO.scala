@@ -14,8 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Status information of the resource")
 case class StatusDTO(
-    @description("The current status of the resource") current: String,
-    @description("Previous statuses this resource has been in") other: Seq[String]
+    @description("The current status of the resource")
+    current: String,
+    @description("Previous statuses this resource has been in")
+    other: Seq[String],
 )
 
 object StatusDTO {

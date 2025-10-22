@@ -35,7 +35,7 @@ trait UnitSuite extends UnitTestSuite {
       revision = article.revision.get,
       articleId = article.id.get,
       slug = article.slug,
-      article = Some(article)
+      article = Some(article),
     )
   }
 

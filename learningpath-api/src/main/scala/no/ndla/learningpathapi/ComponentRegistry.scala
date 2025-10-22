@@ -16,7 +16,7 @@ import no.ndla.learningpathapi.controller.{
   InternController,
   LearningpathControllerV2,
   StatsController,
-  SwaggerDocControllerConfig
+  SwaggerDocControllerConfig,
 }
 import no.ndla.learningpathapi.db.migrationwithdependencies.{
   V11__CreatedByNdlaStatusForOwnersWithRoles,
@@ -24,7 +24,7 @@ import no.ndla.learningpathapi.db.migrationwithdependencies.{
   V14__ConvertLanguageUnknown,
   V15__MergeDuplicateLanguageFields,
   V31__ArenaDefaultEnabledOrgs,
-  V33__AiDefaultEnabledOrgs
+  V33__AiDefaultEnabledOrgs,
 }
 import no.ndla.learningpathapi.integration.*
 import no.ndla.learningpathapi.repository.LearningPathRepository
@@ -35,7 +35,7 @@ import no.ndla.learningpathapi.validation.{
   LearningPathValidator,
   LearningStepValidator,
   TitleValidator,
-  UrlValidator
+  UrlValidator,
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
@@ -46,7 +46,7 @@ import no.ndla.network.tapir.{
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.database.DBUtility
@@ -63,7 +63,7 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
     new V14__ConvertLanguageUnknown,
     new V15__MergeDuplicateLanguageFields,
     new V31__ArenaDefaultEnabledOrgs,
-    new V33__AiDefaultEnabledOrgs
+    new V33__AiDefaultEnabledOrgs,
   )
   given e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(props.SearchServer)
   given ndlaClient: NdlaClient   = new NdlaClient
@@ -96,13 +96,8 @@ class ComponentRegistry(properties: LearningpathApiProperties) extends TapirAppl
   given healthController: TapirHealthController            = new TapirHealthController
 
   given swagger: SwaggerController = new SwaggerController(
-    List[TapirController](
-      learningpathControllerV2,
-      internController,
-      statsController,
-      healthController
-    ),
-    SwaggerDocControllerConfig.swaggerInfo
+    List[TapirController](learningpathControllerV2, internController, statsController, healthController),
+    SwaggerDocControllerConfig.swaggerInfo,
   )
 
   given services: List[TapirController] = swagger.getServices()

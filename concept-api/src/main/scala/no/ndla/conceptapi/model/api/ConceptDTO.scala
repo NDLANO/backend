@@ -49,7 +49,7 @@ case class ConceptDTO(
     @description("Information about the gloss")
     glossData: Option[GlossDataDTO],
     @description("Describes the changes made to the concept, only visible to editors")
-    editorNotes: Option[Seq[EditorNoteDTO]]
+    editorNotes: Option[Seq[EditorNoteDTO]],
 )
 
 object ConceptDTO {

@@ -16,13 +16,12 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 
 object TapirUtil extends StrictLogging {
-  private def variantsForCodes(codes: Seq[Int]): Seq[OneOfVariant[AllErrors]] = codes
-    .map(code => {
-      val statusCode = StatusCode(code)
-      oneOfVariantValueMatcher(statusCode, NoNullJsonPrinter.jsonBody[AllErrors]) { case errorBody: AllErrors =>
-        errorBody.statusCode == statusCode.code
-      }
-    })
+  private def variantsForCodes(codes: Seq[Int]): Seq[OneOfVariant[AllErrors]] = codes.map(code => {
+    val statusCode = StatusCode(code)
+    oneOfVariantValueMatcher(statusCode, NoNullJsonPrinter.jsonBody[AllErrors]) { case errorBody: AllErrors =>
+      errorBody.statusCode == statusCode.code
+    }
+  })
 
   private val internalServerErrorDefaultVariant: OneOfVariant[ErrorBody] = oneOfDefaultVariant(
     statusCode(StatusCode.InternalServerError)
@@ -37,9 +36,11 @@ object TapirUtil extends StrictLogging {
 
   def errorOutputsFor(codes: Int*): OneOf[AllErrors, AllErrors] = {
     val non500DefaultCodes   = List(400, 404)
-    val codesToGetVariantFor = (codes ++ non500DefaultCodes).distinct
-    val variants             = variantsForCodes(codesToGetVariantFor)
-    val err                  = variants :+ internalServerErrorDefaultVariant
+    val codesToGetVariantFor = (
+      codes ++ non500DefaultCodes
+    ).distinct
+    val variants = variantsForCodes(codesToGetVariantFor)
+    val err      = variants :+ internalServerErrorDefaultVariant
 
     oneOf[AllErrors](err.head, err.tail*)
   }

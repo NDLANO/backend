@@ -24,10 +24,7 @@ object Menu {
   implicit val decoder: Decoder[Menu] = deriveDecoder[Menu]
 }
 
-case class FrontPage(
-    articleId: Long,
-    menu: List[Menu]
-)
+case class FrontPage(articleId: Long, menu: List[Menu])
 
 object FrontPage {
   implicit val encoder: Encoder[FrontPage] = deriveEncoder[FrontPage]

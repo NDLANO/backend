@@ -21,8 +21,7 @@ class DBSubjectPage(using props: Props) {
     override val tableName                  = "subjectpage"
     override val schemaName: Option[String] = props.MetaSchema.toString.some
 
-    def fromDb(lp: SyntaxProvider[SubjectPage])(rs: WrappedResultSet): Try[SubjectPage] =
-      fromDb(lp.resultName)(rs)
+    def fromDb(lp: SyntaxProvider[SubjectPage])(rs: WrappedResultSet): Try[SubjectPage] = fromDb(lp.resultName)(rs)
 
     private def fromDb(lp: ResultName[SubjectPage])(rs: WrappedResultSet): Try[SubjectPage] = {
       val id       = rs.long(lp.c("id"))

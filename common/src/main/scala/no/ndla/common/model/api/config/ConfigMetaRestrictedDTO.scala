@@ -14,8 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Describes configuration value.")
 case class ConfigMetaRestrictedDTO(
-    @description("Configuration key") key: String,
-    @description("Configuration value.") value: Either[Boolean, List[String]]
+    @description("Configuration key")
+    key: String,
+    @description("Configuration value.")
+    value: Either[Boolean, List[String]],
 )
 
 object ConfigMetaRestrictedDTO {

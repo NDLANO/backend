@@ -34,18 +34,14 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
   def objectExists(key: String): Boolean = headObject(key).isSuccess
 
   def getObject(key: String): Try[NdlaS3Object] = Try {
-    val gor = GetObjectRequest
-      .builder()
-      .bucket(bucket)
-      .key(key)
-      .build()
+    val gor      = GetObjectRequest.builder().bucket(bucket).key(key).build()
     val response = client.getObject(gor)
     NdlaS3Object(
       bucket = bucket,
       key = key,
       stream = response,
       contentType = response.response().contentType(),
-      contentLength = response.response().contentLength()
+      contentLength = response.response().contentLength(),
     )
   }
 
@@ -72,21 +68,17 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
 
     val requestBody = RequestBody.fromFile(uploadedFile.file)
 
-    client.putObject(
-      porWithCacheControl.build(),
-      requestBody
-    )
+    client.putObject(porWithCacheControl.build(), requestBody)
   }
 
   def updateMetadata(key: String, metadata: java.util.Map[String, String]): Try[?] = Try {
-    val cor =
-      CopyObjectRequest
-        .builder()
-        .sourceBucket(bucket)
-        .destinationBucket(bucket)
-        .sourceKey(key)
-        .destinationKey(key)
-        .metadata(metadata)
+    val cor = CopyObjectRequest
+      .builder()
+      .sourceBucket(bucket)
+      .destinationBucket(bucket)
+      .sourceKey(key)
+      .destinationKey(key)
+      .metadata(metadata)
 
     client.copyObject(cor.build())
   }

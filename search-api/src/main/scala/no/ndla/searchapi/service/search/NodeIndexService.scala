@@ -36,7 +36,7 @@ class NodeIndexService(using
     frontpageApiClient: FrontpageApiClient,
     grepApiClient: GrepApiClient,
     searchLanguage: SearchLanguage,
-    e4sClient: NdlaE4sClient
+    e4sClient: NdlaE4sClient,
 ) extends BulkIndexingService
     with StrictLogging {
   override val documentType: String       = "nodes"
@@ -57,20 +57,16 @@ class NodeIndexService(using
       getTaxonomyContextMapping("contexts"),
       ObjectField(
         "subjectPage",
-        properties = List(
-          keywordField("id"),
-          keywordField("name"),
-          ObjectField("domainObject", enabled = Some(false))
-        ) ++
-          languageValuesMapping("aboutTitle") ++
-          languageValuesMapping("aboutDescription") ++
-          languageValuesMapping("metaDescription")
-      )
+        properties =
+          List(keywordField("id"), keywordField("name"), ObjectField("domainObject", enabled = Some(false))) ++
+            languageValuesMapping("aboutTitle") ++
+            languageValuesMapping("aboutDescription") ++
+            languageValuesMapping("metaDescription"),
+      ),
     )
 
-    val dynamics =
-      languageValuesMapping("title") ++
-        languageValuesMapping("content")
+    val dynamics = languageValuesMapping("title") ++
+      languageValuesMapping("content")
 
     properties(fields ++ dynamics)
   }
@@ -84,8 +80,8 @@ class NodeIndexService(using
   def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = for {
     grepBundle     <- grepApiClient.getGrepBundle()
     taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle(true)
-    indexingBundle = IndexingBundle(grepBundle.some, taxonomyBundle.some, None)
-    result <- indexDocuments(numShards, indexingBundle)
+    indexingBundle  = IndexingBundle(grepBundle.some, taxonomyBundle.some, None)
+    result         <- indexDocuments(numShards, indexingBundle)
   } yield result
 
   private def getFrontPage(contentUri: Option[String]): Try[Option[SubjectPage]] = {
@@ -93,12 +89,9 @@ class NodeIndexService(using
       case Some(Success(frontpageId)) =>
         val subjectPage = frontpageApiClient.getSubjectPage(frontpageId)
         subjectPage match {
-          case Failure(exception: HttpRequestException) if exception.is404 =>
-            Success(None)
-          case Failure(ex) =>
-            Failure(ex)
-          case Success(value) =>
-            Success(Some(value))
+          case Failure(exception: HttpRequestException) if exception.is404 => Success(None)
+          case Failure(ex)                                                 => Failure(ex)
+          case Success(value)                                              => Success(Some(value))
         }
       case _ => Success(None)
     }
@@ -108,19 +101,12 @@ class NodeIndexService(using
     for {
       frontpage  <- getFrontPage(node.contentUri)
       searchable <- searchConverterService.asSearchableNode(node, frontpage, indexingBundle)
-      source = CirceUtil.toJsonString(searchable)
+      source      = CirceUtil.toJsonString(searchable)
     } yield indexInto(indexName).doc(source).id(node.id)
   }
 
-  def sendChunkToElastic(
-      indexingBundle: IndexingBundle,
-      chunk: List[Node],
-      indexName: String
-  ): Try[BulkIndexResult] = {
-    chunk
-      .traverse(node => createIndexRequest(indexingBundle, node, indexName))
-      .map(executeRequests)
-      .flatten
+  def sendChunkToElastic(indexingBundle: IndexingBundle, chunk: List[Node], indexName: String): Try[BulkIndexResult] = {
+    chunk.traverse(node => createIndexRequest(indexingBundle, node, indexName)).map(executeRequests).flatten
   }
 
   def sendToElastic(indexingBundle: IndexingBundle, indexName: String): Try[BulkIndexResult] = permitTry {
@@ -129,7 +115,8 @@ class NodeIndexService(using
       case Some(value) => value
     }
 
-    taxBundle.nodes
+    taxBundle
+      .nodes
       .grouped(props.IndexBulkSize)
       .toList
       .traverse(group => sendChunkToElastic(indexingBundle, group, indexName))

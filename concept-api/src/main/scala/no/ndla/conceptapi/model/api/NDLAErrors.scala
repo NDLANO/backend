@@ -22,9 +22,8 @@ object ResultWindowTooLargeException {
 
 case class OptimisticLockException(message: String) extends RuntimeException(message)
 object OptimisticLockException {
-  def default(using help: ErrorHelpers): OptimisticLockException = new OptimisticLockException(
-    help.RESOURCE_OUTDATED_DESCRIPTION
-  )
+  def default(using help: ErrorHelpers): OptimisticLockException =
+    new OptimisticLockException(help.RESOURCE_OUTDATED_DESCRIPTION)
 }
 case class IllegalStatusStateTransition(message: String) extends RuntimeException(message)
 case class NotFoundException(message: String, supportedLanguages: Seq[String] = Seq.empty)

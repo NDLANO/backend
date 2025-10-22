@@ -28,7 +28,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Title("Titre francais", "fr"),
     Title("Deutsch titel", "de"),
     Title("Titulo espanol", "es"),
-    Title("Nekonata titolo", "und")
+    Title("Nekonata titolo", "und"),
   )
 
   val articles: Seq[ArticleContent] = Seq(
@@ -38,7 +38,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     ArticleContent("Francais article", "fr"),
     ArticleContent("Deutsch Artikel", "de"),
     ArticleContent("Articulo espanol", "es"),
-    ArticleContent("Nekonata artikolo", "und")
+    ArticleContent("Nekonata artikolo", "und"),
   )
 
   val articleTags: Seq[Tag] = Seq(
@@ -48,7 +48,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Tag(Seq("got", "tired"), "fr"),
     Tag(Seq("of", "translating"), "de"),
     Tag(Seq("all", "of"), "es"),
-    Tag(Seq("the", "words"), "und")
+    Tag(Seq("the", "words"), "und"),
   )
 
   override def beforeAll(): Unit = super.beforeAll()
@@ -72,7 +72,7 @@ class ArticleSearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That asSearchable converts all fields with correct language") {
-    val article = TestData.sampleArticleWithByNcSa.copy(title = titles, content = articles, tags = articleTags)
+    val article           = TestData.sampleArticleWithByNcSa.copy(title = titles, content = articles, tags = articleTags)
     val searchableArticle = searchConverterService.asSearchableArticle(article)
 
     verifyTitles(searchableArticle)

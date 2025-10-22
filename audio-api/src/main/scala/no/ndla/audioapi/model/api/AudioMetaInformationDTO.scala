@@ -43,7 +43,7 @@ case class AudioMetaInformationDTO(
     @description("The time of creation for the audio-file")
     created: NDLADate,
     @description("The time of last update for the audio-file")
-    updated: NDLADate
+    updated: NDLADate,
 )
 
 object AudioMetaInformationDTO {

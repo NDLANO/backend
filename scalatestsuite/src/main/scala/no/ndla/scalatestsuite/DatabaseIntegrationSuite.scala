@@ -25,29 +25,27 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
   val PostgresqlVersion: String        = "17.5"
   lazy val schemaName: String          = "testschema"
 
-  val postgresContainer: Try[PostgreSQLContainer[?]] = if (EnablePostgresContainer) {
-    val defaultUsername: String     = "postgres"
-    val defaultDatabaseName: String = "postgres"
-    val defaultPassword: String     = "hemmelig"
+  val postgresContainer: Try[PostgreSQLContainer[?]] =
+    if (EnablePostgresContainer) {
+      val defaultUsername: String     = "postgres"
+      val defaultDatabaseName: String = "postgres"
+      val defaultPassword: String     = "hemmelig"
 
-    if (skipContainerSpawn) {
-      val x = mock[PostgreSQLContainer[Nothing]]
-      when(x.getPassword).thenReturn(env.getOrElse("META_PASSWORD", defaultPassword)): Unit
-      when(x.getUsername).thenReturn(env.getOrElse("META_USERNAME", defaultUsername)): Unit
-      when(x.getDatabaseName).thenReturn(env.getOrElse("META_RESOURCE", defaultDatabaseName)): Unit
-      when(x.getMappedPort(any[Int])).thenReturn(env.getOrElse("META_PORT", "5432").toInt): Unit
-      Success(x)
+      if (skipContainerSpawn) {
+        val x = mock[PostgreSQLContainer[Nothing]]
+        when(x.getPassword).thenReturn(env.getOrElse("META_PASSWORD", defaultPassword)): Unit
+        when(x.getUsername).thenReturn(env.getOrElse("META_USERNAME", defaultUsername)): Unit
+        when(x.getDatabaseName).thenReturn(env.getOrElse("META_RESOURCE", defaultDatabaseName)): Unit
+        when(x.getMappedPort(any[Int])).thenReturn(env.getOrElse("META_PORT", "5432").toInt): Unit
+        Success(x)
+      } else {
+        val c: PgContainer = PgContainer(PostgresqlVersion, defaultUsername, defaultPassword, defaultDatabaseName)
+        c.start()
+        Success(c)
+      }
     } else {
-      val c: PgContainer = PgContainer(
-        PostgresqlVersion,
-        defaultUsername,
-        defaultPassword,
-        defaultDatabaseName
-      )
-      c.start()
-      Success(c)
+      Failure(new RuntimeException("Postgres disabled for this IntegrationSuite"))
     }
-  } else { Failure(new RuntimeException("Postgres disabled for this IntegrationSuite")) }
 
   def testDataSource: Try[DataSource] = postgresContainer.flatMap(pgc =>
     Try {
@@ -55,9 +53,7 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
       dataSourceConfig.setUsername(pgc.getUsername)
       dataSourceConfig.setPassword(pgc.getPassword)
       dataSourceConfig.setDriverClassName("org.postgresql.Driver")
-      dataSourceConfig.setJdbcUrl(
-        s"jdbc:postgresql://${pgc.getHost}:${pgc.getMappedPort(5432)}/${pgc.getDatabaseName}"
-      )
+      dataSourceConfig.setJdbcUrl(s"jdbc:postgresql://${pgc.getHost}:${pgc.getMappedPort(5432)}/${pgc.getDatabaseName}")
       dataSourceConfig.setSchema(schemaName)
       dataSourceConfig.setMaximumPoolSize(10)
       new DataSource(dataSourceConfig)

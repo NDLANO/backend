@@ -27,7 +27,7 @@ import no.ndla.network.tapir.{
   SwaggerInfo,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 import sttp.tapir.stringToPath
 import no.ndla.network.tapir.auth.Permission
@@ -43,10 +43,7 @@ class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplicati
   given searchLanguage: SearchLanguage     = new SearchLanguage
   given converterService: ConverterService = new ConverterService
 
-  given migrator: DBMigrator = DBMigrator(
-    new V23__SubjectNameAsTags(props),
-    new V25__SubjectNameAsTagsPublished(props)
-  )
+  given migrator: DBMigrator = DBMigrator(new V23__SubjectNameAsTags(props), new V25__SubjectNameAsTagsPublished(props))
 
   given draftConceptRepository: DraftConceptRepository         = new DraftConceptRepository
   given publishedConceptRepository: PublishedConceptRepository = new PublishedConceptRepository
@@ -77,17 +74,12 @@ class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplicati
     mountPoint = "concept-api" / "api-docs",
     description = "Services for accessing concepts",
     authUrl = props.Auth0LoginEndpoint,
-    scopes = Permission.toSwaggerMap(Permission.thatStartsWith("concept"))
+    scopes = Permission.toSwaggerMap(Permission.thatStartsWith("concept")),
   )
 
   given swagger: SwaggerController = new SwaggerController(
-    List(
-      draftConceptController,
-      publishedConceptController,
-      healthController,
-      internController
-    ),
-    swaggerInfo
+    List(draftConceptController, publishedConceptController, healthController, internController),
+    swaggerInfo,
   )
 
   given services: List[TapirController] = swagger.getServices()

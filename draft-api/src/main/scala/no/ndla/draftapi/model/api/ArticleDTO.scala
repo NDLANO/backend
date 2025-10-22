@@ -19,7 +19,7 @@ import no.ndla.common.model.api.{
   RelatedContent,
   RelatedContentLinkDTO,
   ResponsibleDTO,
-  RevisionMetaDTO
+  RevisionMetaDTO,
 }
 import sttp.tapir.Schema.annotations.description
 import sttp.tapir.Schema
@@ -96,7 +96,7 @@ case class ArticleDTO(
     @description("The disclaimer of the article")
     disclaimer: Option[DisclaimerDTO],
     @description("Traits extracted from the article content")
-    traits: List[ArticleTrait]
+    traits: List[ArticleTrait],
 )
 
 object ArticleDTO {

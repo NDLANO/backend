@@ -25,36 +25,35 @@ import no.ndla.common.model.domain.frontpage.{
   MovieThemeName,
   SubjectPage,
   VisualElement,
-  VisualElementType
+  VisualElementType,
 }
 import no.ndla.frontpageapi.Props
 import no.ndla.language.Language.{findByLanguageOrBestEffort, mergeLanguageFields}
 
 class ConverterService(using props: Props) {
-  private def toApiMenu(menu: domain.Menu): model.api.MenuDTO =
-    model.api.MenuDTO(menu.articleId, menu.menu.map(toApiMenu), Some(menu.hideLevel))
+  private def toApiMenu(menu: domain.Menu): model.api.MenuDTO = model
+    .api
+    .MenuDTO(menu.articleId, menu.menu.map(toApiMenu), Some(menu.hideLevel))
 
-  def toApiFrontPage(frontPage: domain.FrontPage): model.api.FrontPageDTO =
-    model.api.FrontPageDTO(articleId = frontPage.articleId, menu = frontPage.menu.map(toApiMenu))
+  def toApiFrontPage(frontPage: domain.FrontPage): model.api.FrontPageDTO = model
+    .api
+    .FrontPageDTO(articleId = frontPage.articleId, menu = frontPage.menu.map(toApiMenu))
 
-  private def toApiBannerImage(banner: BannerImage): BannerImageDTO =
-    model.api.frontpage.BannerImageDTO(
+  private def toApiBannerImage(banner: BannerImage): BannerImageDTO = model
+    .api
+    .frontpage
+    .BannerImageDTO(
       banner.mobileImageId.map(createImageUrl),
       banner.mobileImageId,
       createImageUrl(banner.desktopImageId),
-      banner.desktopImageId
+      banner.desktopImageId,
     )
 
-  def toApiSubjectPage(
-      sub: SubjectPage,
-      language: String,
-      fallback: Boolean = false
-  ): Try[SubjectPageDTO] = {
+  def toApiSubjectPage(sub: SubjectPage, language: String, fallback: Boolean = false): Try[SubjectPageDTO] = {
     if (sub.supportedLanguages.contains(language) || fallback) {
       sub.id match {
-        case None => Failure(MissingIdException("No id found for subjectpage while converting, this is a bug."))
-        case Some(subjectPageId) =>
-          Success(
+        case None                => Failure(MissingIdException("No id found for subjectpage while converting, this is a bug."))
+        case Some(subjectPageId) => Success(
             SubjectPageDTO(
               subjectPageId,
               sub.name,
@@ -65,7 +64,7 @@ class ConverterService(using props: Props) {
               sub.supportedLanguages,
               sub.connectedTo,
               sub.buildsOn,
-              sub.leadsTo
+              sub.leadsTo,
             )
           )
       }
@@ -73,7 +72,7 @@ class ConverterService(using props: Props) {
       Failure(
         LanguageNotFoundException(
           s"The subjectpage with id ${sub.id.get} and language $language was not found",
-          sub.supportedLanguages
+          sub.supportedLanguages,
         )
       )
     }
@@ -86,13 +85,13 @@ class ConverterService(using props: Props) {
       toApiMovieThemes(page.movieThemes, language),
       page.slideShow,
       page.article,
-      page.supportedLanguages
+      page.supportedLanguages,
     )
   }
 
   private def toApiAboutFilmSubject(
       aboutSeq: Seq[AboutSubject],
-      language: Option[String]
+      language: Option[String],
   ): Seq[api.AboutFilmSubjectDTO] = {
     val filteredAboutSeq = language match {
       case Some(lang) => aboutSeq.filter(about => about.language == lang)
@@ -107,10 +106,7 @@ class ConverterService(using props: Props) {
     themes.map(theme => api.MovieThemeDTO(toApiMovieName(theme.name, language), theme.movies))
   }
 
-  private def toApiMovieName(
-      names: Seq[MovieThemeName],
-      language: Option[String]
-  ): Seq[api.MovieThemeNameDTO] = {
+  private def toApiMovieName(names: Seq[MovieThemeName], language: Option[String]): Seq[api.MovieThemeNameDTO] = {
     val filteredNames = language match {
       case Some(lang) => names.filter(name => name.language == lang)
       case None       => names
@@ -120,13 +116,11 @@ class ConverterService(using props: Props) {
   }
 
   private def toApiAboutSubject(about: Option[AboutSubject]): Option[AboutSubjectDTO] = {
-    about
-      .map(about => AboutSubjectDTO(about.title, about.description, toApiVisualElement(about.visualElement)))
+    about.map(about => AboutSubjectDTO(about.title, about.description, toApiVisualElement(about.visualElement)))
   }
 
   private def toApiMetaDescription(meta: Option[MetaDescription]): Option[String] = {
-    meta
-      .map(_.metaDescription)
+    meta.map(_.metaDescription)
   }
 
   private def toApiVisualElement(visual: VisualElement): VisualElementDTO = {
@@ -138,15 +132,15 @@ class ConverterService(using props: Props) {
     VisualElementDTO(visual.`type`.entryName, url, visual.alt)
   }
 
-  def toDomainSubjectPage(id: Long, subject: api.NewSubjectPageDTO): Try[SubjectPage] =
-    toDomainSubjectPage(subject).map(_.copy(id = Some(id)))
+  def toDomainSubjectPage(id: Long, subject: api.NewSubjectPageDTO): Try[SubjectPage] = toDomainSubjectPage(subject)
+    .map(_.copy(id = Some(id)))
 
   private def toDomainBannerImage(banner: api.NewOrUpdateBannerImageDTO): BannerImage =
     frontpage.BannerImage(banner.mobileImageId, banner.desktopImageId)
 
   def toDomainSubjectPage(subject: api.NewSubjectPageDTO): Try[SubjectPage] = {
     for {
-      about <- toDomainAboutSubject(subject.about)
+      about     <- toDomainAboutSubject(subject.about)
       newSubject = frontpage.SubjectPage(
         id = None,
         name = subject.name,
@@ -156,18 +150,15 @@ class ConverterService(using props: Props) {
         editorsChoices = subject.editorsChoices.getOrElse(List()),
         connectedTo = subject.connectedTo.getOrElse(List()),
         buildsOn = subject.buildsOn.getOrElse(List()),
-        leadsTo = subject.leadsTo.getOrElse(List())
+        leadsTo = subject.leadsTo.getOrElse(List()),
       )
 
     } yield newSubject
   }
 
-  def toDomainSubjectPage(
-      toMergeInto: SubjectPage,
-      subject: api.UpdatedSubjectPageDTO
-  ): Try[SubjectPage] = {
+  def toDomainSubjectPage(toMergeInto: SubjectPage, subject: api.UpdatedSubjectPageDTO): Try[SubjectPage] = {
     for {
-      aboutSubject <- subject.about.traverse(toDomainAboutSubject)
+      aboutSubject   <- subject.about.traverse(toDomainAboutSubject)
       metaDescription = subject.metaDescription.map(toDomainMetaDescription)
 
       merged = toMergeInto.copy(
@@ -178,33 +169,35 @@ class ConverterService(using props: Props) {
         editorsChoices = subject.editorsChoices.getOrElse(toMergeInto.editorsChoices),
         connectedTo = subject.connectedTo.getOrElse(toMergeInto.connectedTo),
         buildsOn = subject.buildsOn.getOrElse(toMergeInto.buildsOn),
-        leadsTo = subject.leadsTo.getOrElse(toMergeInto.leadsTo)
+        leadsTo = subject.leadsTo.getOrElse(toMergeInto.leadsTo),
       )
     } yield merged
   }
 
   private def toDomainAboutSubject(aboutSeq: Seq[api.NewOrUpdatedAboutSubjectDTO]): Try[Seq[AboutSubject]] = {
     aboutSeq.traverse(about =>
-      toDomainVisualElement(about.visualElement)
-        .map(frontpage.AboutSubject(about.title, about.description, about.language, _))
+      toDomainVisualElement(about.visualElement).map(
+        frontpage.AboutSubject(about.title, about.description, about.language, _)
+      )
     )
   }
 
-  private def toDomainMetaDescription(
-      metaSeq: Seq[api.NewOrUpdatedMetaDescriptionDTO]
-  ): Seq[MetaDescription] = {
+  private def toDomainMetaDescription(metaSeq: Seq[api.NewOrUpdatedMetaDescriptionDTO]): Seq[MetaDescription] = {
     metaSeq.map(meta => frontpage.MetaDescription(meta.metaDescription, meta.language))
   }
 
-  private def toDomainVisualElement(visual: api.NewOrUpdatedVisualElementDTO): Try[VisualElement] =
-    for {
-      t <- VisualElementType.fromString(visual.`type`)
-      ve = frontpage.VisualElement(t, visual.id, visual.alt)
-      validated <- VisualElementType.validateVisualElement(ve)
-    } yield validated
+  private def toDomainVisualElement(visual: api.NewOrUpdatedVisualElementDTO): Try[VisualElement] = for {
+    t         <- VisualElementType.fromString(visual.`type`)
+    ve         = frontpage.VisualElement(t, visual.id, visual.alt)
+    validated <- VisualElementType.validateVisualElement(ve)
+  } yield validated
 
   private def toDomainMenu(menu: model.api.MenuDTO): domain.Menu = {
-    val apiMenu = menu.menu.map { case x: model.api.MenuDTO => toDomainMenu(x) }
+    val apiMenu = menu
+      .menu
+      .map { case x: model.api.MenuDTO =>
+        toDomainMenu(x)
+      }
     domain.Menu(articleId = menu.articleId, menu = apiMenu, hideLevel = menu.hideLevel.getOrElse(false))
   }
 

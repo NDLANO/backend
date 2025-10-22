@@ -23,7 +23,7 @@ class SearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   val service: SearchService = new SearchService {
-    override val searchIndex = List(SearchType.Drafts, SearchType.LearningPaths).map(props.SearchIndex)
+    override val searchIndex                          = List(SearchType.Drafts, SearchType.LearningPaths).map(props.SearchIndex)
     override val indexServices: List[IndexService[?]] = List(draftIndexService, learningPathIndexService)
   }
 

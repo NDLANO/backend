@@ -15,7 +15,7 @@ import no.ndla.common.model.api.search.{
   ArticleTrait,
   LearningResourceType,
   SearchableLanguageList,
-  SearchableLanguageValues
+  SearchableLanguageValues,
 }
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.{Priority, Responsible, RevisionMeta}
@@ -60,7 +60,7 @@ case class SearchableDraft(
     published: NDLADate,
     favorited: Long,
     learningResourceType: LearningResourceType,
-    typeName: List[String]
+    typeName: List[String],
 )
 
 object SearchableDraft {

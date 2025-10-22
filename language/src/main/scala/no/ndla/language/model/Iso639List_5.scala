@@ -812,6 +812,6 @@ object Iso639List_5 {
     Iso639Val("mic", Some("mic"), Some("mic"), None, Some("I"), Some("L"), "Mi'kmaq", None, None),
     Iso639Val("mid", None, None, None, Some("I"), Some("L"), "Mandaic", None, None),
     Iso639Val("mie", None, None, None, Some("I"), Some("L"), "Ocotepec Mixtec", None, None),
-    Iso639Val("mif", None, None, None, Some("I"), Some("L"), "Mofu-Gudur", None, None)
+    Iso639Val("mif", None, None, None, Some("I"), Some("L"), "Mofu-Gudur", None, None),
   )
 }

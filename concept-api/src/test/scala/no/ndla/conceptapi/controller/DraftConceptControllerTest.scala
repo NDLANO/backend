@@ -46,34 +46,30 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
   val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}"""
 
   test("/<concept_id> should return 200 if the concept was found") {
-    when(readService.conceptWithId(conceptId, lang, fallback = false, None))
-      .thenReturn(Success(TestData.sampleNbApiConcept))
+    when(readService.conceptWithId(conceptId, lang, fallback = false, None)).thenReturn(
+      Success(TestData.sampleNbApiConcept)
+    )
 
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/$conceptId?language=$lang")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/$conceptId?language=$lang"))
       .code
       .code should be(200)
   }
 
   test("/<concept_id> should return 404 if the concept was not found") {
-    when(readService.conceptWithId(conceptId, lang, fallback = false, None))
-      .thenReturn(Failure(NotFoundException("Not found, yolo")))
+    when(readService.conceptWithId(conceptId, lang, fallback = false, None)).thenReturn(
+      Failure(NotFoundException("Not found, yolo"))
+    )
 
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/$conceptId?language=$lang")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/$conceptId?language=$lang"))
       .code
       .code should be(404)
   }
 
   test("/<concept_id> should return 400 if the concept was not found") {
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/one")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/one"))
       .code
       .code should be(400)
   }
@@ -91,11 +87,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
   }
 
   test("POST / should return 201 on created") {
-    when(
-      writeService
-        .newConcept(any[NewConceptDTO], any[TokenUser])
-    )
-      .thenReturn(Success(TestData.sampleNbApiConcept))
+    when(writeService.newConcept(any[NewConceptDTO], any[TokenUser])).thenReturn(Success(TestData.sampleNbApiConcept))
     simpleHttpClient
       .send(
         quickRequest
@@ -108,11 +100,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
   }
 
   test("POST / should return 403 if no write role") {
-    when(
-      writeService
-        .newConcept(any[NewConceptDTO], any)
-    )
-      .thenReturn(Success(TestData.sampleNbApiConcept))
+    when(writeService.newConcept(any[NewConceptDTO], any)).thenReturn(Success(TestData.sampleNbApiConcept))
     simpleHttpClient
       .send(
         quickRequest
@@ -125,31 +113,26 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
   }
 
   test("PATCH / should return 200 on updated") {
-    when(
-      writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any)
+    when(writeService.updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any)).thenReturn(
+      Success(TestData.sampleNbApiConcept)
     )
-      .thenReturn(Success(TestData.sampleNbApiConcept))
 
     import io.circe.syntax.*
     val body = TestData.updatedConcept.asJson.deepDropNullValues.noSpaces
 
-    val res = simpleHttpClient
-      .send(
-        quickRequest
-          .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
-          .body(body)
-          .header("Authorization", TestData.authHeaderWithWriteRole)
-      )
+    val res = simpleHttpClient.send(
+      quickRequest
+        .patch(uri"http://localhost:$serverPort/concept-api/v1/drafts/1")
+        .body(body)
+        .header("Authorization", TestData.authHeaderWithWriteRole)
+    )
     res.code.code should be(200)
   }
 
   test("PATCH / should return 403 if no write role") {
-    when(
-      writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any)
+    when(writeService.updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any)).thenReturn(
+      Success(TestData.sampleNbApiConcept)
     )
-      .thenReturn(Success(TestData.sampleNbApiConcept))
 
     simpleHttpClient
       .send(
@@ -164,11 +147,9 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
 
   test("PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[Long]]") {
     reset(writeService)
-    when(
-      writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any[TokenUser])
+    when(writeService.updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any[TokenUser])).thenReturn(
+      Success(TestData.sampleNbApiConcept)
     )
-      .thenReturn(Success(TestData.sampleNbApiConcept))
 
     val missing         = """{"language":"nb"}"""
     val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb")
@@ -186,8 +167,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
   }
 
   test("tags should return 200 OK if the result was not empty") {
-    when(readService.getAllTags(anyString, anyInt, anyInt, anyString))
-      .thenReturn(TestData.sampleApiTagsSearchResult)
+    when(readService.getAllTags(anyString, anyInt, anyInt, anyString)).thenReturn(TestData.sampleApiTagsSearchResult)
 
     simpleHttpClient
       .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/drafts/tag-search/"))
@@ -199,11 +179,9 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
     "PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[NewConceptMetaImage]]"
   ) {
     reset(writeService)
-    when(
-      writeService
-        .updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any[TokenUser])
+    when(writeService.updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any[TokenUser])).thenReturn(
+      Success(TestData.sampleNbApiConcept)
     )
-      .thenReturn(Success(TestData.sampleNbApiConcept))
 
     val missing         = """{"language":"nb"}"""
     val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb")
@@ -223,8 +201,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
   test("that scrolling doesn't happen on 'initial'") {
     reset(draftConceptSearchService)
 
-    val multiResult =
-      SearchResult[ConceptSummaryDTO](0, None, 10, "nn", Seq.empty, Seq.empty, Some("heiheihei"))
+    val multiResult = SearchResult[ConceptSummaryDTO](0, None, 10, "nn", Seq.empty, Seq.empty, Some("heiheihei"))
     when(draftConceptSearchService.all(any[search.DraftSearchSettings])).thenReturn(Success(multiResult))
     when(searchConverterService.asApiConceptSearchResult(any)).thenCallRealMethod()
 

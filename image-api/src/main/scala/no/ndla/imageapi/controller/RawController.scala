@@ -27,7 +27,7 @@ class RawController(using
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
     readService: ReadService,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   import errorHelpers.*
   import errorHandling.*
@@ -35,17 +35,15 @@ class RawController(using
   override val prefix: EndpointInput[Unit] = "image-api" / serviceName
   override val enableSwagger: Boolean      = true
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    getImageFileById,
-    getImageFile
-  )
+  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getImageFileById, getImageFile)
 
   private def toImageResponse(image: ImageStream): Either[AllErrors, (DynamicHeaders, InputStream)] = {
     val headers = DynamicHeaders.fromValue("Content-Type", image.contentType)
     Right(headers -> image.stream)
   }
 
-  def getImageFile: ServerEndpoint[Any, Eff] = endpoint.get
+  def getImageFile: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch an image with options to resize and crop")
     .description("Fetches a image with options to resize and crop")
     .in(path[String]("image_name").description("The name of the image"))
@@ -60,7 +58,8 @@ class RawController(using
       }
     }
 
-  def getImageFileById: ServerEndpoint[Any, Eff] = endpoint.get
+  def getImageFileById: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch an image with options to resize and crop")
     .description("Fetches a image with options to resize and crop")
     .in("id" / path[Long]("image_id").description("The ID of the image"))
@@ -73,20 +72,15 @@ class RawController(using
         case Success(Some(fileName)) =>
           val x = getRawImage(fileName, imageParams)
           x match {
-            case Failure(ex) =>
-              returnLeftError(ex)
-            case Success(img) =>
-              toImageResponse(img)
+            case Failure(ex)  => returnLeftError(ex)
+            case Success(img) => toImageResponse(img)
           }
         case Success(None) => notFoundWithMsg(s"Image with id $imageId not found").asLeft
         case Failure(ex)   => returnLeftError(ex)
       }
     }
 
-  private def getRawImage(
-      imageName: String,
-      imageParams: ImageParams
-  ): Try[ImageStream] = {
+  private def getRawImage(imageName: String, imageParams: ImageParams): Try[ImageStream] = {
     val dynamicCropOrResize = {
       val canDynamicCrop = canDoDynamicCrop(imageParams)
       if (canDynamicCrop) dynamicCrop
@@ -97,8 +91,7 @@ class RawController(using
     val nonResizableMimeTypes = List("image/gif", "image/svg", "image/svg+xml")
     imageStorage.get(imageName) match {
       case Success(img) if nonResizableMimeTypes.contains(img.contentType.toLowerCase) => Success(img)
-      case Success(img)                                                                =>
-        crop(img, imageParams)
+      case Success(img)                                                                => crop(img, imageParams)
           .flatMap(stream => dynamicCropOrResize(stream, imageParams))
           .recoverWith {
             case ex: ValidationException => Failure(ex)
@@ -113,11 +106,8 @@ class RawController(using
   private def doubleInRange(paramName: String, double: Option[Double], from: Int, to: Int): Option[Double] = {
     double match {
       case Some(d) if d >= Math.min(from, to) && d <= Math.max(from, to) => Some(d)
-      case Some(d)                                                       =>
-        throw ValidationException(
-          errors = Seq(
-            ValidationMessage(paramName, s"Invalid value for $paramName. Must be in range $from-$to but was $d")
-          )
+      case Some(d)                                                       => throw ValidationException(errors =
+          Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Must be in range $from-$to but was $d"))
         )
       case None => None
     }
@@ -150,22 +140,16 @@ class RawController(using
   }
 
   private def canDoDynamicCrop(imageParams: ImageParams) = {
-    imageParams.focalX.isDefined && imageParams.focalY.isDefined && (
-      imageParams.width.isDefined || imageParams.height.isDefined || imageParams.ratio.isDefined
-    )
+    imageParams.focalX.isDefined && imageParams.focalY.isDefined && (imageParams.width.isDefined || imageParams
+      .height
+      .isDefined || imageParams.ratio.isDefined)
   }
 
   private def dynamicCrop(image: ImageStream, imageParams: ImageParams): Try[ImageStream] = {
 
     (imageParams.focalX, imageParams.focalY, imageParams.width, imageParams.height) match {
       case (Some(fx), Some(fy), w, h) =>
-        imageConverter.dynamicCrop(
-          image,
-          PercentPoint(fx, fy),
-          w.map(_.toInt),
-          h.map(_.toInt),
-          imageParams.ratio
-        )
+        imageConverter.dynamicCrop(image, PercentPoint(fx, fy), w.map(_.toInt), h.map(_.toInt), imageParams.ratio)
       case _ => Success(image)
     }
   }

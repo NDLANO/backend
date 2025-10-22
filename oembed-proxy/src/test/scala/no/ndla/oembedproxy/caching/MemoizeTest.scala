@@ -61,9 +61,7 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
     val targetMock      = mock[Target]
     val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, cacheRetryInMs, targetMock.targetMethod, false)
 
-    when(targetMock.targetMethod())
-      .thenReturn("Hello from mock")
-      .thenThrow(new DoNotUpdateMemoizeException("Woop"))
+    when(targetMock.targetMethod()).thenReturn("Hello from mock").thenThrow(new DoNotUpdateMemoizeException("Woop"))
 
     memoizedTarget() should equal("Hello from mock")
     Thread.sleep(cacheMaxAgeInMs)

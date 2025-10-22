@@ -24,5 +24,5 @@ case class LearningpathApiSearchResult(
     lastUpdated: String,
     tags: LearningPathApiTags,
     supportedLanguages: Seq[String],
-    isBasedOn: Option[Long]
+    isBasedOn: Option[Long],
 )

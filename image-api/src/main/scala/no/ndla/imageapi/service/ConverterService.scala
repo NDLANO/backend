@@ -18,7 +18,7 @@ import no.ndla.imageapi.model.domain.{
   ImageFileDataDocument,
   ImageMetaInformation,
   ModelReleasedStatus,
-  UploadedImage
+  UploadedImage,
 }
 import no.ndla.imageapi.model.{ImageConversionException, api, domain}
 import no.ndla.language.Language
@@ -45,7 +45,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       domainCopyright.rightsholders.map(asApiAuthor),
       domainCopyright.validFrom,
       domainCopyright.validTo,
-      domainCopyright.processed
+      domainCopyright.processed,
     )
   }
 
@@ -60,35 +60,35 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
   def asApiImageMetaInformationWithApplicationUrlV2(
       domainImageMetaInformation: ImageMetaInformation,
       language: Option[String],
-      user: Option[TokenUser]
+      user: Option[TokenUser],
   ): Try[api.ImageMetaInformationV2DTO] = {
     asImageMetaInformationV2(
       domainImageMetaInformation,
       language,
       props.ImageApiV2UrlBase,
       Some(props.RawImageUrlBase),
-      user
+      user,
     )
   }
 
   def asApiImageMetaInformationWithDomainUrlV2(
       domainImageMetaInformation: ImageMetaInformation,
       language: Option[String],
-      user: Option[TokenUser]
+      user: Option[TokenUser],
   ): Try[api.ImageMetaInformationV2DTO] = {
     asImageMetaInformationV2(
       domainImageMetaInformation,
       language,
       props.ImageApiV2UrlBase,
       Some(props.RawImageUrlBase),
-      user
+      user,
     )
   }
 
   def asApiImageMetaInformationV3(
       imageMeta: ImageMetaInformation,
       language: Option[String],
-      user: Option[TokenUser]
+      user: Option[TokenUser],
   ): Try[api.ImageMetaInformationV3DTO] = {
     val metaUrl = props.ImageApiV3UrlBase + imageMeta.id.get
     val rawPath = props.RawImageUrlBase
@@ -112,30 +112,31 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       val supportedLanguages = getSupportedLanguages(imageMeta)
 
       Success(
-        api
-          .ImageMetaInformationV3DTO(
-            id = imageMeta.id.get.toString,
-            metaUrl = metaUrl,
-            title = title,
-            alttext = alttext,
-            copyright = asApiCopyright(imageMeta.copyright),
-            tags = tags,
-            caption = caption,
-            supportedLanguages = supportedLanguages,
-            created = imageMeta.created,
-            createdBy = imageMeta.createdBy,
-            modelRelease = imageMeta.modelReleased.toString,
-            editorNotes = editorNotes,
-            image = apiImageFile
-          )
+        api.ImageMetaInformationV3DTO(
+          id = imageMeta.id.get.toString,
+          metaUrl = metaUrl,
+          title = title,
+          alttext = alttext,
+          copyright = asApiCopyright(imageMeta.copyright),
+          tags = tags,
+          caption = caption,
+          supportedLanguages = supportedLanguages,
+          created = imageMeta.created,
+          createdBy = imageMeta.createdBy,
+          modelRelease = imageMeta.modelReleased.toString,
+          editorNotes = editorNotes,
+          image = apiImageFile,
+        )
       )
     })
   }
 
   private def asApiImageFile(image: ImageFileData, url: String): api.ImageFileDTO = {
-    val dimensions = image.dimensions.map { case domain.ImageDimensions(width, height) =>
-      api.ImageDimensionsDTO(width, height)
-    }
+    val dimensions = image
+      .dimensions
+      .map { case domain.ImageDimensions(width, height) =>
+        api.ImageDimensionsDTO(width, height)
+      }
 
     api.ImageFileDTO(
       fileName = image.fileName,
@@ -143,7 +144,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       contentType = image.contentType,
       imageUrl = url,
       dimensions = dimensions,
-      language = image.language
+      language = image.language,
     )
   }
 
@@ -164,7 +165,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       language: Option[String],
       baseUrl: String,
       rawBaseUrl: Option[String],
-      user: Option[TokenUser]
+      user: Option[TokenUser],
   ): Try[api.ImageMetaInformationV2DTO] = {
     val title = findByLanguageOrBestEffort(imageMeta.titles, language)
       .map(asApiImageTitle)
@@ -186,25 +187,24 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       val supportedLanguages = getSupportedLanguages(imageMeta)
 
       Success(
-        api
-          .ImageMetaInformationV2DTO(
-            id = imageMeta.id.get.toString,
-            metaUrl = baseUrl + imageMeta.id.get,
-            title = title,
-            alttext = alttext,
-            imageUrl = apiUrl,
-            size = image.size,
-            contentType = image.contentType,
-            copyright = asApiCopyright(imageMeta.copyright),
-            tags = tags,
-            caption = caption,
-            supportedLanguages = supportedLanguages,
-            created = imageMeta.created,
-            createdBy = imageMeta.createdBy,
-            modelRelease = imageMeta.modelReleased.toString,
-            editorNotes = editorNotes,
-            imageDimensions = imageDimensions
-          )
+        api.ImageMetaInformationV2DTO(
+          id = imageMeta.id.get.toString,
+          metaUrl = baseUrl + imageMeta.id.get,
+          title = title,
+          alttext = alttext,
+          imageUrl = apiUrl,
+          size = image.size,
+          contentType = image.contentType,
+          copyright = asApiCopyright(imageMeta.copyright),
+          tags = tags,
+          caption = caption,
+          supportedLanguages = supportedLanguages,
+          created = imageMeta.created,
+          createdBy = imageMeta.createdBy,
+          modelRelease = imageMeta.modelReleased.toString,
+          editorNotes = editorNotes,
+          imageDimensions = imageDimensions,
+        )
       )
     })
   }
@@ -237,20 +237,17 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       imageMeta: ImageMetaInformation,
       image: ImageFileData,
       language: String,
-      user: TokenUser
+      user: TokenUser,
   ): ImageMetaInformation = {
     val now       = clock.now()
     val newNote   = domain.EditorNote(now, user.id, s"Updated image file for '$language' language.")
     val newImages = imageMeta.images.map(_.filterNot(_.language == language) :+ image)
-    imageMeta.copy(
-      images = newImages,
-      editorNotes = imageMeta.editorNotes :+ newNote
-    )
+    imageMeta.copy(images = newImages, editorNotes = imageMeta.editorNotes :+ newNote)
   }
 
   def asDomainImageMetaInformationV2(
       imageMeta: api.NewImageMetaInformationV2DTO,
-      user: TokenUser
+      user: TokenUser,
   ): Try[ImageMetaInformation] = {
     val modelReleasedStatus = imageMeta.modelReleased match {
       case Some(mrs) => ModelReleasedStatus.valueOfOrError(mrs)
@@ -266,14 +263,16 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
         alttexts = imageMeta.alttext.map(at => asDomainAltText(at, imageMeta.language)).toSeq,
         images = None,
         copyright = toDomainCopyright(imageMeta.copyright),
-        tags = if (imageMeta.tags.nonEmpty) Seq(toDomainTag(imageMeta.tags, imageMeta.language)) else Seq.empty,
+        tags =
+          if (imageMeta.tags.nonEmpty) Seq(toDomainTag(imageMeta.tags, imageMeta.language))
+          else Seq.empty,
         captions = Seq(domain.ImageCaption(imageMeta.caption, imageMeta.language)),
         updatedBy = user.id,
         createdBy = user.id,
         created = now,
         updated = now,
         modelReleased = modelStatus,
-        editorNotes = Seq(domain.EditorNote(now, user.id, "Image created."))
+        editorNotes = Seq(domain.EditorNote(now, user.id, "Image created.")),
       )
     })
   }
@@ -287,16 +286,18 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
   }
 
   def toDomainCopyright(copyright: commonApi.CopyrightDTO): commonDomain.article.Copyright = {
-    commonDomain.article.Copyright(
-      copyright.license.license,
-      copyright.origin,
-      copyright.creators.map(_.toDomain),
-      copyright.processors.map(_.toDomain),
-      copyright.rightsholders.map(_.toDomain),
-      copyright.validFrom,
-      copyright.validTo,
-      copyright.processed
-    )
+    commonDomain
+      .article
+      .Copyright(
+        copyright.license.license,
+        copyright.origin,
+        copyright.creators.map(_.toDomain),
+        copyright.processors.map(_.toDomain),
+        copyright.rightsholders.map(_.toDomain),
+        copyright.validFrom,
+        copyright.validTo,
+        copyright.processed,
+      )
   }
 
   def toDomainTag(tags: Seq[String], language: String): commonDomain.Tag = {
@@ -310,7 +311,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
   def withoutLanguage(
       domainMetaInformation: ImageMetaInformation,
       languageToRemove: String,
-      user: TokenUser
+      user: TokenUser,
   ): ImageMetaInformation = {
     val now     = clock.now()
     val newNote = domain.EditorNote(now, user.id, s"Deleted language '$languageToRemove'.")
@@ -320,7 +321,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       tags = domainMetaInformation.tags.filterNot(_.language == languageToRemove),
       captions = domainMetaInformation.captions.filterNot(_.language == languageToRemove),
       editorNotes = domainMetaInformation.editorNotes :+ newNote,
-      images = domainMetaInformation.images.map(_.filterNot(_.language == languageToRemove))
+      images = domainMetaInformation.images.map(_.filterNot(_.language == languageToRemove)),
     )
   }
 
@@ -330,7 +331,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       domainImageMetaInformation.alttexts,
       domainImageMetaInformation.tags,
       domainImageMetaInformation.captions,
-      domainImageMetaInformation.images.getOrElse(Seq.empty)
+      domainImageMetaInformation.images.getOrElse(Seq.empty),
     )
   }
 
@@ -339,7 +340,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       size = image.size,
       contentType = image.contentType,
       dimensions = image.dimensions,
-      language = language
+      language = language,
     )
   }
 }

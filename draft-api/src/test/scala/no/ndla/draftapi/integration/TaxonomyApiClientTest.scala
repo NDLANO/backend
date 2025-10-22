@@ -29,12 +29,9 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updating one nodes translations works as expected") {
-    val article = TestData.sampleDomainArticle.copy(
-      title = Seq(
-        Title("Norsk", "nb"),
-        Title("<strong>Engelsk</strong>", "en")
-      )
-    )
+    val article = TestData
+      .sampleDomainArticle
+      .copy(title = Seq(Title("Norsk", "nb"), Title("<strong>Engelsk</strong>", "en")))
     val id   = article.id.get
     val node =
       Node("urn:resource:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))
@@ -56,22 +53,12 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updating multiple nodes translations works as expected") {
-    val article = TestData.sampleDomainArticle.copy(
-      title = Seq(
-        Title("Norsk", "nb"),
-        Title("Engelsk", "en")
-      )
-    )
-    val id   = article.id.get
-    val node =
+    val article = TestData.sampleDomainArticle.copy(title = Seq(Title("Norsk", "nb"), Title("Engelsk", "en")))
+    val id      = article.id.get
+    val node    =
       Node("urn:resource:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))
     val node2 =
-      Node(
-        "urn:resource:1:99551",
-        "Outdated other name",
-        Some(s"urn:article:$id"),
-        List(s"/subject:1/resource:1:$id")
-      )
+      Node("urn:resource:1:99551", "Outdated other name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))
 
     // format: off
     doAnswer((i: InvocationOnMock) => Success(i.getArgument[Node](1))).when(taxonomyApiClient).putRaw(any[String], any[Node], any)(using any)
@@ -94,24 +81,15 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
   }
 
   test("That both resources and topics for single article is updated") {
-    val article = TestData.sampleDomainArticle.copy(
-      title = Seq(
-        Title("Norsk", "nb"),
-        Title("Engelsk", "en")
-      )
-    )
+    val article   = TestData.sampleDomainArticle.copy(title = Seq(Title("Norsk", "nb"), Title("Engelsk", "en")))
     val id        = article.id.get
-    val resource1 = Node(
-      "urn:resource:1:12035",
-      "Outdated res name",
-      Some(s"urn:article:$id"),
-      List(s"/subject:1/resource:1:$id")
-    )
+    val resource1 =
+      Node("urn:resource:1:12035", "Outdated res name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))
     val resource2 = Node(
       "urn:resource:1:d8a19b97-10ee-481a-b44c-dd54cffbddda",
       "Outdated other res name",
       Some(s"urn:article:$id"),
-      List(s"/subject:1/topic:1:$id")
+      List(s"/subject:1/topic:1:$id"),
     )
     val topic1 =
       Node("urn:topic:1:12312", "Outdated top name", Some(s"urn:article:$id"), List(s"/subject:1/topic:1:$id"))
@@ -147,24 +125,15 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateTaxonomyIfExists fails if updating translation fails") {
-    val article = TestData.sampleDomainArticle.copy(
-      title = Seq(
-        Title("Norsk", "nb"),
-        Title("Engelsk", "en")
-      )
-    )
+    val article   = TestData.sampleDomainArticle.copy(title = Seq(Title("Norsk", "nb"), Title("Engelsk", "en")))
     val id        = article.id.get
-    val resource1 = Node(
-      "urn:resource:1:12035",
-      "Outdated res name",
-      Some(s"urn:article:$id"),
-      List(s"/subject:1/resource:1:$id")
-    )
+    val resource1 =
+      Node("urn:resource:1:12035", "Outdated res name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))
     val resource2 = Node(
       "urn:resource:1:d8a19b97-10ee-481a-b44c-dd54cffbddda",
       "Outdated other res name",
       Some(s"urn:article:$id"),
-      List(s"/subject:1/resource:1:$id")
+      List(s"/subject:1/resource:1:$id"),
     )
     val topic1 =
       Node("urn:topic:1:12312", "Outdated top name", Some(s"urn:article:$id"), List(s"/subject:1/topic:1:$id"))
@@ -184,13 +153,8 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updateTaxonomyIfExists fails if updating fetching nodes fails") {
-    val article = TestData.sampleDomainArticle.copy(
-      title = Seq(
-        Title("Norsk", "nb"),
-        Title("Engelsk", "en")
-      )
-    )
-    val id = article.id.get
+    val article = TestData.sampleDomainArticle.copy(title = Seq(Title("Norsk", "nb"), Title("Engelsk", "en")))
+    val id      = article.id.get
 
     // format: off
     doReturn(Failure(new RuntimeException("woawiwa")), Success(List.empty)).when(taxonomyApiClient).queryNodes(id)
@@ -206,13 +170,8 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
   }
 
   test("That nothing happens (successfully) if no taxonomy exists") {
-    val article = TestData.sampleDomainArticle.copy(
-      title = Seq(
-        Title("Norsk", "nb"),
-        Title("Engelsk", "en")
-      )
-    )
-    val id = article.id.get
+    val article = TestData.sampleDomainArticle.copy(title = Seq(Title("Norsk", "nb"), Title("Engelsk", "en")))
+    val id      = article.id.get
 
     // format: off
     doReturn(Success(List.empty), Success(List.empty)).when(taxonomyApiClient).queryNodes(id)
@@ -231,12 +190,7 @@ class TaxonomyApiClientTest extends UnitSuite with TestEnvironment {
   }
 
   test("That translations are deleted if found in taxonomy, but not in article") {
-    val article = TestData.sampleDomainArticle.copy(
-      title = Seq(
-        Title("Norsk", "nb"),
-        Title("Engelsk", "en")
-      )
-    )
+    val article  = TestData.sampleDomainArticle.copy(title = Seq(Title("Norsk", "nb"), Title("Engelsk", "en")))
     val id       = article.id.get
     val resource =
       Node("urn:resource:1:12312", "Outdated name", Some(s"urn:article:$id"), List(s"/subject:1/resource:1:$id"))

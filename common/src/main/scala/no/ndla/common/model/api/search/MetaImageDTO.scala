@@ -15,9 +15,12 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Meta image of the resource")
 case class MetaImageDTO(
-    @description("The meta image id") url: String,
-    @description("The meta image alt text") alt: String,
-    @description("The ISO 639-1 language code describing which translation this meta image belongs to") language: String
+    @description("The meta image id")
+    url: String,
+    @description("The meta image alt text")
+    alt: String,
+    @description("The ISO 639-1 language code describing which translation this meta image belongs to")
+    language: String,
 ) extends LanguageField[(String, String)] {
   override def value: (String, String) = url -> alt
   override def isEmpty: Boolean        = url.isEmpty || alt.isEmpty

@@ -22,7 +22,7 @@ case class NewFolderData(
     name: String,
     status: FolderStatus.Value,
     rank: Int,
-    description: Option[String]
+    description: Option[String],
 ) {
   def toFullFolder(
       id: UUID,
@@ -32,7 +32,7 @@ case class NewFolderData(
       created: NDLADate,
       updated: NDLADate,
       shared: Option[NDLADate],
-      user: Option[MyNDLAUser]
+      user: Option[MyNDLAUser],
   ): Folder = {
     Folder(
       id = id,
@@ -47,7 +47,7 @@ case class NewFolderData(
       created = created,
       updated = updated,
       shared = shared,
-      user = user
+      user = user,
     )
   }
 }
@@ -65,7 +65,7 @@ case class Folder(
     resources: List[Resource],
     subfolders: List[Folder],
     shared: Option[NDLADate],
-    user: Option[MyNDLAUser]
+    user: Option[MyNDLAUser],
 ) extends FeideContent
     with Rankable
     with CopyableFolder {
@@ -121,7 +121,7 @@ object Folder extends SQLSyntaxSupport[Folder] {
       created = created,
       updated = updated,
       shared = shared,
-      user = None
+      user = None,
     )
   }
 }

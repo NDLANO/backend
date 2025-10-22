@@ -28,9 +28,9 @@ class TraitUtilTest extends UnitTestSuiteBase {
     val content = Seq(
       ArticleContent(
         s"Sjekk denne h5p-en <$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName>",
-        "nb"
+        "nb",
       ),
-      ArticleContent(s"Fil <$EmbedTagName data-resource=\"file\" data-path=\"/file/path\"></$EmbedTagName>", "nn")
+      ArticleContent(s"Fil <$EmbedTagName data-resource=\"file\" data-path=\"/file/path\"></$EmbedTagName>", "nn"),
     )
 
     val result1 = traitUtil.getArticleTraits(content)
@@ -39,16 +39,16 @@ class TraitUtilTest extends UnitTestSuiteBase {
     val content2 = Seq(
       ArticleContent(
         s"Skikkelig bra h5p: <$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName>",
-        "nb"
+        "nb",
       ),
       ArticleContent(
         s"Fin video <$EmbedTagName data-resource=\"external\" data-url=\"https://youtu.be/id\"></$EmbedTagName>",
-        "nn"
+        "nn",
       ),
       ArticleContent(
         s"Movie trailer <$EmbedTagName data-resource=\"iframe\" data-url=\"https://www.imdb.com/video/vi3074735641\"></$EmbedTagName>",
-        "en"
-      )
+        "en",
+      ),
     )
 
     val result2 = traitUtil.getArticleTraits(content2)

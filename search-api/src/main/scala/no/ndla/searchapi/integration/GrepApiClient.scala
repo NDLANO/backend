@@ -36,18 +36,19 @@ class GrepApiClient(using props: Props) extends StrictLogging {
     }
   }
 
-  implicit val statusEncoderConfig: GrepStatusEncoderConfiguration =
-    GrepStatusEncoderConfiguration(encodeToUrl = true)
+  implicit val statusEncoderConfig: GrepStatusEncoderConfiguration = GrepStatusEncoderConfiguration(encodeToUrl = true)
 
   private def readGrepJsonFiles[T](dump: File, path: String)(implicit d: Decoder[T]): Try[List[T]] = {
     val folder    = new File(dump, path)
     val jsonFiles = folder.list()
-    jsonFiles.toList.traverse { f =>
-      for {
-        jsonStr <- readFile(new File(folder, f))
-        parsed  <- CirceUtil.tryParseAs[T](jsonStr)
-      } yield parsed
-    }
+    jsonFiles
+      .toList
+      .traverse { f =>
+        for {
+          jsonStr <- readFile(new File(folder, f))
+          parsed  <- CirceUtil.tryParseAs[T](jsonStr)
+        } yield parsed
+      }
   }
 
   private def getKjerneelementerLK20(dump: File): Try[List[GrepKjerneelement]] =
@@ -76,7 +77,7 @@ class GrepApiClient(using props: Props) extends StrictLogging {
     kompetansemaal = kompetansemaal,
     kompetansemaalsett = kompetansemaalsett,
     tverrfagligeTemaer = tverrfagligeTemaer,
-    laereplaner = laereplaner
+    laereplaner = laereplaner,
   )
 
   val getGrepBundle: () => Try[GrepBundle]                   = () => _getGrepBundle(())
@@ -94,18 +95,17 @@ class GrepApiClient(using props: Props) extends StrictLogging {
     def release(resource: File): Unit = deleteDirectory(resource)
   }
 
-  private def getGrepBundleUncached: Try[GrepBundle] =
-    logTaskTime("Fetching grep bundle", 30.seconds) {
-      permitTry {
-        val date        = NDLADate.now().toUTCEpochSecond
-        val tempDirPath = Try(Files.createTempDirectory(s"grep-dump-$date")).?
-        Using(tempDirPath.toFile) { tempDir =>
-          val zippedDump   = fetchDump(tempDir).?
-          val unzippedDump = ZipUtil.unzip(zippedDump, tempDir, deleteArchive = true).?
-          getBundleFromDump(unzippedDump).?
-        }
+  private def getGrepBundleUncached: Try[GrepBundle] = logTaskTime("Fetching grep bundle", 30.seconds) {
+    permitTry {
+      val date        = NDLADate.now().toUTCEpochSecond
+      val tempDirPath = Try(Files.createTempDirectory(s"grep-dump-$date")).?
+      Using(tempDirPath.toFile) { tempDir =>
+        val zippedDump   = fetchDump(tempDir).?
+        val unzippedDump = ZipUtil.unzip(zippedDump, tempDir, deleteArchive = true).?
+        getBundleFromDump(unzippedDump).?
       }
     }
+  }
 
   case class GrepDumpDownloadException(message: String) extends RuntimeException(message) {
     def withCause(cause: Throwable): GrepDumpDownloadException = {
@@ -117,14 +117,11 @@ class GrepApiClient(using props: Props) extends StrictLogging {
   private def fetchDump(tempDir: File): Try[File] = {
     val outputFile = new File(tempDir, "grep-dump.zip")
     logger.info(s"Downloading grep dump from $grepDumpUrl to ${outputFile.getAbsolutePath}")
-    val request = quickRequest
-      .get(uri"$grepDumpUrl")
-      .response(asFile(outputFile))
+    val request = quickRequest.get(uri"$grepDumpUrl").response(asFile(outputFile))
     Try(simpleHttpClient.send(request)) match {
       case Success(response) if response.isSuccess => Success(outputFile)
-      case Success(response)                       =>
-        Failure(GrepDumpDownloadException(s"Failed to fetch grep dump: ${response.statusText}"))
-      case Failure(ex) =>
+      case Success(response)                       => Failure(GrepDumpDownloadException(s"Failed to fetch grep dump: ${response.statusText}"))
+      case Failure(ex)                             =>
         Failure(GrepDumpDownloadException(s"Failed to fetch grep dump: ${ex.getMessage}").withCause(ex))
     }
   }

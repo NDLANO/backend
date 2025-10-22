@@ -10,13 +10,7 @@ package no.ndla.articleapi.model.domain
 
 import no.ndla.common.model.domain.article.Article
 
-case class ArticleRow(
-    rowId: Long,
-    revision: Int,
-    articleId: Long,
-    slug: Option[String],
-    article: Option[Article]
-)
+case class ArticleRow(rowId: Long, revision: Int, articleId: Long, slug: Option[String], article: Option[Article])
 
 object ArticleRow {
 
@@ -25,11 +19,7 @@ object ArticleRow {
     def toArticle: Option[Article] = articleRow.flatMap(_.article)
 
     def mapArticle(func: Article => Article): Option[ArticleRow] = {
-      articleRow.map(ar =>
-        ar.copy(
-          article = ar.article.map(func)
-        )
-      )
+      articleRow.map(ar => ar.copy(article = ar.article.map(func)))
     }
   }
 

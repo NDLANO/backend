@@ -35,7 +35,7 @@ class InternController(using
     props: Props,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myndlaApiClient: MyNDLAApiClient
+    myndlaApiClient: MyNDLAApiClient,
 ) extends TapirController {
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
@@ -49,10 +49,11 @@ class InternController(using
     dumpLearningpaths,
     dumpSingleLearningPath,
     postLearningPathDump,
-    learningPathStats
+    learningPathStats,
   )
 
-  private def getByExternalId: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getByExternalId: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("id" / path[String]("external_id"))
     .out(stringBody)
     .errorOut(errorOutputsFor(404))
@@ -64,7 +65,8 @@ class InternController(using
 
     }
 
-  private def postIndex: ServerEndpoint[Any, Eff] = endpoint.post
+  private def postIndex: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("index")
     .in(query[Option[Int]]("numShards"))
     .out(stringBody)
@@ -82,12 +84,15 @@ class InternController(using
       }
     }
 
-  private def deleteIndex(): ServerEndpoint[Any, Eff] = endpoint.delete
+  private def deleteIndex(): ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .in("index")
     .out(stringBody)
     .errorOut(stringInternalServerError)
     .serverLogicPure { _ =>
-      def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
+      def pluralIndex(n: Int) =
+        if (n == 1) "1 index"
+        else s"$n indexes"
       searchIndexService
         .findAllIndexes(props.SearchIndex)
         .map(indexes => {
@@ -110,7 +115,8 @@ class InternController(using
       }
     }
 
-  private def dumpLearningpaths: ServerEndpoint[Any, Eff] = endpoint.get
+  private def dumpLearningpaths: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("dump" / "learningpath")
     .in(query[Int]("page").default(1))
     .in(query[Int]("page-size").default(250))
@@ -120,7 +126,8 @@ class InternController(using
       readService.getLearningPathDomainDump(pageNo, pageSize, onlyIncludePublished).asRight
     }
 
-  private def dumpSingleLearningPath: ServerEndpoint[Any, Eff] = endpoint.get
+  private def dumpSingleLearningPath: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("dump" / "learningpath" / path[Long]("learningpath_id"))
     .out(jsonBody[commonDomain.LearningPath])
     .errorOut(errorOutputsFor(404))
@@ -131,7 +138,8 @@ class InternController(using
       }
     }
 
-  private def postLearningPathDump: ServerEndpoint[Any, Eff] = endpoint.post
+  private def postLearningPathDump: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("dump" / "learningpath")
     .in(jsonBody[commonDomain.LearningPath])
     .out(jsonBody[commonDomain.LearningPath])
@@ -140,14 +148,15 @@ class InternController(using
       updateService.insertDump(dumpToInsert).asRight
     }
 
-  private def learningPathStats: ServerEndpoint[Any, Eff] = endpoint.get
+  private def learningPathStats: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("stats")
     .out(jsonBody[commonApi.LearningPathStatsDTO])
     .serverLogicPure { _ =>
       commonApi
         .LearningPathStatsDTO(
           learningPathRepository.myNdlaLearningPathCount,
-          learningPathRepository.myNdlaLearningPathOwnerCount
+          learningPathRepository.myNdlaLearningPathOwnerCount,
         )
         .asRight
     }

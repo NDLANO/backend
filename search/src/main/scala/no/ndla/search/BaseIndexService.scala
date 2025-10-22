@@ -25,11 +25,8 @@ import java.util.Calendar
 import scala.util.{Failure, Success, Try}
 import scala.util.boundary
 
-abstract class BaseIndexService(using
-    e4sClient: NdlaE4sClient,
-    props: BaseProps,
-    searchLanguage: SearchLanguage
-) extends StrictLogging {
+abstract class BaseIndexService(using e4sClient: NdlaE4sClient, props: BaseProps, searchLanguage: SearchLanguage)
+    extends StrictLogging {
   val documentType: String
   val searchIndex: String
   val MaxResultWindowOption: Int
@@ -37,11 +34,10 @@ abstract class BaseIndexService(using
   /** Replace index even if bulk indexing had failures */
   protected val allowIndexingErrors: Boolean = false
 
-  val analysis: Analysis =
-    Analysis(
-      analyzers = List(searchLanguage.NynorskLanguageAnalyzer),
-      tokenFilters = searchLanguage.NynorskTokenFilters
-    )
+  val analysis: Analysis = Analysis(
+    analyzers = List(searchLanguage.NynorskLanguageAnalyzer),
+    tokenFilters = searchLanguage.NynorskTokenFilters,
+  )
 
   def getMapping: MappingDefinition
 
@@ -104,9 +100,7 @@ abstract class BaseIndexService(using
   protected def validateBulkIndexing(indexResult: BulkIndexResult): Try[BulkIndexResult] = {
     if (indexResult.failed == 0 || allowIndexingErrors) Success(indexResult)
     else {
-      logger.error(
-        s"Indexing completed for index $searchIndex ($documentType), but with ${indexResult.failed} errors."
-      )
+      logger.error(s"Indexing completed for index $searchIndex ($documentType), but with ${indexResult.failed} errors.")
       Failure(
         ElasticIndexingException(
           s"Indexing $documentType completed with ${indexResult.failed} errors, will not replace index."
@@ -131,23 +125,16 @@ abstract class BaseIndexService(using
 
   type SendToElastic = String => Try[BulkIndexResult]
 
-  def indexDocumentsInBulk(numShards: Option[Int])(sendToElasticFunction: SendToElastic): Try[ReindexResult] =
-    for {
-      start       <- Try(System.currentTimeMillis())
-      indexName   <- createIndexWithGeneratedName(numShards)
-      indexResult <- sendToElasticFunction(indexName)
-      result      <- validateBulkIndexing(indexResult)
-      aliasTarget <- getAliasTarget
-      _           <- updateAliasTarget(aliasTarget, indexName)
-    } yield ReindexResult(
-      documentType,
-      result.failed,
-      result.count,
-      System.currentTimeMillis() - start
-    )
+  def indexDocumentsInBulk(numShards: Option[Int])(sendToElasticFunction: SendToElastic): Try[ReindexResult] = for {
+    start       <- Try(System.currentTimeMillis())
+    indexName   <- createIndexWithGeneratedName(numShards)
+    indexResult <- sendToElasticFunction(indexName)
+    result      <- validateBulkIndexing(indexResult)
+    aliasTarget <- getAliasTarget
+    _           <- updateAliasTarget(aliasTarget, indexName)
+  } yield ReindexResult(documentType, result.failed, result.count, System.currentTimeMillis() - start)
 
-  def createIndexWithGeneratedName: Try[String] =
-    createIndexWithName(getNewIndexName())
+  def createIndexWithGeneratedName: Try[String] = createIndexWithName(getNewIndexName())
 
   def reindexWithShards(numShards: Int): Try[?] = boundary {
     permitTry {
@@ -162,9 +149,9 @@ abstract class BaseIndexService(using
 
       for {
         newIndex <- createIndexWithGeneratedName(numShards.some)
-        _ = logger.info(s"Created index $newIndex for internal reindexing")
-        _ <- e4sClient.execute(reindex(currentIndex, newIndex))
-        _ <- updateAliasTarget(currentIndex.some, newIndex)
+        _         = logger.info(s"Created index $newIndex for internal reindexing")
+        _        <- e4sClient.execute(reindex(currentIndex, newIndex))
+        _        <- updateAliasTarget(currentIndex.some, newIndex)
       } yield ()
     }
   }
@@ -187,16 +174,14 @@ abstract class BaseIndexService(using
     }
 
     response match {
-      case Success(results) =>
-        Success(results.result.mappings.headOption.map(t => t._1.name))
-      case Failure(ex) => Failure(ex)
+      case Success(results) => Success(results.result.mappings.headOption.map(t => t._1.name))
+      case Failure(ex)      => Failure(ex)
     }
   }
 
   def updateReplicaNumber(overrideReplicaNumber: Int): Try[?] = getAliasTarget.flatMap {
     case None            => Success(())
-    case Some(indexName) =>
-      updateReplicaNumber(indexName, overrideReplicaNumber.some)
+    case Some(indexName) => updateReplicaNumber(indexName, overrideReplicaNumber.some)
   }
 
   private def updateReplicaNumber(indexName: String, overrideReplicaNumber: Option[Int]): Try[?] = {
@@ -222,8 +207,7 @@ abstract class BaseIndexService(using
       Failure(new IllegalArgumentException(s"No such index: $newIndexName"))
     } else {
       val actions = oldIndexName match {
-        case None =>
-          List[AliasAction](addAlias(searchIndex, newIndexName))
+        case None           => List[AliasAction](addAlias(searchIndex, newIndexName))
         case Some(oldIndex) =>
           List[AliasAction](removeAlias(searchIndex, oldIndex), addAlias(searchIndex, newIndexName))
       }
@@ -255,9 +239,8 @@ abstract class BaseIndexService(using
         val indexes                             = s.result.mappings.filter(_._1.name.startsWith(indexName))
         val unreferencedIndexes                 = indexes.filter(_._2.isEmpty).map(_._1.name).toList
         val (aliasTarget, aliasIndexesToDelete) = indexes.filter(_._2.nonEmpty).map(_._1.name) match {
-          case head :: tail =>
-            (head, tail)
-          case _ =>
+          case head :: tail => (head, tail)
+          case _            =>
             logger.warn("No alias found, when attempting to clean up indexes.")
             ("", List.empty)
         }
@@ -290,8 +273,7 @@ abstract class BaseIndexService(using
     getAliasTarget match {
       case Failure(ex)             => Failure(ex)
       case Success(None)           => Success(None)
-      case Success(Some(toDelete)) =>
-        e4sClient.execute(removeAlias(searchIndex, toDelete)) match {
+      case Success(Some(toDelete)) => e4sClient.execute(removeAlias(searchIndex, toDelete)) match {
           case Failure(ex) => Failure(ex)
           case Success(_)  => Success(Some(toDelete))
         }
@@ -339,10 +321,17 @@ abstract class BaseIndexService(using
     }
 
     response match {
-      case Success(results) =>
-        Success(results.result.mappings.toList.map { case (index, _) => index.name }.filter(_.startsWith(indexName)))
-      case Failure(ex) =>
-        Failure(ex)
+      case Success(results) => Success(
+          results
+            .result
+            .mappings
+            .toList
+            .map { case (index, _) =>
+              index.name
+            }
+            .filter(_.startsWith(indexName))
+        )
+      case Failure(ex) => Failure(ex)
     }
   }
 
@@ -357,14 +346,14 @@ abstract class BaseIndexService(using
     */
   protected def executeRequests(requests: Seq[IndexRequest]): Try[BulkIndexResult] = {
     requests match {
-      case Nil =>
-        Success(BulkIndexResult(0, requests.size))
-      case head :: Nil =>
-        e4sClient
+      case Nil         => Success(BulkIndexResult(0, requests.size))
+      case head :: Nil => e4sClient
           .execute(head)
-          .map(r => if (r.isSuccess) BulkIndexResult(1, requests.size) else BulkIndexResult(0, requests.size))
-      case reqs =>
-        e4sClient.execute(bulk(reqs)).map(r => BulkIndexResult(r.result.successes.size, requests.size))
+          .map(r =>
+            if (r.isSuccess) BulkIndexResult(1, requests.size)
+            else BulkIndexResult(0, requests.size)
+          )
+      case reqs => e4sClient.execute(bulk(reqs)).map(r => BulkIndexResult(r.result.successes.size, requests.size))
     }
   }
 }

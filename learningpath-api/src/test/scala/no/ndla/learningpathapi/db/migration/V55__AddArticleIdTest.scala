@@ -15,8 +15,7 @@ class V55__AddArticleIdTest extends UnitSuite with TestEnvironment {
 
   val migration = new V55__AddArticleId
   test("that article iframe embed urls are converted to articles") {
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "embedUrl": [
         |    {
@@ -33,8 +32,7 @@ class V55__AddArticleIdTest extends UnitSuite with TestEnvironment {
         |}
         |""".stripMargin
 
-    val expectedDocument =
-      """
+    val expectedDocument = """
         |{
         |   "embedUrl": [],
         |   "articleId": 12345
@@ -45,8 +43,7 @@ class V55__AddArticleIdTest extends UnitSuite with TestEnvironment {
   }
 
   test("that articles are recognized even with language prefix") {
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "embedUrl": [
         |    {
@@ -63,8 +60,7 @@ class V55__AddArticleIdTest extends UnitSuite with TestEnvironment {
         |}
         |""".stripMargin
 
-    val expectedDocument =
-      """
+    val expectedDocument = """
         |{
         |   "embedUrl": [],
         |   "articleId": 12345
@@ -75,8 +71,7 @@ class V55__AddArticleIdTest extends UnitSuite with TestEnvironment {
   }
 
   test("that regular article embed urls are converted to articles") {
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "embedUrl": [
         |    {
@@ -93,8 +88,7 @@ class V55__AddArticleIdTest extends UnitSuite with TestEnvironment {
         |}
         |""".stripMargin
 
-    val expectedDocument =
-      """
+    val expectedDocument = """
         |{
         |   "embedUrl": [],
         |   "articleId": 12345
@@ -105,8 +99,7 @@ class V55__AddArticleIdTest extends UnitSuite with TestEnvironment {
   }
 
   test("that node resource urls are converted to articles") {
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "embedUrl": [
         |    {
@@ -123,8 +116,7 @@ class V55__AddArticleIdTest extends UnitSuite with TestEnvironment {
         |}
         |""".stripMargin
 
-    val expectedDocument =
-      """
+    val expectedDocument = """
         |{
         |   "embedUrl": [],
         |   "articleId": 17643
@@ -135,8 +127,7 @@ class V55__AddArticleIdTest extends UnitSuite with TestEnvironment {
   }
 
   test("that the first article ID is chosen") {
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "embedUrl": [
         |    {
@@ -153,8 +144,7 @@ class V55__AddArticleIdTest extends UnitSuite with TestEnvironment {
         |}
         |""".stripMargin
 
-    val expectedDocument =
-      """
+    val expectedDocument = """
         |{
         |   "embedUrl": [],
         |   "articleId": 123
@@ -165,8 +155,7 @@ class V55__AddArticleIdTest extends UnitSuite with TestEnvironment {
   }
 
   test("that non-article-iframe URLs are left alone") {
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "embedUrl": [
         |    {
@@ -183,8 +172,7 @@ class V55__AddArticleIdTest extends UnitSuite with TestEnvironment {
         |}
         |""".stripMargin
 
-    val expectedDocument =
-      """
+    val expectedDocument = """
         |{
         |  "embedUrl": [
         |    {

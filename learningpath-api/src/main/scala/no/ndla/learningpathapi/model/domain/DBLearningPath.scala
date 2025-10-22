@@ -24,7 +24,7 @@ object DBLearningPath extends SQLSyntaxSupport[LearningPath] {
     meta.copy(
       id = Some(rs.long(lp.c("id"))),
       revision = Some(rs.int(lp.c("revision"))),
-      externalId = rs.stringOpt(lp.c("external_id"))
+      externalId = rs.stringOpt(lp.c("external_id")),
     )
   }
 }

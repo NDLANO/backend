@@ -27,7 +27,7 @@ class V49__FixLanguageMyNDLALearningPath extends LearningPathAndStepMigration, S
 
   override def convertPathAndSteps(
       lpData: LpDocumentRow,
-      stepDatas: List[StepDocumentRow]
+      stepDatas: List[StepDocumentRow],
   ): (LpDocumentRow, List[StepDocumentRow]) = {
     val lpDocument = CirceUtil.tryParse(lpData.learningPathDocument).get
     if (!lpDocument.hcursor.downField("isMyNDLAOwner").as[Boolean].toTry.get) {
@@ -46,13 +46,9 @@ class V49__FixLanguageMyNDLALearningPath extends LearningPathAndStepMigration, S
     val description = oldDocument.hcursor.get[Option[Seq[Description]]]("description").toTry.get.filterOtherLanguages
     val tags        = oldDocument.hcursor.get[Option[Seq[Tag]]]("tags").toTry.get.filterOtherLanguages
 
-    val newDocument = oldDocument
-      .mapObject(doc =>
-        doc
-          .maybeChange("title", title)
-          .maybeChange("description", description)
-          .maybeChange("tags", tags)
-      )
+    val newDocument = oldDocument.mapObject(doc =>
+      doc.maybeChange("title", title).maybeChange("description", description).maybeChange("tags", tags)
+    )
 
     if (newDocument != oldDocument) {
       logger.warn(s"Removing non-NB languages from learning path with ID ${pathData.learningPathId}")
@@ -69,14 +65,13 @@ class V49__FixLanguageMyNDLALearningPath extends LearningPathAndStepMigration, S
     val introduction = oldDocument.hcursor.get[Option[Seq[Introduction]]]("introduction").toTry.get.filterOtherLanguages
     val embedUrl     = oldDocument.hcursor.get[Option[Seq[EmbedUrl]]]("embedUrl").toTry.get.filterOtherLanguages
 
-    val newDocument = oldDocument
-      .mapObject(doc =>
-        doc
-          .maybeChange("title", title)
-          .maybeChange("description", description)
-          .maybeChange("introduction", introduction)
-          .maybeChange("embedUrl", embedUrl)
-      )
+    val newDocument = oldDocument.mapObject(doc =>
+      doc
+        .maybeChange("title", title)
+        .maybeChange("description", description)
+        .maybeChange("introduction", introduction)
+        .maybeChange("embedUrl", embedUrl)
+    )
 
     if (newDocument != oldDocument) {
       logger.warn(s"Removing non-NB languages from learning step with ID ${stepData.learningStepId}")

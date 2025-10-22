@@ -15,14 +15,17 @@ import scala.util.{Failure, Try}
 case class LanguageTag(language: Iso639, script: Option[Iso15924], region: Option[Iso3166]) {
 
   override def toString: String = {
-    Seq(Some(language.part1.getOrElse(language.id)), script.map(_.code), region.map(_.code)).flatten
+    Seq(Some(language.part1.getOrElse(language.id)), script.map(_.code), region.map(_.code))
+      .flatten
       .mkString("-")
       .toLowerCase
 
   }
 
   def displayName: String = {
-    val scriptAndRegion = (script.map(_.englishName) :: region.map(_.name) :: Nil).flatten.mkString(", ")
+    val scriptAndRegion = (
+      script.map(_.englishName) :: region.map(_.name) :: Nil
+    ).flatten.mkString(", ")
     if (scriptAndRegion.isEmpty) {
       language.refName
     } else {
@@ -31,14 +34,18 @@ case class LanguageTag(language: Iso639, script: Option[Iso15924], region: Optio
   }
 
   def localDisplayName: Option[String] = {
-    language.localName.map(languageName => {
-      val scriptAndRegion = (script.map(_.englishName) :: region.map(_.name) :: Nil).flatten.mkString(", ")
-      if (scriptAndRegion.isEmpty) {
-        languageName
-      } else {
-        s"$languageName ($scriptAndRegion)"
-      }
-    })
+    language
+      .localName
+      .map(languageName => {
+        val scriptAndRegion = (
+          script.map(_.englishName) :: region.map(_.name) :: Nil
+        ).flatten.mkString(", ")
+        if (scriptAndRegion.isEmpty) {
+          languageName
+        } else {
+          s"$languageName ($scriptAndRegion)"
+        }
+      })
   }
 
   def isRightToLeft: Boolean = {
@@ -57,7 +64,7 @@ object LanguageTag {
       case lang :: region :: Nil if region.length == 2 => withLanguageAndRegion(lang, region)
       case lang :: script :: Nil if script.length == 4 => withLanguageAndScript(lang, script)
       case lang :: script :: region :: Nil             => withLanguageScriptAndRegion(lang, script, region)
-      case _ => Failure(new LanguageNotSupportedException(s"The language tag '$languageTagAsString' is not supported."))
+      case _                                           => Failure(new LanguageNotSupportedException(s"The language tag '$languageTagAsString' is not supported."))
     }
 
     tag.get // throws the exception if it is a failure.

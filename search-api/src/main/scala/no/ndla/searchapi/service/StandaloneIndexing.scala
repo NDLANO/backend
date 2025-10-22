@@ -32,22 +32,13 @@ import java.time.Instant
   * if the indexing fails for any reason.
   */
 class StandaloneIndexing(props: SearchApiProperties, componentRegistry: ComponentRegistry) extends StrictLogging {
-  case class SlackAttachment(
-      title: String,
-      color: String,
-      ts: String,
-      text: String
-  )
+  case class SlackAttachment(title: String, color: String, ts: String, text: String)
   object SlackAttachment {
     implicit val encoder: Encoder[SlackAttachment] = deriveEncoder
     implicit val decoder: Decoder[SlackAttachment] = deriveDecoder
   }
 
-  case class SlackPayload(
-      channel: String,
-      username: String,
-      attachments: Seq[SlackAttachment]
-  )
+  case class SlackPayload(channel: String, username: String, attachments: Seq[SlackAttachment])
 
   object SlackPayload {
     implicit val encoder: Encoder[SlackPayload] = deriveEncoder
@@ -66,17 +57,13 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
     val errorTitle = s"search-api ${props.Environment}"
     val errorBody  = s"Standalone indexing failed with:\n${errors.mkString("\n")}"
 
-    val errorAttachment = SlackAttachment(
-      color = "#ff0000",
-      ts = Instant.now.getEpochSecond.toString,
-      title = errorTitle,
-      text = errorBody
-    )
+    val errorAttachment =
+      SlackAttachment(color = "#ff0000", ts = Instant.now.getEpochSecond.toString, title = errorTitle, text = errorBody)
 
     val payload = SlackPayload(
       channel = propOrElse("SLACK_CHANNEL", "ndla-indexing-errors"),
       username = propOrElse("SLACK_USERNAME", "indexbot"),
-      attachments = Seq(errorAttachment)
+      attachments = Seq(errorAttachment),
     )
 
     val body = CirceUtil.toJsonString(payload)
@@ -108,21 +95,23 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
         implicit val ec: ExecutionContextExecutorService =
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(SearchType.values.size))
 
-        def reindexWithIndexService[C <: Content](
-            indexService: IndexService[C],
-            shouldUsePublishedTax: Boolean
-        )(implicit d: Decoder[C]): Future[Try[ReindexResult]] = {
-          val taxonomyBundle = if (shouldUsePublishedTax) taxonomyBundlePublished else taxonomyBundleDraft
+        def reindexWithIndexService[C <: Content](indexService: IndexService[C], shouldUsePublishedTax: Boolean)(
+            implicit d: Decoder[C]
+        ): Future[Try[ReindexResult]] = {
+          val taxonomyBundle =
+            if (shouldUsePublishedTax) taxonomyBundlePublished
+            else taxonomyBundleDraft
           val indexingBundle = IndexingBundle(
             grepBundle = Some(grepBundle),
             taxonomyBundle = Some(taxonomyBundle),
-            myndlaBundle = Some(myndlaBundle)
+            myndlaBundle = Some(myndlaBundle),
           )
-          val reindexFuture = Future { indexService.indexDocuments(indexingBundle) }
+          val reindexFuture = Future {
+            indexService.indexDocuments(indexingBundle)
+          }
 
           reindexFuture.onComplete {
-            case Success(Success(reindexResult: ReindexResult)) =>
-              logger.info(
+            case Success(Success(reindexResult: ReindexResult)) => logger.info(
                 s"Completed indexing of ${reindexResult.totalIndexed} ${indexService.searchIndex} in ${reindexResult.millisUsed} ms."
               )
             case Success(Failure(ex)) => logger.warn(ex.getMessage, ex)
@@ -139,10 +128,10 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
               reindexWithIndexService(componentRegistry.learningPathIndexService, shouldUsePublishedTax = true),
               reindexWithIndexService(componentRegistry.articleIndexService, shouldUsePublishedTax = true),
               reindexWithIndexService(componentRegistry.draftIndexService, shouldUsePublishedTax = false),
-              reindexWithIndexService(componentRegistry.draftConceptIndexService, shouldUsePublishedTax = true)
+              reindexWithIndexService(componentRegistry.draftConceptIndexService, shouldUsePublishedTax = true),
             )
           ),
-          Duration.Inf
+          Duration.Inf,
         )
     }
 

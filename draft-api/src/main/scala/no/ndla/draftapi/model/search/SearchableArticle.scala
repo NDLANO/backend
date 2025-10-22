@@ -30,7 +30,7 @@ case class SearchableArticle(
     previousNotes: Seq[String],
     grepCodes: Seq[String],
     status: SearchableStatus,
-    traits: List[ArticleTrait]
+    traits: List[ArticleTrait],
 )
 
 object SearchableArticle {

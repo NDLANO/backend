@@ -27,7 +27,7 @@ import scala.util.{Failure, Success, Try}
 class ReadService(using
     learningPathRepository: LearningPathRepository,
     converterService: ConverterService,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) {
   def tags: List[LearningPathTagsDTO] = {
     learningPathRepository.allPublishedTags.map(tags => LearningPathTagsDTO(tags.tags, tags.language))
@@ -49,7 +49,7 @@ class ReadService(using
       fallback: Boolean,
       page: Int,
       pageSize: Int,
-      userInfo: CombinedUser
+      userInfo: CombinedUser,
   ): Try[List[LearningPathV2DTO]] = {
     if (ids.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
     else {
@@ -57,7 +57,9 @@ class ReadService(using
       val learningpaths = learningPathRepository.pageWithIds(ids, pageSize, offset)
       learningpaths
         .map(_.isOwnerOrPublic(userInfo))
-        .collect { case Success(lp) => converterService.asApiLearningpathV2(lp, language, fallback, userInfo) }
+        .collect { case Success(lp) =>
+          converterService.asApiLearningpathV2(lp, language, fallback, userInfo)
+        }
         .sequence
     }
   }
@@ -66,7 +68,7 @@ class ReadService(using
       learningPathId: Long,
       language: String,
       fallback: Boolean,
-      user: CombinedUser
+      user: CombinedUser,
   ): Try[LearningPathV2DTO] = {
     withIdAndAccessGranted(learningPathId, user).flatMap(lp =>
       converterService.asApiLearningpathV2(lp, language, fallback, user)
@@ -82,7 +84,7 @@ class ReadService(using
       learningStepId: Long,
       language: String,
       fallback: Boolean,
-      user: CombinedUser
+      user: CombinedUser,
   ): Try[LearningStepStatusDTO] = {
     learningstepV2For(learningPathId, learningStepId, language, fallback, user).map(ls =>
       LearningStepStatusDTO(ls.status)
@@ -94,7 +96,7 @@ class ReadService(using
       status: StepStatus,
       language: String,
       fallback: Boolean,
-      user: CombinedUser
+      user: CombinedUser,
   ): Try[LearningStepContainerSummaryDTO] = {
     withIdAndAccessGranted(learningPathId, user) match {
       case Success(lp) => converterService.asLearningStepContainerSummary(status, lp, language, fallback)
@@ -107,16 +109,14 @@ class ReadService(using
       learningStepId: Long,
       language: String,
       fallback: Boolean,
-      user: CombinedUser
+      user: CombinedUser,
   ): Try[LearningStepV2DTO] = {
     withIdAndAccessGranted(learningPathId, user) match {
-      case Success(lp) =>
-        learningPathRepository
+      case Success(lp) => learningPathRepository
           .learningStepWithId(learningPathId, learningStepId)
           .map(ls => converterService.asApiLearningStepV2(ls, lp, language, fallback, user)) match {
           case Some(value) => value
-          case None        =>
-            Failure(
+          case None        => Failure(
               NotFoundException(
                 s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"
               )
@@ -138,7 +138,7 @@ class ReadService(using
   def getLearningPathDomainDump(
       pageNo: Int,
       pageSize: Int,
-      onlyIncludePublished: Boolean
+      onlyIncludePublished: Boolean,
   ): LearningPathDomainDumpDTO = {
     val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
 
@@ -158,15 +158,16 @@ class ReadService(using
   def learningPathWithStatus(status: String, user: CombinedUser): Try[List[LearningPathV2DTO]] = {
     if (user.isAdmin) {
       learningpath.LearningPathStatus.valueOf(status) match {
-        case Some(ps) =>
-          Success(
+        case Some(ps) => Success(
             learningPathRepository
               .learningPathsWithStatus(ps)
               .flatMap(lp => converterService.asApiLearningpathV2(lp, "all", fallback = true, user).toOption)
           )
         case _ => Failure(InvalidLpStatusException(s"Parameter '$status' is not a valid status"))
       }
-    } else { Failure(AccessDeniedException("You do not have access to this resource.")) }
+    } else {
+      Failure(AccessDeniedException("You do not have access to this resource."))
+    }
   }
 
   def canWriteNow(userInfo: CombinedUser): Try[Boolean] = {

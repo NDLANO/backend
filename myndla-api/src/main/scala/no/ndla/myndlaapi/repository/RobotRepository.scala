@@ -25,8 +25,9 @@ class RobotRepository(using dbUtility: DBUtility) extends StrictLogging {
     if (readOnly) ReadOnlyAutoSession
     else AutoSession
 
-  def withTx[T](func: DBSession => T): T =
-    DB.localTx { session => func(session) }
+  def withTx[T](func: DBSession => T): T = DB.localTx { session =>
+    func(session)
+  }
 
   def updateRobotDefinition(robot: RobotDefinition)(implicit session: DBSession): Try[Unit] = Try {
     val column = RobotDefinition.column.c
@@ -37,12 +38,11 @@ class RobotRepository(using dbUtility: DBUtility) extends StrictLogging {
           column("status")        -> robot.status.entryName,
           column("updated")       -> robot.updated,
           column("shared")        -> robot.shared,
-          column("configuration") -> dbUtility.asJsonb(robot.configuration)
+          column("configuration") -> dbUtility.asJsonb(robot.configuration),
         )
         .where
         .eq(column("id"), robot.id)
-    }
-      .update()
+    }.update()
 
     logger.info(s"Updted robot definition with ID: ${robot.id}")
   }
@@ -60,7 +60,7 @@ class RobotRepository(using dbUtility: DBUtility) extends StrictLogging {
           column("created")       -> robot.created,
           column("updated")       -> robot.updated,
           column("shared")        -> robot.shared,
-          column("configuration") -> dbUtility.asJsonb(robot.configuration)
+          column("configuration") -> dbUtility.asJsonb(robot.configuration),
         )
     }.update()(using session): Unit
 
@@ -76,10 +76,7 @@ class RobotRepository(using dbUtility: DBUtility) extends StrictLogging {
            from ${RobotDefinition.as(r)}
            where feide_id = $feideId
            order by ${r.updated} desc
-         """
-      .map(RobotDefinition.fromResultSet(r))
-      .list()
-      .sequence
+         """.map(RobotDefinition.fromResultSet(r)).list().sequence
   }.flatten
 
   def getRobotWithId(robotId: UUID)(implicit session: DBSession): Try[Option[RobotDefinition]] = Try {
@@ -88,19 +85,13 @@ class RobotRepository(using dbUtility: DBUtility) extends StrictLogging {
            select ${r.result.*}
            from ${RobotDefinition.as(r)}
            where id = $robotId
-         """
-      .map(RobotDefinition.fromResultSet(r))
-      .single()
-      .sequence
+         """.map(RobotDefinition.fromResultSet(r)).single().sequence
   }.flatten
 
   def deleteRobotDefinition(robotId: UUID)(implicit session: DBSession): Try[Unit] = {
     val result = Try {
       withSQL {
-        delete
-          .from(RobotDefinition)
-          .where
-          .eq(RobotDefinition.column.c("id"), robotId)
+        delete.from(RobotDefinition).where.eq(RobotDefinition.column.c("id"), robotId)
       }.update()
     }
 

@@ -38,17 +38,16 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val created: NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
-  val copyrighted: Copyright =
-    Copyright(
-      License.Copyrighted.toString,
-      Some("New York"),
-      Seq(Author(ContributorType.Writer, "Clark Kent")),
-      Seq(),
-      Seq(),
-      None,
-      None,
-      false
-    )
+  val copyrighted: Copyright = Copyright(
+    License.Copyrighted.toString,
+    Some("New York"),
+    Seq(Author(ContributorType.Writer, "Clark Kent")),
+    Seq(),
+    Seq(),
+    None,
+    None,
+    false,
+  )
 
   val audioMeta: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),
@@ -64,7 +63,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     AudioType.Standard,
     Seq.empty,
     None,
-    None
+    None,
   )
 
   healthControllerResponse = 404
@@ -75,9 +74,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
     when(s3Client.objectExists("file.mp3")).thenReturn(true)
 
-    val request =
-      quickRequest
-        .get(uri"http://localhost:$serverPort/health/readiness")
+    val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)
@@ -88,18 +85,14 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
     when(s3Client.objectExists("file.mp3")).thenReturn(false)
 
-    val request =
-      quickRequest
-        .get(uri"http://localhost:$serverPort/health/readiness")
+    val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(500)
   }
 
   test("that /health/liveness returns 200") {
-    val request =
-      quickRequest
-        .get(uri"http://localhost:$serverPort/health/liveness")
+    val request = quickRequest.get(uri"http://localhost:$serverPort/health/liveness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)
@@ -110,9 +103,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     when(audioRepository.getRandomAudio()).thenReturn(None)
     when(s3Client.objectExists("file.mp3")).thenReturn(false)
 
-    val request =
-      quickRequest
-        .get(uri"http://localhost:$serverPort/health/readiness")
+    val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)

@@ -23,10 +23,7 @@ import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-class H5PApiClient(using
-    ndlaClient: NdlaClient,
-    props: Props
-) extends StrictLogging {
+class H5PApiClient(using ndlaClient: NdlaClient, props: Props) extends StrictLogging {
   private val H5PApi     = s"${props.H5PAddress}/v1"
   private val h5pTimeout = 20.seconds
 
@@ -45,8 +42,7 @@ class H5PApiClient(using
 
   private def publishH5P(path: String, user: TokenUser)(implicit ec: ExecutionContext): Future[Try[Unit]] = {
     path.path.parts.lastOption match {
-      case None =>
-        Future.successful {
+      case None => Future.successful {
           val msg = "Got h5p path without id. Not publishing..."
           logger.error(msg)
           Failure(H5PException(msg))
@@ -58,14 +54,10 @@ class H5PApiClient(using
     }
   }
 
-  private def logWhenComplete(future: Future[Try[Unit]], path: String, h5pId: String)(implicit
-      ec: ExecutionContext
-  ) = {
+  private def logWhenComplete(future: Future[Try[Unit]], path: String, h5pId: String)(implicit ec: ExecutionContext) = {
     future.onComplete {
-      case Failure(ex) =>
-        logger.error(s"failed to publish h5p with path '$path' (id '$h5pId'): ${ex.getMessage}", ex)
-      case Success(t) =>
-        t match {
+      case Failure(ex) => logger.error(s"failed to publish h5p with path '$path' (id '$h5pId'): ${ex.getMessage}", ex)
+      case Success(t)  => t match {
           case Failure(ex) =>
             logger.error(s"failed to publish h5p with path '$path' (id '$h5pId'): ${ex.getMessage}", ex)
             Failure(ex)
@@ -88,7 +80,7 @@ class H5PApiClient(using
           .put(uri"$url".withParams(params*))
           .header("content-type", "application/json")
           .readTimeout(h5pTimeout),
-        Some(user)
+        Some(user),
       ) match {
         case Success(_)  => Success(())
         case Failure(ex) => Failure(ex)

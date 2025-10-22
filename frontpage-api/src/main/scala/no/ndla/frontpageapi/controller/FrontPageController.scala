@@ -24,12 +24,13 @@ class FrontPageController(using
     writeService: WriteService,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
 ) extends TapirController {
   override val serviceName: String         = "frontpage"
   override val prefix: EndpointInput[Unit] = "frontpage-api" / "v1" / serviceName
 
-  def getFrontPage: ServerEndpoint[Any, Eff] = endpoint.get
+  def getFrontPage: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get data to display on the front page")
     .out(jsonBody[FrontPageDTO])
     .errorOut(errorOutputsFor(404))
@@ -37,15 +38,15 @@ class FrontPageController(using
       readService.getFrontPage
     }
 
-  def newFrontPage: ServerEndpoint[Any, Eff] = endpoint.post
+  def newFrontPage: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Create front page")
     .in(jsonBody[FrontPageDTO])
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .out(jsonBody[FrontPageDTO])
     .requirePermission(FRONTPAGE_API_ADMIN)
     .serverLogicPure { _ => frontPage =>
-      writeService
-        .createFrontPage(frontPage)
+      writeService.createFrontPage(frontPage)
 
     }
 

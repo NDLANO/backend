@@ -15,10 +15,14 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Describes configuration value.")
 case class ConfigMetaDTO(
-    @description("Configuration key") key: String,
-    @description("Configuration value.") value: Either[Boolean, List[String]],
-    @description("Date of when configuration was last updated") updatedAt: NDLADate,
-    @description("UserId of who last updated the configuration parameter.") updatedBy: String
+    @description("Configuration key")
+    key: String,
+    @description("Configuration value.")
+    value: Either[Boolean, List[String]],
+    @description("Date of when configuration was last updated")
+    updatedAt: NDLADate,
+    @description("UserId of who last updated the configuration parameter.")
+    updatedBy: String,
 )
 
 object ConfigMetaDTO {

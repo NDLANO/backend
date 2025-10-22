@@ -39,17 +39,16 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   }
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
-  val byNcSa: Copyright =
-    Copyright(
-      License.CC_BY_NC_SA.toString,
-      Some("Gotham City"),
-      List(Author(ContributorType.Writer, "DC Comics")),
-      Seq(),
-      Seq(),
-      None,
-      None,
-      false
-    )
+  val byNcSa: Copyright = Copyright(
+    License.CC_BY_NC_SA.toString,
+    Some("Gotham City"),
+    List(Author(ContributorType.Writer, "DC Comics")),
+    Seq(),
+    Seq(),
+    None,
+    None,
+    false,
+  )
 
   val publicDomain: Copyright = Copyright(
     License.PublicDomain.toString,
@@ -59,20 +58,19 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     Seq(),
     None,
     None,
-    false
+    false,
   )
 
-  val copyrighted: Copyright =
-    Copyright(
-      License.Copyrighted.toString,
-      Some("New York"),
-      List(Author(ContributorType.Writer, "Clark Kent")),
-      Seq(),
-      Seq(),
-      None,
-      None,
-      false
-    )
+  val copyrighted: Copyright = Copyright(
+    License.Copyrighted.toString,
+    Some("New York"),
+    List(Author(ContributorType.Writer, "Clark Kent")),
+    Seq(),
+    Seq(),
+    None,
+    None,
+    false,
+  )
 
   val updated1: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val updated2: NDLADate = NDLADate.of(2017, 5, 1, 12, 15, 32)
@@ -92,7 +90,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     coverPhoto = domain.CoverPhoto("1", "alt"),
     updated = TestData.today,
     created = TestData.yesterday,
-    hasRSS = true
+    hasRSS = true,
   )
 
   val audio1: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -109,7 +107,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     AudioType.Standard,
     Seq.empty,
     None,
-    None
+    None,
   )
 
   val audio2: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -126,7 +124,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     AudioType.Standard,
     List(Manuscript("Manuskript", "nb"), Manuscript("Manuscript", "nn")),
     None,
-    None
+    None,
   )
 
   val audio3: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -143,7 +141,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     AudioType.Standard,
     Seq.empty,
     None,
-    None
+    None,
   )
 
   val audio4: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -152,7 +150,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     List(
       Title("Donald Duck kjører bil", "nb"),
       Title("Donald Duck kjører bil", "nn"),
-      Title("Donald Duck drives a car", "en")
+      Title("Donald Duck drives a car", "en"),
     ),
     List(Audio("file3.mp3", "audio/mpeg", 1024, "nb")),
     publicDomain,
@@ -164,7 +162,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     AudioType.Standard,
     Seq.empty,
     None,
-    None
+    None,
   )
 
   val audio5: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -181,7 +179,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     AudioType.Standard,
     Seq(Manuscript("manuscript", "nb")),
     None,
-    None
+    None,
   )
 
   val audio6: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -198,13 +196,13 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       domain.PodcastMeta(
         introduction = "podcastintroritehere",
         coverPhoto = domain.CoverPhoto("2", "altyo"),
-        language = "nb"
+        language = "nb",
       )
     ),
     AudioType.Podcast,
     Seq.empty,
     Some(1),
-    Some(podcastSeries1)
+    Some(podcastSeries1),
   )
 
   val audio7: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -218,21 +216,13 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     updated7,
     created,
     Seq(
-      domain.PodcastMeta(
-        introduction = "spanishintro",
-        coverPhoto = domain.CoverPhoto("2", "meta"),
-        language = "es"
-      ),
-      domain.PodcastMeta(
-        introduction = "ukranian intro",
-        coverPhoto = domain.CoverPhoto("1", "alt "),
-        language = "ukr"
-      )
+      domain.PodcastMeta(introduction = "spanishintro", coverPhoto = domain.CoverPhoto("2", "meta"), language = "es"),
+      domain.PodcastMeta(introduction = "ukranian intro", coverPhoto = domain.CoverPhoto("1", "alt "), language = "ukr"),
     ),
     AudioType.Podcast,
     Seq.empty,
     Some(1),
-    None
+    None,
   )
 
   override def beforeAll(): Unit = {
@@ -269,9 +259,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   ) {
     val page            = 74
     val expectedStartAt = (page - 1) * props.DefaultPageSize
-    audioSearchService.getStartAtAndNumResults(Some(page), None) should equal(
-      (expectedStartAt, props.DefaultPageSize)
-    )
+    audioSearchService.getStartAtAndNumResults(Some(page), None) should equal((expectedStartAt, props.DefaultPageSize))
   }
 
   test("That getStartAtAndNumResults returns the correct calculated start at for page and page-size") {
@@ -315,54 +303,35 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That search matches title") {
     val Success(results) = audioSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("Pingvinen"),
-        language = Some("nb")
-      )
+      searchSettings.copy(query = Some("Pingvinen"), language = Some("nb"))
     ): @unchecked
     results.totalCount should be(1)
     results.results.head.id should be(2)
   }
 
   test("That search matches id") {
-    val Success(results) = audioSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("2"),
-        language = Some("nb")
-      )
-    ): @unchecked
+    val Success(results) =
+      audioSearchService.matchingQuery(searchSettings.copy(query = Some("2"), language = Some("nb"))): @unchecked
     results.totalCount should be(1)
     results.results.head.id should be(2)
   }
 
   test("That search matches tags") {
-    val Success(results) = audioSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("and"),
-        language = Some("nb")
-      )
-    ): @unchecked
+    val Success(results) =
+      audioSearchService.matchingQuery(searchSettings.copy(query = Some("and"), language = Some("nb"))): @unchecked
     results.totalCount should be(1)
     results.results.head.id should be(4)
   }
 
   test("That search does not return batmen since it has license copyrighted and license is not specified") {
-    val Success(results) = audioSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("batmen"),
-        language = Some("nb")
-      )
-    ): @unchecked
+    val Success(results) =
+      audioSearchService.matchingQuery(searchSettings.copy(query = Some("batmen"), language = Some("nb"))): @unchecked
     results.totalCount should be(0)
   }
 
   test("That search returns batmen since license is specified as copyrighted") {
     val Success(results) = audioSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("batmen"),
-        language = Some("nb"),
-        license = Some(License.Copyrighted.toString)
-      )
+      searchSettings.copy(query = Some("batmen"), language = Some("nb"), license = Some(License.Copyrighted.toString))
     ): @unchecked
     results.totalCount should be(1)
     results.results.head.id should be(1)
@@ -370,18 +339,12 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("Searching with logical AND only returns results with all terms") {
     val Success(search1) = audioSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("bilde + bil"),
-        language = Some("nb")
-      )
+      searchSettings.copy(query = Some("bilde + bil"), language = Some("nb"))
     ): @unchecked
     search1.results.map(_.id) should equal(Seq.empty)
 
     val Success(search2) = audioSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("ute + -går"),
-        language = Some("nb")
-      )
+      searchSettings.copy(query = Some("ute + -går"), language = Some("nb"))
     ): @unchecked
     search2.results.map(_.id) should equal(Seq(3))
   }
@@ -512,10 +475,9 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val pageSize    = 2
     val expectedIds = List(2, 3, 4, 5, 6, 7).sliding(pageSize, pageSize).toList
 
-    val Success(initialSearch) =
-      audioSearchService.matchingQuery(
-        searchSettings.copy(pageSize = Some(pageSize), sort = Sort.ByIdAsc, shouldScroll = true)
-      ): @unchecked
+    val Success(initialSearch) = audioSearchService.matchingQuery(
+      searchSettings.copy(pageSize = Some(pageSize), sort = Sort.ByIdAsc, shouldScroll = true)
+    ): @unchecked
 
     val Success(scroll1) = audioSearchService.scroll(initialSearch.scrollId.get, "*"): @unchecked
     val Success(scroll2) = audioSearchService.scroll(scroll1.scrollId.get, "*"): @unchecked
@@ -569,10 +531,9 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     search1.totalCount should be(1)
     search1.results.map(_.id) should be(Seq(6))
 
-    val Success(search2) =
-      audioSearchService.matchingQuery(
-        searchSettings.copy(query = Some("podcastintroritehere"), language = Some("en"))
-      ): @unchecked
+    val Success(search2) = audioSearchService.matchingQuery(
+      searchSettings.copy(query = Some("podcastintroritehere"), language = Some("en"))
+    ): @unchecked
     search2.totalCount should be(0)
     search2.results.map(_.id) should be(Seq())
   }
@@ -588,12 +549,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That fallback searching includes audios with languages outside the search") {
     val Success(result1) = audioSearchService.matchingQuery(
-      searchSettings.copy(
-        query = None,
-        fallback = true,
-        language = Some("en"),
-        sort = Sort.ByIdAsc
-      )
+      searchSettings.copy(query = None, fallback = true, language = Some("en"), sort = Sort.ByIdAsc)
     ): @unchecked
     result1.results.map(_.id) should be(Seq(2, 3, 4, 5, 6, 7))
     result1.results.head.title.language should be("nb")
@@ -604,12 +560,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     result1.results(5).title.language should be("es")
 
     val Success(result2) = audioSearchService.matchingQuery(
-      searchSettings.copy(
-        query = None,
-        fallback = true,
-        language = Some("nb"),
-        sort = Sort.ByIdAsc
-      )
+      searchSettings.copy(query = None, fallback = true, language = Some("nb"), sort = Sort.ByIdAsc)
     ): @unchecked
     result2.results.map(_.id) should be(Seq(2, 3, 4, 5, 6, 7))
     result2.results.head.title.language should be("nb")
@@ -622,12 +573,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That fallback searching includes audios with languages outside the search with query") {
     val Success(result1) = audioSearchService.matchingQuery(
-      searchSettings.copy(
-        query = Some("drives"),
-        fallback = true,
-        language = Some("nb"),
-        sort = Sort.ByIdAsc
-      )
+      searchSettings.copy(query = Some("drives"), fallback = true, language = Some("nb"), sort = Sort.ByIdAsc)
     ): @unchecked
 
     result1.results.map(_.id) should be(Seq(4))

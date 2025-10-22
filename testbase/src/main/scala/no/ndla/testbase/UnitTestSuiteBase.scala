@@ -34,7 +34,9 @@ trait UnitTestSuiteBase
     def closeQuietly(socket: ServerSocket): Unit = {
       try {
         socket.close()
-      } catch { case _: Throwable => }
+      } catch {
+        case _: Throwable =>
+      }
     }
     var socket: ServerSocket = null
     try {
@@ -44,8 +46,7 @@ trait UnitTestSuiteBase
       closeQuietly(socket)
       return port;
     } catch {
-      case e: IOException =>
-        System.err.println(("Failed to open socket", e));
+      case e: IOException => System.err.println(("Failed to open socket", e));
     } finally {
       if (socket != null) {
         closeQuietly(socket)
@@ -94,10 +95,12 @@ trait UnitTestSuiteBase
     Try(resultStack.top).flatten match {
       case Success(_)  =>
       case Failure(ex) =>
-        val header =
-          s"waited for ${System.currentTimeMillis() - startTime}ms, retries: ${resultStack.length}"
-        val failures = resultStack.zipWithIndex
-          .map { case (res, retryIdx) => s"  retry #$retryIdx: $res" }
+        val header   = s"waited for ${System.currentTimeMillis() - startTime}ms, retries: ${resultStack.length}"
+        val failures = resultStack
+          .zipWithIndex
+          .map { case (res, retryIdx) =>
+            s"  retry #$retryIdx: $res"
+          }
           .mkString("\n")
 
         fail(s"Failed waiting for predicate to return Success:\n\n$header\n$failures", ex)
@@ -109,12 +112,11 @@ trait UnitTestSuiteBase
   implicit class failableTry[T](result: Try[T]) {
     def failIfFailure: T = result match {
       case Success(r)  => r
-      case Failure(ex) =>
-        fail(
+      case Failure(ex) => fail(
           """Failure gotten when Success was expected :^)
             |See cause exception at the bottom of the stack trace.
             |""".stripMargin,
-          ex
+          ex,
         )
     }
   }

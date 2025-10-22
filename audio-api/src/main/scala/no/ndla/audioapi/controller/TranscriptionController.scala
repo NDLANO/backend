@@ -26,7 +26,7 @@ class TranscriptionController(using
     transcriptionService: TranscriptionService,
     errorHelpers: ErrorHelpers,
     errorHandling: ControllerErrorHandling,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
 
   override val serviceName: String         = "transcription"
@@ -36,11 +36,13 @@ class TranscriptionController(using
   private val audioName  = path[String]("audioName").description("The audio name to transcribe")
   private val audioId    = path[Long]("audioId").description("The audio id to transcribe")
   private val language   = path[String]("language").description("The language to run the transcription in")
-  private val maxSpeaker =
-    query[Int]("maxSpeaker").description("The maximum number of speakers in the video").default(2)
+  private val maxSpeaker = query[Int]("maxSpeaker")
+    .description("The maximum number of speakers in the video")
+    .default(2)
   private val format = query[String]("format").description("The format of the audio file").default("mp3")
 
-  def postExtractAudio: ServerEndpoint[Any, Eff] = endpoint.post
+  def postExtractAudio: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Extract audio from video")
     .description("Extracts audio from a Brightcove video and uploads it to S3.")
     .in(videoId)
@@ -57,7 +59,8 @@ class TranscriptionController(using
       }
     }
 
-  def getAudioExtraction: ServerEndpoint[Any, Eff] = endpoint.get
+  def getAudioExtraction: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get audio extraction status")
     .description("Get the status of the audio extraction from a Brightcove video.")
     .in(videoId)
@@ -74,7 +77,8 @@ class TranscriptionController(using
       }
     }
 
-  def postTranscription: ServerEndpoint[Any, Eff] = endpoint.post
+  def postTranscription: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Transcribe video")
     .description("Transcribes a video and uploads the transcription to S3.")
     .in("video")
@@ -92,7 +96,8 @@ class TranscriptionController(using
       }
     }
 
-  def getTranscription: ServerEndpoint[Any, Eff] = endpoint.get
+  def getTranscription: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get the transcription status of a video")
     .description("Get the transcription of a video.")
     .in("video")
@@ -106,14 +111,14 @@ class TranscriptionController(using
         transcriptionService.getVideoTranscription(videoId, language) match {
           case Success(TranscriptionComplete(transcriptionContent)) =>
             Right(TranscriptionResultDTO("COMPLETED", Some(transcriptionContent.toString)))
-          case Success(TranscriptionNonComplete(jobStatus)) =>
-            Right(TranscriptionResultDTO(jobStatus.toString, None))
-          case Failure(ex) => errorHandling.returnLeftError(ex)
+          case Success(TranscriptionNonComplete(jobStatus)) => Right(TranscriptionResultDTO(jobStatus.toString, None))
+          case Failure(ex)                                  => errorHandling.returnLeftError(ex)
         }
       }
     }
 
-  def postAudioTranscription: ServerEndpoint[Any, Eff] = endpoint.post
+  def postAudioTranscription: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Transcribe audio")
     .description("Transcribes an audiofile and uploads the transcription to S3.")
     .in("audio")
@@ -133,7 +138,8 @@ class TranscriptionController(using
       }
     }
 
-  def getAudioTranscription: ServerEndpoint[Any, Eff] = endpoint.get
+  def getAudioTranscription: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get the transcription status of an audiofile")
     .description("Get the transcription of an audiofile .")
     .in("audio")
@@ -147,20 +153,18 @@ class TranscriptionController(using
         transcriptionService.getAudioTranscription(audioId, language) match {
           case Success(Right(transcriptionContent)) =>
             Right(TranscriptionResultDTO("COMPLETED", Some(transcriptionContent)))
-          case Success(Left(jobStatus)) =>
-            Right(TranscriptionResultDTO(jobStatus.toString, None))
-          case Failure(ex) => errorHandling.returnLeftError(ex)
+          case Success(Left(jobStatus)) => Right(TranscriptionResultDTO(jobStatus.toString, None))
+          case Failure(ex)              => errorHandling.returnLeftError(ex)
         }
       }
     }
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] =
-    List(
-      postExtractAudio,
-      getAudioExtraction,
-      postTranscription,
-      getTranscription,
-      postAudioTranscription,
-      getAudioTranscription
-    )
+  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+    postExtractAudio,
+    getAudioExtraction,
+    postTranscription,
+    getTranscription,
+    postAudioTranscription,
+    getAudioTranscription,
+  )
 }

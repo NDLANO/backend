@@ -28,7 +28,7 @@ abstract class IndexService(using
     e4sClient: NdlaE4sClient,
     props: Props,
     searchConverterService: SearchConverterService,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends BaseIndexService
     with StrictLogging {
   val repository: Repository[Concept]
@@ -37,21 +37,18 @@ abstract class IndexService(using
   private val lowerNormalizer: CustomNormalizer =
     CustomNormalizer("lower", charFilters = List.empty, tokenFilters = List("lowercase"))
 
-  override val analysis: Analysis =
-    Analysis(
-      analyzers = List(searchLanguage.NynorskLanguageAnalyzer),
-      tokenFilters = searchLanguage.NynorskTokenFilters,
-      normalizers = List(lowerNormalizer)
-    )
+  override val analysis: Analysis = Analysis(
+    analyzers = List(searchLanguage.NynorskLanguageAnalyzer),
+    tokenFilters = searchLanguage.NynorskTokenFilters,
+    normalizers = List(lowerNormalizer),
+  )
 
   private def createIndexRequest(concept: Concept, indexName: String) = {
     concept.id match {
       case Some(id) =>
         val searchable = searchConverterService.asSearchableConcept(concept)
         val source     = CirceUtil.toJsonString(searchable)
-        Success(
-          indexInto(indexName).doc(source).id(id.toString)
-        )
+        Success(indexInto(indexName).doc(source).id(id.toString))
 
       case _ => Failure(ConceptMissingIdException("Attempted to create index request for concept without an id."))
     }
@@ -82,11 +79,7 @@ abstract class IndexService(using
   private def getRanges: Try[List[(Long, Long)]] = {
     Try {
       val (minId, maxId) = repository.minMaxId
-      Seq
-        .range(minId, maxId + 1)
-        .grouped(props.IndexBulkSize)
-        .map(group => (group.head, group.last))
-        .toList
+      Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
     }
   }
 
@@ -94,9 +87,13 @@ abstract class IndexService(using
     if (contents.isEmpty) {
       Success(0)
     } else {
-      val req                    = contents.map(content => createIndexRequest(content, indexName))
-      val indexRequests          = req.collect { case Success(indexRequest) => indexRequest }
-      val failedToCreateRequests = req.collect { case Failure(ex) => Failure(ex) }
+      val req           = contents.map(content => createIndexRequest(content, indexName))
+      val indexRequests = req.collect { case Success(indexRequest) =>
+        indexRequest
+      }
+      val failedToCreateRequests = req.collect { case Failure(ex) =>
+        Failure(ex)
+      }
 
       if (indexRequests.nonEmpty) {
         val response = e4sClient.execute {
@@ -119,19 +116,19 @@ abstract class IndexService(using
 
   private def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
     if (keepRaw) {
-      searchLanguage.languageAnalyzers.map(langAnalyzer =>
-        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-          .analyzer(langAnalyzer.analyzer)
-          .fields(
-            keywordField("raw"),
-            keywordField("lower").normalizer("lower")
-          )
-      )
+      searchLanguage
+        .languageAnalyzers
+        .map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .analyzer(langAnalyzer.analyzer)
+            .fields(keywordField("raw"), keywordField("lower").normalizer("lower"))
+        )
     } else {
-      searchLanguage.languageAnalyzers.map(langAnalyzer =>
-        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-          .analyzer(langAnalyzer.analyzer)
-      )
+      searchLanguage
+        .languageAnalyzers
+        .map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}").analyzer(langAnalyzer.analyzer)
+        )
     }
   }
 
@@ -153,33 +150,18 @@ abstract class IndexService(using
       keywordField("defaultSortableSubject"),
       keywordField("defaultSortableConceptType"),
       nestedField("copyright").fields(
-        nestedField("creators").fields(
-          keywordField("type"),
-          keywordField("name")
-        ),
-        nestedField("processors").fields(
-          keywordField("type"),
-          keywordField("name")
-        ),
-        nestedField("rightsholders").fields(
-          keywordField("type"),
-          keywordField("name")
-        )
+        nestedField("creators").fields(keywordField("type"), keywordField("name")),
+        nestedField("processors").fields(keywordField("type"), keywordField("name")),
+        nestedField("rightsholders").fields(keywordField("type"), keywordField("name")),
       ),
       nestedField("embedResourcesAndIds").fields(
         keywordField("resource"),
         keywordField("id"),
-        keywordField("language")
+        keywordField("language"),
       ),
-      ObjectField(
-        "responsible",
-        properties = Seq(
-          keywordField("responsibleId"),
-          dateField("lastUpdated")
-        )
-      ),
+      ObjectField("responsible", properties = Seq(keywordField("responsibleId"), dateField("lastUpdated"))),
       textField("gloss"),
-      ObjectField("domainObject", enabled = Some(false))
+      ObjectField("domainObject", enabled = Some(false)),
     )
     val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
       generateLanguageSupportedFieldList("content") ++

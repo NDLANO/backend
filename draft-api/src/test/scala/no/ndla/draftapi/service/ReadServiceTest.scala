@@ -48,19 +48,20 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size=""></$EmbedTagName>"""
     val visualElementAfter =
       s"""<$EmbedTagName data-align="" data-alt="" data-caption="" data-resource="image" data-resource_id="1" data-size="" data-url="http://api-gateway.ndla-local/image-api/v2/images/1"></$EmbedTagName>"""
-    val article = TestData.sampleArticleWithByNcSa.copy(
-      content = Seq(articleContent1),
-      visualElement = Seq(VisualElement(visualElementBefore, "nb"))
-    )
+    val article = TestData
+      .sampleArticleWithByNcSa
+      .copy(content = Seq(articleContent1), visualElement = Seq(VisualElement(visualElementBefore, "nb")))
 
     when(draftRepository.withId(eqTo(1L))(using any)).thenReturn(Option(article))
     when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List("54321"))
 
     val expectedResult = converterService
       .toApiArticle(
-        article
-          .copy(content = Seq(expectedArticleContent1), visualElement = Seq(VisualElement(visualElementAfter, "nb"))),
-        "nb"
+        article.copy(
+          content = Seq(expectedArticleContent1),
+          visualElement = Seq(VisualElement(visualElementAfter, "nb")),
+        ),
+        "nb",
       )
       .get
     readService.withId(1, "nb") should equal(Success(expectedResult))
@@ -71,8 +72,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("addIdAndUrlOnResource adds id but not url on embed resources without a data-resource_id attribute") {
-    val articleContent3 = articleContent1.copy(
-      content = s"""<$EmbedTagName $resourceAttr="$h5pType" $urlAttr="http://some.h5p.org"></$EmbedTagName>"""
+    val articleContent3 = articleContent1.copy(content =
+      s"""<$EmbedTagName $resourceAttr="$h5pType" $urlAttr="http://some.h5p.org"></$EmbedTagName>"""
     )
     readService.addUrlOnResource(articleContent3.content) should equal(articleContent3.content)
   }
@@ -119,14 +120,13 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(draftRepository.withIds(any, any, any)(using any)).thenReturn(Success(Seq(article1, article2, article3)))
     when(draftRepository.getExternalIdsFromId(any)(using any)).thenReturn(List(""), List(""), List(""))
 
-    val Success(result) =
-      readService.getArticlesByIds(
-        articleIds = ids,
-        language = "nb",
-        fallback = true,
-        page = 1,
-        pageSize = 10
-      ): @unchecked
+    val Success(result) = readService.getArticlesByIds(
+      articleIds = ids,
+      language = "nb",
+      fallback = true,
+      page = 1,
+      pageSize = 10,
+    ): @unchecked
     result.length should be(3)
 
     verify(draftRepository, times(1)).withIds(any, any, any)(using any)
@@ -134,14 +134,13 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("that getArticlesByIds fails if no ids were given") {
     reset(draftRepository)
-    val Failure(result: ValidationException) =
-      readService.getArticlesByIds(
-        articleIds = List.empty,
-        language = "nb",
-        fallback = true,
-        page = 1,
-        pageSize = 10
-      ): @unchecked
+    val Failure(result: ValidationException) = readService.getArticlesByIds(
+      articleIds = List.empty,
+      language = "nb",
+      fallback = true,
+      page = 1,
+      pageSize = 10,
+    ): @unchecked
     result.errors.head.message should be("Query parameter 'ids' is missing")
 
     verify(draftRepository, times(0)).withIds(any, any, any)(using any)
@@ -156,9 +155,10 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(previousDraft, publishedDraft))
     val revisionHistory = readService.getArticleRevisionHistory(articleId, "nb", fallback = true).failIfFailure
-    revisionHistory.revisions.map(
-      _.revision
-    ) should contain allOf (previousDraft.revision.get, publishedDraft.revision.get)
+    revisionHistory.revisions.map(_.revision) should contain allOf (
+      previousDraft.revision.get,
+      publishedDraft.revision.get,
+    )
     revisionHistory.canDeleteCurrentRevision should be(false)
 
     when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(previousDraft))

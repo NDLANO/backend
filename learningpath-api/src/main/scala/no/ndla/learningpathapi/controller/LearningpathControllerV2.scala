@@ -42,7 +42,7 @@ class LearningpathControllerV2(using
     props: Props,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   import errorHelpers.*
   import errorHandling.*
@@ -50,38 +50,29 @@ class LearningpathControllerV2(using
   override val serviceName: String         = "learningpaths"
   override val prefix: EndpointInput[Unit] = "learningpath-api" / "v2" / serviceName
 
-  private val pathArticleId =
-    path[Long]("article_id").description("Id of the article to search with")
-  private val queryParam =
+  private val pathArticleId = path[Long]("article_id").description("Id of the article to search with")
+  private val queryParam    =
     query[Option[String]]("query").description("Return only Learningpaths with content matching the specified query.")
-  private val language =
-    query[LanguageCode]("language")
-      .description("The ISO 639-1 language code describing language.")
-      .default(LanguageCode(Language.AllLanguages))
-  private val pathLanguage =
-    path[LanguageCode].description("The ISO 639-1 language describing language.")
-  private val sort = query[Option[String]]("sort").description(
-    s"""The sorting used on results.
+  private val language = query[LanguageCode]("language")
+    .description("The ISO 639-1 language code describing language.")
+    .default(LanguageCode(Language.AllLanguages))
+  private val pathLanguage = path[LanguageCode].description("The ISO 639-1 language describing language.")
+  private val sort         = query[Option[String]]("sort").description(s"""The sorting used on results.
              The following are supported: ${Sort.all.mkString(", ")}.
-             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
-  )
-  private val pageNo = query[Option[Int]]("page")
-    .description("The page number of the search hits to display.")
-  private val pageSize = query[Option[Int]]("page-size")
-    .description("The number of search hits to display for each page.")
-  private val pathLearningpathId =
-    path[Long]("learningpath_id").description("Id of the learningpath.")
-  private val pathLearningstepId =
-    path[Long]("learningstep_id").description("Id of the learningstep.")
-  private val tag =
+             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin)
+  private val pageNo   = query[Option[Int]]("page").description("The page number of the search hits to display.")
+  private val pageSize =
+    query[Option[Int]]("page-size").description("The number of search hits to display for each page.")
+  private val pathLearningpathId = path[Long]("learningpath_id").description("Id of the learningpath.")
+  private val pathLearningstepId = path[Long]("learningstep_id").description("Id of the learningstep.")
+  private val tag                =
     query[Option[String]]("tag").description("Return only Learningpaths that are tagged with this exact tag.")
-  private val learningpathIds = listQuery[Long]("ids")
-    .description(
-      "Return only Learningpaths that have one of the provided ids. To provide multiple ids, separate by comma (,)."
-    )
-  private val licenseFilter =
-    query[Option[String]]("filter")
-      .description("Query for filtering licenses. Only licenses containing filter-string are returned.")
+  private val learningpathIds = listQuery[Long]("ids").description(
+    "Return only Learningpaths that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+  )
+  private val licenseFilter = query[Option[String]]("filter").description(
+    "Query for filtering licenses. Only licenses containing filter-string are returned."
+  )
   private val fallback = query[Boolean]("fallback")
     .description("Fallback to existing language if language is specified.")
     .default(false)
@@ -89,21 +80,19 @@ class LearningpathControllerV2(using
     .description("Create taxonomy resource if missing for learningPath")
     .default(false)
   private val learningPathStatus = path[String]("STATUS").description("Status of LearningPaths")
-  private val scrollId           = query[Option[String]]("search-context")
-    .description(
-      s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${props.InitialScrollContextKeywords
-          .mkString("[", ",", "]")}.
+  private val scrollId           = query[Option[String]]("search-context").description(
+    s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${props.InitialScrollContextKeywords.mkString("[", ",", "]")}.
          |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.name}' and '${this.fallback.name}'.
          |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after ${props.ElasticSearchScrollKeepAlive}).
          |If you are not paginating past ${props.ElasticSearchIndexMaxResultWindow} hits, you can ignore this and use '${this.pageNo.name}' and '${this.pageSize.name}' instead.
          |""".stripMargin
-    )
-  private val verificationStatus = query[Option[String]]("verificationStatus")
-    .description("Return only learning paths that have this verification status.")
-  private val ids = listQuery[Long]("ids")
-    .description(
-      "Return only learningpaths that have one of the provided ids. To provide multiple ids, separate by comma (,)."
-    )
+  )
+  private val verificationStatus = query[Option[String]]("verificationStatus").description(
+    "Return only learning paths that have this verification status."
+  )
+  private val ids = listQuery[Long]("ids").description(
+    "Return only learningpaths that have one of the provided ids. To provide multiple ids, separate by comma (,)."
+  )
 
   /** Does a scroll with [[SearchService]] If no scrollId is specified execute the function @orFunction in the second
     * parameter list.
@@ -115,18 +104,17 @@ class LearningpathControllerV2(using
     */
   private def scrollSearchOr(scrollId: Option[String], language: LanguageCode)(
       orFunction: => Try[(SearchResultV2DTO, DynamicHeaders)]
-  ): Try[(SearchResultV2DTO, DynamicHeaders)] =
-    scrollId match {
-      case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
-        searchService.scroll(scroll, language.code) match {
-          case Success(scrollResult) =>
-            val body    = searchConverterServiceComponent.asApiSearchResult(scrollResult)
-            val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
-            Success((body, headers))
-          case Failure(ex) => Failure(ex)
-        }
-      case _ => orFunction
-    }
+  ): Try[(SearchResultV2DTO, DynamicHeaders)] = scrollId match {
+    case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
+      searchService.scroll(scroll, language.code) match {
+        case Success(scrollResult) =>
+          val body    = searchConverterServiceComponent.asApiSearchResult(scrollResult)
+          val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
+          Success((body, headers))
+        case Failure(ex) => Failure(ex)
+      }
+    case _ => orFunction
+  }
 
   private def search(
       query: Option[String],
@@ -138,11 +126,10 @@ class LearningpathControllerV2(using
       page: Option[Int],
       fallback: Boolean,
       verificationStatus: Option[String],
-      shouldScroll: Boolean
+      shouldScroll: Boolean,
   ) = {
     val settings = query match {
-      case Some(q) =>
-        SearchSettings(
+      case Some(q) => SearchSettings(
           query = Some(q),
           withIdIn = idList,
           taggedWith = tag,
@@ -156,10 +143,9 @@ class LearningpathControllerV2(using
           shouldScroll = shouldScroll,
           articleId = None,
           status = List(learningpath.LearningPathStatus.PUBLISHED),
-          grepCodes = List.empty
+          grepCodes = List.empty,
         )
-      case None =>
-        SearchSettings(
+      case None => SearchSettings(
           query = None,
           withIdIn = idList,
           taggedWith = tag,
@@ -173,7 +159,7 @@ class LearningpathControllerV2(using
           shouldScroll = shouldScroll,
           articleId = None,
           status = List(learningpath.LearningPathStatus.PUBLISHED),
-          grepCodes = List.empty
+          grepCodes = List.empty,
         )
     }
 
@@ -214,10 +200,11 @@ class LearningpathControllerV2(using
     deleteLearningPathLanguage(),
     deleteLearningpath(),
     deleteLearningStep(),
-    updateLearningPathTaxonomy()
+    updateLearningPathTaxonomy(),
   )
 
-  private def getLearningpaths: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getLearningpaths: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Find public learningpaths")
     .description("Show public learningpaths.")
     .in(queryParam)
@@ -247,12 +234,13 @@ class LearningpathControllerV2(using
             pageNo,
             fallback,
             verificationStatus,
-            shouldScroll
+            shouldScroll,
           )
         }.handleErrorsOrOk
     }
 
-  private def postSearch: ServerEndpoint[Any, Eff] = endpoint.post
+  private def postSearch: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Find public learningpaths")
     .description("Show public learningpaths")
     .in("search")
@@ -274,12 +262,13 @@ class LearningpathControllerV2(using
           page = searchParams.page,
           fallback = searchParams.fallback.getOrElse(false),
           verificationStatus = searchParams.verificationStatus,
-          shouldScroll = shouldScroll
+          shouldScroll = shouldScroll,
         )
       }.handleErrorsOrOk
     }
 
-  private def getLearningpathsByIds: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getLearningpathsByIds: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch learningpaths that matches ids parameter.")
     .description("Returns learningpaths that matches ids parameter.")
     .in("ids")
@@ -301,13 +290,12 @@ class LearningpathControllerV2(using
           case tooSmall if tooSmall < 1 => 1
           case x                        => x
         }
-        readService
-          .withIdV2List(idList.values, language.code, fallback, page, pageSize, user)
-          .handleErrorsOrOk
+        readService.withIdV2List(idList.values, language.code, fallback, page, pageSize, user).handleErrorsOrOk
       }
     }
 
-  private def getLearningpath: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getLearningpath: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch details about the specified learningpath")
     .description("Shows all information about the specified learningpath.")
     .in(pathLearningpathId)
@@ -322,16 +310,20 @@ class LearningpathControllerV2(using
       }
     }
 
-  private def getLearningpathStatus: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getLearningpathStatus: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Show status information for the learningpath")
     .description("Shows publishingstatus for the learningpath")
     .in(pathLearningpathId / "status")
     .out(jsonBody[LearningPathStatusDTO])
     .errorOut(errorOutputsFor(401, 403, 404))
     .withOptionalMyNDLAUserOrTokenUser
-    .serverLogicPure { maybeUser => id => readService.statusFor(id, maybeUser).handleErrorsOrOk }
+    .serverLogicPure { maybeUser => id =>
+      readService.statusFor(id, maybeUser).handleErrorsOrOk
+    }
 
-  private def getLearningsteps: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getLearningsteps: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch learningsteps for given learningpath")
     .description("Show all learningsteps for given learningpath id")
     .in(pathLearningpathId / "learningsteps")
@@ -343,18 +335,13 @@ class LearningpathControllerV2(using
     .serverLogicPure { maybeUser =>
       { case (id, fallback, language) =>
         readService
-          .learningstepsForWithStatusV2(
-            id,
-            StepStatus.ACTIVE,
-            language.code,
-            fallback,
-            maybeUser
-          )
+          .learningstepsForWithStatusV2(id, StepStatus.ACTIVE, language.code, fallback, maybeUser)
           .handleErrorsOrOk
       }
     }
 
-  private def getLearningStep: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getLearningStep: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch details about the specified learningstep")
     .description("Show the given learningstep for the given learningpath")
     .in(pathLearningpathId / "learningsteps" / pathLearningstepId)
@@ -365,13 +352,12 @@ class LearningpathControllerV2(using
     .withOptionalMyNDLAUserOrTokenUser
     .serverLogicPure { maybeUser =>
       { case (pathId, stepId, language, fallback) =>
-        readService
-          .learningstepV2For(pathId, stepId, language.code, fallback, maybeUser)
-          .handleErrorsOrOk
+        readService.learningstepV2For(pathId, stepId, language.code, fallback, maybeUser).handleErrorsOrOk
       }
     }
 
-  private def getLearningStepsInTrash: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getLearningStepsInTrash: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch deleted learningsteps for given learningpath")
     .description("Show all learningsteps for the given learningpath that are marked as deleted")
     .in(pathLearningpathId / "learningsteps" / "trash")
@@ -382,13 +368,12 @@ class LearningpathControllerV2(using
     .withRequiredMyNDLAUserOrTokenUser
     .serverLogicPure { user =>
       { case (id, language, fallback) =>
-        readService
-          .learningstepsForWithStatusV2(id, StepStatus.DELETED, language.code, fallback, user)
-          .handleErrorsOrOk
+        readService.learningstepsForWithStatusV2(id, StepStatus.DELETED, language.code, fallback, user).handleErrorsOrOk
       }
     }
 
-  private def getLearningStepStatus: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getLearningStepStatus: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Show status information for learningstep")
     .description("Shows status for the learningstep")
     .in(pathLearningpathId / "learningsteps" / pathLearningstepId / "status")
@@ -398,28 +383,24 @@ class LearningpathControllerV2(using
     .withOptionalMyNDLAUserOrTokenUser
     .serverLogicPure { user =>
       { case (pathId, stepId, fallback) =>
-        readService
-          .learningStepStatusForV2(
-            pathId,
-            stepId,
-            props.DefaultLanguage,
-            fallback,
-            user
-          )
-          .handleErrorsOrOk
+        readService.learningStepStatusForV2(pathId, stepId, props.DefaultLanguage, fallback, user).handleErrorsOrOk
       }
     }
 
-  private def getMyLearningpaths: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getMyLearningpaths: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch all learningspaths you have created")
     .description("Shows your learningpaths.")
     .in("mine")
     .out(jsonBody[List[LearningPathV2DTO]])
     .errorOut(errorOutputsFor(401, 403, 404))
     .withRequiredMyNDLAUserOrTokenUser
-    .serverLogicPure { user => _ => readService.withOwnerV2(user, props.DefaultLanguage, true).asRight }
+    .serverLogicPure { user => _ =>
+      readService.withOwnerV2(user, props.DefaultLanguage, true).asRight
+    }
 
-  def getLicenses: ServerEndpoint[Any, Eff] = endpoint.get
+  def getLicenses: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Show all valid licenses")
     .description("Shows all valid licenses")
     .in("licenses")
@@ -427,17 +408,15 @@ class LearningpathControllerV2(using
     .out(jsonBody[Seq[LicenseDTO]])
     .errorOut(errorOutputsFor(401, 403, 404))
     .serverLogicPure { license =>
-      val licenses: Seq[LicenseDefinition] =
-        license match {
-          case None         => mapping.License.getLicenses
-          case Some(filter) =>
-            mapping.License.getLicenses
-              .filter(_.license.toString.contains(filter))
-        }
+      val licenses: Seq[LicenseDefinition] = license match {
+        case None         => mapping.License.getLicenses
+        case Some(filter) => mapping.License.getLicenses.filter(_.license.toString.contains(filter))
+      }
       licenses.map(x => LicenseDTO(x.license.toString, Option(x.description), x.url)).asRight
     }
 
-  private def addLearningpath(): ServerEndpoint[Any, Eff] = endpoint.post
+  private def addLearningpath(): ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Store new learningpath")
     .description("Adds the given learningpath")
     .in(jsonBody[NewLearningPathV2DTO])
@@ -455,7 +434,8 @@ class LearningpathControllerV2(using
       }
     }
 
-  private def copyLearningpath: ServerEndpoint[Any, Eff] = endpoint.post
+  private def copyLearningpath: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Copy given learningpath and store it as a new learningpath")
     .description("Copies the given learningpath, with the option to override some fields")
     .in(pathLearningpathId / "copy")
@@ -477,7 +457,8 @@ class LearningpathControllerV2(using
       }
     }
 
-  private def updateLearningPath(): ServerEndpoint[Any, Eff] = endpoint.patch
+  private def updateLearningPath(): ServerEndpoint[Any, Eff] = endpoint
+    .patch
     .summary("Update given learningpath")
     .description("Updates the given learningPath")
     .in(pathLearningpathId)
@@ -487,17 +468,12 @@ class LearningpathControllerV2(using
     .withRequiredMyNDLAUserOrTokenUser
     .serverLogicPure { user =>
       { case (pathId, newLearningPath) =>
-        updateService
-          .updateLearningPathV2(
-            pathId,
-            newLearningPath,
-            user
-          )
-          .handleErrorsOrOk
+        updateService.updateLearningPathV2(pathId, newLearningPath, user).handleErrorsOrOk
       }
     }
 
-  private def addLearningStep(): ServerEndpoint[Any, Eff] = endpoint.post
+  private def addLearningStep(): ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Add new learningstep to learningpath")
     .description("Adds the given LearningStep")
     .in(pathLearningpathId / "learningsteps")
@@ -519,7 +495,8 @@ class LearningpathControllerV2(using
       }
     }
 
-  def updateLearningStep(): ServerEndpoint[Any, Eff] = endpoint.patch
+  def updateLearningStep(): ServerEndpoint[Any, Eff] = endpoint
+    .patch
     .summary("Update given learningstep")
     .description("Update the given learningStep")
     .in(pathLearningpathId / "learningsteps" / pathLearningstepId)
@@ -539,7 +516,8 @@ class LearningpathControllerV2(using
       }
     }
 
-  def deleteLearningStepLanguage(): ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteLearningStepLanguage(): ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .summary("Delete given learningstep language")
     .description("Deletes the given learningStep language")
     .in(pathLearningpathId / "learningsteps" / pathLearningstepId / "language" / pathLanguage)
@@ -560,7 +538,8 @@ class LearningpathControllerV2(using
       }
     }
 
-  private def updatedLearningstepSeqNo: ServerEndpoint[Any, Eff] = endpoint.put
+  private def updatedLearningstepSeqNo: ServerEndpoint[Any, Eff] = endpoint
+    .put
     .summary("Store new sequence number for learningstep.")
     .description(
       "Updates the sequence number for the given learningstep. The sequence number of other learningsteps will be affected by this."
@@ -576,7 +555,8 @@ class LearningpathControllerV2(using
       }
     }
 
-  private def updateLearningStepStatus(): ServerEndpoint[Any, Eff] = endpoint.put
+  private def updateLearningStepStatus(): ServerEndpoint[Any, Eff] = endpoint
+    .put
     .summary("Update status of given learningstep")
     .description("Updates the status of the given learningstep")
     .in(pathLearningpathId / "learningsteps" / pathLearningstepId / "status")
@@ -599,7 +579,8 @@ class LearningpathControllerV2(using
       }
     }
 
-  private def updateLearningPathStatus(): ServerEndpoint[Any, Eff] = endpoint.put
+  private def updateLearningPathStatus(): ServerEndpoint[Any, Eff] = endpoint
+    .put
     .summary("Update status of given learningpath")
     .description("Updates the status of the given learningPath")
     .in(pathLearningpathId / "status")
@@ -609,7 +590,8 @@ class LearningpathControllerV2(using
     .withRequiredMyNDLAUserOrTokenUser
     .serverLogicPure { user =>
       { case (pathId, updateLearningPathStatus) =>
-        learningpath.LearningPathStatus
+        learningpath
+          .LearningPathStatus
           .valueOfOrError(updateLearningPathStatus.status)
           .flatMap(pathStatus => {
             updateService
@@ -618,7 +600,7 @@ class LearningpathControllerV2(using
                 pathStatus,
                 user,
                 props.DefaultLanguage,
-                updateLearningPathStatus.message
+                updateLearningPathStatus.message,
               )
               .map { learningPath =>
                 logger.info(s"UPDATED status of LearningPath with ID = ${learningPath.id}")
@@ -628,16 +610,20 @@ class LearningpathControllerV2(using
       }
     }
 
-  private def withStatus: ServerEndpoint[Any, Eff] = endpoint.get
+  private def withStatus: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch all learningpaths with specified status")
     .description("Fetch all learningpaths with specified status")
     .in("status" / learningPathStatus)
     .out(jsonBody[List[LearningPathV2DTO]])
     .errorOut(errorOutputsFor(400, 401, 403, 500))
     .withOptionalMyNDLAUserOrTokenUser
-    .serverLogicPure { user => status => readService.learningPathWithStatus(status, user).handleErrorsOrOk }
+    .serverLogicPure { user => status =>
+      readService.learningPathWithStatus(status, user).handleErrorsOrOk
+    }
 
-  private def deleteLearningPathLanguage(): ServerEndpoint[Any, Eff] = endpoint.delete
+  private def deleteLearningPathLanguage(): ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .summary("Delete the given language of a learning path")
     .description("Delete the given language of a learning path")
     .in(pathLearningpathId / "language" / pathLanguage)
@@ -656,7 +642,8 @@ class LearningpathControllerV2(using
       }
     }
 
-  private def deleteLearningpath(): ServerEndpoint[Any, Eff] = endpoint.delete
+  private def deleteLearningpath(): ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .summary("Delete given learningpath")
     .description("Deletes the given learningPath")
     .in(pathLearningpathId)
@@ -668,7 +655,7 @@ class LearningpathControllerV2(using
         pathId,
         learningpath.LearningPathStatus.DELETED,
         user,
-        props.DefaultLanguage
+        props.DefaultLanguage,
       ) match {
         case Failure(ex) => returnLeftError(ex)
         case Success(_)  =>
@@ -677,7 +664,8 @@ class LearningpathControllerV2(using
       }
     }
 
-  private def deleteLearningStep(): ServerEndpoint[Any, Eff] = endpoint.delete
+  private def deleteLearningStep(): ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .summary("Delete given learningstep")
     .description("Deletes the given learningStep")
     .in(pathLearningpathId / "learningsteps" / pathLearningstepId)
@@ -695,7 +683,8 @@ class LearningpathControllerV2(using
       }
     }
 
-  private def getTags: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getTags: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch all previously used tags in learningpaths")
     .description("Retrieves a list of all previously used tags in learningpaths")
     .in("tags")
@@ -711,7 +700,8 @@ class LearningpathControllerV2(using
       }
     }
 
-  private def getContributors: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getContributors: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch all previously used contributors in learningpaths")
     .description("Retrieves a list of all previously used contributors in learningpaths")
     .in("contributors")
@@ -721,7 +711,8 @@ class LearningpathControllerV2(using
       readService.contributors.asRight
     }
 
-  private def updateLearningPathTaxonomy(): ServerEndpoint[Any, Eff] = endpoint.post
+  private def updateLearningPathTaxonomy(): ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Update taxonomy for specified learningpath")
     .description("Update taxonomy for specified learningpath")
     .in(pathLearningpathId / "update-taxonomy")
@@ -734,18 +725,13 @@ class LearningpathControllerV2(using
     .serverLogicPure { userInfo =>
       { case (pathId, language, fallback, createResourceIfMissing) =>
         updateService
-          .updateTaxonomyForLearningPath(
-            pathId,
-            createResourceIfMissing,
-            language.code,
-            fallback,
-            userInfo
-          )
+          .updateTaxonomyForLearningPath(pathId, createResourceIfMissing, language.code, fallback, userInfo)
           .handleErrorsOrOk
       }
     }
 
-  private def fetchLearningPathContainingArticle: ServerEndpoint[Any, Eff] = endpoint.get
+  private def fetchLearningPathContainingArticle: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch learningpaths containing specified article")
     .description("Fetch learningpaths containing specified article")
     .in("contains-article" / pathArticleId)

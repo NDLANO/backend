@@ -32,7 +32,7 @@ object ISO639 {
     "smj" -> SAMI,
     "deu" -> GERMAN,
     "spa" -> SPANISH,
-    "zho" -> CHINESE
+    "zho" -> CHINESE,
   )
 
   private val supportedLanguages = iso639Map.values

@@ -31,15 +31,15 @@ abstract class BulkIndexingService(using props: Props, searchLanguage: SearchLan
     val subfields = List(
       textField("trigram").analyzer("trigram"),
       textField("decompounded").searchAnalyzer("standard").analyzer("compound_analyzer"),
-      textField("exact").analyzer("exact")
+      textField("exact").analyzer("exact"),
     ) ++
       Option.when(keepRaw)(keywordField("raw")).toList
 
-    val analyzedFields = searchLanguage.languageAnalyzers.map(langAnalyzer => {
-      textField(s"$name.${langAnalyzer.languageTag.toString}")
-        .analyzer(langAnalyzer.analyzer)
-        .fields(subfields)
-    })
+    val analyzedFields = searchLanguage
+      .languageAnalyzers
+      .map(langAnalyzer => {
+        textField(s"$name.${langAnalyzer.languageTag.toString}").analyzer(langAnalyzer.analyzer).fields(subfields)
+      })
 
     analyzedFields
   }
@@ -50,15 +50,11 @@ abstract class BulkIndexingService(using props: Props, searchLanguage: SearchLan
     wordListPath = Some("compound-words-norwegian-wordlist.txt"),
     hyphenationPatternsPath = Some("hyph/no.xml"),
     minSubwordSize = Some(4),
-    onlyLongestMatch = Some(false)
+    onlyLongestMatch = Some(false),
   )
 
   private val customCompoundAnalyzer =
-    CustomAnalyzer(
-      "compound_analyzer",
-      "whitespace",
-      tokenFilters = List(hyphDecompounderTokenFilter.name)
-    )
+    CustomAnalyzer("compound_analyzer", "whitespace", tokenFilters = List(hyphDecompounderTokenFilter.name))
 
   private val customExactAnalyzer = CustomAnalyzer("exact", "whitespace")
 
@@ -71,12 +67,11 @@ abstract class BulkIndexingService(using props: Props, searchLanguage: SearchLan
   private val lowerNormalizer: CustomNormalizer =
     CustomNormalizer("lower", charFilters = List.empty, tokenFilters = List("lowercase"))
 
-  override val analysis: Analysis =
-    Analysis(
-      analyzers = List(trigram, customExactAnalyzer, customCompoundAnalyzer, searchLanguage.NynorskLanguageAnalyzer),
-      tokenFilters = List(hyphDecompounderTokenFilter) ++ searchLanguage.NynorskTokenFilters,
-      normalizers = List(lowerNormalizer)
-    )
+  override val analysis: Analysis = Analysis(
+    analyzers = List(trigram, customExactAnalyzer, customCompoundAnalyzer, searchLanguage.NynorskLanguageAnalyzer),
+    tokenFilters = List(hyphDecompounderTokenFilter) ++ searchLanguage.NynorskTokenFilters,
+    normalizers = List(lowerNormalizer),
+  )
 
   protected def getTaxonomyContextMapping(fieldName: String): NestedField = {
     nestedField(fieldName).fields(
@@ -93,7 +88,7 @@ abstract class BulkIndexingService(using props: Props, searchLanguage: SearchLan
         booleanField("isPrimary"),
         booleanField("isVisible"),
         keywordField("url"),
-        keywordField("resourceTypeIds")
+        keywordField("resourceTypeIds"),
       ) ++
         languageValuesMapping("breadcrumbs", keepRaw = true)
     )
@@ -105,7 +100,7 @@ trait IndexService[D <: Content](using
     e4sClient: NdlaE4sClient,
     taxonomyApiClient: TaxonomyApiClient,
     grepApiClient: GrepApiClient,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends BulkIndexingService
     with StrictLogging {
   val apiClient: SearchApiClient[D]
@@ -127,10 +122,7 @@ trait IndexService[D <: Content](using
     indexDocument(imported, indexingBundle)
   }
 
-  def indexDocument(
-      imported: D,
-      indexingBundle: IndexingBundle
-  ): Try[D] = {
+  def indexDocument(imported: D, indexingBundle: IndexingBundle): Try[D] = {
     for {
       _            <- createIndexIfNotExists()
       maybeRequest <- createIndexRequest(imported, searchIndex, indexingBundle)
@@ -155,19 +147,18 @@ trait IndexService[D <: Content](using
       case Failure(ex) =>
         logger.error(s"Grep and/or Taxonomy could not be fetched when reindexing all $documentType")
         Failure(ex)
-      case Success(indexingBundle) =>
-        indexDocuments(numShards, indexingBundle)
+      case Success(indexingBundle) => indexDocuments(numShards, indexingBundle)
     }
   }
 
   def reindexDocument(id: Long)(implicit d: Decoder[D]): Try[D] = {
     for {
-      grepBundle <- grepApiClient.getGrepBundle()
+      grepBundle    <- grepApiClient.getGrepBundle()
       indexingBundle = IndexingBundle(grepBundle = Some(grepBundle), None, None)
-      _            <- createIndexIfNotExists()
-      toIndex      <- apiClient.getSingle(id)
-      maybeRequest <- createIndexRequest(toIndex, searchIndex, indexingBundle)
-      _            <- maybeRequest match {
+      _             <- createIndexIfNotExists()
+      toIndex       <- apiClient.getSingle(id)
+      maybeRequest  <- createIndexRequest(toIndex, searchIndex, indexingBundle)
+      _             <- maybeRequest match {
         case Some(req) => e4sClient.execute(req)
         case None      => Success(())
       }
@@ -177,10 +168,7 @@ trait IndexService[D <: Content](using
   def indexDocuments(indexingBundle: IndexingBundle)(implicit d: Decoder[D]): Try[ReindexResult] =
     indexDocuments(None, indexingBundle)
 
-  def indexDocuments(
-      numShards: Option[Int],
-      indexingBundle: IndexingBundle
-  )(implicit
+  def indexDocuments(numShards: Option[Int], indexingBundle: IndexingBundle)(implicit
       d: Decoder[D]
   ): Try[ReindexResult] = {
     indexDocumentsInBulk(numShards) { indexName =>
@@ -198,12 +186,13 @@ trait IndexService[D <: Content](using
         case Failure(ex) =>
           logger.error(s"Failed to fetch chunk from with api client '${apiClient.name}'", ex)
           Failure(ex)
-        case Success(c) =>
-          indexDocuments(c, indexName, indexingBundle).map(numIndexed => (numIndexed, c.size))
+        case Success(c) => indexDocuments(c, indexName, indexingBundle).map(numIndexed => (numIndexed, c.size))
       })
       .toList
 
-    results.collect { case Failure(ex) => Failure(ex) } match {
+    results.collect { case Failure(ex) =>
+      Failure(ex)
+    } match {
       case Nil =>
         val successfulChunks = results.collect { case Success((chunkIndexed, chunkSize)) =>
           (chunkIndexed, chunkSize)
@@ -219,11 +208,7 @@ trait IndexService[D <: Content](using
     }
   }
 
-  def indexDocuments(
-      contents: Seq[D],
-      indexName: String,
-      indexingBundle: IndexingBundle
-  ): Try[Int] = {
+  def indexDocuments(contents: Seq[D], indexName: String, indexingBundle: IndexingBundle): Try[Int] = {
     if (contents.isEmpty) {
       Success(0)
     } else {
@@ -234,8 +219,12 @@ trait IndexService[D <: Content](using
         })
       }
 
-      val indexRequests          = req.collect { case Success(indexRequest) => indexRequest }
-      val failedToCreateRequests = req.collect { case Failure(ex) => Failure(ex) }
+      val indexRequests = req.collect { case Success(indexRequest) =>
+        indexRequest
+      }
+      val failedToCreateRequests = req.collect { case Failure(ex) =>
+        Failure(ex)
+      }
 
       val filteredRequests = indexRequests.flatten
       if (filteredRequests.nonEmpty) {
@@ -246,9 +235,11 @@ trait IndexService[D <: Content](using
         response match {
           case Success(r) =>
             val numFailed = r.result.failures.size + failedToCreateRequests.size
-            r.result.failures.foreach(failure => {
-              logger.error(s"Received bulk error from elasticsearch: $failure")
-            })
+            r.result
+              .failures
+              .foreach(failure => {
+                logger.error(s"Received bulk error from elasticsearch: $failure")
+              })
 
             logger.info(s"Indexed ${contents.size} documents ($documentType). No of failed items: $numFailed")
             Success(contents.size - numFailed)

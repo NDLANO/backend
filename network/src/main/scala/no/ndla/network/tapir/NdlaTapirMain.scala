@@ -32,25 +32,27 @@ trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
     }
   }
 
-  def startServerAndWait(name: String, port: Int)(onStartup: NettySyncServerBinding => Unit): Unit =
-    componentRegistry.routes.startServerAndWait(name, port)(onStartup)
+  def startServerAndWait(name: String, port: Int)(onStartup: NettySyncServerBinding => Unit): Unit = componentRegistry
+    .routes
+    .startServerAndWait(name, port)(onStartup)
 
-  private def performWarmup(): Unit = if (!props.disableWarmup) {
-    import scala.concurrent.ExecutionContext.Implicits.global
-    val _ = Future {
-      // Since we don't really have a good way to check whether server is ready lets just wait a bit
-      Thread.sleep(500)
-      val warmupStart = System.currentTimeMillis()
-      logger.info("Starting warmup procedure...")
+  private def performWarmup(): Unit =
+    if (!props.disableWarmup) {
+      import scala.concurrent.ExecutionContext.Implicits.global
+      val _ = Future {
+        // Since we don't really have a good way to check whether server is ready lets just wait a bit
+        Thread.sleep(500)
+        val warmupStart = System.currentTimeMillis()
+        logger.info("Starting warmup procedure...")
 
-      warmup()
+        warmup()
 
-      val warmupTime = System.currentTimeMillis() - warmupStart
-      logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
+        val warmupTime = System.currentTimeMillis() - warmupStart
+        logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
+      }
+    } else {
+      componentRegistry.healthController.setWarmedUp()
     }
-  } else {
-    componentRegistry.healthController.setWarmedUp()
-  }
 
   private def setupShutdownHook(): Unit = sys.addShutdownHook {
     componentRegistry.healthController.setShuttingDown()
@@ -62,8 +64,7 @@ trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
         Thread.sleep(readinessProbeDelay.toMillis)
         logger.info("Stopping server gracefully...")
         server.stop()
-      case None =>
-        logger.error("Got shutdown signal, but no server is running, this seems weird.")
+      case None => logger.error("Got shutdown signal, but no server is running, this seems weird.")
     }
     shutdownLogger()
   }: Unit
@@ -78,11 +79,13 @@ trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
   private def runServer(): Try[Unit] = {
     logCopyrightHeader()
     setupShutdownHook()
-    Try(startServerAndWait(props.ApplicationName, props.ApplicationPort) { binding =>
-      this.serverBinding = Some(binding)
-      beforeStart()
-      performWarmup()
-    }).recover { ex =>
+    Try(
+      startServerAndWait(props.ApplicationName, props.ApplicationPort) { binding =>
+        this.serverBinding = Some(binding)
+        beforeStart()
+        performWarmup()
+      }
+    ).recover { ex =>
       logger.error("Failed to start server, exiting...", ex)
     }
   }

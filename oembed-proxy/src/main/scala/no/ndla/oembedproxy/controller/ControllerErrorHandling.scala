@@ -24,14 +24,12 @@ class ControllerErrorHandling(using clock: Clock, errorHelpers: ErrorHelpers) ex
     }
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = {
-    case ivu: InvalidUrlException =>
-      ErrorBody(INVALID_URL, ivu.getMessage, clock.now(), 400)
-    case pnse: ProviderNotSupportedException =>
-      ErrorBody(PROVIDER_NOT_SUPPORTED, pnse.getMessage, clock.now(), 422)
-    case hre: HttpRequestException =>
-      val msg = hre.httpResponse.map(response =>
-        s": Received '${response.code}' '${response.statusText}'. Body was '${response.body}'"
-      )
+    case ivu: InvalidUrlException            => ErrorBody(INVALID_URL, ivu.getMessage, clock.now(), 400)
+    case pnse: ProviderNotSupportedException => ErrorBody(PROVIDER_NOT_SUPPORTED, pnse.getMessage, clock.now(), 422)
+    case hre: HttpRequestException           =>
+      val msg = hre
+        .httpResponse
+        .map(response => s": Received '${response.code}' '${response.statusText}'. Body was '${response.body}'")
       getRequestExceptionStatusCode(hre) match {
         case None =>
           logger.error(s"Could not fetch remote: '${hre.getMessage}'${msg.getOrElse("")}", hre)

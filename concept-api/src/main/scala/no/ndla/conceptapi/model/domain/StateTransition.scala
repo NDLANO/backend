@@ -20,7 +20,7 @@ case class StateTransition(
     sideEffects: Seq[SideEffect],
     addCurrentStateToOthersOnTransition: Boolean,
     requiredPermissions: Set[Permission],
-    illegalStatuses: Set[ConceptStatus]
+    illegalStatuses: Set[ConceptStatus],
 ) {
 
   def keepCurrentOnTransition: StateTransition                = copy(addCurrentStateToOthersOnTransition = true)
@@ -42,7 +42,7 @@ object StateTransition {
       Seq.empty[SideEffect],
       addCurrentStateToOthersOnTransition = false,
       Set(CONCEPT_API_WRITE),
-      Set()
+      Set(),
     )
   }
 }

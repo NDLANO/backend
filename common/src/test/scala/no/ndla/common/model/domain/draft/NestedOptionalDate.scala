@@ -10,6 +10,4 @@ package no.ndla.common.model.domain.draft
 
 import no.ndla.common.model.TestObjectWithOptionalDate
 
-case class NestedOptionalDate(
-    subfield: Option[TestObjectWithOptionalDate]
-)
+case class NestedOptionalDate(subfield: Option[TestObjectWithOptionalDate])

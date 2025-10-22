@@ -40,17 +40,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     Seq.empty,
     "",
     "en",
-    Some(ModelReleasedStatus.YES.toString)
+    Some(ModelReleasedStatus.YES.toString),
   )
   val userId                        = "ndla124"
   val userWithWriteScope: TokenUser = TokenUser(userId, Set(IMAGE_API_WRITE), None)
 
   def updated(): NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
-  val domainImageMeta: ImageMetaInformation =
-    converterService
-      .asDomainImageMetaInformationV2(newImageMeta, TokenUser.SystemUser)
-      .get
+  val domainImageMeta: ImageMetaInformation = converterService
+    .asDomainImageMetaInformationV2(newImageMeta, TokenUser.SystemUser)
+    .get
 
   val multiLangImage = new ImageMetaInformation(
     id = Some(2),
@@ -66,7 +65,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           contentType = "image/jpeg",
           dimensions = None,
           language = "nb",
-          imageMetaId = 2
+          imageMetaId = 2,
         )
       )
     ),
@@ -78,7 +77,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     created = updated(),
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   override def beforeEach(): Unit = {
@@ -93,8 +92,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(imageIndexService)
     reset(imageStorage)
     reset(tagIndexService)
-    when(imageRepository.insert(any[ImageMetaInformation])(using any[DBSession]))
-      .thenReturn(domainImageMeta.copy(id = Some(1L)))
+    when(imageRepository.insert(any[ImageMetaInformation])(using any[DBSession])).thenReturn(
+      domainImageMeta.copy(id = Some(1L))
+    )
   }
 
   test("randomFileName should return a random filename with a given length and extension") {
@@ -123,9 +123,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val result = writeService.uploadImage(fileMock1)
     verify(imageStorage, times(1)).uploadFromStream(any, any)
 
-    result should equal(
-      Success(expectedImage)
-    )
+    result should equal(Success(expectedImage))
   }
 
   test("uploadFile should return Failure if file upload failed") {
@@ -137,8 +135,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("storeNewImage should return Failure if upload failes") {
     when(validationService.validateImageFile(any)).thenReturn(None)
-    when(imageStorage.uploadFromStream(any, any))
-      .thenReturn(Failure(new RuntimeException))
+    when(imageStorage.uploadFromStream(any, any)).thenReturn(Failure(new RuntimeException))
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[ImageMetaInformation](0))
     })
@@ -149,10 +146,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("storeNewImage should return Failure if validation fails") {
     reset(imageRepository, imageIndexService, imageStorage)
     when(validationService.validateImageFile(any)).thenReturn(None)
-    when(validationService.validate(any[ImageMetaInformation], eqTo(None)))
-      .thenReturn(Failure(new ValidationException(errors = Seq())))
-    when(imageStorage.uploadFromStream(any, any))
-      .thenReturn(Success(newFileName))
+    when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(
+      Failure(new ValidationException(errors = Seq()))
+    )
+    when(imageStorage.uploadFromStream(any, any)).thenReturn(Success(newFileName))
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
 
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
@@ -166,8 +163,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("storeNewImage should return Failure if failed to insert into database") {
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
-    when(imageStorage.uploadFromStream(any, any))
-      .thenReturn(Success(newFileName))
+    when(imageStorage.uploadFromStream(any, any)).thenReturn(Success(newFileName))
     when(imageRepository.insert(any[ImageMetaInformation])(using any[DBSession])).thenThrow(new RuntimeException)
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
 
@@ -181,8 +177,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("storeNewImage should return Failure if failed to index image metadata") {
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
-    when(imageStorage.uploadFromStream(any, any))
-      .thenReturn(Success(newFileName))
+    when(imageStorage.uploadFromStream(any, any)).thenReturn(Success(newFileName))
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Failure(new RuntimeException))
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
     when(imageRepository.insert(any)(using any)).thenReturn(domainImageMeta.copy(id = Some(100L)))
@@ -225,8 +220,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val afterInsert = domainImageMeta.copy(id = Some(1))
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
-    when(imageStorage.uploadFromStream(any, any))
-      .thenReturn(Success(newFileName))
+    when(imageStorage.uploadFromStream(any, any)).thenReturn(Success(newFileName))
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
     when(imageRepository.insert(any)(using any)).thenReturn(afterInsert)
@@ -262,10 +256,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("converter to domain should set updatedBy from authUser and updated date") {
     val tokenUser = TokenUser("ndla54321", Set(IMAGE_API_WRITE), None)
     when(clock.now()).thenReturn(updated())
-    val domain =
-      converterService
-        .asDomainImageMetaInformationV2(newImageMeta, tokenUser)
-        .get
+    val domain = converterService.asDomainImageMetaInformationV2(newImageMeta, tokenUser).get
     domain.updatedBy should equal("ndla54321")
     domain.updated should equal(updated())
   }
@@ -289,24 +280,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       contentType = "image/jpeg",
       dimensions = None,
       language = "nb",
-      1
+      1,
     )
 
-    val toUpdate = UpdateImageMetaInformationDTO(
-      "en",
-      Some("Title"),
-      UpdateWith("AltText"),
-      None,
-      None,
-      None,
-      None
-    )
+    val toUpdate = UpdateImageMetaInformationDTO("en", Some("Title"), UpdateWith("AltText"), None, None, None, None)
 
     val expectedResult = existing.copy(
       titles = List(existing.titles.head, domain.ImageTitle("Title", "en")),
       images = Some(List(image, image.copy(id = 100, language = "en"))),
       alttexts = List(existing.alttexts.head, domain.ImageAltText("AltText", "en")),
-      editorNotes = Seq(domain.EditorNote(date, user, "Added new language 'en'."))
+      editorNotes = Seq(domain.EditorNote(date, user, "Added new language 'en'.")),
     )
 
     when(clock.now()).thenReturn(date)
@@ -318,20 +301,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val date     = NDLADate.now()
     val user     = "ndla124"
     val existing = TestData.elg.copy(updated = date, updatedBy = user)
-    val toUpdate = UpdateImageMetaInformationDTO(
-      "nb",
-      Some("Title"),
-      UpdateWith("AltText"),
-      None,
-      None,
-      None,
-      None
-    )
+    val toUpdate = UpdateImageMetaInformationDTO("nb", Some("Title"), UpdateWith("AltText"), None, None, None, None)
 
     val expectedResult = existing.copy(
       titles = List(domain.ImageTitle("Title", "nb")),
       alttexts = List(domain.ImageAltText("AltText", "nb")),
-      editorNotes = Seq(domain.EditorNote(date, user, "Updated image data."))
+      editorNotes = Seq(domain.EditorNote(date, user, "Updated image data.")),
     )
 
     when(clock.now()).thenReturn(date)
@@ -356,12 +331,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           List(),
           None,
           None,
-          false
+          false,
         )
       ),
       Some(List("a", "b", "c")),
       Some("Caption"),
-      Some(ModelReleasedStatus.NO.toString)
+      Some(ModelReleasedStatus.NO.toString),
     )
 
     val expectedResult = existing.copy(
@@ -375,12 +350,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         List(),
         None,
         None,
-        false
+        false,
       ),
       tags = List(common.Tag(List("a", "b", "c"), "nb")),
       captions = List(domain.ImageCaption("Caption", "nb")),
       modelReleased = ModelReleasedStatus.NO,
-      editorNotes = Seq(domain.EditorNote(date, "ndla124", "Updated image data."))
+      editorNotes = Seq(domain.EditorNote(date, "ndla124", "Updated image data.")),
     )
 
     when(clock.now()).thenReturn(date)
@@ -406,29 +381,21 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       contentType = "image/jpeg",
       dimensions = Some(domain.ImageDimensions(10, 10)),
       language = "nb",
-      imageMetaId = imageId
+      imageMetaId = imageId,
     )
 
-    val existing = TestData.elg.copy(
-      id = Some(imageId),
-      titles = Seq(domain.ImageTitle("yo", "nb"), domain.ImageTitle("hey", "nn")),
-      updated = date,
-      updatedBy = user,
-      images = Some(Seq(image))
-    )
-    val toUpdate = UpdateImageMetaInformationDTO(
-      "nn",
-      None,
-      Missing,
-      None,
-      None,
-      None,
-      None
-    )
+    val existing = TestData
+      .elg
+      .copy(
+        id = Some(imageId),
+        titles = Seq(domain.ImageTitle("yo", "nb"), domain.ImageTitle("hey", "nn")),
+        updated = date,
+        updatedBy = user,
+        images = Some(Seq(image)),
+      )
+    val toUpdate = UpdateImageMetaInformationDTO("nn", None, Missing, None, None, None, None)
 
-    val expectedResult = existing.copy(
-      images = Some(Seq(image, image.copy(id = 100, language = "nn")))
-    )
+    val expectedResult = existing.copy(images = Some(Seq(image, image.copy(id = 100, language = "nn"))))
 
     when(clock.now()).thenReturn(date)
 
@@ -437,7 +404,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageRepository, times(1)).insertImageFile(
       existing.id.get,
       image.fileName,
-      image.toDocument().copy(language = "nn")
+      image.toDocument().copy(language = "nn"),
     )
   }
 
@@ -448,11 +415,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(tagIndexService)
 
     val imageId         = 4444.toLong
-    val domainWithImage = domainImageMeta.copy(
-      images = Some(
-        Seq(
-          domain.ImageFileData(1, newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)), "nb", 54)
-        )
+    val domainWithImage = domainImageMeta.copy(images =
+      Some(
+        Seq(domain.ImageFileData(1, newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)), "nb", 54))
       )
     )
 
@@ -485,22 +450,24 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val imageId       = 5555.toLong
     val image         = multiLangImage.copy(id = Some(imageId))
-    val expectedImage =
-      image.copy(
-        titles = List(domain.ImageTitle("english", "en"), domain.ImageTitle("norsk", "und")),
-        editorNotes = image.editorNotes :+ domain.EditorNote(date, user, "Deleted language 'nn'.")
-      )
+    val expectedImage = image.copy(
+      titles = List(domain.ImageTitle("english", "en"), domain.ImageTitle("norsk", "und")),
+      editorNotes = image.editorNotes :+ domain.EditorNote(date, user, "Deleted language 'nn'."),
+    )
 
     when(imageRepository.withId(imageId)).thenReturn(Some(image))
     when(imageRepository.update(any[ImageMetaInformation], eqTo(imageId))(using any)).thenAnswer(
       (i: InvocationOnMock) => Success(i.getArgument[ImageMetaInformation](0))
     )
-    when(validationService.validate(any[ImageMetaInformation], any[Option[ImageMetaInformation]]))
-      .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[ImageMetaInformation](0)))
-    when(imageIndexService.indexDocument(any[ImageMetaInformation]))
-      .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[ImageMetaInformation](0)))
-    when(tagIndexService.indexDocument(any[ImageMetaInformation]))
-      .thenAnswer((i: InvocationOnMock) => Success(i.getArgument[ImageMetaInformation](0)))
+    when(validationService.validate(any[ImageMetaInformation], any[Option[ImageMetaInformation]])).thenAnswer(
+      (i: InvocationOnMock) => Success(i.getArgument[ImageMetaInformation](0))
+    )
+    when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument[ImageMetaInformation](0))
+    )
+    when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenAnswer((i: InvocationOnMock) =>
+      Success(i.getArgument[ImageMetaInformation](0))
+    )
 
     writeService.deleteImageLanguageVersionV2(imageId, "nn", userWithWriteScope)
 
@@ -520,7 +487,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       captions = List(domain.ImageCaption("english", "en")),
       tags = Seq(common.Tag(Seq("eng", "elsk"), "en")),
       alttexts = Seq(domain.ImageAltText("english", "en")),
-      images = Some(Seq(TestData.bjorn.images.get.head.copy(language = "en")))
+      images = Some(Seq(TestData.bjorn.images.get.head.copy(language = "en"))),
     )
 
     when(imageRepository.withId(imageId)).thenReturn(Some(image))
@@ -552,7 +519,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       copyright = None,
       tags = None,
       caption = None,
-      modelReleased = None
+      modelReleased = None,
     )
     val image = domain.ImageFileData(
       id = 1,
@@ -561,19 +528,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       contentType = "image/jpg",
       dimensions = None,
       language = "nb",
-      imageMetaId = imageId
+      imageMetaId = imageId,
     )
 
-    val dbImage = TestData.bjorn.copy(
-      images = Some(
-        Seq(
-          image.copy(id = 1, language = "nn"),
-          image.copy(id = 2, language = "nb")
-        )
-      ),
-      updated = coolDate,
-      updatedBy = "ndla124"
-    )
+    val dbImage = TestData
+      .bjorn
+      .copy(
+        images = Some(Seq(image.copy(id = 1, language = "nn"), image.copy(id = 2, language = "nb"))),
+        updated = coolDate,
+        updatedBy = "ndla124",
+      )
 
     val fileMock = mock[UploadedFile]
     when(fileMock.fileName).thenReturn(Some("someupload.jpg"))
@@ -602,26 +566,25 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.objectExists(any)).thenReturn(false)
     when(random.string(any)).thenReturn("randomstring")
 
-    val expectedResult =
-      dbImage.copy(
-        titles = Seq(domain.ImageTitle("new title", "nb")),
-        images = Some(
-          Seq(
-            image.copy(id = 1, language = "nn"),
-            image.copy(
-              id = 2,
-              fileName = "randomstring.jpg",
-              size = 1337,
-              dimensions = Some(domain.ImageDimensions(189, 60)),
-              language = "nb"
-            )
-          )
-        ),
-        editorNotes = List(
-          domain.EditorNote(coolDate, "ndla124", "Updated image file for 'nb' language."),
-          domain.EditorNote(coolDate, "ndla124", "Updated image data.")
+    val expectedResult = dbImage.copy(
+      titles = Seq(domain.ImageTitle("new title", "nb")),
+      images = Some(
+        Seq(
+          image.copy(id = 1, language = "nn"),
+          image.copy(
+            id = 2,
+            fileName = "randomstring.jpg",
+            size = 1337,
+            dimensions = Some(domain.ImageDimensions(189, 60)),
+            language = "nb",
+          ),
         )
-      )
+      ),
+      editorNotes = List(
+        domain.EditorNote(coolDate, "ndla124", "Updated image file for 'nb' language."),
+        domain.EditorNote(coolDate, "ndla124", "Updated image data."),
+      ),
+    )
 
     val result = writeService.updateImageAndFile(imageId, upd, Some(fileMock), userWithWriteScope)
     result should be(Success(expectedResult))
@@ -646,7 +609,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       copyright = None,
       tags = None,
       caption = None,
-      modelReleased = None
+      modelReleased = None,
     )
     val image = domain.ImageFileData(
       id = 1,
@@ -655,18 +618,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       contentType = "image/jpg",
       dimensions = None,
       language = "nb",
-      imageMetaId = imageId
+      imageMetaId = imageId,
     )
 
-    val dbImage = TestData.bjorn.copy(
-      images = Some(
-        Seq(
-          image.copy(id = 1, language = "nn")
-        )
-      ),
-      updated = coolDate,
-      updatedBy = "ndla124"
-    )
+    val dbImage = TestData
+      .bjorn
+      .copy(images = Some(Seq(image.copy(id = 1, language = "nn"))), updated = coolDate, updatedBy = "ndla124")
 
     val fileMock = mock[UploadedFile]
     when(fileMock.fileName).thenReturn(Some("someupload.jpg"))
@@ -703,26 +660,25 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(image)
     })
 
-    val expectedResult =
-      dbImage.copy(
-        titles = Seq(domain.ImageTitle("new title", "nb")),
-        images = Some(
-          Seq(
-            image.copy(id = 1, language = "nn"),
-            image.copy(
-              id = 5,
-              fileName = "randomstring.jpg",
-              size = 1337,
-              dimensions = Some(domain.ImageDimensions(189, 60)),
-              language = "nb"
-            )
-          )
-        ),
-        editorNotes = List(
-          domain.EditorNote(coolDate, "ndla124", "Updated image file for 'nb' language."),
-          domain.EditorNote(coolDate, "ndla124", "Updated image data.")
+    val expectedResult = dbImage.copy(
+      titles = Seq(domain.ImageTitle("new title", "nb")),
+      images = Some(
+        Seq(
+          image.copy(id = 1, language = "nn"),
+          image.copy(
+            id = 5,
+            fileName = "randomstring.jpg",
+            size = 1337,
+            dimensions = Some(domain.ImageDimensions(189, 60)),
+            language = "nb",
+          ),
         )
-      )
+      ),
+      editorNotes = List(
+        domain.EditorNote(coolDate, "ndla124", "Updated image file for 'nb' language."),
+        domain.EditorNote(coolDate, "ndla124", "Updated image data."),
+      ),
+    )
 
     val result = writeService.updateImageAndFile(imageId, upd, Some(fileMock), userWithWriteScope)
     result should be(Success(expectedResult))
@@ -748,23 +704,22 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       contentType = "image/jpg",
       dimensions = None,
       language = "nb",
-      imageMetaId = imageId
+      imageMetaId = imageId,
     )
 
-    val dbImage = TestData.bjorn.copy(
-      titles = Seq(
-        domain.ImageTitle("hei nb", "nb"),
-        domain.ImageTitle("hei nn", "nn")
-      ),
-      images = Some(
-        Seq(
-          image.copy(id = 1, fileName = "hello-nb.jpg", language = "nb"),
-          image.copy(id = 2, fileName = "hello-nn.jpg", language = "nn")
-        )
-      ),
-      updated = coolDate,
-      updatedBy = "ndla124"
-    )
+    val dbImage = TestData
+      .bjorn
+      .copy(
+        titles = Seq(domain.ImageTitle("hei nb", "nb"), domain.ImageTitle("hei nn", "nn")),
+        images = Some(
+          Seq(
+            image.copy(id = 1, fileName = "hello-nb.jpg", language = "nb"),
+            image.copy(id = 2, fileName = "hello-nn.jpg", language = "nn"),
+          )
+        ),
+        updated = coolDate,
+        updatedBy = "ndla124",
+      )
 
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
@@ -790,12 +745,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(random.string(any)).thenReturn("randomstring")
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
 
-    val expectedResult =
-      dbImage.copy(
-        titles = Seq(domain.ImageTitle("hei nb", "nb")),
-        images = Some(Seq(image.copy(id = 1, fileName = "hello-nb.jpg", language = "nb"))),
-        editorNotes = Seq(domain.EditorNote(coolDate, "ndla124", "Deleted language 'nn'."))
-      )
+    val expectedResult = dbImage.copy(
+      titles = Seq(domain.ImageTitle("hei nb", "nb")),
+      images = Some(Seq(image.copy(id = 1, fileName = "hello-nb.jpg", language = "nb"))),
+      editorNotes = Seq(domain.EditorNote(coolDate, "ndla124", "Deleted language 'nn'.")),
+    )
 
     val result = writeService.deleteImageLanguageVersion(imageId, "nn", userWithWriteScope)
     result should be(Success(Some(expectedResult)))
@@ -822,23 +776,22 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       contentType = "image/jpg",
       dimensions = None,
       language = "nb",
-      imageMetaId = imageId
+      imageMetaId = imageId,
     )
 
-    val dbImage = TestData.bjorn.copy(
-      titles = Seq(
-        domain.ImageTitle("hei nb", "nb"),
-        domain.ImageTitle("hei nn", "nn")
-      ),
-      images = Some(
-        Seq(
-          image.copy(id = 1, fileName = "hello-shared.jpg", language = "nb"),
-          image.copy(id = 2, fileName = "hello-shared.jpg", language = "nn")
-        )
-      ),
-      updated = coolDate,
-      updatedBy = "ndla124"
-    )
+    val dbImage = TestData
+      .bjorn
+      .copy(
+        titles = Seq(domain.ImageTitle("hei nb", "nb"), domain.ImageTitle("hei nn", "nn")),
+        images = Some(
+          Seq(
+            image.copy(id = 1, fileName = "hello-shared.jpg", language = "nb"),
+            image.copy(id = 2, fileName = "hello-shared.jpg", language = "nn"),
+          )
+        ),
+        updated = coolDate,
+        updatedBy = "ndla124",
+      )
 
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
@@ -864,12 +817,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(random.string(any)).thenReturn("randomstring")
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
 
-    val expectedResult =
-      dbImage.copy(
-        titles = Seq(domain.ImageTitle("hei nb", "nb")),
-        images = Some(Seq(image.copy(id = 1, fileName = "hello-shared.jpg", language = "nb"))),
-        editorNotes = Seq(domain.EditorNote(coolDate, "ndla124", "Deleted language 'nn'."))
-      )
+    val expectedResult = dbImage.copy(
+      titles = Seq(domain.ImageTitle("hei nb", "nb")),
+      images = Some(Seq(image.copy(id = 1, fileName = "hello-shared.jpg", language = "nb"))),
+      editorNotes = Seq(domain.EditorNote(coolDate, "ndla124", "Deleted language 'nn'.")),
+    )
 
     val result = writeService.deleteImageLanguageVersion(imageId, "nn", userWithWriteScope)
     result should be(Success(Some(expectedResult)))
@@ -883,35 +835,18 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That mergeDeletableLanguageFields works as expected") {
-    val existing = Seq(
-      domain.ImageTitle("Hei", "nb"),
-      domain.ImageTitle("Hå", "nn"),
-      domain.ImageTitle("Ho", "en")
-    )
+    val existing = Seq(domain.ImageTitle("Hei", "nb"), domain.ImageTitle("Hå", "nn"), domain.ImageTitle("Ho", "en"))
 
     writeService.mergeDeletableLanguageFields[domain.ImageTitle](
       existing,
       Right(Some(domain.ImageTitle("Yop", "nb"))),
-      "nb"
-    ) should be(
-      Seq(
-        domain.ImageTitle("Hå", "nn"),
-        domain.ImageTitle("Ho", "en"),
-        domain.ImageTitle("Yop", "nb")
-      )
-    )
+      "nb",
+    ) should be(Seq(domain.ImageTitle("Hå", "nn"), domain.ImageTitle("Ho", "en"), domain.ImageTitle("Yop", "nb")))
 
     writeService.mergeDeletableLanguageFields(existing, Right(None), "nb") should be(existing)
 
-    writeService.mergeDeletableLanguageFields(
-      existing,
-      Left(null),
-      "nb"
-    ) should be(
-      Seq(
-        domain.ImageTitle("Hå", "nn"),
-        domain.ImageTitle("Ho", "en")
-      )
+    writeService.mergeDeletableLanguageFields(existing, Left(null), "nb") should be(
+      Seq(domain.ImageTitle("Hå", "nn"), domain.ImageTitle("Ho", "en"))
     )
 
   }

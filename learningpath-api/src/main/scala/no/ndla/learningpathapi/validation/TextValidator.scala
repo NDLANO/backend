@@ -17,9 +17,8 @@ class TextValidator(allowHtml: Boolean)(using props: Props) {
   val IllegalContentInBasicText: String =
     s"The content contains illegal html-characters. Allowed characters are ${props.AllowedHtmlTags.mkString(", ")}"
 
-  val IllegalContentInPlainText =
-    "The content contains illegal html-characters. No HTML is allowed."
-  private val FieldEmpty = "Required field is empty."
+  val IllegalContentInPlainText = "The content contains illegal html-characters. No HTML is allowed."
+  private val FieldEmpty        = "Required field is empty."
 
   def validate(fieldPath: String, text: String): Option[ValidationMessage] = {
     if (allowHtml) {
@@ -40,7 +39,7 @@ class TextValidator(allowHtml: Boolean)(using props: Props) {
             .basic()
             .addTags("section", "h2", "h3")
             .addAttributes("a", "target", "rel")
-            .addAttributes("span", "lang", "dir")
+            .addAttributes("span", "lang", "dir"),
         )
       ) {
         None

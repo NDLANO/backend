@@ -16,7 +16,7 @@ case class AddNoteDTO(
     @description("Id of the draft to add notes to")
     draftId: Long,
     @description("Notes to add to the draft")
-    notes: List[String]
+    notes: List[String],
 )
 
 object AddNoteDTO {

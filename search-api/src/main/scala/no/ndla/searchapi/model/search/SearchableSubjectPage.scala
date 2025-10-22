@@ -19,7 +19,7 @@ case class SearchableSubjectPage(
     aboutTitle: SearchableLanguageValues,
     aboutDescription: SearchableLanguageValues,
     metaDescription: SearchableLanguageValues,
-    domainObject: SubjectPage
+    domainObject: SubjectPage,
 )
 
 object SearchableSubjectPage {

@@ -24,7 +24,7 @@ case class FilmFrontPage(
     about: Seq[AboutSubject],
     movieThemes: Seq[MovieTheme],
     slideShow: Seq[String],
-    article: Option[String]
+    article: Option[String],
 ) {
 
   def supportedLanguages: Seq[String] = getSupportedLanguages(about, movieThemes.flatMap(_.name))
@@ -45,8 +45,7 @@ class DBFilmFrontPage(using props: Props) {
     override val tableName                  = "filmfrontpage"
     override val schemaName: Option[String] = props.MetaSchema.toString.some
 
-    def fromDb(lp: SyntaxProvider[FilmFrontPage])(rs: WrappedResultSet): Try[FilmFrontPage] =
-      fromDb(lp.resultName)(rs)
+    def fromDb(lp: SyntaxProvider[FilmFrontPage])(rs: WrappedResultSet): Try[FilmFrontPage] = fromDb(lp.resultName)(rs)
 
     private def fromDb(lp: ResultName[FilmFrontPage])(rs: WrappedResultSet): Try[FilmFrontPage] = {
       val document = rs.string(lp.c("document"))

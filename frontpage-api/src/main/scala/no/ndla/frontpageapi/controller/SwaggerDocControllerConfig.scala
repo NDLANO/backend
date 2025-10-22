@@ -20,6 +20,6 @@ object SwaggerDocControllerConfig {
     mountPoint = "frontpage-api" / "api-docs",
     description = "Service for fetching frontpage data",
     authUrl = props.Auth0LoginEndpoint,
-    scopes = scopes
+    scopes = scopes,
   )
 }

@@ -31,10 +31,7 @@ class FilmFrontPageRepository(using dBFilmFrontPage: DBFilmFrontPage) extends St
   }
 
   private def deleteAllBut(id: Long)(implicit session: DBSession) = {
-    Try(
-      sql"delete from ${dBFilmFrontPage.DBFilmFrontPageData.table} where id<>${id} "
-        .update()
-    ).map(_ => id)
+    Try(sql"delete from ${dBFilmFrontPage.DBFilmFrontPageData.table} where id<>${id} ".update()).map(_ => id)
   }
 
   def get(implicit session: DBSession = ReadOnlyAutoSession): Option[FilmFrontPage] = {
@@ -62,9 +59,7 @@ class FilmFrontPageRepository(using dBFilmFrontPage: DBFilmFrontPage) extends St
     dataObject.setType("jsonb")
     dataObject.setValue(page.asJson.noSpacesDropNull)
 
-    Try(
-      sql"update ${dBFilmFrontPage.DBFilmFrontPageData.table} set document=$dataObject".update()
-    ).map(_ => page)
+    Try(sql"update ${dBFilmFrontPage.DBFilmFrontPageData.table} set document=$dataObject".update()).map(_ => page)
   }
 
 }

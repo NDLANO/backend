@@ -31,40 +31,51 @@ abstract class HtmlMigration extends DocumentMigration {
 
   def convertColumn(document: String): String = {
     val oldArticle       = parser.parse(document).flatMap(_.as[Draft]).toTry.get
-    val convertedContent = oldArticle.content.map(c => {
-      val converted = convertContent(c.content, c.language)
-      c.copy(content = converted)
-    })
-
-    val convertedTitle = oldArticle.title.map(t => {
-      val converted = convertContent(t.title, t.language)
-      t.copy(title = converted)
-    })
-
-    val convertedIntroduction = oldArticle.introduction.map(i => {
-      val converted = convertContent(i.introduction, i.language)
-      i.copy(introduction = converted)
-    })
-
-    val convertedMetaDescription = oldArticle.metaDescription.map(md => {
-      val converted = convertContent(md.content, md.language)
-      md.copy(content = converted)
-    })
-
-    val convertedVisualElement = if (convertVisualElement) {
-      oldArticle.visualElement.map(ve => {
-        val doc       = stringToJsoupDocument(ve.resource)
-        val converted = convertHtml(doc, ve.language)
-        ve.copy(resource = jsoupDocumentToString(converted))
+    val convertedContent = oldArticle
+      .content
+      .map(c => {
+        val converted = convertContent(c.content, c.language)
+        c.copy(content = converted)
       })
-    } else oldArticle.visualElement
+
+    val convertedTitle = oldArticle
+      .title
+      .map(t => {
+        val converted = convertContent(t.title, t.language)
+        t.copy(title = converted)
+      })
+
+    val convertedIntroduction = oldArticle
+      .introduction
+      .map(i => {
+        val converted = convertContent(i.introduction, i.language)
+        i.copy(introduction = converted)
+      })
+
+    val convertedMetaDescription = oldArticle
+      .metaDescription
+      .map(md => {
+        val converted = convertContent(md.content, md.language)
+        md.copy(content = converted)
+      })
+
+    val convertedVisualElement =
+      if (convertVisualElement) {
+        oldArticle
+          .visualElement
+          .map(ve => {
+            val doc       = stringToJsoupDocument(ve.resource)
+            val converted = convertHtml(doc, ve.language)
+            ve.copy(resource = jsoupDocumentToString(converted))
+          })
+      } else oldArticle.visualElement
 
     val newArticle = oldArticle.copy(
       title = convertedTitle,
       introduction = convertedIntroduction,
       content = convertedContent,
       metaDescription = convertedMetaDescription,
-      visualElement = convertedVisualElement
+      visualElement = convertedVisualElement,
     )
     newArticle.asJson.noSpaces
   }

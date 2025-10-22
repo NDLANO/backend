@@ -16,7 +16,7 @@ import no.ndla.common.model.domain.learningpath.{
   LearningPathVerificationStatus,
   LearningStep,
   LearningpathCopyright,
-  StepType
+  StepType,
 }
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.common.model.{NDLADate, domain as common}
@@ -59,7 +59,7 @@ object TestData {
     copyright = None,
     created = today,
     lastUpdated = today,
-    owner = "me"
+    owner = "me",
   )
   val domainLearningStep2: LearningStep = LearningStep(
     id = None,
@@ -76,7 +76,7 @@ object TestData {
     copyright = None,
     created = today,
     lastUpdated = today,
-    owner = "me"
+    owner = "me",
   )
 
   val sampleDomainLearningPath: LearningPath = LearningPath(
@@ -102,7 +102,7 @@ object TestData {
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
     revisionMeta = common.RevisionMeta.default,
-    grepCodes = Seq.empty
+    grepCodes = Seq.empty,
   )
 
   val searchSettings: SearchSettings = SearchSettings(
@@ -119,6 +119,6 @@ object TestData {
     shouldScroll = false,
     articleId = None,
     status = List(learningpath.LearningPathStatus.PUBLISHED),
-    grepCodes = List.empty
+    grepCodes = List.empty,
   )
 }

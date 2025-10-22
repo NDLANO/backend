@@ -75,28 +75,32 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   val indexingBundle: IndexingBundle = IndexingBundle(
     grepBundle = Some(grepBundle),
     taxonomyBundle = Some(taxonomyTestBundle),
-    myndlaBundle = Some(TestData.myndlaTestBundle)
+    myndlaBundle = Some(TestData.myndlaTestBundle),
   )
 
   test("That search on embed id supports embed with multiple resources") {
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      content = Seq(
-        ArticleContent(
-          s"""<section><div data-type="related-content"><$EmbedTagName data-article-id="3" data-resource="related-content"></$EmbedTagName></div></section>""",
-          "nb"
-        )
+    val draft1 = TestData
+      .draft1
+      .copy(
+        id = Some(1),
+        content = Seq(
+          ArticleContent(
+            s"""<section><div data-type="related-content"><$EmbedTagName data-article-id="3" data-resource="related-content"></$EmbedTagName></div></section>""",
+            "nb",
+          )
+        ),
       )
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      content = Seq(
-        ArticleContent(
-          s"""<section><$EmbedTagName data-content-id="3" data-resource="content-link">Test?</$EmbedTagName></section>""",
-          "nb"
-        )
+    val draft2 = TestData
+      .draft1
+      .copy(
+        id = Some(2),
+        content = Seq(
+          ArticleContent(
+            s"""<section><$EmbedTagName data-content-id="3" data-resource="content-link">Test?</$EmbedTagName></section>""",
+            "nb",
+          )
+        ),
       )
-    )
     val draft3 = TestData.draft1.copy(id = Some(3))
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
@@ -104,18 +108,16 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
 
     blockUntil(() => draftIndexService.countDocuments == 3)
 
-    val Success(search1) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(embedId = Some("3"), embedResource = List("content-link"))
-      ): @unchecked
+    val Success(search1) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(embedId = Some("3"), embedResource = List("content-link"))
+    ): @unchecked
 
     search1.totalCount should be(1)
     search1.summaryResults.map(_.id) should be(List(2))
 
-    val Success(search2) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(embedId = Some("3"), embedResource = List("content-link", "related-content"))
-      ): @unchecked
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(embedId = Some("3"), embedResource = List("content-link", "related-content"))
+    ): @unchecked
 
     search2.totalCount should be(2)
     search2.summaryResults.map(_.id) should be(List(1, 2))
@@ -126,105 +128,59 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     val yesterday = today.minusDays(1)
     val tomorrow  = today.plusDays(1)
 
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          today,
-          note = "note",
-          status = RevisionStatus.NeedsRevision
+    val draft1 = TestData
+      .draft1
+      .copy(
+        id = Some(1),
+        revisionMeta = Seq(
+          RevisionMeta(id = UUID.randomUUID(), today, note = "note", status = RevisionStatus.NeedsRevision),
+          RevisionMeta(id = UUID.randomUUID(), tomorrow, note = "note", status = RevisionStatus.NeedsRevision),
+          RevisionMeta(id = UUID.randomUUID(), yesterday, note = "note", status = RevisionStatus.Revised),
         ),
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          tomorrow,
-          note = "note",
-          status = RevisionStatus.NeedsRevision
+      )
+    val draft2 = TestData
+      .draft1
+      .copy(
+        id = Some(2),
+        revisionMeta = Seq(
+          RevisionMeta(id = UUID.randomUUID(), yesterday.minusDays(10), note = "note", status = RevisionStatus.Revised)
         ),
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          yesterday,
-          note = "note",
-          status = RevisionStatus.Revised
-        )
       )
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          yesterday.minusDays(10),
-          note = "note",
-          status = RevisionStatus.Revised
-        )
+    val draft3 = TestData
+      .draft1
+      .copy(
+        id = Some(3),
+        revisionMeta =
+          Seq(RevisionMeta(id = UUID.randomUUID(), yesterday, note = "note", status = RevisionStatus.NeedsRevision)),
       )
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          yesterday,
-          note = "note",
-          status = RevisionStatus.NeedsRevision
-        )
-      )
-    )
-    val draft4 = TestData.draft1.copy(
-      id = Some(4),
-      revisionMeta = Seq()
-    )
+    val draft4 = TestData.draft1.copy(id = Some(4), revisionMeta = Seq())
 
-    val lp1 = TestData.learningPath1.copy(
-      id = Some(5),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          today,
-          note = "note",
-          status = RevisionStatus.NeedsRevision
+    val lp1 = TestData
+      .learningPath1
+      .copy(
+        id = Some(5),
+        revisionMeta = Seq(
+          RevisionMeta(id = UUID.randomUUID(), today, note = "note", status = RevisionStatus.NeedsRevision),
+          RevisionMeta(id = UUID.randomUUID(), tomorrow, note = "note", status = RevisionStatus.NeedsRevision),
+          RevisionMeta(id = UUID.randomUUID(), yesterday, note = "note", status = RevisionStatus.Revised),
         ),
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          tomorrow,
-          note = "note",
-          status = RevisionStatus.NeedsRevision
+      )
+    val lp2 = TestData
+      .learningPath1
+      .copy(
+        id = Some(6),
+        revisionMeta = Seq(
+          RevisionMeta(id = UUID.randomUUID(), yesterday.minusDays(10), note = "note", status = RevisionStatus.Revised)
         ),
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          yesterday,
-          note = "note",
-          status = RevisionStatus.Revised
-        )
       )
-    )
-    val lp2 = TestData.learningPath1.copy(
-      id = Some(6),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          yesterday.minusDays(10),
-          note = "note",
-          status = RevisionStatus.Revised
-        )
+    val lp3 = TestData
+      .learningPath1
+      .copy(
+        id = Some(7),
+        revisionMeta =
+          Seq(RevisionMeta(id = UUID.randomUUID(), yesterday, note = "note", status = RevisionStatus.NeedsRevision)),
       )
-    )
-    val lp3 = TestData.learningPath1.copy(
-      id = Some(7),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          yesterday,
-          note = "note",
-          status = RevisionStatus.NeedsRevision
-        )
-      )
-    )
-    val lp4 = TestData.learningPath1.copy(
-      id = Some(8),
-      revisionMeta = Seq()
-    )
+    val lp4 = TestData.learningPath1.copy(id = Some(8), revisionMeta = Seq())
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
@@ -238,17 +194,13 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 4 && learningPathIndexService.countDocuments == 4)
 
     val Success(search1) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(sort = Sort.ByRevisionDateAsc)
-      ): @unchecked
+      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByRevisionDateAsc)): @unchecked
 
     search1.totalCount should be(8)
     search1.summaryResults.map(_.id) should be(List(3, 7, 1, 5, 2, 4, 6, 8))
 
     val Success(search2) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(sort = Sort.ByRevisionDateDesc)
-      ): @unchecked
+      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByRevisionDateDesc)): @unchecked
 
     search2.totalCount should be(8)
     search2.summaryResults.map(_.id) should be(List(1, 5, 3, 7, 2, 4, 6, 8))
@@ -259,77 +211,59 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     val yesterday = today.minusDays(1)
     val tomorrow  = today.plusDays(1)
 
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          today,
-          note = "apekatt",
-          status = RevisionStatus.NeedsRevision
+    val draft1 = TestData
+      .draft1
+      .copy(
+        id = Some(1),
+        revisionMeta = Seq(
+          RevisionMeta(id = UUID.randomUUID(), today, note = "apekatt", status = RevisionStatus.NeedsRevision),
+          RevisionMeta(id = UUID.randomUUID(), tomorrow, note = "note", status = RevisionStatus.NeedsRevision),
+          RevisionMeta(id = UUID.randomUUID(), yesterday, note = "note", status = RevisionStatus.Revised),
         ),
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          tomorrow,
-          note = "note",
-          status = RevisionStatus.NeedsRevision
+      )
+    val draft2 = TestData
+      .draft1
+      .copy(
+        id = Some(2),
+        revisionMeta = Seq(
+          RevisionMeta(
+            id = UUID.randomUUID(),
+            yesterday.minusDays(10),
+            note = "kinakål",
+            status = RevisionStatus.Revised,
+          )
         ),
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          yesterday,
-          note = "note",
-          status = RevisionStatus.Revised
-        )
       )
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          yesterday.minusDays(10),
-          note = "kinakål",
-          status = RevisionStatus.Revised
-        )
+    val draft3 = TestData
+      .draft1
+      .copy(
+        id = Some(3),
+        revisionMeta = Seq(
+          RevisionMeta(id = UUID.randomUUID(), yesterday, note = "trylleformel", status = RevisionStatus.NeedsRevision)
+        ),
       )
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          yesterday,
-          note = "trylleformel",
-          status = RevisionStatus.NeedsRevision
-        )
+    val draft4 = TestData.draft1.copy(id = Some(4), revisionMeta = Seq())
+    val lp1    = TestData
+      .learningPath1
+      .copy(
+        id = Some(5),
+        revisionMeta = Seq(
+          RevisionMeta(
+            id = UUID.randomUUID(),
+            yesterday.minusDays(10),
+            note = "pudding",
+            status = RevisionStatus.Revised,
+          )
+        ),
       )
-    )
-    val draft4 = TestData.draft1.copy(
-      id = Some(4),
-      revisionMeta = Seq()
-    )
-    val lp1 = TestData.learningPath1.copy(
-      id = Some(5),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          yesterday.minusDays(10),
-          note = "pudding",
-          status = RevisionStatus.Revised
-        )
+    val lp2 = TestData
+      .learningPath1
+      .copy(
+        id = Some(6),
+        revisionMeta = Seq(
+          RevisionMeta(id = UUID.randomUUID(), yesterday, note = "trylleformel", status = RevisionStatus.NeedsRevision)
+        ),
       )
-    )
-    val lp2 = TestData.learningPath1.copy(
-      id = Some(6),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          yesterday,
-          note = "trylleformel",
-          status = RevisionStatus.NeedsRevision
-        )
-      )
-    )
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
@@ -339,10 +273,9 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
 
     blockUntil(() => draftIndexService.countDocuments == 4 && learningPathIndexService.countDocuments == 2)
 
-    val Success(search1) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("trylleformel").get))
-      ): @unchecked
+    val Success(search1) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("trylleformel").get))
+    ): @unchecked
 
     search1.totalCount should be(2)
     search1.summaryResults.map(_.id) should be(List(3, 6))
@@ -351,49 +284,42 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   test("Test that filtering revision dates works as expected") {
     val today = NDLADate.now().withNano(0)
 
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          today.plusDays(1),
-          note = "apekatt",
-          status = RevisionStatus.NeedsRevision
+    val draft1 = TestData
+      .draft1
+      .copy(
+        id = Some(1),
+        revisionMeta = Seq(
+          RevisionMeta(
+            id = UUID.randomUUID(),
+            today.plusDays(1),
+            note = "apekatt",
+            status = RevisionStatus.NeedsRevision,
+          ),
+          RevisionMeta(id = UUID.randomUUID(), today.plusDays(10), note = "note", status = RevisionStatus.Revised),
         ),
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          today.plusDays(10),
-          note = "note",
-          status = RevisionStatus.Revised
-        )
       )
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          today.minusDays(10),
-          note = "kinakål",
-          status = RevisionStatus.Revised
-        )
+    val draft2 = TestData
+      .draft1
+      .copy(
+        id = Some(2),
+        revisionMeta = Seq(
+          RevisionMeta(id = UUID.randomUUID(), today.minusDays(10), note = "kinakål", status = RevisionStatus.Revised)
+        ),
       )
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3),
-      revisionMeta = Seq(
-        RevisionMeta(
-          id = UUID.randomUUID(),
-          today.minusDays(10),
-          note = "trylleformel",
-          status = RevisionStatus.NeedsRevision
-        )
+    val draft3 = TestData
+      .draft1
+      .copy(
+        id = Some(3),
+        revisionMeta = Seq(
+          RevisionMeta(
+            id = UUID.randomUUID(),
+            today.minusDays(10),
+            note = "trylleformel",
+            status = RevisionStatus.NeedsRevision,
+          )
+        ),
       )
-    )
-    val draft4 = TestData.draft1.copy(
-      id = Some(4),
-      revisionMeta = Seq()
-    )
+    val draft4 = TestData.draft1.copy(id = Some(4), revisionMeta = Seq())
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
@@ -402,23 +328,13 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 4)
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          revisionDateFilterFrom = Some(today),
-          revisionDateFilterTo = None
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(revisionDateFilterFrom = Some(today), revisionDateFilterTo = None))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1))
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          revisionDateFilterFrom = None,
-          revisionDateFilterTo = Some(today)
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(revisionDateFilterFrom = None, revisionDateFilterTo = Some(today)))
       .get
       .summaryResults
       .map(_.id) should be(Seq(3))
@@ -427,7 +343,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       .matchingQuery(
         multiDraftSearchSettings.copy(
           revisionDateFilterFrom = Some(today.minusDays(11)),
-          revisionDateFilterTo = Some(today.plusDays(1))
+          revisionDateFilterTo = Some(today.plusDays(1)),
         )
       )
       .get
@@ -441,35 +357,23 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     val status = Status(current = DraftStatus.PLANNED, other = Set.empty)
     val mkNote = (n: String) => EditorNote(n, "some-user", status, today)
 
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      notes = Seq(
-        mkNote("Katt"),
-        mkNote("Hund")
-      ),
-      previousVersionsNotes = Seq(
-        mkNote("Tiger"),
-        mkNote("Gris")
+    val draft1 = TestData
+      .draft1
+      .copy(
+        id = Some(1),
+        notes = Seq(mkNote("Katt"), mkNote("Hund")),
+        previousVersionsNotes = Seq(mkNote("Tiger"), mkNote("Gris")),
       )
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      notes = Seq(
-        mkNote("Kinakål"),
-        mkNote("Grevling"),
-        mkNote("Apekatt"),
-        mkNote("Gris")
-      ),
-      previousVersionsNotes = Seq(
-        mkNote("Giraff")
+    val draft2 = TestData
+      .draft1
+      .copy(
+        id = Some(2),
+        notes = Seq(mkNote("Kinakål"), mkNote("Grevling"), mkNote("Apekatt"), mkNote("Gris")),
+        previousVersionsNotes = Seq(mkNote("Giraff")),
       )
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3),
-      title = Seq(Title("Gris", "nb")),
-      notes = Seq(),
-      previousVersionsNotes = Seq()
-    )
+    val draft3 = TestData
+      .draft1
+      .copy(id = Some(3), title = Seq(Title("Gris", "nb")), notes = Seq(), previousVersionsNotes = Seq())
     draftIndexService.indexDocument(draft1, indexingBundle).failIfFailure
     draftIndexService.indexDocument(draft2, indexingBundle).failIfFailure
     draftIndexService.indexDocument(draft3, indexingBundle).failIfFailure
@@ -480,7 +384,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       .matchingQuery(
         multiDraftSearchSettings.copy(
           query = Some(NonEmptyString.fromString("Gris").get),
-          excludeRevisionHistory = true
+          excludeRevisionHistory = true,
         )
       )
       .get
@@ -491,7 +395,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       .matchingQuery(
         multiDraftSearchSettings.copy(
           query = Some(NonEmptyString.fromString("Gris").get),
-          excludeRevisionHistory = false
+          excludeRevisionHistory = false,
         )
       )
       .get
@@ -500,18 +404,9 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   }
 
   test("That responsibleId is filterable") {
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      responsible = Some(Responsible("hei", TestData.today))
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      responsible = Some(Responsible("hei2", TestData.today))
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3),
-      responsible = Some(Responsible("hei", TestData.today))
-    )
+    val draft1 = TestData.draft1.copy(id = Some(1), responsible = Some(Responsible("hei", TestData.today)))
+    val draft2 = TestData.draft1.copy(id = Some(2), responsible = Some(Responsible("hei2", TestData.today)))
+    val draft3 = TestData.draft1.copy(id = Some(3), responsible = Some(Responsible("hei", TestData.today)))
     draftIndexService.indexDocument(draft1, indexingBundle).failIfFailure
     draftIndexService.indexDocument(draft2, indexingBundle).failIfFailure
     draftIndexService.indexDocument(draft3, indexingBundle).failIfFailure
@@ -519,63 +414,37 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 3)
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          responsibleIdFilter = List.empty
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List.empty))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 2, 3))
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          responsibleIdFilter = List("hei")
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List("hei")))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 3))
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          responsibleIdFilter = List("hei2")
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List("hei2")))
       .get
       .summaryResults
       .map(_.id) should be(Seq(2))
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          responsibleIdFilter = List("hei", "hei2")
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List("hei", "hei2")))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 2, 3))
   }
 
   test("That responsible lastUpdated is sortable") {
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      responsible = Some(Responsible("hei", TestData.today.minusDays(5)))
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      responsible = Some(Responsible("hei2", TestData.today.minusDays(2)))
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3),
-      responsible = Some(Responsible("hei", TestData.today.minusDays(3)))
-    )
-    val draft4 = TestData.draft1.copy(
-      id = Some(4),
-      responsible = None
-    )
+    val draft1 = TestData.draft1.copy(id = Some(1), responsible = Some(Responsible("hei", TestData.today.minusDays(5))))
+    val draft2 = TestData
+      .draft1
+      .copy(id = Some(2), responsible = Some(Responsible("hei2", TestData.today.minusDays(2))))
+    val draft3 = TestData.draft1.copy(id = Some(3), responsible = Some(Responsible("hei", TestData.today.minusDays(3))))
+    val draft4 = TestData.draft1.copy(id = Some(4), responsible = None)
     draftIndexService.indexDocument(draft1, indexingBundle).failIfFailure
     draftIndexService.indexDocument(draft2, indexingBundle).failIfFailure
     draftIndexService.indexDocument(draft3, indexingBundle).failIfFailure
@@ -585,10 +454,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
 
     multiDraftSearchService
       .matchingQuery(
-        multiDraftSearchSettings.copy(
-          responsibleIdFilter = List.empty,
-          sort = Sort.ByResponsibleLastUpdatedAsc
-        )
+        multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByResponsibleLastUpdatedAsc)
       )
       .get
       .summaryResults
@@ -596,10 +462,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
 
     multiDraftSearchService
       .matchingQuery(
-        multiDraftSearchSettings.copy(
-          responsibleIdFilter = List.empty,
-          sort = Sort.ByResponsibleLastUpdatedDesc
-        )
+        multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByResponsibleLastUpdatedDesc)
       )
       .get
       .summaryResults
@@ -628,7 +491,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       contextId = "",
       isVisible = true,
       isActive = true,
-      url = "/f/matte/asdf1256"
+      url = "/f/matte/asdf1256",
     )
     val subject_1 = Node(
       "urn:subject:1",
@@ -641,7 +504,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       NodeType.SUBJECT,
       List("asdf1256"),
       Some(context_1),
-      List(context_1)
+      List(context_1),
     )
     val topic_1 = Node(
       "urn:topic:1",
@@ -654,7 +517,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       NodeType.TOPIC,
       List("asdf1257"),
       None,
-      List.empty
+      List.empty,
     )
     topic_1.contexts = generateContexts(
       topic_1,
@@ -665,7 +528,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       core,
       isPrimary = true,
       isVisible = true,
-      isActive = true
+      isActive = true,
     )
     val topic_2 = Node(
       "urn:topic:2",
@@ -678,7 +541,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       NodeType.TOPIC,
       List("asdf1258"),
       None,
-      List.empty
+      List.empty,
     )
     topic_2.contexts = generateContexts(
       topic_2,
@@ -689,7 +552,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       core,
       isPrimary = true,
       isVisible = true,
-      isActive = true
+      isActive = true,
     )
     val topic_3 = Node(
       "urn:topic:3",
@@ -702,7 +565,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       NodeType.TOPIC,
       List("asdf1259"),
       None,
-      List.empty
+      List.empty,
     )
     topic_3.contexts = generateContexts(
       topic_3,
@@ -713,7 +576,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       core,
       isPrimary = true,
       isVisible = true,
-      isActive = true
+      isActive = true,
     )
     val topic_4 = Node(
       "urn:topic:4",
@@ -726,7 +589,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       NodeType.TOPIC,
       List("asdf1260"),
       None,
-      List.empty
+      List.empty,
     )
     topic_4.contexts = generateContexts(
       topic_4,
@@ -737,7 +600,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       core,
       isPrimary = true,
       isVisible = true,
-      isActive = true
+      isActive = true,
     )
     val resource_5 = Node(
       "urn:resource:5",
@@ -750,7 +613,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       NodeType.RESOURCE,
       List("asdf1261"),
       None,
-      List.empty
+      List.empty,
     )
     resource_5.contexts = generateContexts(
       resource_5,
@@ -761,7 +624,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       core,
       isPrimary = true,
       isVisible = true,
-      isActive = true
+      isActive = true,
     ) ++
       generateContexts(
         resource_5,
@@ -772,7 +635,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         core,
         isPrimary = false,
         isVisible = true,
-        isActive = true
+        isActive = true,
       )
     val resource_6 = Node(
       "urn:resource:6",
@@ -785,7 +648,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       NodeType.RESOURCE,
       List("asdf1262"),
       None,
-      List.empty
+      List.empty,
     )
     resource_6.contexts = generateContexts(
       resource_6,
@@ -796,21 +659,11 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       core,
       isPrimary = true,
       isVisible = true,
-      isActive = true
+      isActive = true,
     )
 
     val taxonomyBundle = {
-      TaxonomyBundle(nodes =
-        List(
-          subject_1,
-          topic_1,
-          topic_2,
-          topic_3,
-          topic_4,
-          resource_5,
-          resource_6
-        )
-      )
+      TaxonomyBundle(nodes = List(subject_1, topic_1, topic_2, topic_3, topic_4, resource_5, resource_6))
     }
 
     {
@@ -840,22 +693,10 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   }
 
   test("That sorting by status works as expected") {
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      status = Status(DraftStatus.PLANNED, Set.empty)
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      status = Status(DraftStatus.PUBLISHED, Set.empty)
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3),
-      status = Status(DraftStatus.LANGUAGE, Set.empty)
-    )
-    val draft4 = TestData.draft1.copy(
-      id = Some(4),
-      status = Status(DraftStatus.FOR_APPROVAL, Set.empty)
-    )
+    val draft1 = TestData.draft1.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty))
+    val draft2 = TestData.draft1.copy(id = Some(2), status = Status(DraftStatus.PUBLISHED, Set.empty))
+    val draft3 = TestData.draft1.copy(id = Some(3), status = Status(DraftStatus.LANGUAGE, Set.empty))
+    val draft4 = TestData.draft1.copy(id = Some(4), status = Status(DraftStatus.FOR_APPROVAL, Set.empty))
 
     draftIndexService.indexDocument(draft1, indexingBundle).failIfFailure
     draftIndexService.indexDocument(draft2, indexingBundle).failIfFailure
@@ -865,23 +706,13 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 4)
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          responsibleIdFilter = List.empty,
-          sort = Sort.ByStatusAsc
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByStatusAsc))
       .get
       .summaryResults
       .map(_.id) should be(Seq(4, 3, 1, 2))
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          responsibleIdFilter = List.empty,
-          sort = Sort.ByStatusDesc
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByStatusDesc))
       .get
       .summaryResults
       .map(_.id) should be(Seq(2, 1, 3, 4))
@@ -889,45 +720,17 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
 
   test("Test that filtering prioritized works as expected") {
 
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      priority = Priority.Unspecified
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      priority = Priority.Prioritized
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3),
-      priority = Priority.Prioritized
-    )
-    val draft4 = TestData.draft1.copy(
-      id = Some(4)
-    )
-    val draft5 = TestData.draft1.copy(
-      id = Some(5),
-      priority = Priority.OnHold
-    )
+    val draft1 = TestData.draft1.copy(id = Some(1), priority = Priority.Unspecified)
+    val draft2 = TestData.draft1.copy(id = Some(2), priority = Priority.Prioritized)
+    val draft3 = TestData.draft1.copy(id = Some(3), priority = Priority.Prioritized)
+    val draft4 = TestData.draft1.copy(id = Some(4))
+    val draft5 = TestData.draft1.copy(id = Some(5), priority = Priority.OnHold)
 
-    val lp1 = TestData.learningPath1.copy(
-      id = Some(6),
-      priority = Priority.Prioritized
-    )
-    val lp2 = TestData.learningPath1.copy(
-      id = Some(7),
-      priority = Priority.Unspecified
-    )
-    val lp3 = TestData.learningPath1.copy(
-      id = Some(8),
-      priority = Priority.Prioritized
-    )
-    val lp4 = TestData.learningPath1.copy(
-      id = Some(9)
-    )
-    val lp5 = TestData.learningPath1.copy(
-      id = Some(10),
-      priority = Priority.OnHold
-    )
+    val lp1 = TestData.learningPath1.copy(id = Some(6), priority = Priority.Prioritized)
+    val lp2 = TestData.learningPath1.copy(id = Some(7), priority = Priority.Unspecified)
+    val lp3 = TestData.learningPath1.copy(id = Some(8), priority = Priority.Prioritized)
+    val lp4 = TestData.learningPath1.copy(id = Some(9))
+    val lp5 = TestData.learningPath1.copy(id = Some(10), priority = Priority.OnHold)
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
@@ -942,40 +745,24 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 5 && learningPathIndexService.countDocuments == 5)
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          priority = List(Priority.Prioritized)
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(priority = List(Priority.Prioritized)))
       .get
       .summaryResults
       .map(_.id) should be(Seq(2, 3, 6, 8))
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          priority = List(Priority.Unspecified)
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(priority = List(Priority.Unspecified)))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 4, 7, 9))
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          priority = List(Priority.OnHold)
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(priority = List(Priority.OnHold)))
       .get
       .summaryResults
       .map(_.id) should be(Seq(5, 10))
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          priority = List.empty
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(priority = List.empty))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
@@ -983,23 +770,24 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
 
   test("That search on embed id supports video embed with timestamp resources") {
     val videoId = "66772123"
-    val draft1  = TestData.draft1.copy(
-      id = Some(1),
-      content = Seq(
-        ArticleContent(
-          s"""<section><div data-type="related-content"><$EmbedTagName data-resource="video" data-videoid="$videoId&amp;t=1"></$EmbedTagName></div></section>""",
-          "nb"
-        )
+    val draft1  = TestData
+      .draft1
+      .copy(
+        id = Some(1),
+        content = Seq(
+          ArticleContent(
+            s"""<section><div data-type="related-content"><$EmbedTagName data-resource="video" data-videoid="$videoId&amp;t=1"></$EmbedTagName></div></section>""",
+            "nb",
+          )
+        ),
       )
-    )
     draftIndexService.indexDocument(draft1, indexingBundle).get
 
     blockUntil(() => draftIndexService.countDocuments == 1)
 
-    val Success(search1) =
-      multiDraftSearchService.matchingQuery(
-        multiDraftSearchSettings.copy(embedId = Some(videoId), embedResource = List("video"))
-      ): @unchecked
+    val Success(search1) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(embedId = Some(videoId), embedResource = List("video"))
+    ): @unchecked
 
     search1.totalCount should be(1)
     search1.summaryResults.map(_.id) should be(List(1))
@@ -1011,40 +799,43 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       override def createIndexRequest(
           domainModel: Draft,
           indexName: String,
-          indexingBundle: IndexingBundle
+          indexingBundle: IndexingBundle,
       ): Try[Option[IndexRequest]] = {
 
         val draft = domainModel.id.get match {
-          case 1 =>
-            TestData.searchableDraft.copy(
-              id = 1,
-              defaultParentTopicName = Some("Apekatt emne"),
-              parentTopicName = SearchableLanguageValues.from("nb" -> "Apekatt emne"),
-              defaultRoot = Some("Capekatt rot"),
-              primaryRoot = SearchableLanguageValues.from("nb" -> "Capekatt rot"),
-              resourceTypeName = SearchableLanguageValues.from("nb" -> "Bapekatt ressurs"),
-              defaultResourceTypeName = Some("Bapekatt ressurs")
-            )
-          case 2 =>
-            TestData.searchableDraft.copy(
-              id = 2,
-              defaultParentTopicName = Some("Bpekatt emne"),
-              parentTopicName = SearchableLanguageValues.from("nb" -> "Bpekatt emne"),
-              defaultRoot = Some("Apekatt rot"),
-              primaryRoot = SearchableLanguageValues.from("nb" -> "Apekatt rot"),
-              resourceTypeName = SearchableLanguageValues.from("nb" -> "Capekatt ressurs"),
-              defaultResourceTypeName = Some("Capekatt ressurs")
-            )
-          case 3 =>
-            TestData.searchableDraft.copy(
-              id = 3,
-              defaultParentTopicName = Some("Cpekatt emne"),
-              parentTopicName = SearchableLanguageValues.from("nb" -> "Cpekatt emne"),
-              defaultRoot = Some("Bapekatt rot"),
-              primaryRoot = SearchableLanguageValues.from("nb" -> "Bapekatt rot"),
-              resourceTypeName = SearchableLanguageValues.from("nb" -> "Apekatt ressurs"),
-              defaultResourceTypeName = Some("Apekatt ressurs")
-            )
+          case 1 => TestData
+              .searchableDraft
+              .copy(
+                id = 1,
+                defaultParentTopicName = Some("Apekatt emne"),
+                parentTopicName = SearchableLanguageValues.from("nb" -> "Apekatt emne"),
+                defaultRoot = Some("Capekatt rot"),
+                primaryRoot = SearchableLanguageValues.from("nb" -> "Capekatt rot"),
+                resourceTypeName = SearchableLanguageValues.from("nb" -> "Bapekatt ressurs"),
+                defaultResourceTypeName = Some("Bapekatt ressurs"),
+              )
+          case 2 => TestData
+              .searchableDraft
+              .copy(
+                id = 2,
+                defaultParentTopicName = Some("Bpekatt emne"),
+                parentTopicName = SearchableLanguageValues.from("nb" -> "Bpekatt emne"),
+                defaultRoot = Some("Apekatt rot"),
+                primaryRoot = SearchableLanguageValues.from("nb" -> "Apekatt rot"),
+                resourceTypeName = SearchableLanguageValues.from("nb" -> "Capekatt ressurs"),
+                defaultResourceTypeName = Some("Capekatt ressurs"),
+              )
+          case 3 => TestData
+              .searchableDraft
+              .copy(
+                id = 3,
+                defaultParentTopicName = Some("Cpekatt emne"),
+                parentTopicName = SearchableLanguageValues.from("nb" -> "Cpekatt emne"),
+                defaultRoot = Some("Bapekatt rot"),
+                primaryRoot = SearchableLanguageValues.from("nb" -> "Bapekatt rot"),
+                resourceTypeName = SearchableLanguageValues.from("nb" -> "Apekatt ressurs"),
+                defaultResourceTypeName = Some("Apekatt ressurs"),
+              )
           case _ => fail("Unexpected id, this is a bug with the test")
         }
 
@@ -1062,19 +853,16 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       override val enableExplanations: Boolean = true
     }
 
-    val Success(search1) = searchService.matchingQuery(
-      multiDraftSearchSettings.copy(sort = Sort.ByParentTopicNameAsc)
-    ): @unchecked
+    val Success(search1) =
+      searchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByParentTopicNameAsc)): @unchecked
     search1.summaryResults.map(_.id) should be(List(1, 2, 3))
 
-    val Success(search2) = searchService.matchingQuery(
-      multiDraftSearchSettings.copy(sort = Sort.ByPrimaryRootAsc)
-    ): @unchecked
+    val Success(search2) =
+      searchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByPrimaryRootAsc)): @unchecked
     search2.summaryResults.map(_.id) should be(List(2, 3, 1))
 
-    val Success(search3) = searchService.matchingQuery(
-      multiDraftSearchSettings.copy(sort = Sort.ByResourceTypeAsc)
-    ): @unchecked
+    val Success(search3) =
+      searchService.matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByResourceTypeAsc)): @unchecked
     search3.summaryResults.map(_.id) should be(List(3, 1, 2))
 
   }
@@ -1082,22 +870,10 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   test("Test that filtering published dates works as expected") {
     val today = NDLADate.now().withNano(0)
 
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      published = today.plusDays(1)
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      published = today.minusDays(10)
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3),
-      published = today.minusDays(10)
-    )
-    val draft4 = TestData.draft1.copy(
-      id = Some(4),
-      published = today.minusDays(15)
-    )
+    val draft1 = TestData.draft1.copy(id = Some(1), published = today.plusDays(1))
+    val draft2 = TestData.draft1.copy(id = Some(2), published = today.minusDays(10))
+    val draft3 = TestData.draft1.copy(id = Some(3), published = today.minusDays(10))
+    val draft4 = TestData.draft1.copy(id = Some(4), published = today.minusDays(15))
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
@@ -1106,23 +882,13 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 4)
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          publishedFilterFrom = Some(today),
-          publishedFilterTo = None
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(publishedFilterFrom = Some(today), publishedFilterTo = None))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1))
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          publishedFilterFrom = None,
-          publishedFilterTo = Some(today)
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(publishedFilterFrom = None, publishedFilterTo = Some(today)))
       .get
       .summaryResults
       .map(_.id) should be(Seq(2, 3, 4))
@@ -1131,7 +897,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       .matchingQuery(
         multiDraftSearchSettings.copy(
           publishedFilterFrom = Some(today.minusDays(11)),
-          publishedFilterTo = Some(today.plusDays(2))
+          publishedFilterTo = Some(today.plusDays(2)),
         )
       )
       .get
@@ -1142,22 +908,10 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   test("Test sorting published dates works as expected") {
     val today = NDLADate.now().withNano(0)
 
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      published = today.plusDays(1)
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      published = today.minusDays(12)
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3),
-      published = today.minusDays(10)
-    )
-    val draft4 = TestData.draft1.copy(
-      id = Some(4),
-      published = today.minusDays(15)
-    )
+    val draft1 = TestData.draft1.copy(id = Some(1), published = today.plusDays(1))
+    val draft2 = TestData.draft1.copy(id = Some(2), published = today.minusDays(12))
+    val draft3 = TestData.draft1.copy(id = Some(3), published = today.minusDays(10))
+    val draft4 = TestData.draft1.copy(id = Some(4), published = today.minusDays(15))
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
@@ -1166,39 +920,23 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 4)
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          sort = Sort.ByPublishedAsc
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByPublishedAsc))
       .get
       .summaryResults
       .map(_.id) should be(Seq(4, 2, 3, 1))
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(
-          sort = Sort.ByPublishedDesc
-        )
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByPublishedDesc))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 3, 2, 4))
   }
 
   test("Test that concepts appear in the search, but not by default") {
-    val draft1 = TestData.draft1.copy(
-      id = Some(1)
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2)
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3)
-    )
-    val draft4 = TestData.draft1.copy(
-      id = Some(4)
-    )
+    val draft1 = TestData.draft1.copy(id = Some(1))
+    val draft2 = TestData.draft1.copy(id = Some(2))
+    val draft3 = TestData.draft1.copy(id = Some(3))
+    val draft4 = TestData.draft1.copy(id = Some(4))
 
     val concept1 = TestData.sampleNbDomainConcept.copy(id = Some(1))
     val concept2 = TestData.sampleNbDomainConcept.copy(id = Some(2))
@@ -1220,19 +958,14 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       .get
       .summaryResults
       .map(r => r.id -> r.resultType) should be(
-      Seq(
-        1 -> SearchType.Drafts,
-        2 -> SearchType.Drafts,
-        3 -> SearchType.Drafts,
-        4 -> SearchType.Drafts
-      )
+      Seq(1 -> SearchType.Drafts, 2 -> SearchType.Drafts, 3 -> SearchType.Drafts, 4 -> SearchType.Drafts)
     )
 
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
           sort = Sort.ByIdAsc,
-          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts))
+          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts)),
         )
       )
       .get
@@ -1246,26 +979,22 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         3 -> SearchType.Concepts,
         3 -> SearchType.Drafts,
         4 -> SearchType.Concepts,
-        4 -> SearchType.Drafts
+        4 -> SearchType.Drafts,
       )
     )
   }
   test("that concepts are indexed with content and are searchable") {
-    val draft1 = TestData.draft1.copy(
-      id = Some(1)
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2)
-    )
-    val draft3 = TestData.draft1.copy(
-      id = Some(3)
-    )
+    val draft1 = TestData.draft1.copy(id = Some(1))
+    val draft2 = TestData.draft1.copy(id = Some(2))
+    val draft3 = TestData.draft1.copy(id = Some(3))
 
-    val concept1 =
-      TestData.sampleNbDomainConcept.copy(id = Some(1), content = Seq(ConceptContent("Liten apekatt", "nb")))
+    val concept1 = TestData
+      .sampleNbDomainConcept
+      .copy(id = Some(1), content = Seq(ConceptContent("Liten apekatt", "nb")))
     val concept2 = TestData.sampleNbDomainConcept.copy(id = Some(2), content = Seq(ConceptContent("Stor giraff", "nb")))
-    val concept3 =
-      TestData.sampleNbDomainConcept.copy(id = Some(3), content = Seq(ConceptContent("Medium kylling", "nb")))
+    val concept3 = TestData
+      .sampleNbDomainConcept
+      .copy(id = Some(3), content = Seq(ConceptContent("Medium kylling", "nb")))
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
@@ -1280,44 +1009,32 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         multiDraftSearchSettings.copy(
           sort = Sort.ByIdAsc,
           query = NonEmptyString.fromString("giraff"),
-          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
+          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
         )
       )
       .get
       .summaryResults
-      .map(r => r.id -> r.resultType) should be(
-      Seq(2 -> SearchType.Concepts)
-    )
+      .map(r => r.id -> r.resultType) should be(Seq(2 -> SearchType.Concepts))
 
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
           sort = Sort.ByIdAsc,
           query = NonEmptyString.fromString("apekatt"),
-          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
+          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
         )
       )
       .get
       .summaryResults
-      .map(r => r.id -> r.resultType) should be(
-      Seq(1 -> SearchType.Concepts)
-    )
+      .map(r => r.id -> r.resultType) should be(Seq(1 -> SearchType.Concepts))
   }
 
   test("That filtering based on learningResourceType works for everyone") {
-    val draft1 = TestData.draft1.copy(
-      id = Some(1),
-      articleType = ArticleType.Standard
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      articleType = ArticleType.TopicArticle
-    )
-    val learningPath3 = TestData.learningPath1.copy(
-      id = Some(3)
-    )
-    val concept4 = TestData.sampleNbDomainConcept.copy(id = Some(4), conceptType = ConceptType.CONCEPT)
-    val concept5 = TestData.sampleNbDomainConcept.copy(id = Some(5), conceptType = ConceptType.GLOSS)
+    val draft1        = TestData.draft1.copy(id = Some(1), articleType = ArticleType.Standard)
+    val draft2        = TestData.draft1.copy(id = Some(2), articleType = ArticleType.TopicArticle)
+    val learningPath3 = TestData.learningPath1.copy(id = Some(3))
+    val concept4      = TestData.sampleNbDomainConcept.copy(id = Some(4), conceptType = ConceptType.CONCEPT)
+    val concept5      = TestData.sampleNbDomainConcept.copy(id = Some(5), conceptType = ConceptType.GLOSS)
 
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
@@ -1336,7 +1053,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         .matchingQuery(
           multiDraftSearchSettings.copy(
             learningResourceTypes = List(LearningResourceType.Article),
-            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
+            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
           )
         )
         .get
@@ -1347,7 +1064,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         .matchingQuery(
           multiDraftSearchSettings.copy(
             learningResourceTypes = List(LearningResourceType.TopicArticle),
-            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
+            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
           )
         )
         .get
@@ -1358,7 +1075,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         .matchingQuery(
           multiDraftSearchSettings.copy(
             learningResourceTypes = List(LearningResourceType.LearningPath),
-            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
+            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
           )
         )
         .get
@@ -1369,7 +1086,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         .matchingQuery(
           multiDraftSearchSettings.copy(
             learningResourceTypes = List(LearningResourceType.Concept),
-            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
+            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
           )
         )
         .get
@@ -1380,7 +1097,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         .matchingQuery(
           multiDraftSearchSettings.copy(
             learningResourceTypes = List(LearningResourceType.Gloss),
-            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths))
+            resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
           )
         )
         .get
@@ -1390,21 +1107,11 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
 
   test("That responsible filtering works for concepts") {
     val responsible = Responsible("some-user", TestData.today)
-    val draft1      = TestData.draft1.copy(
-      id = Some(1),
-      articleType = ArticleType.Standard,
-      responsible = Some(responsible)
-    )
-    val draft2 = TestData.draft1.copy(
-      id = Some(2),
-      articleType = ArticleType.Standard,
-      responsible = None
-    )
-    val concept3 = TestData.sampleNbDomainConcept.copy(
-      id = Some(3),
-      responsible = Some(responsible),
-      conceptType = ConceptType.CONCEPT
-    )
+    val draft1      = TestData.draft1.copy(id = Some(1), articleType = ArticleType.Standard, responsible = Some(responsible))
+    val draft2      = TestData.draft1.copy(id = Some(2), articleType = ArticleType.Standard, responsible = None)
+    val concept3    = TestData
+      .sampleNbDomainConcept
+      .copy(id = Some(3), responsible = Some(responsible), conceptType = ConceptType.CONCEPT)
 
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
@@ -1416,7 +1123,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       .matchingQuery(
         multiDraftSearchSettings.copy(
           resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
-          responsibleIdFilter = List("some-user")
+          responsibleIdFilter = List("some-user"),
         )
       )
       .get

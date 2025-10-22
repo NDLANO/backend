@@ -21,9 +21,7 @@ import no.ndla.searchapi.model.domain.DomainDumpResults
 
 import scala.util.{Failure, Success, Try}
 
-class LearningPathApiClient(
-    val baseUrl: String
-)(using props: Props, ndlaClient: NdlaClient)
+class LearningPathApiClient(val baseUrl: String)(using props: Props, ndlaClient: NdlaClient)
     extends SearchApiClient[LearningPath]
     with StrictLogging {
   override val searchPath     = "learningpath-api/v2/learningpaths"
@@ -33,12 +31,8 @@ class LearningPathApiClient(
   override protected def getChunk(page: Int, pageSize: Int)(implicit
       d: Decoder[LearningPath]
   ): Try[DomainDumpResults[LearningPath]] = {
-    val params = Map(
-      "page"           -> page.toString,
-      "page-size"      -> pageSize.toString,
-      "only-published" -> "false"
-    )
-    val reqs = RequestInfo.fromThreadContext()
+    val params = Map("page" -> page.toString, "page-size" -> pageSize.toString, "only-published" -> "false")
+    val reqs   = RequestInfo.fromThreadContext()
     reqs.setThreadContextRequestInfo()
     get[DomainDumpResults[LearningPath]](dumpDomainPath, params, timeout = 120000) match {
       case Success(result) =>

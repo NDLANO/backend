@@ -13,17 +13,12 @@ import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 
 class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
   test("a start timestamp should be added on youtube urls if defined in request url") {
-    val requestUrlWIthTimeContinue =
-      "https://www.youtube.com/watch?time_continue=43&amp;v=vZCsuV7Rb_w"
-    val requestUrlWithStart =
-      "https://www.youtube.com/watch?start=43&v=vZCsuV7Rb_w"
-    val requestUrlWithT =
-      "https://www.youtube.com/watch?t=43&v=vZCsuV7Rb_w"
-    val requestUrlWithEnd =
-      "https://www.youtube.com/watch?start=43&end=58&v=vZCsuV7Rb_w"
-    val requestUrlWithtoutTimestamp =
-      "https://www.youtube.com/watch?v=vZCsuV7Rb_w"
-    val oembed = OEmbedDTO(
+    val requestUrlWIthTimeContinue  = "https://www.youtube.com/watch?time_continue=43&amp;v=vZCsuV7Rb_w"
+    val requestUrlWithStart         = "https://www.youtube.com/watch?start=43&v=vZCsuV7Rb_w"
+    val requestUrlWithT             = "https://www.youtube.com/watch?t=43&v=vZCsuV7Rb_w"
+    val requestUrlWithEnd           = "https://www.youtube.com/watch?start=43&end=58&v=vZCsuV7Rb_w"
+    val requestUrlWithtoutTimestamp = "https://www.youtube.com/watch?v=vZCsuV7Rb_w"
+    val oembed                      = OEmbedDTO(
       "video",
       "1.0",
       Some("ESS® expandable sand screen"),
@@ -41,7 +36,7 @@ class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       Some(
         """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>"""
-      )
+      ),
     )
     val expectedResultTimeContinue = Some(
       """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&time_continue=43" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>"""
@@ -56,27 +51,26 @@ class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
       """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&start=43&end=58" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>"""
     )
 
-    OEmbedConverterService
-      .addYoutubeTimestampIfdefinedInRequest(requestUrlWIthTimeContinue, oembed)
-      .html should equal(expectedResultTimeContinue)
-    OEmbedConverterService
-      .addYoutubeTimestampIfdefinedInRequest(requestUrlWithStart, oembed)
-      .html should equal(expectedResultStart)
-    OEmbedConverterService
-      .addYoutubeTimestampIfdefinedInRequest(requestUrlWithT, oembed)
-      .html should equal(expectedResultT)
-    OEmbedConverterService
-      .addYoutubeTimestampIfdefinedInRequest(requestUrlWithtoutTimestamp, oembed)
-      .html should equal(oembed.html)
-    OEmbedConverterService
-      .addYoutubeTimestampIfdefinedInRequest(requestUrlWithEnd, oembed)
-      .html should equal(expectedResultStartEnd)
+    OEmbedConverterService.addYoutubeTimestampIfdefinedInRequest(requestUrlWIthTimeContinue, oembed).html should equal(
+      expectedResultTimeContinue
+    )
+    OEmbedConverterService.addYoutubeTimestampIfdefinedInRequest(requestUrlWithStart, oembed).html should equal(
+      expectedResultStart
+    )
+    OEmbedConverterService.addYoutubeTimestampIfdefinedInRequest(requestUrlWithT, oembed).html should equal(
+      expectedResultT
+    )
+    OEmbedConverterService.addYoutubeTimestampIfdefinedInRequest(requestUrlWithtoutTimestamp, oembed).html should equal(
+      oembed.html
+    )
+    OEmbedConverterService.addYoutubeTimestampIfdefinedInRequest(requestUrlWithEnd, oembed).html should equal(
+      expectedResultStartEnd
+    )
   }
 
   test("That rel=0 also is added to youtube url if defined in request") {
-    val requestUrl =
-      "https://www.youtube.com/watch?v=vZCsuV7Rb_w&rel=0&time_continue=5&meh=1"
-    val oembed = OEmbedDTO(
+    val requestUrl = "https://www.youtube.com/watch?v=vZCsuV7Rb_w&rel=0&time_continue=5&meh=1"
+    val oembed     = OEmbedDTO(
       "video",
       "1.0",
       Some("ESS® expandable sand screen"),
@@ -94,7 +88,7 @@ class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       Some(
         """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>"""
-      )
+      ),
     )
     val expectedResult = Some(
       """<iframe width="459" height="344" src="https://www.youtube.com/embed/vZCsuV7Rb_w?feature=oembed&rel=0&time_continue=5" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>"""
@@ -117,9 +111,7 @@ class OEmbedConverterServiceTest extends UnitSuite with TestEnvironment {
 
     OEmbedConverterService.handleYoutubeRequestUrl(
       "https://www.youtube.com/playlist?list=PLJBPGA24dsn_HLSn6bmA8ajn-9AVGCWje"
-    ) should be(
-      "https://www.youtube.com/playlist?list=PLJBPGA24dsn_HLSn6bmA8ajn-9AVGCWje"
-    )
+    ) should be("https://www.youtube.com/playlist?list=PLJBPGA24dsn_HLSn6bmA8ajn-9AVGCWje")
   }
 
   test("handleYoutubeRequestUrl should convert /embed and /v urls to youtu.be") {

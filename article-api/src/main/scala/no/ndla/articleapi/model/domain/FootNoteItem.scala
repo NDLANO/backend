@@ -14,5 +14,5 @@ case class FootNoteItem(
     year: String,
     edition: String,
     publisher: String,
-    authors: Seq[String]
+    authors: Seq[String],
 )

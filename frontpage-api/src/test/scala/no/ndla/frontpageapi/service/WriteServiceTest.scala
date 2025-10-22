@@ -22,11 +22,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   override implicit lazy val writeService: WriteService         = new WriteService
 
   test("That language is deleted for subject page") {
-    val subjectPage = TestData.domainSubjectPage.copy(
-      about =
-        TestData.domainSubjectPage.about ++ Seq(AboutSubject("Foo", "Bar", "nn", VisualElement(Image, "123", None))),
-      metaDescription = TestData.domainSubjectPage.metaDescription ++ Seq(MetaDescription("Description", "nn"))
-    )
+    val subjectPage = TestData
+      .domainSubjectPage
+      .copy(
+        about =
+          TestData.domainSubjectPage.about ++ Seq(AboutSubject("Foo", "Bar", "nn", VisualElement(Image, "123", None))),
+        metaDescription = TestData.domainSubjectPage.metaDescription ++ Seq(MetaDescription("Description", "nn")),
+      )
     when(subjectPageRepository.withId(any)).thenReturn(Success(Some(subjectPage)))
     when(subjectPageRepository.updateSubjectPage(any)(using any)).thenAnswer(i => Success(i.getArgument(0)))
 
@@ -49,13 +51,17 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That language is deleted for film front page") {
-    val filmFrontPage = TestData.domainFilmFrontPage.copy(
-      about =
-        TestData.domainFilmFrontPage.about ++ Seq(AboutSubject("Foo", "Bar", "nn", VisualElement(Image, "123", None))),
-      movieThemes = TestData.domainFilmFrontPage.movieThemes.map(movieTheme =>
-        movieTheme.copy(name = movieTheme.name ++ Seq(MovieThemeName("FooBar", "nn")))
+    val filmFrontPage = TestData
+      .domainFilmFrontPage
+      .copy(
+        about = TestData.domainFilmFrontPage.about ++ Seq(
+          AboutSubject("Foo", "Bar", "nn", VisualElement(Image, "123", None))
+        ),
+        movieThemes = TestData
+          .domainFilmFrontPage
+          .movieThemes
+          .map(movieTheme => movieTheme.copy(name = movieTheme.name ++ Seq(MovieThemeName("FooBar", "nn")))),
       )
-    )
     when(filmFrontPageRepository.get(using any)).thenReturn(Some(filmFrontPage))
     when(filmFrontPageRepository.update(any)(using any)).thenAnswer(i => Success(i.getArgument(0)))
 
@@ -64,12 +70,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That deleting last language for film front page throws exception") {
-    val filmFrontPage = TestData.domainFilmFrontPage.copy(
-      about = TestData.domainFilmFrontPage.about.filter(_.language == "nb"),
-      movieThemes = TestData.domainFilmFrontPage.movieThemes.map(movieTheme =>
-        movieTheme.copy(name = movieTheme.name.filter(_.language == "nb"))
+    val filmFrontPage = TestData
+      .domainFilmFrontPage
+      .copy(
+        about = TestData.domainFilmFrontPage.about.filter(_.language == "nb"),
+        movieThemes = TestData
+          .domainFilmFrontPage
+          .movieThemes
+          .map(movieTheme => movieTheme.copy(name = movieTheme.name.filter(_.language == "nb"))),
       )
-    )
     when(filmFrontPageRepository.get(using any)).thenReturn(Some(filmFrontPage))
     when(filmFrontPageRepository.update(any)(using any)).thenAnswer(i => Success(i.getArgument(0)))
 

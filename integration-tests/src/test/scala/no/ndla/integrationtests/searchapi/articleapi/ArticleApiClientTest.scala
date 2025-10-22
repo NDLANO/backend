@@ -64,7 +64,9 @@ class ArticleApiClientTest
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     articleApi = new articleapi.MainClass(articleApiProperties)
-    Future { articleApi.run(Array.empty) }: Unit
+    Future {
+      articleApi.run(Array.empty)
+    }: Unit
 
     blockUntilHealthy(s"$articleApiBaseUrl/health/readiness")
   }
@@ -81,22 +83,27 @@ class ArticleApiClientTest
     implicit lazy val props: ArticleApiProperties = articleApiProperties
     val td                                        = new ArticleTestData
 
-    def setupArticles(): Try[Boolean] =
-      (1L to 10)
-        .map(id => {
-          articleApi.componentRegistry.articleRepository
-            .updateArticleFromDraftApi(
-              td.sampleDomainArticle.copy(
+    def setupArticles(): Try[Boolean] = (
+      1L to 10
+    ).map(id => {
+        articleApi
+          .componentRegistry
+          .articleRepository
+          .updateArticleFromDraftApi(
+            td.sampleDomainArticle
+              .copy(
                 id = Some(id),
                 updated = NDLADate.fromUnixTime(0),
                 created = NDLADate.fromUnixTime(0),
-                published = NDLADate.fromUnixTime(0)
+                published = NDLADate.fromUnixTime(0),
               ),
-              List(s"1$id")
-            )
-        })
-        .collectFirst { case Failure(ex) => Failure(ex) }
-        .getOrElse(Success(true))
+            List(s"1$id"),
+          )
+      })
+      .collectFirst { case Failure(ex) =>
+        Failure(ex)
+      }
+      .getOrElse(Success(true))
   }
 
   val dataFixer = new LocalArticleApiTestData
@@ -109,11 +116,10 @@ class ArticleApiClientTest
 
     val chunks         = articleApiClient.getChunks.toList
     val fetchedArticle = chunks.head.get.head
-    val searchable     = searchConverterService
-      .asSearchableArticle(
-        fetchedArticle,
-        IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), None)
-      )
+    val searchable     = searchConverterService.asSearchableArticle(
+      fetchedArticle,
+      IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), None),
+    )
 
     searchable.isSuccess should be(true)
     searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "title")))

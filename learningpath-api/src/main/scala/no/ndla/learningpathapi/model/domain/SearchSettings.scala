@@ -24,5 +24,5 @@ case class SearchSettings(
     shouldScroll: Boolean,
     status: List[LearningPathStatus],
     articleId: Option[Long],
-    grepCodes: List[String]
+    grepCodes: List[String],
 )

@@ -29,7 +29,7 @@ case class GrepSearchInputDTO(
     @description("The sort order of the search hits.")
     sort: Option[GrepSortDTO],
     @description("The ISO 639-1 language code describing language used in query-params")
-    language: Option[String]
+    language: Option[String],
 )
 
 object GrepSearchInputDTO {

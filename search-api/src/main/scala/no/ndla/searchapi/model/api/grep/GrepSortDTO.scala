@@ -14,7 +14,7 @@ import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
 
 sealed abstract class GrepSortDTO(override val entryName: String) extends EnumEntry
-object GrepSortDTO extends Enum[GrepSortDTO] with CirceEnum[GrepSortDTO] {
+object GrepSortDTO                                                extends Enum[GrepSortDTO] with CirceEnum[GrepSortDTO] {
   val values: IndexedSeq[GrepSortDTO] = findValues
   val all: Seq[String]                = values.map(_.entryName)
 

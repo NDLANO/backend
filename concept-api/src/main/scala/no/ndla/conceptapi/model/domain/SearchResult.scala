@@ -17,5 +17,5 @@ case class SearchResult[T](
     language: String,
     results: Seq[T],
     aggregations: Seq[TermAggregation],
-    scrollId: Option[String]
+    scrollId: Option[String],
 )

@@ -14,9 +14,12 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Information about the concept")
 case class ConceptTitleDTO(
-    @description("The freetext title of this concept") title: String,
-    @description("The freetext html title of this concept") htmlTitle: String,
-    @description("ISO 639-1 code that represents the language used in the title") language: String
+    @description("The freetext title of this concept")
+    title: String,
+    @description("The freetext html title of this concept")
+    htmlTitle: String,
+    @description("ISO 639-1 code that represents the language used in the title")
+    language: String,
 )
 
 object ConceptTitleDTO {

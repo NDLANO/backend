@@ -14,8 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Representation of an embeddable url")
 case class EmbedUrlV2DTO(
-    @description("The url") url: String,
-    @description("Type of embed content") embedType: String
+    @description("The url")
+    url: String,
+    @description("Type of embed content")
+    embedType: String,
 )
 
 object EmbedUrlV2DTO {

@@ -28,7 +28,7 @@ case class RobotDefinition(
     configuration: RobotConfiguration,
     created: NDLADate,
     updated: NDLADate,
-    shared: Option[NDLADate]
+    shared: Option[NDLADate],
 ) {
   def canEdit(feideId: String): Try[RobotDefinition] = {
     if (this.feideId == feideId) Success(this)
@@ -42,17 +42,13 @@ case class RobotDefinition(
   }
 }
 
-case class RobotConfiguration(
-    title: String,
-    version: String,
-    settings: RobotSettings
-)
+case class RobotConfiguration(title: String, version: String, settings: RobotSettings)
 case class RobotSettings(
     name: String,
     systemprompt: Option[String],
     question: Option[String],
     temperature: String,
-    model: String
+    model: String,
 )
 
 object RobotSettings {
@@ -73,8 +69,8 @@ object RobotConfiguration {
         systemprompt = dto.settings.systemprompt,
         question = dto.settings.question,
         temperature = dto.settings.temperature,
-        model = dto.settings.model
-      )
+        model = dto.settings.model,
+      ),
     )
   }
 
@@ -114,7 +110,7 @@ object RobotDefinition extends SQLSyntaxSupport[RobotDefinition] {
       created = created,
       updated = updated,
       shared = shared,
-      configuration = config
+      configuration = config,
     )
   }
 

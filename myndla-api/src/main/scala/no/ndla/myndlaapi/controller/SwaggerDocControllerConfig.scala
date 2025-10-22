@@ -20,6 +20,6 @@ object SwaggerDocControllerConfig {
     mountPoint = "myndla-api" / "api-docs",
     description = "NDLA API to manage users and groups related to MyNDLA",
     authUrl = props.Auth0LoginEndpoint,
-    scopes = scopes
+    scopes = scopes,
   )
 }

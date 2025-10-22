@@ -14,31 +14,25 @@ import org.postgresql.util.PGobject
 import org.slf4j.MDC
 import scalikejdbc.*
 
-case class LpDocumentRow(
-    learningPathId: Long,
-    learningPathDocument: String
-)
+case class LpDocumentRow(learningPathId: Long, learningPathDocument: String)
 
-case class StepDocumentRow(
-    learningStepId: Long,
-    learningStepDocument: String
-)
+case class StepDocumentRow(learningStepId: Long, learningStepDocument: String)
 
 abstract class LearningPathAndStepMigration extends BaseJavaMigration with StrictLogging {
   def convertPathAndSteps(
       lpData: LpDocumentRow,
-      stepDatas: List[StepDocumentRow]
+      stepDatas: List[StepDocumentRow],
   ): (LpDocumentRow, List[StepDocumentRow])
   val chunkSize: Int = 1000
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
-    .withinTx { session => migrateRows(using session) }
+    .withinTx { session =>
+      migrateRows(using session)
+    }
 
   private def countAllRows(implicit session: DBSession): Option[Long] = {
-    sql"select count(*) from learningpaths where document is not null"
-      .map(rs => rs.long("count"))
-      .single()
+    sql"select count(*) from learningpaths where document is not null".map(rs => rs.long("count")).single()
   }
 
   private def allLearningPaths(offset: Long)(implicit session: DBSession): List[LpDocumentRow] = {
@@ -114,7 +108,7 @@ abstract class LearningPathAndStepMigration extends BaseJavaMigration with Stric
       val existingStep = steps.find(_.learningStepId == step.learningStepId)
       existingStep match {
         case Some(existing) => updateStep(existing, step)(using session)
-        case None => throw new RuntimeException(s"Step with id ${step.learningStepId} not found in existing steps")
+        case None           => throw new RuntimeException(s"Step with id ${step.learningStepId} not found in existing steps")
       }
     }
 

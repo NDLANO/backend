@@ -31,24 +31,25 @@ trait SearchService[T](using e4sClient: NdlaE4sClient, props: Props, searchConve
     extends StrictLogging {
   val searchIndex: String
 
-  def scroll(scrollId: String, language: String): Try[SearchResult[T]] =
-    e4sClient
-      .execute {
-        searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
-      }
-      .map(response => {
-        val hits = getHits(response.result, language)
+  def scroll(scrollId: String, language: String): Try[SearchResult[T]] = e4sClient
+    .execute {
+      searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
+    }
+    .map(response => {
+      val hits = getHits(response.result, language)
 
-        SearchResult[T](
-          totalCount = response.result.totalHits,
-          page = None,
-          pageSize = response.result.hits.hits.length,
-          language = if (language == "*") AllLanguages else language,
-          results = hits,
-          aggregations = getAggregationsFromResult(response.result),
-          scrollId = response.result.scrollId
-        )
-      })
+      SearchResult[T](
+        totalCount = response.result.totalHits,
+        page = None,
+        pageSize = response.result.hits.hits.length,
+        language =
+          if (language == "*") AllLanguages
+          else language,
+        results = hits,
+        aggregations = getAggregationsFromResult(response.result),
+        scrollId = response.result.scrollId,
+      )
+    })
 
   def hitToApiModel(hit: String, language: String): T
 
@@ -57,7 +58,7 @@ trait SearchService[T](using e4sClient: NdlaE4sClient, props: Props, searchConve
       resource: List[String],
       id: Option[String],
       language: String,
-      fallback: Boolean
+      fallback: Boolean,
   ): List[Query] = {
     val resourceQueries = boolQuery().should(resource.map(q => termQuery(s"$path.resource", q)))
     val idQuery         = id.map(q => termQuery(s"$path.id", q))
@@ -71,15 +72,13 @@ trait SearchService[T](using e4sClient: NdlaE4sClient, props: Props, searchConve
       resource: List[String],
       id: Option[String],
       language: String,
-      fallback: Boolean
+      fallback: Boolean,
   ): Option[NestedQuery] = {
     val emptyInput = (resource.contains("") || resource.isEmpty) && (id.contains("") || id.isEmpty)
     Option.when(!emptyInput)(
       nestedQuery(
         "embedResourcesAndIds",
-        boolQuery().must(
-          buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback)
-        )
+        boolQuery().must(buildTermQueryForEmbed("embedResourcesAndIds", resource, id, language, fallback)),
       )
     )
   }
@@ -91,9 +90,8 @@ trait SearchService[T](using e4sClient: NdlaE4sClient, props: Props, searchConve
 
         resultArray.map(result => {
           val matchedLanguage = language match {
-            case AllLanguages =>
-              searchConverterService.getLanguageFromHit(result).getOrElse(language)
-            case _ => language
+            case AllLanguages => searchConverterService.getLanguageFromHit(result).getOrElse(language)
+            case _            => language
           }
 
           hitToApiModel(result.sourceAsString, matchedLanguage)
@@ -104,23 +102,20 @@ trait SearchService[T](using e4sClient: NdlaE4sClient, props: Props, searchConve
 
   protected def orFilter(seq: Iterable[Any], fieldNames: String*): Option[BoolQuery] =
     if (seq.isEmpty) None
-    else
-      Some(
-        boolQuery().should(
-          fieldNames.flatMap(fieldName => seq.map(s => termQuery(fieldName, s)))
-        )
-      )
+    else Some(boolQuery().should(fieldNames.flatMap(fieldName => seq.map(s => termQuery(fieldName, s)))))
 
   protected def languageOrFilter(
       seq: Iterable[Any],
       fieldName: String,
       language: String,
-      fallback: Boolean
+      fallback: Boolean,
   ): Option[BoolQuery] = {
     if (language == AllLanguages || language == "*" || fallback) {
       val fields = ISO639.languagePriority.map(l => s"$fieldName.$l.raw")
       orFilter(seq, fields*)
-    } else { orFilter(seq, s"$fieldName.$language.raw") }
+    } else {
+      orFilter(seq, s"$fieldName.$language.raw")
+    }
   }
 
   def getSortDefinition(sort: Sort, language: String): FieldSort = {
@@ -130,48 +125,28 @@ trait SearchService[T](using e4sClient: NdlaE4sClient, props: Props, searchConve
     }
 
     def languageSort(default: String, languageField: String, order: SortOrder): FieldSort = sortLanguage match {
-      case Language.AllLanguages =>
-        fieldSort(default)
-          .sortOrder(order)
-          .missing("_last")
-      case _ =>
-        fieldSort(languageField)
-          .sortOrder(order)
-          .missing("_last")
-          .unmappedType("long")
+      case Language.AllLanguages => fieldSort(default).sortOrder(order).missing("_last")
+      case _                     => fieldSort(languageField).sortOrder(order).missing("_last").unmappedType("long")
     }
 
     sort match {
-      case ByTitleAsc =>
-        languageSort("defaultTitle", s"title.$sortLanguage.lower", SortOrder.Asc)
-      case ByTitleDesc =>
-        languageSort("defaultTitle", s"title.$sortLanguage.lower", SortOrder.Desc)
-      case ByRelevanceAsc =>
-        fieldSort("_score").order(SortOrder.Asc)
-      case ByRelevanceDesc =>
-        fieldSort("_score").order(SortOrder.Desc)
-      case ByLastUpdatedAsc =>
-        fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
-      case ByLastUpdatedDesc =>
-        fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
-      case ByIdAsc =>
-        fieldSort("id").order(SortOrder.Asc).missing("_last")
-      case ByIdDesc =>
-        fieldSort("id").order(SortOrder.Desc).missing("_last")
-      case ByStatusAsc =>
-        fieldSort("status.current").sortOrder(SortOrder.Asc).missing("_last")
-      case ByStatusDesc =>
-        fieldSort("status.current").sortOrder(SortOrder.Desc).missing("_last")
-      case BySubjectAsc =>
-        languageSort("defaultSortableSubject", s"sortableSubject.$sortLanguage.raw", SortOrder.Asc)
-      case BySubjectDesc =>
-        languageSort("defaultSortableSubject", s"sortableSubject.$sortLanguage.raw", SortOrder.Desc)
-      case ByConceptTypeAsc =>
+      case ByTitleAsc        => languageSort("defaultTitle", s"title.$sortLanguage.lower", SortOrder.Asc)
+      case ByTitleDesc       => languageSort("defaultTitle", s"title.$sortLanguage.lower", SortOrder.Desc)
+      case ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
+      case ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
+      case ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
+      case ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
+      case ByIdAsc           => fieldSort("id").order(SortOrder.Asc).missing("_last")
+      case ByIdDesc          => fieldSort("id").order(SortOrder.Desc).missing("_last")
+      case ByStatusAsc       => fieldSort("status.current").sortOrder(SortOrder.Asc).missing("_last")
+      case ByStatusDesc      => fieldSort("status.current").sortOrder(SortOrder.Desc).missing("_last")
+      case BySubjectAsc      => languageSort("defaultSortableSubject", s"sortableSubject.$sortLanguage.raw", SortOrder.Asc)
+      case BySubjectDesc     => languageSort("defaultSortableSubject", s"sortableSubject.$sortLanguage.raw", SortOrder.Desc)
+      case ByConceptTypeAsc  =>
         languageSort("defaultSortableConceptType", s"sortableConceptType.$sortLanguage.raw", SortOrder.Asc)
       case ByConceptTypeDesc =>
         languageSort("defaultSortableConceptType", s"sortableConceptType.$sortLanguage.raw", SortOrder.Desc)
-      case ByResponsibleLastUpdatedAsc =>
-        fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Asc).missing("_last")
+      case ByResponsibleLastUpdatedAsc  => fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Asc).missing("_last")
       case ByResponsibleLastUpdatedDesc =>
         fieldSort("responsible.lastUpdated").sortOrder(SortOrder.Desc).missing("_last")
     }
@@ -190,7 +165,9 @@ trait SearchService[T](using e4sClient: NdlaE4sClient, props: Props, searchConve
 
   def getStartAtAndNumResults(page: Int, pageSize: Int): (Int, Int) = {
     val numResults = max(pageSize.min(props.MaxPageSize), 0)
-    val startAt    = (page - 1).max(0) * numResults
+    val startAt    = (
+      page - 1
+    ).max(0) * numResults
 
     (startAt, numResults)
   }

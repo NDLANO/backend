@@ -11,9 +11,7 @@ package no.ndla.searchapi.model.search
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 
-case class SearchableLearningStep(
-    stepType: String
-)
+case class SearchableLearningStep(stepType: String)
 
 object SearchableLearningStep {
   implicit val encoder: Encoder[SearchableLearningStep] = deriveEncoder

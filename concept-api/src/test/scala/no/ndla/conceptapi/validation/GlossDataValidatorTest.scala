@@ -19,7 +19,7 @@ class GlossDataValidatorTest extends UnitSuite with TestEnvironment {
       wordClass = WordClass.NOUN,
       originalLanguage = "nb",
       examples = List(List(glossExample)),
-      transcriptions = Map("zh" -> "a", "pinyin" -> "b")
+      transcriptions = Map("zh" -> "a", "pinyin" -> "b"),
     )
     val validationError =
       GlossDataValidator.validateGlossData(maybeGlossData = Some(glossData), conceptType = ConceptType.CONCEPT)
@@ -30,8 +30,7 @@ class GlossDataValidatorTest extends UnitSuite with TestEnvironment {
     )
   }
   test("that GlossDataValidator fails if ConceptType is gloss and glossData is None") {
-    val validationError =
-      GlossDataValidator.validateGlossData(maybeGlossData = None, conceptType = ConceptType.GLOSS)
+    val validationError = GlossDataValidator.validateGlossData(maybeGlossData = None, conceptType = ConceptType.GLOSS)
 
     validationError.get.field should be("glossData")
     validationError.get.message should be(
@@ -40,8 +39,7 @@ class GlossDataValidatorTest extends UnitSuite with TestEnvironment {
   }
 
   test("that GlossDataValidator gives no errors when ConceptType is concept and glossData is not defined") {
-    val validationError =
-      GlossDataValidator.validateGlossData(maybeGlossData = None, conceptType = ConceptType.CONCEPT)
+    val validationError = GlossDataValidator.validateGlossData(maybeGlossData = None, conceptType = ConceptType.CONCEPT)
     validationError should be(None)
   }
 
@@ -52,7 +50,7 @@ class GlossDataValidatorTest extends UnitSuite with TestEnvironment {
       wordClass = WordClass.NOUN,
       originalLanguage = "nb",
       examples = List(List(glossExample)),
-      transcriptions = Map("zh" -> "a", "pinyin" -> "b")
+      transcriptions = Map("zh" -> "a", "pinyin" -> "b"),
     )
     val validationError =
       GlossDataValidator.validateGlossData(maybeGlossData = Some(glossData), conceptType = ConceptType.GLOSS)

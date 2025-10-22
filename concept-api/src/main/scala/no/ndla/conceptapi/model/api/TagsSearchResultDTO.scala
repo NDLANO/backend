@@ -16,11 +16,16 @@ import no.ndla.common.DeriveHelpers
 
 @description("Information about tags-search-results")
 case class TagsSearchResultDTO(
-    @description("The total number of tags matching this query") totalCount: Int,
-    @description("For which page results are shown from") page: Int,
-    @description("The number of results per page") pageSize: Int,
-    @description("The chosen search language") language: String,
-    @description("The search results") results: Seq[String]
+    @description("The total number of tags matching this query")
+    totalCount: Int,
+    @description("For which page results are shown from")
+    page: Int,
+    @description("The number of results per page")
+    pageSize: Int,
+    @description("The chosen search language")
+    language: String,
+    @description("The search results")
+    results: Seq[String],
 )
 
 object TagsSearchResultDTO {

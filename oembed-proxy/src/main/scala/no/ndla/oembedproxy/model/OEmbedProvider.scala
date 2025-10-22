@@ -17,7 +17,7 @@ case class OEmbedProvider(
     providerUrl: String,
     endpoints: List[OEmbedEndpoint],
     urlParser: String => String = identity,
-    postProcessor: (String, OEmbedDTO) => OEmbedDTO = (_: String, o: OEmbedDTO) => o
+    postProcessor: (String, OEmbedDTO) => OEmbedDTO = (_: String, o: OEmbedDTO) => o,
 ) {
 
   def supports(url: String): Boolean = {
@@ -31,7 +31,9 @@ case class OEmbedProvider(
   }
 
   private def _requestUrl(url: String, maxWidth: Option[String], maxHeight: Option[String]): String = {
-    endpoints.collectFirst { case e if e.supports(url) && e.url.nonEmpty => e } match {
+    endpoints.collectFirst {
+      case e if e.supports(url) && e.url.nonEmpty => e
+    } match {
       case None =>
         val validUrls = endpoints.map(_.url)
         throw ProviderNotSupportedException(
@@ -41,9 +43,9 @@ case class OEmbedProvider(
         val embedUrl = endpoint.url.replace("{format}", "json") // Some providers have {format} instead of ?format=
         val width    = maxWidth.map(("maxwidth", _)).toList
         val height   = maxHeight.map(("maxheight", _)).toList
-        val params   = List(("url", url), ("format", "json")) ++ endpoint.mandatoryQueryParams.getOrElse(
-          List.empty
-        ) ++ width ++ height
+        val params   = List(("url", url), ("format", "json")) ++ endpoint
+          .mandatoryQueryParams
+          .getOrElse(List.empty) ++ width ++ height
         Url.parse(embedUrl).addParams(params).toString
     }
   }

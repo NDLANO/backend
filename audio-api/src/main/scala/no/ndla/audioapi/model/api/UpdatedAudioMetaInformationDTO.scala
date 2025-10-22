@@ -32,7 +32,7 @@ case class UpdatedAudioMetaInformationDTO(
     @description("Id of series if the audio is a podcast and a part of a series.")
     seriesId: Option[Long],
     @description("Manuscript for the audio")
-    manuscript: Option[String]
+    manuscript: Option[String],
 )
 
 object UpdatedAudioMetaInformationDTO {

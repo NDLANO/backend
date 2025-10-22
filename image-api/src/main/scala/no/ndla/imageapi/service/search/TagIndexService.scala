@@ -23,7 +23,7 @@ class TagIndexService(using
     e4sClient: NdlaE4sClient,
     imageRepository: ImageRepository,
     searchLanguage: SearchLanguage,
-    props: Props
+    props: Props,
 ) extends IndexService {
   override val documentType: String                         = props.TagSearchDocument
   override val searchIndex: String                          = props.TagSearchIndex
@@ -39,11 +39,6 @@ class TagIndexService(using
   }
 
   def getMapping: MappingDefinition = {
-    properties(
-      List(
-        textField("tag").fields(keywordField("raw")),
-        keywordField("language")
-      )
-    )
+    properties(List(textField("tag").fields(keywordField("raw")), keywordField("language")))
   }
 }

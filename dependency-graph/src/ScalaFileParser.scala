@@ -8,54 +8,50 @@ import scala.sys.exit
 
 object ScalaFileParser {
 
-  case class ClassWithArguments(
-      name: String,
-      packageName: String,
-      arguments: List[ParsedArgument]
-  )
+  case class ClassWithArguments(name: String, packageName: String, arguments: List[ParsedArgument])
 
   case class ParsedArgument(
       name: String,
       argType: String,
       packageName: Option[String],
       isImplicit: Boolean,
-      isLazyFunctionType: Boolean
+      isLazyFunctionType: Boolean,
   )
 
-  def findPackageName(
-      param: Term.Param,
-      typeName: String,
-      textDocument: TextDocument
-  ): Option[String] = {
+  def findPackageName(param: Term.Param, typeName: String, textDocument: TextDocument): Option[String] = {
     if (typeName == "String") return Some("java.lang")
     if (typeName == "Long") return Some("scala")
     if (typeName == "Int") return Some("scala")
     if (typeName.startsWith("List[")) return Some("scala")
     if (typeName.startsWith("Seq[")) return Some("scala")
     if (typeName.startsWith("Option[")) return Some("scala")
-    val found = textDocument.occurrences.filter { occ =>
-      occ.range.exists { r =>
-        val paramStart = param.pos.startLine
-        val paramEnd   = param.pos.endLine
-        val start      = r.startLine
-        val end        = r.endLine
-        paramStart >= start && paramEnd <= end
+    val found = textDocument
+      .occurrences
+      .filter { occ =>
+        occ
+          .range
+          .exists { r =>
+            val paramStart = param.pos.startLine
+            val paramEnd   = param.pos.endLine
+            val start      = r.startLine
+            val end        = r.endLine
+            paramStart >= start && paramEnd <= end
+          }
       }
+    val refs = found.filter { occ =>
+      occ.role == REFERENCE
     }
-    val refs = found.filter { occ => occ.role == REFERENCE }
 
     def fixSymbol(symbol: String): String = {
       symbol.replace("/", ".").stripSuffix(s".$typeName#")
     }
 
     refs match {
-      case Seq(head) =>
-        Some(fixSymbol(head.symbol))
-      case _ =>
+      case Seq(head) => Some(fixSymbol(head.symbol))
+      case _         =>
         val textMatched = found.filter(occ => occ.symbol.endsWith(s"$typeName#"))
         // TODO: There is probably some better way to find this reference that doesnt rely on picking one if there are multiple
-        if (textMatched.nonEmpty)
-          return textMatched.headOption.map(s => fixSymbol(s.symbol))
+        if (textMatched.nonEmpty) return textMatched.headOption.map(s => fixSymbol(s.symbol))
         None
     }
   }
@@ -72,11 +68,7 @@ object ScalaFileParser {
     }
   }
 
-  def parseArgument(
-      param: Term.Param,
-      isImplicit: Boolean,
-      textDocument: TextDocument
-  ): Option[ParsedArgument] = {
+  def parseArgument(param: Term.Param, isImplicit: Boolean, textDocument: TextDocument): Option[ParsedArgument] = {
     getParamType(param) match {
       case None                   => None
       case Some(typeName, isFunc) =>
@@ -88,7 +80,7 @@ object ScalaFileParser {
             argType = typeName,
             packageName = packageName,
             isImplicit = isImplicit,
-            isLazyFunctionType = isFunc
+            isLazyFunctionType = isFunc,
           )
         )
     }
@@ -105,18 +97,21 @@ object ScalaFileParser {
       list.values.flatMap(p => parseArgument(p, isImplicit, textDocument))
     }
 
-    ClassWithArguments(
-      name = cls.name.value,
-      packageName = pkg.ref.syntax,
-      arguments = arguments.toList
-    )
+    ClassWithArguments(name = cls.name.value, packageName = pkg.ref.syntax, arguments = arguments.toList)
   }
 
   def handleTree(t: Tree, textDocument: TextDocument): List[ClassWithArguments] = {
-    val x = t.children.collect { case pkg: Pkg =>
-      val classes = pkg.body.children.collect { case x: Defn.Class => x }
-      classes.map(c => findClassArguments(c, pkg, textDocument))
-    }
+    val x = t
+      .children
+      .collect { case pkg: Pkg =>
+        val classes = pkg
+          .body
+          .children
+          .collect { case x: Defn.Class =>
+            x
+          }
+        classes.map(c => findClassArguments(c, pkg, textDocument))
+      }
 
     x.flatten
   }

@@ -15,27 +15,14 @@ import no.ndla.common.model.domain.concept.ConceptType.{CONCEPT, GLOSS}
 object GlossDataValidator {
 
   private def conceptTypeValidationMessage: Option[ValidationMessage] = {
-    Some(
-      ValidationMessage(
-        "conceptType",
-        s"conceptType needs to be of type $GLOSS when glossData is defined"
-      )
-    )
+    Some(ValidationMessage("conceptType", s"conceptType needs to be of type $GLOSS when glossData is defined"))
   }
 
   private def glossDataValidationMessage(conceptType: String): Option[ValidationMessage] = {
-    Some(
-      ValidationMessage(
-        "glossData",
-        s"glossData field must be defined when conceptType is of type $conceptType"
-      )
-    )
+    Some(ValidationMessage("glossData", s"glossData field must be defined when conceptType is of type $conceptType"))
   }
 
-  def validateGlossData(
-      maybeGlossData: Option[GlossData],
-      conceptType: ConceptType
-  ): Option[ValidationMessage] = {
+  def validateGlossData(maybeGlossData: Option[GlossData], conceptType: ConceptType): Option[ValidationMessage] = {
     (maybeGlossData, conceptType) match {
       case (None, GLOSS)      => glossDataValidationMessage(conceptType.entryName)
       case (Some(_), CONCEPT) => conceptTypeValidationMessage

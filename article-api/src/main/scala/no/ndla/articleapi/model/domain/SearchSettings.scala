@@ -22,5 +22,5 @@ case class SearchSettings(
     fallback: Boolean,
     grepCodes: Seq[String],
     shouldScroll: Boolean,
-    availability: Seq[Availability]
+    availability: Seq[Availability],
 )

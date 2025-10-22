@@ -13,8 +13,10 @@ import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
 case class TitleDTO(
-    @description("The title of the audio file") title: String,
-    @description("ISO 639-1 code that represents the language used in the title") language: String
+    @description("The title of the audio file")
+    title: String,
+    @description("ISO 639-1 code that represents the language used in the title")
+    language: String,
 )
 
 object TitleDTO {

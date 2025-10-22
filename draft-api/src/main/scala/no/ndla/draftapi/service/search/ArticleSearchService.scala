@@ -28,22 +28,23 @@ class ArticleSearchService(using
     searchConverterService: SearchConverterService,
     articleIndexService: => ArticleIndexService,
     props: DraftApiProperties,
-    draftErrorHelpers: DraftErrorHelpers
+    draftErrorHelpers: DraftErrorHelpers,
 ) extends SearchService[api.ArticleSummaryDTO]
     with StrictLogging {
   private val noCopyright = boolQuery().not(termQuery("license", License.Copyrighted.toString))
 
   override val searchIndex: String = props.DraftSearchIndex
 
-  override def hitToApiModel(hit: String, language: String): api.ArticleSummaryDTO =
-    searchConverterService.hitAsArticleSummary(hit, language)
+  override def hitToApiModel(hit: String, language: String): api.ArticleSummaryDTO = searchConverterService
+    .hitAsArticleSummary(hit, language)
 
   def matchingQuery(settings: SearchSettings): Try[SearchResult[api.ArticleSummaryDTO]] = {
 
     val fullQuery = settings.query match {
       case Some(query) =>
         val language =
-          if (settings.fallback) "*" else settings.searchLanguage
+          if (settings.fallback) "*"
+          else settings.searchLanguage
         val titleSearch         = simpleStringQuery(query).field(s"title.$language", 6)
         val introSearch         = simpleStringQuery(query).field(s"introduction.$language", 2)
         val contentSearch       = simpleStringQuery(query).field(s"content.$language", 1)
@@ -51,18 +52,9 @@ class ArticleSearchService(using
         val notesSearch         = simpleStringQuery(query).field("notes", 1)
         val previousNotesSearch = simpleStringQuery(query).field("previousNotes", 1)
 
-        boolQuery()
-          .must(
-            boolQuery()
-              .should(
-                titleSearch,
-                introSearch,
-                contentSearch,
-                tagSearch,
-                notesSearch,
-                previousNotesSearch
-              )
-          )
+        boolQuery().must(
+          boolQuery().should(titleSearch, introSearch, contentSearch, tagSearch, notesSearch, previousNotesSearch)
+        )
       case None => boolQuery()
     }
 
@@ -81,20 +73,20 @@ class ArticleSearchService(using
       case None        => Some(noCopyright)
     }
 
-    val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+    val idFilter =
+      if (settings.withIdIn.isEmpty) None
+      else Some(idsQuery(settings.withIdIn))
 
     val (languageFilter, searchLanguage) = settings.searchLanguage match {
-      case "" | Language.AllLanguages =>
-        (None, "*")
-      case lang =>
-        if (settings.fallback)
-          (None, "*")
-        else
-          (Some(existsQuery(s"title.$lang")), lang)
+      case "" | Language.AllLanguages => (None, "*")
+      case lang                       =>
+        if (settings.fallback) (None, "*")
+        else (Some(existsQuery(s"title.$lang")), lang)
     }
 
     val grepCodesFilter =
-      if (settings.grepCodes.nonEmpty) Some(constantScoreQuery(termsQuery("grepCodes", settings.grepCodes))) else None
+      if (settings.grepCodes.nonEmpty) Some(constantScoreQuery(termsQuery("grepCodes", settings.grepCodes)))
+      else None
 
     val filters        = List(licenseFilter, idFilter, languageFilter, articleTypesFilter, grepCodesFilter)
     val filteredSearch = queryBuilder.filter(filters.flatten)
@@ -118,22 +110,22 @@ class ArticleSearchService(using
       val searchWithScroll =
         if (startAt == 0 && settings.shouldScroll) {
           searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
-        } else { searchToExecute }
+        } else {
+          searchToExecute
+        }
 
       e4sClient.execute(searchWithScroll) match {
-        case Success(response) =>
-          Success(
+        case Success(response) => Success(
             SearchResult(
               response.result.totalHits,
               Some(settings.page),
               numResults,
               searchLanguage,
               getHits(response.result, settings.searchLanguage),
-              response.result.scrollId
+              response.result.scrollId,
             )
           )
-        case Failure(ex) =>
-          errorHandler(ex)
+        case Failure(ex) => errorHandler(ex)
       }
     }
   }
@@ -148,9 +140,7 @@ class ArticleSearchService(using
     f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
     f.foreach {
       case Success(reindexResult) =>
-        logger.info(
-          s"Completed indexing of ${reindexResult.totalIndexed} articles in ${reindexResult.millisUsed} ms."
-        )
+        logger.info(s"Completed indexing of ${reindexResult.totalIndexed} articles in ${reindexResult.millisUsed} ms.")
       case Failure(ex) => logger.warn(ex.getMessage, ex)
     }
   }

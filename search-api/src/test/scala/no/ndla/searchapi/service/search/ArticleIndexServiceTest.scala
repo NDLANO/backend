@@ -51,8 +51,8 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
         IndexingBundle(
           Some(TestData.emptyGrepBundle),
           Some(TestData.taxonomyTestBundle),
-          Some(TestData.myndlaTestBundle)
-        )
+          Some(TestData.myndlaTestBundle),
+        ),
       )
       .get
     articleIndexService
@@ -61,8 +61,8 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
         IndexingBundle(
           Some(TestData.emptyGrepBundle),
           Some(TestData.taxonomyTestBundle),
-          Some(TestData.myndlaTestBundle)
-        )
+          Some(TestData.myndlaTestBundle),
+        ),
       )
       .get
     articleIndexService
@@ -71,12 +71,14 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
         IndexingBundle(
           Some(TestData.emptyGrepBundle),
           Some(TestData.taxonomyTestBundle),
-          Some(TestData.myndlaTestBundle)
-        )
+          Some(TestData.myndlaTestBundle),
+        ),
       )
       .get
 
-    blockUntil(() => { articleIndexService.countDocuments == 3 })
+    blockUntil(() => {
+      articleIndexService.countDocuments == 3
+    })
 
     val Success(response) = e4sClient.execute {
       search(articleIndexService.searchIndex)
@@ -85,33 +87,18 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
     val sources  = response.result.hits.hits.map(_.sourceAsString)
     val articles = sources.map(source => CirceUtil.unsafeParseAs[SearchableArticle](source))
 
-    val Success(expectedArticle5) =
-      searchConverterService.asSearchableArticle(
-        article5,
-        IndexingBundle(
-          Some(TestData.emptyGrepBundle),
-          Some(TestData.taxonomyTestBundle),
-          Some(TestData.myndlaTestBundle)
-        )
-      ): @unchecked
-    val Success(expectedArticle6) =
-      searchConverterService.asSearchableArticle(
-        article6,
-        IndexingBundle(
-          Some(TestData.emptyGrepBundle),
-          Some(TestData.taxonomyTestBundle),
-          Some(TestData.myndlaTestBundle)
-        )
-      ): @unchecked
-    val Success(expectedArticle7) =
-      searchConverterService.asSearchableArticle(
-        article7,
-        IndexingBundle(
-          Some(TestData.emptyGrepBundle),
-          Some(TestData.taxonomyTestBundle),
-          Some(TestData.myndlaTestBundle)
-        )
-      ): @unchecked
+    val Success(expectedArticle5) = searchConverterService.asSearchableArticle(
+      article5,
+      IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
+    ): @unchecked
+    val Success(expectedArticle6) = searchConverterService.asSearchableArticle(
+      article6,
+      IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
+    ): @unchecked
+    val Success(expectedArticle7) = searchConverterService.asSearchableArticle(
+      article7,
+      IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
+    ): @unchecked
 
     val Some(actualArticle5) = articles.find(p => p.id == article5.id.get): @unchecked
     val Some(actualArticle6) = articles.find(p => p.id == article6.id.get): @unchecked
@@ -123,41 +110,39 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
   }
 
   test("That mapping contains every field after serialization") {
-    val article = TestData.article1.copy(
-      content = Seq(
-        ArticleContent(
-          """<section><h1>hei</h1><ndlaembed data-resource="image" data-title="heidu" data-resource_id="1"></ndlaembed><ndlaembed data-resource="h5p" data-title="yo"></ndlaembed></section>""",
-          "nb"
+    val article = TestData
+      .article1
+      .copy(
+        content = Seq(
+          ArticleContent(
+            """<section><h1>hei</h1><ndlaembed data-resource="image" data-title="heidu" data-resource_id="1"></ndlaembed><ndlaembed data-resource="h5p" data-title="yo"></ndlaembed></section>""",
+            "nb",
+          ),
+          ArticleContent(
+            """<section><h1>hei</h1><ndlaembed data-resource="image" data-title="heidu" data-resource_id="1"></ndlaembed><ndlaembed data-resource="h5p" data-title="yo"></ndlaembed></section>""",
+            "en",
+          ),
         ),
-        ArticleContent(
-          """<section><h1>hei</h1><ndlaembed data-resource="image" data-title="heidu" data-resource_id="1"></ndlaembed><ndlaembed data-resource="h5p" data-title="yo"></ndlaembed></section>""",
-          "en"
-        )
-      ),
-      metaImage = List(ArticleMetaImage("hei", "hå", "nb"), ArticleMetaImage("hei", "hå", "en")),
-      metaDescription = Seq(Description("hei", "nb"), Description("hei", "en")),
-      visualElement = Seq(VisualElement("hei", "nb"), VisualElement("hei", "en")),
-      copyright = Copyright(
-        license = "CC-BY-SA-4.0",
-        origin = None,
-        creators = Seq(Author(ContributorType.Writer, "hå")),
-        processors = Seq(Author(ContributorType.Writer, "hå")),
-        rightsholders = Seq(Author(ContributorType.Writer, "hå")),
-        validFrom = None,
-        validTo = None,
-        processed = false
-      ),
-      traits = List(H5p)
-    )
+        metaImage = List(ArticleMetaImage("hei", "hå", "nb"), ArticleMetaImage("hei", "hå", "en")),
+        metaDescription = Seq(Description("hei", "nb"), Description("hei", "en")),
+        visualElement = Seq(VisualElement("hei", "nb"), VisualElement("hei", "en")),
+        copyright = Copyright(
+          license = "CC-BY-SA-4.0",
+          origin = None,
+          creators = Seq(Author(ContributorType.Writer, "hå")),
+          processors = Seq(Author(ContributorType.Writer, "hå")),
+          rightsholders = Seq(Author(ContributorType.Writer, "hå")),
+          validFrom = None,
+          validTo = None,
+          processed = false,
+        ),
+        traits = List(H5p),
+      )
 
     val searchableToTestWith = searchConverterService
       .asSearchableArticle(
         article,
-        IndexingBundle(
-          Some(TestData.emptyGrepBundle),
-          Some(TestData.taxonomyTestBundle),
-          None
-        )
+        IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), None),
       )
       .get
 
@@ -171,7 +156,11 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
       val hasStatic  = staticMappingFields.contains(field)
       val hasDynamic = dynamicMappingFields.contains(field)
 
-      if (!(hasStatic || hasDynamic)) {
+      if (
+        !(
+          hasStatic || hasDynamic
+        )
+      ) {
         fail(s"'$field' was not found in mapping, i think you would want to add it to the index mapping?")
       }
     }

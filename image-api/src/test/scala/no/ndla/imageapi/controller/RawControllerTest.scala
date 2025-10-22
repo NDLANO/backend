@@ -51,9 +51,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   }
 
   test("That GET /image.jpg returns 200 if image was found") {
-    val res = simpleHttpClient.send(
-      req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName")
-    )
+    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName"))
     res.code.code should be(200)
 
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
@@ -63,34 +61,29 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
 
   test("That GET /image.jpg returns 404 if image was not found") {
     when(imageStorage.get(any[String])).thenReturn(Failure(new ImageNotFoundException("Image not found")))
-    val res = simpleHttpClient.send[Array[Byte]](
-      req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName")
-    )
+    val res = simpleHttpClient.send[Array[Byte]](req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName"))
     res.code.code should be(404)
   }
 
   test("That GET /image.jpg with width resizing returns a resized image") {
-    val res = simpleHttpClient.send[Array[Byte]](
-      req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName?width=100")
-    )
+    val res =
+      simpleHttpClient.send[Array[Byte]](req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName?width=100"))
     res.code.code should be(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getWidth should equal(100)
   }
 
   test("That GET /image.jpg with height resizing returns a resized image") {
-    val res = simpleHttpClient.send[Array[Byte]](
-      req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName?height=40")
-    )
+    val res =
+      simpleHttpClient.send[Array[Byte]](req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName?height=40"))
     res.code.code should be(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getHeight should equal(40)
   }
 
   test("That GET /image.jpg with an invalid value for width returns 400") {
-    val res = simpleHttpClient.send(
-      req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName?width=twohundredandone")
-    )
+    val res =
+      simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/$imageName?width=twohundredandone"))
     res.code.code should be(400)
   }
 
@@ -119,9 +112,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   }
 
   test("GET /id/1 returns 200 if the image was found") {
-    val res = simpleHttpClient.send(
-      req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id")
-    )
+    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id"))
     res.code.code should be(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getWidth should equal(189)
@@ -130,34 +121,27 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
 
   test("That GET /id/1 returns 404 if image was not found") {
     when(imageStorage.get(any[String])).thenReturn(Failure(new ImageNotFoundException("Image not found")))
-    val res = simpleHttpClient.send(
-      req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id")
-    )
+    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id"))
     res.code.code should be(404)
   }
 
   test("That GET /id/1 with width resizing returns a resized image") {
-    val res = simpleHttpClient.send(
-      req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id?width=100")
-    )
+    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id?width=100"))
     res.code.code should be(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getWidth should equal(100)
   }
 
   test("That GET /id/1 with height resizing returns a resized image") {
-    val res = simpleHttpClient.send(
-      req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id?height=40")
-    )
+    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id?height=40"))
     res.code.code should be(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getHeight should equal(40)
   }
 
   test("That GET /id/1 with an invalid value for width returns 400") {
-    val res = simpleHttpClient.send(
-      req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id?width=twohundredandone")
-    )
+    val res =
+      simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$id?width=twohundredandone"))
     res.code.code should be(400)
   }
 
@@ -185,9 +169,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
 
   test("That GET /imageGif.gif with width resizing returns the original image") {
     when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoGIFImage))
-    val res = simpleHttpClient.send(
-      req.get(uri"http://localhost:$serverPort/image-api/raw/$imageGifName?width=100")
-    )
+    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/$imageGifName?width=100"))
     res.code.code should be(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getWidth should equal(189)
@@ -196,9 +178,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
 
   test("That GET /imageGif.gif with height resizing returns the original image") {
     when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoGIFImage))
-    val res = simpleHttpClient.send(
-      req.get(uri"http://localhost:$serverPort/image-api/raw/$imageGifName?height=40")
-    )
+    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/$imageGifName?height=40"))
     res.code.code should be(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getWidth should equal(189)
@@ -246,11 +226,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
 
   test("That GET /id/1 with width resizing returns the original image") {
     when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoGIFImage))
-    val res = simpleHttpClient.send(
-      req.get(
-        uri"http://localhost:$serverPort/image-api/raw/id/$idGif?width=100"
-      )
-    )
+    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$idGif?width=100"))
     res.code.code should equal(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getWidth should equal(189)
@@ -259,11 +235,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
 
   test("That GET /id/1 with height resizing returns the original image") {
     when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoGIFImage))
-    val res = simpleHttpClient.send(
-      req.get(
-        uri"http://localhost:$serverPort/image-api/raw/id/$idGif?height=40"
-      )
-    )
+    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$idGif?height=40"))
     res.code.code should equal(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getWidth should equal(189)

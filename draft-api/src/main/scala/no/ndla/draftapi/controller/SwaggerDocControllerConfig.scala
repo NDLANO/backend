@@ -21,7 +21,7 @@ object SwaggerDocControllerConfig {
       mountPoint = "draft-api" / "api-docs",
       description = "Services for accessing draft articles, draft and agreements.",
       authUrl = props.Auth0LoginEndpoint,
-      scopes = scopes
+      scopes = scopes,
     )
   }
 }

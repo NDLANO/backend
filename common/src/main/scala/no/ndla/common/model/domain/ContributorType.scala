@@ -45,13 +45,12 @@ object ContributorType extends Enum[ContributorType] with CirceEnumWithErrors[Co
   def all: Seq[String]                            = ContributorType.values.map(_.entryName)
   def valueOf(s: String): Option[ContributorType] = ContributorType.withNameOption(s)
 
-  def valueOfOrError(s: String): ContributorType =
-    valueOf(s).getOrElse(
-      throw ValidationException(
-        "articleType",
-        s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}."
-      )
+  def valueOfOrError(s: String): ContributorType = valueOf(s).getOrElse(
+    throw ValidationException(
+      "articleType",
+      s"'$s' is not a valid article type. Valid options are ${all.mkString(",")}.",
     )
+  )
 
   def creators: Seq[ContributorType] = Seq(
     Artist,
@@ -64,9 +63,9 @@ object ContributorType extends Enum[ContributorType] with CirceEnumWithErrors[Co
     Reader,
     ScriptWriter,
     Translator,
-    Writer
+    Writer,
   )
-  def processors: Seq[ContributorType] = Seq(Compiler, Correction, Editorial, Facilitator, Idea, Linguistic, Processor)
+  def processors: Seq[ContributorType]    = Seq(Compiler, Correction, Editorial, Facilitator, Idea, Linguistic, Processor)
   def rightsholders: Seq[ContributorType] = Seq(Distributor, Publisher, RightsHolder, Supplier)
   def contributors: Seq[ContributorType]  = creators ++ processors ++ rightsholders
 
@@ -94,7 +93,7 @@ object ContributorType extends Enum[ContributorType] with CirceEnumWithErrors[Co
     "rettighetsholder" -> ContributorType.RightsHolder,
     "sammenstiller"    -> ContributorType.Compiler,
     "språklig"         -> ContributorType.Linguistic,
-    "tilrettelegger"   -> ContributorType.Facilitator
+    "tilrettelegger"   -> ContributorType.Facilitator,
   ).withDefaultValue(ContributorType.Writer)
 
   implicit def schema: Schema[ContributorType] = schemaForEnumEntry[ContributorType]

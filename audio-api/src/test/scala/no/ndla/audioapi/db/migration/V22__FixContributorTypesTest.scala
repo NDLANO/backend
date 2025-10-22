@@ -14,8 +14,7 @@ import no.ndla.audioapi.{TestEnvironment, UnitSuite}
 class V22__FixContributorTypesTest extends UnitSuite with TestEnvironment {
   test("That copyright has correct contributor types") {
     val migration   = new V22__FixContributorTypes
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "tags": [
         |    {
@@ -66,8 +65,7 @@ class V22__FixContributorTypesTest extends UnitSuite with TestEnvironment {
         |  "supportedLanguages": null
         |}
         |""".stripMargin
-    val newDocument =
-      """
+    val newDocument = """
         |{
         |  "tags": [
         |    {

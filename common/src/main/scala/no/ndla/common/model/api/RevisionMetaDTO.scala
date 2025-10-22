@@ -17,10 +17,14 @@ import sttp.tapir.Schema
 
 @description("Information about the editorial notes")
 case class RevisionMetaDTO(
-    @description("An unique uuid of the revision. If none supplied, one is generated.") id: Option[String],
-    @description("A date on which the article would need to be revised") revisionDate: NDLADate,
-    @description("Notes to keep track of what needs to happen before revision") note: String,
-    @description("Status of a revision, either 'revised' or 'needs-revision'") status: String
+    @description("An unique uuid of the revision. If none supplied, one is generated.")
+    id: Option[String],
+    @description("A date on which the article would need to be revised")
+    revisionDate: NDLADate,
+    @description("Notes to keep track of what needs to happen before revision")
+    note: String,
+    @description("Status of a revision, either 'revised' or 'needs-revision'")
+    status: String,
 )
 
 object RevisionMetaDTO {

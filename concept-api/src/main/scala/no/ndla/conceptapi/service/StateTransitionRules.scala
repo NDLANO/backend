@@ -29,8 +29,8 @@ class StateTransitionRules(using writeService: => WriteService, clock: Clock) {
   private[service] val publishConcept: SideEffect =
     (concept: DomainConcept, _: TokenUser) => writeService.publishConcept(concept)
 
-  private val resetResponsible: SideEffect = (concept: DomainConcept, _: TokenUser) =>
-    Success(concept.copy(responsible = None))
+  private val resetResponsible: SideEffect =
+    (concept: DomainConcept, _: TokenUser) => Success(concept.copy(responsible = None))
   private val addResponsible: SideEffect = (concept: DomainConcept, user: TokenUser) => {
     val responsible = concept.responsible.getOrElse(Responsible(user.id, clock.now()))
     Success(concept.copy(responsible = Some(responsible)))
@@ -88,19 +88,14 @@ class StateTransitionRules(using writeService: => WriteService, clock: Clock) {
     )
     // format: on
 
-  private def getTransition(
-      from: ConceptStatus,
-      to: ConceptStatus,
-      user: TokenUser
-  ): Option[StateTransition] =
+  private def getTransition(from: ConceptStatus, to: ConceptStatus, user: TokenUser): Option[StateTransition] =
     StateTransitions
       .find(transition => transition.from == from && transition.to == to)
       .filter(t => user.hasPermissions(t.requiredPermissions))
 
   private def validateTransition(current: DomainConcept, transition: StateTransition): Try[Unit] = {
     val statusRequiresResponsible       = ConceptStatus.thatRequiresResponsible.contains(transition.to)
-    val statusFromPublishedToInProgress =
-      current.status.current == PUBLISHED && transition.to == IN_PROGRESS
+    val statusFromPublishedToInProgress = current.status.current == PUBLISHED && transition.to == IN_PROGRESS
     if (statusRequiresResponsible && current.responsible.isEmpty && !statusFromPublishedToInProgress) {
       return Failure(
         IllegalStatusStateTransition(
@@ -111,9 +106,8 @@ class StateTransitionRules(using writeService: => WriteService, clock: Clock) {
 
     val containsIllegalStatuses = current.status.other.intersect(transition.illegalStatuses)
     if (containsIllegalStatuses.nonEmpty) {
-      val illegalStateTransition = IllegalStatusStateTransition(
-        s"Cannot go to ${transition.to} when concept contains $containsIllegalStatuses"
-      )
+      val illegalStateTransition =
+        IllegalStatusStateTransition(s"Cannot go to ${transition.to} when concept contains $containsIllegalStatuses")
       return Failure(illegalStateTransition)
     }
 
@@ -123,25 +117,19 @@ class StateTransitionRules(using writeService: => WriteService, clock: Clock) {
       current: DomainConcept,
       to: ConceptStatus,
       newStatus: Status,
-      user: TokenUser
+      user: TokenUser,
   ) = {
     if (current.status.current != to)
-      current.editorNotes :+ ConceptEditorNote(
-        "Status changed",
-        user.id,
-        newStatus,
-        clock.now()
-      )
+      current.editorNotes :+ ConceptEditorNote("Status changed", user.id, newStatus, clock.now())
     else current.editorNotes
   }
   private[service] def doTransitionWithoutSideEffect(
       current: DomainConcept,
       to: ConceptStatus,
-      user: TokenUser
+      user: TokenUser,
   ): (Try[DomainConcept], Seq[SideEffect]) = {
     getTransition(current.status.current, to, user) match {
-      case Some(t) =>
-        validateTransition(current, t) match {
+      case Some(t) => validateTransition(current, t) match {
           case Failure(ex) => (Failure(ex), Seq.empty)
           case Success(_)  =>
             val currentToOther =
@@ -154,18 +142,13 @@ class StateTransitionRules(using writeService: => WriteService, clock: Clock) {
             (Success(convertedArticle), t.sideEffects)
         }
       case None =>
-        val illegalStateTransition = IllegalStatusStateTransition(
-          s"Cannot go to $to when concept is ${current.status.current}"
-        )
+        val illegalStateTransition =
+          IllegalStatusStateTransition(s"Cannot go to $to when concept is ${current.status.current}")
         (Failure(illegalStateTransition), Seq.empty)
     }
   }
 
-  def doTransition(
-      current: DomainConcept,
-      to: ConceptStatus,
-      user: TokenUser
-  ): Try[DomainConcept] = {
+  def doTransition(current: DomainConcept, to: ConceptStatus, user: TokenUser): Try[DomainConcept] = {
     val (convertedArticle, sideEffects) = doTransitionWithoutSideEffect(current, to, user)
     convertedArticle.flatMap(conceptBeforeSideEffect => {
       sideEffects.foldLeft(Try(conceptBeforeSideEffect))((accumulatedConcept, sideEffect) => {
@@ -174,12 +157,10 @@ class StateTransitionRules(using writeService: => WriteService, clock: Clock) {
     })
   }
 
-  def stateTransitionsToApi(user: TokenUser): Map[String, List[String]] =
-    StateTransitions.groupBy(_.from).map { case (from, to) =>
-      from.toString -> to
-        .filter(t => user.hasPermissions(t.requiredPermissions))
-        .map(_.to.toString)
-        .toList
+  def stateTransitionsToApi(user: TokenUser): Map[String, List[String]] = StateTransitions
+    .groupBy(_.from)
+    .map { case (from, to) =>
+      from.toString -> to.filter(t => user.hasPermissions(t.requiredPermissions)).map(_.to.toString).toList
     }
 
 }

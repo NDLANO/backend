@@ -13,9 +13,7 @@ import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
 @description("DTO for listing all robot definitions")
-case class ListOfRobotDefinitionsDTO(
-    robots: List[RobotDefinitionDTO]
-)
+case class ListOfRobotDefinitionsDTO(robots: List[RobotDefinitionDTO])
 
 object ListOfRobotDefinitionsDTO {
   implicit val encoder: Encoder[ListOfRobotDefinitionsDTO] = deriveEncoder[ListOfRobotDefinitionsDTO]

@@ -22,61 +22,59 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
   val IncompleteProvider: OEmbedProvider = OEmbedProvider(
     "gfycat",
     "https://gfycat.com",
-    List(OEmbedEndpoint(Some(List("http://gfycat.com/*")), "", None, None, None))
+    List(OEmbedEndpoint(Some(List("http://gfycat.com/*")), "", None, None, None)),
   )
 
   val CompleteProvider: OEmbedProvider = OEmbedProvider(
     "IFTTT",
     "http://www.ifttt.com",
     List(
-      OEmbedEndpoint(
-        Some(List("http://ifttt.com/recipes/*")),
-        "http://www.ifttt.com/oembed/",
-        Some(true),
-        None,
-        None
-      )
-    )
+      OEmbedEndpoint(Some(List("http://ifttt.com/recipes/*")), "http://www.ifttt.com/oembed/", Some(true), None, None)
+    ),
   )
 
   override implicit lazy val providerService: ProviderService = new ProviderService
 
   test("That loadProvidersFromRequest fails on invalid url/bad response") {
     val invalidUrl = "invalidUrl123"
-    when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(using any))
-      .thenReturn(Failure(new HttpRequestException("An error occured")))
+    when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(using any)).thenReturn(
+      Failure(new HttpRequestException("An error occured"))
+    )
     intercept[DoNotUpdateMemoizeException] {
       providerService.loadProvidersFromRequest(quickRequest.get(uri"$invalidUrl"))
     }
   }
 
   test("That loadProvidersFromRequest does not return an incomplete provider") {
-    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(using any))
-      .thenReturn(Success(List(IncompleteProvider)))
+    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(using any)).thenReturn(
+      Success(List(IncompleteProvider))
+    )
 
     val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])
     providers.size should be(0)
   }
 
   test("That loadProvidersFromRequest works for a single provider") {
-    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(using any))
-      .thenReturn(Success(List(CompleteProvider)))
+    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(using any)).thenReturn(
+      Success(List(CompleteProvider))
+    )
 
     val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])
     providers.size should be(1)
   }
 
   test("That loadProvidersFromRequest only returns the complete provider") {
-    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(using any))
-      .thenReturn(Success(List(IncompleteProvider, CompleteProvider)))
+    when(ndlaClient.fetch[List[OEmbedProvider]](any[NdlaRequest])(using any)).thenReturn(
+      Success(List(IncompleteProvider, CompleteProvider))
+    )
 
     val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])
     providers.size should be(1)
   }
 
   test("That youtube provider supports playlists") {
-    providerService.YoutubeEndpoint.supports(
-      "https://youtube.com/playlist?list=PLJBPGA24dsn_HLSn6bmA8ajn-9AVGCWje"
-    ) should be(true)
+    providerService
+      .YoutubeEndpoint
+      .supports("https://youtube.com/playlist?list=PLJBPGA24dsn_HLSn6bmA8ajn-9AVGCWje") should be(true)
   }
 }

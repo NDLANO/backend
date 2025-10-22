@@ -18,53 +18,42 @@ class DraftUtilTest extends UnitSuite with TestEnvironment {
     val nnMeta = Description("Meta nn", "nn")
     val nbMeta = Description("Meta nb", "nb")
 
-    val article1 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nnMeta, nbMeta)
-    )
-    val article2 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nnMeta, nbMeta)
-    )
+    val article1 = TestData
+      .sampleDomainArticle
+      .copy(status = Status(PLANNED, Set(PUBLISHED)), metaDescription = Seq(nnMeta, nbMeta))
+    val article2 = TestData
+      .sampleDomainArticle
+      .copy(status = Status(PLANNED, Set(PUBLISHED)), metaDescription = Seq(nnMeta, nbMeta))
     shouldPartialPublish(Some(article1), article2) should be(Set.empty)
 
-    val article3 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nnMeta, nbMeta)
-    )
-    val article4 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(nbMeta, nnMeta)
-    )
+    val article3 = TestData
+      .sampleDomainArticle
+      .copy(status = Status(PLANNED, Set(PUBLISHED)), metaDescription = Seq(nnMeta, nbMeta))
+    val article4 = TestData
+      .sampleDomainArticle
+      .copy(status = Status(PLANNED, Set(PUBLISHED)), metaDescription = Seq(nbMeta, nnMeta))
     shouldPartialPublish(Some(article3), article4) should be(Set.empty)
   }
 
   test("shouldPartialPublish returns set of changed fields") {
-    val article1 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(
-        Description("Meta nn", "nn"),
-        Description("Meta nb", "nb")
-      ),
-      grepCodes = Seq(
-        "KE123"
+    val article1 = TestData
+      .sampleDomainArticle
+      .copy(
+        status = Status(PLANNED, Set(PUBLISHED)),
+        metaDescription = Seq(Description("Meta nn", "nn"), Description("Meta nb", "nb")),
+        grepCodes = Seq("KE123"),
       )
-    )
 
-    val article2 = TestData.sampleDomainArticle.copy(
-      status = Status(PLANNED, Set(PUBLISHED)),
-      metaDescription = Seq(
-        Description("Ny Meta nn", "nn"),
-        Description("Meta nb", "nb")
-      ),
-      grepCodes = Seq("KE123", "KE456")
-    )
+    val article2 = TestData
+      .sampleDomainArticle
+      .copy(
+        status = Status(PLANNED, Set(PUBLISHED)),
+        metaDescription = Seq(Description("Ny Meta nn", "nn"), Description("Meta nb", "nb")),
+        grepCodes = Seq("KE123", "KE456"),
+      )
 
     shouldPartialPublish(Some(article1), article2) should be(
-      Set(
-        PartialArticleFieldsDTO.metaDescription,
-        PartialArticleFieldsDTO.grepCodes
-      )
+      Set(PartialArticleFieldsDTO.metaDescription, PartialArticleFieldsDTO.grepCodes)
     )
   }
 }

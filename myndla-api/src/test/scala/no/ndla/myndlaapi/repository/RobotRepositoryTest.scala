@@ -39,8 +39,7 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
       case Success(c) =>
         c.close()
         true
-      case _ =>
-        false
+      case _ => false
     }
   }
 
@@ -78,9 +77,9 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
           name = "Mattelæreren",
           question = Some("HEi, hvordan går det?"),
           systemprompt = Some("Skriv som en luring. Svar lurt på alle spørsmålene"),
-          temperature = "0.8"
-        )
-      )
+          temperature = "0.8",
+        ),
+      ),
     )
 
     val session = repository.getSession(false)
@@ -110,9 +109,9 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
           name = "Mattelæreren",
           question = Some("HEi, hvordan går det?"),
           systemprompt = Some("Skriv som en luring. Svar lurt på alle spørsmålene"),
-          temperature = "0.8"
-        )
-      )
+          temperature = "0.8",
+        ),
+      ),
     )
 
     val session = repository.getSession(false)

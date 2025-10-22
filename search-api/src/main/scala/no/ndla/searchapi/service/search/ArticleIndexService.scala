@@ -33,7 +33,7 @@ class ArticleIndexService(using
     taxonomyApiClient: TaxonomyApiClient,
     grepApiClient: GrepApiClient,
     myNDLAApiClient: MyNDLAApiClient,
-    props: Props
+    props: Props,
 ) extends IndexService[Article]
     with StrictLogging {
   override val documentType: String                = "article"
@@ -43,18 +43,20 @@ class ArticleIndexService(using
   override def createIndexRequest(
       domainModel: Article,
       indexName: String,
-      indexingBundle: IndexingBundle
+      indexingBundle: IndexingBundle,
   ): Try[Option[IndexRequest]] = {
-    searchConverterService.asSearchableArticle(domainModel, indexingBundle).map { searchableArticle =>
-      val source = CirceUtil.toJsonString(searchableArticle)
-      Some(
-        indexInto(indexName)
-          .doc(source)
-          .id(domainModel.id.get.toString)
-          .versionType(EXTERNAL_GTE)
-          .version(domainModel.revision.map(_.toLong).get)
-      )
-    }
+    searchConverterService
+      .asSearchableArticle(domainModel, indexingBundle)
+      .map { searchableArticle =>
+        val source = CirceUtil.toJsonString(searchableArticle)
+        Some(
+          indexInto(indexName)
+            .doc(source)
+            .id(domainModel.id.get.toString)
+            .versionType(EXTERNAL_GTE)
+            .version(domainModel.revision.map(_.toLong).get)
+        )
+      }
   }
 
   def getMapping: MappingDefinition = {
@@ -82,25 +84,20 @@ class ArticleIndexService(using
       nestedField("embedResourcesAndIds").fields(
         keywordField("resource"),
         keywordField("id"),
-        keywordField("language")
+        keywordField("language"),
       ),
-      nestedField("metaImage").fields(
-        keywordField("imageId"),
-        keywordField("altText"),
-        keywordField("language")
-      ),
-      dateField("nextRevision.revisionDate") // This is needed for sorting, even if it is never used for articles
+      nestedField("metaImage").fields(keywordField("imageId"), keywordField("altText"), keywordField("language")),
+      dateField("nextRevision.revisionDate"), // This is needed for sorting, even if it is never used for articles
     )
-    val dynamics =
-      languageValuesMapping("title", keepRaw = true) ++
-        languageValuesMapping("metaDescription") ++
-        languageValuesMapping("content") ++
-        languageValuesMapping("introduction") ++
-        languageValuesMapping("tags") ++
-        languageValuesMapping("embedAttributes") ++
-        languageValuesMapping("relevance") ++
-        languageValuesMapping("breadcrumbs") ++
-        languageValuesMapping("name", keepRaw = true)
+    val dynamics = languageValuesMapping("title", keepRaw = true) ++
+      languageValuesMapping("metaDescription") ++
+      languageValuesMapping("content") ++
+      languageValuesMapping("introduction") ++
+      languageValuesMapping("tags") ++
+      languageValuesMapping("embedAttributes") ++
+      languageValuesMapping("relevance") ++
+      languageValuesMapping("breadcrumbs") ++
+      languageValuesMapping("name", keepRaw = true)
 
     properties(fields ++ dynamics)
   }

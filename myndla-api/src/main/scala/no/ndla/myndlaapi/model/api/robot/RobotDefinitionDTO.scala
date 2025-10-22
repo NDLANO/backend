@@ -27,7 +27,7 @@ case class RobotDefinitionDTO(
     @description("The date when the robot was last updated")
     updated: NDLADate,
     @description("The date when the robot was shared, if applicable")
-    shared: Option[NDLADate]
+    shared: Option[NDLADate],
 )
 
 object RobotDefinitionDTO {
@@ -49,9 +49,9 @@ object RobotDefinitionDTO {
           systemprompt = domain.configuration.settings.systemprompt,
           question = domain.configuration.settings.question,
           temperature = domain.configuration.settings.temperature,
-          model = domain.configuration.settings.model
-        )
-      )
+          model = domain.configuration.settings.model,
+        ),
+      ),
     )
   }
 }

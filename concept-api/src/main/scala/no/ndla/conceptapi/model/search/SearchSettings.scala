@@ -25,7 +25,7 @@ case class SearchSettings(
     embedResource: List[String],
     embedId: Option[String],
     conceptType: Option[String],
-    aggregatePaths: List[String]
+    aggregatePaths: List[String],
 )
 
 object SearchSettings {
@@ -43,7 +43,7 @@ object SearchSettings {
       embedResource = List.empty,
       embedId = None,
       conceptType = None,
-      aggregatePaths = List.empty
+      aggregatePaths = List.empty,
     )
   }
 }

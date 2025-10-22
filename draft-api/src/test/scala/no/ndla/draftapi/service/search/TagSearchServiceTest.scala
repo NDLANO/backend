@@ -29,45 +29,15 @@ class TagSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnviro
   override implicit lazy val converterService: ConverterService             = new ConverterService
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
-  val article1: Draft = TestData.sampleDomainArticle.copy(
-    tags = Seq(
-      Tag(
-        Seq("test", "testing", "testemer"),
-        "nb"
-      )
-    )
-  )
+  val article1: Draft = TestData.sampleDomainArticle.copy(tags = Seq(Tag(Seq("test", "testing", "testemer"), "nb")))
 
-  val article2: Draft = TestData.sampleDomainArticle.copy(
-    tags = Seq(
-      Tag(
-        Seq("test"),
-        "en"
-      )
-    )
-  )
+  val article2: Draft = TestData.sampleDomainArticle.copy(tags = Seq(Tag(Seq("test"), "en")))
 
-  val article3: Draft = TestData.sampleDomainArticle.copy(
-    tags = Seq(
-      Tag(
-        Seq("hei", "test", "testing"),
-        "nb"
-      ),
-      Tag(
-        Seq("test"),
-        "en"
-      )
-    )
-  )
+  val article3: Draft = TestData
+    .sampleDomainArticle
+    .copy(tags = Seq(Tag(Seq("hei", "test", "testing"), "nb"), Tag(Seq("test"), "en")))
 
-  val article4: Draft = TestData.sampleDomainArticle.copy(
-    tags = Seq(
-      Tag(
-        Seq("kyllingfilet", "filetkylling"),
-        "nb"
-      )
-    )
-  )
+  val article4: Draft = TestData.sampleDomainArticle.copy(tags = Seq(Tag(Seq("kyllingfilet", "filetkylling"), "nb")))
 
   val articlesToIndex: Seq[Draft] = Seq(article1, article2, article3, article4)
 

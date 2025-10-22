@@ -14,8 +14,8 @@ import no.ndla.network.tapir.NdlaTapirMain
 class MainClass(override val props: ConceptApiProperties) extends NdlaTapirMain[ComponentRegistry] {
   val componentRegistry = new ComponentRegistry(props)
 
-  private def warmupRequest = (path: String, options: Map[String, String]) =>
-    Warmup.warmupRequest(props.ApplicationPort, path, options)
+  private def warmupRequest =
+    (path: String, options: Map[String, String]) => Warmup.warmupRequest(props.ApplicationPort, path, options)
 
   override def warmup(): Unit = {
     warmupRequest("/concept-api/v1/concepts", Map("query" -> "norge", "fallback" -> "true"))

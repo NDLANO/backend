@@ -57,11 +57,17 @@ object HtmlTagRules {
     private def readAttributes: Map[String, Seq[String]] = {
       val mathMlJson = ValidationRules.mathMLRulesJson
 
-      val htmlAttrs = HtmlTagRules.attributeRules.map { case (tagType, attrs) =>
-        tagType -> attrs.all.map(_.toString).toSeq
-      }
-      val mathMlAttrs = mathMlJson.attributes.map { case (k, v) => k -> v.map(_.toString) }
-      val embedAttrs  = EmbedTagRules.allEmbedTagAttributes.map(_.toString).toSeq
+      val htmlAttrs = HtmlTagRules
+        .attributeRules
+        .map { case (tagType, attrs) =>
+          tagType -> attrs.all.map(_.toString).toSeq
+        }
+      val mathMlAttrs = mathMlJson
+        .attributes
+        .map { case (k, v) =>
+          k -> v.map(_.toString)
+        }
+      val embedAttrs = EmbedTagRules.allEmbedTagAttributes.map(_.toString).toSeq
       htmlAttrs ++ mathMlAttrs ++ Map(EmbedTagName -> embedAttrs)
     }
   }
@@ -75,8 +81,9 @@ object HtmlTagRules {
 
   def allLegalTags: Set[String] = PermittedHTML.tags
 
-  private def attributesForTagType(tagType: String): Seq[String] =
-    PermittedHTML.attributes.getOrElse(tagType, Seq.empty)
+  private def attributesForTagType(tagType: String): Seq[String] = PermittedHTML
+    .attributes
+    .getOrElse(tagType, Seq.empty)
 
   def tagAttributesForTagType(tagType: String): Option[TagRules.TagAttributeRules] = attributeRules.get(tagType)
 

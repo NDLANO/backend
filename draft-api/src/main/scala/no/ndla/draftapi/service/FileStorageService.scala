@@ -34,12 +34,9 @@ class FileStorageService(using s3Client: NdlaS3Client) extends StrictLogging {
     s3Client.copyObject(existingStorageKey, uploadPath).map(_ => uploadPath)
   }
 
-  def resourceWithPathExists(filePath: String): Boolean =
-    s3Client.objectExists(filePath)
+  def resourceWithPathExists(filePath: String): Boolean = s3Client.objectExists(filePath)
 
-  def deleteResource(storageKey: String): Try[?] =
-    deleteResourceWithPath(s"$resourceDirectory/$storageKey")
+  def deleteResource(storageKey: String): Try[?] = deleteResourceWithPath(s"$resourceDirectory/$storageKey")
 
-  def deleteResourceWithPath(filePath: String): Try[?] =
-    s3Client.deleteObject(filePath)
+  def deleteResourceWithPath(filePath: String): Try[?] = s3Client.deleteObject(filePath)
 }

@@ -30,7 +30,7 @@ import no.ndla.network.tapir.{
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar

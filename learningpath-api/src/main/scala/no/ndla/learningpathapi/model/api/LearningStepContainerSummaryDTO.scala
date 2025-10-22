@@ -14,9 +14,12 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Summary of meta information for a learningstep including language and supported languages")
 case class LearningStepContainerSummaryDTO(
-    @description("The chosen search language") language: String,
-    @description("The chosen search language") learningsteps: Seq[LearningStepSummaryV2DTO],
-    @description("The chosen search language") supportedLanguages: Seq[String]
+    @description("The chosen search language")
+    language: String,
+    @description("The chosen search language")
+    learningsteps: Seq[LearningStepSummaryV2DTO],
+    @description("The chosen search language")
+    supportedLanguages: Seq[String],
 )
 
 object LearningStepContainerSummaryDTO {

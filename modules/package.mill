@@ -28,10 +28,8 @@ trait BaseModule
   }
 
   override def sources: T[Seq[PathRef]]   = Task.Sources("src/main/scala", "src/main/scala-3")
-  override def resources: T[Seq[PathRef]] = Task.Sources(
-    "src/main/resources",
-    BuildCtx.workspaceRoot / "log4j" / "main"
-  )
+  override def resources: T[Seq[PathRef]] =
+    Task.Sources("src/main/resources", BuildCtx.workspaceRoot / "log4j" / "main")
 
   def fmt(): Task.Command[Unit] = Task.Command {
     ScalafmtModule.reformatAll(Tasks(Seq(sources, test.sources)))()
@@ -49,13 +47,17 @@ trait BaseModule
       super.scalacOptions().filterNot(scalacOptionsOnlyRun().contains)
     }
 
-    override def forkArgs: T[Seq[String]] = Task { super.forkArgs() ++ testJavaOptions() }
+    override def forkArgs: T[Seq[String]] = Task {
+      super.forkArgs() ++ testJavaOptions()
+    }
   }
 
 }
 
 object Yarn extends mill.Module {
-  def worker: Task.Worker[YarnWorker] = Task.Worker { new YarnWorker() }
+  def worker: Task.Worker[YarnWorker] = Task.Worker {
+    new YarnWorker()
+  }
 
   class YarnWorker {
     private val installedPaths = scala.collection.mutable.Map.empty[String, String]

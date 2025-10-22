@@ -19,10 +19,12 @@ object SearchTestUtility extends Assertions {
       * fails
       */
     def summaryResults: Seq[MultiSearchSummaryDTO] = {
-      result.results.map {
-        case x: MultiSearchSummaryDTO => x
-        case x                        => fail(s"Did not expect type of '${x.getClass.getSimpleName}'")
-      }
+      result
+        .results
+        .map {
+          case x: MultiSearchSummaryDTO => x
+          case x                        => fail(s"Did not expect type of '${x.getClass.getSimpleName}'")
+        }
     }
   }
 }

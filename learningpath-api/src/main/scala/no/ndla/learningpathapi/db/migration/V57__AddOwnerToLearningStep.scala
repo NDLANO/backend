@@ -15,7 +15,7 @@ import no.ndla.learningpathapi.db.util.*
 class V57__AddOwnerToLearningStep extends LearningPathAndStepMigration {
   override def convertPathAndSteps(
       lpData: LpDocumentRow,
-      stepDatas: List[StepDocumentRow]
+      stepDatas: List[StepDocumentRow],
   ): (LpDocumentRow, List[StepDocumentRow]) = {
     val learningpath = CirceUtil.unsafeParse(lpData.learningPathDocument)
     val owner        = learningpath.hcursor.get[String]("owner") match {
@@ -24,9 +24,7 @@ class V57__AddOwnerToLearningStep extends LearningPathAndStepMigration {
     }
     val updatedSteps = stepDatas.map { step =>
       val oldDocument = CirceUtil.unsafeParse(step.learningStepDocument)
-      val newDocument = oldDocument
-        .mapObject(_.add("owner", Json.fromString(owner)))
-        .noSpaces
+      val newDocument = oldDocument.mapObject(_.add("owner", Json.fromString(owner))).noSpaces
       step.copy(learningStepDocument = newDocument)
     }
 

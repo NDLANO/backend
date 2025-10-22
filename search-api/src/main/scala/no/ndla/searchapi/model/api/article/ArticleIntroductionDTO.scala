@@ -13,9 +13,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Description of the article introduction")
 case class ArticleIntroductionDTO(
-    @description("The introduction content") introduction: String,
-    @description("The html-version introduction content") htmlIntroduction: String,
-    @description(
-      "The ISO 639-1 language code describing which article translation this introduction belongs to"
-    ) language: String
+    @description("The introduction content")
+    introduction: String,
+    @description("The html-version introduction content")
+    htmlIntroduction: String,
+    @description("The ISO 639-1 language code describing which article translation this introduction belongs to")
+    language: String,
 ) extends WithLanguage

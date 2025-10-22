@@ -20,7 +20,7 @@ object TapirUtil {
         val newField = SchemaType.SProductField[T, String](
           FieldName("typename"),
           stringLiteralSchema(ct.runtimeClass.getSimpleName),
-          _ => throwNewError(schema)
+          _ => throwNewError(schema),
         )
         st.copy(fields = st.fields :+ newField)
       case x => x
@@ -30,9 +30,7 @@ object TapirUtil {
 
   def stringLiteralSchema[T <: String](value: T)(implicit annotations: SchemaAnnotations[T]): Schema[T] = {
     annotations.enrich(
-      Schema[T](SchemaType.SString()).validate(
-        Validator.enumeration(List(value), v => Some(v), Some(SName(value)))
-      )
+      Schema[T](SchemaType.SString()).validate(Validator.enumeration(List(value), v => Some(v), Some(SName(value))))
     )
   }
 

@@ -25,7 +25,7 @@ abstract class IndexService(using
     e4sClient: NdlaE4sClient,
     props: Props,
     articleRepository: ArticleRepository,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends BaseIndexService
     with StrictLogging {
   override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
@@ -61,11 +61,7 @@ abstract class IndexService(using
   def getRanges: Try[List[(Long, Long)]] = {
     Try {
       val (minId, maxId) = articleRepository.minMaxId
-      Seq
-        .range(minId, maxId + 1)
-        .grouped(props.IndexBulkSize)
-        .map(group => (group.head, group.last))
-        .toList
+      Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
     }
   }
 
@@ -74,9 +70,11 @@ abstract class IndexService(using
       Success(BulkIndexResult.empty)
     } else {
       val response = e4sClient.execute {
-        bulk(contents.map(content => {
-          createIndexRequest(content, indexName)
-        }))
+        bulk(
+          contents.map(content => {
+            createIndexRequest(content, indexName)
+          })
+        )
       }
 
       response match {
@@ -99,18 +97,20 @@ abstract class IndexService(using
     */
   protected def generateLanguageSupportedFieldList(fieldName: String, keepRaw: Boolean = false): Seq[ElasticField] = {
     if (keepRaw) {
-      searchLanguage.languageAnalyzers.map(langAnalyzer =>
-        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-          .fielddata(false)
-          .analyzer(langAnalyzer.analyzer)
-          .fields(keywordField("raw"))
-      )
+      searchLanguage
+        .languageAnalyzers
+        .map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
+            .fielddata(false)
+            .analyzer(langAnalyzer.analyzer)
+            .fields(keywordField("raw"))
+        )
     } else {
-      searchLanguage.languageAnalyzers.map(langAnalyzer =>
-        textField(s"$fieldName.${langAnalyzer.languageTag.toString}")
-          .fielddata(false)
-          .analyzer(langAnalyzer.analyzer)
-      )
+      searchLanguage
+        .languageAnalyzers
+        .map(langAnalyzer =>
+          textField(s"$fieldName.${langAnalyzer.languageTag.toString}").fielddata(false).analyzer(langAnalyzer.analyzer)
+        )
     }
   }
 }

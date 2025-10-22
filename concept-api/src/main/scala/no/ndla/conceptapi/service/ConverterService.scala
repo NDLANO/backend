@@ -21,7 +21,7 @@ import no.ndla.common.model.domain.concept.{
   Status,
   VisualElement,
   WordClass,
-  Concept as DomainConcept
+  Concept as DomainConcept,
 }
 import no.ndla.common.{Clock, model}
 import no.ndla.common.configuration.Constants.EmbedTagName
@@ -42,19 +42,17 @@ import org.jsoup.nodes.Element
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
-class ConverterService(using
-    clock: Clock,
-    props: Props
-) extends StrictLogging {
+class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
 
   def toApiConcept(
       concept: DomainConcept,
       language: String,
       fallback: Boolean,
-      user: Option[TokenUser]
+      user: Option[TokenUser],
   ): Try[api.ConceptDTO] = {
-    val isLanguageNeutral =
-      concept.supportedLanguages.contains(UnknownLanguage.toString) && concept.supportedLanguages.size == 1
+    val isLanguageNeutral = concept.supportedLanguages.contains(UnknownLanguage.toString) && concept
+      .supportedLanguages
+      .size == 1
     if (concept.supportedLanguages.contains(language) || fallback || isLanguageNeutral || language == AllLanguages) {
       val title = findByLanguageOrBestEffort(concept.title, language)
         .map(toApiConceptTitle)
@@ -82,21 +80,23 @@ class ConverterService(using
           tags = tags,
           created = concept.created,
           updated = concept.updated,
-          updatedBy = if (concept.updatedBy.isEmpty) None else Some(concept.updatedBy),
+          updatedBy =
+            if (concept.updatedBy.isEmpty) None
+            else Some(concept.updatedBy),
           supportedLanguages = concept.supportedLanguages,
           status = status,
           visualElement = visualElement,
           responsible = responsible,
           conceptType = concept.conceptType.entryName,
           glossData = toApiGlossData(concept.glossData),
-          editorNotes = editorNotes
+          editorNotes = editorNotes,
         )
       )
     } else {
       Failure(
         NotFoundException(
           s"The concept with id ${concept.id.getOrElse(-1)} and language '$language' was not found.",
-          concept.supportedLanguages.toSeq
+          concept.supportedLanguages.toSeq,
         )
       )
     }
@@ -107,41 +107,33 @@ class ConverterService(using
       api.GlossDataDTO(
         gloss = glossData.gloss,
         wordClass = glossData.wordClass.entryName,
-        examples = glossData.examples.map(ge =>
-          ge.map(g =>
-            api.GlossExampleDTO(
-              example = g.example,
-              language = g.language,
-              transcriptions = g.transcriptions
+        examples = glossData
+          .examples
+          .map(ge =>
+            ge.map(g =>
+              api.GlossExampleDTO(example = g.example, language = g.language, transcriptions = g.transcriptions)
             )
-          )
-        ),
+          ),
         originalLanguage = glossData.originalLanguage,
-        transcriptions = glossData.transcriptions
+        transcriptions = glossData.transcriptions,
       )
     )
   }
 
   def toApiStatus(status: Status): api.StatusDTO = {
-    api.StatusDTO(
-      current = status.current.toString,
-      other = status.other.map(_.toString).toSeq
-    )
+    api.StatusDTO(current = status.current.toString, other = status.other.map(_.toString).toSeq)
   }
   private def toApiEditorNote(editorNote: ConceptEditorNote) = {
     api.EditorNoteDTO(
       note = editorNote.note,
       updatedBy = editorNote.user,
       status = toApiStatus(editorNote.status),
-      timestamp = editorNote.timestamp
+      timestamp = editorNote.timestamp,
     )
   }
 
   def toApiTags(tags: Tag): ConceptTagsDTO = {
-    api.ConceptTagsDTO(
-      tags.tags,
-      tags.language
-    )
+    api.ConceptTagsDTO(tags.tags, tags.language)
   }
 
   private def toApiCopyright(copyright: commonDomain.draft.DraftCopyright): commonApi.DraftCopyrightDTO = {
@@ -153,17 +145,17 @@ class ConverterService(using
       copyright.rightsholders.map(_.toApi),
       copyright.validFrom,
       copyright.validTo,
-      copyright.processed
+      copyright.processed,
     )
   }
 
   private def toMaybeApiLicense(shortLicense: String): Option[commonApi.LicenseDTO] = {
-    getLicense(shortLicense)
-      .map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url))
+    getLicense(shortLicense).map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url))
   }
 
-  def toApiLicense(maybeShortLicense: Option[String]): commonApi.LicenseDTO =
-    maybeShortLicense.flatMap(toMaybeApiLicense).getOrElse(commonApi.LicenseDTO("unknown", None, None))
+  def toApiLicense(maybeShortLicense: Option[String]): commonApi.LicenseDTO = maybeShortLicense
+    .flatMap(toMaybeApiLicense)
+    .getOrElse(commonApi.LicenseDTO("unknown", None, None))
 
   def toApiLicense(shortLicense: String): commonApi.LicenseDTO =
     toMaybeApiLicense(shortLicense).getOrElse(commonApi.LicenseDTO("unknown", None, None))
@@ -185,18 +177,19 @@ class ConverterService(using
       .map(glossData =>
         WordClass.valueOfOrError(glossData.wordClass) match {
           case Failure(ex)        => Failure(ex)
-          case Success(wordClass) =>
-            Success(
+          case Success(wordClass) => Success(
               concept.GlossData(
                 gloss = glossData.gloss,
                 wordClass = wordClass,
-                examples = glossData.examples.map(gl =>
-                  gl.map(g =>
-                    GlossExample(language = g.language, example = g.example, transcriptions = g.transcriptions)
-                  )
-                ),
+                examples = glossData
+                  .examples
+                  .map(gl =>
+                    gl.map(g =>
+                      GlossExample(language = g.language, example = g.example, transcriptions = g.transcriptions)
+                    )
+                  ),
                 originalLanguage = glossData.originalLanguage,
-                transcriptions = glossData.transcriptions
+                transcriptions = glossData.transcriptions,
               )
             )
         }
@@ -206,10 +199,12 @@ class ConverterService(using
 
   def toDomainConcept(concept: api.NewConceptDTO, userInfo: TokenUser): Try[DomainConcept] = {
     val conceptType = ConceptType.valueOfOrError(concept.conceptType).getOrElse(ConceptType.CONCEPT)
-    val content     = concept.content
+    val content     = concept
+      .content
       .map(content => Seq(model.domain.concept.ConceptContent(content, concept.language)))
       .getOrElse(Seq.empty)
-    val visualElement = concept.visualElement
+    val visualElement = concept
+      .visualElement
       .filterNot(_.isEmpty)
       .map(ve => toDomainVisualElement(ve, concept.language))
       .toSeq
@@ -232,7 +227,7 @@ class ConverterService(using
       responsible = concept.responsibleId.map(responsibleId => Responsible(responsibleId, clock.now())),
       conceptType = conceptType,
       glossData = glossData,
-      editorNotes = Seq(ConceptEditorNote(s"Created $conceptType", userInfo.id, Status.default, now))
+      editorNotes = Seq(ConceptEditorNote(s"Created $conceptType", userInfo.id, Status.default, now)),
     )
   }
 
@@ -252,31 +247,27 @@ class ConverterService(using
   }
 
   private def toDomainVisualElement(visualElement: String, language: String): VisualElement = {
-    concept.VisualElement(
-      visualElement = removeUnknownEmbedTagAttribute(visualElement),
-      language = language
-    )
+    concept.VisualElement(visualElement = removeUnknownEmbedTagAttribute(visualElement), language = language)
   }
 
   private def toDomainTags(tags: Seq[String], language: String): Seq[Tag] =
-    if (tags.isEmpty) Seq.empty else Seq(Tag(tags, language))
+    if (tags.isEmpty) Seq.empty
+    else Seq(Tag(tags, language))
 
   def toDomainConcept(
       toMergeInto: DomainConcept,
       updateConcept: api.UpdatedConceptDTO,
-      userInfo: TokenUser
+      userInfo: TokenUser,
   ): Try[DomainConcept] = {
-    val domainTitle = updateConcept.title
-      .map(t => Title(t, updateConcept.language))
-      .toSeq
-    val domainContent = updateConcept.content
-      .map(c => concept.ConceptContent(c, updateConcept.language))
-      .toSeq
+    val domainTitle   = updateConcept.title.map(t => Title(t, updateConcept.language)).toSeq
+    val domainContent = updateConcept.content.map(c => concept.ConceptContent(c, updateConcept.language)).toSeq
 
     val domainTags = updateConcept.tags.map(t => Tag(t, updateConcept.language)).toSeq
 
-    val domainVisualElement =
-      updateConcept.visualElement.map(ve => toDomainVisualElement(ve, updateConcept.language)).toSeq
+    val domainVisualElement = updateConcept
+      .visualElement
+      .map(ve => toDomainVisualElement(ve, updateConcept.language))
+      .toSeq
 
     val updatedBy = {
       val userId = userInfo.id
@@ -285,8 +276,8 @@ class ConverterService(using
     }
 
     val responsible = (updateConcept.responsibleId, toMergeInto.responsible) match {
-      case (Delete, _)                       => None
-      case (UpdateWith(responsibleId), None) => Some(Responsible(responsibleId, clock.now()))
+      case (Delete, _)                                                                            => None
+      case (UpdateWith(responsibleId), None)                                                      => Some(Responsible(responsibleId, clock.now()))
       case (UpdateWith(responsibleId), Some(existing)) if existing.responsibleId != responsibleId =>
         Some(Responsible(responsibleId, clock.now()))
       case (_, existing) => existing
@@ -308,7 +299,7 @@ class ConverterService(using
         responsible = responsible,
         conceptType = ConceptType.valueOf(updateConcept.conceptType).getOrElse(toMergeInto.conceptType),
         glossData = glossData,
-        editorNotes = toMergeInto.editorNotes
+        editorNotes = toMergeInto.editorNotes,
       )
     )
   }
@@ -351,35 +342,38 @@ class ConverterService(using
       responsible = responsible,
       conceptType = conceptType,
       glossData = glossData,
-      editorNotes = Seq(ConceptEditorNote(s"Created $conceptType", userInfo.id, Status.default, clock.now()))
+      editorNotes = Seq(ConceptEditorNote(s"Created $conceptType", userInfo.id, Status.default, clock.now())),
     )
   }
 
   private def toDomainCopyright(copyright: commonApi.DraftCopyrightDTO): commonDomain.draft.DraftCopyright =
-    commonDomain.draft.DraftCopyright(
-      copyright.license.map(_.license),
-      copyright.origin,
-      copyright.creators.map(_.toDomain),
-      copyright.processors.map(_.toDomain),
-      copyright.rightsholders.map(_.toDomain),
-      copyright.validFrom,
-      copyright.validTo,
-      copyright.processed
-    )
+    commonDomain
+      .draft
+      .DraftCopyright(
+        copyright.license.map(_.license),
+        copyright.origin,
+        copyright.creators.map(_.toDomain),
+        copyright.processors.map(_.toDomain),
+        copyright.rightsholders.map(_.toDomain),
+        copyright.validFrom,
+        copyright.validTo,
+        copyright.processed,
+      )
 
   def toApiConceptTags(
       tags: Seq[String],
       tagsCount: Int,
       pageSize: Int,
       offset: Int,
-      language: String
+      language: String,
   ): api.TagsSearchResultDTO = {
     api.TagsSearchResultDTO(tagsCount, offset, pageSize, language, tags)
   }
 
   def addUrlOnVisualElement(concept: DomainConcept): DomainConcept = {
-    val visualElementWithUrls =
-      concept.visualElement.map(visual => visual.copy(visualElement = addUrlOnElement(visual.visualElement)))
+    val visualElementWithUrls = concept
+      .visualElement
+      .map(visual => visual.copy(visualElement = addUrlOnElement(visual.visualElement)))
     concept.copy(visualElement = visualElementWithUrls)
   }
 
@@ -401,8 +395,7 @@ class ConverterService(using
       case resourceType if embedTag.hasAttr(TagAttribute.DataResource_Id.toString) =>
         val id = embedTag.attr(TagAttribute.DataResource_Id.toString)
         Some((resourceType, id))
-      case _ =>
-        None
+      case _ => None
     }
 
     typeAndPathOption match {
@@ -411,10 +404,7 @@ class ConverterService(using
         val baseUrl   = Url.parse(x.externalApiUrls(resourceType))
         val pathParts = Path.parse(path).parts
 
-        embedTag.attr(
-          s"${TagAttribute.DataUrl}",
-          baseUrl.addPathParts(pathParts).toString
-        ): Unit
+        embedTag.attr(s"${TagAttribute.DataUrl}", baseUrl.addPathParts(pathParts).toString): Unit
       case _ =>
     }
   }

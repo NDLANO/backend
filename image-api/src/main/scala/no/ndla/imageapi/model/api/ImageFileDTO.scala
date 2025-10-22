@@ -15,12 +15,18 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Meta information for a image file")
 case class ImageFileDTO(
-    @description("File name pointing to image file") fileName: String,
-    @description("The size of the image in bytes") size: Long,
-    @description("The mimetype of the image") contentType: String,
-    @description("The full url to where the image can be downloaded") imageUrl: String,
-    @description("Dimensions of the image") dimensions: Option[ImageDimensionsDTO],
-    @description(LanguageDocString) language: String
+    @description("File name pointing to image file")
+    fileName: String,
+    @description("The size of the image in bytes")
+    size: Long,
+    @description("The mimetype of the image")
+    contentType: String,
+    @description("The full url to where the image can be downloaded")
+    imageUrl: String,
+    @description("Dimensions of the image")
+    dimensions: Option[ImageDimensionsDTO],
+    @description(LanguageDocString)
+    language: String,
 )
 
 object ImageFileDTO {

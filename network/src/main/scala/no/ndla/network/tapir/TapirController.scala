@@ -21,7 +21,7 @@ import no.ndla.network.model.{
   CombinedUserWithBoth,
   CombinedUserWithMyNDLAUser,
   HttpRequestException,
-  OptionalCombinedUser
+  OptionalCombinedUser,
 }
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
 import sttp.client3.Identity
@@ -36,7 +36,7 @@ import scala.util.{Failure, Success}
 abstract class TapirController(using
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
 ) extends TapirErrorHandling
     with StrictLogging
     with SchemaImplicits {
@@ -47,13 +47,15 @@ abstract class TapirController(using
   val endpoints: List[ServerEndpoint[Any, Eff]]
 
   lazy val builtEndpoints: List[ServerEndpoint[Any, Eff]] = {
-    this.endpoints.map(e => {
-      ServerEndpoint(
-        endpoint = e.endpoint.prependIn(this.prefix).tag(this.serviceName),
-        securityLogic = e.securityLogic,
-        logic = e.logic
-      )
-    })
+    this
+      .endpoints
+      .map(e => {
+        ServerEndpoint(
+          endpoint = e.endpoint.prependIn(this.prefix).tag(this.serviceName),
+          securityLogic = e.securityLogic,
+          logic = e.logic,
+        )
+      })
   }
 
   /** Helper to simplify returning _both_ NoContent and some json body T from an endpoint */
@@ -61,8 +63,12 @@ abstract class TapirController(using
     val noContentVariant = noContent.and(emptyOutputAs[Option[T]](None))
     val okVariant        = statusCode(StatusCode.Ok).and(jsonBody[Option[T]])
     oneOf[Option[T]](
-      oneOfVariantValueMatcher(okVariant) { case Some(_) => true },
-      oneOfVariantValueMatcher(noContentVariant) { case None => true }
+      oneOfVariantValueMatcher(okVariant) { case Some(_) =>
+        true
+      },
+      oneOfVariantValueMatcher(noContentVariant) { case None =>
+        true
+      },
     )
   }
 
@@ -87,21 +93,17 @@ abstract class TapirController(using
 
     def withOptionalMyNDLAUser[F[_]]
         : PartialServerEndpoint[Option[String], Option[MyNDLAUserDTO], I, AllErrors, O, R, F] = {
-      val newEndpoint = self.securityIn(AuthUtility.feideOauth())
+      val newEndpoint                                                          = self.securityIn(AuthUtility.feideOauth())
       val authFunc: Option[String] => Either[AllErrors, Option[MyNDLAUserDTO]] = (maybeToken: Option[String]) => {
         maybeToken match {
           case None        => Right(None)
-          case Some(token) =>
-            myNDLAApiClient.getUserWithFeideToken(token) match {
-              case Failure(ex: HttpRequestException) if ex.code == 401 =>
-                errorHelpers.unauthorized.asLeft
-              case Failure(ex: HttpRequestException) if ex.code == 403 =>
-                errorHelpers.forbidden.asLeft
-              case Failure(ex) =>
+          case Some(token) => myNDLAApiClient.getUserWithFeideToken(token) match {
+              case Failure(ex: HttpRequestException) if ex.code == 401 => errorHelpers.unauthorized.asLeft
+              case Failure(ex: HttpRequestException) if ex.code == 403 => errorHelpers.forbidden.asLeft
+              case Failure(ex)                                         =>
                 logger.error("Got exception when fetching user", ex)
                 errorHelpers.generic.asLeft
-              case Success(user) =>
-                Some(user).asRight
+              case Success(user) => Some(user).asRight
             }
         }
       }
@@ -111,9 +113,7 @@ abstract class TapirController(using
 
     def withOptionalMyNDLAUserOrTokenUser[F[_]]
         : PartialServerEndpoint[(Option[TokenUser], Option[String]), CombinedUser, I, AllErrors, O, R, F] = {
-      val newEndpoint = self
-        .securityIn(TokenUser.oauth2Input(Seq.empty))
-        .securityIn(AuthUtility.feideOauth())
+      val newEndpoint = self.securityIn(TokenUser.oauth2Input(Seq.empty)).securityIn(AuthUtility.feideOauth())
 
       val authFunc: ((Option[TokenUser], Option[String])) => Either[AllErrors, CombinedUser] =
         (userInputOptions: (Option[TokenUser], Option[String])) => {
@@ -122,13 +122,11 @@ abstract class TapirController(using
 
           val myndlaUser = maybeToken.flatMap { token =>
             myNDLAApiClient.getUserWithFeideToken(token) match {
-              case Failure(ex: HttpRequestException) if ex.code == 401 || ex.code == 403 =>
-                None
-              case Failure(ex) =>
+              case Failure(ex: HttpRequestException) if ex.code == 401 || ex.code == 403 => None
+              case Failure(ex)                                                           =>
                 logger.warn("Got unexpected exception when fetching myndla user", ex)
                 None
-              case Success(user) =>
-                Some(user)
+              case Success(user) => Some(user)
             }
           }
 
@@ -141,9 +139,7 @@ abstract class TapirController(using
 
     def withRequiredMyNDLAUserOrTokenUser[F[_]]
         : PartialServerEndpoint[(Option[TokenUser], Option[String]), CombinedUserRequired, I, AllErrors, O, R, F] = {
-      val newEndpoint = self
-        .securityIn(TokenUser.oauth2Input(Seq.empty))
-        .securityIn(AuthUtility.feideOauth())
+      val newEndpoint = self.securityIn(TokenUser.oauth2Input(Seq.empty)).securityIn(AuthUtility.feideOauth())
 
       val authFunc: ((Option[TokenUser], Option[String])) => Either[AllErrors, CombinedUserRequired] =
         (userInputOptions: (Option[TokenUser], Option[String])) => {
@@ -152,13 +148,11 @@ abstract class TapirController(using
 
           val myndlaUser = maybeToken.flatMap { token =>
             myNDLAApiClient.getUserWithFeideToken(token) match {
-              case Failure(ex: HttpRequestException) if ex.code == 401 || ex.code == 403 =>
-                None
-              case Failure(ex) =>
+              case Failure(ex: HttpRequestException) if ex.code == 401 || ex.code == 403 => None
+              case Failure(ex)                                                           =>
                 logger.warn("Got unexpected exception when fetching myndla user", ex)
                 None
-              case Success(user) =>
-                Some(user)
+              case Success(user) => Some(user)
             }
           }
 

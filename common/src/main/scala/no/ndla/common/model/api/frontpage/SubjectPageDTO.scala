@@ -23,7 +23,7 @@ case class SubjectPageDTO(
     supportedLanguages: Seq[String],
     connectedTo: List[String],
     buildsOn: List[String],
-    leadsTo: List[String]
+    leadsTo: List[String],
 )
 
 object SubjectPageDTO {

@@ -54,7 +54,7 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
           List(GrepTitle("default", "Utforsking og problemløysing"), GrepTitle("nob", "Utforsking og problemløsning"))
         ),
         GrepTextObj(List(GrepTitle("default", ""))),
-        BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP1")
+        BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP1"),
       ),
       GrepKjerneelement(
         "KE34",
@@ -63,8 +63,8 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
           List(GrepTitle("default", "Abstraksjon og generalisering"), GrepTitle("nob", "Abstraksjon og generalisering"))
         ),
         GrepTextObj(List(GrepTitle("default", ""))),
-        BelongsToObj("LP2", GrepStatusDTO.Published, "Dette er LP2")
-      )
+        BelongsToObj("LP2", GrepStatusDTO.Published, "Dette er LP2"),
+      ),
     ),
     kompetansemaal = List(
       GrepKompetansemaal(
@@ -73,18 +73,14 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
         tittel = GrepTextObj(
           List(
             GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
-            GrepTitle("nob", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte")
+            GrepTitle("nob", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
           )
         ),
         `tilhoerer-laereplan` = BelongsToObj("LP2", GrepStatusDTO.Published, "Dette er LP2"),
-        `tilhoerer-kompetansemaalsett` = BelongsToObj(
-          "KV200",
-          GrepStatusDTO.Published,
-          "Kompetansemaalsett"
-        ),
+        `tilhoerer-kompetansemaalsett` = BelongsToObj("KV200", GrepStatusDTO.Published, "Kompetansemaalsett"),
         `tilknyttede-tverrfaglige-temaer` = List(),
         `tilknyttede-kjerneelementer` = List(),
-        `gjenbruk-av` = None
+        `gjenbruk-av` = None,
       )
     ),
     kompetansemaalsett = List.empty,
@@ -92,7 +88,7 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
       GrepTverrfagligTema(
         "TT2",
         GrepStatusDTO.Published,
-        Seq(GrepTitle("default", "Demokrati og medborgerskap"), GrepTitle("nob", "Demokrati og medborgerskap"))
+        Seq(GrepTitle("default", "Demokrati og medborgerskap"), GrepTitle("nob", "Demokrati og medborgerskap")),
       )
     ),
     laereplaner = List(
@@ -100,15 +96,15 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
         "LP1",
         GrepStatusDTO.Published,
         GrepTextObj(List(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk"))),
-        List.empty
+        List.empty,
       ),
       GrepLaererplan(
         "LP2",
         GrepStatusDTO.Published,
         GrepTextObj(List(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk"))),
-        List.empty
-      )
-    )
+        List.empty,
+      ),
+    ),
   )
 
   val emptyInput: GrepSearchInputDTO = GrepSearchInputDTO(
@@ -118,7 +114,7 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
     pageSize = None,
     query = None,
     prefixFilter = None,
-    sort = None
+    sort = None,
   )
 
   test("That searching for all grep codes works as expected") {
@@ -218,32 +214,17 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
     blockUntil(() => grepIndexService.countDocuments == grepTestBundle.grepContext.size)
 
     val result1 = grepSearchService
-      .searchGreps(
-        emptyInput.copy(
-          query = NonEmptyString.fromString("og LP2"),
-          prefixFilter = Some(List("KE"))
-        )
-      )
+      .searchGreps(emptyInput.copy(query = NonEmptyString.fromString("og LP2"), prefixFilter = Some(List("KE"))))
       .get
     result1.results.map(_.code) should be(List("KE34", "KE12"))
 
     val result2 = grepSearchService
-      .searchGreps(
-        emptyInput.copy(
-          query = NonEmptyString.fromString("og LP1"),
-          prefixFilter = Some(List("KE"))
-        )
-      )
+      .searchGreps(emptyInput.copy(query = NonEmptyString.fromString("og LP1"), prefixFilter = Some(List("KE"))))
       .get
     result2.results.map(_.code) should be(List("KE12", "KE34"))
 
     val result3 = grepSearchService
-      .searchGreps(
-        emptyInput.copy(
-          query = NonEmptyString.fromString("og KV200"),
-          prefixFilter = Some(List("KM"))
-        )
-      )
+      .searchGreps(emptyInput.copy(query = NonEmptyString.fromString("og KV200"), prefixFilter = Some(List("KM"))))
       .get
     result3.results.map(_.code) should be(List("KM123"))
 

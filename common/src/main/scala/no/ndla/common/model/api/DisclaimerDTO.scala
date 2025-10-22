@@ -15,8 +15,10 @@ import sttp.tapir.Schema.annotations.description
 import no.ndla.common.DeriveHelpers
 
 case class DisclaimerDTO(
-    @description("The freetext html content of the disclaimer") disclaimer: String,
-    @description("ISO 639-1 code that represents the language used in the disclaimer") language: String
+    @description("The freetext html content of the disclaimer")
+    disclaimer: String,
+    @description("ISO 639-1 code that represents the language used in the disclaimer")
+    language: String,
 )
 
 object DisclaimerDTO {

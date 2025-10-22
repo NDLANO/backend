@@ -25,6 +25,6 @@ object SwaggerDocControllerConfig {
       "Note that the query parameter is based on the Elasticsearch simple search language. For more information, see " +
       "https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html",
     authUrl = props.Auth0LoginEndpoint,
-    scopes = scopes
+    scopes = scopes,
   )
 }

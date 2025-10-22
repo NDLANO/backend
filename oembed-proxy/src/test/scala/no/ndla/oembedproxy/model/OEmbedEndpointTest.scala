@@ -17,8 +17,8 @@ class OEmbedEndpointTest extends UnitTestSuite with TestEnvironment {
 
   test("That matches returns true for a matching expression") {
     dummyEndpoint.matches("http://www.ndla.no/*/test", "http://www.ndla.no/123123/test") should be(right = true)
-    dummyEndpoint.matches("http://www.*.no/*/test/*", "http://www.aftenposten.no/123123/test/adf") should be(
-      right = true
+    dummyEndpoint.matches("http://www.*.no/*/test/*", "http://www.aftenposten.no/123123/test/adf") should be(right =
+      true
     )
     dummyEndpoint.matches("a.*.c", "a.b.c") should be(right = true)
   }
@@ -30,18 +30,12 @@ class OEmbedEndpointTest extends UnitTestSuite with TestEnvironment {
 
   test("That supports returns true if any of the scheme-patterns matches") {
     val schemes = List("http://www.ndla.no/*/test", "http://www.ndla.no/test/*")
-    dummyEndpoint
-      .copy(schemes = Some(schemes))
-      .supports("http://www.ndla.no/123/test") should be(right = true)
-    dummyEndpoint
-      .copy(schemes = Some(schemes))
-      .supports("http://www.ndla.no/test/123") should be(right = true)
+    dummyEndpoint.copy(schemes = Some(schemes)).supports("http://www.ndla.no/123/test") should be(right = true)
+    dummyEndpoint.copy(schemes = Some(schemes)).supports("http://www.ndla.no/test/123") should be(right = true)
   }
 
   test("That supports returns false when no of the scheme-patterns matches") {
     val schemes = List("http://www.ndla.no/*/test", "http://www.ndla.no/test/*")
-    dummyEndpoint
-      .copy(schemes = Some(schemes))
-      .supports("http://www.vg.no") should be(right = false)
+    dummyEndpoint.copy(schemes = Some(schemes)).supports("http://www.vg.no") should be(right = false)
   }
 }

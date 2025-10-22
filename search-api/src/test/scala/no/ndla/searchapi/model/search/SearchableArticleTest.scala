@@ -13,7 +13,7 @@ import no.ndla.common.model.api.search.{
   LanguageValue,
   LearningResourceType,
   SearchableLanguageList,
-  SearchableLanguageValues
+  SearchableLanguageValues,
 }
 import no.ndla.common.model.domain.ArticleMetaImage
 import no.ndla.mapping.License
@@ -31,33 +31,18 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       Seq(
         LanguageValue("nn", "Eg kjøyrar rundt i min fine bil"),
         LanguageValue("nb", "Jeg kjører rundt i tutut"),
-        LanguageValue("en", "I'm in my mums car wroomwroom")
+        LanguageValue("en", "I'm in my mums car wroomwroom"),
       )
     )
 
-    val introductions = SearchableLanguageValues(
-      Seq(
-        LanguageValue("en", "Wroom wroom")
-      )
-    )
+    val introductions = SearchableLanguageValues(Seq(LanguageValue("en", "Wroom wroom")))
 
-    val metaDescriptions = SearchableLanguageValues(
-      Seq(
-        LanguageValue("nb", "Mammas bil")
-      )
-    )
+    val metaDescriptions = SearchableLanguageValues(Seq(LanguageValue("nb", "Mammas bil")))
 
-    val tags = SearchableLanguageList(
-      Seq(
-        LanguageValue("en", Seq("Mum", "Car", "Wroom"))
-      )
-    )
+    val tags = SearchableLanguageList(Seq(LanguageValue("en", Seq("Mum", "Car", "Wroom"))))
 
     val embedAttrs = SearchableLanguageList(
-      Seq(
-        LanguageValue("nb", Seq("En norsk", "To norsk")),
-        LanguageValue("en", Seq("One english"))
-      )
+      Seq(LanguageValue("nb", Seq("En norsk", "To norsk")), LanguageValue("en", Seq("One english")))
     )
 
     val embedResourcesAndIds =
@@ -85,7 +70,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       contextids = searchableTaxonomyContexts.map(_.contextId),
       grepContexts = List(
         SearchableGrepContext("K123", Some("some title"), "Published"),
-        SearchableGrepContext("K456", Some("some title 2"), "Published")
+        SearchableGrepContext("K456", Some("some title 2"), "Published"),
       ),
       traits = List.empty,
       embedAttributes = embedAttrs,
@@ -93,7 +78,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       availability = "everyone",
       learningResourceType = LearningResourceType.Article,
       domainObject = TestData.article1,
-      typeName = List.empty
+      typeName = List.empty,
     )
     val json         = CirceUtil.toJsonString(original)
     val deserialized = CirceUtil.unsafeParseAs[SearchableArticle](json)
@@ -111,33 +96,18 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       Seq(
         LanguageValue("nn", "Eg kjøyrar rundt i min fine bil"),
         LanguageValue("nb", "Jeg kjører rundt i tutut"),
-        LanguageValue("en", "I'm in my mums car wroomwroom")
+        LanguageValue("en", "I'm in my mums car wroomwroom"),
       )
     )
 
-    val introductions = SearchableLanguageValues(
-      Seq(
-        LanguageValue("en", "Wroom wroom")
-      )
-    )
+    val introductions = SearchableLanguageValues(Seq(LanguageValue("en", "Wroom wroom")))
 
-    val metaDescriptions = SearchableLanguageValues(
-      Seq(
-        LanguageValue("nb", "Mammas bil")
-      )
-    )
+    val metaDescriptions = SearchableLanguageValues(Seq(LanguageValue("nb", "Mammas bil")))
 
-    val tags = SearchableLanguageList(
-      Seq(
-        LanguageValue("en", Seq("Mum", "Car", "Wroom"))
-      )
-    )
+    val tags = SearchableLanguageList(Seq(LanguageValue("en", Seq("Mum", "Car", "Wroom"))))
 
     val embedAttrs = SearchableLanguageList(
-      Seq(
-        LanguageValue("nb", Seq("En norsk", "To norsk")),
-        LanguageValue("en", Seq("One english"))
-      )
+      Seq(LanguageValue("nb", Seq("En norsk", "To norsk")), LanguageValue("en", Seq("One english")))
     )
 
     val embedResourcesAndIds =
@@ -165,7 +135,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       contextids = List(singleSearchableTaxonomyContext.contextId),
       grepContexts = List(
         SearchableGrepContext("K123", Some("some title"), "Published"),
-        SearchableGrepContext("K456", Some("some title 2"), "Published")
+        SearchableGrepContext("K456", Some("some title 2"), "Published"),
       ),
       traits = List.empty,
       embedAttributes = embedAttrs,
@@ -173,7 +143,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       availability = "everyone",
       learningResourceType = LearningResourceType.Article,
       domainObject = TestData.article1,
-      typeName = List.empty
+      typeName = List.empty,
     )
 
     val json         = CirceUtil.toJsonString(original)

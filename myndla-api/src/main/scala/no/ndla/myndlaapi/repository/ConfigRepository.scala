@@ -51,7 +51,7 @@ class ConfigRepository extends StrictLogging {
       val _ = withSQL {
         insertInto(ConfigMeta).namedValues(
           ConfigMeta.column.c("configkey") -> config.key.entryName,
-          ConfigMeta.column.c("value")     -> config
+          ConfigMeta.column.c("value")     -> config,
         )
       }.update()
       Success(config)
@@ -69,9 +69,6 @@ class ConfigRepository extends StrictLogging {
            select ${c.result.*}
            from ${ConfigMeta.as(c)}
            where configkey = $keyName;
-        """
-        .map(ConfigMeta.fromResultSet(c))
-        .single()
-        .sequence
+        """.map(ConfigMeta.fromResultSet(c)).single().sequence
     }.flatten
 }

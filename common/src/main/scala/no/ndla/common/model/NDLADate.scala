@@ -65,15 +65,14 @@ object NDLADate {
   val MIN: NDLADate = fromDate(LocalDateTime.MIN)
   val MAX: NDLADate = fromDate(LocalDateTime.MAX)
 
-  private val dateFormats: List[DateTimeFormatter] =
-    baseFormatter +:
-      List(
-        "yyyy-MM-dd'T'HH:mm:ss'Z'",
-        "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS'Z'",
-        "yyyy-MM-dd'T'HH:mm:ss",
-        "yyyy-MM-dd'T'HH:mm:ss.SSS",
-        "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS"
-      ).map(DateTimeFormatter.ofPattern)
+  private val dateFormats: List[DateTimeFormatter] = baseFormatter +:
+    List(
+      "yyyy-MM-dd'T'HH:mm:ss'Z'",
+      "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS'Z'",
+      "yyyy-MM-dd'T'HH:mm:ss",
+      "yyyy-MM-dd'T'HH:mm:ss.SSS",
+      "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS",
+    ).map(DateTimeFormatter.ofPattern)
 
   def now(): NDLADate = NDLADate.fromDate(ZonedDateTime.now(localZone))
 
@@ -91,40 +90,15 @@ object NDLADate {
     fromDate(date)
   }
 
-  def of(
-      year: Int,
-      month: Int,
-      dayOfMonth: Int,
-      hour: Int,
-      minute: Int,
-      second: Int
-  ): NDLADate =
+  def of(year: Int, month: Int, dayOfMonth: Int, hour: Int, minute: Int, second: Int): NDLADate =
     fromDate(LocalDateTime.of(year, month, dayOfMonth, hour, minute, second))
-  def of(
-      year: Int,
-      month: Int,
-      dayOfMonth: Int,
-      hour: Int,
-      minute: Int
-  ): NDLADate = fromDate(LocalDateTime.of(year, month, dayOfMonth, hour, minute))
-  def of(
-      year: Int,
-      month: Int,
-      dayOfMonth: Int,
-      hour: Int,
-      minute: Int,
-      second: Int,
-      nanoOfSecond: Int
-  ): NDLADate = fromDate(ZonedDateTime.of(year, month, dayOfMonth, hour, minute, second, nanoOfSecond, utcZone))
+  def of(year: Int, month: Int, dayOfMonth: Int, hour: Int, minute: Int): NDLADate =
+    fromDate(LocalDateTime.of(year, month, dayOfMonth, hour, minute))
+  def of(year: Int, month: Int, dayOfMonth: Int, hour: Int, minute: Int, second: Int, nanoOfSecond: Int): NDLADate =
+    fromDate(ZonedDateTime.of(year, month, dayOfMonth, hour, minute, second, nanoOfSecond, utcZone))
 
-  def of(
-      year: Int,
-      month: Month,
-      dayOfMonth: Int,
-      hour: Int,
-      minute: Int,
-      second: Int
-  ): NDLADate = fromUtcDate(LocalDateTime.of(year, month, dayOfMonth, hour, minute, second))
+  def of(year: Int, month: Month, dayOfMonth: Int, hour: Int, minute: Int, second: Int): NDLADate =
+    fromUtcDate(LocalDateTime.of(year, month, dayOfMonth, hour, minute, second))
 
   def fromDate(date: ZonedDateTime): NDLADate = new NDLADate(date)
 
@@ -135,14 +109,10 @@ object NDLADate {
     @tailrec
     def _fromString(formatsToTry: List[DateTimeFormatter]): Try[NDLADate] = {
       formatsToTry match {
-        case headFormatter :: Nil =>
-          Try(NDLADate.fromUtcDate(LocalDateTime.parse(str, headFormatter)))
-        case headFormatter :: tail =>
-          Try(NDLADate.fromUtcDate(LocalDateTime.parse(str, headFormatter))) match {
-            case Failure(_) =>
-              _fromString(tail)
-            case Success(result) =>
-              Success(result)
+        case headFormatter :: Nil  => Try(NDLADate.fromUtcDate(LocalDateTime.parse(str, headFormatter)))
+        case headFormatter :: tail => Try(NDLADate.fromUtcDate(LocalDateTime.parse(str, headFormatter))) match {
+            case Failure(_)      => _fromString(tail)
+            case Success(result) => Success(result)
           }
         case Nil => Failure(NDLADateError("Got past end of formatters before returning, this is a bug."))
       }
@@ -173,8 +143,7 @@ object NDLADate {
 
   implicit def optDecoder: Decoder[Option[NDLADate]] = Decoder.withReattempt {
     case c: FailedCursor if !c.incorrectFocus => Right(None)
-    case c                                    =>
-      Decoder
+    case c                                    => Decoder
         .instanceTry(cur => {
           cur.value.asString match {
             case Some(value) if value.isBlank => Success(None)

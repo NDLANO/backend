@@ -20,7 +20,7 @@ case class UpdatedSubjectPageDTO(
     editorsChoices: Option[List[String]],
     connectedTo: Option[List[String]],
     buildsOn: Option[List[String]],
-    leadsTo: Option[List[String]]
+    leadsTo: Option[List[String]],
 )
 object UpdatedSubjectPageDTO {
   implicit val encoder: Encoder[UpdatedSubjectPageDTO] = deriveEncoder

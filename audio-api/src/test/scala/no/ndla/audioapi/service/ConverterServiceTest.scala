@@ -25,17 +25,16 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val created: NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)
 
-  val copyrighted: Copyright =
-    Copyright(
-      License.Copyrighted.toString,
-      Some("New York"),
-      Seq(Author(ContributorType.Writer, "Clark Kent")),
-      Seq(),
-      Seq(),
-      None,
-      None,
-      false
-    )
+  val copyrighted: Copyright = Copyright(
+    License.Copyrighted.toString,
+    Some("New York"),
+    Seq(Author(ContributorType.Writer, "Clark Kent")),
+    Seq(),
+    Seq(),
+    None,
+    None,
+    false,
+  )
 
   val audioMeta: AudioMetaInformation = domain.AudioMetaInformation(
     Some(1),
@@ -51,7 +50,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     AudioType.Standard,
     Seq.empty,
     None,
-    None
+    None,
   )
 
   test("that toApiAudioMetaInformation converts a domain class to an api class") {
@@ -69,7 +68,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       created,
-      updated
+      updated,
     )
 
     service.toApiAudioMetaInformation(audioMeta, Some("nb")) should equal(Success(expected))
@@ -89,7 +88,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       created,
-      updated
+      updated,
     )
 
     val expectedNoTitles = expectedDefaultLanguage.copy(title = api.TitleDTO("", "nb"))
@@ -106,7 +105,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val license     = commonApi.LicenseDTO(
       licenseAbbr,
       Some("Creative Commons Attribution-ShareAlike 4.0 International"),
-      Some("https://creativecommons.org/licenses/by-sa/4.0/")
+      Some("https://creativecommons.org/licenses/by-sa/4.0/"),
     )
 
     service.toApiLicence(licenseAbbr) should equal(license)

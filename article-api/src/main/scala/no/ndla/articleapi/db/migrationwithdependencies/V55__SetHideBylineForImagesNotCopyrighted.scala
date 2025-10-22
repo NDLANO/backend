@@ -13,9 +13,7 @@ import no.ndla.articleapi.db.HtmlMigration
 import no.ndla.articleapi.integration.ImageApiClient
 import org.jsoup.nodes.Element
 
-class V55__SetHideBylineForImagesNotCopyrighted(
-    properties: ArticleApiProperties
-)(using imageApiClient: ImageApiClient)
+class V55__SetHideBylineForImagesNotCopyrighted(properties: ArticleApiProperties)(using imageApiClient: ImageApiClient)
     extends HtmlMigration {
   given props: ArticleApiProperties = properties
 
@@ -41,11 +39,10 @@ class V55__SetHideBylineForImagesNotCopyrighted(
         if (noHideByline) {
           val imageId = embed.attr("data-resource_id")
           val image   = images.find(i => i.id == imageId)
-          embed
-            .attr(
-              "data-hide-byline",
-              s"${image.exists(i => !i.copyright.license.license.equals("COPYRIGHTED"))}"
-            ): Unit
+          embed.attr(
+            "data-hide-byline",
+            s"${image.exists(i => !i.copyright.license.license.equals("COPYRIGHTED"))}",
+          ): Unit
         }
       })
     doc

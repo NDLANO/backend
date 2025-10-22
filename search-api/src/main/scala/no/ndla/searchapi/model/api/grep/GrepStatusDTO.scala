@@ -30,10 +30,9 @@ object GrepStatusDTO                                     extends Enum[GrepStatus
 
   implicit val schema: Schema[GrepStatusDTO] = schemaForEnumEntry[GrepStatusDTO]
 
-  def fromUrlData(input: String): Try[GrepStatusDTO] =
-    values
-      .find(x => input == x.urlData || input == x.entryName)
-      .toTry(new IllegalArgumentException(s"Invalid `GrepStatusDTO` input: $input"))
+  def fromUrlData(input: String): Try[GrepStatusDTO] = values
+    .find(x => input == x.urlData || input == x.entryName)
+    .toTry(new IllegalArgumentException(s"Invalid `GrepStatusDTO` input: $input"))
 
   implicit def decoder: Decoder[GrepStatusDTO] = Decoder.instanceTry {
     _.as[String].toTry.flatMap(str => GrepStatusDTO.fromUrlData(str))

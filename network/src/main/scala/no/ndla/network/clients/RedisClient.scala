@@ -20,7 +20,7 @@ class RedisClient(
     host: String,
     port: Int,
     // default to 8 hours cache time
-    cacheTimeSeconds: Long = 60 * 60 * 8
+    cacheTimeSeconds: Long = 60 * 60 * 8,
 )(using props: BaseProps)
     extends StrictLogging {
   val jedis                    = new ScalaJedis(host, port, props.Environment)
@@ -31,7 +31,9 @@ class RedisClient(
 
   private def getKeyExpireTime(key: String): Try[Long] = permitTry {
     val existingExpireTime = jedis.ttl(key).?
-    val newExpireTime      = if (existingExpireTime > 0) existingExpireTime else cacheTimeSeconds
+    val newExpireTime      =
+      if (existingExpireTime > 0) existingExpireTime
+      else cacheTimeSeconds
     Success(newExpireTime)
   }
 
@@ -44,27 +46,27 @@ class RedisClient(
   }
 
   def getFeideUserFromCache(accessToken: FeideAccessToken): Try[Option[FeideExtendedUserInfo]] = {
-    jedis.hget(accessToken, feideUserField).map {
-      case Some(feideUser) =>
-        CirceUtil.tryParseAs[FeideExtendedUserInfo](feideUser) match {
-          case Success(value) => Some(value)
-          case Failure(ex)    =>
-            logger.warn(s"Failed to deserialize cached value from field $feideUserField. Updating cache.", ex)
-            None
-        }
-      case None => None
-    }
+    jedis
+      .hget(accessToken, feideUserField)
+      .map {
+        case Some(feideUser) => CirceUtil.tryParseAs[FeideExtendedUserInfo](feideUser) match {
+            case Success(value) => Some(value)
+            case Failure(ex)    =>
+              logger.warn(s"Failed to deserialize cached value from field $feideUserField. Updating cache.", ex)
+              None
+          }
+        case None => None
+      }
   }
 
   def updateCacheAndReturnFeideUser(
       accessToken: FeideAccessToken,
-      feideExtendedUser: FeideExtendedUserInfo
+      feideExtendedUser: FeideExtendedUserInfo,
   ): Try[FeideExtendedUserInfo] = {
     updateCache(accessToken, feideUserField, CirceUtil.toJsonString(feideExtendedUser)).map(_ => feideExtendedUser)
   }
 
-  def getFeideIdFromCache(accessToken: FeideAccessToken): Try[Option[FeideID]] =
-    jedis.hget(accessToken, feideIdField)
+  def getFeideIdFromCache(accessToken: FeideAccessToken): Try[Option[FeideID]] = jedis.hget(accessToken, feideIdField)
 
   def updateCacheAndReturnFeideId(accessToken: FeideAccessToken, feideId: FeideID): Try[FeideID] = {
     updateCache(accessToken, feideIdField, feideId).map(_ => feideId)
@@ -78,22 +80,20 @@ class RedisClient(
   }
 
   def getGroupsFromCache(accessToken: FeideAccessToken): Try[Option[Seq[FeideGroup]]] = {
-    jedis.hget(accessToken, feideGroupsField).map {
-      case Some(feideGroups) =>
-        CirceUtil.tryParseAs[Seq[FeideGroup]](feideGroups) match {
-          case Success(value) => Some(value)
-          case Failure(ex)    =>
-            logger.warn(s"Failed to deserialize cached value from field $feideGroupsField. Updating cache.", ex)
-            None
-        }
-      case None => None
-    }
+    jedis
+      .hget(accessToken, feideGroupsField)
+      .map {
+        case Some(feideGroups) => CirceUtil.tryParseAs[Seq[FeideGroup]](feideGroups) match {
+            case Success(value) => Some(value)
+            case Failure(ex)    =>
+              logger.warn(s"Failed to deserialize cached value from field $feideGroupsField. Updating cache.", ex)
+              None
+          }
+        case None => None
+      }
   }
 
-  def updateCacheAndReturnGroups(
-      accessToken: FeideAccessToken,
-      feideGroups: Seq[FeideGroup]
-  ): Try[Seq[FeideGroup]] = {
+  def updateCacheAndReturnGroups(accessToken: FeideAccessToken, feideGroups: Seq[FeideGroup]): Try[Seq[FeideGroup]] = {
     updateCache(accessToken, feideGroupsField, CirceUtil.toJsonString(feideGroups)).map(_ => feideGroups)
   }
 

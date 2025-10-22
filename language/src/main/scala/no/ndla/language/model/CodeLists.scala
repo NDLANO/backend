@@ -45,7 +45,7 @@ object CodeLists {
       languageType: Option[String],
       refName: String,
       localName: Option[String],
-      comment: Option[String]
+      comment: Option[String],
   ) extends Iso639
   case class Iso15924Val(
       code: String,
@@ -53,7 +53,7 @@ object CodeLists {
       englishName: String,
       frenchName: String,
       pva: Option[String],
-      date: String
+      date: String,
   ) extends Iso15924
   case class Iso3166Val(code: String, name: String) extends Iso3166
 
@@ -76,7 +76,7 @@ object CodeLists {
     "sd",
     "ug",
     "ur",
-    "yi"
+    "yi",
   )
 
   val iso15924Definitions: Seq[Iso15924Val] = Seq(
@@ -108,7 +108,7 @@ object CodeLists {
       "Unified Canadian Aboriginal Syllabics",
       "syllabaire autochtone canadien unifié",
       Some("Canadian_Aboriginal"),
-      "2004-05-29"
+      "2004-05-29",
     ),
     Iso15924Val("Cari", 201, "Carian", "carien", Some("Carian"), "2007-07-02"),
     Iso15924Val("Cham", 358, "Cham", "cham (čam, tcham)", Some("Cham"), "2009-11-11"),
@@ -124,7 +124,7 @@ object CodeLists {
       "Cyrillic (Old Church Slavonic variant)",
       "cyrillique (variante slavonne)",
       None,
-      "2004-05-01"
+      "2004-05-01",
     ),
     Iso15924Val("Deva", 315, "Devanagari (Nagari)", "dévanâgarî", Some("Devanagari"), "2004-05-01"),
     Iso15924Val("Dogr", 328, "Dogra", "dogra", None, "2016-12-05"),
@@ -135,7 +135,7 @@ object CodeLists {
       "Duployan shorthand, Duployan stenography",
       "sténographie Duployé",
       Some("Duployan"),
-      "2014-11-15"
+      "2014-11-15",
     ),
     Iso15924Val("Egyd", 70, "Egyptian demotic", "démotique égyptien", None, "2004-05-01"),
     Iso15924Val("Egyh", 60, "Egyptian hieratic", "hiératique égyptien", None, "2004-05-01"),
@@ -145,7 +145,7 @@ object CodeLists {
       "Egyptian hieroglyphs",
       "hiéroglyphes égyptiens",
       Some("Egyptian_Hieroglyphs"),
-      "2009-06-01"
+      "2009-06-01",
     ),
     Iso15924Val("Elba", 226, "Elbasan", "elbasan", Some("Elbasan"), "2014-11-15"),
     Iso15924Val("Ethi", 430, "Ethiopic (Geʻez)", "éthiopien (geʻez, guèze)", Some("Ethiopic"), "2004-10-25"),
@@ -155,7 +155,7 @@ object CodeLists {
       "Khutsuri (Asomtavruli and Nuskhuri)",
       "khoutsouri (assomtavrouli et nouskhouri)",
       Some("Georgian"),
-      "2012-10-16"
+      "2012-10-16",
     ),
     Iso15924Val(
       "Geor",
@@ -163,7 +163,7 @@ object CodeLists {
       "Georgian (Mkhedruli and Mtavruli)",
       "géorgien (mkhédrouli et mtavrouli)",
       Some("Georgian"),
-      "2016-12-05"
+      "2016-12-05",
     ),
     Iso15924Val("Glag", 225, "Glagolitic", "glagolitique", Some("Glagolitic"), "2006-06-21"),
     Iso15924Val("Gong", 312, "Gunjala Gondi", "gunjala gondî", None, "2016-12-05"),
@@ -179,7 +179,7 @@ object CodeLists {
       "Han with Bopomofo (alias for Han + Bopomofo)",
       "han avec bopomofo (alias pour han + bopomofo)",
       None,
-      "2016-01-19"
+      "2016-01-19",
     ),
     Iso15924Val("Hang", 286, "Hangul (Hangŭl, Hangeul)", "hangûl (hangŭl, hangeul)", Some("Hangul"), "2004-05-29"),
     Iso15924Val("Hani", 500, "Han (Hanzi, Kanji, Hanja)", "idéogrammes han (sinogrammes)", Some("Han"), "2009-02-23"),
@@ -191,7 +191,7 @@ object CodeLists {
       "Han (Traditional variant)",
       "idéogrammes han (variante traditionnelle)",
       None,
-      "2004-05-29"
+      "2004-05-29",
     ),
     Iso15924Val("Hatr", 127, "Hatran", "hatrénien", Some("Hatran"), "2015-07-07"),
     Iso15924Val("Hebr", 125, "Hebrew", "hébreu", Some("Hebrew"), "2004-05-01"),
@@ -202,7 +202,7 @@ object CodeLists {
       "Anatolian Hieroglyphs (Luwian Hieroglyphs, Hittite Hieroglyphs)",
       "hiéroglyphes anatoliens (hiéroglyphes louvites, hiéroglyphes hittites)",
       Some("Anatolian_Hieroglyphs"),
-      "2015-07-07"
+      "2015-07-07",
     ),
     Iso15924Val("Hmng", 450, "Pahawh Hmong", "pahawh hmong", Some("Pahawh_Hmong"), "2014-11-15"),
     Iso15924Val("Hmnp", 451, "Nyiakeng Puachue Hmong", "nyiakeng puachue hmong", None, "2017-07-26"),
@@ -212,7 +212,7 @@ object CodeLists {
       "Japanese syllabaries (alias for Hiragana + Katakana)",
       "syllabaires japonais (alias pour hiragana + katakana)",
       Some("Katakana_Or_Hiragana"),
-      "2011-06-21"
+      "2011-06-21",
     ),
     Iso15924Val(
       "Hung",
@@ -220,7 +220,7 @@ object CodeLists {
       "Old Hungarian (Hungarian Runic)",
       "runes hongroises (ancien hongrois)",
       Some("Old_Hungarian"),
-      "2015-07-07"
+      "2015-07-07",
     ),
     Iso15924Val("Inds", 610, "Indus (Harappan)", "indus", None, "2004-05-01"),
     Iso15924Val(
@@ -229,7 +229,7 @@ object CodeLists {
       "Old Italic (Etruscan, Oscan, etc.)",
       "ancien italique (étrusque, osque, etc.)",
       Some("Old_Italic"),
-      "2004-05-29"
+      "2004-05-29",
     ),
     Iso15924Val(
       "Jamo",
@@ -237,7 +237,7 @@ object CodeLists {
       "Jamo (alias for Jamo subset of Hangul)",
       "jamo (alias pour le sous-ensemble jamo du hangûl)",
       None,
-      "2016-01-19"
+      "2016-01-19",
     ),
     Iso15924Val("Java", 361, "Javanese", "javanais", Some("Javanese"), "2009-06-01"),
     Iso15924Val(
@@ -246,7 +246,7 @@ object CodeLists {
       "Japanese (alias for Han + Hiragana + Katakana)",
       "japonais (alias pour han + hiragana + katakana)",
       None,
-      "2006-06-21"
+      "2006-06-21",
     ),
     Iso15924Val("Jurc", 510, "Jurchen", "jurchen", None, "2010-12-21"),
     Iso15924Val("Kali", 357, "Kayah Li", "kayah li", Some("Kayah_Li"), "2007-07-02"),
@@ -289,7 +289,7 @@ object CodeLists {
       "Meroitic Hieroglyphs",
       "hiéroglyphes méroïtiques",
       Some("Meroitic_Hieroglyphs"),
-      "2012-02-06"
+      "2012-02-06",
     ),
     Iso15924Val("Mlym", 347, "Malayalam", "malayâlam", Some("Malayalam"), "2004-05-01"),
     Iso15924Val("Modi", 324, "Modi, Moḍī", "modî", Some("Modi"), "2014-11-15"),
@@ -305,7 +305,7 @@ object CodeLists {
       "Old North Arabian (Ancient North Arabian)",
       "nord-arabique",
       Some("Old_North_Arabian"),
-      "2014-11-15"
+      "2014-11-15",
     ),
     Iso15924Val("Nbat", 159, "Nabataean", "nabatéen", Some("Nabataean"), "2014-11-15"),
     Iso15924Val(
@@ -314,7 +314,7 @@ object CodeLists {
       "Newa, Newar, Newari, Nepāla lipi",
       "néwa, néwar, néwari, nepāla lipi",
       Some("Newa"),
-      "2016-12-05"
+      "2016-12-05",
     ),
     Iso15924Val("Nkdb", 85, "Naxi Dongba (na²¹ɕi³³ to³³ba²¹, Nakhi Tomba)", "naxi dongba", None, "2017-07-26"),
     Iso15924Val(
@@ -323,7 +323,7 @@ object CodeLists {
       "Naxi Geba (na²¹ɕi³³ gʌ²¹ba²¹, 'Na-'Khi ²Ggŏ-¹baw, Nakhi Geba)",
       "naxi geba, nakhi geba",
       None,
-      "2017-07-26"
+      "2017-07-26",
     ),
     Iso15924Val("Nkoo", 165, "N’Ko", "n’ko", Some("Nko"), "2006-10-10"),
     Iso15924Val("Nshu", 499, "Nüshu", "nüshu", Some("Nushu"), "2017-07-26"),
@@ -343,7 +343,7 @@ object CodeLists {
       "Inscriptional Pahlavi",
       "pehlevi des inscriptions",
       Some("Inscriptional_Pahlavi"),
-      "2009-06-01"
+      "2009-06-01",
     ),
     Iso15924Val("Phlp", 132, "Psalter Pahlavi", "pehlevi des psautiers", Some("Psalter_Pahlavi"), "2014-11-15"),
     Iso15924Val("Phlv", 133, "Book Pahlavi", "pehlevi des livres", None, "2007-07-15"),
@@ -356,7 +356,7 @@ object CodeLists {
       "Inscriptional Parthian",
       "parthe des inscriptions",
       Some("Inscriptional_Parthian"),
-      "2009-06-01"
+      "2009-06-01",
     ),
     Iso15924Val("Qaaa", 900, "Reserved for private use (start)", "réservé à l’usage privé (début)", None, "2004-05-29"),
     Iso15924Val("Qabx", 949, "Reserved for private use (end)", "réservé à l’usage privé (fin)", None, "2004-05-29"),
@@ -410,7 +410,7 @@ object CodeLists {
       "Cuneiform, Sumero-Akkadian",
       "cunéiforme suméro-akkadien",
       Some("Cuneiform"),
-      "2006-10-10"
+      "2006-10-10",
     ),
     Iso15924Val("Yiii", 460, "Yi", "yi", Some("Yi"), "2004-05-01"),
     Iso15924Val(
@@ -419,7 +419,7 @@ object CodeLists {
       "Zanabazar Square (Zanabazarin Dörböljin Useg, Xewtee Dörböljin Bicig, Horizontal Square Script)",
       "zanabazar quadratique",
       Some("Zanabazar_Square"),
-      "2017-07-26"
+      "2017-07-26",
     ),
     Iso15924Val(
       "Zinh",
@@ -427,7 +427,7 @@ object CodeLists {
       "Code for inherited script",
       "codet pour écriture héritée",
       Some("Inherited"),
-      "2009-02-23"
+      "2009-02-23",
     ),
     Iso15924Val("Zmth", 995, "Mathematical notation", "notation mathématique", None, "2007-11-26"),
     Iso15924Val("Zsye", 993, "Symbols (Emoji variant)", "symboles (variante émoji)", None, "2015-12-16"),
@@ -439,9 +439,9 @@ object CodeLists {
       "Code for undetermined script",
       "codet pour écriture indéterminée",
       Some("Common"),
-      "2004-05-29"
+      "2004-05-29",
     ),
-    Iso15924Val("Zzzz", 999, "Code for uncoded script", "codet pour écriture non codée", Some("Unknown"), "2006-10-10")
+    Iso15924Val("Zzzz", 999, "Code for uncoded script", "codet pour écriture non codée", Some("Unknown"), "2006-10-10"),
   )
 
   val iso3166Definitions: Seq[Iso3166Val] = Seq(
@@ -693,9 +693,10 @@ object CodeLists {
     Iso3166Val("EH", "Western Sahara"),
     Iso3166Val("YE", "Yemen"),
     Iso3166Val("ZM", "Zambia"),
-    Iso3166Val("ZW", "Zimbabwe")
+    Iso3166Val("ZW", "Zimbabwe"),
   )
 
-  val iso639Definitions: Seq[Iso639Val] =
-    Iso639List_1.items ++ Iso639List_2.items ++ Iso639List_3.items ++ Iso639List_4.items ++ Iso639List_5.items ++ Iso639List_6.items ++ Iso639List_7.items ++ Iso639List_8.items ++ Iso639List_9.items ++ Iso639List_10.items
+  val iso639Definitions: Seq[Iso639Val] = Iso639List_1.items ++ Iso639List_2.items ++ Iso639List_3.items ++ Iso639List_4
+    .items ++ Iso639List_5.items ++ Iso639List_6.items ++ Iso639List_7.items ++ Iso639List_8.items ++ Iso639List_9
+    .items ++ Iso639List_10.items
 }

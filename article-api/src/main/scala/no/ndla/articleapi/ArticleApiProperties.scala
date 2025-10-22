@@ -53,7 +53,7 @@ class ArticleApiProperties extends BaseProps with DatabaseProps {
     "raw-image"                 -> s"$Domain/image-api/raw/id",
     ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio",
     ResourceType.File.toString  -> Domain,
-    ResourceType.H5P.toString   -> H5PAddress
+    ResourceType.H5P.toString   -> H5PAddress,
   )
 
   def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "sub", "sup")
@@ -64,8 +64,8 @@ class ArticleApiProperties extends BaseProps with DatabaseProps {
     Map(
       "local"   -> "https://h5p-test.ndla.no",
       "test"    -> "https://h5p-test.ndla.no",
-      "staging" -> "https://h5p-staging.ndla.no"
-    ).getOrElse(Environment, "https://h5p.ndla.no")
+      "staging" -> "https://h5p-staging.ndla.no",
+    ).getOrElse(Environment, "https://h5p.ndla.no"),
   )
 
   val BrightcoveAccountId: Prop[String] = prop("BRIGHTCOVE_ACCOUNT_ID")

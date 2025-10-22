@@ -36,9 +36,8 @@ package object myndlaapi {
   }(v =>
     (ps, idx) => {
       v match {
-        case Some(value) =>
-          ps.setObject(idx, value)
-        case None => ps.setObject(idx, null)
+        case Some(value) => ps.setObject(idx, value)
+        case None        => ps.setObject(idx, null)
       }
     }
   )

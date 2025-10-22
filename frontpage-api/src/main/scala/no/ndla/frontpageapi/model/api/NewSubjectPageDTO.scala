@@ -21,7 +21,7 @@ case class NewSubjectPageDTO(
     editorsChoices: Option[List[String]],
     connectedTo: Option[List[String]],
     buildsOn: Option[List[String]],
-    leadsTo: Option[List[String]]
+    leadsTo: Option[List[String]],
 )
 
 object NewSubjectPageDTO {

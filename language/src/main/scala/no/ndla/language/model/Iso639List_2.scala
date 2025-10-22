@@ -813,6 +813,6 @@ object Iso639List_2 {
     Iso639Val("dix", None, None, None, Some("I"), Some("L"), "Dixon Reef", None, None),
     Iso639Val("diy", None, None, None, Some("I"), Some("L"), "Diuwe", None, None),
     Iso639Val("diz", None, None, None, Some("I"), Some("L"), "Ding", None, None),
-    Iso639Val("dja", None, None, None, Some("I"), Some("E"), "Djadjawurrung", None, None)
+    Iso639Val("dja", None, None, None, Some("I"), Some("E"), "Djadjawurrung", None, None),
   )
 }

@@ -19,8 +19,7 @@ class DBArticle(using props: Props) {
     override val tableName                       = "contentdata"
     override lazy val schemaName: Option[String] = Some(props.MetaSchema)
 
-    def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): ArticleRow =
-      fromResultSet(lp.resultName)(rs)
+    def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): ArticleRow = fromResultSet(lp.resultName)(rs)
 
     def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): ArticleRow = {
       val articleId = rs.long(lp.c("article_id"))
@@ -31,20 +30,10 @@ class DBArticle(using props: Props) {
 
       val article = document.map(jsonStr => {
         val meta = CirceUtil.unsafeParseAs[Article](jsonStr)
-        meta.copy(
-          id = Some(articleId),
-          revision = Some(revision),
-          slug = slug
-        )
+        meta.copy(id = Some(articleId), revision = Some(revision), slug = slug)
       })
 
-      ArticleRow(
-        rowId = rowId,
-        revision = revision,
-        articleId = articleId,
-        slug = slug,
-        article = article
-      )
+      ArticleRow(rowId = rowId, revision = revision, articleId = articleId, slug = slug, article = article)
     }
   }
 }

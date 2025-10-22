@@ -17,7 +17,7 @@ import no.ndla.learningpathapi.model.api.{
   CoverPhotoDTO,
   NewCopyLearningPathV2DTO,
   NewLearningPathV2DTO,
-  NewLearningStepV2DTO
+  NewLearningStepV2DTO,
 }
 import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License
@@ -34,12 +34,11 @@ import no.ndla.common.model.domain.RevisionMeta
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   val today: NDLADate               = clock.now()
   val clinton: commonApi.AuthorDTO  = commonApi.AuthorDTO(ContributorType.Writer, "Crooked Hillary")
-  val license: commonApi.LicenseDTO =
-    commonApi.LicenseDTO(
-      License.PublicDomain.toString,
-      Some("Public Domain"),
-      Some("https://creativecommons.org/about/pdm")
-    )
+  val license: commonApi.LicenseDTO = commonApi.LicenseDTO(
+    License.PublicDomain.toString,
+    Some("Public Domain"),
+    Some("https://creativecommons.org/about/pdm"),
+  )
   val copyright: api.CopyrightDTO = api.CopyrightDTO(license, List(clinton))
   val owner                       = TokenUser("me", Set.empty, None)
 
@@ -71,7 +70,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     priority = Priority.Unspecified,
     revisions = Seq.empty,
     introduction = api.IntroductionDTO("<section><p>Introduksjon</p></section>", "nb"),
-    Seq.empty
+    Seq.empty,
   )
 
   val domainLearningStep: LearningStep = LearningStep(
@@ -89,7 +88,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright = None,
     created = today,
     lastUpdated = today,
-    owner = "me"
+    owner = "me",
   )
 
   val domainLearningStep2: LearningStep = LearningStep(
@@ -107,28 +106,21 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     copyright = None,
     created = today,
     lastUpdated = today,
-    owner = "me"
+    owner = "me",
   )
 
-  val multiLanguageDomainStep: LearningStep = TestData.domainLearningStep2.copy(
-    title = Seq(
-      Title("Tittel på bokmål", "nb"),
-      Title("Tittel på nynorsk", "nn")
-    ),
-    introduction = Seq(
-      Introduction("Introduksjon på bokmål", "nb"),
-      Introduction("Introduksjon på nynorsk", "nn")
-    ),
-    description = Seq(
-      Description("Beskrivelse på bokmål", "nb"),
-      Description("Beskrivelse på nynorsk", "nn")
-    ),
-    embedUrl = Seq(
-      EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed),
-      EmbedUrl("https://www.ndla.no/456", "nn", EmbedType.OEmbed)
-    ),
-    articleId = Some(123L)
-  )
+  val multiLanguageDomainStep: LearningStep = TestData
+    .domainLearningStep2
+    .copy(
+      title = Seq(Title("Tittel på bokmål", "nb"), Title("Tittel på nynorsk", "nn")),
+      introduction = Seq(Introduction("Introduksjon på bokmål", "nb"), Introduction("Introduksjon på nynorsk", "nn")),
+      description = Seq(Description("Beskrivelse på bokmål", "nb"), Description("Beskrivelse på nynorsk", "nn")),
+      embedUrl = Seq(
+        EmbedUrl("https://www.ndla.no/123", "nb", EmbedType.OEmbed),
+        EmbedUrl("https://www.ndla.no/456", "nn", EmbedType.OEmbed),
+      ),
+      articleId = Some(123L),
+    )
   val apiTags: List[api.LearningPathTagsDTO] = List(api.LearningPathTagsDTO(Seq("tag"), props.DefaultLanguage))
 
   val randomDate: NDLADate      = clock.now()
@@ -159,7 +151,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     comments = Seq.empty,
     priority = Priority.Unspecified,
     revisionMeta = revisionMeta,
-    grepCodes = Seq.empty
+    grepCodes = Seq.empty,
   )
 
   override def beforeEach(): Unit = {
@@ -188,9 +180,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
           commonApi.LicenseDTO(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
-            Some("https://creativecommons.org/licenses/by/4.0/")
+            Some("https://creativecommons.org/licenses/by/4.0/"),
           ),
-          List.empty
+          List.empty,
         ),
         canEdit = true,
         List("nb", "en"),
@@ -203,14 +195,14 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         Priority.Unspecified,
         revisionMeta.map(commonConverter.revisionMetaDomainToApi),
         api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
-        Seq.empty
+        Seq.empty,
       )
     )
     service.asApiLearningpathV2(
       domainLearningPath.copy(title = domainLearningPath.title :+ Title("test", "en")),
       props.DefaultLanguage,
       false,
-      TokenUser("me", Set.empty, None).toCombined
+      TokenUser("me", Set.empty, None).toCombined,
     ) should equal(expected)
   }
 
@@ -219,7 +211,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       domainLearningPath,
       "hurr-durr-lang",
       false,
-      TokenUser("me", Set.empty, None).toCombined
+      TokenUser("me", Set.empty, None).toCombined,
     ) should equal(
       Failure(NotFoundException("Language 'hurr-durr-lang' is not supported for learningpath with id '1'."))
     )
@@ -247,9 +239,9 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
           commonApi.LicenseDTO(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
-            Some("https://creativecommons.org/licenses/by/4.0/")
+            Some("https://creativecommons.org/licenses/by/4.0/"),
           ),
-          List.empty
+          List.empty,
         ),
         true,
         List("nb", "en"),
@@ -262,14 +254,14 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         Priority.Unspecified,
         revisionMeta.map(commonConverter.revisionMetaDomainToApi),
         api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
-        Seq.empty
+        Seq.empty,
       )
     )
     service.asApiLearningpathV2(
       domainLearningPath.copy(title = domainLearningPath.title :+ Title("test", "en")),
       "hurr durr I'm a language",
       true,
-      TokenUser("me", Set.empty, None).toCombined
+      TokenUser("me", Set.empty, None).toCombined,
     ) should equal(expected)
   }
 
@@ -292,19 +284,19 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
           commonApi.LicenseDTO(
             CC_BY.toString,
             Some("Creative Commons Attribution 4.0 International"),
-            Some("https://creativecommons.org/licenses/by/4.0/")
+            Some("https://creativecommons.org/licenses/by/4.0/"),
           ),
-          List.empty
+          List.empty,
         ),
         List("nb", "en"),
         None,
         None,
-        Seq.empty
+        Seq.empty,
       )
     )
     service.asApiLearningpathSummaryV2(
       domainLearningPath.copy(title = domainLearningPath.title :+ Title("test", "en")),
-      TokenUser.PublicUser.toCombined
+      TokenUser.PublicUser.toCombined,
     ) should equal(expected)
   }
 
@@ -329,7 +321,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         created = today,
         lastUpdated = today,
         supportedLanguages = Seq(props.DefaultLanguage),
-        ownerId = Some("me")
+        ownerId = Some("me"),
       )
     )
     service.asApiLearningStepV2(
@@ -337,7 +329,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       domainLearningPath,
       props.DefaultLanguage,
       false,
-      TokenUser("me", Set.empty, None).toCombined
+      TokenUser("me", Set.empty, None).toCombined,
     ) should equal(learningstep)
   }
 
@@ -347,7 +339,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       domainLearningPath,
       "hurr durr I'm a language",
       false,
-      TokenUser("me", Set.empty, None).toCombined
+      TokenUser("me", Set.empty, None).toCombined,
     ) should equal(
       Failure(
         NotFoundException(
@@ -380,7 +372,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         created = today,
         lastUpdated = today,
         supportedLanguages = Seq(props.DefaultLanguage),
-        ownerId = Some("me")
+        ownerId = Some("me"),
       )
     )
     service.asApiLearningStepV2(
@@ -388,7 +380,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       domainLearningPath,
       "hurr durr I'm a language",
       true,
-      TokenUser("me", Set.empty, None).toCombined
+      TokenUser("me", Set.empty, None).toCombined,
     ) should equal(learningstep)
   }
 
@@ -399,7 +391,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         1,
         api.TitleDTO("tittel", props.DefaultLanguage),
         "INTRODUCTION",
-        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1"
+        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1",
       )
     )
 
@@ -415,7 +407,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         1,
         api.TitleDTO("tittel", props.DefaultLanguage),
         "INTRODUCTION",
-        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1"
+        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1",
       )
     )
 
@@ -425,8 +417,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("asApiLearningPathTagsSummary converts api LearningPathTags to api LearningPathTagsSummary") {
-    val expected =
-      Some(api.LearningPathTagsSummaryDTO(props.DefaultLanguage, Seq(props.DefaultLanguage), Seq("tag")))
+    val expected = Some(api.LearningPathTagsSummaryDTO(props.DefaultLanguage, Seq(props.DefaultLanguage), Seq("tag")))
     service.asApiLearningPathTagsSummary(apiTags, props.DefaultLanguage, false) should equal(expected)
   }
 
@@ -437,8 +428,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   test(
     "asApiLearningPathTagsSummary converts api LearningPathTags to api LearningPathTagsSummary if language is undefined and fallback is true"
   ) {
-    val expected =
-      Some(api.LearningPathTagsSummaryDTO(props.DefaultLanguage, Seq(props.DefaultLanguage), Seq("tag")))
+    val expected = Some(api.LearningPathTagsSummaryDTO(props.DefaultLanguage, Seq(props.DefaultLanguage), Seq("tag")))
     service.asApiLearningPathTagsSummary(apiTags, "hurr durr I'm a language", true) should equal(expected)
   }
 
@@ -451,11 +441,11 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That asApiIntroduction returns an introduction for a given step") {
     val introductions = service.getApiIntroduction(
       Seq(
-        domainLearningStep.copy(
-          description = Seq(
+        domainLearningStep.copy(description =
+          Seq(
             Description("Introduksjon på bokmål", "nb"),
             Description("Introduksjon på nynorsk", "nn"),
-            Description("Introduction in english", "en")
+            Description("Introduction in english", "en"),
           )
         )
       )
@@ -481,7 +471,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       commonApi.LicenseDTO(
         CC_BY.toString,
         Option("Creative Commons Attribution 4.0 International"),
-        Some("https://creativecommons.org/licenses/by/4.0/")
+        Some("https://creativecommons.org/licenses/by/4.0/"),
       )
     )
   }
@@ -505,12 +495,8 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("asCoverPhoto converts an image id to CoverPhoto") {
-    val expectedResult =
-      CoverPhotoDTO(
-        s"${props.Domain}/image-api/raw/id/1",
-        s"${props.Domain}/image-api/v3/images/1"
-      )
-    val Some(result) = service.asCoverPhoto("1"): @unchecked
+    val expectedResult = CoverPhotoDTO(s"${props.Domain}/image-api/raw/id/1", s"${props.Domain}/image-api/v3/images/1")
+    val Some(result)   = service.asCoverPhoto("1"): @unchecked
     result should equal(expectedResult)
   }
 
@@ -528,20 +514,18 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That a apiLearningPath should only contain ownerId if admin") {
-    val noAdmin =
-      service.asApiLearningpathV2(
-        domainLearningPath,
-        "nb",
-        false,
-        TokenUser(domainLearningPath.owner, Set.empty, None).toCombined
-      )
-    val admin =
-      service.asApiLearningpathV2(
-        domainLearningPath,
-        "nb",
-        false,
-        TokenUser("kwakk", Set(LEARNINGPATH_API_ADMIN), None).toCombined
-      )
+    val noAdmin = service.asApiLearningpathV2(
+      domainLearningPath,
+      "nb",
+      false,
+      TokenUser(domainLearningPath.owner, Set.empty, None).toCombined,
+    )
+    val admin = service.asApiLearningpathV2(
+      domainLearningPath,
+      "nb",
+      false,
+      TokenUser("kwakk", Set(LEARNINGPATH_API_ADMIN), None).toCombined,
+    )
 
     noAdmin.get.ownerId should be(None)
     admin.get.ownerId.get should be(domainLearningPath.owner)
@@ -549,41 +533,38 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("New learningPaths get correct verification") {
     val apiRubio   = commonApi.AuthorDTO(ContributorType.Writer, "Little Marco")
-    val apiLicense =
-      commonApi.LicenseDTO(
-        License.PublicDomain.toString,
-        Some("Public Domain"),
-        Some("https://creativecommons.org/about/pdm")
-      )
+    val apiLicense = commonApi.LicenseDTO(
+      License.PublicDomain.toString,
+      Some("Public Domain"),
+      Some("https://creativecommons.org/about/pdm"),
+    )
     val apiCopyright = api.CopyrightDTO(apiLicense, List(apiRubio))
 
-    val newCopyLp =
-      NewCopyLearningPathV2DTO(
-        "Tittel",
-        Some("<section><p>Introduksjon</p></section>"),
-        Some("Beskrivelse"),
-        "nb",
-        None,
-        Some(1),
-        None,
-        None
-      )
-    val newLp =
-      NewLearningPathV2DTO(
-        "Tittel",
-        Some("Beskrivelse"),
-        None,
-        Some(1),
-        None,
-        "nb",
-        Some(apiCopyright),
-        None,
-        None,
-        None,
-        None,
-        Some("<section><p>Introduksjon</p></section>"),
-        None
-      )
+    val newCopyLp = NewCopyLearningPathV2DTO(
+      "Tittel",
+      Some("<section><p>Introduksjon</p></section>"),
+      Some("Beskrivelse"),
+      "nb",
+      None,
+      Some(1),
+      None,
+      None,
+    )
+    val newLp = NewLearningPathV2DTO(
+      "Tittel",
+      Some("Beskrivelse"),
+      None,
+      Some(1),
+      None,
+      "nb",
+      Some(apiCopyright),
+      None,
+      None,
+      None,
+      None,
+      Some("<section><p>Introduksjon</p></section>"),
+      None,
+    )
 
     service
       .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set.empty, None).toCombined)
@@ -596,46 +577,43 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       .newFromExistingLearningPath(
         domainLearningPath,
         newCopyLp,
-        TokenUser("Me", Set(LEARNINGPATH_API_ADMIN), None).toCombined
+        TokenUser("Me", Set(LEARNINGPATH_API_ADMIN), None).toCombined,
       )
       .get
       .verificationStatus should be(LearningPathVerificationStatus.CREATED_BY_NDLA)
     service
       .newLearningPath(newLp, TokenUser("Me", Set(LEARNINGPATH_API_PUBLISH), None).toCombined)
       .get
-      .verificationStatus should be(
-      LearningPathVerificationStatus.CREATED_BY_NDLA
-    )
+      .verificationStatus should be(LearningPathVerificationStatus.CREATED_BY_NDLA)
     service
       .newLearningPath(newLp, TokenUser("Me", Set(LEARNINGPATH_API_WRITE), None).toCombined)
       .get
-      .verificationStatus should be(
-      LearningPathVerificationStatus.CREATED_BY_NDLA
-    )
+      .verificationStatus should be(LearningPathVerificationStatus.CREATED_BY_NDLA)
   }
 
   test("asDomainLearningStep should work with learningpaths no matter the amount of steps") {
-    val newLs =
-      NewLearningStepV2DTO(
-        "Tittel",
-        Some("Beskrivelse"),
-        None,
-        "nb",
-        None,
-        Some(api.EmbedUrlV2DTO("", "oembed")),
-        true,
-        "TEXT",
-        None,
-        None
-      )
+    val newLs = NewLearningStepV2DTO(
+      "Tittel",
+      Some("Beskrivelse"),
+      None,
+      "nb",
+      None,
+      Some(api.EmbedUrlV2DTO("", "oembed")),
+      true,
+      "TEXT",
+      None,
+      None,
+    )
     val lpId = 5591L
     val lp1  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = None)
     val lp2  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = Some(Seq.empty))
-    val lp3  = TestData.sampleDomainLearningPath.copy(
-      id = Some(lpId),
-      learningsteps =
-        Some(Seq(TestData.domainLearningStep1.copy(seqNo = 0), TestData.domainLearningStep2.copy(seqNo = 1)))
-    )
+    val lp3  = TestData
+      .sampleDomainLearningPath
+      .copy(
+        id = Some(lpId),
+        learningsteps =
+          Some(Seq(TestData.domainLearningStep1.copy(seqNo = 0), TestData.domainLearningStep2.copy(seqNo = 1))),
+      )
 
     service.asDomainLearningStep(newLs, lp1, owner.id).get.seqNo should be(0)
     service.asDomainLearningStep(newLs, lp2, owner.id).get.seqNo should be(0)
@@ -654,7 +632,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       None,
       None,
       None,
-      commonApi.Missing
+      commonApi.Missing,
     )
     val result = service.mergeLearningSteps(TestData.domainLearningStep2, updatedStep).get
     result.introduction shouldEqual TestData.domainLearningStep2.introduction
@@ -674,7 +652,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       None,
       None,
       None,
-      commonApi.Missing
+      commonApi.Missing,
     )
     val result = service.mergeLearningSteps(multiLanguageDomainStep, updatedStep).get
     result.title shouldEqual Seq(Title("Tittel på bokmål", "nb"))
@@ -695,7 +673,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       None,
       None,
       None,
-      commonApi.Missing
+      commonApi.Missing,
     )
     val result = service.mergeLearningSteps(TestData.domainLearningStep2, updatedStep).get
     result.title shouldEqual Seq(Title("Tittel på bokmål oppdatert", "nb"))

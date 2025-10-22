@@ -39,7 +39,7 @@ class InternController(using
     props: Props,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController
     with StrictLogging {
   import errorHelpers.*
@@ -47,17 +47,11 @@ class InternController(using
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    postIndex,
-    deleteIndex,
-    getExternImageId,
-    getDomainImageFromUrl,
-    dumpImages,
-    dumpSingleImage,
-    postDump
-  )
+  override val endpoints: List[ServerEndpoint[Any, Eff]] =
+    List(postIndex, deleteIndex, getExternImageId, getDomainImageFromUrl, dumpImages, dumpSingleImage, postDump)
 
-  def postIndex: ServerEndpoint[Any, Eff] = endpoint.post
+  def postIndex: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("index")
     .in(query[Option[Int]]("numShards"))
     .out(stringBody)
@@ -66,15 +60,18 @@ class InternController(using
       implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
 
       val indexResults = for {
-        imageIndex <- Future { imageIndexService.indexDocuments(numShards) }
-        tagIndex   <- Future { tagIndexService.indexDocuments(numShards) }
+        imageIndex <- Future {
+          imageIndexService.indexDocuments(numShards)
+        }
+        tagIndex <- Future {
+          tagIndexService.indexDocuments(numShards)
+        }
       } yield (imageIndex, tagIndex)
 
       Await.result(indexResults, Duration(60, TimeUnit.MINUTES)) match {
         case (Success(imageIndex), Success(tagIndex)) =>
           val indexTime = math.max(tagIndex.millisUsed, imageIndex.millisUsed)
-          val result    =
-            s"Completed indexing of ${imageIndex.totalIndexed} images in $indexTime ms."
+          val result    = s"Completed indexing of ${imageIndex.totalIndexed} images in $indexTime ms."
           logger.info(result)
           result.asRight
         case (Failure(imageFail), _) =>
@@ -86,9 +83,12 @@ class InternController(using
       }
     }
 
-  def pluralIndex(n: Int): String = if (n == 1) "1 index" else s"$n indexes"
+  def pluralIndex(n: Int): String =
+    if (n == 1) "1 index"
+    else s"$n indexes"
 
-  def deleteIndex: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteIndex: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .in("index")
     .out(stringBody)
     .errorOut(stringInternalServerError)
@@ -106,11 +106,14 @@ class InternController(using
               s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
               s"${pluralIndex(successes.length)} were deleted successfully."
             message.asLeft
-          } else { s"Deleted ${pluralIndex(successes.length)}".asRight }
+          } else {
+            s"Deleted ${pluralIndex(successes.length)}".asRight
+          }
       }
     }
 
-  def getExternImageId: ServerEndpoint[Any, Eff] = endpoint.get
+  def getExternImageId: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("extern" / path[String]("image_id"))
     .in(query[Option[String]]("language"))
     .out(jsonBody[ImageMetaInformationV2DTO])
@@ -119,15 +122,15 @@ class InternController(using
     .serverLogicPure { user =>
       { case (externalId, language) =>
         imageRepository.withExternalId(externalId) match {
-          case Some(image) =>
-            converterService.asApiImageMetaInformationWithDomainUrlV2(image, language, user)
-          case None => notFoundWithMsg(s"Image with external id $externalId not found").asLeft
+          case Some(image) => converterService.asApiImageMetaInformationWithDomainUrlV2(image, language, user)
+          case None        => notFoundWithMsg(s"Image with external id $externalId not found").asLeft
         }
       }
     }
 
   val urlQueryParam: EndpointInput.Query[Option[String]] = query[Option[String]]("url")
-  def getDomainImageFromUrl: ServerEndpoint[Any, Eff]    = endpoint.get
+  def getDomainImageFromUrl: ServerEndpoint[Any, Eff]    = endpoint
+    .get
     .in("domain_image_from_url")
     .in(urlQueryParam)
     .out(jsonBody[ImageMetaInformation])
@@ -137,7 +140,8 @@ class InternController(using
       case None    => badRequest(s"Query param '$urlQueryParam' needs to be specified to return an image").asLeft
     }
 
-  def dumpImages: ServerEndpoint[Any, Eff] = endpoint.get
+  def dumpImages: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("dump" / "image")
     .in(query[Int]("page").default(1))
     .in(query[Int]("page-size").default(250))
@@ -146,7 +150,8 @@ class InternController(using
       readService.getMetaImageDomainDump(page, pageSize).asRight
     }
 
-  def dumpSingleImage: ServerEndpoint[Any, Eff] = endpoint.get
+  def dumpSingleImage: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .in("dump" / "image" / path[Long]("image_id"))
     .out(jsonBody[ImageMetaInformation])
     .errorOut(errorOutputsFor(400))
@@ -157,7 +162,8 @@ class InternController(using
       }
     }
 
-  def postDump: ServerEndpoint[Any, Eff] = endpoint.post
+  def postDump: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("dump" / "image")
     .in(jsonBody[ImageMetaInformation])
     .out(jsonBody[ImageMetaInformation])

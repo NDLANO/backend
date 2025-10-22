@@ -21,15 +21,11 @@ class V10__subjectpage_visual_element_ids extends BaseJavaMigration {
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
-      subjectPageData
-        .map(convertSubjectpage)
-        .foreach(update)
+      subjectPageData.map(convertSubjectpage).foreach(update)
     }
 
   private def subjectPageData(implicit session: DBSession): List[V10__DBSubjectPage] = {
-    sql"select id, document from subjectpage"
-      .map(rs => V10__DBSubjectPage(rs.long("id"), rs.string("document")))
-      .list()
+    sql"select id, document from subjectpage".map(rs => V10__DBSubjectPage(rs.long("id"), rs.string("document"))).list()
   }
 
   implicit class JsonObjectOps(obj: JsonObject) {
@@ -46,7 +42,8 @@ class V10__subjectpage_visual_element_ids extends BaseJavaMigration {
   def convertSubjectpage(subjectPageData: V10__DBSubjectPage): V10__DBSubjectPage = {
     parse(subjectPageData.document).toTry match {
       case Success(value) =>
-        val newSubjectPage = value.hcursor
+        val newSubjectPage = value
+          .hcursor
           .downField("about")
           .withFocus(
             _.mapArray(arr =>
@@ -81,8 +78,7 @@ class V10__subjectpage_visual_element_ids extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(subjectPageData.document)
 
-    sql"update subjectpage set document = $dataObject where id = ${subjectPageData.id}"
-      .update()
+    sql"update subjectpage set document = $dataObject where id = ${subjectPageData.id}".update()
   }
 }
 

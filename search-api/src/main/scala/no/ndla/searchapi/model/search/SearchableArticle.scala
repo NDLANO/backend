@@ -41,7 +41,7 @@ case class SearchableArticle(
     availability: String,
     learningResourceType: LearningResourceType,
     typeName: List[String],
-    domainObject: Article
+    domainObject: Article,
 )
 
 object SearchableArticle {

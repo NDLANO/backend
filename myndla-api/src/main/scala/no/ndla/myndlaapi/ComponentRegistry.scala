@@ -17,7 +17,7 @@ import no.ndla.myndlaapi.controller.{
   RobotController,
   StatsController,
   SwaggerDocControllerConfig,
-  UserController
+  UserController,
 }
 import no.ndla.myndlaapi.db.migrationwithdependencies.V16__MigrateResourcePaths
 import no.ndla.myndlaapi.integration.{LearningPathApiClient, SearchApiClient, TaxonomyApiClient}
@@ -29,7 +29,7 @@ import no.ndla.myndlaapi.service.{
   FolderReadService,
   FolderWriteService,
   RobotService,
-  UserService
+  UserService,
 }
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
@@ -39,7 +39,7 @@ import no.ndla.network.tapir.{
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 
 class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplication[MyNdlaApiProperties] {
@@ -79,15 +79,8 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
   given robotController: RobotController        = new RobotController
 
   given swagger: SwaggerController = new SwaggerController(
-    List(
-      healthController,
-      folderController,
-      robotController,
-      userController,
-      configController,
-      statsController
-    ),
-    SwaggerDocControllerConfig.swaggerInfo
+    List(healthController, folderController, robotController, userController, configController, statsController),
+    SwaggerDocControllerConfig.swaggerInfo,
   )
   given services: List[TapirController] = swagger.getServices()
   given routes: Routes                  = new Routes

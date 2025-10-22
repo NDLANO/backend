@@ -24,8 +24,10 @@ import no.ndla.common.DeriveHelpers
 
 @description("Object describing matched field with matching words emphasized")
 case class HighlightedFieldDTO(
-    @description("Field that matched") field: String,
-    @description("List of segments that matched in `field`") matches: Seq[String]
+    @description("Field that matched")
+    field: String,
+    @description("List of segments that matched in `field`")
+    matches: Seq[String],
 )
 
 object HighlightedFieldDTO {
@@ -41,10 +43,10 @@ object MultiSummaryBaseDTO {
     case x: NodeHitDTO            => x.asJson
   }
 
-  implicit val decoder: Decoder[MultiSummaryBaseDTO] = List[Decoder[MultiSummaryBaseDTO]](
-    Decoder[MultiSearchSummaryDTO].widen,
-    Decoder[NodeHitDTO].widen
-  ).reduceLeft(_ or _)
+  implicit val decoder: Decoder[MultiSummaryBaseDTO] =
+    List[Decoder[MultiSummaryBaseDTO]](Decoder[MultiSearchSummaryDTO].widen, Decoder[NodeHitDTO].widen).reduceLeft(
+      _ or _
+    )
 }
 
 case class NodeHitDTO(
@@ -59,7 +61,7 @@ case class NodeHitDTO(
     @description("Primary context of the resource")
     context: Option[ApiTaxonomyContextDTO],
     @description("Contexts of the resource")
-    contexts: List[ApiTaxonomyContextDTO]
+    contexts: List[ApiTaxonomyContextDTO],
 ) extends MultiSummaryBaseDTO
 
 object NodeHitDTO extends SchemaImplicits {
@@ -125,7 +127,7 @@ case class MultiSearchSummaryDTO(
     @description("Number of times favorited in MyNDLA")
     favorited: Option[Long],
     @description("Type of the resource")
-    resultType: SearchType
+    resultType: SearchType,
 ) extends MultiSummaryBaseDTO
 
 object MultiSearchSummaryDTO extends SchemaImplicits {

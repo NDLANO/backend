@@ -19,5 +19,5 @@ case class SearchResult(
     results: Seq[MultiSummaryBaseDTO],
     suggestions: Seq[MultiSearchSuggestionDTO],
     aggregations: Seq[TermAggregation],
-    scrollId: Option[String] = None
+    scrollId: Option[String] = None,
 )

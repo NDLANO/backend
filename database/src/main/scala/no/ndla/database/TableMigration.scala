@@ -20,9 +20,7 @@ abstract class TableMigration[ROW_DATA] extends BaseJavaMigration {
   lazy val tableNameSQL: SQLSyntax = SQLSyntax.createUnsafely(tableName)
 
   private def countAllRows(implicit session: DBSession): Option[Long] = {
-    sql"select count(*) from $tableNameSQL where $whereClause"
-      .map(rs => rs.long("count"))
-      .single()
+    sql"select count(*) from $tableNameSQL where $whereClause".map(rs => rs.long("count")).single()
   }
 
   private def allRows(offset: Long)(implicit session: DBSession): Seq[ROW_DATA] = {
@@ -33,7 +31,9 @@ abstract class TableMigration[ROW_DATA] extends BaseJavaMigration {
 
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
-    .withinTx { session => migrateRows(using session) }
+    .withinTx { session =>
+      migrateRows(using session)
+    }
 
   protected def migrateRows(implicit session: DBSession): Unit = {
     val count        = countAllRows.get
@@ -41,7 +41,9 @@ abstract class TableMigration[ROW_DATA] extends BaseJavaMigration {
     var offset       = 0L
 
     while (numPagesLeft > 0) {
-      allRows(offset * chunkSize).map { rowData => updateRow(rowData) }: Unit
+      allRows(offset * chunkSize).map { rowData =>
+        updateRow(rowData)
+      }: Unit
       numPagesLeft -= 1
       offset += 1
     }

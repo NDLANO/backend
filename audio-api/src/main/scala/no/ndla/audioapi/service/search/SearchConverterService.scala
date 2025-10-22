@@ -23,15 +23,12 @@ import no.ndla.language.Language.{
   findByLanguageOrBestEffort,
   getDefault,
   getSupportedLanguages,
-  sortLanguagesByPriority
+  sortLanguagesByPriority,
 }
 
 import scala.util.Try
 
-class SearchConverterService(using
-    converterService: ConverterService,
-    props: Props
-) extends StrictLogging {
+class SearchConverterService(using converterService: ConverterService, props: Props) extends StrictLogging {
 
   def asSearchableSeries(s: domain.Series): Try[SearchableSeries] = {
     s.episodes
@@ -43,7 +40,7 @@ class SearchConverterService(using
           descriptions = SearchableLanguageValues.fromFields(s.description),
           episodes = searchableEpisodes,
           coverPhoto = s.coverPhoto,
-          lastUpdated = s.updated
+          lastUpdated = s.updated,
         )
       })
   }
@@ -51,25 +48,24 @@ class SearchConverterService(using
   def asAudioSummary(searchable: SearchableAudioInformation, language: String): Try[api.AudioSummaryDTO] = {
     val titles = searchable.titles.languageValues.map(lv => common.Title(lv.value, lv.language))
 
-    val domainPodcastMeta = searchable.podcastMetaIntroduction.languageValues.flatMap(lv => {
-      searchable.podcastMeta
-        .find(_.language == lv.language)
-        .map(meta => {
-          domain.PodcastMeta(
-            introduction = lv.value,
-            coverPhoto = meta.coverPhoto,
-            language = lv.language
-          )
-        })
-    })
+    val domainPodcastMeta = searchable
+      .podcastMetaIntroduction
+      .languageValues
+      .flatMap(lv => {
+        searchable
+          .podcastMeta
+          .find(_.language == lv.language)
+          .map(meta => {
+            domain.PodcastMeta(introduction = lv.value, coverPhoto = meta.coverPhoto, language = lv.language)
+          })
+      })
 
     val title = findByLanguageOrBestEffort(titles, language) match {
       case None    => TitleDTO("", language)
       case Some(x) => TitleDTO(x.title, x.language)
     }
 
-    val podcastMeta = findByLanguageOrBestEffort(domainPodcastMeta, language)
-      .map(converterService.toApiPodcastMeta)
+    val podcastMeta = findByLanguageOrBestEffort(domainPodcastMeta, language).map(converterService.toApiPodcastMeta)
 
     val manuscripts = searchable.manuscript.languageValues.map(lv => domain.Manuscript(lv.value, lv.language))
     val manuscript  = findByLanguageOrBestEffort(manuscripts, language).map(converterService.toApiManuscript)
@@ -79,7 +75,8 @@ class SearchConverterService(using
 
     val supportedLanguages = getSupportedLanguages(titles, manuscripts, domainPodcastMeta, filePaths, tags)
 
-    searchable.series
+    searchable
+      .series
       .traverse(s => asSeriesSummary(s, language))
       .map(series =>
         api.AudioSummaryDTO(
@@ -92,7 +89,7 @@ class SearchConverterService(using
           podcastMeta = podcastMeta,
           manuscript = manuscript,
           series = series,
-          lastUpdated = searchable.lastUpdated
+          lastUpdated = searchable.lastUpdated,
         )
       )
   }
@@ -109,34 +106,31 @@ class SearchConverterService(using
 
       episodes <- searchable.episodes.traverse(eps => eps.traverse(ep => asAudioSummary(ep, language)))
 
-      supportedLanguages = getSupportedLanguages(
-        searchable.titles.languageValues,
-        searchable.descriptions.languageValues
-      )
+      supportedLanguages =
+        getSupportedLanguages(searchable.titles.languageValues, searchable.descriptions.languageValues)
     } yield api.SeriesSummaryDTO(
       id = searchable.id.toLong,
       title = title,
       description = description,
       supportedLanguages = supportedLanguages,
       episodes = episodes,
-      coverPhoto = converterService.toApiCoverPhoto(searchable.coverPhoto)
+      coverPhoto = converterService.toApiCoverPhoto(searchable.coverPhoto),
     )
   }
 
   def asSearchableAudioInformation(ai: AudioMetaInformation): Try[SearchableAudioInformation] = {
     val defaultTitle = getDefault(ai.titles)
 
-    val authors =
-      ai.copyright.creators.map(_.name) ++
-        ai.copyright.processors.map(_.name) ++
-        ai.copyright.rightsholders.map(_.name)
+    val authors = ai.copyright.creators.map(_.name) ++
+      ai.copyright.processors.map(_.name) ++
+      ai.copyright.rightsholders.map(_.name)
 
-    val podcastMetaIntros = SearchableLanguageValues(
-      ai.podcastMeta.map(pm => LanguageValue(pm.language, pm.introduction))
-    )
+    val podcastMetaIntros =
+      SearchableLanguageValues(ai.podcastMeta.map(pm => LanguageValue(pm.language, pm.introduction)))
 
-    val searchablePodcastMeta =
-      ai.podcastMeta.map(pm => SearchablePodcastMeta(coverPhoto = pm.coverPhoto, language = pm.language))
+    val searchablePodcastMeta = ai
+      .podcastMeta
+      .map(pm => SearchablePodcastMeta(coverPhoto = pm.coverPhoto, language = pm.language))
 
     val searchableAudios = ai.filePaths.map(fp => SearchableAudio(fp.filePath, fp.language))
 
@@ -156,19 +150,21 @@ class SearchConverterService(using
           podcastMetaIntroduction = podcastMetaIntros,
           podcastMeta = searchablePodcastMeta,
           manuscript = SearchableLanguageValues.fromFields(ai.manuscript),
-          series = series
+          series = series,
         )
       )
   }
 
   def getLanguageFromHit(result: SearchHit): Option[String] = {
     def keyToLanguage(keys: Iterable[String]): Option[String] = {
-      val keyLanguages = keys.toList.flatMap(key =>
-        key.split('.').toList match {
-          case _ :: language :: _ => Some(language)
-          case _                  => None
-        }
-      )
+      val keyLanguages = keys
+        .toList
+        .flatMap(key =>
+          key.split('.').toList match {
+            case _ :: language :: _ => Some(language)
+            case _                  => None
+          }
+        )
 
       sortLanguagesByPriority(keyLanguages).headOption
     }
@@ -177,51 +173,40 @@ class SearchConverterService(using
     val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
     matchLanguage match {
-      case Some(lang) =>
-        Some(lang)
-      case _ =>
-        keyToLanguage(result.sourceAsMap.keys)
+      case Some(lang) => Some(lang)
+      case _          => keyToLanguage(result.sourceAsMap.keys)
     }
   }
 
   def asApiAudioSummarySearchResult(
       searchResult: domain.SearchResult[api.AudioSummaryDTO]
-  ): api.AudioSummarySearchResultDTO =
-    api.AudioSummarySearchResultDTO(
-      searchResult.totalCount,
-      searchResult.page,
-      searchResult.pageSize,
-      searchResult.language,
-      searchResult.results
-    )
+  ): api.AudioSummarySearchResultDTO = api.AudioSummarySearchResultDTO(
+    searchResult.totalCount,
+    searchResult.page,
+    searchResult.pageSize,
+    searchResult.language,
+    searchResult.results,
+  )
 
   def asApiSeriesSummarySearchResult(
       searchResult: domain.SearchResult[api.SeriesSummaryDTO]
-  ): api.SeriesSummarySearchResultDTO =
-    api.SeriesSummarySearchResultDTO(
-      searchResult.totalCount,
-      searchResult.page,
-      searchResult.pageSize,
-      searchResult.language,
-      searchResult.results
-    )
+  ): api.SeriesSummarySearchResultDTO = api.SeriesSummarySearchResultDTO(
+    searchResult.totalCount,
+    searchResult.page,
+    searchResult.pageSize,
+    searchResult.language,
+    searchResult.results,
+  )
 
-  def asSearchableTags(audio: domain.AudioMetaInformation): Seq[SearchableTag] =
-    audio.tags.flatMap(audioTags =>
-      audioTags.tags.map(tag =>
-        SearchableTag(
-          tag = tag,
-          language = audioTags.language
-        )
-      )
-    )
+  def asSearchableTags(audio: domain.AudioMetaInformation): Seq[SearchableTag] = audio
+    .tags
+    .flatMap(audioTags => audioTags.tags.map(tag => SearchableTag(tag = tag, language = audioTags.language)))
 
-  def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResultDTO =
-    api.TagsSearchResultDTO(
-      searchResult.totalCount,
-      searchResult.page.getOrElse(1),
-      searchResult.pageSize,
-      searchResult.language,
-      searchResult.results
-    )
+  def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResultDTO = api.TagsSearchResultDTO(
+    searchResult.totalCount,
+    searchResult.page.getOrElse(1),
+    searchResult.pageSize,
+    searchResult.language,
+    searchResult.results,
+  )
 }

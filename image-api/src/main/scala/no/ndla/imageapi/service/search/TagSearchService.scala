@@ -26,7 +26,7 @@ class TagSearchService(using
     e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
     tagIndexService: TagIndexService,
-    props: Props
+    props: Props,
 ) extends SearchService[String]
     with StrictLogging {
   override val searchIndex: String = props.TagSearchIndex
@@ -45,28 +45,18 @@ class TagSearchService(using
     }
   }
 
-  def all(
-      language: String,
-      page: Int,
-      pageSize: Int,
-      sort: Sort
-  ): Try[SearchResult[String]] = executeSearch(language, page, pageSize, sort, boolQuery())
+  def all(language: String, page: Int, pageSize: Int, sort: Sort): Try[SearchResult[String]] =
+    executeSearch(language, page, pageSize, sort, boolQuery())
 
   def matchingQuery(
       query: String,
       searchLanguage: String,
       page: Int,
       pageSize: Int,
-      sort: Sort
+      sort: Sort,
   ): Try[SearchResult[String]] = {
 
-    val fullQuery = boolQuery()
-      .must(
-        boolQuery().should(
-          matchQuery("tag", query).boost(2),
-          prefixQuery("tag", query)
-        )
-      )
+    val fullQuery = boolQuery().must(boolQuery().should(matchQuery("tag", query).boost(2), prefixQuery("tag", query)))
 
     executeSearch(searchLanguage, page, pageSize, sort, fullQuery)
   }
@@ -76,13 +66,12 @@ class TagSearchService(using
       page: Int,
       pageSize: Int,
       sort: Sort,
-      queryBuilder: BoolQuery
+      queryBuilder: BoolQuery,
   ): Try[SearchResult[String]] = {
 
     val (languageFilter, searchLanguage) = language match {
-      case lang if Iso639.get(lang).isSuccess =>
-        (Some(termQuery("language", lang)), lang)
-      case _ => (None, "*")
+      case lang if Iso639.get(lang).isSuccess => (Some(termQuery("language", lang)), lang)
+      case _                                  => (None, "*")
     }
 
     val filters        = List(languageFilter)
@@ -104,23 +93,17 @@ class TagSearchService(using
         .sortBy(getSortDefinition(sort, searchLanguage))
 
       val searchWithScroll =
-        if (startAt != 0) { searchToExecute }
-        else { searchToExecute.scroll(props.ElasticSearchScrollKeepAlive) }
+        if (startAt != 0) {
+          searchToExecute
+        } else {
+          searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
+        }
 
       e4sClient.execute(searchWithScroll) match {
-        case Success(response) =>
-          getHits(response.result, language).map(hits =>
-            SearchResult(
-              response.result.totalHits,
-              Some(page),
-              numResults,
-              language,
-              hits,
-              response.result.scrollId
-            )
+        case Success(response) => getHits(response.result, language).map(hits =>
+            SearchResult(response.result.totalHits, Some(page), numResults, language, hits, response.result.scrollId)
           )
-        case Failure(ex) =>
-          errorHandler(ex)
+        case Failure(ex) => errorHandler(ex)
       }
     }
   }

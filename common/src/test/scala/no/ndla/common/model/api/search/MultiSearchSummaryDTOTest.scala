@@ -36,7 +36,7 @@ class MultiSearchSummaryDTOTest extends UnitTestSuiteBase {
           language = "en",
           isPrimary = true,
           isActive = true,
-          url = "https://example.com/context/1"
+          url = "https://example.com/context/1",
         )
       ),
       contexts = List(),
@@ -58,7 +58,7 @@ class MultiSearchSummaryDTOTest extends UnitTestSuiteBase {
       primaryRootName = None,
       published = None,
       favorited = None,
-      resultType = SearchType.Articles
+      resultType = SearchType.Articles,
     )
     import io.circe.syntax.*
 

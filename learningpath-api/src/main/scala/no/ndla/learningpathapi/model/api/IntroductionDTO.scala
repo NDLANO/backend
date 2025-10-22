@@ -15,8 +15,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("The introduction of the learningpath")
 case class IntroductionDTO(
-    @description("The introduction to the learningpath. Basic HTML allowed") introduction: String,
-    @description("ISO 639-1 code that represents the language used in introduction") language: String
+    @description("The introduction to the learningpath. Basic HTML allowed")
+    introduction: String,
+    @description("ISO 639-1 code that represents the language used in introduction")
+    language: String,
 ) extends LanguageField[String] {
   override def value: String    = introduction
   override def isEmpty: Boolean = introduction.isEmpty

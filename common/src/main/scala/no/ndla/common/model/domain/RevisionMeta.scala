@@ -15,12 +15,7 @@ import no.ndla.common.model.NDLADate
 
 import java.util.UUID
 
-case class RevisionMeta(
-    id: UUID,
-    revisionDate: NDLADate,
-    note: String,
-    status: RevisionStatus
-) {
+case class RevisionMeta(id: UUID, revisionDate: NDLADate, note: String, status: RevisionStatus) {
   def toRevised: RevisionMeta = this.copy(status = RevisionStatus.Revised)
 }
 
@@ -33,7 +28,7 @@ object RevisionMeta {
       UUID.randomUUID(),
       NDLADate.now().plusYears(5).withNano(0),
       "Automatisk revisjonsdato satt av systemet",
-      RevisionStatus.NeedsRevision
+      RevisionStatus.NeedsRevision,
     )
   )
 }

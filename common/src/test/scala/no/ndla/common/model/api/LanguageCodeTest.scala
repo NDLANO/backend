@@ -16,19 +16,13 @@ class LanguageCodeTest extends UnitTestSuiteBase {
     import io.circe.Encoder
     import io.circe.generic.semiauto.deriveEncoder
 
-    case class ApiObject(
-        normalField: String,
-        languageField: LanguageCode
-    )
+    case class ApiObject(normalField: String, languageField: LanguageCode)
 
     object ApiObject {
       implicit val encoder: Encoder[ApiObject] = deriveEncoder
     }
 
-    val x = ApiObject(
-      "hei",
-      LanguageCode("nb")
-    )
+    val x = ApiObject("hei", LanguageCode("nb"))
 
     val res1 = x.asJson.noSpaces
 
@@ -40,10 +34,7 @@ class LanguageCodeTest extends UnitTestSuiteBase {
     import io.circe.generic.semiauto.deriveDecoder
     import io.circe.parser.parse
 
-    case class ApiObject(
-        normalField: String,
-        languageField: LanguageCode
-    )
+    case class ApiObject(normalField: String, languageField: LanguageCode)
 
     object ApiObject {
       implicit val decoder: Decoder[ApiObject] = deriveDecoder

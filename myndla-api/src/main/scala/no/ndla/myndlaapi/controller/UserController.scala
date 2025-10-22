@@ -27,13 +27,14 @@ class UserController(using
     folderReadService: FolderReadService,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   override val serviceName: String = "users"
 
   override protected val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
 
-  def getMyNDLAUser: ServerEndpoint[Any, Eff] = endpoint.get
+  def getMyNDLAUser: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get user data")
     .description("Get user data")
     .in(feideHeader)
@@ -43,7 +44,8 @@ class UserController(using
       userService.getMyNDLAUserData(feideHeader)
     }
 
-  def updateMyNDLAUser: ServerEndpoint[Any, Eff] = endpoint.patch
+  def updateMyNDLAUser: ServerEndpoint[Any, Eff] = endpoint
+    .patch
     .summary("Update user data")
     .description("Update user data")
     .in(feideHeader)
@@ -54,7 +56,8 @@ class UserController(using
       userService.updateMyNDLAUserData(updatedMyNdlaUser, feideHeader)
     }
 
-  def deleteAllUserData: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteAllUserData: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .summary("Delete all data connected to this user")
     .description("Delete all data connected to this user")
     .in("delete-personal-data")
@@ -65,7 +68,8 @@ class UserController(using
       userService.deleteAllUserData(feideHeader)
     }
 
-  def exportUserData: ServerEndpoint[Any, Eff] = endpoint.get
+  def exportUserData: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Export all stored user-related data as a json structure")
     .description("Export all stored user-related data as a json structure")
     .in("export")
@@ -76,7 +80,8 @@ class UserController(using
       folderReadService.exportUserData(feideHeader)
     }
 
-  def importUserData: ServerEndpoint[Any, Eff] = endpoint.post
+  def importUserData: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Import all stored user-related data from a exported json structure")
     .description("Import all stored user-related data from a exported json structure")
     .in("import")
@@ -88,11 +93,6 @@ class UserController(using
       folderWriteService.importUserData(importBody, feideHeader)
     }
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    getMyNDLAUser,
-    updateMyNDLAUser,
-    deleteAllUserData,
-    exportUserData,
-    importUserData
-  )
+  override val endpoints: List[ServerEndpoint[Any, Eff]] =
+    List(getMyNDLAUser, updateMyNDLAUser, deleteAllUserData, exportUserData, importUserData)
 }

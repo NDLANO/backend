@@ -13,8 +13,12 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Search result for learningpath api")
 case class LearningpathResultDTO(
-    @description("The unique id of this learningpath") id: Long,
-    @description("The title of the learningpath") title: TitleDTO,
-    @description("The introduction of the learningpath") introduction: LearningPathIntroductionDTO,
-    @description("List of supported languages") supportedLanguages: Seq[String]
+    @description("The unique id of this learningpath")
+    id: Long,
+    @description("The title of the learningpath")
+    title: TitleDTO,
+    @description("The introduction of the learningpath")
+    introduction: LearningPathIntroductionDTO,
+    @description("List of supported languages")
+    supportedLanguages: Seq[String],
 )

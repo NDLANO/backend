@@ -17,7 +17,7 @@ case class RequestInfo(
     correlationId: Option[String],
     authUser: AuthUser,
     taxonomyVersion: String,
-    applicationUrl: String
+    applicationUrl: String,
 ) {
   def setThreadContextRequestInfo(): Unit = {
     TaxonomyData.set(taxonomyVersion)
@@ -34,7 +34,7 @@ object RequestInfo {
       correlationId = Some(CorrelationID.fromRequest(request)),
       authUser = AuthUser.fromRequest(ndlaRequest),
       taxonomyVersion = TaxonomyData.fromRequest(ndlaRequest),
-      applicationUrl = ApplicationUrl.fromRequest(ndlaRequest)
+      applicationUrl = ApplicationUrl.fromRequest(ndlaRequest),
     )
   }
 

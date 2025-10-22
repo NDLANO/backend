@@ -16,5 +16,5 @@ import no.ndla.searchapi.model.grep.GrepBundle
 case class IndexingBundle(
     grepBundle: Option[GrepBundle],
     taxonomyBundle: Option[TaxonomyBundle],
-    myndlaBundle: Option[MyNDLABundleDTO]
+    myndlaBundle: Option[MyNDLABundleDTO],
 )

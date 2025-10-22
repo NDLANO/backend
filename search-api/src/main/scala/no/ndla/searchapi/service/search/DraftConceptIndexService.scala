@@ -33,7 +33,7 @@ class DraftConceptIndexService(using
     searchLanguage: SearchLanguage,
     taxonomyApiClient: TaxonomyApiClient,
     grepApiClient: GrepApiClient,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends IndexService[Concept]
     with StrictLogging {
   override val documentType: String                = "concept"
@@ -43,18 +43,20 @@ class DraftConceptIndexService(using
   override def createIndexRequest(
       domainModel: Concept,
       indexName: String,
-      indexingBundle: IndexingBundle
+      indexingBundle: IndexingBundle,
   ): Try[Option[IndexRequest]] = {
-    searchConverterService.asSearchableConcept(domainModel, indexingBundle).map { searchable =>
-      val source = CirceUtil.toJsonString(searchable)
-      Some(
-        indexInto(indexName)
-          .doc(source)
-          .id(domainModel.id.get.toString)
-          .versionType(EXTERNAL_GTE)
-          .version(domainModel.revision.map(_.toLong).get)
-      )
-    }
+    searchConverterService
+      .asSearchableConcept(domainModel, indexingBundle)
+      .map { searchable =>
+        val source = CirceUtil.toJsonString(searchable)
+        Some(
+          indexInto(indexName)
+            .doc(source)
+            .id(domainModel.id.get.toString)
+            .versionType(EXTERNAL_GTE)
+            .version(domainModel.revision.map(_.toLong).get)
+        )
+      }
   }
 
   def getMapping: MappingDefinition = {
@@ -75,21 +77,14 @@ class DraftConceptIndexService(using
       dateField("created"),
       keywordField("learningResourceType"),
       keywordField("source"),
-      ObjectField(
-        "responsible",
-        properties = Seq(
-          keywordField("responsibleId"),
-          dateField("lastUpdated")
-        )
-      ),
+      ObjectField("responsible", properties = Seq(keywordField("responsibleId"), dateField("lastUpdated"))),
       textField("gloss"),
       longField("favorited"),
-      ObjectField("domainObject", enabled = Some(false))
+      ObjectField("domainObject", enabled = Some(false)),
     )
-    val dynamics =
-      languageValuesMapping("title", keepRaw = true) ++
-        languageValuesMapping("content", keepRaw = true) ++
-        languageValuesMapping("tags")
+    val dynamics = languageValuesMapping("title", keepRaw = true) ++
+      languageValuesMapping("content", keepRaw = true) ++
+      languageValuesMapping("tags")
 
     properties(fields ++ dynamics)
 

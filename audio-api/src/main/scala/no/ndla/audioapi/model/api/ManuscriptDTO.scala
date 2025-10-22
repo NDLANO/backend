@@ -13,8 +13,10 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 
 case class ManuscriptDTO(
-    @description("The manuscript of the audio file") manuscript: String,
-    @description("ISO 639-1 code that represents the language used in the manuscript") language: String
+    @description("The manuscript of the audio file")
+    manuscript: String,
+    @description("ISO 639-1 code that represents the language used in the manuscript")
+    language: String,
 )
 
 object ManuscriptDTO {

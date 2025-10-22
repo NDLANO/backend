@@ -37,25 +37,24 @@ class SearchService(using
     e4sClient: NdlaE4sClient,
     searchConverterServiceComponent: SearchConverterServiceComponent,
     taxonomyApiClient: TaxonomyApiClient,
-    props: Props
+    props: Props,
 ) extends StrictLogging {
-  def scroll(scrollId: String, language: String): Try[SearchResult] =
-    e4sClient
-      .execute {
-        searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
-      }
-      .map(response => {
-        val hits = getHitsV2(response.result, language)
+  def scroll(scrollId: String, language: String): Try[SearchResult] = e4sClient
+    .execute {
+      searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
+    }
+    .map(response => {
+      val hits = getHitsV2(response.result, language)
 
-        SearchResult(
-          totalCount = response.result.totalHits,
-          page = None,
-          pageSize = response.result.hits.hits.length,
-          language = language,
-          results = hits,
-          scrollId = response.result.scrollId
-        )
-      })
+      SearchResult(
+        totalCount = response.result.totalHits,
+        page = None,
+        pageSize = response.result.hits.hits.length,
+        language = language,
+        results = hits,
+        scrollId = response.result.scrollId,
+      )
+    })
 
   private def getHitsV2(response: SearchResponse, language: String): Seq[LearningPathSummaryV2DTO] = {
     response.totalHits match {
@@ -64,11 +63,8 @@ class SearchService(using
 
         resultArray.map(result => {
           val matchedLanguage = language match {
-            case AllLanguages =>
-              searchConverterServiceComponent
-                .getLanguageFromHit(result)
-                .getOrElse(language)
-            case _ => language
+            case AllLanguages => searchConverterServiceComponent.getLanguageFromHit(result).getOrElse(language)
+            case _            => language
           }
 
           hitAsLearningPathSummaryV2(result.sourceAsString, matchedLanguage)
@@ -89,7 +85,7 @@ class SearchService(using
       s"/article-iframe/*/$id/",
       s"/article-iframe/*/$id/\\?*",
       s"/article-iframe/*/$id\\?*",
-      s"/article/$id"
+      s"/article/$id",
     )
     val paths = nodes ++ plainPaths
 
@@ -106,12 +102,8 @@ class SearchService(using
       articleId = Some(id),
       verificationStatus = None,
       shouldScroll = false,
-      status = List(
-        LearningPathStatus.PUBLISHED,
-        LearningPathStatus.SUBMITTED,
-        LearningPathStatus.UNLISTED
-      ),
-      grepCodes = List.empty
+      status = List(LearningPathStatus.PUBLISHED, LearningPathStatus.SUBMITTED, LearningPathStatus.UNLISTED),
+      grepCodes = List.empty,
     )
 
     executeSearch(boolQuery(), settings).map(_.results)
@@ -129,34 +121,29 @@ class SearchService(using
     val fullQuery = settings.query.emptySomeToNone match {
       case Some(query) =>
         val language =
-          if (settings.fallback) "*" else searchLanguage
+          if (settings.fallback) "*"
+          else searchLanguage
         val titleSearch     = languageSpecificSearch("titles", language, query, 2)
         val descSearch      = languageSpecificSearch("descriptions", language, query, 2)
         val stepTitleSearch = languageSpecificSearch("titles", language, query, 1)
         val stepDescSearch  = languageSpecificSearch("descriptions", language, query, 1)
         val tagSearch       = languageSpecificSearch("tags", language, query, 2)
         val authorSearch    = simpleStringQuery(query).field("author", 1)
-        boolQuery()
-          .must(
-            boolQuery()
-              .should(
-                titleSearch,
-                descSearch,
-                nestedQuery("learningsteps", stepTitleSearch),
-                nestedQuery("learningsteps", stepDescSearch),
-                tagSearch,
-                authorSearch
-              )
+        boolQuery().must(
+          boolQuery().should(
+            titleSearch,
+            descSearch,
+            nestedQuery("learningsteps", stepTitleSearch),
+            nestedQuery("learningsteps", stepDescSearch),
+            tagSearch,
+            authorSearch,
           )
+        )
       case None if searchLanguage == "*" => boolQuery()
       case _                             =>
         val titleSearch = existsQuery(s"titles.$searchLanguage")
         val descSearch  = existsQuery(s"descriptions.$searchLanguage")
-        boolQuery()
-          .should(
-            titleSearch,
-            descSearch
-          )
+        boolQuery().should(titleSearch, descSearch)
     }
 
     executeSearch(fullQuery, settings)
@@ -175,25 +162,21 @@ class SearchService(using
     }
 
     val tagFilter: Option[Query] = settings.taggedWith.map(tag => termQuery(s"tags.$searchLanguage.raw", tag))
-    val idFilter                 = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-    val articlesFilter           = articlesFilterQuery(settings.withPaths, settings.articleId)
+    val idFilter                 =
+      if (settings.withIdIn.isEmpty) None
+      else Some(idsQuery(settings.withIdIn))
+    val articlesFilter = articlesFilterQuery(settings.withPaths, settings.articleId)
 
     val verificationStatusFilter = settings.verificationStatus.map(status => termQuery("verificationStatus", status))
 
     val grepCodesFilter =
-      if (settings.grepCodes.nonEmpty) Some(constantScoreQuery(termsQuery("grepCodes", settings.grepCodes))) else None
+      if (settings.grepCodes.nonEmpty) Some(constantScoreQuery(termsQuery("grepCodes", settings.grepCodes)))
+      else None
 
     val statusFilter = getStatusFilter(settings)
 
-    val filters = List(
-      tagFilter,
-      idFilter,
-      articlesFilter,
-      languageFilter,
-      verificationStatusFilter,
-      statusFilter,
-      grepCodesFilter
-    )
+    val filters =
+      List(tagFilter, idFilter, articlesFilter, languageFilter, verificationStatusFilter, statusFilter, grepCodesFilter)
 
     val filteredSearch = queryBuilder.filter(filters.flatten)
 
@@ -217,22 +200,22 @@ class SearchService(using
       val searchWithScroll =
         if (startAt == 0 && settings.shouldScroll) {
           searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
-        } else { searchToExecute.explain(true) }
+        } else {
+          searchToExecute.explain(true)
+        }
 
       e4sClient.execute(searchWithScroll) match {
-        case Success(response) =>
-          Success(
+        case Success(response) => Success(
             SearchResult(
               response.result.totalHits,
               Some(settings.page.getOrElse(1)),
               numResults,
               searchLanguage,
               getHitsV2(response.result, searchLanguage),
-              response.result.scrollId
+              response.result.scrollId,
             )
           )
-        case Failure(ex) =>
-          errorHandler(ex)
+        case Failure(ex) => errorHandler(ex)
       }
 
     }
@@ -249,7 +232,7 @@ class SearchService(using
           boolQuery()
             .should(nestedPathsQuery ++ articleQuery)
             .must(matchQuery("learningsteps.status", "ACTIVE"))
-            .minimumShouldMatch(1)
+            .minimumShouldMatch(1),
         )
       )
     }
@@ -273,40 +256,22 @@ class SearchService(using
     }
 
     sort match {
-      case Sort.ByTitleAsc =>
-        language match {
-          case AllLanguages =>
-            fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
-          case _ =>
-            fieldSort(s"titles.$sortLanguage.raw")
-              .order(SortOrder.Asc)
-              .missing("_last")
-              .unmappedType("long")
+      case Sort.ByTitleAsc => language match {
+          case AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
+          case _            => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
         }
-      case Sort.ByTitleDesc =>
-        language match {
-          case AllLanguages =>
-            fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
-          case _ =>
-            fieldSort(s"titles.$sortLanguage.raw")
-              .order(SortOrder.Desc)
-              .missing("_last")
-              .unmappedType("long")
+      case Sort.ByTitleDesc => language match {
+          case AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
+          case _            => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
         }
-      case Sort.ByDurationAsc =>
-        fieldSort("duration").order(SortOrder.Asc).missing("_last")
-      case Sort.ByDurationDesc =>
-        fieldSort("duration").order(SortOrder.Desc).missing("_last")
-      case Sort.ByLastUpdatedAsc =>
-        fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
-      case Sort.ByLastUpdatedDesc =>
-        fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
-      case Sort.ByRelevanceAsc  => fieldSort("_score").order(SortOrder.Asc)
-      case Sort.ByRelevanceDesc => fieldSort("_score").order(SortOrder.Desc)
-      case Sort.ByIdAsc         =>
-        fieldSort("id").order(SortOrder.Asc).missing("_last")
-      case Sort.ByIdDesc =>
-        fieldSort("id").order(SortOrder.Desc).missing("_last")
+      case Sort.ByDurationAsc     => fieldSort("duration").order(SortOrder.Asc).missing("_last")
+      case Sort.ByDurationDesc    => fieldSort("duration").order(SortOrder.Desc).missing("_last")
+      case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.Asc).missing("_last")
+      case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").order(SortOrder.Desc).missing("_last")
+      case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
+      case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
+      case Sort.ByIdAsc           => fieldSort("id").order(SortOrder.Asc).missing("_last")
+      case Sort.ByIdDesc          => fieldSort("id").order(SortOrder.Desc).missing("_last")
     }
   }
 
@@ -319,8 +284,10 @@ class SearchService(using
     }
 
     val startAt = page match {
-      case Some(sa) => (sa - 1).max(0) * numResults
-      case None     => 0
+      case Some(sa) => (
+          sa - 1
+        ).max(0) * numResults
+      case None => 0
     }
 
     (startAt, numResults)
@@ -331,17 +298,10 @@ class SearchService(using
       case NdlaSearchException(_, Some(RequestFailure(status, _, _, _)), _, _) if status == 404 =>
         logger.error(s"Index ${props.SearchIndex} not found. Scheduling a reindex.")
         scheduleIndexDocuments()
-        Failure(
-          IndexNotFoundException(s"Index ${props.SearchIndex} not found. Scheduling a reindex")
-        )
+        Failure(IndexNotFoundException(s"Index ${props.SearchIndex} not found. Scheduling a reindex"))
       case e: NdlaSearchException[?] =>
         logger.error(e.getMessage)
-        Failure(
-          NdlaSearchException(
-            s"Unable to execute search in ${props.SearchIndex}: ${e.getMessage}",
-            e
-          )
-        )
+        Failure(NdlaSearchException(s"Unable to execute search in ${props.SearchIndex}: ${e.getMessage}", e))
       case t => Failure(t)
     }
   }
@@ -356,9 +316,7 @@ class SearchService(using
     f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
     f.foreach {
       case Success(reindexResult) =>
-        logger.info(
-          s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
-        )
+        logger.info(s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
       case Failure(ex) => logger.warn(ex.getMessage, ex)
     }
   }

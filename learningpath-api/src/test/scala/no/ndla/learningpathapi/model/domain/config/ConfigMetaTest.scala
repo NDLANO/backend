@@ -14,21 +14,18 @@ import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 class ConfigMetaTest extends UnitSuite with UnitTestEnvironment {
 
   test("That validation exists for all configuration parameters") {
-    ConfigKey.values.foreach(key => {
-      try {
-        ConfigMeta(
-          key = key,
-          value = BooleanValue(true),
-          updatedAt = TestData.today,
-          updatedBy = "OneCoolKid"
-        ).validate
-      } catch {
-        case _: Throwable =>
-          fail(
-            s"Every ConfigKey value needs to be validated. '${key.entryName}' threw an exception when attempted validation."
-          )
-      }
-    })
+    ConfigKey
+      .values
+      .foreach(key => {
+        try {
+          ConfigMeta(key = key, value = BooleanValue(true), updatedAt = TestData.today, updatedBy = "OneCoolKid")
+            .validate
+        } catch {
+          case _: Throwable => fail(
+              s"Every ConfigKey value needs to be validated. '${key.entryName}' threw an exception when attempted validation."
+            )
+        }
+      })
   }
 
 }

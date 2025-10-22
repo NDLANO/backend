@@ -14,10 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Meta image for the concept")
 case class ConceptTagsDTO(
-    @description("Searchable tags") tags: Seq[String],
-    @description(
-      "The ISO 639-1 language code describing which concept translation these tags belongs to"
-    ) language: String
+    @description("Searchable tags")
+    tags: Seq[String],
+    @description("The ISO 639-1 language code describing which concept translation these tags belongs to")
+    language: String,
 )
 
 object ConceptTagsDTO {

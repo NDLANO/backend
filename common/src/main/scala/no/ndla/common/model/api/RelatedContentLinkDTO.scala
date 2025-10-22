@@ -16,8 +16,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("External link related to the article")
 case class RelatedContentLinkDTO(
-    @description("Title of the article") title: String,
-    @description("The url to where the article can be viewed") url: String
+    @description("Title of the article")
+    title: String,
+    @description("The url to where the article can be viewed")
+    url: String,
 )
 
 object RelatedContentLinkDTO {

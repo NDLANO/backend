@@ -39,7 +39,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     defaultTitle = Some("tjuppidu"),
     grepCodes = Some(Seq("testelitt", "testemye")),
     availability = Availability.everyone.toString,
-    traits = List(Video)
+    traits = List(Video),
   )
 
   test("That deserialization and serialization of SearchableArticle works as expected") {

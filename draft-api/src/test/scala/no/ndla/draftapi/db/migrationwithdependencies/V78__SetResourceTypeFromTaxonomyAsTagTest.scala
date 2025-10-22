@@ -23,12 +23,12 @@ class V78__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvir
   val parent = TaxonomyResourceType(
     id = "urn:resourcetype:parent",
     parentId = None,
-    name = SearchableLanguageValues(Seq(LanguageValue("nb", "Forelder")))
+    name = SearchableLanguageValues(Seq(LanguageValue("nb", "Forelder"))),
   )
   val child = TaxonomyResourceType(
     id = "urn:resourcetype:child",
     parentId = Some("urn:resourcetype:parent"),
-    name = SearchableLanguageValues(Seq(LanguageValue("nb", "Barn")))
+    name = SearchableLanguageValues(Seq(LanguageValue("nb", "Barn"))),
   )
 
   val context_1: TaxonomyContext = TaxonomyContext(
@@ -46,7 +46,7 @@ class V78__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvir
     contextId = "asdf1234",
     isVisible = true,
     isActive = true,
-    url = "/f/matte/asdf1234"
+    url = "/f/matte/asdf1234",
   )
 
   val node = Node(
@@ -60,18 +60,18 @@ class V78__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvir
     nodeType = NodeType.RESOURCE,
     contextids = List(),
     context = Some(context_1),
-    contexts = List(context_1)
+    contexts = List(context_1),
   )
 
   test("That article gets updated with tags from taxonomy") {
 
-    when(baseTaxonomyApiClient.getTaxonomyBundleUncached(any[Boolean]))
-      .thenReturn(Success(TaxonomyBundle(nodes = List(node))))
+    when(baseTaxonomyApiClient.getTaxonomyBundleUncached(any[Boolean])).thenReturn(
+      Success(TaxonomyBundle(nodes = List(node)))
+    )
 
     val migration = new V78__SetResourceTypeFromTaxonomyAsTag()(using baseTaxonomyApiClient)
 
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "id": 1,
         |  "tags": [
@@ -142,8 +142,7 @@ class V78__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvir
         |}
         |""".stripMargin
 
-    val newDocument =
-      """
+    val newDocument = """
         |{
         |  "id": 1,
         |  "tags": [

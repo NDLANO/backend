@@ -39,9 +39,8 @@ object EmbedType extends Enum[EmbedType] with CirceEnum[EmbedType] {
   def valueOfOrError(embedType: String): EmbedType = {
     valueOf(embedType) match {
       case Some(s) => s
-      case None    =>
-        throw new ValidationException(
-          errors = List(ValidationMessage("embedType", s"'$embedType' is not a valid embed type."))
+      case None    => throw new ValidationException(errors =
+          List(ValidationMessage("embedType", s"'$embedType' is not a valid embed type."))
         )
     }
   }

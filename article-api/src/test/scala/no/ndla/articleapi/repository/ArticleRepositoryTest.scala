@@ -51,15 +51,22 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
     repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
   }
 
-  override def afterEach(): Unit =
-    repository.getAllIds().foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
+  override def afterEach(): Unit = repository
+    .getAllIds()
+    .foreach(articleId => repository.deleteMaxRevision(articleId.articleId))
 
   test("getAllIds returns a list with all ids in the database") {
-    val externalIdsAndRegularIds = (100 to 150).map(_.toString).zipWithIndex
+    val externalIdsAndRegularIds = (
+      100 to 150
+    ).map(_.toString).zipWithIndex
     externalIdsAndRegularIds.foreach { case (exId, id) =>
       repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(id.toLong)), List(exId))
     }
-    val expected = externalIdsAndRegularIds.map { case (exId, id) => ArticleIds(id.toLong, List(exId)) }.toList
+    val expected = externalIdsAndRegularIds
+      .map { case (exId, id) =>
+        ArticleIds(id.toLong, List(exId))
+      }
+      .toList
     repository.getAllIds should equal(expected)
   }
 
@@ -86,9 +93,8 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
   test("updateArticleFromDraftApi should update all columns with data from draft-api") {
 
     val externalIds            = List("123", "456")
-    val sampleArticle: Article =
-      TestData.sampleDomainArticle.copy(id = Some(5), revision = Some(42))
-    val res = repository.updateArticleFromDraftApi(sampleArticle, externalIds).get
+    val sampleArticle: Article = TestData.sampleDomainArticle.copy(id = Some(5), revision = Some(42))
+    val res                    = repository.updateArticleFromDraftApi(sampleArticle, externalIds).get
 
     res.id.isDefined should be(true)
     repository.withId(res.id.get)(AutoSession).get.article.get should be(sampleArticle)
@@ -139,10 +145,12 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
 
   test("That stored articles are retrieved exactly as they were stored") {
     val art1 = repository.updateArticleFromDraftApi(TestData.sampleArticleWithByNcSa.copy(id = Some(1)), List.empty).get
-    val art2 =
-      repository.updateArticleFromDraftApi(TestData.sampleArticleWithPublicDomain.copy(id = Some(2)), List.empty).get
-    val art3 =
-      repository.updateArticleFromDraftApi(TestData.sampleArticleWithCopyrighted.copy(id = Some(3)), List.empty).get
+    val art2 = repository
+      .updateArticleFromDraftApi(TestData.sampleArticleWithPublicDomain.copy(id = Some(2)), List.empty)
+      .get
+    val art3 = repository
+      .updateArticleFromDraftApi(TestData.sampleArticleWithCopyrighted.copy(id = Some(3)), List.empty)
+      .get
 
     repository.withId(1)(AutoSession).get.article should be(Some(art1))
     repository.withId(2)(AutoSession).get.article should be(Some(art2))
@@ -150,25 +158,19 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
   }
 
   test("getTags returns non-duplicate tags and correct number of them") {
-    val sampleArticle1 = TestData.sampleDomainArticle2
+    val sampleArticle1 = TestData
+      .sampleDomainArticle2
       .copy(
         id = Some(1L),
         revision = Some(0),
-        tags = Seq(Tag(Seq("abc", "bcd", "ddd"), "nb"), Tag(Seq("abc", "bcd"), "nn"))
+        tags = Seq(Tag(Seq("abc", "bcd", "ddd"), "nb"), Tag(Seq("abc", "bcd"), "nn")),
       )
-    val sampleArticle2 = TestData.sampleDomainArticle2
-      .copy(
-        id = Some(2L),
-        revision = Some(0),
-        tags = Seq(Tag(Seq("bcd", "cde"), "nb"), Tag(Seq("bcd", "cde"), "nn"))
-      )
-    val sampleArticle3 =
-      TestData.sampleDomainArticle2
-        .copy(
-          id = Some(3L),
-          revision = Some(0),
-          tags = Seq(Tag(Seq("def"), "nb"), Tag(Seq("d", "def", "asd"), "nn"))
-        )
+    val sampleArticle2 = TestData
+      .sampleDomainArticle2
+      .copy(id = Some(2L), revision = Some(0), tags = Seq(Tag(Seq("bcd", "cde"), "nb"), Tag(Seq("bcd", "cde"), "nn")))
+    val sampleArticle3 = TestData
+      .sampleDomainArticle2
+      .copy(id = Some(3L), revision = Some(0), tags = Seq(Tag(Seq("def"), "nb"), Tag(Seq("d", "def", "asd"), "nn")))
     val sampleArticle4 = TestData.sampleDomainArticle2.copy(id = Some(4L), revision = Some(0), tags = Seq.empty)
 
     repository.updateArticleFromDraftApi(sampleArticle1, List.empty)
@@ -225,7 +227,7 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
   test("withId parse relatedContent correctly") {
     repository.updateArticleFromDraftApi(
       sampleArticle.copy(id = Some(1), relatedContent = Seq(Right(2))),
-      List("6000", "10")
+      List("6000", "10"),
     )
 
     val relatedId = repository.withId(1)(AutoSession).toArticle.get.relatedContent.head.value

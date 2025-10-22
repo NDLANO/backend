@@ -29,10 +29,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
   def updateSeries(existingSeries: domain.Series, updatedSeries: api.NewSeriesDTO): domain.Series = {
     val newTitle       = common.Title(updatedSeries.title, updatedSeries.language)
     val newDescription = domain.Description(updatedSeries.description, updatedSeries.language)
-    val coverPhoto     = domain.CoverPhoto(
-      imageId = updatedSeries.coverPhotoId,
-      altText = updatedSeries.coverPhotoAltText
-    )
+    val coverPhoto     = domain.CoverPhoto(imageId = updatedSeries.coverPhotoId, altText = updatedSeries.coverPhotoAltText)
 
     domain.Series(
       id = existingSeries.id,
@@ -43,7 +40,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       coverPhoto = coverPhoto,
       updated = NDLADate.now(),
       created = existingSeries.created,
-      hasRSS = updatedSeries.hasRSS.getOrElse(existingSeries.hasRSS)
+      hasRSS = updatedSeries.hasRSS.getOrElse(existingSeries.hasRSS),
     )
   }
 
@@ -51,10 +48,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     val titles       = Seq(common.Title(newSeries.title, newSeries.language))
     val descriptions = Seq(domain.Description(newSeries.description, newSeries.language))
 
-    val coverPhoto = domain.CoverPhoto(
-      imageId = newSeries.coverPhotoId,
-      altText = newSeries.coverPhotoAltText
-    )
+    val coverPhoto = domain.CoverPhoto(imageId = newSeries.coverPhotoId, altText = newSeries.coverPhotoAltText)
 
     val createdDate = NDLADate.now()
 
@@ -65,18 +59,17 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       episodes = None,
       updated = createdDate,
       created = createdDate,
-      hasRSS = newSeries.hasRSS.getOrElse(false)
+      hasRSS = newSeries.hasRSS.getOrElse(false),
     )
   }
 
-  def withoutLanguage(audio: AudioMetaInformation, language: String): AudioMetaInformation =
-    audio.copy(
-      titles = audio.titles.filterNot(_.language == language),
-      filePaths = audio.filePaths.filterNot(_.language == language),
-      tags = audio.tags.filterNot(_.language == language),
-      manuscript = audio.manuscript.filterNot(_.language == language),
-      podcastMeta = audio.podcastMeta.filterNot(_.language == language)
-    )
+  def withoutLanguage(audio: AudioMetaInformation, language: String): AudioMetaInformation = audio.copy(
+    titles = audio.titles.filterNot(_.language == language),
+    filePaths = audio.filePaths.filterNot(_.language == language),
+    tags = audio.tags.filterNot(_.language == language),
+    manuscript = audio.manuscript.filterNot(_.language == language),
+    podcastMeta = audio.podcastMeta.filterNot(_.language == language),
+  )
 
   def withoutLanguage(series: domain.Series, language: String): domain.Series = {
     domain.Series(
@@ -88,13 +81,13 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       coverPhoto = series.coverPhoto,
       updated = NDLADate.now(),
       created = series.created,
-      hasRSS = false
+      hasRSS = false,
     )
   }
 
   def toApiAudioMetaInformation(
       audioMeta: domain.AudioMetaInformation,
-      language: Option[String]
+      language: Option[String],
   ): Try[api.AudioMetaInformationDTO] = {
 
     val apiSeries = audioMeta.series.traverse(series => toApiSeries(series, language))
@@ -113,7 +106,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
         series = series,
         manuscript = findByLanguageOrBestEffort(audioMeta.manuscript, language).map(toApiManuscript),
         created = audioMeta.created,
-        updated = audioMeta.updated
+        updated = audioMeta.updated,
       )
     )
   }
@@ -139,12 +132,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
   def toApiAudio(audio: Option[domain.Audio]): api.AudioDTO = {
     audio match {
       case Some(x) =>
-        api.AudioDTO(
-          s"${props.Domain}/${props.AudioFilesUrlSuffix}/${x.filePath}",
-          x.mimeType,
-          x.fileSize,
-          x.language
-        )
+        api.AudioDTO(s"${props.Domain}/${props.AudioFilesUrlSuffix}/${x.filePath}", x.mimeType, x.fileSize, x.language)
       case None => api.AudioDTO("", "", 0, props.DefaultLanguage)
     }
   }
@@ -167,45 +155,41 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       copyright.rightsholders.map(_.toApi),
       copyright.validFrom,
       copyright.validTo,
-      copyright.processed
+      copyright.processed,
     )
   }
 
   def toDomainTags(tags: api.TagDTO): Seq[common.Tag] = {
-    if (tags.tags.nonEmpty) { Seq() }
-    else { Seq(common.Tag(tags.tags, tags.language)) }
+    if (tags.tags.nonEmpty) {
+      Seq()
+    } else {
+      Seq(common.Tag(tags.tags, tags.language))
+    }
   }
 
   def toApiPodcastMeta(meta: domain.PodcastMeta): api.PodcastMetaDTO = {
     api.PodcastMetaDTO(
       introduction = meta.introduction,
       coverPhoto = toApiCoverPhoto(meta.coverPhoto),
-      language = meta.language
+      language = meta.language,
     )
   }
 
   def toApiManuscript(meta: domain.Manuscript): api.ManuscriptDTO = {
-    api.ManuscriptDTO(
-      manuscript = meta.manuscript,
-      language = meta.language
-    )
+    api.ManuscriptDTO(manuscript = meta.manuscript, language = meta.language)
   }
 
   def getPhotoUrl(meta: domain.CoverPhoto): String = s"${props.RawImageApiUrl}/${meta.imageId}"
 
   def toApiCoverPhoto(meta: domain.CoverPhoto): api.CoverPhotoDTO = {
-    api.CoverPhotoDTO(
-      id = meta.imageId,
-      url = getPhotoUrl(meta),
-      altText = meta.altText
-    )
+    api.CoverPhotoDTO(id = meta.imageId, url = getPhotoUrl(meta), altText = meta.altText)
   }
 
   def toDomainPodcastMeta(meta: api.NewPodcastMetaDTO, language: String): PodcastMeta = {
     domain.PodcastMeta(
       introduction = meta.introduction,
       coverPhoto = domain.CoverPhoto(meta.coverPhotoId, meta.coverPhotoAltText),
-      language = language
+      language = language,
     )
   }
 
@@ -217,7 +201,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       audioMeta: api.NewAudioMetaInformationDTO,
       audio: domain.Audio,
       maybeSeries: Option[domain.Series],
-      tokenUser: TokenUser
+      tokenUser: TokenUser,
   ): domain.AudioMetaInformation = {
     domain.AudioMetaInformation(
       id = None,
@@ -225,7 +209,9 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       titles = Seq(common.Title(audioMeta.title, audioMeta.language)),
       filePaths = Seq(audio),
       copyright = toDomainCopyright(audioMeta.copyright),
-      tags = if (audioMeta.tags.nonEmpty) Seq(common.Tag(audioMeta.tags, audioMeta.language)) else Seq(),
+      tags =
+        if (audioMeta.tags.nonEmpty) Seq(common.Tag(audioMeta.tags, audioMeta.language))
+        else Seq(),
       updatedBy = tokenUser.id,
       updated = clock.now(),
       created = clock.now(),
@@ -233,7 +219,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       audioType = audioMeta.audioType.flatMap(AudioType.valueOf).getOrElse(AudioType.Standard),
       manuscript = audioMeta.manuscript.map(m => toDomainManuscript(m, audioMeta.language)).toSeq,
       series = maybeSeries.map(_.copy(episodes = None)),
-      seriesId = audioMeta.seriesId
+      seriesId = audioMeta.seriesId,
     )
   }
 
@@ -246,18 +232,16 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       copyright.rightsholders.map(_.toDomain),
       copyright.validFrom,
       copyright.validTo,
-      copyright.processed
+      copyright.processed,
     )
   }
 
-  def findAndConvertDomainToApiField[DomainType <: WithLanguage](
-      fields: Seq[DomainType],
-      language: Option[String]
-  )(implicit ct: ClassTag[DomainType]): Try[DomainType] = {
+  def findAndConvertDomainToApiField[DomainType <: WithLanguage](fields: Seq[DomainType], language: Option[String])(
+      implicit ct: ClassTag[DomainType]
+  ): Try[DomainType] = {
     findByLanguageOrBestEffort(fields, language.getOrElse(props.DefaultLanguage)) match {
       case Some(field) => Success(field)
-      case None        =>
-        Failure(
+      case None        => Failure(
           CouldNotFindLanguageException(
             s"Could not find value for '${ct.runtimeClass.getName}' field. This is a data inconsistency or a bug."
           )
@@ -269,8 +253,8 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     for {
       title       <- findAndConvertDomainToApiField(series.title, language).map(toApiTitle)
       description <- findAndConvertDomainToApiField(series.description, language).map(toApiDescription)
-      coverPhoto = toApiCoverPhoto(series.coverPhoto)
-      episodes <- series.episodes.traverse(eps => eps.traverse(toApiAudioMetaInformation(_, language)))
+      coverPhoto   = toApiCoverPhoto(series.coverPhoto)
+      episodes    <- series.episodes.traverse(eps => eps.traverse(toApiAudioMetaInformation(_, language)))
     } yield api.SeriesDTO(
       id = series.id,
       revision = series.revision,
@@ -279,7 +263,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       coverPhoto = coverPhoto,
       episodes = episodes,
       supportedLanguages = series.supportedLanguages,
-      hasRSS = series.hasRSS
+      hasRSS = series.hasRSS,
     )
   }
 

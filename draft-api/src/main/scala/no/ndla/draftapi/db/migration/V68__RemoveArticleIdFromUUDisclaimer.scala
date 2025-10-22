@@ -19,9 +19,7 @@ class V68__RemoveArticleIdFromUUDisclaimer extends HtmlMigration {
       .forEach(embed => {
         val hasArticleId = embed.hasAttr("data-article-id")
         if (hasArticleId) {
-          embed.removeAttr(
-            "data-article-id"
-          ): Unit
+          embed.removeAttr("data-article-id"): Unit
         }
       })
     doc

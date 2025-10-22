@@ -22,8 +22,7 @@ class V62__ComputeSearchTraits(using traitUtil: TraitUtil) extends DocumentMigra
     val oldDocument = CirceUtil.unsafeParse(value)
     val contents    = oldDocument.hcursor.get[Seq[ArticleContent]]("content").toTry.getOrElse(Seq.empty)
     val traits      = traitUtil.getArticleTraits(contents)
-    val newDocument = oldDocument.hcursor
-      .withFocus(_.mapObject(_.add("traits", traits.asJson)))
+    val newDocument = oldDocument.hcursor.withFocus(_.mapObject(_.add("traits", traits.asJson)))
 
     newDocument.top.get.noSpaces
   }

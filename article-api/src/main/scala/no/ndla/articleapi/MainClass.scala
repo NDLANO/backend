@@ -14,8 +14,8 @@ import no.ndla.network.tapir.NdlaTapirMain
 class MainClass(override val props: ArticleApiProperties) extends NdlaTapirMain[ComponentRegistry] {
   val componentRegistry = new ComponentRegistry(props)
 
-  private def warmupRequest = (path: String, options: Map[String, String]) =>
-    Warmup.warmupRequest(props.ApplicationPort, path, options)
+  private def warmupRequest =
+    (path: String, options: Map[String, String]) => Warmup.warmupRequest(props.ApplicationPort, path, options)
 
   override def warmup(): Unit = {
     warmupRequest("/article-api/v2/articles", Map("query" -> "norge", "fallback" -> "true"))

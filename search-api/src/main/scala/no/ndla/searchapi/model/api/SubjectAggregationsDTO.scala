@@ -13,9 +13,7 @@ import io.circe.{Decoder, Encoder}
 import sttp.tapir.Schema.annotations.description
 
 @description("Result of subject aggregations")
-case class SubjectAggregationsDTO(
-    subjects: List[SubjectAggregationDTO]
-)
+case class SubjectAggregationsDTO(subjects: List[SubjectAggregationDTO])
 
 object SubjectAggregationsDTO {
   implicit val encoder: Encoder[SubjectAggregationsDTO] = deriveEncoder
@@ -36,7 +34,7 @@ case class SubjectAggregationDTO(
     @description("Number of resources in 'flow' (Articles not in `PUBLISHED`, `UNPUBLISHED` or `ARCHIVED` status")
     flowCount: Long,
     @description("Number of favorited resources")
-    favoritedCount: Long
+    favoritedCount: Long,
 )
 
 object SubjectAggregationDTO {

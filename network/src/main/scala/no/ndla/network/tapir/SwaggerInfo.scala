@@ -16,5 +16,5 @@ case class SwaggerInfo(
     mountPoint: EndpointInput[Unit],
     description: String,
     authUrl: String,
-    scopes: ListMap[String, String]
+    scopes: ListMap[String, String],
 )

@@ -59,25 +59,23 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
   val articleId       = 1L
 
   test("/<article_id> should return 200 if the cover was found withIdV2") {
-    when(readService.withIdV2(articleId, lang, fallback = false, None, None))
-      .thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
+    when(readService.withIdV2(articleId, lang, fallback = false, None, None)).thenReturn(
+      Success(domain.Cachable.yes(TestData.sampleArticleV2))
+    )
 
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleId?language=$lang")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleId?language=$lang"))
       .code
       .code should be(200)
   }
 
   test("/<article_id> should return 404 if the article was not found withIdV2") {
-    when(readService.withIdV2(articleId, lang, fallback = false, None, None))
-      .thenReturn(Failure(api.NotFoundException("Not found")))
+    when(readService.withIdV2(articleId, lang, fallback = false, None, None)).thenReturn(
+      Failure(api.NotFoundException("Not found"))
+    )
 
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleId?language=$lang")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleId?language=$lang"))
       .code
       .code should be(404)
   }
@@ -87,20 +85,12 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
     val revision               = 5
     val articleUrnWithRevision = s"urn:article:$articleId2#$revision"
 
-    when(
-      readService.withIdV2(
-        articleId2,
-        "*",
-        fallback = false,
-        Some(revision),
-        None
-      )
-    ).thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
+    when(readService.withIdV2(articleId2, "*", fallback = false, Some(revision), None)).thenReturn(
+      Success(domain.Cachable.yes(TestData.sampleArticleV2))
+    )
 
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleUrnWithRevision")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$articleUrnWithRevision"))
       .code
       .code should be(200)
   }
@@ -108,12 +98,9 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
   test("/<article_id> should return 200 if slug was sent as parameter") {
     val slug = "someslug"
 
-    when(readService.getArticleBySlug(any, any, any))
-      .thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
+    when(readService.getArticleBySlug(any, any, any)).thenReturn(Success(domain.Cachable.yes(TestData.sampleArticleV2)))
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$slug")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$slug"))
       .code
       .code should be(200)
   }
@@ -121,12 +108,9 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
   test("/<article_id> default behavior should be to find by slug") {
     val malformedUrn = s"urn:article:malformed#hue"
 
-    when(readService.getArticleBySlug(any, any, any))
-      .thenReturn(Failure(api.NotFoundException("Not found")))
+    when(readService.getArticleBySlug(any, any, any)).thenReturn(Failure(api.NotFoundException("Not found")))
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$malformedUrn")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$malformedUrn"))
       .code
       .code should be(404)
   }
@@ -134,22 +118,14 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
   test("That scrollId is in header, and not in body") {
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = SearchResult[api.ArticleSummaryV2DTO](
-      0,
-      Some(1),
-      10,
-      "nb",
-      Seq.empty[api.ArticleSummaryV2DTO],
-      Some(scrollId)
+    val searchResponse =
+      SearchResult[api.ArticleSummaryV2DTO](0, Some(1), 10, "nb", Seq.empty[api.ArticleSummaryV2DTO], Some(scrollId))
+    when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any)).thenReturn(
+      Success(domain.Cachable.yes(searchResponse))
     )
-    when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
-      .thenReturn(Success(domain.Cachable.yes(searchResponse)))
     when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
 
-    val resp = simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/")
-      )
+    val resp = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/"))
 
     resp.code.code should be(200)
     resp.body.contains(scrollId) should be(false)
@@ -161,21 +137,14 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
     when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = SearchResult[api.ArticleSummaryV2DTO](
-      0,
-      Some(1),
-      10,
-      "nb",
-      Seq.empty[api.ArticleSummaryV2DTO],
-      Some(scrollId)
-    )
+    val searchResponse =
+      SearchResult[api.ArticleSummaryV2DTO](0, Some(1), 10, "nb", Seq.empty[api.ArticleSummaryV2DTO], Some(scrollId))
 
     when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
 
-    val resp = simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/?search-context=$scrollId")
-      )
+    val resp = simpleHttpClient.send(
+      quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/?search-context=$scrollId")
+    )
     resp.code.code should be(200)
 
     verify(articleSearchService, times(0)).matchingQuery(any[domain.SearchSettings])
@@ -187,25 +156,18 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
     reset(articleSearchService)
     val scrollId =
       "DnF1ZXJ5VGhlbkZldGNoCgAAAAAAAAC1Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAthYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALcWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC4Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuRYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAALsWLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC9Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFEAAAAAAAAAuhYtY2VPYWFvRFQ5aWNSbzRFYVZSTEhRAAAAAAAAAL4WLWNlT2Fhb0RUOWljUm80RWFWUkxIUQAAAAAAAAC8Fi1jZU9hYW9EVDlpY1JvNEVhVlJMSFE="
-    val searchResponse = SearchResult[api.ArticleSummaryV2DTO](
-      0,
-      Some(1),
-      10,
-      "nb",
-      Seq.empty[api.ArticleSummaryV2DTO],
-      Some(scrollId)
-    )
+    val searchResponse =
+      SearchResult[api.ArticleSummaryV2DTO](0, Some(1), 10, "nb", Seq.empty[api.ArticleSummaryV2DTO], Some(scrollId))
 
     when(articleSearchService.scroll(anyString, anyString)).thenReturn(Success(searchResponse))
     when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
 
-    val response = simpleHttpClient
-      .send(
-        quickRequest
-          .post(uri"http://localhost:$serverPort/article-api/v2/articles/search")
-          .body(s"""{"scrollId":"$scrollId"}""")
-          .header("content-type", "application/json")
-      )
+    val response = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/article-api/v2/articles/search")
+        .body(s"""{"scrollId":"$scrollId"}""")
+        .header("content-type", "application/json")
+    )
     response.code.code should be(200)
 
     verify(articleSearchService, times(0)).matchingQuery(any[domain.SearchSettings])
@@ -213,14 +175,10 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
   }
 
   test("tags should return 200 OK if the result was not empty") {
-    when(readService.getAllTags(anyString, anyInt, anyInt, anyString))
-      .thenReturn(TestData.sampleApiTagsSearchResult)
+    when(readService.getAllTags(anyString, anyInt, anyInt, anyString)).thenReturn(TestData.sampleApiTagsSearchResult)
 
-    val response = simpleHttpClient
-      .send(
-        quickRequest
-          .get(uri"http://localhost:$serverPort/article-api/v2/articles/tag-search/")
-      )
+    val response =
+      simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/tag-search/"))
     response.code.code should be(200)
   }
 
@@ -233,16 +191,14 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
       pageSize = 10,
       language = "*",
       results = Seq.empty,
-      scrollId = Some("heiheihei")
+      scrollId = Some("heiheihei"),
     )
-    when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any))
-      .thenReturn(Success(domain.Cachable.yes(result)))
+    when(readService.search(any, any, any, any, any, any, any, any, any, any, any, any)).thenReturn(
+      Success(domain.Cachable.yes(result))
+    )
     when(searchConverterService.asApiSearchResultV2(any)).thenCallRealMethod()
     simpleHttpClient
-      .send(
-        quickRequest
-          .get(uri"http://localhost:$serverPort/article-api/v2/articles/?search-context=initial")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/?search-context=initial"))
       .code
       .code should be(200)
 
@@ -258,7 +214,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
       fallback = any,
       grepCodes = any,
       shouldScroll = eqTo(true),
-      feideAccessToken = any
+      feideAccessToken = any,
     )
     verify(articleSearchService, times(0)).scroll(any[String], any[String])
   }
@@ -267,11 +223,8 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
     reset(readService)
     when(readService.getArticlesByIds(any, any, any, any, any, any)).thenReturn(Success(Seq.empty))
 
-    val response = simpleHttpClient
-      .send(
-        quickRequest
-          .get(uri"http://localhost:$serverPort/article-api/v2/articles/ids/?ids=1,2,3")
-      )
+    val response =
+      simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/ids/?ids=1,2,3"))
     verify(readService, times(1)).getArticlesByIds(eqTo(List(1L, 2L, 3L)), any, any, any, any, any)
     verify(readService, never).getArticleBySlug(any, any, any)
     verify(readService, never).withIdV2(any, any, any, any, any)

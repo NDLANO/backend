@@ -395,7 +395,7 @@ object Iso639List_7 {
       Some("H"),
       "Old Persian (ca. 600-400 B.C.)",
       None,
-      None
+      None,
     ),
     Iso639Val("pep", None, None, None, Some("I"), Some("L"), "Kunja", None, None),
     Iso639Val("peq", None, None, None, Some("I"), Some("L"), "Southern Pomo", None, None),
@@ -822,6 +822,6 @@ object Iso639List_7 {
     Iso639Val("rnp", None, None, None, Some("I"), Some("L"), "Rongpo", None, None),
     Iso639Val("rnr", None, None, None, Some("I"), Some("E"), "Nari Nari", None, None),
     Iso639Val("rnw", None, None, None, Some("I"), Some("L"), "Rungwa", None, None),
-    Iso639Val("rob", None, None, None, Some("I"), Some("L"), "Tae'", None, None)
+    Iso639Val("rob", None, None, None, Some("I"), Some("L"), "Tae'", None, None),
   )
 }

@@ -104,7 +104,7 @@ class JWTExtractorTest extends UnitSuite {
         "learningpath:publish",
         "learningpath:write",
         "taxonomy:admin",
-        "taxonomy:write"
+        "taxonomy:write",
       )
     )
   }

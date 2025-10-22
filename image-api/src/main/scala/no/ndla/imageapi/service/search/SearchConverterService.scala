@@ -29,15 +29,9 @@ import scala.util.{Failure, Success, Try}
 
 class SearchConverterService(using converterService: ConverterService, props: Props) extends StrictLogging {
 
-  def asSearchableTags(domainModel: ImageMetaInformation): Seq[SearchableTag] =
-    domainModel.tags.flatMap(tags =>
-      tags.tags.map(tag =>
-        SearchableTag(
-          tag = tag,
-          language = tags.language
-        )
-      )
-    )
+  def asSearchableTags(domainModel: ImageMetaInformation): Seq[SearchableTag] = domainModel
+    .tags
+    .flatMap(tags => tags.tags.map(tag => SearchableTag(tag = tag, language = tags.language)))
 
   private def asSearchableImageFiles(images: Seq[ImageFileData]): Seq[SearchableImageFile] = {
     images.map(i => {
@@ -47,19 +41,19 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
         fileSize = i.size,
         contentType = i.contentType,
         dimensions = i.dimensions,
-        language = i.language
+        language = i.language,
       )
     })
   }
 
   def asSearchableImage(image: ImageMetaInformation): SearchableImage = {
     val defaultTitle = getDefault(image.titles)
-    val contributors =
-      image.copyright.creators.map(c => c.name) ++
-        image.copyright.processors.map(p => p.name) ++
-        image.copyright.rightsholders.map(r => r.name)
+    val contributors = image.copyright.creators.map(c => c.name) ++
+      image.copyright.processors.map(p => p.name) ++
+      image.copyright.rightsholders.map(r => r.name)
 
-    val podcastFriendly = image.images
+    val podcastFriendly = image
+      .images
       .getOrElse(Seq.empty)
       .exists(i => i.dimensions.exists(d => (d.height == d.width) && d.width <= 3000 && d.width >= 1400))
 
@@ -84,17 +78,16 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
       imageFiles = asSearchableImageFiles(image.images.getOrElse(Seq.empty)),
       podcastFriendly = podcastFriendly,
       domainObject = image,
-      users = users
+      users = users,
     )
   }
 
   private def getSearchableImageFileFromSearchableImage(
       meta: SearchableImage,
-      language: Option[String]
+      language: Option[String],
   ): Try[SearchableImageFile] = {
     findByLanguageOrBestEffort(meta.imageFiles, language) match {
-      case None =>
-        Failure(
+      case None => Failure(
           ImageConversionException(s"Could not find image in meta for image with id '${meta.id}', this is a bug.")
         )
       case Some(image) => Success(image)
@@ -104,7 +97,7 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
   def asImageMetaSummary(
       searchableImage: SearchableImage,
       language: String,
-      user: Option[TokenUser]
+      user: Option[TokenUser],
   ): Try[ImageMetaSummaryDTO] = {
     val apiToRawRegex = "/v\\d+/images/".r
     val title         = Language
@@ -124,7 +117,7 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
       searchableImage.titles.languageValues,
       searchableImage.alttexts.languageValues,
       searchableImage.captions.languageValues,
-      searchableImage.tags.languageValues
+      searchableImage.tags.languageValues,
     )
 
     val editorNotes = Option.when(user.hasPermission(IMAGE_API_WRITE))(searchableImage.editorNotes)
@@ -145,21 +138,25 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
         lastUpdated = searchableImage.lastUpdated,
         fileSize = imageFile.fileSize,
         contentType = imageFile.contentType,
-        imageDimensions = imageFile.dimensions.map { case domain.ImageDimensions(width, height) =>
-          api.ImageDimensionsDTO(width, height)
-        }
+        imageDimensions = imageFile
+          .dimensions
+          .map { case domain.ImageDimensions(width, height) =>
+            api.ImageDimensionsDTO(width, height)
+          },
       )
     })
   }
 
   def getLanguageFromHit(result: SearchHit): Option[String] = {
     def keyToLanguage(keys: Iterable[String]): Option[String] = {
-      val keyLanguages = keys.toList.flatMap(key =>
-        key.split('.').toList match {
-          case _ :: language :: _ => Some(language)
-          case _                  => None
-        }
-      )
+      val keyLanguages = keys
+        .toList
+        .flatMap(key =>
+          key.split('.').toList match {
+            case _ :: language :: _ => Some(language)
+            case _                  => None
+          }
+        )
 
       sortLanguagesByPriority(keyLanguages).headOption
     }
@@ -168,37 +165,35 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
     val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
     matchLanguage match {
-      case Some(lang) =>
-        Some(lang)
-      case _ =>
-        keyToLanguage(result.sourceAsMap.keys)
+      case Some(lang) => Some(lang)
+      case _          => keyToLanguage(result.sourceAsMap.keys)
     }
   }
 
-  def asApiSearchResult(searchResult: domain.SearchResult[ImageMetaSummaryDTO]): api.SearchResultDTO =
-    api.SearchResultDTO(
+  def asApiSearchResult(searchResult: domain.SearchResult[ImageMetaSummaryDTO]): api.SearchResultDTO = api
+    .SearchResultDTO(
       searchResult.totalCount,
       searchResult.page,
       searchResult.pageSize,
       searchResult.language,
-      searchResult.results
+      searchResult.results,
     )
 
-  def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResultDTO =
-    api.TagsSearchResultDTO(
-      searchResult.totalCount,
-      searchResult.page.getOrElse(1),
-      searchResult.pageSize,
-      searchResult.language,
-      searchResult.results
-    )
+  def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResultDTO = api.TagsSearchResultDTO(
+    searchResult.totalCount,
+    searchResult.page.getOrElse(1),
+    searchResult.pageSize,
+    searchResult.language,
+    searchResult.results,
+  )
 
   def asApiSearchResultV3(
       searchResult: domain.SearchResult[(SearchableImage, MatchedLanguage)],
       language: String,
-      user: Option[TokenUser]
+      user: Option[TokenUser],
   ): Try[api.SearchResultV3DTO] = {
-    searchResult.results
+    searchResult
+      .results
       .traverse(r => converterService.asApiImageMetaInformationV3(r._1.domainObject, language.some, user))
       .map(results =>
         api.SearchResultV3DTO(
@@ -206,7 +201,7 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
           searchResult.page,
           searchResult.pageSize,
           searchResult.language,
-          results
+          results,
         )
       )
 

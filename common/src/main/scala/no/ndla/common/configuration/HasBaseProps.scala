@@ -8,4 +8,6 @@
 
 package no.ndla.common.configuration
 
-trait HasBaseProps { given props: BaseProps }
+trait HasBaseProps {
+  given props: BaseProps
+}

@@ -13,14 +13,8 @@ import sttp.model.Part
 
 import java.io.File
 
-case class MetaDataAndFileForm(
-    metadata: Part[NewImageMetaInformationV2DTO],
-    file: Part[File]
-)
+case class MetaDataAndFileForm(metadata: Part[NewImageMetaInformationV2DTO], file: Part[File])
 
 case class CopyMetaDataAndFileForm(file: Part[File])
 
-case class UpdateMetaDataAndFileForm(
-    metadata: Part[UpdateImageMetaInformationDTO],
-    file: Option[Part[File]]
-)
+case class UpdateMetaDataAndFileForm(metadata: Part[UpdateImageMetaInformationDTO], file: Option[Part[File]])

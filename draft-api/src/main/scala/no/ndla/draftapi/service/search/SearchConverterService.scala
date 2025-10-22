@@ -24,7 +24,7 @@ import no.ndla.language.Language.{
   findByLanguageOrBestEffort,
   getDefault,
   getSupportedLanguages,
-  sortLanguagesByPriority
+  sortLanguagesByPriority,
 }
 import no.ndla.network.ApplicationUrl
 import org.jsoup.Jsoup
@@ -46,7 +46,8 @@ class SearchConverterService(using converterService: ConverterService) extends S
       tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
       lastUpdated = ai.updated,
       license = ai.copyright.flatMap(_.license),
-      authors = ai.copyright
+      authors = ai
+        .copyright
         .map(copy => copy.creators ++ copy.processors ++ copy.rightsholders)
         .map(a => a.map(_.name))
         .toSeq
@@ -58,7 +59,7 @@ class SearchConverterService(using converterService: ConverterService) extends S
       previousNotes = ai.previousVersionsNotes.map(_.note),
       grepCodes = ai.grepCodes,
       status = SearchableStatus(ai.status.current, ai.status.other),
-      traits = ai.traits
+      traits = ai.traits,
     )
   }
 
@@ -66,10 +67,14 @@ class SearchConverterService(using converterService: ConverterService) extends S
     val searchableArticle = CirceUtil.unsafeParseAs[SearchableArticle](hitString)
 
     val titles        = searchableArticle.title.languageValues.map(lv => common.Title(lv.value, lv.language))
-    val introductions =
-      searchableArticle.introduction.languageValues.map(lv => common.Introduction(lv.value, lv.language))
-    val visualElements =
-      searchableArticle.visualElement.languageValues.map(lv => common.VisualElement(lv.value, lv.language))
+    val introductions = searchableArticle
+      .introduction
+      .languageValues
+      .map(lv => common.Introduction(lv.value, lv.language))
+    val visualElements = searchableArticle
+      .visualElement
+      .languageValues
+      .map(lv => common.VisualElement(lv.value, lv.language))
     val tags  = searchableArticle.tags.languageValues.map(lv => common.Tag(lv.value, lv.language))
     val notes = searchableArticle.notes
     val users = searchableArticle.users
@@ -101,7 +106,7 @@ class SearchConverterService(using converterService: ConverterService) extends S
       grepCodes = searchableArticle.grepCodes,
       status = status,
       updated = searchableArticle.lastUpdated,
-      traits = searchableArticle.traits
+      traits = searchableArticle.traits,
     )
   }
 
@@ -114,12 +119,14 @@ class SearchConverterService(using converterService: ConverterService) extends S
     */
   def getLanguageFromHit(result: SearchHit): Option[String] = {
     def keyToLanguage(keys: Iterable[String]): Option[String] = {
-      val keyLanguages = keys.toList.flatMap(key =>
-        key.split('.').toList match {
-          case _ :: language :: _ => Some(language)
-          case _                  => None
-        }
-      )
+      val keyLanguages = keys
+        .toList
+        .flatMap(key =>
+          key.split('.').toList match {
+            case _ :: language :: _ => Some(language)
+            case _                  => None
+          }
+        )
 
       sortLanguagesByPriority(keyLanguages).headOption
     }
@@ -128,41 +135,29 @@ class SearchConverterService(using converterService: ConverterService) extends S
     val matchLanguage                         = keyToLanguage(highlightKeys.getOrElse(Map()).keys)
 
     matchLanguage match {
-      case Some(lang) =>
-        Some(lang)
-      case _ =>
-        keyToLanguage(result.sourceAsMap.keys)
+      case Some(lang) => Some(lang)
+      case _          => keyToLanguage(result.sourceAsMap.keys)
     }
   }
 
-  def asApiSearchResult(searchResult: SearchResult[api.ArticleSummaryDTO]): ArticleSearchResultDTO =
-    api.ArticleSearchResultDTO(
-      searchResult.totalCount,
-      searchResult.page,
-      searchResult.pageSize,
-      searchResult.results
-    )
+  def asApiSearchResult(searchResult: SearchResult[api.ArticleSummaryDTO]): ArticleSearchResultDTO = api
+    .ArticleSearchResultDTO(searchResult.totalCount, searchResult.page, searchResult.pageSize, searchResult.results)
 
-  def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResultDTO =
-    api.TagsSearchResultDTO(
-      searchResult.totalCount,
-      searchResult.page.getOrElse(1),
-      searchResult.pageSize,
-      searchResult.language,
-      searchResult.results
-    )
+  def tagSearchResultAsApiResult(searchResult: SearchResult[String]): api.TagsSearchResultDTO = api.TagsSearchResultDTO(
+    searchResult.totalCount,
+    searchResult.page.getOrElse(1),
+    searchResult.pageSize,
+    searchResult.language,
+    searchResult.results,
+  )
 
   def asSearchableTags(article: Draft): Seq[SearchableTag] = {
-    article.tags.flatMap(articleTags =>
-      articleTags.tags.map(tag =>
-        SearchableTag(
-          tag = tag,
-          language = articleTags.language
-        )
-      )
-    )
+    article
+      .tags
+      .flatMap(articleTags => articleTags.tags.map(tag => SearchableTag(tag = tag, language = articleTags.language)))
   }
 
-  def asSearchableGrepCodes(article: Draft): Seq[SearchableGrepCode] =
-    article.grepCodes.map(code => SearchableGrepCode(code))
+  def asSearchableGrepCodes(article: Draft): Seq[SearchableGrepCode] = article
+    .grepCodes
+    .map(code => SearchableGrepCode(code))
 }

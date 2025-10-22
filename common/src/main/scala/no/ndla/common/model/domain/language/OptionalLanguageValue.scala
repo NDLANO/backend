@@ -25,14 +25,15 @@ object OptionalLanguageValue {
     case NotWanted()   => Json.obj(NotWantedKey -> Json.True)
   }
 
-  implicit def decoder[T: Decoder]: Decoder[OptionalLanguageValue[T]] =
-    (c: HCursor) => {
-      c.downField(NotWantedKey).as[Option[Boolean]].flatMap {
+  implicit def decoder[T: Decoder]: Decoder[OptionalLanguageValue[T]] = (c: HCursor) => {
+    c.downField(NotWantedKey)
+      .as[Option[Boolean]]
+      .flatMap {
         case Some(true) => Right(NotWanted())
         case _          =>
           val field  = c.downField("value")
           val parsed = field.as[T]
           parsed.map(value => Exists(value))
       }
-    }
+  }
 }

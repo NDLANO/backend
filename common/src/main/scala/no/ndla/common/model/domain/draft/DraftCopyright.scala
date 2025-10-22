@@ -21,7 +21,7 @@ case class DraftCopyright(
     rightsholders: Seq[Author],
     validFrom: Option[NDLADate],
     validTo: Option[NDLADate],
-    processed: Boolean
+    processed: Boolean,
 )
 
 object DraftCopyright {

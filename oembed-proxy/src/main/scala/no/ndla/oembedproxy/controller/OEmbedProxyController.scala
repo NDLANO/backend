@@ -25,13 +25,14 @@ class OEmbedProxyController(using
     oEmbedService: OEmbedService,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
 ) extends TapirController {
   import errorHandling.*
   override val serviceName: String                       = "oembed"
   override val prefix: EndpointInput[Unit]               = "oembed-proxy" / "v1" / serviceName
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
-    endpoint.get
+    endpoint
+      .get
       .summary("Returns oEmbed information for a given url.")
       .description("Returns oEmbed information for a given url.")
       .in(query[String]("url").description("The URL to retrieve embedding information for"))

@@ -34,10 +34,12 @@ class MyNDLAApiClient(using props: BaseProps, ndlaClient: NdlaClient) {
       quickRequest.get(
         uri"http://${props.MyNDLAApiHost}/myndla-api/v1/config/${ConfigKey.LearningpathWriteRestricted.entryName}"
       )
-    ).flatMap(_.value match {
-      case Left(value) => Success(value)
-      case _           => Failure(new RuntimeException("Expected boolean, got list"))
-    })
+    ).flatMap(
+      _.value match {
+        case Left(value) => Success(value)
+        case _           => Failure(new RuntimeException("Expected boolean, got list"))
+      }
+    )
   }
 
   def getStatsFor(id: String, resourceTypes: List[ResourceType]): Try[List[SingleResourceStatsDTO]] = {

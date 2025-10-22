@@ -30,7 +30,7 @@ case class SearchableLearningPath(
     learningsteps: Seq[SearchableLearningStep],
     copyright: CopyrightDTO,
     isBasedOn: Option[Long],
-    grepCodes: Seq[String]
+    grepCodes: Seq[String],
 )
 
 object SearchableLearningPath {

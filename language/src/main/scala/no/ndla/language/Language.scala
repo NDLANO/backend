@@ -59,12 +59,14 @@ object Language {
     "th",
     "tr",
     "ukr",
-    "und"
+    "und",
   )
 
   def mergeLanguageFields[A <: LanguageField[?]](existing: Seq[A], updated: Seq[A]): Seq[A] = {
     val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
-    (toKeep ++ updated).filterNot(_.isEmpty)
+    (
+      toKeep ++ updated
+    ).filterNot(_.isEmpty)
   }
 
   def findByLanguageOrBestEffort[P <: WithLanguage](sequence: Seq[P], language: Option[String]): Option[P] =
@@ -73,24 +75,27 @@ object Language {
       case None    => sortByLanguagePriority(sequence).headOption
     }
 
-  def sortByLanguagePriority[P <: WithLanguage](sequence: Seq[P]): Seq[P] =
-    sequence.sortBy(lf => languagePriority.reverse.indexOf(lf.language)).reverse
+  def sortByLanguagePriority[P <: WithLanguage](sequence: Seq[P]): Seq[P] = sequence
+    .sortBy(lf => languagePriority.reverse.indexOf(lf.language))
+    .reverse
 
-  def getDefault[P <: WithLanguage](sequence: Seq[P]): Option[P] =
-    sortByLanguagePriority(sequence).headOption
+  def getDefault[P <: WithLanguage](sequence: Seq[P]): Option[P] = sortByLanguagePriority(sequence).headOption
 
-  def sortLanguagesByPriority(languages: Seq[String]): Seq[String] =
-    languages.sortBy(lang => languagePriority.reverse.indexOf(lang)).reverse
+  def sortLanguagesByPriority(languages: Seq[String]): Seq[String] = languages
+    .sortBy(lang => languagePriority.reverse.indexOf(lang))
+    .reverse
 
-  def findByLanguageOrBestEffort[P <: WithLanguage](sequence: Seq[P], language: String): Option[P] =
-    sequence
-      .find(_.language == language)
-      .orElse(getDefault(sequence))
+  def findByLanguageOrBestEffort[P <: WithLanguage](sequence: Seq[P], language: String): Option[P] = sequence
+    .find(_.language == language)
+    .orElse(getDefault(sequence))
 
   def getSupportedLanguages(sequences: Seq[WithLanguage]*): Seq[String] = {
-    sequences.flatMap(_.map(_.language)).distinct.sortBy { lang =>
-      languagePriority.indexOf(lang)
-    }
+    sequences
+      .flatMap(_.map(_.language))
+      .distinct
+      .sortBy { lang =>
+        languagePriority.indexOf(lang)
+      }
   }
 
   def languageOrUnknown(language: Option[String]): LanguageTag = {
@@ -109,11 +114,11 @@ object Language {
   }
 
   def getSearchLanguage(languageParam: String, supportedLanguages: Seq[String]): String = {
-    val l = if (languageParam == AllLanguages) DefaultLanguage else languageParam
-    if (supportedLanguages.contains(l))
-      l
-    else
-      supportedLanguages.head
+    val l =
+      if (languageParam == AllLanguages) DefaultLanguage
+      else languageParam
+    if (supportedLanguages.contains(l)) l
+    else supportedLanguages.head
   }
 
   final val LanguageDocString = "ISO 639-1 code that represents the language used in the caption"

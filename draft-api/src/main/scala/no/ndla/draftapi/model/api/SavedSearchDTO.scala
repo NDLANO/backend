@@ -14,8 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Information about saved search")
 case class SavedSearchDTO(
-    @description("The search url") searchUrl: String,
-    @description("The search phrase") searchPhrase: String
+    @description("The search url")
+    searchUrl: String,
+    @description("The search phrase")
+    searchPhrase: String,
 )
 
 object SavedSearchDTO {

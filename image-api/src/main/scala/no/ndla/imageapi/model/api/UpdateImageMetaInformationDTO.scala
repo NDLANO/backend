@@ -15,13 +15,20 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Meta information for the image")
 case class UpdateImageMetaInformationDTO(
-    @description("ISO 639-1 code that represents the language") language: String,
-    @description("Title for the image") title: Option[String],
-    @description("Alternative text for the image") alttext: UpdateOrDelete[String],
-    @description("Describes the copyright information for the image") copyright: Option[CopyrightDTO],
-    @description("Searchable tags for the image") tags: Option[Seq[String]],
-    @description("Caption for the image") caption: Option[String],
-    @description("Describes if the model has released use of the image") modelReleased: Option[String]
+    @description("ISO 639-1 code that represents the language")
+    language: String,
+    @description("Title for the image")
+    title: Option[String],
+    @description("Alternative text for the image")
+    alttext: UpdateOrDelete[String],
+    @description("Describes the copyright information for the image")
+    copyright: Option[CopyrightDTO],
+    @description("Searchable tags for the image")
+    tags: Option[Seq[String]],
+    @description("Caption for the image")
+    caption: Option[String],
+    @description("Describes if the model has released use of the image")
+    modelReleased: Option[String],
 )
 
 object UpdateImageMetaInformationDTO {

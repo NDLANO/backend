@@ -19,10 +19,7 @@ import scala.util.{Success, Try}
 
 class ImageRepository extends StrictLogging with Repository[ImageMetaInformation] {
   def imageCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
-    sql"select count(*) from ${ImageMetaInformation.table}"
-      .map(rs => rs.long("count"))
-      .single()
-      .getOrElse(0)
+    sql"select count(*) from ${ImageMetaInformation.table}".map(rs => rs.long("count")).single().getOrElse(0)
 
   def withId(id: Long): Option[ImageMetaInformation] = {
     DB readOnly { implicit session =>
@@ -47,8 +44,7 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(imageMeta))
 
-    val imageId =
-      sql"insert into imagemetadata(metadata) values ($dataObject)".updateAndReturnGeneratedKey()
+    val imageId = sql"insert into imagemetadata(metadata) values ($dataObject)".updateAndReturnGeneratedKey()
     imageMeta.copy(id = Some(imageId))
   }
 
@@ -63,30 +59,24 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
       sql"update imagemetadata set metadata = $dataObject where id = $id".update()
     }.flatMap(_ =>
       imageMetaInformation.images match {
-        case Some(images) =>
-          images
-            .map(updateImageFileMeta)
-            .sequence
-            .map(_ => imageMetaInformation.copy(id = Some(id)))
-        case None => Success(imageMetaInformation.copy(id = Some(id)))
+        case Some(images) => images.map(updateImageFileMeta).sequence.map(_ => imageMetaInformation.copy(id = Some(id)))
+        case None         => Success(imageMetaInformation.copy(id = Some(id)))
       }
     )
   }
 
-  private def updateImageFileMeta(imageFileData: ImageFileData)(implicit session: DBSession): Try[?] =
-    Try {
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      val jsonString = CirceUtil.toJsonString(imageFileData.toDocument())
-      dataObject.setValue(jsonString)
-      sql"""
+  private def updateImageFileMeta(imageFileData: ImageFileData)(implicit session: DBSession): Try[?] = Try {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    val jsonString = CirceUtil.toJsonString(imageFileData.toDocument())
+    dataObject.setValue(jsonString)
+    sql"""
             update imagefiledata
             set file_name=${imageFileData.fileName},
                 metadata=$dataObject
             where id=${imageFileData.id}
-         """
-        .update()
-    }
+         """.update()
+  }
 
   def delete(imageId: Long)(implicit session: DBSession = AutoSession): Int = {
     sql"delete from imagemetadata where id = $imageId".update()
@@ -121,12 +111,10 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
     val jsonString = CirceUtil.toJsonString(document)
     dataObject.setValue(jsonString)
 
-    val insertedId =
-      sql"""
+    val insertedId = sql"""
               insert into imagefiledata(file_name, metadata, image_meta_id)
               values ($fileName, $dataObject, $imageId)
-           """
-        .updateAndReturnGeneratedKey()
+           """.updateAndReturnGeneratedKey()
 
     document.toFull(insertedId, fileName, imageId)
   }
@@ -204,9 +192,7 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
     sql"""SELECT ${im.result.*}
            FROM ${ImageMetaInformation.as(im)} TABLESAMPLE public.system_rows(1)
            LEFT JOIN ${Image.as(dif)} ON ${dif.imageMetaId} = ${im.id}
-           LIMIT 1"""
-      .map(ImageMetaInformation.fromResultSet(im))
-      .single()
+           LIMIT 1""".map(ImageMetaInformation.fromResultSet(im)).single()
   }
 
   def getByPage(pageSize: Int, offset: Int)(implicit
@@ -220,9 +206,7 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
            order by ${im.id}
            offset $offset
            limit $pageSize
-      """
-      .map(ImageMetaInformation.fromResultSet(im))
-      .list()
+      """.map(ImageMetaInformation.fromResultSet(im)).list()
   }
 
 }

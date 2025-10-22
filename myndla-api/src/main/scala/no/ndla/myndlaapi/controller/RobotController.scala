@@ -26,12 +26,13 @@ class RobotController(using
     robotService: RobotService,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   override val serviceName: String         = "robots"
   override val prefix: EndpointInput[Unit] = "myndla-api" / "v1" / serviceName
 
-  private def createNewRobotDefinition: ServerEndpoint[Any, Eff] = endpoint.post
+  private def createNewRobotDefinition: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Create a new robot definition")
     .description("Create a new robot definition")
     .in(feideHeader)
@@ -42,24 +43,31 @@ class RobotController(using
       robotService.createRobot(robotDefinitionDTO, feide)
     }
 
-  private def getAllRobotDefinitions: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getAllRobotDefinitions: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("List out all of your own robot definitions")
     .description("List out all of your own robot definitions")
     .in(feideHeader)
     .errorOut(errorOutputsFor(400, 401, 403))
     .out(jsonBody[ListOfRobotDefinitionsDTO])
-    .serverLogicPure { feide => robotService.getAllRobots(feide) }
+    .serverLogicPure { feide =>
+      robotService.getAllRobots(feide)
+    }
 
-  private def getSingleRobotDefinition: ServerEndpoint[Any, Eff] = endpoint.get
+  private def getSingleRobotDefinition: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get single robot definition")
     .description("Get single robot definition")
     .in(feideHeader)
     .in(path[UUID]("robot-id"))
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .out(jsonBody[RobotDefinitionDTO])
-    .serverLogicPure { case (feide, robotId) => robotService.getSingleRobot(robotId, feide) }
+    .serverLogicPure { case (feide, robotId) =>
+      robotService.getSingleRobot(robotId, feide)
+    }
 
-  private def updateRobotDefinition(): ServerEndpoint[Any, Eff] = endpoint.put
+  private def updateRobotDefinition(): ServerEndpoint[Any, Eff] = endpoint
+    .put
     .summary("Update a robot definition")
     .description("Update a robot definition")
     .in(feideHeader)
@@ -71,7 +79,8 @@ class RobotController(using
       robotService.updateRobot(robotId, robotDefinitionDTO, token)
     }
 
-  private def updateRobotStatus(): ServerEndpoint[Any, Eff] = endpoint.put
+  private def updateRobotStatus(): ServerEndpoint[Any, Eff] = endpoint
+    .put
     .summary("Update a robot definition status")
     .description("Update a robot definition status")
     .in(feideHeader)
@@ -82,7 +91,8 @@ class RobotController(using
       robotService.updateRobotStatus(robotId, newStatus, token)
     }
 
-  private def deleteRobotDefinition(): ServerEndpoint[Any, Eff] = endpoint.delete
+  private def deleteRobotDefinition(): ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .summary("Delete a robot definition")
     .description("Delete a robot definition")
     .in(feideHeader)
@@ -99,6 +109,6 @@ class RobotController(using
     getSingleRobotDefinition,
     updateRobotDefinition(),
     updateRobotStatus(),
-    deleteRobotDefinition()
+    deleteRobotDefinition(),
   )
 }

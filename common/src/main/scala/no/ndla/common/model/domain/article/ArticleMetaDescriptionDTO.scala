@@ -14,10 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Meta description of the article")
 case class ArticleMetaDescriptionDTO(
-    @description("The meta description") metaDescription: String,
-    @description(
-      "The ISO 639-1 language code describing which article translation this meta description belongs to"
-    ) language: String
+    @description("The meta description")
+    metaDescription: String,
+    @description("The ISO 639-1 language code describing which article translation this meta description belongs to")
+    language: String,
 )
 
 object ArticleMetaDescriptionDTO {

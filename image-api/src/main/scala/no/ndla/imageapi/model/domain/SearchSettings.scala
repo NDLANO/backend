@@ -20,5 +20,5 @@ case class SearchSettings(
     podcastFriendly: Option[Boolean],
     shouldScroll: Boolean,
     modelReleased: Seq[ModelReleasedStatus.Value],
-    userFilter: List[String]
+    userFilter: List[String],
 )

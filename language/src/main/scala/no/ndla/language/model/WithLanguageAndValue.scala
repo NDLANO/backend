@@ -13,7 +13,4 @@ trait WithLanguageAndValue[T] extends WithLanguage {
   def value: T
 }
 
-case class BaseWithLanguageAndValue[T](
-    language: String,
-    value: T
-) extends WithLanguageAndValue[T]
+case class BaseWithLanguageAndValue[T](language: String, value: T) extends WithLanguageAndValue[T]

@@ -26,18 +26,17 @@ class TraitUtil {
     document.body()
   }
 
-  def getArticleTraits(contents: Seq[ArticleContent]): List[ArticleTrait] =
-    contents
-      .flatMap { content =>
-        val html      = parseHtml(content.content)
-        val embedTags = html.select(EmbedTagName).asScala
-        val init      = List.empty[ArticleTrait]
-        embedTags.foldLeft(init)((acc, embed) => acc ++ embedToMaybeTrait(embed))
-      }
-      .toList
-      .distinct
+  def getArticleTraits(contents: Seq[ArticleContent]): List[ArticleTrait] = contents
+    .flatMap { content =>
+      val html      = parseHtml(content.content)
+      val embedTags = html.select(EmbedTagName).asScala
+      val init      = List.empty[ArticleTrait]
+      embedTags.foldLeft(init)((acc, embed) => acc ++ embedToMaybeTrait(embed))
+    }
+    .toList
+    .distinct
 
-  private val videoUrl = List("youtu", "vimeo", "filmiundervisning", "imdb", "nrk", "khanacademy")
+  private val videoUrl                                                = List("youtu", "vimeo", "filmiundervisning", "imdb", "nrk", "khanacademy")
   private def embedToMaybeTrait(embed: Element): Option[ArticleTrait] = {
     val dataResource = embed.attr("data-resource")
     val dataUrl      = embed.attr("data-url")
@@ -53,23 +52,12 @@ class TraitUtil {
   }
 
   def getAttributes(html: String): List[String] = {
-    parseHtml(html)
-      .select(EmbedTagName)
-      .asScala
-      .flatMap(getAttributes)
-      .toList
+    parseHtml(html).select(EmbedTagName).asScala.flatMap(getAttributes).toList
   }
 
   private def getAttributes(embed: Element): List[String] = {
-    val attributesToKeep = List(
-      "data-title",
-      "data-caption",
-      "data-alt",
-      "data-link-text",
-      "data-edition",
-      "data-publisher",
-      "data-authors"
-    )
+    val attributesToKeep =
+      List("data-title", "data-caption", "data-alt", "data-link-text", "data-edition", "data-publisher", "data-authors")
 
     attributesToKeep.flatMap(attr =>
       embed.attr(attr) match {

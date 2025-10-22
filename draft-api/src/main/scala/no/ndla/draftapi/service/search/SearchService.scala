@@ -24,26 +24,25 @@ import scala.util.{Failure, Success, Try}
 trait SearchService[T](using
     e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
-    props: DraftApiProperties
+    props: DraftApiProperties,
 ) extends StrictLogging {
   val searchIndex: String
 
-  def scroll(scrollId: String, language: String): Try[SearchResult[T]] =
-    e4sClient
-      .execute {
-        searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
-      }
-      .map(response => {
-        val hits = getHits(response.result, language)
-        SearchResult[T](
-          totalCount = response.result.totalHits,
-          page = None,
-          pageSize = response.result.hits.hits.length,
-          language = language,
-          results = hits,
-          scrollId = response.result.scrollId
-        )
-      })
+  def scroll(scrollId: String, language: String): Try[SearchResult[T]] = e4sClient
+    .execute {
+      searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
+    }
+    .map(response => {
+      val hits = getHits(response.result, language)
+      SearchResult[T](
+        totalCount = response.result.totalHits,
+        page = None,
+        pageSize = response.result.hits.hits.length,
+        language = language,
+        results = hits,
+        scrollId = response.result.scrollId,
+      )
+    })
 
   /** Returns hit as summary
     *
@@ -63,9 +62,8 @@ trait SearchService[T](using
 
         resultArray.map(result => {
           val matchedLanguage = language match {
-            case Language.AllLanguages =>
-              searchConverterService.getLanguageFromHit(result).getOrElse(language)
-            case _ => language
+            case Language.AllLanguages => searchConverterService.getLanguageFromHit(result).getOrElse(language)
+            case _                     => language
           }
 
           hitToApiModel(result.sourceAsString, matchedLanguage)
@@ -81,15 +79,13 @@ trait SearchService[T](using
     }
 
     sort match {
-      case Sort.ByTitleAsc =>
-        language match {
+      case Sort.ByTitleAsc => language match {
           case Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Asc).missing("_last")
-          case _ => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
+          case _                     => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
         }
-      case Sort.ByTitleDesc =>
-        language match {
+      case Sort.ByTitleDesc => language match {
           case Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.Desc).missing("_last")
-          case _ => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
+          case _                     => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
         }
       case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.Asc)
       case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.Desc)
@@ -113,7 +109,9 @@ trait SearchService[T](using
 
   def getStartAtAndNumResults(page: Int, pageSize: Int): (Int, Int) = {
     val numResults = max(pageSize.min(props.MaxPageSize), 0)
-    val startAt    = (page - 1).max(0) * numResults
+    val startAt    = (
+      page - 1
+    ).max(0) * numResults
 
     (startAt, numResults)
   }

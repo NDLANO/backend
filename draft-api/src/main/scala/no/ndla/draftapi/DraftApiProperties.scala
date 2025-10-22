@@ -34,14 +34,14 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
     "raw-image"                 -> s"$Domain/image-api/raw/id",
     ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio",
     ResourceType.File.toString  -> Domain,
-    ResourceType.H5P.toString   -> H5PAddress
+    ResourceType.H5P.toString   -> H5PAddress,
   )
 
   def internalApiUrls: Map[String, String] = Map(
     "article-api" -> s"http://$ArticleApiHost/intern",
     "audio-api"   -> s"http://$AudioApiHost/intern",
     "draft-api"   -> s"http://$DraftApiHost/intern",
-    "image-api"   -> s"http://$ImageApiHost/intern"
+    "image-api"   -> s"http://$ImageApiHost/intern",
   )
 
   def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "sub", "sup")
@@ -82,8 +82,8 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
     Map(
       "local"   -> "https://h5p-test.ndla.no",
       "test"    -> "https://h5p-test.ndla.no",
-      "staging" -> "https://h5p-staging.ndla.no"
-    ).getOrElse(Environment, "https://h5p.ndla.no")
+      "staging" -> "https://h5p-staging.ndla.no",
+    ).getOrElse(Environment, "https://h5p.ndla.no"),
   )
 
   def supportedUploadExtensions: Set[String] = Set(
@@ -118,7 +118,7 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
     ".mp4",
     ".ino",
     ".stp",
-    ".step"
+    ".step",
   )
 
   def multipartFileSizeThresholdBytes: Int      = 1024 * 1024 * 30 // 30MB

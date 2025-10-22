@@ -23,15 +23,10 @@ case class ImageFileData(
     contentType: String,
     dimensions: Option[ImageDimensions],
     override val language: String,
-    imageMetaId: Long
+    imageMetaId: Long,
 ) extends WithLanguage {
   def toDocument(): ImageFileDataDocument = {
-    ImageFileDataDocument(
-      size = size,
-      contentType = contentType,
-      dimensions = dimensions,
-      language = language
-    )
+    ImageFileDataDocument(size = size, contentType = contentType, dimensions = dimensions, language = language)
   }
 }
 
@@ -44,7 +39,7 @@ case class ImageFileDataDocument(
     size: Long,
     contentType: String,
     dimensions: Option[ImageDimensions],
-    override val language: String
+    override val language: String,
 ) extends WithLanguage {
   def toFull(id: Long, fileName: String, imageId: Long): ImageFileData = {
     ImageFileData(
@@ -54,7 +49,7 @@ case class ImageFileDataDocument(
       contentType = contentType,
       dimensions = dimensions,
       language = language,
-      imageMetaId = imageId
+      imageMetaId = imageId,
     )
   }
 }
@@ -76,7 +71,7 @@ object Image extends SQLSyntaxSupport[ImageFileData] {
       jsonString  <- rs.stringOpt(im.c("metadata"))
       fileName    <- rs.stringOpt(im.c("file_name"))
       imageMetaId <- rs.longOpt(im.c("image_meta_id"))
-      document = CirceUtil.tryParseAs[ImageFileDataDocument](jsonString).get
+      document     = CirceUtil.tryParseAs[ImageFileDataDocument](jsonString).get
     } yield document.toFull(id, fileName, imageMetaId)
   }
 }

@@ -16,7 +16,7 @@ case class AuthUser(
     userRoles: List[String],
     userName: Option[String],
     clientId: Option[String],
-    authHeader: Option[String]
+    authHeader: Option[String],
 ) {
   def setThreadContext(): Unit = {
     userId.foreach(AuthUser.setId)
@@ -35,7 +35,7 @@ object AuthUser {
       "ff"      -> "ndla.eu.auth0.com",
       "staging" -> "ndla-staging.eu.auth0.com",
       "test"    -> "ndla-test.eu.auth0.com",
-      "local"   -> "ndla-test.eu.auth0.com"
+      "local"   -> "ndla-test.eu.auth0.com",
     ).withDefaultValue("ndla-test.eu.auth0.com")(env)
   }
 
@@ -52,7 +52,7 @@ object AuthUser {
       userRoles = jWTExtractor.extractUserRoles(),
       userName = jWTExtractor.extractUserName(),
       clientId = jWTExtractor.extractClientId(),
-      authHeader = request.getHeader("Authorization")
+      authHeader = request.getHeader("Authorization"),
     )
   }
 
@@ -62,7 +62,7 @@ object AuthUser {
       userRoles = AuthUser.getRoles,
       userName = AuthUser.getName,
       clientId = AuthUser.getClientId,
-      authHeader = AuthUser.getHeader
+      authHeader = AuthUser.getHeader,
     )
   }
 

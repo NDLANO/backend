@@ -21,15 +21,11 @@ class V9__add_missing_fields extends BaseJavaMigration {
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { implicit session =>
-      subjectPageData
-        .map(convertSubjectpage)
-        .foreach(update)
+      subjectPageData.map(convertSubjectpage).foreach(update)
     }
 
   private def subjectPageData(implicit session: DBSession): List[V2_DBSubjectPage] = {
-    sql"select id, document from subjectpage"
-      .map(rs => V2_DBSubjectPage(rs.long("id"), rs.string("document")))
-      .list()
+    sql"select id, document from subjectpage".map(rs => V2_DBSubjectPage(rs.long("id"), rs.string("document"))).list()
   }
 
   implicit class JsonObjectOps(obj: JsonObject) {
@@ -67,7 +63,6 @@ class V9__add_missing_fields extends BaseJavaMigration {
     dataObject.setType("jsonb")
     dataObject.setValue(subjectPageData.document)
 
-    sql"update subjectpage set document = $dataObject where id = ${subjectPageData.id}"
-      .update()
+    sql"update subjectpage set document = $dataObject where id = ${subjectPageData.id}".update()
   }
 }

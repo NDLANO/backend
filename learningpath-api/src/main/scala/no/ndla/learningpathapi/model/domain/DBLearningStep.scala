@@ -37,10 +37,11 @@ object DBLearningStep extends SQLSyntaxSupport[LearningStep] {
       meta.lastUpdated,
       meta.owner,
       meta.showTitle,
-      meta.status
+      meta.status,
     )
   }
 
-  def opt(ls: ResultName[LearningStep])(rs: WrappedResultSet): Option[LearningStep] =
-    rs.longOpt(ls.c("id")).map(_ => fromResultSet(ls)(rs))
+  def opt(ls: ResultName[LearningStep])(rs: WrappedResultSet): Option[LearningStep] = rs
+    .longOpt(ls.c("id"))
+    .map(_ => fromResultSet(ls)(rs))
 }

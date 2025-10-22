@@ -19,20 +19,14 @@ object Field {
   implicit val decoder: Decoder[Field] = deriveDecoder
 }
 
-case class HtmlRulesAttribute(
-    fields: List[Field],
-    mustContainAtLeastOneOptionalAttribute: Option[Boolean]
-)
+case class HtmlRulesAttribute(fields: List[Field], mustContainAtLeastOneOptionalAttribute: Option[Boolean])
 
 object HtmlRulesAttribute {
   implicit val encoder: Encoder[HtmlRulesAttribute] = deriveEncoder
   implicit val decoder: Decoder[HtmlRulesAttribute] = deriveDecoder
 }
 
-case class HtmlRulesFile(
-    attributes: Map[String, HtmlRulesAttribute],
-    tags: List[String]
-)
+case class HtmlRulesFile(attributes: Map[String, HtmlRulesAttribute], tags: List[String])
 
 object HtmlRulesFile {
   implicit val encoder: Encoder[HtmlRulesFile] = deriveEncoder

@@ -24,7 +24,7 @@ class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInf
     props: BaseProps,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
-    errorHandling: ErrorHandling
+    errorHandling: ErrorHandling,
 ) extends TapirController {
   def getServices(): List[TapirController] = services :+ this
 
@@ -38,15 +38,17 @@ class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInf
     description = swaggerInfo.description.some,
     termsOfService = props.TermsUrl.some,
     contact = Contact(name = props.ContactName.some, url = props.ContactUrl.some, email = props.ContactEmail.some).some,
-    license = License("GPL v3.0", "https://www.gnu.org/licenses/gpl-3.0.en.html".some).some
+    license = License("GPL v3.0", "https://www.gnu.org/licenses/gpl-3.0.en.html".some).some,
   )
 
   import io.circe.syntax.*
   import sttp.apispec.openapi.circe.*
 
-  private val swaggerEndpoints = services.collect {
-    case svc: TapirController if svc.enableSwagger => svc.builtEndpoints
-  }.flatten
+  private val swaggerEndpoints = services
+    .collect {
+      case svc: TapirController if svc.enableSwagger => svc.builtEndpoints
+    }
+    .flatten
 
   private val securityScheme: SecurityScheme = SecurityScheme(
     `type` = "oauth2",
@@ -55,15 +57,15 @@ class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInf
     in = None,
     scheme = None,
     bearerFormat = None,
-    flows = OAuthFlows(
-      `implicit` = OAuthFlow(
+    flows = OAuthFlows(`implicit` =
+      OAuthFlow(
         authorizationUrl = swaggerInfo.authUrl.some,
         tokenUrl = None,
         refreshUrl = None,
-        scopes = swaggerInfo.scopes
+        scopes = swaggerInfo.scopes,
       ).some
     ).some,
-    openIdConnectUrl = None
+    openIdConnectUrl = None,
   )
 
   private val docs: Json = {

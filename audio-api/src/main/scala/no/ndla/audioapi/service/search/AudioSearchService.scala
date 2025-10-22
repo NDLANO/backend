@@ -32,7 +32,7 @@ class AudioSearchService(using
     searchConverterService: SearchConverterService,
     props: Props,
     errorHandling: ControllerErrorHandling,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends StrictLogging
     with SearchService[api.AudioSummaryDTO] {
   import errorHandling.ResultWindowTooLargeException
@@ -50,25 +50,17 @@ class AudioSearchService(using
     val fullSearch = settings.query.emptySomeToNone match {
       case Some(query) =>
         val languageSearch = (field: String, boost: Double) =>
-          languageSpecificSearch(
-            field,
-            settings.language,
-            query,
-            boost,
-            fallback = settings.fallback
-          )
+          languageSpecificSearch(field, settings.language, query, boost, fallback = settings.fallback)
 
-        boolQuery()
-          .must(
-            boolQuery()
-              .should(
-                languageSearch("titles", 2),
-                languageSearch("tags", 1),
-                languageSearch("manuscript", 1),
-                languageSearch("podcastMetaIntroduction", 1),
-                idsQuery(query)
-              )
+        boolQuery().must(
+          boolQuery().should(
+            languageSearch("titles", 2),
+            languageSearch("tags", 1),
+            languageSearch("manuscript", 1),
+            languageSearch("podcastMetaIntroduction", 1),
+            idsQuery(query),
           )
+        )
       case None => boolQuery()
     }
 
@@ -77,7 +69,7 @@ class AudioSearchService(using
 
   def executeSearch(
       settings: SearchSettings,
-      queryBuilder: BoolQuery
+      queryBuilder: BoolQuery,
   ): Try[domain.SearchResult[api.AudioSummaryDTO]] = {
 
     val licenseFilter = settings.license match {
@@ -116,31 +108,31 @@ class AudioSearchService(using
       Failure(new ResultWindowTooLargeException())
     } else {
 
-      val searchToExecute =
-        search(searchIndex)
-          .size(numResults)
-          .from(startAt)
-          .trackTotalHits(true)
-          .query(filteredSearch)
-          .highlighting(highlight("*"))
-          .sortBy(getSortDefinition(settings.sort, searchLanguage))
+      val searchToExecute = search(searchIndex)
+        .size(numResults)
+        .from(startAt)
+        .trackTotalHits(true)
+        .query(filteredSearch)
+        .highlighting(highlight("*"))
+        .sortBy(getSortDefinition(settings.sort, searchLanguage))
 
       // Only add scroll param if it is first page
       val searchWithScroll =
         if (startAt == 0 && settings.shouldScroll) {
           searchToExecute.scroll(props.ElasticSearchScrollKeepAlive)
-        } else { searchToExecute }
+        } else {
+          searchToExecute
+        }
 
       e4sClient.execute(searchWithScroll) match {
-        case Success(response) =>
-          getHits(response.result, searchLanguage).map(results =>
+        case Success(response) => getHits(response.result, searchLanguage).map(results =>
             domain.SearchResult(
               response.result.totalHits,
               Some(settings.page.getOrElse(1)),
               numResults,
               searchLanguage,
               results,
-              response.result.scrollId
+              response.result.scrollId,
             )
           )
         case Failure(ex) => errorHandler(ex)
@@ -157,9 +149,7 @@ class AudioSearchService(using
     f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
     f.foreach {
       case Success(reindexResult) =>
-        logger.info(
-          s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms."
-        )
+        logger.info(s"Completed indexing of ${reindexResult.totalIndexed} documents in ${reindexResult.millisUsed} ms.")
       case Failure(ex) => logger.warn(ex.getMessage, ex)
     }
   }

@@ -37,7 +37,8 @@ object ApplicationUrl {
             _.replaceAll("\\s", "").split(";").find(_.contains(FORWARDED_PROTO)).map(_.dropWhile(c => c != '=').tail)
           )
         val schemeProtocol =
-          if (request.serverPort == HTTP_PORT || request.serverPort == HTTPS_PORT) Some(request.getScheme) else None
+          if (request.serverPort == HTTP_PORT || request.serverPort == HTTPS_PORT) Some(request.getScheme)
+          else None
 
         val host = request.getHeader(X_FORWARDED_HOST_HEADER).getOrElse(request.serverName)
 

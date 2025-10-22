@@ -8,8 +8,4 @@
 
 package no.ndla.searchapi.model.search
 
-case class SearchPagination(
-    page: Int,
-    pageSize: Int,
-    startAt: Int
-)
+case class SearchPagination(page: Int, pageSize: Int, startAt: Int)

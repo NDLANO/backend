@@ -34,7 +34,7 @@ object TestData {
     shouldScroll = false,
     audioType = None,
     seriesFilter = None,
-    fallback = false
+    fallback = false,
   )
 
   val sampleCopyright: Copyright = Copyright(
@@ -45,7 +45,7 @@ object TestData {
     rightsholders = Seq(common.Author(ContributorType.RightsHolder, "doffen")),
     validFrom = None,
     validTo = None,
-    false
+    false,
   )
 
   val sampleAudio: AudioMetaInformation = domain.AudioMetaInformation(
@@ -62,7 +62,7 @@ object TestData {
     audioType = AudioType.Standard,
     manuscript = Seq.empty,
     seriesId = None,
-    series = None
+    series = None,
   )
 
   val EpisodelessSampleSeries: domain.Series = domain.Series(
@@ -74,7 +74,7 @@ object TestData {
     coverPhoto = domain.CoverPhoto(imageId = "2", altText = "mainalt"),
     updated = today,
     created = yesterday,
-    hasRSS = true
+    hasRSS = true,
   )
 
   val samplePodcast: AudioMetaInformation = domain.AudioMetaInformation(
@@ -91,13 +91,13 @@ object TestData {
       domain.PodcastMeta(
         introduction = "Intro",
         coverPhoto = domain.CoverPhoto(imageId = "1", altText = "alt"),
-        language = "nb"
+        language = "nb",
       )
     ),
     audioType = AudioType.Podcast,
     manuscript = Seq.empty,
     seriesId = Some(1),
-    series = Some(EpisodelessSampleSeries)
+    series = Some(EpisodelessSampleSeries),
   )
 
   val SampleSeries: domain.Series = domain.Series(
@@ -109,7 +109,7 @@ object TestData {
     coverPhoto = domain.CoverPhoto(imageId = "2", altText = "mainalt"),
     updated = today,
     created = yesterday,
-    hasRSS = true
+    hasRSS = true,
   )
 
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
@@ -128,7 +128,7 @@ object TestData {
       Seq(),
       None,
       None,
-      false
+      false,
     ),
     api.TagDTO(Seq("tag"), "nb"),
     Seq("nb"),
@@ -137,7 +137,7 @@ object TestData {
     None,
     None,
     created,
-    updated
+    updated,
   )
 
   val testUser: TokenUser = TokenUser("ndla54321", Set(AUDIO_API_WRITE), None)

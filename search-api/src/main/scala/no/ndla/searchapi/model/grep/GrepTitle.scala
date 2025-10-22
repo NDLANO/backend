@@ -23,8 +23,7 @@ object GrepTitle extends StrictLogging {
   def convertTitles(titles: Seq[GrepTitle]): Seq[LanguageValue[String]] = {
     titles.flatMap(gt => {
       ISO639.get6391CodeFor6392Code(gt.spraak) match {
-        case Some(convertedLanguage) =>
-          Some(LanguageValue(language = convertedLanguage, value = gt.verdi.trim))
+        case Some(convertedLanguage)        => Some(LanguageValue(language = convertedLanguage, value = gt.verdi.trim))
         case None if gt.spraak == "default" => None
         case None                           =>
           logger.warn(s"Could not convert language code '${gt.spraak}'")

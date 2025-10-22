@@ -14,8 +14,7 @@ import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 class V58__FixContributorTypesTest extends UnitSuite with TestEnvironment {
   test("That copyright has correct contributor types") {
     val migration   = new V58__FixContributorTypes
-    val oldDocument =
-      """
+    val oldDocument = """
         |{
         |  "id": 1,
         |  "tags": [],
@@ -80,8 +79,7 @@ class V58__FixContributorTypesTest extends UnitSuite with TestEnvironment {
         |  "requiredLibraries": []
         |}
         |""".stripMargin
-    val newDocument =
-      """
+    val newDocument = """
         |{
         |  "id": 1,
         |  "tags": [],

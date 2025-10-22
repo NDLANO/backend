@@ -215,7 +215,7 @@ object Iso639List_4 {
       Some("C"),
       "Interlingua (International Auxiliary Language Association)",
       None,
-      None
+      None,
     ),
     Iso639Val("inb", None, None, None, Some("I"), Some("L"), "Inga", None, None),
     Iso639Val(
@@ -227,7 +227,7 @@ object Iso639List_4 {
       Some("L"),
       "Indonesian",
       Some("bahasa Indonesia"),
-      None
+      None,
     ),
     Iso639Val("ing", None, None, None, Some("I"), Some("L"), "Degexit'an", None, None),
     Iso639Val("inh", Some("inh"), Some("inh"), None, Some("I"), Some("L"), "Ingush", None, None),
@@ -632,7 +632,7 @@ object Iso639List_4 {
       Some("L"),
       "Central Khmer",
       Some("ភាសាខ្មែរ"),
-      None
+      None,
     ),
     Iso639Val("khn", None, None, None, Some("I"), Some("L"), "Khandesi", None, None),
     Iso639Val("kho", Some("kho"), Some("kho"), None, Some("I"), Some("A"), "Khotanese", None, None),
@@ -842,6 +842,6 @@ object Iso639List_4 {
     Iso639Val("kpq", None, None, None, Some("I"), Some("L"), "Korupun-Sela", None, None),
     Iso639Val("kpr", None, None, None, Some("I"), Some("L"), "Korafe-Yegha", None, None),
     Iso639Val("kps", None, None, None, Some("I"), Some("L"), "Tehit", None, None),
-    Iso639Val("kpt", None, None, None, Some("I"), Some("L"), "Karata", None, None)
+    Iso639Val("kpt", None, None, None, Some("I"), Some("L"), "Karata", None, None),
   )
 }

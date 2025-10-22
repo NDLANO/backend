@@ -48,7 +48,7 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with Tapi
     height = Some(600L),
     html = Some(
       "<div><iframe loading=\"lazy\" width=\"800\" height=\"600\" allowfullscreen=\"allowfullscreen\" src=\"https://h5p-test.ndla.no/resource/bae851c6-0e98-411d-bd92-ec2ab8fce730\"></iframe><script src=\"https://h5p.org/sites/all/modules/h5p/library/js/h5p-resizer.js\"></script></div>\""
-    )
+    ),
   )
 
   test("h5p url should return ok if found") {
@@ -70,7 +70,7 @@ class OEmbedProxyControllerTest extends UnitSuite with TestEnvironment with Tapi
         override def method: Method       = Method.GET
         override def uri: Uri             = uri""
         override def headers: Seq[Header] = Seq.empty
-      }
+      },
     )
     val exception = new HttpRequestException("bad", Some(responseMock))
     when(oEmbedService.get(anyString, any[Option[String]], any[Option[String]])).thenReturn(Failure(exception))

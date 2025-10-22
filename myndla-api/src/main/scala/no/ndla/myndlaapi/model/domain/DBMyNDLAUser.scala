@@ -25,9 +25,6 @@ object DBMyNDLAUser extends SQLSyntaxSupport[MyNDLAUser] {
     val id         = rs.long(colNameWrapper("id"))
     val feideId    = rs.string(colNameWrapper("feide_id"))
 
-    metaData.toFullUser(
-      id = id,
-      feideId = feideId
-    )
+    metaData.toFullUser(id = id, feideId = feideId)
   }
 }

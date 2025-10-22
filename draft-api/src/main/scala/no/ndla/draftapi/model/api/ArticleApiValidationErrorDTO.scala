@@ -12,11 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.errors.ValidationMessage
 
-case class ArticleApiValidationErrorDTO(
-    code: String,
-    description: String,
-    messages: Seq[ValidationMessage]
-)
+case class ArticleApiValidationErrorDTO(code: String, description: String, messages: Seq[ValidationMessage])
 
 object ArticleApiValidationErrorDTO {
   implicit val encoder: Encoder[ArticleApiValidationErrorDTO] = deriveEncoder

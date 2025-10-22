@@ -21,18 +21,14 @@ import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration.FiniteDuration
 
-class OEmbedService(
-    optionalProviders: Option[List[OEmbedProvider]] = None
-)(using
+class OEmbedService(optionalProviders: Option[List[OEmbedProvider]] = None)(using
     ndlaClient: NdlaClient,
-    providerService: ProviderService
+    providerService: ProviderService,
 ) extends StrictLogging {
   private val remoteTimeout: FiniteDuration = 10.seconds
 
-  private lazy val providers = optionalProviders.toList.flatten ++ providerService
-    .loadProviders()
-  private def getProvider(url: String): Option[OEmbedProvider] =
-    providers.find(_.supports(url))
+  private lazy val providers                                   = optionalProviders.toList.flatten ++ providerService.loadProviders()
+  private def getProvider(url: String): Option[OEmbedProvider] = providers.find(_.supports(url))
 
   private val MaxFetchOembedRetries: Int = 3
   @tailrec
@@ -41,30 +37,20 @@ class OEmbedService(
       url: String,
       maxWidth: Option[String],
       maxHeight: Option[String],
-      retryCount: Int
+      retryCount: Int,
   ): Try[OEmbedDTO] = {
     val uri = uri"${provider.requestUrl(url, maxWidth, maxHeight)}"
     ndlaClient.fetch[OEmbedDTO](
-      quickRequest
-        .get(uri)
-        .followRedirects(true)
-        .readTimeout(remoteTimeout)
-        .httpVersion(HttpVersion.HTTP_1_1)
+      quickRequest.get(uri).followRedirects(true).readTimeout(remoteTimeout).httpVersion(HttpVersion.HTTP_1_1)
     ) match {
       case Success(oembed)                                   => Success(oembed)
       case Failure(ex: HttpRequestException)                 => Failure(ex)
       case Failure(ex) if retryCount < MaxFetchOembedRetries =>
         logger.error(
           s"Failed to fetch oembed from provider ${provider.providerName} for url $url. Retrying ${retryCount + 1}/$MaxFetchOembedRetries.",
-          ex
+          ex,
         )
-        fetchOembedFromProvider(
-          provider,
-          url,
-          maxWidth,
-          maxHeight,
-          retryCount + 1
-        )
+        fetchOembedFromProvider(provider, url, maxWidth, maxHeight, retryCount + 1)
       case Failure(ex) => Failure(ex)
     }
   }
@@ -72,10 +58,8 @@ class OEmbedService(
   def get(url: String, maxWidth: Option[String], maxHeight: Option[String]): Try[OEmbedDTO] = {
     io.lemonlabs.uri.Uri.parseTry(url) match {
       case Failure(_) => Failure(InvalidUrlException(s"$url does not seem to be a valid url."))
-      case Success(_) =>
-        getProvider(url) match {
-          case None =>
-            Failure(ProviderNotSupportedException(s"Could not find an oembed-provider for the url '$url'"))
+      case Success(_) => getProvider(url) match {
+          case None           => Failure(ProviderNotSupportedException(s"Could not find an oembed-provider for the url '$url'"))
           case Some(provider) =>
             MDC.put("oembedProvider", provider.providerName): Unit
             fetchOembedFromProvider(provider, url, maxWidth, maxHeight, 0).map(provider.postProcessor(url, _))

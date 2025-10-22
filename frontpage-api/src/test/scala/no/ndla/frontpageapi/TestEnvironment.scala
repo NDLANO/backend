@@ -14,7 +14,7 @@ import no.ndla.frontpageapi.controller.{
   ControllerErrorHandling,
   FilmPageController,
   FrontPageController,
-  SubjectPageController
+  SubjectPageController,
 }
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
@@ -28,7 +28,7 @@ import no.ndla.network.tapir.{
   SwaggerController,
   TapirApplication,
   TapirController,
-  TapirHealthController
+  TapirHealthController,
 }
 import org.scalatestplus.mockito.MockitoSugar
 

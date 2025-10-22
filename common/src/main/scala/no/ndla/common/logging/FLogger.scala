@@ -12,12 +12,11 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.MDC
 
 case class FLogger(underlying: Logger) {
-  private def withMDC[F[_]: LoggerContext, T](t: => T): F[T] =
-    implicitly[LoggerContext[F]].map { info =>
-      info.correlationId.foreach(cid => MDC.put(FLogger.correlationIdKey, cid))
-      try t
-      finally MDC.remove(FLogger.correlationIdKey)
-    }
+  private def withMDC[F[_]: LoggerContext, T](t: => T): F[T] = implicitly[LoggerContext[F]].map { info =>
+    info.correlationId.foreach(cid => MDC.put(FLogger.correlationIdKey, cid))
+    try t
+    finally MDC.remove(FLogger.correlationIdKey)
+  }
 
   def debug[F[_]: LoggerContext](message: String): F[Unit]                   = withMDC(underlying.debug(message))
   def debug[F[_]: LoggerContext](message: String, cause: Throwable): F[Unit] = withMDC(underlying.debug(message, cause))

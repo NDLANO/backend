@@ -24,13 +24,10 @@ import no.ndla.network.tapir.{ErrorHelpers, Routes, SwaggerController, TapirAppl
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication[AudioApiProperties] {
-  given props: AudioApiProperties = properties
-  given dataSource: DataSource    = DataSource.getDataSource
-  given clock: Clock              = new Clock
-  given migrator: DBMigrator      = DBMigrator(
-    new V5__AddAgreementToAudio,
-    new V6__TranslateUntranslatedAuthors
-  )
+  given props: AudioApiProperties              = properties
+  given dataSource: DataSource                 = DataSource.getDataSource
+  given clock: Clock                           = new Clock
+  given migrator: DBMigrator                   = DBMigrator(new V5__AddAgreementToAudio, new V6__TranslateUntranslatedAuthors)
   given errorHelpers: ErrorHelpers             = new ErrorHelpers
   given errorHandling: ControllerErrorHandling = new ControllerErrorHandling
   given searchLanguage: SearchLanguage         = new SearchLanguage
@@ -70,14 +67,8 @@ class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication
   given transcriptionController: TranscriptionController = new TranscriptionController
 
   given swagger: SwaggerController = new SwaggerController(
-    List(
-      audioApiController,
-      seriesController,
-      internController,
-      healthController,
-      transcriptionController
-    ),
-    SwaggerDocControllerConfig.swaggerInfo
+    List(audioApiController, seriesController, internController, healthController, transcriptionController),
+    SwaggerDocControllerConfig.swaggerInfo,
   )
 
   given services: List[no.ndla.network.tapir.TapirController] = swagger.getServices()

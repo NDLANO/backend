@@ -15,10 +15,14 @@ import no.ndla.common.DeriveHelpers
 
 @description("Information about the editorial notes")
 case class EditorNoteDTO(
-    @description("Editorial note") note: String,
-    @description("User which saved the note") user: String,
-    @description("Status of article at saved time") status: StatusDTO,
-    @description("Timestamp of when note was saved") timestamp: NDLADate
+    @description("Editorial note")
+    note: String,
+    @description("User which saved the note")
+    user: String,
+    @description("Status of article at saved time")
+    status: StatusDTO,
+    @description("Timestamp of when note was saved")
+    timestamp: NDLADate,
 )
 
 object EditorNoteDTO {

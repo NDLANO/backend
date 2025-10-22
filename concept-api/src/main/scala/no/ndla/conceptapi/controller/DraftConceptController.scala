@@ -43,19 +43,16 @@ class DraftConceptController(using
     conceptControllerHelpers: ConceptControllerHelpers,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController {
   import conceptControllerHelpers.*
   override val serviceName: String         = "drafts"
   override val prefix: EndpointInput[Unit] = "concept-api" / "v1" / serviceName
 
   private val pathStatus   = path[String]("STATUS").description("Concept status")
-  private val statusFilter = listQuery[String]("status")
-    .description(
-      s"""List of statuses to filter by.
+  private val statusFilter = listQuery[String]("status").description(s"""List of statuses to filter by.
          |A draft only needs to have one of the available statuses to appear in result (OR).
-       """.stripMargin
-    )
+       """.stripMargin)
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
     getStatusStateMachine,
@@ -67,23 +64,22 @@ class DraftConceptController(using
     postNewConcept,
     updateConceptById,
     getConceptById,
-    getAllConcepts
+    getAllConcepts,
   )
 
   private def scrollSearchOr(scrollId: Option[String], language: LanguageCode)(
       orFunction: => Try[(ConceptSearchResultDTO, DynamicHeaders)]
-  ): Try[(ConceptSearchResultDTO, DynamicHeaders)] =
-    scrollId match {
-      case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
-        draftConceptSearchService.scroll(scroll, language.code) match {
-          case Success(scrollResult) =>
-            val body    = searchConverterService.asApiConceptSearchResult(scrollResult)
-            val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
-            Success((body, headers))
-          case Failure(ex) => Failure(ex)
-        }
-      case _ => orFunction
-    }
+  ): Try[(ConceptSearchResultDTO, DynamicHeaders)] = scrollId match {
+    case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
+      draftConceptSearchService.scroll(scroll, language.code) match {
+        case Success(scrollResult) =>
+          val body    = searchConverterService.asApiConceptSearchResult(scrollResult)
+          val headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
+          Success((body, headers))
+        case Failure(ex) => Failure(ex)
+      }
+    case _ => orFunction
+  }
 
   private def search(
       query: Option[String],
@@ -101,7 +97,7 @@ class DraftConceptController(using
       embedId: Option[String],
       responsibleId: List[String],
       conceptType: Option[String],
-      aggregatePaths: List[String]
+      aggregatePaths: List[String],
   ) = {
     val settings = DraftSearchSettings(
       withIdIn = idList,
@@ -118,7 +114,7 @@ class DraftConceptController(using
       embedId = embedId,
       responsibleIdFilter = responsibleId,
       conceptType = conceptType,
-      aggregatePaths = aggregatePaths
+      aggregatePaths = aggregatePaths,
     )
 
     val result = query.emptySomeToNone match {
@@ -136,7 +132,8 @@ class DraftConceptController(using
     }
   }
 
-  def getConceptById: ServerEndpoint[Any, Eff] = endpoint.get
+  def getConceptById: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Show concept with a specified id")
     .description("Shows the concept for the specified id.")
     .in(pathConceptId)
@@ -152,7 +149,8 @@ class DraftConceptController(using
       }
     }
 
-  def getAllConcepts: ServerEndpoint[Any, Eff] = endpoint.get
+  def getAllConcepts: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Show all concepts")
     .description("Shows all concepts. You can search it too.")
     .out(jsonBody[ConceptSearchResultDTO])
@@ -192,9 +190,8 @@ class DraftConceptController(using
             embedId,
             responsibleIds,
             conceptType,
-            aggregatePaths
-          ) =>
-        scrollSearchOr(scrollId, language) {
+            aggregatePaths,
+          ) => scrollSearchOr(scrollId, language) {
           val sort         = Sort.valueOf(sortStr)
           val shouldScroll = scrollId.exists(props.InitialScrollContextKeywords.contains)
 
@@ -214,27 +211,27 @@ class DraftConceptController(using
             embedId,
             responsibleIds.values,
             conceptType,
-            aggregatePaths.values
+            aggregatePaths.values,
           )
         }
     }
 
-  def getTags: ServerEndpoint[Any, Eff] = endpoint.get
+  def getTags: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Returns a list of all tags in the specified subjects")
     .description("Returns a list of all tags in the specified subjects")
     .in("tags")
     .in(language)
     .in(fallback)
-    .out(
-      statusCode(StatusCode.Ok).and(jsonBody[List[String]])
-    )
+    .out(statusCode(StatusCode.Ok).and(jsonBody[List[String]]))
     .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
     .errorOut(errorOutputsFor(400, 403, 404))
     .serverLogicPure { case (language, fallback) =>
       readService.allTagsFromDraftConcepts(language.code, fallback).asRight
     }
 
-  def postSearchConcepts: ServerEndpoint[Any, Eff] = endpoint.post
+  def postSearchConcepts: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .in("search")
     .summary("Show all concepts")
     .description("Shows all concepts. You can search it too.")
@@ -281,12 +278,13 @@ class DraftConceptController(using
           embedId,
           responsibleId.getOrElse(List.empty),
           conceptType,
-          aggregatePaths.getOrElse(List.empty)
+          aggregatePaths.getOrElse(List.empty),
         )
       }
     }
 
-  def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteLanguage: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .summary("Delete language from concept")
     .description("Delete language from concept")
     .in(pathConceptId)
@@ -301,7 +299,8 @@ class DraftConceptController(using
       }
     }
 
-  def updateConceptStatus: ServerEndpoint[Any, Eff] = endpoint.put
+  def updateConceptStatus: ServerEndpoint[Any, Eff] = endpoint
+    .put
     .summary("Update status of a concept")
     .description("Update status of a concept")
     .in(pathConceptId / "status" / pathStatus)
@@ -311,13 +310,12 @@ class DraftConceptController(using
     .requirePermission(CONCEPT_API_WRITE)
     .serverLogicPure { user =>
       { case (conceptId, status) =>
-        ConceptStatus
-          .valueOfOrError(status)
-          .flatMap(writeService.updateConceptStatus(_, conceptId, user))
+        ConceptStatus.valueOfOrError(status).flatMap(writeService.updateConceptStatus(_, conceptId, user))
       }
     }
 
-  def getStatusStateMachine: ServerEndpoint[Any, Eff] = endpoint.get
+  def getStatusStateMachine: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Get status state machine")
     .description("Get status state machine")
     .in("status-state-machine")
@@ -329,7 +327,8 @@ class DraftConceptController(using
       stateTransitionRules.stateTransitionsToApi(user).asRight
     }
 
-  def getTagsPaginated: ServerEndpoint[Any, Eff] = endpoint.get
+  def getTagsPaginated: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Retrieves a list of all previously used tags in concepts")
     .description("Retrieves a list of all previously used tags in concepts")
     .in("tag-search")
@@ -345,7 +344,8 @@ class DraftConceptController(using
       readService.getAllTags(q, pageSize, pageNo, language.code).asRight
     }
 
-  def postNewConcept: ServerEndpoint[Any, Eff] = endpoint.post
+  def postNewConcept: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Create new concept")
     .description("Create new concept")
     .in(jsonBody[NewConceptDTO])
@@ -353,9 +353,14 @@ class DraftConceptController(using
     .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
     .errorOut(errorOutputsFor(400, 403, 404))
     .requirePermission(CONCEPT_API_WRITE)
-    .serverLogicPure { user => { concept => writeService.newConcept(concept, user) } }
+    .serverLogicPure { user =>
+      { concept =>
+        writeService.newConcept(concept, user)
+      }
+    }
 
-  def updateConceptById: ServerEndpoint[Any, Eff] = endpoint.patch
+  def updateConceptById: ServerEndpoint[Any, Eff] = endpoint
+    .patch
     .summary("Update a concept")
     .description("Update a concept")
     .in(pathConceptId)

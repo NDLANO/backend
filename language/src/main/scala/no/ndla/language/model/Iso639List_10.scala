@@ -662,6 +662,6 @@ object Iso639List_10 {
     Iso639Val("zyn", None, None, None, Some("I"), Some("L"), "Yongnan Zhuang", None, None),
     Iso639Val("zyp", None, None, None, Some("I"), Some("L"), "Zyphe Chin", None, None),
     Iso639Val("zza", Some("zza"), Some("zza"), None, Some("M"), Some("L"), "Zaza", None, None),
-    Iso639Val("zzj", None, None, None, Some("I"), Some("L"), "Zuojiang Zhuang", None, None)
+    Iso639Val("zzj", None, None, None, Some("I"), Some("L"), "Zuojiang Zhuang", None, None),
   )
 }

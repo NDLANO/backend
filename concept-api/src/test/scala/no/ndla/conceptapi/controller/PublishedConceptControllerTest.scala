@@ -44,46 +44,39 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
   val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}"""
 
   test("/<concept_id> should return 200 if the concept was found") {
-    when(readService.publishedConceptWithId(conceptId, lang, fallback = false, None))
-      .thenReturn(Success(TestData.sampleNbApiConcept))
+    when(readService.publishedConceptWithId(conceptId, lang, fallback = false, None)).thenReturn(
+      Success(TestData.sampleNbApiConcept)
+    )
 
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/$conceptId?language=$lang")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/$conceptId?language=$lang"))
       .code
       .code should be(200)
   }
 
   test("/<concept_id> should return 404 if the concept was not found") {
-    when(readService.publishedConceptWithId(conceptId, lang, fallback = false, None))
-      .thenReturn(Failure(NotFoundException("Not found, yolo")))
+    when(readService.publishedConceptWithId(conceptId, lang, fallback = false, None)).thenReturn(
+      Failure(NotFoundException("Not found, yolo"))
+    )
 
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/$conceptId?language=$lang")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/$conceptId?language=$lang"))
       .code
       .code should be(404)
   }
 
   test("/<concept_id> should return 400 if the id was not valid") {
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/one")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/one"))
       .code
       .code should be(400)
   }
 
   test("GET /tags should return 200 on getting all tags") {
-    when(readService.allTagsFromConcepts(lang, fallback = false))
-      .thenReturn(List("tag1", "tag2"))
+    when(readService.allTagsFromConcepts(lang, fallback = false)).thenReturn(List("tag1", "tag2"))
 
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/tags/?language=$lang")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/tags/?language=$lang"))
       .code
       .code should be(200)
   }
@@ -91,18 +84,14 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
   test("that scrolling published doesn't happen on 'initial'") {
     reset(publishedConceptSearchService)
 
-    val multiResult =
-      SearchResult[ConceptSummaryDTO](0, None, 10, "nn", Seq.empty, Seq.empty, Some("heiheihei"))
+    val multiResult = SearchResult[ConceptSummaryDTO](0, None, 10, "nn", Seq.empty, Seq.empty, Some("heiheihei"))
     when(publishedConceptSearchService.all(any[SearchSettings])).thenReturn(Success(multiResult))
     when(searchConverterService.asApiConceptSearchResult(any)).thenCallRealMethod()
 
-    val expectedSettings =
-      SearchSettings.empty.copy(pageSize = 10, sort = Sort.ByTitleDesc, shouldScroll = true)
+    val expectedSettings = SearchSettings.empty.copy(pageSize = 10, sort = Sort.ByTitleDesc, shouldScroll = true)
 
     simpleHttpClient
-      .send(
-        quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/?search-context=initial")
-      )
+      .send(quickRequest.get(uri"http://localhost:$serverPort/concept-api/v1/concepts/?search-context=initial"))
       .code
       .code should be(200)
     verify(publishedConceptSearchService, times(1)).all(eqTo(expectedSettings))

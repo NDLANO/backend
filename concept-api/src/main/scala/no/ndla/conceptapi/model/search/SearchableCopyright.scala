@@ -16,7 +16,7 @@ case class SearchableCopyright(
     origin: Option[String],
     creators: Seq[Author],
     processors: Seq[Author],
-    rightsholders: Seq[Author]
+    rightsholders: Seq[Author],
 )
 
 object SearchableCopyright {

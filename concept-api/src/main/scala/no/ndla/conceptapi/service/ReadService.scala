@@ -19,14 +19,13 @@ import scala.util.{Failure, Try}
 class ReadService(using
     draftConceptRepository: DraftConceptRepository,
     publishedConceptRepository: PublishedConceptRepository,
-    converterService: ConverterService
+    converterService: ConverterService,
 ) {
 
   def conceptWithId(id: Long, language: String, fallback: Boolean, user: Option[TokenUser]): Try[api.ConceptDTO] =
     draftConceptRepository.withId(id).map(converterService.addUrlOnVisualElement) match {
-      case Some(concept) =>
-        converterService.toApiConcept(concept, language, fallback, user)
-      case None =>
+      case Some(concept) => converterService.toApiConcept(concept, language, fallback, user)
+      case None          =>
         Failure(NotFoundException(s"Concept with id $id was not found with language '$language' in database."))
     }
 
@@ -34,35 +33,36 @@ class ReadService(using
       id: Long,
       language: String,
       fallback: Boolean,
-      user: Option[TokenUser]
-  ): Try[api.ConceptDTO] =
-    publishedConceptRepository.withId(id).map(converterService.addUrlOnVisualElement) match {
-      case Some(concept) =>
-        converterService.toApiConcept(concept, language, fallback, user)
-      case None =>
-        Failure(NotFoundException(s"A concept with id $id was not found with language '$language'."))
-    }
+      user: Option[TokenUser],
+  ): Try[api.ConceptDTO] = publishedConceptRepository.withId(id).map(converterService.addUrlOnVisualElement) match {
+    case Some(concept) => converterService.toApiConcept(concept, language, fallback, user)
+    case None          => Failure(NotFoundException(s"A concept with id $id was not found with language '$language'."))
+  }
 
   def allTagsFromConcepts(language: String, fallback: Boolean): List[String] = {
     val allConceptTags = publishedConceptRepository.everyTagFromEveryConcept
-    (if (fallback || language == Language.AllLanguages) {
-       allConceptTags.flatMap(t => {
-         Language.findByLanguageOrBestEffort(t, language)
-       })
-     } else {
-       allConceptTags.flatMap(_.filter(_.language == language))
-     }).flatMap(_.tags).distinct
+    (
+      if (fallback || language == Language.AllLanguages) {
+        allConceptTags.flatMap(t => {
+          Language.findByLanguageOrBestEffort(t, language)
+        })
+      } else {
+        allConceptTags.flatMap(_.filter(_.language == language))
+      }
+    ).flatMap(_.tags).distinct
   }
 
   def allTagsFromDraftConcepts(language: String, fallback: Boolean): List[String] = {
     val allConceptTags = draftConceptRepository.everyTagFromEveryConcept
-    (if (fallback || language == Language.AllLanguages) {
-       allConceptTags.flatMap(t => {
-         Language.findByLanguageOrBestEffort(t, language)
-       })
-     } else {
-       allConceptTags.flatMap(_.filter(_.language == language))
-     }).flatMap(_.tags).distinct
+    (
+      if (fallback || language == Language.AllLanguages) {
+        allConceptTags.flatMap(t => {
+          Language.findByLanguageOrBestEffort(t, language)
+        })
+      } else {
+        allConceptTags.flatMap(_.filter(_.language == language))
+      }
+    ).flatMap(_.tags).distinct
   }
 
   def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResultDTO = {

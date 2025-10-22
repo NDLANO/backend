@@ -23,7 +23,7 @@ class ArticleIndexService(using
     articleRepository: ArticleRepository,
     props: Props,
     e4sClient: NdlaE4sClient,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends IndexService
     with StrictLogging {
   override val documentType: String = props.ArticleSearchDocument
@@ -44,13 +44,9 @@ class ArticleIndexService(using
       keywordField("availability"),
       textField("authors").fielddata(true),
       textField("articleType").analyzer("keyword"),
-      nestedField("metaImage").fields(
-        keywordField("imageId"),
-        keywordField("altText"),
-        keywordField("language")
-      ),
+      nestedField("metaImage").fields(keywordField("imageId"), keywordField("altText"), keywordField("language")),
       keywordField("grepCodes"),
-      keywordField("traits")
+      keywordField("traits"),
     )
     val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
       generateLanguageSupportedFieldList("content") ++

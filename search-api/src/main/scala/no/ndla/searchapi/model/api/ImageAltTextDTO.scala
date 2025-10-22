@@ -12,6 +12,8 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Title of resource")
 case class ImageAltTextDTO(
-    @description("The freetext alttext of the image") altText: String,
-    @description("ISO 639-1 code that represents the language used in alttext") language: String
+    @description("The freetext alttext of the image")
+    altText: String,
+    @description("ISO 639-1 code that represents the language used in alttext")
+    language: String,
 ) extends WithLanguage

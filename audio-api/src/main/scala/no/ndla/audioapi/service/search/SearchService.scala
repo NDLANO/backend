@@ -29,34 +29,33 @@ trait SearchService[T](using
     e4sClient: NdlaE4sClient,
     searchConverterService: SearchConverterService,
     props: Props,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends StrictLogging {
   val searchIndex: String
 
-  def scroll(scrollId: String, language: String): Try[SearchResult[T]] =
-    e4sClient
-      .execute {
-        searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
-      }
-      .flatMap(response => {
-        getHits(response.result, language).map(hits => {
-          SearchResult[T](
-            totalCount = response.result.totalHits,
-            page = None,
-            pageSize = response.result.hits.hits.length,
-            language,
-            results = hits,
-            scrollId = response.result.scrollId
-          )
-        })
+  def scroll(scrollId: String, language: String): Try[SearchResult[T]] = e4sClient
+    .execute {
+      searchScroll(scrollId, props.ElasticSearchScrollKeepAlive)
+    }
+    .flatMap(response => {
+      getHits(response.result, language).map(hits => {
+        SearchResult[T](
+          totalCount = response.result.totalHits,
+          page = None,
+          pageSize = response.result.hits.hits.length,
+          language,
+          results = hits,
+          scrollId = response.result.scrollId,
+        )
       })
+    })
 
   protected def languageSpecificSearch(
       searchField: String,
       language: Option[String],
       query: String,
       boost: Double,
-      fallback: Boolean
+      fallback: Boolean,
   ): Query = {
     val searchLang = language match {
       case Some(lang) if Iso639.get(lang).isSuccess => lang
@@ -64,10 +63,13 @@ trait SearchService[T](using
     }
 
     if (searchLang == Language.AllLanguages || fallback) {
-      searchLanguage.languageAnalyzers
+      searchLanguage
+        .languageAnalyzers
         .foldLeft(SimpleStringQuery(query))((acc, cur) => {
           val languageTag = cur.languageTag.toString
-          val fieldBoost  = if (languageTag == searchLang) boost + 1 else boost
+          val fieldBoost  =
+            if (languageTag == searchLang) boost + 1
+            else boost
           acc.field(s"$searchField.$languageTag", fieldBoost)
         })
         .field(s"$searchField.*", boost)
@@ -81,33 +83,34 @@ trait SearchService[T](using
   def getHits(response: SearchResponse, language: String): Try[Seq[T]] = {
     response.totalHits match {
       case count if count > 0 =>
-        response.hits.hits.toList.traverse(result => {
-          val matchedLanguage = language match {
-            case AllLanguages => searchConverterService.getLanguageFromHit(result).getOrElse(language)
-            case _            => language
-          }
+        response
+          .hits
+          .hits
+          .toList
+          .traverse(result => {
+            val matchedLanguage = language match {
+              case AllLanguages => searchConverterService.getLanguageFromHit(result).getOrElse(language)
+              case _            => language
+            }
 
-          hitToApiModel(result.sourceAsString, matchedLanguage)
-        })
+            hitToApiModel(result.sourceAsString, matchedLanguage)
+          })
       case _ => Success(Seq.empty)
     }
   }
 
   protected def getSortDefinition(sort: Sort, language: String): FieldSort = {
     val sortLanguage = language match {
-      case supportedLanguage if Iso639.get(supportedLanguage).isSuccess =>
-        supportedLanguage
-      case _ => "*"
+      case supportedLanguage if Iso639.get(supportedLanguage).isSuccess => supportedLanguage
+      case _                                                            => "*"
     }
 
     sort match {
-      case Sort.ByTitleAsc =>
-        sortLanguage match {
+      case Sort.ByTitleAsc => sortLanguage match {
           case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Asc).missing("_last")
           case _   => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Asc).missing("_last").unmappedType("long")
         }
-      case Sort.ByTitleDesc =>
-        sortLanguage match {
+      case Sort.ByTitleDesc => sortLanguage match {
           case "*" => fieldSort("defaultTitle").sortOrder(SortOrder.Desc).missing("_last")
           case _   => fieldSort(s"titles.$sortLanguage.raw").order(SortOrder.Desc).missing("_last").unmappedType("long")
         }
@@ -146,13 +149,17 @@ trait SearchService[T](using
 
   def getStartAtAndNumResults(page: Option[Int], pageSize: Option[Int]): (Int, Int) = {
     val numResults = pageSize match {
-      case Some(num) => if (num > 0) num.min(props.MaxPageSize) else props.DefaultPageSize
-      case None      => props.DefaultPageSize
+      case Some(num) =>
+        if (num > 0) num.min(props.MaxPageSize)
+        else props.DefaultPageSize
+      case None => props.DefaultPageSize
     }
 
     val startAt = page match {
-      case Some(sa) => (sa - 1).max(0) * numResults
-      case None     => 0
+      case Some(sa) => (
+          sa - 1
+        ).max(0) * numResults
+      case None => 0
     }
 
     (startAt, numResults)

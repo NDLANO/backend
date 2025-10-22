@@ -39,8 +39,8 @@ class GrepStatusDTOTest extends UnitSuite with TestEnvironment {
   test("GrepStatusDTO decoding as inner class works as expected") {
     case class WithStatus(status: GrepStatusDTO)
     implicit val decoder: Decoder[WithStatus] = deriveDecoder[WithStatus]
-    val json    = """{"status":"https://data.udir.no/kl06/v201906/status/status_publisert"}"""
-    val element = CirceUtil.tryParseAs[WithStatus](json).get
+    val json                                  = """{"status":"https://data.udir.no/kl06/v201906/status/status_publisert"}"""
+    val element                               = CirceUtil.tryParseAs[WithStatus](json).get
     element.status should be(GrepStatusDTO.Published)
 
     val json2    = """{"status":"Published"}"""

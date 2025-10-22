@@ -6,6 +6,6 @@ import build.modules.{BaseModule, SharedDependencies}
 object `package` extends BaseModule {
   override def moduleName           = "testbase"
   override def isComponent: Boolean = false
-  def mvnDeps: T[Seq[Dep]] = SharedDependencies.logging ++ SharedDependencies.testing ++ SharedDependencies.database
+  def mvnDeps: T[Seq[Dep]]          = SharedDependencies.logging ++ SharedDependencies.testing ++ SharedDependencies.database
   object test extends TestBase
 }

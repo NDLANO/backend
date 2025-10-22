@@ -20,7 +20,7 @@ case class ArticleMetaImageDTO(
     @description("The meta image alt text")
     alt: String,
     @description("The ISO 639-1 language code describing which article translation this meta image belongs to")
-    language: String
+    language: String,
 )
 
 object ArticleMetaImageDTO {

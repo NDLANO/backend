@@ -33,7 +33,7 @@ class DraftIndexService(using
     taxonomyApiClient: TaxonomyApiClient,
     grepApiClient: GrepApiClient,
     myNDLAApiClient: MyNDLAApiClient,
-    searchLanguage: SearchLanguage
+    searchLanguage: SearchLanguage,
 ) extends StrictLogging
     with IndexService[Draft] {
   override val documentType: String              = "draft"
@@ -43,18 +43,20 @@ class DraftIndexService(using
   override def createIndexRequest(
       domainModel: Draft,
       indexName: String,
-      indexingBundle: IndexingBundle
+      indexingBundle: IndexingBundle,
   ): Try[Option[IndexRequest]] = {
-    searchConverterService.asSearchableDraft(domainModel, indexingBundle).map { searchableDraft =>
-      val source = CirceUtil.toJsonString(searchableDraft)
-      Some(
-        indexInto(indexName)
-          .doc(source)
-          .id(domainModel.id.get.toString)
-          .versionType(EXTERNAL_GTE)
-          .version(domainModel.revision.map(_.toLong).get)
-      )
-    }
+    searchConverterService
+      .asSearchableDraft(domainModel, indexingBundle)
+      .map { searchableDraft =>
+        val source = CirceUtil.toJsonString(searchableDraft)
+        Some(
+          indexInto(indexName)
+            .doc(source)
+            .id(domainModel.id.get.toString)
+            .versionType(EXTERNAL_GTE)
+            .version(domainModel.revision.map(_.toLong).get)
+        )
+      }
   }
 
   def getMapping: MappingDefinition = {
@@ -82,31 +84,21 @@ class DraftIndexService(using
       keywordField("traits"),
       longField("favorited"),
       keywordField("learningResourceType"),
-      ObjectField(
-        "responsible",
-        properties = Seq(
-          keywordField("responsibleId"),
-          dateField("lastUpdated")
-        )
-      ),
+      ObjectField("responsible", properties = Seq(keywordField("responsibleId"), dateField("lastUpdated"))),
       getTaxonomyContextMapping("context"),
       getTaxonomyContextMapping("contexts"),
       keywordField("contextids"),
       nestedField("embedResourcesAndIds").fields(
         keywordField("resource"),
         keywordField("id"),
-        keywordField("language")
+        keywordField("language"),
       ),
-      nestedField("metaImage").fields(
-        keywordField("imageId"),
-        keywordField("altText"),
-        keywordField("language")
-      ),
+      nestedField("metaImage").fields(keywordField("imageId"), keywordField("altText"), keywordField("language")),
       nestedField("revisionMeta").fields(
         keywordField("id"),
         dateField("revisionDate"),
         keywordField("note"),
-        keywordField("status")
+        keywordField("status"),
       ),
       keywordField("nextRevision.id"),
       keywordField("nextRevision.status"),
@@ -115,21 +107,20 @@ class DraftIndexService(using
       keywordField("priority"),
       keywordField("defaultParentTopicName"),
       keywordField("defaultRoot"),
-      keywordField("defaultResourceTypeName")
+      keywordField("defaultResourceTypeName"),
     )
-    val dynamics =
-      languageValuesMapping("title", keepRaw = true) ++
-        languageValuesMapping("metaDescription") ++
-        languageValuesMapping("content") ++
-        languageValuesMapping("introduction") ++
-        languageValuesMapping("tags") ++
-        languageValuesMapping("embedAttributes") ++
-        languageValuesMapping("relevance") ++
-        languageValuesMapping("breadcrumbs") ++
-        languageValuesMapping("name", keepRaw = true) ++
-        languageValuesMapping("parentTopicName", keepRaw = true) ++
-        languageValuesMapping("resourceTypeName", keepRaw = true) ++
-        languageValuesMapping("primaryRoot", keepRaw = true)
+    val dynamics = languageValuesMapping("title", keepRaw = true) ++
+      languageValuesMapping("metaDescription") ++
+      languageValuesMapping("content") ++
+      languageValuesMapping("introduction") ++
+      languageValuesMapping("tags") ++
+      languageValuesMapping("embedAttributes") ++
+      languageValuesMapping("relevance") ++
+      languageValuesMapping("breadcrumbs") ++
+      languageValuesMapping("name", keepRaw = true) ++
+      languageValuesMapping("parentTopicName", keepRaw = true) ++
+      languageValuesMapping("resourceTypeName", keepRaw = true) ++
+      languageValuesMapping("primaryRoot", keepRaw = true)
 
     properties(fields ++ dynamics)
   }

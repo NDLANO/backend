@@ -58,15 +58,12 @@ object TestData {
     today,
     Some(Seq("")),
     Set("nn", "nb"),
-    api.StatusDTO(
-      current = "IN_PROGRESS",
-      other = Seq.empty
-    ),
+    api.StatusDTO(current = "IN_PROGRESS", other = Seq.empty),
     Some(api.VisualElementDTO(visualElementStringWithUrl, "nb")),
     responsible = None,
     conceptType = "concept",
     glossData = None,
-    editorNotes = Some(Seq.empty)
+    editorNotes = Some(Seq.empty),
   )
 
   val sampleNbDomainConcept: Concept = Concept(
@@ -84,7 +81,7 @@ object TestData {
     responsible = None,
     conceptType = ConceptType.CONCEPT,
     glossData = None,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val sampleConcept: Concept = Concept(
@@ -93,16 +90,18 @@ object TestData {
     title = Seq(common.Title("Tittel for begrep", "nb")),
     content = Seq(ConceptContent("Innhold for begrep", "nb")),
     copyright = Some(
-      common.draft.DraftCopyright(
-        Some(License.PublicDomain.toString),
-        Some(""),
-        Seq.empty,
-        Seq.empty,
-        Seq.empty,
-        None,
-        None,
-        false
-      )
+      common
+        .draft
+        .DraftCopyright(
+          Some(License.PublicDomain.toString),
+          Some(""),
+          Seq.empty,
+          Seq.empty,
+          Seq.empty,
+          None,
+          None,
+          false,
+        )
     ),
     created = NDLADate.now().minusDays(4),
     updated = NDLADate.now().minusDays(2),
@@ -113,7 +112,7 @@ object TestData {
     responsible = None,
     conceptType = concept.ConceptType.CONCEPT,
     glossData = None,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val domainConcept: Concept = Concept(
@@ -131,7 +130,7 @@ object TestData {
     responsible = None,
     conceptType = concept.ConceptType.CONCEPT,
     glossData = None,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val domainConcept_toDomainUpdateWithId: Concept = Concept(
@@ -149,7 +148,7 @@ object TestData {
     responsible = None,
     conceptType = concept.ConceptType.CONCEPT,
     glossData = None,
-    editorNotes = Seq.empty
+    editorNotes = Seq.empty,
   )
 
   val sampleNnApiConcept: api.ConceptDTO = api.ConceptDTO(
@@ -164,15 +163,12 @@ object TestData {
     today,
     updatedBy = Some(Seq("")),
     Set("nn", "nb"),
-    api.StatusDTO(
-      current = "IN_PROGRESS",
-      other = Seq.empty
-    ),
+    api.StatusDTO(current = "IN_PROGRESS", other = Seq.empty),
     Some(api.VisualElementDTO(visualElementStringWithUrl, "nb")),
     responsible = None,
     conceptType = "concept",
     glossData = None,
-    editorNotes = Some(Seq.empty)
+    editorNotes = Some(Seq.empty),
   )
 
   val emptyApiUpdatedConcept: api.UpdatedConceptDTO = api.UpdatedConceptDTO(
@@ -185,7 +181,7 @@ object TestData {
     visualElement = None,
     Missing,
     conceptType = None,
-    glossData = None
+    glossData = None,
   )
 
   val sampleNewConcept: api.NewConceptDTO =
@@ -200,21 +196,20 @@ object TestData {
     visualElement = None,
     responsibleId = None,
     conceptType = "concept",
-    glossData = None
+    glossData = None,
   )
 
-  val updatedConcept: api.UpdatedConceptDTO =
-    api.UpdatedConceptDTO(
-      "nb",
-      None,
-      Some("Innhold"),
-      None,
-      None,
-      None,
-      None,
-      Missing,
-      conceptType = None,
-      glossData = None
-    )
+  val updatedConcept: api.UpdatedConceptDTO = api.UpdatedConceptDTO(
+    "nb",
+    None,
+    Some("Innhold"),
+    None,
+    None,
+    None,
+    None,
+    Missing,
+    conceptType = None,
+    glossData = None,
+  )
   val sampleApiTagsSearchResult: api.TagsSearchResultDTO = api.TagsSearchResultDTO(10, 1, 1, "nb", Seq("a", "b"))
 }

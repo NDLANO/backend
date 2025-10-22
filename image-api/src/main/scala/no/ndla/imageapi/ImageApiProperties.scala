@@ -42,7 +42,7 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
     "image/png",
     "image/x-citrix-png",
     "image/x-png",
-    "image/svg+xml"
+    "image/svg+xml",
   )
 
   val IsoMappingCacheAgeInMs: Int     = 1000 * 60 * 60 // 1 hour caching

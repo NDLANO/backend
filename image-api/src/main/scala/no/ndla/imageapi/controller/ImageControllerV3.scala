@@ -41,7 +41,7 @@ class ImageControllerV3(using
     props: Props,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
-    myNDLAApiClient: MyNDLAApiClient
+    myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController
     with BaseImageController {
   import errorHelpers.*
@@ -57,20 +57,17 @@ class ImageControllerV3(using
     * @return
     *   A Try with scroll result, or the return of the orFunction (Usually a try with a search result).
     */
-  private def scrollSearchOr(
-      scrollId: Option[String],
-      language: String,
-      user: Option[TokenUser]
-  )(orFunction: => Try[(SearchResultV3DTO, DynamicHeaders)]): Try[(SearchResultV3DTO, DynamicHeaders)] =
-    scrollId match {
-      case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
-        for {
-          scrollResult <- imageSearchService.scroll(scroll, language)
-          body         <- searchConverterService.asApiSearchResultV3(scrollResult, language, user)
-          headers = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
-        } yield (body, headers)
-      case _ => orFunction
-    }
+  private def scrollSearchOr(scrollId: Option[String], language: String, user: Option[TokenUser])(
+      orFunction: => Try[(SearchResultV3DTO, DynamicHeaders)]
+  ): Try[(SearchResultV3DTO, DynamicHeaders)] = scrollId match {
+    case Some(scroll) if !props.InitialScrollContextKeywords.contains(scroll) =>
+      for {
+        scrollResult <- imageSearchService.scroll(scroll, language)
+        body         <- searchConverterService.asApiSearchResultV3(scrollResult, language, user)
+        headers       = DynamicHeaders.fromMaybeValue("search-context", scrollResult.scrollId)
+      } yield (body, headers)
+    case _ => orFunction
+  }
 
   private def searchV3(
       minimumSize: Option[Int],
@@ -85,11 +82,10 @@ class ImageControllerV3(using
       shouldScroll: Boolean,
       modelReleasedStatus: Seq[ModelReleasedStatus.Value],
       user: Option[TokenUser],
-      userFilter: List[String]
+      userFilter: List[String],
   ) = {
     val settings = query match {
-      case Some(searchString) =>
-        SearchSettings(
+      case Some(searchString) => SearchSettings(
           query = Some(searchString.trim),
           minimumSize = minimumSize,
           language = language,
@@ -101,10 +97,9 @@ class ImageControllerV3(using
           podcastFriendly = podcastFriendly,
           shouldScroll = shouldScroll,
           modelReleased = modelReleasedStatus,
-          userFilter = userFilter
+          userFilter = userFilter,
         )
-      case None =>
-        SearchSettings(
+      case None => SearchSettings(
           query = None,
           minimumSize = minimumSize,
           license = license,
@@ -116,21 +111,18 @@ class ImageControllerV3(using
           podcastFriendly = podcastFriendly,
           shouldScroll = shouldScroll,
           modelReleased = modelReleasedStatus,
-          userFilter = userFilter
+          userFilter = userFilter,
         )
     }
     for {
       searchResult <- imageSearchService.matchingQueryV3(settings, user)
-      output       <- searchConverterService.asApiSearchResultV3(
-        searchResult,
-        language,
-        user
-      )
-      scrollHeader = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
+      output       <- searchConverterService.asApiSearchResultV3(searchResult, language, user)
+      scrollHeader  = DynamicHeaders.fromMaybeValue("search-context", searchResult.scrollId)
     } yield (output, scrollHeader)
   }
 
-  def getImagesV3: ServerEndpoint[Any, Eff] = endpoint.get
+  def getImagesV3: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Find images.")
     .description("Find images in the ndla.no database.")
     .in(queryParam)
@@ -165,9 +157,8 @@ class ImageControllerV3(using
               podcastFriendly,
               scrollId,
               modelReleased,
-              userFilter
-            ) =>
-          scrollSearchOr(scrollId, language.code, user) {
+              userFilter,
+            ) => scrollSearchOr(scrollId, language.code, user) {
             val sort                = Sort.valueOf(sortStr)
             val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
             val modelReleasedStatus = modelReleased.values.flatMap(ModelReleasedStatus.valueOf)
@@ -186,13 +177,14 @@ class ImageControllerV3(using
               shouldScroll,
               modelReleasedStatus,
               user,
-              userFilter.values
+              userFilter.values,
             )
           }.handleErrorsOrOk
       }
     }
 
-  def getImagesPostV3: ServerEndpoint[Any, Eff] = endpoint.post
+  def getImagesPostV3: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Find images.")
     .description("Search for images in the ndla.no database.")
     .in("search")
@@ -209,17 +201,18 @@ class ImageControllerV3(using
         scrollSearchOr(searchParams.scrollId, language.code, user) {
           val minimumSize = searchParams.minimumSize
           val query       = searchParams.query
-          val license     = searchParams.license.orElse {
-            Option.when(searchParams.includeCopyrighted.contains(true))("all")
-          }
+          val license     = searchParams
+            .license
+            .orElse {
+              Option.when(searchParams.includeCopyrighted.contains(true))("all")
+            }
           val pageSize            = searchParams.pageSize
           val page                = searchParams.page
           val podcastFriendly     = searchParams.podcastFriendly
           val sort                = searchParams.sort
           val shouldScroll        = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
-          val modelReleasedStatus =
-            searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
-          val userFilter = searchParams.users.getOrElse(List.empty)
+          val modelReleasedStatus = searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
+          val userFilter          = searchParams.users.getOrElse(List.empty)
 
           searchV3(
             minimumSize,
@@ -234,13 +227,14 @@ class ImageControllerV3(using
             shouldScroll,
             modelReleasedStatus,
             user,
-            userFilter
+            userFilter,
           )
         }.handleErrorsOrOk
       }
     }
 
-  def findByImageIdV3: ServerEndpoint[Any, Eff] = endpoint.get
+  def findByImageIdV3: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch information for image.")
     .description("Shows info of the image with submitted id.")
     .in(pathImageId)
@@ -252,13 +246,14 @@ class ImageControllerV3(using
       { case (imageId, language) =>
         readService.withIdV3(imageId, language, user) match {
           case Success(Some(image)) => image.asRight
-          case Success(None) => notFoundWithMsg(s"Image with id $imageId and language $language not found").asLeft
-          case Failure(ex)   => returnLeftError(ex)
+          case Success(None)        => notFoundWithMsg(s"Image with id $imageId and language $language not found").asLeft
+          case Failure(ex)          => returnLeftError(ex)
         }
       }
     }
 
-  def getImagesByIds: ServerEndpoint[Any, Eff] = endpoint.get
+  def getImagesByIds: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch images that matches ids parameter.")
     .description("Fetch images that matches ids parameter.")
     .in("ids")
@@ -273,7 +268,8 @@ class ImageControllerV3(using
       }
     }
 
-  def findImageByExternalIdV3: ServerEndpoint[Any, Eff] = endpoint.get
+  def findImageByExternalIdV3: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Fetch information for image by external id.")
     .description("Shows info of the image with submitted external id.")
     .in("external_id" / pathExternalId)
@@ -290,7 +286,8 @@ class ImageControllerV3(using
       }
     }
 
-  def newImageV3: ServerEndpoint[Any, Eff] = endpoint.post
+  def newImageV3: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Upload a new image with meta information.")
     .description("Upload a new image file with meta data.")
     .out(jsonBody[ImageMetaInformationV3DTO])
@@ -300,18 +297,20 @@ class ImageControllerV3(using
     .serverLogicPure(user =>
       formData =>
         doWithStream(formData.file) { uploadedFile =>
-          writeService.storeNewImage(formData.metadata.body, uploadedFile, user).map { storedImage =>
-            converterService
-              .asApiImageMetaInformationV3(
+          writeService
+            .storeNewImage(formData.metadata.body, uploadedFile, user)
+            .map { storedImage =>
+              converterService.asApiImageMetaInformationV3(
                 storedImage,
                 Some(formData.metadata.body.language),
-                Some(user)
+                Some(user),
               )
-          }
+            }
         }.flatten.handleErrorsOrOk
     )
 
-  def deleteImageV3: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteImageV3: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .summary("Deletes the specified images meta data and file")
     .description("Deletes the specified images meta data and file")
     .in(pathImageId)
@@ -325,7 +324,8 @@ class ImageControllerV3(using
       }
     }
 
-  def deleteLanguageV3: ServerEndpoint[Any, Eff] = endpoint.delete
+  def deleteLanguageV3: ServerEndpoint[Any, Eff] = endpoint
+    .delete
     .summary("Delete language version of image metadata.")
     .description("Delete language version of image metadata.")
     .in(pathImageId / "language" / pathLanguage)
@@ -340,7 +340,8 @@ class ImageControllerV3(using
       }
     })
 
-  def editImageV3: ServerEndpoint[Any, Eff] = endpoint.patch
+  def editImageV3: ServerEndpoint[Any, Eff] = endpoint
+    .patch
     .summary("Update an existing image with meta information.")
     .description("Updates an existing image with meta data.")
     .in(pathImageId)
@@ -355,7 +356,8 @@ class ImageControllerV3(using
       }.handleErrorsOrOk
     }
 
-  def getTagsSearchableV3: ServerEndpoint[Any, Eff] = endpoint.get
+  def getTagsSearchableV3: ServerEndpoint[Any, Eff] = endpoint
+    .get
     .summary("Retrieves a list of all previously used tags in images")
     .description("Retrieves a list of all previously used tags in images")
     .in("tag-search")
@@ -378,12 +380,11 @@ class ImageControllerV3(using
       }
       val sort = Sort.valueOf(sortStr).getOrElse(Sort.ByRelevanceDesc)
 
-      readService
-        .getAllTags(query, pageSize, pageNo, language.code, sort)
-        .handleErrorsOrOk
+      readService.getAllTags(query, pageSize, pageNo, language.code, sort).handleErrorsOrOk
     }
 
-  def copyImageMeta: ServerEndpoint[Any, Eff] = endpoint.post
+  def copyImageMeta: ServerEndpoint[Any, Eff] = endpoint
+    .post
     .summary("Copy image meta data with a new image file")
     .description("Copy image meta data with a new image file")
     .in(pathImageId / "copy")
@@ -413,6 +414,6 @@ class ImageControllerV3(using
     deleteImageV3,
     deleteLanguageV3,
     editImageV3,
-    copyImageMeta
+    copyImageMeta,
   )
 }

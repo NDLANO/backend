@@ -35,7 +35,7 @@ case class SearchParamsDTO(
     @description("Return only learning paths that have the provided verification status.")
     verificationStatus: Option[String],
     @description("A search context retrieved from the response header of a previous search.")
-    scrollId: Option[String]
+    scrollId: Option[String],
 )
 
 object SearchParamsDTO {

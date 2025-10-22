@@ -44,10 +44,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val page          = TestData.apiNewSubjectPage.copy(about = about)
 
     val result        = converterService.toDomainSubjectPage(page)
-    val expectedError = ValidationException(
-      "visualElement.type",
-      "'not an image' is an invalid visual element type"
-    )
+    val expectedError = ValidationException("visualElement.type", "'not an image' is an invalid visual element type")
     result should be(Failure(expectedError))
   }
 
@@ -78,7 +75,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
       Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
-      Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204"))
+      Some(List("urn:resource:1:161411", "urn:resource:1:182176", "urn:resource:1:183636", "urn:resource:1:170204")),
     )
 
     converterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.connectedTo should be(
@@ -102,7 +99,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
-      None
+      None,
     )
 
     converterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.metaDescription should be(
@@ -121,7 +118,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
             "oppdatert tittel",
             "oppdatert beskrivelse",
             "nb",
-            NewOrUpdatedVisualElementDTO("image", "1", None)
+            NewOrUpdatedVisualElementDTO("image", "1", None),
           )
         )
       ),
@@ -129,7 +126,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
-      None
+      None,
     )
 
     converterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith).get.about should be(
@@ -138,7 +135,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           "oppdatert tittel",
           "oppdatert beskrivelse",
           "nb",
-          VisualElement(VisualElementType.Image, "1", None)
+          VisualElement(VisualElementType.Image, "1", None),
         )
       )
     )
@@ -155,41 +152,39 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
             "About Social studies",
             "This is social studies",
             "en",
-            NewOrUpdatedVisualElementDTO("image", "123", None)
+            NewOrUpdatedVisualElementDTO("image", "123", None),
           )
         )
       ),
-      Some(
-        List(
-          NewOrUpdatedMetaDescriptionDTO("meta description", "en")
-        )
-      ),
+      Some(List(NewOrUpdatedMetaDescriptionDTO("meta description", "en"))),
       None,
       None,
       None,
-      None
+      None,
     )
 
     converterService.toDomainSubjectPage(TestData.domainSubjectPage, updateWith) should be(
       Success(
-        TestData.domainSubjectPage.copy(
-          about = Seq(
-            frontpage.AboutSubject(
-              "Om Samfunnsfag",
-              "Dette er samfunnsfag",
-              "nb",
-              frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text"))
+        TestData
+          .domainSubjectPage
+          .copy(
+            about = Seq(
+              frontpage.AboutSubject(
+                "Om Samfunnsfag",
+                "Dette er samfunnsfag",
+                "nb",
+                frontpage.VisualElement(VisualElementType.Image, "123", Some("alt text")),
+              ),
+              frontpage.AboutSubject(
+                "About Social studies",
+                "This is social studies",
+                "en",
+                frontpage.VisualElement(VisualElementType.Image, "123", None),
+              ),
             ),
-            frontpage.AboutSubject(
-              "About Social studies",
-              "This is social studies",
-              "en",
-              frontpage.VisualElement(VisualElementType.Image, "123", None)
-            )
-          ),
-          metaDescription =
-            Seq(frontpage.MetaDescription("meta", "nb"), frontpage.MetaDescription("meta description", "en"))
-        )
+            metaDescription =
+              Seq(frontpage.MetaDescription("meta", "nb"), frontpage.MetaDescription("meta description", "en")),
+          )
       )
     )
   }
@@ -199,7 +194,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Failure(
         LanguageNotFoundException(
           s"The subjectpage with id ${TestData.domainSubjectPage.id.get} and language hei was not found",
-          TestData.domainSubjectPage.supportedLanguages
+          TestData.domainSubjectPage.supportedLanguages,
         )
       )
     )

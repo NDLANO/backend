@@ -13,5 +13,5 @@ case class NewOrUpdatedFilmFrontPageDTO(
     about: Seq[NewOrUpdatedAboutSubjectDTO],
     movieThemes: Seq[NewOrUpdatedMovieThemeDTO],
     slideShow: Seq[String],
-    article: Option[String]
+    article: Option[String],
 )

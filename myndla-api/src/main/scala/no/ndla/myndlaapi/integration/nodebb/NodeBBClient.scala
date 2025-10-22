@@ -29,15 +29,9 @@ class NodeBBClient(using props: Props) extends StrictLogging {
   case class NodeBBSession(csrfToken: String, cookies: Seq[CookieWithMeta])
 
   private def getCSRFToken(feideToken: FeideAccessToken): Try[NodeBBSession] = permitTry {
-    val request = quickRequest
-      .get(uri"$baseUrl/api/config")
-      .header("FeideAuthorization", s"Bearer $feideToken")
+    val request   = quickRequest.get(uri"$baseUrl/api/config").header("FeideAuthorization", s"Bearer $feideToken")
     val resp      = doReq(request).?
-    val csrfToken = parse(resp.body)
-      .flatMap(_.as[NodeBBApiConfig])
-      .toTry
-      .map(_.csrf_token)
-      .?
+    val csrfToken = parse(resp.body).flatMap(_.as[NodeBBApiConfig]).toTry.map(_.csrf_token).?
 
     Success(NodeBBSession(csrfToken, resp.unsafeCookies))
   }
@@ -63,26 +57,20 @@ class NodeBBClient(using props: Props) extends StrictLogging {
 
   def getUserId(feideToken: FeideAccessToken): Try[Option[Long]] = boundary {
     permitTry {
-      val request = quickRequest
-        .get(uri"$baseUrl/api/config")
-        .header("FeideAuthorization", s"Bearer $feideToken")
-      val resp = doReq(request).?
+      val request = quickRequest.get(uri"$baseUrl/api/config").header("FeideAuthorization", s"Bearer $feideToken")
+      val resp    = doReq(request).?
 
       if (resp.code.code == 403) boundary.break(Success(None))
 
       val body = resp.body
-      parse(body)
-        .flatMap(_.as[UserSelf])
-        .toTry
-        .map(_.uid.some)
+      parse(body).flatMap(_.as[UserSelf]).toTry.map(_.uid.some)
     }
   }
 
   def deleteUser(userId: Option[Long], feideToken: FeideAccessToken): Try[Unit] = {
     userId match {
       case None     => Success(())
-      case Some(id) =>
-        for {
+      case Some(id) => for {
           nodebbSession <- getCSRFToken(feideToken)
           _             <- deleteUserWithCSRF(id, feideToken, nodebbSession)
         } yield ()

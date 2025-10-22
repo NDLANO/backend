@@ -14,8 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("The content of the article in the specified language")
 case class ArticleContentV2DTO(
-    @description("The html content") content: String,
-    @description("ISO 639-1 code that represents the language used in the content") language: String
+    @description("The html content")
+    content: String,
+    @description("ISO 639-1 code that represents the language used in the content")
+    language: String,
 )
 
 object ArticleContentV2DTO {

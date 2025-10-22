@@ -26,12 +26,12 @@ class V27__FixContributorTypes extends DocumentMigration {
     val rightsholders = convertList(copyright, "rightsholders")
 
     val newDocument =
-      if (copyright.succeeded)
-        oldDocument.hcursor
-          .downField("copyright")
-          .withFocus(_.mapObject(_.remove("creators").add("creators", creators.asJson)))
-          .withFocus(_.mapObject(_.remove("processors").add("processors", processors.asJson)))
-          .withFocus(_.mapObject(_.remove("rightsholders").add("rightsholders", rightsholders.asJson)))
+      if (copyright.succeeded) oldDocument
+        .hcursor
+        .downField("copyright")
+        .withFocus(_.mapObject(_.remove("creators").add("creators", creators.asJson)))
+        .withFocus(_.mapObject(_.remove("processors").add("processors", processors.asJson)))
+        .withFocus(_.mapObject(_.remove("rightsholders").add("rightsholders", rightsholders.asJson)))
       else oldDocument.hcursor
     newDocument.top.getOrElse(oldDocument).noSpaces
   }

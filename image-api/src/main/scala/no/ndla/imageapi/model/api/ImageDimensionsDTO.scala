@@ -14,8 +14,10 @@ import sttp.tapir.Schema.annotations.description
 
 @description("Dimensions of an image")
 case class ImageDimensionsDTO(
-    @description("The width of the image in pixels") width: Int,
-    @description("The height of the image in pixels") height: Int
+    @description("The width of the image in pixels")
+    width: Int,
+    @description("The height of the image in pixels")
+    height: Int,
 )
 
 object ImageDimensionsDTO {

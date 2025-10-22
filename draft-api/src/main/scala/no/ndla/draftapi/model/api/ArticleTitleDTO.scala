@@ -15,9 +15,12 @@ import no.ndla.common.DeriveHelpers
 
 @description("Description of a title")
 case class ArticleTitleDTO(
-    @description("The freetext title of the article") title: String,
-    @description("The freetext html title of the article") htmlTitle: String,
-    @description("ISO 639-1 code that represents the language used in title") language: String
+    @description("The freetext title of the article")
+    title: String,
+    @description("The freetext html title of the article")
+    htmlTitle: String,
+    @description("ISO 639-1 code that represents the language used in title")
+    language: String,
 )
 
 object ArticleTitleDTO {

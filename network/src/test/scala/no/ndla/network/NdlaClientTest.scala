@@ -21,8 +21,7 @@ class NdlaClientTest extends UnitSuite {
 
   case class TestObject(id: String, verdi: String)
 
-  val ParseableContent: String =
-    """
+  val ParseableContent: String = """
       |{
       |  "id": "1",
       |  "verdi": "This is the value"
@@ -47,7 +46,7 @@ class NdlaClientTest extends UnitSuite {
       statusText = "status",
       headers = Seq.empty,
       history = List.empty,
-      request = RequestMetadata(Method.GET, uri"someUrl", List.empty)
+      request = RequestMetadata(Method.GET, uri"someUrl", List.empty),
     )
 
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
@@ -170,7 +169,7 @@ class NdlaClientTest extends UnitSuite {
       statusText = "status",
       headers = Seq.empty,
       history = List.empty,
-      request = RequestMetadata(Method.GET, uri"someUrl", List.empty)
+      request = RequestMetadata(Method.GET, uri"someUrl", List.empty),
     )
     when(httpClientMock.send(httpRequestMock)).thenReturn(httpResponseMock)
     val authHeaderKey   = "Authorization"

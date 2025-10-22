@@ -63,7 +63,9 @@ class LearningpathApiClientTest
     implicit val ec: ExecutionContextExecutorService =
       ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
     learningpathApi = new learningpathapi.MainClass(learningpathApiProperties)
-    Future { learningpathApi.run(Array.empty) }: Unit
+    Future {
+      learningpathApi.run(Array.empty)
+    }: Unit
     blockUntilHealthy(s"$learningpathApiBaseUrl/health/readiness")
   }
 
@@ -72,13 +74,16 @@ class LearningpathApiClientTest
   }
 
   private def setupLearningPaths() = {
-    (1L to 10)
-      .map(id => {
-        learningpathApi.componentRegistry.learningPathRepository.insert(
-          learningpathapi.TestData.sampleDomainLearningPath
-            .copy(id = Some(id), lastUpdated = NDLADate.fromUnixTime(0))
+    (
+      1L to 10
+    ).map(id => {
+      learningpathApi
+        .componentRegistry
+        .learningPathRepository
+        .insert(
+          learningpathapi.TestData.sampleDomainLearningPath.copy(id = Some(id), lastUpdated = NDLADate.fromUnixTime(0))
         )
-      })
+    })
   }
 
   val exampleToken =
@@ -94,15 +99,10 @@ class LearningpathApiClientTest
     val chunks              = learningPathApiClient.getChunks.toList
     val fetchedLearningPath = chunks.head.get.head
 
-    val searchable =
-      searchConverterService.asSearchableLearningPath(
-        fetchedLearningPath,
-        IndexingBundle(
-          None,
-          Some(searchapi.TestData.taxonomyTestBundle),
-          None
-        )
-      )
+    val searchable = searchConverterService.asSearchableLearningPath(
+      fetchedLearningPath,
+      IndexingBundle(None, Some(searchapi.TestData.taxonomyTestBundle), None),
+    )
 
     searchable.isSuccess should be(true)
     searchable.get.title.languageValues should be(Seq(LanguageValue("nb", "tittel")))
