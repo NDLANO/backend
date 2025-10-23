@@ -74,7 +74,7 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
     loop(domainFolder, breadcrumbs, feideUser)
   }
 
-  def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolderDTO): domain.Folder = {
+  def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolderDTO): Try[domain.Folder] = {
     val parentId = updated.parentId match {
       case Delete            => None
       case Missing           => existing.parentId
@@ -94,20 +94,22 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
       case _                                                         => None
     }
 
-    domain.Folder(
-      id = existing.id,
-      resources = existing.resources,
-      subfolders = existing.subfolders,
-      feideId = existing.feideId,
-      parentId = parentId,
-      name = name,
-      status = status,
-      rank = existing.rank,
-      created = existing.created,
-      updated = clock.now(),
-      shared = shared,
-      description = description,
-      user = existing.user,
+    Success(
+      domain.Folder(
+        id = existing.id,
+        resources = existing.resources,
+        subfolders = existing.subfolders,
+        feideId = existing.feideId,
+        parentId = parentId,
+        name = name,
+        status = status,
+        rank = existing.rank,
+        created = existing.created,
+        updated = clock.now(),
+        shared = shared,
+        description = description,
+        user = existing.user,
+      )
     )
   }
 
