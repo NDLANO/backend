@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.service
 
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.Missing
+import no.ndla.common.model.api.{Missing, UpdateWith}
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, UserRole}
 import no.ndla.myndlaapi.TestData.{emptyDomainFolder, emptyDomainResource, emptyMyNDLAUser}
@@ -806,15 +806,214 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderReadService.getBreadcrumbs(any)(using any)).thenReturn(Success(List.empty))
     when(folderRepository.getConnections(any)(using any)).thenReturn(Success(List.empty))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parentId)), eqTo(feideId))(using any)).thenReturn(
-      Success(List(siblingFolder))
+      Success(List(existingFolder, siblingFolder)),
+      Success(List(existingFolder, siblingFolder)),
     )
     when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(Success(existingFolder))
     when(folderRepository.updateFolder(any, any, any)(using any)).thenReturn(Success(mergedFolder))
+    when(folderRepository.setFolderRank(any[UUID], any[Int], any)(using any)).thenReturn(Success(()))
+    when(folderRepository.withTx(any[DBSession => Try[Unit]]())).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Unit]](0)
+      func(mock[DBSession])
+    })
     when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
 
-    service.updateFolder(folderId, updateFolder, Some(feideId)) should be(Success(expectedFolder))
+    val result = service.updateFolder(folderId, updateFolder, Some(feideId))
+    result should be(Success(expectedFolder))
 
     verify(folderRepository, times(1)).updateFolder(any, any, any)(using any)
+  }
+
+  test("that updating parentId of a folder sorts siblings with unique ranks") {
+    val created     = clock.now()
+    val feideId     = "FEIDE"
+    val folderId    = UUID.randomUUID()
+    val oldParentId = UUID.randomUUID()
+    val newParentId = UUID.randomUUID()
+
+    val sibling1Id = UUID.randomUUID()
+    val sibling2Id = UUID.randomUUID()
+
+    val updateFolder = api.UpdatedFolderDTO(
+      parentId = UpdateWith[String](newParentId.toString),
+      name = Some("updated"),
+      status = None,
+      description = None,
+    )
+
+    val movedFolder = domain.Folder(
+      id = folderId,
+      feideId = feideId,
+      parentId = Some(newParentId),
+      name = "updated",
+      status = FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty,
+      rank = 2,
+      created = created,
+      updated = created,
+      shared = None,
+      description = None,
+      user = None,
+    )
+
+    val sibling1 = domain.Folder(
+      id = sibling1Id,
+      feideId = feideId,
+      parentId = Some(newParentId),
+      name = "sibling1",
+      status = FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty,
+      rank = 1,
+      created = created,
+      updated = created,
+      shared = None,
+      description = None,
+      user = None,
+    )
+
+    val sibling2 = domain.Folder(
+      id = sibling2Id,
+      feideId = feideId,
+      parentId = Some(newParentId),
+      name = "sibling2",
+      status = FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty,
+      rank = 3,
+      created = created,
+      updated = created,
+      shared = None,
+      description = None,
+      user = None,
+    )
+
+    val siblings      = List(sibling1, movedFolder, sibling2)
+    val expectedRanks = siblings.map(_.rank).toSet
+
+    doReturn(Success(newParentId))
+      .when(folderConverterService)
+      .toUUIDValidated(eqTo(Some(newParentId.toString)), eqTo("parentId"))
+    when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(
+      Success(movedFolder.copy(parentId = Some(oldParentId), rank = 1, name = "updated"))
+    )
+    when(folderRepository.folderWithFeideId(eqTo(newParentId), eqTo(feideId))(using any)).thenReturn(
+      Success(emptyDomainFolder)
+    )
+    when(folderRepository.getFoldersDepth(eqTo(newParentId))(using any)).thenReturn(Success(1L))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(newParentId)), eqTo(feideId))(using any)).thenReturn(
+      Success(siblings)
+    )
+    when(folderRepository.updateFolder(any, any, any)(using any)).thenReturn(Success(movedFolder))
+    when(folderReadService.getBreadcrumbs(any)(using any)).thenReturn(Success(List.empty))
+    when(folderRepository.getConnections(any)(using any)).thenReturn(Success(List.empty))
+    when(userRepository.userWithFeideId(any)(using any)).thenReturn(Success(None))
+    when(folderRepository.setFolderRank(any, any, any)(using any)).thenReturn(Success(()))
+    when(folderRepository.withTx(any[DBSession => Try[Unit]]())).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Unit]](0)
+      func(mock[DBSession])
+    })
+
+    val result = service.updateFolder(folderId, updateFolder, Some(feideId))
+    result.isSuccess should be(true)
+
+    // After sorting, ranks should be unique and sequential
+    val sortedSiblings = siblings.sortBy(_.rank)
+    sortedSiblings.map(_.rank).distinct.size should be(siblings.size)
+    sortedSiblings.map(_.rank) should contain theSameElementsAs expectedRanks
+  }
+
+  test("that updating parentId of a folder fails if sibling with same name exists") {
+    val created     = clock.now()
+    val feideId     = "FEIDE"
+    val folderId    = UUID.randomUUID()
+    val oldParentId = UUID.randomUUID()
+    val newParentId = UUID.randomUUID()
+
+    val sibling1Id = UUID.randomUUID()
+    val sibling2Id = UUID.randomUUID()
+
+    val updateFolder = api.UpdatedFolderDTO(
+      parentId = UpdateWith[String](newParentId.toString),
+      name = Some("duplicateName"),
+      status = None,
+      description = None,
+    )
+
+    val movedFolder = domain.Folder(
+      id = folderId,
+      feideId = feideId,
+      parentId = Some(newParentId),
+      name = "duplicateName",
+      status = FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty,
+      rank = 2,
+      created = created,
+      updated = created,
+      shared = None,
+      description = None,
+      user = None,
+    )
+
+    val sibling1 = domain.Folder(
+      id = sibling1Id,
+      feideId = feideId,
+      parentId = Some(newParentId),
+      name = "duplicateName", // Same name as movedFolder
+      status = FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty,
+      rank = 1,
+      created = created,
+      updated = created,
+      shared = None,
+      description = None,
+      user = None,
+    )
+
+    val sibling2 = domain.Folder(
+      id = sibling2Id,
+      feideId = feideId,
+      parentId = Some(newParentId),
+      name = "sibling2",
+      status = FolderStatus.PRIVATE,
+      subfolders = List.empty,
+      resources = List.empty,
+      rank = 3,
+      created = created,
+      updated = created,
+      shared = None,
+      description = None,
+      user = None,
+    )
+
+    val siblings = List(sibling1, movedFolder, sibling2)
+
+    doReturn(Success(newParentId))
+      .when(folderConverterService)
+      .toUUIDValidated(eqTo(Some(newParentId.toString)), eqTo("parentId"))
+    when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
+    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(
+      Success(movedFolder.copy(parentId = Some(oldParentId), rank = 1, name = "duplicateName"))
+    )
+    when(folderRepository.folderWithFeideId(eqTo(newParentId), eqTo(feideId))(using any)).thenReturn(
+      Success(emptyDomainFolder)
+    )
+    when(folderRepository.getFoldersDepth(eqTo(newParentId))(using any)).thenReturn(Success(1L))
+    when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(newParentId)), eqTo(feideId))(using any)).thenReturn(
+      Success(siblings)
+    )
+    when(folderReadService.getBreadcrumbs(any)(using any)).thenReturn(Success(List.empty))
+    when(userRepository.userWithFeideId(any)(using any)).thenReturn(Success(None))
+    when(folderRepository.getConnections(any)(using any)).thenReturn(Success(List.empty))
+
+    val result = service.updateFolder(folderId, updateFolder, Some(feideId))
+    result should be(Failure(ValidationException("name", "The folder name must be unique within its parent.")))
   }
 
   test("That deleteAllUserData works as expected") {
