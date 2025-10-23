@@ -9,6 +9,7 @@
 package no.ndla.myndlaapi.service
 
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.api.myndla.{MyNDLAGroupDTO, MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAGroup, MyNDLAUser, UserRole}
@@ -253,14 +254,27 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       description = Some("hei"),
       user = None,
     )
-    val updatedWithData =
-      UpdatedFolderDTO(name = Some("newNamae"), status = Some("shared"), description = Some("halla"))
-    val updatedWithoutData     = UpdatedFolderDTO(name = None, status = None, description = None)
+    val updatedWithData = UpdatedFolderDTO(
+      parentId = Missing,
+      name = Some("newNamae"),
+      status = Some("shared"),
+      description = Some("halla"),
+    )
+    val updatedWithoutData     = UpdatedFolderDTO(parentId = Missing, name = None, status = None, description = None)
     val updatedWithGarbageData = UpdatedFolderDTO(
+      parentId = Missing,
       name = Some("huehueuheasdasd+++"),
       status = Some("det å joike er noe kult"),
       description = Some("jog ska visa deg garbage jog"),
     )
+    val newParentUUID        = UUID.randomUUID()
+    val updatedWithNewParent = UpdatedFolderDTO(
+      parentId = UpdateWith[String](newParentUUID.toString),
+      name = None,
+      status = None,
+      description = None,
+    )
+    val updatedWithNoParent = UpdatedFolderDTO(parentId = Delete, name = None, status = None, description = None)
 
     val expected1 =
       existing.copy(name = "newNamae", status = FolderStatus.SHARED, shared = Some(shared), description = Some("halla"))
@@ -270,14 +284,20 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       description = Some("jog ska visa deg garbage jog"),
     )
+    val expected4 = existing.copy(parentId = Some(newParentUUID))
+    val expected5 = existing.copy(parentId = None)
 
     val result1 = service.mergeFolder(existing, updatedWithData)
     val result2 = service.mergeFolder(existing, updatedWithoutData)
     val result3 = service.mergeFolder(existing, updatedWithGarbageData)
+    val result4 = service.mergeFolder(existing, updatedWithNewParent)
+    val result5 = service.mergeFolder(existing, updatedWithNoParent)
 
     result1 should be(expected1)
     result2 should be(expected2)
     result3 should be(expected3)
+    result4 should be(expected4)
+    result5 should be(expected5)
   }
 
   test("that mergeFolder works correctly for shared field and folder status update") {
@@ -302,8 +322,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     )
     val existingShared  = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedBefore))
     val existingPrivate = existingBase.copy(status = FolderStatus.PRIVATE, shared = None)
-    val updatedShared   = UpdatedFolderDTO(name = None, status = Some("shared"), description = None)
-    val updatedPrivate  = UpdatedFolderDTO(name = None, status = Some("private"), description = None)
+    val updatedShared   = UpdatedFolderDTO(parentId = Missing, name = None, status = Some("shared"), description = None)
+    val updatedPrivate  = UpdatedFolderDTO(parentId = Missing, name = None, status = Some("private"), description = None)
     val expected1       = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedBefore))
     val expected2       = existingBase.copy(status = FolderStatus.PRIVATE, shared = None)
     val expected3       = existingBase.copy(status = FolderStatus.SHARED, shared = Some(sharedNow))
