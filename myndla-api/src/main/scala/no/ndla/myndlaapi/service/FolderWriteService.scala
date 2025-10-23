@@ -290,7 +290,7 @@ class FolderWriteService(using
       _              <- isOperationAllowedOrAccessDenied(feideId, feideAccessToken, updatedFolder)
       existingFolder <- folderRepository.folderWithId(id)
       _              <- existingFolder.isOwner(feideId)
-      converted      <- Try(folderConverterService.mergeFolder(existingFolder, updatedFolder))
+      converted      <- folderConverterService.mergeFolder(existingFolder, updatedFolder)
       maybeSiblings  <- getFolderWithDirectChildren(converted.parentId, feideId)
       _              <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
       updated        <- folderRepository.updateFolder(id, feideId, converted)

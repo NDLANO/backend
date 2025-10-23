@@ -293,11 +293,11 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     val result4 = service.mergeFolder(existing, updatedWithNewParent)
     val result5 = service.mergeFolder(existing, updatedWithNoParent)
 
-    result1 should be(expected1)
-    result2 should be(expected2)
-    result3 should be(expected3)
-    result4 should be(expected4)
-    result5 should be(expected5)
+    result1 should be(Success(expected1))
+    result2 should be(Success(expected2))
+    result3 should be(Success(expected3))
+    result4 should be(Success(expected4))
+    result5 should be(Success(expected5))
   }
 
   test("that mergeFolder works correctly for shared field and folder status update") {
@@ -333,10 +333,10 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
     val result2 = service.mergeFolder(existingShared, updatedPrivate)
     val result3 = service.mergeFolder(existingPrivate, updatedShared)
     val result4 = service.mergeFolder(existingPrivate, updatedPrivate)
-    result1 should be(expected1)
-    result2 should be(expected2)
-    result3 should be(expected3)
-    result4 should be(expected4)
+    result1 should be(Success(expected1))
+    result2 should be(Success(expected2))
+    result3 should be(Success(expected3))
+    result4 should be(Success(expected4))
   }
 
   test("that toApiResource converts correctly") {
