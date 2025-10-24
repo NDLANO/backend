@@ -34,10 +34,7 @@ import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
 
-import java.io.{BufferedInputStream, ByteArrayInputStream, ByteArrayOutputStream, FileInputStream}
-import java.lang.Math.max
-import java.nio.file.{Files, Path}
-import javax.imageio.ImageIO
+import java.io.{BufferedInputStream, ByteArrayInputStream, FileInputStream}
 import scala.util.{Failure, Success, Try}
 
 class WriteService(using
@@ -487,17 +484,5 @@ class WriteService(using
       .map(filePath => {
         UploadedImage(filePath, file.fileSize, contentType, None, Seq.empty)
       })
-  }
-}
-
-object Fisk {
-  @main
-  def run() = {
-    val file = new BufferedInputStream(
-      new FileInputStream(
-        "/Users/amatho/Downloads/Amandus Søve Thorsrud , Knowit Objectnet_Amandus Søve Thorsrud , Knowit Objectnet_Knowit_34077.jpg"
-      )
-    )
-    println(FormatDetector.detect(file))
   }
 }
