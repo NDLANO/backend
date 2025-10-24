@@ -10,7 +10,7 @@ package no.ndla.imageapi
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
-import no.ndla.common.model.domain.{Author, ContributorType, Tag}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, UploadedFile}
 import no.ndla.common.model.api as commonApi
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.api.ImageMetaInformationV2DTO
@@ -19,7 +19,7 @@ import no.ndla.mapping
 import no.ndla.mapping.License
 
 import java.awt.image.BufferedImage
-import java.io.InputStream
+import java.io.{File, InputStream}
 import javax.imageio.ImageIO
 
 class TestData {
@@ -39,8 +39,9 @@ class TestData {
           size = 2865539,
           contentType = "image/jpeg",
           dimensions = None,
+          variants = Seq.empty,
           language = "nb",
-          1,
+          imageMetaId = 1,
         )
       )
     ),
@@ -140,8 +141,9 @@ class TestData {
           size = 14113,
           contentType = "image/jpeg",
           dimensions = None,
+          variants = Seq.empty,
           language = "nb",
-          2,
+          imageMetaId = 2,
         )
       )
     ),
@@ -177,8 +179,9 @@ class TestData {
           size = 39061,
           contentType = "image/jpeg",
           dimensions = None,
+          variants = Seq.empty,
           language = "nb",
-          3,
+          imageMetaId = 3,
         )
       )
     ),
@@ -214,8 +217,9 @@ class TestData {
           size = 102559,
           contentType = "image/jpeg",
           dimensions = None,
+          variants = Seq.empty,
           language = "nb",
-          4,
+          imageMetaId = 4,
         )
       )
     ),
@@ -251,8 +255,9 @@ class TestData {
           size = 504911,
           contentType = "image/jpeg",
           dimensions = None,
+          variants = Seq.empty,
           language = "nb",
-          5,
+          imageMetaId = 5,
         )
       )
     ),
@@ -288,8 +293,9 @@ class TestData {
           size = 2865539,
           contentType = "image/jpeg",
           dimensions = None,
+          variants = Seq.empty,
           language = "nb",
-          6,
+          imageMetaId = 6,
         )
       )
     ),
@@ -325,8 +331,9 @@ class TestData {
           size = 2865539,
           contentType = "image/jpeg",
           dimensions = None,
+          variants = Seq.empty,
           language = "nb",
-          6,
+          imageMetaId = 6,
         )
       )
     ),
@@ -366,10 +373,14 @@ class TestData {
   val NdlaLogoGIFImage: DiskImage = DiskImage("ndla_logo.gif")
   val CCLogoSvgImage: DiskImage   = DiskImage("cc.svg")
 
-  val ChildrensImage: DiskImage =
-    DiskImage(
-      "children-drawing-582306_640.jpg"
-    ) // From https://pixabay.com/en/children-drawing-home-tree-meadow-582306/
+  private val childrensImageFileName = "children-drawing-582306_640.jpg"
+  val ChildrensImage: DiskImage      =
+    DiskImage(childrensImageFileName) // From https://pixabay.com/en/children-drawing-home-tree-meadow-582306/
+
+  val childrensImageUploadedFile: UploadedFile = {
+    val file = new File(getClass.getResource(s"/$childrensImageFileName").toURI)
+    UploadedFile("file", Some(childrensImageFileName), file.length(), Some("image/jpeg"), file)
+  }
 
   val searchSettings: SearchSettings = SearchSettings(
     query = None,

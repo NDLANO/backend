@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA image-api
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.imageapi.db.migration
 
 import io.circe.{Json, parser}

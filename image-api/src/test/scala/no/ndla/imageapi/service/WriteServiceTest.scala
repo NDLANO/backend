@@ -15,7 +15,12 @@ import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.common.model.domain.article.Copyright as DomainCopyright
 import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain
-import no.ndla.imageapi.model.domain.{ImageFileDataDocument, ImageMetaInformation, ModelReleasedStatus}
+import no.ndla.imageapi.model.domain.{
+  ImageFileDataDocument,
+  ImageMetaInformation,
+  ImageVariantSize,
+  ModelReleasedStatus,
+}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
@@ -30,6 +35,7 @@ import scala.util.{Failure, Success}
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override implicit lazy val writeService: WriteService         = new WriteService
   override implicit lazy val converterService: ConverterService = new ConverterService
+  override implicit lazy val imageConverter: ImageConverter     = new ImageConverter
   val newFileName                                               = "AbCdeF.mp3"
   val fileMock1: UploadedFile                                   = mock[UploadedFile]
 
@@ -64,6 +70,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           size = 100,
           contentType = "image/jpeg",
           dimensions = None,
+          variants = Seq.empty,
           language = "nb",
           imageMetaId = 2,
         )
@@ -97,40 +104,23 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
-  test("randomFileName should return a random filename with a given length and extension") {
-    val extension = ".jpg"
-
-    val result = writeService.randomFileName(extension)
-    result.length should be(12)
-    result.endsWith(extension) should be(true)
-
-    val resultWithNegativeLength = writeService.randomFileName(extension, -1)
-    resultWithNegativeLength.length should be(1 + extension.length)
-    resultWithNegativeLength.endsWith(extension) should be(true)
-  }
-
-  test("randomFileName should return an extensionless filename if empty extension is supplied") {
-    val result = writeService.randomFileName("")
-    result.length should be(12)
-    result.contains(".") should be(false)
-  }
-
-  test("uploadFile should return Success if file upload succeeds") {
+  test("uploadImageWithVariants should return Success if file upload succeeds") {
     when(imageStorage.objectExists(any[String])).thenReturn(false)
     when(imageStorage.uploadFromStream(any, any)).thenReturn(Success(newFileName))
-    val expectedImage = domain.UploadedImage(newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)))
+    val expectedImage =
+      domain.UploadedImage(newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)), Seq.empty)
 
-    val result = writeService.uploadImage(fileMock1)
+    val result = writeService.uploadImageWithVariants(fileMock1)
     verify(imageStorage, times(1)).uploadFromStream(any, any)
 
     result should equal(Success(expectedImage))
   }
 
-  test("uploadFile should return Failure if file upload failed") {
+  test("uploadImageWithVariants should return Failure if file upload failed") {
     when(imageStorage.objectExists(any[String])).thenReturn(false)
     when(imageStorage.uploadFromStream(any, any)).thenReturn(Failure(new RuntimeException))
 
-    writeService.uploadImage(fileMock1).isFailure should be(true)
+    writeService.uploadImageWithVariants(fileMock1).isFailure should be(true)
   }
 
   test("storeNewImage should return Failure if upload failes") {
@@ -279,8 +269,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       size = 2865539,
       contentType = "image/jpeg",
       dimensions = None,
+      variants = Seq.empty,
       language = "nb",
-      1,
+      imageMetaId = 1,
     )
 
     val toUpdate = UpdateImageMetaInformationDTO("en", Some("Title"), UpdateWith("AltText"), None, None, None, None)
@@ -380,6 +371,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       size = 123,
       contentType = "image/jpeg",
       dimensions = Some(domain.ImageDimensions(10, 10)),
+      variants = Seq.empty,
       language = "nb",
       imageMetaId = imageId,
     )
@@ -417,7 +409,18 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val imageId         = 4444.toLong
     val domainWithImage = domainImageMeta.copy(images =
       Some(
-        Seq(domain.ImageFileData(1, newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)), "nb", 54))
+        Seq(
+          domain.ImageFileData(
+            1,
+            newFileName,
+            1024,
+            "image/jpeg",
+            Some(domain.ImageDimensions(189, 60)),
+            Seq.empty,
+            "nb",
+            54,
+          )
+        )
       )
     )
 
@@ -527,6 +530,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       size = 100,
       contentType = "image/jpg",
       dimensions = None,
+      variants = Seq.empty,
       language = "nb",
       imageMetaId = imageId,
     )
@@ -617,6 +621,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       size = 100,
       contentType = "image/jpg",
       dimensions = None,
+      variants = Seq.empty,
       language = "nb",
       imageMetaId = imageId,
     )
@@ -703,6 +708,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       size = 100,
       contentType = "image/jpg",
       dimensions = None,
+      variants = Seq.empty,
       language = "nb",
       imageMetaId = imageId,
     )
@@ -775,6 +781,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       size = 100,
       contentType = "image/jpg",
       dimensions = None,
+      variants = Seq.empty,
       language = "nb",
       imageMetaId = imageId,
     )
@@ -849,5 +856,22 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Seq(domain.ImageTitle("Hå", "nn"), domain.ImageTitle("Ho", "en"))
     )
 
+  }
+
+  test("That uploading valid JPEG should generate image variants of multiple sizes") {
+    when(imageStorage.objectExists(any[String])).thenReturn(false)
+    when(imageStorage.uploadFromStream(any, any)).thenAnswer(i => Success(i.getArgument(0)))
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer(i => Success(i.getArgument(0)))
+    val expectedDimensions = domain.ImageDimensions(640, 426)
+    val expectedVariants   = ImageVariantSize.forDimensions(expectedDimensions)
+
+    val domain.UploadedImage(_, _, _, dimensions, variants) = writeService
+      .uploadImageWithVariants(TestData.childrensImageUploadedFile)
+      .failIfFailure
+    verify(imageStorage, times(1)).uploadFromStream(any, any)
+    verify(imageStorage, times(expectedVariants.size)).uploadFromStream(any, any, any, any)
+
+    dimensions should equal(Some(expectedDimensions))
+    variants should equal(expectedVariants)
   }
 }

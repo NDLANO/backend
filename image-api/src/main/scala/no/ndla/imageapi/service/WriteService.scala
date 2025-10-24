@@ -443,7 +443,7 @@ class WriteService(using
     val uploadedOriginalImage = uploadImageAsIs(file, fileName).?
 
     // Use buffered stream with mark to avoid creating multiple streams
-    val fileStream = new BufferedInputStream(new FileInputStream(file.file))
+    val fileStream = new BufferedInputStream(file.stream)
     fileStream.mark(32)
     val isProcessableImage = Try(FormatDetector.detect(fileStream).get()) match {
       case Failure(_)                              => false

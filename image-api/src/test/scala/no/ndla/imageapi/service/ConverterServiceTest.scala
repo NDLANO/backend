@@ -23,8 +23,8 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
   val someDims: Some[ImageDimensions] = Some(ImageDimensions(100, 100))
-  val full                            = new ImageFileData(1, "/123.png", 200, "image/png", someDims, "nb", 5)
-  val wanting                         = new ImageFileData(2, "123.png", 200, "image/png", someDims, "und", 6)
+  val full                            = new ImageFileData(1, "/123.png", 200, "image/png", someDims, Seq.empty, "nb", 5)
+  val wanting                         = new ImageFileData(2, "123.png", 200, "image/png", someDims, Seq.empty, "und", 6)
 
   val DefaultImageMetaInformation = new ImageMetaInformation(
     id = Some(1),
@@ -181,6 +181,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       size = 123,
       contentType = "image/jpg",
       dimensions = Some(ImageDimensions(123, 555)),
+      variants = Seq.empty,
       language = "nb",
       imageMetaId = 4,
     )

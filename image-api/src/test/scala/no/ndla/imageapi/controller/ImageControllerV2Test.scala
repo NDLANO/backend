@@ -246,6 +246,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
             size = 1024,
             contentType = "image/jpeg",
             dimensions = None,
+            variants = Seq.empty,
             language = "und",
             imageMetaId = 1,
           )

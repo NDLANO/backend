@@ -78,6 +78,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
           size = 0,
           contentType = "",
           dimensions = None,
+          variants = Seq.empty,
           language = "und",
           imageMetaId = 1,
         )
