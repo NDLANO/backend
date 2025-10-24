@@ -8,6 +8,8 @@
 
 package no.ndla.imageapi.service
 
+import com.sksamuel.scrimage.ImmutableImage
+
 import java.awt.image.BufferedImage
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.lang.Math.{abs, max, min}
@@ -15,7 +17,7 @@ import javax.imageio.ImageIO
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.domain.ImageStream
+import no.ndla.imageapi.model.domain.{ImageVariantSize, ImageStream}
 import org.imgscalr.Scalr
 import org.imgscalr.Scalr.Mode
 
@@ -92,6 +94,9 @@ class ImageConverter(using props: Props) extends StrictLogging {
       override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
     }
   }
+
+  def resizeToVariantSize(original: ImmutableImage, variant: ImageVariantSize): ImmutableImage =
+    original.scaleToWidth(variant.width)
 
   def resize(originalImage: ImageStream, targetWidth: Int, targetHeight: Int): Try[ImageStream] = {
     val sourceImage = originalImage.sourceImage

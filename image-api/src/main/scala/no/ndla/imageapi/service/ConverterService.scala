@@ -11,12 +11,13 @@ package no.ndla.imageapi.service
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.typesafe.dsl.*
 import io.lemonlabs.uri.UrlPath
-import no.ndla.common.model.{domain as commonDomain, api as commonApi}
+import no.ndla.common.model.{api as commonApi, domain as commonDomain}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{
   ImageFileData,
   ImageFileDataDocument,
   ImageMetaInformation,
+  ImageVariantSize,
   ModelReleasedStatus,
   UploadedImage,
 }
@@ -144,6 +145,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       contentType = image.contentType,
       imageUrl = url,
       dimensions = dimensions,
+      variants = image.variants,
       language = image.language,
     )
   }
@@ -340,6 +342,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       size = image.size,
       contentType = image.contentType,
       dimensions = image.dimensions,
+      variants = image.dimensions.map(ImageVariantSize.forDimensions).getOrElse(Seq.empty),
       language = language,
     )
   }
