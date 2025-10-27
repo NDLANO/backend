@@ -35,6 +35,9 @@ import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
 
 import java.io.{BufferedInputStream, ByteArrayInputStream}
+import java.util.concurrent.Executors
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 class WriteService(using
@@ -455,25 +458,33 @@ class WriteService(using
       fileStream.reset()
       val img        = Try(ImmutableImage.loader().fromStream(fileStream)).?
       val dimensions = ImageDimensions(img.width, img.height)
-      val variants   = ImageVariantSize
-        .forDimensions(dimensions)
-        .map { variantSize =>
-          val resizedImage     = imageConverter.resizeToVariantSize(img, variantSize)
-          val variantBucketKey = s"$uniqueFileStem/${variantSize.entryName}.webp"
-          val imageBytes       = resizedImage.bytes(WebpWriter.DEFAULT)
-          val stream           = new ByteArrayInputStream(imageBytes)
-          imageStorage.uploadFromStream(variantBucketKey, stream, imageBytes.length, "image/webp").map(_ => variantSize)
-        }
-        .sequence match {
-        case Success(s)  => s
-        case Failure(ex) =>
-          logger.error("Something went wrong when uploading image variants", ex)
-          Seq.empty
-      }
+      val variants   = generateAndUploadVariants(img, dimensions, uniqueFileStem)
 
       Success(uploadedOriginalImage.copy(dimensions = Some(dimensions), variants = variants))
     } else {
       Success(uploadedOriginalImage)
+    }
+  }
+
+  private def generateAndUploadVariants(image: ImmutableImage, dimensions: ImageDimensions, fileStem: String) = {
+    val variantSizes       = ImageVariantSize.forDimensions(dimensions)
+    given ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(variantSizes.size))
+
+    val future = variantSizes.traverse { variantSize =>
+      Future {
+        val resizedImage     = imageConverter.resizeToVariantSize(image, variantSize)
+        val variantBucketKey = s"$fileStem/${variantSize.entryName}.webp"
+        val imageBytes       = resizedImage.bytes(WebpWriter.DEFAULT)
+        val stream           = new ByteArrayInputStream(imageBytes)
+        imageStorage.uploadFromStream(variantBucketKey, stream, imageBytes.length, "image/webp").map(_ => variantSize)
+      }
+    }
+
+    Await.result(future, 1.minute).sequence match {
+      case Success(s)  => s
+      case Failure(ex) =>
+        logger.error("Something went wrong when uploading image variants", ex)
+        Seq.empty
     }
   }
 
