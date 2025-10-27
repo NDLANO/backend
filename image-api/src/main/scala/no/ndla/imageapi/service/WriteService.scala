@@ -34,7 +34,7 @@ import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
 
-import java.io.{BufferedInputStream, ByteArrayInputStream, FileInputStream}
+import java.io.{BufferedInputStream, ByteArrayInputStream}
 import scala.util.{Failure, Success, Try}
 
 class WriteService(using
