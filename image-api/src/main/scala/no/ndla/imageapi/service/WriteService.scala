@@ -466,11 +466,18 @@ class WriteService(using
     }
   }
 
-  private def generateAndUploadVariants(image: ImmutableImage, dimensions: ImageDimensions, fileStem: String) = {
-    val variantSizes       = ImageVariantSize.forDimensions(dimensions)
-    given ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(variantSizes.size))
+  private def generateAndUploadVariants(
+      image: ImmutableImage,
+      dimensions: ImageDimensions,
+      fileStem: String,
+  ): Seq[ImageVariantSize] = {
+    val variantSizes = ImageVariantSize.forDimensions(dimensions)
+    if (variantSizes.size <= 0) {
+      return Seq.empty
+    }
 
-    val future = variantSizes.traverse { variantSize =>
+    given ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(variantSizes.size))
+    val future             = variantSizes.traverse { variantSize =>
       Future {
         val resizedImage     = imageConverter.resizeToVariantSize(image, variantSize)
         val variantBucketKey = s"$fileStem/${variantSize.entryName}.webp"
