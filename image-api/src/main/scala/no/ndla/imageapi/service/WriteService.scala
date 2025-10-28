@@ -443,8 +443,6 @@ class WriteService(using
       .head
     val fileName = s"$uniqueFileStem$extension"
 
-    val uploadedOriginalImage = uploadImageAsIs(file, fileName).?
-
     // Use buffered stream with mark to avoid creating multiple streams
     val fileStream = new BufferedInputStream(file.stream)
     fileStream.mark(32)
@@ -456,44 +454,67 @@ class WriteService(using
 
     if (isProcessableImage) {
       fileStream.reset()
-      val img        = Try(ImmutableImage.loader().fromStream(fileStream)).?
-      val dimensions = ImageDimensions(img.width, img.height)
-      val variants   = generateAndUploadVariants(img, dimensions, uniqueFileStem)
+      val img                        = Try(ImmutableImage.loader().fromStream(fileStream)).?
+      val dimensions                 = ImageDimensions(img.width, img.height)
+      val variantsFuture             = generateAndUploadVariantsAsync(img, dimensions, uniqueFileStem)
+      val maybeUploadedOriginalImage = uploadImageAsIs(file, fileName)
+      val maybeVariants              = Await.result(variantsFuture, 1.minute)
 
-      Success(uploadedOriginalImage.copy(dimensions = Some(dimensions), variants = variants))
+      (maybeUploadedOriginalImage, maybeVariants) match {
+        case (Success(uploadedImage), Right(variants)) =>
+          Success(uploadedImage.copy(dimensions = Some(dimensions), variants = variants))
+        case (Failure(ex), variants) =>
+          logger.error("Failed to upload original image", ex)
+          variants
+            .leftMap(_._2)
+            .merge
+            .foreach(variant => imageStorage.deleteObject(variantBucketKey(uniqueFileStem, variant)))
+          Failure(ex)
+        case (original, Left((ex, variants))) =>
+          logger.error("Failed while uploading image variants", ex)
+          original.foreach(_ => imageStorage.deleteObject(fileName))
+          variants.foreach(variant => imageStorage.deleteObject(variantBucketKey(uniqueFileStem, variant)))
+          Failure(ex)
+      }
     } else {
-      Success(uploadedOriginalImage)
+      uploadImageAsIs(file, fileName)
     }
   }
 
-  private def generateAndUploadVariants(
+  /** Generate and upload image variants for `image`. Returns an [[Either]] with a [[Left]] value if one of the uploads
+    * failed (containing uploads that still succeeded), otherwise a [[Right]] value with all uploaded variants.
+    */
+  private def generateAndUploadVariantsAsync(
       image: ImmutableImage,
       dimensions: ImageDimensions,
       fileStem: String,
-  ): Seq[ImageVariantSize] = {
+  ): Future[Either[(Throwable, Seq[ImageVariantSize]), Seq[ImageVariantSize]]] = {
     val variantSizes = ImageVariantSize.forDimensions(dimensions)
     if (variantSizes.size <= 0) {
-      return Seq.empty
+      return Future.successful(Right(Seq.empty))
     }
 
     given ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(variantSizes.size))
-    val future             = variantSizes.traverse { variantSize =>
-      Future {
-        val resizedImage     = imageConverter.resizeToVariantSize(image, variantSize)
-        val variantBucketKey = s"$fileStem/${variantSize.entryName}.webp"
-        val imageBytes       = resizedImage.bytes(WebpWriter.DEFAULT)
-        val stream           = new ByteArrayInputStream(imageBytes)
-        imageStorage.uploadFromStream(variantBucketKey, stream, imageBytes.length, "image/webp").map(_ => variantSize)
+    variantSizes
+      .traverse { variantSize =>
+        Future {
+          val resizedImage = imageConverter.resizeToVariantSize(image, variantSize)
+          val imageBytes   = resizedImage.bytes(WebpWriter.DEFAULT)
+          val stream       = new ByteArrayInputStream(imageBytes)
+          val bucketKey    = variantBucketKey(fileStem, variantSize)
+          imageStorage.uploadFromStream(bucketKey, stream, imageBytes.length, "image/webp").map(_ => variantSize)
+        }
       }
-    }
-
-    Await.result(future, 1.minute).sequence match {
-      case Success(s)  => s
-      case Failure(ex) =>
-        logger.error("Something went wrong when uploading image variants", ex)
-        Seq.empty
-    }
+      .map { results =>
+        val (failures, successes) = results.partitionMap(_.toEither)
+        failures.headOption match {
+          case Some(failure) => Left((failure, successes))
+          case None          => Right(successes)
+        }
+      }
   }
+
+  private def variantBucketKey(fileStem: String, variant: ImageVariantSize) = s"$fileStem/${variant.entryName}"
 
   private def uploadImageAsIs(file: UploadedFile, fileName: String): Try[UploadedImage] = {
     val contentType = file.contentType.getOrElse("")
