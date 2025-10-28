@@ -11,7 +11,7 @@ package no.ndla.oembedproxy
 import no.ndla.common.configuration.BaseProps
 import no.ndla.network.{AuthUser, Domains}
 
-import scala.util.Properties.propOrElse
+import scala.util.Properties.{propOrElse, propOrNone}
 
 type Props = OEmbedProxyProperties
 
@@ -25,10 +25,19 @@ class OEmbedProxyProperties extends BaseProps {
   val ProviderListCacheAgeInMs: Long  = 1000 * 60 * 60 * 24 // 24 hour caching
   val ProviderListRetryTimeInMs: Long = 1000 * 60 * 60      // 1 hour before retrying a failed attempt.
 
-  val NdlaFrontendOembedServiceUrl: String = Map(
+  val NdlaFrontendUrl: Option[String] = propOrNone("NDLA_FRONTEND_HOST")
+
+  val NdlaFrontendOembedServiceUrlFallback: String = Map(
     "local" -> "http://ndla-frontend.ndla-local/oembed",
     "prod"  -> "https://ndla.no/oembed",
   ).getOrElse(Environment, s"https://$Environment.ndla.no/oembed")
+
+  val NdlaFrontendOembedServiceUrl: String = NdlaFrontendUrl
+    .map { url =>
+      val NdlaFrontendSchema: String = propOrElse("NDLA_FRONTEND_SCHEMA", "http")
+      s"$NdlaFrontendSchema://$url/oembed"
+    }
+    .getOrElse(NdlaFrontendOembedServiceUrlFallback)
 
   val NdlaApiOembedProvider: String = Domain
 
