@@ -75,25 +75,17 @@ class UpdateService(using
   def newFromExistingV2(
       id: Long,
       newLearningPath: NewCopyLearningPathV2DTO,
-      owner: CombinedUser
-  ): Try[LearningPathV2DTO] =
-    writeOrAccessDenied(owner.canWrite) {
-      learningPathRepository.withId(id).map(_.isOwnerOrPublic(owner)) match {
-        case None                    => Failure(NotFoundException("Could not find learningpath to copy."))
-        case Some(Failure(ex))       => Failure(ex)
-        case Some(Success(existing)) =>
-          for {
-            toInsert  <- converterService.newFromExistingLearningPath(existing, newLearningPath, owner)
-            validated <- learningPathValidator.validate(toInsert, allowUnknownLanguage = true)
-            inserted  <- Try(learningPathRepository.insert(validated))
-            converted <- converterService.asApiLearningpathV2(
-              inserted,
-              newLearningPath.language,
-              fallback = true,
-              owner
-            )
-          } yield converted
-      }
+      owner: CombinedUser,
+  ): Try[LearningPathV2DTO] = writeOrAccessDenied(owner.canWrite) {
+    learningPathRepository.withId(id).map(_.isOwnerOrPublic(owner)) match {
+      case None                    => Failure(NotFoundException("Could not find learningpath to copy."))
+      case Some(Failure(ex))       => Failure(ex)
+      case Some(Success(existing)) => for {
+          toInsert  <- converterService.newFromExistingLearningPath(existing, newLearningPath, owner)
+          validated <- learningPathValidator.validate(toInsert, allowUnknownLanguage = true)
+          inserted  <- Try(learningPathRepository.insert(validated))
+          converted <- converterService.asApiLearningpathV2(inserted, newLearningPath.language, fallback = true, owner)
+        } yield converted
     }
   }
 
@@ -110,7 +102,7 @@ class UpdateService(using
   def updateLearningPathV2(
       id: Long,
       learningPathToUpdate: UpdatedLearningPathV2DTO,
-      owner: CombinedUser
+      owner: CombinedUser,
   ): Try[LearningPathV2DTO] = writeOrAccessDenied(owner.canWrite) {
     for {
       existing        <- withId(id).flatMap(_.canEditLearningPath(owner))
@@ -129,27 +121,26 @@ class UpdateService(using
   def deleteLearningPathLanguage(
       learningPathId: Long,
       language: String,
-      owner: CombinedUserRequired
-  ): Try[LearningPathV2DTO] =
-    dBUtility.rollbackOnFailure { implicit session =>
-      writeOrAccessDenied(owner.canWrite) {
-        for {
-          learningPath <- withId(learningPathId).flatMap(_.canEditLearningPath(owner))
-          updatedSteps <- learningPath.learningsteps
-            .getOrElse(Seq.empty)
-            .traverse(step => deleteLanguageFromStep(step, language, learningPath))
-          withUpdatedSteps    <- Try(converterService.insertLearningSteps(learningPath, updatedSteps))
-          withDeletedLanguage <- converterService.deleteLearningPathLanguage(withUpdatedSteps, language)
-          updatedPath         <- Try(learningPathRepository.update(withDeletedLanguage))
-          _                   <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
-          converted           <- converterService.asApiLearningpathV2(
-            withDeletedLanguage,
-            language = Language.DefaultLanguage,
-            fallback = true,
-            owner
-          )
-        } yield converted
-      }
+      owner: CombinedUserRequired,
+  ): Try[LearningPathV2DTO] = dBUtility.rollbackOnFailure { implicit session =>
+    writeOrAccessDenied(owner.canWrite) {
+      for {
+        learningPath <- withId(learningPathId).flatMap(_.canEditLearningPath(owner))
+        updatedSteps <- learningPath
+          .learningsteps
+          .getOrElse(Seq.empty)
+          .traverse(step => deleteLanguageFromStep(step, language, learningPath))
+        withUpdatedSteps    <- Try(converterService.insertLearningSteps(learningPath, updatedSteps))
+        withDeletedLanguage <- converterService.deleteLearningPathLanguage(withUpdatedSteps, language)
+        updatedPath         <- Try(learningPathRepository.update(withDeletedLanguage))
+        _                   <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
+        converted           <- converterService.asApiLearningpathV2(
+          withDeletedLanguage,
+          language = Language.DefaultLanguage,
+          fallback = true,
+          owner,
+        )
+      } yield converted
     }
   }
 
@@ -157,28 +148,26 @@ class UpdateService(using
       learningPathId: Long,
       stepId: Long,
       language: String,
-      owner: CombinedUserRequired
-  ): Try[LearningStepV2DTO] =
-    dBUtility.rollbackOnFailure { implicit session =>
-      writeOrAccessDenied(owner.canWrite) {
-        for {
-          learningPath <- withId(learningPathId).flatMap(_.canEditLearningPath(owner))
-          learningStep <- learningPathRepository
-            .learningStepWithId(learningPathId, stepId)
-            .toTry(NotFoundException(s"Could not find learningpath with id '$learningPathId'."))
-          updatedStep  <- deleteLanguageFromStep(learningStep, language, learningPath)
-          pathToUpdate <- Try(converterService.insertLearningStep(learningPath, updatedStep))
-          updatedPath  <- Try(learningPathRepository.update(pathToUpdate))
-          _            <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
-          converted    <- converterService.asApiLearningStepV2(
-            updatedStep,
-            updatedPath,
-            language = Language.DefaultLanguage,
-            fallback = true,
-            owner
-          )
-        } yield converted
-      }
+      owner: CombinedUserRequired,
+  ): Try[LearningStepV2DTO] = dBUtility.rollbackOnFailure { implicit session =>
+    writeOrAccessDenied(owner.canWrite) {
+      for {
+        learningPath <- withId(learningPathId).flatMap(_.canEditLearningPath(owner))
+        learningStep <- learningPathRepository
+          .learningStepWithId(learningPathId, stepId)
+          .toTry(NotFoundException(s"Could not find learningpath with id '$learningPathId'."))
+        updatedStep  <- deleteLanguageFromStep(learningStep, language, learningPath)
+        pathToUpdate <- Try(converterService.insertLearningStep(learningPath, updatedStep))
+        updatedPath  <- Try(learningPathRepository.update(pathToUpdate))
+        _            <- updateSearchAndTaxonomy(updatedPath, owner.tokenUser)
+        converted    <- converterService.asApiLearningStepV2(
+          updatedStep,
+          updatedPath,
+          language = Language.DefaultLanguage,
+          fallback = true,
+          owner,
+        )
+      } yield converted
     }
   }
 
@@ -210,21 +199,20 @@ class UpdateService(using
       status: LearningPathStatus,
       owner: CombinedUserRequired,
       language: String,
-      message: Option[String] = None
-  ): Try[LearningPathV2DTO] =
-    writeOrAccessDenied(owner.canWrite) {
-      withId(learningPathId, includeDeleted = true)
-        .flatMap(_.canSetStatus(status, owner))
-        .flatMap { existing =>
-          val validatedLearningPath =
-            if (status == learningpath.LearningPathStatus.PUBLISHED) existing.validateForPublishing()
-            else Success(existing)
+      message: Option[String] = None,
+  ): Try[LearningPathV2DTO] = writeOrAccessDenied(owner.canWrite) {
+    withId(learningPathId, includeDeleted = true)
+      .flatMap(_.canSetStatus(status, owner))
+      .flatMap { existing =>
+        val validatedLearningPath =
+          if (status == learningpath.LearningPathStatus.PUBLISHED) existing.validateForPublishing()
+          else Success(existing)
 
-          validatedLearningPath.flatMap(valid => {
-            val newMessage = message match {
-              case Some(msg) if owner.isAdmin => Some(Message(msg, owner.id, clock.now()))
-              case _                          => valid.message
-            }
+        validatedLearningPath.flatMap(valid => {
+          val newMessage = message match {
+            case Some(msg) if owner.isAdmin => Some(Message(msg, owner.id, clock.now()))
+            case _                          => valid.message
+          }
 
           val madeAvailable = valid
             .madeAvailable
@@ -259,7 +247,7 @@ class UpdateService(using
   def addLearningStepV2(
       learningPathId: Long,
       newLearningStep: NewLearningStepV2DTO,
-      owner: CombinedUserRequired
+      owner: CombinedUserRequired,
   ): Try[LearningStepV2DTO] = writeOrAccessDenied(owner.canWrite) {
     optimisticLockRetries(10) {
       withId(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
@@ -299,7 +287,7 @@ class UpdateService(using
       learningPathId: Long,
       learningStepId: Long,
       learningStepToUpdate: UpdatedLearningStepV2DTO,
-      owner: CombinedUserRequired
+      owner: CombinedUserRequired,
   ): Try[LearningStepV2DTO] = writeOrAccessDenied(owner.canWrite) {
     permitTry {
       boundary {
@@ -385,24 +373,9 @@ class UpdateService(using
       learningPathId: Long,
       learningStepId: Long,
       newStatus: StepStatus,
-      owner: CombinedUserRequired
-  ): Try[LearningStepV2DTO] =
-    writeOrAccessDenied(owner.canWrite) {
-      boundary {
-
-        withId(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
-          case Failure(ex)           => Failure(ex)
-          case Success(learningPath) =>
-            val stepsToChange = learningPathRepository.learningStepsFor(learningPathId)
-            val stepToUpdate  = stepsToChange.find(_.id.contains(learningStepId)) match {
-              case Some(ls) if ls.status == DELETED && newStatus == DELETED =>
-                val msg = s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"
-                boundary.break(Failure(NotFoundException(msg)))
-              case None =>
-                val msg = s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"
-                boundary.break(Failure(NotFoundException(msg)))
-              case Some(ls) => ls
-            }
+      owner: CombinedUserRequired,
+  ): Try[LearningStepV2DTO] = writeOrAccessDenied(owner.canWrite) {
+    boundary {
 
       withId(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
         case Failure(ex)           => Failure(ex)

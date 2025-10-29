@@ -23,10 +23,7 @@ import no.ndla.network.model.{CombinedUser, CombinedUserRequired}
 import scala.math.max
 import scala.util.{Failure, Success, Try}
 
-class ReadService(using
-    learningPathRepository: LearningPathRepository,
-    converterService: ConverterService
-) {
+class ReadService(using learningPathRepository: LearningPathRepository, converterService: ConverterService) {
   def tags: List[LearningPathTagsDTO] = {
     learningPathRepository.allPublishedTags.map(tags => LearningPathTagsDTO(tags.tags, tags.language))
   }

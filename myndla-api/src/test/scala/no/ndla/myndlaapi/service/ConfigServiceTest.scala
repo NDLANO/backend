@@ -30,12 +30,8 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
     resetMocks()
   }
 
-  val testConfigMeta: ConfigMeta = ConfigMeta(
-    ConfigKey.MyNDLAWriteRestricted,
-    value = BooleanValue(true),
-    TestData.today,
-    "EnKulFyr"
-  )
+  val testConfigMeta: ConfigMeta =
+    ConfigMeta(ConfigKey.MyNDLAWriteRestricted, value = BooleanValue(true), TestData.today, "EnKulFyr")
 
   test("That updating config returns failure for non-admin users") {
     when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession])).thenReturn(Success(testConfigMeta))
