@@ -57,8 +57,8 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       role = EMPLOYEE,
       organization = "",
       groups = Seq.empty,
-      arenaEnabled = false
-    )
+      arenaEnabled = false,
+    ),
   )
 
   val today: NDLADate = NDLADate.now()
@@ -493,12 +493,11 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That updateLearningPathV2 returns Failure if user is not the owner") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(Some(PRIVATE_LEARNINGPATH))
 
-    val Failure(ex) =
-      service.updateLearningPathV2(
-        PRIVATE_ID,
-        UPDATED_PRIVATE_LEARNINGPATHV2,
-        TokenUser("not_the_owner", Set.empty, None).toCombined
-      ): @unchecked
+    val Failure(ex) = service.updateLearningPathV2(
+      PRIVATE_ID,
+      UPDATED_PRIVATE_LEARNINGPATHV2,
+      TokenUser("not_the_owner", Set.empty, None).toCombined,
+    ): @unchecked
     ex should be(AccessDeniedException("You do not have permission to perform this action."))
   }
 
@@ -945,8 +944,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   test("That updateLearningStepV2 throws an AccessDeniedException when the given user is NOT the owner") {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(Some(PRIVATE_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(PRIVATE_ID, STEP1.id.get)).thenReturn(Some(STEP1))
-    val Failure(ex) =
-      service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, MYNDLA_USER): @unchecked
+    val Failure(ex) = service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, MYNDLA_USER): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -955,8 +953,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   ) {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(Some(PUBLISHED_LEARNINGPATH))
     when(learningPathRepository.learningStepWithId(PRIVATE_ID, STEP1.id.get)).thenReturn(Some(STEP1))
-    val Failure(ex) =
-      service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, MYNDLA_USER): @unchecked
+    val Failure(ex) = service.updateLearningStepV2(PRIVATE_ID, STEP1.id.get, UPDATED_STEPV2, MYNDLA_USER): @unchecked
     ex should be(AccessDeniedException("You do not have access to the requested resource."))
   }
 
@@ -1252,7 +1249,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       .newFromExistingV2(
         learningpathWithUnknownLang.id.get,
         newCopy,
-        TokenUser("me", Set(LEARNINGPATH_API_WRITE), None).toCombined
+        TokenUser("me", Set(LEARNINGPATH_API_WRITE), None).toCombined,
       )
       .isSuccess should be(true)
   }
@@ -1435,7 +1432,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       verificationStatus = LearningPathVerificationStatus.EXTERNAL,
       owner = MYNDLA_USER.id,
       isMyNDLAOwner = true,
-      lastUpdated = now
+      lastUpdated = now,
     )
 
     verify(learningPathRepository, times(1)).insert(eqTo(expectedNewLearningPath))(using any)
