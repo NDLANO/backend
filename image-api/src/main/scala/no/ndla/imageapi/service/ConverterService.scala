@@ -17,7 +17,6 @@ import no.ndla.imageapi.model.domain.{
   ImageFileData,
   ImageFileDataDocument,
   ImageMetaInformation,
-  ImageVariantSize,
   ModelReleasedStatus,
   UploadedImage,
 }
@@ -342,7 +341,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       size = image.size,
       contentType = image.contentType,
       dimensions = image.dimensions,
-      variants = image.dimensions.map(ImageVariantSize.forDimensions).getOrElse(Seq.empty),
+      variants = image.variants,
       language = language,
     )
   }

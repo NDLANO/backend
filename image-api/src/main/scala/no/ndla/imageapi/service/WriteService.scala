@@ -134,7 +134,7 @@ class WriteService(using
             image
               .variants
               .foreach { variant =>
-                imageStorage.deleteObject(s"${image.getFileStem}/${variant.entryName}.webp")
+                imageStorage.deleteObject(variant.bucketKey)
               }
             imageStorage.deleteObject(image.fileName)
           })
@@ -359,7 +359,7 @@ class WriteService(using
         size = uploaded.size,
         contentType = uploaded.contentType,
         dimensions = uploaded.dimensions,
-        variants = uploaded.dimensions.map(ImageVariantSize.forDimensions).getOrElse(Seq.empty),
+        variants = uploaded.variants,
         language = existingImageFileMeta.language,
         imageMetaId = existingImageFileMeta.imageMetaId,
       )
@@ -465,15 +465,12 @@ class WriteService(using
           Success(uploadedImage.copy(dimensions = Some(dimensions), variants = variants))
         case (Failure(ex), variants) =>
           logger.error("Failed to upload original image", ex)
-          variants
-            .leftMap(_._2)
-            .merge
-            .foreach(variant => imageStorage.deleteObject(variantBucketKey(uniqueFileStem, variant)))
+          variants.leftMap(_._2).merge.foreach(variant => imageStorage.deleteObject(variant.bucketKey))
           Failure(ex)
         case (original, Left((ex, variants))) =>
           logger.error("Failed while uploading image variants", ex)
           original.foreach(_ => imageStorage.deleteObject(fileName))
-          variants.foreach(variant => imageStorage.deleteObject(variantBucketKey(uniqueFileStem, variant)))
+          variants.foreach(variant => imageStorage.deleteObject(variant.bucketKey))
           Failure(ex)
       }
     } else {
@@ -488,7 +485,7 @@ class WriteService(using
       image: ImmutableImage,
       dimensions: ImageDimensions,
       fileStem: String,
-  ): Future[Either[(Throwable, Seq[ImageVariantSize]), Seq[ImageVariantSize]]] = {
+  ): Future[Either[(Throwable, Seq[ImageVariant]), Seq[ImageVariant]]] = {
     val variantSizes = ImageVariantSize.forDimensions(dimensions)
     if (variantSizes.size <= 0) {
       return Future.successful(Right(Seq.empty))
@@ -501,8 +498,10 @@ class WriteService(using
           val resizedImage = imageConverter.resizeToVariantSize(image, variantSize)
           val imageBytes   = resizedImage.bytes(WebpWriter.DEFAULT)
           val stream       = new ByteArrayInputStream(imageBytes)
-          val bucketKey    = variantBucketKey(fileStem, variantSize)
-          imageStorage.uploadFromStream(bucketKey, stream, imageBytes.length, "image/webp").map(_ => variantSize)
+          val bucketKey    = s"$fileStem/${variantSize.entryName}.webp"
+          imageStorage
+            .uploadFromStream(bucketKey, stream, imageBytes.length, "image/webp")
+            .map(_ => ImageVariant(variantSize, bucketKey))
         }
       }
       .map { results =>
@@ -513,8 +512,6 @@ class WriteService(using
         }
       }
   }
-
-  private def variantBucketKey(fileStem: String, variant: ImageVariantSize) = s"$fileStem/${variant.entryName}"
 
   private def uploadImageAsIs(file: UploadedFile, fileName: String): Try[UploadedImage] = {
     val contentType = file.contentType.getOrElse("")

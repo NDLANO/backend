@@ -22,7 +22,7 @@ case class ImageFileData(
     size: Long,
     contentType: String,
     dimensions: Option[ImageDimensions],
-    variants: Seq[ImageVariantSize],
+    variants: Seq[ImageVariant],
     override val language: String,
     imageMetaId: Long,
 ) extends WithLanguage {
@@ -53,7 +53,7 @@ case class ImageFileDataDocument(
     size: Long,
     contentType: String,
     dimensions: Option[ImageDimensions],
-    variants: Seq[ImageVariantSize],
+    variants: Seq[ImageVariant],
     override val language: String,
 ) extends WithLanguage {
   def toFull(id: Long, fileName: String, imageId: Long): ImageFileData = {

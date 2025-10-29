@@ -57,7 +57,7 @@ case class UploadedImage(
     size: Long,
     contentType: String,
     dimensions: Option[ImageDimensions],
-    variants: Seq[ImageVariantSize],
+    variants: Seq[ImageVariant],
 )
 
 object UploadedImage {
