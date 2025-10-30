@@ -34,9 +34,7 @@ object ImageVariantSize extends Enum[ImageVariantSize], CirceEnumWithErrors[Imag
   case object Large      extends ImageVariantSize("large", 1920)
   case object ExtraLarge extends ImageVariantSize("xlarge", 2400)
 
-  def forDimensions(dimensions: ImageDimensions): Seq[ImageVariantSize] = values
-    .sortBy(_.width)
-    .takeWhile(_.width <= dimensions.width)
+  def forDimensions(dimensions: ImageDimensions): Seq[ImageVariantSize] = values.takeWhile(_.width <= dimensions.width)
 
   override def values: IndexedSeq[ImageVariantSize] = findValues
 
