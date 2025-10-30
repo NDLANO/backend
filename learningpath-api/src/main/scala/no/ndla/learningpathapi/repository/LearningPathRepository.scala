@@ -50,7 +50,7 @@ class LearningPathRepository extends StrictLogging {
 
   def withOwner(owner: String): List[LearningPath] = {
     learningPathsWhere(
-      sqls"lp.document->>'owner' = $owner AND lp.document->>'status' <> ${LearningPathStatus.DELETED.toString}"
+      sqls"lp.document->>'owner' = $owner AND lp.document->>'status' <> ${LearningPathStatus.DELETED.toString} order by lp.document->>'created' DESC"
     )
   }
 
