@@ -295,7 +295,7 @@ class FolderWriteService(using
       _              <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
       updated        <- folderRepository.updateFolder(id, feideId, converted)
       crumbs         <- folderReadService.getBreadcrumbs(updated)(using ReadOnlyAutoSession)
-      siblingsToSort <- getFolderWithDirectChildren(converted.parentId, feideId)
+      siblingsToSort <- getFolderWithDirectChildren(updated.parentId, feideId)
       sortRequest     = FolderSortRequestDTO(sortedIds = siblingsToSort.childrenFolders.map(_.id))
       _              <- performSort(siblingsToSort.childrenFolders, sortRequest, feideId, sharedFolderSort = false)
       feideUser      <- userRepository.userWithFeideId(feideId)
