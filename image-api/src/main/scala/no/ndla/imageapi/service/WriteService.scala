@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.service
 
+import cats.data.Validated
 import cats.implicits.*
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.format.{Format, FormatDetector}
@@ -75,19 +76,17 @@ class WriteService(using
     }
   }
 
-  private def deleteFileForLanguageIfUnused(imageId: Long, images: Seq[ImageFileData], language: String): Try[?] = {
+  private def deleteFileForLanguageIfUnused(imageId: Long, images: Seq[ImageFileData], language: String): Try[Unit] = {
     val imageFileToDelete = images.find(_.language == language)
     imageFileToDelete match {
       case Some(fileToDelete) =>
-        val deletedMeta           = imageRepository.deleteImageFileMeta(imageId, language)
+        val deletedMeta           = imageRepository.deleteImageFileMeta(imageId, language).map(_ => ())
         val otherLangs            = images.filterNot(_.language == language)
         val imageIsUsedOtherwhere = otherLangs.exists(_.fileName == fileToDelete.fileName)
 
         if (!imageIsUsedOtherwhere) {
-          for {
-            _ <- imageStorage.deleteObject(fileToDelete.fileName)
-            _ <- deletedMeta
-          } yield ()
+          deleteImageAndVariants(fileToDelete): Unit
+          deletedMeta
         } else {
           logger.info("Image is used by other languages. Skipping file delete")
           deletedMeta
@@ -127,25 +126,14 @@ class WriteService(using
     imageRepository.withId(imageId) match {
       case Some(toDelete) =>
         val metaDeleted  = imageRepository.delete(imageId)
-        val filesDeleted = toDelete
-          .images
-          .getOrElse(Seq.empty)
-          .traverse(image => {
-            image
-              .variants
-              .foreach { variant =>
-                imageStorage.deleteObject(variant.bucketKey)
-              }
-            imageStorage.deleteObject(image.fileName)
-          })
+        val filesDeleted = toDelete.images.getOrElse(Seq.empty).traverse(image => deleteImageAndVariants(image))
         val indexDeleted = imageIndexService.deleteDocument(imageId).flatMap(tagIndexService.deleteDocument)
 
-        if (metaDeleted < 1) {
-          Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
-        } else if (filesDeleted.isFailure) {
-          Failure(new ImageStorageException("Something went wrong when deleting image file from storage."))
-        } else {
-          indexDeleted
+        filesDeleted match {
+          case _ if metaDeleted < 1 =>
+            Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
+          case Success(_)  => indexDeleted
+          case Failure(ex) => Failure(ex)
         }
       case None =>
         Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
@@ -204,13 +192,16 @@ class WriteService(using
 
     val deleteUploadedImages = (reason: Throwable) => {
       logger.info(s"Deleting images because of: ${reason.getMessage}", reason)
-      imageMeta.images.getOrElse(Seq.empty).traverse(image => imageStorage.deleteObject(image.fileName))
+      imageMeta.images.getOrElse(Seq.empty).traverse(image => deleteImageAndVariants(image)) match {
+        case Success(_)  => ()
+        case Failure(ex) => logger.error("Failed to clean up image after failed indexing", ex)
+      }
     }
 
     imageIndexService
       .indexDocument(imageMeta)
       .recoverWith { e =>
-        deleteUploadedImages(e): Unit
+        deleteUploadedImages(e)
         Try(imageRepository.delete(imageId)): Unit
         Failure(e)
       }
@@ -219,7 +210,7 @@ class WriteService(using
     tagIndexService.indexDocument(imageMeta) match {
       case Success(_) => Success(imageMeta)
       case Failure(e) =>
-        deleteUploadedImages(e): Unit
+        deleteUploadedImages(e)
         imageIndexService.deleteDocument(imageId): Unit
         tagIndexService.deleteDocument(imageId): Unit
         Try(imageRepository.delete(imageId)): Unit
@@ -369,9 +360,8 @@ class WriteService(using
       imageForLang match {
         case Some(existingImage) if !allOtherPaths.contains(existingImage.fileName) =>
           // Put new image file at old path if no other languages use it
-          val clonedImage = imageFileFrom(existingImage).copy(fileName = existingImage.fileName)
-          imageStorage.cloneObject(uploaded.fileName, existingImage.fileName).?
-          Success(clonedImage)
+          val movedImage = moveImageAndVariants(imageFileFrom(existingImage), existingImage.getFileStem).?
+          Success(movedImage)
         case Some(existingImage) => Success(imageFileFrom(existingImage))
         case None                =>
           val doc = converterService.toImageDocument(uploaded, language)
@@ -520,5 +510,32 @@ class WriteService(using
       .map(filePath => {
         UploadedImage(filePath, file.fileSize, contentType, None, Seq.empty)
       })
+  }
+
+  private def deleteImageAndVariants(image: ImageFileData): Try[Unit] = {
+    image
+      .variants
+      .traverse { variant =>
+        imageStorage.deleteObject(variant.bucketKey).toEither.toValidatedNel
+      }
+      .map(_ => ())
+      .combine(imageStorage.deleteObject(image.fileName).toEither.toValidatedNel) match {
+      case Validated.Valid(a)     => Success(a)
+      case Validated.Invalid(exs) =>
+        Failure(ImageDeleteException("Failed to delete original image and/or variants", exs.toList))
+    }
+  }
+
+  private def moveImageAndVariants(image: ImageFileData, newBucketPrefix: String): Try[ImageFileData] = {
+    val variantKeysToNewVariants = image
+      .variants
+      .map(variant => variant.bucketKey -> variant.copy(bucketKey = s"$newBucketPrefix/${variant.sizeName}.webp"))
+    val fileNameKeyToNewKey = image.fileName -> s"$newBucketPrefix${getFileExtension(image.fileName)}"
+
+    imageStorage.moveObjects(variantKeysToNewVariants.map(entry => entry.fmap(_.bucketKey))) match {
+      case Success(_) =>
+        Success(image.copy(fileName = fileNameKeyToNewKey._2, variants = variantKeysToNewVariants.map(_._2)))
+      case Failure(ex) => Failure(ex)
+    }
   }
 }

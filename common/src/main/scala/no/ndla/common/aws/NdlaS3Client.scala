@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.s3.model.*
 import software.amazon.awssdk.services.s3.{S3Client, S3ClientBuilder}
 
 import java.io.InputStream
+import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 class NdlaS3Client(bucket: String, region: Option[String]) {
@@ -49,6 +50,13 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
   def deleteObject(key: String): Try[DeleteObjectResponse] = Try {
     val dor = DeleteObjectRequest.builder().key(key).bucket(bucket).build()
     client.deleteObject(dor)
+  }
+
+  def deleteObjects(keys: Seq[String]): Try[DeleteObjectsResponse] = Try {
+    val objects = keys.map(key => ObjectIdentifier.builder().key(key).build())
+    val delete  = Delete.builder().objects(objects.asJava).build()
+    val dor     = DeleteObjectsRequest.builder().bucket(bucket).delete(delete).build()
+    client.deleteObjects(dor)
   }
 
   def putObject(key: String, uploadedFile: UploadedFile): Try[PutObjectResponse] = putObject(key, uploadedFile, None)

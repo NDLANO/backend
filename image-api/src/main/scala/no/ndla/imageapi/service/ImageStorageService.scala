@@ -8,8 +8,7 @@
 
 package no.ndla.imageapi.service
 
-import cats.implicits.catsSyntaxOptionId
-
+import cats.implicits.*
 import java.awt.image.BufferedImage
 import java.io.{ByteArrayInputStream, InputStream}
 import com.typesafe.scalalogging.StrictLogging
@@ -82,11 +81,20 @@ class ImageStorageService(using s3Client: => NdlaS3Client, readService: ReadServ
     _       <- s3Client.updateMetadata(storageKey, metadata)
   } yield ()
 
-  def cloneObject(existingKey: String, newKey: String): Try[Unit] = {
-    s3Client.copyObject(existingKey, newKey).map(_ => ())
-  }
-
   def objectExists(storageKey: String): Boolean = s3Client.objectExists(storageKey)
 
   def deleteObject(storageKey: String): Try[Unit] = s3Client.deleteObject(storageKey).map(_ => ())
+
+  def deleteObjects(storageKeys: Seq[String]): Try[Unit] = s3Client.deleteObjects(storageKeys).map(_ => ())
+
+  def moveObjects(fromKeysToKeys: Seq[(String, String)]): Try[Unit] = {
+    fromKeysToKeys.traverse((fromKey, toKey) => s3Client.copyObject(fromKey, toKey)) match {
+      case Success(_) =>
+        deleteObjects(fromKeysToKeys.map(_._1)).handleError(ex =>
+          logger.error("Failed to clean up old S3 objects when moving", ex)
+        ): Unit
+        Success(())
+      case Failure(ex) => Failure(ex)
+    }
+  }
 }

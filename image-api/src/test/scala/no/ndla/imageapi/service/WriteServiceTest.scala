@@ -145,7 +145,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
     verify(imageRepository, times(0)).insert(any[ImageMetaInformation])(using any[DBSession])
     verify(imageIndexService, times(0)).indexDocument(any[ImageMetaInformation])
-    verify(imageStorage, times(0)).cloneObject(any, any)
     verify(imageStorage, times(0)).uploadFromStream(any, any)
     verify(imageStorage, times(0)).deleteObject(any)
   }
@@ -159,7 +158,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
     verify(imageIndexService, times(0)).indexDocument(any[ImageMetaInformation])
-    verify(imageStorage, times(0)).cloneObject(any, any)
     verify(imageStorage, times(0)).uploadFromStream(any, any)
     verify(imageStorage, times(0)).deleteObject(any)
   }
@@ -556,7 +554,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.update(any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
-    when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
+    when(imageStorage.moveObjects(any)).thenReturn(Success(()))
     when(imageStorage.uploadFromStream(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](0))
     })
@@ -595,7 +593,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     verify(imageStorage, times(1)).uploadFromStream(any, any)
     verify(imageStorage, times(0)).deleteObject(any)
-    verify(imageStorage, times(0)).cloneObject(any, any)
+    verify(imageStorage, times(0)).moveObjects(any)
     verify(imageRepository, times(1)).update(any, any)(using any)
     verify(imageRepository, times(0)).insertImageFile(any, any, any)(using any)
   }
@@ -643,7 +641,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.update(any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
-    when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
+    when(imageStorage.moveObjects(any)).thenReturn(Success(()))
     when(imageStorage.uploadFromStream(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](0))
     })
@@ -690,7 +688,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     verify(imageStorage, times(1)).uploadFromStream(any, any)
     verify(imageStorage, times(0)).deleteObject(any)
-    verify(imageStorage, times(0)).cloneObject(any, any)
+    verify(imageStorage, times(0)).moveObjects(any)
     verify(imageRepository, times(1)).update(any, any)(using any)
     verify(imageRepository, times(1)).insertImageFile(any, any, any)(using any)
   }
@@ -736,7 +734,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageRepository.deleteImageFileMeta(eqTo(imageId), eqTo("nn"))(using any)).thenReturn(Success(1))
-    when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
     when(imageStorage.uploadFromStream(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](1))
     })
@@ -762,7 +759,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     verify(imageStorage, times(0)).uploadFromStream(any, any)
     verify(imageStorage, times(1)).deleteObject(eqTo("hello-nn.jpg"))
-    verify(imageStorage, times(0)).cloneObject(any, any)
     verify(imageRepository, times(1)).update(any, any)(using any)
     verify(imageRepository, times(0)).insertImageFile(any, any, any)(using any)
     verify(imageRepository, times(1)).deleteImageFileMeta(imageId, "nn")
@@ -809,7 +805,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageRepository.deleteImageFileMeta(eqTo(imageId), eqTo("nn"))(using any)).thenReturn(Success(1))
-    when(imageStorage.cloneObject(any, any)).thenReturn(Success(()))
     when(imageStorage.uploadFromStream(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](1))
     })
@@ -835,7 +830,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     verify(imageStorage, times(0)).uploadFromStream(any, any)
     verify(imageStorage, times(0)).deleteObject(any)
-    verify(imageStorage, times(0)).cloneObject(any, any)
     verify(imageRepository, times(1)).update(any, any)(using any)
     verify(imageRepository, times(0)).insertImageFile(any, any, any)(using any)
     verify(imageRepository, times(1)).deleteImageFileMeta(imageId, "nn")
