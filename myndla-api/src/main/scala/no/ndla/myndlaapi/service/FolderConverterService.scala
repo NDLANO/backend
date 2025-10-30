@@ -83,6 +83,11 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
           case failure       => throw failure.failed.get
         }
     }
+    val rank        = if (parentId != existing.parentId) {
+      0
+    } else {
+      existing.rank
+    }
     val name        = updated.name.getOrElse(existing.name)
     val status      = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
     val description = updated.description.orElse(existing.description)
@@ -103,7 +108,7 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
         parentId = parentId,
         name = name,
         status = status,
-        rank = existing.rank,
+        rank = rank,
         created = existing.created,
         updated = clock.now(),
         shared = shared,
