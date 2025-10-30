@@ -284,8 +284,8 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       status = FolderStatus.PRIVATE,
       description = Some("jog ska visa deg garbage jog"),
     )
-    val expected4 = existing.copy(parentId = Some(newParentUUID))
-    val expected5 = existing.copy(parentId = None)
+    val expected4 = existing.copy(parentId = Some(newParentUUID), rank = 0)
+    val expected5 = existing.copy(parentId = None, rank = 0)
 
     val result1 = service.mergeFolder(existing, updatedWithData)
     val result2 = service.mergeFolder(existing, updatedWithoutData)
