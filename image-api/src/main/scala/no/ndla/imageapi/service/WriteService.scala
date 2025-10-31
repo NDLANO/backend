@@ -8,7 +8,6 @@
 
 package no.ndla.imageapi.service
 
-import cats.data.Validated
 import cats.implicits.*
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.format.{Format, FormatDetector}
@@ -451,16 +450,13 @@ class WriteService(using
       val maybeVariants              = Await.result(variantsFuture, 1.minute)
 
       (maybeUploadedOriginalImage, maybeVariants) match {
-        case (Success(uploadedImage), Right(variants)) =>
+        case (Success(uploadedImage), Success(variants)) =>
           Success(uploadedImage.copy(dimensions = Some(dimensions), variants = variants))
         case (Failure(ex), variants) =>
-          logger.error("Failed to upload original image", ex)
-          variants.leftMap(_._2).merge.foreach(variant => imageStorage.deleteObject(variant.bucketKey))
+          variants.foreach(v => imageStorage.deleteObjects(v.map(_.bucketKey)))
           Failure(ex)
-        case (original, Left((ex, variants))) =>
-          logger.error("Failed while uploading image variants", ex)
-          original.foreach(_ => imageStorage.deleteObject(fileName))
-          variants.foreach(variant => imageStorage.deleteObject(variant.bucketKey))
+        case (original, Failure(ex)) =>
+          original.foreach(i => imageStorage.deleteObject(i.fileName))
           Failure(ex)
       }
     } else {
@@ -469,16 +465,16 @@ class WriteService(using
   }
 
   /** Generate and upload image variants for `image`. Returns an [[Either]] with a [[Left]] value if one of the uploads
-    * failed (containing uploads that still succeeded), otherwise a [[Right]] value with all uploaded variants.
+    * failed (containing the errors encountered), otherwise a [[Right]] value with all uploaded variants.
     */
   private def generateAndUploadVariantsAsync(
       image: ImmutableImage,
       dimensions: ImageDimensions,
       fileStem: String,
-  ): Future[Either[(Throwable, Seq[ImageVariant]), Seq[ImageVariant]]] = {
+  ): Future[Try[Seq[ImageVariant]]] = {
     val variantSizes = ImageVariantSize.forDimensions(dimensions)
     if (variantSizes.size <= 0) {
-      return Future.successful(Right(Seq.empty))
+      return Future.successful(Success(Seq.empty))
     }
 
     given ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(variantSizes.size))
@@ -496,9 +492,11 @@ class WriteService(using
       }
       .map { results =>
         val (failures, successes) = results.partitionMap(_.toEither)
-        failures.headOption match {
-          case Some(failure) => Left((failure, successes))
-          case None          => Right(successes)
+        failures match {
+          case Seq() => Success(successes)
+          case f     =>
+            val exs = imageStorage.deleteObjects(successes.map(_.bucketKey)).failed.map(f :+ _).getOrElse(f)
+            Failure(ImageVariantsUploadException("Failed to upload image variant(s)", exs))
         }
       }
   }
@@ -513,16 +511,13 @@ class WriteService(using
   }
 
   private def deleteImageAndVariants(image: ImageFileData): Try[Unit] = {
-    image
-      .variants
-      .traverse { variant =>
-        imageStorage.deleteObject(variant.bucketKey).toEither.toValidatedNel
-      }
-      .map(_ => ())
-      .combine(imageStorage.deleteObject(image.fileName).toEither.toValidatedNel) match {
-      case Validated.Valid(a)     => Success(a)
-      case Validated.Invalid(exs) =>
-        Failure(ImageDeleteException("Failed to delete original image and/or variants", exs.toList))
+    imageStorage
+      .deleteObjects(image.variants.map(_.bucketKey))
+      .failed
+      .toList
+      .combine(imageStorage.deleteObject(image.fileName).failed.toList) match {
+      case Nil => Success(())
+      case exs => Failure(ImageDeleteException("Failed to delete original image and/or variants", exs))
     }
   }
 

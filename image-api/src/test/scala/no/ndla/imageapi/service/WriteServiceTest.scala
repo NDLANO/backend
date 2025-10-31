@@ -168,6 +168,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.uploadFromStream(any, any)).thenReturn(Success(newFileName))
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Failure(new RuntimeException))
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
+    when(imageStorage.deleteObjects(any)).thenReturn(Success(()))
     when(imageRepository.insert(any)(using any)).thenReturn(domainImageMeta.copy(id = Some(100L)))
     when(imageRepository.insertImageFile(any, any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       val imageId  = i.getArgument[Long](0)
@@ -190,6 +191,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Failure(new RuntimeException))
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
+    when(imageStorage.deleteObjects(any)).thenReturn(Success(()))
     when(imageRepository.insert(any)(using any)).thenReturn(afterInsert)
     when(imageRepository.insertImageFile(any, any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       val imageId  = i.getArgument[Long](0)
@@ -425,6 +427,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.withId(imageId)).thenReturn(Some(domainWithImage))
     when(imageRepository.delete(eqTo(imageId))(using any[DBSession])).thenReturn(1)
     when(imageStorage.deleteObject(any[String])).thenReturn(Success(()))
+    when(imageStorage.deleteObjects(any)).thenReturn(Success(()))
     when(imageIndexService.deleteDocument(any[Long])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Long](0))
     )
@@ -494,6 +497,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.withId(imageId)).thenReturn(Some(image))
     when(imageRepository.delete(eqTo(imageId))(using any[DBSession])).thenReturn(1)
     when(imageStorage.deleteObject(any[String])).thenReturn(Success(()))
+    when(imageStorage.deleteObjects(any)).thenReturn(Success(()))
     when(imageIndexService.deleteDocument(any[Long])).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Long](0))
     )
@@ -747,6 +751,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.objectExists(any)).thenReturn(false)
     when(random.string(any)).thenReturn("randomstring")
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
+    when(imageStorage.deleteObjects(any)).thenReturn(Success(()))
 
     val expectedResult = dbImage.copy(
       titles = Seq(domain.ImageTitle("hei nb", "nb")),

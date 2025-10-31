@@ -13,7 +13,6 @@ import no.ndla.database.DataSource
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.{
   ImageNotFoundException,
-  ImageDeleteException,
   ImportException,
   InvalidUrlException,
   ResultWindowTooLargeException,
