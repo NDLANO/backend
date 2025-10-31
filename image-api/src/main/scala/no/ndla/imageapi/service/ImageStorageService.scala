@@ -65,6 +65,8 @@ class ImageStorageService(using s3Client: => NdlaS3Client, readService: ReadServ
     }
   }
 
+  def getRaw(bucketKey: String): Try[NdlaS3Object] = s3Client.getObject(bucketKey)
+
   def uploadFromStream(storageKey: String, uploadedFile: UploadedFile): Try[String] = {
     s3Client.putObject(storageKey, uploadedFile, props.S3NewFileCacheControlHeader.some).map(_ => storageKey)
   }

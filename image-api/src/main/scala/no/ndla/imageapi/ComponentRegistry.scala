@@ -10,7 +10,7 @@ package no.ndla.imageapi
 
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.imageapi.controller.*
 import no.ndla.imageapi.db.migrationwithdependencies.{V6__AddAgreementToImages, V7__TranslateUntranslatedAuthors}
 import no.ndla.imageapi.repository.ImageRepository
@@ -53,6 +53,7 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given validationService: ValidationService           = new ValidationService
   given readService: ReadService                       = new ReadService
   given imageStorage: ImageStorageService              = new ImageStorageService
+  given dbUtility: DBUtility                           = new DBUtility // TODO: Remove this after completing variants migration of existing images
   given writeService: WriteService                     = new WriteService
 
   given imageControllerV2: ImageControllerV2 = new ImageControllerV2

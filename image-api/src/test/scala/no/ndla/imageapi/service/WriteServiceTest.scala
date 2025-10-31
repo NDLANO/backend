@@ -13,6 +13,7 @@ import no.ndla.common.model.api.{CopyrightDTO, LicenseDTO, Missing, UpdateWith}
 import no.ndla.common.model.domain.{ContributorType, UploadedFile}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.common.model.domain.article.Copyright as DomainCopyright
+import no.ndla.database.DBUtility
 import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain
 import no.ndla.imageapi.model.domain.{
@@ -33,6 +34,7 @@ import java.io.ByteArrayInputStream
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
+  given dbUtility: DBUtility                                    = new DBUtility // TODO: Remove this after completing variants migration of existing images
   override implicit lazy val writeService: WriteService         = new WriteService
   override implicit lazy val converterService: ConverterService = new ConverterService
   override implicit lazy val imageConverter: ImageConverter     = new ImageConverter

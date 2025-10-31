@@ -19,6 +19,7 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Deletable, Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.{NDLADate, domain as common}
+import no.ndla.database.DBUtility
 import no.ndla.imageapi.model.*
 import no.ndla.imageapi.model.api.{
   ImageMetaInformationV2DTO,
@@ -33,6 +34,7 @@ import no.ndla.language.Language
 import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
+import scalikejdbc.DBSession
 
 import java.io.{BufferedInputStream, ByteArrayInputStream}
 import java.util.concurrent.Executors
@@ -43,6 +45,7 @@ import scala.util.{Failure, Success, Try}
 class WriteService(using
     converterService: ConverterService,
     validationService: ValidationService,
+    dbUtility: DBUtility, // TODO: Remove this after completing variants migration of existing images
     imageRepository: ImageRepository,
     imageIndexService: ImageIndexService,
     imageStorage: ImageStorageService,
@@ -417,14 +420,59 @@ class WriteService(using
     converted <- converterService.asApiImageMetaInformationV3(updated, updateMeta.language.some, user.some)
   } yield converted
 
-  private def getFileExtension(fileName: String): Option[String] = {
+  // TODO: Remove this after completing variants migration of existing images
+  def generateAndUploadVariantsForExistingImages(): Try[Unit] = {
+    val numProcessors           = Runtime.getRuntime.availableProcessors()
+    given ExecutionContext      = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numProcessors))
+    val processableContentTypes = Seq("image/png", "image/jpeg")
+
+    imageRepository
+      .getImageFileBatched(20)
+      .map { batch =>
+        batch
+          .filter(image => processableContentTypes.contains(image.contentType))
+          .map { imageFileData =>
+            Future {
+              for {
+                s3Object  <- imageStorage.getRaw(imageFileData.fileName)
+                img       <- Try(ImmutableImage.loader().fromStream(s3Object.stream))
+                dimensions = ImageDimensions(img.width, img.height)
+                fileStem   = imageFileData.fileName.lastIndexOf(".") match {
+                  case i if i > 0 => imageFileData.fileName.substring(0, i)
+                  case _          => imageFileData.fileName
+                }
+              } yield (img, dimensions, fileStem)
+            }.flatMap {
+              case Success((img, dimensions, fileStem)) => generateAndUploadVariantsAsync(img, dimensions, fileStem)
+                  .map(res => res.map(variants => (imageFileData, variants)))
+              case Failure(ex) => Future.successful(Failure(ex))
+            }
+          }
+          .traverse { imageAndVariantsFuture =>
+            Await
+              .result(imageAndVariantsFuture, 1.minute)
+              .flatMap {
+                case (_, Seq())                => Success(())
+                case (imageFileData, variants) => dbUtility.rollbackOnFailure { case given DBSession =>
+                    imageRepository.updateImageFileMeta(imageFileData.copy(variants = variants)).map(_ => ())
+                  }
+              }
+          }
+          .map(_ => ())
+      }
+      .foldLeft(Try(())) { (acc, result) =>
+        acc.flatMap(_ => result)
+      }
+  }
+
+  private[service] def getFileExtension(fileName: String): Option[String] = {
     fileName.lastIndexOf(".") match {
       case index: Int if index > -1 => Some(fileName.substring(index))
       case _                        => None
     }
   }
 
-  private def uploadImageWithVariants(file: UploadedFile): Try[UploadedImage] = permitTry {
+  private[service] def uploadImageWithVariants(file: UploadedFile): Try[UploadedImage] = permitTry {
     val extension      = file.fileName.flatMap(getFileExtension).getOrElse("")
     val uniqueFileStem = LazyList
       .continually(random.string(12))
