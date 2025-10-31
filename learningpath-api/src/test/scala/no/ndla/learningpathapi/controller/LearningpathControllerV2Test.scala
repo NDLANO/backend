@@ -82,7 +82,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
       withIdIn = List(1, 2),
       taggedWith = Some(tag),
       language = Some(language),
-      sort = Sort.ByDurationDesc,
+      sort = Sort.ByCreatedDesc,
       page = Some(page),
       pageSize = Some(pageSize),
       verificationStatus = Some(verificationStatus),
@@ -94,7 +94,7 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
       "query"              -> query,
       "tag"                -> tag,
       "language"           -> language,
-      "sort"               -> "-duration",
+      "sort"               -> "-created",
       "page-size"          -> s"$pageSize",
       "page"               -> s"$page",
       "ids"                -> s"$ids",
@@ -148,14 +148,14 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
       query = Some(query),
       taggedWith = Some(tag),
       language = Some(language),
-      sort = Sort.ByDurationDesc,
+      sort = Sort.ByCreatedDesc,
       page = Some(page),
       pageSize = Some(pageSize),
     )
 
     when(searchService.matchingQuery(eqTo(expectedSettings))).thenReturn(Success(result))
     val inputBody =
-      s"""{"query": "$query", "tag": "$tag", "language": "$language", "page": $page, "pageSize": $pageSize, "ids": [1, 2], "sort": "-duration" }"""
+      s"""{"query": "$query", "tag": "$tag", "language": "$language", "page": $page, "pageSize": $pageSize, "ids": [1, 2], "sort": "-created" }"""
     val res = simpleHttpClient.send(
       quickRequest.post(uri"http://localhost:$serverPort/learningpath-api/v2/learningpaths/search/").body(inputBody)
     )

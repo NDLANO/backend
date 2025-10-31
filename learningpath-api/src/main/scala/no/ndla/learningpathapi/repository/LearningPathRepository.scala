@@ -48,9 +48,21 @@ class LearningPathRepository extends StrictLogging {
     learningPathWhere(sqls"lp.external_id = $externalId")
   }
 
-  def withOwner(owner: String): List[LearningPath] = {
+  def withOwner(owner: String, sort: Sort): List[LearningPath] = {
+    val sortingOrder = sort match {
+      case Sort.ByCreatedDesc     => sqls"order by lp.document->>'created' DESC"
+      case Sort.ByCreatedAsc      => sqls"order by lp.document->>'created' ASC"
+      case Sort.ByLastUpdatedDesc => sqls"order by lp.document->>'lastUpdated' DESC"
+      case Sort.ByLastUpdatedAsc  => sqls"order by lp.document->>'lastUpdated' ASC"
+      case Sort.ByIdDesc          => sqls"order by lp.id DESC"
+      case Sort.ByIdAsc           => sqls"order by lp.id ASC"
+      case Sort.ByRelevanceDesc   => sqls"order by lp.id DESC"
+      case Sort.ByRelevanceAsc    => sqls"order by lp.id ASC"
+      case Sort.ByTitleDesc       => sqls"order by lp.document->'title'->0->>'title' DESC"
+      case Sort.ByTitleAsc        => sqls"order by lp.document->'title'->0->>'title' ASC"
+    }
     learningPathsWhere(
-      sqls"lp.document->>'owner' = $owner AND lp.document->>'status' <> ${LearningPathStatus.DELETED.toString} order by lp.document->>'created' DESC"
+      sqls"lp.document->>'owner' = $owner AND lp.document->>'status' <> ${LearningPathStatus.DELETED.toString} $sortingOrder"
     )
   }
 

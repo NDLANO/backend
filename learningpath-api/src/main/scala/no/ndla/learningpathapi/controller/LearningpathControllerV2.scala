@@ -17,6 +17,7 @@ import no.ndla.language.Language
 import no.ndla.language.Language.AllLanguages
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.model.api.*
+import no.ndla.learningpathapi.model.domain.Sort.ByCreatedDesc
 import no.ndla.learningpathapi.model.domain.{License as _, *}
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchService}
 import no.ndla.learningpathapi.service.{ConverterService, ReadService, UpdateService}
@@ -392,11 +393,16 @@ class LearningpathControllerV2(using
     .summary("Fetch all learningspaths you have created")
     .description("Shows your learningpaths.")
     .in("mine")
+    .in(sort)
     .out(jsonBody[List[LearningPathV2DTO]])
     .errorOut(errorOutputsFor(401, 403, 404))
     .withRequiredMyNDLAUserOrTokenUser
-    .serverLogicPure { user => _ =>
-      readService.withOwnerV2(user, props.DefaultLanguage, true).asRight
+    .serverLogicPure { user =>
+      { sortStr =>
+        readService
+          .withOwnerV2(user, Sort.valueOf(sortStr).getOrElse(ByCreatedDesc), props.DefaultLanguage, true)
+          .asRight
+      }
     }
 
   def getLicenses: ServerEndpoint[Any, Eff] = endpoint
