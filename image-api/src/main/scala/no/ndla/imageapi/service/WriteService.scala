@@ -417,14 +417,14 @@ class WriteService(using
     converted <- converterService.asApiImageMetaInformationV3(updated, updateMeta.language.some, user.some)
   } yield converted
 
-  private[service] def getFileExtension(fileName: String): Option[String] = {
+  private def getFileExtension(fileName: String): Option[String] = {
     fileName.lastIndexOf(".") match {
       case index: Int if index > -1 => Some(fileName.substring(index))
       case _                        => None
     }
   }
 
-  private[service] def uploadImageWithVariants(file: UploadedFile): Try[UploadedImage] = permitTry {
+  private def uploadImageWithVariants(file: UploadedFile): Try[UploadedImage] = permitTry {
     val extension      = file.fileName.flatMap(getFileExtension).getOrElse("")
     val uniqueFileStem = LazyList
       .continually(random.string(12))
@@ -493,9 +493,10 @@ class WriteService(using
       .map { results =>
         val (failures, successes) = results.partitionMap(_.toEither)
         failures match {
-          case Seq() => Success(successes)
-          case f     =>
-            val exs = imageStorage.deleteObjects(successes.map(_.bucketKey)).failed.map(f :+ _).getOrElse(f)
+          case Seq()            => Success(successes)
+          case uploadExceptions =>
+            val deleteResult = imageStorage.deleteObjects(successes.map(_.bucketKey))
+            val exs          = uploadExceptions ++ deleteResult.failed.toOption
             Failure(ImageVariantsUploadException("Failed to upload image variant(s)", exs))
         }
       }
@@ -511,11 +512,8 @@ class WriteService(using
   }
 
   private def deleteImageAndVariants(image: ImageFileData): Try[Unit] = {
-    imageStorage
-      .deleteObjects(image.variants.map(_.bucketKey))
-      .failed
-      .toList
-      .combine(imageStorage.deleteObject(image.fileName).failed.toList) match {
+    imageStorage.deleteObjects(image.variants.map(_.bucketKey)).failed.toOption.toSeq
+      ++ imageStorage.deleteObject(image.fileName).failed.toOption match {
       case Nil => Success(())
       case exs => Failure(ImageDeleteException("Failed to delete original image and/or variants", exs))
     }
