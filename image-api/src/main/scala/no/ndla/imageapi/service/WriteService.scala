@@ -429,9 +429,10 @@ class WriteService(using
     imageRepository
       .getImageFileBatched(20)
       .map { batch =>
-        batch
-          .filter(image => image.variants.isEmpty && processableContentTypes.contains(image.contentType))
-          .map { imageFileData =>
+        val batchFuture = Future
+          .traverse(
+            batch.filter(image => image.variants.isEmpty && processableContentTypes.contains(image.contentType))
+          ) { imageFileData =>
             Future {
               for {
                 s3Object  <- imageStorage.getRaw(imageFileData.fileName)
@@ -448,18 +449,18 @@ class WriteService(using
               case Failure(ex) => Future.successful(Failure(ex))
             }
           }
-          .map { imageAndVariantsFuture =>
-            Await
-              .result(imageAndVariantsFuture, 1.minute)
-              .flatMap {
+          .map { imagesWithVariants =>
+            imagesWithVariants.map { imageWithVariants =>
+              imageWithVariants.flatMap {
                 case (_, Seq())                => Success(())
                 case (imageFileData, variants) => dbUtility.rollbackOnFailure { case given DBSession =>
                     imageRepository.updateImageFileMeta(imageFileData.copy(variants = variants)).map(_ => ())
                   }
               }
+            }
           }
-          .sequence
-          .map(_ => ())
+
+        Await.result(batchFuture, 1.minute).sequence.map(_ => ())
       }
       .foldLeft(Try(())) { (acc, result) =>
         acc.flatMap(_ => result)
