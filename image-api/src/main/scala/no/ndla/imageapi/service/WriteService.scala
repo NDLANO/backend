@@ -430,7 +430,7 @@ class WriteService(using
       .getImageFileBatched(20)
       .map { batch =>
         batch
-          .filter(image => processableContentTypes.contains(image.contentType))
+          .filter(image => image.variants.isEmpty && processableContentTypes.contains(image.contentType))
           .map { imageFileData =>
             Future {
               for {
@@ -448,7 +448,7 @@ class WriteService(using
               case Failure(ex) => Future.successful(Failure(ex))
             }
           }
-          .traverse { imageAndVariantsFuture =>
+          .map { imageAndVariantsFuture =>
             Await
               .result(imageAndVariantsFuture, 1.minute)
               .flatMap {
@@ -458,6 +458,7 @@ class WriteService(using
                   }
               }
           }
+          .sequence
           .map(_ => ())
       }
       .foldLeft(Try(())) { (acc, result) =>
