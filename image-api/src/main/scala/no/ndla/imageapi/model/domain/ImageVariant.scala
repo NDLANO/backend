@@ -27,12 +27,13 @@ object ImageVariant {
 sealed abstract class ImageVariantSize(override val entryName: String, val width: Int) extends EnumEntry
 
 object ImageVariantSize extends Enum[ImageVariantSize], CirceEnumWithErrors[ImageVariantSize] {
-  case object Icon       extends ImageVariantSize("icon", 320)
-  case object ExtraSmall extends ImageVariantSize("xsmall", 640)
-  case object Small      extends ImageVariantSize("small", 960)
-  case object Medium     extends ImageVariantSize("medium", 1280)
-  case object Large      extends ImageVariantSize("large", 1920)
-  case object ExtraLarge extends ImageVariantSize("xlarge", 2400)
+  case object Icon            extends ImageVariantSize("icon", 240)
+  case object ExtraSmall      extends ImageVariantSize("xsmall", 480)
+  case object Small           extends ImageVariantSize("small", 800)
+  case object Medium          extends ImageVariantSize("medium", 1080)
+  case object Large           extends ImageVariantSize("large", 1440)
+  case object ExtraLarge      extends ImageVariantSize("xlarge", 1920)
+  case object ExtraExtraLarge extends ImageVariantSize("xxlarge", 2560)
 
   def forDimensions(dimensions: ImageDimensions): Seq[ImageVariantSize] = values.takeWhile(_.width <= dimensions.width)
 
