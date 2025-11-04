@@ -210,21 +210,28 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
       """.map(ImageMetaInformation.fromResultSet(im)).list()
   }
 
-  def imageFileCount(implicit session: DBSession = ReadOnlyAutoSession): Long = sql"select count(*) from ${Image.table}"
-    .map(rs => rs.long("count"))
-    .single()
-    .getOrElse(0)
+  private def imageFileCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
+    sql"select count(*) from ${Image.table}".map(rs => rs.long("count")).single().getOrElse(0)
 
   // TODO: Remove this after completing variants migration of existing images
-  def getImageFileBatched(batchSize: Long): Iterator[Seq[ImageFileData]] = {
-    val ifd   = Image.syntax("ifd")
-    val total = imageFileCount
-    Iterator.unfold(0L) { cursor =>
-      if (cursor < total) {
-        val size = batchSize.min(total - cursor)
-        DB.readOnly { case given DBSession =>
-          Try {
-            sql"""
+  def getImageFileBatched(batchSize: Long): Iterator[Seq[ImageFileData]] = new Iterator[Seq[ImageFileData]] {
+    private val ifd    = Image.syntax("ifd")
+    private val total  = imageFileCount
+    private var cursor = 0L
+
+    override val knownSize: Int = (
+      total.toFloat / batchSize.toFloat
+    ).ceil.toInt
+
+    override def hasNext: Boolean = cursor < total
+
+    override def next(): Seq[ImageFileData] = {
+      if (cursor >= total) throw IllegalStateException("Called `next` while `hasNext` is false")
+
+      val size = batchSize.min(total - cursor)
+      DB.readOnly { case given DBSession =>
+        Try {
+          sql"""
             select ${ifd.result.*}
             from ${Image.as(ifd)}
             where metadata is not null
@@ -232,15 +239,14 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
             offset $cursor
             limit $size
              """.map(rs => Image.fromResultSet(ifd.resultName)(rs).flatMap(i => Try(i.get))).list().sequence
-          }.flatten
-        } match {
-          case Success(imageFiles) => Some((imageFiles, cursor + size))
-          case Failure(ex)         =>
-            logger.error("Failed to fetch next batch of ImageFileData", ex)
-            None
-        }
-      } else {
-        None
+        }.flatten
+      } match {
+        case Success(imageFiles) =>
+          cursor += size
+          imageFiles
+        case Failure(ex) =>
+          logger.error("Failed to fetch next batch of ImageFileData", ex)
+          throw ex
       }
     }
   }

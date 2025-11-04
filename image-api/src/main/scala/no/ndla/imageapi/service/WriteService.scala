@@ -426,10 +426,15 @@ class WriteService(using
     val numProcessors           = Runtime.getRuntime.availableProcessors()
     given ExecutionContext      = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numProcessors))
     val processableContentTypes = Seq("image/png", "image/jpeg")
+    val batchSize               = numProcessors * 2
+    val batchIterator           = imageRepository.getImageFileBatched(batchSize)
+    val totalBatchCount         = batchIterator.knownSize
 
-    imageRepository
-      .getImageFileBatched(20)
-      .map { batch =>
+    batchIterator
+      .zipWithIndex
+      .map { (batch, index) =>
+        logger.info(s"Processing batch ${index + 1} of $totalBatchCount (batch size = $batchSize)")
+
         val batchFuture = Future
           .traverse(
             batch.filter(image => image.variants.isEmpty && processableContentTypes.contains(image.contentType))
