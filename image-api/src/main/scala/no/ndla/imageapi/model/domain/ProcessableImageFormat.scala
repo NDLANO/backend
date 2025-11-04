@@ -1,3 +1,11 @@
+/*
+ * Part of NDLA image-api
+ * Copyright (C) 2025 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
 package no.ndla.imageapi.model.domain
 
 import com.sksamuel.scrimage.format.Format
