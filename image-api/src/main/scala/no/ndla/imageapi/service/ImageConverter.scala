@@ -95,8 +95,17 @@ class ImageConverter(using props: Props) extends StrictLogging {
     }
   }
 
-  def resizeToVariantSize(original: ImmutableImage, variant: ImageVariantSize): ImmutableImage =
-    original.scaleToWidth(variant.width)
+  def resizeToVariantSize(original: ImmutableImage, variant: ImageVariantSize): ImmutableImage = {
+    val img = original.getType match {
+      case BufferedImage.TYPE_USHORT_GRAY =>
+        val awt = BufferedImage(original.width, original.height, BufferedImage.TYPE_INT_ARGB)
+        awt.getGraphics.drawImage(original.awt, 0, 0, null)
+        ImmutableImage.wrapAwt(awt)
+      case _ => original
+    }
+
+    img.scaleToWidth(variant.width)
+  }
 
   def resize(originalImage: ImageStream, targetWidth: Int, targetHeight: Int): Try[ImageStream] = {
     val sourceImage = originalImage.sourceImage
