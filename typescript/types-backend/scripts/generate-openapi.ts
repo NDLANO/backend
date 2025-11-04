@@ -28,6 +28,9 @@ async function generate_types(appName: string) {
     exportType: true,
     // https://openapi-ts.dev/migration-guide#defaultnonnullable-true-by-default
     defaultNonNullable: false,
+    generatePathParms: true,
+    rootTypes: true,
+    rootTypesNoSchemaPrefix: true,
     transform(schemaObject, _options): TypeNode | undefined {
       if (schemaObject.format === "binary") {
         if (schemaObject.nullable) {
@@ -39,7 +42,7 @@ async function generate_types(appName: string) {
     },
   });
 
-  const outputPath = `./${appName}-openapi.ts`;
+  const outputPath = `./${appName}.ts`;
   const output = astToString(ast);
 
   console.log(`Outputting to ${outputPath}`);
