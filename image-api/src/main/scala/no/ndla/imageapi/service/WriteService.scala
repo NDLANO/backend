@@ -443,14 +443,16 @@ class WriteService(using
                 s3Object <- blocking {
                   imageStorage.getRaw(imageFileData.fileName)
                 }
+                stream       = new BufferedInputStream(s3Object.stream)
+                _            = stream.mark(32)
+                maybeFormat <- Try(FormatDetector.detect(stream).get()).map(ProcessableImageFormat.fromScrimageFormat)
+                format      <- Try(maybeFormat.get)
                 img         <- blocking {
+                  stream.reset()
+                  Try(ImmutableImage.loader().fromStream(stream))
                 }
                 dimensions = ImageDimensions(img.width, img.height)
                 fileStem   = imageFileData.getFileStem
-                format     = imageFileData.contentType match {
-                  case "image/png"  => ProcessableImageFormat.Png
-                  case "image/jpeg" => ProcessableImageFormat.Jpeg
-                }
               } yield (img, dimensions, fileStem, format)
             }.flatMap {
               case Success((img, dimensions, fileStem, format)) =>
