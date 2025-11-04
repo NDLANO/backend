@@ -38,9 +38,8 @@ import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.DBSession
 
 import java.io.{BufferedInputStream, ByteArrayInputStream}
-import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future, blocking}
 import scala.util.{Failure, Success, Try}
 
 class WriteService(using
@@ -424,11 +423,11 @@ class WriteService(using
   // TODO: Remove this after completing variants migration of existing images
   def generateAndUploadVariantsForExistingImages(): Try[Unit] = {
     val numProcessors           = Runtime.getRuntime.availableProcessors()
-    given ExecutionContext      = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numProcessors))
     val processableContentTypes = Seq("image/png", "image/jpeg")
     val batchSize               = numProcessors * 2
     val batchIterator           = imageRepository.getImageFileBatched(batchSize)
     val totalBatchCount         = batchIterator.knownSize
+    given ExecutionContext      = ExecutionContext.Implicits.global
 
     batchIterator
       .zipWithIndex
@@ -441,8 +440,11 @@ class WriteService(using
           ) { imageFileData =>
             Future {
               for {
-                s3Object  <- imageStorage.getRaw(imageFileData.fileName)
-                img       <- Try(ImmutableImage.loader().fromStream(s3Object.stream))
+                s3Object <- blocking {
+                  imageStorage.getRaw(imageFileData.fileName)
+                }
+                img         <- blocking {
+                }
                 dimensions = ImageDimensions(img.width, img.height)
                 fileStem   = imageFileData.getFileStem
                 format     = imageFileData.contentType match {
@@ -469,7 +471,7 @@ class WriteService(using
             }
           }
 
-        Await.result(batchFuture, 1.minute).sequence.map(_ => ())
+        Await.result(batchFuture, 5.minutes).sequence.map(_ => ())
       }
       .foldLeft(Try(())) { (acc, result) =>
         acc.flatMap(_ => result)
@@ -536,17 +538,19 @@ class WriteService(using
       return Future.successful(Success(Seq.empty))
     }
 
-    given ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(variantSizes.size))
+    given ExecutionContext = ExecutionContext.Implicits.global
     variantSizes
       .traverse { variantSize =>
         Future {
-          val resizedImage = imageConverter.resizeToVariantSize(image, variantSize)
-          val imageBytes   = resizedImage.bytes(getWriterForFormat(format))
-          val stream       = new ByteArrayInputStream(imageBytes)
-          val bucketKey    = s"$fileStem/${variantSize.entryName}.webp"
-          imageStorage
-            .uploadFromStream(bucketKey, stream, imageBytes.length, "image/webp")
-            .map(_ => ImageVariant(variantSize, bucketKey))
+          blocking {
+            val resizedImage = imageConverter.resizeToVariantSize(image, variantSize)
+            val imageBytes   = resizedImage.bytes(getWriterForFormat(format))
+            val stream       = new ByteArrayInputStream(imageBytes)
+            val bucketKey    = s"$fileStem/${variantSize.entryName}.webp"
+            imageStorage
+              .uploadFromStream(bucketKey, stream, imageBytes.length, "image/webp")
+              .map(_ => ImageVariant(variantSize, bucketKey))
+          }
         }
       }
       .map { results =>
