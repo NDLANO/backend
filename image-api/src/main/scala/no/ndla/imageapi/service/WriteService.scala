@@ -29,6 +29,7 @@ import no.ndla.imageapi.model.api.{
 }
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.repository.ImageRepository
+import no.ndla.imageapi.service.WriteService.getWriterForFormat
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.language.Language
 import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
@@ -438,14 +439,17 @@ class WriteService(using
                 s3Object  <- imageStorage.getRaw(imageFileData.fileName)
                 img       <- Try(ImmutableImage.loader().fromStream(s3Object.stream))
                 dimensions = ImageDimensions(img.width, img.height)
-                fileStem   = imageFileData.fileName.lastIndexOf(".") match {
-                  case i if i > 0 => imageFileData.fileName.substring(0, i)
-                  case _          => imageFileData.fileName
+                fileStem   = imageFileData.getFileStem
+                format     = imageFileData.contentType match {
+                  case "image/png"  => ProcessableImageFormat.Png
+                  case "image/jpeg" => ProcessableImageFormat.Jpeg
                 }
-              } yield (img, dimensions, fileStem)
+              } yield (img, dimensions, fileStem, format)
             }.flatMap {
-              case Success((img, dimensions, fileStem)) => generateAndUploadVariantsAsync(img, dimensions, fileStem)
-                  .map(res => res.map(variants => (imageFileData, variants)))
+              case Success((img, dimensions, fileStem, format)) =>
+                generateAndUploadVariantsAsync(img, dimensions, fileStem, format).map(res =>
+                  res.map(variants => (imageFileData, variants))
+                )
               case Failure(ex) => Future.successful(Failure(ex))
             }
           }
@@ -474,7 +478,7 @@ class WriteService(using
     }
   }
 
-  private[service] def uploadImageWithVariants(file: UploadedFile): Try[UploadedImage] = permitTry {
+  private[service] def uploadImageWithVariants(file: UploadedFile): Try[UploadedImage] = {
     val extension      = file.fileName.flatMap(getFileExtension).getOrElse("")
     val uniqueFileStem = LazyList
       .continually(random.string(12))
@@ -485,32 +489,31 @@ class WriteService(using
     // Use buffered stream with mark to avoid creating multiple streams
     val fileStream = new BufferedInputStream(file.stream)
     fileStream.mark(32)
-    val isProcessableImage = Try(FormatDetector.detect(fileStream).get()) match {
-      case Failure(_)                              => false
-      case Success(format) if format == Format.GIF => false
-      case _                                       => true
+    val format = Try(FormatDetector.detect(fileStream).get()).map(ProcessableImageFormat.fromScrimageFormat) match {
+      case Failure(ex)           => return Failure(ex)
+      case Success(None)         => return uploadImageAsIs(file, fileName)
+      case Success(Some(format)) => format
     }
 
-    if (isProcessableImage) {
-      fileStream.reset()
-      val img                        = Try(ImmutableImage.loader().fromStream(fileStream)).?
-      val dimensions                 = ImageDimensions(img.width, img.height)
-      val variantsFuture             = generateAndUploadVariantsAsync(img, dimensions, uniqueFileStem)
-      val maybeUploadedOriginalImage = uploadImageAsIs(file, fileName)
-      val maybeVariants              = Await.result(variantsFuture, 1.minute)
+    fileStream.reset()
+    val img = Try(ImmutableImage.loader().fromStream(fileStream)) match {
+      case Success(i)  => i
+      case Failure(ex) => return Failure(ex)
+    }
+    val dimensions                 = ImageDimensions(img.width, img.height)
+    val variantsFuture             = generateAndUploadVariantsAsync(img, dimensions, uniqueFileStem, format)
+    val maybeUploadedOriginalImage = uploadImageAsIs(file, fileName)
+    val maybeVariants              = Await.result(variantsFuture, 1.minute)
 
-      (maybeUploadedOriginalImage, maybeVariants) match {
-        case (Success(uploadedImage), Success(variants)) =>
-          Success(uploadedImage.copy(dimensions = Some(dimensions), variants = variants))
-        case (Failure(ex), variants) =>
-          variants.foreach(v => imageStorage.deleteObjects(v.map(_.bucketKey)))
-          Failure(ex)
-        case (original, Failure(ex)) =>
-          original.foreach(i => imageStorage.deleteObject(i.fileName))
-          Failure(ex)
-      }
-    } else {
-      uploadImageAsIs(file, fileName)
+    (maybeUploadedOriginalImage, maybeVariants) match {
+      case (Success(uploadedImage), Success(variants)) =>
+        Success(uploadedImage.copy(dimensions = Some(dimensions), variants = variants))
+      case (Failure(ex), variants) =>
+        variants.foreach(v => imageStorage.deleteObjects(v.map(_.bucketKey)))
+        Failure(ex)
+      case (original, Failure(ex)) =>
+        original.foreach(i => imageStorage.deleteObject(i.fileName))
+        Failure(ex)
     }
   }
 
@@ -521,6 +524,7 @@ class WriteService(using
       image: ImmutableImage,
       dimensions: ImageDimensions,
       fileStem: String,
+      format: ProcessableImageFormat,
   ): Future[Try[Seq[ImageVariant]]] = {
     val variantSizes = ImageVariantSize.forDimensions(dimensions)
     if (variantSizes.size <= 0) {
@@ -532,7 +536,7 @@ class WriteService(using
       .traverse { variantSize =>
         Future {
           val resizedImage = imageConverter.resizeToVariantSize(image, variantSize)
-          val imageBytes   = resizedImage.bytes(WebpWriter.DEFAULT)
+          val imageBytes   = resizedImage.bytes(getWriterForFormat(format))
           val stream       = new ByteArrayInputStream(imageBytes)
           val bucketKey    = s"$fileStem/${variantSize.entryName}.webp"
           imageStorage
@@ -580,5 +584,21 @@ class WriteService(using
         Success(image.copy(fileName = fileNameKeyToNewKey._2, variants = variantKeysToNewVariants.map(_._2)))
       case Failure(ex) => Failure(ex)
     }
+  }
+}
+
+object WriteService {
+  // See https://developers.google.com/speed/webp/docs/cwebp#options
+  // For PNG images, we set the quality to the default value in cwebp
+  // For JPEG and WebP images, we set the quality higher in order to reduce the effect of double compression
+  private val baseWebpWriter                = WebpWriter.DEFAULT.withMultiThread().withM(6)
+  private val webpWriterForJpeg: WebpWriter = baseWebpWriter.withoutAlpha().withQ(85)
+  private val webpWriterForPng: WebpWriter  = baseWebpWriter.withQ(75)
+  private val webpWriterForWebp: WebpWriter = baseWebpWriter.withQ(85)
+
+  def getWriterForFormat(format: ProcessableImageFormat): WebpWriter = format match {
+    case ProcessableImageFormat.Jpeg => webpWriterForJpeg
+    case ProcessableImageFormat.Png  => webpWriterForPng
+    case ProcessableImageFormat.Webp => webpWriterForWebp
   }
 }
