@@ -437,29 +437,7 @@ class WriteService(using
         val batchFuture = Future
           .traverse(
             batch.filter(image => image.variants.isEmpty && processableContentTypes.contains(image.contentType))
-          ) { imageFileData =>
-            Future {
-              for {
-                s3Object    <- imageStorage.getRaw(imageFileData.fileName)
-                stream       = new BufferedInputStream(s3Object.stream)
-                _            = stream.mark(32)
-                maybeFormat <- Try(FormatDetector.detect(stream).get()).map(ProcessableImageFormat.fromScrimageFormat)
-                format      <- Try(maybeFormat.get)
-                img         <- {
-                  stream.reset()
-                  Try(ImmutableImage.loader().fromStream(stream))
-                }
-                dimensions = ImageDimensions(img.width, img.height)
-                fileStem   = imageFileData.getFileStem
-              } yield (img, dimensions, fileStem, format)
-            }.flatMap {
-              case Success((img, dimensions, fileStem, format)) =>
-                generateAndUploadVariantsAsync(img, dimensions, fileStem, format).map(res =>
-                  res.map(variants => (imageFileData, variants))
-                )
-              case Failure(ex) => Future.successful(Failure(ex))
-            }
-          }
+          )(generateAndUploadVariantsForImageFileDataAsync)
           .map { imagesWithVariants =>
             imagesWithVariants.map { imageWithVariants =>
               imageWithVariants.flatMap {
@@ -473,9 +451,37 @@ class WriteService(using
 
         Await.result(batchFuture, 5.minutes).sequence.map(_ => ())
       }
-      .foldLeft(Try(())) { (acc, result) =>
-        acc.flatMap(_ => result)
+      .collectFirst { case Failure(ex) =>
+        ex
+      } match {
+      case Some(ex) => Failure(ex)
+      case None     => Success(())
+    }
+  }
+
+  // TODO: Remove this after completing variants migration of existing images
+  private def generateAndUploadVariantsForImageFileDataAsync(
+      imageFileData: ImageFileData
+  )(using ExecutionContext): Future[Try[(ImageFileData, Seq[ImageVariant])]] = Future {
+    for {
+      s3Object    <- imageStorage.getRaw(imageFileData.fileName)
+      stream       = new BufferedInputStream(s3Object.stream)
+      _            = stream.mark(32)
+      maybeFormat <- Try(FormatDetector.detect(stream).get()).map(ProcessableImageFormat.fromScrimageFormat)
+      format      <- Try(maybeFormat.get)
+      img         <- {
+        stream.reset()
+        Try(ImmutableImage.loader().fromStream(stream))
       }
+      dimensions = ImageDimensions(img.width, img.height)
+      fileStem   = imageFileData.getFileStem
+    } yield (img, dimensions, fileStem, format)
+  }.flatMap {
+    case Success((img, dimensions, fileStem, format)) =>
+      generateAndUploadVariantsAsync(img, dimensions, fileStem, format).map(res =>
+        res.map(variants => (imageFileData, variants))
+      )
+    case Failure(ex) => Future.successful(Failure(ex))
   }
 
   private[service] def getFileExtension(fileName: String): Option[String] = {
