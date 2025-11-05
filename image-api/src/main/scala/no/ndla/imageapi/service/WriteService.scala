@@ -38,8 +38,9 @@ import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.DBSession
 
 import java.io.{BufferedInputStream, ByteArrayInputStream}
+import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, ExecutionContext, Future, blocking}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 class WriteService(using
@@ -422,12 +423,11 @@ class WriteService(using
 
   // TODO: Remove this after completing variants migration of existing images
   def generateAndUploadVariantsForExistingImages(): Try[Unit] = {
-    val numProcessors           = Runtime.getRuntime.availableProcessors()
     val processableContentTypes = Seq("image/png", "image/jpeg")
-    val batchSize               = numProcessors * 2
+    val batchSize               = 20
     val batchIterator           = imageRepository.getImageFileBatched(batchSize)
     val totalBatchCount         = batchIterator.knownSize
-    given ExecutionContext      = ExecutionContext.Implicits.global
+    given ExecutionContext      = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(batchSize))
 
     batchIterator
       .zipWithIndex
@@ -440,14 +440,12 @@ class WriteService(using
           ) { imageFileData =>
             Future {
               for {
-                s3Object <- blocking {
-                  imageStorage.getRaw(imageFileData.fileName)
-                }
+                s3Object    <- imageStorage.getRaw(imageFileData.fileName)
                 stream       = new BufferedInputStream(s3Object.stream)
                 _            = stream.mark(32)
                 maybeFormat <- Try(FormatDetector.detect(stream).get()).map(ProcessableImageFormat.fromScrimageFormat)
                 format      <- Try(maybeFormat.get)
-                img         <- blocking {
+                img         <- {
                   stream.reset()
                   Try(ImmutableImage.loader().fromStream(stream))
                 }
@@ -509,8 +507,10 @@ class WriteService(using
       case Success(i)  => i
       case Failure(ex) => return Failure(ex)
     }
-    val dimensions                 = ImageDimensions(img.width, img.height)
-    val variantsFuture             = generateAndUploadVariantsAsync(img, dimensions, uniqueFileStem, format)
+    val dimensions       = ImageDimensions(img.width, img.height)
+    val executionContext =
+      ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(ImageVariantSize.values.size))
+    val variantsFuture             = generateAndUploadVariantsAsync(img, dimensions, uniqueFileStem, format)(using executionContext)
     val maybeUploadedOriginalImage = uploadImageAsIs(file, fileName)
     val maybeVariants              = Await.result(variantsFuture, 1.minute)
 
@@ -534,25 +534,22 @@ class WriteService(using
       dimensions: ImageDimensions,
       fileStem: String,
       format: ProcessableImageFormat,
-  ): Future[Try[Seq[ImageVariant]]] = {
+  )(using ExecutionContext): Future[Try[Seq[ImageVariant]]] = {
     val variantSizes = ImageVariantSize.forDimensions(dimensions)
     if (variantSizes.size <= 0) {
       return Future.successful(Success(Seq.empty))
     }
 
-    given ExecutionContext = ExecutionContext.Implicits.global
     variantSizes
       .traverse { variantSize =>
         Future {
-          blocking {
-            val resizedImage = imageConverter.resizeToVariantSize(image, variantSize)
-            val imageBytes   = resizedImage.bytes(getWriterForFormat(format))
-            val stream       = new ByteArrayInputStream(imageBytes)
-            val bucketKey    = s"$fileStem/${variantSize.entryName}.webp"
-            imageStorage
-              .uploadFromStream(bucketKey, stream, imageBytes.length, "image/webp")
-              .map(_ => ImageVariant(variantSize, bucketKey))
-          }
+          val resizedImage = imageConverter.resizeToVariantSize(image, variantSize)
+          val imageBytes   = resizedImage.bytes(getWriterForFormat(format))
+          val stream       = new ByteArrayInputStream(imageBytes)
+          val bucketKey    = s"$fileStem/${variantSize.entryName}.webp"
+          imageStorage
+            .uploadFromStream(bucketKey, stream, imageBytes.length, "image/webp")
+            .map(_ => ImageVariant(variantSize, bucketKey))
         }
       }
       .map { results =>

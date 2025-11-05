@@ -27,7 +27,7 @@ import sttp.tapir.server.ServerEndpoint
 
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future, blocking}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 class InternController(using
@@ -188,17 +188,15 @@ class InternController(using
     .out(jsonBody[String])
     .serverLogicPure { _ =>
       logger.info("Starting generation of image variants for all existing images...")
-      given ExecutionContext = ExecutionContext.Implicits.global
-      Future {
-        blocking {
-          writeService.generateAndUploadVariantsForExistingImages()
-        }
-      }.onComplete { res =>
-        res.flatten match {
-          case Success(_)  => logger.info("Successfully finished generation of image variants for all existing images")
-          case Failure(ex) => logger.error("Failed to generate image variants", ex)
-        }
-      }
+
+      Thread
+        .ofVirtual()
+        .start(() => {
+          writeService.generateAndUploadVariantsForExistingImages() match {
+            case Success(_)  => logger.info("Successfully finished generation of image variants for all existing images")
+            case Failure(ex) => logger.error("Failed to generate image variants", ex)
+          }
+        })
 
       "Started generation of image variants for all existing images".asRight
     }
