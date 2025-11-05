@@ -63,7 +63,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                concept_id: string;
+            };
             cookie?: never;
         };
         /**
@@ -91,7 +93,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                concept_id: string;
+                STATUS: string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -175,7 +180,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                concept_id: string;
+            };
             cookie?: never;
         };
         /**

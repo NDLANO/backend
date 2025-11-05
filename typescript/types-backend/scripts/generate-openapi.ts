@@ -28,7 +28,7 @@ async function generate_types(appName: string) {
     exportType: true,
     // https://openapi-ts.dev/migration-guide#defaultnonnullable-true-by-default
     defaultNonNullable: false,
-    generatePathParms: true,
+    generatePathParams: true,
     rootTypes: true,
     rootTypesNoSchemaPrefix: true,
     transform(schemaObject, _options): TypeNode | undefined {

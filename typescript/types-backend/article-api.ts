@@ -43,7 +43,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                slug: string;
+            };
             cookie?: never;
         };
         /** Get RSS feed for articles at a level in the frontpage menu */
@@ -60,7 +62,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                article_id: string;
+            };
             cookie?: never;
         };
         get: operations["getArticle-apiV2ArticlesArticle_id"];
@@ -116,7 +120,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                article_id: string;
+            };
             cookie?: never;
         };
         /**
@@ -136,7 +142,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                deprecated_node_id: string;
+            };
             cookie?: never;
         };
         /**
@@ -156,7 +164,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                deprecated_node_id: string;
+            };
             cookie?: never;
         };
         /**

@@ -87,7 +87,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "audio-id": string;
+            };
             cookie?: never;
         };
         /**
@@ -115,7 +117,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "audio-id": string;
+                language: string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -179,7 +184,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "series-id": string;
+            };
             cookie?: never;
         };
         /**
@@ -207,7 +214,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "series-id": string;
+                language: string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -227,7 +237,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                videoId: string;
+                language: string;
+            };
             cookie?: never;
         };
         /**
@@ -251,7 +264,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                videoId: string;
+                language: string;
+            };
             cookie?: never;
         };
         /**
@@ -275,7 +291,11 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                audioName: string;
+                audioId: string;
+                language: string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -295,7 +315,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                audioId: string;
+                language: string;
+            };
             cookie?: never;
         };
         /**

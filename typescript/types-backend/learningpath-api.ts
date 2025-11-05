@@ -147,7 +147,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                learningpath_id: string;
+            };
             cookie?: never;
         };
         /**
@@ -175,7 +177,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                learningpath_id: string;
+            };
             cookie?: never;
         };
         /**
@@ -199,7 +203,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                learningpath_id: string;
+            };
             cookie?: never;
         };
         /**
@@ -219,7 +225,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                learningpath_id: string;
+            };
             cookie?: never;
         };
         /**
@@ -243,7 +251,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                learningpath_id: string;
+                learningstep_id: string;
+            };
             cookie?: never;
         };
         /**
@@ -271,7 +282,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                article_id: string;
+            };
             cookie?: never;
         };
         /**
@@ -291,7 +304,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                learningpath_id: string;
+                learningstep_id: string;
+            };
             cookie?: never;
         };
         /**
@@ -315,7 +331,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                learningpath_id: string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -335,7 +353,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                learningpath_id: string;
+                learningstep_id: string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -355,7 +376,11 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                learningpath_id: string;
+                learningstep_id: string;
+                p1: string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -375,7 +400,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                STATUS: string;
+            };
             cookie?: never;
         };
         /**
@@ -395,7 +422,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                learningpath_id: string;
+                p1: string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -415,7 +445,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                learningpath_id: string;
+            };
             cookie?: never;
         };
         get?: never;

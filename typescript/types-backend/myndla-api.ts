@@ -67,7 +67,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "folder-id": string;
+            };
             cookie?: never;
         };
         /**
@@ -95,7 +97,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "folder-id": string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -115,7 +119,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "resource-id": string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -135,7 +141,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "folder-id": string;
+                "resource-id": string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -155,7 +164,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "folder-id": string;
+            };
             cookie?: never;
         };
         /**
@@ -179,7 +190,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "source-folder-id": string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -199,7 +212,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "folder-id": string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -259,7 +274,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "folder-id": string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -307,7 +324,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "robot-id": string;
+            };
             cookie?: never;
         };
         /**
@@ -335,7 +354,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "robot-id": string;
+                "robot-status": string;
+            };
             cookie?: never;
         };
         get?: never;
@@ -439,7 +461,9 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                "config-key": string;
+            };
             cookie?: never;
         };
         /**
@@ -503,7 +527,10 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                resourceType: string;
+                resourceIds: string;
+            };
             cookie?: never;
         };
         /**
