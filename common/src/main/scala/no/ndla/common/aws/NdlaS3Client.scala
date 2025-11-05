@@ -8,6 +8,7 @@
 
 package no.ndla.common.aws
 
+import no.ndla.common.errors.MissingBucketKeyException
 import no.ndla.common.model.domain.UploadedFile
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
@@ -16,7 +17,7 @@ import software.amazon.awssdk.services.s3.{S3Client, S3ClientBuilder}
 
 import java.io.InputStream
 import scala.jdk.CollectionConverters.*
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 class NdlaS3Client(bucket: String, region: Option[String]) {
   private val builder: S3ClientBuilder = S3Client.builder()
@@ -35,16 +36,22 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
 
   def objectExists(key: String): Boolean = headObject(key).isSuccess
 
-  def getObject(key: String): Try[NdlaS3Object] = Try {
-    val gor      = GetObjectRequest.builder().bucket(bucket).key(key).build()
-    val response = client.getObject(gor)
-    NdlaS3Object(
-      bucket = bucket,
-      key = key,
-      stream = response,
-      contentType = response.response().contentType(),
-      contentLength = response.response().contentLength(),
-    )
+  def getObject(key: String): Try[NdlaS3Object] = {
+    val gor = GetObjectRequest.builder().bucket(bucket).key(key).build()
+    Try(client.getObject(gor))
+      .map(res =>
+        NdlaS3Object(
+          bucket = bucket,
+          key = key,
+          stream = res,
+          contentType = res.response().contentType(),
+          contentLength = res.response().contentLength(),
+        )
+      )
+      .recoverWith {
+        case _: NoSuchKeyException => Failure(MissingBucketKeyException(s"The bucket key '$key' does not exist"))
+        case ex                    => Failure(ex)
+      }
   }
 
   def deleteObject(key: String): Try[DeleteObjectResponse] = Try {
