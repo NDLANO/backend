@@ -215,9 +215,6 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
       .prependInterceptor(TapirMiddleware.before)
       .prependInterceptor(RequestInterceptor.transformResultEffect(new TapirMiddleware.after))
       .options
-      // Temporary fix for multipart files being deleted before endpoint logic
-      // TODO: Remove when https://github.com/softwaremill/tapir/issues/4886 is fixed
-      .copy(multipartMinSizeForDisk = Some(1024 * 1024 * 100))
 
     val config = NettyConfig
       .default

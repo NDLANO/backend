@@ -280,7 +280,7 @@ class AudioController(using
   def doWithStream[T](filePart: Part[File])(f: UploadedFile => Try[T]): Try[T] = {
     val file = UploadedFile.fromFilePart(filePart)
     if (file.fileSize > maxAudioFileSizeBytes) Failure(FileTooBigException())
-    else file.doWithStream(f)
+    else f(file)
   }
 
   private case class SummaryWithHeader(
