@@ -594,10 +594,12 @@ class WriteService(using
   }
 
   private def deleteImageAndVariants(image: ImageFileData): Try[Unit] = {
-    imageStorage.deleteObjects(image.variants.map(_.bucketKey)).failed.toOption.toSeq
-      ++ imageStorage.deleteObject(image.fileName).failed.toOption match {
+    val variantsResult = imageStorage.deleteObjects(image.variants.map(_.bucketKey))
+    val imageResult    = imageStorage.deleteObject(image.fileName)
+
+    variantsResult.failed.toOption ++ imageResult.failed.toOption match {
       case Nil => Success(())
-      case exs => Failure(ImageDeleteException("Failed to delete original image and/or variants", exs))
+      case exs => Failure(ImageDeleteException("Failed to delete original image and/or variants", exs.toSeq))
     }
   }
 
