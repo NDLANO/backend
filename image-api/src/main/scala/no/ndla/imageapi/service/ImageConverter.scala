@@ -97,11 +97,15 @@ class ImageConverter(using props: Props) extends StrictLogging {
 
   def resizeToVariantSize(original: ImmutableImage, variant: ImageVariantSize): ImmutableImage = {
     val img = original match {
+      // Due to a bug in Scrimage, 16-bit grayscale images must be converted to e.g., 8-bit RGBA
+      // See https://github.com/dbcxy/java-image-scaling/issues/35, which is used internally by Scrimage
       case o if o.getType == BufferedImage.TYPE_USHORT_GRAY =>
         val awt = new BufferedImage(o.width, o.height, BufferedImage.TYPE_INT_ARGB)
         awt.getGraphics.drawImage(o.awt, 0, 0, null)
         ImmutableImage.wrapAwt(awt)
-      case o if o.width == variant.width => o.copy()
+      // If the image is to be resized to exactly the same width as itself, Scrimage doesn't return a new copy.
+      // This causes issues when the original image is reused in generating other variants, so we create a copy ourselves
+      case o if o.width == variant.width => return o.copy()
       case o                             => o
     }
 

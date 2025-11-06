@@ -14,7 +14,7 @@ import com.sksamuel.scrimage.format.{Format, FormatDetector}
 import com.sksamuel.scrimage.webp.WebpWriter
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.errors.{MissingIdException, ValidationException}
+import no.ndla.common.errors.{MissingBucketKeyException, MissingIdException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Deletable, Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.UploadedFile
@@ -423,7 +423,7 @@ class WriteService(using
   } yield converted
 
   // TODO: Remove this after completing variants migration of existing images
-  def generateAndUploadVariantsForExistingImages(ignoreMissing: Boolean): Try[Unit] = {
+  def generateAndUploadVariantsForExistingImages(ignoreMissingObjects: Boolean): Try[Unit] = {
     val processableContentTypes = Seq("image/png", "image/jpeg")
     val batchSize               = 20
     val batchIterator           = imageRepository.getImageFileBatched(batchSize)
@@ -437,17 +437,8 @@ class WriteService(using
 
         val batchFuture = Future
           .traverse(
-            batch.filter { image =>
-              val includeImage =
-                if (ignoreMissing) {
-                  imageStorage.objectExists(image.fileName)
-                } else {
-                  true
-                }
-
-              image.variants.isEmpty && processableContentTypes.contains(image.contentType) && includeImage
-            }
-          )(generateAndUploadVariantsForImageFileDataAsync)
+            batch.filter(image => image.variants.isEmpty && processableContentTypes.contains(image.contentType))
+          )(generateAndUploadVariantsForImageFileDataAsync(ignoreMissingObjects))
           .map { imagesWithVariants =>
             imagesWithVariants.map { imageWithVariants =>
               imageWithVariants.flatMap {
@@ -471,8 +462,8 @@ class WriteService(using
 
   // TODO: Remove this after completing variants migration of existing images
   private def generateAndUploadVariantsForImageFileDataAsync(
-      imageFileData: ImageFileData
-  )(using ExecutionContext): Future[Try[(ImageFileData, Seq[ImageVariant])]] = Future {
+      ignoreMissingObjects: Boolean
+  )(imageFileData: ImageFileData)(using ExecutionContext): Future[Try[(ImageFileData, Seq[ImageVariant])]] = Future {
     for {
       s3Object <- imageStorage.getRaw(imageFileData.fileName)
       stream    = new BufferedInputStream(s3Object.stream)
@@ -494,6 +485,11 @@ class WriteService(using
       generateAndUploadVariantsAsync(img, dimensions, fileStem, format).map(res =>
         res.map(variants => (imageFileData, variants))
       )
+    case Failure(ex: MissingBucketKeyException) if ignoreMissingObjects =>
+      logger.warn(
+        s"Ignoring missing bucket object for image (imageFileId = ${imageFileData.id}, imageMetaId = ${imageFileData.imageMetaId}, fileName = ${imageFileData.fileName})"
+      )
+      Future.successful(Success((imageFileData, Seq.empty)))
     case Failure(ex: ImageInvalidFormat) =>
       logger.warn(
         s"Found image with JPEG/PNG Content-Type with invalid format (imageFileId = ${imageFileData.id}, imageMetaId = ${imageFileData.imageMetaId}, fileName = ${imageFileData.fileName})",
