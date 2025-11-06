@@ -76,7 +76,6 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
         status = RevisionStatus.NeedsRevision,
       ),
     )
-
     val original = SearchableDraft(
       id = 100,
       title = titles,
@@ -91,6 +90,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       defaultTitle = Some("Christian Tut"),
       supportedLanguages = List("en", "nb", "nn"),
       notes = List("Note1", "note2"),
+      nodeIds = searchableTaxonomyContexts.map(_.publicId),
       context = searchableTaxonomyContexts.headOption,
       contexts = searchableTaxonomyContexts,
       contextids = searchableTaxonomyContexts.map(_.contextId),

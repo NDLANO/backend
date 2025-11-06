@@ -166,7 +166,7 @@ class SearchConverterService(using
     val taxonomyContexts = indexingBundle.taxonomyBundle match {
       case Some(bundle) =>
         Success(getTaxonomyContexts(articleId, "article", bundle, filterVisibles = true, filterContexts = false))
-      case None => taxonomyApiClient.getTaxonomyContext(
+      case None => taxonomyApiClient.getNodeIdsAndContexts(
           s"urn:article:$articleId",
           filterVisibles = true,
           filterContexts = false,
@@ -180,7 +180,7 @@ class SearchConverterService(using
     val defaultTitle       = getDefault(ai.title)
     val supportedLanguages =
       getSupportedLanguages(ai.title, ai.visualElement, ai.introduction, ai.metaDescription, ai.content, ai.tags).toList
-    val contexts             = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
+    val contexts             = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty, List.empty)._2)
     val learningResourceType = LearningResourceType.fromArticleType(ai.articleType)
     val typeNames            = getTypeNames(learningResourceType)
 
@@ -280,7 +280,7 @@ class SearchConverterService(using
       val taxonomyContexts = indexingBundle.taxonomyBundle match {
         case Some(bundle) =>
           Success(getTaxonomyContexts(lp.id.get, "learningpath", bundle, filterVisibles = true, filterContexts = false))
-        case None => taxonomyApiClient.getTaxonomyContext(
+        case None => taxonomyApiClient.getNodeIdsAndContexts(
             s"urn:learningpath:${lp.id.get}",
             filterVisibles = true,
             filterContexts = false,
@@ -299,11 +299,12 @@ class SearchConverterService(using
           lp.copyright.contributors.map(c => AuthorDTO(c.`type`, c.name)),
         )
       val users    = List(lp.owner)
-      val contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty))
+      val contexts = asSearchableTaxonomyContexts(taxonomyContexts.getOrElse(List.empty, List.empty)._2)
 
       val parentTopicName = SearchableLanguageValues(
         taxonomyContexts
-          .getOrElse(List.empty)
+          .getOrElse(List.empty, List.empty)
+          ._2
           .headOption
           .map(context => {
             context
@@ -318,7 +319,8 @@ class SearchConverterService(using
       val draftStatus = search.SearchableStatus(lp.status.entryName, Seq(lp.status.entryName))
 
       val primaryContext = taxonomyContexts
-        .getOrElse(List.empty)
+        .getOrElse((List.empty, List.empty))
+        ._2
         .find(tc => tc.isPrimary && tc.rootId.startsWith("urn:subject:"))
       val primaryRoot              = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
       val sortableResourceTypeName = primaryContext
@@ -449,14 +451,14 @@ class SearchConverterService(using
       indexingBundle.taxonomyBundle match {
         case Some(bundle) =>
           Success(getTaxonomyContexts(draftId, "article", bundle, filterVisibles = false, filterContexts = false))
-        case None => taxonomyApiClient.getTaxonomyContext(
+        case None => taxonomyApiClient.getNodeIdsAndContexts(
             s"urn:article:$draftId",
             filterVisibles = false,
             filterContexts = false,
             shouldUsePublishedTax = false,
           )
       }
-    }.getOrElse(List.empty)
+    }.getOrElse((List.empty, List.empty))
 
     val embedAttributes      = getAttributesToIndex(draft.content, draft.visualElement)
     val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(draft.content, draft.visualElement, draft.metaImage)
@@ -487,6 +489,7 @@ class SearchConverterService(using
 
     val parentTopicName = SearchableLanguageValues(
       taxonomyContexts
+        ._2
         .headOption
         .map(context => {
           context
@@ -499,9 +502,9 @@ class SearchConverterService(using
         .getOrElse(Seq.empty)
     )
 
-    val primaryContext           = taxonomyContexts.find(tc => tc.isPrimary && tc.rootId.startsWith("urn:subject:"))
+    val primaryContext           = taxonomyContexts._2.find(tc => tc.isPrimary && tc.rootId.startsWith("urn:subject:"))
     val primaryRoot              = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
-    val sortableResourceTypeName = getSortableResourceTypeName(draft, taxonomyContexts)
+    val sortableResourceTypeName = getSortableResourceTypeName(draft, taxonomyContexts._2)
 
     val favorited = (
       indexingBundle.myndlaBundle match {
@@ -524,7 +527,7 @@ class SearchConverterService(using
     val content              = SearchableLanguageValues.fromFieldsMap(draft.content)(toPlaintext)
     val introduction         = SearchableLanguageValues.fromFieldsMap(draft.introduction)(toPlaintext)
     val metaDescription      = SearchableLanguageValues.fromFields(draft.metaDescription)
-    val contexts             = asSearchableTaxonomyContexts(taxonomyContexts)
+    val contexts             = asSearchableTaxonomyContexts(taxonomyContexts._2)
     val learningResourceType = LearningResourceType.fromArticleType(draft.articleType)
     val typeNames            = getTypeNames(learningResourceType)
 
@@ -543,6 +546,7 @@ class SearchConverterService(using
         defaultTitle = defaultTitle.map(t => t.title),
         supportedLanguages = supportedLanguages,
         notes = notes,
+        nodeIds = taxonomyContexts._1,
         context = contexts.find(_.isPrimary),
         contexts = contexts,
         contextids =
@@ -572,6 +576,7 @@ class SearchConverterService(using
         typeName = typeNames,
       )
     )
+
   }
 
   private def getSortableResourceTypeName(
@@ -1058,12 +1063,13 @@ class SearchConverterService(using
       filterContexts: Boolean,
   ) = {
     val nodes       = bundle.nodeByContentUri.getOrElse(s"urn:$taxonomyType:$id", List.empty)
+    val nodeIds     = nodes.map(node => node.id)
     val allContexts = nodes.flatMap(node => node.contexts)
     val visibles    =
       if (filterVisibles) allContexts.filter(c => c.isVisible)
       else allContexts
-    if (filterContexts) visibles.filter(c => c.rootId.contains("subject"))
-    else visibles
+    if (filterContexts) (nodeIds, visibles.filter(c => c.rootId.contains("subject")))
+    else (nodeIds, visibles)
   }
 
   /** Parses [[TaxonomyBundle]] to get all contextids for a single node.
