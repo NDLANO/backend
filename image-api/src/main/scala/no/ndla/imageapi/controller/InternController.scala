@@ -185,14 +185,15 @@ class InternController(using
   def startImageVariantsMigration: ServerEndpoint[Any, Eff] = endpoint
     .post
     .in("migrate" / "variants")
+    .in(query[Option[Boolean]]("ignore_missing"))
     .out(jsonBody[String])
-    .serverLogicPure { _ =>
+    .serverLogicPure { ignoreMissing =>
       logger.info("Starting generation of image variants for all existing images...")
 
       Thread
         .ofVirtual()
         .start(() => {
-          writeService.generateAndUploadVariantsForExistingImages() match {
+          writeService.generateAndUploadVariantsForExistingImages(ignoreMissing.getOrElse(false)) match {
             case Success(_)  => logger.info("Successfully finished generation of image variants for all existing images")
             case Failure(ex) => logger.error("Failed to generate image variants", ex)
           }

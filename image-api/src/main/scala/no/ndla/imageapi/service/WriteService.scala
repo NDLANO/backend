@@ -422,7 +422,7 @@ class WriteService(using
   } yield converted
 
   // TODO: Remove this after completing variants migration of existing images
-  def generateAndUploadVariantsForExistingImages(): Try[Unit] = {
+  def generateAndUploadVariantsForExistingImages(ignoreMissing: Boolean): Try[Unit] = {
     val processableContentTypes = Seq("image/png", "image/jpeg")
     val batchSize               = 20
     val batchIterator           = imageRepository.getImageFileBatched(batchSize)
@@ -436,7 +436,16 @@ class WriteService(using
 
         val batchFuture = Future
           .traverse(
-            batch.filter(image => image.variants.isEmpty && processableContentTypes.contains(image.contentType))
+            batch.filter { image =>
+              val includeImage =
+                if (ignoreMissing) {
+                  imageStorage.objectExists(image.fileName)
+                } else {
+                  true
+                }
+
+              image.variants.isEmpty && processableContentTypes.contains(image.contentType) && includeImage
+            }
           )(generateAndUploadVariantsForImageFileDataAsync)
           .map { imagesWithVariants =>
             imagesWithVariants.map { imageWithVariants =>
