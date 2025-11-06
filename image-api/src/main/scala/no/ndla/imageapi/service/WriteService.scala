@@ -41,6 +41,7 @@ import java.io.{BufferedInputStream, ByteArrayInputStream}
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.jdk.OptionConverters.*
 import scala.util.{Failure, Success, Try}
 
 class WriteService(using
@@ -473,12 +474,15 @@ class WriteService(using
       imageFileData: ImageFileData
   )(using ExecutionContext): Future[Try[(ImageFileData, Seq[ImageVariant])]] = Future {
     for {
-      s3Object    <- imageStorage.getRaw(imageFileData.fileName)
-      stream       = new BufferedInputStream(s3Object.stream)
-      _            = stream.mark(32)
-      maybeFormat <- Try(FormatDetector.detect(stream).get()).map(ProcessableImageFormat.fromScrimageFormat)
-      format      <- Try(maybeFormat.get)
-      img         <- {
+      s3Object <- imageStorage.getRaw(imageFileData.fileName)
+      stream    = new BufferedInputStream(s3Object.stream)
+      _         = stream.mark(32)
+      format   <- FormatDetector
+        .detect(stream)
+        .toScala
+        .flatMap(ProcessableImageFormat.fromScrimageFormat)
+        .toTry(ImageInvalidFormat("Could not detect format of image"))
+      img <- {
         stream.reset()
         Try(ImmutableImage.loader().fromStream(stream))
       }
@@ -490,6 +494,12 @@ class WriteService(using
       generateAndUploadVariantsAsync(img, dimensions, fileStem, format).map(res =>
         res.map(variants => (imageFileData, variants))
       )
+    case Failure(ex: ImageInvalidFormat) =>
+      logger.warn(
+        s"Found image with JPEG/PNG Content-Type with invalid format (imageFileId = ${imageFileData.id}, imageMetaId = ${imageFileData.imageMetaId}, fileName = ${imageFileData.fileName})",
+        ex,
+      )
+      Future.successful(Success((imageFileData, Seq.empty)))
     case Failure(ex) => Future.successful(Failure(ex))
   }
 
@@ -511,10 +521,9 @@ class WriteService(using
     // Use buffered stream with mark to avoid creating multiple streams
     val fileStream = new BufferedInputStream(file.stream)
     fileStream.mark(32)
-    val format = Try(FormatDetector.detect(fileStream).get()).map(ProcessableImageFormat.fromScrimageFormat) match {
-      case Failure(ex)           => return Failure(ex)
-      case Success(None)         => return uploadImageAsIs(file, fileName)
-      case Success(Some(format)) => format
+    val format = FormatDetector.detect(fileStream).toScala.flatMap(ProcessableImageFormat.fromScrimageFormat) match {
+      case Some(format) => format
+      case None         => return uploadImageAsIs(file, fileName)
     }
 
     fileStream.reset()
