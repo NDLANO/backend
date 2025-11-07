@@ -89,8 +89,7 @@ class WriteService(using
         val imageIsUsedOtherwhere = otherLangs.exists(_.fileName == fileToDelete.fileName)
 
         if (!imageIsUsedOtherwhere) {
-          deleteImageAndVariants(fileToDelete): Unit
-          deletedMeta
+          deleteImageAndVariants(fileToDelete).combine(deletedMeta)
         } else {
           logger.info("Image is used by other languages. Skipping file delete")
           deletedMeta
