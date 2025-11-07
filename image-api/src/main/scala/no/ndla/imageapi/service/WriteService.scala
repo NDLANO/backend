@@ -606,9 +606,10 @@ class WriteService(using
     val variantKeysToNewVariants = image
       .variants
       .map(variant => variant.bucketKey -> variant.copy(bucketKey = s"$newBucketPrefix/${variant.sizeName}.webp"))
-    val fileNameKeyToNewKey = image.fileName -> s"$newBucketPrefix${getFileExtension(image.fileName)}"
+    val variantKeysToNewKeys = variantKeysToNewVariants.map(entry => entry.fmap(_.bucketKey))
+    val fileNameKeyToNewKey  = image.fileName -> s"$newBucketPrefix${getFileExtension(image.fileName)}"
 
-    imageStorage.moveObjects(variantKeysToNewVariants.map(entry => entry.fmap(_.bucketKey))) match {
+    imageStorage.moveObjects(variantKeysToNewKeys :+ fileNameKeyToNewKey) match {
       case Success(_) =>
         Success(image.copy(fileName = fileNameKeyToNewKey._2, variants = variantKeysToNewVariants.map(_._2)))
       case Failure(ex) => Failure(ex)
