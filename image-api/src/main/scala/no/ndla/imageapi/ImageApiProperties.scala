@@ -49,8 +49,8 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
   val LicenseMappingCacheAgeInMs: Int = 1000 * 60 * 60 // 1 hour caching
 
   val MaxImageFileSizeBytes: Int    = 1024 * 1024 * 40 // 40 MiB
-  val ImageScalingUltraMinSize: Int = 640
-  val ImageScalingUltraMaxSize: Int = 2080
+  val ImageScalingUltraMinSize: Int = propOrElse("IMAGE_SCALING_ULTRA_MIN_SIZE", "640").toInt
+  val ImageScalingUltraMaxSize: Int = propOrElse("IMAGE_SCALING_ULTRA_MAX_SIZE", "2080").toInt
 
   val StorageName: String           = propOrElse("IMAGE_FILE_S3_BUCKET", s"$Environment.images.ndla")
   val StorageRegion: Option[String] = propOrNone("IMAGE_FILE_S3_BUCKET_REGION")
@@ -73,7 +73,7 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
   lazy val Domain: String       = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
   val ImageApiV2UrlBase: String = Domain + ImageControllerV2Path + "/"
   val ImageApiV3UrlBase: String = Domain + ImageControllerV3Path + "/"
-  val RawImageUrlBase: String   = propOrElse("CLOUDFRONT_DOMAIN", Domain + RawControllerPath)
+  val RawImageUrlBase: String   = propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", Domain + RawControllerPath)
 
   override def MetaMigrationLocation: String      = "no/ndla/imageapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")

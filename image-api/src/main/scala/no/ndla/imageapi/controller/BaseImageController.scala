@@ -92,7 +92,7 @@ trait BaseImageController(using props: Props) {
   def doWithStream[T](filePart: Part[File])(f: UploadedFile => Try[T]): Try[T] = {
     val file = UploadedFile.fromFilePart(filePart)
     if (file.fileSize > maxImageFileSizeBytes) Failure(FileTooBigException())
-    else file.doWithStream(f)
+    else f(file)
   }
 
   def doWithMaybeStream[T](filePart: Option[Part[File]])(f: Option[UploadedFile] => Try[T]): Try[T] = {

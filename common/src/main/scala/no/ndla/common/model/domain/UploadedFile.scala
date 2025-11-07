@@ -11,7 +11,6 @@ package no.ndla.common.model.domain
 import sttp.model.Part
 
 import java.io.{File, FileInputStream, InputStream}
-import scala.util.Try
 
 case class UploadedFile(
     partName: String,
@@ -20,11 +19,6 @@ case class UploadedFile(
     contentType: Option[String],
     file: File,
 ) {
-  def doWithStream[T](f: UploadedFile => Try[T]): Try[T] = {
-    try f(this)
-    finally file.delete(): Unit
-  }
-
   def stream: InputStream = new FileInputStream(file)
 }
 

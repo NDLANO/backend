@@ -44,7 +44,7 @@ class FileController(using
   def doWithStream[T](filePart: Part[File])(f: domain.UploadedFile => Try[T]): Try[T] = {
     val file = domain.UploadedFile.fromFilePart(filePart)
     if (file.fileSize > props.multipartFileSizeThresholdBytes) Failure(FileTooBigException())
-    else file.doWithStream(f)
+    else f(file)
   }
 
   def uploadFile: ServerEndpoint[Any, Eff] = endpoint
