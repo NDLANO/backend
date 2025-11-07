@@ -47,9 +47,8 @@ async function generate_types(appName: string) {
   console.log(`Outputting to ${outputPath}`);
   fs.writeFileSync(outputPath, output);
 
-  const header = `// This file is generated automatically. Do not edit.
-`;
-  let newFileContent = `${header}import * as openapi from "./${appName}-openapi";
+  let fileContent = `// This file is generated automatically. Do not edit.
+import * as openapi from "./${appName}-openapi";
 type schemas = openapi.components["schemas"];
 export { openapi };
 
@@ -58,12 +57,12 @@ export { openapi };
   const schemas = schemaContent.components.schemas;
   const schemaNames = Object.keys(schemas);
   for (const schemaName of schemaNames) {
-    newFileContent += `export type ${schemaName} = schemas["${schemaName}"];\n`;
+    fileContent += `export type ${schemaName} = schemas["${schemaName}"];\n`;
   }
 
-  const newFilePath = `./${appName}.ts`;
-  console.log(`Outputting to ${newFilePath}`);
-  fs.writeFileSync(newFilePath, newFileContent);
+  const apiTypesFile = `./${appName}.ts`;
+  console.log(`Outputting to ${apiTypesFile}`);
+  fs.writeFileSync(apiTypesFile, fileContent);
 }
 
 generate_types(process.argv[2]);
