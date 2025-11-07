@@ -516,9 +516,14 @@ class WriteService(using
     // Use buffered stream with mark to avoid creating multiple streams
     val fileStream = new BufferedInputStream(file.stream)
     fileStream.mark(32)
-    val format = FormatDetector.detect(fileStream).toScala.flatMap(ProcessableImageFormat.fromScrimageFormat) match {
-      case Some(format) => format
-      case None         => return uploadImageAsIs(file, fileName)
+    val maybeFormat = for {
+      scrimageFormat   <- FormatDetector.detect(fileStream).toScala
+      processableFormat = ProcessableImageFormat.fromScrimageFormat(scrimageFormat)
+    } yield (scrimageFormat, processableFormat)
+
+    val maybeProcessableFormat = maybeFormat match {
+      case Some(_, maybeProcessableFormat) => maybeProcessableFormat
+      case None                            => return uploadImageAsIs(file, fileName, None)
     }
 
     fileStream.reset()
@@ -526,17 +531,22 @@ class WriteService(using
       case Success(i)  => i
       case Failure(ex) => return Failure(ex)
     }
-    val dimensions       = ImageDimensions(img.width, img.height)
+    val dimensions = ImageDimensions(img.width, img.height)
+
+    val format = maybeProcessableFormat match {
+      case Some(format) => format
+      case None         => return uploadImageAsIs(file, fileName, Some(dimensions))
+    }
+
     val executionContext =
       ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(ImageVariantSize.values.size))
     val variantsFuture             = generateAndUploadVariantsAsync(img, dimensions, uniqueFileStem, format)(using executionContext)
-    val maybeUploadedOriginalImage = uploadImageAsIs(file, fileName)
+    val maybeUploadedOriginalImage = uploadImageAsIs(file, fileName, Some(dimensions))
     val maybeVariants              = Await.result(variantsFuture, 1.minute)
 
     (maybeUploadedOriginalImage, maybeVariants) match {
-      case (Success(uploadedImage), Success(variants)) =>
-        Success(uploadedImage.copy(dimensions = Some(dimensions), variants = variants))
-      case (Failure(ex), variants) =>
+      case (Success(uploadedImage), Success(variants)) => Success(uploadedImage.copy(variants = variants))
+      case (Failure(ex), variants)                     =>
         variants.foreach(v => imageStorage.deleteObjects(v.map(_.bucketKey)))
         Failure(ex)
       case (original, Failure(ex)) =>
@@ -583,12 +593,16 @@ class WriteService(using
       }
   }
 
-  private def uploadImageAsIs(file: UploadedFile, fileName: String): Try[UploadedImage] = {
+  private def uploadImageAsIs(
+      file: UploadedFile,
+      fileName: String,
+      dimensions: Option[ImageDimensions],
+  ): Try[UploadedImage] = {
     val contentType = file.contentType.getOrElse("")
     imageStorage
       .uploadFromStream(fileName, file)
       .map(filePath => {
-        UploadedImage(filePath, file.fileSize, contentType, None, Seq.empty)
+        UploadedImage(filePath, file.fileSize, contentType, dimensions, Seq.empty)
       })
   }
 
