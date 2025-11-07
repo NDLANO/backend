@@ -42,7 +42,7 @@ import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.jdk.OptionConverters.*
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Try, Using}
 
 class WriteService(using
     converterService: ConverterService,
@@ -538,21 +538,22 @@ class WriteService(using
       case None         => return uploadImageAsIs(file, fileName, Some(dimensions))
     }
 
-    val executionContext =
-      ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(ImageVariantSize.values.size))
-    val variantsFuture             = generateAndUploadVariantsAsync(img, dimensions, uniqueFileStem, format)(using executionContext)
-    val maybeUploadedOriginalImage = uploadImageAsIs(file, fileName, Some(dimensions))
-    val maybeVariants              = Await.result(variantsFuture, 1.minute)
+    Using(ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(ImageVariantSize.values.size))) {
+      case given ExecutionContext =>
+        val variantsFuture             = generateAndUploadVariantsAsync(img, dimensions, uniqueFileStem, format)
+        val maybeUploadedOriginalImage = uploadImageAsIs(file, fileName, Some(dimensions))
+        val maybeVariants              = Await.result(variantsFuture, 1.minute)
 
-    (maybeUploadedOriginalImage, maybeVariants) match {
-      case (Success(uploadedImage), Success(variants)) => Success(uploadedImage.copy(variants = variants))
-      case (Failure(ex), variants)                     =>
-        variants.foreach(v => imageStorage.deleteObjects(v.map(_.bucketKey)))
-        Failure(ex)
-      case (original, Failure(ex)) =>
-        original.foreach(i => imageStorage.deleteObject(i.fileName))
-        Failure(ex)
-    }
+        (maybeUploadedOriginalImage, maybeVariants) match {
+          case (Success(uploadedImage), Success(variants)) => Success(uploadedImage.copy(variants = variants))
+          case (Failure(ex), variants)                     =>
+            variants.foreach(v => imageStorage.deleteObjects(v.map(_.bucketKey)))
+            Failure(ex)
+          case (original, Failure(ex)) =>
+            original.foreach(i => imageStorage.deleteObject(i.fileName))
+            Failure(ex)
+        }
+    }.flatten
   }
 
   /** Generate and upload image variants for `image`. Returns an [[Either]] with a [[Left]] value if one of the uploads
