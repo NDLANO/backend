@@ -8,21 +8,22 @@
 
 package no.ndla.imageapi.service
 
-import com.sksamuel.scrimage.ImmutableImage
+import com.sksamuel.scrimage.format.FormatDetector
+import com.sksamuel.scrimage.{ImmutableImage, ScaleMethod}
+import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.aws.NdlaS3Object
+import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.implicits.toTry
+import no.ndla.imageapi.Props
+import no.ndla.imageapi.model.ImageUnprocessableFormatException
+import no.ndla.imageapi.model.domain.*
+import no.ndla.imageapi.service.ImageConverter.nonResizableMimeTypes
 
 import java.awt.image.BufferedImage
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.BufferedInputStream
 import java.lang.Math.{abs, max, min}
-import javax.imageio.ImageIO
-import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.domain.{ImageVariantSize, ImageStream}
-import org.imgscalr.Scalr
-import org.imgscalr.Scalr.Mode
-
-import java.awt.{Color, Transparency}
-import scala.util.{Success, Try}
+import scala.jdk.OptionConverters.*
+import scala.util.{Failure, Success, Try}
 
 case class PixelPoint(x: Int, y: Int) // A point given with pixles
 case class PercentPoint(
@@ -47,117 +48,94 @@ object PercentPoint {
 }
 
 class ImageConverter(using props: Props) extends StrictLogging {
+  def s3ObjectToImageStream(s3Object: NdlaS3Object): Try[ImageStream] = {
+    val stream = new BufferedInputStream(s3Object.stream)
+    stream.mark(32)
 
-  /** This method adds a white background to a [[BufferedImage]], useful for removing transparent pixels for image types
-    * that doesn't support transparency
-    */
-  private def fillTransparentPixels(image: BufferedImage): BufferedImage = {
-    val width    = image.getWidth()
-    val height   = image.getHeight()
-    val newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-    val g        = newImage.createGraphics()
-    g.setColor(Color.WHITE)
-    g.fillRect(0, 0, width, height)
-    g.drawRenderedImage(image, null)
-    g.dispose()
-    newImage
-  }
-
-  private[service] def toImageStream(bufferedImage: BufferedImage, originalImage: ImageStream): ImageStream = {
-    val outputStream      = new ByteArrayOutputStream()
-    val imageOutputStream = ImageIO.createImageOutputStream(outputStream)
-    val writerIter        = ImageIO.getImageWritersByMIMEType(originalImage.contentType)
-
-    val onlyOpaqueTypes          = Seq("image/jpeg", "image/jpg")
-    val shouldRemoveTransparency = onlyOpaqueTypes.contains(originalImage.contentType) &&
-      bufferedImage.getColorModel.getTransparency != Transparency.OPAQUE
-
-    val newImage =
-      if (shouldRemoveTransparency) fillTransparentPixels(bufferedImage)
-      else bufferedImage
-
-    if (writerIter.hasNext) {
-      val writer = writerIter.next
-      writer.setOutput(imageOutputStream)
-      writer.write(newImage)
-    } else {
-      logger.warn(
-        s"Writer for content-type ${originalImage.contentType} not found, using ${originalImage.format} as format"
-      )
-      ImageIO.write(newImage, originalImage.format, imageOutputStream)
+    val format = (
+      for {
+        maybeFormat <- Try(FormatDetector.detect(stream).toScala)
+        _           <- Try(stream.reset())
+        format      <- maybeFormat
+          .flatMap(ProcessableImageFormat.fromScrimageFormat)
+          .toTry(ImageUnprocessableFormatException(s3Object.contentType))
+      } yield format
+    ) match {
+      case Success(f)                                                                                             => f
+      case Failure(ImageUnprocessableFormatException(contentType)) if nonResizableMimeTypes.contains(contentType) =>
+        return Try(stream.readAllBytes()).map(bytes =>
+          UnprocessableImageStream(bytes, s3Object.key, s3Object.contentType)
+        )
+      case Failure(ex) => return Failure(ex)
     }
 
-    new ImageStream {
-      override def stream: ByteArrayInputStream    = new ByteArrayInputStream(outputStream.toByteArray)
-      override def contentType: String             = originalImage.contentType
-      override def fileName: String                = originalImage.fileName
-      override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
-    }
+    for {
+      image             <- Try(ImmutableImage.loader().fromStream(stream))
+      imageWithFixedType = fixImageUnderlyingType(image)
+      imageStream        = ProcessableImageStream(imageWithFixedType, s3Object.key, format)
+    } yield imageStream
   }
+
+  // Due to a bug in Scrimage, 16-bit grayscale images must be converted to e.g., 8-bit RGBA
+  // See https://github.com/dbcxy/java-image-scaling/issues/35, which is used internally by Scrimage
+  private def fixImageUnderlyingType(image: ImmutableImage): ImmutableImage = image.getType match {
+    case BufferedImage.TYPE_USHORT_GRAY => image.copy(ImmutableImage.DEFAULT_DATA_TYPE)
+    case _                              => image
+  }
+
+  private def scaleMethodFor(targetSize: Int): ScaleMethod =
+    if (targetSize >= props.ImageScalingUltraMinSize && targetSize <= props.ImageScalingUltraMaxSize)
+      ScaleMethod.Lanczos3
+    else ScaleMethod.Bicubic
 
   def resizeToVariantSize(original: ImmutableImage, variant: ImageVariantSize): ImmutableImage = {
-    val img = original match {
-      // Due to a bug in Scrimage, 16-bit grayscale images must be converted to e.g., 8-bit RGBA
-      // See https://github.com/dbcxy/java-image-scaling/issues/35, which is used internally by Scrimage
-      case o if o.getType == BufferedImage.TYPE_USHORT_GRAY =>
-        val awt = new BufferedImage(o.width, o.height, BufferedImage.TYPE_INT_ARGB)
-        awt.getGraphics.drawImage(o.awt, 0, 0, null)
-        ImmutableImage.wrapAwt(awt)
-      // If the image is to be resized to exactly the same width as itself, Scrimage doesn't return a new copy.
-      // This causes issues when the original image is reused in generating other variants, so we create a copy ourselves
-      case o if o.width == variant.width => return o.copy()
-      case o                             => o
-    }
-
-    img.scaleToWidth(variant.width)
+    // If the image is to be resized to exactly the same width as itself, Scrimage doesn't return a new copy.
+    // This causes issues when the original image is reused in generating other variants, so we create a copy ourselves
+    if (original.width == variant.width) original.copy()
+    else original.scaleToWidth(variant.width)
   }
 
-  def resize(originalImage: ImageStream, targetWidth: Int, targetHeight: Int): Try[ImageStream] = {
-    val sourceImage = originalImage.sourceImage
-    val minWidth    = min(targetWidth, sourceImage.getWidth)
-    val minHeight   = min(targetHeight, sourceImage.getHeight)
-    val method      =
-      if (minWidth >= props.ImageScalingUltraMinSize && minWidth <= props.ImageScalingUltraMaxSize)
-        Scalr.Method.ULTRA_QUALITY
-      else Scalr.Method.AUTOMATIC
-    Try(Scalr.resize(sourceImage, method, minWidth, minHeight)).map(resized => toImageStream(resized, originalImage))
+  def resize(
+      originalImage: ProcessableImageStream,
+      targetWidth: Int,
+      targetHeight: Int,
+  ): Try[ProcessableImageStream] = {
+    val img        = originalImage.image
+    val targetSize = min(min(img.width, targetWidth), min(img.height, targetHeight))
+    val method     = scaleMethodFor(targetSize)
+    originalImage.transform(_.bound(targetWidth, targetHeight, method))
   }
 
-  private def resize(originalImage: ImageStream, mode: Mode, targetSize: Int): Try[ImageStream] = {
-    val sourceImage = originalImage.sourceImage
-    val method      =
-      if (targetSize >= props.ImageScalingUltraMinSize && targetSize <= props.ImageScalingUltraMaxSize)
-        Scalr.Method.ULTRA_QUALITY
-      else Scalr.Method.AUTOMATIC
-    Try(Scalr.resize(sourceImage, method, mode, targetSize)).map(resized => toImageStream(resized, originalImage))
+  def resizeWidth(originalImage: ProcessableImageStream, size: Int): Try[ProcessableImageStream] = {
+    val targetSize = Math.min(size, originalImage.image.width)
+    val method     = scaleMethodFor(targetSize)
+    originalImage.transform(_.scaleToWidth(targetSize, method))
   }
 
-  def resizeWidth(originalImage: ImageStream, size: Int): Try[ImageStream] =
-    resize(originalImage, Mode.FIT_TO_WIDTH, Math.min(size, originalImage.sourceImage.getWidth))
+  def resizeHeight(originalImage: ProcessableImageStream, size: Int): Try[ProcessableImageStream] = {
+    val targetSize = Math.min(size, originalImage.image.height)
+    val method     = scaleMethodFor(targetSize)
+    originalImage.transform(_.scaleToHeight(targetSize, method))
+  }
 
-  def resizeHeight(originalImage: ImageStream, size: Int): Try[ImageStream] =
-    resize(originalImage, Mode.FIT_TO_HEIGHT, Math.min(size, originalImage.sourceImage.getHeight))
-
-  private def crop(
-      image: ImageStream,
-      sourceImage: BufferedImage,
+  def crop(
+      originalImage: ProcessableImageStream,
       topLeft: PixelPoint,
       bottomRight: PixelPoint,
-  ): Try[ImageStream] = {
-    val (width, height) = getWidthHeight(topLeft, bottomRight, sourceImage)
+  ): Try[ProcessableImageStream] = {
+    val (width, height) = getWidthHeight(topLeft, bottomRight, originalImage.image.width, originalImage.image.height)
 
-    Try(Scalr.crop(sourceImage, topLeft.x, topLeft.y, width, height)).map(cropped => toImageStream(cropped, image))
+    if (width <= 0 || height <= 0) Success(originalImage)
+    else originalImage.transform(_.subimage(topLeft.x, topLeft.y, width, height))
   }
 
-  def crop(originalImage: ImageStream, start: PercentPoint, end: PercentPoint): Try[ImageStream] = {
-    val sourceImage            = originalImage.sourceImage
-    val (topLeft, bottomRight) = transformCoordinates(sourceImage, start, end)
-    crop(originalImage, sourceImage, topLeft, bottomRight)
-  }
-
-  def crop(originalImage: ImageStream, start: PixelPoint, end: PixelPoint): Try[ImageStream] = {
-    val sourceImage = originalImage.sourceImage
-    crop(originalImage, sourceImage, start, end)
+  def crop(
+      originalImage: ProcessableImageStream,
+      start: PercentPoint,
+      end: PercentPoint,
+  ): Try[ProcessableImageStream] = {
+    val (topLeft, bottomRight) = transformCoordinates(originalImage.image.width, originalImage.image.height, start, end)
+    crop(originalImage, topLeft, bottomRight)
   }
 
   private def getStartEndCoords(focalPoint: Int, targetDimensionSize: Int, originalDimensionSize: Int): (Int, Int) = {
@@ -169,19 +147,19 @@ class ImageConverter(using props: Props) extends StrictLogging {
   }
 
   def dynamicCrop(
-      image: ImageStream,
+      originalImage: ProcessableImageStream,
       percentFocalPoint: PercentPoint,
       targetWidthOpt: Option[Int],
       targetHeightOpt: Option[Int],
       ratioOpt: Option[Double],
-  ): Try[ImageStream] = {
-    val sourceImage               = image.sourceImage
-    val focalPoint                = toPixelPoint(percentFocalPoint, sourceImage)
-    val (imageWidth, imageHeight) = (sourceImage.getWidth, sourceImage.getHeight)
+  ): Try[ProcessableImageStream] = {
+    val img                       = originalImage.image
+    val focalPoint                = toPixelPoint(percentFocalPoint, img.width, img.height)
+    val (imageWidth, imageHeight) = (img.width, img.height)
 
     val (targetWidth: Int, targetHeight: Int) = (targetWidthOpt, targetHeightOpt, ratioOpt) match {
       case (_, _, Some(ratio))   => minimalCropSizesToPreserveRatio(imageWidth, imageHeight, ratio)
-      case (None, None, _)       => return Success(image)
+      case (None, None, _)       => return Success(originalImage)
       case (Some(w), Some(h), _) => (min(w, imageWidth), min(h, imageHeight))
       case (Some(w), None, _)    =>
         val actualTargetWidth             = min(imageWidth, w)
@@ -206,7 +184,7 @@ class ImageConverter(using props: Props) extends StrictLogging {
     val (startY, endY) = getStartEndCoords(focalPoint.y, targetHeight, imageHeight)
     val (startX, endX) = getStartEndCoords(focalPoint.x, targetWidth, imageWidth)
 
-    crop(image, sourceImage, PixelPoint(startX, startY), PixelPoint(endX, endY))
+    crop(originalImage, PixelPoint(startX, startY), PixelPoint(endX, endY))
   }
 
   def minimalCropSizesToPreserveRatio(imageWidth: Int, imageHeight: Int, ratio: Double): (Int, Int) = {
@@ -218,18 +196,18 @@ class ImageConverter(using props: Props) extends StrictLogging {
   // Given two sets of coordinates; reorganize them so that the first coordinate is the top-left,
   // and the other coordinate is the bottom-right
   private[service] def transformCoordinates(
-      image: BufferedImage,
+      imageWidth: Int,
+      imageHeight: Int,
       start: PercentPoint,
       end: PercentPoint,
   ): (PixelPoint, PixelPoint) = {
     val topLeft     = PercentPoint(min(start.x, end.x), min(start.y, end.y))
     val bottomRight = PercentPoint(max(start.x, end.x), max(start.y, end.y))
 
-    (toPixelPoint(topLeft, image), toPixelPoint(bottomRight, image))
+    (toPixelPoint(topLeft, imageWidth, imageHeight), toPixelPoint(bottomRight, imageWidth, imageHeight))
   }
 
-  private def toPixelPoint(point: PercentPoint, image: BufferedImage) = {
-    val (width, height) = (image.getWidth, image.getHeight)
+  private def toPixelPoint(point: PercentPoint, width: Int, height: Int) = {
     PixelPoint(
       (
         point.normalizedX * width
@@ -240,10 +218,18 @@ class ImageConverter(using props: Props) extends StrictLogging {
     )
   }
 
-  private[service] def getWidthHeight(start: PixelPoint, end: PixelPoint, image: BufferedImage): (Int, Int) = {
+  private[service] def getWidthHeight(
+      start: PixelPoint,
+      end: PixelPoint,
+      imageWidth: Int,
+      imageHeight: Int,
+  ): (Int, Int) = {
     val width  = abs(start.x - end.x)
     val height = abs(start.y - end.y)
-    (min(width, image.getWidth - start.x), min(height, image.getHeight - start.y))
+    (min(width, imageWidth - start.x), min(height, imageHeight - start.y))
   }
+}
 
+object ImageConverter {
+  private val nonResizableMimeTypes = List("image/gif", "image/svg", "image/svg+xml")
 }

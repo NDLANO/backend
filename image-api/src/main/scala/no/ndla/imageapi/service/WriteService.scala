@@ -471,7 +471,7 @@ class WriteService(using
         .detect(stream)
         .toScala
         .flatMap(ProcessableImageFormat.fromScrimageFormat)
-        .toTry(ImageInvalidFormat("Could not detect format of image"))
+        .toTry(ImageUnprocessableFormatException(s3Object.contentType))
       img <- {
         stream.reset()
         Try(ImmutableImage.loader().fromStream(stream))
@@ -489,7 +489,7 @@ class WriteService(using
         s"Ignoring missing bucket object for image (imageFileId = ${imageFileData.id}, imageMetaId = ${imageFileData.imageMetaId}, fileName = ${imageFileData.fileName})"
       )
       Future.successful(Success((imageFileData, Seq.empty)))
-    case Failure(ex: ImageInvalidFormat) =>
+    case Failure(ex: ImageUnprocessableFormatException) =>
       logger.warn(
         s"Found image with JPEG/PNG Content-Type with invalid format (imageFileId = ${imageFileData.id}, imageMetaId = ${imageFileData.imageMetaId}, fileName = ${imageFileData.fileName})",
         ex,

@@ -10,9 +10,9 @@ package no.ndla.imageapi.service
 
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.model.api.{CopyrightDTO, LicenseDTO, Missing, UpdateWith}
+import no.ndla.common.model.domain.article.Copyright as DomainCopyright
 import no.ndla.common.model.domain.{ContributorType, UploadedFile}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
-import no.ndla.common.model.domain.article.Copyright as DomainCopyright
 import no.ndla.database.DBUtility
 import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain
@@ -30,14 +30,12 @@ import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
-import java.io.ByteArrayInputStream
 import scala.util.{Failure, Success}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   given dbUtility: DBUtility                                    = new DBUtility // TODO: Remove this after completing variants migration of existing images
   override implicit lazy val writeService: WriteService         = new WriteService
   override implicit lazy val converterService: ConverterService = new ConverterService
-  override implicit lazy val imageConverter: ImageConverter     = new ImageConverter
   val newFileName                                               = "AbCdeF.mp3"
   val fileMock1: UploadedFile                                   = mock[UploadedFile]
 
@@ -91,8 +89,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeEach(): Unit = {
     when(fileMock1.contentType).thenReturn(Some("image/jpeg"))
-    val bytes = TestData.NdlaLogoImage.stream.readAllBytes()
-    when(fileMock1.stream).thenReturn(new ByteArrayInputStream(bytes))
+    val stream = TestData.NdlaLogoImage.toStream
+    when(fileMock1.stream).thenReturn(stream)
     when(fileMock1.fileSize).thenReturn(1024L)
     when(fileMock1.fileName).thenReturn(Some("file.jpg"))
     when(random.string(any)).thenCallRealMethod()
@@ -532,7 +530,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       id = 1,
       fileName = "apekatt.jpg",
       size = 100,
-      contentType = "image/jpg",
+      contentType = "image/jpeg",
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
@@ -547,11 +545,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         updatedBy = "ndla124",
       )
 
-    val fileMock = mock[UploadedFile]
-    when(fileMock.fileName).thenReturn(Some("someupload.jpg"))
-    when(fileMock.contentType).thenReturn(Some("image/jpg"))
-    when(fileMock.stream).thenReturn(TestData.NdlaLogoImage.stream)
-    when(fileMock.fileSize).thenReturn(1337L)
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
@@ -582,7 +575,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           image.copy(
             id = 2,
             fileName = "randomstring.jpg",
-            size = 1337,
+            size = 1024,
             dimensions = Some(domain.ImageDimensions(189, 60)),
             language = "nb",
           ),
@@ -594,7 +587,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       ),
     )
 
-    val result = writeService.updateImageAndFile(imageId, upd, Some(fileMock), userWithWriteScope)
+    val result = writeService.updateImageAndFile(imageId, upd, Some(fileMock1), userWithWriteScope)
     result should be(Success(expectedResult))
 
     verify(imageStorage, times(1)).uploadFromStream(any, any)
@@ -623,7 +616,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       id = 1,
       fileName = "apekatt.jpg",
       size = 100,
-      contentType = "image/jpg",
+      contentType = "image/jpeg",
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
@@ -634,11 +627,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .bjorn
       .copy(images = Some(Seq(image.copy(id = 1, language = "nn"))), updated = coolDate, updatedBy = "ndla124")
 
-    val fileMock = mock[UploadedFile]
-    when(fileMock.fileName).thenReturn(Some("someupload.jpg"))
-    when(fileMock.contentType).thenReturn(Some("image/jpg"))
-    when(fileMock.stream).thenReturn(TestData.NdlaLogoImage.stream)
-    when(fileMock.fileSize).thenReturn(1337L)
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
@@ -677,7 +665,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           image.copy(
             id = 5,
             fileName = "randomstring.jpg",
-            size = 1337,
+            size = 1024,
             dimensions = Some(domain.ImageDimensions(189, 60)),
             language = "nb",
           ),
@@ -689,7 +677,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       ),
     )
 
-    val result = writeService.updateImageAndFile(imageId, upd, Some(fileMock), userWithWriteScope)
+    val result = writeService.updateImageAndFile(imageId, upd, Some(fileMock1), userWithWriteScope)
     result should be(Success(expectedResult))
 
     verify(imageStorage, times(1)).uploadFromStream(any, any)
@@ -710,7 +698,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       id = 1,
       fileName = "apekatt.jpg",
       size = 100,
-      contentType = "image/jpg",
+      contentType = "image/jpeg",
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
@@ -782,7 +770,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       id = 1,
       fileName = "apekatt.jpg",
       size = 100,
-      contentType = "image/jpg",
+      contentType = "image/jpeg",
       dimensions = None,
       variants = Seq.empty,
       language = "nb",

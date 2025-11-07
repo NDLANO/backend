@@ -10,18 +10,17 @@ package no.ndla.imageapi.controller
 
 import no.ndla.common.Clock
 import no.ndla.imageapi.model.ImageNotFoundException
-import no.ndla.imageapi.service.ImageConverter
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import sttp.client3.quick.*
+import sttp.client3.{Empty, RequestT}
 
 import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 import scala.util.{Failure, Success}
-import sttp.client3.{Empty, RequestT}
 
 class RawControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   import TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
@@ -32,7 +31,6 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   override implicit lazy val clock: Clock                    = mock[Clock]
   override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
   override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
-  override implicit lazy val imageConverter: ImageConverter  = new ImageConverter
   val controller: RawController                              = new RawController
   override implicit lazy val services: List[TapirController] = List(controller)
   override implicit lazy val routes: Routes                  = new Routes
@@ -108,7 +106,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
     res.code.code should be(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getWidth should equal(50)
-    image.getHeight should equal(16)
+    image.getHeight should equal(15)
   }
 
   test("GET /id/1 returns 200 if the image was found") {
@@ -164,7 +162,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
     res.code.code should equal(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getWidth should equal(50)
-    image.getHeight should equal(16)
+    image.getHeight should equal(15)
   }
 
   test("That GET /imageGif.gif with width resizing returns the original image") {
@@ -221,7 +219,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
       )
     )
     res.code.code should equal(200)
-    res.body should equal(CCLogoSvgImage.stream.readAllBytes())
+    res.body should equal(CCLogoSvgImage.toStream.readAllBytes())
   }
 
   test("That GET /id/1 with width resizing returns the original image") {
