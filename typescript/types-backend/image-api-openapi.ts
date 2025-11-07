@@ -71,9 +71,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                image_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /**
@@ -104,9 +102,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                external_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /**
@@ -127,10 +123,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                image_id: string;
-                language: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
@@ -235,9 +228,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                image_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /**
@@ -265,9 +256,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                external_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /**
@@ -287,10 +276,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                image_id: string;
-                language: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
@@ -310,9 +296,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                image_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
@@ -332,9 +316,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                image_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /**
@@ -354,9 +336,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                image_name: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /**

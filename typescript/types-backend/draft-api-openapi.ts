@@ -148,9 +148,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                article_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /**
@@ -174,9 +172,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                article_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /**
@@ -196,9 +192,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                article_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /**
@@ -218,9 +212,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                deprecated_node_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /**
@@ -240,10 +232,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                article_id: string;
-                STATUS: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
@@ -263,9 +252,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                article_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
@@ -285,10 +272,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                article_id: string;
-                language: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
@@ -308,9 +292,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                article_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
@@ -330,9 +312,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                article_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
@@ -372,9 +352,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                node_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
@@ -394,9 +372,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                slug: string;
-            };
+            path?: never;
             cookie?: never;
         };
         /**
@@ -456,9 +432,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                article_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;

@@ -38,9 +38,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                "subjectpage-id": string;
-            };
+            path?: never;
             cookie?: never;
         };
         /** Get data to display on a subject page */
@@ -58,10 +56,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                "subjectpage-id": string;
-                language: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
@@ -117,9 +112,7 @@ export type paths = {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                language: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
