@@ -95,6 +95,17 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
         implicit val ec: ExecutionContextExecutorService =
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(SearchType.values.size))
 
+        def futureOnComplete(future: Future[Try[ReindexResult]], indexName: String): Future[Try[ReindexResult]] = {
+          future.onComplete {
+            case Success(Success(reindexResult: ReindexResult)) => logger.info(
+                s"Completed indexing of ${reindexResult.totalIndexed} $indexName in ${reindexResult.millisUsed} ms."
+              )
+            case Success(Failure(ex)) => logger.warn(ex.getMessage, ex)
+            case Failure(ex)          => logger.warn(s"Unable to create index '$indexName': " + ex.getMessage, ex)
+          }
+          future
+        }
+
         def reindexWithIndexService[C <: Content](indexService: IndexService[C], shouldUsePublishedTax: Boolean)(
             implicit d: Decoder[C]
         ): Future[Try[ReindexResult]] = {
@@ -109,17 +120,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
           val reindexFuture = Future {
             indexService.indexDocuments(indexingBundle)
           }
-
-          reindexFuture.onComplete {
-            case Success(Success(reindexResult: ReindexResult)) => logger.info(
-                s"Completed indexing of ${reindexResult.totalIndexed} ${indexService.searchIndex} in ${reindexResult.millisUsed} ms."
-              )
-            case Success(Failure(ex)) => logger.warn(ex.getMessage, ex)
-            case Failure(ex)          =>
-              logger.warn(s"Unable to create index '${indexService.searchIndex}': " + ex.getMessage, ex)
-          }
-
-          reindexFuture
+          futureOnComplete(reindexFuture, indexService.searchIndex)
         }
 
         Await.result(
@@ -129,6 +130,12 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
               reindexWithIndexService(componentRegistry.articleIndexService, shouldUsePublishedTax = true),
               reindexWithIndexService(componentRegistry.draftIndexService, shouldUsePublishedTax = false),
               reindexWithIndexService(componentRegistry.draftConceptIndexService, shouldUsePublishedTax = true),
+              futureOnComplete(
+                Future {
+                  componentRegistry.grepIndexService.indexDocuments(None, Some(grepBundle))
+                },
+                "grep",
+              ),
             )
           ),
           Duration.Inf,
