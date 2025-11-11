@@ -875,7 +875,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     dimensions should equal(Some(expectedDimensions))
     variants.size should equal(expectedVariantSizes.size)
     variants.foreach { variant =>
-      variant.bucketKey should endWith(s"/${variant.size.entryName}.webp")
+      variant.src should endWith(s"/${variant.size.entryName}.webp")
     }
   }
 }

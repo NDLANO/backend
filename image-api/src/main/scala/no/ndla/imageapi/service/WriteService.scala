@@ -547,7 +547,7 @@ class WriteService(using
         (maybeUploadedOriginalImage, maybeVariants) match {
           case (Success(uploadedImage), Success(variants)) => Success(uploadedImage.copy(variants = variants))
           case (Failure(ex), variants)                     =>
-            variants.foreach(v => imageStorage.deleteObjects(v.map(_.bucketKey)))
+            variants.foreach(v => imageStorage.deleteObjects(v.map(_.src)))
             Failure(ex)
           case (original, Failure(ex)) =>
             original.foreach(i => imageStorage.deleteObject(i.fileName))
@@ -587,7 +587,7 @@ class WriteService(using
         failures match {
           case Seq()            => Success(successes)
           case uploadExceptions =>
-            val deleteResult = imageStorage.deleteObjects(successes.map(_.bucketKey))
+            val deleteResult = imageStorage.deleteObjects(successes.map(_.src))
             val exs          = uploadExceptions ++ deleteResult.failed.toOption
             Failure(ImageVariantsUploadException("Failed to upload image variant(s)", exs))
         }
@@ -608,7 +608,7 @@ class WriteService(using
   }
 
   private def deleteImageAndVariants(image: ImageFileData): Try[Unit] = {
-    val variantsResult = imageStorage.deleteObjects(image.variants.map(_.bucketKey))
+    val variantsResult = imageStorage.deleteObjects(image.variants.map(_.src))
     val imageResult    = imageStorage.deleteObject(image.fileName)
 
     variantsResult.failed.toOption ++ imageResult.failed.toOption match {
@@ -620,8 +620,8 @@ class WriteService(using
   private def moveImageAndVariants(image: ImageFileData, newBucketPrefix: String): Try[ImageFileData] = {
     val variantKeysToNewVariants = image
       .variants
-      .map(variant => variant.bucketKey -> variant.copy(bucketKey = s"$newBucketPrefix/${variant.sizeName}.webp"))
-    val variantKeysToNewKeys = variantKeysToNewVariants.map(entry => entry.fmap(_.bucketKey))
+      .map(variant => variant.src -> variant.copy(src = s"$newBucketPrefix/${variant.sizeName}.webp"))
+    val variantKeysToNewKeys = variantKeysToNewVariants.map(entry => entry.fmap(_.src))
     val fileNameKeyToNewKey  = image.fileName -> s"$newBucketPrefix${getFileExtension(image.fileName)}"
 
     imageStorage.moveObjects(variantKeysToNewKeys :+ fileNameKeyToNewKey) match {

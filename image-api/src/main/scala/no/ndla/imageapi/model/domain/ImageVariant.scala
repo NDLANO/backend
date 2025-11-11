@@ -15,7 +15,7 @@ import no.ndla.common.CirceUtil.CirceEnumWithErrors
 import sttp.tapir.Schema
 import sttp.tapir.codec.enumeratum.*
 
-case class ImageVariant(size: ImageVariantSize, bucketKey: String) {
+case class ImageVariant(size: ImageVariantSize, src: String) {
   def sizeName: String = size.entryName
 }
 
