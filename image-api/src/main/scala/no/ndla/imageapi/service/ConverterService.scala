@@ -17,6 +17,7 @@ import no.ndla.imageapi.model.domain.{
   ImageFileData,
   ImageFileDataDocument,
   ImageMetaInformation,
+  ImageVariant,
   ModelReleasedStatus,
   UploadedImage,
 }
@@ -26,6 +27,7 @@ import no.ndla.language.Language.findByLanguageOrBestEffort
 import no.ndla.mapping.License.getLicense
 import cats.implicits.*
 import no.ndla.common.Clock
+import no.ndla.imageapi.model.api.ImageVariantDTO
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 
@@ -47,10 +49,6 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       domainCopyright.validTo,
       domainCopyright.processed,
     )
-  }
-
-  def asApiImage(domainImage: ImageFileData, baseUrl: Option[String] = None): api.ImageDTO = {
-    api.ImageDTO(baseUrl.getOrElse("") + domainImage.fileName, domainImage.size, domainImage.contentType)
   }
 
   def asApiImageAltText(domainImageAltText: domain.ImageAltText): api.ImageAltTextDTO = {
@@ -91,7 +89,6 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       user: Option[TokenUser],
   ): Try[api.ImageMetaInformationV3DTO] = {
     val metaUrl = props.ImageApiV3UrlBase + imageMeta.id.get
-    val rawPath = props.RawImageUrlBase
     val title   = findByLanguageOrBestEffort(imageMeta.titles, language)
       .map(asApiImageTitle)
       .getOrElse(api.ImageTitleDTO("", props.DefaultLanguage))
@@ -106,9 +103,8 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       .getOrElse(api.ImageCaptionDTO("", props.DefaultLanguage))
 
     getImageFromMeta(imageMeta, language).flatMap(image => {
-      val apiUrl             = asApiUrl(image.fileName, rawPath.some)
       val editorNotes        = Option.when(user.hasPermission(IMAGE_API_WRITE))(asApiEditorNotes(imageMeta.editorNotes))
-      val apiImageFile       = asApiImageFile(image, apiUrl)
+      val apiImageFile       = asApiImageFile(image)
       val supportedLanguages = getSupportedLanguages(imageMeta)
 
       Success(
@@ -131,22 +127,29 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     })
   }
 
-  private def asApiImageFile(image: ImageFileData, url: String): api.ImageFileDTO = {
+  private def asApiImageFile(image: ImageFileData): api.ImageFileDTO = {
+    val apiUrl     = asApiUrl(image.fileName, props.RawImageUrlBase.some)
     val dimensions = image
       .dimensions
       .map { case domain.ImageDimensions(width, height) =>
         api.ImageDimensionsDTO(width, height)
       }
+    val variants = image.variants.map(asApiImageVariant)
 
     api.ImageFileDTO(
       fileName = image.fileName,
       size = image.size,
       contentType = image.contentType,
-      imageUrl = url,
+      imageUrl = apiUrl,
       dimensions = dimensions,
-      variants = image.variants,
+      variants = variants,
       language = image.language,
     )
+  }
+
+  private def asApiImageVariant(imageVariant: ImageVariant): api.ImageVariantDTO = {
+    val apiUrl = asApiUrl(imageVariant.bucketKey, props.RawImageUrlBase.some)
+    ImageVariantDTO(imageVariant.size, apiUrl)
   }
 
   private def asApiEditorNotes(notes: Seq[domain.EditorNote]): Seq[api.EditorNoteDTO] = {
