@@ -95,7 +95,7 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
         implicit val ec: ExecutionContextExecutorService =
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(SearchType.values.size))
 
-        def futureOnComplete(future: Future[Try[ReindexResult]], indexName: String): Future[Try[ReindexResult]] = {
+        def handleOnComplete(future: Future[Try[ReindexResult]], indexName: String): Future[Try[ReindexResult]] = {
           future.onComplete {
             case Success(Success(reindexResult: ReindexResult)) => logger.info(
                 s"Completed indexing of ${reindexResult.totalIndexed} $indexName in ${reindexResult.millisUsed} ms."
@@ -120,8 +120,14 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
           val reindexFuture = Future {
             indexService.indexDocuments(indexingBundle)
           }
-          futureOnComplete(reindexFuture, indexService.searchIndex)
+          handleOnComplete(reindexFuture, indexService.searchIndex)
         }
+
+        val indexingBundle = IndexingBundle(
+          grepBundle = Some(grepBundle),
+          taxonomyBundle = Some(taxonomyBundlePublished),
+          myndlaBundle = Some(myndlaBundle),
+        )
 
         Await.result(
           Future.sequence(
@@ -130,11 +136,17 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
               reindexWithIndexService(componentRegistry.articleIndexService, shouldUsePublishedTax = true),
               reindexWithIndexService(componentRegistry.draftIndexService, shouldUsePublishedTax = false),
               reindexWithIndexService(componentRegistry.draftConceptIndexService, shouldUsePublishedTax = true),
-              futureOnComplete(
+              handleOnComplete(
                 Future {
-                  componentRegistry.grepIndexService.indexDocuments(None, Some(grepBundle))
+                  componentRegistry.grepIndexService.indexDocuments(None, indexingBundle.grepBundle)
                 },
-                "grep",
+                "greps",
+              ),
+              handleOnComplete(
+                Future {
+                  componentRegistry.nodeIndexService.indexDocuments(None, indexingBundle)
+                },
+                "nodes",
               ),
             )
           ),
