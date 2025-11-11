@@ -476,7 +476,7 @@ export type components = {
             imageUrl: string;
             dimensions?: components["schemas"]["ImageDimensionsDTO"];
             /** @description Size variants of the image */
-            variants: components["schemas"]["ImageVariant"][];
+            variants: components["schemas"]["ImageVariantDTO"][];
             /** @description ISO 639-1 code that represents the language used in the caption */
             language: string;
         };
@@ -602,13 +602,15 @@ export type components = {
             /** @description ISO 639-1 code that represents the language used in title */
             language: string;
         };
-        /** ImageVariant */
-        ImageVariant: {
+        /** ImageVariantDTO */
+        ImageVariantDTO: {
             size: components["schemas"]["ImageVariantSize"];
-            bucketKey: string;
+            /** @description The full URL to where the image variant can be downloaded */
+            variantUrl: string;
         };
         /**
          * ImageVariantSize
+         * @description The named size of this image variant
          * @enum {string}
          */
         ImageVariantSize: "icon" | "xsmall" | "small" | "medium" | "large" | "xlarge" | "xxlarge";
