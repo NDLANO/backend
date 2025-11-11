@@ -15,7 +15,7 @@ import no.ndla.imageapi.model.domain.*
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 class ImageRepository extends StrictLogging with Repository[ImageMetaInformation] {
   def imageCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
@@ -65,7 +65,8 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
     )
   }
 
-  private def updateImageFileMeta(imageFileData: ImageFileData)(implicit session: DBSession): Try[?] = Try {
+  // TODO: Can make private after completing variants migration of existing images
+  def updateImageFileMeta(imageFileData: ImageFileData)(implicit session: DBSession): Try[Int] = Try {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     val jsonString = CirceUtil.toJsonString(imageFileData.toDocument())
@@ -209,4 +210,44 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
       """.map(ImageMetaInformation.fromResultSet(im)).list()
   }
 
+  private def imageFileCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
+    sql"select count(*) from ${Image.table}".map(rs => rs.long("count")).single().getOrElse(0)
+
+  // TODO: Remove this after completing variants migration of existing images
+  def getImageFileBatched(batchSize: Long): Iterator[Seq[ImageFileData]] = new Iterator[Seq[ImageFileData]] {
+    private val ifd    = Image.syntax("ifd")
+    private val total  = imageFileCount
+    private var cursor = 0L
+
+    override val knownSize: Int = (
+      total.toFloat / batchSize.toFloat
+    ).ceil.toInt
+
+    override def hasNext: Boolean = cursor < total
+
+    override def next(): Seq[ImageFileData] = {
+      if (cursor >= total) throw IllegalStateException("Called `next` while `hasNext` is false")
+
+      val size = batchSize.min(total - cursor)
+      DB.readOnly { case given DBSession =>
+        Try {
+          sql"""
+            select ${ifd.result.*}
+            from ${Image.as(ifd)}
+            where metadata is not null
+            order by ${ifd.id}
+            offset $cursor
+            limit $size
+             """.map(rs => Image.fromResultSet(ifd.resultName)(rs).flatMap(i => Try(i.get))).list().sequence
+        }.flatten
+      } match {
+        case Success(imageFiles) =>
+          cursor += size
+          imageFiles
+        case Failure(ex) =>
+          logger.error("Failed to fetch next batch of ImageFileData", ex)
+          throw ex
+      }
+    }
+  }
 }

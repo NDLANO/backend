@@ -35,6 +35,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
           size = 1024,
           contentType = "image/jpeg",
           dimensions = None,
+          variants = Seq.empty,
           language = "nb",
           imageMetaId = 1,
         )

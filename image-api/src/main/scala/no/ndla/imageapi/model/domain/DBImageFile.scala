@@ -22,11 +22,25 @@ case class ImageFileData(
     size: Long,
     contentType: String,
     dimensions: Option[ImageDimensions],
+    variants: Seq[ImageVariant],
     override val language: String,
     imageMetaId: Long,
 ) extends WithLanguage {
   def toDocument(): ImageFileDataDocument = {
-    ImageFileDataDocument(size = size, contentType = contentType, dimensions = dimensions, language = language)
+    ImageFileDataDocument(
+      size = size,
+      contentType = contentType,
+      dimensions = dimensions,
+      variants = variants,
+      language = language,
+    )
+  }
+
+  def getFileStem: String = {
+    fileName.lastIndexOf(".") match {
+      case i if i > 0 => fileName.substring(0, i)
+      case _          => fileName
+    }
   }
 }
 
@@ -39,6 +53,7 @@ case class ImageFileDataDocument(
     size: Long,
     contentType: String,
     dimensions: Option[ImageDimensions],
+    variants: Seq[ImageVariant],
     override val language: String,
 ) extends WithLanguage {
   def toFull(id: Long, fileName: String, imageId: Long): ImageFileData = {
@@ -48,6 +63,7 @@ case class ImageFileDataDocument(
       size = size,
       contentType = contentType,
       dimensions = dimensions,
+      variants = variants,
       language = language,
       imageMetaId = imageId,
     )

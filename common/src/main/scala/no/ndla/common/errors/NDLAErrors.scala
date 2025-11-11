@@ -30,3 +30,8 @@ case class VideoSourceRetrievalException(message: String) extends RuntimeExcepti
 case class VideoSourceParsingException(message: String)   extends RuntimeException(message)
 case class OperationNotAllowedException(message: String)  extends RuntimeException(message)
 case class TaxonomyException(message: String)             extends RuntimeException(message)
+case class MissingBucketKeyException(message: String)     extends RuntimeException(message)
+
+class MultipleExceptions(message: String, exs: Seq[Throwable]) extends RuntimeException(message) {
+  exs.foreach(ex => addSuppressed(ex))
+}

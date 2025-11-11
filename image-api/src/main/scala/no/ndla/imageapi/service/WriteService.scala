@@ -9,13 +9,17 @@
 package no.ndla.imageapi.service
 
 import cats.implicits.*
+import com.sksamuel.scrimage.ImmutableImage
+import com.sksamuel.scrimage.format.{Format, FormatDetector}
+import com.sksamuel.scrimage.webp.WebpWriter
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.errors.{MissingIdException, ValidationException}
+import no.ndla.common.errors.{MissingBucketKeyException, MissingIdException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Deletable, Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.{NDLADate, domain as common}
+import no.ndla.database.DBUtility
 import no.ndla.imageapi.model.*
 import no.ndla.imageapi.model.api.{
   ImageMetaInformationV2DTO,
@@ -25,23 +29,29 @@ import no.ndla.imageapi.model.api.{
 }
 import no.ndla.imageapi.model.domain.*
 import no.ndla.imageapi.repository.ImageRepository
+import no.ndla.imageapi.service.WriteService.getWriterForFormat
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
 import no.ndla.language.Language
 import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
+import scalikejdbc.DBSession
 
-import java.io.ByteArrayInputStream
-import java.lang.Math.max
-import javax.imageio.ImageIO
-import scala.util.{Failure, Success, Try}
+import java.io.{BufferedInputStream, ByteArrayInputStream}
+import java.util.concurrent.Executors
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.jdk.OptionConverters.*
+import scala.util.{Failure, Success, Try, Using}
 
 class WriteService(using
     converterService: ConverterService,
     validationService: ValidationService,
+    dbUtility: DBUtility, // TODO: Remove this after completing variants migration of existing images
     imageRepository: ImageRepository,
     imageIndexService: ImageIndexService,
     imageStorage: ImageStorageService,
+    imageConverter: ImageConverter,
     tagIndexService: TagIndexService,
     clock: Clock,
     random: Random,
@@ -70,19 +80,16 @@ class WriteService(using
     }
   }
 
-  private def deleteFileForLanguageIfUnused(imageId: Long, images: Seq[ImageFileData], language: String): Try[?] = {
+  private def deleteFileForLanguageIfUnused(imageId: Long, images: Seq[ImageFileData], language: String): Try[Unit] = {
     val imageFileToDelete = images.find(_.language == language)
     imageFileToDelete match {
       case Some(fileToDelete) =>
-        val deletedMeta           = imageRepository.deleteImageFileMeta(imageId, language)
+        val deletedMeta           = imageRepository.deleteImageFileMeta(imageId, language).map(_ => ())
         val otherLangs            = images.filterNot(_.language == language)
         val imageIsUsedOtherwhere = otherLangs.exists(_.fileName == fileToDelete.fileName)
 
         if (!imageIsUsedOtherwhere) {
-          for {
-            _ <- imageStorage.deleteObject(fileToDelete.fileName)
-            _ <- deletedMeta
-          } yield ()
+          deleteImageAndVariants(fileToDelete).combine(deletedMeta)
         } else {
           logger.info("Image is used by other languages. Skipping file delete")
           deletedMeta
@@ -122,20 +129,14 @@ class WriteService(using
     imageRepository.withId(imageId) match {
       case Some(toDelete) =>
         val metaDeleted  = imageRepository.delete(imageId)
-        val filesDeleted = toDelete
-          .images
-          .getOrElse(Seq.empty)
-          .traverse(image => {
-            imageStorage.deleteObject(image.fileName)
-          })
+        val filesDeleted = toDelete.images.getOrElse(Seq.empty).traverse(image => deleteImageAndVariants(image))
         val indexDeleted = imageIndexService.deleteDocument(imageId).flatMap(tagIndexService.deleteDocument)
 
-        if (metaDeleted < 1) {
-          Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
-        } else if (filesDeleted.isFailure) {
-          Failure(new ImageStorageException("Something went wrong when deleting image file from storage."))
-        } else {
-          indexDeleted
+        filesDeleted match {
+          case _ if metaDeleted < 1 =>
+            Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
+          case Success(_)  => indexDeleted
+          case Failure(ex) => Failure(ex)
         }
       case None =>
         Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
@@ -186,7 +187,7 @@ class WriteService(using
     val missingIdException = MissingIdException("Could not find id of stored metadata. This is a bug.")
     val imageId            = insertedMeta.id.toTry(missingIdException).?
 
-    val uploadedImage = uploadImage(file).?
+    val uploadedImage = uploadImageWithVariants(file).?
 
     val imageDocument = converterService.toImageDocument(uploadedImage, language)
     val image         = imageRepository.insertImageFile(imageId, uploadedImage.fileName, imageDocument).?
@@ -194,13 +195,16 @@ class WriteService(using
 
     val deleteUploadedImages = (reason: Throwable) => {
       logger.info(s"Deleting images because of: ${reason.getMessage}", reason)
-      imageMeta.images.getOrElse(Seq.empty).traverse(image => imageStorage.deleteObject(image.fileName))
+      imageMeta.images.getOrElse(Seq.empty).traverse(image => deleteImageAndVariants(image)) match {
+        case Success(_)  => ()
+        case Failure(ex) => logger.error("Failed to clean up image after failed indexing", ex)
+      }
     }
 
     imageIndexService
       .indexDocument(imageMeta)
       .recoverWith { e =>
-        deleteUploadedImages(e): Unit
+        deleteUploadedImages(e)
         Try(imageRepository.delete(imageId)): Unit
         Failure(e)
       }
@@ -209,7 +213,7 @@ class WriteService(using
     tagIndexService.indexDocument(imageMeta) match {
       case Success(_) => Success(imageMeta)
       case Failure(e) =>
-        deleteUploadedImages(e): Unit
+        deleteUploadedImages(e)
         imageIndexService.deleteDocument(imageId): Unit
         tagIndexService.deleteDocument(imageId): Unit
         Try(imageRepository.delete(imageId)): Unit
@@ -340,7 +344,7 @@ class WriteService(using
     val imageForLang  = oldImage.images.getOrElse(Seq.empty).find(_.language == language)
     val allOtherPaths = oldImage.images.getOrElse(Seq.empty).filterNot(_.language == language).map(_.fileName)
 
-    val uploaded = uploadImage(newFile).?
+    val uploaded = uploadImageWithVariants(newFile).?
 
     val imageFileFrom = (existingImageFileMeta: ImageFileData) => {
       domain.ImageFileData(
@@ -349,6 +353,7 @@ class WriteService(using
         size = uploaded.size,
         contentType = uploaded.contentType,
         dimensions = uploaded.dimensions,
+        variants = uploaded.variants,
         language = existingImageFileMeta.language,
         imageMetaId = existingImageFileMeta.imageMetaId,
       )
@@ -358,9 +363,8 @@ class WriteService(using
       imageForLang match {
         case Some(existingImage) if !allOtherPaths.contains(existingImage.fileName) =>
           // Put new image file at old path if no other languages use it
-          val clonedImage = imageFileFrom(existingImage).copy(fileName = existingImage.fileName)
-          imageStorage.cloneObject(uploaded.fileName, existingImage.fileName).?
-          Success(clonedImage)
+          val movedImage = moveImageAndVariants(imageFileFrom(existingImage), existingImage.getFileStem).?
+          Success(movedImage)
         case Some(existingImage) => Success(imageFileFrom(existingImage))
         case None                =>
           val doc = converterService.toImageDocument(uploaded, language)
@@ -417,6 +421,83 @@ class WriteService(using
     converted <- converterService.asApiImageMetaInformationV3(updated, updateMeta.language.some, user.some)
   } yield converted
 
+  // TODO: Remove this after completing variants migration of existing images
+  def generateAndUploadVariantsForExistingImages(ignoreMissingObjects: Boolean): Try[Unit] = {
+    val processableContentTypes = Seq("image/png", "image/jpeg")
+    val batchSize               = 20
+    val batchIterator           = imageRepository.getImageFileBatched(batchSize)
+    val totalBatchCount         = batchIterator.knownSize
+    given ExecutionContext      = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(batchSize))
+
+    batchIterator
+      .zipWithIndex
+      .map { (batch, index) =>
+        logger.info(s"Processing batch ${index + 1} of $totalBatchCount (batch size = $batchSize)")
+
+        val batchFuture = Future
+          .traverse(
+            batch.filter(image => image.variants.isEmpty && processableContentTypes.contains(image.contentType))
+          )(generateAndUploadVariantsForImageFileDataAsync(ignoreMissingObjects))
+          .map { imagesWithVariants =>
+            imagesWithVariants.map { imageWithVariants =>
+              imageWithVariants.flatMap {
+                case (_, Seq())                => Success(())
+                case (imageFileData, variants) => dbUtility.rollbackOnFailure { case given DBSession =>
+                    imageRepository.updateImageFileMeta(imageFileData.copy(variants = variants)).map(_ => ())
+                  }
+              }
+            }
+          }
+
+        Await.result(batchFuture, 5.minutes).sequence.map(_ => ())
+      }
+      .collectFirst { case Failure(ex) =>
+        ex
+      } match {
+      case Some(ex) => Failure(ex)
+      case None     => Success(())
+    }
+  }
+
+  // TODO: Remove this after completing variants migration of existing images
+  private def generateAndUploadVariantsForImageFileDataAsync(
+      ignoreMissingObjects: Boolean
+  )(imageFileData: ImageFileData)(using ExecutionContext): Future[Try[(ImageFileData, Seq[ImageVariant])]] = Future {
+    for {
+      s3Object <- imageStorage.getRaw(imageFileData.fileName)
+      stream    = new BufferedInputStream(s3Object.stream)
+      _         = stream.mark(32)
+      format   <- FormatDetector
+        .detect(stream)
+        .toScala
+        .flatMap(ProcessableImageFormat.fromScrimageFormat)
+        .toTry(ImageInvalidFormat("Could not detect format of image"))
+      img <- {
+        stream.reset()
+        Try(ImmutableImage.loader().fromStream(stream))
+      }
+      dimensions = ImageDimensions(img.width, img.height)
+      fileStem   = imageFileData.getFileStem
+    } yield (img, dimensions, fileStem, format)
+  }.flatMap {
+    case Success((img, dimensions, fileStem, format)) =>
+      generateAndUploadVariantsAsync(img, dimensions, fileStem, format).map(res =>
+        res.map(variants => (imageFileData, variants))
+      )
+    case Failure(ex: MissingBucketKeyException) if ignoreMissingObjects =>
+      logger.warn(
+        s"Ignoring missing bucket object for image (imageFileId = ${imageFileData.id}, imageMetaId = ${imageFileData.imageMetaId}, fileName = ${imageFileData.fileName})"
+      )
+      Future.successful(Success((imageFileData, Seq.empty)))
+    case Failure(ex: ImageInvalidFormat) =>
+      logger.warn(
+        s"Found image with JPEG/PNG Content-Type with invalid format (imageFileId = ${imageFileData.id}, imageMetaId = ${imageFileData.imageMetaId}, fileName = ${imageFileData.fileName})",
+        ex,
+      )
+      Future.successful(Success((imageFileData, Seq.empty)))
+    case Failure(ex) => Future.successful(Failure(ex))
+  }
+
   private[service] def getFileExtension(fileName: String): Option[String] = {
     fileName.lastIndexOf(".") match {
       case index: Int if index > -1 => Some(fileName.substring(index))
@@ -424,47 +505,145 @@ class WriteService(using
     }
   }
 
-  private def uploadImageWithName(file: UploadedFile, fileName: String): Try[UploadedImage] = {
-    val contentType = file.contentType.getOrElse("")
-    val bytes       = file.stream.readAllBytes()
-    val image       = Try(Option(ImageIO.read(new ByteArrayInputStream(bytes))))
+  private[service] def uploadImageWithVariants(file: UploadedFile): Try[UploadedImage] = {
+    val extension      = file.fileName.flatMap(getFileExtension).getOrElse("")
+    val uniqueFileStem = LazyList
+      .continually(random.string(12))
+      .dropWhile(stem => imageStorage.objectExists(s"$stem$extension"))
+      .head
+    val fileName = s"$uniqueFileStem$extension"
 
-    val dimensions = image match {
-      case Failure(ex) =>
-        logger.error("Something went wrong when getting imageDimensions", ex)
-        Some(ImageDimensions(0, 0))
-      case Success(Some(image)) => Some(ImageDimensions(image.getWidth, image.getHeight))
-      case Success(None)        =>
-        val isSVG = new String(bytes).toLowerCase.contains("<svg")
-        // Since SVG are vector-images size doesn't make sense
-        if (isSVG) None
-        else {
-          logger.error("Something _weird_ went wrong when getting imageDimensions")
-          Some(ImageDimensions(0, 0))
-        }
+    // Use buffered stream with mark to avoid creating multiple streams
+    val fileStream = new BufferedInputStream(file.stream)
+    fileStream.mark(32)
+    val maybeFormat = for {
+      scrimageFormat   <- FormatDetector.detect(fileStream).toScala
+      processableFormat = ProcessableImageFormat.fromScrimageFormat(scrimageFormat)
+    } yield (scrimageFormat, processableFormat)
+
+    val maybeProcessableFormat = maybeFormat match {
+      case Some(_, maybeProcessableFormat) => maybeProcessableFormat
+      case None                            => return uploadImageAsIs(file, fileName, None)
     }
 
+    fileStream.reset()
+    val img = Try(ImmutableImage.loader().fromStream(fileStream)) match {
+      case Success(i)  => i
+      case Failure(ex) => return Failure(ex)
+    }
+    val dimensions = ImageDimensions(img.width, img.height)
+
+    val format = maybeProcessableFormat match {
+      case Some(format) => format
+      case None         => return uploadImageAsIs(file, fileName, Some(dimensions))
+    }
+
+    Using(ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(ImageVariantSize.values.size))) {
+      case given ExecutionContext =>
+        val variantsFuture             = generateAndUploadVariantsAsync(img, dimensions, uniqueFileStem, format)
+        val maybeUploadedOriginalImage = uploadImageAsIs(file, fileName, Some(dimensions))
+        val maybeVariants              = Await.result(variantsFuture, 1.minute)
+
+        (maybeUploadedOriginalImage, maybeVariants) match {
+          case (Success(uploadedImage), Success(variants)) => Success(uploadedImage.copy(variants = variants))
+          case (Failure(ex), variants)                     =>
+            variants.foreach(v => imageStorage.deleteObjects(v.map(_.bucketKey)))
+            Failure(ex)
+          case (original, Failure(ex)) =>
+            original.foreach(i => imageStorage.deleteObject(i.fileName))
+            Failure(ex)
+        }
+    }.flatten
+  }
+
+  /** Generate and upload image variants for `image`. Returns an [[Either]] with a [[Left]] value if one of the uploads
+    * failed (containing the errors encountered), otherwise a [[Right]] value with all uploaded variants.
+    */
+  private def generateAndUploadVariantsAsync(
+      image: ImmutableImage,
+      dimensions: ImageDimensions,
+      fileStem: String,
+      format: ProcessableImageFormat,
+  )(using ExecutionContext): Future[Try[Seq[ImageVariant]]] = {
+    val variantSizes = ImageVariantSize.forDimensions(dimensions)
+    if (variantSizes.size <= 0) {
+      return Future.successful(Success(Seq.empty))
+    }
+
+    variantSizes
+      .traverse { variantSize =>
+        Future {
+          val resizedImage = imageConverter.resizeToVariantSize(image, variantSize)
+          val imageBytes   = resizedImage.bytes(getWriterForFormat(format))
+          val stream       = new ByteArrayInputStream(imageBytes)
+          val bucketKey    = s"$fileStem/${variantSize.entryName}.webp"
+          imageStorage
+            .uploadFromStream(bucketKey, stream, imageBytes.length, "image/webp")
+            .map(_ => ImageVariant(variantSize, bucketKey))
+        }
+      }
+      .map { results =>
+        val (failures, successes) = results.partitionMap(_.toEither)
+        failures match {
+          case Seq()            => Success(successes)
+          case uploadExceptions =>
+            val deleteResult = imageStorage.deleteObjects(successes.map(_.bucketKey))
+            val exs          = uploadExceptions ++ deleteResult.failed.toOption
+            Failure(ImageVariantsUploadException("Failed to upload image variant(s)", exs))
+        }
+      }
+  }
+
+  private def uploadImageAsIs(
+      file: UploadedFile,
+      fileName: String,
+      dimensions: Option[ImageDimensions],
+  ): Try[UploadedImage] = {
+    val contentType = file.contentType.getOrElse("")
     imageStorage
       .uploadFromStream(fileName, file)
       .map(filePath => {
-        UploadedImage(filePath, file.fileSize, contentType, dimensions)
+        UploadedImage(filePath, file.fileSize, contentType, dimensions, Seq.empty)
       })
   }
 
-  private[service] def uploadImage(file: UploadedFile): Try[UploadedImage] = {
-    val extension = file.fileName.flatMap(getFileExtension).getOrElse("")
-    val fileName  = LazyList.continually(randomFileName(extension)).dropWhile(imageStorage.objectExists).head
-    uploadImageWithName(file, fileName)
+  private def deleteImageAndVariants(image: ImageFileData): Try[Unit] = {
+    val variantsResult = imageStorage.deleteObjects(image.variants.map(_.bucketKey))
+    val imageResult    = imageStorage.deleteObject(image.fileName)
+
+    variantsResult.failed.toOption ++ imageResult.failed.toOption match {
+      case Nil => Success(())
+      case exs => Failure(ImageDeleteException("Failed to delete original image and/or variants", exs.toSeq))
+    }
   }
 
-  private[service] def randomFileName(extension: String, length: Int = 12): String = {
-    val extensionWithDot =
-      if (extension.headOption.contains('.')) extension
-      else if (extension.nonEmpty) s".$extension"
-      else ""
+  private def moveImageAndVariants(image: ImageFileData, newBucketPrefix: String): Try[ImageFileData] = {
+    val variantKeysToNewVariants = image
+      .variants
+      .map(variant => variant.bucketKey -> variant.copy(bucketKey = s"$newBucketPrefix/${variant.sizeName}.webp"))
+    val variantKeysToNewKeys = variantKeysToNewVariants.map(entry => entry.fmap(_.bucketKey))
+    val fileNameKeyToNewKey  = image.fileName -> s"$newBucketPrefix${getFileExtension(image.fileName)}"
 
-    val randomLength = max(length - extensionWithDot.length, 1)
-    val randomString = random.string(randomLength)
-    s"$randomString$extensionWithDot"
+    imageStorage.moveObjects(variantKeysToNewKeys :+ fileNameKeyToNewKey) match {
+      case Success(_) =>
+        Success(image.copy(fileName = fileNameKeyToNewKey._2, variants = variantKeysToNewVariants.map(_._2)))
+      case Failure(ex) => Failure(ex)
+    }
+  }
+}
+
+object WriteService {
+  // See https://developers.google.com/speed/webp/docs/cwebp#options
+  // For PNG images, we set the quality to the default value in cwebp
+  // For JPEG and WebP images, we set the quality higher in order to reduce the effect of double compression
+  private val baseWebpWriter                = WebpWriter.DEFAULT.withMultiThread().withM(6)
+  private val webpWriterForJpeg: WebpWriter = baseWebpWriter.withoutAlpha().withQ(85)
+  private val webpWriterForPng: WebpWriter  = baseWebpWriter.withQ(75)
+  private val webpWriterForWebp: WebpWriter = baseWebpWriter.withQ(85)
+
+  def getWriterForFormat(format: ProcessableImageFormat): WebpWriter = format match {
+    case ProcessableImageFormat.Jpeg => webpWriterForJpeg
+    case ProcessableImageFormat.Png  => webpWriterForPng
+    case ProcessableImageFormat.Webp => webpWriterForWebp
   }
 }

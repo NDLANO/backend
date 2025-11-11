@@ -10,6 +10,7 @@ package no.ndla.imageapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.imageapi.model.domain.ImageVariant
 import no.ndla.language.Language.LanguageDocString
 import sttp.tapir.Schema.annotations.description
 
@@ -25,6 +26,8 @@ case class ImageFileDTO(
     imageUrl: String,
     @description("Dimensions of the image")
     dimensions: Option[ImageDimensionsDTO],
+    @description("Size variants of the image")
+    variants: Seq[ImageVariant],
     @description(LanguageDocString)
     language: String,
 )

@@ -14,11 +14,11 @@ import no.ndla.imageapi.model.api.{ImageMetaDomainDumpDTO, ImageMetaInformationV
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
-import no.ndla.imageapi.service.{ConverterService, ReadService}
+import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.imageapi.Props
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.{ErrorHelpers, TapirController, ErrorHandling}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.model.StatusCode
 import sttp.tapir.*
@@ -33,6 +33,7 @@ import scala.util.{Failure, Success}
 class InternController(using
     imageRepository: ImageRepository,
     readService: ReadService,
+    writeService: WriteService, // TODO: Remove this after completing variants migration of existing images
     converterService: ConverterService,
     imageIndexService: ImageIndexService,
     tagIndexService: TagIndexService,
@@ -47,8 +48,16 @@ class InternController(using
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] =
-    List(postIndex, deleteIndex, getExternImageId, getDomainImageFromUrl, dumpImages, dumpSingleImage, postDump)
+  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+    postIndex,
+    deleteIndex,
+    getExternImageId,
+    getDomainImageFromUrl,
+    dumpImages,
+    dumpSingleImage,
+    postDump,
+    startImageVariantsMigration, // TODO: Remove this after completing variants migration of existing images
+  )
 
   def postIndex: ServerEndpoint[Any, Eff] = endpoint
     .post
@@ -170,5 +179,26 @@ class InternController(using
     .errorOut(errorOutputsFor(400))
     .serverLogicPure { imageMeta =>
       imageRepository.insert(imageMeta).asRight
+    }
+
+  // TODO: Remove this after completing variants migration of existing images
+  def startImageVariantsMigration: ServerEndpoint[Any, Eff] = endpoint
+    .post
+    .in("migrate" / "variants")
+    .in(query[Option[Boolean]]("ignore_missing"))
+    .out(jsonBody[String])
+    .serverLogicPure { ignoreMissingObjects =>
+      logger.info("Starting generation of image variants for all existing images...")
+
+      Thread
+        .ofVirtual()
+        .start(() => {
+          writeService.generateAndUploadVariantsForExistingImages(ignoreMissingObjects.getOrElse(false)) match {
+            case Success(_)  => logger.info("Successfully finished generation of image variants for all existing images")
+            case Failure(ex) => logger.error("Failed to generate image variants", ex)
+          }
+        })
+
+      "Started generation of image variants for all existing images".asRight
     }
 }

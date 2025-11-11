@@ -91,6 +91,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
             size = 2865539,
             contentType = "image/jpeg",
             dimensions = None,
+            variants = Seq.empty,
             language = "nb",
             imageMetaId = 1,
           )
