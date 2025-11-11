@@ -105,6 +105,7 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
     ".ppt",
     ".pptx",
     ".pub",
+    ".py",
     ".rtf",
     ".skp",
     ".stl",
