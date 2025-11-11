@@ -475,6 +475,8 @@ export type components = {
             /** @description The full url to where the image can be downloaded */
             imageUrl: string;
             dimensions?: components["schemas"]["ImageDimensionsDTO"];
+            /** @description Size variants of the image */
+            variants: components["schemas"]["ImageVariant"][];
             /** @description ISO 639-1 code that represents the language used in the caption */
             language: string;
         };
@@ -600,6 +602,16 @@ export type components = {
             /** @description ISO 639-1 code that represents the language used in title */
             language: string;
         };
+        /** ImageVariant */
+        ImageVariant: {
+            size: components["schemas"]["ImageVariantSize"];
+            bucketKey: string;
+        };
+        /**
+         * ImageVariantSize
+         * @enum {string}
+         */
+        ImageVariantSize: "icon" | "xsmall" | "small" | "medium" | "large" | "xlarge" | "xxlarge";
         /**
          * LicenseDTO
          * @description Describes the license of the article
