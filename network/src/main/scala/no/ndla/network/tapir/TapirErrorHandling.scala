@@ -16,8 +16,7 @@ trait TapirErrorHandling(using errorHandling: ErrorHandling) extends StrictLoggi
 
   import errorHandling.*
 
-  def handleErrors: PartialFunction[Throwable, AllErrors]      = errorHandling.handleErrors
-  implicit def tryToEither[T](x: Try[T]): Either[AllErrors, T] = x.handleErrorsOrOk
+  def handleErrors: PartialFunction[Throwable, AllErrors] = errorHandling.handleErrors
 
   implicit class handleErrorOrOkClass[T](t: Try[T]) {
     import cats.implicits.*
@@ -45,7 +44,8 @@ trait TapirErrorHandling(using errorHandling: ErrorHandling) extends StrictLoggi
       case Failure(ex) if callback.isDefinedAt(ex) => callback(ex).asLeft
       case Failure(ex)                             => returnLeftError(ex)
     }
-
   }
 
+  given tryToEither[T]: Conversion[Try[T], Either[AllErrors, T]]          = (x: Try[T]) => x.handleErrorsOrOk
+  given errorBodyToEither[T]: Conversion[ErrorBody, Either[AllErrors, T]] = (x: ErrorBody) => Left(x)
 }
