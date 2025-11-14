@@ -67,6 +67,26 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
     else contexts
   }
 
+  def getNodeIdsAndContexts(
+      contentUri: String,
+      filterVisibles: Boolean,
+      filterContexts: Boolean,
+      shouldUsePublishedTax: Boolean,
+  ): Try[(List[String], List[TaxonomyContext])] = {
+    val nodes = get[List[Node]](
+      s"$TaxonomyApiEndpoint/nodes/?contentURI=$contentUri",
+      headers = getVersionHashHeader(shouldUsePublishedTax),
+      params = Seq("filterVisibles" -> filterVisibles.toString),
+    )
+    for {
+      nodeIds     <- nodes.map(_.map(_.id))
+      allContexts <- nodes.map(_.flatMap(n => n.contexts))
+      filtered     =
+        if (filterContexts) allContexts.filter(c => c.rootId.contains("subject"))
+        else allContexts
+    } yield (nodeIds, filtered)
+  }
+
   private def getIsVisibleParam(shouldUsePublishedTax: Boolean) = {
     if (shouldUsePublishedTax) ""
     else "false"
