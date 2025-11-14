@@ -23,14 +23,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
   val someDims: Some[ImageDimensions] = Some(ImageDimensions(100, 100))
-  val full                            = new ImageFileData(1, "/123.png", 200, "image/png", someDims, Seq.empty, "nb", 5)
-  val wanting                         = new ImageFileData(2, "123.png", 200, "image/png", someDims, Seq.empty, "und", 6)
+  val full                            = new ImageFileData("/123.png", 200, "image/png", someDims, Seq.empty, "nb")
+  val wanting                         = new ImageFileData("123.png", 200, "image/png", someDims, Seq.empty, "und")
 
   val DefaultImageMetaInformation = new ImageMetaInformation(
     id = Some(1),
     titles = List(ImageTitle("test", "nb")),
     alttexts = List(),
-    images = Some(Seq(full)),
+    images = Seq(full),
     copyright = Copyright("", None, List(), List(), List(), None, None, false),
     tags = List(),
     captions = List(),
@@ -46,7 +46,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     id = Some(1),
     titles = List(ImageTitle("test", "nb")),
     alttexts = List(),
-    images = Some(Seq(wanting)),
+    images = Seq(wanting),
     copyright = Copyright("", None, List(), List(), List(), None, None, false),
     tags = List(),
     captions = List(),
@@ -62,7 +62,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     id = Some(2),
     titles = List(ImageTitle("nynorsk", "nn"), ImageTitle("english", "en"), ImageTitle("norsk", "und")),
     alttexts = List(),
-    images = Some(Seq(full.copy(language = "nn"))),
+    images = Seq(full.copy(language = "nn")),
     copyright = Copyright("", None, List(), List(), List(), None, None, false),
     tags = List(),
     captions = List(),
@@ -174,22 +174,20 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     converterService.getSupportedLanguages(result4) should be(Seq("nn"))
   }
 
-  test("That with new image returns metadata from new image") {
+  test("That with new image file returns metadata from new image") {
     val newImage = new ImageFileData(
-      id = 1,
       fileName = "somename.jpg",
       size = 123,
       contentType = "image/jpg",
       dimensions = Some(ImageDimensions(123, 555)),
       variants = Seq.empty,
       language = "nb",
-      imageMetaId = 4,
     )
 
-    val result = converterService.withNewImage(MultiLangImage, newImage, "nb", TokenUser.SystemUser)
-    result.images.get.find(_.language == "nb").get.size should be(123)
-    result.images.get.find(_.language == "nb").get.dimensions should be(Some(ImageDimensions(123, 555)))
-    result.images.get.find(_.language == "nb").get.contentType should be("image/jpg")
+    val result = converterService.withNewImageFile(MultiLangImage, newImage, "nb", TokenUser.SystemUser)
+    result.images.find(_.language == "nb").get.size should be(123)
+    result.images.find(_.language == "nb").get.dimensions should be(Some(ImageDimensions(123, 555)))
+    result.images.find(_.language == "nb").get.contentType should be("image/jpg")
   }
 
 }

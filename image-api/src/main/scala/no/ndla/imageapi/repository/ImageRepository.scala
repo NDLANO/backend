@@ -57,38 +57,11 @@ class ImageRepository extends StrictLogging {
       dataObject.setType("jsonb")
       dataObject.setValue(json)
       sql"update imagemetadata set metadata = $dataObject where id = $id".update()
-    }.flatMap(_ =>
-      imageMetaInformation.images match {
-        case Some(images) => images.map(updateImageFileMeta).sequence.map(_ => imageMetaInformation.copy(id = Some(id)))
-        case None         => Success(imageMetaInformation.copy(id = Some(id)))
-      }
-    )
-  }
-
-  // TODO: Can make private after completing variants migration of existing images
-  def updateImageFileMeta(imageFileData: ImageFileData)(implicit session: DBSession): Try[Int] = Try {
-    val dataObject = new PGobject()
-    dataObject.setType("jsonb")
-    val jsonString = CirceUtil.toJsonString(imageFileData.toDocument())
-    dataObject.setValue(jsonString)
-    sql"""
-            update imagefiledata
-            set file_name=${imageFileData.fileName},
-                metadata=$dataObject
-            where id=${imageFileData.id}
-         """.update()
+    }.map(_ => imageMetaInformation.copy(id = Some(id)))
   }
 
   def delete(imageId: Long)(implicit session: DBSession = AutoSession): Int = {
     sql"delete from imagemetadata where id = $imageId".update()
-  }
-
-  def deleteImageFileMeta(imageId: Long, language: String)(implicit session: DBSession = AutoSession): Try[Int] = {
-    Try(sql"""
-            delete from imagefiledata
-            where image_meta_id = $imageId
-            and metadata->>'language' = $language
-         """.update())
   }
 
   def minMaxId: (Long, Long) = {
@@ -104,60 +77,30 @@ class ImageRepository extends StrictLogging {
     }
   }
 
-  def insertImageFile(imageId: Long, fileName: String, document: ImageFileDataDocument)(implicit
-      session: DBSession = AutoSession
-  ): Try[ImageFileData] = Try {
-    val dataObject = new PGobject()
-    dataObject.setType("jsonb")
-    val jsonString = CirceUtil.toJsonString(document)
-    dataObject.setValue(jsonString)
-
-    val insertedId = sql"""
-              insert into imagefiledata(file_name, metadata, image_meta_id)
-              values ($fileName, $dataObject, $imageId)
-           """.updateAndReturnGeneratedKey()
-
-    document.toFull(insertedId, fileName, imageId)
-  }
-
   def documentsWithIdBetween(min: Long, max: Long): Try[List[ImageMetaInformation]] =
     imageMetaInformationsWhere(sqls"im.id between $min and $max")
 
   private def imageMetaInformationWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession): Try[Option[ImageMetaInformation]] = Try {
-    val im  = ImageMetaInformation.syntax("im")
-    val dif = Image.syntax("dif")
+    val im = ImageMetaInformation.syntax("im")
     sql"""
-            SELECT ${im.result.*}, ${dif.result.*}
+            SELECT ${im.result.*}
             FROM ${ImageMetaInformation.as(im)}
-            LEFT JOIN ${Image.as(dif)} ON ${dif.imageMetaId} = ${im.id}
             WHERE $whereClause
-         """
-      .one(ImageMetaInformation.fromResultSet(im.resultName))
-      .toMany(rs => Image.fromResultSet(dif.resultName)(rs).sequence)
-      .map((meta, images) => images.toList.sequence.map(images => meta.copy(images = Some(images.toSeq))))
-      .single()
-      .sequence
-  }.flatten
+         """.map(ImageMetaInformation.fromResultSet(im.resultName)).single()
+  }
 
   private def imageMetaInformationsWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[ImageMetaInformation]] = Try {
-    val im  = ImageMetaInformation.syntax("im")
-    val dif = Image.syntax("dif")
+    val im = ImageMetaInformation.syntax("im")
     sql"""
-            SELECT ${im.result.*}, ${dif.result.*}
+            SELECT ${im.result.*}
             FROM ${ImageMetaInformation.as(im)}
-            LEFT JOIN ${Image.as(dif)} ON ${dif.imageMetaId} = ${im.id}
             WHERE $whereClause
-         """
-      .one(ImageMetaInformation.fromResultSet(im.resultName))
-      .toMany(rs => Image.fromResultSet(dif.resultName)(rs).sequence)
-      .map((meta, files) => files.toList.sequence.map(files => meta.copy(images = Some(files.toSeq))))
-      .list()
-      .sequence
-  }.flatten
+         """.map(ImageMetaInformation.fromResultSet(im.resultName)).list()
+  }
 
   private def withAndWithoutPrefixSlash(str: String): (String, String) = {
     val without = str.dropWhile(_ == '/')
@@ -167,15 +110,16 @@ class ImageRepository extends StrictLogging {
   def getImageFromFilePath(
       filePath: String
   )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[ImageMetaInformation]] = {
-    val i                         = Image.syntax("i")
     val (withoutSlash, withSlash) = withAndWithoutPrefixSlash(filePath)
-    imageMetaInformationWhere(sqls"""
-         im.id = (
-           SELECT ${i.imageMetaId}
-           FROM ${Image.as(i)}
-           WHERE (${i.fileName} = $withSlash OR ${i.fileName} = $withoutSlash)
-         )
-      """)
+    // Cannot use parameters inside the JSON path expression, so we need to send them as a jsonb object to be referenced
+    val jsonbVars = new PGobject()
+    jsonbVars.setType("jsonb")
+    jsonbVars.setValue(s"""{"withoutSlash": "$withoutSlash", "withSlash": "$withSlash"}""")
+
+    val whereClause = sqls"""
+            jsonb_path_exists(im.metadata, '$$.images[*] ? (@.fileName == $$withoutSlash || @.fileName == $$withSlash)', $jsonbVars)"""
+
+    imageMetaInformationWhere(whereClause)
   }
 
   def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
@@ -190,11 +134,9 @@ class ImageRepository extends StrictLogging {
   }
 
   def getRandomImage()(implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
-    val im  = ImageMetaInformation.syntax("im")
-    val dif = Image.syntax("dif")
+    val im = ImageMetaInformation.syntax("im")
     sql"""SELECT ${im.result.*}
            FROM ${ImageMetaInformation.as(im)} TABLESAMPLE public.system_rows(1)
-           LEFT JOIN ${Image.as(dif)} ON ${dif.imageMetaId} = ${im.id}
            LIMIT 1""".map(ImageMetaInformation.fromResultSet(im)).single()
   }
 
@@ -212,44 +154,42 @@ class ImageRepository extends StrictLogging {
       """.map(ImageMetaInformation.fromResultSet(im)).list()
   }
 
-  private def imageFileCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
-    sql"select count(*) from ${Image.table}".map(rs => rs.long("count")).single().getOrElse(0)
-
   // TODO: Remove this after completing variants migration of existing images
-  def getImageFileBatched(batchSize: Long): Iterator[Seq[ImageFileData]] = new Iterator[Seq[ImageFileData]] {
-    private val ifd    = Image.syntax("ifd")
-    private val total  = imageFileCount
-    private var cursor = 0L
+  def getImageFileBatched(batchSize: Long): Iterator[Seq[ImageMetaInformation]] =
+    new Iterator[Seq[ImageMetaInformation]] {
+      private val im     = ImageMetaInformation.syntax("im")
+      private val total  = imageCount
+      private var cursor = 0L
 
-    override val knownSize: Int = (
-      total.toFloat / batchSize.toFloat
-    ).ceil.toInt
+      override val knownSize: Int = (
+        total.toFloat / batchSize.toFloat
+      ).ceil.toInt
 
-    override def hasNext: Boolean = cursor < total
+      override def hasNext: Boolean = cursor < total
 
-    override def next(): Seq[ImageFileData] = {
-      if (cursor >= total) throw IllegalStateException("Called `next` while `hasNext` is false")
+      override def next(): Seq[ImageMetaInformation] = {
+        if (cursor >= total) throw IllegalStateException("Called `next` while `hasNext` is false")
 
-      val size = batchSize.min(total - cursor)
-      DB.readOnly { case given DBSession =>
-        Try {
-          sql"""
-            select ${ifd.result.*}
-            from ${Image.as(ifd)}
+        val size = batchSize.min(total - cursor)
+        DB.readOnly { case given DBSession =>
+          Try {
+            sql"""
+            select ${im.result.*}
+            from ${ImageMetaInformation.as(im)}
             where metadata is not null
-            order by ${ifd.id}
+            order by ${im.id}
             offset $cursor
             limit $size
-             """.map(rs => Image.fromResultSet(ifd.resultName)(rs).flatMap(i => Try(i.get))).list().sequence
-        }.flatten
-      } match {
-        case Success(imageFiles) =>
-          cursor += size
-          imageFiles
-        case Failure(ex) =>
-          logger.error("Failed to fetch next batch of ImageFileData", ex)
-          throw ex
+             """.map(ImageMetaInformation.fromResultSet(im.resultName)).list()
+          }
+        } match {
+          case Success(images) =>
+            cursor += size
+            images
+          case Failure(ex) =>
+            logger.error("Failed to fetch next batch of ImageMetaInformation", ex)
+            throw ex
+        }
       }
     }
-  }
 }

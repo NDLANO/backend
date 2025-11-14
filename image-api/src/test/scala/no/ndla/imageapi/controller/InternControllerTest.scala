@@ -70,18 +70,14 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     id = Some(1),
     titles = List(),
     alttexts = List(),
-    images = Some(
-      Seq(
-        new ImageFileData(
-          id = 1,
-          fileName = "test.jpg",
-          size = 0,
-          contentType = "",
-          dimensions = None,
-          variants = Seq.empty,
-          language = "und",
-          imageMetaId = 1,
-        )
+    images = Seq(
+      new ImageFileData(
+        fileName = "test.jpg",
+        size = 0,
+        contentType = "",
+        dimensions = None,
+        variants = Seq.empty,
+        language = "und",
       )
     ),
     copyright = Copyright(CC_BY.toString, None, List(), List(), List(), None, None, false),

@@ -20,7 +20,7 @@ case class ImageMetaInformation(
     id: Option[Long],
     titles: Seq[ImageTitle],
     alttexts: Seq[ImageAltText],
-    images: Option[Seq[ImageFileData]],
+    images: Seq[ImageFileData],
     copyright: Copyright,
     tags: Seq[Tag],
     captions: Seq[ImageCaption],
@@ -44,8 +44,8 @@ object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
   def fromResultSet(im: ResultName[ImageMetaInformation])(rs: WrappedResultSet): ImageMetaInformation = {
     val id         = rs.long(im.c("id"))
     val jsonString = rs.string(im.c("metadata"))
-    val metaT      = CirceUtil.tryParseAs[ImageMetaInformation](jsonString)
-    val meta       = metaT.get
+    // TODO: Maybe return Try instead?
+    val meta = CirceUtil.unsafeParseAs[ImageMetaInformation](jsonString)
 
     new ImageMetaInformation(
       id = Some(id),

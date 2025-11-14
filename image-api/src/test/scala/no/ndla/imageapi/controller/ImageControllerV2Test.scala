@@ -238,18 +238,14 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
       id = Some(1),
       titles = titles,
       alttexts = alttexts,
-      images = Some(
-        Seq(
-          new ImageFileData(
-            id = 1,
-            fileName = "/img.jpg",
-            size = 1024,
-            contentType = "image/jpeg",
-            dimensions = None,
-            variants = Seq.empty,
-            language = "und",
-            imageMetaId = 1,
-          )
+      images = Seq(
+        new ImageFileData(
+          fileName = "/img.jpg",
+          size = 1024,
+          contentType = "image/jpeg",
+          dimensions = None,
+          variants = Seq.empty,
+          language = "und",
         )
       ),
       copyright = copyright,

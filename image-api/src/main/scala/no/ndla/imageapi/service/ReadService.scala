@@ -101,7 +101,7 @@ class ReadService(using
     val encodedPath = urlEncodePath(path)
     imageRepository.getImageFromFilePath(encodedPath) match {
       case Success(Some(image)) =>
-        image.images.getOrElse(Seq.empty).find(i => i.fileName.dropWhile(_ == '/') == path.dropWhile(_ == '/')) match {
+        image.images.find(i => i.fileName.dropWhile(_ == '/') == path.dropWhile(_ == '/')) match {
           case Some(img) => Success(img)
           case None      => Failure(
               ImageConversionException(
@@ -145,8 +145,9 @@ class ReadService(using
 
   def getImageFileName(imageId: Long, language: Option[String]): Try[Option[String]] = {
     imageRepository.withId(imageId) match {
-      case Success(Some(imageMeta)) => findByLanguageOrBestEffort(imageMeta.images.getOrElse(Seq.empty), language)
-          .traverse(imageFile => UrlPath.parseTry(imageFile.fileName).map(_.toStringRaw.dropWhile(_ == '/')))
+      case Success(Some(imageMeta)) => findByLanguageOrBestEffort(imageMeta.images, language).traverse(imageFile =>
+          UrlPath.parseTry(imageFile.fileName).map(_.toStringRaw.dropWhile(_ == '/'))
+        )
       case Success(None) => Success(None)
       case Failure(ex)   => Failure(ex)
     }

@@ -41,18 +41,10 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   }
   override implicit lazy val imageSearchService: ImageSearchService = new ImageSearchService
 
-  val largeImage: ImageFileData   = ImageFileData(1, "large-full-url", 10000, "jpg", None, Seq.empty, "und", 4)
-  val smallImage: ImageFileData   = ImageFileData(2, "small-full-url", 100, "jpg", None, Seq.empty, "und", 6)
-  val podcastImage: ImageFileData = ImageFileData(
-    3,
-    "podcast-full-url",
-    100,
-    "jpg",
-    Some(ImageDimensions(width = 1400, height = 1400)),
-    Seq.empty,
-    "und",
-    6,
-  )
+  val largeImage: ImageFileData   = ImageFileData("large-full-url", 10000, "jpg", None, Seq.empty, "und")
+  val smallImage: ImageFileData   = ImageFileData("small-full-url", 100, "jpg", None, Seq.empty, "und")
+  val podcastImage: ImageFileData =
+    ImageFileData("podcast-full-url", 100, "jpg", Some(ImageDimensions(width = 1400, height = 1400)), Seq.empty, "und")
 
   val byNcSa: Copyright = Copyright(
     CC_BY_NC_SA.toString,
@@ -92,7 +84,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     id = Some(1),
     titles = List(ImageTitle("Batmen er på vift med en bil", "nb")),
     alttexts = List(ImageAltText("Bilde av en bil flaggermusmann som vifter med vingene bil.", "nb")),
-    images = Some(Seq(largeImage)),
+    images = Seq(largeImage),
     copyright = byNcSa,
     tags = List(Tag(List("fugl"), "nb")),
     captions = List(),
@@ -108,7 +100,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     id = Some(2),
     titles = List(ImageTitle("Pingvinen er ute og går", "nb")),
     alttexts = List(ImageAltText("Bilde av en en pingvin som vagger borover en gate.", "nb")),
-    images = Some(Seq(largeImage)),
+    images = Seq(largeImage),
     copyright = publicDomain,
     tags = List(Tag(List("fugl"), "nb")),
     captions = List(),
@@ -124,7 +116,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     id = Some(3),
     titles = List(ImageTitle("Donald Duck kjører bil", "nb")),
     alttexts = List(ImageAltText("Bilde av en en and som kjører en rød bil.", "nb")),
-    images = Some(Seq(smallImage)),
+    images = Seq(smallImage),
     copyright = byNcSa,
     tags = List(Tag(List("and"), "nb")),
     captions = List(),
@@ -140,7 +132,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     id = Some(4),
     titles = List(ImageTitle("Hulken er ute og lukter på blomstene", "und")),
     alttexts = Seq(),
-    images = Some(Seq(smallImage)),
+    images = Seq(smallImage),
     copyright = byNcSa,
     tags = Seq(),
     captions = Seq(),
@@ -160,7 +152,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       ImageTitle("Nynoreg", "nn"),
     ),
     alttexts = Seq(ImageAltText("urelatert alttext", "und"), ImageAltText("Nynoreg", "nn")),
-    images = Some(Seq(podcastImage)),
+    images = Seq(podcastImage),
     copyright = byNcSa,
     tags = Seq(),
     captions = Seq(),

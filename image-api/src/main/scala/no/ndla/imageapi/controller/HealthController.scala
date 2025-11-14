@@ -22,23 +22,12 @@ class HealthController(using
 ) extends TapirHealthController {
 
   override def checkReadiness(): Either[String, String] = {
-    imageRepository
-      .getRandomImage()
-      .flatMap(image => {
-        image
-          .images
-          .flatMap(imgMeta => {
-            imgMeta
-              .headOption
-              .map(img => {
-                if (imageStorageService.objectExists(img.fileName)) {
-                  Right("Healthy")
-                } else {
-                  Left("Internal server error")
-                }
-              })
-          })
-      })
-      .getOrElse(Right("Healthy"))
+    val maybeHealthy = for {
+      imageMeta <- imageRepository.getRandomImage()
+      imageFile <- imageMeta.images.headOption
+      healthy   <- Option.when(imageStorageService.objectExists(imageFile.fileName))("Healthy")
+    } yield healthy
+
+    maybeHealthy.toRight("Internal server error")
   }
 }
