@@ -67,9 +67,9 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
     val image3    = TestData.bjorn.copy(id = None, images = Some(List()), titles = Seq(ImageTitle("Ruslebiff", "nb")))
     val inserted3 = repository.insert(image3)
 
-    repository.withId(inserted1.id.get).get should be(expected1)
-    repository.withId(inserted2.id.get).get should be(inserted2)
-    repository.withId(inserted3.id.get).get should be(inserted3)
+    repository.withId(inserted1.id.get).get should be(Some(expected1))
+    repository.withId(inserted2.id.get).get should be(Some(inserted2))
+    repository.withId(inserted3.id.get).get should be(Some(inserted3))
   }
 
   test("That fetching images based on path works") {
@@ -88,10 +88,10 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
     val image2 = repository.insertImageFile(meta2.id.get, path2, image.copy(fileName = path2).toDocument()).get
     val image3 = repository.insertImageFile(meta3.id.get, path3, image.copy(fileName = path3).toDocument()).get
 
-    repository.getImageFromFilePath(path1).get should be(meta1.copy(images = Some(Seq(image1))))
-    repository.getImageFromFilePath(path2).get should be(meta2.copy(images = Some(Seq(image2))))
-    repository.getImageFromFilePath(path3).get should be(meta3.copy(images = Some(Seq(image3))))
-    repository.getImageFromFilePath("/nonexistant.png") should be(None)
+    repository.getImageFromFilePath(path1).get should be(Some(meta1.copy(images = Some(Seq(image1)))))
+    repository.getImageFromFilePath(path2).get should be(Some(meta2.copy(images = Some(Seq(image2)))))
+    repository.getImageFromFilePath(path3).get should be(Some(meta3.copy(images = Some(Seq(image3)))))
+    repository.getImageFromFilePath("/nonexistant.png") should be(Success(None))
   }
 
   test("that fetching based on path works with and without slash") {
@@ -109,11 +109,11 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
     val insertedFile2 = repository.insertImageFile(inserted2.id.get, path2, imageFile2.toDocument()).get
     val expected2     = inserted2.copy(images = Some(Seq(insertedFile2)))
 
-    repository.getImageFromFilePath(path1).get should be(expected1)
-    repository.getImageFromFilePath("/" + path1).get should be(expected1)
+    repository.getImageFromFilePath(path1).get should be(Some(expected1))
+    repository.getImageFromFilePath("/" + path1).get should be(Some(expected1))
 
-    repository.getImageFromFilePath(path2).get should be(expected2)
-    repository.getImageFromFilePath("/" + path2).get should be(expected2)
+    repository.getImageFromFilePath(path2).get should be(Some(expected2))
+    repository.getImageFromFilePath("/" + path2).get should be(Some(expected2))
   }
 
   test("That fetching image from url where there exists multiple works") {
@@ -125,7 +125,7 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
 
     val expected = inserted.copy(images = Some(Seq(insertedFile)))
 
-    repository.getImageFromFilePath(path1).get should be(expected)
+    repository.getImageFromFilePath(path1).get should be(Some(expected))
   }
 
   test("That fetching image from url with special characters are escaped") {
@@ -143,8 +143,8 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
     val insertedImg2 = repository.insertImageFile(inserted2.id.get, path2, imageFile2.toDocument()).get
     val expected2    = inserted2.copy(images = Some(Seq(insertedImg2)))
 
-    repository.getImageFromFilePath(path1).get should be(expected1)
-    repository.getImageFromFilePath(path2).get should be(expected2)
+    repository.getImageFromFilePath(path1).get should be(Some(expected1))
+    repository.getImageFromFilePath(path2).get should be(Some(expected2))
   }
 
 }

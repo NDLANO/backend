@@ -103,21 +103,21 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   }
 
   test("That GET /extern/abc returns 404") {
-    when(imageRepository.withExternalId(eqTo("abc"))).thenReturn(None)
+    when(imageRepository.withExternalId(eqTo("abc"))).thenReturn(Success(None))
     simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/abc")).code.code should be(
       404
     )
   }
 
   test("That GET /extern/123 returns 404 if 123 is not found") {
-    when(imageRepository.withExternalId(eqTo("123"))).thenReturn(None)
+    when(imageRepository.withExternalId(eqTo("123"))).thenReturn(Success(None))
     simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/123")).code.code should be(
       404
     )
   }
 
   test("That GET /extern/123 returns 200 and imagemeta when found") {
-    when(imageRepository.withExternalId(eqTo("123"))).thenReturn(Some(DefaultDomainImageMetaInformation))
+    when(imageRepository.withExternalId(eqTo("123"))).thenReturn(Success(Some(DefaultDomainImageMetaInformation)))
     val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/123"))
     res.code.code should be(200)
     CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](res.body) should equal(DefaultApiImageMetaInformation)

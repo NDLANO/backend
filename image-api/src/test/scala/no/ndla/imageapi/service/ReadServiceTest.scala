@@ -32,10 +32,10 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val expectedImageFile = TestData.bjorn.images.get.head.copy(fileName = "/" + imageUrl)
     val expectedImage     = TestData.bjorn.copy(id = Some(id), images = Some(Seq(expectedImageFile)))
 
-    when(imageRepository.withId(id)).thenReturn(Some(expectedImage))
+    when(imageRepository.withId(id)).thenReturn(Success(Some(expectedImage)))
     readService.getDomainImageMetaFromUrl(s"/image-api/raw/id/$id") should be(Success(expectedImage))
 
-    when(imageRepository.getImageFromFilePath(imageUrl)).thenReturn(Some(expectedImage))
+    when(imageRepository.getImageFromFilePath(imageUrl)).thenReturn(Success(Some(expectedImage)))
     readService.getDomainImageMetaFromUrl(s"/image-api/raw/$imageUrl") should be(Success(expectedImage))
 
     readService.getDomainImageMetaFromUrl("/image-api/raw/id/apekatt") should be(
@@ -117,7 +117,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       editorNotes = Seq.empty,
     )
 
-    when(imageRepository.withId(1)).thenReturn(Some(imageElg))
+    when(imageRepository.withId(1)).thenReturn(Success(Some(imageElg)))
     readService.withId(1, None, None) should be(Success(Some(expectedObject)))
   }
 
@@ -129,7 +129,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val expectedFile  = TestData.bjorn.images.get.head.copy(fileName = imageUrl)
     val expectedImage = TestData.bjorn.copy(id = Some(id), images = Some(Seq(expectedFile)))
 
-    doReturn(Some(expectedImage), Some(expectedImage))
+    doReturn(Success(Some(expectedImage)), Success(Some(expectedImage)))
       .when(imageRepository)
       .getImageFromFilePath(eqTo(encodedPath))(using any[DBSession])
     readService.getDomainImageMetaFromUrl(s"/image-api/raw/$imageUrl") should be(Success(expectedImage))
@@ -142,7 +142,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val imageUrl         = "Gr%C3%B8nnsaker%20er%20kilde%20for%20mange%20vitaminer%20(Foto:%20Bj%C3%B8rg%20Aurebekk).jpg"
     val expectedFileName = "Grønnsaker er kilde for mange vitaminer (Foto: Bjørg Aurebekk).jpg"
     when(imageRepository.withId(1)).thenReturn(
-      Some(TestData.bjorn.copy(images = Some(Seq(TestData.bjorn.images.get.head.copy(fileName = imageUrl)))))
+      Success(Some(TestData.bjorn.copy(images = Some(Seq(TestData.bjorn.images.get.head.copy(fileName = imageUrl))))))
     )
 
     readService.getImageFileName(1, Some("nb")) should be(Success(Some(expectedFileName)))

@@ -424,7 +424,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       )
     )
 
-    when(imageRepository.withId(imageId)).thenReturn(Some(domainWithImage))
+    when(imageRepository.withId(imageId)).thenReturn(Success(Some(domainWithImage)))
     when(imageRepository.delete(eqTo(imageId))(using any[DBSession])).thenReturn(1)
     when(imageStorage.deleteObject(any[String])).thenReturn(Success(()))
     when(imageStorage.deleteObjects(any)).thenReturn(Success(()))
@@ -459,7 +459,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       editorNotes = image.editorNotes :+ domain.EditorNote(date, user, "Deleted language 'nn'."),
     )
 
-    when(imageRepository.withId(imageId)).thenReturn(Some(image))
+    when(imageRepository.withId(imageId)).thenReturn(Success(Some(image)))
     when(imageRepository.update(any[ImageMetaInformation], eqTo(imageId))(using any)).thenAnswer(
       (i: InvocationOnMock) => Success(i.getArgument[ImageMetaInformation](0))
     )
@@ -494,7 +494,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       images = Some(Seq(TestData.bjorn.images.get.head.copy(language = "en"))),
     )
 
-    when(imageRepository.withId(imageId)).thenReturn(Some(image))
+    when(imageRepository.withId(imageId)).thenReturn(Success(Some(image)))
     when(imageRepository.delete(eqTo(imageId))(using any[DBSession])).thenReturn(1)
     when(imageStorage.deleteObject(any[String])).thenReturn(Success(()))
     when(imageStorage.deleteObjects(any)).thenReturn(Success(()))
@@ -549,7 +549,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
-    when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
+    when(imageRepository.withId(imageId)).thenReturn(Success(Some(dbImage)))
     when(imageRepository.update(any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
@@ -631,7 +631,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
-    when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
+    when(imageRepository.withId(imageId)).thenReturn(Success(Some(dbImage)))
     when(imageRepository.update(any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
@@ -723,7 +723,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
-    when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
+    when(imageRepository.withId(imageId)).thenReturn(Success(Some(dbImage)))
     when(imageRepository.update(any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
@@ -795,7 +795,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
-    when(imageRepository.withId(imageId)).thenReturn(Some(dbImage))
+    when(imageRepository.withId(imageId)).thenReturn(Success(Some(dbImage)))
     when(imageRepository.update(any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })

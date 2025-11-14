@@ -105,7 +105,7 @@ class WriteService(using
       language: String,
       user: TokenUser,
   ): Try[Option[ImageMetaInformation]] = permitTry {
-    imageRepository.withId(imageId) match {
+    imageRepository.withId(imageId).? match {
       case Some(existing) if converterService.getSupportedLanguages(existing).contains(language) =>
         val newImage = converterService.withoutLanguage(existing, language, user)
 
@@ -118,16 +118,14 @@ class WriteService(using
           updateAndIndexImage(imageId, newImage, existing.some).map(_.some)
         }
 
-      case Some(_) =>
-        Failure(new ImageNotFoundException(s"Image with id $imageId does not exist in language '$language'."))
-      case None =>
-        Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
+      case Some(_) => Failure(ImageNotFoundException(s"Image with id $imageId does not exist in language '$language'."))
+      case None    => Failure(ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
     }
   }
 
   def deleteImageAndFiles(imageId: Long): Try[Long] = {
     imageRepository.withId(imageId) match {
-      case Some(toDelete) =>
+      case Success(Some(toDelete)) =>
         val metaDeleted  = imageRepository.delete(imageId)
         val filesDeleted = toDelete.images.getOrElse(Seq.empty).traverse(image => deleteImageAndVariants(image))
         val indexDeleted = imageIndexService.deleteDocument(imageId).flatMap(tagIndexService.deleteDocument)
@@ -138,8 +136,9 @@ class WriteService(using
           case Success(_)  => indexDeleted
           case Failure(ex) => Failure(ex)
         }
-      case None =>
+      case Success(None) =>
         Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
+      case Failure(ex) => Failure(ex)
     }
   }
 
@@ -150,8 +149,7 @@ class WriteService(using
       user: TokenUser,
   ): Try[ImageMetaInformation] = {
     imageRepository.withId(imageId) match {
-      case None           => Failure(new ImageNotFoundException(s"Image with id $imageId was not found."))
-      case Some(existing) =>
+      case Success(Some(existing)) =>
         val now       = clock.now()
         val newTitles = existing.titles.map(t => t.copy(title = t.title + " (Kopi)"))
         val toInsert  = existing.copy(
@@ -166,6 +164,8 @@ class WriteService(using
           .map(_.language)
           .getOrElse(Language.DefaultLanguage)
         insertAndStoreImage(toInsert, newFile, existing.some, language)
+      case Success(None) => Failure(new ImageNotFoundException(s"Image with id $imageId was not found."))
+      case Failure(ex)   => Failure(ex)
     }
   }
 
@@ -383,8 +383,7 @@ class WriteService(using
       user: TokenUser,
   ): Try[domain.ImageMetaInformation] = {
     imageRepository.withId(imageId) match {
-      case None           => Failure(new ImageNotFoundException(s"Image with id $imageId found"))
-      case Some(oldImage) =>
+      case Success(Some(oldImage)) =>
         val maybeOverwrittenImage = newFile match {
           case Some(file) => validationService.validateImageFile(file) match {
               case Some(validationMessage) => Failure(new ValidationException(errors = Seq(validationMessage)))
@@ -398,6 +397,8 @@ class WriteService(using
           newImage    <- mergeImages(overwritten, updateMeta, user)
           indexed     <- updateAndIndexImage(imageId, newImage, oldImage.some)
         } yield indexed
+      case Success(None) => Failure(new ImageNotFoundException(s"Image with id $imageId found"))
+      case Failure(ex)   => Failure(ex)
     }
   }
 

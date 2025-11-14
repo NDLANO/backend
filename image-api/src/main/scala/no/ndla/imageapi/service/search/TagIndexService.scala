@@ -15,7 +15,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.model.search.SearchableTag
-import no.ndla.imageapi.repository.{ImageRepository, Repository}
+import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 class TagIndexService(using
@@ -25,9 +25,9 @@ class TagIndexService(using
     searchLanguage: SearchLanguage,
     props: Props,
 ) extends IndexService {
-  override val documentType: String                         = props.TagSearchDocument
-  override val searchIndex: String                          = props.TagSearchIndex
-  override val repository: Repository[ImageMetaInformation] = imageRepository
+  override val documentType: String        = props.TagSearchDocument
+  override val searchIndex: String         = props.TagSearchIndex
+  override val repository: ImageRepository = imageRepository
 
   override def createIndexRequests(domainModel: ImageMetaInformation, indexName: String): Seq[IndexRequest] = {
     val tags = searchConverterService.asSearchableTags(domainModel)

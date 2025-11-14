@@ -131,8 +131,9 @@ class InternController(using
     .serverLogicPure { user =>
       { case (externalId, language) =>
         imageRepository.withExternalId(externalId) match {
-          case Some(image) => converterService.asApiImageMetaInformationWithDomainUrlV2(image, language, user)
-          case None        => notFoundWithMsg(s"Image with external id $externalId not found").asLeft
+          case Success(Some(image)) => converterService.asApiImageMetaInformationWithDomainUrlV2(image, language, user)
+          case Success(None)        => notFoundWithMsg(s"Image with external id $externalId not found")
+          case Failure(ex)          => Failure(ex)
         }
       }
     }
@@ -146,7 +147,7 @@ class InternController(using
     .errorOut(errorOutputsFor(400))
     .serverLogicPure {
       case Some(p) => readService.getDomainImageMetaFromUrl(p)
-      case None    => badRequest(s"Query param '$urlQueryParam' needs to be specified to return an image").asLeft
+      case None    => badRequest(s"Query param '$urlQueryParam' needs to be specified to return an image")
     }
 
   def dumpImages: ServerEndpoint[Any, Eff] = endpoint
@@ -166,8 +167,9 @@ class InternController(using
     .errorOut(errorOutputsFor(400))
     .serverLogicPure { imageId =>
       imageRepository.withId(imageId) match {
-        case Some(image) => image.asRight
-        case None        => notFoundWithMsg(s"Could not find image with id: '$imageId'").asLeft
+        case Success(Some(image)) => image.asRight
+        case Success(None)        => notFoundWithMsg(s"Could not find image with id: '$imageId'")
+        case Failure(ex)          => Failure(ex)
       }
     }
 

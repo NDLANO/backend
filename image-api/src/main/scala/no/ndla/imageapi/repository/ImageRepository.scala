@@ -17,27 +17,27 @@ import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class ImageRepository extends StrictLogging with Repository[ImageMetaInformation] {
+class ImageRepository extends StrictLogging {
   def imageCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
     sql"select count(*) from ${ImageMetaInformation.table}".map(rs => rs.long("count")).single().getOrElse(0)
 
-  def withId(id: Long): Option[ImageMetaInformation] = {
+  def withId(id: Long): Try[Option[ImageMetaInformation]] = Try {
     DB readOnly { implicit session =>
       imageMetaInformationWhere(sqls"im.id = $id")
     }
-  }
+  }.flatten
 
-  def withIds(ids: List[Long]): List[ImageMetaInformation] = {
+  def withIds(ids: List[Long]): Try[List[ImageMetaInformation]] = Try {
     DB readOnly { implicit session =>
       imageMetaInformationsWhere(sqls"im.id in ($ids)")
     }
-  }
+  }.flatten
 
-  def withExternalId(externalId: String): Option[ImageMetaInformation] = {
+  def withExternalId(externalId: String): Try[Option[ImageMetaInformation]] = Try {
     DB readOnly { implicit session =>
       imageMetaInformationWhere(sqls"im.external_id = $externalId")
     }
-  }
+  }.flatten
 
   def insert(imageMeta: ImageMetaInformation)(implicit session: DBSession = AutoSession): ImageMetaInformation = {
     val dataObject = new PGobject()
@@ -120,12 +120,12 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
     document.toFull(insertedId, fileName, imageId)
   }
 
-  def documentsWithIdBetween(min: Long, max: Long): List[ImageMetaInformation] =
+  def documentsWithIdBetween(min: Long, max: Long): Try[List[ImageMetaInformation]] =
     imageMetaInformationsWhere(sqls"im.id between $min and $max")
 
   private def imageMetaInformationWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession): Option[ImageMetaInformation] = {
+  )(implicit session: DBSession): Try[Option[ImageMetaInformation]] = Try {
     val im  = ImageMetaInformation.syntax("im")
     val dif = Image.syntax("dif")
     sql"""
@@ -135,14 +135,15 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
             WHERE $whereClause
          """
       .one(ImageMetaInformation.fromResultSet(im.resultName))
-      .toMany(rs => Image.fromResultSet(dif.resultName)(rs).toOption.flatten)
-      .map((meta, images) => meta.copy(images = Some(images.toSeq)))
+      .toMany(rs => Image.fromResultSet(dif.resultName)(rs).sequence)
+      .map((meta, images) => images.toList.sequence.map(images => meta.copy(images = Some(images.toSeq))))
       .single()
-  }
+      .sequence
+  }.flatten
 
   private def imageMetaInformationsWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): List[ImageMetaInformation] = {
+  )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[ImageMetaInformation]] = Try {
     val im  = ImageMetaInformation.syntax("im")
     val dif = Image.syntax("dif")
     sql"""
@@ -152,10 +153,11 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
             WHERE $whereClause
          """
       .one(ImageMetaInformation.fromResultSet(im.resultName))
-      .toMany(rs => Image.fromResultSet(dif.resultName)(rs).toOption.flatten)
-      .map((meta, files) => meta.copy(images = Some(files.toSeq)))
+      .toMany(rs => Image.fromResultSet(dif.resultName)(rs).sequence)
+      .map((meta, files) => files.toList.sequence.map(files => meta.copy(images = Some(files.toSeq))))
       .list()
-  }
+      .sequence
+  }.flatten
 
   private def withAndWithoutPrefixSlash(str: String): (String, String) = {
     val without = str.dropWhile(_ == '/')
@@ -164,7 +166,7 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
 
   def getImageFromFilePath(
       filePath: String
-  )(implicit session: DBSession = ReadOnlyAutoSession): Option[ImageMetaInformation] = {
+  )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[ImageMetaInformation]] = {
     val i                         = Image.syntax("i")
     val (withoutSlash, withSlash) = withAndWithoutPrefixSlash(filePath)
     imageMetaInformationWhere(sqls"""
@@ -176,7 +178,7 @@ class ImageRepository extends StrictLogging with Repository[ImageMetaInformation
       """)
   }
 
-  override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
+  def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
     sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${ImageMetaInformation.table}"
       .map(rs => {
         (rs.long("mi"), rs.long("ma"))

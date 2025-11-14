@@ -13,7 +13,7 @@ import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageMetaInformation
-import no.ndla.imageapi.repository.Repository
+import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 
@@ -23,7 +23,7 @@ abstract class IndexService(using e4sClient: NdlaE4sClient, searchLanguage: Sear
     extends BaseIndexService
     with StrictLogging {
   override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
-  val repository: Repository[ImageMetaInformation]
+  val repository: ImageRepository
 
   def createIndexRequests(domainModel: ImageMetaInformation, indexName: String): Seq[IndexRequest]
 
@@ -43,8 +43,10 @@ abstract class IndexService(using e4sClient: NdlaE4sClient, searchLanguage: Sear
     getRanges
       .flatMap(ranges => {
         ranges.traverse { case (start, end) =>
-          val toIndex = repository.documentsWithIdBetween(start, end)
-          indexDocuments(toIndex, indexName)
+          for {
+            toIndex <- repository.documentsWithIdBetween(start, end)
+            result  <- indexDocuments(toIndex, indexName)
+          } yield result
         }
       })
       .map(countBulkIndexed)

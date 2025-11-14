@@ -42,7 +42,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
 
   override def beforeEach(): Unit = {
     reset(clock)
-    when(imageRepository.withId(id)).thenReturn(Some(TestData.bjorn))
+    when(imageRepository.withId(id)).thenReturn(Success(Some(TestData.bjorn)))
     when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoImage))
     when(readService.getImageFileName(id, None)).thenReturn(Success(Some(TestData.bjorn.images.get.head.fileName)))
     when(clock.now()).thenCallRealMethod()
