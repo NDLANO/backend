@@ -8,21 +8,20 @@
 
 package no.ndla.imageapi
 
-import no.ndla.common.model.NDLADate
+import no.ndla.common.aws.NdlaS3Object
+import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Author, ContributorType, Tag, UploadedFile}
-import no.ndla.common.model.api as commonApi
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.api.ImageMetaInformationV2DTO
 import no.ndla.imageapi.model.domain.*
+import no.ndla.imageapi.service.ImageConverter
 import no.ndla.mapping
 import no.ndla.mapping.License
 
-import java.awt.image.BufferedImage
-import java.io.{File, InputStream}
-import javax.imageio.ImageIO
+import java.io.File
 
-class TestData {
+class TestData(using props: Props) {
   def updated(): NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
   val ByNcSa: String = mapping.License.CC_BY_NC_SA.toString
@@ -359,23 +358,36 @@ class TestData {
 
   val testdata: List[ImageMetaInformation] = List(elg, bjorn, jerv, mink, rein)
 
-  case class DiskImage(filename: String) extends ImageStream {
-    override def contentType: String = s"image/$format"
-
-    override def stream: InputStream = getClass.getResourceAsStream(s"/$filename")
-    override def fileName: String    = filename
-
-    override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
-    lazy val rawBytes: String                    = scala.io.Source.fromInputStream(stream).mkString
+  def mockS3ObjectFromDisk(fileName: String, contentType: String): NdlaS3Object = {
+    val stream = getClass.getResourceAsStream(s"/$fileName")
+    NdlaS3Object("", fileName, stream, contentType, 0)
   }
 
-  val NdlaLogoImage: DiskImage    = DiskImage("ndla_logo.jpg")
-  val NdlaLogoGIFImage: DiskImage = DiskImage("ndla_logo.gif")
-  val CCLogoSvgImage: DiskImage   = DiskImage("cc.svg")
+  private val imageConverter: ImageConverter = new ImageConverter
 
-  private val childrensImageFileName = "children-drawing-582306_640.jpg"
-  val ChildrensImage: DiskImage      =
-    DiskImage(childrensImageFileName) // From https://pixabay.com/en/children-drawing-home-tree-meadow-582306/
+  def ndlaLogoImageS3Object: NdlaS3Object   = mockS3ObjectFromDisk("ndla_logo.jpg", "image/jpeg")
+  val NdlaLogoImage: ProcessableImageStream = imageConverter
+    .s3ObjectToImageStream(ndlaLogoImageS3Object)
+    .get
+    .asInstanceOf[ProcessableImageStream]
+  def ndlaLogoGIFImageS3Object: NdlaS3Object     = mockS3ObjectFromDisk("ndla_logo.gif", "image/gif")
+  val NdlaLogoGIFImage: UnprocessableImageStream = imageConverter
+    .s3ObjectToImageStream(ndlaLogoGIFImageS3Object)
+    .get
+    .asInstanceOf[UnprocessableImageStream]
+  def ccLogoSvgImageS3Object: NdlaS3Object     = mockS3ObjectFromDisk("cc.svg", "image/svg+xml")
+  val CCLogoSvgImage: UnprocessableImageStream = imageConverter
+    .s3ObjectToImageStream(ccLogoSvgImageS3Object)
+    .get
+    .asInstanceOf[UnprocessableImageStream]
+
+  // From https://pixabay.com/en/children-drawing-home-tree-meadow-582306/
+  private val childrensImageFileName         = "children-drawing-582306_640.jpg"
+  private val childrensImageS3Object         = mockS3ObjectFromDisk(childrensImageFileName, "image/jpeg")
+  val ChildrensImage: ProcessableImageStream = imageConverter
+    .s3ObjectToImageStream(childrensImageS3Object)
+    .get
+    .asInstanceOf[ProcessableImageStream]
 
   val childrensImageUploadedFile: UploadedFile = {
     val file = new File(getClass.getResource(s"/$childrensImageFileName").toURI)

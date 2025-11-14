@@ -11,7 +11,13 @@ package no.ndla.imageapi.model.domain
 import com.sksamuel.scrimage.format.Format
 import enumeratum.{Enum, EnumEntry}
 
-sealed trait ProcessableImageFormat extends EnumEntry
+sealed trait ProcessableImageFormat extends EnumEntry {
+  def toContentType: String = this match {
+    case ProcessableImageFormat.Jpeg => "image/jpeg"
+    case ProcessableImageFormat.Png  => "image/png"
+    case ProcessableImageFormat.Webp => "image/webp"
+  }
+}
 
 object ProcessableImageFormat extends Enum[ProcessableImageFormat] {
   case object Jpeg extends ProcessableImageFormat

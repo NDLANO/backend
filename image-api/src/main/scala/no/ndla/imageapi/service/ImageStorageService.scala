@@ -9,60 +9,51 @@
 package no.ndla.imageapi.service
 
 import cats.implicits.*
-import java.awt.image.BufferedImage
-import java.io.{ByteArrayInputStream, InputStream}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.aws.{NdlaS3Client, NdlaS3Object}
 import no.ndla.common.model.domain.UploadedFile
-
-import javax.imageio.ImageIO
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.model.domain.ImageStream
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException
 
+import java.io.InputStream
 import scala.util.{Failure, Success, Try}
 
-class ImageStorageService(using s3Client: => NdlaS3Client, readService: ReadService, props: Props)
-    extends StrictLogging {
-  case class NdlaImage(s3Object: NdlaS3Object, fileName: String) extends ImageStream {
-    lazy val imageContent: Array[Byte]           = s3Object.stream.readAllBytes()
-    override lazy val sourceImage: BufferedImage = ImageIO.read(stream)
-
-    override def contentType: String = {
-      val s3ContentType = s3Object.contentType
-      if (s3ContentType == "binary/octet-stream") {
-        readService.getImageFromFilePath(fileName) match {
-          case Failure(ex) =>
-            logger.warn(s"Couldn't get meta for $fileName so using s3 content-type of '$s3ContentType'", ex)
-            s3ContentType
-          case Success(meta)
-              if meta.contentType != "" && meta.contentType != "binary/octet-stream" && props
-                .ValidMimeTypes
-                .contains(meta.contentType) =>
-            updateContentType(s3Object.key, meta.contentType) match {
-              case Failure(ex) =>
-                logger.error(s"Could not update content-type s3-metadata of $fileName to ${meta.contentType}", ex)
-              case Success(_) =>
-                logger.info(s"Successfully updated content-type s3-metadata of $fileName to ${meta.contentType}")
-            }
-            meta.contentType
-          case _ => s3ContentType
-        }
-      } else s3ContentType
-    }
-
-    override def stream: InputStream = new ByteArrayInputStream(imageContent)
+class ImageStorageService(using
+    s3Client: => NdlaS3Client,
+    readService: ReadService,
+    imageConverter: ImageConverter,
+    props: Props,
+) extends StrictLogging {
+  private def ensureS3ContentType(s3Object: NdlaS3Object): String = {
+    val s3ContentType = s3Object.contentType
+    val fileName      = s3Object.key
+    if (s3ContentType == "binary/octet-stream") {
+      readService.getImageFromFilePath(fileName) match {
+        case Failure(ex) =>
+          logger.warn(s"Couldn't get meta for $fileName so using s3 content-type of '$s3ContentType'", ex)
+          s3ContentType
+        case Success(meta)
+            if meta.contentType != "" && meta.contentType != "binary/octet-stream" && props
+              .ValidMimeTypes
+              .contains(meta.contentType) =>
+          updateContentType(s3Object.key, meta.contentType) match {
+            case Failure(ex) =>
+              logger.error(s"Could not update content-type s3-metadata of $fileName to ${meta.contentType}", ex)
+            case Success(_) =>
+              logger.info(s"Successfully updated content-type s3-metadata of $fileName to ${meta.contentType}")
+          }
+          meta.contentType
+        case _ => s3ContentType
+      }
+    } else s3ContentType
   }
 
   def get(imageKey: String): Try[ImageStream] = {
-    s3Client.getObject(imageKey).map(s3Object => NdlaImage(s3Object, imageKey)) match {
-      case Success(e)                     => Success(e)
-      case Failure(_: NoSuchKeyException) => Failure(new ImageNotFoundException(s"Image $imageKey does not exist"))
-      case Failure(ex)                    =>
-        logger.error(s"Failed to get image '$imageKey' from S3", ex)
-        Failure(ex)
-    }
+    for {
+      s3Object    <- s3Client.getObject(imageKey)
+      imageStream <- imageConverter.s3ObjectToImageStream(s3Object)
+      _            = ensureS3ContentType(s3Object)
+    } yield imageStream
   }
 
   def getRaw(bucketKey: String): Try[NdlaS3Object] = s3Client.getObject(bucketKey)

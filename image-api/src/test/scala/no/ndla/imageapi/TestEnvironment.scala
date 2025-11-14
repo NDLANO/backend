@@ -71,8 +71,9 @@ trait TestEnvironment extends TapirApplication[ImageApiProperties] with MockitoS
   implicit lazy val validationService: ValidationService           = mock[ValidationService]
   implicit lazy val e4sClient: NdlaE4sClient                       = mock[NdlaE4sClient]
   implicit lazy val searchConverterService: SearchConverterService = mock[SearchConverterService]
-  implicit lazy val imageConverter: ImageConverter                 = mock[ImageConverter]
   implicit lazy val random: Random                                 = mock[Random]
 
   implicit lazy val swagger: SwaggerController = mock[SwaggerController]
+
+  implicit lazy val imageConverter: ImageConverter = new ImageConverter
 }

@@ -23,7 +23,8 @@ case class ImageDeleteException(message: String, exs: Seq[Throwable])         ex
 case class ImageVariantsUploadException(message: String, exs: Seq[Throwable]) extends MultipleExceptions(message, exs)
 case class ImageConversionException(message: String)                          extends RuntimeException(message)
 case class ImageCopyException(message: String)                                extends RuntimeException(message)
-case class ImageInvalidFormat(message: String)                                extends RuntimeException(message)
+case class ImageUnprocessableFormatException(contentType: String)
+    extends RuntimeException(s"Image of '$contentType' Content-Type did not have a processable binary format")
 
 object ImageErrorHelpers {
   def fileTooBigError(using props: Props): String =
