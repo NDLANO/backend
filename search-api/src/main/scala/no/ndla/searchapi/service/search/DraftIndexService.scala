@@ -85,6 +85,7 @@ class DraftIndexService(using
       longField("favorited"),
       keywordField("learningResourceType"),
       ObjectField("responsible", properties = Seq(keywordField("responsibleId"), dateField("lastUpdated"))),
+      keywordField("nodeIds"),
       getTaxonomyContextMapping("context"),
       getTaxonomyContextMapping("contexts"),
       keywordField("contextids"),
