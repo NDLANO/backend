@@ -22,7 +22,7 @@ import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.service.search.SearchConverterService
 import no.ndla.searchapi.{TestData, UnitSuite}
 import no.ndla.{articleapi, searchapi}
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
@@ -40,7 +40,7 @@ class ArticleApiClientTest
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   val articleApiPort: Int                        = findFreePort
-  val pgc: PostgreSQLContainer[?]                = postgresContainer.get
+  val pgc: PostgreSQLContainer                   = postgresContainer.get
   val esHost: String                             = elasticSearchHost.get
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
     override def ApplicationPort: Int              = articleApiPort

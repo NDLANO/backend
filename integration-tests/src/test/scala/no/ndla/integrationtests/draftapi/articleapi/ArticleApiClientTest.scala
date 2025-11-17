@@ -23,7 +23,7 @@ import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.validation.HtmlTagRules
 import no.ndla.{articleapi, draftapi}
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -45,7 +45,7 @@ class ArticleApiClientTest
   val WeNeedThisToMakeTheTestsWorkNoIdeaWhyReadTheComment: Set[String] = HtmlTagRules.PermittedHTML.tags
 
   val articleApiPort: Int                        = findFreePort
-  val pgc: PostgreSQLContainer[?]                = postgresContainer.get
+  val pgc: PostgreSQLContainer                   = postgresContainer.get
   val esHost: String                             = elasticSearchHost.get
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
     override def ApplicationPort: Int              = articleApiPort

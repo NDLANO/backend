@@ -22,7 +22,7 @@ import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, spy, when, withSettings}
 import org.mockito.quality.Strictness
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import scalikejdbc.DBSession
 import sttp.client3.quick.*
 
@@ -34,7 +34,7 @@ import scala.util.Success
 class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with UnitSuite with TestEnvironment {
 
   val myndlaApiPort: Int                    = findFreePort
-  val pgc: PostgreSQLContainer[?]           = postgresContainer.get
+  val pgc: PostgreSQLContainer              = postgresContainer.get
   val redisPort: Int                        = redisContainer.get.port
   val myndlaproperties: MyNdlaApiProperties = new MyNdlaApiProperties {
     override def ApplicationPort: Int = myndlaApiPort

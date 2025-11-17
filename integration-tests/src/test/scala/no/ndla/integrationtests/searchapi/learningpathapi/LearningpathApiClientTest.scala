@@ -23,7 +23,7 @@ import no.ndla.searchapi.service.search.SearchConverterService
 import no.ndla.{learningpathapi, searchapi}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
@@ -40,7 +40,7 @@ class LearningpathApiClientTest
   override implicit lazy val searchConverterService: SearchConverterService = new SearchConverterService
 
   val learningpathApiPort: Int                             = findFreePort
-  val pgc: PostgreSQLContainer[?]                          = postgresContainer.get
+  val pgc: PostgreSQLContainer                             = postgresContainer.get
   val esHost: String                                       = elasticSearchHost.get
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int       = learningpathApiPort
