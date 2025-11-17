@@ -21,7 +21,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{spy, when, withSettings}
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.quality.Strictness
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
@@ -36,7 +36,7 @@ class LearningPathAndStepCreationTests
     with TestEnvironment {
 
   val learningpathApiPort: Int                             = findFreePort
-  val pgc: PostgreSQLContainer[?]                          = postgresContainer.get
+  val pgc: PostgreSQLContainer                             = postgresContainer.get
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int       = learningpathApiPort
     override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)

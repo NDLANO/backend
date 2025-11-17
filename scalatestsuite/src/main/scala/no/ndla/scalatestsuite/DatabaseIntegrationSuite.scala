@@ -13,7 +13,7 @@ import no.ndla.common.configuration.BaseProps
 import no.ndla.database.{DataSource, DatabaseProps}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 
 import scala.util.{Failure, Success, Try}
 import sys.env
@@ -25,14 +25,14 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
   val PostgresqlVersion: String        = "17.5"
   lazy val schemaName: String          = "testschema"
 
-  val postgresContainer: Try[PostgreSQLContainer[?]] =
+  val postgresContainer: Try[PostgreSQLContainer] =
     if (EnablePostgresContainer) {
       val defaultUsername: String     = "postgres"
       val defaultDatabaseName: String = "postgres"
       val defaultPassword: String     = "hemmelig"
 
       if (skipContainerSpawn) {
-        val x = mock[PostgreSQLContainer[Nothing]]
+        val x = mock[PostgreSQLContainer]
         when(x.getPassword).thenReturn(env.getOrElse("META_PASSWORD", defaultPassword)): Unit
         when(x.getUsername).thenReturn(env.getOrElse("META_USERNAME", defaultUsername)): Unit
         when(x.getDatabaseName).thenReturn(env.getOrElse("META_RESOURCE", defaultDatabaseName)): Unit

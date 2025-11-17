@@ -23,7 +23,7 @@ import no.ndla.searchapi.service.search.SearchConverterService
 import no.ndla.{draftapi, searchapi}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
@@ -41,7 +41,7 @@ class DraftApiClientTest
   override implicit lazy val DBUtil: DBUtility                              = new DBUtility
 
   val draftApiPort: Int                      = findFreePort
-  val pgc: PostgreSQLContainer[?]            = postgresContainer.get
+  val pgc: PostgreSQLContainer               = postgresContainer.get
   val esHost: String                         = elasticSearchHost.get
   val draftApiProperties: DraftApiProperties = new DraftApiProperties {
     override def ApplicationPort: Int                  = draftApiPort
