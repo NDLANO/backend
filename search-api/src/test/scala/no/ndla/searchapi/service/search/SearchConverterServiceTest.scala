@@ -104,6 +104,19 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       List.empty,
     ),
+    Node(
+      "urn:case:1",
+      "Case1",
+      Some("urn:article:10"),
+      Some("/subject:1/case:10"),
+      Some("/e/case1/asdf3457"),
+      visibleMetadata,
+      List.empty,
+      NodeType.CASE,
+      List("asdf3459"),
+      None,
+      List.empty,
+    ),
   )
 
   val emptyBundle: TaxonomyBundle = TaxonomyBundle(nodes = nodes)

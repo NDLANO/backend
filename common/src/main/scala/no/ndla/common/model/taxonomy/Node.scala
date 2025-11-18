@@ -22,6 +22,7 @@ object NodeType       extends Enum[NodeType] with CirceEnum[NodeType] {
   case object TOPIC     extends NodeType
   case object RESOURCE  extends NodeType
   case object PROGRAMME extends NodeType
+  case object CASE      extends NodeType
 
   val values: IndexedSeq[NodeType] = findValues
 
