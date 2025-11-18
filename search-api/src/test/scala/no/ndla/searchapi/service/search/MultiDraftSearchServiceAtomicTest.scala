@@ -586,7 +586,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       Some("/e/t4/asdf1260"),
       visibleMetadata,
       List.empty,
-      NodeType.TOPIC,
+      NodeType.CASE,
       List("asdf1260"),
       None,
       List.empty,

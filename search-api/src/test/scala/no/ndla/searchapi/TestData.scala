@@ -1323,7 +1323,7 @@ object TestData {
     Some("/e/engler-og-demoner/asdf1241"),
     invisibleMetadata,
     List.empty,
-    NodeType.TOPIC,
+    NodeType.CASE,
     List("asdf1241"),
     None,
     List.empty,
