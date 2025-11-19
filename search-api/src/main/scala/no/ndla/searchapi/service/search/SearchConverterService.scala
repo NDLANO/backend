@@ -485,9 +485,10 @@ class SearchConverterService(using
     val nextRevision = draft.revisionMeta.getNextRevision
     val draftStatus  = search.SearchableStatus(draft.status.current.toString, draft.status.other.map(_.toString).toSeq)
 
+    val primaryContext  = taxonomyContexts.find(tc => tc.isPrimary && tc.rootId.startsWith("urn:subject:"))
+    val primaryRoot     = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
     val parentTopicName = SearchableLanguageValues(
-      taxonomyContexts
-        .headOption
+      primaryContext
         .map(context => {
           context
             .breadcrumbs
@@ -499,8 +500,6 @@ class SearchConverterService(using
         .getOrElse(Seq.empty)
     )
 
-    val primaryContext           = taxonomyContexts.find(tc => tc.isPrimary && tc.rootId.startsWith("urn:subject:"))
-    val primaryRoot              = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
     val sortableResourceTypeName = getSortableResourceTypeName(draft, taxonomyContexts)
 
     val favorited = (
