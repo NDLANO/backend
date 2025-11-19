@@ -120,24 +120,15 @@ class WriteService(using
     }
   }
 
-  def deleteImageAndFiles(imageId: Long): Try[Long] = {
-    imageRepository.withId(imageId) match {
-      case Success(Some(toDelete)) =>
-        val metaDeleted  = imageRepository.delete(imageId)
-        val filesDeleted = toDelete.images.traverse(image => deleteImageAndVariants(image))
-        val indexDeleted = imageIndexService.deleteDocument(imageId).flatMap(tagIndexService.deleteDocument)
-
-        filesDeleted match {
-          case _ if metaDeleted < 1 =>
-            Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
-          case Success(_)  => indexDeleted
-          case Failure(ex) => Failure(ex)
-        }
-      case Success(None) =>
-        Failure(new ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted."))
-      case Failure(ex) => Failure(ex)
-    }
-  }
+  def deleteImageAndFiles(imageId: Long): Try[Long] = for {
+    maybeImageToDelete <- imageRepository.withId(imageId)
+    toDelete           <- maybeImageToDelete.toTry(
+      ImageNotFoundException(s"Image with id $imageId was not found, and could not be deleted.")
+    )
+    metaDeleted  <- imageRepository.delete(imageId)
+    filesDeleted <- toDelete.images.traverse(image => deleteImageAndVariants(image))
+    indexDeleted <- imageIndexService.deleteDocument(imageId).flatMap(tagIndexService.deleteDocument)
+  } yield indexDeleted
 
   def copyImage(
       imageId: Long,
@@ -180,7 +171,7 @@ class WriteService(using
     ).?
 
     validationService.validate(toInsert, copiedFrom).??
-    val insertedMeta       = Try(imageRepository.insert(toInsert)).?
+    val insertedMeta       = imageRepository.insert(toInsert).?
     val missingIdException = MissingIdException("Could not find id of stored metadata. This is a bug.")
     val imageId            = insertedMeta.id.toTry(missingIdException).?
 
@@ -397,9 +388,12 @@ class WriteService(using
   def generateAndUploadVariantsForExistingImages(ignoreMissingObjects: Boolean): Try[Unit] = {
     val processableContentTypes = Seq("image/png", "image/jpeg")
     val batchSize               = 20
-    val batchIterator           = imageRepository.getImageFileBatched(batchSize)
-    val totalBatchCount         = batchIterator.knownSize
-    given ExecutionContext      = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(batchSize))
+    val batchIterator           = imageRepository.getImageFileBatched(batchSize) match {
+      case Success(it) => it
+      case Failure(ex) => return Failure(ex)
+    }
+    val totalBatchCount    = batchIterator.knownSize
+    given ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(batchSize))
 
     batchIterator
       .zipWithIndex

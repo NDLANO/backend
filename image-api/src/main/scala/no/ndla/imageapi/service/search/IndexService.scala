@@ -52,12 +52,11 @@ abstract class IndexService(using e4sClient: NdlaE4sClient, searchLanguage: Sear
       .map(countBulkIndexed)
   }
 
-  def getRanges: Try[List[(Long, Long)]] = {
-    Try {
-      val (minId, maxId) = repository.minMaxId
+  def getRanges: Try[List[(Long, Long)]] = repository
+    .minMaxId
+    .map { case (minId, maxId) =>
       Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
     }
-  }
 
   def indexDocuments(contents: Seq[ImageMetaInformation], indexName: String): Try[BulkIndexResult] = {
     if (contents.isEmpty) {

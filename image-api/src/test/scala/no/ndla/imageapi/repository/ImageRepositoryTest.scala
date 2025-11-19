@@ -55,15 +55,15 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
   test("That inserting and retrieving images works as expected") {
     val imageFile1 = TestData.bjorn.images.head
     val image1     = TestData.bjorn.copy(id = None, images = Seq(imageFile1), titles = Seq(ImageTitle("KyllingFisk", "nb")))
-    val inserted1  = repository.insert(image1)
+    val inserted1  = repository.insert(image1).failIfFailure
     val expected1  = image1.copy(id = inserted1.id)
 
     val image2    = TestData.bjorn.copy(id = None, images = Seq.empty, titles = Seq(ImageTitle("Apekatter", "nb")))
-    val inserted2 = repository.insert(image2)
+    val inserted2 = repository.insert(image2).failIfFailure
     val expected2 = image2.copy(id = inserted2.id)
 
     val image3    = TestData.bjorn.copy(id = None, images = Seq.empty, titles = Seq(ImageTitle("Ruslebiff", "nb")))
-    val inserted3 = repository.insert(image3)
+    val inserted3 = repository.insert(image3).failIfFailure
     val expected3 = image3.copy(id = inserted3.id)
 
     repository.withId(inserted1.id.get).failIfFailure should be(Some(expected1))
@@ -80,15 +80,15 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
 
     val image1      = image.copy(fileName = path1)
     val meta1       = TestData.bjorn.copy(images = Seq(image1))
-    val metaWithId1 = repository.insert(meta1)
+    val metaWithId1 = repository.insert(meta1).failIfFailure
 
     val image2      = image.copy(fileName = path2)
     val meta2       = TestData.bjorn.copy(images = Seq(image2))
-    val metaWithId2 = repository.insert(meta2)
+    val metaWithId2 = repository.insert(meta2).failIfFailure
 
     val image3      = image.copy(fileName = path3)
     val meta3       = TestData.bjorn.copy(images = Seq(image3))
-    val metaWithId3 = repository.insert(meta3)
+    val metaWithId3 = repository.insert(meta3).failIfFailure
 
     repository.getImageFromFilePath(path1).failIfFailure should be(Some(metaWithId1))
     repository.getImageFromFilePath(path2).failIfFailure should be(Some(metaWithId2))
@@ -100,13 +100,13 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
     val path1      = "/slash-path1.jpg"
     val imageFile1 = TestData.bjorn.images.head.copy(fileName = path1)
     val image1     = TestData.bjorn.copy(id = None, images = Seq(imageFile1))
-    val inserted1  = repository.insert(image1)
+    val inserted1  = repository.insert(image1).failIfFailure
     val expected1  = inserted1.copy(images = Seq(imageFile1))
 
     val path2      = "no-slash-path2.jpg"
     val imageFile2 = TestData.bjorn.images.head.copy(fileName = path2)
     val image2     = TestData.bjorn.copy(id = None, images = Seq(imageFile2))
-    val inserted2  = repository.insert(image2)
+    val inserted2  = repository.insert(image2).failIfFailure
     val expected2  = inserted2.copy(images = Seq(imageFile2))
 
     repository.getImageFromFilePath(path1).get should be(Some(expected1))
@@ -120,7 +120,7 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
     val path1      = "/fetch-path1.jpg"
     val imageFile1 = TestData.bjorn.images.head.copy(fileName = path1)
     val image1     = TestData.bjorn.copy(id = None, images = Seq(imageFile1))
-    val inserted   = repository.insert(image1)
+    val inserted   = repository.insert(image1).failIfFailure
 
     val expected = inserted.copy(images = Seq(imageFile1))
 
@@ -131,13 +131,13 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
     val path1      = "/path1.jpg"
     val imageFile1 = TestData.bjorn.images.head.copy(fileName = path1)
     val image1     = TestData.bjorn.copy(id = None, images = Seq(imageFile1))
-    val inserted1  = repository.insert(image1)
+    val inserted1  = repository.insert(image1).failIfFailure
     val expected1  = inserted1.copy(images = Seq(imageFile1))
 
     val path2      = "/pa%h1.jpg"
     val imageFile2 = TestData.bjorn.images.head.copy(fileName = path2)
     val image2     = TestData.bjorn.copy(id = None, images = Seq(imageFile2))
-    val inserted2  = repository.insert(image2)
+    val inserted2  = repository.insert(image2).failIfFailure
     val expected2  = inserted2.copy(images = Seq(imageFile2))
 
     repository.getImageFromFilePath(path1).get should be(Some(expected1))

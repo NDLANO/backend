@@ -23,7 +23,14 @@ class HealthController(using
 
   override def checkReadiness(): Either[String, String] = {
     val maybeHealthy = for {
-      imageMeta <- imageRepository.getRandomImage()
+      imageMeta <- imageRepository
+        .getRandomImage()
+        .recover { ex =>
+          logger.error("Failed to fetch random image in health check", ex)
+          None
+        }
+        .toOption
+        .flatten
       imageFile <- imageMeta.images.headOption
       healthy   <- Option.when(imageStorageService.objectExists(imageFile.fileName))("Healthy")
     } yield healthy

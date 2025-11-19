@@ -136,11 +136,13 @@ class ReadService(using
     else Failure(InvalidUrlException("Could not extract id or path from url."))
   }
 
-  def getMetaImageDomainDump(pageNo: Int, pageSize: Int): ImageMetaDomainDumpDTO = {
+  def getMetaImageDomainDump(pageNo: Int, pageSize: Int): Try[ImageMetaDomainDumpDTO] = {
     val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
-    val results                    = imageRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
-
-    ImageMetaDomainDumpDTO(imageRepository.imageCount, pageNo, pageSize, results)
+    for {
+      results <- imageRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
+      count   <- imageRepository.imageCount
+      dump     = ImageMetaDomainDumpDTO(count, pageNo, pageSize, results)
+    } yield dump
   }
 
   def getImageFileName(imageId: Long, language: Option[String]): Try[Option[String]] = {

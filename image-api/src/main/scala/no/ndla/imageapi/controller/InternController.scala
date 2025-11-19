@@ -156,15 +156,16 @@ class InternController(using
     .in(query[Int]("page").default(1))
     .in(query[Int]("page-size").default(250))
     .out(jsonBody[ImageMetaDomainDumpDTO])
+    .errorOut(errorOutputsFor(400))
     .serverLogicPure { case (page, pageSize) =>
-      readService.getMetaImageDomainDump(page, pageSize).asRight
+      readService.getMetaImageDomainDump(page, pageSize)
     }
 
   def dumpSingleImage: ServerEndpoint[Any, Eff] = endpoint
     .get
     .in("dump" / "image" / path[Long]("image_id"))
     .out(jsonBody[ImageMetaInformation])
-    .errorOut(errorOutputsFor(400))
+    .errorOut(errorOutputsFor(400, 404))
     .serverLogicPure { imageId =>
       imageRepository.withId(imageId) match {
         case Success(Some(image)) => image.asRight
@@ -180,7 +181,7 @@ class InternController(using
     .out(jsonBody[ImageMetaInformation])
     .errorOut(errorOutputsFor(400))
     .serverLogicPure { imageMeta =>
-      imageRepository.insert(imageMeta).asRight
+      imageRepository.insert(imageMeta)
     }
 
   // TODO: Remove this after completing variants migration of existing images

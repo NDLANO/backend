@@ -28,6 +28,8 @@ import no.ndla.mapping.License
 import org.mockito.Mockito.when
 import sttp.client3.quick.*
 
+import scala.util.Success
+
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override implicit lazy val clock: Clock                    = mock[Clock]
   override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
@@ -70,7 +72,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   test("that /health/readiness returns 200 on success") {
     healthControllerResponse = 200
-    when(imageRepository.getRandomImage()).thenReturn(Some(imageMeta))
+    when(imageRepository.getRandomImage()).thenReturn(Success(Some(imageMeta)))
     when(imageStorage.objectExists("file.jpg")).thenReturn(true)
 
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
@@ -89,7 +91,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   test("that /health/readiness returns 500 on failure") {
     healthControllerResponse = 500
-    when(imageRepository.getRandomImage()).thenReturn(Some(imageMeta))
+    when(imageRepository.getRandomImage()).thenReturn(Success(Some(imageMeta)))
     when(imageStorage.objectExists("file.jpg")).thenReturn(false)
 
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
