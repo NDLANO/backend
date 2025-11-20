@@ -15,7 +15,6 @@ import no.ndla.common.model.{api as commonApi, domain as commonDomain}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{
   ImageFileData,
-  ImageFileDataDocument,
   ImageMetaInformation,
   ImageVariant,
   ModelReleasedStatus,
@@ -157,7 +156,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
   }
 
   private def getImageFromMeta(meta: ImageMetaInformation, language: Option[String]): Try[ImageFileData] = {
-    findByLanguageOrBestEffort(meta.images.getOrElse(Seq.empty), language) match {
+    findByLanguageOrBestEffort(meta.images, language) match {
       case None =>
         Failure(ImageConversionException(s"Could not find image in meta with id '${meta.id}', this is a bug."))
       case Some(image) => Success(image)
@@ -237,7 +236,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     base.withPath(basePath).toString
   }
 
-  def withNewImage(
+  def withNewImageFile(
       imageMeta: ImageMetaInformation,
       image: ImageFileData,
       language: String,
@@ -245,7 +244,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
   ): ImageMetaInformation = {
     val now       = clock.now()
     val newNote   = domain.EditorNote(now, user.id, s"Updated image file for '$language' language.")
-    val newImages = imageMeta.images.map(_.filterNot(_.language == language) :+ image)
+    val newImages = imageMeta.images.filterNot(_.language == language) :+ image
     imageMeta.copy(images = newImages, editorNotes = imageMeta.editorNotes :+ newNote)
   }
 
@@ -265,7 +264,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
         id = None,
         titles = Seq(asDomainTitle(imageMeta.title, imageMeta.language)),
         alttexts = imageMeta.alttext.map(at => asDomainAltText(at, imageMeta.language)).toSeq,
-        images = None,
+        images = Seq.empty,
         copyright = toDomainCopyright(imageMeta.copyright),
         tags =
           if (imageMeta.tags.nonEmpty) Seq(toDomainTag(imageMeta.tags, imageMeta.language))
@@ -325,7 +324,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       tags = domainMetaInformation.tags.filterNot(_.language == languageToRemove),
       captions = domainMetaInformation.captions.filterNot(_.language == languageToRemove),
       editorNotes = domainMetaInformation.editorNotes :+ newNote,
-      images = domainMetaInformation.images.map(_.filterNot(_.language == languageToRemove)),
+      images = domainMetaInformation.images.filterNot(_.language == languageToRemove),
     )
   }
 
@@ -335,16 +334,17 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       domainImageMetaInformation.alttexts,
       domainImageMetaInformation.tags,
       domainImageMetaInformation.captions,
-      domainImageMetaInformation.images.getOrElse(Seq.empty),
+      domainImageMetaInformation.images,
     )
   }
 
-  def toImageDocument(image: UploadedImage, language: String): ImageFileDataDocument = {
-    new ImageFileDataDocument(
-      size = image.size,
-      contentType = image.contentType,
-      dimensions = image.dimensions,
-      variants = image.variants,
+  def toImageFileData(upload: UploadedImage, language: String): ImageFileData = {
+    ImageFileData(
+      fileName = upload.fileName,
+      size = upload.size,
+      contentType = upload.contentType,
+      dimensions = upload.dimensions,
+      variants = upload.variants,
       language = language,
     )
   }

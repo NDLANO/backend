@@ -39,7 +39,14 @@ object CirceUtil {
   /** This might throw an exception! Use with care, probably only use this in tests */
   def unsafeParse(str: String): Json = tryParse(str).get
 
-  def tryParseAs[T](str: String)(implicit d: Decoder[T]): Try[T] = tryParse(str).flatMap(_.as[T].toTry)
+  def tryParseAs[T](str: String)(implicit d: Decoder[T]): Try[T] = tryParse(str).flatMap(json =>
+    json
+      .as[T]
+      .toTry
+      .recoverWith { ex =>
+        Failure(CirceFailure(str, ex))
+      }
+  )
 
   /** This might throw an exception! Use with care, probably only use this in tests */
   def unsafeParseAs[T: Decoder](str: String): T = tryParseAs(str).get

@@ -27,18 +27,14 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
     id = Some(1),
     titles = Seq.empty,
     alttexts = Seq.empty,
-    images = Some(
-      Seq(
-        new ImageFileData(
-          id = 1,
-          fileName = "image.jpg",
-          size = 1024,
-          contentType = "image/jpeg",
-          dimensions = None,
-          variants = Seq.empty,
-          language = "nb",
-          imageMetaId = 1,
-        )
+    images = Seq(
+      new ImageFileData(
+        fileName = "image.jpg",
+        size = 1024,
+        contentType = "image/jpeg",
+        dimensions = None,
+        variants = Seq.empty,
+        language = "nb",
       )
     ),
     copyright = Copyright(

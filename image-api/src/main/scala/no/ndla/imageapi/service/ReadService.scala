@@ -37,7 +37,9 @@ class ReadService(using
   ): Try[Option[ImageMetaInformationV3DTO]] = {
     imageRepository
       .withId(imageId)
-      .traverse(image => converterService.asApiImageMetaInformationV3(image, language, user))
+      .flatMap(maybeImage =>
+        maybeImage.traverse(image => converterService.asApiImageMetaInformationV3(image, language, user))
+      )
   }
 
   def getAllTags(
@@ -61,7 +63,11 @@ class ReadService(using
   def withId(imageId: Long, language: Option[String], user: Option[TokenUser]): Try[Option[ImageMetaInformationV2DTO]] =
     imageRepository
       .withId(imageId)
-      .traverse(image => converterService.asApiImageMetaInformationWithApplicationUrlV2(image, language, user))
+      .flatMap(maybeImage =>
+        maybeImage.traverse(image =>
+          converterService.asApiImageMetaInformationWithApplicationUrlV2(image, language, user)
+        )
+      )
 
   def getImagesByIdsV3(
       ids: List[Long],
@@ -71,14 +77,16 @@ class ReadService(using
     if (ids.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
     else imageRepository
       .withIds(ids)
-      .traverse(image => converterService.asApiImageMetaInformationV3(image, language, user))
+      .flatMap(images => images.traverse(image => converterService.asApiImageMetaInformationV3(image, language, user)))
   }
 
   private def handleIdPathParts(pathParts: List[String]): Try[ImageMetaInformation] = Try(pathParts(3).toLong) match {
     case Failure(_)  => Failure(InvalidUrlException("Could not extract id from id url."))
     case Success(id) => imageRepository.withId(id) match {
-        case Some(image) => Success(image)
-        case None        => Failure(new ImageNotFoundException(s"Extracted id '$id', but no image with that id was found"))
+        case Success(Some(image)) => Success(image)
+        case Success(None)        =>
+          Failure(new ImageNotFoundException(s"Extracted id '$id', but no image with that id was found"))
+        case Failure(ex) => Failure(ex)
       }
   }
 
@@ -92,8 +100,8 @@ class ReadService(using
   def getImageFromFilePath(path: String): Try[ImageFileData] = {
     val encodedPath = urlEncodePath(path)
     imageRepository.getImageFromFilePath(encodedPath) match {
-      case Some(image) =>
-        image.images.getOrElse(Seq.empty).find(i => i.fileName.dropWhile(_ == '/') == path.dropWhile(_ == '/')) match {
+      case Success(Some(image)) =>
+        image.images.find(i => i.fileName.dropWhile(_ == '/') == path.dropWhile(_ == '/')) match {
           case Some(img) => Success(img)
           case None      => Failure(
               ImageConversionException(
@@ -101,8 +109,9 @@ class ReadService(using
               )
             )
         }
-      case None =>
+      case Success(None) =>
         Failure(new ImageNotFoundException(s"Extracted path '$encodedPath', but no image with that path was found"))
+      case Failure(ex) => Failure(ex)
     }
 
   }
@@ -110,9 +119,10 @@ class ReadService(using
   def getImageMetaFromFilePath(path: String): Try[ImageMetaInformation] = {
     val encodedPath = urlEncodePath(path)
     imageRepository.getImageFromFilePath(encodedPath) match {
-      case Some(image) => Success(image)
-      case None        =>
+      case Success(Some(image)) => Success(image)
+      case Success(None)        =>
         Failure(new ImageNotFoundException(s"Extracted path '$encodedPath', but no image with that path was found"))
+      case Failure(ex) => Failure(ex)
     }
   }
 
@@ -126,19 +136,22 @@ class ReadService(using
     else Failure(InvalidUrlException("Could not extract id or path from url."))
   }
 
-  def getMetaImageDomainDump(pageNo: Int, pageSize: Int): ImageMetaDomainDumpDTO = {
+  def getMetaImageDomainDump(pageNo: Int, pageSize: Int): Try[ImageMetaDomainDumpDTO] = {
     val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
-    val results                    = imageRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
-
-    ImageMetaDomainDumpDTO(imageRepository.imageCount, pageNo, pageSize, results)
+    for {
+      results <- imageRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
+      count   <- imageRepository.imageCount
+      dump     = ImageMetaDomainDumpDTO(count, pageNo, pageSize, results)
+    } yield dump
   }
 
   def getImageFileName(imageId: Long, language: Option[String]): Try[Option[String]] = {
-    val imageMeta = for {
-      imageMeta     <- imageRepository.withId(imageId)
-      imageFileMeta <- findByLanguageOrBestEffort(imageMeta.images.getOrElse(Seq.empty), language)
-    } yield imageFileMeta
-
-    imageMeta.traverse(meta => UrlPath.parseTry(meta.fileName).map(_.toStringRaw.dropWhile(_ == '/')))
+    imageRepository.withId(imageId) match {
+      case Success(Some(imageMeta)) => findByLanguageOrBestEffort(imageMeta.images, language).traverse(imageFile =>
+          UrlPath.parseTry(imageFile.fileName).map(_.toStringRaw.dropWhile(_ == '/'))
+        )
+      case Success(None) => Success(None)
+      case Failure(ex)   => Failure(ex)
+    }
   }
 }

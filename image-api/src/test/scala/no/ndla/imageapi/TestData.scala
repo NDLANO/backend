@@ -30,18 +30,14 @@ class TestData(using props: Props) {
     id = Some(1),
     titles = List(ImageTitle("Elg i busk", "nb")),
     alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Some(
-      Seq(
-        ImageFileData(
-          id = 123,
-          fileName = "Elg.jpg",
-          size = 2865539,
-          contentType = "image/jpeg",
-          dimensions = None,
-          variants = Seq.empty,
-          language = "nb",
-          imageMetaId = 1,
-        )
+    images = Seq(
+      ImageFileData(
+        fileName = "Elg.jpg",
+        size = 2865539,
+        contentType = "image/jpeg",
+        dimensions = None,
+        variants = Seq.empty,
+        language = "nb",
       )
     ),
     copyright = Copyright(
@@ -132,18 +128,14 @@ class TestData(using props: Props) {
     id = Some(2),
     titles = List(ImageTitle("Bjørn i busk", "nb")),
     alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Some(
-      Seq(
-        new ImageFileData(
-          id = 333,
-          fileName = "Bjørn.jpg",
-          size = 14113,
-          contentType = "image/jpeg",
-          dimensions = None,
-          variants = Seq.empty,
-          language = "nb",
-          imageMetaId = 2,
-        )
+    images = Seq(
+      new ImageFileData(
+        fileName = "Bjørn.jpg",
+        size = 14113,
+        contentType = "image/jpeg",
+        dimensions = None,
+        variants = Seq.empty,
+        language = "nb",
       )
     ),
     copyright = Copyright(
@@ -170,18 +162,14 @@ class TestData(using props: Props) {
     id = Some(3),
     titles = List(ImageTitle("Jerv på stein", "nb")),
     alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Some(
-      Seq(
-        new ImageFileData(
-          id = 444,
-          fileName = "Jerv.jpg",
-          size = 39061,
-          contentType = "image/jpeg",
-          dimensions = None,
-          variants = Seq.empty,
-          language = "nb",
-          imageMetaId = 3,
-        )
+    images = Seq(
+      new ImageFileData(
+        fileName = "Jerv.jpg",
+        size = 39061,
+        contentType = "image/jpeg",
+        dimensions = None,
+        variants = Seq.empty,
+        language = "nb",
       )
     ),
     copyright = Copyright(
@@ -208,18 +196,14 @@ class TestData(using props: Props) {
     id = Some(4),
     titles = List(ImageTitle("Overrasket mink", "nb")),
     alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Some(
-      Seq(
-        new ImageFileData(
-          id = 555,
-          fileName = "Mink.jpg",
-          size = 102559,
-          contentType = "image/jpeg",
-          dimensions = None,
-          variants = Seq.empty,
-          language = "nb",
-          imageMetaId = 4,
-        )
+    images = Seq(
+      new ImageFileData(
+        fileName = "Mink.jpg",
+        size = 102559,
+        contentType = "image/jpeg",
+        dimensions = None,
+        variants = Seq.empty,
+        language = "nb",
       )
     ),
     copyright = Copyright(
@@ -246,18 +230,14 @@ class TestData(using props: Props) {
     id = Some(5),
     titles = List(ImageTitle("Rein har fanget rødtopp", "nb")),
     alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Some(
-      Seq(
-        new ImageFileData(
-          id = 667,
-          fileName = "Rein.jpg",
-          size = 504911,
-          contentType = "image/jpeg",
-          dimensions = None,
-          variants = Seq.empty,
-          language = "nb",
-          imageMetaId = 5,
-        )
+    images = Seq(
+      new ImageFileData(
+        fileName = "Rein.jpg",
+        size = 504911,
+        contentType = "image/jpeg",
+        dimensions = None,
+        variants = Seq.empty,
+        language = "nb",
       )
     ),
     copyright = Copyright(
@@ -284,18 +264,14 @@ class TestData(using props: Props) {
     id = Some(6),
     titles = List(ImageTitle("Krokodille på krok", "nb")),
     alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Some(
-      Seq(
-        new ImageFileData(
-          id = 777,
-          fileName = "Krokodille.jpg",
-          size = 2865539,
-          contentType = "image/jpeg",
-          dimensions = None,
-          variants = Seq.empty,
-          language = "nb",
-          imageMetaId = 6,
-        )
+    images = Seq(
+      new ImageFileData(
+        fileName = "Krokodille.jpg",
+        size = 2865539,
+        contentType = "image/jpeg",
+        dimensions = None,
+        variants = Seq.empty,
+        language = "nb",
       )
     ),
     copyright = Copyright(
@@ -322,18 +298,14 @@ class TestData(using props: Props) {
     id = Some(6),
     titles = List(ImageTitle("Bison på sletten", "nb")),
     alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Some(
-      Seq(
-        new ImageFileData(
-          id = 888,
-          fileName = "Bison.jpg",
-          size = 2865539,
-          contentType = "image/jpeg",
-          dimensions = None,
-          variants = Seq.empty,
-          language = "nb",
-          imageMetaId = 6,
-        )
+    images = Seq(
+      new ImageFileData(
+        fileName = "Bison.jpg",
+        size = 2865539,
+        contentType = "image/jpeg",
+        dimensions = None,
+        variants = Seq.empty,
+        language = "nb",
       )
     ),
     copyright = Copyright(

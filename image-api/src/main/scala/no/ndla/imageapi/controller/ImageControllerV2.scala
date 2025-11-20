@@ -264,9 +264,10 @@ class ImageControllerV2(using
     .serverLogicPure { user =>
       { case (externalId, language) =>
         imageRepository.withExternalId(externalId) match {
-          case Some(image) =>
+          case Success(Some(image)) =>
             converterService.asApiImageMetaInformationWithDomainUrlV2(image, language, user).handleErrorsOrOk
-          case None => notFoundWithMsg(s"Image with external id $externalId not found").asLeft
+          case Success(None) => notFoundWithMsg(s"Image with external id $externalId not found").asLeft
+          case Failure(ex)   => Failure(ex)
         }
       }
     }

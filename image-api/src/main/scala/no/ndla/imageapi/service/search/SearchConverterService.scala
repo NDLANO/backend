@@ -54,7 +54,6 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
 
     val podcastFriendly = image
       .images
-      .getOrElse(Seq.empty)
       .exists(i => i.dimensions.exists(d => (d.height == d.width) && d.width <= 3000 && d.width >= 1400))
 
     val users = (
@@ -75,7 +74,7 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
       defaultTitle = defaultTitle.map(t => t.title),
       modelReleased = Some(image.modelReleased.toString),
       editorNotes = image.editorNotes.map(_.note),
-      imageFiles = asSearchableImageFiles(image.images.getOrElse(Seq.empty)),
+      imageFiles = asSearchableImageFiles(image.images),
       podcastFriendly = podcastFriendly,
       domainObject = image,
       users = users,

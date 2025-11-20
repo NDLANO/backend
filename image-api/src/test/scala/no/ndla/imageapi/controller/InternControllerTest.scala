@@ -70,18 +70,14 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     id = Some(1),
     titles = List(),
     alttexts = List(),
-    images = Some(
-      Seq(
-        new ImageFileData(
-          id = 1,
-          fileName = "test.jpg",
-          size = 0,
-          contentType = "",
-          dimensions = None,
-          variants = Seq.empty,
-          language = "und",
-          imageMetaId = 1,
-        )
+    images = Seq(
+      new ImageFileData(
+        fileName = "test.jpg",
+        size = 0,
+        contentType = "",
+        dimensions = None,
+        variants = Seq.empty,
+        language = "und",
       )
     ),
     copyright = Copyright(CC_BY.toString, None, List(), List(), List(), None, None, false),
@@ -103,21 +99,21 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   }
 
   test("That GET /extern/abc returns 404") {
-    when(imageRepository.withExternalId(eqTo("abc"))).thenReturn(None)
+    when(imageRepository.withExternalId(eqTo("abc"))).thenReturn(Success(None))
     simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/abc")).code.code should be(
       404
     )
   }
 
   test("That GET /extern/123 returns 404 if 123 is not found") {
-    when(imageRepository.withExternalId(eqTo("123"))).thenReturn(None)
+    when(imageRepository.withExternalId(eqTo("123"))).thenReturn(Success(None))
     simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/123")).code.code should be(
       404
     )
   }
 
   test("That GET /extern/123 returns 200 and imagemeta when found") {
-    when(imageRepository.withExternalId(eqTo("123"))).thenReturn(Some(DefaultDomainImageMetaInformation))
+    when(imageRepository.withExternalId(eqTo("123"))).thenReturn(Success(Some(DefaultDomainImageMetaInformation)))
     val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/extern/123"))
     res.code.code should be(200)
     CirceUtil.unsafeParseAs[api.ImageMetaInformationV2DTO](res.body) should equal(DefaultApiImageMetaInformation)
