@@ -613,7 +613,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         Some("/e/top5/asdf2361"),
         hiddenMeta,
         List.empty,
-        NodeType.TOPIC,
+        NodeType.CASE,
         List("asdf2361"),
         None,
         List.empty,

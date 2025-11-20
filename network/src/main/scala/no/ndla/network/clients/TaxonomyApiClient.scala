@@ -35,7 +35,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
     s"$TaxonomyApiEndpoint/nodes/",
     headers = getVersionHashHeader(shouldUsePublishedTax),
     Seq(
-      "nodeType"        -> List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC).mkString(","),
+      "nodeType"        -> List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC, NodeType.CASE).mkString(","),
       "includeContexts" -> "true",
       "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
     ),
