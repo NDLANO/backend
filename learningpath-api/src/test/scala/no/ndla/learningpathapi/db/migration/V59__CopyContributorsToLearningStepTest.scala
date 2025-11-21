@@ -16,8 +16,7 @@ class V59__CopyContributorsToLearningStepTest extends UnitSuite with TestEnviron
 
   test("that license is moved to copyright with empty contributors") {
     val migration    = new V59__CopyContributorsToLearningStep
-    val learningpath =
-      """
+    val learningpath = """
         |{
         |  "copyright": { "license": "CC BY-NC-SA 4.0", "contributors": [{"name":"Forfatter","type":"writer"}]},
         |  "title": [{"title":"Test Step", "language":"nb"}],
@@ -26,8 +25,7 @@ class V59__CopyContributorsToLearningStepTest extends UnitSuite with TestEnviron
         |}
         |""".stripMargin
 
-    val oldStepNoContributors =
-      """
+    val oldStepNoContributors = """
         |{
         |  "title": [{"title":"Test Step", "language":"nb"}],
         |  "description": [{"description":"This is a test step.", "language":"nb"}],
@@ -38,8 +36,7 @@ class V59__CopyContributorsToLearningStepTest extends UnitSuite with TestEnviron
         |}
         |""".stripMargin
 
-    val expectedDocument =
-      """
+    val expectedDocument = """
         |{
         |  "title": [{"title":"Test Step", "language":"nb"}],
         |  "description": [{"description":"This is a test step.", "language":"nb"}],

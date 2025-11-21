@@ -17,7 +17,7 @@ import no.ndla.learningpathapi.db.util.*
 class V59__CopyContributorsToLearningStep extends LearningPathAndStepMigration {
   override def convertPathAndSteps(
       lpData: LpDocumentRow,
-      stepDatas: List[StepDocumentRow]
+      stepDatas: List[StepDocumentRow],
   ): (LpDocumentRow, List[StepDocumentRow]) = {
     val learningPathJson = CirceUtil.unsafeParse(lpData.learningPathDocument)
     val contributorsOpt  = for {
@@ -56,6 +56,8 @@ class V59__CopyContributorsToLearningStep extends LearningPathAndStepMigration {
       case Right(None) => json
     }
 
-    Option.when(changed != json) { changed }
+    Option.when(changed != json) {
+      changed
+    }
   }
 }
