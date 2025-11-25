@@ -67,6 +67,7 @@ class LearningPathIndexService(using
   def getMapping: MappingDefinition = {
     val fields = List(
       ObjectField("domainObject", enabled = Some(false)),
+      ObjectField("nodes", enabled = Some(false)),
       intField("id"),
       textField("coverPhotoId"),
       intField("duration"),

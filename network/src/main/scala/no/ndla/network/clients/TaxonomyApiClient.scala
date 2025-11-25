@@ -31,13 +31,19 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
   private val TaxonomyApiEndpoint = s"$taxonomyBaseUrl/v1"
   private val timeoutSeconds      = 600.seconds
 
-  private def getNodes(shouldUsePublishedTax: Boolean): Try[ListBuffer[Node]] = get[ListBuffer[Node]](
+  def getNodes(
+      shouldUsePublishedTax: Boolean,
+      nodeType: List[NodeType],
+      contentUri: Option[String],
+  ): Try[ListBuffer[Node]] = get[ListBuffer[Node]](
     s"$TaxonomyApiEndpoint/nodes/",
     headers = getVersionHashHeader(shouldUsePublishedTax),
     Seq(
-      "nodeType"        -> List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC).mkString(","),
-      "includeContexts" -> "true",
-      "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
+      "contentURI"       -> contentUri.getOrElse(""),
+      "nodeType"         -> nodeType.mkString(","),
+      "includeContexts"  -> "true",
+      "filterProgrammes" -> "true",
+      "isVisible"        -> getIsVisibleParam(shouldUsePublishedTax),
     ),
   )
 
@@ -45,10 +51,11 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
     s"$TaxonomyApiEndpoint/nodes/search",
     headers = getVersionHashHeader(shouldUsePublishedTax),
     Seq(
-      "pageSize"        -> "500",
-      "nodeType"        -> NodeType.RESOURCE.toString,
-      "includeContexts" -> "true",
-      "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
+      "pageSize"         -> "500",
+      "nodeType"         -> NodeType.RESOURCE.toString,
+      "includeContexts"  -> "true",
+      "filterProgrammes" -> "true",
+      "isVisible"        -> getIsVisibleParam(shouldUsePublishedTax),
     ),
   )
 
@@ -97,7 +104,13 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
       x(shouldUsePublishedTax)
     }.flatMap(Future.fromTry)
 
-    val nodes     = tryToFuture(shouldUsePublishedTax => getNodes(shouldUsePublishedTax))
+    val nodes = tryToFuture(shouldUsePublishedTax =>
+      getNodes(
+        shouldUsePublishedTax,
+        nodeType = List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC, NodeType.CASE),
+        contentUri = None,
+      )
+    )
     val resources = tryToFuture(shouldUsePublishedTax => getResources(shouldUsePublishedTax))
 
     val x = for {

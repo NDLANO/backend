@@ -20,12 +20,12 @@ import scala.util.Success
 
 class V78__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvironment {
 
-  val parent = TaxonomyResourceType(
+  val parent = ContextResourceType(
     id = "urn:resourcetype:parent",
     parentId = None,
     name = SearchableLanguageValues(Seq(LanguageValue("nb", "Forelder"))),
   )
-  val child = TaxonomyResourceType(
+  val child = ContextResourceType(
     id = "urn:resourcetype:child",
     parentId = Some("urn:resourcetype:parent"),
     name = SearchableLanguageValues(Seq(LanguageValue("nb", "Barn"))),
@@ -58,6 +58,7 @@ class V78__SetResourceTypeFromTaxonomyAsTagTest extends UnitSuite with TestEnvir
     metadata = None,
     translations = List(),
     nodeType = NodeType.RESOURCE,
+    resourceTypes = List(),
     contextids = List(),
     context = Some(context_1),
     contexts = List(context_1),
