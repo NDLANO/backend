@@ -414,6 +414,97 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     learningpaths.length should be(4)
   }
 
+  test("That learning step sample only returns learningpaths containing a learningstep with an external link") {
+    repository.insert(
+      DefaultLearningPath.copy(
+        learningsteps = Some(List(DefaultLearningStep, DefaultLearningStep.copy(embedUrl = List.empty))),
+        status = LearningPathStatus.UNLISTED,
+        isMyNDLAOwner = true,
+      )
+    );
+    repository.insert(
+      DefaultLearningPath.copy(
+        learningsteps = Some(
+          List(
+            DefaultLearningStep.copy(embedUrl = List.empty, articleId = Some(1)),
+            DefaultLearningStep.copy(embedUrl = List.empty, articleId = Some(2)),
+          )
+        ),
+        status = LearningPathStatus.UNLISTED,
+        isMyNDLAOwner = true,
+      )
+    );
+    val lp3 = repository.insert(
+      DefaultLearningPath.copy(
+        learningsteps = Some(List(DefaultLearningStep)),
+        status = LearningPathStatus.UNLISTED,
+        isMyNDLAOwner = true,
+      )
+    );
+
+    val learningpaths = repository.getExternalLinkStepSamples()
+    learningpaths.length should be(2)
+    learningpaths.map(_.id) should contain(lp3.id)
+  }
+
+  test("That learning step sample only returns published learningpaths containing an external link") {
+
+    repository.insert(DefaultLearningPath.copy(learningsteps = Some(List(DefaultLearningStep)), isMyNDLAOwner = true))
+    val lp2 = repository.insert(
+      DefaultLearningPath.copy(
+        learningsteps = Some(List(DefaultLearningStep)),
+        status = LearningPathStatus.UNLISTED,
+        isMyNDLAOwner = true,
+      )
+    )
+
+    val learningpaths = repository.getExternalLinkStepSamples()
+    learningpaths.length should be(1)
+    learningpaths.head.id should be(lp2.id)
+  }
+
+  test("That learning step sample only returns learningpaths owned by MyNDLA") {
+    repository.insert(
+      DefaultLearningPath.copy(
+        learningsteps = Some(List(DefaultLearningStep)),
+        status = LearningPathStatus.UNLISTED,
+        isMyNDLAOwner = false,
+      )
+    )
+    val lp2 = repository.insert(
+      DefaultLearningPath.copy(
+        learningsteps = Some(List(DefaultLearningStep)),
+        status = LearningPathStatus.UNLISTED,
+        isMyNDLAOwner = true,
+      )
+    )
+
+    val learningpaths = repository.getExternalLinkStepSamples()
+    learningpaths.length should be(1)
+    learningpaths.head.id should be(lp2.id)
+  }
+
+  test("That learning step sample only returns learningpaths with an active step with an external link") {
+    repository.insert(
+      DefaultLearningPath.copy(
+        learningsteps = Some(List(DefaultLearningStep.copy(status = StepStatus.DELETED))),
+        status = LearningPathStatus.UNLISTED,
+        isMyNDLAOwner = true,
+      )
+    )
+    val lp2 = repository.insert(
+      DefaultLearningPath.copy(
+        learningsteps = Some(List(DefaultLearningStep)),
+        status = LearningPathStatus.UNLISTED,
+        isMyNDLAOwner = true,
+      )
+    )
+
+    val learningpaths = repository.getExternalLinkStepSamples()
+    learningpaths.length should be(1)
+    learningpaths.head.id should be(lp2.id)
+  }
+
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
       sql"delete from learningpaths;".execute()(using session)
