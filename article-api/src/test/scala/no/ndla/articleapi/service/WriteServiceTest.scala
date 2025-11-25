@@ -13,10 +13,10 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.*
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.{ArgumentCaptor, Mockito}
-import scalikejdbc.DBSession
+import scalikejdbc.*
 
 import scala.util.{Success, Try}
 
@@ -36,17 +36,22 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   override def beforeEach(): Unit = {
     Mockito.reset(articleIndexService, articleRepository)
 
-    when(articleRepository.withId(eqTo(articleId))(any)).thenReturn(Option(toArticleRow(article)))
+    doAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Nothing]](0)
+      func(mock[DBSession])
+    }).when(dbUtility).rollbackOnFailure(any())
+
+    when(articleRepository.withId(eqTo(articleId))(using any)).thenReturn(Success(Option(toArticleRow(article))))
     when(articleIndexService.indexDocument(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Article](0))
     )
     when(readService.addUrlsOnEmbedResources(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
       invocation.getArgument[Article](0)
     )
-    when(articleRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List("1234"))
+    when(articleRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List("1234")))
     when(clock.now()).thenReturn(today)
-    when(contentValidator.validateArticle(any[Article], any[Boolean])).thenAnswer((invocation: InvocationOnMock) =>
-      Success(invocation.getArgument[Article](0))
+    when(contentValidator.validateArticle(any[Article], any[Boolean])(using any)).thenAnswer(
+      (invocation: InvocationOnMock) => Success(invocation.getArgument[Article](0))
     )
   }
 
@@ -56,7 +61,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val articleToUpdate    = TestData.sampleDomainArticle.copy(id = Some(10), updated = yesterday)
     val updatedAndInserted = articleToUpdate.copy(revision = articleToUpdate.revision.map(_ + 1), updated = today)
 
-    when(articleRepository.withId(eqTo(10L))(any)).thenReturn(Some(toArticleRow(articleToUpdate)))
+    when(articleRepository.withId(eqTo(10L))(using any)).thenReturn(Success(Some(toArticleRow(articleToUpdate))))
     when(articleRepository.updateArticleFromDraftApi(any[Article], any)(using any[DBSession])).thenReturn(
       Success(updatedAndInserted)
     )
@@ -71,7 +76,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       useImportValidation = false,
       useSoftValidation = false,
       skipValidation = false,
-    )()
+    )(AutoSession)
 
     val argCap1: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
     val argCap2: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
@@ -90,7 +95,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     captured2.copy(updated = today) should be(updatedAndInserted)
   }
 
-  test("That unpublisArticle removes article from indexes") {
+  test("That unpublishArticle removes article from indexes") {
     reset(articleIndexService, searchApiClient)
     val articleIdToUnpublish = 11L
 
@@ -100,7 +105,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
     when(searchApiClient.deleteDocument(any[Long], any[String])).thenReturn(articleIdToUnpublish)
 
-    service.unpublishArticle(articleIdToUnpublish, None)
+    service.unpublishArticle(articleIdToUnpublish, None).failIfFailure
 
     verify(articleIndexService, times(1)).deleteDocument(any[Long])
     verify(searchApiClient, times(1)).deleteDocument(any[Long], any[String])
@@ -114,7 +119,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(articleIndexService.deleteDocument(any[Long])).thenReturn(Success(articleIdToUnpublish))
     when(searchApiClient.deleteDocument(any[Long], any[String])).thenReturn(articleIdToUnpublish)
 
-    service.deleteArticle(articleIdToUnpublish, None)
+    service.deleteArticle(articleIdToUnpublish, None).failIfFailure
 
     verify(articleIndexService, times(1)).deleteDocument(any[Long])
     verify(searchApiClient, times(1)).deleteDocument(any[Long], any[String])

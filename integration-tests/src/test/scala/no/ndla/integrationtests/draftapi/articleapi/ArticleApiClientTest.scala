@@ -24,6 +24,7 @@ import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegratio
 import no.ndla.validation.HtmlTagRules
 import no.ndla.{articleapi, draftapi}
 import org.testcontainers.postgresql.PostgreSQLContainer
+import scalikejdbc.AutoSession
 
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -161,7 +162,7 @@ class ArticleApiClientTest
                 published = NDLADate.fromUnixTime(0),
               ),
             List(s"1$id"),
-          )
+          )(using AutoSession)
       })
       .collectFirst { case Failure(ex) =>
         Failure(ex)

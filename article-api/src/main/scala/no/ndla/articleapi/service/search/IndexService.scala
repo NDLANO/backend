@@ -16,8 +16,10 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.model.domain.article.Article
+import no.ndla.database.DBUtility
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
+import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
 
@@ -26,6 +28,7 @@ abstract class IndexService(using
     props: Props,
     articleRepository: ArticleRepository,
     searchLanguage: SearchLanguage,
+    dBUtility: DBUtility,
 ) extends BaseIndexService
     with StrictLogging {
   override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
@@ -47,22 +50,25 @@ abstract class IndexService(using
     }
   }
 
-  def sendToElastic(indexName: String): Try[BulkIndexResult] = {
+  def sendToElastic(indexName: String): Try[BulkIndexResult] = dBUtility.tryReadOnly { implicit session =>
     getRanges
       .flatMap(ranges => {
         ranges.traverse { case (start, end) =>
-          val toIndex = articleRepository.documentsWithIdBetween(start, end)
-          indexDocuments(toIndex, indexName)
+          for {
+            toIndex <- articleRepository.documentsWithIdBetween(start, end)
+            result  <- indexDocuments(toIndex, indexName)
+          } yield result
         }
       })
       .map(countBulkIndexed)
   }
 
-  def getRanges: Try[List[(Long, Long)]] = {
-    Try {
-      val (minId, maxId) = articleRepository.minMaxId
-      Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
-    }
+  private def getRanges(using DBSession): Try[List[(Long, Long)]] = {
+    articleRepository
+      .minMaxId
+      .map { (minId, maxId) =>
+        Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
+      }
   }
 
   def indexDocuments(contents: Seq[Article], indexName: String): Try[BulkIndexResult] = {

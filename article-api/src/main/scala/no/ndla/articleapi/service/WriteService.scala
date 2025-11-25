@@ -8,19 +8,19 @@
 
 package no.ndla.articleapi.service
 
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.NotFoundException
+import no.ndla.articleapi.model.{NotFoundException, api}
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.implicits.toTry
 import no.ndla.common.model.domain.article.{Article, PartialPublishArticleDTO, PartialPublishArticlesBulkDTO}
 import no.ndla.database.DBUtility
 import no.ndla.language.Language
-import scalikejdbc.{AutoSession, DBSession}
-import cats.implicits.*
 import no.ndla.network.clients.SearchApiClient
+import scalikejdbc.DBSession
 
 import java.util.concurrent.{ExecutorService, Executors}
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
@@ -43,7 +43,7 @@ class WriteService(using
       useSoftValidation: Boolean,
       skipValidation: Boolean,
       useImportValidation: Boolean,
-  ): Try[Article] = {
+  )(using DBSession): Try[Article] = {
     val strictValidationResult =
       contentValidator.validateArticle(article, isImported = externalIds.nonEmpty || useImportValidation)
 
@@ -91,8 +91,10 @@ class WriteService(using
       useImportValidation: Boolean,
       useSoftValidation: Boolean,
       skipValidation: Boolean,
-  )(session: DBSession = AutoSession): Try[Article] = for {
-    _             <- performArticleValidation(article, externalIds, useSoftValidation, skipValidation, useImportValidation)
+  )(session: DBSession): Try[Article] = for {
+    _ <- performArticleValidation(article, externalIds, useSoftValidation, skipValidation, useImportValidation)(using
+      session
+    )
     domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds)(using session)
     _             <- articleIndexService.indexDocument(domainArticle)
     _             <- Try(searchApiClient.indexDocument("article", domainArticle, None))
@@ -104,24 +106,22 @@ class WriteService(using
       language: String,
       fallback: Boolean,
       isInBulk: Boolean,
-  )(session: DBSession = AutoSession): Try[api.ArticleV2DTO] = {
-    articleRepository.withId(articleId)(session).toArticle match {
-      case None                  => Failure(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
-      case Some(existingArticle) =>
-        val newArticle  = converterService.updateArticleFields(existingArticle, partialArticle)
-        val externalIds = articleRepository.getExternalIdsFromId(articleId)(using session)
-        for {
-          insertedArticle <- updateArticle(
-            newArticle,
-            externalIds,
-            useImportValidation = false,
-            useSoftValidation = true,
-            skipValidation = isInBulk,
-          )(session)
-          converted <- converterService.toApiArticleV2(insertedArticle, language, fallback)
-        } yield converted
-    }
-  }
+  )(session: DBSession): Try[api.ArticleV2DTO] = for {
+    maybeArticleRow <- articleRepository.withId(articleId)(using session)
+    existingArticle <- maybeArticleRow
+      .toArticle
+      .toTry(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
+    externalIds     <- articleRepository.getExternalIdsFromId(articleId)(using session)
+    newArticle       = converterService.updateArticleFields(existingArticle, partialArticle)
+    insertedArticle <- updateArticle(
+      newArticle,
+      externalIds,
+      useImportValidation = false,
+      useSoftValidation = true,
+      skipValidation = isInBulk,
+    )(session)
+    converted <- converterService.toApiArticleV2(insertedArticle, language, externalIds, fallback)
+  } yield converted
 
   def partialUpdateBulk(bulkInput: PartialPublishArticlesBulkDTO): Try[Unit] = {
     dBUtility
@@ -143,9 +143,11 @@ class WriteService(using
   }
 
   def unpublishArticle(id: Long, revision: Option[Int]): Try[api.ArticleIdV2DTO] = {
-    val updated = revision match {
-      case Some(rev) => articleRepository.unpublish(id, rev)
-      case None      => articleRepository.unpublishMaxRevision(id)
+    val updated = dBUtility.rollbackOnFailure { implicit session =>
+      revision match {
+        case Some(rev) => articleRepository.unpublish(id, rev)
+        case None      => articleRepository.unpublishMaxRevision(id)
+      }
     }
 
     updated
@@ -155,9 +157,11 @@ class WriteService(using
   }
 
   def deleteArticle(id: Long, revision: Option[Int]): Try[api.ArticleIdV2DTO] = {
-    val deleted = revision match {
-      case Some(rev) => articleRepository.delete(id, rev)
-      case None      => articleRepository.deleteMaxRevision(id)
+    val deleted = dBUtility.rollbackOnFailure { implicit session =>
+      revision match {
+        case Some(rev) => articleRepository.delete(id, rev)
+        case None      => articleRepository.deleteMaxRevision(id)
+      }
     }
 
     deleted

@@ -11,11 +11,10 @@ package no.ndla.articleapi.service
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.articleapi.Props
-import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, ImportException, NotFoundException}
+import no.ndla.articleapi.model.api.ArticleSummaryV2DTO
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchableArticle
-import no.ndla.articleapi.model.api
-import no.ndla.articleapi.repository.ArticleRepository
+import no.ndla.articleapi.model.{ImportException, NotFoundException, api}
 import no.ndla.common
 import no.ndla.common.{CirceUtil, model}
 import no.ndla.common.model.{RelatedContentLink, api as commonApi}
@@ -52,7 +51,7 @@ import org.jsoup.Jsoup
 
 import scala.util.{Failure, Success, Try}
 
-class ConverterService(using articleRepository: ArticleRepository, props: Props) extends StrictLogging {
+class ConverterService(using props: Props) extends StrictLogging {
 
   /** Attempts to extract language that hit from highlights in elasticsearch response.
     * @param result
@@ -221,11 +220,6 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
     )
   }
 
-  private def getMainNidUrlToOldNdla(id: Long): Option[String] = {
-    // First nid in externalId's should always be mainNid after import.
-    articleRepository.getExternalIdsFromId(id).map(createLinkToOldNdla).headOption
-  }
-
   private def getSupportedArticleLanguages(article: Article): Seq[String] = {
     getSupportedLanguages(
       article.title,
@@ -238,7 +232,12 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
     )
   }
 
-  def toApiArticleV2(article: Article, language: String, fallback: Boolean): Try[api.ArticleV2DTO] = {
+  def toApiArticleV2(
+      article: Article,
+      language: String,
+      externalIds: Seq[String],
+      fallback: Boolean,
+  ): Try[api.ArticleV2DTO] = {
     val supportedLanguages = getSupportedArticleLanguages(article)
     val isLanguageNeutral  = supportedLanguages.contains(UnknownLanguage.toString) && supportedLanguages.length == 1
 
@@ -264,7 +263,8 @@ class ConverterService(using articleRepository: ArticleRepository, props: Props)
       Success(
         api.ArticleV2DTO(
           id = article.id.get,
-          oldNdlaUrl = article.id.flatMap(getMainNidUrlToOldNdla),
+          // First nid in externalId's should always be mainNid after import.
+          oldNdlaUrl = externalIds.headOption.map(createLinkToOldNdla),
           revision = article.revision.get,
           title = title,
           content = articleContent,

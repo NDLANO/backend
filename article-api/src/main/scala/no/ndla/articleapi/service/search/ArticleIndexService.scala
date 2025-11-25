@@ -16,6 +16,7 @@ import no.ndla.articleapi.Props
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Article
+import no.ndla.database.DBUtility
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 class ArticleIndexService(using
@@ -24,6 +25,7 @@ class ArticleIndexService(using
     props: Props,
     e4sClient: NdlaE4sClient,
     searchLanguage: SearchLanguage,
+    dBUtility: DBUtility,
 ) extends IndexService
     with StrictLogging {
   override val documentType: String = props.ArticleSearchDocument

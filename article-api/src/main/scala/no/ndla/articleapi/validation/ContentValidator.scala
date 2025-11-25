@@ -20,9 +20,10 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.validation.HtmlTagRules.{allLegalTags, stringToJsoupDocument}
 import no.ndla.validation.SlugValidator.validateSlug
 import no.ndla.validation.TextValidator
+import scalikejdbc.DBSession
 
 import scala.jdk.CollectionConverters.*
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Try, boundary}
 
 class ContentValidator(using articleRepository: ArticleRepository, props: Props) {
   private val inlineHtmlTags       = props.InlineHtmlTags
@@ -49,7 +50,14 @@ class ContentValidator(using articleRepository: ArticleRepository, props: Props)
     }
   }
 
-  def validateArticle(article: Article, isImported: Boolean): Try[Article] = {
+  def validateArticle(article: Article, isImported: Boolean)(using DBSession): Try[Article] = boundary {
+    val slugExists = { (slug: String, articleId: Option[Long]) =>
+      articleRepository.slugExists(slug, articleId) match {
+        case Success(b)  => b
+        case Failure(ex) => boundary.break(Failure(ex))
+      }
+    }
+
     val validationErrors = validateArticleContent(article.content) ++
       article.introduction.flatMap(i => validateIntroduction(i)) ++
       validateArticleDisclaimer(article.disclaimer) ++
@@ -61,7 +69,7 @@ class ContentValidator(using articleRepository: ArticleRepository, props: Props)
       article.metaImage.flatMap(validateMetaImage) ++
       article.visualElement.flatMap(v => validateVisualElement(v)) ++
       validateRevisionDate(article.revisionDate) ++
-      validateSlug(article.slug, article.articleType, article.id, articleRepository.slugExists)
+      validateSlug(article.slug, article.articleType, article.id, slugExists)
     if (validationErrors.isEmpty) {
       Success(article)
     } else {

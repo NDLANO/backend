@@ -13,24 +13,27 @@ import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.{Path, Url}
 import no.ndla.articleapi.Props
 import no.ndla.articleapi.integration.FrontpageApiClient
-import no.ndla.articleapi.model.api
+import no.ndla.articleapi.model.{NotFoundException, api}
 import no.ndla.articleapi.controller.ArticleErrorHelpers
-import no.ndla.articleapi.model.api.{ArticleSummaryV2DTO, NotFoundException}
+import no.ndla.articleapi.model.api.ArticleSummaryV2DTO
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.search.ArticleSearchService
+import no.ndla.common.TryUtil.when
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.errors.{AccessDeniedException, ValidationException}
+import no.ndla.common.errors.{AccessDeniedException, MissingIdException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.MenuDTO
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Availability}
+import no.ndla.database.DBUtility
 import no.ndla.language.Language
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.{ResourceType, TagAttribute}
 import org.jsoup.nodes.Element
+import scalikejdbc.DBSession
 
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters.*
@@ -42,12 +45,14 @@ class ReadService(using
     feideApiClient: FeideApiClient,
     converterService: ConverterService,
     articleSearchService: ArticleSearchService,
+    dBUtility: DBUtility,
     props: Props,
     frontpageApiClient: FrontpageApiClient,
 ) extends StrictLogging {
-  def getInternalIdByExternalId(externalId: String): Option[api.ArticleIdV2DTO] = articleRepository
-    .getIdFromExternalId(externalId)
-    .map(api.ArticleIdV2DTO.apply)
+  def getInternalIdByExternalId(externalId: String): Try[api.ArticleIdV2DTO] = dBUtility.tryReadOnly {
+    implicit session =>
+      articleRepository.getIdFromExternalId(externalId).map(api.ArticleIdV2DTO.apply)
+  }
 
   def withIdV2(
       id: Long,
@@ -55,47 +60,56 @@ class ReadService(using
       fallback: Boolean,
       revision: Option[Int],
       feideAccessToken: Option[String],
-  ): Try[Cachable[api.ArticleV2DTO]] = {
-    val article = revision match {
-      case Some(rev) => articleRepository.withIdAndRevision(id, rev)
-      case None      => articleRepository.withId(id)()
-    }
+  ): Try[Cachable[api.ArticleV2DTO]] = dBUtility.tryReadOnly { implicit session =>
+    val articleWithExternalIds = for {
+      article <- revision match {
+        case Some(rev) => articleRepository.withIdAndRevision(id, rev)
+        case None      => articleRepository.withId(id)
+      }
+      externalIds <- articleRepository.getExternalIdsFromId(id)
+    } yield (article, externalIds)
 
-    article.mapArticle(addUrlsOnEmbedResources) match {
-      case None                                                                                         => Failure(NotFoundException(s"The article with id $id was not found"))
-      case Some(ArticleRow(_, _, _, _, None))                                                           => Failure(ArticleErrorHelpers.ArticleGoneException())
-      case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
-        Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
-      case Some(ArticleRow(_, _, _, _, Some(article))) => feideApiClient
-          .getFeideExtendedUser(feideAccessToken)
-          .flatMap(feideUser =>
-            article.availability match {
-              case Availability.teacher if !feideUser.isTeacher =>
-                Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
-              case _ => Cachable.no(converterService.toApiArticleV2(article, language, fallback))
-            }
-          )
-    }
-  }
-
-  private def getDomainArticleBySlug(slug: String): Try[Article] = {
-    articleRepository.withSlug(slug).mapArticle(addUrlsOnEmbedResources) match {
-      case None                                        => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
-      case Some(ArticleRow(_, _, _, _, None))          => Failure(ArticleErrorHelpers.ArticleGoneException())
-      case Some(ArticleRow(_, _, _, _, Some(article))) => Success(article)
+    articleWithExternalIds.flatMap { (article, externalIds) =>
+      article.mapArticle(addUrlsOnEmbedResources) match {
+        case None                                                                                         => Failure(NotFoundException(s"The article with id $id was not found"))
+        case Some(ArticleRow(_, _, _, _, None))                                                           => Failure(ArticleErrorHelpers.ArticleGoneException())
+        case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
+          Cachable.yes(converterService.toApiArticleV2(article, language, externalIds, fallback))
+        case Some(ArticleRow(_, _, _, _, Some(article))) => feideApiClient
+            .getFeideExtendedUser(feideAccessToken)
+            .flatMap(feideUser =>
+              article.availability match {
+                case Availability.teacher if !feideUser.isTeacher =>
+                  Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
+                case _ => Cachable.no(converterService.toApiArticleV2(article, language, externalIds, fallback))
+              }
+            )
+      }
     }
   }
 
-  def getArticleBySlug(slug: String, language: String, fallback: Boolean): Try[Cachable[api.ArticleV2DTO]] =
-    getDomainArticleBySlug(slug).flatMap {
-      case article if article.availability == Availability.everyone =>
-        val res: Try[Cachable[api.ArticleV2DTO]] =
-          Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
-        res
-      case article =>
-        val res: Try[Cachable[api.ArticleV2DTO]] =
-          Cachable.no(converterService.toApiArticleV2(article, language, fallback))
-        res
+  private def getDomainArticleBySlug(slug: String)(using DBSession): Try[Article] = articleRepository
+    .withSlug(slug)
+    .flatMap { article =>
+      article.mapArticle(addUrlsOnEmbedResources) match {
+        case None                                        => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
+        case Some(ArticleRow(_, _, _, _, None))          => Failure(ArticleErrorHelpers.ArticleGoneException())
+        case Some(ArticleRow(_, _, _, _, Some(article))) => Success(article)
+      }
+    }
+
+  def getArticleBySlug(slug: String, language: String, fallback: Boolean): Try[Cachable[api.ArticleV2DTO]] = dBUtility
+    .tryReadOnly { implicit session =>
+      for {
+        article         <- getDomainArticleBySlug(slug)
+        articleId       <- article.id.toTry(MissingIdException("Article ID was missing"))
+        externalIds     <- articleRepository.getExternalIdsFromId(articleId)
+        cachableArticle <- article.availability match {
+          case Availability.everyone =>
+            Cachable.yes(converterService.toApiArticleV2(article, language, externalIds, fallback))
+          case _ => Cachable.no(converterService.toApiArticleV2(article, language, externalIds, fallback))
+        }
+      } yield cachableArticle
     }
 
   private[service] def addUrlsOnEmbedResources(article: Article): Article = {
@@ -107,28 +121,44 @@ class ReadService(using
     article.copy(content = articleWithUrls, visualElement = visualElementWithUrls)
   }
 
-  def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResultDTO = {
-    val (tags, tagsCount) = articleRepository.getTags(input, pageSize, (offset - 1) * pageSize, language)
-    converterService.toApiArticleTags(tags, tagsCount, pageSize, offset, language)
-  }
+  def getAllTags(input: String, pageSize: Int, offset: Int, language: String): Try[api.TagsSearchResultDTO] = dBUtility
+    .tryReadOnly { implicit session =>
+      articleRepository
+        .getTags(input, pageSize, (offset - 1) * pageSize, language)
+        .map { (tags, tagsCount) =>
+          converterService.toApiArticleTags(tags, tagsCount, pageSize, offset, language)
+        }
+    }
 
-  def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean): api.ArticleDumpDTO = {
-    val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-    val results                    = articleRepository
-      .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
-      .flatMap(article => converterService.toApiArticleV2(article, lang, fallback).toOption)
+  def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean): Try[api.ArticleDumpDTO] =
+    dBUtility.tryReadOnly { implicit session =>
+      val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
 
-    api.ArticleDumpDTO(articleRepository.articleCount, pageNo, pageSize, lang, results)
-  }
+      for {
+        articleCount <- articleRepository.articleCount
+        articles     <- articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
+        apiArticles  <- articles.traverse { article =>
+          article
+            .id
+            .toTry(MissingIdException("Article ID was missing"))
+            .flatMap { id =>
+              articleRepository
+                .getExternalIdsFromId(id)
+                .flatMap(externalIds => converterService.toApiArticleV2(article, lang, externalIds, fallback))
+            }
+        }
+      } yield api.ArticleDumpDTO(articleCount, pageNo, pageSize, lang, apiArticles)
+    }
 
-  def getArticleDomainDump(pageNo: Int, pageSize: Int): api.ArticleDomainDumpDTO = {
-    val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-    val results                    = articleRepository
-      .getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
-      .map(addUrlsOnEmbedResources)
-
-    api.ArticleDomainDumpDTO(articleRepository.articleCount, pageNo, pageSize, results)
-  }
+  def getArticleDomainDump(pageNo: Int, pageSize: Int): Try[api.ArticleDomainDumpDTO] =
+    dBUtility.tryReadOnly { implicit session =>
+      val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
+      for {
+        articleCount   <- articleRepository.articleCount
+        articles       <- articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
+        articlesWithUrl = articles.map(addUrlsOnEmbedResources)
+      } yield api.ArticleDomainDumpDTO(articleCount, pageNo, pageSize, articlesWithUrl)
+    }
 
   private[service] def addUrlOnResource(content: String): String = {
     val doc = stringToJsoupDocument(content)
@@ -162,16 +192,21 @@ class ReadService(using
     }
   }
 
-  def getRevisions(articleId: Long): Try[Seq[Int]] = {
-    articleRepository.getRevisions(articleId) match {
-      case Nil       => Failure(NotFoundException(s"Could not find any revisions for article with id $articleId"))
-      case revisions => Success(revisions)
-    }
+  def getRevisions(articleId: Long): Try[Seq[Int]] = dBUtility.readOnly { implicit session =>
+    articleRepository
+      .getRevisions(articleId)
+      .flatMap {
+        case Nil       => Failure(NotFoundException(s"Could not find any revisions for article with id $articleId"))
+        case revisions => Success(revisions)
+      }
   }
 
-  def getArticleIdsByExternalId(externalId: String): Option[api.ArticleIdsDTO] = articleRepository
-    .getArticleIdsFromExternalId(externalId)
-    .map(converterService.toApiArticleIds)
+  def getArticleIdsByExternalId(externalId: String): Try[Option[api.ArticleIdsDTO]] = dBUtility.tryReadOnly {
+    implicit session =>
+      articleRepository
+        .getArticleIdsFromExternalId(externalId)
+        .map(maybeIds => maybeIds.map(converterService.toApiArticleIds))
+  }
 
   def search(
       query: Option[String],
@@ -261,20 +296,28 @@ class ReadService(using
       page: Int,
       pageSize: Int,
       feideAccessToken: Option[String],
-  ): Try[Seq[api.ArticleV2DTO]] = {
-    if (articleIds.isEmpty) Failure(ValidationException("ids", "Query parameter 'ids' is missing"))
-    else {
-      val offset         = (page - 1) * pageSize
-      val domainArticles = articleRepository
-        .withIds(articleIds, offset, pageSize)
-        .toArticles
-        .map(addUrlsOnEmbedResources)
-      val isFeideNeeded = domainArticles.exists(article => article.availability == Availability.teacher)
-      val filtered      =
-        if (isFeideNeeded) applyAvailabilityFilter(feideAccessToken, domainArticles)
-        else domainArticles
-      filtered.traverse(article => converterService.toApiArticleV2(article, language, fallback))
-    }
+  ): Try[Seq[api.ArticleV2DTO]] = dBUtility.tryReadOnly { implicit session =>
+    val offset = (page - 1) * pageSize
+
+    for {
+      _            <- Failure.when(articleIds.isEmpty)(ValidationException("ids", "Query parameter 'ids' is missing"))
+      articleRows  <- articleRepository.withIds(articleIds, offset, pageSize)
+      articles      = articleRows.toArticles.map(addUrlsOnEmbedResources)
+      isFeideNeeded = articles.exists(article => article.availability == Availability.teacher)
+      filtered      =
+        if (isFeideNeeded) applyAvailabilityFilter(feideAccessToken, articles)
+        else articles
+      apiArticles <- filtered.traverse { article =>
+        val triedExternalIds = article
+          .id
+          .toTry(MissingIdException("Article ID was missing"))
+          .flatMap(id => articleRepository.getExternalIdsFromId(id))
+
+        triedExternalIds.flatMap { externalIds =>
+          converterService.toApiArticleV2(article, language, externalIds, fallback)
+        }
+      }
+    } yield apiArticles
   }
 
   @tailrec

@@ -9,8 +9,8 @@
 package no.ndla.articleapi.controller
 
 import no.ndla.articleapi.model.search.SearchResult
-import no.ndla.articleapi.model.{api, domain}
-import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+import no.ndla.articleapi.model.{NotFoundException, api, domain}
+import no.ndla.articleapi.{TestEnvironment, UnitSuite, model}
 import no.ndla.common.Clock
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
@@ -71,7 +71,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
 
   test("/<article_id> should return 404 if the article was not found withIdV2") {
     when(readService.withIdV2(articleId, lang, fallback = false, None, None)).thenReturn(
-      Failure(api.NotFoundException("Not found"))
+      Failure(NotFoundException("Not found"))
     )
 
     simpleHttpClient
@@ -108,7 +108,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
   test("/<article_id> default behavior should be to find by slug") {
     val malformedUrn = s"urn:article:malformed#hue"
 
-    when(readService.getArticleBySlug(any, any, any)).thenReturn(Failure(api.NotFoundException("Not found")))
+    when(readService.getArticleBySlug(any, any, any)).thenReturn(Failure(model.NotFoundException("Not found")))
     simpleHttpClient
       .send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/$malformedUrn"))
       .code
@@ -175,7 +175,9 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
   }
 
   test("tags should return 200 OK if the result was not empty") {
-    when(readService.getAllTags(anyString, anyInt, anyInt, anyString)).thenReturn(TestData.sampleApiTagsSearchResult)
+    when(readService.getAllTags(anyString, anyInt, anyInt, anyString)).thenReturn(
+      Success(TestData.sampleApiTagsSearchResult)
+    )
 
     val response =
       simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/article-api/v2/articles/tag-search/"))

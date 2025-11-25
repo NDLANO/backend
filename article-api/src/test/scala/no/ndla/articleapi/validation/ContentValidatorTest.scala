@@ -24,6 +24,7 @@ import no.ndla.common.model.domain.{
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.mapping.License.{CC_BY_SA, NA}
+import scalikejdbc.ReadOnlyAutoSession
 
 import scala.util.{Failure, Try}
 
@@ -45,31 +46,31 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle does not throw an exception on a valid document") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent(validDocument, "nb")))
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validation should fail if article has no content") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq.empty)
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 
   test("validateArticle throws a validation exception on an invalid document") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent(invalidDocument, "nb")))
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception for MathMl tags") {
     val content = """<section><math xmlns="http://www.w3.org/1998/Math/MathML"></math></section>"""
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent(content, "nb")))
 
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle should throw an error if introduction contains illegal HTML tags") {
     val article = TestData
       .sampleArticleWithByNcSa
       .copy(content = Seq(ArticleContent(validDocument, "nb")), introduction = Seq(Introduction(validDocument, "nb")))
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 
   test("validateArticle should not throw an error if introduction contains legal HTML tags") {
@@ -79,14 +80,14 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         content = Seq(ArticleContent(validDocument, "nb")),
         introduction = Seq(Introduction(validIntroduction, "nb")),
       )
-    contentValidator.validateArticle(article, false).isFailure should be(false)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(false)
   }
 
   test("validateArticle should not throw an error if introduction contains plain text") {
     val article = TestData
       .sampleArticleWithByNcSa
       .copy(content = Seq(ArticleContent(validDocument, "nb")), introduction = Seq(Introduction("introduction", "nb")))
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle should throw an error if disclaimer contains illegal HTML tags") {
@@ -97,7 +98,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         disclaimer = OptLanguageFields.withValue("<p><hallo>hei</hallo></p>", "nb"),
       )
 
-    val error = contentValidator.validateArticle(article, false).asValidationError
+    val error = contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).asValidationError
     error should be(
       ValidationException(
         "disclaimer.nb",
@@ -113,7 +114,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         content = Seq(ArticleContent(validDocument, "nb")),
         disclaimer = OptLanguageFields.withValue(validDisclaimer, "nb"),
       )
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle should not throw an error if disclaimer contains plain text") {
@@ -123,14 +124,14 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         content = Seq(ArticleContent(validDocument, "nb")),
         disclaimer = OptLanguageFields.withValue("disclaimer", "nb"),
       )
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle should throw an error if metaDescription contains HTML tags") {
     val article = TestData
       .sampleArticleWithByNcSa
       .copy(content = Seq(ArticleContent(validDocument, "nb")), metaDescription = Seq(Description(validDocument, "nb")))
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 
   test("validateArticle should not throw an error if metaDescription contains plain text") {
@@ -140,33 +141,33 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         content = Seq(ArticleContent(validDocument, "nb")),
         metaDescription = Seq(Description("meta description", "nb")),
       )
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle should throw an error if title contains HTML tags") {
     val article = TestData
       .sampleArticleWithByNcSa
       .copy(content = Seq(ArticleContent(validDocument, "nb")), title = Seq(Title(validDocument, "nb")))
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 
   test("validateArticle should not throw an error if title contains plain text") {
     val article = TestData
       .sampleArticleWithByNcSa
       .copy(content = Seq(ArticleContent(validDocument, "nb")), title = Seq(Title("title", "nb")))
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle should fail if the title exceeds 256 bytes") {
     val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(Title("A" * 257, "nb")))
-    val ex      = contentValidator.validateArticle(article, false).asValidationError
+    val ex      = contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).asValidationError
     ex.errors.length should be(1)
     ex.errors.head.message should be("This field exceeds the maximum permitted length of 256 characters")
   }
 
   test("Validation should fail if content contains other tags than section on root") {
     val article = TestData.sampleArticleWithByNcSa.copy(content = Seq(ArticleContent("<h1>lolol</h1>", "nb")))
-    val result  = contentValidator.validateArticle(article, false)
+    val result  = contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession)
     result.isFailure should be(true)
 
     val validationMessage = result.failed.get.asInstanceOf[ValidationException].errors.head.message
@@ -176,44 +177,44 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validateArticle throws a validation exception on an invalid visual element") {
     val invalidVisualElement = TestData.visualElement.copy(resource = invalidDocument)
     val article              = TestData.sampleArticleWithByNcSa.copy(visualElement = Seq(invalidVisualElement))
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on a valid visual element") {
     val article = TestData.sampleArticleWithByNcSa.copy(visualElement = Seq(TestData.visualElement))
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with plaintext tags") {
     val article = TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("vann", "snø", "sol"), "nb")))
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with html in tags") {
     val article = TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("<h1>vann</h1>", "snø", "sol"), "nb")))
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article where metaImageId is a number") {
     val article = TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("123", "alt", "nb")))
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article where metaImageId is not a number") {
     val article = TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("not a number", "alt", "nb")))
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 
   test("validateArticle throws an exception on an article with an illegal required library") {
     val illegalRequiredLib = RequiredLibrary("text/javascript", "naughty", "http://scary.bad.source.net/notNice.js")
     val article            = TestData.sampleArticleWithByNcSa.copy(requiredLibraries = Seq(illegalRequiredLib))
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with a legal required library") {
     val illegalRequiredLib = RequiredLibrary("text/javascript", "h5p", props.H5PResizerScriptUrl)
     val article            = TestData.sampleArticleWithByNcSa.copy(requiredLibraries = Seq(illegalRequiredLib))
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with an invalid license") {
@@ -222,7 +223,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       .copy(copyright =
         Copyright("beerware", None, Seq(Author(ContributorType.Writer, "John doe")), Seq(), Seq(), None, None, false)
       )
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with a valid license") {
@@ -231,7 +232,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       .copy(copyright =
         Copyright("CC-BY-SA-4.0", None, Seq(Author(ContributorType.Writer, "test")), Seq(), Seq(), None, None, false)
       )
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with html in copyright origin") {
@@ -249,7 +250,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           false,
         )
       )
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with plain text in copyright origin") {
@@ -267,7 +268,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           false,
         )
       )
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with plain text in authors field") {
@@ -285,7 +286,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           false,
         )
       )
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with html in authors field") {
@@ -303,7 +304,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           false,
         )
       )
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 
   test("validateArticle does not throw an exception on an article with correct author type") {
@@ -321,7 +322,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           false,
         )
       )
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validateArticle throws an exception on an article with empty author name") {
@@ -330,7 +331,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       .copy(copyright =
         Copyright("CC-BY-SA-4.0", None, Seq(Author(ContributorType.Writer, "")), Seq(), Seq(), None, None, false)
       )
-    val result = contentValidator.validateArticle(article, false)
+    val result = contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession)
     result.isSuccess should be(false)
     result.failed.get.asInstanceOf[ValidationException].errors.length should be(1)
     result.failed.get.asInstanceOf[ValidationException].errors.head.message should be(
@@ -341,25 +342,31 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("Validation should not fail with language=unknown if allowUnknownLanguage is set") {
     val article = TestData.sampleArticleWithByNcSa.copy(title = Seq(Title("tittele", "und")))
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validation should fail if metaImage altText contains html") {
     val article = TestData
       .sampleArticleWithByNcSa
       .copy(metaImage = Seq(ArticleMetaImage("1234", "<b>Ikke krutte god<b>", "nb")))
-    val res1 = contentValidator.validateArticle(article, false).failed.get.asInstanceOf[ValidationException]
+    val res1 = contentValidator
+      .validateArticle(article, false)(using ReadOnlyAutoSession)
+      .failed
+      .get
+      .asInstanceOf[ValidationException]
     res1.errors should be(
       Seq(ValidationMessage("metaImage.alt", "The content contains illegal html-characters. No HTML is allowed"))
     )
 
     val article2 = TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("1234", "Krutte god", "nb")))
-    contentValidator.validateArticle(article2, false).isSuccess should be(true)
+    contentValidator.validateArticle(article2, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("validation should fail if not imported and tags are < 3") {
     val res0 = contentValidator
-      .validateArticle(TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("a", "b"), "nb"))), false)
+      .validateArticle(TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("a", "b"), "nb"))), false)(using
+        ReadOnlyAutoSession
+      )
       .asValidationError
 
     res0.errors should be(
@@ -370,7 +377,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       .validateArticle(
         TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("a", "b", "c"), "nb"), Tag(Seq("a", "b"), "en"))),
         false,
-      )
+      )(using ReadOnlyAutoSession)
       .asValidationError
 
     res1.errors should be(
@@ -383,7 +390,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
           .sampleArticleWithByNcSa
           .copy(tags = Seq(Tag(Seq("a"), "en"), Tag(Seq("a"), "nb"), Tag(Seq("a", "b", "c"), "nn"))),
         false,
-      )
+      )(using ReadOnlyAutoSession)
       .asValidationError
     res2.errors.sortBy(_.field) should be(
       Seq(
@@ -395,7 +402,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     val res3 = contentValidator.validateArticle(
       TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("a", "b", "c"), "nb"), Tag(Seq("a", "b", "c"), "nn"))),
       false,
-    )
+    )(using ReadOnlyAutoSession)
     res3.isSuccess should be(true)
   }
 
@@ -405,20 +412,20 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         .sampleArticleWithByNcSa
         .copy(tags = Seq(Tag(Seq("a"), "en"), Tag(Seq("a"), "nb"), Tag(Seq("a", "b", "c"), "nn"))),
       isImported = true,
-    )
+    )(using ReadOnlyAutoSession)
     res0.isSuccess should be(true)
 
     val res1 = contentValidator.validateArticle(
       TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("a"), "en"))),
       isImported = true,
-    )
+    )(using ReadOnlyAutoSession)
     res1.isSuccess should be(true)
 
     val res2 = contentValidator
       .validateArticle(
         TestData.sampleArticleWithByNcSa.copy(tags = Seq(Tag(Seq("<strong>a</strong>", "b", "c"), "nn"))),
         isImported = true,
-      )
+      )(using ReadOnlyAutoSession)
       .asValidationError
     res2.errors should be(
       Seq(ValidationMessage("tags.nn", s"The content contains illegal html-characters. No HTML is allowed"))
@@ -429,13 +436,13 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     val res0 = contentValidator.validateArticle(
       TestData.sampleArticleWithByNcSa.copy(metaDescription = Seq.empty),
       isImported = true,
-    )
+    )(using ReadOnlyAutoSession)
     res0.isSuccess should be(true)
   }
 
   test("validation should fail if there are no tags for any languages") {
     val res = contentValidator
-      .validateArticle(TestData.sampleArticleWithByNcSa.copy(tags = Seq()), false)
+      .validateArticle(TestData.sampleArticleWithByNcSa.copy(tags = Seq()), false)(using ReadOnlyAutoSession)
       .asValidationError
     res.errors.length should be(1)
     res.errors.head.field should equal("tags")
@@ -447,7 +454,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       .validateArticle(
         TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))),
         false,
-      )
+      )(using ReadOnlyAutoSession)
       .asValidationError
 
     res.errors.length should be(1)
@@ -457,7 +464,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("validation should fail if license is chosen and no copyright holders are provided") {
     val copyright = Copyright(CC_BY_SA.toString, None, Seq(), Seq(), Seq(), None, None, false)
     val res       = contentValidator
-      .validateArticle(TestData.sampleArticleWithByNcSa.copy(copyright = copyright), false)
+      .validateArticle(TestData.sampleArticleWithByNcSa.copy(copyright = copyright), false)(using ReadOnlyAutoSession)
       .asValidationError
     res.errors.length should be(1)
     res.errors.head.field should be("license.license")
@@ -467,14 +474,14 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("an article with no copyright holders can pass validation if license is N/A") {
     val copyright = Copyright(NA.toString, None, Seq(), Seq(), Seq(), None, None, false)
     val article   = TestData.sampleArticleWithCopyrighted.copy(copyright = copyright)
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("an article with one or more copyright holder can pass validation, regardless of license") {
     val copyright =
       Copyright(CC_BY_SA.toString, None, Seq(Author(ContributorType.Reader, "test")), Seq(), Seq(), None, None, false)
     val article = TestData.sampleArticleWithByNcSa.copy(copyright = copyright)
-    contentValidator.validateArticle(article, false).isSuccess should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isSuccess should be(true)
   }
 
   test("softvalidation is more lenient than strictvalidation") {
@@ -482,7 +489,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       .validateArticle(
         TestData.sampleArticleWithByNcSa.copy(metaImage = Seq(ArticleMetaImage("", "alt-text", "nb"))),
         false,
-      )
+      )(using ReadOnlyAutoSession)
       .asValidationError
 
     val softRes = contentValidator.softValidateArticle(
@@ -499,6 +506,6 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle throws an exception on an article with a missing revisionDate") {
     val article = TestData.sampleArticleWithByNcSa.copy(revisionDate = None)
-    contentValidator.validateArticle(article, false).isFailure should be(true)
+    contentValidator.validateArticle(article, false)(using ReadOnlyAutoSession).isFailure should be(true)
   }
 }

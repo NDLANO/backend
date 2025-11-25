@@ -12,19 +12,23 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
 import no.ndla.articleapi.Props
+import no.ndla.articleapi.controller.ArticleErrorHelpers.ArticleGoneException
+import no.ndla.articleapi.model.NotFoundException
 import no.ndla.articleapi.model.api.*
 import no.ndla.articleapi.model.domain.ArticleIds
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
+import no.ndla.common.implicits.toTry
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.article.{Article, PartialPublishArticleDTO, PartialPublishArticlesBulkDTO}
+import no.ndla.database.DBUtility
 import no.ndla.language.Language
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.ARTICLE_API_WRITE
-import no.ndla.network.tapir.{TapirController, ErrorHandling, ErrorHelpers}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.clients.MyNDLAApiClient
 import sttp.model.StatusCode
 import sttp.tapir.*
@@ -42,6 +46,7 @@ class InternController(using
     articleRepository: ArticleRepository,
     articleIndexService: ArticleIndexService,
     contentValidator: ContentValidator,
+    dBUtility: DBUtility,
     props: Props,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
@@ -116,20 +121,20 @@ class InternController(using
     .get
     .in("ids")
     .out(jsonBody[Seq[ArticleIds]])
-    .serverLogicPure(_ => articleRepository.getAllIds.asRight)
+    .errorOut(errorOutputsFor(500))
+    .serverLogicPure(_ => dBUtility.tryReadOnly(implicit session => articleRepository.getAllIds))
 
   def getByExternalId: ServerEndpoint[Any, Eff] = endpoint
     .get
     .in("id")
     .in(path[String]("external_id"))
     .out(jsonBody[Long])
-    .errorOut(statusCode(StatusCode.NotFound))
-    .serverLogicPure(externalId => {
-      articleRepository.getIdFromExternalId(externalId) match {
-        case Some(id) => id.asRight
-        case None     => Left(())
+    .errorOut(errorOutputsFor(404, 500))
+    .serverLogicPure { externalId =>
+      dBUtility.tryReadOnly { implicit session =>
+        articleRepository.getIdFromExternalId(externalId)
       }
-    })
+    }
 
   def dumpApiArticles: ServerEndpoint[Any, Eff] = endpoint
     .get
@@ -139,8 +144,9 @@ class InternController(using
     .in(query[String]("language").default(Language.AllLanguages))
     .in(query[Boolean]("fallback").default(false))
     .out(jsonBody[ArticleDumpDTO])
+    .errorOut(errorOutputsFor(500))
     .serverLogicPure { case (pageNo, pageSize, language, fallback) =>
-      readService.getArticlesByPage(pageNo, pageSize, language, fallback).asRight
+      readService.getArticlesByPage(pageNo, pageSize, language, fallback)
     }
 
   def dumpDomainArticles: ServerEndpoint[Any, Eff] = endpoint
@@ -149,19 +155,22 @@ class InternController(using
     .in(query[Int]("page").default(1))
     .in(query[Int]("page-size").default(250))
     .out(jsonBody[ArticleDomainDumpDTO])
+    .errorOut(errorOutputsFor(500))
     .serverLogicPure { case (pageNo, pageSize) =>
-      readService.getArticleDomainDump(pageNo, pageSize).asRight
+      readService.getArticleDomainDump(pageNo, pageSize)
     }
 
   def dumpSingleDomainArticle: ServerEndpoint[Any, Eff] = endpoint
     .get
     .in("dump" / "article" / path[Long]("article_id"))
     .out(jsonBody[Article])
-    .errorOut(statusCode(StatusCode.NotFound).and(emptyOutput))
+    .errorOut(errorOutputsFor(404, 410, 500))
     .serverLogicPure { articleId =>
-      articleRepository.withId(articleId)().flatMap(_.article) match {
-        case Some(value) => value.asRight
-        case None        => ().asLeft
+      dBUtility.tryReadOnly { implicit session =>
+        articleRepository
+          .withId(articleId)
+          .flatMap(_.toTry(NotFoundException(s"Article with ID $articleId was not found")))
+          .flatMap(_.article.toTry(ArticleGoneException(s"Article data for ID $articleId was missing")))
       }
     }
 
@@ -173,8 +182,9 @@ class InternController(using
     .out(jsonBody[Article])
     .errorOut(errorOutputsFor(400))
     .serverLogicPure { case (importValidate, article) =>
-      contentValidator.validateArticle(article, isImported = importValidate)
-
+      dBUtility.tryReadOnly { implicit session =>
+        contentValidator.validateArticle(article, isImported = importValidate)
+      }
     }
 
   def updateArticle: ServerEndpoint[Any, Eff] = endpoint
@@ -188,14 +198,16 @@ class InternController(using
     .out(jsonBody[Article])
     .requirePermission(ARTICLE_API_WRITE)
     .serverLogicPure { _ => params =>
-      val (id, externalIds, useImportValidation, useSoftValidation, article) = params
-      writeService.updateArticle(
-        article.copy(id = Some(id)),
-        externalIds.values.filterNot(_.isEmpty),
-        useImportValidation,
-        useSoftValidation,
-        skipValidation = false,
-      )()
+      dBUtility.rollbackOnFailure {
+        val (id, externalIds, useImportValidation, useSoftValidation, article) = params
+        writeService.updateArticle(
+          article.copy(id = Some(id)),
+          externalIds.values.filterNot(_.isEmpty),
+          useImportValidation,
+          useSoftValidation,
+          skipValidation = false,
+        )
+      }
     }
 
   def deleteArticle: ServerEndpoint[Any, Eff] = endpoint
@@ -232,9 +244,10 @@ class InternController(using
     .out(jsonBody[ArticleV2DTO])
     .requirePermission(ARTICLE_API_WRITE)
     .serverLogicPure { _ => params =>
-      val (articleId, partialUpdateBody, language, fallback) = params
-
-      writeService.partialUpdate(articleId, partialUpdateBody, language, fallback, isInBulk = false)()
+      dBUtility.rollbackOnFailure {
+        val (articleId, partialUpdateBody, language, fallback) = params
+        writeService.partialUpdate(articleId, partialUpdateBody, language, fallback, isInBulk = false)
+      }
     }
 
   def partialPublishMultiple: ServerEndpoint[Any, Eff] = endpoint

@@ -8,9 +8,9 @@
 
 package no.ndla.articleapi.controller
 
+import no.ndla.articleapi.model.NotFoundException
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.articleapi.model.api.NotFoundException
 import no.ndla.database.DataSource
 import no.ndla.network.tapir.{AllErrors, ErrorBody, ErrorHandling, ErrorHelpers, NotFoundWithSupportedLanguages}
 import no.ndla.search.{IndexNotFoundException, NdlaSearchException}

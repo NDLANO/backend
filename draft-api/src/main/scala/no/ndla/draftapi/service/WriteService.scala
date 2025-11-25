@@ -14,7 +14,7 @@ import io.lemonlabs.uri.Path
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
-import no.ndla.common.TryUtil.failureIf
+import no.ndla.common.TryUtil.when
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{MissingIdException, NotFoundException, OperationNotAllowedException, ValidationException}
 import no.ndla.common.implicits.*
@@ -823,8 +823,8 @@ class WriteService(using
     for {
       (current, previous) <- draftRepository.getCurrentAndPreviousRevision(id)
       revision            <- current.revision.toTry(missingRevisionError)
-      _                   <- failureIf(shouldPartialPublish(Some(previous), current).nonEmpty, partialPublishError)
-      _                   <- failureIf(current.status.current == PUBLISHED, publishedDeleteError)
+      _                   <- Failure.when(shouldPartialPublish(Some(previous), current).nonEmpty)(partialPublishError)
+      _                   <- Failure.when(current.status.current == PUBLISHED)(publishedDeleteError)
       _                   <- draftRepository.deleteArticleRevision(id, revision)
       _                   <-
         if (previous.status.current == PUBLISHED) {
