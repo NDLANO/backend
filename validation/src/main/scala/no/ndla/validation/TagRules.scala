@@ -291,7 +291,6 @@ object TagAttribute extends Enum[TagAttribute] with CirceEnum[TagAttribute] {
   case object DataNRKVideoId          extends TagAttribute("data-nrk-video-id")
   case object DataName                extends TagAttribute("data-name")
   case object DataOpenIn              extends TagAttribute("data-open-in")
-  case object DataParallaxCell        extends TagAttribute("data-parallax-cell")
   case object DataPath                extends TagAttribute("data-path")
   case object DataPlayer              extends TagAttribute("data-player")
   case object DataPublisher           extends TagAttribute("data-publisher")
