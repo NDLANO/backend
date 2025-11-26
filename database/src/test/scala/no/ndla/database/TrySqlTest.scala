@@ -9,12 +9,12 @@
 package no.ndla.database
 
 import no.ndla.database.TrySql.tsql
-import no.ndla.scalatestsuite.DatabaseIntegrationSuite
+import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, UnitTestSuite}
 import scalikejdbc.*
 
 import scala.util.Failure
 
-class TrySqlTest extends DatabaseIntegrationSuite, UnitSuite, TestEnvironment {
+class TrySqlTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironment {
   val dataSource: DataSource = testDataSource.get
 
   override def beforeAll(): Unit = {
