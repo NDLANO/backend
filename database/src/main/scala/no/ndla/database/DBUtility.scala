@@ -39,9 +39,13 @@ class DBUtility extends StrictLogging {
     }
   }
 
+  def tryWithSession[T](func: DBSession => Try[T]): Try[T] = Try(withSession[Try[T]](func)).flatten
+
   def readOnly[T](func: DBSession => T): T = DB.readOnly { session =>
     func(session)
   }
+
+  def tryReadOnly[T](func: DBSession => Try[T]): Try[T] = Try(readOnly[Try[T]](func)).flatten
 
   /** Builds a where clause from a list of conditions. If the list is empty, an empty SQLSyntax object with no where
     * clause is returned.

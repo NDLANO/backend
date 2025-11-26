@@ -11,5 +11,7 @@ object `package` extends BaseModule {
     SharedDependencies.scalaUri,
   )
   override def moduleDeps: Seq[JavaModule] = Seq(build.common, build.network)
-  object test extends TestBase
+  object test extends TestBase {
+    override def moduleDeps = super.moduleDeps ++ Seq(build.scalatestsuite)
+  }
 }
