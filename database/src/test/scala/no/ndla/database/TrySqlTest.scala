@@ -25,8 +25,7 @@ class TrySqlTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironmen
     DB.autoCommit { case given DBSession =>
       sql"""
             create schema if not exists testschema;
-            create table test (id bigserial primary key, data text);
-            insert into test (data) values ('example');""".execute()
+            create table test (id bigserial primary key, data text);""".execute()
     }
   }
 
