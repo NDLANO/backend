@@ -13,10 +13,10 @@ import com.sksamuel.scrimage.nio.{JpegWriter, PngWriter}
 import com.sksamuel.scrimage.webp.WebpWriter
 
 import java.io.{ByteArrayInputStream, InputStream}
-import scala.util.Try
+import scala.util.{Success, Try}
 
 sealed trait ImageStream {
-  def toStream: InputStream
+  def toStream: Try[InputStream]
   def fileName: String
   def contentType: String
 }
@@ -26,14 +26,13 @@ final case class ProcessableImageStream(
     override val fileName: String,
     format: ProcessableImageFormat,
 ) extends ImageStream {
-  override def toStream: InputStream = {
+  override def toStream: Try[InputStream] = {
     val writer = format match {
       case ProcessableImageFormat.Jpeg => JpegWriter.Default
       case ProcessableImageFormat.Png  => PngWriter.MaxCompression
       case ProcessableImageFormat.Webp => WebpWriter.DEFAULT
     }
-    val bytes = image.bytes(writer)
-    new ByteArrayInputStream(bytes)
+    Try(image.bytes(writer)).map(bytes => new ByteArrayInputStream(bytes))
   }
 
   override val contentType: String = format.toContentType
@@ -47,5 +46,5 @@ final case class UnprocessableImageStream(
     override val fileName: String,
     override val contentType: String,
 ) extends ImageStream {
-  override def toStream: InputStream = new ByteArrayInputStream(imageBytes)
+  override def toStream: Success[InputStream] = Success(new ByteArrayInputStream(imageBytes))
 }

@@ -37,9 +37,9 @@ class RawController(using
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getImageFileById, getImageFile)
 
-  private def toImageResponse(image: ImageStream): Either[AllErrors, (DynamicHeaders, InputStream)] = {
+  private def toImageResponse(image: ImageStream): Try[(DynamicHeaders, InputStream)] = {
     val headers = DynamicHeaders.fromValue("Content-Type", image.contentType)
-    Right(headers -> image.toStream)
+    image.toStream.map(stream => headers -> stream)
   }
 
   def getImageFile: ServerEndpoint[Any, Eff] = endpoint

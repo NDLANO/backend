@@ -464,9 +464,15 @@ class WriteService(using
     } yield (img, dimensions, fileStem, format)
   }.flatMap {
     case Success((img, dimensions, fileStem, format)) =>
-      generateAndUploadVariantsAsync(img, dimensions, fileStem, format).map(res =>
-        res.map(variants => imageMeta -> imageFile.copy(variants = variants))
-      )
+      generateAndUploadVariantsAsync(img, dimensions, fileStem, format).map {
+        case Success(variants) => Success(imageMeta -> imageFile.copy(variants = variants))
+        case Failure(ex)       =>
+          logger.error(
+            s"Failed to generate/upload variants for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})",
+            ex,
+          )
+          Failure(ex)
+      }
     case Failure(ex: MissingBucketKeyException) if ignoreMissingObjects =>
       logger.warn(
         s"Ignoring missing bucket object for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})"
@@ -556,13 +562,15 @@ class WriteService(using
     variantSizes
       .traverse { variantSize =>
         Future {
-          val resizedImage = imageConverter.resizeToVariantSize(image, variantSize)
-          val imageBytes   = resizedImage.bytes(getWriterForFormat(format))
-          val stream       = new ByteArrayInputStream(imageBytes)
-          val bucketKey    = s"$fileStem/${variantSize.entryName}.webp"
-          imageStorage
-            .uploadFromStream(bucketKey, stream, imageBytes.length, "image/webp")
-            .map(_ => ImageVariant(variantSize, bucketKey))
+          for {
+            resizedImage <- imageConverter.resizeToVariantSize(image, variantSize)
+            imageBytes   <- Try(resizedImage.bytes(getWriterForFormat(format)))
+            stream        = new ByteArrayInputStream(imageBytes)
+            bucketKey     = s"$fileStem/${variantSize.entryName}.webp"
+            imageVariant <- imageStorage
+              .uploadFromStream(bucketKey, stream, imageBytes.length, "image/webp")
+              .map(_ => ImageVariant(variantSize, bucketKey))
+          } yield imageVariant
         }
       }
       .map { results =>
