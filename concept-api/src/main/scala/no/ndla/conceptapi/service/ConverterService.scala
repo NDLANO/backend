@@ -106,7 +106,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     domainGlossData.map(glossData =>
       api.GlossDataDTO(
         gloss = glossData.gloss,
-        wordClass = glossData.wordClass.entryName,
+        wordClass = glossData.wordClass.map(wc => wc.entryName),
         examples = glossData
           .examples
           .map(ge =>
@@ -175,7 +175,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
   def toDomainGlossData(apiGlossData: Option[api.GlossDataDTO]): Try[Option[GlossData]] = {
     apiGlossData
       .map(glossData =>
-        WordClass.valueOfOrError(glossData.wordClass) match {
+        glossData.wordClass.traverse(wc => WordClass.valueOfOrError(wc)) match {
           case Failure(ex)        => Failure(ex)
           case Success(wordClass) => Success(
               concept.GlossData(
@@ -312,11 +312,12 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       case _                         => None
     }
 
+
       // format: off
       val glossData = concept.glossData.map(gloss =>
         model.domain.concept.GlossData(
           gloss = gloss.gloss,
-          wordClass = WordClass.valueOf(gloss.wordClass).getOrElse(WordClass.NOUN), // Default to NOUN, this is NullDocumentConcept case, so we have to improvise
+          wordClass = gloss.wordClass.traverse(wc => WordClass.valueOfOrError(wc)).getOrElse(List(WordClass.NOUN)), // Default to NOUN, this is NullDocumentConcept case, so we have to improvise
           examples = gloss.examples.map(ge =>
             ge.map(g => model.domain.concept.GlossExample(language = g.language, example = g.example, transcriptions = g.transcriptions))),
           originalLanguage = gloss.originalLanguage,

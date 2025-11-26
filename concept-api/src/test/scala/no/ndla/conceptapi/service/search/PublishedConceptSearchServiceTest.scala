@@ -200,7 +200,7 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
       glossData = Some(
         GlossData(
           gloss = "glossorama",
-          wordClass = WordClass.NOUN,
+          wordClass = List(WordClass.NOUN),
           originalLanguage = "de",
           transcriptions = Map.empty,
           examples = List.empty,

@@ -32,7 +32,7 @@ case class GlossDataDTO(
     @description("The gloss itself")
     gloss: String,
     @description("Word class / part of speech, ex. noun, adjective, verb, adverb, ...")
-    wordClass: String,
+    wordClass: List[String],
     @description("Original language of the gloss")
     originalLanguage: String,
     @description("Alternative writing of the gloss")

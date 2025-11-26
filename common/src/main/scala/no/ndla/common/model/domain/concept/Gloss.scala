@@ -20,7 +20,7 @@ object GlossExample {
 
 case class GlossData(
     gloss: String,
-    wordClass: WordClass,
+    wordClass: List[WordClass],
     originalLanguage: String,
     transcriptions: Map[String, String],
     examples: List[List[GlossExample]],
