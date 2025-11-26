@@ -70,17 +70,17 @@ class ImageConverter(using props: Props) extends StrictLogging {
     }
 
     for {
-      image             <- Try(ImmutableImage.loader().fromStream(stream))
-      imageWithFixedType = fixImageUnderlyingType(image)
-      imageStream        = ProcessableImageStream(imageWithFixedType, s3Object.key, format)
+      image              <- Try(ImmutableImage.loader().fromStream(stream))
+      imageWithFixedType <- fixImageUnderlyingType(image)
+      imageStream         = ProcessableImageStream(imageWithFixedType, s3Object.key, format)
     } yield imageStream
   }
 
   // Due to a bug in Scrimage, 16-bit grayscale images must be converted to e.g., 8-bit RGBA
   // See https://github.com/dbcxy/java-image-scaling/issues/35, which is used internally by Scrimage
-  private def fixImageUnderlyingType(image: ImmutableImage): ImmutableImage = image.getType match {
-    case BufferedImage.TYPE_USHORT_GRAY => image.copy(ImmutableImage.DEFAULT_DATA_TYPE)
-    case _                              => image
+  private def fixImageUnderlyingType(image: ImmutableImage): Try[ImmutableImage] = image.getType match {
+    case BufferedImage.TYPE_USHORT_GRAY => Try(image.copy(ImmutableImage.DEFAULT_DATA_TYPE))
+    case _                              => Success(image)
   }
 
   private def scaleMethodFor(targetSize: Int): ScaleMethod =
@@ -88,7 +88,7 @@ class ImageConverter(using props: Props) extends StrictLogging {
       ScaleMethod.Lanczos3
     else ScaleMethod.Bicubic
 
-  def resizeToVariantSize(original: ImmutableImage, variant: ImageVariantSize): ImmutableImage = {
+  def resizeToVariantSize(original: ImmutableImage, variant: ImageVariantSize): Try[ImmutableImage] = Try {
     // If the image is to be resized to exactly the same width as itself, Scrimage doesn't return a new copy.
     // This causes issues when the original image is reused in generating other variants, so we create a copy ourselves
     if (original.width == variant.width) original.copy()

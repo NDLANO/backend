@@ -219,7 +219,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
       )
     )
     res.code.code should equal(200)
-    res.body should equal(CCLogoSvgImage.toStream.readAllBytes())
+    res.body should equal(CCLogoSvgImage.toStream.value.readAllBytes())
   }
 
   test("That GET /id/1 with width resizing returns the original image") {
