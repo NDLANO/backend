@@ -8,6 +8,7 @@
 
 package no.ndla.imageapi.service
 
+import cats.data.NonEmptySeq
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.aws.{NdlaS3Client, NdlaS3Object}
@@ -78,7 +79,10 @@ class ImageStorageService(using
 
   def deleteObject(storageKey: String): Try[Unit] = s3Client.deleteObject(storageKey).map(_ => ())
 
-  def deleteObjects(storageKeys: Seq[String]): Try[Unit] = s3Client.deleteObjects(storageKeys).map(_ => ())
+  def deleteObjects(storageKeys: Seq[String]): Try[Unit] = storageKeys match {
+    case head :: tail => s3Client.deleteObjects(NonEmptySeq(head, tail)).map(_ => ())
+    case Nil          => Success(())
+  }
 
   def moveObjects(fromKeysToKeys: Seq[(String, String)]): Try[Unit] = {
     fromKeysToKeys.traverse((fromKey, toKey) => s3Client.copyObject(fromKey, toKey)) match {
