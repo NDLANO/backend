@@ -10,7 +10,6 @@ package no.ndla.imageapi.service
 
 import cats.implicits.*
 import com.sksamuel.scrimage.ImmutableImage
-import com.sksamuel.scrimage.format.{Format, FormatDetector}
 import com.sksamuel.scrimage.webp.WebpWriter
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
@@ -37,11 +36,10 @@ import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.DBSession
 
-import java.io.{BufferedInputStream, ByteArrayInputStream}
+import java.io.ByteArrayInputStream
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.jdk.OptionConverters.*
 import scala.util.{Failure, Success, Try, Using}
 
 class WriteService(using
@@ -446,22 +444,21 @@ class WriteService(using
   )(imageMeta: ImageMetaInformation, imageFile: ImageFileData)(using
       ExecutionContext
   ): Future[Try[(ImageMetaInformation, ImageFileData)]] = Future {
-    for {
+    val imageStream = for {
       s3Object <- imageStorage.getRaw(imageFile.fileName)
-      stream    = new BufferedInputStream(s3Object.stream)
-      _         = stream.mark(32)
-      format   <- FormatDetector
-        .detect(stream)
-        .toScala
-        .flatMap(ProcessableImageFormat.fromScrimageFormat)
-        .toTry(ImageUnprocessableFormatException(s3Object.contentType))
-      img <- {
-        stream.reset()
-        Try(ImmutableImage.loader().fromStream(stream))
-      }
-      dimensions = ImageDimensions(img.width, img.height)
-      fileStem   = imageFile.getFileStem
-    } yield (img, dimensions, fileStem, format)
+      stream   <- imageConverter.s3ObjectToImageStream(s3Object)
+    } yield stream
+
+    imageStream match {
+      case Success(ProcessableImageStream(image = img, format = fmt)) =>
+        val dimensions = ImageDimensions(img.width, img.height)
+        val fileStem   = imageFile.getFileStem
+        Success((img, dimensions, fileStem, fmt))
+      // We only process image/jpeg and image/png in this job, so an unprocessable format is an error
+      case Success(UnprocessableImageStream(contentType = contentType)) =>
+        Failure(ImageUnprocessableFormatException(contentType))
+      case Failure(ex) => Failure(ex)
+    }
   }.flatMap {
     case Success((img, dimensions, fileStem, format)) =>
       generateAndUploadVariantsAsync(img, dimensions, fileStem, format).map {
@@ -502,35 +499,19 @@ class WriteService(using
       .head
     val fileName = s"$uniqueFileStem$extension"
 
-    // Use buffered stream with mark to avoid creating multiple streams
-    val fileStream = new BufferedInputStream(file.stream)
-    fileStream.mark(32)
-    val maybeFormat = for {
-      scrimageFormat   <- FormatDetector.detect(fileStream).toScala
-      processableFormat = ProcessableImageFormat.fromScrimageFormat(scrimageFormat)
-    } yield (scrimageFormat, processableFormat)
-
-    val maybeProcessableFormat = maybeFormat match {
-      case Some(_, maybeProcessableFormat) => maybeProcessableFormat
-      case None                            => return uploadImageAsIs(file, fileName, None)
+    val processableStream = imageConverter.uploadedFileToImageStream(file, fileName) match {
+      case Success(stream: ProcessableImageStream)   => stream
+      case Success(stream: UnprocessableImageStream) => return uploadImageStream(stream, None)
+      case Failure(ex)                               => return Failure(ex)
     }
 
-    fileStream.reset()
-    val img = Try(ImmutableImage.loader().fromStream(fileStream)) match {
-      case Success(i)  => i
-      case Failure(ex) => return Failure(ex)
-    }
-    val dimensions = ImageDimensions(img.width, img.height)
-
-    val format = maybeProcessableFormat match {
-      case Some(format) => format
-      case None         => return uploadImageAsIs(file, fileName, Some(dimensions))
-    }
+    val image      = processableStream.image
+    val dimensions = ImageDimensions(image.width, image.height)
 
     Using(ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(ImageVariantSize.values.size))) {
       case given ExecutionContext =>
-        val variantsFuture             = generateAndUploadVariantsAsync(img, dimensions, uniqueFileStem, format)
-        val maybeUploadedOriginalImage = uploadImageAsIs(file, fileName, Some(dimensions))
+        val variantsFuture             = generateAndUploadVariantsAsync(image, dimensions, uniqueFileStem, processableStream.format)
+        val maybeUploadedOriginalImage = uploadImageStream(processableStream, Some(dimensions))
         val maybeVariants              = Await.result(variantsFuture, 1.minute)
 
         (maybeUploadedOriginalImage, maybeVariants) match {
@@ -585,17 +566,13 @@ class WriteService(using
       }
   }
 
-  private def uploadImageAsIs(
-      file: UploadedFile,
-      fileName: String,
-      dimensions: Option[ImageDimensions],
-  ): Try[UploadedImage] = {
-    val contentType = file.contentType.getOrElse("")
-    imageStorage
-      .uploadFromStream(fileName, file)
-      .map(filePath => {
-        UploadedImage(filePath, file.fileSize, contentType, dimensions, Seq.empty)
-      })
+  private def uploadImageStream(imageStream: ImageStream, dimensions: Option[ImageDimensions]): Try[UploadedImage] = {
+    val contentLength = imageStream.contentLength
+    val contentType   = imageStream.contentType
+    for {
+      imageInputStream <- imageStream.toStream
+      bucketKey        <- imageStorage.uploadFromStream(imageStream.fileName, imageInputStream, contentLength, contentType)
+    } yield UploadedImage(bucketKey, contentLength, contentType, dimensions, Seq.empty)
   }
 
   private def deleteImageAndVariants(image: ImageFileData): Try[Unit] = {

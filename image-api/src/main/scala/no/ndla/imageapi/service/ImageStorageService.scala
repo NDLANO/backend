@@ -12,7 +12,6 @@ import cats.data.NonEmptySeq
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.aws.{NdlaS3Client, NdlaS3Object}
-import no.ndla.common.model.domain.UploadedFile
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageStream
 
@@ -58,10 +57,6 @@ class ImageStorageService(using
   }
 
   def getRaw(bucketKey: String): Try[NdlaS3Object] = s3Client.getObject(bucketKey)
-
-  def uploadFromStream(storageKey: String, uploadedFile: UploadedFile): Try[String] = {
-    s3Client.putObject(storageKey, uploadedFile, props.S3NewFileCacheControlHeader.some).map(_ => storageKey)
-  }
 
   def uploadFromStream(storageKey: String, stream: InputStream, contentLength: Long, contentType: String): Try[String] =
     s3Client

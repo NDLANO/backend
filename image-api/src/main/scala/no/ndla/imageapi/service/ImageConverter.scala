@@ -14,13 +14,13 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.aws.NdlaS3Object
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.implicits.toTry
+import no.ndla.common.model.domain.UploadedFile
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.ImageUnprocessableFormatException
 import no.ndla.imageapi.model.domain.*
-import no.ndla.imageapi.service.ImageConverter.nonResizableMimeTypes
 
 import java.awt.image.BufferedImage
-import java.io.BufferedInputStream
+import java.io.{BufferedInputStream, InputStream}
 import java.lang.Math.{abs, max, min}
 import scala.jdk.OptionConverters.*
 import scala.util.{Failure, Success, Try}
@@ -48,8 +48,22 @@ object PercentPoint {
 }
 
 class ImageConverter(using props: Props) extends StrictLogging {
-  def s3ObjectToImageStream(s3Object: NdlaS3Object): Try[ImageStream] = {
-    val stream = new BufferedInputStream(s3Object.stream)
+  private val nonResizableMimeTypes = List("image/gif", "image/svg", "image/svg+xml")
+
+  def s3ObjectToImageStream(s3Object: NdlaS3Object): Try[ImageStream] =
+    inputStreamToImageStream(s3Object.stream, s3Object.key, s3Object.contentLength, s3Object.contentType)
+
+  def uploadedFileToImageStream(file: UploadedFile, fileName: String): Try[ImageStream] =
+    inputStreamToImageStream(file.stream, fileName, file.fileSize, file.contentType.getOrElse(""))
+
+  private def inputStreamToImageStream(
+      inputStream: InputStream,
+      fileName: String,
+      contentLength: Long,
+      contentType: String,
+  ): Try[ImageStream] = {
+    // Use buffered stream with mark to avoid creating multiple streams
+    val stream = new BufferedInputStream(inputStream)
     stream.mark(32)
 
     val format = (
@@ -58,13 +72,13 @@ class ImageConverter(using props: Props) extends StrictLogging {
         _           <- Try(stream.reset())
         format      <- maybeFormat
           .flatMap(ProcessableImageFormat.fromScrimageFormat)
-          .toTry(ImageUnprocessableFormatException(s3Object.contentType))
+          .toTry(ImageUnprocessableFormatException(contentType))
       } yield format
     ) match {
       case Success(f)                                                                                             => f
       case Failure(ImageUnprocessableFormatException(contentType)) if nonResizableMimeTypes.contains(contentType) =>
         return Try(stream.readAllBytes()).map(bytes =>
-          UnprocessableImageStream(bytes, s3Object.key, s3Object.contentType)
+          UnprocessableImageStream(bytes, fileName, contentLength, contentType)
         )
       case Failure(ex) => return Failure(ex)
     }
@@ -72,7 +86,7 @@ class ImageConverter(using props: Props) extends StrictLogging {
     for {
       image              <- Try(ImmutableImage.loader().fromStream(stream))
       imageWithFixedType <- fixImageUnderlyingType(image)
-      imageStream         = ProcessableImageStream(imageWithFixedType, s3Object.key, format)
+      imageStream         = ProcessableImageStream(imageWithFixedType, fileName, contentLength, format)
     } yield imageStream
   }
 
@@ -228,8 +242,4 @@ class ImageConverter(using props: Props) extends StrictLogging {
     val height = abs(start.y - end.y)
     (min(width, imageWidth - start.x), min(height, imageHeight - start.y))
   }
-}
-
-object ImageConverter {
-  private val nonResizableMimeTypes = List("image/gif", "image/svg", "image/svg+xml")
 }

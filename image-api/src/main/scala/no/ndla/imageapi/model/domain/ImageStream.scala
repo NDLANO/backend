@@ -18,12 +18,14 @@ import scala.util.{Success, Try}
 sealed trait ImageStream {
   def toStream: Try[InputStream]
   def fileName: String
+  def contentLength: Long
   def contentType: String
 }
 
 final case class ProcessableImageStream(
     image: ImmutableImage,
     override val fileName: String,
+    override val contentLength: Long,
     format: ProcessableImageFormat,
 ) extends ImageStream {
   override def toStream: Try[InputStream] = {
@@ -44,6 +46,7 @@ final case class ProcessableImageStream(
 final case class UnprocessableImageStream(
     imageBytes: Array[Byte],
     override val fileName: String,
+    override val contentLength: Long,
     override val contentType: String,
 ) extends ImageStream {
   override def toStream: Success[InputStream] = Success(new ByteArrayInputStream(imageBytes))
