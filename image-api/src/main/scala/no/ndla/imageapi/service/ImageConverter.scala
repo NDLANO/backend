@@ -8,7 +8,8 @@
 
 package no.ndla.imageapi.service
 
-import com.sksamuel.scrimage.format.FormatDetector
+import com.sksamuel.scrimage.format.{Format, FormatDetector}
+import com.sksamuel.scrimage.nio.{AnimatedGifReader, ImageSource}
 import com.sksamuel.scrimage.{ImmutableImage, ScaleMethod}
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.aws.NdlaS3Object
@@ -66,21 +67,22 @@ class ImageConverter(using props: Props) extends StrictLogging {
     val stream = new BufferedInputStream(inputStream)
     stream.mark(32)
 
-    val format = (
-      for {
-        maybeFormat <- Try(FormatDetector.detect(stream).toScala)
-        _           <- Try(stream.reset())
-        format      <- maybeFormat
-          .flatMap(ProcessableImageFormat.fromScrimageFormat)
-          .toTry(ImageUnprocessableFormatException(contentType))
-      } yield format
-    ) match {
-      case Success(f)                                                                                             => f
+    val scrimageFormat = for {
+      maybeFormat <- Try(FormatDetector.detect(stream).toScala)
+      _           <- Try(stream.reset())
+      format      <- maybeFormat.toTry(ImageUnprocessableFormatException(contentType))
+    } yield format
+
+    val format = scrimageFormat match {
       case Failure(ImageUnprocessableFormatException(contentType)) if nonResizableMimeTypes.contains(contentType) =>
         return Try(stream.readAllBytes()).map(bytes =>
-          UnprocessableImageStream(bytes, fileName, contentLength, contentType)
+          UnprocessableImageStream(bytes, fileName, contentLength, contentType, None)
         )
-      case Failure(ex) => return Failure(ex)
+      case Failure(ex)          => return Failure(ex)
+      case Success(Format.PNG)  => ProcessableImageFormat.Png
+      case Success(Format.JPEG) => ProcessableImageFormat.Jpeg
+      case Success(Format.WEBP) => ProcessableImageFormat.Webp
+      case Success(Format.GIF)  => return getGifImageStream(stream, fileName, contentLength, contentType)
     }
 
     for {
@@ -88,6 +90,19 @@ class ImageConverter(using props: Props) extends StrictLogging {
       imageWithFixedType <- fixImageUnderlyingType(image)
       imageStream         = ProcessableImageStream(imageWithFixedType, fileName, contentLength, format)
     } yield imageStream
+  }
+
+  private def getGifImageStream(
+      stream: InputStream,
+      fileName: String,
+      contentLength: Long,
+      contentType: String,
+  ): Try[UnprocessableImageStream] = Try {
+    val bytes  = stream.readAllBytes()
+    val gif    = AnimatedGifReader.read(ImageSource.of(bytes))
+    val awtDim = gif.getDimensions
+    val dim    = ImageDimensions(awtDim.width, awtDim.height)
+    UnprocessableImageStream(bytes, fileName, contentLength, contentType, Some(dim))
   }
 
   // Due to a bug in Scrimage, 16-bit grayscale images must be converted to e.g., 8-bit RGBA

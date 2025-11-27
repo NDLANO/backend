@@ -500,9 +500,9 @@ class WriteService(using
     val fileName = s"$uniqueFileStem$extension"
 
     val processableStream = imageConverter.uploadedFileToImageStream(file, fileName) match {
-      case Success(stream: ProcessableImageStream)   => stream
-      case Success(stream: UnprocessableImageStream) => return uploadImageStream(stream, None)
-      case Failure(ex)                               => return Failure(ex)
+      case Success(stream: ProcessableImageStream)                      => stream
+      case Success(stream @ UnprocessableImageStream(dimensions = dim)) => return uploadImageStream(stream, dim)
+      case Failure(ex)                                                  => return Failure(ex)
     }
 
     val image      = processableStream.image

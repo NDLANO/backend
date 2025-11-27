@@ -48,6 +48,7 @@ final case class UnprocessableImageStream(
     override val fileName: String,
     override val contentLength: Long,
     override val contentType: String,
+    dimensions: Option[ImageDimensions],
 ) extends ImageStream {
   override def toStream: Success[InputStream] = Success(new ByteArrayInputStream(imageBytes))
 }
