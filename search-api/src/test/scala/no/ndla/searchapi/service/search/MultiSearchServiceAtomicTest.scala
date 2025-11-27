@@ -15,6 +15,7 @@ import no.ndla.common.model.domain.frontpage.VisualElementType.Image
 import no.ndla.common.model.domain.{ArticleContent, Title}
 import no.ndla.common.model.taxonomy.*
 import no.ndla.common.util.TraitUtil
+import no.ndla.network.clients.PaginationPage
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
@@ -24,7 +25,7 @@ import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial}
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment}
-import org.mockito.ArgumentMatchers.eq as eqTo
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
 
 import scala.util.Success
@@ -752,6 +753,10 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         indexingBundle.taxonomyBundle.get.nodes
     )
 
+    when(taxonomyApiClient.getNodesPage(any, any, any)).thenReturn(
+      Success(PaginationPage(taxonomyBundle.nodes.size, taxonomyBundle.nodes))
+    )
+
     doReturn(
       Success(
         SubjectPage(
@@ -797,7 +802,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     blockUntil(() => {
       val indexedNodes    = nodeIndexService.countDocuments
       val indexedArticles = articleIndexService.countDocuments
-      indexedNodes == 23 && indexedArticles == 3
+      indexedNodes == 20 && indexedArticles == 3
     })
 
     val search1 = multiSearchService.matchingQuery(
@@ -889,6 +894,9 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
       ) ++
         indexingBundle.taxonomyBundle.get.nodes
     )
+    when(taxonomyApiClient.getNodesPage(any, any, any)).thenReturn(
+      Success(PaginationPage(taxonomyBundle.nodes.size, taxonomyBundle.nodes))
+    )
 
     doReturn(
       Success(
@@ -942,7 +950,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     blockUntil(() => {
       val indexedNodes    = nodeIndexService.countDocuments
       val indexedArticles = articleIndexService.countDocuments
-      indexedNodes == 23 && indexedArticles == 3
+      indexedNodes == 20 && indexedArticles == 3
     })
 
     val search1 = multiSearchService.matchingQuery(
@@ -1053,6 +1061,10 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         indexingBundle.taxonomyBundle.get.nodes
     )
 
+    when(taxonomyApiClient.getNodesPage(any, any, any)).thenReturn(
+      Success(PaginationPage(taxonomyBundle.nodes.size, taxonomyBundle.nodes))
+    )
+
     doReturn(
       Success(
         SubjectPage(
@@ -1098,7 +1110,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     blockUntil(() => {
       val indexedNodes    = nodeIndexService.countDocuments
       val indexedArticles = articleIndexService.countDocuments
-      indexedNodes == 23 && indexedArticles == 3
+      indexedNodes == 20 && indexedArticles == 3
     })
 
     val search1 = multiSearchService.matchingQuery(
