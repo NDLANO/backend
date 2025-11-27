@@ -9,12 +9,14 @@
 package no.ndla.network.model
 
 import no.ndla.common.model.api.myndla.MyNDLAUserDTO
+import no.ndla.common.model.domain.myndla.UserRole.EMPLOYEE
 import no.ndla.network.tapir.auth.TokenUser
 
 sealed trait CombinedUser {
   val tokenUser: Option[TokenUser]
   val myndlaUser: Option[MyNDLAUserDTO]
   def isMyNDLAUser: Boolean = myndlaUser.isDefined && tokenUser.isEmpty
+  def isEmployee: Boolean   = myndlaUser.isDefined && myndlaUser.exists(_.role == EMPLOYEE)
 }
 
 case class OptionalCombinedUser(tokenUser: Option[TokenUser], myndlaUser: Option[MyNDLAUserDTO]) extends CombinedUser
