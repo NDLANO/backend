@@ -309,7 +309,8 @@
             "dataType": "ENUM",
             "allowedValues": [
               "standard",
-              "minimal"
+              "minimal",
+              "podcast"
             ]
           }
         },
