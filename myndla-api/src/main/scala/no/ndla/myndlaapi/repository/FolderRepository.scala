@@ -138,6 +138,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       withSQL {
         update(Folder)
           .set(
+            column("parent_id")   -> folder.parentId,
             column("name")        -> folder.name,
             column("status")      -> folder.status.toString,
             column("shared")      -> folder.shared,

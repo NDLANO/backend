@@ -10,6 +10,7 @@ package no.ndla.myndlaapi.e2e
 
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.ResourceType.Article
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.common.{CirceUtil, Clock}
@@ -128,10 +129,14 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     )
   }
 
-  def createFolder(feideId: String, name: String): api.FolderDTO = {
+  def createFolder(feideId: String, name: String, parentId: Option[String]): api.FolderDTO = {
     import io.circe.generic.auto.*
-    val newFolderData =
-      api.NewFolderDTO(name = name, status = Some(FolderStatus.SHARED.toString), parentId = None, description = None)
+    val newFolderData = api.NewFolderDTO(
+      name = name,
+      status = Some(FolderStatus.SHARED.toString),
+      parentId = parentId,
+      description = None,
+    )
     val body = CirceUtil.toJsonString(newFolderData)
 
     val newFolder = simpleHttpClient.send(
@@ -147,11 +152,29 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     CirceUtil.unsafeParseAs[api.FolderDTO](newFolder.body)
   }
 
-  def getFolders(feideId: String): api.UserFolderDTO = {
+  def updateFolder(feideId: String, folderId: UUID, updatedFolder: api.UpdatedFolderDTO): api.FolderDTO = {
     import io.circe.generic.auto.*
-    val folders = simpleHttpClient.send(
-      quickRequest.get(uri"$myndlaApiFolderUrl/").header("FeideAuthorization", s"Bearer $feideId")
+    val body = CirceUtil.toJsonString(updatedFolder)
+
+    val updatedFolderResponse = simpleHttpClient.send(
+      quickRequest
+        .patch(uri"$myndlaApiFolderUrl/$folderId")
+        .header("FeideAuthorization", s"Bearer $feideId")
+        .contentType("application/json")
+        .body(body)
     )
+    if (!updatedFolderResponse.isSuccess) fail(
+      s"Failed to update folder $folderId failed with code ${updatedFolderResponse.code} and body:\n${updatedFolderResponse.body}"
+    )
+
+    CirceUtil.unsafeParseAs[api.FolderDTO](updatedFolderResponse.body)
+  }
+
+  def getFolders(feideId: String, includeSubfolders: Boolean): api.UserFolderDTO = {
+    import io.circe.generic.auto.*
+    var uri = uri"$myndlaApiFolderUrl/"
+    if (includeSubfolders) uri = uri.addParam("include-subfolders", "true")
+    val folders = simpleHttpClient.send(quickRequest.get(uri).header("FeideAuthorization", s"Bearer $feideId"))
     if (!folders.isSuccess)
       fail(s"Fetching all folders for $feideId failed with code ${folders.code} and body:\n${folders.body}")
 
@@ -250,12 +273,12 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
     when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
 
-    val f1 = createFolder(feideId1, "folder1")
-    val f2 = createFolder(feideId1, "folder2")
-    val f3 = createFolder(feideId1, "folder3")
-    val f4 = createFolder(feideId1, "folder4")
+    val f1 = createFolder(feideId1, "folder1", None)
+    val f2 = createFolder(feideId1, "folder2", None)
+    val f3 = createFolder(feideId1, "folder3", None)
+    val f4 = createFolder(feideId1, "folder4", None)
 
-    val foldersForU1 = getFolders(feideId1)
+    val foldersForU1 = getFolders(feideId1, false)
     foldersForU1.sharedFolders.length should be(0)
     foldersForU1.folders.length should be(4)
     foldersForU1.folders.head.id should be(f1.id)
@@ -269,7 +292,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
 
     sortFolders(feideId1, List(f4.id, f2.id, f3.id, f1.id))
 
-    val foldersForU1Sorted = getFolders(feideId1)
+    val foldersForU1Sorted = getFolders(feideId1, false)
     foldersForU1Sorted.sharedFolders.length should be(0)
     foldersForU1Sorted.folders.length should be(4)
     foldersForU1Sorted.folders.head.id should be(f4.id)
@@ -289,12 +312,12 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId2)))).thenReturn(Success(feideId2))
     when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
 
-    val f1 = createFolder(feideId1, "folder1")
-    val f2 = createFolder(feideId1, "folder2")
-    val f3 = createFolder(feideId1, "folder3")
-    val f4 = createFolder(feideId1, "folder4")
+    val f1 = createFolder(feideId1, "folder1", None)
+    val f2 = createFolder(feideId1, "folder2", None)
+    val f3 = createFolder(feideId1, "folder3", None)
+    val f4 = createFolder(feideId1, "folder4", None)
 
-    val foldersForU1 = getFolders(feideId1)
+    val foldersForU1 = getFolders(feideId1, false)
     foldersForU1.sharedFolders.length should be(0)
     foldersForU1.folders.length should be(4)
     foldersForU1.folders.head.id should be(f1.id)
@@ -308,7 +331,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
 
     sortFolders(feideId1, List(f4.id, f2.id, f3.id, f1.id))
 
-    val foldersForU1Sorted = getFolders(feideId1)
+    val foldersForU1Sorted = getFolders(feideId1, false)
     foldersForU1Sorted.sharedFolders.length should be(0)
     foldersForU1Sorted.folders.length should be(4)
     foldersForU1Sorted.folders.head.id should be(f4.id)
@@ -320,13 +343,13 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     foldersForU1Sorted.folders(3).id should be(f1.id)
     foldersForU1Sorted.folders(3).rank should be(4)
 
-    val foldersForU2 = getFolders(feideId2)
+    val foldersForU2 = getFolders(feideId2, false)
     foldersForU2.sharedFolders.length should be(0)
 
     saveFolder(feideId2, f1.id)
     saveFolder(feideId2, f3.id)
 
-    val foldersForU2AfterSave = getFolders(feideId2)
+    val foldersForU2AfterSave = getFolders(feideId2, false)
     foldersForU2AfterSave.sharedFolders.length should be(2)
     foldersForU2AfterSave.sharedFolders.head.id should be(f1.id)
     foldersForU2AfterSave.sharedFolders.head.rank should be(1)
@@ -335,7 +358,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
 
     sortFolders(feideId2, List(f3.id, f1.id), sortShared = true)
 
-    val foldersForU2AfterSort = getFolders(feideId2)
+    val foldersForU2AfterSort = getFolders(feideId2, false)
     foldersForU2AfterSort.sharedFolders.length should be(2)
     foldersForU2AfterSort.sharedFolders.head.id should be(f3.id)
     foldersForU2AfterSort.sharedFolders.head.rank should be(1)
@@ -349,9 +372,9 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
     when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
 
-    val f1 = createFolder(feideId1, "folder1")
+    val f1 = createFolder(feideId1, "folder1", None)
 
-    val foldersForU1 = getFolders(feideId1)
+    val foldersForU1 = getFolders(feideId1, false)
     foldersForU1.sharedFolders.length should be(0)
     foldersForU1.folders.length should be(1)
     foldersForU1.folders.head.id should be(f1.id)
@@ -402,6 +425,47 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     val folderAfterDelete = getFolderResources(feideId1, f1.id)
     folderAfterDelete.resources.length should be(4)
     folderAfterDelete.resources.map(_.id) should be(List(res3.id, res2.id, res5.id, res4.id))
+
+  }
+
+  test("Saving and then moving folder to different parent") {
+    val feideId1 = "feide1"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+
+    /*
+        f1
+        ├─ f2
+        ├─ f3
+            └─ f4
+     */
+    val f1 = createFolder(feideId1, "folder1", None)
+    val f2 = createFolder(feideId1, "folder2", Some(f1.id.toString))
+    val f3 = createFolder(feideId1, "folder3", Some(f1.id.toString))
+    val f4 = createFolder(feideId1, "folder4", Some(f3.id.toString))
+
+    // Move f4 to be child of f1
+    val updated = updateFolder(
+      feideId = feideId1,
+      folderId = f4.id,
+      updatedFolder =
+        api.UpdatedFolderDTO(parentId = UpdateWith(f1.id.toString), name = None, status = None, description = None),
+    )
+    updated.parentId should be(Some(f1.id))
+
+    val foldersForU1Sorted = getFolders(feideId1, true)
+    foldersForU1Sorted.sharedFolders.length should be(0)
+    foldersForU1Sorted.folders.length should be(1)
+    foldersForU1Sorted.folders.head.id should be(f1.id)
+    foldersForU1Sorted.folders.head.rank should be(1)
+    foldersForU1Sorted.folders.head.subfolders.length should be(3)
+    val subfoldersOfF1 = foldersForU1Sorted.folders.head.subfolders.sortBy(_.rank)
+    subfoldersOfF1.head.id should be(f2.id)
+    subfoldersOfF1.head.rank should be(1)
+    subfoldersOfF1(1).id should be(f4.id) // rank is reset to 0 when moving
+    subfoldersOfF1(1).rank should be(2)
+    subfoldersOfF1(2).id should be(f3.id)
+    subfoldersOfF1(2).rank should be(3)
 
   }
 }
