@@ -82,12 +82,14 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
 
   /** The memoized function of this [[getTaxonomyBundle]] should probably be used in most cases */
   def getTaxonomyBundleUncached(shouldUsePublishedTax: Boolean): Try[TaxonomyBundle] = {
-    logger.info(
-      s"Fetching ${if (shouldUsePublishedTax) "published"
-        else "draft"} taxonomy in bulk..."
-    )
-    val startFetch                            = System.currentTimeMillis()
-    implicit val ec: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
+    val bundleType =
+      if (shouldUsePublishedTax) "published"
+      else "draft"
+
+    logger.info(s"Fetching $bundleType taxonomy in bulk...")
+    val startFetch                                   = System.currentTimeMillis()
+    implicit val ec: ExecutionContextExecutorService =
+      ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
 
     val requestInfo = RequestInfo.fromThreadContext()
 
@@ -105,13 +107,17 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
       r <- resources
     } yield TaxonomyBundle(n.addAll(r).result())
 
-    Try(Await.result(x, Duration(300, "seconds"))) match {
-      case Success(bundle) =>
-        logger.info(s"Fetched taxonomy in ${System.currentTimeMillis() - startFetch}ms...")
-        Success(bundle)
-      case Failure(ex) =>
-        logger.error(s"Could not fetch taxonomy bundle (${ex.getMessage})", ex)
-        Failure(TaxonomyException("Could not fetch taxonomy bundle..."))
+    try {
+      Try(Await.result(x, Duration(300, "seconds"))) match {
+        case Success(bundle) =>
+          logger.info(s"Fetched taxonomy in ${System.currentTimeMillis() - startFetch}ms...")
+          Success(bundle)
+        case Failure(ex) =>
+          logger.error(s"Could not fetch taxonomy bundle (${ex.getMessage})", ex)
+          Failure(TaxonomyException("Could not fetch taxonomy bundle..."))
+      }
+    } finally {
+      ec.shutdown()
     }
   }
 
@@ -131,6 +137,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
 
     val pageSize   = params.toMap.getOrElse("pageSize", "100").toInt
     val pageParams = params :+ ("page" -> "1")
+
     fetchPage(pageParams).flatMap(firstPage => {
       val numPages  = Math.ceil(firstPage.totalCount.toDouble / pageSize.toDouble).toInt
       val pageRange = 1 to numPages
@@ -139,11 +146,14 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
 
-      val pages        = pageRange.map(pageNum => Future(fetchPage(params :+ ("page" -> s"$pageNum"))))
-      val mergedFuture = Future.sequence(pages)
-      val awaited      = Await.result(mergedFuture, timeoutSeconds)
-
-      awaited.toList.sequence.map(_.flatMap(_.results))
+      try {
+        val pages        = pageRange.map(pageNum => Future(fetchPage(params :+ ("page" -> s"$pageNum"))))
+        val mergedFuture = Future.sequence(pages)
+        val awaited      = Await.result(mergedFuture, timeoutSeconds)
+        awaited.toList.sequence.map(_.flatMap(_.results))
+      } finally {
+        executionContext.shutdown()
+      }
     })
   }
 }
