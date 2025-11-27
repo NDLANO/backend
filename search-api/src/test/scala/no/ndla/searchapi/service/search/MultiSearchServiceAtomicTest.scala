@@ -802,7 +802,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     blockUntil(() => {
       val indexedNodes    = nodeIndexService.countDocuments
       val indexedArticles = articleIndexService.countDocuments
-      indexedNodes == 20 && indexedArticles == 3
+      indexedNodes == 23 && indexedArticles == 3
     })
 
     val search1 = multiSearchService.matchingQuery(
@@ -950,7 +950,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     blockUntil(() => {
       val indexedNodes    = nodeIndexService.countDocuments
       val indexedArticles = articleIndexService.countDocuments
-      indexedNodes == 20 && indexedArticles == 3
+      indexedNodes == 23 && indexedArticles == 3
     })
 
     val search1 = multiSearchService.matchingQuery(
@@ -1110,7 +1110,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     blockUntil(() => {
       val indexedNodes    = nodeIndexService.countDocuments
       val indexedArticles = articleIndexService.countDocuments
-      indexedNodes == 20 && indexedArticles == 3
+      indexedNodes == 23 && indexedArticles == 3
     })
 
     val search1 = multiSearchService.matchingQuery(
