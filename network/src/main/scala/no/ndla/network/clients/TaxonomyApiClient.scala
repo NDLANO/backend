@@ -35,12 +35,11 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
       s"$TaxonomyApiEndpoint/nodes/",
       headers = getVersionHashHeader(shouldUsePublishedTax),
       Seq(
-        "contentURI"       -> contentUri.getOrElse(""),
         "nodeType"         -> nodeType.mkString(","),
         "includeContexts"  -> "true",
         "filterProgrammes" -> "true",
         "isVisible"        -> getIsVisibleParam(shouldUsePublishedTax),
-      ),
+      ) ++ contentUri.map("contentURI" -> _),
     )
 
   private def getResources(shouldUsePublishedTax: Boolean): Try[List[Node]] = getPaginated[Node](
