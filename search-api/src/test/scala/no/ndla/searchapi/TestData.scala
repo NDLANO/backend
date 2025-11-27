@@ -1936,7 +1936,7 @@ object TestData {
     glossData = Some(
       GlossData(
         gloss = "hei",
-        wordClass = WordClass.TIME_WORD,
+        wordClass = List(WordClass.TIME_WORD),
         originalLanguage = "nb",
         transcriptions = Map("pling" -> "plong"),
         examples = List(List(GlossExample(example = "hei", language = "nb", transcriptions = Map("nb" -> "lai")))),
