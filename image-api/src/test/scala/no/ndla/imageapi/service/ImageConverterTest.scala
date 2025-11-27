@@ -8,7 +8,7 @@
 
 package no.ndla.imageapi.service
 
-import no.ndla.imageapi.model.domain.ProcessableImageStream
+import no.ndla.imageapi.model.domain.ImageStream
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import org.scalactic.{Equality, TolerantNumerics}
 
@@ -47,7 +47,7 @@ class ImageConverterTest extends UnitSuite with TestEnvironment {
 
   test("s3ObjectToImageStream returns ProcessableImageStream for JPEG images") {
     val imageStream = service.s3ObjectToImageStream(TestData.ndlaLogoImageS3Object).failIfFailure
-    imageStream shouldBe a[ProcessableImageStream]
+    imageStream shouldBe a[ImageStream.Processable]
   }
 
   test("crop crops an image according to given settings") {
