@@ -170,39 +170,44 @@ class WriteService(using
     ).?
 
     validationService.validate(toInsert, copiedFrom).??
-    val insertedMeta       = imageRepository.insert(toInsert).?
-    val missingIdException = MissingIdException("Could not find id of stored metadata. This is a bug.")
-    val imageId            = insertedMeta.id.toTry(missingIdException).?
 
     val uploadedImage = uploadImageWithVariants(file).?
-
-    val imageFile = converterService.toImageFileData(uploadedImage, language)
-    val imageMeta = insertedMeta.copy(images = Seq(imageFile))
+    val imageFile     = converterService.toImageFileData(uploadedImage, language)
 
     val deleteUploadedImages = (reason: Throwable) => {
       logger.info(s"Deleting images because of: ${reason.getMessage}", reason)
-      imageMeta.images.traverse(image => deleteImageAndVariants(image)) match {
+      deleteImageAndVariants(imageFile) match {
         case Success(_)  => ()
         case Failure(ex) => logger.error("Failed to clean up image after failed indexing", ex)
       }
     }
 
+    val toInsertWithImageFile = toInsert.copy(images = Seq(imageFile))
+    val insertedMeta          = imageRepository
+      .insert(toInsertWithImageFile)
+      .recoverWith { ex =>
+        deleteUploadedImages(ex)
+        Failure(ex)
+      }
+      .?
+    val imageId = insertedMeta.id.toTry(MissingIdException("Could not find id of stored metadata. This is a bug.")).?
+
     imageIndexService
-      .indexDocument(imageMeta)
+      .indexDocument(insertedMeta)
       .recoverWith { e =>
         deleteUploadedImages(e)
-        Try(imageRepository.delete(imageId)): Unit
+        imageRepository.delete(imageId): Unit
         Failure(e)
       }
       .??
 
-    tagIndexService.indexDocument(imageMeta) match {
-      case Success(_) => Success(imageMeta)
+    tagIndexService.indexDocument(insertedMeta) match {
+      case Success(_) => Success(insertedMeta)
       case Failure(e) =>
         deleteUploadedImages(e)
         imageIndexService.deleteDocument(imageId): Unit
         tagIndexService.deleteDocument(imageId): Unit
-        Try(imageRepository.delete(imageId)): Unit
+        imageRepository.delete(imageId): Unit
         Failure(e)
     }
   }
