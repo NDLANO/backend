@@ -110,9 +110,6 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    when(taxonomyApiClient.getTaxonomyBundle).thenReturn(
-      new Memoize[Boolean, Try[TaxonomyBundle]](0, _ => Success(emptyBundle))
-    )
     when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
 

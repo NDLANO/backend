@@ -78,10 +78,9 @@ class NodeIndexService(using
   }
 
   def indexDocuments(numShards: Option[Int]): Try[ReindexResult] = for {
-    grepBundle     <- grepApiClient.getGrepBundle()
-    taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle(true)
-    indexingBundle  = IndexingBundle(grepBundle.some, taxonomyBundle.some, None)
-    result         <- indexDocuments(numShards, indexingBundle)
+    grepBundle    <- grepApiClient.getGrepBundle()
+    indexingBundle = IndexingBundle(grepBundle.some, None, None)
+    result        <- indexDocuments(numShards, indexingBundle)
   } yield result
 
   private def getFrontPage(contentUri: Option[String]): Try[Option[SubjectPage]] = {
@@ -110,16 +109,17 @@ class NodeIndexService(using
   }
 
   def sendToElastic(indexingBundle: IndexingBundle, indexName: String): Try[BulkIndexResult] = permitTry {
-    val taxBundle = indexingBundle.taxonomyBundle match {
-      case None        => taxonomyApiClient.getTaxonomyBundle(true).?
-      case Some(value) => value
-    }
+    val pageSize = props.IndexBulkSize
 
-    taxBundle
-      .nodes
-      .grouped(props.IndexBulkSize)
-      .toList
-      .traverse(group => sendChunkToElastic(indexingBundle, group, indexName))
+    def fetchPage(page: Int) = taxonomyApiClient.getNodesPage(page, pageSize, shouldUsePublishedTax = true)
+
+    val firstPage  = fetchPage(1).?
+    val totalPages = Math.max(1, Math.ceil(firstPage.totalCount.toDouble / pageSize.toDouble).toInt)
+
+    (
+      1 to totalPages
+    ).toList
+      .traverse(page => fetchPage(page).flatMap(p => sendChunkToElastic(indexingBundle, p.results, indexName)))
       .map(countBulkIndexed)
   }
 }

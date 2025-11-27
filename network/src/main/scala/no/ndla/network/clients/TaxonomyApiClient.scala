@@ -12,45 +12,51 @@ import cats.implicits.toTraverseOps
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
-import no.ndla.common.caching.Memoize
-import no.ndla.common.errors.TaxonomyException
 import no.ndla.common.model.taxonomy.*
 import no.ndla.network.NdlaClient
 import no.ndla.network.TaxonomyData.{TAXONOMY_VERSION_HEADER, defaultVersion}
-import no.ndla.network.model.RequestInfo
 import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
 import scala.annotation.unused
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.*
-import scala.concurrent.duration.{Duration, DurationInt}
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration.DurationInt
+import scala.util.{Success, Try}
 
 class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) extends StrictLogging {
   private val TaxonomyApiEndpoint = s"$taxonomyBaseUrl/v1"
   private val timeoutSeconds      = 600.seconds
 
-  private def getNodes(shouldUsePublishedTax: Boolean): Try[ListBuffer[Node]] = get[ListBuffer[Node]](
-    s"$TaxonomyApiEndpoint/nodes/",
-    headers = getVersionHashHeader(shouldUsePublishedTax),
-    Seq(
-      "nodeType"        -> List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC).mkString(","),
-      "includeContexts" -> "true",
-      "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
-    ),
-  )
+  def getNodesPage(page: Int, pageSize: Int, shouldUsePublishedTax: Boolean): Try[PaginationPage[Node]] =
+    get[PaginationPage[Node]](
+      s"$TaxonomyApiEndpoint/nodes/page",
+      headers = getVersionHashHeader(shouldUsePublishedTax),
+      Seq(
+        "page"            -> page.toString,
+        "pageSize"        -> pageSize.toString,
+        "includeContexts" -> "true",
+        "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
+      ),
+    )
 
-  private def getResources(shouldUsePublishedTax: Boolean): Try[List[Node]] = getPaginated[Node](
-    s"$TaxonomyApiEndpoint/nodes/search",
-    headers = getVersionHashHeader(shouldUsePublishedTax),
-    Seq(
-      "pageSize"        -> "500",
-      "nodeType"        -> NodeType.RESOURCE.toString,
-      "includeContexts" -> "true",
-      "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
-    ),
-  )
+  def getTaxonomyBundleForContentUris(contentUris: Seq[String], shouldUsePublishedTax: Boolean): Try[TaxonomyBundle] = {
+    if (contentUris.isEmpty) Success(TaxonomyBundle.empty)
+    else {
+      val pageSize = Math.max(500, contentUris.size)
+      val nodes    = getPaginated[Node](
+        s"$TaxonomyApiEndpoint/nodes/search",
+        headers = getVersionHashHeader(shouldUsePublishedTax),
+        Seq(
+          "pageSize"        -> pageSize.toString,
+          "nodeType"        -> NodeType.values.mkString(","),
+          "includeContexts" -> "true",
+          "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
+          "contentUris"     -> contentUris.mkString(","),
+        ),
+      )
+      nodes.map(TaxonomyBundle.fromNodeList)
+    }
+  }
 
   def getTaxonomyContext(
       contentUri: String,
@@ -77,50 +83,6 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
     else Map(TAXONOMY_VERSION_HEADER -> defaultVersion)
   }
 
-  val getTaxonomyBundle: Memoize[Boolean, Try[TaxonomyBundle]] =
-    new Memoize(1000 * 60, shouldUsePublishedTax => getTaxonomyBundleUncached(shouldUsePublishedTax))
-
-  /** The memoized function of this [[getTaxonomyBundle]] should probably be used in most cases */
-  def getTaxonomyBundleUncached(shouldUsePublishedTax: Boolean): Try[TaxonomyBundle] = {
-    val bundleType =
-      if (shouldUsePublishedTax) "published"
-      else "draft"
-
-    logger.info(s"Fetching $bundleType taxonomy in bulk...")
-    val startFetch                                   = System.currentTimeMillis()
-    implicit val ec: ExecutionContextExecutorService =
-      ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
-
-    val requestInfo = RequestInfo.fromThreadContext()
-
-    /** Calls function in separate thread and converts Try to Future */
-    def tryToFuture[T](x: Boolean => Try[T]) = Future {
-      requestInfo.setThreadContextRequestInfo(): Unit
-      x(shouldUsePublishedTax)
-    }.flatMap(Future.fromTry)
-
-    val nodes     = tryToFuture(shouldUsePublishedTax => getNodes(shouldUsePublishedTax))
-    val resources = tryToFuture(shouldUsePublishedTax => getResources(shouldUsePublishedTax))
-
-    val x = for {
-      n <- nodes
-      r <- resources
-    } yield TaxonomyBundle(n.addAll(r).result())
-
-    try {
-      Try(Await.result(x, Duration(300, "seconds"))) match {
-        case Success(bundle) =>
-          logger.info(s"Fetched taxonomy in ${System.currentTimeMillis() - startFetch}ms...")
-          Success(bundle)
-        case Failure(ex) =>
-          logger.error(s"Could not fetch taxonomy bundle (${ex.getMessage})", ex)
-          Failure(TaxonomyException("Could not fetch taxonomy bundle..."))
-      }
-    } finally {
-      ec.shutdown()
-    }
-  }
-
   private def get[A: Decoder](url: String, headers: Map[String, String], params: Seq[(String, String)]): Try[A] = {
     ndlaClient.fetchWithForwardedAuth[A](
       quickRequest.get(uri"$url?$params").headers(headers).readTimeout(timeoutSeconds),
@@ -142,7 +104,7 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
       val numPages  = Math.ceil(firstPage.totalCount.toDouble / pageSize.toDouble).toInt
       val pageRange = 1 to numPages
 
-      val numThreads                                                 = Math.max(20, numPages)
+      val numThreads                                                 = Math.min(8, Math.max(1, numPages))
       implicit val executionContext: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(numThreads))
 

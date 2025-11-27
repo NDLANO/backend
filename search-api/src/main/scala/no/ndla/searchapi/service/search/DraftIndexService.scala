@@ -36,9 +36,12 @@ class DraftIndexService(using
     searchLanguage: SearchLanguage,
 ) extends StrictLogging
     with IndexService[Draft] {
-  override val documentType: String              = "draft"
-  override val searchIndex: String               = props.SearchIndex(SearchType.Drafts)
-  override val apiClient: SearchApiClient[Draft] = draftApiClient
+  override val documentType: String                                             = "draft"
+  override val searchIndex: String                                              = props.SearchIndex(SearchType.Drafts)
+  override val apiClient: SearchApiClient[Draft]                                = draftApiClient
+  override protected def taxonomyShouldUsePublished: Boolean                    = false
+  override protected def taxonomyContentUris(contents: Seq[Draft]): Seq[String] =
+    contents.flatMap(_.id.map(id => s"urn:article:$id"))
 
   override def createIndexRequest(
       domainModel: Draft,
