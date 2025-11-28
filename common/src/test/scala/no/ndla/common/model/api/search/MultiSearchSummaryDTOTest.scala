@@ -14,13 +14,17 @@ import no.ndla.testbase.UnitTestSuiteBase
 
 class MultiSearchSummaryDTOTest extends UnitTestSuiteBase {
   test("serialization") {
-    val now         = NDLADate.now().withNano(0)
-    val toSerialize = MultiSearchSummaryDTO(
+
+    val now             = NDLADate.now().withNano(0)
+    val resourceTypeDTO = TaxonomyResourceTypeDTO(id = "resType1", name = "Resource Type 1", language = "en")
+    val toSerialize     = MultiSearchSummaryDTO(
       id = 1L,
       title = TitleWithHtmlDTO("Test Title", "<b>Test Title</b>", "en"),
       metaDescription = MetaDescriptionDTO("A meta description", "en"),
       metaImage = None,
       url = "https://example.com/resource/1",
+      List("ctx1"),
+      List(resourceTypeDTO),
       context = Some(
         ApiTaxonomyContextDTO(
           publicId = "ctx1",
@@ -32,7 +36,7 @@ class MultiSearchSummaryDTOTest extends UnitTestSuiteBase {
           breadcrumbs = List("root", "path"),
           contextId = "ctxid1",
           contextType = "type1",
-          resourceTypes = List(),
+          resourceTypes = List(resourceTypeDTO),
           language = "en",
           isPrimary = true,
           isActive = true,

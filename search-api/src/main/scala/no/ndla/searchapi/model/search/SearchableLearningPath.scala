@@ -13,11 +13,11 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{LearningResourceType, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.learningpath.LearningPath
-import no.ndla.searchapi.model.api.learningpath.CopyrightDTO
 import no.ndla.common.model.domain.{Priority, Responsible, RevisionMeta}
+import no.ndla.common.model.taxonomy.Node
+import no.ndla.searchapi.model.api.learningpath.CopyrightDTO
 
 case class SearchableLearningPath(
-    domainObject: LearningPath,
     id: Long,
     title: SearchableLanguageValues,
     content: SearchableLanguageValues,
@@ -56,6 +56,8 @@ case class SearchableLearningPath(
     nextRevision: Option[RevisionMeta],
     grepCodes: List[String],
     responsible: Option[Responsible],
+    domainObject: LearningPath,
+    nodes: List[Node],
 )
 
 object SearchableLearningPath {

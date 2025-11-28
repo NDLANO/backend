@@ -22,7 +22,6 @@ import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
 import scala.annotation.unused
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.*
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Failure, Success, Try}
@@ -31,15 +30,16 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
   private val TaxonomyApiEndpoint = s"$taxonomyBaseUrl/v1"
   private val timeoutSeconds      = 600.seconds
 
-  private def getNodes(shouldUsePublishedTax: Boolean): Try[ListBuffer[Node]] = get[ListBuffer[Node]](
-    s"$TaxonomyApiEndpoint/nodes/",
-    headers = getVersionHashHeader(shouldUsePublishedTax),
-    Seq(
-      "nodeType"        -> List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC).mkString(","),
-      "includeContexts" -> "true",
-      "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
-    ),
-  )
+  def getNodes(shouldUsePublishedTax: Boolean, nodeType: List[NodeType], contentUri: Option[String]): Try[List[Node]] =
+    get[List[Node]](
+      s"$TaxonomyApiEndpoint/nodes/",
+      headers = getVersionHashHeader(shouldUsePublishedTax),
+      Seq(
+        "nodeType"        -> nodeType.mkString(","),
+        "includeContexts" -> "true",
+        "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
+      ) ++ contentUri.map("contentURI" -> _),
+    )
 
   private def getResources(shouldUsePublishedTax: Boolean): Try[List[Node]] = getPaginated[Node](
     s"$TaxonomyApiEndpoint/nodes/search",
@@ -97,13 +97,19 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
       x(shouldUsePublishedTax)
     }.flatMap(Future.fromTry)
 
-    val nodes     = tryToFuture(shouldUsePublishedTax => getNodes(shouldUsePublishedTax))
+    val nodes = tryToFuture(shouldUsePublishedTax =>
+      getNodes(
+        shouldUsePublishedTax,
+        nodeType = List(NodeType.NODE, NodeType.SUBJECT, NodeType.TOPIC, NodeType.CASE),
+        contentUri = None,
+      )
+    )
     val resources = tryToFuture(shouldUsePublishedTax => getResources(shouldUsePublishedTax))
 
     val x = for {
       n <- nodes
       r <- resources
-    } yield TaxonomyBundle(n.addAll(r).result())
+    } yield TaxonomyBundle(n ++ r)
 
     Try(Await.result(x, Duration(300, "seconds"))) match {
       case Success(bundle) =>
