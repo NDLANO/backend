@@ -383,6 +383,43 @@ class LearningPathRepository extends StrictLogging {
       .list()
   }
 
+  def getExternalLinkStepSamples()(implicit session: DBSession = ReadOnlyAutoSession): List[LearningPath] = {
+    val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
+    sql"""
+      WITH candidates AS (
+          SELECT DISTINCT clp.id
+          FROM learningpaths clp
+          WHERE 
+            clp."document"->>'isMyNDLAOwner' = 'true'
+            AND clp."document"->>'status' = 'UNLISTED'
+            AND EXISTS (
+              SELECT 1
+              FROM learningsteps lss
+              WHERE lss.learning_path_id = clp.id
+                AND jsonb_array_length(lss."document"->'embedUrl') > 0
+                AND lss."document"->>'status' = 'ACTIVE'
+            )
+      ),
+      matched_ids AS (
+          SELECT id
+          FROM candidates
+          ORDER BY random()
+          LIMIT 5
+      )
+      SELECT ${lp.result.*}, ${ls.result.*}
+      FROM matched_ids ids
+      JOIN ${DBLearningPath.as(lp)} ON ${lp.id} = ids.id
+      LEFT JOIN ${DBLearningStep.as(ls)} ON ${lp.id} = ${ls.learningPathId}
+    """
+      .one(DBLearningPath.fromResultSet(lp.resultName))
+      .toMany(DBLearningStep.opt(ls.resultName))
+      .map { (learningpath, learningsteps) =>
+        learningpath.copy(learningsteps = Some(learningsteps.filter(_.status == StepStatus.ACTIVE).toSeq))
+      }
+      .list()
+
+  }
+
   def getPublishedLearningPathByPage(pageSize: Int, offset: Int)(implicit
       session: DBSession = ReadOnlyAutoSession
   ): List[LearningPath] = {

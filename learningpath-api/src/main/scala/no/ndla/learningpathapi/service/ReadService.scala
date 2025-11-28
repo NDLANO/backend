@@ -155,6 +155,17 @@ class ReadService(using
     LearningPathDomainDumpDTO(count, safePageNo, safePageSize, results)
   }
 
+  def externalLinkSamples(user: CombinedUser): Try[List[LearningPathV2DTO]] = {
+    if (user.isAdmin) {
+      val lps = learningPathRepository
+        .getExternalLinkStepSamples()
+        .flatMap(lp => converterService.asApiLearningpathV2(lp, "all", fallback = true, user).toOption)
+      Success(lps)
+    } else {
+      Failure(AccessDeniedException("You do not have access to this resource."))
+    }
+  }
+
   def learningPathWithStatus(status: String, user: CombinedUser): Try[List[LearningPathV2DTO]] = {
     if (user.isAdmin) {
       learningpath.LearningPathStatus.valueOf(status) match {

@@ -179,6 +179,7 @@ class LearningpathControllerV2(using
     getLicenses,
     getMyLearningpaths,
     getContributors,
+    getLearningPathExternalStepSamples,
     getLearningpathsByIds,
     getLearningpath,
     getLearningpathStatus,
@@ -620,6 +621,20 @@ class LearningpathControllerV2(using
     .withOptionalMyNDLAUserOrTokenUser
     .serverLogicPure { user => status =>
       readService.learningPathWithStatus(status, user).handleErrorsOrOk
+    }
+
+  private def getLearningPathExternalStepSamples: ServerEndpoint[Any, Eff] = endpoint
+    .get
+    .in("external-samples")
+    .summary("Fetch a random list of My NDLA learningpaths containing external steps")
+    .description(
+      "Fetch a random list of My NDLA learningpaths containing external steps. Returns a maximum of 5 learningpaths, each guaranteed to have at least one external step."
+    )
+    .out(jsonBody[List[LearningPathV2DTO]])
+    .errorOut(errorOutputsFor(500))
+    .withRequiredMyNDLAUserOrTokenUser
+    .serverLogicPure { user => _ =>
+      readService.externalLinkSamples(user).handleErrorsOrOk
     }
 
   private def deleteLearningPathLanguage(): ServerEndpoint[Any, Eff] = endpoint
