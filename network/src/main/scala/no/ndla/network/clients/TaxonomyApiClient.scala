@@ -35,10 +35,9 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
       s"$TaxonomyApiEndpoint/nodes/",
       headers = getVersionHashHeader(shouldUsePublishedTax),
       Seq(
-        "nodeType"         -> nodeType.mkString(","),
-        "includeContexts"  -> "true",
-        "filterProgrammes" -> "true",
-        "isVisible"        -> getIsVisibleParam(shouldUsePublishedTax),
+        "nodeType"        -> nodeType.mkString(","),
+        "includeContexts" -> "true",
+        "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
       ) ++ contentUri.map("contentURI" -> _),
     )
 
@@ -46,11 +45,10 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
     s"$TaxonomyApiEndpoint/nodes/search",
     headers = getVersionHashHeader(shouldUsePublishedTax),
     Seq(
-      "pageSize"         -> "500",
-      "nodeType"         -> NodeType.RESOURCE.toString,
-      "includeContexts"  -> "true",
-      "filterProgrammes" -> "true",
-      "isVisible"        -> getIsVisibleParam(shouldUsePublishedTax),
+      "pageSize"        -> "500",
+      "nodeType"        -> NodeType.RESOURCE.toString,
+      "includeContexts" -> "true",
+      "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
     ),
   )
 

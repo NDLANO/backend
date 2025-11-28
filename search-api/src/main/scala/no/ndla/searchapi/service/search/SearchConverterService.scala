@@ -183,6 +183,10 @@ class SearchConverterService(using
     val defaultTitle       = getDefault(ai.title)
     val supportedLanguages =
       getSupportedLanguages(ai.title, ai.visualElement, ai.introduction, ai.metaDescription, ai.content, ai.tags).toList
+
+    val context = asSearchableTaxonomyContexts(
+      taxonomyContexts.find(tc => tc.isPrimary && tc.rootId.startsWith("urn:subject:")).toList
+    ).headOption
     val contexts             = asSearchableTaxonomyContexts(taxonomyContexts)
     val learningResourceType = LearningResourceType.fromArticleType(ai.articleType)
     val typeNames            = getTypeNames(learningResourceType)
@@ -225,10 +229,9 @@ class SearchConverterService(using
         metaImage = ai.metaImage.toList,
         defaultTitle = defaultTitle.map(t => t.title),
         supportedLanguages = supportedLanguages,
-        context = contexts.find(_.isPrimary),
+        context = context,
         contexts = contexts,
-        contextids =
-          indexingBundle.taxonomyBundle.map(getTaxonomyContexids(articleId, "article", _)).getOrElse(List.empty),
+        contextids = nodes.flatMap(_.contextids),
         grepContexts = getGrepContexts(ai.grepCodes, indexingBundle.grepBundle),
         traits = ai.traits,
         embedAttributes = embedAttributes,
@@ -294,8 +297,7 @@ class SearchConverterService(using
           asLearningPathApiLicense(lp.copyright.license),
           lp.copyright.contributors.map(c => AuthorDTO(c.`type`, c.name)),
         )
-      val users    = List(lp.owner)
-      val contexts = asSearchableTaxonomyContexts(taxonomyContexts)
+      val users = List(lp.owner)
 
       val parentTopicName = SearchableLanguageValues(
         taxonomyContexts
@@ -312,7 +314,7 @@ class SearchConverterService(using
       )
       val draftStatus = search.SearchableStatus(lp.status.entryName, Seq(lp.status.entryName))
 
-      val primaryContext           = taxonomyContexts.find(tc => tc.isPrimary)
+      val primaryContext           = taxonomyContexts.find(tc => tc.isPrimary && tc.rootId.startsWith("urn:subject:"))
       val primaryRoot              = primaryContext.map(_.root).getOrElse(SearchableLanguageValues.empty)
       val sortableResourceTypeName = primaryContext
         .flatMap(context => {
@@ -322,6 +324,9 @@ class SearchConverterService(using
           }
         })
         .getOrElse(SearchableLanguageValues.from("nb" -> "Læringssti", "nn" -> "Læringssti", "en" -> "Learning path"))
+
+      val contexts = asSearchableTaxonomyContexts(taxonomyContexts)
+      val context  = asSearchableTaxonomyContexts(primaryContext.toList).headOption
 
       Success(
         SearchableLearningPath(
@@ -355,10 +360,9 @@ class SearchConverterService(using
           isBasedOn = lp.isBasedOn,
           supportedLanguages = supportedLanguages,
           authors = lp.copyright.contributors.map(_.name).toList,
-          context = contexts.find(_.isPrimary),
+          context = context,
           contexts = contexts,
-          contextids =
-            indexingBundle.taxonomyBundle.map(getTaxonomyContexids(lp.id.get, "learningpath", _)).getOrElse(List.empty),
+          contextids = nodes.flatMap(_.contextids),
           favorited = favorited,
           learningResourceType = LearningResourceType.LearningPath,
           typeName = getTypeNames(LearningResourceType.LearningPath),
@@ -506,6 +510,7 @@ class SearchConverterService(using
     val content              = SearchableLanguageValues.fromFieldsMap(draft.content)(toPlaintext)
     val introduction         = SearchableLanguageValues.fromFieldsMap(draft.introduction)(toPlaintext)
     val metaDescription      = SearchableLanguageValues.fromFields(draft.metaDescription)
+    val context              = asSearchableTaxonomyContexts(primaryContext.toList).headOption
     val contexts             = asSearchableTaxonomyContexts(taxonomyContexts)
     val learningResourceType = LearningResourceType.fromArticleType(draft.articleType)
     val typeNames            = getTypeNames(learningResourceType)
@@ -525,10 +530,9 @@ class SearchConverterService(using
         defaultTitle = defaultTitle.map(t => t.title),
         supportedLanguages = supportedLanguages,
         notes = notes,
-        context = contexts.find(_.isPrimary),
+        context = context,
         contexts = contexts,
-        contextids =
-          indexingBundle.taxonomyBundle.map(getTaxonomyContexids(draft.id.get, "article", _)).getOrElse(List.empty),
+        contextids = nodes.flatMap(_.contextids),
         draftStatus = draftStatus,
         status = draft.status.current.toString,
         users = users.distinct,
@@ -635,8 +639,8 @@ class SearchConverterService(using
       filterInactive: Boolean,
   ): List[ApiTaxonomyContextDTO] = {
     val filtered = contexts.filter { c =>
-      // Filter inactive if required
-      !filterInactive || c.isActive
+      // Filter inactive if required, and also don't show programme contexts
+      (!filterInactive || c.isActive) && !c.rootId.startsWith("urn:programme:")
     }
     filtered.sortBy(!_.isPrimary).map(c => searchableContextToApiContext(c, language))
   }
@@ -1051,22 +1055,6 @@ class SearchConverterService(using
     ).distinctBy(_.language)
 
     SearchableLanguageValues(lvsToUse)
-  }
-
-  /** Parses [[TaxonomyBundle]] to get all contextids for a single node.
-    *
-    * @param id
-    *   of article/learningpath
-    * @param taxonomyType
-    *   Type of resource used in contentUri. Example: "learningpath" in "urn:learningpath:123"
-    * @param bundle
-    *   All taxonomy in an object.
-    * @return
-    *   List of strings to be indexed.
-    */
-  private def getTaxonomyContexids(id: Long, taxonomyType: String, bundle: TaxonomyBundle) = {
-    val nodes = bundle.nodeByContentUri.getOrElse(s"urn:$taxonomyType:$id", List.empty)
-    nodes.flatMap(node => node.contextids)
   }
 
   private[service] def getGrepContexts(
