@@ -1,0 +1,1 @@
+alter table publishedconceptdata add primary key (id);
