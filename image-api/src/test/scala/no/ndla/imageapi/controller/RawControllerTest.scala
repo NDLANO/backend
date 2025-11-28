@@ -23,7 +23,7 @@ import javax.imageio.ImageIO
 import scala.util.{Failure, Success}
 
 class RawControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
-  import TestData.{CCLogoSvgImage, NdlaLogoGIFImage, NdlaLogoImage}
+  import TestData.{ccLogoSvgImageStream, ndlaLogoGifImageStream}
   val imageName    = "ndla_logo.jpg"
   val imageGifName = "ndla_logo.gif"
   val imageSvgName = "logo.svg"
@@ -43,7 +43,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   override def beforeEach(): Unit = {
     reset(clock)
     when(imageRepository.withId(id)).thenReturn(Success(Some(TestData.bjorn)))
-    when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoImage))
+    when(imageStorage.get(any[String])).thenReturn(Success(TestData.ndlaLogoImageStream))
     when(readService.getImageFileName(id, None)).thenReturn(Success(Some(TestData.bjorn.images.head.fileName)))
     when(clock.now()).thenCallRealMethod()
   }
@@ -166,7 +166,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   }
 
   test("That GET /imageGif.gif with width resizing returns the original image") {
-    when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoGIFImage))
+    when(imageStorage.get(any[String])).thenReturn(Success(ndlaLogoGifImageStream))
     val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/$imageGifName?width=100"))
     res.code.code should be(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
@@ -175,7 +175,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   }
 
   test("That GET /imageGif.gif with height resizing returns the original image") {
-    when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoGIFImage))
+    when(imageStorage.get(any[String])).thenReturn(Success(ndlaLogoGifImageStream))
     val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/$imageGifName?height=40"))
     res.code.code should be(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
@@ -184,7 +184,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   }
 
   test("That GET /imageGif.gif with cropping returns the original image") {
-    when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoGIFImage))
+    when(imageStorage.get(any[String])).thenReturn(Success(ndlaLogoGifImageStream))
     val res = simpleHttpClient.send(
       req.get(
         uri"http://localhost:$serverPort/image-api/raw/$imageGifName?cropStartX=0&cropStartY=0&cropEndX=50&cropEndY=50"
@@ -198,7 +198,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   }
 
   test("That GET /imageGif.jpg with cropping and resizing returns the original image") {
-    when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoGIFImage))
+    when(imageStorage.get(any[String])).thenReturn(Success(ndlaLogoGifImageStream))
     val res = simpleHttpClient.send(
       req.get(
         uri"http://localhost:$serverPort/image-api/raw/$imageGifName?cropStartX=0&cropStartY=0&cropEndX=50&cropEndY=50&width=50"
@@ -212,18 +212,18 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   }
 
   test("That GET /logo.svg with cropping and resizing returns the original image") {
-    when(imageStorage.get(any[String])).thenReturn(Success(CCLogoSvgImage))
+    when(imageStorage.get(any[String])).thenReturn(Success(ccLogoSvgImageStream))
     val res = simpleHttpClient.send(
       req.get(
         uri"http://localhost:$serverPort/image-api/raw/$imageSvgName?cropStartX=0&cropStartY=0&cropEndX=50&cropEndY=50&width=50"
       )
     )
     res.code.code should equal(200)
-    res.body should equal(CCLogoSvgImage.toStream.value.readAllBytes())
+    res.body should equal(ccLogoSvgImageStream.stream.readAllBytes())
   }
 
   test("That GET /id/1 with width resizing returns the original image") {
-    when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoGIFImage))
+    when(imageStorage.get(any[String])).thenReturn(Success(ndlaLogoGifImageStream))
     val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$idGif?width=100"))
     res.code.code should equal(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
@@ -232,7 +232,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   }
 
   test("That GET /id/1 with height resizing returns the original image") {
-    when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoGIFImage))
+    when(imageStorage.get(any[String])).thenReturn(Success(ndlaLogoGifImageStream))
     val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/id/$idGif?height=40"))
     res.code.code should equal(200)
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
@@ -241,7 +241,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   }
 
   test("That GET /id/2 with cropping returns the original image") {
-    when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoGIFImage))
+    when(imageStorage.get(any[String])).thenReturn(Success(ndlaLogoGifImageStream))
     val res = simpleHttpClient.send(
       req.get(
         uri"http://localhost:$serverPort/image-api/raw/id/$idGif?cropStartX=0&cropStartY=0&cropEndX=50&cropEndY=50"
@@ -255,7 +255,7 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
   }
 
   test("That GET /id/1 with cropping and resizing returns the original image") {
-    when(imageStorage.get(any[String])).thenReturn(Success(NdlaLogoGIFImage))
+    when(imageStorage.get(any[String])).thenReturn(Success(ndlaLogoGifImageStream))
     val res = simpleHttpClient.send(
       req.get(
         uri"http://localhost:$serverPort/image-api/raw/id/$idGif?cropStartX=0&cropStartY=0&cropEndX=50&cropEndY=50&width=50"

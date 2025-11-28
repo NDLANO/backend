@@ -10,7 +10,7 @@ package no.ndla.imageapi.controller
 
 import cats.implicits.catsSyntaxEitherId
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
-import no.ndla.imageapi.model.domain.{ImageStream, ProcessableImageStream, UnprocessableImageStream}
+import no.ndla.imageapi.model.domain.{ImageStream, ProcessableImage}
 import no.ndla.imageapi.service.*
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
@@ -37,9 +37,10 @@ class RawController(using
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getImageFileById, getImageFile)
 
-  private def toImageResponse(image: ImageStream): Try[(DynamicHeaders, InputStream)] = {
-    val headers = DynamicHeaders.fromValue("Content-Type", image.contentType)
-    image.toStream.map(stream => headers -> stream)
+  private def toImageResponse(image: ImageStream): Either[AllErrors, (DynamicHeaders, InputStream)] = {
+    val headers =
+      DynamicHeaders.fromValues("Content-Type" -> image.contentType, "Content-Length" -> image.contentLength.toString)
+    Right(headers -> image.stream)
   }
 
   def getImageFile: ServerEndpoint[Any, Eff] = endpoint
@@ -86,18 +87,27 @@ class RawController(using
         resize
       }
     }
-    imageStorage.get(imageName) match {
-      case Success(img: UnprocessableImageStream) => Success(img)
-      case Success(img: ProcessableImageStream)   => crop(img, imageParams)
-          .flatMap(stream => dynamicCropOrResize(stream, imageParams))
-          .recoverWith {
-            case ex: ValidationException => Failure(ex)
-            case ex                      =>
-              logger.error(s"Could not crop or resize image '$imageName', got exception: '${ex.getMessage}'", ex)
-              Success(img)
-          }
-      case Failure(ex) =>
+    val processableStream = imageStorage.get(imageName) match {
+      case Success(stream: ImageStream.Processable)   => stream
+      case Success(stream: ImageStream.Gif)           => return Success(stream)
+      case Success(stream: ImageStream.Unprocessable) => return Success(stream)
+      case Failure(ex)                                =>
         logger.error(s"Failed to get image '$imageName' from S3", ex)
+        return Failure(ex)
+    }
+
+    val triedStream = for {
+      img                  <- ProcessableImage.fromStream(processableStream)
+      cropped              <- crop(img, imageParams)
+      dynamicCropOrResized <- dynamicCropOrResize(cropped, imageParams)
+      stream               <- dynamicCropOrResized.toProcessableImageStream
+    } yield stream
+
+    triedStream match {
+      case Success(stream)                  => Success(stream)
+      case Failure(ex: ValidationException) => Failure(ex)
+      case Failure(ex)                      =>
+        logger.error(s"Could not crop or resize image '$imageName'", ex)
         Failure(ex)
     }
   }
@@ -112,7 +122,7 @@ class RawController(using
     }
   }
 
-  private def crop(image: ProcessableImageStream, imageParams: ImageParams): Try[ProcessableImageStream] = {
+  private def crop(image: ProcessableImage, imageParams: ImageParams): Try[ProcessableImage] = {
     val unit = imageParams.cropUnit.getOrElse("percent")
     unit match {
       case "percent" =>
@@ -144,7 +154,7 @@ class RawController(using
       .isDefined || imageParams.ratio.isDefined)
   }
 
-  private def dynamicCrop(image: ProcessableImageStream, imageParams: ImageParams): Try[ProcessableImageStream] = {
+  private def dynamicCrop(image: ProcessableImage, imageParams: ImageParams): Try[ProcessableImage] = {
 
     (imageParams.focalX, imageParams.focalY, imageParams.width, imageParams.height) match {
       case (Some(fx), Some(fy), w, h) =>
@@ -153,7 +163,7 @@ class RawController(using
     }
   }
 
-  private def resize(image: ProcessableImageStream, imageParams: ImageParams): Try[ProcessableImageStream] = {
+  private def resize(image: ProcessableImage, imageParams: ImageParams): Try[ProcessableImage] = {
     (imageParams.width, imageParams.height) match {
       case (Some(width), Some(height)) => imageConverter.resize(image, width.toInt, height.toInt)
       case (Some(width), _)            => imageConverter.resizeWidth(image, width.toInt)

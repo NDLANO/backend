@@ -8,6 +8,7 @@
 
 package no.ndla.common.aws
 
+import cats.data.NonEmptySeq
 import no.ndla.common.errors.MissingBucketKeyException
 import no.ndla.common.model.domain.UploadedFile
 import software.amazon.awssdk.core.sync.RequestBody
@@ -59,9 +60,9 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
     client.deleteObject(dor)
   }
 
-  def deleteObjects(keys: Seq[String]): Try[DeleteObjectsResponse] = Try {
+  def deleteObjects(keys: NonEmptySeq[String]): Try[DeleteObjectsResponse] = Try {
     val objects = keys.map(key => ObjectIdentifier.builder().key(key).build())
-    val delete  = Delete.builder().objects(objects.asJava).build()
+    val delete  = Delete.builder().objects(objects.toSeq.asJava).build()
     val dor     = DeleteObjectsRequest.builder().bucket(bucket).delete(delete).build()
     client.deleteObjects(dor)
   }

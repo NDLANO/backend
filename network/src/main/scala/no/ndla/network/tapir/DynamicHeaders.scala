@@ -17,11 +17,14 @@ case class DynamicHeaders(
 )
 
 object DynamicHeaders {
-  def fromMaybeValue(name: String, s: Option[String]): DynamicHeaders = new DynamicHeaders(fromOpt(name, s).toList)
+  def fromMaybeValue(name: String, s: Option[String]): DynamicHeaders = DynamicHeaders(fromOpt(name, s).toList)
 
   def fromOpt(name: String, s: Option[String]): Option[Header] = s.map(Header(name, _))
 
-  def fromValue(name: String, value: String): DynamicHeaders = {
-    new DynamicHeaders(List(Header(name, value)))
+  def fromValue(name: String, value: String): DynamicHeaders = DynamicHeaders(List(Header(name, value)))
+
+  def fromValues(pairs: (String, String)*): DynamicHeaders = {
+    val headers = pairs.map(Header.apply).toList
+    DynamicHeaders(headers)
   }
 }
