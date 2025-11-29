@@ -106,6 +106,9 @@ trait IndexService[D <: Content](using
   val apiClient: SearchApiClient[D]
   override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
+  protected def taxonomyContentUris(contents: Seq[D]): Seq[String]
+  protected def taxonomyShouldUsePublished: Boolean = true
+
   def createIndexRequest(domainModel: D, indexName: String, indexingBundle: IndexingBundle): Try[Option[IndexRequest]]
 
   def indexDocument(imported: D): Try[D] = {
@@ -132,17 +135,12 @@ trait IndexService[D <: Content](using
       }
     } yield imported
   }
-  def indexDocuments(shouldUsePublishedTax: Boolean)(implicit d: Decoder[D]): Try[ReindexResult] =
-    indexDocuments(shouldUsePublishedTax, None)
 
-  def indexDocuments(shouldUsePublishedTax: Boolean, numShards: Option[Int])(implicit
-      d: Decoder[D]
-  ): Try[ReindexResult] = {
+  def indexDocuments(numShards: Option[Int])(implicit d: Decoder[D]): Try[ReindexResult] = {
     val bundles = for {
-      taxonomyBundle <- taxonomyApiClient.getTaxonomyBundle(shouldUsePublishedTax)
-      grepBundle     <- grepApiClient.getGrepBundle()
-      myndlaBundle   <- myNDLAApiClient.getMyNDLABundle
-    } yield IndexingBundle(Some(grepBundle), Some(taxonomyBundle), Some(myndlaBundle))
+      grepBundle   <- grepApiClient.getGrepBundle()
+      myndlaBundle <- myNDLAApiClient.getMyNDLABundle
+    } yield IndexingBundle(Some(grepBundle), None, Some(myndlaBundle))
     bundles match {
       case Failure(ex) =>
         logger.error(s"Grep and/or Taxonomy could not be fetched when reindexing all $documentType")
@@ -186,7 +184,20 @@ trait IndexService[D <: Content](using
         case Failure(ex) =>
           logger.error(s"Failed to fetch chunk from with api client '${apiClient.name}'", ex)
           Failure(ex)
-        case Success(c) => indexDocuments(c, indexName, indexingBundle).map(numIndexed => (numIndexed, c.size))
+        case Success(c) =>
+          val chunkIndexingBundle = indexingBundle.taxonomyBundle match {
+            case Some(_) => Success(indexingBundle)
+            case None    =>
+              val contentUris = taxonomyContentUris(c)
+              if (contentUris.nonEmpty) taxonomyApiClient
+                .getTaxonomyBundleForContentUris(contentUris, taxonomyShouldUsePublished)
+                .map(bundle => indexingBundle.copy(taxonomyBundle = Some(bundle)))
+              else Success(indexingBundle)
+          }
+
+          chunkIndexingBundle
+            .flatMap(bundle => indexDocuments(c, indexName, bundle))
+            .map(numIndexed => (numIndexed, c.size))
       })
       .toList
 

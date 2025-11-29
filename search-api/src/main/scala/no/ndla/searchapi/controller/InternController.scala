@@ -18,7 +18,7 @@ import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.Content
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.learningpath.LearningPath
-import no.ndla.network.clients.{MyNDLAApiClient, TaxonomyApiClient}
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
 import no.ndla.network.tapir.{AllErrors, ErrorHandling, ErrorHelpers, TapirController}
@@ -53,7 +53,6 @@ class InternController(using
     draftIndexService: DraftIndexService,
     draftConceptIndexService: DraftConceptIndexService,
     nodeIndexService: NodeIndexService,
-    taxonomyApiClient: TaxonomyApiClient,
     grepApiClient: GrepApiClient,
     grepIndexService: GrepIndexService,
     errorHandling: ErrorHandling,
@@ -216,7 +215,7 @@ class InternController(using
       val requestInfo = RequestInfo.fromThreadContext()
       val draftIndex  = Future {
         requestInfo.setThreadContextRequestInfo()
-        ("drafts", draftIndexService.indexDocuments(shouldUsePublishedTax = false, numShards))
+        ("drafts", draftIndexService.indexDocuments(numShards))
       }
 
       resolveResultFutures(List(draftIndex))
@@ -232,7 +231,7 @@ class InternController(using
       val requestInfo  = RequestInfo.fromThreadContext()
       val conceptIndex = Future {
         requestInfo.setThreadContextRequestInfo()
-        ("concepts", draftConceptIndexService.indexDocuments(shouldUsePublishedTax = false, numShards))
+        ("concepts", draftConceptIndexService.indexDocuments(numShards))
       }
 
       resolveResultFutures(List(conceptIndex))
@@ -248,7 +247,7 @@ class InternController(using
       val requestInfo  = RequestInfo.fromThreadContext()
       val articleIndex = Future {
         requestInfo.setThreadContextRequestInfo()
-        ("articles", articleIndexService.indexDocuments(shouldUsePublishedTax = true, numShards))
+        ("articles", articleIndexService.indexDocuments(numShards))
       }
 
       resolveResultFutures(List(articleIndex))
@@ -296,7 +295,7 @@ class InternController(using
       val requestInfo       = RequestInfo.fromThreadContext()
       val learningPathIndex = Future {
         requestInfo.setThreadContextRequestInfo()
-        ("learningpaths", learningPathIndexService.indexDocuments(shouldUsePublishedTax = true, numShards))
+        ("learningpaths", learningPathIndexService.indexDocuments(numShards))
       }
 
       resolveResultFutures(List(learningPathIndex))
@@ -375,17 +374,15 @@ class InternController(using
     )
     .serverLogicPure { case (runInBackground, numShards) =>
       val bundles = for {
-        taxonomyBundleDraft     <- taxonomyApiClient.getTaxonomyBundle(false)
-        taxonomyBundlePublished <- taxonomyApiClient.getTaxonomyBundle(true)
-        grepBundle              <- grepApiClient.getGrepBundle()
-        myndlaBundle            <- myNDLAApiClient.getMyNDLABundle
-      } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)
+        grepBundle   <- grepApiClient.getGrepBundle()
+        myndlaBundle <- myNDLAApiClient.getMyNDLABundle
+      } yield (grepBundle, myndlaBundle)
 
       val start = System.currentTimeMillis()
 
       bundles match {
-        case Failure(ex)                                                                       => returnLeftError(ex)
-        case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)) =>
+        case Failure(ex)                         => returnLeftError(ex)
+        case Success((grepBundle, myndlaBundle)) =>
           logger.info("Cleaning up unreferenced indexes before reindexing...")
           learningPathIndexService.cleanupIndexes(): Unit
           articleIndexService.cleanupIndexes(): Unit
@@ -393,17 +390,11 @@ class InternController(using
           draftConceptIndexService.cleanupIndexes(): Unit
           grepIndexService.cleanupIndexes(): Unit
 
-          val publishedIndexingBundle = IndexingBundle(
-            grepBundle = Some(grepBundle),
-            taxonomyBundle = Some(taxonomyBundlePublished),
-            myndlaBundle = Some(myndlaBundle),
-          )
+          val publishedIndexingBundle =
+            IndexingBundle(grepBundle = Some(grepBundle), taxonomyBundle = None, myndlaBundle = Some(myndlaBundle))
 
-          val draftIndexingBundle = IndexingBundle(
-            grepBundle = Some(grepBundle),
-            taxonomyBundle = Some(taxonomyBundleDraft),
-            myndlaBundle = Some(myndlaBundle),
-          )
+          val draftIndexingBundle =
+            IndexingBundle(grepBundle = Some(grepBundle), taxonomyBundle = None, myndlaBundle = Some(myndlaBundle))
 
           val requestInfo = RequestInfo.fromThreadContext()
           val indexes     = List(

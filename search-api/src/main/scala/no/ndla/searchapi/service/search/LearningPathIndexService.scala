@@ -37,9 +37,12 @@ class LearningPathIndexService(using
     myNDLAApiClient: MyNDLAApiClient,
 ) extends StrictLogging
     with IndexService[LearningPath] {
-  override val documentType: String                     = "learningpath"
-  override val searchIndex: String                      = props.SearchIndex(SearchType.LearningPaths)
-  override val apiClient: SearchApiClient[LearningPath] = learningPathApiClient
+  override val documentType: String                                                    = "learningpath"
+  override val searchIndex: String                                                     = props.SearchIndex(SearchType.LearningPaths)
+  override val apiClient: SearchApiClient[LearningPath]                                = learningPathApiClient
+  override protected def taxonomyShouldUsePublished: Boolean                           = true
+  override protected def taxonomyContentUris(contents: Seq[LearningPath]): Seq[String] =
+    contents.flatMap(_.id.map(id => s"urn:learningpath:$id"))
 
   override def createIndexRequest(
       domainModel: LearningPath,

@@ -36,9 +36,12 @@ class ArticleIndexService(using
     props: Props,
 ) extends IndexService[Article]
     with StrictLogging {
-  override val documentType: String                = "article"
-  override val searchIndex: String                 = props.SearchIndex(SearchType.Articles)
-  override val apiClient: SearchApiClient[Article] = articleApiClient
+  override val documentType: String                                               = "article"
+  override val searchIndex: String                                                = props.SearchIndex(SearchType.Articles)
+  override val apiClient: SearchApiClient[Article]                                = articleApiClient
+  override protected def taxonomyShouldUsePublished: Boolean                      = true
+  override protected def taxonomyContentUris(contents: Seq[Article]): Seq[String] =
+    contents.flatMap(_.id.map(id => s"urn:article:$id"))
 
   override def createIndexRequest(
       domainModel: Article,
