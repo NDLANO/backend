@@ -32,11 +32,10 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
       s"$TaxonomyApiEndpoint/nodes/page",
       headers = getVersionHashHeader(shouldUsePublishedTax),
       Seq(
-        "page"             -> page.toString,
-        "pageSize"         -> pageSize.toString,
-        "includeContexts"  -> "true",
-        "filterProgrammes" -> "true",
-        "isVisible"        -> getIsVisibleParam(shouldUsePublishedTax),
+        "page"            -> page.toString,
+        "pageSize"        -> pageSize.toString,
+        "includeContexts" -> "true",
+        "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
       ),
     )
 
