@@ -528,7 +528,7 @@ export type components = {
             /** @description The gloss itself */
             gloss: string;
             /** @description Word class / part of speech, ex. noun, adjective, verb, adverb, ... */
-            wordClass: string;
+            wordClass: string[];
             /** @description Original language of the gloss */
             originalLanguage: string;
             /** @description Alternative writing of the gloss */
