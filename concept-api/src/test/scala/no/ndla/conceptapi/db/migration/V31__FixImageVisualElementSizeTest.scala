@@ -12,8 +12,8 @@ import io.circe.parser
 import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
 
 class V31__FixImageVisualElementSizeTest extends UnitSuite with TestEnvironment {
+  val migration = new V31__FixImageVisualElementSize
   test("That size 'fullbredde' is changed to 'full' in visualElement") {
-    val migration   = new V31__FixImageVisualElementSize
     val oldDocument = """
         |{
         |  "tags": [
@@ -183,5 +183,11 @@ class V31__FixImageVisualElementSizeTest extends UnitSuite with TestEnvironment 
 
     val expected = parser.parse(newDocument).toTry.get
     migration.convertColumn(oldDocument) should be(expected.noSpaces)
+  }
+
+  test("That empty documents are handled correctly") {
+    val oldDocument = """""".stripMargin
+
+    migration.convertColumn(oldDocument) should be(oldDocument)
   }
 }
