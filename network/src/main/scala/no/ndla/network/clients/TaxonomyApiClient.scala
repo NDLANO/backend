@@ -47,12 +47,11 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
         s"$TaxonomyApiEndpoint/nodes/search",
         headers = getVersionHashHeader(shouldUsePublishedTax),
         Seq(
-          "pageSize"         -> pageSize.toString,
-          "nodeType"         -> NodeType.values.mkString(","),
-          "filterProgrammes" -> "true",
-          "includeContexts"  -> "true",
-          "isVisible"        -> getIsVisibleParam(shouldUsePublishedTax),
-          "contentUris"      -> contentUris.mkString(","),
+          "pageSize"        -> pageSize.toString,
+          "nodeType"        -> NodeType.values.mkString(","),
+          "includeContexts" -> "true",
+          "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
+          "contentUris"     -> contentUris.mkString(","),
         ),
       )
       nodes.map(TaxonomyBundle.fromNodeList)
