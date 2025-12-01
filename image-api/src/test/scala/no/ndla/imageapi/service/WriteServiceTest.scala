@@ -156,8 +156,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
     verify(imageIndexService, times(0)).indexDocument(any[ImageMetaInformation])
-    verify(imageStorage, times(0)).uploadFromStream(any, any, any, any)
-    verify(imageStorage, times(0)).deleteObject(any)
+    // Should upload, but then delete due to DB failure
+    verify(imageStorage, times(1)).uploadFromStream(any, any, any, any)
+    verify(imageStorage, times(1)).deleteObject(any)
   }
 
   test("storeNewImage should return Failure if failed to index image metadata") {
@@ -193,17 +194,27 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("storeNewImage should return Success if creation of new image file succeeded") {
-    val afterInsert = domainImageMeta.copy(id = Some(1))
     when(validationService.validateImageFile(any)).thenReturn(None)
-    when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
+    when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenAnswer(i => Success(i.getArgument(0)))
     when(imageStorage.uploadFromStream(any, any, any, any)).thenReturn(Success(newFileName))
-    when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
-    when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
-    when(imageRepository.insert(any)(using any)).thenReturn(Success(afterInsert))
+    when(imageRepository.insert(any[ImageMetaInformation])(using any)).thenAnswer(i =>
+      Success(i.getArgument(0).asInstanceOf[ImageMetaInformation].copy(id = Some(1)))
+    )
+    when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenAnswer(i => Success(i.getArgument(0)))
+    when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenAnswer(i => Success(i.getArgument(0)))
+    val expectedImageFile = domain.ImageFileData(
+      newFileName,
+      fileMock1.fileSize,
+      "image/jpeg",
+      Some(domain.ImageDimensions(189, 60)),
+      Seq.empty,
+      "en",
+    )
+    val expectedImageMeta = domainImageMeta.copy(id = Some(1), images = Seq(expectedImageFile))
 
     val result = writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).failIfFailure
-    result should matchPattern { case ImageMetaInformation(id = Some(1), images = head :: tail) =>
-    }
+
+    result should be(expectedImageMeta)
 
     verify(imageRepository, times(1)).insert(any[ImageMetaInformation])(using any[DBSession])
     verify(imageIndexService, times(1)).indexDocument(any[ImageMetaInformation])
