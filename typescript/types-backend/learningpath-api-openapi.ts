@@ -123,6 +123,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/learningpath-api/v2/learningpaths/external-samples": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fetch a random list of My NDLA learningpaths containing external steps
+         * @description Fetch a random list of My NDLA learningpaths containing external steps. Returns a maximum of 5 learningpaths, each guaranteed to have at least one external step.
+         */
+        get: operations["getLearningpath-apiV2LearningpathsExternal-samples"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/learningpath-api/v2/learningpaths/ids": {
         parameters: {
             query?: never;
@@ -1573,6 +1593,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "getLearningpath-apiV2LearningpathsExternal-samples": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningPathV2DTO"][];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"] | components["schemas"]["ErrorBody"];
                 };
             };
         };
