@@ -94,6 +94,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.NO,
     editorNotes = Seq.empty,
+    inactive = false,
   )
 
   val image2 = new ImageMetaInformation(
@@ -110,6 +111,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.NOT_APPLICABLE,
     editorNotes = Seq(EditorNote(NDLADate.now(), "someone", "Lillehjelper")),
+    inactive = false,
   )
 
   val image3 = new ImageMetaInformation(
@@ -126,6 +128,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
+    inactive = false,
   )
 
   val image4 = new ImageMetaInformation(
@@ -142,6 +145,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
+    inactive = false,
   )
 
   val image5 = new ImageMetaInformation(
@@ -162,6 +166,28 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
+    inactive = false,
+  )
+
+  val image6 = new ImageMetaInformation(
+    id = Some(6),
+    titles = List(
+      ImageTitle("gjeng med folk på restaurant", "und"),
+      ImageTitle("A bunch of people at a restaurant", "en"),
+      ImageTitle("Ein gjeng med folk på restaurant", "nn"),
+    ),
+    alttexts = Seq(ImageAltText("stor middag", "und"), ImageAltText("Ein stor middag", "nn")),
+    images = Seq(smallImage),
+    copyright = byNcSa,
+    tags = Seq(),
+    captions = Seq(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty,
+    inactive = true,
   )
 
   override def beforeAll(): Unit = {
@@ -175,6 +201,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       imageIndexService.indexDocument(image3).get
       imageIndexService.indexDocument(image4).get
       imageIndexService.indexDocument(image5).get
+      imageIndexService.indexDocument(image6).get
 
       val servletRequest = mock[NdlaHttpRequest]
       when(servletRequest.getHeader(any[String])).thenReturn(Some("http"))
@@ -182,7 +209,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       when(servletRequest.servletPath).thenReturn("/image-api/v2/images/")
       ApplicationUrl.set(servletRequest)
 
-      blockUntil(() => imageSearchService.countDocuments() == 5)
+      blockUntil(() => imageSearchService.countDocuments() == 6)
     }
   }
 
@@ -211,11 +238,11 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That all returns all documents ordered by id ascending") {
     val searchResult = imageSearchService.matchingQuery(searchSettings.copy(), None).get
-    searchResult.totalCount should be(5)
-    searchResult.results.size should be(5)
+    searchResult.totalCount should be(6)
+    searchResult.results.size should be(6)
     searchResult.page.get should be(1)
     searchResult.results.head.id should be("1")
-    searchResult.results.last.id should be("5")
+    searchResult.results.last.id should be("6")
   }
 
   test("That all filtering on minimumsize only returns images larger than minimumsize") {
@@ -240,14 +267,14 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       imageSearchService.matchingQuery(searchSettings.copy(page = Some(1), pageSize = Some(2)), None): @unchecked
     val Success(searchResultPage2) =
       imageSearchService.matchingQuery(searchSettings.copy(page = Some(2), pageSize = Some(2)), None): @unchecked
-    searchResultPage1.totalCount should be(5)
+    searchResultPage1.totalCount should be(6)
     searchResultPage1.page.get should be(1)
     searchResultPage1.pageSize should be(2)
     searchResultPage1.results.size should be(2)
     searchResultPage1.results.head.id should be("1")
     searchResultPage1.results.last.id should be("2")
 
-    searchResultPage2.totalCount should be(5)
+    searchResultPage2.totalCount should be(6)
     searchResultPage2.page.get should be(2)
     searchResultPage2.pageSize should be(2)
     searchResultPage2.results.size should be(2)
@@ -419,7 +446,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That scrolling works as expected") {
     val pageSize    = 2
-    val expectedIds = List("1", "2", "3", "4", "5").sliding(pageSize, pageSize).toList
+    val expectedIds = List("1", "2", "3", "4", "5", "6").sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) = imageSearchService.matchingQuery(
       searchSettings.copy(pageSize = Some(pageSize), shouldScroll = true),
@@ -438,7 +465,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That scrolling v3 works as expected") {
     val pageSize    = 2
-    val expectedIds = List[Long](1, 2, 3, 4, 5).sliding(pageSize, pageSize).toList
+    val expectedIds = List[Long](1, 2, 3, 4, 5, 6).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) = imageSearchService.matchingQueryV3(
       searchSettings.copy(pageSize = Some(pageSize), shouldScroll = true),
@@ -495,12 +522,12 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val Success(searchResult3) =
       imageSearchService.matchingQuery(searchSettings.copy(language = "*", modelReleased = Seq(YES)), None): @unchecked
 
-    searchResult3.results.map(_.id) should be(Seq("3", "4", "5"))
+    searchResult3.results.map(_.id) should be(Seq("3", "4", "5", "6"))
 
     val Success(searchResult4) =
       imageSearchService.matchingQuery(searchSettings.copy(language = "*", modelReleased = Seq.empty), None): @unchecked
 
-    searchResult4.results.map(_.id) should be(Seq("1", "2", "3", "4", "5"))
+    searchResult4.results.map(_.id) should be(Seq("1", "2", "3", "4", "5", "6"))
 
     val Success(searchResult5) = imageSearchService.matchingQuery(
       searchSettings.copy(language = "*", modelReleased = Seq(NO, NOT_APPLICABLE)),
@@ -549,5 +576,28 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     ): @unchecked
 
     searchResult1.results.map(_.id) should be(Seq("5"))
+  }
+
+  test("That not including inactive option returns all images") {
+    val Success(searchResult) = imageSearchService.matchingQuery(searchSettings, None): @unchecked
+
+    searchResult.totalCount should be(6)
+    searchResult.results.last.id should be("6")
+  }
+
+  test("That including inactive images work") {
+    val Success(searchResult) =
+      imageSearchService.matchingQuery(searchSettings.copy(inactive = Some(true)), None): @unchecked
+
+    searchResult.totalCount should be(1)
+    searchResult.results.last.id should be("6")
+  }
+
+  test("That excluding inactive images work") {
+    val Success(searchResult) =
+      imageSearchService.matchingQuery(searchSettings.copy(inactive = Some(false)), None): @unchecked
+
+    searchResult.totalCount should be(5)
+    searchResult.results.last.id should be("5")
   }
 }

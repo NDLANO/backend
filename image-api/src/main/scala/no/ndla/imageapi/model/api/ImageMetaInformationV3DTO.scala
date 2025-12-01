@@ -42,6 +42,8 @@ case class ImageMetaInformationV3DTO(
     editorNotes: Option[Seq[EditorNoteDTO]],
     @description("Describes the image file")
     image: ImageFileDTO,
+    @description("Describes if the image is inactive or not")
+    inactive: Boolean,
 )
 
 object ImageMetaInformationV3DTO {

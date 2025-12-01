@@ -45,6 +45,8 @@ case class ImageMetaSummaryDTO(
     contentType: String,
     @description("Dimensions of the image")
     imageDimensions: Option[ImageDimensionsDTO],
+    @description("Whether the image is inactive or not")
+    inactive: Boolean,
 )
 
 object ImageMetaSummaryDTO {

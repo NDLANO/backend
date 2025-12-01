@@ -87,6 +87,9 @@ trait BaseImageController(using props: Props) {
     "Filter images that are podcast friendly. Width==heigth and between 1400 and 3000."
   )
 
+  val inactive: EndpointInput.Query[Option[Boolean]] =
+    query[Option[Boolean]]("inactive").description("Include inactive images")
+
   val maxImageFileSizeBytes: Int = props.MaxImageFileSizeBytes
 
   def doWithStream[T](filePart: Part[File])(f: UploadedFile => Try[T]): Try[T] = {

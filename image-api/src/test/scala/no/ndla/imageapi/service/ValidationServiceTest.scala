@@ -55,6 +55,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
+    inactive = false,
   )
 
   override def beforeEach(): Unit = {
