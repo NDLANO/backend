@@ -65,7 +65,7 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
         previousVersionsNotes =
           Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
         revisionMeta = Seq(RevisionMeta(UUID.randomUUID(), now, "hei", RevisionStatus.NeedsRevision)),
-        traits = List(ArticleTrait.H5p),
+        traits = List(ArticleTrait.Interactive),
         copyright = Some(
           DraftCopyright(
             license = Some("hei"),

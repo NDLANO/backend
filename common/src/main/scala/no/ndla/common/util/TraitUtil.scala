@@ -11,7 +11,7 @@ package no.ndla.common.util
 import cats.syntax.option.catsSyntaxOptionId
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.search.ArticleTrait
-import no.ndla.common.model.api.search.ArticleTrait.{Audio, H5p, Podcast, Video}
+import no.ndla.common.model.api.search.ArticleTrait.{Audio, Interactive, Podcast, Video}
 import no.ndla.common.model.domain.ArticleContent
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -36,18 +36,31 @@ class TraitUtil {
     .toList
     .distinct
 
-  private val videoUrl                                                = List("youtu", "vimeo", "filmiundervisning", "imdb", "nrk", "khanacademy")
+  private val videoUrl       = List("youtu", "vimeo", "filmiundervisning", "imdb", "nrk", "khanacademy")
+  private val interactiveUrl = List(
+    "arcgis.com",
+    "arcg.is",
+    "geogebra.org",
+    "ggbm.at",
+    "phet.colorado.edu",
+    "3dwarehouse.sketchup.com",
+    "lab.concord.org",
+    "miljoatlas.miljodirektoratet.no",
+    "trinket.io",
+    "codepen.io",
+  )
   private def embedToMaybeTrait(embed: Element): Option[ArticleTrait] = {
     val dataResource = embed.attr("data-resource")
     val dataUrl      = embed.attr("data-url")
     val dataType     = embed.attr("data-type")
     dataResource match {
-      case "h5p"                                                      => H5p.some
-      case "brightcove" | "nrk"                                       => Video.some
-      case "external" | "iframe" if videoUrl.exists(dataUrl.contains) => Video.some
-      case "audio" if dataType == "podcast"                           => Podcast.some
-      case "audio"                                                    => Audio.some
-      case _                                                          => None
+      case "brightcove" | "nrk"                                             => Video.some
+      case "external" | "iframe" if videoUrl.exists(dataUrl.contains)       => Video.some
+      case "external" | "iframe" if interactiveUrl.exists(dataUrl.contains) => Interactive.some
+      case "h5p"                                                            => Interactive.some
+      case "audio" if dataType == "podcast"                                 => Podcast.some
+      case "audio"                                                          => Audio.some
+      case _                                                                => None
     }
   }
 
