@@ -16,7 +16,7 @@ class GlossDataValidatorTest extends UnitSuite with TestEnvironment {
     val glossExample = GlossExample(example = "hei hei", language = "nb", transcriptions = Map("a" -> "b"))
     val glossData    = GlossData(
       gloss = "hi",
-      wordClass = WordClass.NOUN,
+      wordClass = List(WordClass.NOUN),
       originalLanguage = "nb",
       examples = List(List(glossExample)),
       transcriptions = Map("zh" -> "a", "pinyin" -> "b"),
@@ -47,7 +47,7 @@ class GlossDataValidatorTest extends UnitSuite with TestEnvironment {
     val glossExample = GlossExample(example = "hei hei", language = "nb", transcriptions = Map("a" -> "b"))
     val glossData    = GlossData(
       gloss = "y",
-      wordClass = WordClass.NOUN,
+      wordClass = List(WordClass.NOUN),
       originalLanguage = "nb",
       examples = List(List(glossExample)),
       transcriptions = Map("zh" -> "a", "pinyin" -> "b"),
