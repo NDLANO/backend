@@ -4,30 +4,6 @@ import mill._, mill.scalalib._
 import contrib.docker.DockerModule
 
 trait DockerComponent extends ScalaModule, DockerModule {
-  def moduleName: String
-  object docker extends DockerConfig {
-    private val versionTag              = Option(System.getProperty("docker.tag")).getOrElse("SNAPSHOT")
-    def tags: T[Seq[String]]            = List(s"ndla/$moduleName:$versionTag")
-    def baseImage                       = "eclipse-temurin:21-alpine"
-    def envVars: T[Map[String, String]] = Map("LOG_APPENDER" -> "Docker")
-
-    // Customize entrypoint so we can expand JAVA_OPTS from environment variables
-    override def dockerfile: T[String] = Task {
-      val oldFile              = super.dockerfile()
-      val jarName              = assembly().path.last
-      val cmd                  = List("exec", "java") ++ jvmOptions() ++ List("$JAVA_OPTS", "-jar", s"/$jarName")
-      val quotedEntryPointArgs = Seq("sh", "-c", cmd.mkString(" ")).map(arg => s"\"$arg\"").mkString(", ")
-      val newEntryPoint        = s"ENTRYPOINT [$quotedEntryPointArgs]"
-
-      oldFile.linesIterator.toList match {
-        case init :+ _ => (
-            init :+ newEntryPoint
-          ).mkString("\n")
-        case _ => throw new RuntimeException("Bad dockerfile generated. Look at DockerComponent.mill")
-      }
-    }
-  }
-
   override def assemblyRules: Seq[Assembly.Rule] = {
     super.assemblyRules ++ Seq(
       Assembly.Rule.Exclude("module-info.class"),
