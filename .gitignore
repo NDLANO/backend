@@ -1,7 +1,6 @@
 .bsp/
 target/
-.idea/*
-!.idea/scala_settings.xml
+.idea/
 .env
 .env.*
 .bloop/
