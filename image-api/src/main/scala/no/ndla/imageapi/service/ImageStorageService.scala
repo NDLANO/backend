@@ -8,10 +8,10 @@
 
 package no.ndla.imageapi.service
 
+import cats.data.NonEmptySeq
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.aws.{NdlaS3Client, NdlaS3Object}
-import no.ndla.common.model.domain.UploadedFile
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.ImageStream
 
@@ -58,10 +58,6 @@ class ImageStorageService(using
 
   def getRaw(bucketKey: String): Try[NdlaS3Object] = s3Client.getObject(bucketKey)
 
-  def uploadFromStream(storageKey: String, uploadedFile: UploadedFile): Try[String] = {
-    s3Client.putObject(storageKey, uploadedFile, props.S3NewFileCacheControlHeader.some).map(_ => storageKey)
-  }
-
   def uploadFromStream(storageKey: String, stream: InputStream, contentLength: Long, contentType: String): Try[String] =
     s3Client
       .putObject(storageKey, stream, contentLength, contentType, props.S3NewFileCacheControlHeader.some)
@@ -78,7 +74,10 @@ class ImageStorageService(using
 
   def deleteObject(storageKey: String): Try[Unit] = s3Client.deleteObject(storageKey).map(_ => ())
 
-  def deleteObjects(storageKeys: Seq[String]): Try[Unit] = s3Client.deleteObjects(storageKeys).map(_ => ())
+  def deleteObjects(storageKeys: Seq[String]): Try[Unit] = storageKeys match {
+    case head :: tail => s3Client.deleteObjects(NonEmptySeq(head, tail)).map(_ => ())
+    case Nil          => Success(())
+  }
 
   def moveObjects(fromKeysToKeys: Seq[(String, String)]): Try[Unit] = {
     fromKeysToKeys.traverse((fromKey, toKey) => s3Client.copyObject(fromKey, toKey)) match {

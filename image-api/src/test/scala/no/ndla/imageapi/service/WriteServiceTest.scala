@@ -80,9 +80,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeEach(): Unit = {
     when(fileMock1.contentType).thenReturn(Some("image/jpeg"))
-    val stream = TestData.NdlaLogoImage.toStream.get
-    when(fileMock1.stream).thenReturn(stream)
-    when(fileMock1.fileSize).thenReturn(1024L)
+    val imageStream = TestData.ndlaLogoImageStream
+    when(fileMock1.stream).thenReturn(imageStream.stream)
+    when(fileMock1.fileSize).thenReturn(imageStream.contentLength)
     when(fileMock1.fileName).thenReturn(Some("file.jpg"))
     when(random.string(any)).thenCallRealMethod()
 
@@ -97,26 +97,31 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("uploadImageWithVariants should return Success if file upload succeeds") {
     when(imageStorage.objectExists(any[String])).thenReturn(false)
-    when(imageStorage.uploadFromStream(any, any)).thenReturn(Success(newFileName))
-    val expectedImage =
-      domain.UploadedImage(newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)), Seq.empty)
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenReturn(Success(newFileName))
+    val expectedImage = domain.UploadedImage(
+      newFileName,
+      fileMock1.fileSize,
+      "image/jpeg",
+      Some(domain.ImageDimensions(189, 60)),
+      Seq.empty,
+    )
 
-    val result = writeService.uploadImageWithVariants(fileMock1)
-    verify(imageStorage, times(1)).uploadFromStream(any, any)
+    val result = writeService.uploadImageWithVariants(fileMock1).failIfFailure
+    verify(imageStorage, times(1)).uploadFromStream(any, any, any, any)
 
-    result should equal(Success(expectedImage))
+    result should equal(expectedImage)
   }
 
   test("uploadImageWithVariants should return Failure if file upload failed") {
     when(imageStorage.objectExists(any[String])).thenReturn(false)
-    when(imageStorage.uploadFromStream(any, any)).thenReturn(Failure(new RuntimeException))
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenReturn(Failure(new RuntimeException))
 
     writeService.uploadImageWithVariants(fileMock1).isFailure should be(true)
   }
 
   test("storeNewImage should return Failure if upload failes") {
     when(validationService.validateImageFile(any)).thenReturn(None)
-    when(imageStorage.uploadFromStream(any, any)).thenReturn(Failure(new RuntimeException))
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenReturn(Failure(new RuntimeException))
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[ImageMetaInformation](0))
     })
@@ -130,20 +135,20 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(
       Failure(new ValidationException(errors = Seq()))
     )
-    when(imageStorage.uploadFromStream(any, any)).thenReturn(Success(newFileName))
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenReturn(Success(newFileName))
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
 
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
     verify(imageRepository, times(0)).insert(any[ImageMetaInformation])(using any[DBSession])
     verify(imageIndexService, times(0)).indexDocument(any[ImageMetaInformation])
-    verify(imageStorage, times(0)).uploadFromStream(any, any)
+    verify(imageStorage, times(0)).uploadFromStream(any, any, any, any)
     verify(imageStorage, times(0)).deleteObject(any)
   }
 
   test("storeNewImage should return Failure if failed to insert into database") {
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
-    when(imageStorage.uploadFromStream(any, any)).thenReturn(Success(newFileName))
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenReturn(Success(newFileName))
     when(imageRepository.insert(any[ImageMetaInformation])(using any[DBSession])).thenReturn(
       Failure(new RuntimeException)
     )
@@ -151,14 +156,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
     verify(imageIndexService, times(0)).indexDocument(any[ImageMetaInformation])
-    verify(imageStorage, times(0)).uploadFromStream(any, any)
+    verify(imageStorage, times(0)).uploadFromStream(any, any, any, any)
     verify(imageStorage, times(0)).deleteObject(any)
   }
 
   test("storeNewImage should return Failure if failed to index image metadata") {
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
-    when(imageStorage.uploadFromStream(any, any)).thenReturn(Success(newFileName))
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenReturn(Success(newFileName))
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Failure(new RuntimeException))
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
     when(imageStorage.deleteObjects(any)).thenReturn(Success(()))
@@ -174,7 +179,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val afterInsert = domainImageMeta.copy(id = Some(1))
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
-    when(imageStorage.uploadFromStream(any, any)).thenReturn(Success(newFileName))
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenReturn(Success(newFileName))
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Failure(new RuntimeException))
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
@@ -191,7 +196,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val afterInsert = domainImageMeta.copy(id = Some(1))
     when(validationService.validateImageFile(any)).thenReturn(None)
     when(validationService.validate(any[ImageMetaInformation], eqTo(None))).thenReturn(Success(domainImageMeta))
-    when(imageStorage.uploadFromStream(any, any)).thenReturn(Success(newFileName))
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenReturn(Success(newFileName))
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
     when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenReturn(Success(afterInsert))
     when(imageRepository.insert(any)(using any)).thenReturn(Success(afterInsert))
@@ -478,7 +483,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageStorage.moveObjects(any)).thenReturn(Success(()))
-    when(imageStorage.uploadFromStream(any, any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](0))
     })
     when(imageIndexService.indexDocument(any)).thenAnswer((i: InvocationOnMock) => {
@@ -497,7 +502,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         image.copy(language = "nn"),
         image.copy(
           fileName = "randomstring.jpg",
-          size = 1024,
+          size = fileMock1.fileSize,
           dimensions = Some(domain.ImageDimensions(189, 60)),
           language = "nb",
         ),
@@ -508,10 +513,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       ),
     )
 
-    val result = writeService.updateImageAndFile(imageId, upd, Some(fileMock1), userWithWriteScope)
-    result should be(Success(expectedResult))
+    val result = writeService.updateImageAndFile(imageId, upd, Some(fileMock1), userWithWriteScope).failIfFailure
+    result should be(expectedResult)
 
-    verify(imageStorage, times(1)).uploadFromStream(any, any)
+    verify(imageStorage, times(1)).uploadFromStream(any, any, any, any)
     verify(imageStorage, times(0)).deleteObject(any)
     verify(imageStorage, times(0)).moveObjects(any)
     verify(imageRepository, times(1)).update(any, any)(using any)
@@ -554,7 +559,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
     when(imageStorage.moveObjects(any)).thenReturn(Success(()))
-    when(imageStorage.uploadFromStream(any, any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](0))
     })
     when(imageIndexService.indexDocument(any)).thenAnswer((i: InvocationOnMock) => {
@@ -573,7 +578,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         image.copy(language = "nn"),
         image.copy(
           fileName = "randomstring.jpg",
-          size = 1024,
+          size = fileMock1.fileSize,
           dimensions = Some(domain.ImageDimensions(189, 60)),
           language = "nb",
         ),
@@ -584,10 +589,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       ),
     )
 
-    val result = writeService.updateImageAndFile(imageId, upd, Some(fileMock1), userWithWriteScope)
-    result should be(Success(expectedResult))
+    val result = writeService.updateImageAndFile(imageId, upd, Some(fileMock1), userWithWriteScope).failIfFailure
+    result should be(expectedResult)
 
-    verify(imageStorage, times(1)).uploadFromStream(any, any)
+    verify(imageStorage, times(1)).uploadFromStream(any, any, any, any)
     verify(imageStorage, times(0)).deleteObject(any)
     verify(imageStorage, times(0)).moveObjects(any)
     verify(imageRepository, times(1)).update(any, any)(using any)
@@ -629,7 +634,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.update(any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
-    when(imageStorage.uploadFromStream(any, any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](1))
     })
     when(imageIndexService.indexDocument(any)).thenAnswer((i: InvocationOnMock) => {
@@ -653,7 +658,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val result = writeService.deleteImageLanguageVersion(imageId, "nn", userWithWriteScope)
     result should be(Success(Some(expectedResult)))
 
-    verify(imageStorage, times(0)).uploadFromStream(any, any)
+    verify(imageStorage, times(0)).uploadFromStream(any, any, any, any)
     verify(imageStorage, times(1)).deleteObject(eqTo("hello-nn.jpg"))
     verify(imageRepository, times(1)).update(any, any)(using any)
   }
@@ -694,7 +699,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageRepository.update(any, any)(using any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[domain.ImageMetaInformation](0))
     })
-    when(imageStorage.uploadFromStream(any, any)).thenAnswer((i: InvocationOnMock) => {
+    when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[String](1))
     })
     when(imageIndexService.indexDocument(any)).thenAnswer((i: InvocationOnMock) => {
@@ -717,7 +722,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val result = writeService.deleteImageLanguageVersion(imageId, "nn", userWithWriteScope)
     result should be(Success(Some(expectedResult)))
 
-    verify(imageStorage, times(0)).uploadFromStream(any, any)
+    verify(imageStorage, times(0)).uploadFromStream(any, any, any, any)
     verify(imageStorage, times(0)).deleteObject(any)
     verify(imageRepository, times(1)).update(any, any)(using any)
   }
@@ -741,17 +746,17 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That uploading valid JPEG should generate image variants of multiple sizes") {
     when(imageStorage.objectExists(any[String])).thenReturn(false)
-    when(imageStorage.uploadFromStream(any, any)).thenAnswer(i => Success(i.getArgument(0)))
     when(imageStorage.uploadFromStream(any, any, any, any)).thenAnswer(i => Success(i.getArgument(0)))
     val expectedDimensions   = domain.ImageDimensions(640, 426)
     val expectedVariantSizes = ImageVariantSize.forDimensions(expectedDimensions)
+    expectedVariantSizes.size should be > 0
 
     val domain.UploadedImage(_, _, _, dimensions, variants) = writeService
       .uploadImageWithVariants(TestData.childrensImageUploadedFile)
       .failIfFailure
-    verify(imageStorage, times(1)).uploadFromStream(any, any)
-    verify(imageStorage, times(expectedVariantSizes.size)).uploadFromStream(any, any, any, any)
 
+    // Should be called once for original image + once for each variant
+    verify(imageStorage, times(expectedVariantSizes.size + 1)).uploadFromStream(any, any, any, any)
     dimensions should equal(Some(expectedDimensions))
     variants.size should equal(expectedVariantSizes.size)
     variants.foreach { variant =>

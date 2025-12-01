@@ -40,7 +40,7 @@ class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That AmazonImageStorage.get returns a tuple with contenttype and data when the key exists") {
-    val s3Object = NdlaS3Object("bucket", "existing", TestData.NdlaLogoImage.toStream.get, ContentType, 0)
+    val s3Object = NdlaS3Object("bucket", "existing", TestData.ndlaLogoImageStream.stream, ContentType, 0)
     when(s3Client.getObject(any)).thenReturn(Success(s3Object))
 
     val image = imageStorage.get("existing").failIfFailure
