@@ -79,8 +79,8 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
       case Delete            => None
       case Missing           => existing.parentId
       case UpdateWith(value) => toUUIDValidated(Some(value), "parentId") match {
-          case Success(uuid)    => Some(uuid)
-          case Failure(failure) => existing.parentId
+          case Success(uuid) => Some(uuid)
+          case Failure(ex)   => return Failure(ex)
         }
     }
     val rank =
