@@ -21,4 +21,5 @@ case class SearchSettings(
     shouldScroll: Boolean,
     modelReleased: Seq[ModelReleasedStatus.Value],
     userFilter: List[String],
+    inactive: Option[Boolean],
 )

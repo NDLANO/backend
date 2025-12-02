@@ -269,6 +269,7 @@ class WriteService(using
       updated = now,
       updatedBy = userId,
       modelReleased = toMerge.modelReleased.flatMap(ModelReleasedStatus.valueOf).getOrElse(existing.modelReleased),
+      inactive = toMerge.inactive.getOrElse(existing.inactive),
     )
 
     val existingLanguages = converterService.getSupportedLanguages(existing)

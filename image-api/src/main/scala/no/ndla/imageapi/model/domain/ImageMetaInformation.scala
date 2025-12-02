@@ -32,6 +32,7 @@ case class ImageMetaInformation(
     createdBy: String,
     modelReleased: ModelReleasedStatus.Value,
     editorNotes: Seq[EditorNote],
+    inactive: Boolean,
 )
 
 object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {

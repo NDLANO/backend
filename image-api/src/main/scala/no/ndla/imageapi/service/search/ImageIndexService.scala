@@ -64,6 +64,7 @@ class ImageIndexService(using
       dateField("lastUpdated"),
       keywordField("defaultTitle"),
       keywordField("modelReleased"),
+      booleanField("inactive"),
       textField("editorNotes"),
       keywordField("podcastFriendly"),
       keywordField("users"),

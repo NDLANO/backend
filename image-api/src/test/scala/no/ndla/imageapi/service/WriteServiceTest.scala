@@ -76,6 +76,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     createdBy = "ndla124",
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
+    inactive = false,
   )
 
   override def beforeEach(): Unit = {
@@ -243,10 +244,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("mergeImageMeta should append a new language if language not already exists") {
     val date = NDLADate.now()
     when(clock.now()).thenReturn(date)
-    val user           = "ndla124"
-    val existing       = TestData.elg.copy(updated = date, updatedBy = user)
-    val existingImage  = existing.images.head
-    val toUpdate       = UpdateImageMetaInformationDTO("en", Some("Title"), UpdateWith("AltText"), None, None, None, None)
+    val user          = "ndla124"
+    val existing      = TestData.elg.copy(updated = date, updatedBy = user)
+    val existingImage = existing.images.head
+    val toUpdate      =
+      UpdateImageMetaInformationDTO("en", Some("Title"), UpdateWith("AltText"), None, None, None, None, None)
     val expectedResult = existing.copy(
       titles = List(existing.titles.head, domain.ImageTitle("Title", "en")),
       images = List(existingImage, existingImage.copy(language = "en")),
@@ -262,9 +264,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("mergeImageMeta overwrite a languages if specified language already exist in cover") {
     val date = NDLADate.now()
     when(clock.now()).thenReturn(date)
-    val user           = "ndla124"
-    val existing       = TestData.elg.copy(updated = date, updatedBy = user)
-    val toUpdate       = UpdateImageMetaInformationDTO("nb", Some("Title"), UpdateWith("AltText"), None, None, None, None)
+    val user     = "ndla124"
+    val existing = TestData.elg.copy(updated = date, updatedBy = user)
+    val toUpdate =
+      UpdateImageMetaInformationDTO("nb", Some("Title"), UpdateWith("AltText"), None, None, None, None, None)
     val expectedResult = existing.copy(
       titles = List(domain.ImageTitle("Title", "nb")),
       alttexts = List(domain.ImageAltText("AltText", "nb")),
@@ -300,6 +303,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Some(List("a", "b", "c")),
       Some("Caption"),
       Some(ModelReleasedStatus.NO.toString),
+      Some(true),
     )
     val expectedResult = existing.copy(
       titles = List(domain.ImageTitle("Title", "nb")),
@@ -318,6 +322,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       captions = List(domain.ImageCaption("Caption", "nb")),
       modelReleased = ModelReleasedStatus.NO,
       editorNotes = Seq(domain.EditorNote(date, "ndla124", "Updated image data.")),
+      inactive = true,
     )
 
     val result = writeService.mergeImageMeta(existing, toUpdate, userWithWriteScope).failIfFailure
@@ -347,7 +352,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         updatedBy = user,
         images = Seq(image),
       )
-    val toUpdate       = UpdateImageMetaInformationDTO("nn", None, Missing, None, None, None, None)
+    val toUpdate       = UpdateImageMetaInformationDTO("nn", None, Missing, None, None, None, None, None)
     val expectedResult = existing.copy(images = Seq(image, image.copy(language = "nn")))
 
     val result = writeService.mergeImageMeta(existing, toUpdate, userWithWriteScope).failIfFailure
@@ -467,6 +472,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       tags = None,
       caption = None,
       modelReleased = None,
+      inactive = None,
     )
     val image = domain.ImageFileData(
       fileName = "apekatt.jpg",
@@ -547,6 +553,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       tags = None,
       caption = None,
       modelReleased = None,
+      inactive = None,
     )
     val image = domain.ImageFileData(
       fileName = "apekatt.jpg",

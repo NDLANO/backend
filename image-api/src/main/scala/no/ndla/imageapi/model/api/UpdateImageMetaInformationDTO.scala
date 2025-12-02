@@ -29,6 +29,8 @@ case class UpdateImageMetaInformationDTO(
     caption: Option[String],
     @description("Describes if the model has released use of the image")
     modelReleased: Option[String],
+    @description("Whether the image is inactive")
+    inactive: Option[Boolean],
 )
 
 object UpdateImageMetaInformationDTO {

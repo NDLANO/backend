@@ -41,6 +41,8 @@ case class SearchParamsDTO(
     podcastFriendly: Option[Boolean],
     @description("A search context retrieved from the response header of a previous search.")
     scrollId: Option[String],
+    @description("Include inactive images")
+    inactive: Option[Boolean],
     @description("Return only images with one of the provided values for modelReleased.")
     modelReleased: Option[Seq[String]],
     @description("Filter editors of the image(s). Multiple values can be specified in a comma separated list.")

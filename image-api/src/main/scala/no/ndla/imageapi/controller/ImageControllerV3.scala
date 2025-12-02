@@ -83,6 +83,7 @@ class ImageControllerV3(using
       modelReleasedStatus: Seq[ModelReleasedStatus.Value],
       user: Option[TokenUser],
       userFilter: List[String],
+      inactive: Option[Boolean],
   ) = {
     val settings = query match {
       case Some(searchString) => SearchSettings(
@@ -98,6 +99,7 @@ class ImageControllerV3(using
           shouldScroll = shouldScroll,
           modelReleased = modelReleasedStatus,
           userFilter = userFilter,
+          inactive = inactive,
         )
       case None => SearchSettings(
           query = None,
@@ -112,6 +114,7 @@ class ImageControllerV3(using
           shouldScroll = shouldScroll,
           modelReleased = modelReleasedStatus,
           userFilter = userFilter,
+          inactive = inactive,
         )
     }
     for {
@@ -138,6 +141,7 @@ class ImageControllerV3(using
     .in(scrollId)
     .in(modelReleased)
     .in(userFilter)
+    .in(inactive)
     .errorOut(errorOutputsFor(400))
     .out(jsonBody[SearchResultV3DTO])
     .out(EndpointOutput.derived[DynamicHeaders])
@@ -158,6 +162,7 @@ class ImageControllerV3(using
               scrollId,
               modelReleased,
               userFilter,
+              inactive,
             ) => scrollSearchOr(scrollId, language.code, user) {
             val sort                = Sort.valueOf(sortStr)
             val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
@@ -178,6 +183,7 @@ class ImageControllerV3(using
               modelReleasedStatus,
               user,
               userFilter.values,
+              inactive,
             )
           }.handleErrorsOrOk
       }
@@ -213,6 +219,7 @@ class ImageControllerV3(using
           val shouldScroll        = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
           val modelReleasedStatus = searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
           val userFilter          = searchParams.users.getOrElse(List.empty)
+          val inactive            = searchParams.inactive
 
           searchV3(
             minimumSize,
@@ -228,6 +235,7 @@ class ImageControllerV3(using
             modelReleasedStatus,
             user,
             userFilter,
+            inactive,
           )
         }.handleErrorsOrOk
       }

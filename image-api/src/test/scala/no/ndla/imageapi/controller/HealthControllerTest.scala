@@ -68,6 +68,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     "ndla124",
     ModelReleasedStatus.NOT_APPLICABLE,
     Seq.empty,
+    false,
   )
 
   test("that /health/readiness returns 200 on success") {
