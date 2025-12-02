@@ -30,6 +30,10 @@ class TraitUtilTest extends UnitTestSuiteBase {
         s"Sjekk denne h5p-en <$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName>",
         "nb",
       ),
+      ArticleContent(
+        s"Fil <$EmbedTagName data-resource=\"iframe\" data-url=\"https://prezi.com/some-url\"></$EmbedTagName>",
+        "nb",
+      ),
       ArticleContent(s"Fil <$EmbedTagName data-resource=\"file\" data-path=\"/file/path\"></$EmbedTagName>", "nn"),
     )
 
@@ -48,6 +52,10 @@ class TraitUtilTest extends UnitTestSuiteBase {
       ArticleContent(
         s"Movie trailer <$EmbedTagName data-resource=\"iframe\" data-url=\"https://www.imdb.com/video/vi3074735641\"></$EmbedTagName>",
         "en",
+      ),
+      ArticleContent(
+        s"Code in codepen <$EmbedTagName data-resource=\"external\" data-url=\"https://codepen.io/id\"></$EmbedTagName>",
+        "se",
       ),
     )
 
