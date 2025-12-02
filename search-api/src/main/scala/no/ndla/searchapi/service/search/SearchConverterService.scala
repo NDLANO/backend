@@ -1182,6 +1182,7 @@ class SearchConverterService(using
         case NodeType.NODE      => List("node")
         case NodeType.SUBJECT   => List("fag", "subject")
         case NodeType.TOPIC     => List("emne", "topic")
+        case NodeType.CASE      => List("case", "case")
         case NodeType.RESOURCE  => List("ressurs", "resource")
         case NodeType.PROGRAMME => List("programfag", "program", "programme")
       }

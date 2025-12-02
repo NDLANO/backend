@@ -20,6 +20,7 @@ object NodeType       extends Enum[NodeType] with CirceEnum[NodeType] {
   case object NODE      extends NodeType
   case object SUBJECT   extends NodeType
   case object TOPIC     extends NodeType
+  case object CASE      extends NodeType
   case object RESOURCE  extends NodeType
   case object PROGRAMME extends NodeType
 
