@@ -8,7 +8,6 @@
 
 package no.ndla.searchapi.service.search
 
-import no.ndla.common.caching.Memoize
 import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleContent, Tag, Title}
@@ -23,7 +22,7 @@ import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 
-import scala.util.{Success, Try}
+import scala.util.Success
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   override implicit lazy val traitUtil: TraitUtil                           = new TraitUtil
@@ -110,9 +109,6 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    when(taxonomyApiClient.getTaxonomyBundle).thenReturn(
-      new Memoize[Boolean, Try[TaxonomyBundle]](0, _ => Success(emptyBundle))
-    )
     when(myndlaApiClient.getStatsFor(any, any)).thenReturn(Success(List.empty))
   }
 
@@ -243,13 +239,11 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That invisible contexts are not indexed") {
-    val taxonomyBundleInvisibleMetadata = TestData
-      .taxonomyTestBundle
-      .copy(nodes =
-        nodes
-          .filter(node => node.nodeType == NodeType.RESOURCE)
-          .map(resource => resource.copy(metadata = invisibleMetadata))
-      )
+    val taxonomyBundleInvisibleMetadata = TaxonomyBundle.fromNodeList(
+      nodes
+        .filter(node => node.nodeType == NodeType.RESOURCE)
+        .map(resource => resource.copy(metadata = invisibleMetadata))
+    )
     val Success(searchable1) = searchConverterService.asSearchableArticle(
       TestData.article1,
       IndexingBundle(
@@ -281,13 +275,9 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That invisible subjects are not indexed") {
-    val taxonomyBundleInvisibleMetadata = TestData
-      .taxonomyTestBundle
-      .copy(nodes =
-        nodes
-          .filter(node => node.nodeType == NodeType.SUBJECT)
-          .map(subject => subject.copy(metadata = invisibleMetadata))
-      )
+    val taxonomyBundleInvisibleMetadata = TaxonomyBundle.fromNodeList(
+      nodes.filter(node => node.nodeType == NodeType.SUBJECT).map(subject => subject.copy(metadata = invisibleMetadata))
+    )
     val Success(searchable1) = searchConverterService.asSearchableArticle(
       TestData.article1,
       IndexingBundle(

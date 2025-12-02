@@ -81,17 +81,15 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
 
   def doStandaloneIndexing(): Nothing = {
     val bundles = for {
-      taxonomyBundleDraft     <- componentRegistry.taxonomyApiClient.getTaxonomyBundle(false)
-      taxonomyBundlePublished <- componentRegistry.taxonomyApiClient.getTaxonomyBundle(true)
-      grepBundle              <- componentRegistry.grepApiClient.getGrepBundle()
-      myndlaBundle            <- componentRegistry.myndlaApiClient.getMyNDLABundle
-    } yield (taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)
+      grepBundle   <- componentRegistry.grepApiClient.getGrepBundle()
+      myndlaBundle <- componentRegistry.myndlaApiClient.getMyNDLABundle
+    } yield (grepBundle, myndlaBundle)
 
     val start = System.currentTimeMillis()
 
     val reindexResult = bundles match {
-      case Failure(ex)                                                                       => Seq(Failure(ex))
-      case Success((taxonomyBundleDraft, taxonomyBundlePublished, grepBundle, myndlaBundle)) =>
+      case Failure(ex)                         => Seq(Failure(ex))
+      case Success((grepBundle, myndlaBundle)) =>
         implicit val ec: ExecutionContextExecutorService =
           ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(SearchType.values.size))
 
@@ -106,48 +104,28 @@ class StandaloneIndexing(props: SearchApiProperties, componentRegistry: Componen
           future
         }
 
-        def reindexWithIndexService[C <: Content](indexService: IndexService[C], shouldUsePublishedTax: Boolean)(
-            implicit d: Decoder[C]
-        ): Future[Try[ReindexResult]] = {
-          val taxonomyBundle =
-            if (shouldUsePublishedTax) taxonomyBundlePublished
-            else taxonomyBundleDraft
-          val indexingBundle = IndexingBundle(
-            grepBundle = Some(grepBundle),
-            taxonomyBundle = Some(taxonomyBundle),
-            myndlaBundle = Some(myndlaBundle),
-          )
-          val reindexFuture = Future {
-            indexService.indexDocuments(indexingBundle)
-          }
+        val indexingBundle =
+          IndexingBundle(grepBundle = Some(grepBundle), taxonomyBundle = None, myndlaBundle = Some(myndlaBundle))
+
+        def reindexWithIndexService[C <: Content](
+            indexService: IndexService[C]
+        )(implicit d: Decoder[C]): Future[Try[ReindexResult]] = {
+          val reindexFuture = Future(indexService.indexDocuments(indexingBundle))
           handleOnComplete(reindexFuture, indexService.searchIndex)
         }
-
-        val indexingBundle = IndexingBundle(
-          grepBundle = Some(grepBundle),
-          taxonomyBundle = Some(taxonomyBundlePublished),
-          myndlaBundle = Some(myndlaBundle),
-        )
 
         Await.result(
           Future.sequence(
             Seq(
-              reindexWithIndexService(componentRegistry.learningPathIndexService, shouldUsePublishedTax = true),
-              reindexWithIndexService(componentRegistry.articleIndexService, shouldUsePublishedTax = true),
-              reindexWithIndexService(componentRegistry.draftIndexService, shouldUsePublishedTax = false),
-              reindexWithIndexService(componentRegistry.draftConceptIndexService, shouldUsePublishedTax = true),
+              reindexWithIndexService(componentRegistry.learningPathIndexService),
+              reindexWithIndexService(componentRegistry.articleIndexService),
+              reindexWithIndexService(componentRegistry.draftIndexService),
+              reindexWithIndexService(componentRegistry.draftConceptIndexService),
               handleOnComplete(
-                Future {
-                  componentRegistry.grepIndexService.indexDocuments(None, indexingBundle.grepBundle)
-                },
+                Future(componentRegistry.grepIndexService.indexDocuments(None, indexingBundle.grepBundle)),
                 "greps",
               ),
-              handleOnComplete(
-                Future {
-                  componentRegistry.nodeIndexService.indexDocuments(None, indexingBundle)
-                },
-                "nodes",
-              ),
+              handleOnComplete(Future(componentRegistry.nodeIndexService.indexDocuments(None, indexingBundle)), "nodes"),
             )
           ),
           Duration.Inf,

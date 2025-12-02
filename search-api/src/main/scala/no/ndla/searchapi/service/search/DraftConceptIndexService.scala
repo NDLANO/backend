@@ -40,6 +40,8 @@ class DraftConceptIndexService(using
   override val searchIndex: String                 = props.SearchIndex(SearchType.Concepts)
   override val apiClient: SearchApiClient[Concept] = draftConceptApiClient
 
+  override def taxonomyContentUris(contents: Seq[Concept]): Seq[String] = Seq.empty
+
   override def createIndexRequest(
       domainModel: Concept,
       indexName: String,
