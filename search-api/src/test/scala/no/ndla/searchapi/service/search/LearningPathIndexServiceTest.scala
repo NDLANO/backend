@@ -91,7 +91,7 @@ class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with Un
       .get
 
     val searchableFields = searchableToTestWith.asJson
-    val fields           = getFields(searchableFields, None, Seq("domainObject"))
+    val fields           = getFields(searchableFields, None, Seq("domainObject", "nodes"))
     val mapping          = learningPathIndexService.getMapping
 
     val staticMappingFields  = getMappingFields(mapping.properties, None)

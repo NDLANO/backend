@@ -77,8 +77,9 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       embedResourcesAndIds = embedResourcesAndIds,
       availability = "everyone",
       learningResourceType = LearningResourceType.Article,
-      domainObject = TestData.article1,
       typeName = List.empty,
+      domainObject = TestData.article1,
+      nodes = nodes,
     )
     val json         = CirceUtil.toJsonString(original)
     val deserialized = CirceUtil.unsafeParseAs[SearchableArticle](json)
@@ -142,8 +143,9 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       embedResourcesAndIds = embedResourcesAndIds,
       availability = "everyone",
       learningResourceType = LearningResourceType.Article,
-      domainObject = TestData.article1,
       typeName = List.empty,
+      domainObject = TestData.article1,
+      nodes = nodes,
     )
 
     val json         = CirceUtil.toJsonString(original)

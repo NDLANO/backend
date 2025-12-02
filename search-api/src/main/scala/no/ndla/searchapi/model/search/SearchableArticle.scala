@@ -14,6 +14,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.*
 import no.ndla.common.model.domain.ArticleMetaImage
 import no.ndla.common.model.domain.article.Article
+import no.ndla.common.model.taxonomy.Node
 import no.ndla.search.model.domain.EmbedValues
 
 case class SearchableArticle(
@@ -42,6 +43,7 @@ case class SearchableArticle(
     learningResourceType: LearningResourceType,
     typeName: List[String],
     domainObject: Article,
+    nodes: List[Node],
 )
 
 object SearchableArticle {

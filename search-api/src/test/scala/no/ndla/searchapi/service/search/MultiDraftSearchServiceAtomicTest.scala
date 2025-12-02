@@ -53,7 +53,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   override implicit lazy val multiDraftSearchService: MultiDraftSearchService = new MultiDraftSearchService {
     override val enableExplanations = true
   }
-  
+
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
       draftConceptIndexService.createIndexAndAlias().get
@@ -820,6 +820,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
                 primaryRoot = SearchableLanguageValues.from("nb" -> "Capekatt rot"),
                 resourceTypeName = SearchableLanguageValues.from("nb" -> "Bapekatt ressurs"),
                 defaultResourceTypeName = Some("Bapekatt ressurs"),
+                nodes = nodes,
               )
           case 2 => TestData
               .searchableDraft
@@ -831,6 +832,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
                 primaryRoot = SearchableLanguageValues.from("nb" -> "Apekatt rot"),
                 resourceTypeName = SearchableLanguageValues.from("nb" -> "Capekatt ressurs"),
                 defaultResourceTypeName = Some("Capekatt ressurs"),
+                nodes = nodes,
               )
           case 3 => TestData
               .searchableDraft
@@ -842,6 +844,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
                 primaryRoot = SearchableLanguageValues.from("nb" -> "Bapekatt rot"),
                 resourceTypeName = SearchableLanguageValues.from("nb" -> "Apekatt ressurs"),
                 defaultResourceTypeName = Some("Apekatt ressurs"),
+                nodes = nodes,
               )
           case _ => fail("Unexpected id, this is a bug with the test")
         }

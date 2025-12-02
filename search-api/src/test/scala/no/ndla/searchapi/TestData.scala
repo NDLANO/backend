@@ -1950,6 +1950,7 @@ object TestData {
           )
         ),
       ),
+    nodes = List.empty,
   )
 
   val sampleNbDomainConcept: Concept = Concept(
