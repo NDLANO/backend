@@ -73,6 +73,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       visibleMetadata,
       List.empty,
       NodeType.RESOURCE,
+      List.empty,
       List("asdf3456"),
       None,
       List.empty,
@@ -86,6 +87,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List.empty,
       List("asdf3457"),
       None,
       List.empty,
@@ -99,6 +101,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       visibleMetadata,
       List.empty,
       NodeType.SUBJECT,
+      List.empty,
       List("asdf3458"),
       None,
       List.empty,
@@ -170,13 +173,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     )
     searchable4.contexts.head.resourceTypeIds.sorted should be(Seq("urn:resourcetype:subjectMaterial").sorted)
     searchable7.contexts.head.resourceTypeIds.sorted should be(
-      Seq(
-        "urn:resourcetype:nested",
-        "urn:resourcetype:peerEvaluation",
-        "urn:resourcetype:reviewResource",
-        "urn:resourcetype:guidance",
-        "urn:resourcetype:subjectMaterial",
-      ).sorted
+      Seq("urn:resourcetype:guidance", "urn:resourcetype:selfEvaluation", "urn:resourcetype:subjectMaterial").sorted
     )
   }
 

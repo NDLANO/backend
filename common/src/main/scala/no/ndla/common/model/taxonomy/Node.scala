@@ -38,6 +38,7 @@ case class Node(
     metadata: Option[Metadata],
     translations: List[TaxonomyTranslation],
     nodeType: NodeType,
+    resourceTypes: List[NodeResourceType],
     contextids: List[String],
     context: Option[TaxonomyContext],
     var contexts: List[TaxonomyContext],
@@ -47,19 +48,32 @@ object Node {
   implicit val encoder: Encoder[Node] = deriveEncoder
   implicit val decoder: Decoder[Node] = Decoder.instance(c => {
     for {
-      id           <- c.downField("id").as[String]
-      name         <- c.downField("name").as[Option[String]].map(_.getOrElse(""))
-      contentUri   <- c.downField("contentUri").as[Option[String]]
-      path         <- c.downField("path").as[Option[String]]
-      url          <- c.downField("url").as[Option[String]]
-      metadata     <- c.downField("metadata").as[Option[Metadata]]
-      translations <- c.downField("translations").as[List[TaxonomyTranslation]]
-      nodeType     <- c.downField("nodeType").as[NodeType]
-      contextids   <- c.downField("contextids").as[List[String]]
-      context      <- c.downField("context").as[Option[TaxonomyContext]]
-      contexts     <- c.downField("contexts").as[List[TaxonomyContext]]
-    } yield Node(id, name, contentUri, path, url, metadata, translations, nodeType, contextids, context, contexts)
-
+      id            <- c.downField("id").as[String]
+      name          <- c.downField("name").as[Option[String]].map(_.getOrElse(""))
+      contentUri    <- c.downField("contentUri").as[Option[String]]
+      path          <- c.downField("path").as[Option[String]]
+      url           <- c.downField("url").as[Option[String]]
+      metadata      <- c.downField("metadata").as[Option[Metadata]]
+      translations  <- c.downField("translations").as[List[TaxonomyTranslation]]
+      nodeType      <- c.downField("nodeType").as[NodeType]
+      resourceTypes <- c.downField("resourceTypes").as[List[NodeResourceType]]
+      contextids    <- c.downField("contextids").as[List[String]]
+      context       <- c.downField("context").as[Option[TaxonomyContext]]
+      contexts      <- c.downField("contexts").as[List[TaxonomyContext]]
+    } yield Node(
+      id,
+      name,
+      contentUri,
+      path,
+      url,
+      metadata,
+      translations,
+      nodeType,
+      resourceTypes,
+      contextids,
+      context,
+      contexts,
+    )
   })
 }
 
@@ -73,7 +87,7 @@ case class TaxonomyContext(
     contextType: Option[String],
     relevanceId: String,
     relevance: SearchableLanguageValues,
-    resourceTypes: List[TaxonomyResourceType],
+    resourceTypes: List[ContextResourceType],
     parentIds: List[String],
     isPrimary: Boolean,
     contextId: String,
@@ -99,9 +113,14 @@ object TaxonomyTranslation {
   })
 }
 
-case class TaxonomyResourceType(id: String, parentId: Option[String], name: SearchableLanguageValues)
+case class NodeResourceType(id: String, parentId: Option[String], name: String, translations: List[TaxonomyTranslation])
+object NodeResourceType {
+  implicit val decoder: Decoder[NodeResourceType] = deriveDecoder
+  implicit val encoder: Encoder[NodeResourceType] = deriveEncoder
+}
 
-object TaxonomyResourceType {
-  implicit val decoder: Decoder[TaxonomyResourceType] = deriveDecoder
-  implicit val encoder: Encoder[TaxonomyResourceType] = deriveEncoder
+case class ContextResourceType(id: String, parentId: Option[String], name: SearchableLanguageValues)
+object ContextResourceType {
+  implicit val decoder: Decoder[ContextResourceType] = deriveDecoder
+  implicit val encoder: Encoder[ContextResourceType] = deriveEncoder
 }

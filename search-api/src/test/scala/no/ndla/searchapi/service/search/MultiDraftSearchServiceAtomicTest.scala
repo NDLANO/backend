@@ -53,7 +53,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   override implicit lazy val multiDraftSearchService: MultiDraftSearchService = new MultiDraftSearchService {
     override val enableExplanations = true
   }
-
+  
   override def beforeEach(): Unit = {
     if (elasticSearchContainer.isSuccess) {
       draftConceptIndexService.createIndexAndAlias().get
@@ -502,6 +502,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.SUBJECT,
+      List.empty,
       List("asdf1256"),
       Some(context_1),
       List(context_1),
@@ -515,6 +516,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List.empty,
       List("asdf1257"),
       None,
       List.empty,
@@ -539,6 +541,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List.empty,
       List("asdf1258"),
       None,
       List.empty,
@@ -563,6 +566,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List.empty,
       List("asdf1259"),
       None,
       List.empty,
@@ -587,6 +591,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List.empty,
       List("asdf1260"),
       None,
       List.empty,
@@ -611,6 +616,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.RESOURCE,
+      List.empty,
       List("asdf1261"),
       None,
       List.empty,
@@ -646,6 +652,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.RESOURCE,
+      List.empty,
       List("asdf1262"),
       None,
       List.empty,
