@@ -546,6 +546,8 @@ export type components = {
             /** @description Describes the changes made to the image, only visible to editors */
             editorNotes?: components["schemas"]["EditorNoteDTO"][];
             image: components["schemas"]["ImageFileDTO"];
+            /** @description Describes if the image is inactive or not */
+            inactive: boolean;
         };
         /**
          * ImageMetaSummaryDTO
@@ -584,6 +586,8 @@ export type components = {
             /** @description The mimetype of the image */
             contentType: string;
             imageDimensions?: components["schemas"]["ImageDimensionsDTO"];
+            /** @description Whether the image is inactive or not */
+            inactive: boolean;
         };
         /**
          * ImageTagDTO
@@ -708,6 +712,8 @@ export type components = {
             podcastFriendly?: boolean;
             /** @description A search context retrieved from the response header of a previous search. */
             scrollId?: string;
+            /** @description Include inactive images */
+            inactive?: boolean;
             /** @description Return only images with one of the provided values for modelReleased. */
             modelReleased?: string[];
             /** @description Filter editors of the image(s). Multiple values can be specified in a comma separated list. */
@@ -812,6 +818,8 @@ export type components = {
             caption?: string;
             /** @description Describes if the model has released use of the image */
             modelReleased?: string;
+            /** @description Whether the image is inactive */
+            inactive?: boolean;
         };
         /** UpdateMetaDataAndFileForm */
         UpdateMetaDataAndFileForm: {
@@ -888,6 +896,8 @@ export interface operations {
                 "search-context"?: string;
                 /** @description Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: yes,no,not-applicable,not-set */
                 "model-released"?: string[];
+                /** @description Include inactive images */
+                inactive?: boolean;
             };
             header?: never;
             path?: never;
@@ -1453,6 +1463,8 @@ export interface operations {
                  *     The value to search for is the user-id from Auth0.
                  *     UpdatedBy on article and user in editorial-notes are searched. */
                 users?: string[];
+                /** @description Include inactive images */
+                inactive?: boolean;
             };
             header?: never;
             path?: never;
