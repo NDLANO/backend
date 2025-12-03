@@ -892,6 +892,8 @@ export type components = {
         };
         /** UpdatedFolderDTO */
         UpdatedFolderDTO: {
+            /** @description Id of parent folder */
+            parentId?: string | null;
             /** @description Folder name */
             name?: string;
             /** @description Status of the folder (private, shared) */
