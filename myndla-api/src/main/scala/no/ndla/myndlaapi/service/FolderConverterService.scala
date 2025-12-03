@@ -13,6 +13,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.{Clock, model}
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits.*
+import no.ndla.common.model.api.{Delete, Missing, UpdateWith}
 import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla
 import no.ndla.common.model.domain.myndla.{
@@ -73,7 +74,21 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
     loop(domainFolder, breadcrumbs, feideUser)
   }
 
-  def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolderDTO): domain.Folder = {
+  def mergeFolder(existing: domain.Folder, updated: api.UpdatedFolderDTO): Try[domain.Folder] = {
+    val parentId = updated.parentId match {
+      case Delete            => None
+      case Missing           => existing.parentId
+      case UpdateWith(value) => toUUIDValidated(Some(value), "parentId") match {
+          case Success(uuid) => Some(uuid)
+          case Failure(ex)   => return Failure(ex)
+        }
+    }
+    val rank =
+      if (parentId != existing.parentId) {
+        0
+      } else {
+        existing.rank
+      }
     val name        = updated.name.getOrElse(existing.name)
     val status      = updated.status.flatMap(FolderStatus.valueOf).getOrElse(existing.status)
     val description = updated.description.orElse(existing.description)
@@ -85,20 +100,22 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
       case _                                                         => None
     }
 
-    domain.Folder(
-      id = existing.id,
-      resources = existing.resources,
-      subfolders = existing.subfolders,
-      feideId = existing.feideId,
-      parentId = existing.parentId,
-      name = name,
-      status = status,
-      rank = existing.rank,
-      created = existing.created,
-      updated = clock.now(),
-      shared = shared,
-      description = description,
-      user = existing.user,
+    Success(
+      domain.Folder(
+        id = existing.id,
+        resources = existing.resources,
+        subfolders = existing.subfolders,
+        feideId = existing.feideId,
+        parentId = parentId,
+        name = name,
+        status = status,
+        rank = rank,
+        created = existing.created,
+        updated = clock.now(),
+        shared = shared,
+        description = description,
+        user = existing.user,
+      )
     )
   }
 
