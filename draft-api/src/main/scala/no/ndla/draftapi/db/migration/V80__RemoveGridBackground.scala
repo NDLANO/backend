@@ -14,7 +14,7 @@ import org.jsoup.nodes.Element
 class V80__RemoveGridBackground extends HtmlMigration {
   override def convertHtml(doc: Element, language: String): Element = {
     doc
-      .select("div[data-type='grid']")
+      .select("div[data-type='grid'][data-background]")
       .forEach(embed => {
         val _ = embed.removeAttr("data-background")
       })
