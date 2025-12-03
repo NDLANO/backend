@@ -177,6 +177,15 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
+  test("That resource type name are derived correctly in draft") {
+    val Success(searchable3) = searchConverterService.asSearchableDraft(
+      TestData.draft3,
+      IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
+    ): @unchecked
+
+    searchable3.defaultResourceTypeName should be(Some("Fagstoff"))
+  }
+
   test("That breadcrumbs are derived correctly") {
     val Success(searchable1) = searchConverterService.asSearchableArticle(
       TestData.article1,

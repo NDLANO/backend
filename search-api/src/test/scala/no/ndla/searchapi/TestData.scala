@@ -1109,36 +1109,36 @@ object TestData {
 
   val relevances: List[Relevance] = List(core, supp)
 
-  val learningPathRT =
-    NodeResourceType("urn:resourcetype:learningpath", None, "Læringssti", List(TaxonomyTranslation("nb", "Læringssti")))
-  val subjectMaterialRT =
-    NodeResourceType("urn:resourcetype:subjectMaterial", None, "Fagstoff", List(TaxonomyTranslation("nb", "Fagstoff")))
-  val academicArticleRT = NodeResourceType(
+  val learningPath =
+    NodeResourceType("urn:resourcetype:learningpath", None, "Læringssti", List(TaxonomyTranslation("Læringssti", "nb")))
+  val subjectMaterial =
+    NodeResourceType("urn:resourcetype:subjectMaterial", None, "Fagstoff", List(TaxonomyTranslation("Fagstoff", "nb")))
+  val academicArticle = NodeResourceType(
     "urn:resourcetype:academicArticle",
     Some("urn:resourcetype:subjectMaterial"),
     "Fagartikkel",
-    List(TaxonomyTranslation("nb", "Fagartikkel")),
+    List(TaxonomyTranslation("Fagartikkel", "nb")),
   )
-  val guidanceRT = NodeResourceType(
+  val guidance = NodeResourceType(
     "urn:resourcetype:guidance",
     Some("urn:resourcetype:subjectMaterial"),
     "Veiledning",
-    List(TaxonomyTranslation("nb", "Veiledning")),
+    List(TaxonomyTranslation("Veiledning", "nb")),
   )
-  val reviewResourceRT = NodeResourceType(
+  val reviewResource = NodeResourceType(
     "urn:resourcetype:reviewResource",
     None,
     "Vurderingsressurs",
-    List(TaxonomyTranslation("nb", "Vurderingsressurs")),
+    List(TaxonomyTranslation("Vurderingsressurs", "nb")),
   )
-  val selfEvaluationRT = NodeResourceType(
+  val selfEvaluation = NodeResourceType(
     "urn:resourcetype:selfEvaluation",
     Some("urn:resourcetype:reviewResource"),
     "Egenvurdering",
-    List(TaxonomyTranslation("nb", "Egenvurdering")),
+    List(TaxonomyTranslation("Egenvurdering", "nb")),
   )
   val allResourceTypes: List[NodeResourceType] =
-    List(learningPathRT, subjectMaterialRT, academicArticleRT, guidanceRT, reviewResourceRT, selfEvaluationRT)
+    List(learningPath, subjectMaterial, academicArticle, guidance, reviewResource, selfEvaluation)
 
   def generateContexts(
       node: Node,
@@ -1359,7 +1359,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
-    List(subjectMaterialRT),
+    List(subjectMaterial),
     List("asdf1242"),
     None,
     List.empty,
@@ -1368,25 +1368,15 @@ object TestData {
     resource_1,
     subject_3,
     topic_5,
-    List(subjectMaterialRT),
+    List(subjectMaterial),
     Some("standard"),
     core,
     true,
     true,
     true,
   ) ++
-    generateContexts(
-      resource_1,
-      subject_1,
-      topic_1,
-      List(subjectMaterialRT),
-      Some("standard"),
-      core,
-      true,
-      true,
-      true,
-    ) ++
-    generateContexts(resource_1, subject_2, topic_4, List(subjectMaterialRT), Some("standard"), core, true, true, false)
+    generateContexts(resource_1, subject_1, topic_1, List(subjectMaterial), Some("standard"), core, true, true, true) ++
+    generateContexts(resource_1, subject_2, topic_4, List(subjectMaterial), Some("standard"), core, true, true, false)
   val resource_2: Node = Node(
     "urn:resource:2",
     article2.title.head.title,
@@ -1396,7 +1386,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
-    List(subjectMaterialRT, academicArticleRT),
+    List(subjectMaterial, academicArticle),
     List("asdf1243"),
     None,
     List.empty,
@@ -1405,7 +1395,7 @@ object TestData {
     resource_2,
     subject_1,
     topic_1,
-    List(subjectMaterialRT, academicArticleRT),
+    List(subjectMaterial, academicArticle),
     Some("standard"),
     supp,
     true,
@@ -1421,13 +1411,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
-    List(subjectMaterialRT),
+    List(subjectMaterial),
     List("asdf1244"),
     None,
     List.empty,
   )
   resource_3.contexts =
-    generateContexts(resource_3, subject_1, topic_3, List(subjectMaterialRT), Some("standard"), supp, true, true, true)
+    generateContexts(resource_3, subject_1, topic_3, List(subjectMaterial), Some("standard"), supp, true, true, true)
   val resource_4: Node = Node(
     "urn:resource:4",
     article4.title.head.title,
@@ -1437,13 +1427,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
-    List(subjectMaterialRT),
+    List(subjectMaterial),
     List("asdf1245"),
     None,
     List.empty,
   )
   resource_4.contexts =
-    generateContexts(resource_4, subject_1, topic_2, List(subjectMaterialRT), Some("standard"), supp, true, true, true)
+    generateContexts(resource_4, subject_1, topic_2, List(subjectMaterial), Some("standard"), supp, true, true, true)
   val resource_5: Node = Node(
     "urn:resource:5",
     article5.title.head.title,
@@ -1462,7 +1452,7 @@ object TestData {
     resource_5,
     subject_2,
     topic_4,
-    List(subjectMaterialRT, academicArticleRT),
+    List(subjectMaterial, academicArticle),
     Some("standard"),
     core,
     true,
@@ -1473,7 +1463,7 @@ object TestData {
       resource_5,
       subject_1,
       topic_3,
-      List(subjectMaterialRT, academicArticleRT),
+      List(subjectMaterial, academicArticle),
       Some("standard"),
       core,
       true,
@@ -1489,13 +1479,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
-    List(subjectMaterialRT),
+    List(subjectMaterial),
     List("asdf1247"),
     None,
     List.empty,
   )
   resource_6.contexts =
-    generateContexts(resource_6, subject_2, topic_4, List(subjectMaterialRT), Some("standard"), core, true, true, true)
+    generateContexts(resource_6, subject_2, topic_4, List(subjectMaterial), Some("standard"), core, true, true, true)
   val resource_7: Node = Node(
     "urn:resource:7",
     article7.title.head.title,
@@ -1505,7 +1495,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
-    List(guidanceRT, subjectMaterialRT, selfEvaluationRT),
+    List(guidance, subjectMaterial, selfEvaluation),
     List("asdf1248"),
     None,
     List.empty,
@@ -1514,7 +1504,7 @@ object TestData {
     resource_7,
     subject_2,
     topic_4,
-    List(guidanceRT, subjectMaterialRT, selfEvaluationRT),
+    List(guidance, subjectMaterial, selfEvaluation),
     Some("standard"),
     core,
     true,
@@ -1530,13 +1520,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
-    List(learningPathRT),
+    List(learningPath),
     List("asdf1249"),
     None,
     List.empty,
   )
   resource_8.contexts =
-    generateContexts(resource_8, subject_1, topic_1, List(learningPathRT), Some("learningpath"), supp, true, true, true)
+    generateContexts(resource_8, subject_1, topic_1, List(learningPath), Some("learningpath"), supp, true, true, true)
   val resource_9: Node = Node(
     "urn:resource:9",
     learningPath2.title.head.title,
@@ -1546,13 +1536,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
-    List(learningPathRT),
+    List(learningPath),
     List("asdf1250"),
     None,
     List.empty,
   )
   resource_9.contexts =
-    generateContexts(resource_9, subject_1, topic_1, List(learningPathRT), Some("learningpath"), core, true, true, true)
+    generateContexts(resource_9, subject_1, topic_1, List(learningPath), Some("learningpath"), core, true, true, true)
   val resource_10: Node = Node(
     "urn:resource:10",
     learningPath3.title.head.title,
@@ -1562,22 +1552,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
-    List(learningPathRT),
+    List(learningPath),
     List("asdf1251"),
     None,
     List.empty,
   )
-  resource_10.contexts = generateContexts(
-    resource_10,
-    subject_1,
-    topic_3,
-    List(learningPathRT),
-    Some("learningpath"),
-    core,
-    true,
-    true,
-    true,
-  )
+  resource_10.contexts =
+    generateContexts(resource_10, subject_1, topic_3, List(learningPath), Some("learningpath"), core, true, true, true)
   val resource_11: Node = Node(
     "urn:resource:11",
     learningPath4.title.head.title,
@@ -1587,22 +1568,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
-    List(learningPathRT),
+    List(learningPath),
     List("asdf1252"),
     None,
     List.empty,
   )
-  resource_11.contexts = generateContexts(
-    resource_11,
-    subject_1,
-    topic_2,
-    List(learningPathRT),
-    Some("learningpath"),
-    supp,
-    true,
-    true,
-    true,
-  )
+  resource_11.contexts =
+    generateContexts(resource_11, subject_1, topic_2, List(learningPath), Some("learningpath"), supp, true, true, true)
   val resource_12: Node = Node(
     "urn:resource:12",
     learningPath5.title.head.title,
@@ -1612,22 +1584,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
-    List(learningPathRT),
+    List(learningPath),
     List("asdf1253"),
     None,
     List.empty,
   )
-  resource_12.contexts = generateContexts(
-    resource_12,
-    subject_2,
-    topic_4,
-    List(learningPathRT),
-    Some("learningpath"),
-    supp,
-    true,
-    true,
-    true,
-  )
+  resource_12.contexts =
+    generateContexts(resource_12, subject_2, topic_4, List(learningPath), Some("learningpath"), supp, true, true, true)
   val resource_13: Node = Node(
     "urn:resource:13",
     article12.title.head.title,
@@ -1637,7 +1600,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
-    List(subjectMaterialRT),
+    List(subjectMaterial),
     List("asdf1254", "asdf1255"), // asdf1255 is a deleted context
     None,
     List.empty,
@@ -1646,14 +1609,14 @@ object TestData {
     resource_13,
     subject_1,
     topic_1,
-    List(subjectMaterialRT),
+    List(subjectMaterial),
     Some("standard"),
     core,
     true,
     true,
     true,
   ) ++
-    generateContexts(resource_13, subject_2, topic_4, List(subjectMaterialRT), Some("standard"), supp, true, true, true)
+    generateContexts(resource_13, subject_2, topic_4, List(subjectMaterial), Some("standard"), supp, true, true, true)
 
   val nodes: List[Node] = List(
     subject_1,

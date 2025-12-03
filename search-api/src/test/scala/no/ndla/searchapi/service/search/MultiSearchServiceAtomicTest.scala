@@ -21,7 +21,7 @@ import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.SearchTestUtility.*
-import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterialRT}
+import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial}
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment}
@@ -256,7 +256,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         resource_1,
         subject_1,
         topic_2,
-        List(subjectMaterialRT),
+        List(subjectMaterial),
         None,
         core,
         isPrimary = true,
@@ -282,7 +282,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         resource_2,
         subject_1,
         topic_3,
-        List(subjectMaterialRT),
+        List(subjectMaterial),
         None,
         core,
         isPrimary = true,

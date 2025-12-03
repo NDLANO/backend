@@ -487,7 +487,7 @@ class SearchConverterService(using
         .getOrElse(Seq.empty)
     )
 
-    val sortableResourceTypeName = getSortableResourceTypeName(draft, taxonomyContexts)
+    val sortableResourceTypeName = getSortableResourceTypeName(draft, nodes)
 
     val favorited = (
       indexingBundle.myndlaBundle match {
@@ -561,17 +561,14 @@ class SearchConverterService(using
     )
   }
 
-  private def getSortableResourceTypeName(
-      draft: Draft,
-      taxonomyContexts: List[TaxonomyContext],
-  ): SearchableLanguageValues = {
+  private def getSortableResourceTypeName(draft: Draft, nodes: List[Node]): SearchableLanguageValues = {
     draft.articleType match {
-      case ArticleType.Standard => taxonomyContexts
+      case ArticleType.Standard => nodes
           .headOption
-          .flatMap(context => {
-            val typeNames = context.resourceTypes.map(resourceType => resourceType.name)
+          .flatMap(node => {
+            val typeNames = node.resourceTypes.map(resourceType => resourceType.translations)
             Option.when(typeNames.nonEmpty) {
-              SearchableLanguageValues.combine(typeNames)
+              SearchableLanguageValues.fromFields(typeNames.flatten.map(t => LanguageValue(t.language, t.name)))
             }
           })
           .getOrElse(
