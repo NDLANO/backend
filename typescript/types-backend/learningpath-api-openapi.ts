@@ -1220,17 +1220,20 @@ export interface operations {
                 page?: number;
                 /** @description The number of search hits to display for each page. */
                 "page-size"?: number;
-                /** @description The sorting used on results.
+                /**
+                 * @description The sorting used on results.
                  *                  The following are supported: -id, id, -relevance, relevance, -lastUpdated, lastUpdated, -duration, duration, -title, title.
-                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty. */
+                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
+                 */
                 sort?: string;
                 /** @description Fallback to existing language if language is specified. */
                 fallback?: boolean;
-                /** @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
+                /**
+                 * @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
                  *     When scrolling, the parameters from the initial search is used, except in the case of 'language' and 'fallback'.
                  *     This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after 1m).
                  *     If you are not paginating past 10000 hits, you can ignore this and use 'page' and 'page-size' instead.
-                 *      */
+                 */
                 "search-context"?: string;
                 /** @description Return only learning paths that have this verification status. */
                 verificationStatus?: string;

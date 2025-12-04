@@ -54,7 +54,6 @@ export type paths = {
          * Find draft learning resources
          * @description Shows all draft learning resources. You can search too.
          *     Query parameters are undocumented, but are the same as the body for the POST endpoint, except `kebab-case`.
-         *
          */
         get: operations["getSearch-apiV1SearchEditorial"];
         put?: never;
@@ -231,20 +230,25 @@ export type components = {
             subjects?: string[];
             /** @description A list of ISO 639-1 language codes that the learning resource can be available in. */
             languageFilter?: string[];
-            /** @description A list of relevances the learning resources should be filtered by.
+            /**
+             * @description A list of relevances the learning resources should be filtered by.
              *     If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
-             *     If levels are specified the learning resource must have specified relevances in relation to a specified level. */
+             *     If levels are specified the learning resource must have specified relevances in relation to a specified level.
+             */
             relevance?: string[];
-            /** @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ["0", "initial", "start", "first"].
+            /**
+             * @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ["0", "initial", "start", "first"].
              *     When scrolling, the parameters from the initial search is used, except in the case of 'language' and 'fallback'.
              *     This value may change between scrolls. Always use the one in the latest scroll result.
-             *      */
+             */
             scrollId?: string;
             /** @description List of statuses to filter by. A draft only needs to have one of the available statuses to be included in result (OR). */
             draftStatus?: string[];
-            /** @description List of users to filter by.
+            /**
+             * @description List of users to filter by.
              *     The value to search for is the user-id from Auth0.
-             *     UpdatedBy on article and user in editorial-notes are searched. */
+             *     UpdatedBy on article and user in editorial-notes are searched.
+             */
             users?: string[];
             /** @description A list of codes from GREP API the resources should be filtered by. */
             grepCodes?: string[];
@@ -763,10 +767,11 @@ export type components = {
             pageSize?: number;
             /** @description A list of article-types the search should be filtered by. */
             articleTypes?: string[];
-            /** @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ["0", "initial", "start", "first"].
+            /**
+             * @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ["0", "initial", "start", "first"].
              *     When scrolling, the parameters from the initial search is used, except in the case of 'language' and 'fallback'.
              *     This value may change between scrolls. Always use the one in the latest scroll result.
-             *      */
+             */
             scrollId?: string;
             /** @description Return only results with content matching the specified query. */
             query?: string;
@@ -785,9 +790,11 @@ export type components = {
             resourceTypes?: string[];
             /** @description A list of context-types the learning resources should be filtered by. */
             contextTypes?: string[];
-            /** @description A list of relevances the learning resources should be filtered by.
+            /**
+             * @description A list of relevances the learning resources should be filtered by.
              *     If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
-             *     If levels are specified the learning resource must have specified relevances in relation to a specified level. */
+             *     If levels are specified the learning resource must have specified relevances in relation to a specified level.
+             */
             relevance?: string[];
             /** @description A list of ISO 639-1 language codes that the learning resource can be available in. */
             languageFilter?: string[];

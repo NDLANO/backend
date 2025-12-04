@@ -641,10 +641,12 @@ export type components = {
             scrollId?: string;
             /** @description Type of audio to filter by. */
             audioType?: string;
-            /** @description Filter result by whether they are a part of a series or not.
+            /**
+             * @description Filter result by whether they are a part of a series or not.
              *     'true' will return only audios that are a part of a series.
              *     'false' will return only audios that are NOT a part of a series.
-             *     Not specifying will return both audios that are a part of a series and not. */
+             *     Not specifying will return both audios that are a part of a series and not.
+             */
             filterBySeries?: boolean;
             /** @description Return all matched audios whether they exist on selected language or not. */
             fallback?: boolean;
@@ -873,27 +875,34 @@ export interface operations {
                 language?: string;
                 /** @description Return only audio with provided license. */
                 license?: string;
-                /** @description The sorting used on results.
+                /**
+                 * @description The sorting used on results.
                  *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id.
-                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty. */
+                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
+                 */
                 sort?: string;
                 /** @description The page number of the search hits to display. */
                 page?: number;
                 /** @description The number of search hits to display for each page. Defaults to 10 and max is 10000. */
                 "page-size"?: number;
-                /** @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
+                /**
+                 * @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
                  *     When scrolling, the parameters from the initial search is used, except in the case of 'language'.
                  *     This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after 1m).
                  *     If you are not paginating past 10000 hits, you can ignore this and use 'page' and 'page-size' instead.
-                 *      */
+                 */
                 "search-context"?: string;
-                /** @description Only return types of the specified value.
-                 *     Possible values are 'podcast, standard' */
+                /**
+                 * @description Only return types of the specified value.
+                 *     Possible values are 'podcast, standard'
+                 */
                 "audio-type"?: string;
-                /** @description Filter result by whether they are a part of a series or not.
+                /**
+                 * @description Filter result by whether they are a part of a series or not.
                  *     'true' will return only audios that are a part of a series.
                  *     'false' will return only audios that are NOT a part of a series.
-                 *     Not specifying will return both audios that are a part of a series and not. */
+                 *     Not specifying will return both audios that are a part of a series and not.
+                 */
                 "filter-by-series"?: boolean;
                 /** @description Fallback to existing language if language is specified. */
                 fallback?: boolean;
@@ -1418,19 +1427,22 @@ export interface operations {
                 query?: string;
                 /** @description The ISO 639-1 language code describing language. */
                 language?: string;
-                /** @description The sorting used on results.
+                /**
+                 * @description The sorting used on results.
                  *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id.
-                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty. */
+                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
+                 */
                 sort?: string;
                 /** @description The page number of the search hits to display. */
                 page?: number;
                 /** @description The number of search hits to display for each page. Defaults to 10 and max is 10000. */
                 "page-size"?: number;
-                /** @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
+                /**
+                 * @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
                  *     When scrolling, the parameters from the initial search is used, except in the case of 'language'.
                  *     This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after 1m).
                  *     If you are not paginating past 10000 hits, you can ignore this and use 'page' and 'page-size' instead.
-                 *      */
+                 */
                 "search-context"?: string;
                 /** @description Fallback to existing language if language is specified. */
                 fallback?: boolean;
