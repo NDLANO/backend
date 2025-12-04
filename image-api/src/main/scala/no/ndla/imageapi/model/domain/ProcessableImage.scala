@@ -9,11 +9,12 @@
 package no.ndla.imageapi.model.domain
 
 import com.sksamuel.scrimage.ImmutableImage
-import com.sksamuel.scrimage.nio.{ImmutableImageLoader, JpegWriter, PngWriter}
-import com.sksamuel.scrimage.webp.WebpWriter
+import com.sksamuel.scrimage.nio.*
+import com.sksamuel.scrimage.webp.{WebpImageReader, WebpWriter}
 
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
+import scala.jdk.CollectionConverters.*
 import scala.util.{Success, Try}
 
 case class ProcessableImage(image: ImmutableImage, fileName: String, format: ProcessableImageFormat) {
@@ -34,7 +35,8 @@ case class ProcessableImage(image: ImmutableImage, fileName: String, format: Pro
 }
 
 object ProcessableImage {
-  private val loader: ImmutableImageLoader = ImmutableImage.loader()
+  private val readers                      = Seq(new ImageIOReader, new PngReader, new WebpImageReader)
+  private val loader: ImmutableImageLoader = ImmutableImage.loader().withImageReaders(readers.asJava)
 
   def fromStream(imageStream: ImageStream.Processable): Try[ProcessableImage] = for {
     image              <- Try(loader.fromStream(imageStream.stream))
