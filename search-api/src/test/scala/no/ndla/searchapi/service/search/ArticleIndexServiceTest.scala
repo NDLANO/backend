@@ -147,7 +147,7 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
       .get
 
     val searchableFields = searchableToTestWith.asJson
-    val fields           = getFields(searchableFields, None, Seq("domainObject"))
+    val fields           = getFields(searchableFields, None, Seq("domainObject", "nodes"))
     val mapping          = articleIndexService.getMapping
 
     val staticMappingFields  = getMappingFields(mapping.properties, None)

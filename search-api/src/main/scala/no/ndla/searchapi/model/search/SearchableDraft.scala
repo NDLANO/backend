@@ -19,6 +19,7 @@ import no.ndla.common.model.api.search.{
 }
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.{Priority, Responsible, RevisionMeta}
+import no.ndla.common.model.taxonomy.Node
 import no.ndla.search.model.domain.EmbedValues
 
 case class SearchableDraft(
@@ -49,7 +50,6 @@ case class SearchableDraft(
     revisionMeta: List[RevisionMeta],
     nextRevision: Option[RevisionMeta],
     responsible: Option[Responsible],
-    domainObject: Draft,
     priority: Priority,
     defaultParentTopicName: Option[String],
     parentTopicName: SearchableLanguageValues,
@@ -61,6 +61,8 @@ case class SearchableDraft(
     favorited: Long,
     learningResourceType: LearningResourceType,
     typeName: List[String],
+    domainObject: Draft,
+    nodes: List[Node],
 )
 
 object SearchableDraft {

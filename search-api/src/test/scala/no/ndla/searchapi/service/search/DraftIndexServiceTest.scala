@@ -88,7 +88,7 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
       .get
 
     val searchableFields = searchableToTestWith.asJson
-    val fields           = getFields(searchableFields, None, Seq("domainObject"))
+    val fields           = getFields(searchableFields, None, Seq("domainObject", "nodes"))
     val mapping          = draftIndexService.getMapping
 
     val staticMappingFields  = getMappingFields(mapping.properties, None)

@@ -108,6 +108,17 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       revisionMeta = revisionMeta,
       nextRevision = revisionMeta.lastOption,
       responsible = Some(Responsible("some responsible", TestData.today)),
+      priority = Priority.Unspecified,
+      defaultParentTopicName = titles.defaultValue,
+      parentTopicName = titles,
+      defaultRoot = titles.defaultValue,
+      primaryRoot = titles,
+      resourceTypeName = titles,
+      defaultResourceTypeName = titles.defaultValue,
+      published = TestData.today,
+      favorited = 0,
+      learningResourceType = LearningResourceType.Article,
+      typeName = List.empty,
       domainObject = TestData
         .draft1
         .copy(
@@ -121,17 +132,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
             )
           ),
         ),
-      priority = Priority.Unspecified,
-      defaultParentTopicName = titles.defaultValue,
-      parentTopicName = titles,
-      defaultRoot = titles.defaultValue,
-      primaryRoot = titles,
-      resourceTypeName = titles,
-      defaultResourceTypeName = titles.defaultValue,
-      published = TestData.today,
-      favorited = 0,
-      learningResourceType = LearningResourceType.Article,
-      typeName = List.empty,
+      nodes = nodes,
     )
 
     val json         = CirceUtil.toJsonString(original)
