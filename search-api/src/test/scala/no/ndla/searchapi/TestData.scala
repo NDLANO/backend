@@ -480,7 +480,7 @@ object TestData {
       updated = today.minusDays(5),
       published = today.minusDays(5),
       articleType = ArticleType.Standard,
-      traits = List(ArticleTrait.H5p),
+      traits = List(ArticleTrait.Interactive),
     )
 
   val article13: Article = TestData

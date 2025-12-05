@@ -47,7 +47,7 @@ class V62__ComputeSearchTraitsTest extends UnitSuite with TestEnvironment {
            |      "language": "nn"
            |    }
            |  ],
-           |  "traits": ["H5P", "VIDEO"]
+           |  "traits": ["INTERACTIVE", "VIDEO"]
            |}
            |""".stripMargin
     }

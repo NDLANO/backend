@@ -702,15 +702,15 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     ): @unchecked
     search.totalCount should be(1)
     search.summaryResults.head.id should be(12)
-    search.summaryResults.head.traits should be(List(ArticleTrait.H5p))
+    search.summaryResults.head.traits should be(List(ArticleTrait.Interactive))
   }
 
   test("That search can be filtered by traits") {
     val Success(search) =
-      multiSearchService.matchingQuery(searchSettings.copy(traits = List(ArticleTrait.H5p))): @unchecked
+      multiSearchService.matchingQuery(searchSettings.copy(traits = List(ArticleTrait.Interactive))): @unchecked
     search.totalCount should be(1)
     search.summaryResults.head.id should be(12)
-    search.summaryResults.head.traits should be(List(ArticleTrait.H5p))
+    search.summaryResults.head.traits should be(List(ArticleTrait.Interactive))
   }
 
   test("That searches for embed attributes matches") {
