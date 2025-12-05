@@ -878,9 +878,11 @@ export interface operations {
                 fallback?: boolean;
                 /** @description Return only images with provided license. */
                 license?: string;
-                /** @description The sorting used on results.
+                /**
+                 * @description The sorting used on results.
                  *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id.
-                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty. */
+                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
+                 */
                 sort?: string;
                 /** @description The page number of the search hits to display. */
                 page?: number;
@@ -888,11 +890,12 @@ export interface operations {
                 "page-size"?: number;
                 /** @description Filter images that are podcast friendly. Width==heigth and between 1400 and 3000. */
                 "podcast-friendly"?: boolean;
-                /** @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
+                /**
+                 * @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
                  *     When scrolling, the parameters from the initial search is used, except in the case of 'language'.
                  *     This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after 1m).
                  *     If you are not paginating past 10000 hits, you can ignore this and use 'page' and 'page-size' instead.
-                 *      */
+                 */
                 "search-context"?: string;
                 /** @description Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: yes,no,not-applicable,not-set */
                 "model-released"?: string[];
@@ -1021,9 +1024,11 @@ export interface operations {
                 page?: number;
                 /** @description The ISO 639-1 language code describing language. */
                 language?: string;
-                /** @description The sorting used on results.
+                /**
+                 * @description The sorting used on results.
                  *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id.
-                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty. */
+                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
+                 */
                 sort?: string;
             };
             header?: never;
@@ -1441,9 +1446,11 @@ export interface operations {
                  * @description Return copyrighted images. May be omitted.
                  */
                 includeCopyrighted?: boolean;
-                /** @description The sorting used on results.
+                /**
+                 * @description The sorting used on results.
                  *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id.
-                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty. */
+                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
+                 */
                 sort?: string;
                 /** @description The page number of the search hits to display. */
                 page?: number;
@@ -1451,17 +1458,20 @@ export interface operations {
                 "page-size"?: number;
                 /** @description Filter images that are podcast friendly. Width==heigth and between 1400 and 3000. */
                 "podcast-friendly"?: boolean;
-                /** @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
+                /**
+                 * @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
                  *     When scrolling, the parameters from the initial search is used, except in the case of 'language'.
                  *     This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after 1m).
                  *     If you are not paginating past 10000 hits, you can ignore this and use 'page' and 'page-size' instead.
-                 *      */
+                 */
                 "search-context"?: string;
                 /** @description Filter whether the image(s) should be model-released or not. Multiple values can be specified in a comma separated list. Possible values include: yes,no,not-applicable,not-set */
                 "model-released"?: string[];
-                /** @description List of users to filter by.
+                /**
+                 * @description List of users to filter by.
                  *     The value to search for is the user-id from Auth0.
-                 *     UpdatedBy on article and user in editorial-notes are searched. */
+                 *     UpdatedBy on article and user in editorial-notes are searched.
+                 */
                 users?: string[];
                 /** @description Include inactive images */
                 inactive?: boolean;
@@ -1612,9 +1622,11 @@ export interface operations {
                 page?: number;
                 /** @description The ISO 639-1 language code describing language. */
                 language?: string;
-                /** @description The sorting used on results.
+                /**
+                 * @description The sorting used on results.
                  *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id.
-                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty. */
+                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
+                 */
                 sort?: string;
             };
             header?: never;

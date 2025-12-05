@@ -1245,26 +1245,32 @@ export interface operations {
                 page?: number;
                 /** @description The number of search hits to display for each page. */
                 "page-size"?: number;
-                /** @description The sorting used on results.
+                /**
+                 * @description The sorting used on results.
                  *                  The following are supported: ByRelevanceDesc,ByRelevanceAsc,ByTitleDesc,ByTitleAsc,ByLastUpdatedDesc,ByLastUpdatedAsc,ByIdDesc,ByIdAsc,ByResponsibleLastUpdatedDesc,ByResponsibleLastUpdatedAsc,ByStatusAsc,ByStatusDesc,BySubjectAsc,BySubjectDesc,ByConceptTypeAsc,ByConceptTypeDesc
-                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty. */
+                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
+                 */
                 sort?: string;
                 /** @description Fallback to existing language if language is specified. */
                 fallback?: boolean;
-                /** @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
+                /**
+                 * @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
                  *     When scrolling, the parameters from the initial search is used, except in the case of 'language' and 'fallback'.
                  *     This value may change between scrolls. Always use the one in the latest scroll result.
                  *     If you are not paginating very far, you can ignore this and use 'page' and 'page-size' instead.
-                 *      */
+                 */
                 "search-context"?: string;
                 /** @description A comma-separated list of tags to filter the search by. */
                 tags?: string[];
-                /** @description List of statuses to filter by.
+                /**
+                 * @description List of statuses to filter by.
                  *     A draft only needs to have one of the available statuses to appear in result (OR).
-                 *             */
+                 */
                 status?: string[];
-                /** @description List of users to filter by.
-                 *     The value to search for is the user-id from Auth0. */
+                /**
+                 * @description List of users to filter by.
+                 *     The value to search for is the user-id from Auth0.
+                 */
                 users?: string[];
                 /** @description Return concepts with matching embed type. */
                 "embed-resource"?: string[];
@@ -1494,17 +1500,20 @@ export interface operations {
                 page?: number;
                 /** @description The number of search hits to display for each page. */
                 "page-size"?: number;
-                /** @description The sorting used on results.
+                /**
+                 * @description The sorting used on results.
                  *                  The following are supported: ByRelevanceDesc,ByRelevanceAsc,ByTitleDesc,ByTitleAsc,ByLastUpdatedDesc,ByLastUpdatedAsc,ByIdDesc,ByIdAsc,ByResponsibleLastUpdatedDesc,ByResponsibleLastUpdatedAsc,ByStatusAsc,ByStatusDesc,BySubjectAsc,BySubjectDesc,ByConceptTypeAsc,ByConceptTypeDesc
-                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty. */
+                 *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
+                 */
                 sort?: string;
                 /** @description Fallback to existing language if language is specified. */
                 fallback?: boolean;
-                /** @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
+                /**
+                 * @description A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: [0,initial,start,first].
                  *     When scrolling, the parameters from the initial search is used, except in the case of 'language' and 'fallback'.
                  *     This value may change between scrolls. Always use the one in the latest scroll result.
                  *     If you are not paginating very far, you can ignore this and use 'page' and 'page-size' instead.
-                 *      */
+                 */
                 "search-context"?: string;
                 /** @description A comma-separated list of tags to filter the search by. */
                 tags?: string[];
