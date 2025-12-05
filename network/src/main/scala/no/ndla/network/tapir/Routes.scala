@@ -178,6 +178,7 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
           }
 
           MDC.put("reqLatencyMs", s"$latency")
+          MDC.put("statusCode", code.toString)
 
           val s = RequestLogger.afterRequestLogString(
             method = req.method.toString(),
