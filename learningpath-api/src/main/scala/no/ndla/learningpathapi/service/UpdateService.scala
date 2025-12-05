@@ -65,11 +65,6 @@ class UpdateService(using
 
   def insertDump(dump: learningpath.LearningPath): learningpath.LearningPath = learningPathRepository.insert(dump)
 
-  private[service] def writeDuringWriteRestrictionOrAccessDenied[T](owner: CombinedUser)(w: => Try[T]): Try[T] = for {
-    canWrite <- readService.canWriteNow(owner)
-    result   <- writeOrAccessDenied(canWrite, "You do not have write access while write restriction is active.")(w)
-  } yield result
-
   private[service] def writeOrAccessDenied[T](
       willExecute: Boolean,
       reason: String = "You do not have permission to perform this action.",
@@ -81,7 +76,7 @@ class UpdateService(using
       id: Long,
       newLearningPath: NewCopyLearningPathV2DTO,
       owner: CombinedUser,
-  ): Try[LearningPathV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+  ): Try[LearningPathV2DTO] = writeOrAccessDenied(owner.canWrite) {
     learningPathRepository.withId(id).map(_.isOwnerOrPublic(owner)) match {
       case None                    => Failure(NotFoundException("Could not find learningpath to copy."))
       case Some(Failure(ex))       => Failure(ex)
@@ -95,7 +90,7 @@ class UpdateService(using
   }
 
   def addLearningPathV2(newLearningPath: NewLearningPathV2DTO, owner: CombinedUser): Try[LearningPathV2DTO] =
-    writeDuringWriteRestrictionOrAccessDenied(owner) {
+    writeOrAccessDenied(owner.canWrite) {
       for {
         learningPath <- converterService.newLearningPath(newLearningPath, owner)
         validated    <- learningPathValidator.validate(learningPath)
@@ -108,7 +103,7 @@ class UpdateService(using
       id: Long,
       learningPathToUpdate: UpdatedLearningPathV2DTO,
       owner: CombinedUser,
-  ): Try[LearningPathV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+  ): Try[LearningPathV2DTO] = writeOrAccessDenied(owner.canWrite) {
     for {
       existing        <- withId(id).flatMap(_.canEditLearningPath(owner))
       validatedUpdate <- learningPathValidator.validate(learningPathToUpdate, existing)
@@ -128,7 +123,7 @@ class UpdateService(using
       language: String,
       owner: CombinedUserRequired,
   ): Try[LearningPathV2DTO] = dBUtility.rollbackOnFailure { implicit session =>
-    writeDuringWriteRestrictionOrAccessDenied(owner) {
+    writeOrAccessDenied(owner.canWrite) {
       for {
         learningPath <- withId(learningPathId).flatMap(_.canEditLearningPath(owner))
         updatedSteps <- learningPath
@@ -155,7 +150,7 @@ class UpdateService(using
       language: String,
       owner: CombinedUserRequired,
   ): Try[LearningStepV2DTO] = dBUtility.rollbackOnFailure { implicit session =>
-    writeDuringWriteRestrictionOrAccessDenied(owner) {
+    writeOrAccessDenied(owner.canWrite) {
       for {
         learningPath <- withId(learningPathId).flatMap(_.canEditLearningPath(owner))
         learningStep <- learningPathRepository
@@ -205,7 +200,7 @@ class UpdateService(using
       owner: CombinedUserRequired,
       language: String,
       message: Option[String] = None,
-  ): Try[LearningPathV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+  ): Try[LearningPathV2DTO] = writeOrAccessDenied(owner.canWrite) {
     withId(learningPathId, includeDeleted = true)
       .flatMap(_.canSetStatus(status, owner))
       .flatMap { existing =>
@@ -253,7 +248,7 @@ class UpdateService(using
       learningPathId: Long,
       newLearningStep: NewLearningStepV2DTO,
       owner: CombinedUserRequired,
-  ): Try[LearningStepV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+  ): Try[LearningStepV2DTO] = writeOrAccessDenied(owner.canWrite) {
     optimisticLockRetries(10) {
       withId(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
         case Failure(ex)           => Failure(ex)
@@ -293,7 +288,7 @@ class UpdateService(using
       learningStepId: Long,
       learningStepToUpdate: UpdatedLearningStepV2DTO,
       owner: CombinedUserRequired,
-  ): Try[LearningStepV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+  ): Try[LearningStepV2DTO] = writeOrAccessDenied(owner.canWrite) {
     permitTry {
       boundary {
         withId(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
@@ -379,7 +374,7 @@ class UpdateService(using
       learningStepId: Long,
       newStatus: StepStatus,
       owner: CombinedUserRequired,
-  ): Try[LearningStepV2DTO] = writeDuringWriteRestrictionOrAccessDenied(owner) {
+  ): Try[LearningStepV2DTO] = writeOrAccessDenied(owner.canWrite) {
     boundary {
 
       withId(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
@@ -418,7 +413,7 @@ class UpdateService(using
       seqNo: Int,
       owner: CombinedUser,
   ): Try[LearningStepSeqNoDTO] = {
-    writeDuringWriteRestrictionOrAccessDenied(owner) {
+    writeOrAccessDenied(owner.canWrite) {
       optimisticLockRetries(10) {
         withId(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
           case Failure(ex)           => Failure(ex)

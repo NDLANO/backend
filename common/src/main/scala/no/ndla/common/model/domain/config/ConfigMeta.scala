@@ -75,8 +75,7 @@ case class ConfigMeta(key: ConfigKey, value: ConfigMetaValue, updatedAt: NDLADat
   }
 
   def validate: Try[ConfigMeta] = key match {
-    case ConfigKey.LearningpathWriteRestricted => validateBooleanKey(ConfigKey.LearningpathWriteRestricted)
-    case ConfigKey.MyNDLAWriteRestricted       => validateBooleanKey(ConfigKey.MyNDLAWriteRestricted)
+    case ConfigKey.MyNDLAWriteRestricted => validateBooleanKey(ConfigKey.MyNDLAWriteRestricted)
   }
 }
 

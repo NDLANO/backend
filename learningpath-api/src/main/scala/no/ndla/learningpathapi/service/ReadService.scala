@@ -18,17 +18,12 @@ import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.domain.UserInfo.LearningpathCombinedUser
 import no.ndla.learningpathapi.model.domain.InvalidLpStatusException
 import no.ndla.learningpathapi.repository.LearningPathRepository
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.model.{CombinedUser, CombinedUserRequired}
 
 import scala.math.max
 import scala.util.{Failure, Success, Try}
 
-class ReadService(using
-    learningPathRepository: LearningPathRepository,
-    converterService: ConverterService,
-    myNDLAApiClient: MyNDLAApiClient,
-) {
+class ReadService(using learningPathRepository: LearningPathRepository, converterService: ConverterService) {
   def tags: List[LearningPathTagsDTO] = {
     learningPathRepository.allPublishedTags.map(tags => LearningPathTagsDTO(tags.tags, tags.language))
   }
@@ -179,9 +174,5 @@ class ReadService(using
     } else {
       Failure(AccessDeniedException("You do not have access to this resource."))
     }
-  }
-
-  def canWriteNow(userInfo: CombinedUser): Try[Boolean] = {
-    myNDLAApiClient.isWriteRestricted.map(isRestricted => userInfo.canWriteDuringWriteRestriction || !isRestricted)
   }
 }
