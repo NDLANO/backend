@@ -37,10 +37,15 @@ object SharedContainerManager {
   sys.props.update("TESTCONTAINERS_RYUK_DISABLED", "true")
   ensureReuseConfig()
 
+  private val removeContainersOnRelease =
+    sys.env.get("NDLA_TESTCONTAINERS_REMOVE").exists(_.equalsIgnoreCase("true"))
+  private val shutdownHookRegistered = new AtomicBoolean(false)
+
   private val dockerClient = DockerClientFactory.instance().client()
   private val baseDir: Path = Paths.get(sys.props.getOrElse("java.io.tmpdir", "/tmp"), "ndla-testcontainers")
   Files.createDirectories(baseDir)
   ensureReuseConfig()
+  if (removeContainersOnRelease) registerShutdownHook()
 
   case class Managed[C](container: C, release: () => Unit)
 
@@ -72,7 +77,7 @@ object SharedContainerManager {
           incrementCounter("postgres"): Unit
           r
         }
-        managedPostgresContainer(runtime, username, password, databaseName, usageLock)
+        managedPostgresContainer(runtime, username, password, databaseName, schemaName, usageLock)
       } catch {
         case t: Throwable =>
           usageLock.release()
@@ -107,14 +112,17 @@ object SharedContainerManager {
       username: String,
       password: String,
       databaseName: String,
+      schemaName: String,
       usageLock: UsageLock
   ): Managed[PostgreSQLContainer] = {
     val released  = new AtomicBoolean(false)
     lazy val release: () => Unit = () =>
       if (released.compareAndSet(false, true)) {
         withLock("postgres") {
-          val _ = decrementCounter("postgres")
-          ()
+          val remaining = decrementCounter("postgres")
+          if (remaining == 0) {
+            Try(resetPostgresSchema(runtime, username, password, databaseName, schemaName)).getOrElse(())
+          }
         }
         usageLock.release()
       }
@@ -128,8 +136,10 @@ object SharedContainerManager {
     lazy val release: () => Unit = () =>
       if (released.compareAndSet(false, true)) {
         withLock("elasticsearch") {
-          val _ = decrementCounter("elasticsearch")
-          ()
+          val remaining = decrementCounter("elasticsearch")
+          if (remaining == 0) {
+            Try(clearElasticsearch(runtime)).getOrElse(())
+          }
         }
         usageLock.release()
       }
@@ -152,7 +162,7 @@ object SharedContainerManager {
         waitForPort(runtimeFromInspect(inspected, 5432))
         runtimeFromInspect(dockerClient.inspectContainerCmd(inspected.getId).exec(), 5432)
       case Some(_) =>
-        stopAndRemoveContainer(postgresName)
+        stopAndRemoveContainer(postgresName, "postgres")
         startPostgres(expectedImage, username, password, databaseName)
       case None =>
         startPostgres(expectedImage, username, password, databaseName)
@@ -172,7 +182,7 @@ object SharedContainerManager {
         waitForPort(runtimeFromInspect(inspected, 9200))
         runtimeFromInspect(dockerClient.inspectContainerCmd(inspected.getId).exec(), 9200)
       case Some(_) =>
-        stopAndRemoveContainer(elasticsearchName)
+        stopAndRemoveContainer(elasticsearchName, "elasticsearch")
         startElasticsearch(expectedImage)
       case None =>
         startElasticsearch(expectedImage)
@@ -186,8 +196,10 @@ object SharedContainerManager {
       databaseName: String
   ): ContainerRuntime = {
     val container = PgContainer(image.stripPrefix("postgres:"), username, password, databaseName)
-    container.withCreateContainerCmdModifier(_.withName(postgresName))
-    ()
+    container.withCreateContainerCmdModifier { cmd =>
+      cmd.withName(postgresName)
+      ()
+    }
     container.withReuse(true)
     container.start()
     runtimeFromContainer(container, 5432)
@@ -204,8 +216,10 @@ object SharedContainerManager {
     container.addEnv("xpack.security.enabled", "false")
     container.addEnv("ES_JAVA_OPTS", "-Xms1g -Xmx1g")
     container.addEnv("discovery.type", "single-node")
-    container.withCreateContainerCmdModifier(_.withName(elasticsearchName))
-    ()
+    container.withCreateContainerCmdModifier { cmd =>
+      cmd.withName(elasticsearchName)
+      ()
+    }
     container.withReuse(true)
     container.start()
     runtimeFromContainer(container, 9200)
@@ -244,12 +258,14 @@ object SharedContainerManager {
     containers.headOption.map(c => dockerClient.inspectContainerCmd(c.getId).exec())
   }
 
-  private def stopAndRemoveContainer(name: String): Unit =
-    findContainer(name).foreach { inspected =>
+  private def stopAndRemoveContainer(containerName: String, counterName: String): Unit = {
+    findContainer(containerName).foreach { inspected =>
       val _ = Try(dockerClient.stopContainerCmd(inspected.getId).exec()).getOrElse(())
       val _ = Try(dockerClient.removeContainerCmd(inspected.getId).withRemoveVolumes(true).exec()).getOrElse(())
     }
-    updateCounter(name, 0 - currentCounter(name)): Unit
+    val _ = updateCounter(counterName, 0 - currentCounter(counterName))
+    ()
+  }
 
   private def clearElasticsearch(runtime: ContainerRuntime): Unit = {
     val client = HttpClient.newHttpClient()
@@ -323,6 +339,16 @@ object SharedContainerManager {
     UsageLock(channel, lock)
   }
 
+  private def tryAcquireUsageLock(name: String): Option[UsageLock] = {
+    val lockFile = baseDir.resolve(s"$name.usage.lock")
+    val channel  = FileChannel.open(lockFile, CREATE, WRITE)
+    val lock     = channel.tryLock()
+    if (lock == null) {
+      channel.close()
+      None
+    } else Some(UsageLock(channel, lock))
+  }
+
   private def ensureReuseConfig(): Unit = {
     val configPath = Paths.get(sys.props("user.home"), ".testcontainers.properties")
     val content    = "testcontainers.reuse.enable=true\n"
@@ -348,6 +374,31 @@ object SharedContainerManager {
     if (Files.exists(counterFile))
       Try(Files.readString(counterFile, StandardCharsets.UTF_8).trim.toInt).getOrElse(0)
     else 0
+  }
+
+  private def registerShutdownHook(): Unit =
+    if (shutdownHookRegistered.compareAndSet(false, true)) {
+      Runtime.getRuntime.addShutdownHook(new Thread(() => forceCleanupIfIdle()))
+    }
+
+  private def forceCleanupIfIdle(): Unit = {
+    if (!removeContainersOnRelease) return
+    forceCleanupIfPossible("postgres", postgresName)
+    forceCleanupIfPossible("elasticsearch", elasticsearchName)
+  }
+
+  private def forceCleanupIfPossible(counterName: String, containerName: String): Unit = {
+    if (currentCounter(counterName) == 0) {
+      tryAcquireUsageLock(counterName) match {
+        case Some(usageLock) =>
+          try {
+            withLock(counterName) {
+              stopAndRemoveContainer(containerName, counterName)
+            }
+          } finally usageLock.release()
+        case None => ()
+      }
+    }
   }
 }
 
