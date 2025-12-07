@@ -37,8 +37,11 @@ object SharedContainerManager {
   sys.props.update("TESTCONTAINERS_RYUK_DISABLED", "true")
   ensureReuseConfig()
 
-  private val removeContainersOnRelease =
-    sys.env.get("NDLA_TESTCONTAINERS_REMOVE").exists(_.equalsIgnoreCase("true"))
+  private val stickyContainers =
+    sys.env.get("NDLA_TESTCONTAINERS_STICKY").exists(_.equalsIgnoreCase("true"))
+  private val removeOverride = sys.env.get("NDLA_TESTCONTAINERS_REMOVE").map(_.equalsIgnoreCase("true"))
+  // Default: clean up containers when they are no longer used. Set NDLA_TESTCONTAINERS_STICKY=true to keep them.
+  private val removeContainersOnRelease = removeOverride.getOrElse(!stickyContainers)
   private val shutdownHookRegistered = new AtomicBoolean(false)
 
   private val dockerClient = DockerClientFactory.instance().client()
