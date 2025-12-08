@@ -551,8 +551,9 @@ class WriteService(using
     }.flatten
   }
 
-  /** Generate and upload image variants for `image`. Returns an [[Either]] with a [[Left]] value if one of the uploads
-    * failed (containing the errors encountered), otherwise a [[Right]] value with all uploaded variants.
+  /** Generate and upload image variants for `image` asynchronously. If any exceptions occur during generation/uploading
+    * of the variants, they will be returned in a `Failure`. Otherwise, a `Success` containing the uploaded variants
+    * will be returned.
     */
   private def generateAndUploadVariantsAsync(
       image: ImmutableImage,
@@ -576,7 +577,6 @@ class WriteService(using
             imageVariant <- imageStorage
               .uploadFromStream(bucketKey, stream, imageBytes.length, "image/webp")
               .map(_ => ImageVariant(variantSize, bucketKey))
-            _ <- Try(stream.close())
           } yield imageVariant
         }
       }
