@@ -108,7 +108,8 @@ class RawController(using
       case Failure(ex: ValidationException) => Failure(ex)
       case Failure(ex)                      =>
         logger.error(s"Could not crop or resize image '$imageName'", ex)
-        Failure(ex)
+        // Return image unmodified if reading/cropping/resizing fails
+        imageStorage.get(imageName)
     }
   }
 

@@ -15,7 +15,7 @@ import com.sksamuel.scrimage.webp.{WebpImageReader, WebpWriter}
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import scala.jdk.CollectionConverters.*
-import scala.util.{Success, Try}
+import scala.util.{Success, Try, Using}
 
 case class ProcessableImage(image: ImmutableImage, fileName: String, format: ProcessableImageFormat) {
   def toProcessableImageStream: Try[ImageStream.Processable] = {
@@ -38,10 +38,12 @@ object ProcessableImage {
   private val readers                      = Seq(new ImageIOReader, new PngReader, new WebpImageReader)
   private val loader: ImmutableImageLoader = ImmutableImage.loader().withImageReaders(readers.asJava)
 
-  def fromStream(imageStream: ImageStream.Processable): Try[ProcessableImage] = for {
-    image              <- Try(loader.fromStream(imageStream.stream))
-    imageWithFixedType <- fixImageUnderlyingType(image)
-  } yield ProcessableImage(imageWithFixedType, imageStream.fileName, imageStream.format)
+  def fromStream(stream: ImageStream.Processable): Try[ProcessableImage] = Using(stream) { imageStream =>
+    for {
+      image              <- Try(loader.fromStream(imageStream.stream))
+      imageWithFixedType <- fixImageUnderlyingType(image)
+    } yield ProcessableImage(imageWithFixedType, imageStream.fileName, imageStream.format)
+  }.flatten
 }
 
 // Due to a bug in Scrimage, 16-bit grayscale images must be converted to e.g., 8-bit RGBA

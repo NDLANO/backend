@@ -19,7 +19,7 @@ case class UploadedFile(
     contentType: Option[String],
     file: File,
 ) {
-  def stream: InputStream = new FileInputStream(file)
+  def createStream(): InputStream = new FileInputStream(file)
 }
 
 object UploadedFile {

@@ -82,7 +82,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   override def beforeEach(): Unit = {
     when(fileMock1.contentType).thenReturn(Some("image/jpeg"))
     val imageStream = TestData.ndlaLogoImageStream
-    when(fileMock1.stream).thenReturn(imageStream.stream)
+    when(fileMock1.createStream()).thenReturn(imageStream.stream)
     when(fileMock1.fileSize).thenReturn(imageStream.contentLength)
     when(fileMock1.fileName).thenReturn(Some("file.jpg"))
     when(random.string(any)).thenCallRealMethod()
