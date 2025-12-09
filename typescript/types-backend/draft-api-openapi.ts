@@ -761,7 +761,7 @@ export type components = {
          * ArticleTrait
          * @enum {string}
          */
-        ArticleTrait: "VIDEO" | "AUDIO" | "PODCAST" | "INTERACTIVE";
+        ArticleTrait: "AUDIO" | "H5P" | "INTERACTIVE" | "PODCAST" | "VIDEO";
         /**
          * AuthorDTO
          * @description Information about an author

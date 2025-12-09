@@ -166,7 +166,7 @@ export type components = {
          * ArticleTrait
          * @enum {string}
          */
-        ArticleTrait: "VIDEO" | "AUDIO" | "PODCAST" | "INTERACTIVE";
+        ArticleTrait: "AUDIO" | "H5P" | "INTERACTIVE" | "PODCAST" | "VIDEO";
         /**
          * CommentDTO
          * @description Information about a comment attached to an article
