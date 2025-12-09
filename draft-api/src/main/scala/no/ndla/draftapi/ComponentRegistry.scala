@@ -87,6 +87,7 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
     new V66__SetHideBylineForImagesNotCopyrighted,
     new V76__ComputeSearchTraits,
     new V78__SetResourceTypeFromTaxonomyAsTag,
+    new V81__ComputeSearchTraitsAgain,
   )
 
   implicit lazy val swagger: SwaggerController = new SwaggerController(

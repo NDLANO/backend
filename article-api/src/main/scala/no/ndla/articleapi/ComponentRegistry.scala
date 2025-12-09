@@ -19,6 +19,7 @@ import no.ndla.articleapi.db.migrationwithdependencies.{
   V55__SetHideBylineForImagesNotCopyrighted,
   V62__ComputeSearchTraits,
   V64__SetResourceTypeFromTaxonomyAsTag,
+  V67__ComputeSearchTraitsAgain,
   V8__CopyrightFormatUpdated,
   V9__TranslateUntranslatedAuthors,
 }
@@ -88,6 +89,7 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
     new V55__SetHideBylineForImagesNotCopyrighted(props),
     new V62__ComputeSearchTraits,
     new V64__SetResourceTypeFromTaxonomyAsTag,
+    new V67__ComputeSearchTraitsAgain,
   )
 
   given swagger: SwaggerController = new SwaggerController(

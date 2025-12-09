@@ -10,7 +10,7 @@ package no.ndla.articleapi.db.migrationwithdependencies
 
 import no.ndla.common.util.TraitUtil
 
-class V65__ComputeSearchTraitsAgain(using TraitUtil) extends V62__ComputeSearchTraits {
+class V67__ComputeSearchTraitsAgain(using TraitUtil) extends V62__ComputeSearchTraits {
   override def convertColumn(value: String): String = {
     super.convertColumn(value)
   }
