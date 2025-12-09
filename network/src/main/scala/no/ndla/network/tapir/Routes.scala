@@ -216,6 +216,7 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
       .prependInterceptor(TapirMiddleware.before)
       .prependInterceptor(RequestInterceptor.transformResultEffect(new TapirMiddleware.after))
       .options
+      .copy(interruptServerLogicWhenRequestCancelled = false)
 
     val config = NettyConfig
       .default
@@ -241,8 +242,8 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
     }
   }
 
-  private val registry: PrometheusRegistry = new PrometheusRegistry()
-  private val metricLabels: MetricLabels   = MetricLabels(
+  private[tapir] val registry: PrometheusRegistry = new PrometheusRegistry()
+  private val metricLabels: MetricLabels          = MetricLabels(
     forRequest = List(
       "path" -> { case (ep, _) =>
         ep.showPathTemplate(showQueryParam = None)
@@ -254,7 +255,9 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
     forResponse = List(
       "status" -> {
         case Right(r) => Some(r.code.code.toString)
-        case Left(_)  => Some("5xx")
+        case Left(ex: RuntimeException)
+            if ex.getMessage == "Client disconnected, request timed out, or request cancelled" => Some("499")
+        case Left(_) => Some("5xx")
       }
     ),
   )
