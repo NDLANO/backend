@@ -17,10 +17,11 @@ sealed abstract class ArticleTrait(override val entryName: String) extends EnumE
   override def toString: String = entryName
 }
 object ArticleTrait extends Enum[ArticleTrait] with CirceEnumWithErrors[ArticleTrait] {
-  case object Video       extends ArticleTrait("VIDEO")
   case object Audio       extends ArticleTrait("AUDIO")
-  case object Podcast     extends ArticleTrait("PODCAST")
+  case object H5p         extends ArticleTrait("H5P")
   case object Interactive extends ArticleTrait("INTERACTIVE")
+  case object Podcast     extends ArticleTrait("PODCAST")
+  case object Video       extends ArticleTrait("VIDEO")
 
   def all: List[String]                         = ArticleTrait.values.map(_.toString).toList
   override def values: IndexedSeq[ArticleTrait] = findValues
