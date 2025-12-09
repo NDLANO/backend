@@ -134,6 +134,7 @@ class SearchConverterService(using
         isPrimary = context.isPrimary,
         isActive = context.isActive,
         isVisible = context.isVisible,
+        isArchived = context.isArchived,
         url = context.url,
       )
     )

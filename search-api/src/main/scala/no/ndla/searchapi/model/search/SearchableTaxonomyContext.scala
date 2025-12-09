@@ -27,6 +27,7 @@ case class SearchableTaxonomyContext(
     isPrimary: Boolean,
     isActive: Boolean,
     isVisible: Boolean,
+    isArchived: Boolean,
     url: String,
 )
 

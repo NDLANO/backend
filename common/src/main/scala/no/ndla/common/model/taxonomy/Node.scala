@@ -78,6 +78,7 @@ case class TaxonomyContext(
     contextId: String,
     isVisible: Boolean,
     isActive: Boolean,
+    isArchived: Boolean,
     url: String,
 )
 

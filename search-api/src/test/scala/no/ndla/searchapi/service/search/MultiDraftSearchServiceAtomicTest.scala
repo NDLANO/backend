@@ -491,6 +491,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       contextId = "",
       isVisible = true,
       isActive = true,
+      isArchived = false,
       url = "/f/matte/asdf1256",
     )
     val subject_1 = Node(

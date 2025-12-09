@@ -1160,11 +1160,11 @@ object TestData {
           contextId = Random.alphanumeric.take(12).mkString,
           isVisible = parent.metadata.map(m => m.visible && isVisible).getOrElse(isVisible),
           isActive = isActive,
+          isArchived = false,
           url = path,
         )
       })
   }
-
   val context_1: TaxonomyContext = TaxonomyContext(
     publicId = "urn:subject:1",
     rootId = "urn:subject:1",
@@ -1180,6 +1180,7 @@ object TestData {
     contextId = "asdf1234",
     isVisible = true,
     isActive = true,
+    isArchived = false,
     url = "/f/matte/asdf1234",
   )
   val subject_1: Node = Node(
@@ -1210,6 +1211,7 @@ object TestData {
     contextId = "asdf1235",
     isVisible = true,
     isActive = true,
+    isArchived = false,
     url = "/f/historie/asdf1235",
   )
   val subject_2: Node = Node(
@@ -1240,6 +1242,7 @@ object TestData {
     contextId = "asdf1236",
     isVisible = false,
     isActive = true,
+    isArchived = false,
     url = "/f/religion/asdf1236",
   )
   val subject_3: Node = Node(
@@ -1781,19 +1784,6 @@ object TestData {
   )
 
   val singleSearchableTaxonomyContext: SearchableTaxonomyContext = SearchableTaxonomyContext(
-    publicId = "urn:resource:101",
-    contextId = "contextId",
-    rootId = "urn:subject:1",
-    path = "/subject:3/topic:1/topic:151/resource:101",
-    breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq("Matte", "Østen for solen", "Vesten for månen")))),
-    contextType = LearningResourceType.Article.toString,
-    relevanceId = "urn:relevance:core",
-    resourceTypeIds = searchableResourceTypes.map(_.id),
-    parentIds = List("urn:topic:1"),
-    isPrimary = true,
-    isActive = true,
-    isVisible = true,
-    url = "/subject:3/topic:1/topic:151/resource:101",
     domainObject = TaxonomyContext(
       publicId = "urn:resource:101",
       rootId = "urn:subject:1",
@@ -1812,8 +1802,23 @@ object TestData {
       contextId = Random.alphanumeric.take(12).mkString,
       isVisible = true,
       isActive = true,
+      isArchived = false,
       url = "/subject:3/topic:1/topic:151/resource:101",
     ),
+    publicId = "urn:resource:101",
+    contextId = "contextId",
+    rootId = "urn:subject:1",
+    path = "/subject:3/topic:1/topic:151/resource:101",
+    breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq("Matte", "Østen for solen", "Vesten for månen")))),
+    contextType = LearningResourceType.Article.toString,
+    relevanceId = "urn:relevance:core",
+    resourceTypeIds = searchableResourceTypes.map(_.id),
+    parentIds = List("urn:topic:1"),
+    isPrimary = true,
+    isActive = true,
+    isVisible = true,
+    isArchived = false,
+    url = "/subject:3/topic:1/topic:151/resource:101",
   )
 
   val searchableTaxonomyContexts: List[SearchableTaxonomyContext] = List(singleSearchableTaxonomyContext)
