@@ -161,11 +161,16 @@ class SearchConverterService(using
     }
   }
 
-  private def getNodes(resourceType: String, id: Long, indexingBundle: IndexingBundle): Try[List[Node]] = {
+  private def getNodes(
+      resourceType: String,
+      id: Long,
+      indexingBundle: IndexingBundle,
+      shouldUsePublishedTax: Boolean,
+  ) = {
     indexingBundle.taxonomyBundle match {
       case Some(bundle) => Success(bundle.nodeByContentUri.getOrElse(s"urn:$resourceType:$id", List.empty).distinct)
       case None         => taxonomyApiClient
-          .getTaxonomyBundleForContentUris(Seq(s"urn:$resourceType:$id"), shouldUsePublishedTax = true)
+          .getTaxonomyBundleForContentUris(Seq(s"urn:$resourceType:$id"), shouldUsePublishedTax)
           .map {
             _.nodes
           }
@@ -174,7 +179,7 @@ class SearchConverterService(using
 
   def asSearchableArticle(ai: Article, indexingBundle: IndexingBundle): Try[SearchableArticle] = {
     val articleId        = ai.id.get
-    val nodes            = getNodes("article", articleId, indexingBundle).getOrElse(List.empty)
+    val nodes            = getNodes("article", articleId, indexingBundle, true).getOrElse(List.empty)
     val taxonomyContexts = nodes.flatMap(_.contexts).filter(ctx => ctx.isVisible)
 
     val embedAttributes      = getAttributesToIndex(ai.content, ai.visualElement)
@@ -284,7 +289,7 @@ class SearchConverterService(using
   def asSearchableLearningPath(lp: LearningPath, indexingBundle: IndexingBundle): Try[SearchableLearningPath] =
     permitTry {
       val learningPathId   = lp.id.get
-      val nodes            = getNodes("learningpath", learningPathId, indexingBundle).getOrElse(List.empty)
+      val nodes            = getNodes("learningpath", learningPathId, indexingBundle, true).getOrElse(List.empty)
       val taxonomyContexts = nodes.flatMap(_.contexts).filter(ctx => ctx.isVisible)
       val favorited        = getFavoritedCountFor(indexingBundle, lp.id.get.toString, List(MyNDLAResourceType.Learningpath)).?
 
@@ -442,7 +447,7 @@ class SearchConverterService(using
 
   def asSearchableDraft(draft: Draft, indexingBundle: IndexingBundle): Try[SearchableDraft] = permitTry {
     val draftId          = draft.id.get
-    val nodes            = getNodes("article", draftId, indexingBundle).getOrElse(List.empty)
+    val nodes            = getNodes("article", draftId, indexingBundle, false).getOrElse(List.empty)
     val taxonomyContexts = nodes.flatMap(_.contexts)
 
     val embedAttributes      = getAttributesToIndex(draft.content, draft.visualElement)
