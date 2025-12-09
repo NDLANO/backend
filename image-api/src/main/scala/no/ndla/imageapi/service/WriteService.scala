@@ -523,15 +523,16 @@ class WriteService(using
       case Failure(ex)                                => return Failure(ex)
     }
 
-    // Since a stream cannot be read from twice, we need to create a new stream for uploading the original image.
-    // At this point we know that the image is processable, so we can safely create a new processable ImageStream.
-    val originalImageStream = ImageStream.Processable(file.stream, fileName, file.fileSize, processableStream.format)
-    val processableImage    = ProcessableImage.fromStream(processableStream) match {
+    val processableImage = ProcessableImage.fromStream(processableStream) match {
       case Success(image) => image
       case Failure(ex)    => return Failure(ex)
     }
     val image      = processableImage.image
     val dimensions = ImageDimensions(image.width, image.height)
+    // Since a stream cannot be read from twice, we need to create a new stream for uploading the original image.
+    // At this point we know that the image is processable, so we can safely create a new processable ImageStream.
+    val originalImageStream =
+      ImageStream.Processable(file.createStream(), fileName, file.fileSize, processableStream.format)
 
     Using(ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(ImageVariantSize.values.size))) {
       case given ExecutionContext =>

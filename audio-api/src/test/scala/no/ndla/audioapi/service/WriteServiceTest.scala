@@ -112,7 +112,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(filePartMock.fileName).thenReturn(Some("test.mp3"))
     when(filePartMock.contentType).thenReturn(Some("audio/mp3"))
     val fis = mock[FileInputStream]
-    when(filePartMock.stream).thenReturn(fis)
+    when(filePartMock.createStream()).thenReturn(fis)
 
     when(s3ObjectMock.contentLength()).thenReturn(1024L)
     when(s3ObjectMock.contentType()).thenReturn("audio/mp3")

@@ -52,7 +52,7 @@ class ImageConverter(using props: Props) extends StrictLogging {
     inputStreamToImageStream(s3Object.stream, s3Object.key, s3Object.contentLength, s3Object.contentType)
 
   def uploadedFileToImageStream(file: UploadedFile, fileName: String): Try[ImageStream] =
-    inputStreamToImageStream(file.stream, fileName, file.fileSize, file.contentType.getOrElse(""))
+    inputStreamToImageStream(file.createStream(), fileName, file.fileSize, file.contentType.getOrElse(""))
 
   private def inputStreamToImageStream(
       inputStream: InputStream,
