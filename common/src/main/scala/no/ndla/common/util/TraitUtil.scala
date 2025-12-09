@@ -11,7 +11,7 @@ package no.ndla.common.util
 import cats.syntax.option.catsSyntaxOptionId
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.api.search.ArticleTrait
-import no.ndla.common.model.api.search.ArticleTrait.{Audio, H5p, Podcast, Video}
+import no.ndla.common.model.api.search.ArticleTrait.{Audio, Interactive, Podcast, Video}
 import no.ndla.common.model.domain.ArticleContent
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -36,18 +36,59 @@ class TraitUtil {
     .toList
     .distinct
 
-  private val videoUrl                                                = List("youtu", "vimeo", "filmiundervisning", "imdb", "nrk", "khanacademy")
+  private val videoUrl = List(
+    "elevkanalen.no",
+    "filmiundervisning.no",
+    "imdb.com",
+    "khanacademy",
+    "nrk",
+    "qbrick",
+    "ted.com",
+    "tv2skole",
+    "uio.no",
+    "vimeo",
+    "youtu",
+  )
+  private val interactiveUrl = List(
+    "3dwarehouse.sketchup.com",
+    "arcg.is",
+    "arcgis.com",
+    "codepen.io",
+    "flo.uri.sh",
+    "gapminder.org",
+    "geogebra.org",
+    "ggbm.at",
+    "kartiskolen.no",
+    "lab.concord.org",
+    "miljodirektoratet.no",
+    "miljostatus.no",
+    "molview.org",
+    "norgeibilder.no",
+    "norgeskart.no",
+    "norskpetroleum.no",
+    "ourworldindata.org",
+    "phet.colorado.edu",
+    "prezi.com",
+    "public.flourish.studio",
+    "scribd.com",
+    "sketchfab.com",
+    "slideshare.net",
+    "statisk",
+    "trinket.io",
+    "worldbank.org",
+  )
   private def embedToMaybeTrait(embed: Element): Option[ArticleTrait] = {
     val dataResource = embed.attr("data-resource")
     val dataUrl      = embed.attr("data-url")
     val dataType     = embed.attr("data-type")
     dataResource match {
-      case "h5p"                                                      => H5p.some
-      case "brightcove" | "nrk"                                       => Video.some
-      case "external" | "iframe" if videoUrl.exists(dataUrl.contains) => Video.some
-      case "audio" if dataType == "podcast"                           => Podcast.some
-      case "audio"                                                    => Audio.some
-      case _                                                          => None
+      case "brightcove" | "nrk"                                             => Video.some
+      case "external" | "iframe" if videoUrl.exists(dataUrl.contains)       => Video.some
+      case "external" | "iframe" if interactiveUrl.exists(dataUrl.contains) => Interactive.some
+      case "h5p"                                                            => Interactive.some
+      case "audio" if dataType == "podcast"                                 => Podcast.some
+      case "audio"                                                          => Audio.some
+      case _                                                                => None
     }
   }
 

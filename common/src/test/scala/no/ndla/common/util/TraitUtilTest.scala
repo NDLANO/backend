@@ -30,11 +30,15 @@ class TraitUtilTest extends UnitTestSuiteBase {
         s"Sjekk denne h5p-en <$EmbedTagName data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName>",
         "nb",
       ),
+      ArticleContent(
+        s"Fil <$EmbedTagName data-resource=\"iframe\" data-url=\"https://prezi.com/some-url\"></$EmbedTagName>",
+        "nb",
+      ),
       ArticleContent(s"Fil <$EmbedTagName data-resource=\"file\" data-path=\"/file/path\"></$EmbedTagName>", "nn"),
     )
 
     val result1 = traitUtil.getArticleTraits(content)
-    result1 should be(List(ArticleTrait.H5p))
+    result1 should be(List(ArticleTrait.Interactive))
 
     val content2 = Seq(
       ArticleContent(
@@ -49,10 +53,14 @@ class TraitUtilTest extends UnitTestSuiteBase {
         s"Movie trailer <$EmbedTagName data-resource=\"iframe\" data-url=\"https://www.imdb.com/video/vi3074735641\"></$EmbedTagName>",
         "en",
       ),
+      ArticleContent(
+        s"Code in codepen <$EmbedTagName data-resource=\"external\" data-url=\"https://codepen.io/id\"></$EmbedTagName>",
+        "se",
+      ),
     )
 
     val result2 = traitUtil.getArticleTraits(content2)
-    result2 should be(List(ArticleTrait.H5p, ArticleTrait.Video))
+    result2 should be(List(ArticleTrait.Interactive, ArticleTrait.Video))
   }
 
 }
