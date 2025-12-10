@@ -159,6 +159,8 @@ export type components = {
             isPrimary: boolean;
             /** @description Whether this context is active */
             isActive: boolean;
+            /** @description Whether this context is in archived subject */
+            isArchived: boolean;
             /** @description Unique url for this context. */
             url: string;
         };
