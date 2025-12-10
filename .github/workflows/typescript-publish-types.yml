@@ -8,6 +8,9 @@ on:
     paths:
       - 'typescript/types-backend/**'
       - '!typescript/types-backend/package.json'
+permissions:
+  id-token: write
+  contents: read
 env:
   CI_GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
   KNOWIT_EMAIL: ${{ secrets.KNOWIT_EMAIL }}
@@ -22,6 +25,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: "22.15.0"
+      - name: Enable yarn v4
+        run: |
+          corepack enable
+          yarn set version 4.10.3
       - name: Setup git
         run: |
           git config user.email "$KNOWIT_EMAIL"
@@ -31,8 +38,6 @@ jobs:
           cd typescript/types-backend
           yarn
           yarn build
-          yarn publish --non-interactive --access public --patch
+          yarn npm publish --provenance --access public
           git push
           git push --tags
-        env:
-          NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
