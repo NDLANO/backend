@@ -40,6 +40,8 @@ case class ApiTaxonomyContextDTO(
     isPrimary: Boolean,
     @description("Whether this context is active")
     isActive: Boolean,
+    @description("Whether this context is in archived subject")
+    isArchived: Boolean,
     @description("Unique url for this context.")
     url: String,
 )

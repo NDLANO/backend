@@ -1019,9 +1019,9 @@ class SearchConverterService(using
       language = language,
       isPrimary = context.isPrimary,
       isActive = context.isActive,
+      isArchived = context.isArchived,
       url = context.url,
     )
-
   }
 
   private[search] def getSearchableLanguageValues(

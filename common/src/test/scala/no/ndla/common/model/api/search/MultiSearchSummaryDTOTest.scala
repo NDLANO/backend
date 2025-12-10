@@ -36,6 +36,7 @@ class MultiSearchSummaryDTOTest extends UnitTestSuiteBase {
           language = "en",
           isPrimary = true,
           isActive = true,
+          isArchived = false,
           url = "https://example.com/context/1",
         )
       ),
