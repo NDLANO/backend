@@ -38,6 +38,7 @@ jobs:
           cd typescript/types-backend
           yarn
           yarn build
+          yarn version patch
           yarn npm publish --provenance --access public
           git push
           git push --tags
