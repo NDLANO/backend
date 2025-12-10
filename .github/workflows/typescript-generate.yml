@@ -40,6 +40,10 @@ jobs:
           DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           RELEASE_ROLE: ${{ secrets.CI_RELEASE_ROLE }}
+      - name: Enable yarn v4
+        run: |
+          corepack enable
+          yarn set version 4.10.3
       - name: Generate typescript types
         run: ./mill _.generateTypescript
       - name: Verify typescript types

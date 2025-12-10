@@ -87,6 +87,7 @@ abstract class BulkIndexingService(using props: Props, searchLanguage: SearchLan
         booleanField("isActive"),
         booleanField("isPrimary"),
         booleanField("isVisible"),
+        booleanField("isArchived"),
         keywordField("url"),
         keywordField("resourceTypeIds"),
       ) ++

@@ -143,6 +143,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         contextId = "asdf2345",
         isVisible = true,
         isActive = true,
+        isArchived = false,
         url = "/f/sub1/asdf2345",
       )
       val subject_1 = Node(
@@ -328,6 +329,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         contextId = "asdf2351",
         isVisible = true,
         isActive = true,
+        isArchived = false,
         url = "/f/sub1/asdf2351",
       )
       val subject_1 = Node(
@@ -465,6 +467,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         contextId = "asdf2355",
         isVisible = true,
         isActive = true,
+        isArchived = false,
         url = "/f/sub1/asdf2355",
       )
       val subject_1 = Node(
@@ -495,6 +498,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         contextId = "asdf2356",
         isVisible = true,
         isActive = true,
+        isArchived = false,
         url = "/f/sub2/asdf2356",
       )
       val subject_2 = Node(
@@ -713,6 +717,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               contextId = "asdf2362",
               isVisible = true,
               isActive = true,
+              isArchived = false,
               url = "/f/apekatt-fag/asdf2362",
             )
           ),
@@ -744,6 +749,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               contextId = "asdf2362",
               isVisible = true,
               isActive = true,
+              isArchived = false,
               url = "/f/snabel-fag/asdf2362",
             )
           ),
@@ -855,6 +861,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               contextId = "asdf2362",
               isVisible = true,
               isActive = true,
+              isArchived = false,
               url = "/f/apekatt/asdf2362",
             )
           ),
@@ -886,6 +893,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               contextId = "asdf2362",
               isVisible = true,
               isActive = true,
+              isArchived = false,
               url = "/f/snabel/asdf2362",
             )
           ),
@@ -1021,6 +1029,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               contextId = "asdf2362",
               isVisible = true,
               isActive = true,
+              isArchived = false,
               url = "/f/apekatt/asdf2362",
             )
           ),
@@ -1052,6 +1061,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               contextId = "asdf2362",
               isVisible = true,
               isActive = true,
+              isArchived = false,
               url = "/f/snabel/asdf2362",
             )
           ),
