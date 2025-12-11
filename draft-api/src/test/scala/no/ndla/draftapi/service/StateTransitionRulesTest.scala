@@ -137,11 +137,13 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val expectedStatus  = common.Status(PUBLISHED, Set.empty)
     val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, NDLADate.now()))
     val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
-    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List("1234"))
+    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List("1234")))
     when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
     when(converterService.getEmbeddedH5PPaths(any[Draft])).thenReturn(Seq.empty)
     when(h5pApiClient.publishH5Ps(eqTo(Seq.empty), any)).thenReturn(Success(()))
-
+    when(taxonomyApiClient.updateTaxonomyIfExists(eqTo(InProcessArticle.id.get), any, any)).thenReturn(
+      Success(InProcessArticle.id.get)
+    )
     when(articleApiClient.updateArticle(eqTo(InProcessArticle.id.get), any[Draft], eqTo(List("1234")), eqTo(true), any))
       .thenReturn(Success(expectedArticle))
 
@@ -160,6 +162,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       eqTo(true),
       any,
     )
+    verify(taxonomyApiClient, times(1)).updateTaxonomyIfExists(eqTo(InProcessArticle.id.get), any, any)
 
     val argumentArticle: Draft   = captor.getValue
     val argumentArticleWithNotes = argumentArticle.copy(notes = editorNotes)
@@ -261,7 +264,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     val learningPath    = TestData.sampleLearningPath
     when(learningpathApiClient.getLearningpathsWithId(eqTo(articleId), any)).thenReturn(Success(Seq(learningPath)))
-    when(draftRepository.getIdFromExternalId(any[String])(using any[DBSession])).thenReturn(Some(articleId))
+    when(draftRepository.getIdFromExternalId(any[String])(using any[DBSession])).thenReturn(Success(Some(articleId)))
 
     val res = stateTransitionRules.unpublishArticle.run(article, TestData.userWithAdminAccess)
     res.isFailure should be(true)
@@ -300,7 +303,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val article         = TestData.sampleDomainArticle.copy(id = Some(articleId))
     val learningPath    = TestData.sampleLearningPath
     when(learningpathApiClient.getLearningpathsWithId(eqTo(articleId), any)).thenReturn(Success(Seq(learningPath)))
-    when(draftRepository.getIdFromExternalId(any[String])(using any[DBSession])).thenReturn(Some(articleId))
+    when(draftRepository.getIdFromExternalId(any[String])(using any[DBSession])).thenReturn(Success(Some(articleId)))
 
     val Failure(res: ValidationException) =
       stateTransitionRules.checkIfArticleIsInUse.run(article, TestData.userWithAdminAccess): @unchecked
@@ -415,11 +418,13 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val expectedStatus  = common.Status(PUBLISHED, Set.empty)
     val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, NDLADate.now()))
     val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
-    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List("1234"))
+    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List("1234")))
     when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
     when(converterService.getEmbeddedH5PPaths(any[Draft])).thenReturn(h5pPaths)
     when(h5pApiClient.publishH5Ps(eqTo(h5pPaths), any)).thenReturn(Success(()))
-
+    when(taxonomyApiClient.updateTaxonomyIfExists(eqTo(InProcessArticle.id.get), any, any)).thenReturn(
+      Success(InProcessArticle.id.get)
+    )
     when(articleApiClient.updateArticle(eqTo(InProcessArticle.id.get), any[Draft], eqTo(List("1234")), eqTo(true), any))
       .thenReturn(Success(expectedArticle))
 
@@ -440,6 +445,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     )
 
     verify(h5pApiClient, times(1)).publishH5Ps(eqTo(h5pPaths), any)
+    verify(taxonomyApiClient, times(1)).updateTaxonomyIfExists(eqTo(InProcessArticle.id.get), any, any)
 
     val argumentArticle: Draft   = captor.getValue
     val argumentArticleWithNotes = argumentArticle.copy(notes = editorNotes)
@@ -488,11 +494,13 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == PUBLISHED)
-    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List.empty)
+    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List.empty))
+    when(taxonomyApiClient.updateTaxonomyIfExists(any, any, any)).thenAnswer(i => Success(i.getArgument(0)))
     when(articleApiClient.updateArticle(any, any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
       val x = i.getArgument[Draft](1)
       Success(x)
     })
+
     for (t <- transitionsToTest) {
       val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
       val result    = stateTransitionRules.doTransition(fromDraft, PUBLISHED, TestData.userWithAdminAccess)
@@ -545,7 +553,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == ARCHIVED)
-    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List.empty)
+    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List.empty))
     when(articleApiClient.updateArticle(any, any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
       val x = i.getArgument[Draft](1)
       Success(x)
@@ -606,7 +614,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == UNPUBLISHED)
-    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List.empty)
+    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List.empty))
     when(articleApiClient.updateArticle(any, any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
       val x = i.getArgument[Draft](1)
       Success(x)
@@ -669,7 +677,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val status                            = common.Status(PUBLISHED, Set.empty)
     val transitionToTest: StateTransition = PUBLISHED -> IN_PROGRESS
     val expected                          = TestData.userWithAdminAccess.id
-    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List.empty)
+    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List.empty))
     when(articleApiClient.updateArticle(any, any, any, any, any)).thenAnswer((i: InvocationOnMock) => {
       val x = i.getArgument[Draft](1)
       Success(x)
@@ -697,7 +705,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val article: Draft  = TestData
       .sampleArticleWithPublicDomain
       .copy(id = Some(articleId), status = Status(DraftStatus.PLANNED, Set()))
-    when(draftRepository.withId(eqTo(articleId))(using any)).thenReturn(Some(article))
+    when(draftRepository.withId(eqTo(articleId))(using any)).thenReturn(Success(Some(article)))
     val Success(noTrans) =
       stateTransitionRules.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
     noTrans(PLANNED.toString) should contain(DraftStatus.ARCHIVED.toString)
@@ -717,7 +725,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val article: Draft  = TestData
       .sampleArticleWithPublicDomain
       .copy(id = Some(articleId), status = Status(DraftStatus.PUBLISHED, Set()))
-    when(draftRepository.withId(eqTo(articleId))(using any)).thenReturn(Some(article))
+    when(draftRepository.withId(eqTo(articleId))(using any)).thenReturn(Success(Some(article)))
     val Success(noTrans) =
       stateTransitionRules.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
 
@@ -737,7 +745,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val unpublished: Draft = TestData
       .sampleArticleWithPublicDomain
       .copy(id = Some(articleId), status = Status(DraftStatus.IN_PROGRESS, Set()))
-    when(draftRepository.withId(eqTo(articleId))(using any)).thenReturn(Some(unpublished))
+    when(draftRepository.withId(eqTo(articleId))(using any)).thenReturn(Success(Some(unpublished)))
     val Success(transOne) =
       stateTransitionRules.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
     transOne(IN_PROGRESS.toString) should not contain (DraftStatus.LANGUAGE.toString)
@@ -745,7 +753,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val published: Draft = TestData
       .sampleArticleWithPublicDomain
       .copy(id = Some(articleId), status = Status(DraftStatus.IN_PROGRESS, Set(DraftStatus.PUBLISHED)))
-    when(draftRepository.withId(eqTo(articleId))(using any)).thenReturn(Some(published))
+    when(draftRepository.withId(eqTo(articleId))(using any)).thenReturn(Success(Some(published)))
     val Success(transTwo) =
       stateTransitionRules.stateTransitionsToApi(TestData.userWithWriteAccess, Some(articleId)): @unchecked
     transTwo(IN_PROGRESS.toString) should contain(DraftStatus.LANGUAGE.toString)
@@ -757,7 +765,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val article: Draft = TestData
       .sampleArticleWithPublicDomain
       .copy(id = Some(articleId), status = Status(DraftStatus.PLANNED, Set(DraftStatus.PUBLISHED)))
-    when(draftRepository.withId(eqTo(articleId))(using any)).thenReturn(Some(article))
+    when(draftRepository.withId(eqTo(articleId))(using any)).thenReturn(Success(Some(article)))
     val Success(noTrans) = stateTransitionRules.stateTransitionsToApi(TestData.userWithWriteAccess, None): @unchecked
 
     noTrans(PLANNED.toString) should not contain (DraftStatus.ARCHIVED)

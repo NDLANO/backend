@@ -52,8 +52,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       .sampleArticleWithByNcSa
       .copy(content = Seq(articleContent1), visualElement = Seq(VisualElement(visualElementBefore, "nb")))
 
-    when(draftRepository.withId(eqTo(1L))(using any)).thenReturn(Option(article))
-    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List("54321"))
+    when(draftRepository.withId(eqTo(1L))(using any)).thenReturn(Success(Some(article)))
+    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List("54321")))
 
     val expectedResult = converterService
       .toApiArticle(
@@ -118,7 +118,11 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3))
 
     when(draftRepository.withIds(any, any, any)(using any)).thenReturn(Success(Seq(article1, article2, article3)))
-    when(draftRepository.getExternalIdsFromId(any)(using any)).thenReturn(List(""), List(""), List(""))
+    when(draftRepository.getExternalIdsFromId(any)(using any)).thenReturn(
+      Success(List("")),
+      Success(List("")),
+      Success(List("")),
+    )
 
     val Success(result) = readService.getArticlesByIds(
       articleIds = ids,
@@ -151,9 +155,11 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val currentDraft   = TestData.sampleDomainArticle.copy(revision = Some(42))
     val publishedDraft = currentDraft.copy(status = TestData.statusWithPublished)
     val articleId      = previousDraft.id.get
-    when(draftRepository.getExternalIdsFromId(eqTo(articleId))(using any)).thenReturn(List("123"))
+    when(draftRepository.getExternalIdsFromId(eqTo(articleId))(using any)).thenReturn(Success(List("123")))
 
-    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(previousDraft, publishedDraft))
+    when(draftRepository.articlesWithId(eqTo(articleId))(using any[DBSession])).thenReturn(
+      Success(List(previousDraft, publishedDraft))
+    )
     val revisionHistory = readService.getArticleRevisionHistory(articleId, "nb", fallback = true).failIfFailure
     revisionHistory.revisions.map(_.revision) should contain allOf (
       previousDraft.revision.get,
@@ -161,7 +167,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     )
     revisionHistory.canDeleteCurrentRevision should be(false)
 
-    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(previousDraft))
+    when(draftRepository.articlesWithId(eqTo(articleId))(using any[DBSession])).thenReturn(Success(List(previousDraft)))
     readService
       .getArticleRevisionHistory(articleId, "nb", fallback = true)
       .failIfFailure
@@ -169,13 +175,17 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     val partialPublishDraft =
       publishedDraft.copy(revision = Some(84), metaDescription = Seq(Description("new meta", "nb")))
-    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(publishedDraft, partialPublishDraft))
+    when(draftRepository.articlesWithId(eqTo(articleId))(using any[DBSession])).thenReturn(
+      Success(List(publishedDraft, partialPublishDraft))
+    )
     readService
       .getArticleRevisionHistory(articleId, "nb", fallback = true)
       .failIfFailure
       .canDeleteCurrentRevision should be(false)
 
-    when(draftRepository.articlesWithId(eqTo(articleId))).thenReturn(List(previousDraft, currentDraft))
+    when(draftRepository.articlesWithId(eqTo(articleId))(using any[DBSession])).thenReturn(
+      Success(List(previousDraft, currentDraft))
+    )
     readService
       .getArticleRevisionHistory(articleId, "nb", fallback = true)
       .failIfFailure

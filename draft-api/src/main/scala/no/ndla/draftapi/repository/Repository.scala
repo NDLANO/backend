@@ -8,9 +8,10 @@
 
 package no.ndla.draftapi.repository
 
-import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
+import scalikejdbc.DBSession
+import scala.util.Try
 
 trait Repository[T] {
-  def minMaxId(implicit session: DBSession = AutoSession): (Long, Long)
-  def documentsWithIdBetween(min: Long, max: Long)(implicit session: DBSession = ReadOnlyAutoSession): Seq[T]
+  def minMaxId(using session: DBSession): Try[(Long, Long)]
+  def documentsWithIdBetween(min: Long, max: Long)(using session: DBSession): Try[Seq[T]]
 }

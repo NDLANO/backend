@@ -14,14 +14,16 @@ import com.sksamuel.elastic4s.fields.ElasticField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.DraftApiProperties
+import no.ndla.database.DBUtility
 import no.ndla.draftapi.repository.Repository
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 import no.ndla.search.{BaseIndexService, SearchLanguage}
+import scalikejdbc.DBSession
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-trait IndexService[D, T](using props: DraftApiProperties, searchLanguage: SearchLanguage)
+trait IndexService[D, T](using props: DraftApiProperties, searchLanguage: SearchLanguage, dbUtility: DBUtility)
     extends BaseIndexService
     with StrictLogging {
   override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
@@ -56,22 +58,22 @@ trait IndexService[D, T](using props: DraftApiProperties, searchLanguage: Search
     indexDocumentsInBulk(numShards)(sendToElastic)
   }
 
-  def sendToElastic(indexName: String): Try[BulkIndexResult] = {
+  def sendToElastic(indexName: String): Try[BulkIndexResult] = dbUtility.tryReadOnly { implicit session =>
     getRanges
       .flatMap(ranges => {
         ranges.traverse { case (start, end) =>
-          val toIndex = repository.documentsWithIdBetween(start, end)
-          indexDocuments(toIndex, indexName)
+          repository.documentsWithIdBetween(start, end).flatMap(toIndex => indexDocuments(toIndex, indexName))
         }
       })
       .map(countBulkIndexed)
   }
 
-  def getRanges: Try[List[(Long, Long)]] = {
-    Try {
-      val (minId, maxId) = repository.minMaxId
-      Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
-    }
+  def getRanges(using DBSession): Try[List[(Long, Long)]] = {
+    repository
+      .minMaxId
+      .map { case (minId, maxId) =>
+        Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
+      }
   }
 
   def indexDocuments(contents: Seq[D], indexName: String): Try[BulkIndexResult] = {

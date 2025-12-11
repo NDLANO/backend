@@ -17,6 +17,7 @@ import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableTag
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
+import no.ndla.database.DBUtility
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 class TagIndexService(using
@@ -25,6 +26,7 @@ class TagIndexService(using
     e4sClient: NdlaE4sClient,
     searchLanguage: SearchLanguage,
     props: Props,
+    dbUtility: DBUtility,
 ) extends IndexService[Draft, SearchableTag]
     with StrictLogging {
   override val documentType: String          = props.DraftTagSearchDocument

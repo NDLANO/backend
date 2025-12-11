@@ -10,7 +10,7 @@ package no.ndla.draftapi.controller
 
 import no.ndla.common.Clock
 import no.ndla.draftapi.*
-import no.ndla.draftapi.model.api.ContentIdDTO
+import no.ndla.draftapi.model.api.{ContentIdDTO, NotFoundException}
 import no.ndla.draftapi.model.domain.ImportId
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
@@ -54,14 +54,14 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test("that getting ids returns 404 for missing and 200 for existing") {
     val uuid = "16d4668f-0917-488b-9b4a-8f7be33bb72a"
 
-    when(readService.importIdOfArticle("1234")).thenReturn(None)
+    when(readService.importIdOfArticle("1234")).thenReturn(Failure(NotFoundException("Not found")))
 
     {
       val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/import-id/1234"))
       res.code.code should be(404)
     }
 
-    when(readService.importIdOfArticle("1234")).thenReturn(Some(ImportId(Some(uuid))))
+    when(readService.importIdOfArticle("1234")).thenReturn(Success(ImportId(Some(uuid))))
 
     {
       val res = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/intern/import-id/1234"))

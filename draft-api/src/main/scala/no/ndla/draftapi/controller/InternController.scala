@@ -8,7 +8,11 @@
 
 package no.ndla.draftapi.controller
 
+import cats.implicits.*
+import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.implicits.toTry
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.database.DBUtility
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ArticleDomainDumpDTO, ArticleDumpDTO, ContentIdDTO, NotFoundException}
@@ -17,19 +21,16 @@ import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
 import no.ndla.language.Language
-import sttp.tapir.*
-import cats.implicits.*
-import com.typesafe.scalalogging.StrictLogging
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
-import scalikejdbc.ReadOnlyAutoSession
-import sttp.model.StatusCode
-import sttp.tapir.server.ServerEndpoint
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.search.model.domain.ReindexResult
+import sttp.model.StatusCode
+import sttp.tapir.*
+import sttp.tapir.server.ServerEndpoint
 
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.annotation.{tailrec, unused}
@@ -48,10 +49,9 @@ class InternController(using
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
     myNDLAApiClient: MyNDLAApiClient,
+    dbUtility: DBUtility,
 ) extends TapirController
     with StrictLogging {
-  import errorHandling.*
-  import errorHelpers.*
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
@@ -177,10 +177,13 @@ class InternController(using
     .out(jsonBody[Seq[ArticleIds]])
     .serverLogicPure { status =>
       status.map(DraftStatus.valueOfOrError) match {
-        case Some(Success(status)) =>
-          draftRepository.idsWithStatus(status)(using ReadOnlyAutoSession).getOrElse(List.empty).asRight
-        case Some(Failure(ex)) => returnLeftError(ex)
-        case None              => draftRepository.getAllIds(using ReadOnlyAutoSession).asRight
+        case Some(Success(status)) => dbUtility.tryReadOnly { implicit session =>
+            draftRepository.idsWithStatus(status)
+          }
+        case Some(Failure(ex)) => Failure(ex)
+        case None              => dbUtility.tryReadOnly { implicit session =>
+            draftRepository.getAllIds
+          }
       }
     }
 
@@ -189,12 +192,7 @@ class InternController(using
     .in("import-id" / path[String]("external_id"))
     .errorOut(errorOutputsFor(400, 404))
     .out(jsonBody[ImportId])
-    .serverLogicPure { externalId =>
-      readService.importIdOfArticle(externalId) match {
-        case Some(ids) => ids.asRight
-        case _         => notFound.asLeft
-      }
-    }
+    .serverLogicPure(readService.importIdOfArticle)
 
   def getByExternalId: ServerEndpoint[Any, Eff] = endpoint
     .get
@@ -202,9 +200,10 @@ class InternController(using
     .out(jsonBody[Long])
     .errorOut(errorOutputsFor(404))
     .serverLogicPure { externalId =>
-      draftRepository.getIdFromExternalId(externalId)(using ReadOnlyAutoSession) match {
-        case Some(id) => id.asRight
-        case None     => notFound.asLeft
+      dbUtility.tryReadOnly { implicit session =>
+        draftRepository
+          .getIdFromExternalId(externalId)
+          .flatMap(_.toTry(NotFoundException(s"Could not find draft with external id: '$externalId'")))
       }
     }
 
@@ -216,9 +215,8 @@ class InternController(using
     .in(query[String]("language").default(Language.AllLanguages))
     .in(query[Boolean]("fallback").default(false))
     .out(jsonBody[ArticleDumpDTO])
-    .serverLogicPure { case (pageNo, pageSize, lang, fallback) =>
-      readService.getArticlesByPage(pageNo, pageSize, lang, fallback).asRight
-    }
+    .errorOut(errorOutputsFor())
+    .serverLogicPure(readService.getArticlesByPage)
 
   @tailrec
   private def deleteArticleWithRetries(
@@ -251,9 +249,8 @@ class InternController(using
     .in(query[Int]("page").default(1))
     .in(query[Int]("page-size").default(250))
     .out(jsonBody[ArticleDomainDumpDTO])
-    .serverLogicPure { case (pageNo, pageSize) =>
-      readService.getArticleDomainDump(pageNo, pageSize).asRight
-    }
+    .errorOut(errorOutputsFor())
+    .serverLogicPure(readService.getArticleDomainDump)
 
   def dumpSingleArticle: ServerEndpoint[Any, Eff] = endpoint
     .get
@@ -261,9 +258,8 @@ class InternController(using
     .errorOut(errorOutputsFor(404))
     .out(jsonBody[Draft])
     .serverLogicPure { id =>
-      draftRepository.withId(id)(using ReadOnlyAutoSession) match {
-        case Some(article) => article.asRight
-        case None          => returnLeftError(NotFoundException(s"Could not find draft with id: '$id"))
+      dbUtility.tryReadOnly { implicit session =>
+        draftRepository.withId(id).flatMap(_.toTry(NotFoundException(s"Could not find draft with id: '$id")))
       }
     }
 

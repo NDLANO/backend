@@ -10,60 +10,53 @@ package no.ndla.draftapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
+import no.ndla.database.TrySql.tsql
 import no.ndla.draftapi.model.domain.UserData
 import org.postgresql.util.PGobject
 import scalikejdbc.*
-import scalikejdbc.interpolation.SQLSyntax
 
-import scala.util.{Success, Try}
+import scala.util.Try
 
 class UserDataRepository extends StrictLogging {
-  def insert(userData: UserData)(implicit session: DBSession = AutoSession): Try[UserData] = {
-    Try {
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(CirceUtil.toJsonString(userData))
-
-      val userDataId: Long = sql"""
-        insert into ${UserData.table} (user_id, document) values (${userData.userId}, $dataObject)
-        """.updateAndReturnGeneratedKey()
-
-      logger.info(s"Inserted new user data: $userDataId")
-      userData.copy(id = Some(userDataId))
-    }
-  }
-
-  def update(userData: UserData)(implicit session: DBSession = AutoSession): Try[UserData] = {
+  def insert(userData: UserData)(using DBSession): Try[UserData] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(userData))
 
-    val _ = sql"""
-          update ${UserData.table}
-          set document=$dataObject
-          where user_id=${userData.userId}
-      """.update()
-
-    logger.info(s"Updated user data ${userData.userId}")
-    Success(userData)
+    tsql"""
+      insert into ${UserData.table} (user_id, document) values (${userData.userId}, $dataObject)
+    """
+      .updateAndReturnGeneratedKey()
+      .map { userDataId =>
+        logger.info(s"Inserted new user data: $userDataId")
+        userData.copy(id = Some(userDataId))
+      }
   }
 
-  def userDataCount(implicit session: DBSession = AutoSession): Long = {
-    sql"select count(distinct user_id) from ${UserData.table} where document is not NULL"
-      .map(rs => rs.long("count"))
-      .single()
-      .getOrElse(0)
+  def update(userData: UserData)(using DBSession): Try[UserData] = {
+    val dataObject = new PGobject()
+    dataObject.setType("jsonb")
+    dataObject.setValue(CirceUtil.toJsonString(userData))
+
+    tsql"""
+      update ${UserData.table}
+      set document=$dataObject
+      where user_id=${userData.userId}
+    """
+      .update()
+      .map(_ => {
+        logger.info(s"Updated user data ${userData.userId}")
+        userData
+      })
   }
 
-  def withId(id: Long): Option[UserData] = userDataWhere(sqls"ud.id=${id.toInt}")
+  def withId(id: Long)(using DBSession): Try[Option[UserData]] = userDataWhere(sqls"ud.id=${id.toInt}")
 
-  def withUserId(userId: String): Option[UserData] = userDataWhere(sqls"ud.user_id=$userId")
+  def withUserId(userId: String)(using DBSession): Try[Option[UserData]] = userDataWhere(sqls"ud.user_id=$userId")
 
-  private def userDataWhere(
-      whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): Option[UserData] = {
+  private def userDataWhere(whereClause: SQLSyntax)(using DBSession): Try[Option[UserData]] = {
     val ud = UserData.syntax("ud")
-    sql"select ${ud.result.*} from ${UserData.as(ud)} where $whereClause".map(UserData.fromResultSet(ud)).single()
+    tsql"select ${ud.result.*} from ${UserData.as(ud)} where $whereClause".map(UserData.fromResultSet(ud)).runSingle()
   }
 
 }
