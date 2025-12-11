@@ -16,11 +16,12 @@ import no.ndla.common.model.domain.{Author, ContributorType}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{doReturn, never, reset, times, verify, verifyNoMoreInteractions, when}
+import org.mockito.Mockito.*
 import org.mockito.invocation.InvocationOnMock
+import scalikejdbc.DBSession
 import sttp.client3.quick.*
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 class InternControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   val author: Author = Author(ContributorType.Writer, "Henrik")
@@ -33,7 +34,19 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   override implicit lazy val services: List[TapirController]    = List(controller)
   override implicit lazy val routes: Routes                     = new Routes
 
-  when(clock.now()).thenCallRealMethod()
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+
+    when(clock.now()).thenCallRealMethod()
+    doAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Nothing]](0)
+      func(mock[DBSession])
+    }).when(dbUtility).tryReadOnly(any())
+    doAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Nothing]](0)
+      func(mock[DBSession])
+    }).when(dbUtility).rollbackOnFailure(any())
+  }
 
   test("POST /validate/article should return 400 if the article is invalid") {
     val invalidArticle = """{"revision": 1, "title": [{"language": "nb", "titlee": "lol"]}"""
@@ -45,7 +58,9 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
   }
 
   test("POST /validate should return 204 if the article is valid") {
-    when(contentValidator.validateArticle(any[Article], any)).thenReturn(Success(TestData.sampleArticleWithByNcSa))
+    when(contentValidator.validateArticle(any[Article], any)(using any)).thenReturn(
+      Success(TestData.sampleArticleWithByNcSa)
+    )
 
     import io.circe.syntax.*
     val jsonStr = TestData.sampleArticleWithByNcSa.asJson.deepDropNullValues.noSpaces

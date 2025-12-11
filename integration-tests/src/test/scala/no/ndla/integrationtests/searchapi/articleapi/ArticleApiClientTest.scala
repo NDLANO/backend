@@ -23,6 +23,7 @@ import no.ndla.searchapi.service.search.SearchConverterService
 import no.ndla.searchapi.{TestData, UnitSuite}
 import no.ndla.{articleapi, searchapi}
 import org.testcontainers.postgresql.PostgreSQLContainer
+import scalikejdbc.AutoSession
 
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
@@ -98,7 +99,7 @@ class ArticleApiClientTest
                 published = NDLADate.fromUnixTime(0),
               ),
             List(s"1$id"),
-          )
+          )(using AutoSession)
       })
       .collectFirst { case Failure(ex) =>
         Failure(ex)

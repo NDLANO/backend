@@ -8,8 +8,7 @@
 
 package no.ndla.articleapi.service
 
-import no.ndla.articleapi.model.api
-import no.ndla.articleapi.model.api.ImportException
+import no.ndla.articleapi.model.{ImportException, api}
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model
 import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi}
@@ -32,7 +31,6 @@ import no.ndla.common.model.domain.article.{
   PartialPublishArticleDTO,
 }
 import no.ndla.mapping.License
-import org.mockito.Mockito.when
 
 import scala.util.Success
 
@@ -81,51 +79,53 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2") {
-    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    service.toApiArticleV2(TestData.sampleDomainArticle, "nb", false) should equal(Success(TestData.apiArticleV2))
+    service.toApiArticleV2(TestData.sampleDomainArticle, "nb", List(TestData.externalId), false) should equal(
+      Success(TestData.apiArticleV2)
+    )
   }
 
   test("that toApiArticleV2 returns sorted supportedLanguages") {
-    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
     val result = service.toApiArticleV2(
       TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ Title("hehe", "und")),
       "nb",
+      List(TestData.externalId),
       false,
     )
     result.get.supportedLanguages should be(Seq("nb", "und"))
   }
 
   test("toApiArticleV2 returns None when language is not supported") {
-    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    service.toApiArticleV2(TestData.sampleDomainArticle, "someRandomLanguage", false).isFailure should be(true)
-    service.toApiArticleV2(TestData.sampleDomainArticle, "", false).isFailure should be(true)
+    service
+      .toApiArticleV2(TestData.sampleDomainArticle, "someRandomLanguage", List(TestData.externalId), false)
+      .isFailure should be(true)
+    service.toApiArticleV2(TestData.sampleDomainArticle, "", List(TestData.externalId), false).isFailure should be(true)
   }
 
   test("toApiArticleV2 should always an article if language neutral") {
     val domainArticle = TestData.sampleDomainArticleWithLanguage("und")
-    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    service.toApiArticleV2(domainArticle, "someRandomLanguage", false).isSuccess should be(true)
+    service.toApiArticleV2(domainArticle, "someRandomLanguage", List(TestData.externalId), false).isSuccess should be(
+      true
+    )
   }
 
   test(
     "toApiArticleV2 should return Failure if article does not exist on the language asked for and is not language neutral"
   ) {
     val domainArticle = TestData.sampleDomainArticleWithLanguage("en")
-    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    service.toApiArticleV2(domainArticle, "someRandomLanguage", false).isFailure should be(true)
+    service.toApiArticleV2(domainArticle, "someRandomLanguage", List(TestData.externalId), false).isFailure should be(
+      true
+    )
   }
 
   test("that toApiArticleV2 returns none if article does not exist on language, and fallback is not specified") {
-    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    val result = service.toApiArticleV2(TestData.sampleDomainArticle, "en", false)
+    val result = service.toApiArticleV2(TestData.sampleDomainArticle, "en", List(TestData.externalId), false)
     result.isFailure should be(true)
   }
 
   test(
     "That toApiArticleV2 returns article on existing language if fallback is specified even if selected language does not exist"
   ) {
-    when(articleRepository.getExternalIdsFromId(TestData.articleId)).thenReturn(List(TestData.externalId))
-    val result = service.toApiArticleV2(TestData.sampleDomainArticle, "en", fallback = true)
+    val result = service.toApiArticleV2(TestData.sampleDomainArticle, "en", List(TestData.externalId), true)
     result.get.title.language should be("nb")
     result.get.title.title should be(TestData.sampleDomainArticle.title.head.title)
     result.isFailure should be(false)

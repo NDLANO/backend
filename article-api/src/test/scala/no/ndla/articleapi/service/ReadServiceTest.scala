@@ -17,19 +17,12 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.{FrontPageDTO, MenuDTO}
-import no.ndla.common.model.domain.{
-  ArticleContent,
-  ArticleMetaImage,
-  ArticleType,
-  Availability,
-  Description,
-  Title,
-  VisualElement,
-}
+import no.ndla.common.model.domain.*
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.validation.{ResourceType, TagAttribute}
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.*
+import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
@@ -61,6 +54,11 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeEach(): Unit = {
     reset(feideApiClient)
+
+    doAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Nothing]](0)
+      func(mock[DBSession])
+    }).when(dbUtility).tryReadOnly(any())
   }
 
   test("withId adds urls and ids on embed resources") {
@@ -72,8 +70,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       .sampleArticleWithByNcSa
       .copy(content = Seq(articleContent1), visualElement = Seq(VisualElement(visualElementBefore, "nb")))
 
-    when(articleRepository.withId(eqTo(1L))(any)).thenReturn(Some(toArticleRow(article)))
-    when(articleRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(List("54321"))
+    when(articleRepository.withId(eqTo(1L))(using any)).thenReturn(Success(Some(toArticleRow(article))))
+    when(articleRepository.getExternalIdsFromId(eqTo(1L))(using any)).thenReturn(Success(List("54321")))
 
     val expectedResult: Try[Cachable[api.ArticleV2DTO]] = Cachable.yes(
       converterService.toApiArticleV2(
@@ -82,6 +80,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
           visualElement = Seq(VisualElement(visualElementAfter, "nb")),
         ),
         "nb",
+        List("54321"),
         false,
       )
     )
@@ -181,9 +180,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.everyone)
 
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
-      Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3))
+      Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
-    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(List(""), List(""), List(""))
+    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(Success(List("")))
 
     val result = readService
       .getArticlesByIds(
@@ -210,9 +209,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
-      Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3))
+      Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
-    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(List(""), List(""), List(""))
+    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(Success(List("")))
 
     val result = readService
       .getArticlesByIds(
@@ -239,9 +238,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
-      Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3))
+      Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
-    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(List(""), List(""), List(""))
+    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(Success(List("")))
 
     val result = readService
       .getArticlesByIds(
@@ -267,9 +266,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
 
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
-      Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3))
+      Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
-    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(List(""), List(""), List(""))
+    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(Success(List("")))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new RuntimeException))
 
     val result = readService
@@ -349,14 +348,14 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val rowTwo   = Some(ArticleRow(2, 2, 2, Some("slug-one"), Some(article1)))
     val rowThree = Some(ArticleRow(3, 3, 3, Some("slug-two"), Some(article2)))
 
-    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(List.empty)
+    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(Success(List.empty))
     when(frontpageApiClient.getFrontpage).thenReturn(Success(frontPage))
-    when(articleRepository.withSlug("some-slug")).thenReturn(rowOne)
-    when(articleRepository.withId(eqTo(1L))(any)).thenReturn(rowOne)
-    when(articleRepository.withSlug("slug-one")).thenReturn(rowTwo)
-    when(articleRepository.withId(eqTo(2L))(any)).thenReturn(rowTwo)
-    when(articleRepository.withSlug("slug-two")).thenReturn(rowThree)
-    when(articleRepository.withId(eqTo(3L))(any)).thenReturn(rowThree)
+    when(articleRepository.withSlug(eqTo("some-slug"))(using any)).thenReturn(Success(rowOne))
+    when(articleRepository.withId(eqTo(1L))(using any)).thenReturn(Success(rowOne))
+    when(articleRepository.withSlug(eqTo("slug-one"))(using any)).thenReturn(Success(rowTwo))
+    when(articleRepository.withId(eqTo(2L))(using any)).thenReturn(Success(rowTwo))
+    when(articleRepository.withSlug(eqTo("slug-two"))(using any)).thenReturn(Success(rowThree))
+    when(articleRepository.withId(eqTo(3L))(using any)).thenReturn(Success(rowThree))
 
     val xml = readService.getArticleFrontpageRSS("some-slug").get.value
     xml should be(s"""<?xml version="1.0" encoding="utf-8"?>
