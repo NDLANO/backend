@@ -31,7 +31,7 @@ class DraftApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   def externalApiUrls: Map[String, String] = Map(
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
-    "raw-image"                 -> s"$Domain/image-api/raw/id",
+    "raw-image"                 -> propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", s"$Domain/image-api/raw").concat("/id"),
     ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio",
     ResourceType.File.toString  -> Domain,
     ResourceType.H5P.toString   -> H5PAddress,
