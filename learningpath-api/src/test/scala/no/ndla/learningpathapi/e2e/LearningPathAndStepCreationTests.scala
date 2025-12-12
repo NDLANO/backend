@@ -14,11 +14,10 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.{EmbedType, LearningPath, StepType}
 import no.ndla.learningpathapi.model.api.*
 import no.ndla.learningpathapi.*
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.learningpathapi.integration.TaxonomyApiClient
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{spy, when, withSettings}
+import org.mockito.Mockito.{when, withSettings}
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
@@ -57,11 +56,6 @@ class LearningPathAndStepCreationTests
         val mockClock = mock[Clock](withSettings.strictness(Strictness.LENIENT))
         when(mockClock.now()).thenReturn(someDate)
         mockClock
-      }
-      override given myndlaApiClient: MyNDLAApiClient = {
-        val client = spy(new MyNDLAApiClient)
-        when(client.isWriteRestricted).thenReturn(Success(false))
-        client
       }
       override given taxonomyApiClient: TaxonomyApiClient = {
         val client = mock[TaxonomyApiClient]
