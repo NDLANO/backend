@@ -54,12 +54,11 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
     )
 
     val original = SearchableLearningPath(
-      domainObject = TestData.DefaultLearningPath.copy(id = Some(101), isBasedOn = Some(1001)),
       id = 101,
       title = titles,
       content = SearchableLanguageValues(Seq.empty),
-      introduction = introductions,
       description = descriptions,
+      introduction = introductions,
       coverPhotoId = Some("10"),
       duration = Some(10),
       status = LearningPathStatus.PUBLISHED.toString,
@@ -96,6 +95,8 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       nextRevision = RevisionMeta.default.getNextRevision,
       grepCodes = List("grep1", "grep2"),
       responsible = Some(Responsible("some responsible", TestData.today)),
+      domainObject = TestData.DefaultLearningPath.copy(id = Some(101), isBasedOn = Some(1001)),
+      nodes = nodes,
     )
 
     val json         = CirceUtil.toJsonString(original)

@@ -65,6 +65,7 @@ class ArticleIndexService(using
   def getMapping: MappingDefinition = {
     val fields = List(
       ObjectField("domainObject", enabled = Some(false)),
+      ObjectField("nodes", enabled = Some(false)),
       longField("id"),
       keywordField("defaultTitle"),
       textField("typeName"),
