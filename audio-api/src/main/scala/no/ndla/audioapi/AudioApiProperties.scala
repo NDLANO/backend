@@ -63,7 +63,7 @@ class AudioApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   lazy val Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
-  lazy val RawImageApiUrl: String = s"$Domain/image-api/raw/id"
+  lazy val RawImageApiUrl: String = propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", s"$Domain/image-api/raw").concat("/id")
 
   override def MetaMigrationLocation: String      = "no/ndla/audioapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")

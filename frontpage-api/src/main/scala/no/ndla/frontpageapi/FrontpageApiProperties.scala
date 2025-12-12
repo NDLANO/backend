@@ -24,7 +24,7 @@ class FrontpageApiProperties extends BaseProps with DatabaseProps {
 
   val DefaultPageSize        = 10
   val Domain: String         = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
-  val RawImageApiUrl: String = s"$Domain/image-api/raw"
+  val RawImageApiUrl: String = propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", s"$Domain/image-api/raw")
 
   val BrightcoveAccountId: Prop[String] = prop("BRIGHTCOVE_ACCOUNT_ID")
   val BrightcovePlayer: Prop[String]    = prop("BRIGHTCOVE_PLAYER_ID")

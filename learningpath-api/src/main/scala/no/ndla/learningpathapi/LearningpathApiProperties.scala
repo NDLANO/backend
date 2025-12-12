@@ -35,8 +35,8 @@ class LearningpathApiProperties extends BaseProps with DatabaseProps with Strict
   def IndexBulkSize       = 1000
 
   object ExternalApiUrls {
-    def ImageApiUrl    = s"$Domain/image-api/v3/images"
-    def ImageApiRawUrl = s"$Domain/image-api/raw"
+    def ImageApiUrl            = s"$Domain/image-api/v3/images"
+    def ImageApiRawUrl: String = propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", s"$Domain/image-api/raw")
   }
 
   def NdlaFrontendHost: String = propOrElse(

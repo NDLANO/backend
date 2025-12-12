@@ -57,7 +57,7 @@ class ConceptApiProperties extends BaseProps with DatabaseProps with StrictLoggi
     ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio",
     ResourceType.H5P.toString   -> H5PAddress,
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
-    "raw-image"                 -> s"$Domain/image-api/raw/id",
+    "raw-image"                 -> propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", s"$Domain/image-api/raw").concat("/id"),
   )
 
   override def MetaMigrationLocation: String = "no/ndla/conceptapi/db/migration"
