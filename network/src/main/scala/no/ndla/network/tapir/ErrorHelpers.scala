@@ -60,6 +60,7 @@ class ErrorHelpers(using props: BaseProps, clock: => Clock) {
   val ILLEGAL_STATUS_TRANSITION: String = "Illegal status transition"
 
   def generic: ErrorBody                          = ErrorBody(GENERIC, GENERIC_DESCRIPTION, clock.now(), 500)
+  def clientClosed: ErrorBody                     = ErrorBody("CLIENT_CLOSED_CONNECTION", "Client closed the connection", clock.now(), 499)
   def notFound: ErrorBody                         = ErrorBody(NOT_FOUND, NOT_FOUND_DESCRIPTION, clock.now(), 404)
   def notFoundWithMsg(msg: String): ErrorBody     = ErrorBody(NOT_FOUND, msg, clock.now(), 404)
   def badRequest(msg: String): ErrorBody          = ErrorBody(BAD_REQUEST, msg, clock.now(), 400)

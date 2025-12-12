@@ -9,6 +9,7 @@
 package no.ndla.common.aws
 
 import cats.data.NonEmptySeq
+import no.ndla.common.TryUtil.throwIfInterrupted
 import no.ndla.common.errors.MissingBucketKeyException
 import no.ndla.common.model.domain.UploadedFile
 import software.amazon.awssdk.core.sync.RequestBody
@@ -30,7 +31,7 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
 
   val foundRegion: Region = client.serviceClientConfiguration().region()
 
-  def headObject(key: String): Try[HeadObjectResponse] = Try {
+  def headObject(key: String): Try[HeadObjectResponse] = Try.throwIfInterrupted {
     val headObjectRequest = HeadObjectRequest.builder().bucket(bucket).key(key).build()
     client.headObject(headObjectRequest)
   }
@@ -39,7 +40,8 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
 
   def getObject(key: String): Try[NdlaS3Object] = {
     val gor = GetObjectRequest.builder().bucket(bucket).key(key).build()
-    Try(client.getObject(gor))
+    Try
+      .throwIfInterrupted(client.getObject(gor))
       .map(res =>
         NdlaS3Object(
           bucket = bucket,
@@ -55,12 +57,12 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
       }
   }
 
-  def deleteObject(key: String): Try[DeleteObjectResponse] = Try {
+  def deleteObject(key: String): Try[DeleteObjectResponse] = Try.throwIfInterrupted {
     val dor = DeleteObjectRequest.builder().key(key).bucket(bucket).build()
     client.deleteObject(dor)
   }
 
-  def deleteObjects(keys: NonEmptySeq[String]): Try[DeleteObjectsResponse] = Try {
+  def deleteObjects(keys: NonEmptySeq[String]): Try[DeleteObjectsResponse] = Try.throwIfInterrupted {
     val objects = keys.map(key => ObjectIdentifier.builder().key(key).build())
     val delete  = Delete.builder().objects(objects.toSeq.asJava).build()
     val dor     = DeleteObjectsRequest.builder().bucket(bucket).delete(delete).build()
@@ -69,24 +71,25 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
 
   def putObject(key: String, uploadedFile: UploadedFile): Try[PutObjectResponse] = putObject(key, uploadedFile, None)
 
-  def putObject(key: String, uploadedFile: UploadedFile, cacheControl: Option[String]): Try[PutObjectResponse] = Try {
-    val contentType = uploadedFile.contentType.getOrElse("application/octet-stream")
-    val por         = PutObjectRequest
-      .builder()
-      .contentLength(uploadedFile.fileSize)
-      .contentType(contentType)
-      .key(key)
-      .bucket(bucket)
+  def putObject(key: String, uploadedFile: UploadedFile, cacheControl: Option[String]): Try[PutObjectResponse] = Try
+    .throwIfInterrupted {
+      val contentType = uploadedFile.contentType.getOrElse("application/octet-stream")
+      val por         = PutObjectRequest
+        .builder()
+        .contentLength(uploadedFile.fileSize)
+        .contentType(contentType)
+        .key(key)
+        .bucket(bucket)
 
-    val porWithCacheControl = cacheControl match {
-      case Some(value) => por.cacheControl(value)
-      case None        => por
+      val porWithCacheControl = cacheControl match {
+        case Some(value) => por.cacheControl(value)
+        case None        => por
+      }
+
+      val requestBody = RequestBody.fromFile(uploadedFile.file)
+
+      client.putObject(porWithCacheControl.build(), requestBody)
     }
-
-    val requestBody = RequestBody.fromFile(uploadedFile.file)
-
-    client.putObject(porWithCacheControl.build(), requestBody)
-  }
 
   def putObject(
       key: String,
@@ -104,10 +107,10 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
 
     val requestBody = RequestBody.fromInputStream(stream, contentLength)
 
-    Try(client.putObject(porWithCacheControl.build(), requestBody))
+    Try.throwIfInterrupted(client.putObject(porWithCacheControl.build(), requestBody))
   }
 
-  def updateMetadata(key: String, metadata: java.util.Map[String, String]): Try[?] = Try {
+  def updateMetadata(key: String, metadata: java.util.Map[String, String]): Try[?] = Try.throwIfInterrupted {
     val cor = CopyObjectRequest
       .builder()
       .sourceBucket(bucket)
@@ -119,7 +122,7 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
     client.copyObject(cor.build())
   }
 
-  def copyObject(fromKey: String, toKey: String): Try[CopyObjectResponse] = Try {
+  def copyObject(fromKey: String, toKey: String): Try[CopyObjectResponse] = Try.throwIfInterrupted {
     val cor = CopyObjectRequest
       .builder()
       .sourceBucket(bucket)

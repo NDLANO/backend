@@ -11,6 +11,7 @@ package no.ndla.imageapi.service
 import com.sksamuel.scrimage.format.{Format, FormatDetector}
 import com.sksamuel.scrimage.{ImmutableImage, ScaleMethod}
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.TryUtil.throwIfInterrupted
 import no.ndla.common.aws.NdlaS3Object
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.domain.UploadedFile
@@ -54,39 +55,49 @@ class ImageConverter(using props: Props) extends StrictLogging {
   def uploadedFileToImageStream(file: UploadedFile, fileName: String): Try[ImageStream] =
     inputStreamToImageStream(file.createStream(), fileName, file.fileSize, file.contentType.getOrElse(""))
 
+  private def maybeScrimageFormatToImageStream(
+      stream: BufferedInputStream,
+      fileName: String,
+      contentLength: Long,
+      contentType: String,
+      maybeScrimageFormat: Option[Format],
+  ): Try[ImageStream] = {
+    import ImageStream.*
+    val result = maybeScrimageFormat match {
+      case Some(Format.GIF)                           => Gif(stream, fileName, contentLength)
+      case Some(Format.PNG)                           => Processable(stream, fileName, contentLength, ProcessableImageFormat.Png)
+      case Some(Format.JPEG)                          => Processable(stream, fileName, contentLength, ProcessableImageFormat.Jpeg)
+      case Some(Format.WEBP)                          => Processable(stream, fileName, contentLength, ProcessableImageFormat.Webp)
+      case None if svgMimeTypes.contains(contentType) => Unprocessable(stream, fileName, contentLength, contentType)
+      case None                                       => return Failure(ImageUnprocessableFormatException(contentType))
+    }
+    Success(result)
+  }
+
   private def inputStreamToImageStream(
       inputStream: InputStream,
       fileName: String,
       contentLength: Long,
       contentType: String,
-  ): Try[ImageStream] = Try {
+  ): Try[ImageStream] = {
     // Use buffered stream with mark to avoid creating multiple streams
     val stream = new BufferedInputStream(inputStream)
     stream.mark(32)
-    val maybeScrimageFormat = FormatDetector.detect(stream).toScala
-    stream.reset()
+    val result = for {
+      maybeScrimageFormat <- Try.throwIfInterrupted(FormatDetector.detect(stream).toScala)
+      _                   <- Try.throwIfInterrupted(stream.reset())
+      stream              <- maybeScrimageFormatToImageStream(stream, fileName, contentLength, contentType, maybeScrimageFormat)
+    } yield stream
 
-    maybeScrimageFormat match {
-      case Some(Format.GIF) => Success(ImageStream.Gif(stream, fileName, contentLength))
-      case Some(Format.PNG) =>
-        Success(ImageStream.Processable(stream, fileName, contentLength, ProcessableImageFormat.Png))
-      case Some(Format.JPEG) =>
-        Success(ImageStream.Processable(stream, fileName, contentLength, ProcessableImageFormat.Jpeg))
-      case Some(Format.WEBP) =>
-        Success(ImageStream.Processable(stream, fileName, contentLength, ProcessableImageFormat.Webp))
-      case None if svgMimeTypes.contains(contentType) =>
-        Success(ImageStream.Unprocessable(stream, fileName, contentLength, contentType))
-      case None => Failure(ImageUnprocessableFormatException(contentType))
-    }
-  }.flatten
-    .recoverWith { ex =>
-      Try(inputStream.close()) match {
+    result.recoverWith { ex =>
+      Try.throwIfInterrupted(inputStream.close()) match {
         case Success(_)       => Failure(ex)
         case Failure(closeEx) =>
           ex.addSuppressed(closeEx)
           Failure(ex)
       }
     }
+  }
 
   private def scaleMethodFor(targetSize: Int): ScaleMethod =
     if (targetSize >= props.ImageScalingUltraMinSize && targetSize <= props.ImageScalingUltraMaxSize)

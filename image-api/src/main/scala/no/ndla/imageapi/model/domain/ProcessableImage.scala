@@ -11,6 +11,7 @@ package no.ndla.imageapi.model.domain
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.*
 import com.sksamuel.scrimage.webp.{WebpImageReader, WebpWriter}
+import no.ndla.common.TryUtil.throwIfInterrupted
 
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
@@ -25,13 +26,14 @@ case class ProcessableImage(image: ImmutableImage, fileName: String, format: Pro
       case ProcessableImageFormat.Webp => WebpWriter.DEFAULT
     }
 
-    Try(image.bytes(writer)).map(bytes =>
-      ImageStream.Processable(new ByteArrayInputStream(bytes), fileName, bytes.length, format)
-    )
+    Try
+      .throwIfInterrupted(image.bytes(writer))
+      .map(bytes => ImageStream.Processable(new ByteArrayInputStream(bytes), fileName, bytes.length, format))
   }
 
-  def transform(f: ImmutableImage => ImmutableImage): Try[ProcessableImage] =
-    Try(f(image)).map(ProcessableImage(_, fileName, format))
+  def transform(f: ImmutableImage => ImmutableImage): Try[ProcessableImage] = Try
+    .throwIfInterrupted(f(image))
+    .map(ProcessableImage(_, fileName, format))
 }
 
 object ProcessableImage {
@@ -40,7 +42,7 @@ object ProcessableImage {
 
   def fromStream(stream: ImageStream.Processable): Try[ProcessableImage] = Using(stream) { imageStream =>
     for {
-      image              <- Try(loader.fromStream(imageStream.stream))
+      image              <- Try.throwIfInterrupted(loader.fromStream(imageStream.stream))
       imageWithFixedType <- fixImageUnderlyingType(image)
     } yield ProcessableImage(imageWithFixedType, imageStream.fileName, imageStream.format)
   }.flatten
