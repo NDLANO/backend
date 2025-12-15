@@ -43,14 +43,10 @@ class TryUtilTest extends UnitTestSuiteBase {
     val thread = Thread.currentThread()
     thread.interrupt()
 
-    try {
-      intercept[InterruptedException] {
-        Try.throwIfInterrupted {
-          "value"
-        }
+    intercept[InterruptedException] {
+      Try.throwIfInterrupted {
+        "value"
       }
-    } finally {
-      Thread.interrupted()
     }
   }
 
