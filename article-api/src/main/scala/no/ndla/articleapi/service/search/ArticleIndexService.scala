@@ -9,6 +9,7 @@
 package no.ndla.articleapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl.*
+import com.sksamuel.elastic4s.fields.ObjectField
 import com.sksamuel.elastic4s.requests.indexes.IndexRequest
 import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
@@ -39,6 +40,7 @@ class ArticleIndexService(using
 
   def getMapping: MappingDefinition = {
     val fields = List(
+      ObjectField("domainObject", enabled = Some(false)),
       intField("id"),
       keywordField("defaultTitle"),
       dateField("lastUpdated"),

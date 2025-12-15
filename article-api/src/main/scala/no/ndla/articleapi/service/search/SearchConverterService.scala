@@ -23,6 +23,9 @@ class SearchConverterService extends StrictLogging {
     SearchableArticle(
       id = ai.id.get,
       title = SearchableLanguageValues(ai.title.map(title => LanguageValue(title.language, title.title))),
+      content = SearchableLanguageValues(
+        ai.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))
+      ),
       visualElement =
         SearchableLanguageValues(ai.visualElement.map(visual => LanguageValue(visual.language, visual.resource))),
       introduction =
@@ -30,9 +33,6 @@ class SearchConverterService extends StrictLogging {
       metaDescription =
         SearchableLanguageValues(ai.metaDescription.map(meta => LanguageValue(meta.language, meta.content))),
       metaImage = ai.metaImage,
-      content = SearchableLanguageValues(
-        ai.content.map(article => LanguageValue(article.language, Jsoup.parseBodyFragment(article.content).text()))
-      ),
       tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
       lastUpdated = ai.updated,
       license = ai.copyright.license,
@@ -45,6 +45,7 @@ class SearchConverterService extends StrictLogging {
       grepCodes = Some(ai.grepCodes),
       availability = ai.availability.toString,
       traits = ai.traits,
+      domainObject = ai,
     )
   }
 

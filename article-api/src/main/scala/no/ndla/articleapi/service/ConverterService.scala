@@ -132,6 +132,7 @@ class ConverterService(using props: Props) extends StrictLogging {
       grepCodes = searchableArticle.grepCodes.getOrElse(List.empty),
       availability = availability,
       traits = searchableArticle.traits,
+      slug = searchableArticle.domainObject.slug,
     )
   }
 

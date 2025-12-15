@@ -43,4 +43,6 @@ case class ArticleSummaryV2DTO(
     availability: String,
     @description("Traits extracted from the article content")
     traits: List[ArticleTrait],
+    @description("The possible slug of the article")
+    slug: Option[String],
 )

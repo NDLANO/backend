@@ -13,6 +13,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{ArticleTrait, SearchableLanguageList, SearchableLanguageValues}
 import no.ndla.common.model.domain.ArticleMetaImage
+import no.ndla.common.model.domain.article.Article
 
 case class SearchableArticle(
     id: Long,
@@ -31,6 +32,7 @@ case class SearchableArticle(
     grepCodes: Option[Seq[String]],
     availability: String,
     traits: List[ArticleTrait],
+    domainObject: Article,
 )
 
 object SearchableArticle {

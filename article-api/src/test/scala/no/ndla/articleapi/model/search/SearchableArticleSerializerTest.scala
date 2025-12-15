@@ -17,6 +17,7 @@ import no.ndla.common.model.domain.{ArticleMetaImage, Availability}
 import no.ndla.mapping.License
 
 class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
+
   val searchableArticle1: SearchableArticle = SearchableArticle(
     id = 10.toLong,
     title = SearchableLanguageValues(Vector(LanguageValue("nb", "tittel"), LanguageValue("en", "title"))),
@@ -40,6 +41,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     grepCodes = Some(Seq("testelitt", "testemye")),
     availability = Availability.everyone.toString,
     traits = List(Video),
+    domainObject = TestData.sampleDomainArticle,
   )
 
   test("That deserialization and serialization of SearchableArticle works as expected") {

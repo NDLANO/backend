@@ -8,12 +8,15 @@
 
 package no.ndla.articleapi.service
 
+import no.ndla.articleapi.model.search.SearchableArticle
 import no.ndla.articleapi.model.{ImportException, api}
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
-import no.ndla.common.model
+import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.common.{CirceUtil, model}
 import no.ndla.common.model.{NDLADate, RelatedContentLink, api as commonApi}
 import no.ndla.common.model.api.{LicenseDTO, UpdateWith}
 import no.ndla.common.model.domain.{
+  ArticleMetaImage,
   Author,
   Availability,
   ContributorType,
@@ -157,10 +160,28 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val articleType        = "topic-article"
     val supportedLanguages = Seq("nb", "en")
     val availability       = "everyone"
-    val hitString          =
-      s"""{  "grepCodes": [], "availability": "everyone", "visualElement": {    "en": "$visualElement"  },  "introduction": {    "nb": "$introduction"  }, "metaImage": [{"imageId": "1", "altText": "$metaImageAlt", "language": "nb"}], "tags": {"nb": ["test"]},  "metaDescription": {    "nb": "$metaDescription"  },  "lastUpdated": "2017-12-29T07:18:27Z",  "tags.nb": [    "baldur"  ],  "license": "$license",  "id": $id,  "authors": [],  "content": {    "nb": "Bilde av Baldurs mareritt om Ragnarok."  },  "defaultTitle": "Baldur har mareritt",  "title": {    "nb": "Baldur har mareritt"  },  "articleType": "$articleType", "traits": []}"""
 
-    val result = service.hitAsArticleSummaryV2(hitString, "nb")
+    val searchableArticle = SearchableArticle(
+      id = id,
+      title = SearchableLanguageValues(Seq(LanguageValue("nb", title), LanguageValue("en", title))),
+      visualElement = SearchableLanguageValues(Seq(LanguageValue("nb", visualElement))),
+      introduction = SearchableLanguageValues(Seq(LanguageValue("nb", introduction))),
+      metaDescription = SearchableLanguageValues(Seq(LanguageValue("nb", metaDescription))),
+      metaImage = Seq(ArticleMetaImage("1", metaImageAlt, "nb")),
+      tags = SearchableLanguageList.from("en" -> Seq("tag1", "tag2")),
+      lastUpdated = NDLADate.of(2017, 12, 29, 7, 18, 27),
+      license = license,
+      authors = Seq.empty,
+      grepCodes = None,
+      content = SearchableLanguageValues(Seq(LanguageValue("nb", "Bilde av Baldurs mareritt om Ragnarok."))),
+      defaultTitle = Some(title),
+      articleType = "topic-article",
+      availability = Availability.everyone.toString,
+      traits = List.empty,
+      domainObject = TestData.sampleDomainArticle,
+    )
+    val hitString = CirceUtil.toJsonString(searchableArticle)
+    val result    = service.hitAsArticleSummaryV2(hitString, "nb")
 
     result.id should equal(id)
     result.title.title should equal(title)
