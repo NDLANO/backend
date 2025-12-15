@@ -45,7 +45,7 @@ jobs:
           corepack enable
           yarn set version 4.10.3
       - name: Generate typescript types
-        run: ./mill _.generateTypescript
+        run: ./mill -i _.generateTypescript
       - name: Verify typescript types
         run: cd typescript/types-backend && yarn install && yarn tsc
       - name: Commit typescript changes
