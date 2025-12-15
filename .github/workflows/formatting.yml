@@ -17,7 +17,7 @@ jobs:
       - name: Check all formatting
         run: ./checkfmt.sh
       - name: Check copyrights
-        run: ./mill _.copyrightCheck
+        run: ./mill -i _.copyrightCheck
   linting:
     name: Linting
     runs-on: ubuntu-latest
@@ -29,6 +29,6 @@ jobs:
           distribution: temurin
           java-version: ${{ vars.JAVA_VERSION }}
       - name: Build required semanticdb files
-        run: ./mill _.semanticDbData
+        run: ./mill -i _.semanticDbData
       - name: Check dependency cycles
-        run: ./mill dependency-graph.run
+        run: ./mill -i dependency-graph.run
