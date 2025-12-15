@@ -17,7 +17,7 @@ object TryUtil extends StrictLogging {
 
   /** Recursively checks if the given `Throwable` or any of its causes is an `InterruptedException`. */
   @tailrec
-  private def containsInterruptedException(t: Throwable): Boolean = {
+  def containsInterruptedException(t: Throwable): Boolean = {
     t match {
       case _: InterruptedException => true
       case _ if t.getCause != null => containsInterruptedException(t.getCause)
