@@ -73,15 +73,11 @@ class TryUtilTest extends UnitTestSuiteBase {
   }
 
   test("throwIfInterrupted rethrows when f interrupts the thread even if it succeeds") {
-    try {
-      intercept[InterruptedException] {
-        Try.throwIfInterrupted {
-          Thread.currentThread().interrupt()
-          "ok"
-        }
+    intercept[InterruptedException] {
+      Try.throwIfInterrupted {
+        Thread.currentThread().interrupt()
+        "ok"
       }
-    } finally {
-      Thread.interrupted() // clear interrupt status for other tests
     }
   }
 
