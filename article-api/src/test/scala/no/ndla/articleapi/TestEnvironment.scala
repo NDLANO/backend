@@ -22,6 +22,7 @@ import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient, SearchApiClient, TaxonomyApiClient}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, SwaggerController, TapirController, TapirHealthController}
+import no.ndla.scalatestsuite.DBUtilityStub
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -33,7 +34,7 @@ trait TestEnvironment extends MockitoSugar {
 
   lazy val TestData: TestData                      = new TestData
   implicit lazy val migrator: DBMigrator           = mock[DBMigrator]
-  implicit lazy val dbUtility: DBUtility           = mock[DBUtility]
+  implicit lazy val dbUtility: DBUtility           = DBUtilityStub()
   implicit lazy val dbArticle: DBArticle           = mock[DBArticle]
   implicit lazy val memoizeHelpers: MemoizeHelpers = mock[MemoizeHelpers]
   implicit lazy val searchLanguage: SearchLanguage = mock[SearchLanguage]

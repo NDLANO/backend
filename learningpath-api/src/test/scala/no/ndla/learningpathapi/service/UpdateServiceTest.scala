@@ -412,11 +412,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       val x = i.getArgument[DBSession => Try[?]](0)
       x(mock[DBSession])
     }).when(learningPathRepository).inTransaction(any())(using any())
-
-    doAnswer((i: InvocationOnMock) => {
-      val x = i.getArgument[DBSession => Try[?]](0)
-      x(mock[DBSession])
-    }).when(DBUtil).rollbackOnFailure(any())
   }
 
   test("That addLearningPathV2 inserts the given LearningPathV2") {
