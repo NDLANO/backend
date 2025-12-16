@@ -11,7 +11,7 @@ package no.ndla.network.tapir
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.generic.auto.*
 import io.prometheus.metrics.model.registry.PrometheusRegistry
-import no.ndla.common.RequestLogger
+import no.ndla.common.{RequestLogger, TryUtil}
 import no.ndla.network.TaxonomyData
 import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.NoNullJsonPrinter.*
@@ -216,7 +216,6 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
       .prependInterceptor(TapirMiddleware.before)
       .prependInterceptor(RequestInterceptor.transformResultEffect(new TapirMiddleware.after))
       .options
-      .copy(interruptServerLogicWhenRequestCancelled = false)
 
     val config = NettyConfig
       .default
@@ -242,6 +241,7 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
     }
   }
 
+  private val tapirClosedErrorMessage             = "Client disconnected, request timed out, or request cancelled"
   private[tapir] val registry: PrometheusRegistry = new PrometheusRegistry()
   private val metricLabels: MetricLabels          = MetricLabels(
     forRequest = List(
@@ -254,10 +254,13 @@ class Routes(using errorHelpers: ErrorHelpers, errorHandling: ErrorHandling, ser
     ),
     forResponse = List(
       "status" -> {
-        case Right(r) => Some(r.code.code.toString)
-        case Left(ex: RuntimeException)
-            if ex.getMessage == "Client disconnected, request timed out, or request cancelled" => Some("499")
-        case Left(_) => Some("5xx")
+        case Right(r)                                                               => Some(r.code.code.toString)
+        case Left(ex: RuntimeException) if ex.getMessage == tapirClosedErrorMessage =>
+          // TODO: Look at logs to determine if we still need to catch this case specifically
+          logger.info("Mapping closed request exception to status code 499 for metrics")
+          Some("499")
+        case Left(ex) if TryUtil.containsInterruptedException(ex) => Some("499")
+        case Left(_)                                              => Some("5xx")
       }
     ),
   )

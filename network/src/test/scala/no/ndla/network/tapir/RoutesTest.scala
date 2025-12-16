@@ -39,7 +39,7 @@ class RoutesTestController(using
     .out(stringBody)
     .errorOut(errorOutputsFor(500))
     .serverLogicPure { _ =>
-      Thread.sleep(1000)
+      Thread.sleep(5000)
       Right("Yippee!")
     }
 }
@@ -69,7 +69,7 @@ class RoutesTest extends UnitTestSuite, TapirControllerTest {
 
   test("that aborting the request only increases the 499 error code metric") {
     Try(
-      simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/routes/aborted-request").readTimeout(100.millis))
+      simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/routes/aborted-request").readTimeout(500.millis))
     ).failed.failIfFailure
 
     blockUntil(() => getTapirRequestCounterDataPoints.nonEmpty)

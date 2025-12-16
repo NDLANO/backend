@@ -10,15 +10,18 @@ package no.ndla.network.tapir
 
 import cats.implicits.catsSyntaxEitherId
 import com.typesafe.scalalogging.StrictLogging
+import no.ndla.common.TryUtil
 
 trait ErrorHandling(using errorHelpers: ErrorHelpers) extends StrictLogging {
-  def logError(e: Throwable): Unit = {
-    logger.error(e.getMessage, e)
-  }
 
   private def handleUnknownError(e: Throwable): ErrorBody = {
-    logError(e)
-    errorHelpers.generic
+    if (Thread.currentThread().isInterrupted || TryUtil.containsInterruptedException(e)) {
+      logger.info("Thread was interrupted", e)
+      errorHelpers.clientClosed
+    } else {
+      logger.error(e.getMessage, e)
+      errorHelpers.generic
+    }
   }
 
   def handleErrors: PartialFunction[Throwable, AllErrors]

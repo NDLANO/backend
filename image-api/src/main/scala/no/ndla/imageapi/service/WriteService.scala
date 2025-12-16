@@ -14,6 +14,7 @@ import com.sksamuel.scrimage.nio.{AnimatedGifReader, ImageSource}
 import com.sksamuel.scrimage.webp.WebpWriter
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
+import no.ndla.common.TryUtil.throwIfInterrupted
 import no.ndla.common.errors.{MissingBucketKeyException, MissingIdException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Deletable, Delete, Missing, UpdateWith}
@@ -572,7 +573,7 @@ class WriteService(using
         Future {
           for {
             resizedImage <- imageConverter.resizeToVariantSize(image, variantSize)
-            imageBytes   <- Try(resizedImage.bytes(getWebpWriterForFormat(format)))
+            imageBytes   <- Try.throwIfInterrupted(resizedImage.bytes(getWebpWriterForFormat(format)))
             stream        = new ByteArrayInputStream(imageBytes)
             bucketKey     = s"$fileStem/${variantSize.entryName}.webp"
             imageVariant <- imageStorage
@@ -642,7 +643,7 @@ class WriteService(using
 object WriteService {
   // See https://developers.google.com/speed/webp/docs/cwebp#options
   // For PNG images, we set the quality to the default value in cwebp
-  // For JPEG and WebP images, we set the quality higher in order to reduce the effect of double compression
+  // For JPEG and WebP images, we set the quality higher to reduce the effect of double compression
   private val baseWebpWriter                = WebpWriter.DEFAULT.withMultiThread().withM(6)
   private val webpWriterForJpeg: WebpWriter = baseWebpWriter.withoutAlpha().withQ(85)
   private val webpWriterForPng: WebpWriter  = baseWebpWriter.withQ(75)

@@ -48,7 +48,7 @@ trait TapirControllerTest extends UnitTestSuite {
         }
       })
 
-    Thread.sleep(1000)
+    blockUntilHealthy(s"http://localhost:$serverPort/metrics")
   }
 
   override def afterAll(): Unit = server.foreach(_.stop())
