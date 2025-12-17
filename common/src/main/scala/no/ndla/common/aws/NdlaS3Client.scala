@@ -38,6 +38,12 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
 
   def objectExists(key: String): Boolean = headObject(key).isSuccess
 
+  def canAccessBucket: Try[Unit] = Try.throwIfInterrupted {
+    val listReq = ListObjectsV2Request.builder().bucket(bucket).maxKeys(1).build()
+    client.listObjectsV2(listReq)
+    ()
+  }
+
   def getObject(key: String): Try[NdlaS3Object] = {
     val gor = GetObjectRequest.builder().bucket(bucket).key(key).build()
     Try

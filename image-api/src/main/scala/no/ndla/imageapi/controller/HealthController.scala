@@ -8,7 +8,6 @@
 
 package no.ndla.imageapi.controller
 
-import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.ImageStorageService
 import no.ndla.network.clients.MyNDLAApiClient
@@ -23,20 +22,22 @@ class HealthController(using
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
 ) extends TapirHealthController {
-  override def checkReadiness(): Either[String, String] = {
-    val maybeHealth = for {
-      imageMeta <- randomImage
-      imageFile <- imageMeta.images.headOption
-      healthy    = Either.cond(imageStorageService.objectExists(imageFile.fileName), "Healthy", "Internal server error")
-    } yield healthy
-
-    maybeHealth.getOrElse(Right("Healthy"))
+  private def checkBucketAccess(): Either[String, Unit] = imageStorageService.checkBucketAccess() match {
+    case Failure(ex) =>
+      logger.error("Readiness failed: cannot access image bucket", ex)
+      Left("Image storage unavailable")
+    case Success(_) => Right(())
   }
 
-  private def randomImage: Option[ImageMetaInformation] = imageRepository.getRandomImage() match {
-    case Success(meta) => meta
-    case Failure(ex)   =>
-      logger.error("Failed to fetch random image in health check", ex)
-      None
+  private def checkDatabaseAccess(): Either[String, Unit] = imageRepository.imageCount match {
+    case Failure(ex) =>
+      logger.error("Readiness failed: cannot reach database", ex)
+      Left("Database unavailable")
+    case Success(_) => Right(())
   }
+
+  override def checkReadiness(): Either[String, String] = for {
+    _ <- checkDatabaseAccess()
+    _ <- checkBucketAccess()
+  } yield "Ready"
 }

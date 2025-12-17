@@ -13,29 +13,31 @@ import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.network.tapir.{ErrorHelpers, TapirHealthController}
 import no.ndla.network.clients.MyNDLAApiClient
 
+import scala.util.{Failure, Success, Try}
+
 class HealthController(using
-    s3Client: => NDLAS3Client,
+    s3Client: NDLAS3Client,
     audioRepository: AudioRepository,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ControllerErrorHandling,
 ) extends TapirHealthController {
-
-  override def checkReadiness(): Either[String, String] = {
-    audioRepository
-      .getRandomAudio()
-      .flatMap(audio => {
-        audio
-          .filePaths
-          .headOption
-          .map(filePath => {
-            if (s3Client.objectExists(filePath.filePath)) {
-              Right("Healthy")
-            } else {
-              Left("Internal server error")
-            }
-          })
-      })
-      .getOrElse(Right("Healthy"))
+  private def checkBucketAccess(): Either[String, Unit] = s3Client.canAccessBucket match {
+    case Failure(ex) =>
+      logger.error("Readiness failed: cannot access audio bucket", ex)
+      Left("Audio storage unavailable")
+    case Success(_) => Right(())
   }
+
+  private def checkDatabaseAccess(): Either[String, Unit] = Try(audioRepository.audioCount) match {
+    case Failure(ex) =>
+      logger.error("Readiness failed: cannot reach database", ex)
+      Left("Database unavailable")
+    case Success(_) => Right(())
+  }
+
+  override def checkReadiness(): Either[String, String] = for {
+    _ <- checkDatabaseAccess()
+    _ <- checkBucketAccess()
+  } yield "Ready"
 }

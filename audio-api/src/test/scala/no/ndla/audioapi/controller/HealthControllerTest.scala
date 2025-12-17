@@ -18,8 +18,11 @@ import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.mapping.License
 import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import sttp.client3.quick.*
+
+import scala.util.{Failure, Success}
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   var healthControllerResponse: Int                                 = 200
@@ -72,7 +75,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test("that /health/readiness returns 200 on success") {
     healthControllerResponse = 200
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
-    when(s3Client.objectExists("file.mp3")).thenReturn(true)
+    when(s3Client.canAccessBucket).thenReturn(Success(()))
 
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
@@ -83,7 +86,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   test("that /health/readiness returns 500 on failure") {
     healthControllerResponse = 500
     when(audioRepository.getRandomAudio()).thenReturn(Some(audioMeta))
-    when(s3Client.objectExists("file.mp3")).thenReturn(false)
+    when(s3Client.canAccessBucket).thenReturn(Failure(new RuntimeException("Boom")))
 
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
@@ -100,8 +103,8 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   test("that /health returns 200 on no audios") {
     healthControllerResponse = 404
-    when(audioRepository.getRandomAudio()).thenReturn(None)
-    when(s3Client.objectExists("file.mp3")).thenReturn(false)
+    when(audioRepository.audioCount(using any)).thenReturn(0L)
+    when(s3Client.canAccessBucket).thenReturn(Success(()))
 
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
