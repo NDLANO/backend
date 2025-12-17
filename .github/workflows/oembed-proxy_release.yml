@@ -11,8 +11,8 @@ on:
       - oembed-proxy/**
       - common/**
       - network/**
-      - scalatestsuite/**
       - tapirtesting/**
+      - scalatestsuite/**
       - modules/**
       - build.mill
 jobs:

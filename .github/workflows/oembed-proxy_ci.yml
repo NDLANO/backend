@@ -9,8 +9,8 @@ on:
       - oembed-proxy/**
       - common/**
       - network/**
-      - scalatestsuite/**
       - tapirtesting/**
+      - scalatestsuite/**
       - modules/**
       - build.mill
   pull_request:
@@ -18,8 +18,8 @@ on:
       - oembed-proxy/**
       - common/**
       - network/**
-      - scalatestsuite/**
       - tapirtesting/**
+      - scalatestsuite/**
       - modules/**
       - build.mill
 jobs:
