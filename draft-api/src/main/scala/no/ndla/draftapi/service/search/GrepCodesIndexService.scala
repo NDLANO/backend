@@ -17,6 +17,7 @@ import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableGrepCode
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
+import no.ndla.database.DBUtility
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 class GrepCodesIndexService(using
@@ -25,6 +26,7 @@ class GrepCodesIndexService(using
     props: Props,
     e4sClient: NdlaE4sClient,
     searchLanguage: SearchLanguage,
+    dbUtility: DBUtility,
 ) extends IndexService[Draft, SearchableGrepCode]
     with StrictLogging {
   override val documentType: String          = props.DraftGrepCodesSearchDocument

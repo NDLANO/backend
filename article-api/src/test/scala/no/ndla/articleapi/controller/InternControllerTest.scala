@@ -18,7 +18,6 @@ import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
 import org.mockito.invocation.InvocationOnMock
-import scalikejdbc.DBSession
 import sttp.client3.quick.*
 
 import scala.util.{Failure, Success, Try}
@@ -38,14 +37,6 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     super.beforeEach()
 
     when(clock.now()).thenCallRealMethod()
-    doAnswer((i: InvocationOnMock) => {
-      val func = i.getArgument[DBSession => Try[Nothing]](0)
-      func(mock[DBSession])
-    }).when(dbUtility).tryReadOnly(any())
-    doAnswer((i: InvocationOnMock) => {
-      val func = i.getArgument[DBSession => Try[Nothing]](0)
-      func(mock[DBSession])
-    }).when(dbUtility).rollbackOnFailure(any())
   }
 
   test("POST /validate/article should return 400 if the article is invalid") {

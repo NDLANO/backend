@@ -18,6 +18,7 @@ import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.search.SearchableArticle
 import no.ndla.draftapi.repository.{DraftRepository, Repository}
+import no.ndla.database.DBUtility
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 class ArticleIndexService(using
@@ -26,6 +27,7 @@ class ArticleIndexService(using
     e4sClient: NdlaE4sClient,
     searchLanguage: SearchLanguage,
     props: Props,
+    dbUtility: DBUtility,
 ) extends IndexService[Draft, SearchableArticle]
     with StrictLogging {
   override val documentType: String          = props.DraftSearchDocument

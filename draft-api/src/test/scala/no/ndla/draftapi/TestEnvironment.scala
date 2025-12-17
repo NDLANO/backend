@@ -8,30 +8,23 @@
 
 package no.ndla.draftapi
 
-import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.common.converter.CommonConverter
 import no.ndla.common.util.TraitUtil
+import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
-import no.ndla.draftapi.model.api.DraftErrorHelpers
 import no.ndla.draftapi.integration.*
+import no.ndla.draftapi.model.api.DraftErrorHelpers
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
 import no.ndla.draftapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient, TaxonomyApiClient as BaseTaxonomyApiClient}
-import no.ndla.network.tapir.{
-  ErrorHandling,
-  ErrorHelpers,
-  Routes,
-  SwaggerController,
-  TapirApplication,
-  TapirController,
-  TapirHealthController,
-}
+import no.ndla.network.tapir.*
+import no.ndla.scalatestsuite.DBUtilityStub
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -42,7 +35,7 @@ trait TestEnvironment extends TapirApplication[DraftApiProperties] with MockitoS
   }
 
   implicit lazy val migrator: DBMigrator                 = mock[DBMigrator]
-  implicit lazy val dbUtility: DBUtility                 = mock[DBUtility]
+  implicit lazy val dbUtility: DBUtility                 = DBUtilityStub()
   implicit lazy val uuidUtil: UUIDUtil                   = mock[UUIDUtil]
   implicit lazy val memoizeHelpers: MemoizeHelpers       = mock[MemoizeHelpers]
   implicit lazy val searchLanguage: SearchLanguage       = mock[SearchLanguage]

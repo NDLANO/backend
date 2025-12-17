@@ -33,6 +33,7 @@ import no.ndla.network.tapir.TapirApplication
 import org.mockito.Mockito.{reset, spy}
 import org.scalatestplus.mockito.MockitoSugar
 import no.ndla.database.DBUtility
+import no.ndla.scalatestsuite.DBUtilityStub
 
 trait TestEnvironment extends TapirApplication[LearningpathApiProperties] with MockitoSugar {
   implicit lazy val props: LearningpathApiProperties = new LearningpathApiProperties
@@ -69,7 +70,7 @@ trait TestEnvironment extends TapirApplication[LearningpathApiProperties] with M
   implicit lazy val feideApiClient: FeideApiClient                          = mock[FeideApiClient]
   implicit lazy val redisClient: RedisClient                                = mock[RedisClient]
   implicit lazy val myndlaApiClient: MyNDLAApiClient                        = mock[MyNDLAApiClient]
-  implicit lazy val DBUtil: DBUtility                                       = mock[DBUtility]
+  implicit lazy val DBUtil: DBUtility                                       = DBUtilityStub()
   implicit lazy val searchLanguage: SearchLanguage                          = mock[SearchLanguage]
   implicit lazy val commonConverter: CommonConverter                        = mock[CommonConverter]
 

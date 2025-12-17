@@ -22,8 +22,6 @@ import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.validation.{ResourceType, TagAttribute}
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.*
-import org.mockito.invocation.InvocationOnMock
-import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
 
@@ -54,11 +52,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   override def beforeEach(): Unit = {
     reset(feideApiClient)
-
-    doAnswer((i: InvocationOnMock) => {
-      val func = i.getArgument[DBSession => Try[Nothing]](0)
-      func(mock[DBSession])
-    }).when(dbUtility).tryReadOnly(any())
   }
 
   test("withId adds urls and ids on embed resources") {

@@ -41,7 +41,7 @@ import no.ndla.network.model.RequestInfo
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.*
 import org.jsoup.nodes.Element
-import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
+import scalikejdbc.DBSession
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.*
@@ -67,14 +67,13 @@ class WriteService(using
     dbUtility: DBUtility,
     stateTransitionRules: StateTransitionRules,
 ) extends StrictLogging {
-  def insertDump(article: Draft): Try[Draft] = dbUtility.rollbackOnFailure(implicit session => {
-    draftRepository
-      .newEmptyArticleId()
-      .map(newId => {
-        val artWithId = article.copy(id = Some(newId))
-        draftRepository.insert(artWithId)
-      })
-  })
+  def insertDump(article: Draft): Try[Draft] = dbUtility.rollbackOnFailure { implicit session =>
+    for {
+      newId    <- draftRepository.newEmptyArticleId()
+      artWithId = article.copy(id = Some(newId))
+      inserted <- draftRepository.insert(artWithId)
+    } yield inserted
+  }
 
   private def indexArticle(article: Draft, user: TokenUser): Try[Unit] = {
     val executor                                     = Executors.newSingleThreadExecutor
@@ -97,9 +96,10 @@ class WriteService(using
       language: String,
       fallback: Boolean,
       usePostFix: Boolean,
-  ): Try[api.ArticleDTO] = {
-    dbUtility.rollbackOnFailure { implicit session =>
-      draftRepository.withId(articleId) match {
+  ): Try[api.ArticleDTO] = dbUtility.rollbackOnFailure { implicit session =>
+    draftRepository
+      .withId(articleId)
+      .flatMap {
         case None          => Failure(api.NotFoundException(s"Article with id '$articleId' was not found in database."))
         case Some(article) => for {
             newId <- draftRepository.newEmptyArticleId()
@@ -127,13 +127,12 @@ class WriteService(using
               status = status,
               notes = notes,
             )
-            inserted   = draftRepository.insert(articleToInsert)
+            inserted  <- draftRepository.insert(articleToInsert)
             _          = indexArticle(inserted, userInfo)
             enriched   = readService.addUrlsOnEmbedResources(inserted)
             converted <- converterService.toApiArticle(enriched, language, fallback)
           } yield converted
       }
-    }
   }
 
   def contentWithClonedFiles(contents: List[common.ArticleContent]): Try[List[common.ArticleContent]] = {
@@ -176,40 +175,42 @@ class WriteService(using
         newId           <- draftRepository.newEmptyArticleId()
         domainArticle   <- converterService.toDomainArticle(newId, withNotes, user)
         _               <- contentValidator.validateArticle(None, domainArticle)
-        insertedArticle <- Try(draftRepository.insert(domainArticle))
+        insertedArticle <- draftRepository.insert(domainArticle)
         _                = indexArticle(insertedArticle, user)
         apiArticle      <- converterService.toApiArticle(insertedArticle, newArticle.language)
       } yield apiArticle
     }
   }
 
-  def updateArticleStatus(status: DraftStatus, id: Long, user: TokenUser): Try[api.ArticleDTO] = {
-    draftRepository.withId(id)(using ReadOnlyAutoSession) match {
-      case None        => Failure(api.NotFoundException(s"No article with id $id was found"))
-      case Some(draft) => for {
-          convertedArticle <- stateTransitionRules.doTransition(draft, status, user)
-          updatedArticle   <- updateArticleAndStoreAsNewIfPublished(convertedArticle, statusWasUpdated = true)
-          _                 = indexArticle(updatedArticle, user)
-          apiArticle       <- converterService.toApiArticle(updatedArticle, Language.AllLanguages, fallback = true)
-        } yield apiArticle
+  def updateArticleStatus(status: DraftStatus, id: Long, user: TokenUser): Try[api.ArticleDTO] = dbUtility
+    .rollbackOnFailure { implicit session =>
+      draftRepository
+        .withId(id)
+        .flatMap {
+          case None        => Failure(api.NotFoundException(s"No article with id $id was found"))
+          case Some(draft) => for {
+              convertedArticle <- stateTransitionRules.doTransition(draft, status, user)
+              updatedArticle   <- updateArticleAndStoreAsNewIfPublished(convertedArticle, statusWasUpdated = true)
+              _                 = indexArticle(updatedArticle, user)
+              apiArticle       <- converterService.toApiArticle(updatedArticle, Language.AllLanguages, fallback = true)
+            } yield apiArticle
+        }
     }
-  }
 
-  def updateArticleAndStoreAsNewIfPublished(article: Draft, statusWasUpdated: Boolean): Try[Draft] = {
+  def updateArticleAndStoreAsNewIfPublished(article: Draft, statusWasUpdated: Boolean)(using DBSession): Try[Draft] = {
     val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED
-    dbUtility.rollbackOnFailure { implicit session =>
-      draftRepository.updateArticle(article) match {
-        case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
-        case Success(updated)                      => Success(updated)
-        case Failure(ex)                           => Failure(ex)
-      }
+    draftRepository.updateArticle(article) match {
+      case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)
+      case Success(updated)                      => Success(updated)
+      case Failure(ex)                           => Failure(ex)
     }
   }
 
-  def getRanges(session: DBSession): Try[List[(Long, Long)]] = Try {
-    val (minId, maxId) = draftRepository.minMaxArticleId(using session)
-    Seq.range(minId, maxId + 1).grouped(100).map(group => (group.head, group.last)).toList
-  }
+  def getRanges(using DBSession): Try[List[(Long, Long)]] = draftRepository
+    .minMaxArticleId
+    .map { case (minId, maxId) =>
+      Seq.range(minId, maxId + 1).grouped(100).map(group => (group.head, group.last)).toList
+    }
 
   private val grepFieldsToPublish = Seq(PartialArticleFieldsDTO.grepCodes)
 
@@ -222,8 +223,8 @@ class WriteService(using
     common.EditorNote(s"Oppdaterte grep-koder: [$grepCodes]", user.id, draft.status, clock.now())
   }
 
-  private def migrateOutdatedGrepForDraft(draft: Draft, user: TokenUser)(
-      session: DBSession
+  private def migrateOutdatedGrepForDraft(draft: Draft, user: TokenUser)(using
+      DBSession
   ): Try[Option[(Long, PartialPublishArticleDTO)]] = permitTry {
     boundary {
       val articleId = draft.id.getOrElse(-1L)
@@ -238,7 +239,7 @@ class WriteService(using
       }
       val grepCodeNote = getGrepCodeNote(newGrepCodeMapping, draft, user)
       val newDraft     = draft.copy(grepCodes = updatedGrepCodes, notes = draft.notes :+ grepCodeNote)
-      val updated      = draftRepository.updateArticle(newDraft)(using session).?
+      val updated      = draftRepository.updateArticle(newDraft).?
       val partialPart  = partialArticleFieldsUpdate(updated, grepFieldsToPublish, Language.AllLanguages)
       logger.info(
         s"Migrated grep codes for article $articleId from [${draft.grepCodes.mkString(",")}] to [${updatedGrepCodes.mkString(",")}]"
@@ -250,26 +251,26 @@ class WriteService(using
   }
 
   def migrateOutdatedGreps(user: TokenUser): Try[Unit] = logTaskTime("Migrate outdated grep codes") {
-    dbUtility.rollbackOnFailure { session =>
+    dbUtility.rollbackOnFailure { implicit session =>
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
-      val result = getRanges(session).map(ranges => {
-        val chunkResult = ranges.map { case (start, end) =>
-          Future {
-            val chunk = draftRepository.documentsWithArticleIdBetween(start, end)(using session)
-            chunk.map(d => migrateOutdatedGrepForDraft(d, user)(session))
+      val future = getRanges match {
+        case Success(ranges) => Future.traverse(ranges) { case (start, end) =>
+            Future {
+              draftRepository
+                .documentsWithArticleIdBetween(start, end)
+                .flatMap { chunk =>
+                  chunk.traverse(d => migrateOutdatedGrepForDraft(d, user)).map(_.flatten)
+                }
+            }
           }
-        }
-        chunkResult
-      })
+        case Failure(ex) => Future.failed(ex)
+      }
 
-      result.flatMap { futures =>
-        val fut     = Future.sequence(futures)
-        val awaited = Try(Await.result(fut, 1.hour).flatten.sequence.map(_.flatten)).flatten
-
-        awaited.flatMap { toPartialPublish =>
-          articleApiClient.bulkPartialPublishArticles(toPartialPublish.toMap, user)
-        }
+      val results = Await.result(future, 1.hour)
+      val result  = results.sequence.map(_.flatten)
+      result.flatMap { toPartialPublish =>
+        articleApiClient.bulkPartialPublishArticles(toPartialPublish.toMap, user)
       }
     }
   }
@@ -280,9 +281,8 @@ class WriteService(using
       createNewVersion: Boolean,
       user: TokenUser,
       statusWasUpdated: Boolean,
-  ): Try[Draft] =
-    if (createNewVersion)
-      draftRepository.storeArticleAsNewVersion(article, Some(user), keepDraftData = true)(using AutoSession)
+  )(using DBSession): Try[Draft] =
+    if (createNewVersion) draftRepository.storeArticleAsNewVersion(article, Some(user), keepDraftData = true)
     else updateArticleAndStoreAsNewIfPublished(article, statusWasUpdated)
 
   private def addRevisionDateNotes(user: TokenUser, updatedArticle: Draft, oldArticle: Option[Draft]): Draft = {
@@ -380,7 +380,7 @@ class WriteService(using
       statusWasUpdated: Boolean,
       updatedApiArticle: api.UpdatedArticleDTO,
       shouldNotAutoUpdateStatus: Boolean,
-  ): Try[Draft] = {
+  )(using DBSession): Try[Draft] = {
     val fieldsToPartialPublish = shouldPartialPublish(oldArticle, toUpdate)
     val withPartialPublishNote = addPartialPublishNote(toUpdate, user, fieldsToPartialPublish)
     val withRevisionDateNotes  = addRevisionDateNotes(user, withPartialPublishNote, oldArticle)
@@ -453,18 +453,18 @@ class WriteService(using
     .toList
 
   def addNotesToDrafts(input: AddMultipleNotesDTO, user: TokenUser): Try[Unit] = dbUtility.rollbackOnFailure {
-    session =>
-      flattenNotes(input).traverse(info => addNotesToDraft(info.draftId, info.notes, user)(session)).unit
+    implicit session =>
+      flattenNotes(input).traverse(info => addNotesToDraft(info.draftId, info.notes, user)).unit
   }
 
-  private def addNotesToDraft(id: Long, notes: List[String], user: TokenUser)(session: DBSession): Try[Boolean] = {
+  private def addNotesToDraft(id: Long, notes: List[String], user: TokenUser)(using DBSession): Try[Boolean] = {
     for {
-      maybeDraft <- Try(draftRepository.withId(id)(using session))
+      maybeDraft <- draftRepository.withId(id)
       draft      <- maybeDraft.toTry(NotFoundException(s"Article with id $id not found"))
       now         = clock.now()
       newNotes    = notes.map(note => common.EditorNote(note, user.id, draft.status, now))
-      result      = draftRepository.updateArticleNotes(id, newNotes)(using session)
-    } yield result.isSuccess
+      result     <- draftRepository.updateArticleNotes(id, newNotes)
+    } yield result
   }
 
   private[service] def updateStatusIfNeeded(
@@ -489,15 +489,17 @@ class WriteService(using
   }
 
   def updateArticle(articleId: Long, updatedApiArticle: api.UpdatedArticleDTO, user: TokenUser): Try[api.ArticleDTO] =
-    draftRepository.withId(articleId)(using ReadOnlyAutoSession) match {
-      case Some(existing) => updateExistingArticle(existing, updatedApiArticle, user)
-      case None           => Failure(api.NotFoundException(s"Article with id $articleId does not exist"))
+    dbUtility.rollbackOnFailure { implicit session =>
+      draftRepository
+        .withId(articleId)
+        .flatMap {
+          case Some(existing) => updateExistingArticle(existing, updatedApiArticle, user)
+          case None           => Failure(api.NotFoundException(s"Article with id $articleId does not exist"))
+        }
     }
 
-  private def updateExistingArticle(
-      existing: Draft,
-      updatedApiArticle: api.UpdatedArticleDTO,
-      user: TokenUser,
+  private def updateExistingArticle(existing: Draft, updatedApiArticle: api.UpdatedArticleDTO, user: TokenUser)(using
+      DBSession
   ): Try[api.ArticleDTO] = for {
     convertedArticle         <- converterService.toDomainArticle(existing, updatedApiArticle, user)
     shouldNotAutoUpdateStatus = !shouldUpdateStatus(convertedArticle, existing)
@@ -526,25 +528,23 @@ class WriteService(using
     )
   } yield apiArticle
 
-  def deleteLanguage(id: Long, language: String, userInfo: TokenUser): Try[api.ArticleDTO] = {
-    draftRepository.withId(id)(using ReadOnlyAutoSession) match {
-      case Some(article) => article.title.size match {
-          case 1 => Failure(OperationNotAllowedException("Only one language left"))
-          case _ => for {
+  def deleteLanguage(id: Long, language: String, userInfo: TokenUser): Try[api.ArticleDTO] = dbUtility
+    .rollbackOnFailure { implicit session =>
+      draftRepository
+        .withId(id)
+        .flatMap {
+          case Some(article) => for {
+              _          <- Failure.when(article.title.size == 1)(OperationNotAllowedException("Only one language left"))
               newArticle <- converterService.deleteLanguage(article, language, userInfo)
               stored     <- updateArticleAndStoreAsNewIfPublished(newArticle, statusWasUpdated = true)
               converted  <- converterService.toApiArticle(stored, Language.AllLanguages)
             } yield converted
+          case None => Failure(api.NotFoundException("Article does not exist"))
         }
-      case None => Failure(api.NotFoundException("Article does not exist"))
     }
-  }
 
-  def deleteArticle(id: Long): Try[api.ContentIdDTO] = {
-    draftRepository
-      .deleteArticle(id)(using AutoSession)
-      .flatMap(articleIndexService.deleteDocument)
-      .map(id => api.ContentIdDTO(id))
+  def deleteArticle(id: Long): Try[api.ContentIdDTO] = dbUtility.rollbackOnFailure { implicit session =>
+    draftRepository.deleteArticle(id).flatMap(articleIndexService.deleteDocument).map(api.ContentIdDTO.apply)
   }
 
   def storeFile(file: UploadedFile): Try[api.UploadedFileDTO] = uploadFile(file).map(f =>
@@ -612,49 +612,50 @@ class WriteService(using
     s"$randomString$extensionWithDot"
   }
 
-  def newUserData(userId: String): Try[api.UserDataDTO] = {
-    userDataRepository
-      .insert(
-        domain.UserData(
-          id = None,
-          userId = userId,
-          savedSearches = None,
-          latestEditedArticles = None,
-          latestEditedConcepts = None,
-          latestEditedLearningpaths = None,
-          favoriteSubjects = None,
-        )
+  def newUserData(userId: String)(using DBSession): Try[api.UserDataDTO] = userDataRepository
+    .insert(
+      domain.UserData(
+        id = None,
+        userId = userId,
+        savedSearches = None,
+        latestEditedArticles = None,
+        latestEditedConcepts = None,
+        latestEditedLearningpaths = None,
+        favoriteSubjects = None,
       )
-      .map(converterService.toApiUserData)
-  }
+    )
+    .map(converterService.toApiUserData)
 
-  def updateUserData(updatedUserData: api.UpdatedUserDataDTO, user: TokenUser): Try[api.UserDataDTO] = {
-    val userId = user.id
-    userDataRepository.withUserId(userId) match {
-      case None =>
-        val newUserData = domain.UserData(
-          id = None,
-          userId = userId,
-          savedSearches = updatedUserData.savedSearches,
-          latestEditedArticles = updatedUserData.latestEditedArticles,
-          latestEditedConcepts = updatedUserData.latestEditedConcepts,
-          latestEditedLearningpaths = updatedUserData.latestEditedLearningpaths,
-          favoriteSubjects = updatedUserData.favoriteSubjects,
-        )
-        userDataRepository.insert(newUserData).map(converterService.toApiUserData)
+  def updateUserData(updatedUserData: api.UpdatedUserDataDTO, user: TokenUser): Try[api.UserDataDTO] = dbUtility
+    .rollbackOnFailure { implicit session =>
+      val userId = user.id
+      userDataRepository
+        .withUserId(userId)
+        .flatMap {
+          case None =>
+            val newUserData = domain.UserData(
+              id = None,
+              userId = userId,
+              savedSearches = updatedUserData.savedSearches,
+              latestEditedArticles = updatedUserData.latestEditedArticles,
+              latestEditedConcepts = updatedUserData.latestEditedConcepts,
+              latestEditedLearningpaths = updatedUserData.latestEditedLearningpaths,
+              favoriteSubjects = updatedUserData.favoriteSubjects,
+            )
+            userDataRepository.insert(newUserData).map(converterService.toApiUserData)
 
-      case Some(existing) =>
-        val toUpdate = existing.copy(
-          savedSearches = updatedUserData.savedSearches.orElse(existing.savedSearches),
-          latestEditedArticles = updatedUserData.latestEditedArticles.orElse(existing.latestEditedArticles),
-          latestEditedConcepts = updatedUserData.latestEditedConcepts.orElse(existing.latestEditedConcepts),
-          latestEditedLearningpaths =
-            updatedUserData.latestEditedLearningpaths.orElse(existing.latestEditedLearningpaths),
-          favoriteSubjects = updatedUserData.favoriteSubjects.orElse(existing.favoriteSubjects),
-        )
-        userDataRepository.update(toUpdate).map(converterService.toApiUserData)
+          case Some(existing) =>
+            val toUpdate = existing.copy(
+              savedSearches = updatedUserData.savedSearches.orElse(existing.savedSearches),
+              latestEditedArticles = updatedUserData.latestEditedArticles.orElse(existing.latestEditedArticles),
+              latestEditedConcepts = updatedUserData.latestEditedConcepts.orElse(existing.latestEditedConcepts),
+              latestEditedLearningpaths =
+                updatedUserData.latestEditedLearningpaths.orElse(existing.latestEditedLearningpaths),
+              favoriteSubjects = updatedUserData.favoriteSubjects.orElse(existing.favoriteSubjects),
+            )
+            userDataRepository.update(toUpdate).map(converterService.toApiUserData)
+        }
     }
-  }
 
   private[service] def partialArticleFieldsUpdate(
       article: Draft,
@@ -698,11 +699,13 @@ class WriteService(using
       articleFieldsToUpdate: Seq[api.PartialArticleFieldsDTO],
       language: String,
       user: TokenUser,
-  ): (Long, Try[Draft]) = draftRepository.withId(id)(using ReadOnlyAutoSession) match {
-    case None          => id -> Failure(api.NotFoundException(s"Could not find draft with id of $id to partial publish"))
-    case Some(article) =>
+  ): (Long, Try[Draft]) = dbUtility.tryReadOnly(implicit session => draftRepository.withId(id)) match {
+    case Success(Some(article)) =>
       partialPublish(article, articleFieldsToUpdate, language, user): Unit
       id -> Success(article)
+    case Success(None) =>
+      id -> Failure(api.NotFoundException(s"Could not find draft with id of $id to partial publish"))
+    case Failure(ex) => id -> Failure(ex)
   }
 
   private def partialPublishIfNeeded(
@@ -787,32 +790,32 @@ class WriteService(using
     }
   }
 
-  private def getRevisionMetaForUrn(node: Node): Seq[common.RevisionMeta] = {
+  private def getRevisionMetaForUrn(node: Node)(using DBSession): Try[Seq[common.RevisionMeta]] = {
     node.contentUri match {
       case Some(contentUri) => parseArticleIdAndRevision(contentUri) match {
-          case (Success(articleId), _) => draftRepository.withId(articleId)(using ReadOnlyAutoSession) match {
-              case Some(article) => article.revisionMeta
-              case _             => Seq.empty
-            }
-          case _ => Seq.empty
+          case (Success(articleId), _) => draftRepository
+              .withId(articleId)
+              .flatMap(_.toTry(api.NotFoundException(s"No article with id $articleId")))
+              .map(_.revisionMeta)
+          case (Failure(ex), _) => Failure(ex)
         }
-      case _ => Seq.empty
+      case None => Success(Seq.empty)
     }
   }
 
-  def copyRevisionDates(publicId: String): Try[Unit] = {
+  def copyRevisionDates(publicId: String): Try[Unit] = dbUtility.rollbackOnFailure { implicit session =>
     taxonomyApiClient.getNode(publicId) match {
       case Failure(_)     => Failure(api.NotFoundException(s"No topics with id $publicId"))
-      case Success(topic) =>
-        val revisionMeta = getRevisionMetaForUrn(topic)
-        if (revisionMeta.nonEmpty) {
-          for {
-            topics    <- taxonomyApiClient.getChildNodes(publicId)
-            resources <- taxonomyApiClient.getChildResources(publicId)
-            _         <- topics.traverse(setRevisions(_, revisionMeta))
-            _         <- resources.traverse(setRevisions(_, revisionMeta))
-          } yield ()
-        } else Success(())
+      case Success(topic) => getRevisionMetaForUrn(topic).flatMap { revisionMeta =>
+          if (revisionMeta.nonEmpty) {
+            for {
+              topics    <- taxonomyApiClient.getChildNodes(publicId)
+              resources <- taxonomyApiClient.getChildResources(publicId)
+              _         <- topics.traverse(setRevisions(_, revisionMeta))
+              _         <- resources.traverse(setRevisions(_, revisionMeta))
+            } yield ()
+          } else Success(())
+        }
     }
   }
 
@@ -835,7 +838,7 @@ class WriteService(using
     } yield ()
   }
 
-  private def setRevisions(entity: Node, revisions: Seq[common.RevisionMeta]): Try[?] = {
+  private def setRevisions(entity: Node, revisions: Seq[common.RevisionMeta])(using DBSession): Try[Unit] = {
     val updateResult = entity.contentUri match {
       case Some(contentUri) => parseArticleIdAndRevision(contentUri) match {
           case (Success(articleId), _) => updateArticleWithRevisions(articleId, revisions)
@@ -843,22 +846,26 @@ class WriteService(using
         }
       case _ => Success(())
     }
-    updateResult.map(_ => {
+    updateResult.flatMap(_ => {
       entity match {
-        case Node(id, _, _, _) =>
-          taxonomyApiClient.getChildResources(id).flatMap(resources => resources.traverse(setRevisions(_, revisions)))
+        case Node(id, _, _, _) => taxonomyApiClient
+            .getChildResources(id)
+            .flatMap(resources => resources.traverse(setRevisions(_, revisions)).unit)
         case null => Success(())
       }
     })
   }
 
-  private def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.RevisionMeta]): Try[?] = {
-    draftRepository
-      .withId(articleId)(using ReadOnlyAutoSession)
-      .traverse(article => {
-        val revisionMeta = article.revisionMeta ++ revisions
-        val toUpdate     = article.copy(revisionMeta = revisionMeta.distinct)
-        draftRepository.updateArticle(toUpdate)(using AutoSession)
-      })
-  }
+  private def updateArticleWithRevisions(articleId: Long, revisions: Seq[common.RevisionMeta])(using
+      DBSession
+  ): Try[Unit] = draftRepository
+    .withId(articleId)
+    .flatMap(
+      _.traverse(article => {
+          val revisionMeta = article.revisionMeta ++ revisions
+          val toUpdate     = article.copy(revisionMeta = revisionMeta.distinct)
+          draftRepository.updateArticle(toUpdate)
+        })
+        .unit
+    )
 }

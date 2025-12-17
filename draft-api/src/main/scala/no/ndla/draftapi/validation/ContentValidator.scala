@@ -12,16 +12,15 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.model.domain.{ArticleContent, ArticleMetaImage, ContributorType, RequiredLibrary}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.draftapi.DraftApiProperties
-
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.validation.TextValidator
-
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.*
 import no.ndla.common.model.domain.draft.DraftStatus.ARCHIVED
 import no.ndla.common.model.domain.language.OptLanguageFields
+import no.ndla.database.DBUtility
 import no.ndla.draftapi.integration.ArticleApiClient
 import no.ndla.draftapi.model.api.{ContentIdDTO, NotFoundException, UpdatedArticleDTO}
 import no.ndla.draftapi.repository.DraftRepository
@@ -31,15 +30,16 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules.{allLegalTags, stringToJsoupDocument}
 import no.ndla.validation.SlugValidator.validateSlug
-import scalikejdbc.ReadOnlyAutoSession
+import scalikejdbc.DBSession
 
 import scala.jdk.CollectionConverters.*
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Try, boundary}
 
 class ContentValidator(using
     articleApiClient: ArticleApiClient,
     converterService: ConverterService,
     draftRepository: DraftRepository,
+    dBUtility: DBUtility,
     props: DraftApiProperties,
 ) extends StrictLogging {
   private val inlineHtmlTags       = props.InlineHtmlTags
@@ -63,14 +63,13 @@ class ContentValidator(using
     }
   }
 
-  def validateArticleOnLanguage(oldArticle: Option[Draft], article: Draft, language: Option[String]): Try[Draft] = {
+  def validateArticleOnLanguage(oldArticle: Option[Draft], article: Draft, language: Option[String])(using
+      DBSession
+  ): Try[Draft] = {
     val toValidate    = language.map(getArticleOnLanguage(article, _)).getOrElse(article)
     val oldToValidate = language.map(getArticleOnLanguage(article, _)).orElse(oldArticle)
     validateArticle(oldToValidate, toValidate)
   }
-
-  def validateArticleOnLanguage(article: Draft, language: Option[String]): Try[Draft] =
-    validateArticleOnLanguage(None, article, language)
 
   private def getArticleOnLanguage(article: Draft, language: String): Draft = {
     article.copy(
@@ -84,9 +83,16 @@ class ContentValidator(using
     )
   }
 
-  def validateArticle(article: Draft): Try[Draft] = validateArticle(None, article)
+  def validateArticle(article: Draft)(using DBSession): Try[Draft] = validateArticle(None, article)
 
-  def validateArticle(oldArticle: Option[Draft], article: Draft): Try[Draft] = {
+  def validateArticle(oldArticle: Option[Draft], article: Draft)(using DBSession): Try[Draft] = boundary {
+    val slugExists = { (slug: String, articleId: Option[Long]) =>
+      draftRepository.slugExists(slug, articleId) match {
+        case Success(b)  => b
+        case Failure(ex) => boundary.break(Failure(ex))
+      }
+    }
+
     val shouldValidateEntireArticle = !onlyUpdatedEditorialFields(oldArticle, article)
     val regularValidationErrors     =
       if (shouldValidateEntireArticle) article.content.flatMap(c => validateArticleContent(c)) ++
@@ -99,7 +105,7 @@ class ContentValidator(using
         article.requiredLibraries.flatMap(validateRequiredLibrary) ++
         article.metaImage.flatMap(validateMetaImage) ++
         article.visualElement.flatMap(v => validateVisualElement(v)) ++
-        validateSlug(article.slug, article.articleType, article.id, draftRepository.slugExists) ++
+        validateSlug(article.slug, article.articleType, article.id, slugExists) ++
         validateResponsible(article)
       else Seq.empty
 
@@ -136,30 +142,35 @@ class ContentValidator(using
     }
   }
 
-  def validateArticleApiArticle(id: Long, importValidate: Boolean, user: TokenUser): Try[ContentIdDTO] = {
-    draftRepository.withId(id)(using ReadOnlyAutoSession) match {
-      case None        => Failure(NotFoundException(s"Article with id $id does not exist"))
-      case Some(draft) => converterService
-          .toArticleApiArticle(draft)
-          .flatMap(article => articleApiClient.validateArticle(article, importValidate, Some(user)))
-          .map(_ => ContentIdDTO(id))
+  def validateArticleApiArticle(id: Long, importValidate: Boolean, user: TokenUser): Try[ContentIdDTO] = dBUtility
+    .tryReadOnly { implicit session =>
+      draftRepository
+        .withId(id)
+        .flatMap {
+          case None        => Failure(NotFoundException(s"Article with id $id does not exist"))
+          case Some(draft) => converterService
+              .toArticleApiArticle(draft)
+              .flatMap(article => articleApiClient.validateArticle(article, importValidate, Some(user)))
+              .map(_ => ContentIdDTO(id))
+        }
     }
-  }
 
   def validateArticleApiArticle(
       id: Long,
       updatedArticle: UpdatedArticleDTO,
       importValidate: Boolean,
       user: TokenUser,
-  ): Try[ContentIdDTO] = {
-    draftRepository.withId(id)(using ReadOnlyAutoSession) match {
-      case None           => Failure(NotFoundException(s"Article with id $id does not exist"))
-      case Some(existing) => converterService
-          .toDomainArticle(existing, updatedArticle, user)
-          .flatMap(converterService.toArticleApiArticle)
-          .flatMap(articleApiClient.validateArticle(_, importValidate, Some(user)))
-          .map(_ => ContentIdDTO(id))
-    }
+  ): Try[ContentIdDTO] = dBUtility.tryReadOnly { implicit session =>
+    draftRepository
+      .withId(id)
+      .flatMap {
+        case None           => Failure(NotFoundException(s"Article with id $id does not exist"))
+        case Some(existing) => converterService
+            .toDomainArticle(existing, updatedArticle, user)
+            .flatMap(converterService.toArticleApiArticle)
+            .flatMap(articleApiClient.validateArticle(_, importValidate, Some(user)))
+            .map(_ => ContentIdDTO(id))
+      }
   }
 
   private def validateArticleContent(content: ArticleContent): Seq[ValidationMessage] = {

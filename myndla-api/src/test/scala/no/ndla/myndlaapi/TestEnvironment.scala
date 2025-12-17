@@ -39,6 +39,7 @@ import no.ndla.network.tapir.{
   TapirController,
   TapirHealthController,
 }
+import no.ndla.scalatestsuite.DBUtilityStub
 import org.mockito.Mockito.reset
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -73,7 +74,7 @@ trait TestEnvironment extends TapirApplication[MyNdlaApiProperties] with Mockito
   implicit lazy val learningPathApiClient: LearningPathApiClient   = mock[LearningPathApiClient]
   implicit lazy val ndlaClient: NdlaClient                         = mock[NdlaClient]
   implicit lazy val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
-  implicit lazy val DBUtil: DBUtility                              = mock[DBUtility]
+  implicit lazy val DBUtil: DBUtility                              = DBUtilityStub()
   implicit lazy val services: List[TapirController]                = List.empty
   implicit lazy val swagger: SwaggerController                     = mock[SwaggerController]
 

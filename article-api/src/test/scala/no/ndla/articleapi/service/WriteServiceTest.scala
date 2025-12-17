@@ -36,11 +36,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   override def beforeEach(): Unit = {
     Mockito.reset(articleIndexService, articleRepository)
 
-    doAnswer((i: InvocationOnMock) => {
-      val func = i.getArgument[DBSession => Try[Nothing]](0)
-      func(mock[DBSession])
-    }).when(dbUtility).rollbackOnFailure(any())
-
     when(articleRepository.withId(eqTo(articleId))(using any)).thenReturn(Success(Option(toArticleRow(article))))
     when(articleIndexService.indexDocument(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Article](0))

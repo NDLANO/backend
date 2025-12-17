@@ -10,6 +10,7 @@ package no.ndla.draftapi.service
 
 import no.ndla.common.Clock
 import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.implicits.toTry
 import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
@@ -18,9 +19,9 @@ import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.{IllegalStatusStateTransition, NotFoundException}
 import no.ndla.draftapi.model.domain.{IgnoreFunction, StateTransition}
 import no.ndla.draftapi.repository.DraftRepository
+import no.ndla.database.DBUtility
 import no.ndla.network.clients.SearchApiClient
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
-import scalikejdbc.ReadOnlyAutoSession
 
 import scala.collection.mutable
 import scala.language.postfixOps
@@ -35,6 +36,7 @@ class StateTransitionRules(using
     h5pApiClient: => H5PApiClient,
     converterService: ConverterService,
     searchApiClient: => SearchApiClient,
+    dbUtility: DBUtility,
 ) {
   private[service] val checkIfArticleIsInUse: SideEffect = SideEffect.withDraftAndUser("checkIfArticleIsInUse")(
     (article: Draft, user: TokenUser) =>
@@ -75,18 +77,16 @@ class StateTransitionRules(using
     "publishArticleSideEffect",
     (article, user) =>
       article.id match {
-        case Some(id) =>
-          val externalIds = draftRepository.getExternalIdsFromId(id)(using ReadOnlyAutoSession)
-          val h5pPaths    = converterService.getEmbeddedH5PPaths(article)
-          h5pApiClient.publishH5Ps(h5pPaths, user): Unit
-
-          val taxonomyT   = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
-          val articleUdpT = articleApiClient.updateArticle(id, article, externalIds, useSoftValidation, user)
-          val failures    = Seq(taxonomyT, articleUdpT).collectFirst { case Failure(ex) =>
-            Failure(ex)
-          }
-          failures.getOrElse(articleUdpT)
-        case _ => Failure(NotFoundException("This is a bug, article to publish has no id."))
+        case Some(id) => for {
+            externalIds   <- dbUtility.tryReadOnly(implicit session => draftRepository.getExternalIdsFromId(id))
+            h5pPaths       = converterService.getEmbeddedH5PPaths(article)
+            _              = h5pApiClient.publishH5Ps(h5pPaths, user)
+            taxonomyT      = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
+            articleUpdateT = articleApiClient.updateArticle(id, article, externalIds, useSoftValidation, user)
+            _             <- taxonomyT
+            articleUpdate <- articleUpdateT
+          } yield articleUpdate
+        case None => Failure(NotFoundException("This is a bug, article to publish has no id."))
       },
   )
 
@@ -321,9 +321,11 @@ class StateTransitionRules(using
 
   def stateTransitionsToApi(user: TokenUser, articleId: Option[Long]): Try[Map[String, List[String]]] =
     articleId match {
-      case Some(id) => draftRepository.withId(id)(using ReadOnlyAutoSession) match {
-          case Some(article) => Success(buildTransitionsMap(user, Some(article)))
-          case None          => Failure(NotFoundException("The article does not exist"))
+      case Some(id) => dbUtility.tryReadOnly { implicit session =>
+          draftRepository
+            .withId(id)
+            .flatMap(_.toTry(NotFoundException("The article does not exist")))
+            .map(article => buildTransitionsMap(user, Some(article)))
         }
       case None => Success(buildTransitionsMap(user, None))
     }

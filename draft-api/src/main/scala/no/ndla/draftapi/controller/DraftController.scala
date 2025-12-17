@@ -395,7 +395,7 @@ class DraftController(using
     .requirePermission(DRAFT_API_WRITE)
     .serverLogicPure { _ =>
       { case (articleId, language, fallback) =>
-        readService.getArticles(articleId, language.code, fallback).asRight
+        readService.getArticles(articleId, language.code, fallback)
       }
     }
 
@@ -423,14 +423,7 @@ class DraftController(using
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .out(jsonBody[ContentIdDTO])
     .requirePermission(DRAFT_API_WRITE)
-    .serverLogicPure { _ =>
-      { externalId =>
-        readService.getInternalArticleIdByExternalId(externalId) match {
-          case Some(id) => id.asRight
-          case None     => errorHelpers.notFoundWithMsg(s"No article with id $externalId").asLeft
-        }
-      }
-    }
+    .serverLogicPure(_ => readService.getInternalArticleIdByExternalId)
 
   def getLicenses: ServerEndpoint[Any, Eff] = endpoint
     .get
@@ -525,12 +518,10 @@ class DraftController(using
     .serverLogicPure { user =>
       { params =>
         val (articleId, importValidate, updateArticle) = params
-        val result                                     = updateArticle match {
+        updateArticle match {
           case Some(art) => contentValidator.validateArticleApiArticle(articleId, art, importValidate, user)
           case None      => contentValidator.validateArticleApiArticle(articleId, importValidate, user)
         }
-
-        result
       }
     }
 
