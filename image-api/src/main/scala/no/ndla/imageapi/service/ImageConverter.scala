@@ -8,8 +8,8 @@
 
 package no.ndla.imageapi.service
 
-import com.sksamuel.scrimage.format.{Format, FormatDetector}
-import com.sksamuel.scrimage.{ImmutableImage, ScaleMethod}
+import com.sksamuel.scrimage.ScaleMethod
+import com.sksamuel.scrimage.format.Format
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.TryUtil.throwIfInterrupted
 import no.ndla.common.aws.NdlaS3Object
@@ -21,7 +21,6 @@ import no.ndla.imageapi.model.domain.*
 
 import java.io.{BufferedInputStream, InputStream}
 import java.lang.Math.{abs, max, min}
-import scala.jdk.OptionConverters.*
 import scala.util.{Failure, Success, Try}
 
 case class PixelPoint(x: Int, y: Int) // A point given with pixles
@@ -60,18 +59,18 @@ class ImageConverter(using props: Props) extends StrictLogging {
       fileName: String,
       contentLength: Long,
       contentType: String,
-      maybeScrimageFormat: Option[Format],
+      maybeScrimageFormat: Try[Option[Format]],
   ): Try[ImageStream] = {
     import ImageStream.*
-    val result = maybeScrimageFormat match {
-      case Some(Format.GIF)                           => Gif(stream, fileName, contentLength)
-      case Some(Format.PNG)                           => Processable(stream, fileName, contentLength, ProcessableImageFormat.Png)
-      case Some(Format.JPEG)                          => Processable(stream, fileName, contentLength, ProcessableImageFormat.Jpeg)
-      case Some(Format.WEBP)                          => Processable(stream, fileName, contentLength, ProcessableImageFormat.Webp)
-      case None if svgMimeTypes.contains(contentType) => Unprocessable(stream, fileName, contentLength, contentType)
-      case None                                       => return Failure(ImageUnprocessableFormatException(contentType))
+    maybeScrimageFormat.flatMap {
+      case Some(Format.GIF)                           => Success(Gif(stream, fileName, contentLength))
+      case Some(Format.PNG)                           => Success(Processable(stream, fileName, contentLength, ProcessableImageFormat.Png))
+      case Some(Format.JPEG)                          => Success(Processable(stream, fileName, contentLength, ProcessableImageFormat.Jpeg))
+      case Some(Format.WEBP)                          => Success(Processable(stream, fileName, contentLength, ProcessableImageFormat.Webp))
+      case None if svgMimeTypes.contains(contentType) =>
+        Success(Unprocessable(stream, fileName, contentLength, contentType))
+      case None => Failure(ImageUnprocessableFormatException(contentType))
     }
-    Success(result)
   }
 
   private def inputStreamToImageStream(
@@ -84,7 +83,7 @@ class ImageConverter(using props: Props) extends StrictLogging {
       // Use buffered stream with mark to avoid creating multiple streams
       val stream = new BufferedInputStream(inputStream)
       stream.mark(32)
-      val maybeScrimageFormat = FormatDetector.detect(stream).toScala
+      val maybeScrimageFormat = ScrimageUtil.detectFormatFromInputStream(stream)
       stream.reset()
       val result = maybeScrimageFormatToImageStream(stream, fileName, contentLength, contentType, maybeScrimageFormat)
       result.recoverWith { ex =>
@@ -103,12 +102,13 @@ class ImageConverter(using props: Props) extends StrictLogging {
       ScaleMethod.Lanczos3
     else ScaleMethod.Bicubic
 
-  def resizeToVariantSize(image: ImmutableImage, variant: ImageVariantSize): Try[ImmutableImage] = Try {
-    // If the image is to be resized to exactly the same width as itself, Scrimage doesn't return a new copy.
-    // This causes issues when the original image is reused in generating other variants, so we create a copy ourselves
-    if (image.width == variant.width) image.copy()
-    else image.scaleToWidth(variant.width)
-  }
+  def resizeToVariantSize(processableImage: ProcessableImage, variant: ImageVariantSize): Try[ProcessableImage] =
+    processableImage.transform { image =>
+      // If the image is to be resized to exactly the same width as itself, Scrimage doesn't return a new copy.
+      // This causes issues when the original image is reused in generating other variants, so we create a copy ourselves
+      if (image.width == variant.width) image.copy()
+      else image.scaleToWidth(variant.width)
+    }
 
   def resize(processableImage: ProcessableImage, targetWidth: Int, targetHeight: Int): Try[ProcessableImage] = {
     val img        = processableImage.image

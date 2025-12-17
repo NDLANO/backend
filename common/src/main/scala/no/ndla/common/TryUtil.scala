@@ -25,7 +25,7 @@ object TryUtil extends StrictLogging {
     }
   }
 
-  private def rethrowInterruptedWithSuppressed(maybeEx: Option[Throwable]): Nothing = {
+  def rethrowInterruptedWithSuppressed(maybeEx: Option[Throwable]): Nothing = {
     val interruptedEx = new InterruptedException
     maybeEx.foreach(ex => interruptedEx.addSuppressed(ex))
     logger.info("Thread was interrupted in `throwIfInterrupted`", interruptedEx)
