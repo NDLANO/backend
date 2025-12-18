@@ -16,7 +16,7 @@ sealed trait CombinedUser {
   val tokenUser: Option[TokenUser]
   val myndlaUser: Option[MyNDLAUserDTO]
   def isMyNDLAUser: Boolean = myndlaUser.isDefined && tokenUser.isEmpty
-  def isEmployee: Boolean   = myndlaUser.isDefined && myndlaUser.exists(_.role == EMPLOYEE)
+  def isEmployee: Boolean   = myndlaUser.exists(_.role == EMPLOYEE)
 }
 
 case class OptionalCombinedUser(tokenUser: Option[TokenUser], myndlaUser: Option[MyNDLAUserDTO]) extends CombinedUser
