@@ -34,12 +34,12 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment with Tapir
 
   test("That updating config returns 200 if all is good") {
     when(configService.updateConfig(any[ConfigKey], any[ConfigMetaValueDTO], any[TokenUser])).thenReturn(
-      Success(ConfigMetaDTO(ConfigKey.LearningpathWriteRestricted.entryName, Left(true), NDLADate.now(), "someoneCool"))
+      Success(ConfigMetaDTO(ConfigKey.MyNDLAWriteRestricted.entryName, Left(true), NDLADate.now(), "someoneCool"))
     )
 
     val response1 = simpleHttpClient.send(
       quickRequest
-        .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.LearningpathWriteRestricted.entryName}")
+        .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.MyNDLAWriteRestricted.entryName}")
         .body("{\"value\": true}")
         .header("Authorization", s"Bearer $adminScopeClientToken")
     )
@@ -47,7 +47,7 @@ class ConfigControllerTest extends UnitTestSuite with TestEnvironment with Tapir
 
     val response2 = simpleHttpClient.send(
       quickRequest
-        .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.LearningpathWriteRestricted.entryName}")
+        .post(uri"http://localhost:$serverPort/myndla-api/v1/config/${ConfigKey.MyNDLAWriteRestricted.entryName}")
         .body("{\"value\": true}")
         .header("Authorization", s"Bearer $adminAndWriteScopeClientToken")
     )

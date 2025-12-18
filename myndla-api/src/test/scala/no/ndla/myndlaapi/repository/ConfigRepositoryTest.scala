@@ -44,7 +44,7 @@ class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
   test("That updating configKey from empty database inserts config") {
     val newConfig = ConfigMeta(
-      key = ConfigKey.LearningpathWriteRestricted,
+      key = ConfigKey.MyNDLAWriteRestricted,
       value = BooleanValue(true),
       updatedAt = NDLADate.fromUnixTime(0),
       updatedBy = "ndlaUser1",
@@ -53,12 +53,12 @@ class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     repository.updateConfigParam(newConfig)
 
     repository.configCount should be(1)
-    repository.getConfigWithKey(ConfigKey.LearningpathWriteRestricted) should be(Success(Some(newConfig)))
+    repository.getConfigWithKey(ConfigKey.MyNDLAWriteRestricted) should be(Success(Some(newConfig)))
   }
 
   test("That updating config works as expected") {
     val originalConfig = ConfigMeta(
-      key = ConfigKey.LearningpathWriteRestricted,
+      key = ConfigKey.MyNDLAWriteRestricted,
       value = BooleanValue(true),
       updatedAt = NDLADate.fromUnixTime(0),
       updatedBy = "ndlaUser1",
@@ -66,10 +66,10 @@ class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
     repository.updateConfigParam(originalConfig)
     repository.configCount should be(1)
-    repository.getConfigWithKey(ConfigKey.LearningpathWriteRestricted) should be(Success(Some(originalConfig)))
+    repository.getConfigWithKey(ConfigKey.MyNDLAWriteRestricted) should be(Success(Some(originalConfig)))
 
     val updatedConfig = ConfigMeta(
-      key = ConfigKey.LearningpathWriteRestricted,
+      key = ConfigKey.MyNDLAWriteRestricted,
       value = BooleanValue(false),
       updatedAt = NDLADate.fromUnixTime(10000),
       updatedBy = "ndlaUser2",
@@ -77,6 +77,6 @@ class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
     repository.updateConfigParam(updatedConfig)
     repository.configCount should be(1)
-    repository.getConfigWithKey(ConfigKey.LearningpathWriteRestricted) should be(Success(Some(updatedConfig)))
+    repository.getConfigWithKey(ConfigKey.MyNDLAWriteRestricted) should be(Success(Some(updatedConfig)))
   }
 }

@@ -31,12 +31,12 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   val testConfigMeta: ConfigMeta =
-    ConfigMeta(ConfigKey.LearningpathWriteRestricted, value = BooleanValue(true), TestData.today, "EnKulFyr")
+    ConfigMeta(ConfigKey.MyNDLAWriteRestricted, value = BooleanValue(true), TestData.today, "EnKulFyr")
 
   test("That updating config returns failure for non-admin users") {
     when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession])).thenReturn(Success(testConfigMeta))
     val Failure(ex) = service.updateConfig(
-      ConfigKey.LearningpathWriteRestricted,
+      ConfigKey.MyNDLAWriteRestricted,
       ConfigMetaValueDTO(true),
       TokenUser("Kari", Set(LEARNINGPATH_API_PUBLISH), None),
     ): @unchecked
@@ -46,7 +46,7 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
   test("That updating config returns success if all is good") {
     when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession])).thenReturn(Success(testConfigMeta))
     val Success(_) = service.updateConfig(
-      ConfigKey.LearningpathWriteRestricted,
+      ConfigKey.MyNDLAWriteRestricted,
       ConfigMetaValueDTO(true),
       TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None),
     ): @unchecked
@@ -55,7 +55,7 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
   test("That validation fails if IsWriteRestricted is not a boolean") {
     when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession])).thenReturn(Success(testConfigMeta))
     val Failure(ex) = service.updateConfig(
-      ConfigKey.LearningpathWriteRestricted,
+      ConfigKey.MyNDLAWriteRestricted,
       ConfigMetaValueDTO(List("123")),
       TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None),
     ): @unchecked
@@ -66,7 +66,7 @@ class ConfigServiceTest extends UnitTestSuite with TestEnvironment {
   test("That validation succeeds if IsWriteRestricted is a boolean") {
     when(configRepository.updateConfigParam(any[ConfigMeta])(using any[DBSession])).thenReturn(Success(testConfigMeta))
     val res = service.updateConfig(
-      ConfigKey.LearningpathWriteRestricted,
+      ConfigKey.MyNDLAWriteRestricted,
       ConfigMetaValueDTO(true),
       TokenUser("Kari", Set(LEARNINGPATH_API_ADMIN), None),
     )

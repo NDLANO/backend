@@ -1143,7 +1143,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
 
     when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(myNDLAUser))
-    when(configService.isWriteRestricted).thenReturn(Success(true))
 
     val result = service.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("spiller ing", Some("en rolle"))
     result.isSuccess should be(true)

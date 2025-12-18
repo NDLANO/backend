@@ -21,8 +21,6 @@ import scala.util.{Failure, Success, Try}
 
 class ConfigService(using configRepository: ConfigRepository, clock: Clock) {
 
-  def isWriteRestricted: Try[Boolean] = getConfigBoolean(ConfigKey.LearningpathWriteRestricted)
-
   def isMyNDLAWriteRestricted: Try[Boolean] = getConfigBoolean(ConfigKey.MyNDLAWriteRestricted)
 
   private def getConfigBoolean(configKey: ConfigKey): Try[Boolean] = {
