@@ -610,6 +610,10 @@ export type components = {
             metaImage?: components["schemas"]["MetaImageDTO"];
             /** @description Url pointing to the resource */
             url: string;
+            /** @description List of nodeIds the resource is connected to */
+            nodeIds: string[];
+            /** @description Resource-types of this resource, independent of contexts */
+            resourceTypes: components["schemas"]["TaxonomyResourceTypeDTO"][];
             /** @description Primary context of the resource */
             context?: components["schemas"]["ApiTaxonomyContextDTO"];
             /** @description Contexts of the resource */
@@ -708,7 +712,7 @@ export type components = {
          * NodeType
          * @enum {string}
          */
-        NodeType: "NODE" | "SUBJECT" | "TOPIC" | "RESOURCE" | "PROGRAMME";
+        NodeType: "NODE" | "SUBJECT" | "TOPIC" | "CASE" | "RESOURCE" | "PROGRAMME";
         /**
          * NotFoundWithSupportedLanguages
          * @description Information about an error
