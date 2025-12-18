@@ -8,12 +8,16 @@ on:
     paths:
       - network/**
       - common/**
+      - scalatestsuite/**
+      - tapirtesting/**
       - modules/**
       - build.mill
   pull_request:
     paths:
       - network/**
       - common/**
+      - scalatestsuite/**
+      - tapirtesting/**
       - modules/**
       - build.mill
 jobs:

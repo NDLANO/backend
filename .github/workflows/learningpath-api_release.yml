@@ -13,6 +13,7 @@ on:
       - network/**
       - mapping/**
       - language/**
+      - validation/**
       - search/**
       - database/**
       - tapirtesting/**

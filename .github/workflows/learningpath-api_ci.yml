@@ -11,6 +11,7 @@ on:
       - network/**
       - mapping/**
       - language/**
+      - validation/**
       - search/**
       - database/**
       - tapirtesting/**
@@ -24,6 +25,7 @@ on:
       - network/**
       - mapping/**
       - language/**
+      - validation/**
       - search/**
       - database/**
       - tapirtesting/**

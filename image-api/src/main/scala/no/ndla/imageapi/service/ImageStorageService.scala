@@ -70,6 +70,8 @@ class ImageStorageService(using
     _       <- s3Client.updateMetadata(storageKey, metadata)
   } yield ()
 
+  def checkBucketAccess(): Try[Unit] = s3Client.canAccessBucket
+
   def objectExists(storageKey: String): Boolean = s3Client.objectExists(storageKey)
 
   def deleteObject(storageKey: String): Try[Unit] = s3Client.deleteObject(storageKey).map(_ => ())

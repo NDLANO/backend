@@ -26,15 +26,15 @@ import no.ndla.tapirtesting.TapirControllerTest
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
 import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchers.any
 import sttp.client3.quick.*
 
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 class HealthControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override implicit lazy val clock: Clock                    = mock[Clock]
   override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
   override implicit lazy val errorHandling: ErrorHandling    = new ControllerErrorHandling
-  var healthControllerResponse: Int                          = 200
   val controller: HealthController                           = new HealthController
   override implicit lazy val services: List[TapirController] = List(controller)
   override implicit lazy val routes: Routes                  = new Routes
@@ -72,9 +72,8 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   )
 
   test("that /health/readiness returns 200 on success") {
-    healthControllerResponse = 200
-    when(imageRepository.getRandomImage()).thenReturn(Success(Some(imageMeta)))
-    when(imageStorage.objectExists("file.jpg")).thenReturn(true)
+    when(imageRepository.imageCount(using any)).thenReturn(Success(42))
+    when(imageStorage.checkBucketAccess()).thenReturn(Success(()))
 
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 
@@ -83,17 +82,23 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   }
 
   test("that /health/liveness returns 200") {
-    healthControllerResponse = 200
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/liveness")
 
     val response = simpleHttpClient.send(request)
     response.code.code should be(200)
   }
 
-  test("that /health/readiness returns 500 on failure") {
-    healthControllerResponse = 500
-    when(imageRepository.getRandomImage()).thenReturn(Success(Some(imageMeta)))
-    when(imageStorage.objectExists("file.jpg")).thenReturn(false)
+  test("that /health/readiness returns 500 on s3 failure") {
+    when(imageStorage.checkBucketAccess()).thenReturn(Failure(new RuntimeException("boom")))
+
+    val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
+
+    val response = simpleHttpClient.send(request)
+    response.code.code should be(500)
+  }
+
+  test("that /health/readiness returns 500 on database failure") {
+    when(imageRepository.imageCount(using any)).thenReturn(Failure(new RuntimeException("boom")))
 
     val request = quickRequest.get(uri"http://localhost:$serverPort/health/readiness")
 

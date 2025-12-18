@@ -9,6 +9,7 @@ on:
       - database/**
       - common/**
       - network/**
+      - scalatestsuite/**
       - modules/**
       - build.mill
   pull_request:
@@ -16,6 +17,7 @@ on:
       - database/**
       - common/**
       - network/**
+      - scalatestsuite/**
       - modules/**
       - build.mill
 jobs:
