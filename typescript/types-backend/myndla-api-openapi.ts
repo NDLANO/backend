@@ -539,7 +539,7 @@ export type components = {
          * ConfigKey
          * @enum {string}
          */
-        ConfigKey: "LEARNINGPATH_WRITE_RESTRICTED" | "MY_NDLA_WRITE_RESTRICTED";
+        ConfigKey: "MY_NDLA_WRITE_RESTRICTED";
         /**
          * ConfigMetaDTO
          * @description Describes configuration value.
@@ -2982,7 +2982,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The of configuration value. Can only be one of 'LEARNINGPATH_WRITE_RESTRICTED', 'MY_NDLA_WRITE_RESTRICTED' */
+                /** @description The of configuration value. Can only be one of 'MY_NDLA_WRITE_RESTRICTED' */
                 "config-key": components["schemas"]["ConfigKey"];
             };
             cookie?: never;
@@ -3044,7 +3044,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The of configuration value. Can only be one of 'LEARNINGPATH_WRITE_RESTRICTED', 'MY_NDLA_WRITE_RESTRICTED' */
+                /** @description The of configuration value. Can only be one of 'MY_NDLA_WRITE_RESTRICTED' */
                 "config-key": components["schemas"]["ConfigKey"];
             };
             cookie?: never;
