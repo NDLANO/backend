@@ -86,6 +86,10 @@ case class MultiSearchSummaryDTO(
     metaImage: Option[MetaImageDTO],
     @description("Url pointing to the resource")
     url: String,
+    @description("List of nodeIds the resource is connected to")
+    nodeIds: List[String],
+    @description("Resource-types of this resource, independent of contexts")
+    resourceTypes: List[TaxonomyResourceTypeDTO],
     @description("Primary context of the resource")
     context: Option[ApiTaxonomyContextDTO],
     @description("Contexts of the resource")

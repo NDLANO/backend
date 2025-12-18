@@ -25,7 +25,7 @@ import no.ndla.common.model.domain.learningpath.{
   Description as LPDescription,
 }
 import no.ndla.common.model.domain.{EditorNote, Status, VisualElement, *}
-import no.ndla.common.model.taxonomy.{ResourceType, *}
+import no.ndla.common.model.taxonomy.*
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.language.Language.DefaultLanguage
 import no.ndla.mapping.License
@@ -1109,30 +1109,42 @@ object TestData {
 
   val relevances: List[Relevance] = List(core, supp)
 
-  val rtLearningpath: ResourceType  = ResourceType("urn:resourcetype:learningpath", "Læringssti", None, List.empty)
-  val academicArticle: ResourceType = ResourceType("urn:resourcetype:academicArticle", "Fagartikkel", None, List.empty)
-  val guidance: ResourceType        = ResourceType("urn:resourcetype:guidance", "Veiledning", None, List.empty)
-  val subjectMaterial: ResourceType =
-    ResourceType("urn:resourcetype:subjectMaterial", "Fagstoff", Some(List(academicArticle, guidance)), List.empty)
-  val nested: ResourceType            = ResourceType("urn:resourcetype:nested", "SuperNested ResourceType", None, List.empty)
-  val teacherEvaluation: ResourceType =
-    ResourceType("urn:resourcetype:teacherEvaluation", "Lærervurdering", None, List.empty)
-  val selfEvaluation: ResourceType = ResourceType("urn:resourcetype:selfEvaluation", "Egenvurdering", None, List.empty)
-  val peerEvaluation: ResourceType =
-    ResourceType("urn:resourcetype:peerEvaluation", "Medelevvurdering", Some(List(nested)), List.empty)
-  val reviewResource: ResourceType = ResourceType(
-    "urn:resourcetype:reviewResource",
-    "Vurderingsressurs",
-    Some(List(teacherEvaluation, selfEvaluation, peerEvaluation)),
-    List.empty,
+  val learningPath =
+    NodeResourceType("urn:resourcetype:learningpath", None, "Læringssti", List(TaxonomyTranslation("Læringssti", "nb")))
+  val subjectMaterial =
+    NodeResourceType("urn:resourcetype:subjectMaterial", None, "Fagstoff", List(TaxonomyTranslation("Fagstoff", "nb")))
+  val academicArticle = NodeResourceType(
+    "urn:resourcetype:academicArticle",
+    Some("urn:resourcetype:subjectMaterial"),
+    "Fagartikkel",
+    List(TaxonomyTranslation("Fagartikkel", "nb")),
   )
-  val resourceTypes: List[ResourceType] = List(rtLearningpath, subjectMaterial, reviewResource)
+  val guidance = NodeResourceType(
+    "urn:resourcetype:guidance",
+    Some("urn:resourcetype:subjectMaterial"),
+    "Veiledning",
+    List(TaxonomyTranslation("Veiledning", "nb")),
+  )
+  val reviewResource = NodeResourceType(
+    "urn:resourcetype:reviewResource",
+    None,
+    "Vurderingsressurs",
+    List(TaxonomyTranslation("Vurderingsressurs", "nb")),
+  )
+  val selfEvaluation = NodeResourceType(
+    "urn:resourcetype:selfEvaluation",
+    Some("urn:resourcetype:reviewResource"),
+    "Egenvurdering",
+    List(TaxonomyTranslation("Egenvurdering", "nb")),
+  )
+  val allResourceTypes: List[NodeResourceType] =
+    List(learningPath, subjectMaterial, academicArticle, guidance, reviewResource, selfEvaluation)
 
   def generateContexts(
       node: Node,
       root: Node,
       parent: Node,
-      resourceTypes: List[ResourceType],
+      resourceTypes: List[NodeResourceType],
       contextType: Option[String],
       relevance: Relevance,
       isPrimary: Boolean,
@@ -1153,7 +1165,7 @@ object TestData {
           relevanceId = relevance.id,
           relevance = SearchableLanguageValues(Seq(LanguageValue("nb", relevance.name))),
           resourceTypes = resourceTypes.map(rt =>
-            TaxonomyResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
+            ContextResourceType(rt.id, rt.parentId, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
           ),
           parentIds = context.parentIds :+ parent.id,
           isPrimary = isPrimary,
@@ -1192,6 +1204,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.SUBJECT,
+    List.empty,
     List(context_1.contextId),
     Some(context_1),
     List(context_1),
@@ -1223,6 +1236,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.SUBJECT,
+    List.empty,
     List(context_2.contextId),
     Some(context_2),
     List(context_2),
@@ -1254,6 +1268,7 @@ object TestData {
     invisibleMetadata,
     List.empty,
     NodeType.SUBJECT,
+    List.empty,
     List(context_3.contextId),
     Some(context_3),
     List(context_3),
@@ -1267,6 +1282,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List.empty,
     List("asdf1237"),
     None,
     List.empty,
@@ -1282,6 +1298,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List.empty,
     List("asdf1238"),
     None,
     List.empty,
@@ -1297,6 +1314,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List.empty,
     List("asdf1239"),
     None,
     List.empty,
@@ -1312,6 +1330,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List.empty,
     List("asdf1240"),
     None,
     List.empty,
@@ -1327,6 +1346,7 @@ object TestData {
     invisibleMetadata,
     List.empty,
     NodeType.TOPIC,
+    List.empty,
     List("asdf1241"),
     None,
     List.empty,
@@ -1342,6 +1362,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List(subjectMaterial),
     List("asdf1242"),
     None,
     List.empty,
@@ -1368,6 +1389,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List(subjectMaterial, academicArticle),
     List("asdf1243"),
     None,
     List.empty,
@@ -1392,6 +1414,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List(subjectMaterial),
     List("asdf1244"),
     None,
     List.empty,
@@ -1407,6 +1430,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List(subjectMaterial),
     List("asdf1245"),
     None,
     List.empty,
@@ -1422,6 +1446,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List.empty,
     List("asdf1246"),
     None,
     List.empty,
@@ -1430,7 +1455,7 @@ object TestData {
     resource_5,
     subject_2,
     topic_4,
-    List(academicArticle, subjectMaterial),
+    List(subjectMaterial, academicArticle),
     Some("standard"),
     core,
     true,
@@ -1441,7 +1466,7 @@ object TestData {
       resource_5,
       subject_1,
       topic_3,
-      List(academicArticle, subjectMaterial),
+      List(subjectMaterial, academicArticle),
       Some("standard"),
       core,
       true,
@@ -1457,6 +1482,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List(subjectMaterial),
     List("asdf1247"),
     None,
     List.empty,
@@ -1472,6 +1498,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List(guidance, subjectMaterial, selfEvaluation),
     List("asdf1248"),
     None,
     List.empty,
@@ -1480,7 +1507,7 @@ object TestData {
     resource_7,
     subject_2,
     topic_4,
-    List(guidance, subjectMaterial, nested, peerEvaluation, reviewResource),
+    List(guidance, subjectMaterial, selfEvaluation),
     Some("standard"),
     core,
     true,
@@ -1496,12 +1523,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List(learningPath),
     List("asdf1249"),
     None,
     List.empty,
   )
   resource_8.contexts =
-    generateContexts(resource_8, subject_1, topic_1, List(rtLearningpath), Some("learningpath"), supp, true, true, true)
+    generateContexts(resource_8, subject_1, topic_1, List(learningPath), Some("learningpath"), supp, true, true, true)
   val resource_9: Node = Node(
     "urn:resource:9",
     learningPath2.title.head.title,
@@ -1511,12 +1539,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List(learningPath),
     List("asdf1250"),
     None,
     List.empty,
   )
   resource_9.contexts =
-    generateContexts(resource_9, subject_1, topic_1, List(rtLearningpath), Some("learningpath"), core, true, true, true)
+    generateContexts(resource_9, subject_1, topic_1, List(learningPath), Some("learningpath"), core, true, true, true)
   val resource_10: Node = Node(
     "urn:resource:10",
     learningPath3.title.head.title,
@@ -1526,21 +1555,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List(learningPath),
     List("asdf1251"),
     None,
     List.empty,
   )
-  resource_10.contexts = generateContexts(
-    resource_10,
-    subject_1,
-    topic_3,
-    List(rtLearningpath),
-    Some("learningpath"),
-    core,
-    true,
-    true,
-    true,
-  )
+  resource_10.contexts =
+    generateContexts(resource_10, subject_1, topic_3, List(learningPath), Some("learningpath"), core, true, true, true)
   val resource_11: Node = Node(
     "urn:resource:11",
     learningPath4.title.head.title,
@@ -1550,21 +1571,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List(learningPath),
     List("asdf1252"),
     None,
     List.empty,
   )
-  resource_11.contexts = generateContexts(
-    resource_11,
-    subject_1,
-    topic_2,
-    List(rtLearningpath),
-    Some("learningpath"),
-    supp,
-    true,
-    true,
-    true,
-  )
+  resource_11.contexts =
+    generateContexts(resource_11, subject_1, topic_2, List(learningPath), Some("learningpath"), supp, true, true, true)
   val resource_12: Node = Node(
     "urn:resource:12",
     learningPath5.title.head.title,
@@ -1574,21 +1587,13 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List(learningPath),
     List("asdf1253"),
     None,
     List.empty,
   )
-  resource_12.contexts = generateContexts(
-    resource_12,
-    subject_2,
-    topic_4,
-    List(rtLearningpath),
-    Some("learningpath"),
-    supp,
-    true,
-    true,
-    true,
-  )
+  resource_12.contexts =
+    generateContexts(resource_12, subject_2, topic_4, List(learningPath), Some("learningpath"), supp, true, true, true)
   val resource_13: Node = Node(
     "urn:resource:13",
     article12.title.head.title,
@@ -1598,6 +1603,7 @@ object TestData {
     visibleMetadata,
     List.empty,
     NodeType.RESOURCE,
+    List(subjectMaterial),
     List("asdf1254", "asdf1255"), // asdf1255 is a deleted context
     None,
     List.empty,
@@ -1770,13 +1776,13 @@ object TestData {
     tags = List.empty,
   )
 
-  val searchableResourceTypes: List[TaxonomyResourceType] = List(
-    TaxonomyResourceType(
+  val searchableResourceTypes: List[ContextResourceType] = List(
+    ContextResourceType(
       "urn:resourcetype:subjectMaterial",
       None,
       SearchableLanguageValues(Seq(LanguageValue("nb", "Fagstoff"))),
     ),
-    TaxonomyResourceType(
+    ContextResourceType(
       "urn:resourcetype:academicArticle",
       Some("urn:resourcetype:subjectMaterial"),
       SearchableLanguageValues(Seq(LanguageValue("nb", "Fagartikkel"))),
@@ -1794,8 +1800,8 @@ object TestData {
       contextType = Some(LearningResourceType.Article.toString),
       relevanceId = "urn:relevance:core",
       relevance = SearchableLanguageValues(Seq(LanguageValue("nb", "Kjernestoff"))),
-      resourceTypes = resourceTypes.map(rt =>
-        TaxonomyResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
+      resourceTypes = allResourceTypes.map(rt =>
+        ContextResourceType(rt.id, None, SearchableLanguageValues(Seq(LanguageValue("nb", rt.name))))
       ),
       parentIds = List("urn:topic:1"),
       isPrimary = true,
@@ -1874,7 +1880,7 @@ object TestData {
     defaultTitle = Some("Christian Tut"),
     supportedLanguages = List("en", "nb", "nn"),
     notes = List("Note1", "note2"),
-    None,
+    context = searchableTaxonomyContexts.headOption,
     contexts = searchableTaxonomyContexts,
     contextids = searchableTaxonomyContexts.map(_.contextId),
     draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
@@ -1888,6 +1894,17 @@ object TestData {
     revisionMeta = searchableRevisionMeta,
     nextRevision = searchableRevisionMeta.lastOption,
     responsible = Some(Responsible("some responsible", TestData.today)),
+    priority = Priority.Unspecified,
+    defaultParentTopicName = searchableTitles.defaultValue,
+    parentTopicName = searchableTitles,
+    defaultRoot = searchableTitles.defaultValue,
+    primaryRoot = searchableTitles,
+    resourceTypeName = searchableTitles,
+    defaultResourceTypeName = searchableTitles.defaultValue,
+    published = TestData.today,
+    favorited = 0,
+    learningResourceType = LearningResourceType.Article,
+    typeName = List(),
     domainObject = TestData
       .draft1
       .copy(
@@ -1901,17 +1918,7 @@ object TestData {
           )
         ),
       ),
-    priority = Priority.Unspecified,
-    defaultParentTopicName = searchableTitles.defaultValue,
-    parentTopicName = searchableTitles,
-    defaultRoot = searchableTitles.defaultValue,
-    primaryRoot = searchableTitles,
-    resourceTypeName = searchableTitles,
-    defaultResourceTypeName = searchableTitles.defaultValue,
-    published = TestData.today,
-    favorited = 0,
-    learningResourceType = LearningResourceType.Article,
-    typeName = List(),
+    nodes = List.empty,
   )
 
   val sampleNbDomainConcept: Concept = Concept(

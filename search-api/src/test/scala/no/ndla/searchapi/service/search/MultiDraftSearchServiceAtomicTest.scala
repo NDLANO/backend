@@ -503,6 +503,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.SUBJECT,
+      List.empty,
       List("asdf1256"),
       Some(context_1),
       List(context_1),
@@ -516,6 +517,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List.empty,
       List("asdf1257"),
       None,
       List.empty,
@@ -540,6 +542,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List.empty,
       List("asdf1258"),
       None,
       List.empty,
@@ -564,6 +567,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List.empty,
       List("asdf1259"),
       None,
       List.empty,
@@ -588,6 +592,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.TOPIC,
+      List.empty,
       List("asdf1260"),
       None,
       List.empty,
@@ -612,6 +617,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.RESOURCE,
+      List.empty,
       List("asdf1261"),
       None,
       List.empty,
@@ -647,6 +653,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       visibleMetadata,
       List.empty,
       NodeType.RESOURCE,
+      List.empty,
       List("asdf1262"),
       None,
       List.empty,
@@ -814,6 +821,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
                 primaryRoot = SearchableLanguageValues.from("nb" -> "Capekatt rot"),
                 resourceTypeName = SearchableLanguageValues.from("nb" -> "Bapekatt ressurs"),
                 defaultResourceTypeName = Some("Bapekatt ressurs"),
+                nodes = nodes,
               )
           case 2 => TestData
               .searchableDraft
@@ -825,6 +833,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
                 primaryRoot = SearchableLanguageValues.from("nb" -> "Apekatt rot"),
                 resourceTypeName = SearchableLanguageValues.from("nb" -> "Capekatt ressurs"),
                 defaultResourceTypeName = Some("Capekatt ressurs"),
+                nodes = nodes,
               )
           case 3 => TestData
               .searchableDraft
@@ -836,6 +845,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
                 primaryRoot = SearchableLanguageValues.from("nb" -> "Bapekatt rot"),
                 resourceTypeName = SearchableLanguageValues.from("nb" -> "Apekatt ressurs"),
                 defaultResourceTypeName = Some("Apekatt ressurs"),
+                nodes = nodes,
               )
           case _ => fail("Unexpected id, this is a bug with the test")
         }
