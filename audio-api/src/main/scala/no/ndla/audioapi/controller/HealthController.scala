@@ -16,7 +16,7 @@ import no.ndla.network.clients.MyNDLAApiClient
 import scala.util.{Failure, Success, Try}
 
 class HealthController(using
-    s3Client: NDLAS3Client,
+    s3Client: => NDLAS3Client,
     audioRepository: AudioRepository,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
