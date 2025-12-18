@@ -9,12 +9,9 @@
 package no.ndla.imageapi.service
 
 import cats.implicits.*
-import com.sksamuel.scrimage.ImmutableImage
-import com.sksamuel.scrimage.nio.{AnimatedGifReader, ImageSource}
 import com.sksamuel.scrimage.webp.WebpWriter
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.TryUtil.throwIfInterrupted
 import no.ndla.common.errors.{MissingBucketKeyException, MissingIdException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Deletable, Delete, Missing, UpdateWith}
@@ -38,7 +35,6 @@ import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
 import scalikejdbc.DBSession
 
-import java.io.ByteArrayInputStream
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -473,10 +469,9 @@ class WriteService(using
           }
         }
       processableImage <- ProcessableImage.fromStream(processableStream)
-      image             = processableImage.image
-      dimensions        = ImageDimensions(image.width, image.height)
+      dimensions        = ImageDimensions(processableImage.image.width, processableImage.image.height)
       fileStem          = imageFile.getFileStem
-    } yield (image, dimensions, fileStem, processableImage.format)
+    } yield (processableImage, dimensions, fileStem, processableImage.format)
   }.flatMap {
     case Success((img, dimensions, fileStem, format)) =>
       generateAndUploadVariantsAsync(img, dimensions, fileStem, format).map {
@@ -528,8 +523,7 @@ class WriteService(using
       case Success(image) => image
       case Failure(ex)    => return Failure(ex)
     }
-    val image      = processableImage.image
-    val dimensions = ImageDimensions(image.width, image.height)
+    val dimensions = ImageDimensions(processableImage.image.width, processableImage.image.height)
     // Since a stream cannot be read from twice, we need to create a new stream for uploading the original image.
     // At this point we know that the image is processable, so we can safely create a new processable ImageStream.
     val originalImageStream =
@@ -537,7 +531,8 @@ class WriteService(using
 
     Using(ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(ImageVariantSize.values.size))) {
       case given ExecutionContext =>
-        val variantsFuture             = generateAndUploadVariantsAsync(image, dimensions, uniqueFileStem, processableImage.format)
+        val variantsFuture =
+          generateAndUploadVariantsAsync(processableImage, dimensions, uniqueFileStem, processableImage.format)
         val maybeUploadedOriginalImage = uploadImageStream(originalImageStream, Some(dimensions))
         val maybeVariants              = Await.result(variantsFuture, 1.minute)
 
@@ -558,7 +553,7 @@ class WriteService(using
     * will be returned.
     */
   private def generateAndUploadVariantsAsync(
-      image: ImmutableImage,
+      image: ProcessableImage,
       dimensions: ImageDimensions,
       fileStem: String,
       format: ProcessableImageFormat,
@@ -573,11 +568,11 @@ class WriteService(using
         Future {
           for {
             resizedImage <- imageConverter.resizeToVariantSize(image, variantSize)
-            imageBytes   <- Try.throwIfInterrupted(resizedImage.bytes(getWebpWriterForFormat(format)))
-            stream        = new ByteArrayInputStream(imageBytes)
+            webpStream   <-
+              resizedImage.toProcessableStreamWithWriter(getWebpWriterForFormat(format), ProcessableImageFormat.Webp)
             bucketKey     = s"$fileStem/${variantSize.entryName}.webp"
             imageVariant <- imageStorage
-              .uploadFromStream(bucketKey, stream, imageBytes.length, "image/webp")
+              .uploadFromStream(bucketKey, webpStream.stream, webpStream.contentLength, "image/webp")
               .map(_ => ImageVariant(variantSize, bucketKey))
           } yield imageVariant
         }
@@ -594,15 +589,9 @@ class WriteService(using
       }
   }
 
-  private def uploadGifImageStream(gifImageStream: ImageStream.Gif): Try[UploadedImage] =
-    Using(gifImageStream) { imageStream =>
-      val bytes  = imageStream.stream.readAllBytes()
-      val gif    = AnimatedGifReader.read(ImageSource.of(bytes))
-      val awtDim = gif.getDimensions
-      val dim    = ImageDimensions(awtDim.width, awtDim.height)
-      val stream = ImageStream.Gif(new ByteArrayInputStream(bytes), imageStream.fileName, bytes.length)
-      (stream, dim.some)
-    }.flatMap(uploadImageStream)
+  private def uploadGifImageStream(gifImageStream: ImageStream.Gif): Try[UploadedImage] = ScrimageUtil
+    .getDimensionsFromGifStream(gifImageStream)
+    .flatMap((stream, dim) => uploadImageStream(stream, dim.some))
 
   private def uploadImageStream(stream: ImageStream, dimensions: Option[ImageDimensions]): Try[UploadedImage] =
     Using(stream) { imageStream =>

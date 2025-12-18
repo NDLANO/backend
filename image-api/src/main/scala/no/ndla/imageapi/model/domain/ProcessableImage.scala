@@ -9,48 +9,20 @@
 package no.ndla.imageapi.model.domain
 
 import com.sksamuel.scrimage.ImmutableImage
-import com.sksamuel.scrimage.nio.*
-import com.sksamuel.scrimage.webp.{WebpImageReader, WebpWriter}
-import no.ndla.common.TryUtil.throwIfInterrupted
+import com.sksamuel.scrimage.nio.ImageWriter
+import no.ndla.imageapi.service.ScrimageUtil
 
-import java.awt.image.BufferedImage
-import java.io.ByteArrayInputStream
-import scala.jdk.CollectionConverters.*
-import scala.util.{Success, Try, Using}
+import scala.util.Try
 
 case class ProcessableImage(image: ImmutableImage, fileName: String, format: ProcessableImageFormat) {
-  def toProcessableImageStream: Try[ImageStream.Processable] = {
-    val writer = format match {
-      case ProcessableImageFormat.Jpeg => JpegWriter.Default
-      case ProcessableImageFormat.Png  => PngWriter.MaxCompression
-      case ProcessableImageFormat.Webp => WebpWriter.DEFAULT
-    }
+  def toProcessableImageStream: Try[ImageStream.Processable] = ScrimageUtil.imageToProcessableStream(this)
 
-    Try
-      .throwIfInterrupted(image.bytes(writer))
-      .map(bytes => ImageStream.Processable(new ByteArrayInputStream(bytes), fileName, bytes.length, format))
-  }
+  def toProcessableStreamWithWriter(writer: ImageWriter, format: ProcessableImageFormat): Try[ImageStream.Processable] =
+    ScrimageUtil.imageToStreamWithWriter(this, writer, format)
 
-  def transform(f: ImmutableImage => ImmutableImage): Try[ProcessableImage] = Try
-    .throwIfInterrupted(f(image))
-    .map(ProcessableImage(_, fileName, format))
+  def transform(f: ImmutableImage => ImmutableImage): Try[ProcessableImage] = ScrimageUtil.transformImage(this, f)
 }
 
 object ProcessableImage {
-  private val readers                      = Seq(new ImageIOReader, new PngReader, new WebpImageReader)
-  private val loader: ImmutableImageLoader = ImmutableImage.loader().withImageReaders(readers.asJava)
-
-  def fromStream(stream: ImageStream.Processable): Try[ProcessableImage] = Using(stream) { imageStream =>
-    for {
-      image              <- Try.throwIfInterrupted(loader.fromStream(imageStream.stream))
-      imageWithFixedType <- fixImageUnderlyingType(image)
-    } yield ProcessableImage(imageWithFixedType, imageStream.fileName, imageStream.format)
-  }.flatten
-}
-
-// Due to a bug in Scrimage, 16-bit grayscale images must be converted to e.g., 8-bit RGBA
-// See https://github.com/dbcxy/java-image-scaling/issues/35, which is used internally by Scrimage
-private def fixImageUnderlyingType(image: ImmutableImage): Try[ImmutableImage] = image.getType match {
-  case BufferedImage.TYPE_USHORT_GRAY => Try(image.copy(ImmutableImage.DEFAULT_DATA_TYPE))
-  case _                              => Success(image)
+  def fromStream(stream: ImageStream.Processable): Try[ProcessableImage] = ScrimageUtil.imageFromStream(stream)
 }
