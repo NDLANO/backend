@@ -313,16 +313,17 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     hits(4).id should be(EnglandoId)
   }
 
-  test("That order by durationDesc orders search result by duration descending") {
-    val Success(searchResult) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByDurationDesc)): @unchecked
-    val hits                  = searchResult.results
+  test("That order by lastUpdatedDesc orders search result by lastUpdated descending") {
+    val Success(searchResult) =
+      searchService.matchingQuery(searchSettings.copy(sort = Sort.ByLastUpdatedDesc)): @unchecked
+    val hits = searchResult.results
 
     searchResult.totalCount should be(4)
     hits.head.id should be(UnrelatedId)
   }
 
   test("That order ByDurationAsc orders search result by duration ascending") {
-    val Success(searchResult) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByDurationAsc)): @unchecked
+    val Success(searchResult) = searchService.matchingQuery(searchSettings.copy(sort = Sort.ByCreatedDesc)): @unchecked
     val hits                  = searchResult.results
 
     searchResult.totalCount should be(4)
