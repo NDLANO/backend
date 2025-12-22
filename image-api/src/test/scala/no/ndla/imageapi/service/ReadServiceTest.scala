@@ -16,9 +16,7 @@ import no.ndla.imageapi.model.api.ImageMetaInformationV2DTO
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{InvalidUrlException, api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{doReturn, reset, times, verify, when}
-import scalikejdbc.DBSession
+import org.mockito.Mockito.when
 
 import scala.util.{Failure, Success}
 
@@ -116,32 +114,5 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
     when(imageRepository.withId(1)).thenReturn(Success(Some(imageElg)))
     readService.withId(1, None, None) should be(Success(Some(expectedObject)))
-  }
-
-  test("That path to raw conversion works with non-ascii characters in paths") {
-    reset(imageRepository)
-    val id            = 1234L
-    val imageUrl      = "Jordbær.jpg"
-    val encodedPath   = "Jordb%C3%A6r.jpg"
-    val expectedFile  = TestData.bjorn.images.head.copy(fileName = imageUrl)
-    val expectedImage = TestData.bjorn.copy(id = Some(id), images = Seq(expectedFile))
-
-    doReturn(Success(Some(expectedImage)), Success(Some(expectedImage)))
-      .when(imageRepository)
-      .getImageFromFilePath(eqTo(encodedPath))(using any[DBSession])
-    readService.getDomainImageMetaFromUrl(s"/image-api/raw/$imageUrl") should be(Success(expectedImage))
-
-    verify(imageRepository, times(1)).getImageFromFilePath(encodedPath)
-    verify(imageRepository, times(0)).getImageFromFilePath(imageUrl)
-  }
-
-  test("That filenames stored with encoded characters works as expected") {
-    val imageUrl         = "Gr%C3%B8nnsaker%20er%20kilde%20for%20mange%20vitaminer%20(Foto:%20Bj%C3%B8rg%20Aurebekk).jpg"
-    val expectedFileName = "Grønnsaker er kilde for mange vitaminer (Foto: Bjørg Aurebekk).jpg"
-    when(imageRepository.withId(1)).thenReturn(
-      Success(Some(TestData.bjorn.copy(images = Seq(TestData.bjorn.images.head.copy(fileName = imageUrl)))))
-    )
-
-    readService.getImageFileName(1, Some("nb")) should be(Success(Some(expectedFileName)))
   }
 }

@@ -12,7 +12,11 @@ import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaS3Client
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.imageapi.controller.*
-import no.ndla.imageapi.db.migrationwithdependencies.{V6__AddAgreementToImages, V7__TranslateUntranslatedAuthors}
+import no.ndla.imageapi.db.migrationwithdependencies.{
+  V24__FixUrlEncodedFileNames,
+  V6__AddAgreementToImages,
+  V7__TranslateUntranslatedAuthors,
+}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
@@ -34,8 +38,6 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given errorHelpers: ErrorHelpers   = new ErrorHelpers
   given errorHandling: ErrorHandling = new ControllerErrorHandling
 
-  given migrator: DBMigrator = DBMigrator(new V6__AddAgreementToImages, new V7__TranslateUntranslatedAuthors)
-
   given s3Client: NdlaS3Client                         = new NdlaS3Client(props.StorageName, props.StorageRegion)
   given ndlaClient: NdlaClient                         = new NdlaClient
   given e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
@@ -55,6 +57,9 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given imageStorage: ImageStorageService              = new ImageStorageService
   given dbUtility: DBUtility                           = new DBUtility // TODO: Remove this after completing variants migration of existing images
   given writeService: WriteService                     = new WriteService
+
+  given migrator: DBMigrator =
+    DBMigrator(new V6__AddAgreementToImages, new V7__TranslateUntranslatedAuthors, new V24__FixUrlEncodedFileNames)
 
   given imageControllerV2: ImageControllerV2 = new ImageControllerV2
   given imageControllerV3: ImageControllerV3 = new ImageControllerV3

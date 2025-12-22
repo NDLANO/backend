@@ -28,7 +28,7 @@ class ImageStorageService(using
     val s3ContentType = s3Object.contentType
     val fileName      = s3Object.key
     if (s3ContentType == "binary/octet-stream") {
-      readService.getImageFromFilePath(fileName) match {
+      readService.getImageFileFromFilePath(fileName) match {
         case Failure(ex) =>
           logger.warn(s"Couldn't get meta for $fileName so using s3 content-type of '$s3ContentType'", ex)
           s3ContentType

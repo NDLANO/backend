@@ -13,7 +13,7 @@ import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, when}
 import sttp.client3.quick.*
 import sttp.client3.{Empty, RequestT}
@@ -266,5 +266,13 @@ class RawControllerTest extends UnitSuite with TestEnvironment with TapirControl
     val image = ImageIO.read(new ByteArrayInputStream(res.body))
     image.getWidth should equal(189)
     image.getHeight should equal(60)
+  }
+
+  test("that image is found by filename with non-ASCII characters") {
+    val fileNameWithNonAsciiChars = "file æøå.svg"
+    when(imageStorage.get(eqTo(fileNameWithNonAsciiChars))).thenReturn(Success(ccLogoSvgImageStream))
+    val res = simpleHttpClient.send(req.get(uri"http://localhost:$serverPort/image-api/raw/$fileNameWithNonAsciiChars"))
+    res.code.code should equal(200)
+    res.body should equal(ccLogoSvgImageStream.stream.readAllBytes())
   }
 }
