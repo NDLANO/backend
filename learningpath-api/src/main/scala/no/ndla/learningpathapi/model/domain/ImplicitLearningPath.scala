@@ -47,11 +47,10 @@ extension (learningPath: LearningPath) {
 
   def canEditPath(userInfo: CombinedUser): Boolean = canEditLearningPath(userInfo).isSuccess
 
-  private def lsLength: Int           = learningPath.learningsteps.map(_.length).getOrElse(0)
   def validateSeqNo(seqNo: Int): Unit = {
-    if (seqNo < 0 || seqNo > lsLength - 1) {
+    if (seqNo < 0 || seqNo > learningPath.learningsteps.length - 1) {
       throw new ValidationException(errors =
-        List(ValidationMessage("seqNo", s"seqNo must be between 0 and ${lsLength - 1}"))
+        List(ValidationMessage("seqNo", s"seqNo must be between 0 and ${learningPath.learningsteps.length - 1}"))
       )
     }
   }

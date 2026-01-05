@@ -76,6 +76,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     owner = "owner",
     copyright = copyright,
     isMyNDLAOwner = false,
+    learningsteps = Seq.empty,
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,

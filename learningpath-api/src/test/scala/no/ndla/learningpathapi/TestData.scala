@@ -97,7 +97,7 @@ object TestData {
     owner = "me",
     copyright = LearningpathCopyright(CC_BY.toString, List.empty),
     isMyNDLAOwner = false,
-    learningsteps = Some(List(domainLearningStep1, domainLearningStep2)),
+    learningsteps = Seq(domainLearningStep1, domainLearningStep2),
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,

@@ -22,7 +22,6 @@ import org.mockito.invocation.InvocationOnMock
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
 import sttp.client3.quick.*
-
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
@@ -50,7 +49,7 @@ class LearningPathAndStepCreationTests
 
   val someDate: NDLADate = NDLADate.of(2017, 1, 1, 1, 59)
 
-  val learningpathApi: MainClass = new MainClass(learningpathApiProperties) {
+  lazy val learningpathApi: MainClass = new MainClass(learningpathApiProperties) {
     override val componentRegistry: ComponentRegistry = new ComponentRegistry(learningpathApiProperties) {
       override implicit lazy val clock: Clock = {
         val mockClock = mock[Clock](withSettings.strictness(Strictness.LENIENT))
@@ -67,7 +66,7 @@ class LearningPathAndStepCreationTests
     }
   }
 
-  val testClock: Clock = learningpathApi.componentRegistry.clock
+  lazy val testClock: Clock = learningpathApi.componentRegistry.clock
 
   val learningpathApiBaseUrl: String = s"http://localhost:$learningpathApiPort"
   val learningpathApiLPUrl: String   = s"$learningpathApiBaseUrl/learningpath-api/v2/learningpaths"
