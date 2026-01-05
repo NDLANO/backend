@@ -13,7 +13,7 @@ import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.eq as eqTo
 import org.mockito.Mockito.{reset, when}
 
-class V24__FixUrlEncodedFileNamesTest extends UnitSuite with TestEnvironment {
+class V25__FixUrlEncodedFileNamesTest extends UnitSuite with TestEnvironment {
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -21,7 +21,7 @@ class V24__FixUrlEncodedFileNamesTest extends UnitSuite with TestEnvironment {
   }
 
   test("that fileName is decoded when encoded key is missing but decoded exists") {
-    val migration    = new V24__FixUrlEncodedFileNames
+    val migration    = new V25__FixUrlEncodedFileNames
     val oldImageMeta = """
         |{
         |  "images": [
@@ -57,7 +57,7 @@ class V24__FixUrlEncodedFileNamesTest extends UnitSuite with TestEnvironment {
   }
 
   test("that fileName is left as-is when encoded key exists") {
-    val migration = new V24__FixUrlEncodedFileNames
+    val migration = new V25__FixUrlEncodedFileNames
     val imageMeta = """
         |{
         |  "images": [
@@ -79,7 +79,7 @@ class V24__FixUrlEncodedFileNamesTest extends UnitSuite with TestEnvironment {
   }
 
   test("that fileName is left as-is when neither encoded nor decoded key exists") {
-    val migration = new V24__FixUrlEncodedFileNames
+    val migration = new V25__FixUrlEncodedFileNames
     val imageMeta = """
                       |{
                       |  "images": [

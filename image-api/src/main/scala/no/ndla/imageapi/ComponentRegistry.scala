@@ -13,7 +13,7 @@ import no.ndla.common.aws.NdlaS3Client
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.imageapi.controller.*
 import no.ndla.imageapi.db.migrationwithdependencies.{
-  V24__FixUrlEncodedFileNames,
+  V25__FixUrlEncodedFileNames,
   V6__AddAgreementToImages,
   V7__TranslateUntranslatedAuthors,
 }
@@ -59,7 +59,7 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given writeService: WriteService                     = new WriteService
 
   given migrator: DBMigrator =
-    DBMigrator(new V6__AddAgreementToImages, new V7__TranslateUntranslatedAuthors, new V24__FixUrlEncodedFileNames)
+    DBMigrator(new V6__AddAgreementToImages, new V7__TranslateUntranslatedAuthors, new V25__FixUrlEncodedFileNames)
 
   given imageControllerV2: ImageControllerV2 = new ImageControllerV2
   given imageControllerV3: ImageControllerV3 = new ImageControllerV3

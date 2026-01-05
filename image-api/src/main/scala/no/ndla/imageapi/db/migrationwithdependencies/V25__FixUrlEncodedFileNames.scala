@@ -21,7 +21,7 @@ extension (cursor: ACursor) {
   def expectTop: Json = cursor.top.getOrElse(throw RuntimeException("Expected top Json value"))
 }
 
-class V24__FixUrlEncodedFileNames(using s3Client: NdlaS3Client) extends DocumentMigration with StrictLogging {
+class V25__FixUrlEncodedFileNames(using s3Client: NdlaS3Client) extends DocumentMigration with StrictLogging {
   override val tableName: String                    = "imagemetadata"
   override val columnName: String                   = "metadata"
   private val existsCache: TrieMap[String, Boolean] = TrieMap.empty
