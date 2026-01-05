@@ -144,9 +144,7 @@ class InternController(using
     .in(jsonBody[commonDomain.LearningPath])
     .out(jsonBody[commonDomain.LearningPath])
     .errorOut(errorOutputsFor(404))
-    .serverLogicPure { dumpToInsert =>
-      updateService.insertDump(dumpToInsert).asRight
-    }
+    .serverLogicPure(dumpToInsert => updateService.insertDump(dumpToInsert))
 
   private def learningPathStats: ServerEndpoint[Any, Eff] = endpoint
     .get

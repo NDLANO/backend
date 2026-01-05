@@ -67,6 +67,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     owner = "UNIT-TEST",
     copyright = copyright,
     isMyNDLAOwner = false,
+    learningsteps = Seq.empty,
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
@@ -128,7 +129,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
 
   test("That insert, fetch and delete works happy-day") {
     repository.inTransaction { implicit session =>
-      val inserted = repository.insert(DefaultLearningPath)
+      val inserted = repository.insert(DefaultLearningPath).get
       inserted.id.isDefined should be(true)
 
       val fetched = repository.withId(inserted.id.get)
@@ -145,7 +146,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
 
     try {
       repository.inTransaction { implicit session =>
-        repository.insert(DefaultLearningPath.copy(owner = owner))
+        repository.insert(DefaultLearningPath.copy(owner = owner)).get
         throw new RuntimeException("Provoking exception inside transaction")
       }
       fail("Exception should prevent normal execution")
@@ -155,7 +156,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That updating several times is not throwing optimistic locking exception") {
-    val inserted     = repository.insert(DefaultLearningPath)
+    val inserted     = repository.insert(DefaultLearningPath).get
     val firstUpdate  = repository.update(inserted.copy(title = List(Title("First change", "unknown"))))
     val secondUpdate = repository.update(firstUpdate.copy(title = List(Title("Second change", "unknown"))))
     val thirdUpdate  = repository.update(secondUpdate.copy(title = List(Title("Third change", "unknown"))))
@@ -169,7 +170,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That trying to update a learningPath with old revision number throws optimistic locking exception") {
-    val inserted = repository.insert(DefaultLearningPath)
+    val inserted = repository.insert(DefaultLearningPath).get
     repository.update(inserted.copy(title = List(Title("First change", "unknown"))))
 
     assertResult(
@@ -183,16 +184,23 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     repository.deletePath(inserted.id.get)
   }
 
-  test("That trying to update a learningStep with old revision throws optimistic locking exception") {
-    val learningPath = repository.insert(DefaultLearningPath)
-    val insertedStep = repository.insertLearningStep(DefaultLearningStep.copy(learningPathId = learningPath.id))
-    repository.updateLearningStep(insertedStep.copy(title = List(Title("First change", "unknown"))))
+  test(
+    "That trying to update a learningPath with old revision while modifying steps throws optimistic locking exception"
+  ) {
+    val learningPath = repository.insert(DefaultLearningPath.copy(learningsteps = Seq(DefaultLearningStep))).get
+    repository.update(
+      learningPath.copy(learningsteps = Seq(DefaultLearningStep.copy(title = List(Title("First change", "unknown")))))
+    )
 
     assertResult(
-      s"Conflicting revision is detected for learningStep with id = ${insertedStep.id} and revision = ${insertedStep.revision}"
+      s"Conflicting revision is detected for learningPath with id = ${learningPath.id} and revision = ${learningPath.revision}"
     ) {
       intercept[OptimisticLockException] {
-        repository.updateLearningStep(insertedStep.copy(title = List(Title("First change", "unknown"))))
+        repository.update(
+          learningPath.copy(learningsteps =
+            Seq(DefaultLearningStep.copy(title = List(Title("Second change", "unknown"))))
+          )
+        )
       }.getMessage
     }
 
@@ -200,11 +208,11 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That learningPathsWithIsBasedOn returns all learningpaths that has one is based on id") {
-    val learningPath1 = repository.insert(DefaultLearningPath)
-    val learningPath2 = repository.insert(DefaultLearningPath)
+    val learningPath1 = repository.insert(DefaultLearningPath).get
+    val learningPath2 = repository.insert(DefaultLearningPath).get
 
-    val copiedLearningPath1 = repository.insert(learningPath1.copy(id = None, isBasedOn = learningPath1.id))
-    val copiedLearningPath2 = repository.insert(learningPath1.copy(id = None, isBasedOn = learningPath1.id))
+    val copiedLearningPath1 = repository.insert(learningPath1.copy(id = None, isBasedOn = learningPath1.id)).get
+    val copiedLearningPath2 = repository.insert(learningPath1.copy(id = None, isBasedOn = learningPath1.id)).get
 
     val learningPaths = repository.learningPathsWithIsBasedOn(learningPath1.id.get)
 
@@ -222,14 +230,16 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That allPublishedTags returns only published tags") {
-    val publicPath = repository.insert(
-      DefaultLearningPath.copy(
-        status = LearningPathStatus.PUBLISHED,
-        tags = List(Tag(Seq("aaa"), "nb"), Tag(Seq("bbb"), "nn"), Tag(Seq("ccc"), "en")),
+    val publicPath = repository
+      .insert(
+        DefaultLearningPath.copy(
+          status = LearningPathStatus.PUBLISHED,
+          tags = List(Tag(Seq("aaa"), "nb"), Tag(Seq("bbb"), "nn"), Tag(Seq("ccc"), "en")),
+        )
       )
-    )
+      .get
 
-    val privatePath = repository.insert(DefaultLearningPath.copy(tags = List(Tag(Seq("ddd"), "nb"))))
+    val privatePath = repository.insert(DefaultLearningPath.copy(tags = List(Tag(Seq("ddd"), "nb")))).get
 
     val publicTags = repository.allPublishedTags
     publicTags should contain(Tag(Seq("aaa"), "nb"))
@@ -242,15 +252,19 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That allPublishedTags removes duplicates") {
-    val publicPath1 = repository.insert(
-      DefaultLearningPath.copy(
-        status = LearningPathStatus.PUBLISHED,
-        tags = List(Tag(Seq("aaa"), "nb"), Tag(Seq("aaa"), "nn")),
+    val publicPath1 = repository
+      .insert(
+        DefaultLearningPath.copy(
+          status = LearningPathStatus.PUBLISHED,
+          tags = List(Tag(Seq("aaa"), "nb"), Tag(Seq("aaa"), "nn")),
+        )
       )
-    )
-    val publicPath2 = repository.insert(
-      DefaultLearningPath.copy(status = LearningPathStatus.PUBLISHED, tags = List(Tag(Seq("aaa", "bbb"), "nb")))
-    )
+      .get
+    val publicPath2 = repository
+      .insert(
+        DefaultLearningPath.copy(status = LearningPathStatus.PUBLISHED, tags = List(Tag(Seq("aaa", "bbb"), "nb")))
+      )
+      .get
 
     val publicTags = repository.allPublishedTags
     publicTags should contain(Tag(Seq("aaa", "bbb"), "nb"))
@@ -263,25 +277,29 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That allPublishedContributors returns only published contributors") {
-    val publicPath = repository.insert(
-      DefaultLearningPath.copy(
-        status = LearningPathStatus.PUBLISHED,
-        copyright = LearningpathCopyright(
-          "by",
-          List(
-            Author(ContributorType.Writer, "James Bond"),
-            Author(ContributorType.Writer, "Christian Bond"),
-            Author(ContributorType.Writer, "Jens Petrius"),
+    val publicPath = repository
+      .insert(
+        DefaultLearningPath.copy(
+          status = LearningPathStatus.PUBLISHED,
+          copyright = LearningpathCopyright(
+            "by",
+            List(
+              Author(ContributorType.Writer, "James Bond"),
+              Author(ContributorType.Writer, "Christian Bond"),
+              Author(ContributorType.Writer, "Jens Petrius"),
+            ),
           ),
-        ),
+        )
       )
-    )
+      .get
 
-    val privatePath = repository.insert(
-      DefaultLearningPath.copy(copyright =
-        LearningpathCopyright("by", List(Author(ContributorType.Writer, "Test testesen")))
+    val privatePath = repository
+      .insert(
+        DefaultLearningPath.copy(copyright =
+          LearningpathCopyright("by", List(Author(ContributorType.Writer, "Test testesen")))
+        )
       )
-    )
+      .get
 
     val publicContributors = repository.allPublishedContributors
     publicContributors should contain(Author(ContributorType.Writer, "James Bond"))
@@ -294,28 +312,32 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That allPublishedContributors removes duplicates") {
-    val publicPath1 = repository.insert(
-      DefaultLearningPath.copy(
-        status = LearningPathStatus.PUBLISHED,
-        copyright = LearningpathCopyright(
-          "by",
-          List(
-            Author(ContributorType.Writer, "James Bond"),
-            Author(ContributorType.Writer, "Christian Bond"),
-            Author(ContributorType.Writer, "Jens Petrius"),
+    val publicPath1 = repository
+      .insert(
+        DefaultLearningPath.copy(
+          status = LearningPathStatus.PUBLISHED,
+          copyright = LearningpathCopyright(
+            "by",
+            List(
+              Author(ContributorType.Writer, "James Bond"),
+              Author(ContributorType.Writer, "Christian Bond"),
+              Author(ContributorType.Writer, "Jens Petrius"),
+            ),
           ),
-        ),
+        )
       )
-    )
-    val publicPath2 = repository.insert(
-      DefaultLearningPath.copy(
-        status = LearningPathStatus.PUBLISHED,
-        copyright = LearningpathCopyright(
-          "by",
-          List(Author(ContributorType.Writer, "James Bond"), Author(ContributorType.Writer, "Test testesen")),
-        ),
+      .get
+    val publicPath2 = repository
+      .insert(
+        DefaultLearningPath.copy(
+          status = LearningPathStatus.PUBLISHED,
+          copyright = LearningpathCopyright(
+            "by",
+            List(Author(ContributorType.Writer, "James Bond"), Author(ContributorType.Writer, "Test testesen")),
+          ),
+        )
       )
-    )
+      .get
 
     val publicContributors = repository.allPublishedContributors
     publicContributors should contain(Author(ContributorType.Writer, "James Bond"))
@@ -330,18 +352,46 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That only learningsteps with status ACTIVE are returned together with a learningpath") {
-    val learningPath = repository.insert(DefaultLearningPath)
-    repository.insertLearningStep(DefaultLearningStep.copy(learningPathId = learningPath.id))
-    repository.insertLearningStep(DefaultLearningStep.copy(learningPathId = learningPath.id))
-    repository.insertLearningStep(
-      DefaultLearningStep.copy(learningPathId = learningPath.id, status = StepStatus.DELETED)
-    )
+    val learningPath = repository
+      .insert(
+        DefaultLearningPath.copy(learningsteps =
+          Seq(DefaultLearningStep, DefaultLearningStep, DefaultLearningStep.copy(status = StepStatus.DELETED))
+        )
+      )
+      .get
 
     learningPath.id.isDefined should be(true)
     val savedLearningPath = repository.withId(learningPath.id.get)
     savedLearningPath.isDefined should be(true)
-    savedLearningPath.get.learningsteps.get.size should be(2)
-    savedLearningPath.get.learningsteps.get.forall(_.status == StepStatus.ACTIVE) should be(true)
+    savedLearningPath.get.learningsteps.size should be(2)
+    savedLearningPath.get.learningsteps.forall(_.status == StepStatus.ACTIVE) should be(true)
+
+    repository.deletePath(learningPath.id.get)
+  }
+
+  test("That insert assigns ids to embedded steps and learningStepWithId reads from the document") {
+    val steps        = Seq(DefaultLearningStep, DefaultLearningStep.copy(seqNo = 1))
+    val learningPath = repository.insert(DefaultLearningPath.copy(learningsteps = steps)).get
+
+    learningPath.learningsteps.forall(_.id.isDefined) should be(true)
+    learningPath.learningsteps.forall(_.learningPathId.contains(learningPath.id.get)) should be(true)
+
+    val stepId = learningPath.learningsteps.head.id.get
+    val found  = repository.learningStepWithId(learningPath.id.get, stepId)
+    found.isDefined should be(true)
+    found.get.id should be(Some(stepId))
+
+    repository.deletePath(learningPath.id.get)
+  }
+
+  test("That insert with imported step ids advances the step id sequence") {
+    val importedStepId = 500000L
+    val learningPath   = repository
+      .insert(DefaultLearningPath.copy(learningsteps = Seq(DefaultLearningStep.copy(id = Some(importedStepId)))))
+      .get
+
+    learningPath.learningsteps.head.id should be(Some(importedStepId))
+    repository.nextLearningStepId should be > importedStepId
 
     repository.deletePath(learningPath.id.get)
   }
@@ -350,8 +400,9 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     when(clock.now()).thenReturn(NDLADate.fromUnixTime(0))
     val steps = List(DefaultLearningStep, DefaultLearningStep, DefaultLearningStep)
 
-    val learningPath =
-      repository.insert(DefaultLearningPath.copy(learningsteps = Some(steps), status = LearningPathStatus.PUBLISHED))
+    val learningPath = repository
+      .insert(DefaultLearningPath.copy(learningsteps = steps, status = LearningPathStatus.PUBLISHED))
+      .get
 
     val page1 = repository.getPublishedLearningPathByPage(2, 0)
     val page2 = repository.getPublishedLearningPathByPage(2, 2)
@@ -365,12 +416,15 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   test("That getLearningPathByPage returns only published results") {
     val steps = List(DefaultLearningStep, DefaultLearningStep, DefaultLearningStep)
 
-    val learningPath1 =
-      repository.insert(DefaultLearningPath.copy(learningsteps = Some(steps), status = LearningPathStatus.PRIVATE))
-    val learningPath2 =
-      repository.insert(DefaultLearningPath.copy(learningsteps = Some(steps), status = LearningPathStatus.PRIVATE))
-    val learningPath3 =
-      repository.insert(DefaultLearningPath.copy(learningsteps = Some(steps), status = LearningPathStatus.PUBLISHED))
+    val learningPath1 = repository
+      .insert(DefaultLearningPath.copy(learningsteps = steps, status = LearningPathStatus.PRIVATE))
+      .get
+    val learningPath2 = repository
+      .insert(DefaultLearningPath.copy(learningsteps = steps, status = LearningPathStatus.PRIVATE))
+      .get
+    val learningPath3 = repository
+      .insert(DefaultLearningPath.copy(learningsteps = steps, status = LearningPathStatus.PUBLISHED))
+      .get
 
     val page1 = repository.getPublishedLearningPathByPage(2, 0)
     val page2 = repository.getPublishedLearningPathByPage(2, 2)
@@ -388,13 +442,13 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     val steps = Vector(DefaultLearningStep, DefaultLearningStep, DefaultLearningStep)
 
     val path = DefaultLearningPath.copy(
-      learningsteps = Some(steps),
+      learningsteps = steps,
       status = LearningPathStatus.PRIVATE,
       owner = "123",
       message = Some(Message("this is message", "kwawk", clock.now())),
     )
 
-    val inserted = repository.insert(path)
+    val inserted = repository.insert(path).get
     val fetched  = repository.withId(inserted.id.get)
 
     inserted should be(fetched.get)
@@ -402,10 +456,10 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That get by ids gets all results") {
-    val learningPath1 = repository.insert(DefaultLearningPath)
-    val learningPath2 = repository.insert(DefaultLearningPath)
-    val learningPath3 = repository.insert(DefaultLearningPath)
-    val learningPath4 = repository.insert(DefaultLearningPath)
+    val learningPath1 = repository.insert(DefaultLearningPath).get
+    val learningPath2 = repository.insert(DefaultLearningPath).get
+    val learningPath3 = repository.insert(DefaultLearningPath).get
+    val learningPath4 = repository.insert(DefaultLearningPath).get
 
     val learningpaths = repository.pageWithIds(
       Seq(learningPath1.id.get, learningPath2.id.get, learningPath3.id.get, learningPath4.id.get),
@@ -416,32 +470,36 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That learning step sample only returns learningpaths containing a learningstep with an external link") {
-    repository.insert(
-      DefaultLearningPath.copy(
-        learningsteps = Some(List(DefaultLearningStep, DefaultLearningStep.copy(embedUrl = List.empty))),
-        status = LearningPathStatus.UNLISTED,
-        isMyNDLAOwner = true,
+    repository
+      .insert(
+        DefaultLearningPath.copy(
+          learningsteps = List(DefaultLearningStep, DefaultLearningStep.copy(embedUrl = List.empty)),
+          status = LearningPathStatus.UNLISTED,
+          isMyNDLAOwner = true,
+        )
       )
-    );
-    repository.insert(
-      DefaultLearningPath.copy(
-        learningsteps = Some(
-          List(
+      .get
+    repository
+      .insert(
+        DefaultLearningPath.copy(
+          learningsteps = List(
             DefaultLearningStep.copy(embedUrl = List.empty, articleId = Some(1)),
             DefaultLearningStep.copy(embedUrl = List.empty, articleId = Some(2)),
-          )
-        ),
-        status = LearningPathStatus.UNLISTED,
-        isMyNDLAOwner = true,
+          ),
+          status = LearningPathStatus.UNLISTED,
+          isMyNDLAOwner = true,
+        )
       )
-    );
-    val lp3 = repository.insert(
-      DefaultLearningPath.copy(
-        learningsteps = Some(List(DefaultLearningStep)),
-        status = LearningPathStatus.UNLISTED,
-        isMyNDLAOwner = true,
+      .get
+    val lp3 = repository
+      .insert(
+        DefaultLearningPath.copy(
+          learningsteps = List(DefaultLearningStep),
+          status = LearningPathStatus.UNLISTED,
+          isMyNDLAOwner = true,
+        )
       )
-    );
+      .get
 
     val learningpaths = repository.getExternalLinkStepSamples()
     learningpaths.length should be(2)
@@ -449,15 +507,16 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That learning step sample only returns published learningpaths containing an external link") {
-
-    repository.insert(DefaultLearningPath.copy(learningsteps = Some(List(DefaultLearningStep)), isMyNDLAOwner = true))
-    val lp2 = repository.insert(
-      DefaultLearningPath.copy(
-        learningsteps = Some(List(DefaultLearningStep)),
-        status = LearningPathStatus.UNLISTED,
-        isMyNDLAOwner = true,
+    repository.insert(DefaultLearningPath.copy(learningsteps = List(DefaultLearningStep), isMyNDLAOwner = true)).get
+    val lp2 = repository
+      .insert(
+        DefaultLearningPath.copy(
+          learningsteps = List(DefaultLearningStep),
+          status = LearningPathStatus.UNLISTED,
+          isMyNDLAOwner = true,
+        )
       )
-    )
+      .get
 
     val learningpaths = repository.getExternalLinkStepSamples()
     learningpaths.length should be(1)
@@ -465,20 +524,24 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That learning step sample only returns learningpaths owned by MyNDLA") {
-    repository.insert(
-      DefaultLearningPath.copy(
-        learningsteps = Some(List(DefaultLearningStep)),
-        status = LearningPathStatus.UNLISTED,
-        isMyNDLAOwner = false,
+    repository
+      .insert(
+        DefaultLearningPath.copy(
+          learningsteps = List(DefaultLearningStep),
+          status = LearningPathStatus.UNLISTED,
+          isMyNDLAOwner = false,
+        )
       )
-    )
-    val lp2 = repository.insert(
-      DefaultLearningPath.copy(
-        learningsteps = Some(List(DefaultLearningStep)),
-        status = LearningPathStatus.UNLISTED,
-        isMyNDLAOwner = true,
+      .get
+    val lp2 = repository
+      .insert(
+        DefaultLearningPath.copy(
+          learningsteps = List(DefaultLearningStep),
+          status = LearningPathStatus.UNLISTED,
+          isMyNDLAOwner = true,
+        )
       )
-    )
+      .get
 
     val learningpaths = repository.getExternalLinkStepSamples()
     learningpaths.length should be(1)
@@ -486,20 +549,24 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That learning step sample only returns learningpaths with an active step with an external link") {
-    repository.insert(
-      DefaultLearningPath.copy(
-        learningsteps = Some(List(DefaultLearningStep.copy(status = StepStatus.DELETED))),
-        status = LearningPathStatus.UNLISTED,
-        isMyNDLAOwner = true,
+    repository
+      .insert(
+        DefaultLearningPath.copy(
+          learningsteps = List(DefaultLearningStep.copy(status = StepStatus.DELETED)),
+          status = LearningPathStatus.UNLISTED,
+          isMyNDLAOwner = true,
+        )
       )
-    )
-    val lp2 = repository.insert(
-      DefaultLearningPath.copy(
-        learningsteps = Some(List(DefaultLearningStep)),
-        status = LearningPathStatus.UNLISTED,
-        isMyNDLAOwner = true,
+      .get
+    val lp2 = repository
+      .insert(
+        DefaultLearningPath.copy(
+          learningsteps = List(DefaultLearningStep),
+          status = LearningPathStatus.UNLISTED,
+          isMyNDLAOwner = true,
+        )
       )
-    )
+      .get
 
     val learningpaths = repository.getExternalLinkStepSamples()
     learningpaths.length should be(1)
