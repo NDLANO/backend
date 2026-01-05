@@ -8,17 +8,17 @@
 
 package no.ndla.imageapi.service
 
+import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import io.lemonlabs.uri.UrlPath
 import io.lemonlabs.uri.typesafe.dsl.*
+import no.ndla.common.errors.ValidationException
+import no.ndla.common.implicits.toTry
 import no.ndla.imageapi.model.api.{ImageMetaDomainDumpDTO, ImageMetaInformationV2DTO, ImageMetaInformationV3DTO}
 import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, Sort}
 import no.ndla.imageapi.model.{ImageConversionException, ImageNotFoundException, InvalidUrlException, api}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{SearchConverterService, TagSearchService}
 import no.ndla.language.Language.findByLanguageOrBestEffort
-import cats.implicits.*
-import no.ndla.common.errors.ValidationException
 import no.ndla.network.tapir.auth.TokenUser
 
 import scala.util.{Failure, Success, Try}
@@ -90,41 +90,23 @@ class ReadService(using
       }
   }
 
-  private def urlEncodePath(path: String) = UrlPath.parse(path).toString
-
   private def handleRawPathParts(pathParts: List[String]): Try[ImageMetaInformation] = pathParts.lift(2) match {
     case Some(path) if path.nonEmpty => getImageMetaFromFilePath(path)
     case _                           => Failure(InvalidUrlException("Could not extract path from url."))
   }
 
-  def getImageFromFilePath(path: String): Try[ImageFileData] = {
-    val encodedPath = urlEncodePath(path)
-    imageRepository.getImageFromFilePath(encodedPath) match {
-      case Success(Some(image)) =>
-        image.images.find(i => i.fileName.dropWhile(_ == '/') == path.dropWhile(_ == '/')) match {
-          case Some(img) => Success(img)
-          case None      => Failure(
-              ImageConversionException(
-                s"Image path '$path' was found in database, but not found in metadata. This is a bug."
-              )
-            )
-        }
-      case Success(None) =>
-        Failure(new ImageNotFoundException(s"Extracted path '$encodedPath', but no image with that path was found"))
-      case Failure(ex) => Failure(ex)
-    }
-
+  def getImageFileFromFilePath(path: String): Try[ImageFileData] = getImageMetaFromFilePath(path).flatMap { image =>
+    image
+      .images
+      .find(i => i.fileName.dropWhile(_ == '/') == path.dropWhile(_ == '/'))
+      .toTry(
+        ImageConversionException(s"Image path '$path' was found in database, but not found in metadata. This is a bug.")
+      )
   }
 
-  def getImageMetaFromFilePath(path: String): Try[ImageMetaInformation] = {
-    val encodedPath = urlEncodePath(path)
-    imageRepository.getImageFromFilePath(encodedPath) match {
-      case Success(Some(image)) => Success(image)
-      case Success(None)        =>
-        Failure(new ImageNotFoundException(s"Extracted path '$encodedPath', but no image with that path was found"))
-      case Failure(ex) => Failure(ex)
-    }
-  }
+  private def getImageMetaFromFilePath(path: String): Try[ImageMetaInformation] = imageRepository
+    .getImageFromFilePath(path)
+    .flatMap(_.toTry(ImageNotFoundException(s"Extracted path '$path', but no image with that path was found")))
 
   def getDomainImageMetaFromUrl(url: String): Try[ImageMetaInformation] = {
     val pathParts          = url.path.parts.toList
@@ -146,12 +128,12 @@ class ReadService(using
   }
 
   def getImageFileName(imageId: Long, language: Option[String]): Try[Option[String]] = {
-    imageRepository.withId(imageId) match {
-      case Success(Some(imageMeta)) => findByLanguageOrBestEffort(imageMeta.images, language).traverse(imageFile =>
-          UrlPath.parseTry(imageFile.fileName).map(_.toStringRaw.dropWhile(_ == '/'))
-        )
-      case Success(None) => Success(None)
-      case Failure(ex)   => Failure(ex)
-    }
+    imageRepository
+      .withId(imageId)
+      .map {
+        _.flatMap { imageMeta =>
+          findByLanguageOrBestEffort(imageMeta.images, language).map(_.fileName.dropWhile(_ == '/'))
+        }
+      }
   }
 }
