@@ -137,13 +137,9 @@ class ConverterService(using
         .getOrElse(api.LearningPathTagsDTO(Seq(), DefaultLanguage))
       val learningSteps = lp
         .learningsteps
-        .map(lsteps => {
-          lsteps
-            .flatMap(ls => asApiLearningStepV2(ls, lp, searchLanguage, fallback, userInfo).toOption)
-            .toList
-            .sortBy(_.seqNo)
-        })
-        .getOrElse(Seq.empty)
+        .flatMap(ls => asApiLearningStepV2(ls, lp, searchLanguage, fallback, userInfo).toOption)
+        .toList
+        .sortBy(_.seqNo)
 
       val message = lp.message.filter(_ => lp.canEditPath(userInfo)).map(asApiMessage)
       val owner   = Some(lp.owner).filter(_ => userInfo.isAdmin)
@@ -302,7 +298,7 @@ class ConverterService(using
       .map(t => t.map(embed => Seq(embed)))
       .getOrElse(Success(Seq.empty))
 
-    val listOfLearningSteps = learningPath.learningsteps.getOrElse(Seq.empty)
+    val listOfLearningSteps = learningPath.learningsteps
 
     val newSeqNo =
       if (listOfLearningSteps.isEmpty) 0
@@ -344,12 +340,9 @@ class ConverterService(using
   }
 
   def insertLearningStep(learningPath: LearningPath, updatedStep: LearningStep): LearningPath = {
-    val existingLearningSteps = learningPath.learningsteps.getOrElse(Seq.empty).filterNot(_.id == updatedStep.id)
-    val steps                 =
-      if (StepStatus.ACTIVE == updatedStep.status) existingLearningSteps :+ updatedStep
-      else existingLearningSteps
-
-    learningPath.copy(learningsteps = Some(steps), lastUpdated = clock.now())
+    val existingLearningSteps = learningPath.learningsteps.filterNot(_.id == updatedStep.id)
+    val steps                 = existingLearningSteps :+ updatedStep
+    learningPath.copy(learningsteps = steps, lastUpdated = clock.now())
   }
 
   def deleteLearningStepLanguage(step: LearningStep, language: String): Try[LearningStep] = {
@@ -429,7 +422,6 @@ class ConverterService(using
 
     embedUrlsT.map(embedUrls =>
       existing.copy(
-        revision = Some(updated.revision),
         title = titles,
         introduction = introductions,
         description = descriptions,
@@ -481,23 +473,21 @@ class ConverterService(using
 
         val steps = existing
           .learningsteps
-          .map(ls =>
-            ls.map { step =>
-              val stepCopyright = step.`type` match {
-                case StepType.TEXT => step.copyright.orElse(existingPathCopyright)
-                case _             => step.copyright
-              }
-
-              step.copy(
-                id = None,
-                revision = None,
-                externalId = None,
-                learningPathId = None,
-                copyright = stepCopyright,
-                lastUpdated = clock.now(),
-              )
+          .map { step =>
+            val stepCopyright = step.`type` match {
+              case StepType.TEXT => step.copyright.orElse(existingPathCopyright)
+              case _             => step.copyright
             }
-          )
+
+            step.copy(
+              id = None,
+              revision = None,
+              externalId = None,
+              learningPathId = None,
+              copyright = stepCopyright,
+              lastUpdated = clock.now(),
+            )
+          }
 
         existing.copy(
           id = None,
@@ -561,7 +551,7 @@ class ConverterService(using
           owner = ownerId,
           copyright = asCopyright(copyright),
           isMyNDLAOwner = user.isMyNDLAUser,
-          learningsteps = Some(Seq.empty),
+          learningsteps = Seq.empty,
           message = None,
           madeAvailable = None,
           responsible = newLearningPath
@@ -614,8 +604,9 @@ class ConverterService(using
       .getOrElse(api.LearningPathTagsDTO(Seq(), DefaultLanguage))
     val introduction = findByLanguageOrBestEffort(learningpath.introduction.map(asApiIntroduction), AllLanguages)
       .getOrElse(
-        findByLanguageOrBestEffort(getApiIntroduction(learningpath.learningsteps.getOrElse(Seq.empty)), AllLanguages)
-          .getOrElse(api.IntroductionDTO("", DefaultLanguage))
+        findByLanguageOrBestEffort(getApiIntroduction(learningpath.learningsteps), AllLanguages).getOrElse(
+          api.IntroductionDTO("", DefaultLanguage)
+        )
       )
 
     val message = learningpath.message.filter(_ => learningpath.canEditPath(user)).map(_.message)
@@ -671,7 +662,7 @@ class ConverterService(using
       Success(
         api.LearningStepV2DTO(
           id = ls.id.get,
-          revision = ls.revision.get,
+          revision = ls.revision.getOrElse(1),
           seqNo = ls.seqNo,
           title = title,
           introduction = introduction,
