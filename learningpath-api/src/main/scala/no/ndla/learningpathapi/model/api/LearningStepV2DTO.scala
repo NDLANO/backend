@@ -18,8 +18,6 @@ import sttp.tapir.Schema.annotations.{deprecated, description}
 case class LearningStepV2DTO(
     @description("The id of the learningstep")
     id: Long,
-    @description("The revision number for this learningstep")
-    revision: Int,
     @description("The sequence number for the step. The first step has seqNo 0.")
     seqNo: Int,
     @description("The title of the learningstep")

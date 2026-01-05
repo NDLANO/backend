@@ -83,6 +83,7 @@ class LearningpathApiClientTest
         .insert(
           learningpathapi.TestData.sampleDomainLearningPath.copy(id = Some(id), lastUpdated = NDLADate.fromUnixTime(0))
         )
+        .get
     })
   }
 

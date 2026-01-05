@@ -39,7 +39,8 @@ import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   override implicit lazy val searchLanguage: SearchLanguage                          = new SearchLanguage
-  override implicit lazy val e4sClient: NdlaE4sClient                                = Elastic4sClientFactory.getClient(elasticSearchHost.get)
+  override implicit lazy val e4sClient: NdlaE4sClient =
+    Elastic4sClientFactory.getClient(elasticSearchHost.get)
   override implicit lazy val searchConverterService: SearchConverterServiceComponent =
     new SearchConverterServiceComponent
   override implicit lazy val searchIndexService: SearchIndexService = new SearchIndexService {
@@ -70,6 +71,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     owner = "owner",
     copyright = copyright,
     isMyNDLAOwner = false,
+    learningsteps = Seq.empty,
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
@@ -143,7 +145,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         created = yesterday,
         lastUpdated = yesterday,
         tags = List(Tag(Seq("superhelt", "kanikkefly"), "nb")),
-        learningsteps = Some(List(activeStep)),
+        learningsteps = List(activeStep),
         grepCodes = Seq("KM123", "KM456"),
       )
 
@@ -155,7 +157,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         created = yesterday,
         lastUpdated = today,
         tags = List(Tag(Seq("superhelt", "kanfly"), "nb")),
-        learningsteps = Some(List(activeStep, deletedStep)),
+        learningsteps = List(activeStep, deletedStep),
         grepCodes = Seq("KM456", "KM789"),
       )
 
@@ -167,7 +169,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
         created = yesterday,
         lastUpdated = tomorrow,
         tags = List(Tag(Seq("disney", "kanfly"), "nb")),
-        learningsteps = Some(List(deletedStep)),
+        learningsteps = List(deletedStep),
         verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
         grepCodes = Seq("KM123", "KM456", "KM789"),
       )

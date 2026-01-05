@@ -59,26 +59,24 @@ class LearningPathIndexServiceTest extends ElasticsearchIntegrationSuite with Un
     val domainLearningPath = TestData
       .learningPath1
       .copy(
-        learningsteps = Some(
-          List(
-            LearningStep(
-              id = Some(1L),
-              revision = Some(1),
-              externalId = Some("hei"),
-              learningPathId = Some(1L),
-              seqNo = 1,
-              title = Seq(Title("hei", "nb")),
-              introduction = Seq(),
-              description = Seq(LPDescription("hei", "nb")),
-              embedUrl = Seq(EmbedUrl("hei", "nb", EmbedType.OEmbed)),
-              articleId = None,
-              `type` = StepType.TEXT,
-              copyright = Some(LearningpathCopyright(license = "hei", contributors = Seq.empty)),
-              status = StepStatus.ACTIVE,
-              created = NDLADate.now(),
-              lastUpdated = NDLADate.now(),
-              owner = "yolo",
-            )
+        learningsteps = List(
+          LearningStep(
+            id = Some(1L),
+            revision = Some(1),
+            externalId = Some("hei"),
+            learningPathId = Some(1L),
+            seqNo = 1,
+            title = Seq(Title("hei", "nb")),
+            introduction = Seq(),
+            description = Seq(LPDescription("hei", "nb")),
+            embedUrl = Seq(EmbedUrl("hei", "nb", EmbedType.OEmbed)),
+            articleId = None,
+            `type` = StepType.TEXT,
+            copyright = Some(LearningpathCopyright(license = "hei", contributors = Seq.empty)),
+            status = StepStatus.ACTIVE,
+            created = NDLADate.now(),
+            lastUpdated = NDLADate.now(),
+            owner = "yolo",
           )
         ),
         responsible = Some(Responsible("yolo", NDLADate.now())),

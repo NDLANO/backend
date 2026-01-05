@@ -15,8 +15,6 @@ import sttp.tapir.Schema.annotations.{description, deprecated}
 
 @description("Information about a new learningstep")
 case class UpdatedLearningStepV2DTO(
-    @description("The revision number for this learningstep")
-    revision: Int,
     @description("The title of the learningstep")
     title: UpdateOrDelete[String],
     @description("The introduction of the learningstep")

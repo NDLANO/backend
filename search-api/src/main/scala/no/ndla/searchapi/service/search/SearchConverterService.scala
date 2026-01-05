@@ -359,7 +359,7 @@ class SearchConverterService(using
           lastUpdated = lp.lastUpdated,
           defaultTitle = defaultTitle.map(_.title),
           tags = SearchableLanguageList(lp.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-          learningsteps = lp.learningsteps.getOrElse(Seq.empty).map(asSearchableLearningStep).toList,
+          learningsteps = lp.withOnlyActiveSteps.learningsteps.map(asSearchableLearningStep).toList,
           license = lp.copyright.license,
           copyright = license,
           isBasedOn = lp.isBasedOn,

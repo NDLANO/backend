@@ -146,7 +146,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     owner = "me",
     copyright = LearningpathCopyright(CC_BY.toString, List.empty),
     isMyNDLAOwner = false,
-    learningsteps = None,
+    learningsteps = Seq.empty,
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
@@ -304,7 +304,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val learningstep = Success(
       api.LearningStepV2DTO(
         id = 1,
-        revision = 1,
         seqNo = 1,
         title = api.TitleDTO("tittel", props.DefaultLanguage),
         introduction = None,
@@ -355,7 +354,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val learningstep = Success(
       api.LearningStepV2DTO(
         id = 1,
-        revision = 1,
         seqNo = 1,
         title = api.TitleDTO("tittel", props.DefaultLanguage),
         introduction = None,
@@ -605,14 +603,14 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       None,
     )
     val lpId = 5591L
-    val lp1  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = None)
-    val lp2  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = Some(Seq.empty))
+    val lp1  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = Seq.empty)
+    val lp2  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = Seq.empty)
     val lp3  = TestData
       .sampleDomainLearningPath
       .copy(
         id = Some(lpId),
         learningsteps =
-          Some(Seq(TestData.domainLearningStep1.copy(seqNo = 0), TestData.domainLearningStep2.copy(seqNo = 1))),
+          Seq(TestData.domainLearningStep1.copy(seqNo = 0), TestData.domainLearningStep2.copy(seqNo = 1)),
       )
 
     service.asDomainLearningStep(newLs, lp1, owner.id).get.seqNo should be(0)
@@ -622,7 +620,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("mergeLearningSteps correctly retains nullable fields") {
     val updatedStep = api.UpdatedLearningStepV2DTO(
-      2,
       commonApi.Missing,
       commonApi.Missing,
       "nb",
@@ -642,7 +639,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("mergeLearningSteps correctly deletes correct language version of nullable fields") {
     val updatedStep = api.UpdatedLearningStepV2DTO(
-      2,
       commonApi.Delete,
       commonApi.Delete,
       "nn",
@@ -663,7 +659,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("mergeLearningSteps correctly updates language fields") {
     val updatedStep = api.UpdatedLearningStepV2DTO(
-      2,
       commonApi.UpdateWith("Tittel på bokmål oppdatert"),
       commonApi.UpdateWith("Introduksjon på bokmål oppdatert"),
       "nb",
