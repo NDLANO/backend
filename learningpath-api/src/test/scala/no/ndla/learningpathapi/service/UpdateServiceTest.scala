@@ -433,7 +433,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   }
 
   test("That addLearningPathV2 inserts the given LearningPathV2") {
-    when(learningPathRepository.insert(any[LearningPath])(using any[DBSession])).thenReturn(PRIVATE_LEARNINGPATH)
+    when(learningPathRepository.insert(any[LearningPath])(using any[DBSession])).thenReturn(
+      Success(PRIVATE_LEARNINGPATH)
+    )
 
     val saved = service.addLearningPathV2(NEW_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
     assert(saved.get.id == PRIVATE_LEARNINGPATH.id.get)
@@ -1242,7 +1244,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(learningpathWithUnknownLang.id.get))(using any[DBSession])).thenReturn(
       Some(learningpathWithUnknownLang)
     )
-    when(learningPathRepository.insert(any[LearningPath])(using any[DBSession])).thenReturn(learningpathWithUnknownLang)
+    when(learningPathRepository.insert(any[LearningPath])(using any[DBSession])).thenReturn(
+      Success(learningpathWithUnknownLang)
+    )
 
     val newCopy = NewCopyLearningPathV2DTO("hehe", None, None, "nb", None, None, None, None)
     service
@@ -1366,7 +1370,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Some(PUBLISHED_LEARNINGPATH_NO_STEPS)
     )
     when(learningPathRepository.insert(any[LearningPath])(using any[DBSession])).thenReturn(
-      PUBLISHED_LEARNINGPATH_NO_STEPS
+      Success(PUBLISHED_LEARNINGPATH_NO_STEPS)
     )
 
     service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
@@ -1392,7 +1396,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Some(PRIVATE_LEARNINGPATH_NO_STEPS)
     )
     when(learningPathRepository.insert(any[LearningPath])(using any[DBSession])).thenReturn(
-      PRIVATE_LEARNINGPATH_NO_STEPS
+      Success(PRIVATE_LEARNINGPATH_NO_STEPS)
     )
 
     service.newFromExistingV2(PRIVATE_ID, NEW_COPIED_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
@@ -1418,7 +1422,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Some(PUBLISHED_LEARNINGPATH_NO_STEPS)
     )
     when(learningPathRepository.insert(any[LearningPath])(using any[DBSession])).thenReturn(
-      PUBLISHED_LEARNINGPATH_NO_STEPS
+      Sucess(PUBLISHED_LEARNINGPATH_NO_STEPS)
     )
 
     service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, MYNDLA_USER)
@@ -1446,7 +1450,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
       Some(PUBLISHED_LEARNINGPATH_NO_STEPS)
     )
     when(learningPathRepository.insert(any[LearningPath])(using any[DBSession])).thenReturn(
-      PUBLISHED_LEARNINGPATH_NO_STEPS
+      Success(PUBLISHED_LEARNINGPATH_NO_STEPS)
     )
 
     val titlesToOverride       = "Overridden title"
@@ -1496,7 +1500,9 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PUBLISHED_ID))(using any[DBSession])).thenReturn(
       Some(PUBLISHED_LEARNINGPATH)
     )
-    when(learningPathRepository.insert(any[LearningPath])(using any[DBSession])).thenReturn(PUBLISHED_LEARNINGPATH)
+    when(learningPathRepository.insert(any[LearningPath])(using any[DBSession])).thenReturn(
+      Success(PUBLISHED_LEARNINGPATH)
+    )
 
     service.newFromExistingV2(PUBLISHED_ID, NEW_COPIED_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
 

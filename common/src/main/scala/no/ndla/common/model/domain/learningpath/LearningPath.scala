@@ -17,6 +17,7 @@ import no.ndla.common.model.domain.Priority
 import sttp.tapir.Schema
 import no.ndla.common.DeriveHelpers
 import no.ndla.common.model.domain.RevisionMeta
+import no.ndla.common.model.domain.learningpath.StepStatus.ACTIVE
 
 case class LearningPath(
     id: Option[Long],
@@ -35,7 +36,7 @@ case class LearningPath(
     owner: String,
     copyright: LearningpathCopyright,
     isMyNDLAOwner: Boolean,
-    learningsteps: Option[Seq[LearningStep]] = None,
+    learningsteps: Seq[LearningStep],
     message: Option[Message] = None,
     madeAvailable: Option[NDLADate] = None,
     responsible: Option[Responsible],
@@ -47,16 +48,19 @@ case class LearningPath(
 ) extends Content {
 
   def supportedLanguages: Seq[String] = {
-    val stepLanguages = learningsteps.getOrElse(Seq.empty).flatMap(_.supportedLanguages)
-
-    (
-      getSupportedLanguages(title, description, tags) ++ stepLanguages
-    ).distinct
+    val stepLanguages         = learningsteps.flatMap(_.supportedLanguages)
+    val allSupportedLanguages = getSupportedLanguages(title, description, tags) ++ stepLanguages
+    allSupportedLanguages.distinct
   }
 
   def isPrivate: Boolean   = Seq(LearningPathStatus.PRIVATE, LearningPathStatus.READY_FOR_SHARING).contains(status)
   def isPublished: Boolean = status == LearningPathStatus.PUBLISHED
   def isDeleted: Boolean   = status == LearningPathStatus.DELETED
+  
+  def withOnlyActiveSteps: LearningPath = {
+    val activeSteps = learningsteps.filter(_.status == ACTIVE)
+    this.copy(learningsteps = activeSteps)
+  }
 
 }
 

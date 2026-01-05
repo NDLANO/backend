@@ -63,7 +63,7 @@ class UpdateService(using
     }
   }
 
-  def insertDump(dump: learningpath.LearningPath): learningpath.LearningPath = learningPathRepository.insert(dump)
+  def insertDump(dump: learningpath.LearningPath): Try[learningpath.LearningPath] = learningPathRepository.insert(dump)
 
   private[service] def writeOrAccessDenied[T](
       willExecute: Boolean,
@@ -83,7 +83,7 @@ class UpdateService(using
       case Some(Success(existing)) => for {
           toInsert  <- converterService.newFromExistingLearningPath(existing, newLearningPath, owner)
           validated <- learningPathValidator.validate(toInsert, allowUnknownLanguage = true)
-          inserted  <- Try(learningPathRepository.insert(validated))
+          inserted  <- learningPathRepository.insert(validated)
           converted <- converterService.asApiLearningpathV2(inserted, newLearningPath.language, fallback = true, owner)
         } yield converted
     }
@@ -94,7 +94,7 @@ class UpdateService(using
       for {
         learningPath <- converterService.newLearningPath(newLearningPath, owner)
         validated    <- learningPathValidator.validate(learningPath)
-        inserted     <- Try(learningPathRepository.insert(validated))
+        inserted     <- learningPathRepository.insert(validated)
         converted    <- converterService.asApiLearningpathV2(inserted, newLearningPath.language, fallback = true, owner)
       } yield converted
     }
@@ -128,7 +128,6 @@ class UpdateService(using
         learningPath <- withId(learningPathId).flatMap(_.canEditLearningPath(owner))
         updatedSteps <- learningPath
           .learningsteps
-          .getOrElse(Seq.empty)
           .traverse(step => deleteLanguageFromStep(step, language, learningPath))
         withUpdatedSteps    <- Try(converterService.insertLearningSteps(learningPath, updatedSteps))
         withDeletedLanguage <- converterService.deleteLearningPathLanguage(withUpdatedSteps, language)

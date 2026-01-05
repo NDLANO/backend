@@ -344,12 +344,12 @@ class ConverterService(using
   }
 
   def insertLearningStep(learningPath: LearningPath, updatedStep: LearningStep): LearningPath = {
-    val existingLearningSteps = learningPath.learningsteps.getOrElse(Seq.empty).filterNot(_.id == updatedStep.id)
+    val existingLearningSteps = learningPath.learningsteps.filterNot(_.id == updatedStep.id)
     val steps                 =
       if (StepStatus.ACTIVE == updatedStep.status) existingLearningSteps :+ updatedStep
       else existingLearningSteps
 
-    learningPath.copy(learningsteps = Some(steps), lastUpdated = clock.now())
+    learningPath.copy(learningsteps = steps, lastUpdated = clock.now())
   }
 
   def deleteLearningStepLanguage(step: LearningStep, language: String): Try[LearningStep] = {
