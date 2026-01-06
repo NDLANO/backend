@@ -15,7 +15,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.network.tapir.ErrorHelpers
 import org.postgresql.util.PGobject
 import scalikejdbc.*
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 

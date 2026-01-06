@@ -13,7 +13,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.database.DBUtility
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 import no.ndla.myndlaapi.model.domain.{DBMyNDLAUser, NDLASQLException}
 import no.ndla.network.model.FeideID
 import org.postgresql.util.PGobject

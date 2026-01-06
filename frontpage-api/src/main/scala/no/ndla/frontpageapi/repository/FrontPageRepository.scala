@@ -10,7 +10,7 @@ package no.ndla.frontpageapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax.*
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 import no.ndla.frontpageapi.model.domain.{DBFrontPage, FrontPage}
 import org.postgresql.util.PGobject
 import scalikejdbc.*

@@ -21,7 +21,7 @@ import no.ndla.common.model.domain.learningpath.{
 import no.ndla.learningpathapi.model.domain.*
 import org.postgresql.util.PGobject
 import scalikejdbc.*
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 
 import java.util.UUID
 import scala.util.Try
