@@ -13,7 +13,7 @@ import io.circe.syntax.*
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, FilmFrontPage}
 import org.postgresql.util.PGobject
 import scalikejdbc.*
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 

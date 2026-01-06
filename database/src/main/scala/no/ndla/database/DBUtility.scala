@@ -11,6 +11,7 @@ package no.ndla.database
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.Encoder
 import no.ndla.common.CirceUtil
+import no.ndla.common.TryUtil.throwIfInterrupted
 import no.ndla.common.errors.RollbackException
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -18,10 +19,11 @@ import scalikejdbc.*
 import scala.util.{Failure, Success, Try}
 
 class DBUtility extends StrictLogging {
-  def rollbackOnFailure[T](func: DBSession => Try[T]): Try[T] = {
+  def rollbackOnFailure[T](func: WriteableDbSession => Try[T]): Try[T] = {
     try {
       DB.localTx { session =>
-        func(session) match {
+        val writeableSession = WriteableDbSession(session)
+        func(writeableSession) match {
           case Failure(ex)    => throw RollbackException(ex)
           case Success(value) => Success(value)
         }
@@ -33,19 +35,27 @@ class DBUtility extends StrictLogging {
     }
   }
 
-  def withSession[T](func: DBSession => T): T = {
-    DB.localTx { session =>
-      func(session)
+  def withSession[T](func: WriteableDbSession => T): T = tryWithSession(s => Success(func(s))).get
+
+  def tryWithSession[T](func: WriteableDbSession => Try[T]): Try[T] = Try
+    .throwIfInterrupted {
+      DB.localTx { session =>
+        val writeableSession = WriteableDbSession(session)
+        func(writeableSession)
+      }
     }
-  }
+    .flatten
 
-  def tryWithSession[T](func: DBSession => Try[T]): Try[T] = Try(withSession[Try[T]](func)).flatten
+  def readOnly[T](func: ReadableDbSession => T): T = tryReadOnly(s => Success(func(s))).get
 
-  def readOnly[T](func: DBSession => T): T = DB.readOnly { session =>
-    func(session)
-  }
-
-  def tryReadOnly[T](func: DBSession => Try[T]): Try[T] = Try(readOnly[Try[T]](func)).flatten
+  def tryReadOnly[T](func: ReadableDbSession => Try[T]): Try[T] = Try
+    .throwIfInterrupted {
+      DB.readOnly { session =>
+        val readableSession = ReadableDbSession(session)
+        func(readableSession)
+      }
+    }
+    .flatten
 
   /** Builds a where clause from a list of conditions. If the list is empty, an empty SQLSyntax object with no where
     * clause is returned.

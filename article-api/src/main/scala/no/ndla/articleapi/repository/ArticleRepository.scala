@@ -13,7 +13,7 @@ import no.ndla.articleapi.model.NotFoundException
 import no.ndla.articleapi.model.domain.{ArticleIds, ArticleRow, DBArticle}
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.article.Article
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 

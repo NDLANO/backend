@@ -18,7 +18,7 @@ import no.ndla.audioapi.model.api.OptimisticLockException
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.network.tapir.ErrorHelpers
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 

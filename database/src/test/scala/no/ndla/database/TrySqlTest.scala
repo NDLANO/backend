@@ -9,7 +9,7 @@
 package no.ndla.database
 
 import cats.implicits.*
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, UnitTestSuite}
 import scalikejdbc.*
 

@@ -11,7 +11,7 @@ package no.ndla.myndlaapi.repository
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.NotFoundException
 import no.ndla.database.DBUtility
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 import no.ndla.myndlaapi.uuidParameterFactory
 import no.ndla.myndlaapi.model.domain.RobotDefinition
 import no.ndla.network.model.FeideID
