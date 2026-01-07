@@ -101,7 +101,9 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     myndlaApi.componentRegistry.folderRepository.deleteAllUserResources("feide2")
     myndlaApi.componentRegistry.folderRepository.deleteAllUserFolders("feide1")
     myndlaApi.componentRegistry.folderRepository.deleteAllUserFolders("feide2")
-    myndlaApi.componentRegistry.userRepository.deleteAllUsers
+
+    userRepository.reserveFeideIdIfNotExists("feide1")
+    userRepository.reserveFeideIdIfNotExists("feide2")
   }
 
   override def afterAll(): Unit = {
@@ -343,6 +345,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     foldersForU1Sorted.folders(3).id should be(f1.id)
     foldersForU1Sorted.folders(3).rank should be(4)
 
+    createFolder(feideId2, "folder5", None) // to ensure feideId2 exists in the system
     val foldersForU2 = getFolders(feideId2, false)
     foldersForU2.sharedFolders.length should be(0)
 
