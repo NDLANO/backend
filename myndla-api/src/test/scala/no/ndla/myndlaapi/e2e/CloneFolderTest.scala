@@ -18,13 +18,14 @@ import no.ndla.myndlaapi.model.api.{BreadcrumbDTO, FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.{NewFolderData, ResourceDocument}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
-import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, spy, times, verify, when, withSettings}
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
+import scalikejdbc.DBSession
 import sttp.client3.quick.*
 
 import java.util.UUID
@@ -87,6 +88,12 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       myndlaApi.run(Array.empty)
     }: Unit
     blockUntilHealthy(s"$myndlaApiBaseUrl/health/readiness")
+
+    implicit val session: DBSession = myndlaApi.componentRegistry.userRepository.getSession(false)
+    myndlaApi.componentRegistry.userRepository.reserveFeideIdIfNotExists(feideId)
+    myndlaApi.componentRegistry.userRepository.insertUser(feideId, TestData.userDocument)
+    myndlaApi.componentRegistry.userRepository.reserveFeideIdIfNotExists(destinationFeideId)
+    myndlaApi.componentRegistry.userRepository.insertUser(destinationFeideId, TestData.userDocument)
   }
 
   override def beforeEach(): Unit = {
@@ -98,8 +105,6 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     myndlaApi.componentRegistry.folderRepository.deleteAllUserResources(destinationFeideId)
     myndlaApi.componentRegistry.folderRepository.deleteAllUserFolders(feideId)
     myndlaApi.componentRegistry.folderRepository.deleteAllUserFolders(destinationFeideId)
-    myndlaApi.componentRegistry.userRepository.deleteUser(feideId)
-    myndlaApi.componentRegistry.userRepository.deleteUser(destinationFeideId)
   }
 
   override def afterAll(): Unit = {
