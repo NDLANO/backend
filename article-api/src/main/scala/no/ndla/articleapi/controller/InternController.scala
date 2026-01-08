@@ -122,7 +122,7 @@ class InternController(using
     .in("ids")
     .out(jsonBody[Seq[ArticleIds]])
     .errorOut(errorOutputsFor(500))
-    .serverLogicPure(_ => dBUtility.tryReadOnly(implicit session => articleRepository.getAllIds))
+    .serverLogicPure(_ => dBUtility.readOnly(implicit session => articleRepository.getAllIds))
 
   def getByExternalId: ServerEndpoint[Any, Eff] = endpoint
     .get
@@ -131,7 +131,7 @@ class InternController(using
     .out(jsonBody[Long])
     .errorOut(errorOutputsFor(404, 500))
     .serverLogicPure { externalId =>
-      dBUtility.tryReadOnly { implicit session =>
+      dBUtility.readOnly { implicit session =>
         articleRepository.getIdFromExternalId(externalId)
       }
     }
@@ -166,7 +166,7 @@ class InternController(using
     .out(jsonBody[Article])
     .errorOut(errorOutputsFor(404, 410, 500))
     .serverLogicPure { articleId =>
-      dBUtility.tryReadOnly { implicit session =>
+      dBUtility.readOnly { implicit session =>
         articleRepository
           .withId(articleId)
           .flatMap(_.toTry(NotFoundException(s"Article with ID $articleId was not found")))
@@ -182,7 +182,7 @@ class InternController(using
     .out(jsonBody[Article])
     .errorOut(errorOutputsFor(400))
     .serverLogicPure { case (importValidate, article) =>
-      dBUtility.tryReadOnly { implicit session =>
+      dBUtility.readOnly { implicit session =>
         contentValidator.validateArticle(article, isImported = importValidate)
       }
     }

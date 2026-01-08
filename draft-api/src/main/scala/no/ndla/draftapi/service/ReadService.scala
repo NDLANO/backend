@@ -41,7 +41,7 @@ class ReadService(using
     props: Props,
     dbUtility: DBUtility,
 ) {
-  def getInternalArticleIdByExternalId(externalId: Long): Try[api.ContentIdDTO] = dbUtility.tryReadOnly {
+  def getInternalArticleIdByExternalId(externalId: Long): Try[api.ContentIdDTO] = dbUtility.readOnly {
     implicit session =>
       draftRepository
         .getIdFromExternalId(externalId.toString)
@@ -49,7 +49,7 @@ class ReadService(using
         .map(api.ContentIdDTO.apply)
   }
 
-  def withId(id: Long, language: String, fallback: Boolean = false): Try[api.ArticleDTO] = dbUtility.tryReadOnly {
+  def withId(id: Long, language: String, fallback: Boolean = false): Try[api.ArticleDTO] = dbUtility.readOnly {
     implicit session =>
       draftRepository
         .withId(id)
@@ -60,7 +60,7 @@ class ReadService(using
   }
 
   def getArticleBySlug(slug: String, language: String, fallback: Boolean = false): Try[api.ArticleDTO] = dbUtility
-    .tryReadOnly { implicit session =>
+    .readOnly { implicit session =>
       draftRepository
         .withSlug(slug)
         .flatMap {
@@ -69,7 +69,7 @@ class ReadService(using
         }
     }
 
-  def getArticles(id: Long, language: String, fallback: Boolean): Try[Seq[api.ArticleDTO]] = dbUtility.tryReadOnly {
+  def getArticles(id: Long, language: String, fallback: Boolean): Try[Seq[api.ArticleDTO]] = dbUtility.readOnly {
     implicit session =>
       for {
         articles         <- draftRepository.articlesWithId(id)
@@ -95,7 +95,7 @@ class ReadService(using
       fallback: Boolean = false,
   ): Try[api.ArticleDumpDTO] = {
     val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
-    dbUtility.tryReadOnly { implicit session =>
+    dbUtility.readOnly { implicit session =>
       for {
         articles <- draftRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
         results   = articles.flatMap(article => converterService.toApiArticle(article, lang, fallback).toOption)
@@ -105,7 +105,7 @@ class ReadService(using
   }
 
   def getArticleDomainDump(pageNo: Int, pageSize: Int): Try[api.ArticleDomainDumpDTO] = {
-    dbUtility.tryReadOnly { implicit session =>
+    dbUtility.readOnly { implicit session =>
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
       for {
         results <- draftRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
@@ -159,7 +159,7 @@ class ReadService(using
     }
   }
 
-  def importIdOfArticle(externalId: String): Try[ImportId] = dbUtility.tryReadOnly { implicit session =>
+  def importIdOfArticle(externalId: String): Try[ImportId] = dbUtility.readOnly { implicit session =>
     draftRepository
       .importIdOfArticle(externalId)
       .flatMap(_.toTry(NotFoundException(s"Could not find draft with external id: '$externalId'")))
@@ -180,7 +180,7 @@ class ReadService(using
       fallback: Boolean,
       page: Long,
       pageSize: Long,
-  ): Try[Seq[api.ArticleDTO]] = dbUtility.tryReadOnly { implicit session =>
+  ): Try[Seq[api.ArticleDTO]] = dbUtility.readOnly { implicit session =>
     val offset = (page - 1) * pageSize
     for {
       ids <-
@@ -195,7 +195,7 @@ class ReadService(using
 
   def getArticleRevisionHistory(articleId: Long, language: String, fallback: Boolean): Try[ArticleRevisionHistoryDTO] =
     boundary {
-      val drafts = dbUtility.tryReadOnly(implicit session => draftRepository.articlesWithId(articleId)) match {
+      val drafts = dbUtility.readOnly(implicit session => draftRepository.articlesWithId(articleId)) match {
         case Failure(ex)   => boundary.break(Failure(ex))
         case Success(list) => list
             .map(addUrlsOnEmbedResources)

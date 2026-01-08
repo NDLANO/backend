@@ -20,8 +20,8 @@ case class DBUtilityStub() extends DBUtility, MockitoSugar {
   private val readSession  = session.asInstanceOf[ReadableDbSession]
 
   override def rollbackOnFailure[T](f: WriteableDbSession => Try[T]): Try[T] = f(writeSession)
-  override def withSession[T](f: WriteableDbSession => T): T                 = f(writeSession)
-  override def tryWithSession[T](f: WriteableDbSession => Try[T]): Try[T]    = f(writeSession)
+  override def writeSession[T](f: WriteableDbSession => T): T                = f(writeSession)
+  override def writeSession[T](f: WriteableDbSession => Try[T]): Try[T]      = f(writeSession)
   override def readOnly[T](f: ReadableDbSession => T): T                     = f(readSession)
-  override def tryReadOnly[T](f: ReadableDbSession => Try[T]): Try[T]        = f(readSession)
+  override def readOnly[T](f: ReadableDbSession => Try[T]): Try[T]           = f(readSession)
 }

@@ -256,7 +256,7 @@ class ConverterService(using
   }
 
   private def getLinkToOldNdla(id: Long): Option[String] = dbUtility
-    .tryReadOnly { session =>
+    .readOnly { session =>
       draftRepository.getExternalIdsFromId(id)(using session)
     }
     .toOption
