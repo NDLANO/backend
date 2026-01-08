@@ -8,10 +8,10 @@
 
 package no.ndla.myndlaapi.repository
 
-import cats.implicits.toTraverseOps
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax.*
 import no.ndla.common.model.domain.config.{ConfigKey, ConfigMeta}
+import no.ndla.database.TrySql.tsql
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 import sqls.count
@@ -62,13 +62,11 @@ class ConfigRepository extends StrictLogging {
   }
 
   def getConfigWithKey(key: ConfigKey)(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[ConfigMeta]] =
-    Try {
-      val keyName = key.entryName
-      val c       = ConfigMeta.syntax("c")
-      sql"""
+    val keyName = key.entryName
+    val c       = ConfigMeta.syntax("c")
+    tsql"""
            select ${c.result.*}
            from ${ConfigMeta.as(c)}
            where configkey = $keyName;
-        """.map(ConfigMeta.fromResultSet(c)).single().sequence
-    }.flatten
+        """.map(ConfigMeta.fromResultSet(c)).runSingleFlat()
 }

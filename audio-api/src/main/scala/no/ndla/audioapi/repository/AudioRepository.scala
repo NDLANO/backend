@@ -15,12 +15,17 @@ import no.ndla.common.CirceUtil
 import no.ndla.network.tapir.ErrorHelpers
 import org.postgresql.util.PGobject
 import scalikejdbc.*
+import no.ndla.database.TrySql.tsql
 
 import scala.util.{Failure, Success, Try}
 
 class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging with Repository[AudioMetaInformation] {
   def audioCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
-    sql"select count(*) from ${AudioMetaInformation.table}".map(rs => rs.long("count")).single().getOrElse(0)
+    tsql"select count(*) from ${AudioMetaInformation.table}"
+      .map(rs => rs.long("count"))
+      .runSingle()
+      .map(_.getOrElse(0L))
+      .get
 
   def withId(id: Long): Option[AudioMetaInformation] = {
     DB readOnly { implicit session =>
@@ -48,8 +53,9 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
     dataObject.setValue(CirceUtil.toJsonString(audioMetaInformation))
 
     val startRevision = 1
-    val audioId       =
-      sql"insert into audiodata (document, revision) values ($dataObject, $startRevision)".updateAndReturnGeneratedKey()
+    val audioId       = tsql"insert into audiodata (document, revision) values ($dataObject, $startRevision)"
+      .updateAndReturnGeneratedKey()
+      .get
     audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision))
   }
 
@@ -60,10 +66,9 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
 
     DB localTx { implicit session =>
       val startRevision = 1
-      val audioId       =
-        sql"insert into audiodata(external_id, document, revision) values($externalId, $dataObject, $startRevision)"
-          .updateAndReturnGeneratedKey()
-      Success(audioMetaInformation.copy(id = Some(audioId), revision = Some(startRevision)))
+      tsql"insert into audiodata(external_id, document, revision) values($externalId, $dataObject, $startRevision)"
+        .updateAndReturnGeneratedKey()
+        .map(id => audioMetaInformation.copy(id = Some(id), revision = Some(startRevision)))
     }
   }
 
@@ -75,58 +80,47 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
     DB localTx { implicit session =>
       val newRevision = audioMetaInformation.revision.getOrElse(0) + 1
 
-      val count = sql"""
+      tsql"""
              update audiodata
              set document = $dataObject, revision = $newRevision
              where id = $id and revision = ${audioMetaInformation.revision}
-             """.update()
-      if (count != 1) {
-        val message = s"Found revision mismatch when attempting to update audio with id $id"
-        logger.info(message)
-        Failure(OptimisticLockException.default)
-      } else {
-        logger.info(s"Updated audio with id $id")
-        Success(audioMetaInformation.copy(id = Some(id), revision = Some(newRevision)))
-      }
+             """
+        .update()
+        .flatMap {
+          case count if count != 1 =>
+            val message = s"Found revision mismatch when attempting to update audio with id $id"
+            logger.info(message)
+            Failure(OptimisticLockException.default)
+          case _ =>
+            logger.info(s"Updated audio with id $id")
+            Success(audioMetaInformation.copy(id = Some(id), revision = Some(newRevision)))
+        }
     }
   }
 
   def setSeriesId(audioMetaId: Long, seriesId: Option[Long])(implicit session: DBSession = AutoSession): Try[Long] = {
-    Try(sql"""
+    tsql"""
            update ${AudioMetaInformation.table}
            set series_id = $seriesId
            where id = $audioMetaId
-           """.update()).map(_ => audioMetaId)
+           """.update().map(_ => audioMetaId)
   }
 
   def numElements: Int = {
     DB readOnly { implicit session =>
-      sql"select count(*) from audiodata"
-        .map(rs => {
-          rs.int("count")
-        })
-        .single() match {
-        case Some(count) => count
-        case None        => 0
-      }
+      tsql"select count(*) from audiodata".map(rs => rs.int("count")).runSingle().map(_.getOrElse(0)).get
     }
   }
 
   override def minMaxId(implicit session: DBSession = ReadOnlyAutoSession): Try[(Long, Long)] = {
-    Try(
-      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from audiodata"
-        .map(rs => {
-          (rs.long("mi"), rs.long("ma"))
-        })
-        .single() match {
-        case Some(minmax) => minmax
-        case None         => (0L, 0L)
-      }
-    )
+    tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from audiodata"
+      .map(rs => (rs.long("mi"), rs.long("ma")))
+      .runSingle()
+      .map(_.getOrElse((0L, 0L)))
   }
 
   def deleteAudio(audioId: Long)(implicit session: DBSession = AutoSession): Int = {
-    sql"delete from ${AudioMetaInformation.table} where id=$audioId".update()
+    tsql"delete from ${AudioMetaInformation.table} where id=$audioId".update().get
   }
 
   override def documentsWithIdBetween(min: Long, max: Long): Try[List[AudioMetaInformation]] = {
@@ -138,16 +132,20 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
   )(implicit session: DBSession): Option[AudioMetaInformation] = {
     val au = AudioMetaInformation.syntax("au")
     val se = Series.syntax("se")
-    sql"""
+    tsql"""
            select ${au.result.*}, ${se.result.*}
            from ${AudioMetaInformation.as(au)}
            left join ${Series.as(se)} on ${au.seriesId} = ${se.id}
            where $whereClause
          """
-      .one(AudioMetaInformation.fromResultSet(au))
-      .toOptionalOne(rs => Series.fromResultSet(se)(rs).toOption)
-      .map((audio, series) => audio.copy(series = series))
-      .single()
+      .map { rs =>
+        val audio  = AudioMetaInformation.fromResultSet(au)(rs)
+        val series = Series.fromResultSet(se)(rs).toOption
+        audio.copy(series = series)
+      }
+      .runList()
+      .get
+      .headOption
   }
 
   private def audioMetaInformationsWhere(
@@ -155,39 +153,40 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
   )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[AudioMetaInformation]] = {
     val au = AudioMetaInformation.syntax("au")
     val se = Series.syntax("se")
-    Try(
-      sql"""
+    tsql"""
            select ${au.result.*}, ${se.result.*}
            from ${AudioMetaInformation.as(au)}
            left join ${Series.as(se)} on ${au.seriesId} = ${se.id}
            where $whereClause
          """
-        .one(AudioMetaInformation.fromResultSet(au))
-        .toOptionalOne(rs => Series.fromResultSet(se)(rs).toOption)
-        .map((audio, series) => audio.copy(series = series))
-        .list()
-    )
+      .map { rs =>
+        val audio  = AudioMetaInformation.fromResultSet(au)(rs)
+        val series = Series.fromResultSet(se)(rs).toOption
+        audio.copy(series = series)
+      }
+      .runList()
   }
 
   def getRandomAudio()(implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {
     val au = AudioMetaInformation.syntax("au")
-    sql"select ${au.result.*} from ${AudioMetaInformation.as(au)} tablesample public.system_rows(1)"
+    tsql"select ${au.result.*} from ${AudioMetaInformation.as(au)} tablesample public.system_rows(1)"
       .map(AudioMetaInformation.fromResultSet(au))
-      .single()
+      .runSingle()
+      .get
   }
 
   def getByPage(pageSize: Int, offset: Int)(implicit
       session: DBSession = ReadOnlyAutoSession
   ): Seq[AudioMetaInformation] = {
     val au = AudioMetaInformation.syntax("au")
-    sql"""
+    tsql"""
            select ${au.result.*}
            from ${AudioMetaInformation.as(au)}
            where document is not null
            order by id
            offset $offset
            limit $pageSize
-      """.map(AudioMetaInformation.fromResultSet(au)).list()
+      """.map(AudioMetaInformation.fromResultSet(au)).runList().get
   }
 
 }

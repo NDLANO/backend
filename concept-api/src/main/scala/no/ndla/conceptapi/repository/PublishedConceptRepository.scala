@@ -16,6 +16,7 @@ import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.{DBConcept, PublishedConcept}
 import org.postgresql.util.PGobject
 import scalikejdbc.*
+import no.ndla.database.TrySql.tsql
 
 import scala.util.{Failure, Success, Try}
 
@@ -26,34 +27,30 @@ class PublishedConceptRepository extends StrictLogging with Repository[Concept] 
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(concept))
 
-    Try {
-      sql"""update ${PublishedConcept.table}
+    tsql"""update ${PublishedConcept.table}
               set
                 document=$dataObject,
                 revision=${concept.revision}
               where id=${concept.id}
-          """.update()
-    } match {
+          """.update() match {
       case Success(count) if count == 1 =>
         logger.info(s"Updated published concept ${concept.id}")
         Success(concept)
       case Success(_) =>
         logger.info(s"No published concept with id ${concept.id} exists, creating...")
-        Try {
-          sql"""
+        tsql"""
                   insert into ${PublishedConcept.table} (id, document, revision)
                   values (${concept.id}, $dataObject, ${concept.revision})
-              """.updateAndReturnGeneratedKey()
-        }.map(_ => concept)
+              """.updateAndReturnGeneratedKey().map(_ => concept)
       case Failure(ex) => Failure(ex)
     }
   }
 
   def delete(id: Long)(implicit session: DBSession = AutoSession): Try[?] = {
-    Try(sql"""
+    tsql"""
             delete from ${PublishedConcept.table}
             where id=$id
-         """.update()) match {
+         """.update() match {
       case Success(count) if count > 0 => Success(id)
       case Failure(ex)                 => Failure(ex)
       case _                           => Failure(NotFoundException("Could not find concept to delete from Published concepts table."))
@@ -63,7 +60,7 @@ class PublishedConceptRepository extends StrictLogging with Repository[Concept] 
   def withId(id: Long): Option[Concept] = conceptWhere(sqls"co.id=${id.toInt}")
 
   def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {
-    sql"""
+    tsql"""
            select distinct id, document#>'{tags}' as tags
            from ${PublishedConcept.table}
            where jsonb_array_length(document#>'{tags}') > 0
@@ -73,53 +70,57 @@ class PublishedConceptRepository extends StrictLogging with Repository[Concept] 
         val jsonStr = rs.string("tags")
         CirceUtil.unsafeParseAs[List[Tag]](jsonStr)
       })
-      .list()
+      .runList()
+      .get
   }
 
   private def conceptWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
     val co = PublishedConcept.syntax("co")
-    sql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
+    tsql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
       .map(DBConcept.fromResultSet(co))
-      .single()
+      .runSingle()
+      .get
   }
 
   def conceptCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
-    sql"select count(*) from ${PublishedConcept.table}".map(rs => rs.long("count")).single().getOrElse(0)
+    tsql"select count(*) from ${PublishedConcept.table}"
+      .map(rs => rs.long("count"))
+      .runSingle()
+      .map(_.getOrElse(0L))
+      .get
 
   override def documentsWithIdBetween(min: Long, max: Long): List[Concept] =
     conceptsWhere(sqls"co.id between $min and $max")
 
   override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
-    sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${PublishedConcept.table}"
-      .map(rs => {
-        (rs.long("mi"), rs.long("ma"))
-      })
-      .single() match {
-      case Some(minmax) => minmax
-      case None         => (0L, 0L)
-    }
+    tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${PublishedConcept.table}"
+      .map(rs => (rs.long("mi"), rs.long("ma")))
+      .runSingle()
+      .map(_.getOrElse((0L, 0L)))
+      .get
   }
 
   private def conceptsWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
     val co = PublishedConcept.syntax("co")
-    sql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
+    tsql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
       .map(DBConcept.fromResultSet(co))
-      .list()
+      .runList()
+      .get
   }
 
   def getByPage(pageSize: Int, offset: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Concept] = {
     val co = PublishedConcept.syntax("co")
-    sql"""
+    tsql"""
            select ${co.result.*}
            from ${PublishedConcept.as(co)}
            where document is not null
            order by ${co.id}
            offset $offset
            limit $pageSize
-      """.map(DBConcept.fromResultSet(co)).list()
+      """.map(DBConcept.fromResultSet(co)).runList().get
   }
 }

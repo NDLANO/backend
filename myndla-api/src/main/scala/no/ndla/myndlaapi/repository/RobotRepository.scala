@@ -8,10 +8,10 @@
 
 package no.ndla.myndlaapi.repository
 
-import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.errors.NotFoundException
 import no.ndla.database.DBUtility
+import no.ndla.database.TrySql.tsql
 import no.ndla.myndlaapi.uuidParameterFactory
 import no.ndla.myndlaapi.model.domain.RobotDefinition
 import no.ndla.network.model.FeideID
@@ -71,22 +71,22 @@ class RobotRepository(using dbUtility: DBUtility) extends StrictLogging {
 
   def getRobotsWithFeideId(feideId: FeideID)(implicit session: DBSession): Try[List[RobotDefinition]] = Try {
     val r = RobotDefinition.syntax("r")
-    sql"""
+    tsql"""
            select ${r.result.*}
            from ${RobotDefinition.as(r)}
            where feide_id = $feideId
            order by ${r.updated} desc
-         """.map(RobotDefinition.fromResultSet(r)).list().sequence
+         """.map(RobotDefinition.fromResultSet(r)).runListFlat()
   }.flatten
 
-  def getRobotWithId(robotId: UUID)(implicit session: DBSession): Try[Option[RobotDefinition]] = Try {
+  def getRobotWithId(robotId: UUID)(implicit session: DBSession): Try[Option[RobotDefinition]] = {
     val r = RobotDefinition.syntax("r")
-    sql"""
+    tsql"""
            select ${r.result.*}
            from ${RobotDefinition.as(r)}
            where id = $robotId
-         """.map(RobotDefinition.fromResultSet(r)).single().sequence
-  }.flatten
+         """.map(RobotDefinition.fromResultSet(r)).runSingleFlat()
+  }
 
   def deleteRobotDefinition(robotId: UUID)(implicit session: DBSession): Try[Unit] = {
     val result = Try {

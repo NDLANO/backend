@@ -18,6 +18,7 @@ import no.ndla.audioapi.model.api.OptimisticLockException
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.network.tapir.ErrorHelpers
+import no.ndla.database.TrySql.tsql
 
 import scala.util.{Failure, Success, Try}
 
@@ -38,12 +39,10 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
   }
 
   def deleteWithId(id: Long)(implicit session: DBSession = AutoSession): Try[Int] = {
-    Try {
-      sql"""
+    tsql"""
            delete from ${Series.table}
            where id=$id
            """.update()
-    }
   }
 
   def update(series: domain.Series)(implicit session: DBSession = AutoSession): Try[domain.Series] = {
@@ -53,21 +52,22 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
 
     val newRevision = series.revision + 1
 
-    Try(sql"""
+    tsql"""
             update ${Series.table}
             set document=$dataObject, revision=$newRevision
             where id=${series.id} and revision=${series.revision}
-           """.update()) match {
-      case Failure(ex)                  => Failure(ex)
-      case Success(count) if count != 1 =>
-        val message =
-          s"Found revision mismatch when attempting to update series with id '${series.id}' (rev: ${series.revision})"
-        logger.info(message)
-        Failure(OptimisticLockException.default)
-      case Success(_) =>
-        logger.info(s"Updated series with id ${series.id}")
-        Success(series.copy(revision = newRevision))
-    }
+           """
+      .update()
+      .flatMap {
+        case count if count != 1 =>
+          val message =
+            s"Found revision mismatch when attempting to update series with id '${series.id}' (rev: ${series.revision})"
+          logger.info(message)
+          Failure(OptimisticLockException.default)
+        case _ =>
+          logger.info(s"Updated series with id ${series.id}")
+          Success(series.copy(revision = newRevision))
+      }
   }
 
   def insert(newSeries: domain.SeriesWithoutId)(implicit session: DBSession = AutoSession): Try[domain.Series] = {
@@ -76,23 +76,17 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(newSeries))
 
-    Try(sql"""
+    tsql"""
            insert into ${Series.table}(document, revision)
            values ($dataObject, $startRevision)
-           """.updateAndReturnGeneratedKey()).map(id => Series.fromId(id, startRevision, newSeries))
+           """.updateAndReturnGeneratedKey().map(id => Series.fromId(id, startRevision, newSeries))
   }
 
   override def minMaxId(implicit session: DBSession = ReadOnlyAutoSession): Try[(Long, Long)] = {
-    Try(
-      sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Series.table}"
-        .map(rs => {
-          (rs.long("mi"), rs.long("ma"))
-        })
-        .single() match {
-        case Some(minmax) => minmax
-        case None         => (0L, 0L)
-      }
-    )
+    tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Series.table}"
+      .map(rs => (rs.long("mi"), rs.long("ma")))
+      .runSingle()
+      .map(_.getOrElse((0L, 0L)))
   }
 
   override def documentsWithIdBetween(min: Long, max: Long): Try[List[Series]] = {
@@ -104,11 +98,11 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
   )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Series]] = {
     val se = Series.syntax("se")
 
-    Try(sql"""
+    tsql"""
            select ${se.result.*}
            from ${Series.as(se)}
            where $whereClause
-           """.map(Series.fromResultSet(se.resultName)).single()).flatMap(_.sequence)
+           """.map(Series.fromResultSet(se.resultName)).runSingle().map(_.sequence).flatten
   }
 
   private def serieWhere(
@@ -117,20 +111,18 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
     val se = Series.syntax("se")
     val au = AudioMetaInformation.syntax("au")
 
-    Try(
-      sql"""
+    tsql"""
            select ${se.result.*}, ${au.result.*}
            from ${Series.as(se)}
            left join ${AudioMetaInformation.as(au)} on ${se.id} = ${au.seriesId}
            where $whereClause
            """
-        .one(Series.fromResultSet(se.resultName))
-        .toMany(AudioMetaInformation.fromResultSetOpt(au.resultName))
-        .map { (series, audios) =>
-          series.map(_.copy(episodes = Some(audios.sortBy(_.created)(using Ordering[NDLADate].reverse).toSeq)))
-        }
-        .single()
-    ).flatMap(_.sequence)
+      .one(Series.fromResultSet(se.resultName))
+      .toMany(AudioMetaInformation.fromResultSetOpt(au.resultName))
+      .map { (series, audios) =>
+        series.map(_.copy(episodes = Some(audios.sortBy(_.created)(using Ordering[NDLADate].reverse).toSeq)))
+      }
+      .runSingleFlat()
   }
 
   private def seriesWhere(
@@ -139,20 +131,18 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
     val se = Series.syntax("se")
     val au = AudioMetaInformation.syntax("au")
 
-    Try(
-      sql"""
+    tsql"""
            select ${se.result.*}, ${au.result.*}
            from ${Series.as(se)}
            left join ${AudioMetaInformation.as(au)} on ${se.id} = ${au.seriesId}
            where $whereClause
            """
-        .one(Series.fromResultSet(se.resultName))
-        .toMany(AudioMetaInformation.fromResultSetOpt(au.resultName))
-        .map { (series, audios) =>
-          series.map(_.copy(episodes = Some(audios.toSeq)))
-        }
-        .list()
-    ).flatMap(_.sequence)
+      .one(Series.fromResultSet(se.resultName))
+      .toMany(AudioMetaInformation.fromResultSetOpt(au.resultName))
+      .map { (series, audios) =>
+        series.map(_.copy(episodes = Some(audios.toSeq)))
+      }
+      .runListFlat()
   }
 
 }
