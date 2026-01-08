@@ -81,7 +81,7 @@ class DraftApiClientTest
   }
 
   private def setupArticles() = {
-    DBUtil.withSession { implicit session =>
+    DBUtil.writeSession { implicit session =>
       (
         1L to 10
       ).map(id => {

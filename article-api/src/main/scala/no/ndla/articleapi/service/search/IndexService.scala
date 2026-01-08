@@ -50,7 +50,7 @@ abstract class IndexService(using
     }
   }
 
-  def sendToElastic(indexName: String): Try[BulkIndexResult] = dBUtility.tryReadOnly { implicit session =>
+  def sendToElastic(indexName: String): Try[BulkIndexResult] = dBUtility.readOnly { implicit session =>
     getRanges
       .flatMap(ranges => {
         ranges.traverse { case (start, end) =>

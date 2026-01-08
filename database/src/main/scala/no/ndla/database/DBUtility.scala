@@ -35,9 +35,9 @@ class DBUtility extends StrictLogging {
     }
   }
 
-  def withSession[T](func: WriteableDbSession => T): T = tryWithSession(s => Success(func(s))).get
+  def writeSession[T](func: WriteableDbSession => T): T = writeSession(s => Success(func(s))).get
 
-  def tryWithSession[T](func: WriteableDbSession => Try[T]): Try[T] = Try
+  def writeSession[T](func: WriteableDbSession => Try[T]): Try[T] = Try
     .throwIfInterrupted {
       DB.localTx { session =>
         val writeableSession = WriteableDbSession(session)
@@ -46,9 +46,9 @@ class DBUtility extends StrictLogging {
     }
     .flatten
 
-  def readOnly[T](func: ReadableDbSession => T): T = tryReadOnly(s => Success(func(s))).get
+  def readOnly[T](func: ReadableDbSession => T): T = readOnly(s => Success(func(s))).get
 
-  def tryReadOnly[T](func: ReadableDbSession => Try[T]): Try[T] = Try
+  def readOnly[T](func: ReadableDbSession => Try[T]): Try[T] = Try
     .throwIfInterrupted {
       DB.readOnly { session =>
         val readableSession = ReadableDbSession(session)

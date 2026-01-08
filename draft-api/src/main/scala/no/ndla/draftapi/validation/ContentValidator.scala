@@ -143,7 +143,7 @@ class ContentValidator(using
   }
 
   def validateArticleApiArticle(id: Long, importValidate: Boolean, user: TokenUser): Try[ContentIdDTO] = dBUtility
-    .tryReadOnly { implicit session =>
+    .readOnly { implicit session =>
       draftRepository
         .withId(id)
         .flatMap {
@@ -160,7 +160,7 @@ class ContentValidator(using
       updatedArticle: UpdatedArticleDTO,
       importValidate: Boolean,
       user: TokenUser,
-  ): Try[ContentIdDTO] = dBUtility.tryReadOnly { implicit session =>
+  ): Try[ContentIdDTO] = dBUtility.readOnly { implicit session =>
     draftRepository
       .withId(id)
       .flatMap {
