@@ -17,14 +17,14 @@ import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.model.api.FolderDTO
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
-import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, spy, when, withSettings}
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
-import scalikejdbc.DBSession
+import scalikejdbc.AutoSession
 import sttp.client3.quick.*
 
 import java.util.UUID
@@ -95,15 +95,8 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     reset(myndlaApi.componentRegistry.folderRepository)
     reset(myndlaApi.componentRegistry.userRepository)
 
-    implicit val session: DBSession = myndlaApi.componentRegistry.folderRepository.getSession(false)
-
-    myndlaApi.componentRegistry.folderRepository.deleteAllUserResources("feide1")
-    myndlaApi.componentRegistry.folderRepository.deleteAllUserResources("feide2")
-    myndlaApi.componentRegistry.folderRepository.deleteAllUserFolders("feide1")
-    myndlaApi.componentRegistry.folderRepository.deleteAllUserFolders("feide2")
-
-    userRepository.reserveFeideIdIfNotExists("feide1")
-    userRepository.reserveFeideIdIfNotExists("feide2")
+    implicit val session: AutoSession.type = AutoSession
+    myndlaApi.componentRegistry.userRepository.deleteAllUsers
   }
 
   override def afterAll(): Unit = {
@@ -308,8 +301,14 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   test("Saving and sorting shared folders") {
-    val feideId1 = "feide1"
-    val feideId2 = "feide2"
+    implicit val session: AutoSession.type = AutoSession
+    val feideId1                           = "feide1"
+    val feideId2                           = "feide2"
+    myndlaApi.componentRegistry.userRepository.reserveFeideIdIfNotExists(feideId1)
+    myndlaApi.componentRegistry.userRepository.insertUser(feideId1, TestData.userDocument)
+    myndlaApi.componentRegistry.userRepository.reserveFeideIdIfNotExists(feideId2)
+    myndlaApi.componentRegistry.userRepository.insertUser(feideId2, TestData.userDocument)
+
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId2)))).thenReturn(Success(feideId2))
     when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
@@ -345,7 +344,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     foldersForU1Sorted.folders(3).id should be(f1.id)
     foldersForU1Sorted.folders(3).rank should be(4)
 
-    createFolder(feideId2, "folder5", None) // to ensure feideId2 exists in the system
+    // createFolder(feideId2, "folder5", None) // to ensure feideId2 exists in the system
     val foldersForU2 = getFolders(feideId2, false)
     foldersForU2.sharedFolders.length should be(0)
 
