@@ -25,7 +25,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, spy, times, verify, when, withSettings}
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
-import scalikejdbc.DBSession
+import scalikejdbc.AutoSession
 import sttp.client3.quick.*
 
 import java.util.UUID
@@ -88,23 +88,19 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       myndlaApi.run(Array.empty)
     }: Unit
     blockUntilHealthy(s"$myndlaApiBaseUrl/health/readiness")
-
-    implicit val session: DBSession = myndlaApi.componentRegistry.userRepository.getSession(false)
-    myndlaApi.componentRegistry.userRepository.reserveFeideIdIfNotExists(feideId)
-    myndlaApi.componentRegistry.userRepository.insertUser(feideId, TestData.userDocument)
-    myndlaApi.componentRegistry.userRepository.reserveFeideIdIfNotExists(destinationFeideId)
-    myndlaApi.componentRegistry.userRepository.insertUser(destinationFeideId, TestData.userDocument)
   }
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(myndlaApi.componentRegistry.folderRepository)
     reset(myndlaApi.componentRegistry.userRepository)
+    implicit val session: AutoSession.type = AutoSession
+    myndlaApi.componentRegistry.userRepository.deleteAllUsers.get
 
-    myndlaApi.componentRegistry.folderRepository.deleteAllUserResources(feideId)
-    myndlaApi.componentRegistry.folderRepository.deleteAllUserResources(destinationFeideId)
-    myndlaApi.componentRegistry.folderRepository.deleteAllUserFolders(feideId)
-    myndlaApi.componentRegistry.folderRepository.deleteAllUserFolders(destinationFeideId)
+    myndlaApi.componentRegistry.userRepository.reserveFeideIdIfNotExists(feideId).get
+    myndlaApi.componentRegistry.userRepository.insertUser(feideId, TestData.userDocument).get
+    myndlaApi.componentRegistry.userRepository.reserveFeideIdIfNotExists(destinationFeideId).get
+    myndlaApi.componentRegistry.userRepository.insertUser(destinationFeideId, TestData.userDocument).get
   }
 
   override def afterAll(): Unit = {
@@ -544,12 +540,13 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
   }
 
   test("that sharing a folder with subfolders will update shared field to current date for each subfolder") {
+    implicit val session: AutoSession.type = AutoSession
+
     val created = NDLADate.of(2023, 1, 1, 1, 59)
     val shared  = NDLADate.of(2024, 1, 1, 1, 59)
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(testClock.now()).thenReturn(created, created, created, shared)
     val folderRepository = myndlaApi.componentRegistry.folderRepository
-    val session          = folderRepository.getSession(true)
 
     val parent =
       NewFolderData(parentId = None, name = "parent", status = FolderStatus.PRIVATE, rank = 1, description = None)
@@ -626,7 +623,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
 
     val results            = CirceUtil.unsafeParseAs[List[UUID]](response.body)
     val resultParentId     = results.find(uuid => uuid == parentId).get
-    val domainParentFolder = folderRepository.getFolderAndChildrenSubfolders(resultParentId)(using session).get.get
+    val domainParentFolder = folderRepository.getFolderAndChildrenSubfolders(resultParentId).get.get
 
     domainParentFolder should be(expectedParent)
   }
