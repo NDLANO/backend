@@ -16,7 +16,7 @@ import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.database.DBUtility
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 import no.ndla.myndlaapi.{maybeUuidBinder, uuidBinder, uuidParameterFactory}
 import no.ndla.myndlaapi.model.domain.{
   BulkInserts,

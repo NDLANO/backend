@@ -15,7 +15,7 @@ import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.model.domain.*
 import org.postgresql.util.PGobject
 import scalikejdbc.*
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 

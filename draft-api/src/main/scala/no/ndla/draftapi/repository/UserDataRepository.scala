@@ -10,7 +10,7 @@ package no.ndla.draftapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 import no.ndla.draftapi.model.domain.UserData
 import org.postgresql.util.PGobject
 import scalikejdbc.*

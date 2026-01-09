@@ -49,9 +49,8 @@ class ReadService(using
     props: Props,
     frontpageApiClient: FrontpageApiClient,
 ) extends StrictLogging {
-  def getInternalIdByExternalId(externalId: String): Try[api.ArticleIdV2DTO] = dBUtility.tryReadOnly {
-    implicit session =>
-      articleRepository.getIdFromExternalId(externalId).map(api.ArticleIdV2DTO.apply)
+  def getInternalIdByExternalId(externalId: String): Try[api.ArticleIdV2DTO] = dBUtility.readOnly { implicit session =>
+    articleRepository.getIdFromExternalId(externalId).map(api.ArticleIdV2DTO.apply)
   }
 
   def withIdV2(
@@ -60,7 +59,7 @@ class ReadService(using
       fallback: Boolean,
       revision: Option[Int],
       feideAccessToken: Option[String],
-  ): Try[Cachable[api.ArticleV2DTO]] = dBUtility.tryReadOnly { implicit session =>
+  ): Try[Cachable[api.ArticleV2DTO]] = dBUtility.readOnly { implicit session =>
     val articleWithExternalIds = for {
       article <- revision match {
         case Some(rev) => articleRepository.withIdAndRevision(id, rev)
@@ -99,7 +98,7 @@ class ReadService(using
     }
 
   def getArticleBySlug(slug: String, language: String, fallback: Boolean): Try[Cachable[api.ArticleV2DTO]] = dBUtility
-    .tryReadOnly { implicit session =>
+    .readOnly { implicit session =>
       for {
         article         <- getDomainArticleBySlug(slug)
         articleId       <- article.id.toTry(MissingIdException("Article ID was missing"))
@@ -122,7 +121,7 @@ class ReadService(using
   }
 
   def getAllTags(input: String, pageSize: Int, offset: Int, language: String): Try[api.TagsSearchResultDTO] = dBUtility
-    .tryReadOnly { implicit session =>
+    .readOnly { implicit session =>
       articleRepository
         .getTags(input, pageSize, (offset - 1) * pageSize, language)
         .map { (tags, tagsCount) =>
@@ -131,7 +130,7 @@ class ReadService(using
     }
 
   def getArticlesByPage(pageNo: Int, pageSize: Int, lang: String, fallback: Boolean): Try[api.ArticleDumpDTO] =
-    dBUtility.tryReadOnly { implicit session =>
+    dBUtility.readOnly { implicit session =>
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
 
       for {
@@ -151,7 +150,7 @@ class ReadService(using
     }
 
   def getArticleDomainDump(pageNo: Int, pageSize: Int): Try[api.ArticleDomainDumpDTO] =
-    dBUtility.tryReadOnly { implicit session =>
+    dBUtility.readOnly { implicit session =>
       val (safePageNo, safePageSize) = (max(pageNo, 1), max(pageSize, 0))
       for {
         articleCount   <- articleRepository.articleCount
@@ -201,7 +200,7 @@ class ReadService(using
       }
   }
 
-  def getArticleIdsByExternalId(externalId: String): Try[Option[api.ArticleIdsDTO]] = dBUtility.tryReadOnly {
+  def getArticleIdsByExternalId(externalId: String): Try[Option[api.ArticleIdsDTO]] = dBUtility.readOnly {
     implicit session =>
       articleRepository
         .getArticleIdsFromExternalId(externalId)
@@ -296,7 +295,7 @@ class ReadService(using
       page: Int,
       pageSize: Int,
       feideAccessToken: Option[String],
-  ): Try[Seq[api.ArticleV2DTO]] = dBUtility.tryReadOnly { implicit session =>
+  ): Try[Seq[api.ArticleV2DTO]] = dBUtility.readOnly { implicit session =>
     val offset = (page - 1) * pageSize
 
     for {

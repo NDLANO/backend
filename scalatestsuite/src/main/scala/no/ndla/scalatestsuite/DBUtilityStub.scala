@@ -8,18 +8,20 @@
 
 package no.ndla.scalatestsuite
 
-import no.ndla.database.DBUtility
+import no.ndla.database.{DBUtility, ReadableDbSession, WriteableDbSession}
 import org.scalatestplus.mockito.MockitoSugar
 import scalikejdbc.DBSession
 
 import scala.util.Try
 
 case class DBUtilityStub() extends DBUtility, MockitoSugar {
-  private val session = mock[DBSession]
+  private val session      = mock[DBSession]
+  private val writeSession = session.asInstanceOf[WriteableDbSession]
+  private val readSession  = session.asInstanceOf[ReadableDbSession]
 
-  override def rollbackOnFailure[T](f: DBSession => Try[T]): Try[T] = f(session)
-  override def withSession[T](f: DBSession => T): T                 = f(session)
-  override def tryWithSession[T](f: DBSession => Try[T]): Try[T]    = f(session)
-  override def readOnly[T](f: DBSession => T): T                    = f(session)
-  override def tryReadOnly[T](f: DBSession => Try[T]): Try[T]       = f(session)
+  override def rollbackOnFailure[T](f: WriteableDbSession => Try[T]): Try[T] = f(writeSession)
+  override def writeSession[T](f: WriteableDbSession => T): T                = f(writeSession)
+  override def writeSession[T](f: WriteableDbSession => Try[T]): Try[T]      = f(writeSession)
+  override def readOnly[T](f: ReadableDbSession => T): T                     = f(readSession)
+  override def readOnly[T](f: ReadableDbSession => Try[T]): Try[T]           = f(readSession)
 }
