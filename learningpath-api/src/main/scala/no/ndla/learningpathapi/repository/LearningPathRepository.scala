@@ -11,7 +11,13 @@ package no.ndla.learningpathapi.repository
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.{Author, Tag}
-import no.ndla.common.model.domain.learningpath.{LearningPath, LearningPathStatus, LearningStep, LearningpathCopyright, StepStatus}
+import no.ndla.common.model.domain.learningpath.{
+  LearningPath,
+  LearningPathStatus,
+  LearningStep,
+  LearningpathCopyright,
+  StepStatus,
+}
 import no.ndla.database.TrySql.tsql
 import no.ndla.learningpathapi.model.domain.*
 import org.postgresql.util.PGobject
@@ -263,13 +269,7 @@ class LearningPathRepository extends StrictLogging {
                from ${DBLearningPath.as(lp)}
                left join ${DBLearningStep.as(ls)} on ${lp.id} = ${ls.learningPathId}
                where lp.document->>'status' = $status
-               and lp.id between $min and $max"""
-      .one(DBLearningPath.fromResultSet(lp.resultName))
-      .toMany(DBLearningStep.opt(ls.resultName))
-      .map { (learningpath, learningsteps) =>
-        learningpath.copy(learningsteps = Some(learningsteps.toSeq))
-      }
-      .list()
+               and lp.id between $min and $max""".map(DBLearningPath.fromResultSet(lp.resultName)).list()
   }
 
   def minMaxId(implicit session: DBSession = ReadOnlyAutoSession): (Long, Long) = {
