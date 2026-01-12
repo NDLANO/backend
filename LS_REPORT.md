@@ -5,8 +5,8 @@
 - Updated write paths to rewrite the full learningpath document and increment path revision on step changes.
 - Adjusted tests and fixtures to the new embedded model, removing step-table expectations.
 - Kept external API behavior by indexing/serving only active steps while preserving deleted steps in the stored document.
-- Added test JVM args for Mockito inline on JDK 21 and made integration suites skip when Docker is unavailable.
-- Added test-time fallbacks to skip Docker/Elasticsearch and port-binding tests in restricted environments.
+- Added test JVM args for Mockito inline on JDK 21.
+- Reverted guarded test behavior so Docker/port-bound tests run normally.
 
 ## Code changes
 - `common/src/main/scala/no/ndla/common/model/domain/learningpath/LearningPath.scala`
@@ -32,16 +32,9 @@
 - `learningpath-api/src/test/resources/mockito-extensions/org.mockito.plugins.MockMaker`
   - Forced Mockito to use subclass mock maker to avoid JVM attach failures.
 - `scalatestsuite/src/main/scala/no/ndla/scalatestsuite/DatabaseIntegrationSuite.scala`
-  - Guarded Postgres container startup and skip integration suites when Docker is unavailable.
-  - Filled in `getHost` for mock container when skipping spawn.
+  - Removed environment-based skip guard to restore normal container behavior.
 - `testbase/src/main/scala/no/ndla/testbase/UnitTestSuiteBase.scala`
-  - Skip tests that require port binding when sockets cannot be opened.
-- `learningpath-api/src/test/scala/no/ndla/learningpathapi/repository/LearningPathRepositoryIntegrationTest.scala`
-  - Skip when Postgres container is unavailable.
-- `learningpath-api/src/test/scala/no/ndla/learningpathapi/e2e/LearningPathAndStepCreationTests.scala`
-  - Skip when Postgres/Elasticsearch containers are unavailable.
-- `learningpath-api/src/test/scala/no/ndla/learningpathapi/service/search/SearchServiceTest.scala`
-  - Skip when Elasticsearch is unavailable.
+  - Removed port-allocation skip guard to restore normal test behavior.
 
 ## Test updates
 - Updated learningpath/learningstep fixtures to use `Seq` instead of `Option` for `learningsteps`.

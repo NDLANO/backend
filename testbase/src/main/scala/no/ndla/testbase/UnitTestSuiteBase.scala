@@ -46,9 +46,7 @@ trait UnitTestSuiteBase
       closeQuietly(socket)
       return port
     } catch {
-      case e: IOException =>
-        System.err.println(("Failed to open socket", e))
-        cancel("Could not open a local server socket to allocate a test port.")
+      case e: IOException => System.err.println(("Failed to open socket", e))
     } finally {
       if (socket != null) {
         closeQuietly(socket)
