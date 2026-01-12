@@ -64,10 +64,7 @@ class LearningPathRepository extends StrictLogging {
   }
 
   def learningStepsFor(learningPathId: Long)(implicit session: DBSession = ReadOnlyAutoSession): Seq[LearningStep] = {
-    val ls = DBLearningStep.syntax("ls")
-    sql"select ${ls.result.*} from ${DBLearningStep.as(ls)} where ${ls.learningPathId} = $learningPathId"
-      .map(DBLearningStep.fromResultSet(ls.resultName))
-      .list()
+    withId(learningPathId).map(_.learningsteps).getOrElse(Seq.empty)
   }
 
   def learningStepWithId(learningPathId: Long, learningStepId: Long)(implicit
@@ -298,29 +295,27 @@ class LearningPathRepository extends StrictLogging {
   def pageWithIds(ids: Seq[Long], pageSize: Int, offset: Int)(implicit
       session: DBSession = ReadOnlyAutoSession
   ): List[LearningPath] = {
-    val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
-    val lps      = SubQuery.syntax("lps").include(lp)
+    val lp  = DBLearningPath.syntax("lp")
+    val lps = SubQuery.syntax("lps").include(lp)
     sql"""
-            select ${lps.resultAll}, ${ls.resultAll} from (select ${lp.resultAll}
-                                                           from ${DBLearningPath.as(lp)}
-                                                           where ${lp.c("id")} in ($ids)
-                                                           limit $pageSize
-                                                           offset $offset) lps
-            left join ${DBLearningStep.as(ls)} on ${lps(lp).id} = ${ls.learningPathId}
+            select ${lps.resultAll} from (select ${lp.resultAll}
+                                          from ${DBLearningPath.as(lp)}
+                                          where ${lp.c("id")} in ($ids)
+                                          limit $pageSize
+                                          offset $offset) lps
       """.map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).list()
   }
 
   def getAllLearningPathsByPage(pageSize: Int, offset: Int)(implicit
       session: DBSession = ReadOnlyAutoSession
   ): List[LearningPath] = {
-    val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
-    val lps      = SubQuery.syntax("lps").include(lp)
+    val lp  = DBLearningPath.syntax("lp")
+    val lps = SubQuery.syntax("lps").include(lp)
     sql"""
-            select ${lps.resultAll}, ${ls.resultAll} from (select ${lp.resultAll}, ${lp.id} as row_id
-                                                           from ${DBLearningPath.as(lp)}
-                                                           limit $pageSize
-                                                           offset $offset) lps
-            left join ${DBLearningStep.as(ls)} on ${lps(lp).id} = ${ls.learningPathId}
+            select ${lps.resultAll} from (select ${lp.resultAll}, ${lp.id} as row_id
+                                          from ${DBLearningPath.as(lp)}
+                                          limit $pageSize
+                                          offset $offset) lps
             order by row_id
       """.map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).list()
   }
@@ -358,15 +353,14 @@ class LearningPathRepository extends StrictLogging {
   def getPublishedLearningPathByPage(pageSize: Int, offset: Int)(implicit
       session: DBSession = ReadOnlyAutoSession
   ): List[LearningPath] = {
-    val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
-    val lps      = SubQuery.syntax("lps").include(lp)
+    val lp  = DBLearningPath.syntax("lp")
+    val lps = SubQuery.syntax("lps").include(lp)
     sql"""
-            select ${lps.resultAll}, ${ls.resultAll} from (select ${lp.resultAll}, ${lp.id} as row_id
-                                                           from ${DBLearningPath.as(lp)}
-                                                           where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}
-                                                           limit $pageSize
-                                                           offset $offset) lps
-            left join ${DBLearningStep.as(ls)} on ${lps(lp).id} = ${ls.learningPathId}
+            select ${lps.resultAll} from (select ${lp.resultAll}, ${lp.id} as row_id
+                                          from ${DBLearningPath.as(lp)}
+                                          where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}
+                                          limit $pageSize
+                                          offset $offset) lps
             order by row_id
       """.map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).list()
   }
