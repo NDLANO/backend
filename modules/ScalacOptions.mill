@@ -56,6 +56,10 @@ trait ScalacOptions extends ScalaModule {
   }
 
   def testJavaOptions: T[Seq[String]] = Task {
-    Seq[NDLAScalaOption]("-XX:+EnableDynamicAgentLoading", "-Xshare:off").filterEnabled(scalaVersion())
+    Seq[NDLAScalaOption](
+      "-XX:+EnableDynamicAgentLoading",
+      "-Djdk.attach.allowAttachSelf=true",
+      "-Xshare:off",
+    ).filterEnabled(scalaVersion())
   }
 }

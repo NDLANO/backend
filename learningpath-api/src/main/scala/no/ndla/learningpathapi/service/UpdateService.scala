@@ -262,8 +262,11 @@ class UpdateService(using
             case Failure(ex)      => Failure(ex)
             case Success(newStep) =>
               val (insertedStep, updatedPath) = learningPathRepository.inTransaction { implicit session =>
-                val insertedStep =
-                  newStep.copy(id = Some(learningPathRepository.nextLearningStepId), learningPathId = learningPath.id)
+                val insertedStep = newStep.copy(
+                  id = Some(learningPathRepository.nextLearningStepId),
+                  revision = newStep.revision.orElse(Some(1)),
+                  learningPathId = learningPath.id,
+                )
                 val toUpdate     = converterService.insertLearningStep(learningPath, insertedStep)
                 val updatedPath  = learningPathRepository.update(toUpdate)
 
@@ -473,7 +476,7 @@ class UpdateService(using
   }
 
   private def withIdRaw(learningPathId: Long, includeDeleted: Boolean = false): Try[LearningPath] = {
-    val lpOpt = learningPathRepository.withIdRaw(learningPathId, includeDeleted)
+    val lpOpt = Option(learningPathRepository.withIdRaw(learningPathId, includeDeleted)).flatten
     lpOpt match {
       case Some(learningPath) => Success(learningPath)
       case None               => Failure(NotFoundException(s"Could not find learningpath with id '$learningPathId'."))

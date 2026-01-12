@@ -35,7 +35,9 @@ class LearningPathAndStepCreationTests
     with TestEnvironment {
 
   val learningpathApiPort: Int                             = findFreePort
-  val pgc: PostgreSQLContainer                             = postgresContainer.get
+  val pgc: PostgreSQLContainer = postgresContainer.getOrElse(
+    cancel("Postgres container unavailable; skipping integration suite.")
+  )
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int       = learningpathApiPort
     override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
@@ -45,7 +47,8 @@ class LearningPathAndStepCreationTests
     override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
     override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", "testschema")
     override def disableWarmup: Boolean     = true
-    override def SearchServer: String       = elasticSearchHost.get
+    override def SearchServer: String =
+      elasticSearchHost.getOrElse(cancel("Elasticsearch container unavailable; skipping integration suite."))
   }
 
   val someDate: NDLADate = NDLADate.of(2017, 1, 1, 1, 59)

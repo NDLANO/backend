@@ -39,7 +39,9 @@ import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   override implicit lazy val searchLanguage: SearchLanguage                          = new SearchLanguage
-  override implicit lazy val e4sClient: NdlaE4sClient                                = Elastic4sClientFactory.getClient(elasticSearchHost.get)
+  override implicit lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient(
+    elasticSearchHost.getOrElse(cancel("Elasticsearch container unavailable; skipping integration suite."))
+  )
   override implicit lazy val searchConverterService: SearchConverterServiceComponent =
     new SearchConverterServiceComponent
   override implicit lazy val searchIndexService: SearchIndexService = new SearchIndexService {

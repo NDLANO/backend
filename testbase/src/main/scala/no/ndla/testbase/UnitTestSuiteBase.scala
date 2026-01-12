@@ -44,9 +44,11 @@ trait UnitTestSuiteBase
       socket.setReuseAddress(true)
       val port = socket.getLocalPort
       closeQuietly(socket)
-      return port;
+      return port
     } catch {
-      case e: IOException => System.err.println(("Failed to open socket", e));
+      case e: IOException =>
+        System.err.println(("Failed to open socket", e))
+        cancel("Could not open a local server socket to allocate a test port.")
     } finally {
       if (socket != null) {
         closeQuietly(socket)

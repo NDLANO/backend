@@ -300,28 +300,26 @@ class LearningPathRepository extends StrictLogging {
   def pageWithIds(ids: Seq[Long], pageSize: Int, offset: Int)(implicit
       session: DBSession = ReadOnlyAutoSession
   ): List[LearningPath] = {
-    val lp  = DBLearningPath.syntax("lp")
-    val lps = SubQuery.syntax("lps").include(lp)
+    val lp = DBLearningPath.syntax("lp")
     sql"""
-            select ${lps.resultAll} from (select ${lp.resultAll}
-                                          from ${DBLearningPath.as(lp)}
-                                          where ${lp.c("id")} in ($ids)
-                                          limit $pageSize
-                                          offset $offset) lps
+            select ${lp.result.*}
+            from ${DBLearningPath.as(lp)}
+            where ${lp.c("id")} in ($ids)
+            limit $pageSize
+            offset $offset
       """.map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).list()
   }
 
   def getAllLearningPathsByPage(pageSize: Int, offset: Int)(implicit
       session: DBSession = ReadOnlyAutoSession
   ): List[LearningPath] = {
-    val lp  = DBLearningPath.syntax("lp")
-    val lps = SubQuery.syntax("lps").include(lp)
+    val lp = DBLearningPath.syntax("lp")
     sql"""
-            select ${lps.resultAll} from (select ${lp.resultAll}, ${lp.id} as row_id
-                                          from ${DBLearningPath.as(lp)}
-                                          limit $pageSize
-                                          offset $offset) lps
-            order by row_id
+            select ${lp.result.*}
+            from ${DBLearningPath.as(lp)}
+            order by ${lp.id}
+            limit $pageSize
+            offset $offset
       """.map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).list()
   }
 
@@ -357,15 +355,14 @@ class LearningPathRepository extends StrictLogging {
   def getPublishedLearningPathByPage(pageSize: Int, offset: Int)(implicit
       session: DBSession = ReadOnlyAutoSession
   ): List[LearningPath] = {
-    val lp  = DBLearningPath.syntax("lp")
-    val lps = SubQuery.syntax("lps").include(lp)
+    val lp = DBLearningPath.syntax("lp")
     sql"""
-            select ${lps.resultAll} from (select ${lp.resultAll}, ${lp.id} as row_id
-                                          from ${DBLearningPath.as(lp)}
-                                          where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}
-                                          limit $pageSize
-                                          offset $offset) lps
-            order by row_id
+            select ${lp.result.*}
+            from ${DBLearningPath.as(lp)}
+            where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}
+            order by ${lp.id}
+            limit $pageSize
+            offset $offset
       """.map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).list()
   }
 

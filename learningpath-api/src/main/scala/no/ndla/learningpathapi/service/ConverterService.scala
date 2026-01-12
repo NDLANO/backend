@@ -663,7 +663,7 @@ class ConverterService(using
       Success(
         api.LearningStepV2DTO(
           id = ls.id.get,
-          revision = ls.revision.get,
+          revision = ls.revision.getOrElse(1),
           seqNo = ls.seqNo,
           title = title,
           introduction = introduction,

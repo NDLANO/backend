@@ -426,6 +426,12 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningStepValidator.validate(any[LearningStep], any[LearningPath], any[Boolean])).thenAnswer(
       (i: InvocationOnMock) => Success(i.getArgument[LearningStep](0))
     )
+    when(learningPathRepository.withIdRaw(any[Long], any[Boolean])(using any[DBSession])).thenAnswer(
+      (i: InvocationOnMock) => {
+        val id = i.getArgument[Long](0)
+        learningPathRepository.withId(id)(using i.getArgument[DBSession](2))
+      }
+    )
     doAnswer((i: InvocationOnMock) => {
       val x = i.getArgument[DBSession => Try[?]](0)
       x(mock[DBSession])

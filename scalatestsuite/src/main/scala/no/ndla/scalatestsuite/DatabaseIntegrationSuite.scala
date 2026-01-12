@@ -25,7 +25,7 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
   val PostgresqlVersion: String        = "17.5"
   lazy val schemaName: String          = "testschema"
 
-  val postgresContainer: Try[PostgreSQLContainer] =
+  lazy val postgresContainer: Try[PostgreSQLContainer] =
     if (EnablePostgresContainer) {
       val defaultUsername: String     = "postgres"
       val defaultDatabaseName: String = "postgres"
@@ -36,12 +36,15 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
         when(x.getPassword).thenReturn(env.getOrElse("META_PASSWORD", defaultPassword)): Unit
         when(x.getUsername).thenReturn(env.getOrElse("META_USERNAME", defaultUsername)): Unit
         when(x.getDatabaseName).thenReturn(env.getOrElse("META_RESOURCE", defaultDatabaseName)): Unit
+        when(x.getHost).thenReturn(env.getOrElse("META_SERVER", "localhost")): Unit
         when(x.getMappedPort(any[Int])).thenReturn(env.getOrElse("META_PORT", "5432").toInt): Unit
         Success(x)
       } else {
-        val c: PgContainer = PgContainer(PostgresqlVersion, defaultUsername, defaultPassword, defaultDatabaseName)
-        c.start()
-        Success(c)
+        Try {
+          val c: PgContainer = PgContainer(PostgresqlVersion, defaultUsername, defaultPassword, defaultDatabaseName)
+          c.start()
+          c
+        }
       }
     } else {
       Failure(new RuntimeException("Postgres disabled for this IntegrationSuite"))
@@ -89,6 +92,11 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
+    postgresContainer match {
+      case Failure(_) =>
+        cancel("Postgres container unavailable; skipping integration suite.")
+      case Success(_) =>
+    }
     setDatabaseEnvironment()
   }
 
