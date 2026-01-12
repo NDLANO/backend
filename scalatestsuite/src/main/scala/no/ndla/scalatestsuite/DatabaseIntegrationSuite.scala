@@ -92,11 +92,6 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    postgresContainer match {
-      case Failure(_) =>
-        cancel("Postgres container unavailable; skipping integration suite.")
-      case Success(_) =>
-    }
     setDatabaseEnvironment()
   }
 
