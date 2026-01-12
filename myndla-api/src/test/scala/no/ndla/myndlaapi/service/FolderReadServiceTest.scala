@@ -228,6 +228,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.folderWithId(eqTo(favoriteUUID))(using any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.getSavedSharedFolders(any)(using any[DBSession])).thenReturn(Success(List.empty))
     when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
+    when(userService.getMyNDLAUser(any, any)).thenReturn(Success(TestData.emptyMyNDLAUser))
 
     val result = service.getFolders(includeSubfolders = false, includeResources = false, Some("token")).get.folders
     result.length should be(1)
@@ -277,6 +278,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       Success(Option(savedFolderDomain))
     )
     when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
+    when(userService.getMyNDLAUser(any, any)).thenReturn(Success(TestData.emptyMyNDLAUser))
 
     val result = service.getFolders(includeSubfolders = false, includeResources = false, Some("token")).get
     result.folders.length should be(1)
@@ -316,6 +318,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     )
     when(folderRepository.getSavedSharedFolders(any)(using any)).thenReturn(Success(List.empty))
     when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
+    when(userService.getMyNDLAUser(any, any)).thenReturn(Success(TestData.emptyMyNDLAUser))
 
     val result = service.getFolders(includeSubfolders = false, includeResources = true, Some("token")).get.folders
     result.length should be(2)

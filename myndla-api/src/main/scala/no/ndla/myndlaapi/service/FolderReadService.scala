@@ -88,12 +88,14 @@ class FolderReadService(using
   private def getFoldersAuthenticated(
       includeSubfolders: Boolean,
       includeResources: Boolean,
+      feideAccessToken: Option[FeideAccessToken],
       feideId: FeideID,
-  ): Try[UserFolderDTO] = {
+  ) = {
     dbUtility.rollbackOnFailure(session => {
       for {
-        myFolders          <- folderRepository.foldersWithFeideAndParentID(None, feideId)
-        savedSharedFolders <- folderRepository.getSavedSharedFolders(feideId)
+        _                  <- userService.getMyNDLAUser(feideId, feideAccessToken)
+        myFolders          <- folderRepository.foldersWithFeideAndParentID(None, feideId)(using session)
+        savedSharedFolders <- folderRepository.getSavedSharedFolders(feideId)(using session)
         folders            <- getSubFoldersAndResources(myFolders, includeSubfolders, includeResources, feideId)(session)
         sharedFolders      <- getSharedSubFoldersAndResources(savedSharedFolders)(session)
 
@@ -178,7 +180,7 @@ class FolderReadService(using
       includeResources: Boolean,
       feideAccessToken: Option[FeideAccessToken],
   ): Try[UserFolderDTO] = {
-    withFeideId(feideAccessToken)(getFoldersAuthenticated(includeSubfolders, includeResources, _))
+    withFeideId(feideAccessToken)(getFoldersAuthenticated(includeSubfolders, includeResources, feideAccessToken, _))
   }
 
   def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[api.BreadcrumbDTO]] = {
@@ -251,9 +253,7 @@ class FolderReadService(using
       feideId: FeideID,
       feideAccessToken: Option[FeideAccessToken],
   ): Try[MyNDLAUserDTO] = for {
-    user <- dbUtility.rollbackOnFailure(session =>
-      userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
-    )
+    user <- userService.getMyNDLAUser(feideId, feideAccessToken)
   } yield folderConverterService.toApiUserData(user)
 
   private def getUserStats(numberOfUsersWithLearningpath: Long, session: DBSession): Try[Option[UserStatsDTO]] = {
@@ -340,7 +340,8 @@ class FolderReadService(using
       maybeFeideAccessToken: Option[FeideAccessToken],
       feideId: FeideID,
   ): Try[ExportedUserDataDTO] = for {
-    folders   <- getFoldersAuthenticated(includeSubfolders = true, includeResources = true, feideId)
+    folders <-
+      getFoldersAuthenticated(includeSubfolders = true, includeResources = true, maybeFeideAccessToken, feideId)
     feideUser <- getFeideUserDataAuthenticated(feideId, maybeFeideAccessToken)
   } yield api.ExportedUserDataDTO(userData = feideUser, folders = folders.folders)
 }

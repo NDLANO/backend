@@ -17,7 +17,8 @@ import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.myndlaapi.model.api
 import no.ndla.myndlaapi.model.api.FolderDTO
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
-import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestData, TestEnvironment, UnitSuite}
+import no.ndla.myndlaapi.service.UserService
+import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -62,8 +63,10 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
       override implicit lazy val clock: Clock                       = mock[Clock](withSettings.strictness(Strictness.LENIENT))
       override implicit lazy val folderRepository: FolderRepository = spy(new FolderRepository)
       override implicit lazy val userRepository: UserRepository     = spy(new UserRepository)
+      override implicit lazy val userService: UserService           = spy(new UserService)
 
       when(clock.now()).thenReturn(NDLADate.of(2017, 1, 1, 1, 59))
+      when(feideApiClient.getFeideID(any)).thenReturn(Success("feideid"))
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
       when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
       when(feideApiClient.getFeideExtendedUser(any)).thenReturn(
@@ -301,17 +304,16 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
   }
 
   test("Saving and sorting shared folders") {
-    implicit val session: AutoSession.type = AutoSession
-    val feideId1                           = "feide1"
-    val feideId2                           = "feide2"
-    myndlaApi.componentRegistry.userRepository.reserveFeideIdIfNotExists(feideId1)
-    myndlaApi.componentRegistry.userRepository.insertUser(feideId1, TestData.userDocument)
-    myndlaApi.componentRegistry.userRepository.reserveFeideIdIfNotExists(feideId2)
-    myndlaApi.componentRegistry.userRepository.insertUser(feideId2, TestData.userDocument)
+    val feideId1 = "feide1"
+    val feideId2 = "feide2"
 
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId2)))).thenReturn(Success(feideId2))
     when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(any)).thenReturn(
+      Success(FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no"))))
+    )
+    when(myndlaApi.componentRegistry.feideApiClient.getOrganization(any)).thenReturn(Success("zxc"))
 
     val f1 = createFolder(feideId1, "folder1", None)
     val f2 = createFolder(feideId1, "folder2", None)

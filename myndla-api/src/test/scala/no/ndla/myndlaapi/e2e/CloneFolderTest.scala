@@ -18,7 +18,8 @@ import no.ndla.myndlaapi.model.api.{BreadcrumbDTO, FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.{NewFolderData, ResourceDocument}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
-import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestData, TestEnvironment, UnitSuite}
+import no.ndla.myndlaapi.service.UserService
+import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import org.mockito.ArgumentMatchers.any
@@ -61,8 +62,9 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       override implicit lazy val clock: Clock                       = mock[Clock](withSettings.strictness(Strictness.LENIENT))
       override implicit lazy val folderRepository: FolderRepository = spy(new FolderRepository)
       override implicit lazy val userRepository: UserRepository     = spy(new UserRepository)
+      override implicit lazy val userService: UserService           = spy(new UserService)
 
-      when(feideApiClient.getFeideID(any)).thenReturn(Success("q"))
+      // when(feideApiClient.getFeideID(any)).thenReturn(Success("q"))
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
       when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
       when(feideApiClient.getFeideExtendedUser(any)).thenReturn(
@@ -97,10 +99,8 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     implicit val session: AutoSession.type = AutoSession
     myndlaApi.componentRegistry.userRepository.deleteAllUsers.get
 
-    myndlaApi.componentRegistry.userRepository.reserveFeideIdIfNotExists(feideId).get
-    myndlaApi.componentRegistry.userRepository.insertUser(feideId, TestData.userDocument).get
-    myndlaApi.componentRegistry.userRepository.reserveFeideIdIfNotExists(destinationFeideId).get
-    myndlaApi.componentRegistry.userRepository.insertUser(destinationFeideId, TestData.userDocument).get
+    myndlaApi.componentRegistry.userService.getMyNDLAUser(feideId, None)            // Ensure user exists
+    myndlaApi.componentRegistry.userService.getMyNDLAUser(destinationFeideId, None) // Ensure user exists
   }
 
   override def afterAll(): Unit = {

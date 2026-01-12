@@ -66,25 +66,22 @@ class FolderWriteService(using
 ) extends StrictLogging {
   val MaxFolderDepth = 5L
 
-  private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
-    dbUtility.rollbackOnFailure(session =>
-      userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
-    )
-  }
-
   private[service] def isOperationAllowedOrAccessDenied(
       feideId: FeideID,
       feideAccessToken: Option[FeideAccessToken],
       updatedFolder: UpdatedFolderDTO,
   ): Try[?] = {
-    getMyNDLAUser(feideId, feideAccessToken).flatMap(myNDLAUser => {
-      if (myNDLAUser.isStudent && updatedFolder.status.contains(FolderStatus.SHARED.toString))
-        Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
-      else canWriteNow(myNDLAUser).flatMap {
-        case true  => Success(())
-        case false => Failure(AccessDeniedException("You do not have write access while write restriction is active."))
-      }
-    })
+    userService
+      .getMyNDLAUser(feideId, feideAccessToken)
+      .flatMap(myNDLAUser => {
+        if (myNDLAUser.isStudent && updatedFolder.status.contains(FolderStatus.SHARED.toString))
+          Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
+        else canWriteNow(myNDLAUser).flatMap {
+          case true  => Success(())
+          case false =>
+            Failure(AccessDeniedException("You do not have write access while write restriction is active."))
+        }
+      })
   }
 
   private def canWriteNow(myNDLAUser: MyNDLAUser): Try[Boolean] = {
@@ -673,12 +670,15 @@ class FolderWriteService(using
       feideId: FeideID,
       feideAccessToken: Option[FeideAccessToken],
   ): Try[?] = {
-    getMyNDLAUser(feideId, feideAccessToken).flatMap(myNDLAUser =>
-      canWriteNow(myNDLAUser).flatMap {
-        case true  => Success(())
-        case false => Failure(AccessDeniedException("You do not have write access while write restriction is active."))
-      }
-    )
+    userService
+      .getMyNDLAUser(feideId, feideAccessToken)
+      .flatMap(myNDLAUser =>
+        canWriteNow(myNDLAUser).flatMap {
+          case true  => Success(())
+          case false =>
+            Failure(AccessDeniedException("You do not have write access while write restriction is active."))
+        }
+      )
   }
 
   def newSaveSharedFolder(folderId: UUID, feideAccessToken: Option[FeideAccessToken]): Try[Unit] = {
@@ -713,9 +713,11 @@ class FolderWriteService(using
   }
 
   private def isTeacherOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[?] = {
-    getMyNDLAUser(feideId, feideAccessToken).flatMap(myNDLAUser => {
-      if (myNDLAUser.isTeacher) Success(())
-      else Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
-    })
+    userService
+      .getMyNDLAUser(feideId, feideAccessToken)
+      .flatMap(myNDLAUser => {
+        if (myNDLAUser.isTeacher) Success(())
+        else Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
+      })
   }
 }

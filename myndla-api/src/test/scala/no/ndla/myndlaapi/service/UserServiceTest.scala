@@ -76,7 +76,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       .when(folderWriteService)
       .canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("feide", Some("feide"))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getMyNDLAUser(any, any)).thenReturn(Success(emptyMyNDLAUser))
     when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(userBefore)))
     when(userRepository.updateUser(eqTo(feideId), any)(using any)).thenReturn(Success(userAfterMerge))
 
@@ -94,7 +94,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       .when(folderWriteService)
       .canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("feide", Some("feide"))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getOrCreateMyNDLAUserIfNotExist(any, any)(using any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getMyNDLAUser(any, any)).thenReturn(Success(emptyMyNDLAUser))
     when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(None))
 
     service.updateMyNDLAUserData(updatedUserData, Some(feideId)) should be(

@@ -33,6 +33,10 @@ class UserService(using
     folderRepository: FolderRepository,
     dbUtility: DBUtility,
 ) {
+  def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
+    dbUtility.rollbackOnFailure(session => getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session))
+  }
+
   def getMyNdlaUserDataDomain(feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
     for {
       feideId  <- feideApiClient.getFeideID(feideAccessToken)
@@ -58,7 +62,7 @@ class UserService(using
     } yield api
   }
 
-  def getOrCreateMyNDLAUserIfNotExist(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
+  private def getOrCreateMyNDLAUserIfNotExist(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
       session: DBSession
   ): Try[MyNDLAUser] = {
     userRepository
