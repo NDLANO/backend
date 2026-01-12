@@ -30,7 +30,6 @@ import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try, boundary}
 import no.ndla.language.Language
 import no.ndla.database.DBUtility
-import scalikejdbc.DBSession
 
 class UpdateService(using
     learningPathRepository: LearningPathRepository,
@@ -170,8 +169,10 @@ class UpdateService(using
     }
   }
 
-  private def deleteLanguageFromStep(learningStep: LearningStep, language: String, learningPath: LearningPath)(implicit
-      session: DBSession
+  private def deleteLanguageFromStep(
+      learningStep: LearningStep,
+      language: String,
+      learningPath: LearningPath,
   ): Try[LearningStep] = {
     for {
       withDeletedLanguage <- converterService.deleteLearningStepLanguage(learningStep, language)
@@ -372,13 +373,12 @@ class UpdateService(using
       owner: CombinedUserRequired,
   ): Try[LearningStepV2DTO] = writeOrAccessDenied(owner.canWrite) {
     boundary {
-
-        withIdRaw(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
-          case Failure(ex)           => Failure(ex)
-          case Success(learningPath) =>
-            val stepsToChange = learningPathRepository.learningStepsFor(learningPathId)
-            val stepToUpdate  = stepsToChange.find(_.id.contains(learningStepId)) match {
-              case Some(ls) if ls.status == DELETED && newStatus == DELETED =>
+      withIdRaw(learningPathId).flatMap(_.canEditLearningPath(owner)) match {
+        case Failure(ex)           => Failure(ex)
+        case Success(learningPath) =>
+          val stepsToChange = learningPathRepository.learningStepsFor(learningPathId)
+          val stepToUpdate  = stepsToChange.find(_.id.contains(learningStepId)) match {
+            case Some(ls) if ls.status == DELETED && newStatus == DELETED =>
               val msg = s"Learningstep with id $learningStepId for learningpath with id $learningPathId not found"
               boundary.break(Failure(NotFoundException(msg)))
             case None =>
@@ -443,7 +443,7 @@ class UpdateService(using
                   }
                 }
 
-                learningPathRepository.inTransaction { implicit session =>
+                val _ = learningPathRepository.inTransaction { implicit session =>
                   learningPathRepository.update(learningPath.copy(learningsteps = updatedSteps, lastUpdated = now))
                 }
 

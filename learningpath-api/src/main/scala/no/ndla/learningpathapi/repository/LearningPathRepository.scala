@@ -121,12 +121,12 @@ class LearningPathRepository extends StrictLogging {
     val pathToInsert = addStepIds(learningpath)
     dataObject.setValue(CirceUtil.toJsonString(pathToInsert))
 
-    val learningPathId: Long =
-      tsql"insert into learningpaths(external_id, document, revision) values(${learningpath.externalId}, $dataObject, $startRevision)"
-        .updateAndReturnGeneratedKey()
-
-    logger.info(s"Inserted learningpath with id $learningPathId")
-    pathToInsert.copy(id = Some(learningPathId), revision = Some(startRevision))
+    tsql"insert into learningpaths(external_id, document, revision) values(${learningpath.externalId}, $dataObject, $startRevision)"
+      .updateAndReturnGeneratedKey()
+      .map { learningPathId =>
+        logger.info(s"Inserted learningpath with id $learningPathId")
+        pathToInsert.copy(id = Some(learningPathId), revision = Some(startRevision))
+      }
   }
 
   def insertWithImportId(learningpath: LearningPath, importId: String)(implicit
@@ -388,7 +388,7 @@ class LearningPathRepository extends StrictLogging {
     sql"select count(*) from ${DBLearningPath.as(lp)}".map(rs => rs.long("count")).single().getOrElse(0)
   }
 
-  private def learningPathWhereRaw(
+  private[repository] def learningPathWhereRaw(
       whereClause: SQLSyntax
   )(implicit session: DBSession = ReadOnlyAutoSession): Option[LearningPath] = {
     val lp = DBLearningPath.syntax("lp")

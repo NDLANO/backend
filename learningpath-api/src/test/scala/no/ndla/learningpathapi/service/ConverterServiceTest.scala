@@ -146,7 +146,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     owner = "me",
     copyright = LearningpathCopyright(CC_BY.toString, List.empty),
     isMyNDLAOwner = false,
-    learningsteps = None,
+    learningsteps = Seq.empty,
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
@@ -605,14 +605,14 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       None,
     )
     val lpId = 5591L
-    val lp1  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = None)
-    val lp2  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = Some(Seq.empty))
+    val lp1  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = Seq.empty)
+    val lp2  = TestData.sampleDomainLearningPath.copy(id = Some(lpId), learningsteps = Seq.empty)
     val lp3  = TestData
       .sampleDomainLearningPath
       .copy(
         id = Some(lpId),
         learningsteps =
-          Some(Seq(TestData.domainLearningStep1.copy(seqNo = 0), TestData.domainLearningStep2.copy(seqNo = 1))),
+          Seq(TestData.domainLearningStep1.copy(seqNo = 0), TestData.domainLearningStep2.copy(seqNo = 1)),
       )
 
     service.asDomainLearningStep(newLs, lp1, owner.id).get.seqNo should be(0)
