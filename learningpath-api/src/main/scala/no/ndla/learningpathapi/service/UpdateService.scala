@@ -264,7 +264,6 @@ class UpdateService(using
               val (insertedStep, updatedPath) = learningPathRepository.inTransaction { implicit session =>
                 val insertedStep = newStep.copy(
                   id = Some(learningPathRepository.nextLearningStepId),
-                  revision = newStep.revision.orElse(Some(1)),
                   learningPathId = learningPath.id,
                 )
                 val toUpdate     = converterService.insertLearningStep(learningPath, insertedStep)

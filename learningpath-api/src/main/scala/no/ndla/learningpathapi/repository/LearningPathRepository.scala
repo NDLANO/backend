@@ -101,6 +101,13 @@ class LearningPathRepository extends StrictLogging {
       .getOrElse(throw new RuntimeException("Could not generate learning step id."))
   }
 
+  private def generateLearningPathId(implicit session: DBSession): Long = {
+    sql"select nextval('learningpaths_id_seq')"
+      .map(rs => rs.long(1))
+      .single()
+      .getOrElse(throw new RuntimeException("Could not generate learning path id."))
+  }
+
   def nextLearningStepId(implicit session: DBSession = AutoSession): Long = generateStepId
 
   def addStepIds(learningPath: LearningPath)(implicit session: DBSession): LearningPath =
@@ -118,15 +125,18 @@ class LearningPathRepository extends StrictLogging {
     val dataObject    = new PGobject()
     dataObject.setType("jsonb")
 
-    val pathToInsert = addStepIds(learningpath)
-    dataObject.setValue(CirceUtil.toJsonString(pathToInsert))
-
-    tsql"insert into learningpaths(external_id, document, revision) values(${learningpath.externalId}, $dataObject, $startRevision)"
-      .updateAndReturnGeneratedKey()
-      .map { learningPathId =>
-        logger.info(s"Inserted learningpath with id $learningPathId")
-        pathToInsert.copy(id = Some(learningPathId), revision = Some(startRevision))
-      }
+    for {
+      learningPathId <- tsql"select nextval('learningpaths_id_seq')"
+        .map(rs => rs.long(1))
+        .runSingleTry(new RuntimeException("Could not generate learning path id."))
+      pathToInsert = addStepIds(learningpath.copy(id = Some(learningPathId)))
+      _ = dataObject.setValue(CirceUtil.toJsonString(pathToInsert))
+      _ <- tsql"insert into learningpaths(id, external_id, document, revision) values($learningPathId, ${learningpath.externalId}, $dataObject, $startRevision)"
+        .update()
+    } yield {
+      logger.info(s"Inserted learningpath with id $learningPathId")
+      pathToInsert.copy(revision = Some(startRevision))
+    }
   }
 
   def insertWithImportId(learningpath: LearningPath, importId: String)(implicit
@@ -135,16 +145,16 @@ class LearningPathRepository extends StrictLogging {
     val startRevision = 1
     val dataObject    = new PGobject()
     dataObject.setType("jsonb")
-    val pathToInsert = addStepIds(learningpath)
+    val learningPathId = generateLearningPathId
+    val pathToInsert   = addStepIds(learningpath.copy(id = Some(learningPathId)))
     dataObject.setValue(CirceUtil.toJsonString(pathToInsert))
 
     val importIdUUID         = Try(UUID.fromString(importId)).toOption
-    val learningPathId: Long =
-      sql"insert into learningpaths(external_id, document, revision, import_id) values(${learningpath.externalId}, $dataObject, $startRevision, $importIdUUID)"
-        .updateAndReturnGeneratedKey()
+    sql"insert into learningpaths(id, external_id, document, revision, import_id) values($learningPathId, ${learningpath.externalId}, $dataObject, $startRevision, $importIdUUID)"
+      .update()
 
     logger.info(s"Inserted learningpath with id $learningPathId")
-    pathToInsert.copy(id = Some(learningPathId), revision = Some(startRevision))
+    pathToInsert.copy(revision = Some(startRevision))
   }
 
   def idAndimportIdOfLearningpath(

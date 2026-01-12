@@ -422,7 +422,6 @@ class ConverterService(using
 
     embedUrlsT.map(embedUrls =>
       existing.copy(
-        revision = Some(updated.revision),
         title = titles,
         introduction = introductions,
         description = descriptions,
@@ -663,7 +662,7 @@ class ConverterService(using
       Success(
         api.LearningStepV2DTO(
           id = ls.id.get,
-          revision = ls.revision.getOrElse(1),
+          revision = lp.revision.getOrElse(1),
           seqNo = ls.seqNo,
           title = title,
           introduction = introduction,
