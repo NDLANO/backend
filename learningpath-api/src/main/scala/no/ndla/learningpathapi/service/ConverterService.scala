@@ -341,10 +341,7 @@ class ConverterService(using
 
   def insertLearningStep(learningPath: LearningPath, updatedStep: LearningStep): LearningPath = {
     val existingLearningSteps = learningPath.learningsteps.filterNot(_.id == updatedStep.id)
-    val steps                 =
-      if (StepStatus.ACTIVE == updatedStep.status) existingLearningSteps :+ updatedStep
-      else existingLearningSteps
-
+    val steps                 = existingLearningSteps :+ updatedStep
     learningPath.copy(learningsteps = steps, lastUpdated = clock.now())
   }
 

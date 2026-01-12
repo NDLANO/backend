@@ -9,7 +9,7 @@
 package no.ndla.common.model.domain.learningpath
 
 import io.circe.generic.semiauto.*
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.{Comment, Content, Responsible, Tag, Title}
 import no.ndla.language.Language.getSupportedLanguages
@@ -56,7 +56,7 @@ case class LearningPath(
   def isPrivate: Boolean   = Seq(LearningPathStatus.PRIVATE, LearningPathStatus.READY_FOR_SHARING).contains(status)
   def isPublished: Boolean = status == LearningPathStatus.PUBLISHED
   def isDeleted: Boolean   = status == LearningPathStatus.DELETED
-  
+
   def withOnlyActiveSteps: LearningPath = {
     val activeSteps = learningsteps.filter(_.status == ACTIVE)
     this.copy(learningsteps = activeSteps)
@@ -65,13 +65,8 @@ case class LearningPath(
 }
 
 object LearningPath {
-  // NOTE: We remove learningsteps from the JSON object before decoding it since it is stored in a separate table
-  implicit val encoder: Encoder[LearningPath] = deriveEncoder[LearningPath].mapJsonObject(_.remove("learningsteps"))
-  implicit val decoder: Decoder[LearningPath] = deriveDecoder[LearningPath].prepare { obj =>
-    val learningsteps = obj.downField("learningsteps")
-    if (learningsteps.succeeded) learningsteps.delete
-    else obj
-  }
+  implicit val encoder: Encoder[LearningPath] = deriveEncoder[LearningPath]
+  implicit val decoder: Decoder[LearningPath] = deriveDecoder[LearningPath]
 
   import sttp.tapir.generic.auto.*
   implicit def schema: Schema[LearningPath] = DeriveHelpers.getSchema
