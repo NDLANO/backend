@@ -364,7 +364,7 @@ class UpdateService(using
 
     val updated     = newLearningSteps.map(learningPathRepository.updateLearningStep)
     val lp          = converterService.insertLearningSteps(learningPath, updated)
-    val updatedPath = learningPathRepository.update(lp.copy(learningsteps = None))
+    val updatedPath = learningPathRepository.update(lp)
     (updatedPath, updatedStep)
   }
 
@@ -428,7 +428,6 @@ class UpdateService(using
                 val to       = seqNo
                 val toUpdate = learningPath
                   .learningsteps
-                  .getOrElse(Seq.empty)
                   .filter(step => rangeToUpdate(from, to).contains(step.seqNo))
 
                 def addOrSubtract(seqNo: Int): Int =

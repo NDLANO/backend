@@ -156,19 +156,6 @@ class LearningPathRepository extends StrictLogging {
       .single()
   }
 
-  def insertLearningStep(learningStep: LearningStep)(implicit session: DBSession = AutoSession): LearningStep = {
-    val startRevision = 1
-    val stepObject    = new PGobject()
-    stepObject.setType("jsonb")
-    stepObject.setValue(CirceUtil.toJsonString(learningStep))
-
-    val learningStepId: Long =
-      sql"insert into learningsteps(learning_path_id, external_id, document, revision) values (${learningStep.learningPathId}, ${learningStep.externalId}, $stepObject, $startRevision)"
-        .updateAndReturnGeneratedKey()
-    logger.info(s"Inserted learningstep with id $learningStepId")
-    learningStep.copy(id = Some(learningStepId), revision = Some(startRevision))
-  }
-
   def update(learningpath: LearningPath)(implicit session: DBSession = AutoSession): LearningPath = {
     if (learningpath.id.isEmpty) {
       throw new RuntimeException("A non-persisted learningpath cannot be updated without being saved first.")
@@ -222,40 +209,11 @@ class LearningPathRepository extends StrictLogging {
     learningpath.copy(revision = Some(newRevision))
   }
 
-  def updateLearningStep(learningStep: LearningStep)(implicit session: DBSession = AutoSession): LearningStep = {
-    if (learningStep.id.isEmpty) {
-      throw new RuntimeException("A non-persisted learningStep cannot be updated without being saved first.")
-    }
-
-    val dataObject = new PGobject()
-    dataObject.setType("jsonb")
-    dataObject.setValue(CirceUtil.toJsonString(learningStep))
-
-    val newRevision = learningStep.revision.getOrElse(0) + 1
-    val count       =
-      sql"update learningsteps set document = $dataObject, revision = $newRevision where id = ${learningStep.id} and revision = ${learningStep.revision}"
-        .update()
-    if (count != 1) {
-      val msg =
-        s"Conflicting revision is detected for learningStep with id = ${learningStep.id} and revision = ${learningStep.revision}"
-      logger.warn(msg)
-      throw new OptimisticLockException(msg)
-    }
-
-    logger.info(s"Updated learningstep with id ${learningStep.id}")
-    learningStep.copy(revision = Some(newRevision))
-  }
-
   def deletePath(learningPathId: Long)(implicit session: DBSession = AutoSession): Int = {
     sql"delete from learningpaths where id = $learningPathId".update()
   }
 
-  def deleteStep(learningStepId: Long)(implicit session: DBSession = AutoSession): Int = {
-    sql"delete from learningsteps where id = $learningStepId".update()
-  }
-
   def deleteAllPathsAndSteps(implicit session: DBSession): Try[Unit] = for {
-    _ <- Try(sql"delete from learningsteps".update())
     _ <- Try(sql"delete from learningpaths".update())
   } yield ()
 
@@ -267,7 +225,6 @@ class LearningPathRepository extends StrictLogging {
 
     sql"""select ${lp.result.*}, ${ls.result.*}
                from ${DBLearningPath.as(lp)}
-               left join ${DBLearningStep.as(ls)} on ${lp.id} = ${ls.learningPathId}
                where lp.document->>'status' = $status
                and lp.id between $min and $max""".map(DBLearningPath.fromResultSet(lp.resultName)).list()
   }
@@ -320,8 +277,8 @@ class LearningPathRepository extends StrictLogging {
   private def learningPathsWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = ReadOnlyAutoSession): List[LearningPath] = {
-    val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
-    sql"select ${lp.result.*}, ${ls.result.*} from ${DBLearningPath.as(lp)} left join ${DBLearningStep.as(ls)} on ${lp.id} = ${ls.learningPathId} where $whereClause"
+    val lp = DBLearningPath.syntax("lp")
+    sql"select ${lp.result.*} from ${DBLearningPath.as(lp)} where $whereClause"
       .map { rs =>
         val learningpath = DBLearningPath.fromResultSet(lp.resultName)(rs)
         learningpath.withOnlyActiveSteps
@@ -332,8 +289,8 @@ class LearningPathRepository extends StrictLogging {
   private def learningPathWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = ReadOnlyAutoSession): Option[LearningPath] = {
-    val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
-    sql"select ${lp.result.*}, ${ls.result.*} from ${DBLearningPath.as(lp)} left join ${DBLearningStep.as(ls)} on ${lp.id} = ${ls.learningPathId} where $whereClause"
+    val lp = DBLearningPath.syntax("lp")
+    sql"select ${lp.result.*} from ${DBLearningPath.as(lp)} where $whereClause"
       .map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps)
       .single()
   }
@@ -369,7 +326,7 @@ class LearningPathRepository extends StrictLogging {
   }
 
   def getExternalLinkStepSamples()(implicit session: DBSession = ReadOnlyAutoSession): List[LearningPath] = {
-    val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
+    val lp = DBLearningPath.syntax("lp")
     sql"""
       WITH candidates AS (
           SELECT DISTINCT clp.id
@@ -391,10 +348,9 @@ class LearningPathRepository extends StrictLogging {
           ORDER BY random()
           LIMIT 5
       )
-      SELECT ${lp.result.*}, ${ls.result.*}
+      SELECT ${lp.result.*}
       FROM matched_ids ids
       JOIN ${DBLearningPath.as(lp)} ON ${lp.id} = ids.id
-      LEFT JOIN ${DBLearningStep.as(ls)} ON ${lp.id} = ${ls.learningPathId}
     """.map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).list()
 
   }
