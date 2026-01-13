@@ -63,6 +63,9 @@ class MultiSearchSummaryDTOTest extends UnitTestSuiteBase {
       published = None,
       favorited = None,
       resultType = SearchType.Articles,
+      grepCodes = Seq.empty,
+      revision = None,
+      started = false,
     )
     import io.circe.syntax.*
 
