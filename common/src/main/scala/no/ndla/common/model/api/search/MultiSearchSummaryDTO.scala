@@ -112,6 +112,10 @@ case class MultiSearchSummaryDTO(
     lastUpdated: NDLADate,
     @description("Describes the license of the resource")
     license: Option[String],
+    @description("The revision number of the article")
+    revision: Option[Int],
+    @description("If the article has been edited after last status or responsible change")
+    started: Boolean,
     @description("A list of revisions planned for the article")
     revisions: Seq[RevisionMetaDTO],
     @description("Responsible field")
@@ -132,6 +136,8 @@ case class MultiSearchSummaryDTO(
     favorited: Option[Long],
     @description("Type of the resource")
     resultType: SearchType,
+    @description("List of codes the resource is tagged with")
+    grepCodes: Seq[String],
 ) extends MultiSummaryBaseDTO
 
 object MultiSearchSummaryDTO extends SchemaImplicits {

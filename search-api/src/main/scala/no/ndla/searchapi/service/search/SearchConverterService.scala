@@ -748,6 +748,9 @@ class SearchConverterService(using
           published = None,
           favorited = None,
           resultType = SearchType.Articles,
+          revision = searchableArticle.domainObject.revision,
+          started = false,
+          grepCodes = Seq.empty,
         )
       )
     }
@@ -849,6 +852,9 @@ class SearchConverterService(using
           published = Some(searchableDraft.published),
           favorited = Some(searchableDraft.favorited),
           resultType = SearchType.Drafts,
+          revision = searchableDraft.domainObject.revision,
+          started = searchableDraft.domainObject.started,
+          grepCodes = searchableDraft.domainObject.grepCodes,
         )
       )
     }
@@ -934,6 +940,9 @@ class SearchConverterService(using
         published = None,
         favorited = Some(searchableLearningPath.favorited),
         resultType = SearchType.LearningPaths,
+        revision = None,
+        grepCodes = searchableLearningPath.grepCodes,
+        started = false,
       )
     )
   }
@@ -996,6 +1005,9 @@ class SearchConverterService(using
         published = None,
         favorited = Some(searchableConcept.favorited),
         resultType = SearchType.Concepts,
+        revision = None,
+        grepCodes = Seq.empty,
+        started = false,
       )
     )
   }
