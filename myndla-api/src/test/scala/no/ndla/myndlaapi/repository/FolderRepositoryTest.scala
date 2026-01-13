@@ -749,12 +749,12 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
     repository.insertResource(feideId1, "", Article, NDLADate.now(), ResourceDocument(List(), "")).failIfFailure
 
-    val numberOfUsers                  = userRepository.numberOfUsers().getOrElse(Some(0L))
-    val numberOfUsersWithFavourites    = repository.numberOfUsersWithFavourites().getOrElse(Some(0L))
-    val numberOfUsersWithoutFavourites = repository.numberOfUsersWithoutFavourites().getOrElse(Some(0L))
+    val numberOfUsers                  = userRepository.numberOfUsers().failIfFailure.getOrElse(0L)
+    val numberOfUsersWithFavourites    = repository.numberOfUsersWithFavourites().failIfFailure.getOrElse(0L)
+    val numberOfUsersWithoutFavourites = repository.numberOfUsersWithoutFavourites().failIfFailure.getOrElse(0L)
 
-    numberOfUsersWithFavourites should be(Some(1))
-    numberOfUsersWithoutFavourites should be(Some(numberOfUsers.get - numberOfUsersWithFavourites.get))
+    numberOfUsersWithFavourites should be(1)
+    numberOfUsersWithoutFavourites should be(numberOfUsers - numberOfUsersWithFavourites)
   }
 
   test("that inserting in batches works as expected") {
