@@ -637,6 +637,13 @@ export type components = {
             lastUpdated: string;
             /** @description Describes the license of the resource */
             license?: string;
+            /**
+             * Format: int32
+             * @description The revision number of the article
+             */
+            revision?: number;
+            /** @description If the article has been edited after last status or responsible change */
+            started: boolean;
             /** @description A list of revisions planned for the article */
             revisions: components["schemas"]["RevisionMetaDTO"][];
             responsible?: components["schemas"]["ResponsibleDTO"];
@@ -659,6 +666,8 @@ export type components = {
             favorited?: number;
             /** @description Type of the resource */
             resultType: components["schemas"]["SearchType"];
+            /** @description List of codes the resource is tagged with */
+            grepCodes: string[];
             typename: components["schemas"]["MultiSearchSummaryDTO1"];
         };
         /**
