@@ -192,7 +192,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   )
 
   val UPDATED_STEPV2: UpdatedLearningStepV2DTO = UpdatedLearningStepV2DTO(
-    1,
     commonApi.UpdateWith("Tittel"),
     commonApi.Missing,
     "nb",
@@ -1205,7 +1204,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
 
     val updatedLs = UpdatedLearningStepV2DTO(
-      1,
       commonApi.UpdateWith("Dårlig tittel"),
       commonApi.Missing,
       "nb",
@@ -1244,7 +1242,6 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(clock.now()).thenReturn(newDate)
 
     val updatedLs = UpdatedLearningStepV2DTO(
-      1,
       commonApi.UpdateWith("Dårlig tittel"),
       commonApi.Missing,
       "nb",

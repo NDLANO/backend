@@ -304,7 +304,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val learningstep = Success(
       api.LearningStepV2DTO(
         id = 1,
-        revision = 1,
         seqNo = 1,
         title = api.TitleDTO("tittel", props.DefaultLanguage),
         introduction = None,
@@ -355,7 +354,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     val learningstep = Success(
       api.LearningStepV2DTO(
         id = 1,
-        revision = 1,
         seqNo = 1,
         title = api.TitleDTO("tittel", props.DefaultLanguage),
         introduction = None,
@@ -622,7 +620,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("mergeLearningSteps correctly retains nullable fields") {
     val updatedStep = api.UpdatedLearningStepV2DTO(
-      2,
       commonApi.Missing,
       commonApi.Missing,
       "nb",
@@ -642,7 +639,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("mergeLearningSteps correctly deletes correct language version of nullable fields") {
     val updatedStep = api.UpdatedLearningStepV2DTO(
-      2,
       commonApi.Delete,
       commonApi.Delete,
       "nn",
@@ -663,7 +659,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("mergeLearningSteps correctly updates language fields") {
     val updatedStep = api.UpdatedLearningStepV2DTO(
-      2,
       commonApi.UpdateWith("Tittel på bokmål oppdatert"),
       commonApi.UpdateWith("Introduksjon på bokmål oppdatert"),
       "nb",
