@@ -62,9 +62,7 @@ class V60__MoveLearningStepsToLearningPathDocument extends BaseJavaMigration wit
   }
 
   private def updateLp(row: LpDocumentRowWithId, steps: List[StepDocumentRowWithMeta])(using session: DBSession): Unit = {
-    val oldLp         = CirceUtil.tryParse(row.learningPathDocument).get
-    val updatedSteps  = steps.sortBy(stepSeqNo).map(enrichStep)
-    val updatedLpJson = oldLp.mapObject(_.remove("learningsteps").add("learningsteps", Json.fromValues(updatedSteps)))
+    val updatedLpJson = CirceUtil.tryParse(mergeLearningSteps(row.learningPathDocument, steps)).get
 
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
@@ -72,6 +70,15 @@ class V60__MoveLearningStepsToLearningPathDocument extends BaseJavaMigration wit
 
     val updated = sql"update learningpaths set document = $dataObject where id = ${row.learningPathId}".update()
     if (updated != 1) throw new RuntimeException(s"Failed to update learning path document for id ${row.learningPathId}")
+  }
+
+  private[migration] def mergeLearningSteps(
+      learningPathDocument: String,
+      steps: List[StepDocumentRowWithMeta],
+  ): String = {
+    val oldLp        = CirceUtil.tryParse(learningPathDocument).get
+    val updatedSteps = steps.sortBy(stepSeqNo).map(enrichStep)
+    oldLp.mapObject(_.remove("learningsteps").add("learningsteps", Json.fromValues(updatedSteps))).noSpaces
   }
 
   private def deleteSteps(learningPathId: Long)(using session: DBSession): Unit = {
