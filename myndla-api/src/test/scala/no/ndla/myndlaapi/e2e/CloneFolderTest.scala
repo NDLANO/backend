@@ -98,8 +98,8 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     implicit val session: AutoSession.type = AutoSession
     myndlaApi.componentRegistry.userRepository.deleteAllUsers.get
 
-    myndlaApi.componentRegistry.userService.getMyNDLAUser(feideId, None)            // Ensure user exists
-    myndlaApi.componentRegistry.userService.getMyNDLAUser(destinationFeideId, None) // Ensure user exists
+    myndlaApi.componentRegistry.userService.getMyNDLAUser(feideId, None).get            // Ensure user exists
+    myndlaApi.componentRegistry.userService.getMyNDLAUser(destinationFeideId, None).get // Ensure user exists
   }
 
   override def afterAll(): Unit = {

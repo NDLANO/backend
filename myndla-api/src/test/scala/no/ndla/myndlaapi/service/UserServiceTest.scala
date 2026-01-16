@@ -18,6 +18,7 @@ import no.ndla.network.clients.{FeideExtendedUserInfo, FeideGroup, Membership}
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
+import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
 
@@ -72,11 +73,11 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
     )
 
-    doReturn(Success(()))
-      .when(folderWriteService)
-      .canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("feide", Some("feide"))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getMyNDLAUser(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(
+      Success(emptyMyNDLAUser.copy(feideId = feideId))
+    )
+    when(folderWriteService.canWriteOrAccessDenied(any, any)(using any[DBSession])).thenReturn(Success(()))
     when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(userBefore)))
     when(userRepository.updateUser(eqTo(feideId), any)(using any)).thenReturn(Success(userAfterMerge))
 
@@ -90,11 +91,9 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId         = "feide"
     val updatedUserData = UpdatedMyNDLAUserDTO(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None)
 
-    doReturn(Success(()))
-      .when(folderWriteService)
-      .canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied("feide", Some("feide"))
+    when(folderWriteService.canWriteOrAccessDenied(any, any)(using any[DBSession])).thenReturn(Success(()))
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getMyNDLAUser(any, any)).thenReturn(Success(emptyMyNDLAUser))
+    when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
     when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(None))
 
     service.updateMyNDLAUserData(updatedUserData, Some(feideId)) should be(

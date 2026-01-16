@@ -25,7 +25,7 @@ import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.FeideApiClient
 import no.ndla.network.model.{FeideAccessToken, FeideID}
-import scalikejdbc.DBSession
+import scalikejdbc.{AutoSession, DBSession, ReadOnlyAutoSession}
 
 import java.util.UUID
 import scala.annotation.tailrec
@@ -85,15 +85,9 @@ class FolderReadService(using
     } yield sorted
 
   }
-  private def getFoldersAuthenticated(
-      includeSubfolders: Boolean,
-      includeResources: Boolean,
-      feideAccessToken: Option[FeideAccessToken],
-      feideId: FeideID,
-  ) = {
+  private def getFoldersAuthenticated(includeSubfolders: Boolean, includeResources: Boolean, feideId: FeideID) = {
     dbUtility.rollbackOnFailure(session => {
       for {
-        _                  <- userService.getMyNDLAUser(feideId, feideAccessToken)
         myFolders          <- folderRepository.foldersWithFeideAndParentID(None, feideId)(using session)
         savedSharedFolders <- folderRepository.getSavedSharedFolders(feideId)(using session)
         folders            <- getSubFoldersAndResources(myFolders, includeSubfolders, includeResources, feideId)(session)
@@ -171,16 +165,19 @@ class FolderReadService(using
   ): Try[List[domain.Folder]] =
     folders.traverse(f => getSingleFolderWithContent(f.id, includeSubfolders, includeResources))
 
-  private def withFeideId[T](maybeToken: Option[FeideAccessToken])(func: FeideID => Try[T]): Try[T] = feideApiClient
+  private def withFeideId[T](
+      maybeToken: Option[FeideAccessToken]
+  )(func: FeideID => Try[T])(implicit session: DBSession): Try[T] = feideApiClient
     .getFeideID(maybeToken)
-    .flatMap(feideId => func(feideId))
+    .flatMap(getFeideUserDataAuthenticated(_, maybeToken))
+    .flatMap(user => func(user.feideId))
 
-  def getFolders(
-      includeSubfolders: Boolean,
-      includeResources: Boolean,
-      feideAccessToken: Option[FeideAccessToken],
+  def getFolders(includeSubfolders: Boolean, includeResources: Boolean, feideAccessToken: Option[FeideAccessToken])(
+      implicit session: DBSession = AutoSession
   ): Try[UserFolderDTO] = {
-    withFeideId(feideAccessToken)(getFoldersAuthenticated(includeSubfolders, includeResources, feideAccessToken, _))
+    withFeideId(feideAccessToken)((feideId: FeideID) =>
+      getFoldersAuthenticated(includeSubfolders, includeResources, feideId)
+    )
   }
 
   def getBreadcrumbs(folder: domain.Folder)(implicit session: DBSession): Try[List[api.BreadcrumbDTO]] = {
@@ -249,11 +246,10 @@ class FolderReadService(using
     folderRepository.insertFolder(feideId, favoriteFolder)
   }
 
-  private def getFeideUserDataAuthenticated(
-      feideId: FeideID,
-      feideAccessToken: Option[FeideAccessToken],
+  private def getFeideUserDataAuthenticated(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
+      session: DBSession
   ): Try[MyNDLAUserDTO] = for {
-    user <- userService.getMyNDLAUser(feideId, feideAccessToken)
+    user <- userService.getMyNDLAUser(feideId, feideAccessToken)(using session)
   } yield folderConverterService.toApiUserData(user)
 
   private def getUserStats(numberOfUsersWithLearningpath: Long, session: DBSession): Try[Option[UserStatsDTO]] = {
@@ -303,7 +299,9 @@ class FolderReadService(using
     )
   }
 
-  def exportUserData(maybeFeideToken: Option[FeideAccessToken]): Try[ExportedUserDataDTO] = {
+  def exportUserData(
+      maybeFeideToken: Option[FeideAccessToken]
+  )(implicit session: DBSession = ReadOnlyAutoSession): Try[ExportedUserDataDTO] = {
     withFeideId(maybeFeideToken)(feideId => exportUserDataAuthenticated(maybeFeideToken, feideId))
   }
 
@@ -336,12 +334,10 @@ class FolderReadService(using
     Success(result.flatten)
   }
 
-  private def exportUserDataAuthenticated(
-      maybeFeideAccessToken: Option[FeideAccessToken],
-      feideId: FeideID,
+  private def exportUserDataAuthenticated(maybeFeideAccessToken: Option[FeideAccessToken], feideId: FeideID)(implicit
+      session: DBSession
   ): Try[ExportedUserDataDTO] = for {
-    folders <-
-      getFoldersAuthenticated(includeSubfolders = true, includeResources = true, maybeFeideAccessToken, feideId)
-    feideUser <- getFeideUserDataAuthenticated(feideId, maybeFeideAccessToken)
+    feideUser <- getFeideUserDataAuthenticated(feideId, maybeFeideAccessToken)(using session)
+    folders   <- getFoldersAuthenticated(includeSubfolders = true, includeResources = true, feideId)
   } yield api.ExportedUserDataDTO(userData = feideUser, folders = folders.folders)
 }
