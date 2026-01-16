@@ -9,7 +9,7 @@
 package no.ndla.database
 
 import cats.implicits.*
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, UnitTestSuite}
 import scalikejdbc.*
 
@@ -59,7 +59,7 @@ class TrySqlTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironmen
   }
 
   test("that execute, update, and updateAndReturnGeneratedKey works") {
-    dbUtil.withSession { implicit session =>
+    dbUtil.writeSession { implicit session =>
       tsql"insert into test (id, data) values (42, 'example')".execute().failIfFailure
 
       tsql"insert into test (id, data) values (43, 'example')".update().failIfFailure should be(1)
@@ -71,7 +71,7 @@ class TrySqlTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironmen
   }
 
   test("that runSingle and runSingleTry works") {
-    dbUtil.withSession { implicit session =>
+    dbUtil.writeSession { implicit session =>
       val res1 = tsql"select * from test where id = 1".map(_.string("data")).runSingle().failIfFailure
       res1 should be(Some("parent1"))
 
@@ -84,7 +84,7 @@ class TrySqlTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironmen
   }
 
   test("that runList and runListFlat works") {
-    dbUtil.withSession { implicit session =>
+    dbUtil.writeSession { implicit session =>
       val res1 = tsql"select * from test where id = 1".map(_.string("data")).runList().failIfFailure
       res1 should be(List("parent1"))
 
@@ -95,7 +95,7 @@ class TrySqlTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironmen
   }
 
   test("that .one(..).toOne(..) works") {
-    dbUtil.withSession { implicit session =>
+    dbUtil.writeSession { implicit session =>
       val res =
         tsql"select t.data as t_data, t2.data as t2_data from test t inner join test2 t2 on t2.parent = t.id where t.id = 1"
           .one(rs => {
@@ -111,7 +111,7 @@ class TrySqlTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironmen
   }
 
   test("that .one(..).toMany(..) works") {
-    dbUtil.withSession { implicit session =>
+    dbUtil.writeSession { implicit session =>
       val res =
         tsql"select t.data as t_data, t2.data as t2_data from test t inner join test2 t2 on t2.parent = t.id where t.id = 2"
           .one(_.string("t_data"))
@@ -125,7 +125,7 @@ class TrySqlTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironmen
   }
 
   test("that .one(..).toManies(..) with three arguments works") {
-    dbUtil.withSession { implicit session =>
+    dbUtil.writeSession { implicit session =>
       val res = tsql"""
                select t.data as t_data, t2.data as t2_data, t3.data as t3_data, t4.data as t4_data from test t
                inner join test2 t2 on t2.parent = t.id

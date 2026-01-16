@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.domain.{ArticleType, EditorNote, Priority}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
+import no.ndla.database.implicits.*
 import no.ndla.draftapi.model.api.{
   ArticleVersioningException,
   DraftErrorHelpers,
@@ -19,7 +20,6 @@ import no.ndla.draftapi.model.api.{
   NotFoundException,
 }
 import no.ndla.draftapi.model.domain.*
-import no.ndla.database.TrySql.tsql
 import no.ndla.network.tapir.auth.TokenUser
 import org.postgresql.util.PGobject
 import scalikejdbc.*

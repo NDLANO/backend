@@ -58,7 +58,7 @@ trait IndexService[D, T](using props: DraftApiProperties, searchLanguage: Search
     indexDocumentsInBulk(numShards)(sendToElastic)
   }
 
-  def sendToElastic(indexName: String): Try[BulkIndexResult] = dbUtility.tryReadOnly { implicit session =>
+  def sendToElastic(indexName: String): Try[BulkIndexResult] = dbUtility.readOnly { implicit session =>
     getRanges
       .flatMap(ranges => {
         ranges.traverse { case (start, end) =>

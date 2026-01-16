@@ -11,7 +11,7 @@ package no.ndla.myndlaapi.repository
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax.*
 import no.ndla.common.model.domain.config.{ConfigKey, ConfigMeta}
-import no.ndla.database.TrySql.tsql
+import no.ndla.database.implicits.*
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 import sqls.count

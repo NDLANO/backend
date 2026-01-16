@@ -699,7 +699,7 @@ class WriteService(using
       articleFieldsToUpdate: Seq[api.PartialArticleFieldsDTO],
       language: String,
       user: TokenUser,
-  ): (Long, Try[Draft]) = dbUtility.tryReadOnly(implicit session => draftRepository.withId(id)) match {
+  ): (Long, Try[Draft]) = dbUtility.readOnly(implicit session => draftRepository.withId(id)) match {
     case Success(Some(article)) =>
       partialPublish(article, articleFieldsToUpdate, language, user): Unit
       id -> Success(article)

@@ -177,11 +177,11 @@ class InternController(using
     .out(jsonBody[Seq[ArticleIds]])
     .serverLogicPure { status =>
       status.map(DraftStatus.valueOfOrError) match {
-        case Some(Success(status)) => dbUtility.tryReadOnly { implicit session =>
+        case Some(Success(status)) => dbUtility.readOnly { implicit session =>
             draftRepository.idsWithStatus(status)
           }
         case Some(Failure(ex)) => Failure(ex)
-        case None              => dbUtility.tryReadOnly { implicit session =>
+        case None              => dbUtility.readOnly { implicit session =>
             draftRepository.getAllIds
           }
       }
@@ -200,7 +200,7 @@ class InternController(using
     .out(jsonBody[Long])
     .errorOut(errorOutputsFor(404))
     .serverLogicPure { externalId =>
-      dbUtility.tryReadOnly { implicit session =>
+      dbUtility.readOnly { implicit session =>
         draftRepository
           .getIdFromExternalId(externalId)
           .flatMap(_.toTry(NotFoundException(s"Could not find draft with external id: '$externalId'")))
@@ -258,7 +258,7 @@ class InternController(using
     .errorOut(errorOutputsFor(404))
     .out(jsonBody[Draft])
     .serverLogicPure { id =>
-      dbUtility.tryReadOnly { implicit session =>
+      dbUtility.readOnly { implicit session =>
         draftRepository.withId(id).flatMap(_.toTry(NotFoundException(s"Could not find draft with id: '$id")))
       }
     }

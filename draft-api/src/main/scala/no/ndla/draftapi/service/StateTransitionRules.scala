@@ -78,7 +78,7 @@ class StateTransitionRules(using
     (article, user) =>
       article.id match {
         case Some(id) => for {
-            externalIds   <- dbUtility.tryReadOnly(implicit session => draftRepository.getExternalIdsFromId(id))
+            externalIds   <- dbUtility.readOnly(implicit session => draftRepository.getExternalIdsFromId(id))
             h5pPaths       = converterService.getEmbeddedH5PPaths(article)
             _              = h5pApiClient.publishH5Ps(h5pPaths, user)
             taxonomyT      = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
@@ -321,7 +321,7 @@ class StateTransitionRules(using
 
   def stateTransitionsToApi(user: TokenUser, articleId: Option[Long]): Try[Map[String, List[String]]] =
     articleId match {
-      case Some(id) => dbUtility.tryReadOnly { implicit session =>
+      case Some(id) => dbUtility.readOnly { implicit session =>
           draftRepository
             .withId(id)
             .flatMap(_.toTry(NotFoundException("The article does not exist")))
