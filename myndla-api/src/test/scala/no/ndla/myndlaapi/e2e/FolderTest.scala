@@ -346,7 +346,6 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     foldersForU1Sorted.folders(3).id should be(f1.id)
     foldersForU1Sorted.folders(3).rank should be(4)
 
-    // createFolder(feideId2, "folder5", None) // to ensure feideId2 exists in the system
     val foldersForU2 = getFolders(feideId2, false)
     foldersForU2.sharedFolders.length should be(0)
 

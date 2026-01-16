@@ -64,7 +64,6 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       override implicit lazy val userRepository: UserRepository     = spy(new UserRepository)
       override implicit lazy val userService: UserService           = spy(new UserService)
 
-      // when(feideApiClient.getFeideID(any)).thenReturn(Success("q"))
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
       when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
       when(feideApiClient.getFeideExtendedUser(any)).thenReturn(

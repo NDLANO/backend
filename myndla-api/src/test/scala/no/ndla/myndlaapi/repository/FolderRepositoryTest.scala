@@ -831,21 +831,21 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       resources = List(resource1, resource2, resource3),
       connections = List(folderResource1, folderResource2),
     )
-    repository.insertFolderInBulk(bulkInserts)
+    repository.insertFolderInBulk(bulkInserts).get
 
     repository.folderWithId(id1).get should be(folder1)
     repository.folderWithId(id2).get should be(folder2)
 
-    repository.insertResourcesInBulk(bulkInserts.copy(resources = List(resource2)))
+    repository.insertResourcesInBulk(bulkInserts.copy(resources = List(resource2))).get
     repository.resourceWithId(resource2.id).get should be(resource2)
 
-    repository.insertResourcesInBulk(bulkInserts)
+    repository.insertResourcesInBulk(bulkInserts).get
     repository.resourceWithId(resource1.id).get should be(resource1)
     repository.resourceWithId(resource2.id).get should be(resource2)
     val err = repository.resourceWithId(resource3.id)
     err.isFailure should be(true)
 
-    repository.insertResourceConnectionInBulk(bulkInserts)
+    repository.insertResourceConnectionInBulk(bulkInserts).get
 
     val conn1 = repository.getConnection(folder1.id, resource1.id).get
     conn1 should be(Some(folderResource1))
