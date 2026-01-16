@@ -11,3 +11,4 @@ where f.feide_id is not null
 alter table folders add constraint fk_feide_id foreign key (feide_id) references my_ndla_users(feide_id) on delete cascade;
 alter table resources add constraint fk_feide_id foreign key (feide_id) references my_ndla_users(feide_id) on delete cascade;
 alter table saved_shared_folder add constraint fk_feide_id foreign key (feide_id) references my_ndla_users(feide_id) on delete cascade;
+alter table robot_definitions add constraint fk_feide_id foreign key (feide_id) references my_ndla_users(feide_id) on delete cascade;

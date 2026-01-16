@@ -21,14 +21,17 @@ import java.util.UUID
 import scala.util.{Success, Try}
 
 class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
-  override implicit lazy val dataSource: DataSource = testDataSource.get
-  override implicit lazy val migrator: DBMigrator   = new DBMigrator
-  override implicit lazy val DBUtil: DBUtility      = new DBUtility
-  var repository: RobotRepository                   = scala.compiletime.uninitialized
+  override implicit lazy val dataSource: DataSource         = testDataSource.get
+  override implicit lazy val migrator: DBMigrator           = new DBMigrator
+  override implicit lazy val DBUtil: DBUtility              = new DBUtility
+  override implicit lazy val userRepository: UserRepository = new UserRepository
+  var repository: RobotRepository                           = scala.compiletime.uninitialized
+
+  val feideId = "feide1"
 
   def emptyTestDatabase: Boolean = {
     DB autoCommit (implicit session => {
-      sql"delete from robot_definitions;".execute()(using session)
+      sql"delete from my_ndla_users;".execute()(using session)
     })
   }
 
@@ -59,12 +62,15 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
   }
 
   test("that inserting and retrieving a robot works as expected") {
+    implicit val session: AutoSession.type = AutoSession
+    userRepository.reserveFeideIdIfNotExists(feideId)
+
     val created = NDLADate.now().withNano(0)
     when(clock.now()).thenReturn(created)
 
     val toInsert = RobotDefinition(
       id = UUID.randomUUID(),
-      feideId = "feide1",
+      feideId = feideId,
       created = created,
       updated = created,
       shared = None,
@@ -82,21 +88,23 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
       ),
     )
 
-    val session = repository.getSession(false)
-    val robot1  = repository.insertRobotDefinition(toInsert)(session).get
+    val robot1 = repository.insertRobotDefinition(toInsert)(session).get
     robot1.configuration.title should be("hei")
 
-    val robots = repository.getRobotsWithFeideId("feide1")(using session)
+    val robots = repository.getRobotsWithFeideId(feideId)(using session)
     robots.get.head should be(toInsert)
   }
 
   test("that updating a robot works as expected") {
+    implicit val session: AutoSession.type = AutoSession
+    userRepository.reserveFeideIdIfNotExists(feideId)
+
     val created = NDLADate.now().withNano(0)
     when(clock.now()).thenReturn(created)
 
     val toInsert = RobotDefinition(
       id = UUID.randomUUID(),
-      feideId = "feide1",
+      feideId = feideId,
       created = created,
       updated = created,
       shared = None,
@@ -114,14 +122,13 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
       ),
     )
 
-    val session = repository.getSession(false)
-    val robot1  = repository.insertRobotDefinition(toInsert)(session).get
+    val robot1 = repository.insertRobotDefinition(toInsert)(session).get
     robot1.configuration.title should be("hei")
 
     val toUpdate = robot1.copy(configuration = robot1.configuration.copy(title = "hei2"))
     repository.updateRobotDefinition(toUpdate)(using session).get
 
-    val robots = repository.getRobotsWithFeideId("feide1")(using session)
+    val robots = repository.getRobotsWithFeideId(feideId)(using session)
     robots.get.head should be(toUpdate)
   }
 
