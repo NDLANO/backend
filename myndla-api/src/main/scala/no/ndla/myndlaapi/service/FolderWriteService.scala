@@ -666,8 +666,8 @@ class FolderWriteService(using
       case _ => Success(parentId)
     }
 
-  def canWriteOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(
-      implicit session: DBSession = ReadOnlyAutoSession
+  def canWriteOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
+      session: DBSession = ReadOnlyAutoSession
   ): Try[?] = {
     userService
       .getMyNDLAUser(feideId, feideAccessToken)(using session)
