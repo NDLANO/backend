@@ -18,6 +18,7 @@ import no.ndla.myndlaapi.model.api.{BreadcrumbDTO, FolderDTO, OwnerDTO}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.{NewFolderData, ResourceDocument}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
+import no.ndla.myndlaapi.service.UserService
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
@@ -25,6 +26,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, spy, times, verify, when, withSettings}
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
+import scalikejdbc.AutoSession
 import sttp.client3.quick.*
 
 import java.util.UUID
@@ -60,8 +62,8 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       override implicit lazy val clock: Clock                       = mock[Clock](withSettings.strictness(Strictness.LENIENT))
       override implicit lazy val folderRepository: FolderRepository = spy(new FolderRepository)
       override implicit lazy val userRepository: UserRepository     = spy(new UserRepository)
+      override implicit lazy val userService: UserService           = spy(new UserService)
 
-      when(feideApiClient.getFeideID(any)).thenReturn(Success("q"))
       when(feideApiClient.getFeideAccessTokenOrFail(any)).thenReturn(Success("notimportante"))
       when(feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
       when(feideApiClient.getFeideExtendedUser(any)).thenReturn(
@@ -93,13 +95,11 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     super.beforeEach()
     reset(myndlaApi.componentRegistry.folderRepository)
     reset(myndlaApi.componentRegistry.userRepository)
+    implicit val session: AutoSession.type = AutoSession
+    myndlaApi.componentRegistry.userRepository.deleteAllUsers.get
 
-    myndlaApi.componentRegistry.folderRepository.deleteAllUserResources(feideId)
-    myndlaApi.componentRegistry.folderRepository.deleteAllUserResources(destinationFeideId)
-    myndlaApi.componentRegistry.folderRepository.deleteAllUserFolders(feideId)
-    myndlaApi.componentRegistry.folderRepository.deleteAllUserFolders(destinationFeideId)
-    myndlaApi.componentRegistry.userRepository.deleteUser(feideId)
-    myndlaApi.componentRegistry.userRepository.deleteUser(destinationFeideId)
+    myndlaApi.componentRegistry.userService.getMyNDLAUser(feideId, None).get            // Ensure user exists
+    myndlaApi.componentRegistry.userService.getMyNDLAUser(destinationFeideId, None).get // Ensure user exists
   }
 
   override def afterAll(): Unit = {
@@ -539,12 +539,13 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
   }
 
   test("that sharing a folder with subfolders will update shared field to current date for each subfolder") {
+    implicit val session: AutoSession.type = AutoSession
+
     val created = NDLADate.of(2023, 1, 1, 1, 59)
     val shared  = NDLADate.of(2024, 1, 1, 1, 59)
     when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(testClock.now()).thenReturn(created, created, created, shared)
     val folderRepository = myndlaApi.componentRegistry.folderRepository
-    val session          = folderRepository.getSession(true)
 
     val parent =
       NewFolderData(parentId = None, name = "parent", status = FolderStatus.PRIVATE, rank = 1, description = None)
@@ -621,7 +622,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
 
     val results            = CirceUtil.unsafeParseAs[List[UUID]](response.body)
     val resultParentId     = results.find(uuid => uuid == parentId).get
-    val domainParentFolder = folderRepository.getFolderAndChildrenSubfolders(resultParentId)(using session).get.get
+    val domainParentFolder = folderRepository.getFolderAndChildrenSubfolders(resultParentId).get.get
 
     domainParentFolder should be(expectedParent)
   }

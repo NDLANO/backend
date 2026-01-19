@@ -66,25 +66,22 @@ class FolderWriteService(using
 ) extends StrictLogging {
   val MaxFolderDepth = 5L
 
-  private def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
-    dbUtility.rollbackOnFailure(session =>
-      userService.getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
-    )
-  }
-
   private[service] def isOperationAllowedOrAccessDenied(
       feideId: FeideID,
       feideAccessToken: Option[FeideAccessToken],
       updatedFolder: UpdatedFolderDTO,
-  ): Try[?] = {
-    getMyNDLAUser(feideId, feideAccessToken).flatMap(myNDLAUser => {
-      if (myNDLAUser.isStudent && updatedFolder.status.contains(FolderStatus.SHARED.toString))
-        Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
-      else canWriteNow(myNDLAUser).flatMap {
-        case true  => Success(())
-        case false => Failure(AccessDeniedException("You do not have write access while write restriction is active."))
-      }
-    })
+  )(implicit session: DBSession = ReadOnlyAutoSession): Try[?] = {
+    userService
+      .getMyNDLAUser(feideId, feideAccessToken)(using session)
+      .flatMap(myNDLAUser => {
+        if (myNDLAUser.isStudent && updatedFolder.status.contains(FolderStatus.SHARED.toString))
+          Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
+        else canWriteNow(myNDLAUser).flatMap {
+          case true  => Success(())
+          case false =>
+            Failure(AccessDeniedException("You do not have write access while write restriction is active."))
+        }
+      })
   }
 
   private def canWriteNow(myNDLAUser: MyNDLAUser): Try[Boolean] = {
@@ -228,7 +225,7 @@ class FolderWriteService(using
     dbUtility.rollbackOnFailure { implicit session =>
       for {
         feideId    <- feideApiClient.getFeideID(feideAccessToken)
-        _          <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+        _          <- canWriteOrAccessDenied(feideId, feideAccessToken)
         maybeFolder =
           folderRepository.getFolderAndChildrenSubfoldersWithResources(sourceId, FolderStatus.SHARED, Some(feideId))
         sourceFolder <- folderReadService.getWith404IfNone(sourceId, maybeFolder)
@@ -255,7 +252,7 @@ class FolderWriteService(using
   ): Try[ExportedUserDataDTO] = {
     dbUtility.rollbackOnFailure { session =>
       for {
-        _ <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, maybeFeideToken)
+        _ <- canWriteOrAccessDenied(feideId, maybeFeideToken)
         _ <- userService.importUser(toImport.userData, feideId, maybeFeideToken)(using session)
         _ <- importFolders(toImport.folders, feideId)(using session)
       } yield toImport
@@ -310,7 +307,7 @@ class FolderWriteService(using
   ): Try[ResourceDTO] = {
     for {
       feideId          <- feideApiClient.getFeideID(feideAccessToken)
-      _                <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+      _                <- canWriteOrAccessDenied(feideId, feideAccessToken)
       existingResource <- folderRepository.resourceWithId(id)
       _                <- existingResource.isOwner(feideId)
       converted         = folderConverterService.mergeResource(existingResource, updatedResource)
@@ -340,7 +337,7 @@ class FolderWriteService(using
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
       feideId        <- feideApiClient.getFeideID(feideAccessToken)
-      _              <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+      _              <- canWriteOrAccessDenied(feideId, feideAccessToken)
       folder         <- folderRepository.folderWithId(id)
       _              <- folder.isOwner(feideId)
       parent         <- getFolderWithDirectChildren(folder.parentId, feideId)
@@ -357,7 +354,7 @@ class FolderWriteService(using
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
       feideId       <- feideApiClient.getFeideID(feideAccessToken)
-      _             <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+      _             <- canWriteOrAccessDenied(feideId, feideAccessToken)
       folder        <- folderRepository.folderWithId(folderId)
       _             <- folder.isOwner(feideId)
       resource      <- folderRepository.resourceWithId(resourceId)
@@ -448,7 +445,7 @@ class FolderWriteService(using
   ): Try[Unit] = permitTry {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     val feideId                     = feideApiClient.getFeideID(feideAccessToken).?
-    canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken).??
+    canWriteOrAccessDenied(feideId, feideAccessToken).??
     folderSortObject match {
       case ResourceSorting(parentId) => sortNonRootFolderResources(parentId, sortRequest, feideId)
       case FolderSorting(parentId)   => sortNonRootFolderSubfolders(parentId, sortRequest, feideId)
@@ -585,7 +582,7 @@ class FolderWriteService(using
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
       feideId   <- feideApiClient.getFeideID(feideAccessToken)
-      _         <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+      _         <- canWriteOrAccessDenied(feideId, feideAccessToken)
       inserted  <- createNewFolder(newFolder, feideId, makeUniqueNamePostfix = None, isCloning = false)
       crumbs    <- folderReadService.getBreadcrumbs(inserted)(using ReadOnlyAutoSession)
       feideUser <- userRepository.userWithFeideId(feideId)
@@ -623,7 +620,7 @@ class FolderWriteService(using
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
       feideId   <- feideApiClient.getFeideID(feideAccessToken)
-      _         <- canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+      _         <- canWriteOrAccessDenied(feideId, feideAccessToken)
       resource  <- createOrUpdateFolderResourceConnection(folderId, newResource, feideId)
       converted <- folderConverterService.toApiResource(resource, isOwner = true)
     } yield converted
@@ -669,16 +666,18 @@ class FolderWriteService(using
       case _ => Success(parentId)
     }
 
-  def canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(
-      feideId: FeideID,
-      feideAccessToken: Option[FeideAccessToken],
+  def canWriteOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
+      session: DBSession = ReadOnlyAutoSession
   ): Try[?] = {
-    getMyNDLAUser(feideId, feideAccessToken).flatMap(myNDLAUser =>
-      canWriteNow(myNDLAUser).flatMap {
-        case true  => Success(())
-        case false => Failure(AccessDeniedException("You do not have write access while write restriction is active."))
-      }
-    )
+    userService
+      .getMyNDLAUser(feideId, feideAccessToken)(using session)
+      .flatMap(myNDLAUser =>
+        canWriteNow(myNDLAUser).flatMap {
+          case true  => Success(())
+          case false =>
+            Failure(AccessDeniedException("You do not have write access while write restriction is active."))
+        }
+      )
   }
 
   def newSaveSharedFolder(folderId: UUID, feideAccessToken: Option[FeideAccessToken]): Try[Unit] = {
@@ -712,10 +711,14 @@ class FolderWriteService(using
     folderRepository.deleteFolderUserConnection(folderId.some, feideId.some)
   }
 
-  private def isTeacherOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken]): Try[?] = {
-    getMyNDLAUser(feideId, feideAccessToken).flatMap(myNDLAUser => {
-      if (myNDLAUser.isTeacher) Success(())
-      else Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
-    })
+  private def isTeacherOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
+      session: DBSession
+  ): Try[?] = {
+    userService
+      .getMyNDLAUser(feideId, feideAccessToken)(using session)
+      .flatMap(myNDLAUser => {
+        if (myNDLAUser.isTeacher) Success(())
+        else Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
+      })
   }
 }

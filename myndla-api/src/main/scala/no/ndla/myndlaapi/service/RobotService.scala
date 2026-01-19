@@ -55,7 +55,7 @@ class RobotService(using
     val now = clock.now()
     for {
       feideId <- feideApiClient.getFeideID(feideToken)
-      _       <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideToken)
+      _       <- folderWriteService.canWriteOrAccessDenied(feideId, feideToken)
       domain   = RobotDefinition(
         id = UUID.randomUUID(),
         feideId = feideId,
@@ -92,7 +92,7 @@ class RobotService(using
     session =>
       for {
         feideId       <- feideApiClient.getFeideID(feideToken)
-        _             <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideToken)
+        _             <- folderWriteService.canWriteOrAccessDenied(feideId, feideToken)
         maybeRobot    <- robotRepository.getRobotWithId(robotId)(using session)
         existingRobot <- maybeRobot.toTry(NotFoundException(s"Could not find editable robot with id '$robotId'"))
         _             <- existingRobot.canEdit(feideId)
@@ -106,7 +106,7 @@ class RobotService(using
     val now = clock.now()
     for {
       feideId       <- feideApiClient.getFeideID(feideToken)
-      _             <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideToken)
+      _             <- folderWriteService.canWriteOrAccessDenied(feideId, feideToken)
       maybeRobot    <- robotRepository.getRobotWithId(robotId)(using session)
       existingRobot <- maybeRobot.toTry(NotFoundException(s"Could not find editable robot with id '$robotId'"))
       _             <- existingRobot.canEdit(feideId)

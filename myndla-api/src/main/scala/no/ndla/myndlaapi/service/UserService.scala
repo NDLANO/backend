@@ -33,6 +33,12 @@ class UserService(using
     folderRepository: FolderRepository,
     dbUtility: DBUtility,
 ) {
+  def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
+      session: DBSession
+  ): Try[MyNDLAUser] = {
+    getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
+  }
+
   def getMyNdlaUserDataDomain(feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
     for {
       feideId  <- feideApiClient.getFeideID(feideAccessToken)
@@ -58,7 +64,7 @@ class UserService(using
     } yield api
   }
 
-  def getOrCreateMyNDLAUserIfNotExist(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
+  private def getOrCreateMyNDLAUserIfNotExist(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
       session: DBSession
   ): Try[MyNDLAUser] = {
     userRepository
@@ -101,7 +107,7 @@ class UserService(using
       feideAccessToken: Option[FeideAccessToken],
   )(implicit session: DBSession): Try[myndla.MyNDLAUserDTO] = {
     for {
-      _                <- folderWriteService.canWriteDuringMyNDLAWriteRestrictionsOrAccessDenied(feideId, feideAccessToken)
+      _                <- folderWriteService.canWriteOrAccessDenied(feideId, feideAccessToken)
       existingUserData <- getMyNDLAUserOrFail(feideId)
       combined         <- folderConverterService.mergeUserData(existingUserData, updatedUser, None)
       updated          <- userRepository.updateUser(feideId, combined)
