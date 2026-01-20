@@ -883,6 +883,9 @@ class SearchConverterService(using
       .map(lv => api.learningpath.LearningPathTagsDTO(lv.value, lv.language))
 
     val supportedLanguages = getSupportedLanguages(titles, metaDescriptions, tags)
+    val revisions          = searchableLearningPath
+      .revisionMeta
+      .map(m => RevisionMetaDTO(m.revisionDate, m.note, m.status.entryName))
 
     val title = findByLanguageOrBestEffort(titles, language).getOrElse(
       common.model.api.search.TitleWithHtmlDTO("", "", UnknownLanguage.toString)
@@ -930,7 +933,7 @@ class SearchConverterService(using
         paths = getPathsFromContext(searchableLearningPath.contexts),
         lastUpdated = searchableLearningPath.lastUpdated,
         license = Some(searchableLearningPath.license),
-        revisions = Seq.empty,
+        revisions = revisions,
         responsible = responsible,
         comments = Some(comments),
         priority = Some(searchableLearningPath.priority),
@@ -940,7 +943,7 @@ class SearchConverterService(using
         published = None,
         favorited = Some(searchableLearningPath.favorited),
         resultType = SearchType.LearningPaths,
-        revision = None,
+        revision = searchableLearningPath.domainObject.revision,
         grepCodes = searchableLearningPath.grepCodes,
         started = false,
       )
