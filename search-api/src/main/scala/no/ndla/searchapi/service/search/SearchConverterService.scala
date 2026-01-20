@@ -156,6 +156,7 @@ class SearchConverterService(using
           "about-ndla",
           "om-ndla-artikkel",
         )
+      case LearningResourceType.CaseArticle                          => List("case", "case-article", "tverrfaglig", "tverrfaglig case")
       case LearningResourceType.LearningPath                         => List("learningpath", "læringssti", "sti", "læringsti")
       case LearningResourceType.Concept | LearningResourceType.Gloss =>
         List("concept", "forklaring", "konsept", "glose", "gloss")
@@ -585,6 +586,11 @@ class SearchConverterService(using
           "nb" -> "Om-NDLA-artikkel",
           "nn" -> "Om-NDLA-artikkel",
           "en" -> "About-NDLA article",
+        )
+      case ArticleType.CaseArticle => SearchableLanguageValues.from(
+          "nb" -> "Tverrfaglig case",
+          "nn" -> "Tverrfaglig case",
+          "en" -> "Multidisciplinary case",
         )
     }
   }
