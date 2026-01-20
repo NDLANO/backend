@@ -184,7 +184,7 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
       .map(_.toMap)
 
   def numberOfFavouritedSubjects()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] =
-    tsql"select count(favoriteSubject) from (select distinct jsonb_array_elements_text(document->'favoriteSubjects') from ${DBMyNDLAUser.table}) as favoriteSubject"
+    tsql"select count(favoriteSubject) from (select jsonb_array_elements_text(document->'favoriteSubjects') from ${DBMyNDLAUser.table}) as favoriteSubject"
       .map(rs => rs.long("count"))
       .runSingle()
 
