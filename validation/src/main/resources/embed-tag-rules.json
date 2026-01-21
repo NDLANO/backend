@@ -374,7 +374,8 @@
             "required": false,
             "dataType": "ENUM",
             "allowedValues": [
-              "article"
+              "article",
+              "learningpath"
             ]
           }
         },
