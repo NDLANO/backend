@@ -99,13 +99,17 @@ class TraitUtil {
 
   private def getAttributes(embed: Element): List[String] = {
     val attributesToKeep = List(
-      TagAttribute.DataTitle,
-      TagAttribute.DataCaption,
       TagAttribute.DataAlt,
-      TagAttribute.DataLinkText,
-      TagAttribute.DataEdition,
-      TagAttribute.DataPublisher,
       TagAttribute.DataAuthors,
+      TagAttribute.DataCaption,
+      TagAttribute.DataDescription,
+      TagAttribute.DataDisclaimer,
+      TagAttribute.DataEdition,
+      TagAttribute.DataLinkText,
+      TagAttribute.DataPublisher,
+      TagAttribute.DataSubtitle,
+      TagAttribute.DataText,
+      TagAttribute.DataTitle,
     )
 
     attributesToKeep.flatMap(attr =>

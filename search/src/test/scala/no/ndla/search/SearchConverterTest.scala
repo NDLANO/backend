@@ -13,15 +13,24 @@ import no.ndla.testbase.UnitTestSuiteBase
 
 class SearchConverterTest extends UnitTestSuiteBase {
 
-  test("That extracting imageids works") {
-    val imageId = "123"
-    val html    =
-      s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="image" data-resource_id="$imageId"></ndlaembed>"""
+  test("That extracting imageids and videoids works") {
+    {
+      val imageId = "123"
+      val html    =
+        s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="image" data-resource_id="$imageId"></ndlaembed>"""
 
-    val expected = List(EmbedValues(id = List(imageId), resource = Some("image"), language = "nb"))
+      val expected = List(EmbedValues(id = List(imageId), resource = Some("image"), language = "nb"))
 
-    SearchConverter.getEmbedValues(html, "nb") should be(expected)
+      SearchConverter.getEmbedValues(html, "nb") should be(expected)
+    }
+    {
+      val videoId = "5796284585001"
+      val html    =
+        s"""<section><h1>Hello my dear friends</h1><ndlaembed data-account="4806596774001" data-caption="Kildebruk" data-player="BkLm8fT" data-resource="brightcove" data-videoid="$videoId"></ndlaembed>"""
 
+      val expected = List(EmbedValues(id = List(videoId), resource = Some("brightcove"), language = "nb"))
+      SearchConverter.getEmbedValues(html, "nb") should be(expected)
+    }
   }
 
   test("That extracting videoids from html strips timestamps") {
@@ -34,4 +43,25 @@ class SearchConverterTest extends UnitTestSuiteBase {
 
     SearchConverter.getEmbedValues(html, "nb") should be(expected)
   }
+
+  test("That extracting ids from urls works") {
+    {
+      val videoId        = "1234"
+      val videoIdAndData = s"https://ndla2.filmiundervisning.no/film/$videoId"
+      val html           =
+        s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="iframe" data-url="$videoIdAndData"></ndlaembed>"""
+
+      val expected = List(EmbedValues(id = List(videoId), resource = Some("iframe"), language = "nb"))
+      SearchConverter.getEmbedValues(html, "nb") should be(expected)
+    }
+  }
+  {
+    val videoId = "MSUI20000011"
+    val html    =
+      s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="iframe" data-url="https://static.nrk.no/ludo/latest/video-embed.html#id=MSUI20000011" data-type="iframe"></ndlaembed>"""
+
+    val expected = List(EmbedValues(id = List(videoId), resource = Some("iframe"), language = "nb"))
+    SearchConverter.getEmbedValues(html, "nb") should be(expected)
+  }
+
 }
