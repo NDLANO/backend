@@ -19,7 +19,7 @@ import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.PLANNED
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.language.OptLanguageFields
-import no.ndla.common.model.{RelatedContentLink, api as commonApi, domain as common}
+import no.ndla.common.model.{RelatedContentLink, TagAttribute, api as commonApi, domain as common}
 import no.ndla.common.{Clock, model}
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.model.api.{NotFoundException, UpdatedArticleDTO}

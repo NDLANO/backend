@@ -10,6 +10,7 @@ package no.ndla.validation
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
+import no.ndla.common.model.TagAttribute
 import no.ndla.validation.TagRules.Condition
 
 class EmbedTagValidatorTest extends UnitSuite {

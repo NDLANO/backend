@@ -9,6 +9,7 @@
 package no.ndla.validation
 
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model.TagAttribute
 
 class HtmlTagRulesTest extends UnitSuite {
   test("embed tag should be an allowed tag and contain data attributes") {

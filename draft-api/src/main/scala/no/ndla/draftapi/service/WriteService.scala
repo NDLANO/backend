@@ -19,6 +19,7 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{MissingIdException, NotFoundException, OperationNotAllowedException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.logging.logTaskTime
+import no.ndla.common.model.TagAttribute
 import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.article.PartialPublishArticleDTO
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, UploadedFile}

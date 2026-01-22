@@ -13,6 +13,7 @@ import cats.implicits.*
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
+import no.ndla.common.model.TagAttribute
 import no.ndla.validation.AttributeType.*
 import no.ndla.validation.TagRules.TagAttributeRules
 import org.jsoup.nodes.{Element, Node}
