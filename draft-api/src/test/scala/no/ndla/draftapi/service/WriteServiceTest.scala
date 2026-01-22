@@ -142,6 +142,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       started = true,
     )
 
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(writeService.partialPublish(any, any, any, any)).thenReturn((expectedArticle.id.get, Success(expectedArticle)))
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(expectedArticle.id.get))
 
@@ -156,6 +157,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .copy(revision = 1, language = Some("en"), title = Some(newTitle))
     val expectedArticle =
       article.copy(revision = Some(article.revision.get + 1), title = Seq(Title(newTitle, "en")), updated = today)
+
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
 
     service.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess) should equal(
       converterService.toApiArticle(expectedArticle, "en")
@@ -234,6 +237,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       articleType = ArticleType.TopicArticle,
     )
 
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
+
     service.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess) should equal(
       converterService.toApiArticle(expectedArticle, "en")
     )
@@ -244,6 +249,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .sampleDomainArticle
       .copy(status = TestData.statusWithPlanned, responsible = Some(Responsible("hei", TestData.today)))
     val updatedArticle = TestData.sampleApiUpdateArticle.copy(status = Some("IN_PROGRESS"))
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     val Success(result) =
       service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
@@ -258,6 +264,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existing = TestData
       .sampleDomainArticle
       .copy(status = TestData.statusWithPublished, responsible = Some(Responsible("hei", TestData.today)))
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     val Success(result) =
       service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
@@ -271,6 +278,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val existing = TestData
         .sampleDomainArticle
         .copy(status = TestData.statusWithInProcess, responsible = Some(Responsible("hei", TestData.today)))
+      when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
       when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
       val Success(result) =
         service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
@@ -281,6 +289,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val existing = TestData
         .sampleDomainArticle
         .copy(status = TestData.statusWithExternalReview, responsible = Some(Responsible("hei", TestData.today)))
+      when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
       when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
       val Success(result) =
         service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
@@ -291,6 +300,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val existing = TestData
         .sampleDomainArticle
         .copy(status = TestData.statusWithInternalReview, responsible = Some(Responsible("hei", TestData.today)))
+      when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
       when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
       val Success(result) =
         service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
@@ -301,6 +311,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       val existing = TestData
         .sampleDomainArticle
         .copy(status = TestData.statusWithEndControl, responsible = Some(Responsible("hei", TestData.today)))
+      when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
       when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
       when(contentValidator.validateArticle(any[Draft])(using any[DBSession])).thenReturn(Success(existing))
       when(articleApiClient.validateArticle(any[domain.article.Article], any[Boolean], any)).thenAnswer(
@@ -312,6 +323,23 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
       result.status should equal(api.StatusDTO("END_CONTROL", Seq.empty))
     }
+  }
+
+  test("updateArticle should fail if slug is changed to one that already exists") {
+    val updatedArticle = TestData.sampleApiUpdateArticle.copy(slug = Some("new-slug"))
+
+    val existing = TestData
+      .sampleDomainArticle
+      .copy(
+        status = TestData.statusWithPublished,
+        responsible = Some(Responsible("hei", TestData.today)),
+        slug = Some("old-slug"),
+      )
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Failure(new Exception("Slug exists")))
+    when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
+    val Failure(result) =
+      service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
+    result.getMessage should include("slug: The slug 'new-slug' is already in use by another article.")
   }
 
   test("That delete article should fail when only one language") {
@@ -420,6 +448,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         responsible = Some(Responsible("hei", TestData.today)),
       )
 
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(any)(using any)).thenReturn(Success(Some(article)))
     service.updateArticle(1, updatedArticle, TestData.userWithPublishAccess)
 
@@ -532,6 +561,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .copy(revision = 1, notes = Some(Seq("note1", "note2")), editorLabels = Some(Seq("note3", "note4")))
 
     val existing = TestData.sampleDomainArticle.copy(status = TestData.statusWithPublished)
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     val Success(result1) =
       service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
@@ -554,6 +584,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existing = TestData
       .sampleDomainArticle
       .copy(title = Seq(Title(existingTitle, "nb")), status = TestData.statusWithPublished)
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     val Success(result1) =
       service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
@@ -603,6 +634,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         tags = Seq.empty,
       )
 
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     when(writeService.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
@@ -661,6 +693,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         responsible = Some(Responsible("hei", TestData.today)),
       )
 
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     when(writeService.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
@@ -719,6 +752,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         responsible = Some(Responsible("hei", TestData.today)),
       )
 
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     when(writeService.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
@@ -758,6 +792,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData
       .blankUpdatedArticle
       .copy(language = Some("nb"), title = Some("detteErEnNyTittel"), createNewVersion = Some(true))
+
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
 
     val updated = service.updateArticle(articleId, updatedArticle, TestData.userWithAdminAccess)
 
@@ -939,6 +975,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updated = today,
     )
 
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
+
     service.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess) should equal(
       converterService.toApiArticle(expectedArticle, "en")
     )
@@ -948,6 +986,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(uuidUtil.randomUUID()).thenCallRealMethod()
     val revision          = RevisionMetaDTO(None, NDLADate.now(), "Ny revision", RevisionStatus.NeedsRevision.entryName)
     val updatedApiArticle = TestData.blankUpdatedArticle.copy(revision = 1, revisionMeta = Some(Seq(revision)))
+
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
 
     val saved = service.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess)
     saved.get.notes.size should be(2)
@@ -1015,6 +1055,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         tags = Seq.empty,
       )
 
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     when(writeService.partialPublish(any, any, any, any)).thenReturn((existing.id.get, Success(existing)))
     when(articleApiClient.partialPublishArticle(any, any, any)).thenReturn(Success(existing.id.get))
@@ -1198,6 +1239,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .blankUpdatedArticle
       .copy(revision = 1, title = Some("updated title"), language = Some("nb"))
 
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     val result = service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess).get
 
@@ -1216,6 +1258,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .blankUpdatedArticle
       .copy(revision = 1, title = Some("updated title"), language = Some("nb"), status = Some("IN_PROGRESS"))
 
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     val result = service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess).get
 
@@ -1233,6 +1276,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData
       .blankUpdatedArticle
       .copy(revision = 1, title = Some("updated title"), language = Some("nb"), responsibleId = UpdateWith("heiho"))
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     val result = service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess).get
 
@@ -1250,6 +1294,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData
       .blankUpdatedArticle
       .copy(revision = 1, title = Some("updated title"), language = Some("nb"))
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     val result = service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess).get
 
@@ -1268,6 +1313,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData
       .blankUpdatedArticle
       .copy(revision = 1, metaDescription = Some("updated title"), language = Some("nb"))
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     val result = service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess).get
 
@@ -1287,6 +1333,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData
       .blankUpdatedArticle
       .copy(revision = 1, status = Some("PUBLISHED"), language = Some("nb"))
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     val result = service.updateArticle(existing.id.get, updatedArticle, TestData.userWithAdminAccess).get
 

@@ -16,7 +16,13 @@ import no.ndla.common.Clock
 import no.ndla.common.ContentURIUtil.parseArticleIdAndRevision
 import no.ndla.common.TryUtil.when
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.errors.{MissingIdException, NotFoundException, OperationNotAllowedException, ValidationException}
+import no.ndla.common.errors.{
+  MissingIdException,
+  NotFoundException,
+  OperationNotAllowedException,
+  ValidationException,
+  ValidationMessage,
+}
 import no.ndla.common.implicits.*
 import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.api.UpdateWith
@@ -500,33 +506,50 @@ class WriteService(using
 
   private def updateExistingArticle(existing: Draft, updatedApiArticle: api.UpdatedArticleDTO, user: TokenUser)(using
       DBSession
-  ): Try[api.ArticleDTO] = for {
-    convertedArticle         <- converterService.toDomainArticle(existing, updatedApiArticle, user)
-    shouldNotAutoUpdateStatus = !shouldUpdateStatus(convertedArticle, existing)
+  ): Try[api.ArticleDTO] = {
+    draftRepository.slugExists(updatedApiArticle.slug.getOrElse(""), existing.id) match {
+      case Success(false) => () // slug is not taken, continue
+      case _              => return Failure(
+          new ValidationException(
+            "Validation error",
+            Seq(
+              ValidationMessage(
+                "slug",
+                s"The slug '${updatedApiArticle.slug.get}' is already in use by another article.",
+              )
+            ),
+          )
+        )
+    }
 
-    articleWithStatus <-
-      updateStatusIfNeeded(convertedArticle, existing, updatedApiArticle, user, shouldNotAutoUpdateStatus)
+    for {
+      convertedArticle         <- converterService.toDomainArticle(existing, updatedApiArticle, user)
+      shouldNotAutoUpdateStatus = !shouldUpdateStatus(convertedArticle, existing)
 
-    didUpdateStatus = articleWithStatus.status.current != convertedArticle.status.current
+      articleWithStatus <-
+        updateStatusIfNeeded(convertedArticle, existing, updatedApiArticle, user, shouldNotAutoUpdateStatus)
 
-    updatedArticle <- updateArticle(
-      articleWithStatus,
-      language = updatedApiArticle.language,
-      createNewVersion = updatedApiArticle.createNewVersion.getOrElse(false),
-      oldArticle = Some(existing),
-      user = user,
-      statusWasUpdated = didUpdateStatus,
-      updatedApiArticle = updatedApiArticle,
-      shouldNotAutoUpdateStatus = shouldNotAutoUpdateStatus,
-    )
-    withEmbedUrls = readService.addUrlsOnEmbedResources(updatedArticle)
+      didUpdateStatus = articleWithStatus.status.current != convertedArticle.status.current
 
-    apiArticle <- converterService.toApiArticle(
-      article = withEmbedUrls,
-      language = updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
-      fallback = updatedApiArticle.language.isEmpty,
-    )
-  } yield apiArticle
+      updatedArticle <- updateArticle(
+        articleWithStatus,
+        language = updatedApiArticle.language,
+        createNewVersion = updatedApiArticle.createNewVersion.getOrElse(false),
+        oldArticle = Some(existing),
+        user = user,
+        statusWasUpdated = didUpdateStatus,
+        updatedApiArticle = updatedApiArticle,
+        shouldNotAutoUpdateStatus = shouldNotAutoUpdateStatus,
+      )
+      withEmbedUrls = readService.addUrlsOnEmbedResources(updatedArticle)
+
+      apiArticle <- converterService.toApiArticle(
+        article = withEmbedUrls,
+        language = updatedApiArticle.language.getOrElse(UnknownLanguage.toString),
+        fallback = updatedApiArticle.language.isEmpty,
+      )
+    } yield apiArticle
+  }
 
   def deleteLanguage(id: Long, language: String, userInfo: TokenUser): Try[api.ArticleDTO] = dbUtility
     .rollbackOnFailure { implicit session =>
