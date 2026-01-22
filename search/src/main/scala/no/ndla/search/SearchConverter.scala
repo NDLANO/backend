@@ -8,7 +8,6 @@
 
 package no.ndla.search
 
-import cats.implicits.catsSyntaxOptionId
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.TagAttribute
 import no.ndla.search.model.domain.EmbedValues
@@ -60,19 +59,19 @@ object SearchConverter {
     else str
   }
 
-  private def extractIdFromUrl(resourceUrl: String): String = {
+  private def extractIdFromUrl(resourceUrl: String): List[String] = {
     if (resourceUrl.startsWith("http://") || resourceUrl.startsWith("https://")) {
       resourceUrl.split('/').filter(_.nonEmpty).lastOption match {
-        case Some(last) => substringAfterEquals(last)
-        case None       => resourceUrl
+        case Some(last) => List(resourceUrl, substringAfterEquals(last))
+        case None       => List(resourceUrl)
       }
-    } else resourceUrl
+    } else List(resourceUrl)
   }
   private def getEmbedIds(embed: Element): List[String] = {
     AttributesToKeep.flatMap(attr =>
       embed.attr(attr.toString) match {
         case ""    => None
-        case value => stripIdPostfix(extractIdFromUrl(value)).some
+        case value => extractIdFromUrl(stripIdPostfix(value))
       }
     )
   }
