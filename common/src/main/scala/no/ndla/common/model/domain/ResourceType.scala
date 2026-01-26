@@ -29,6 +29,7 @@ object ResourceType extends Enum[ResourceType] with CirceEnum[ResourceType] {
   case object Image             extends ResourceType("image")
   case object Learningpath      extends ResourceType("learningpath")
   case object Multidisciplinary extends ResourceType("multidisciplinary")
+  case object Case              extends ResourceType("case")
   case object Topic             extends ResourceType("topic")
   case object Video             extends ResourceType("video")
 }
