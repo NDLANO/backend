@@ -44,6 +44,7 @@ object SearchConverter {
     TagAttribute.DataResource_Id,
     TagAttribute.DataContentId,
     TagAttribute.DataArticleId,
+    TagAttribute.DataImageId,
   )
 
   private def stripIdPostfix(str: String): String = {
@@ -71,7 +72,17 @@ object SearchConverter {
     AttributesToKeep.flatMap(attr =>
       embed.attr(attr.toString) match {
         case ""    => None
-        case value => extractIdFromUrl(stripIdPostfix(value))
+        case value => {
+          attr match {
+            case TagAttribute.DataUrl         => extractIdFromUrl(value)
+            case TagAttribute.DataVideoId     => List(stripIdPostfix(value))
+            case TagAttribute.DataResource_Id => List(value)
+            case TagAttribute.DataContentId   => List(value)
+            case TagAttribute.DataArticleId   => List(value)
+            case TagAttribute.DataImageId     => List(value)
+            case _                            => None
+          }
+        }
       }
     )
   }
