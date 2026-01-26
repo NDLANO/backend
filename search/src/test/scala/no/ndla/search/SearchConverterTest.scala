@@ -54,15 +54,15 @@ class SearchConverterTest extends UnitTestSuiteBase {
       val expected = List(EmbedValues(id = List(videoIdAndData, videoId), resource = Some("iframe"), language = "nb"))
       SearchConverter.getEmbedValues(html, "nb") should be(expected)
     }
-  }
-  {
-    val videoId  = "MSUI20000011"
-    val videoUrl = s"https://static.nrk.no/ludo/latest/video-embed.html#id=$videoId"
-    val html     =
-      s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="iframe" data-url="$videoUrl" data-type="iframe"></ndlaembed>"""
+    {
+      val videoId  = "MSUI20000011"
+      val videoUrl = s"https://static.nrk.no/ludo/latest/video-embed.html#id=$videoId"
+      val html     =
+        s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="iframe" data-url="$videoUrl" data-type="iframe"></ndlaembed>"""
 
-    val expected = List(EmbedValues(id = List(videoUrl, videoId), resource = Some("iframe"), language = "nb"))
-    SearchConverter.getEmbedValues(html, "nb") should be(expected)
+      val expected = List(EmbedValues(id = List(videoUrl, videoId), resource = Some("iframe"), language = "nb"))
+      SearchConverter.getEmbedValues(html, "nb") should be(expected)
+    }
   }
 
 }
