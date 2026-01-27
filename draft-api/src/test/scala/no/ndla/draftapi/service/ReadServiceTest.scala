@@ -10,9 +10,10 @@ package no.ndla.draftapi.service
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
+import no.ndla.common.model.TagAttribute
 import no.ndla.common.model.domain.{ArticleContent, Description, VisualElement}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.validation.{ResourceType, TagAttribute}
+import no.ndla.validation.ResourceType
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}
 import scalikejdbc.DBSession

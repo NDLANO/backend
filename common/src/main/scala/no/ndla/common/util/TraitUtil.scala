@@ -10,6 +10,7 @@ package no.ndla.common.util
 
 import cats.syntax.option.catsSyntaxOptionId
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model.TagAttribute
 import no.ndla.common.model.api.search.ArticleTrait
 import no.ndla.common.model.api.search.ArticleTrait.{Audio, Interactive, Podcast, Video}
 import no.ndla.common.model.domain.ArticleContent
@@ -78,9 +79,9 @@ class TraitUtil {
     "worldbank.org",
   )
   private def embedToMaybeTrait(embed: Element): Option[ArticleTrait] = {
-    val dataResource = embed.attr("data-resource")
-    val dataUrl      = embed.attr("data-url")
-    val dataType     = embed.attr("data-type")
+    val dataResource = embed.attr(TagAttribute.DataResource.toString)
+    val dataUrl      = embed.attr(TagAttribute.DataUrl.toString)
+    val dataType     = embed.attr(TagAttribute.DataType.toString)
     dataResource match {
       case "brightcove" | "nrk"                                             => Video.some
       case "external" | "iframe" if videoUrl.exists(dataUrl.contains)       => Video.some
@@ -97,11 +98,22 @@ class TraitUtil {
   }
 
   private def getAttributes(embed: Element): List[String] = {
-    val attributesToKeep =
-      List("data-title", "data-caption", "data-alt", "data-link-text", "data-edition", "data-publisher", "data-authors")
+    val attributesToKeep = List(
+      TagAttribute.DataAlt,
+      TagAttribute.DataAuthors,
+      TagAttribute.DataCaption,
+      TagAttribute.DataDescription,
+      TagAttribute.DataDisclaimer,
+      TagAttribute.DataEdition,
+      TagAttribute.DataLinkText,
+      TagAttribute.DataPublisher,
+      TagAttribute.DataSubtitle,
+      TagAttribute.DataText,
+      TagAttribute.DataTitle,
+    )
 
     attributesToKeep.flatMap(attr =>
-      embed.attr(attr) match {
+      embed.attr(attr.toString) match {
         case "" => None
         case a  => Some(a)
       }

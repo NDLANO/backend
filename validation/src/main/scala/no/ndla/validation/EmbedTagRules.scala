@@ -9,6 +9,7 @@
 package no.ndla.validation
 
 import enumeratum.*
+import no.ndla.common.model.TagAttribute
 
 import scala.io.Source
 import scala.language.postfixOps

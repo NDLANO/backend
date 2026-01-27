@@ -8,8 +8,8 @@
 
 package no.ndla.search
 
-import cats.implicits.catsSyntaxOptionId
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model.TagAttribute
 import no.ndla.search.model.domain.EmbedValues
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -32,14 +32,20 @@ object SearchConverter {
     EmbedValues(resource = getEmbedResource(embed), id = getEmbedIds(embed), language = language)
 
   private def getEmbedResource(embed: Element): Option[String] = {
-    embed.attr("data-resource") match {
+    embed.attr(TagAttribute.DataResource.toString) match {
       case "" => None
       case a  => Some(a)
     }
   }
 
-  private val AttributesToKeep =
-    List("data-videoid", "data-url", "data-resource_id", "data-content-id", "data-article-id")
+  private val AttributesToKeep = List(
+    TagAttribute.DataVideoId,
+    TagAttribute.DataUrl,
+    TagAttribute.DataResource_Id,
+    TagAttribute.DataContentId,
+    TagAttribute.DataArticleId,
+    TagAttribute.DataImageId,
+  )
 
   private def stripIdPostfix(str: String): String = {
     // NOTE: Some video ids can contain data like timestamp (`&t=123`)
@@ -47,11 +53,36 @@ object SearchConverter {
     str.takeWhile(_ != '&')
   }
 
+  // If the string contains an '=' character, return the substring after the last '=';
+  private def substringAfterEquals(str: String): String = {
+    val idx = str.lastIndexOf('=')
+    if (idx >= 0 && idx < str.length - 1) str.substring(idx + 1)
+    else str
+  }
+
+  private def extractIdFromUrl(resourceUrl: String): List[String] = {
+    if (resourceUrl.startsWith("http://") || resourceUrl.startsWith("https://")) {
+      resourceUrl.split('/').filter(_.nonEmpty).lastOption match {
+        case Some(last) => List(resourceUrl, substringAfterEquals(last))
+        case None       => List(resourceUrl)
+      }
+    } else List(resourceUrl)
+  }
   private def getEmbedIds(embed: Element): List[String] = {
     AttributesToKeep.flatMap(attr =>
-      embed.attr(attr) match {
+      embed.attr(attr.toString) match {
         case ""    => None
-        case value => stripIdPostfix(value).some
+        case value => {
+          attr match {
+            case TagAttribute.DataUrl         => extractIdFromUrl(value)
+            case TagAttribute.DataVideoId     => List(stripIdPostfix(value))
+            case TagAttribute.DataResource_Id => List(value)
+            case TagAttribute.DataContentId   => List(value)
+            case TagAttribute.DataArticleId   => List(value)
+            case TagAttribute.DataImageId     => List(value)
+            case _                            => None
+          }
+        }
       }
     )
   }

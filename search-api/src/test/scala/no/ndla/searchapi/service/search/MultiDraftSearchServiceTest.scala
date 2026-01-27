@@ -956,6 +956,24 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     hits.head.id should be(12)
   }
 
+  test("That search on query as embed data-url with id extracted matches") {
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("1234").get))
+    ): @unchecked
+    val hits = results.summaryResults
+    results.totalCount should be(1)
+    hits.head.id should be(12)
+  }
+
+  test("That search on query as embed data-videoid matches") {
+    val Success(results) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("6369137446112").get))
+    ): @unchecked
+    val hits = results.summaryResults
+    results.totalCount should be(1)
+    hits.head.id should be(12)
+  }
+
   test("That search on query as article id matches") {
     val Success(results) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("11").get))

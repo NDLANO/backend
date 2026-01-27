@@ -865,7 +865,15 @@ object TestData {
       metaDescription = List(common.Description("", "nb")),
       content = List(
         ArticleContent(
-          s"<section><p>artikkeltekst med fire deler</p><$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\"></$EmbedTagName><$EmbedTagName data-resource=\"image\" data-resource_id=\"test-image.id\"  data-url=\"test-image.url\"></$EmbedTagName><$EmbedTagName data-resource=\"image\" data-resource_id=\"55\"></$EmbedTagName><$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName><$EmbedTagName data-videoid=\"77\" data-resource=\"video\"></$EmbedTagName><$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"></$EmbedTagName><$EmbedTagName data-resource=\"video\"  data-url=\"http://test.test\"></$EmbedTagName>",
+          s"""<section><p>artikkeltekst med fire deler</p><$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"image\" data-resource_id=\"test-image.id\"  data-url=\"test-image.url\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"image\" data-resource_id=\"55\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName>
+             |<$EmbedTagName data-videoid=\"77\" data-resource=\"video\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"iframe\" data-url=\"https://norgesfilm.no/film/1234\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"brightcove\" data-videoid="6369137446112"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"video\"  data-url=\"http://test.test\"></$EmbedTagName>""".stripMargin,
           "nb",
         )
       ),

@@ -15,11 +15,11 @@ import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.common.model.NDLADate
+import no.ndla.common.model.{NDLADate, TagAttribute}
 import no.ndla.common.model.api.{FrontPageDTO, MenuDTO}
 import no.ndla.common.model.domain.*
 import no.ndla.network.clients.FeideExtendedUserInfo
-import no.ndla.validation.{ResourceType, TagAttribute}
+import no.ndla.validation.ResourceType
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.*
 

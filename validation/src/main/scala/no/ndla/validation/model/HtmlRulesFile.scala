@@ -10,7 +10,7 @@ package no.ndla.validation.model
 
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import no.ndla.validation.TagAttribute
+import no.ndla.common.model.TagAttribute
 
 case class Field(name: TagAttribute)
 
