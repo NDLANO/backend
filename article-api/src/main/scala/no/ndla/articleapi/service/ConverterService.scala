@@ -257,7 +257,7 @@ class ConverterService(using props: Props) extends StrictLogging {
         .map(toApiArticleContentV2)
         .getOrElse(api.ArticleContentV2DTO("", UnknownLanguage.toString))
       val metaImage  = findByLanguageOrBestEffort(article.metaImage, language).map(toApiArticleMetaImage)
-      val copyright  = toApiCopyright(article.copyright)
+      val copyright  = toApiCopyright(article.copyright, language)
       val disclaimer = article.disclaimer.findByLanguageOrBestEffort(language).map(DisclaimerDTO.fromLanguageValue)
 
       Success(
@@ -317,9 +317,9 @@ class ConverterService(using props: Props) extends StrictLogging {
 
   }
 
-  private def toApiCopyright(copyright: Copyright): commonApi.CopyrightDTO = {
+  private def toApiCopyright(copyright: Copyright, language: String): commonApi.CopyrightDTO = {
     commonApi.CopyrightDTO(
-      toApiLicense(copyright.license),
+      toApiLicense(copyright.license, language),
       copyright.origin,
       copyright.creators.map(_.toApi),
       copyright.processors.map(_.toApi),
@@ -330,10 +330,12 @@ class ConverterService(using props: Props) extends StrictLogging {
     )
   }
 
-  def toApiLicense(shortLicense: String): LicenseDTO = {
+  def toApiLicense(shortLicense: String, language: String): LicenseDTO = {
     getLicense(shortLicense) match {
-      case Some(l) => model.api.LicenseDTO(l.license.toString, Option(l.description), l.url)
-      case None    => model.api.LicenseDTO("unknown", None, None)
+      case Some(l) => model
+          .api
+          .LicenseDTO(l.license.toString, Option(l.description), findByLanguageOrBestEffort(l.url, language).map(_.url))
+      case None => model.api.LicenseDTO("unknown", None, None)
     }
   }
 

@@ -45,11 +45,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   val sampleAlt                        = "Fotografi"
 
   test("toApiLicense defaults to unknown if the license was not found") {
-    service.toApiLicense("invalid") should equal(LicenseDTO("unknown", None, None))
+    service.toApiLicense("invalid", "nb") should equal(LicenseDTO("unknown", None, None))
   }
 
   test("toApiLicense converts a short license string to a license object with description and url") {
-    service.toApiLicense("CC-BY-4.0") should equal(
+    service.toApiLicense("CC-BY-4.0", "nb") should equal(
       model
         .api
         .LicenseDTO(

@@ -75,7 +75,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
           revision = concept.revision.getOrElse(-1),
           title = title,
           content = Some(content),
-          copyright = concept.copyright.map(toApiCopyright),
+          copyright = concept.copyright.map(lic => toApiCopyright(lic, language)),
           source = concept.copyright.flatMap(_.origin),
           tags = tags,
           created = concept.created,
@@ -136,9 +136,12 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     api.ConceptTagsDTO(tags.tags, tags.language)
   }
 
-  private def toApiCopyright(copyright: commonDomain.draft.DraftCopyright): commonApi.DraftCopyrightDTO = {
+  private def toApiCopyright(
+      copyright: commonDomain.draft.DraftCopyright,
+      language: String,
+  ): commonApi.DraftCopyrightDTO = {
     commonApi.DraftCopyrightDTO(
-      copyright.license.flatMap(toMaybeApiLicense),
+      copyright.license.flatMap(lic => toMaybeApiLicense(lic, language)),
       copyright.origin,
       copyright.creators.map(_.toApi),
       copyright.processors.map(_.toApi),
@@ -149,16 +152,22 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     )
   }
 
-  private def toMaybeApiLicense(shortLicense: String): Option[commonApi.LicenseDTO] = {
-    getLicense(shortLicense).map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url))
+  private def toMaybeApiLicense(shortLicense: String, language: String): Option[commonApi.LicenseDTO] = {
+    getLicense(shortLicense).map(l =>
+      commonApi.LicenseDTO(
+        l.license.toString,
+        Option(l.description),
+        findByLanguageOrBestEffort(l.url, language).map(_.url),
+      )
+    )
   }
 
-  def toApiLicense(maybeShortLicense: Option[String]): commonApi.LicenseDTO = maybeShortLicense
-    .flatMap(toMaybeApiLicense)
+  def toApiLicense(maybeShortLicense: Option[String], language: String): commonApi.LicenseDTO = maybeShortLicense
+    .flatMap(lic => toMaybeApiLicense(lic, language))
     .getOrElse(commonApi.LicenseDTO("unknown", None, None))
 
-  def toApiLicense(shortLicense: String): commonApi.LicenseDTO =
-    toMaybeApiLicense(shortLicense).getOrElse(commonApi.LicenseDTO("unknown", None, None))
+  def toApiLicense(shortLicense: String, language: String): commonApi.LicenseDTO =
+    toMaybeApiLicense(shortLicense, language).getOrElse(commonApi.LicenseDTO("unknown", None, None))
 
   def toApiConceptTitle(title: Title): api.ConceptTitleDTO =
     api.ConceptTitleDTO(Jsoup.parseBodyFragment(title.title).body().text(), title.title, title.language)

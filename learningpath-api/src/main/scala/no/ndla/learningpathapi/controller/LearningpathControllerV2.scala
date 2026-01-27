@@ -32,6 +32,7 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
+import no.ndla.language.Language.findByLanguageOrBestEffort
 
 class LearningpathControllerV2(using
     readService: ReadService,
@@ -406,14 +407,23 @@ class LearningpathControllerV2(using
     .description("Shows all valid licenses")
     .in("licenses")
     .in(licenseFilter)
+    .in(language)
     .out(jsonBody[Seq[LicenseDTO]])
     .errorOut(errorOutputsFor(401, 403, 404))
-    .serverLogicPure { license =>
+    .serverLogicPure { case (license, language) =>
       val licenses: Seq[LicenseDefinition] = license match {
         case None         => mapping.License.getLicenses
         case Some(filter) => mapping.License.getLicenses.filter(_.license.toString.contains(filter))
       }
-      licenses.map(x => LicenseDTO(x.license.toString, Option(x.description), x.url)).asRight
+      licenses
+        .map(x =>
+          LicenseDTO(
+            x.license.toString,
+            Option(x.description),
+            findByLanguageOrBestEffort(x.url, language.code).map(_.url),
+          )
+        )
+        .asRight
     }
 
   private def addLearningpath(): ServerEndpoint[Any, Eff] = endpoint

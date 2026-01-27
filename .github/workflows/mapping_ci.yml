@@ -7,11 +7,13 @@ on:
   push:
     paths:
       - mapping/**
+      - language/**
       - modules/**
       - build.mill
   pull_request:
     paths:
       - mapping/**
+      - language/**
       - modules/**
       - build.mill
 jobs:
