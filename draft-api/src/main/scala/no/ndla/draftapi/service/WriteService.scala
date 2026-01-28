@@ -507,19 +507,23 @@ class WriteService(using
   private def updateExistingArticle(existing: Draft, updatedApiArticle: api.UpdatedArticleDTO, user: TokenUser)(using
       DBSession
   ): Try[api.ArticleDTO] = {
-    draftRepository.slugExists(updatedApiArticle.slug.getOrElse(""), existing.id) match {
-      case Success(false) => () // slug is not taken, continue
-      case _              => return Failure(
-          new ValidationException(
-            "Validation error",
-            Seq(
-              ValidationMessage(
-                "slug",
-                s"The slug '${updatedApiArticle.slug.get}' is already in use by another article.",
+    updatedApiArticle.slug match {
+      case Some(slug) => draftRepository.slugExists(slug, existing.id) match {
+          case Success(true) => return Failure(
+              new ValidationException(
+                "Validation error",
+                Seq(
+                  ValidationMessage(
+                    "slug",
+                    s"The slug '${updatedApiArticle.slug.get}' is already in use by another article.",
+                  )
+                ),
               )
-            ),
-          )
-        )
+            )
+          case Success(false) => () // slug is not taken, continue
+          case Failure(ex)    => return Failure(ex)
+        }
+      case _ => ()
     }
 
     for {

@@ -335,7 +335,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         responsible = Some(Responsible("hei", TestData.today)),
         slug = Some("old-slug"),
       )
-    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Failure(new Exception("Slug exists")))
+    when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(true))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     val Failure(result) =
       service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess): @unchecked
