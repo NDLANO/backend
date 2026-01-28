@@ -1,19 +1,48 @@
-ARG BASE_IMAGE=eclipse-temurin:21-alpine
-FROM ${BASE_IMAGE} AS builder
-WORKDIR /app
-RUN apk add --no-cache bash curl coreutils
-ARG MILL_VERSION=1.0.4-jvm
-ENV MILL_VERSION=${MILL_VERSION}
+ARG JAVA_VERSION=25
+
+FROM eclipse-temurin:${JAVA_VERSION}-alpine AS builder
 ARG MODULE
+ARG JAVA_VERSION
+ARG MILL_VERSION=1.0.4-jvm
+
+WORKDIR /app
+
+# Build Scala backend module
+RUN apk add --no-cache curl
 COPY . .
+ENV MILL_VERSION=${MILL_VERSION}
 RUN ./mill -i ${MODULE}.assembly
 
+# Create list of required Java modules
+RUN $JAVA_HOME/bin/jdeps \
+    --ignore-missing-deps \
+    --print-module-deps \
+    --multi-release ${JAVA_VERSION} \
+    out/${MODULE}/assembly.dest/out.jar > /deps.info
 
-FROM ${BASE_IMAGE}
-WORKDIR /
-ENV LOG_APPENDER=Docker
+# Create custom JRE with the above modules
+RUN $JAVA_HOME/bin/jlink \
+         --add-modules $(cat /deps.info) \
+         --strip-debug \
+         --no-man-pages \
+         --no-header-files \
+         --compress=2 \
+         --output /javaruntime
+
+
+FROM alpine:3.23
 ARG MODULE
 ARG APP_JAR=/out.jar
-COPY --from=builder /app/out/${MODULE}/assembly.dest/out.jar ${APP_JAR}
-ENV APP_JAR=${APP_JAR}
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar ${APP_JAR}"]
+
+WORKDIR /app
+
+# Set up custom JRE
+ENV JAVA_HOME=/opt/java/openjdk
+COPY --from=builder /javaruntime $JAVA_HOME
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Set up and run Scala app
+COPY --from=builder /app/out/${MODULE}/assembly.dest/out.jar /app/out.jar
+ENV LOG_APPENDER=Docker
+ENV JAVA_OPTS="-XX:InitialRAMPercentage=25 -XX:MinRAMPercentage=25 -XX:MaxRAMPercentage=85"
+ENTRYPOINT ["sh", "-c", "exec java -jar /app/out.jar $JAVA_OPTS"]
