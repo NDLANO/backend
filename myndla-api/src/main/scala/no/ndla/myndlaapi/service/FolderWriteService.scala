@@ -14,7 +14,7 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.domain.ResourceType
+import no.ndla.common.model.domain.ResourceType.{Audio, Concept, Image, Learningpath, Video}
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
 import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.integration.SearchApiClient
@@ -603,12 +603,10 @@ class FolderWriteService(using
 
   private def updateSearchApi(resource: domain.Resource): Unit = {
     resource.resourceType match {
-      case ResourceType.Multidisciplinary                               => searchApiClient.reindexDraft(resource.resourceId)
-      case ResourceType.Article                                         => searchApiClient.reindexDraft(resource.resourceId)
-      case ResourceType.Topic                                           => searchApiClient.reindexDraft(resource.resourceId)
-      case ResourceType.Learningpath                                    => searchApiClient.reindexLearningpath(resource.resourceId)
-      case ResourceType.Concept                                         => searchApiClient.reindexConcept(resource.resourceId)
-      case ResourceType.Audio | ResourceType.Image | ResourceType.Video =>
+      case Audio | Image | Video => ()
+      case Learningpath          => searchApiClient.reindexLearningpath(resource.resourceId)
+      case Concept               => searchApiClient.reindexConcept(resource.resourceId)
+      case _                     => searchApiClient.reindexDraft(resource.resourceId)
     }
   }
 
