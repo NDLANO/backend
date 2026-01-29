@@ -18,7 +18,6 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ vars.JAVA_VERSION }}
-      - uses: sbt/setup-sbt@v1
       - uses: ndlano/reusable-workflows/.github/actions/setup-ndla-login@main
         with:
           AWS_CLIENT_ID: ${{ secrets.CI_AWS_CLIENT_ID }}
