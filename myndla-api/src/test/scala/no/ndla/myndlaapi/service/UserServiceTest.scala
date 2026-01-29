@@ -8,17 +8,17 @@
 
 package no.ndla.myndlaapi.service
 
-import no.ndla.common.errors.NotFoundException
+import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.myndla.{MyNDLAGroupDTO, MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.myndlaapi.TestData.emptyMyNDLAUser
 import no.ndla.myndlaapi.TestEnvironment
 import no.ndla.network.clients.{FeideExtendedUserInfo, FeideGroup, Membership}
+import no.ndla.network.model.FeideUserWrapper
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
-import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
 
@@ -33,20 +33,21 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That updateUserData updates user if user exist") {
+    val now        = clock.now()
     val feideId    = "feide"
     val userBefore = MyNDLAUser(
       id = 42,
       feideId = feideId,
       favoriteSubjects = Seq("h", "b"),
       userRole = UserRole.STUDENT,
-      lastUpdated = clock.now(),
+      lastUpdated = now,
       organization = "oslo",
       groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      lastSeen = clock.now(),
+      lastSeen = now,
     )
     val updatedUserData = UpdatedMyNDLAUserDTO(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None)
     val userAfterMerge  = MyNDLAUser(
@@ -61,7 +62,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      lastSeen = clock.now(),
+      lastSeen = now,
     )
     val expected = MyNDLAUserDTO(
       id = 42,
@@ -76,17 +77,13 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       arenaEnabled = false,
     )
 
-    when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(
-      Success(emptyMyNDLAUser.copy(feideId = feideId))
-    )
-    when(folderWriteService.canWriteOrAccessDenied(any, any)(using any[DBSession])).thenReturn(Success(()))
+    val feide = FeideUserWrapper("token", Some(userBefore))
+    when(folderWriteService.canWriteOrAccessDenied(any[FeideUserWrapper])).thenReturn(Success(userBefore))
     when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(Some(userBefore)))
     when(userRepository.updateUser(eqTo(feideId), any)(using any)).thenReturn(Success(userAfterMerge))
 
-    service.updateMyNDLAUserData(updatedUserData, Some(feideId)) should be(Success(expected))
+    service.updateMyNDLAUserData(updatedUserData, feide) should be(Success(expected))
 
-    verify(userRepository, times(1)).userWithFeideId(any)(using any)
     verify(userRepository, times(1)).updateUser(any, any)(using any)
   }
 
@@ -94,21 +91,25 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId         = "feide"
     val updatedUserData = UpdatedMyNDLAUserDTO(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None)
 
-    when(folderWriteService.canWriteOrAccessDenied(any, any)(using any[DBSession])).thenReturn(Success(()))
-    when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
-    when(userRepository.userWithFeideId(eqTo(feideId))(using any)).thenReturn(Success(None))
-
-    service.updateMyNDLAUserData(updatedUserData, Some(feideId)) should be(
-      Failure(NotFoundException(s"User with feide_id $feideId was not found"))
+    val feide = FeideUserWrapper("token", None)
+    when(folderWriteService.canWriteOrAccessDenied(any[FeideUserWrapper])).thenReturn(
+      Success(emptyMyNDLAUser.copy(feideId = feideId))
     )
 
-    verify(userRepository, times(1)).userWithFeideId(any)(using any)
+    service.updateMyNDLAUserData(updatedUserData, feide) should be(
+      Failure(
+        AccessDeniedException(
+          "User could not be authenticated with feide and such is missing required role(s) to perform this operation"
+        )
+      )
+    )
+
     verify(userRepository, times(0)).updateUser(any, any)(using any)
   }
 
   test("That getMyNDLAUserData creates new UserData if no user exist") {
     when(clock.now()).thenReturn(NDLADate.now())
+    val now = clock.now()
     when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(false))
 
     val feideId     = "feide"
@@ -126,14 +127,14 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       feideId = feideId,
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
-      lastUpdated = clock.now(),
+      lastUpdated = now,
       organization = "oslo",
       groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      lastSeen = clock.now(),
+      lastSeen = now,
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -175,6 +176,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getMyNDLAUserData returns already created user if it exists and was updated lately") {
     when(clock.now()).thenReturn(NDLADate.now())
+    val now = clock.now()
     when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(true))
 
     val feideId        = "feide"
@@ -183,14 +185,14 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       feideId = feideId,
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
-      lastUpdated = clock.now().plusDays(1),
+      lastUpdated = now.plusDays(1),
       organization = "oslo",
       groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      lastSeen = clock.now(),
+      lastSeen = now,
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -220,6 +222,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
   test("That getMyNDLAUserData returns already created user if it exists but needs update") {
     when(clock.now()).thenReturn(NDLADate.now())
     when(userRepository.reserveFeideIdIfNotExists(any)(using any)).thenReturn(Success(true))
+    val now = clock.now()
 
     val feideId     = "feide"
     val feideGroups = Seq(
@@ -236,14 +239,14 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       feideId = feideId,
       favoriteSubjects = Seq("r", "e"),
       userRole = UserRole.STUDENT,
-      lastUpdated = clock.now().minusDays(1),
+      lastUpdated = now.minusDays(1),
       organization = "oslo",
       groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = true, parentId = None)),
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
-      lastSeen = clock.now(),
+      lastSeen = now,
     )
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",

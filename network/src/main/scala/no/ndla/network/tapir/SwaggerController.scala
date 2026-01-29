@@ -11,7 +11,7 @@ package no.ndla.network.tapir
 import cats.implicits.*
 import io.circe.Json
 import no.ndla.common.configuration.BaseProps
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.clients.MyNDLAProvider
 import sttp.apispec.openapi.{Components, Contact, Info, License}
 import sttp.apispec.{OAuthFlow, OAuthFlows, SecurityScheme}
 import sttp.tapir.*
@@ -22,7 +22,7 @@ import scala.collection.immutable.ListMap
 
 class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInfo)(using
     props: BaseProps,
-    myNDLAApiClient: MyNDLAApiClient,
+    myNDLAApiClient: MyNDLAProvider,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
 ) extends TapirController {

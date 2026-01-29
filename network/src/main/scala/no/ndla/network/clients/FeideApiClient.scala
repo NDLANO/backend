@@ -158,11 +158,7 @@ class FeideApiClient(using redisClient: RedisClient) extends StrictLogging {
       case Failure(ex: HttpRequestException) =>
         val code = ex.httpResponse.map(_.code)
         if (code.exists(_.code == 403) || code.exists(_.code == 401) || code.exists(_.code == 400)) {
-          Failure(
-            AccessDeniedException(
-              "User could not be authenticated with feide and such is missing required role(s) to perform this operation"
-            )
-          )
+          Failure(FeideApiClient.accessDeniedException)
         } else Failure(ex)
       case Failure(ex)        => Failure(ex)
       case Success(feideData) => Success(feideData)
@@ -217,5 +213,12 @@ class FeideApiClient(using redisClient: RedisClient) extends StrictLogging {
     ).?
     redisClient.updateCacheAndReturnOrganization(accessToken, organization)
   }
+
+}
+
+object FeideApiClient {
+  def accessDeniedException: AccessDeniedException = AccessDeniedException(
+    "User could not be authenticated with feide and such is missing required role(s) to perform this operation"
+  )
 
 }

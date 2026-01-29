@@ -11,7 +11,7 @@ package no.ndla.searchapi.controller
 import no.ndla.common.Clock
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Availability
-import no.ndla.network.clients.FeideExtendedUserInfo
+import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.searchapi.model.domain
 import no.ndla.searchapi.model.domain.Sort
@@ -234,31 +234,39 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   test("That fetching feide user does happen if token is supplied") {
     reset(multiSearchService)
-    val teacheruser = FeideExtendedUserInfo(
-      displayName = "Johnny Bravo",
-      eduPersonAffiliation = Seq("employee", "staff"),
-      eduPersonPrimaryAffiliation = None,
-      eduPersonPrincipalName = "example@email.com",
-      mail = Some(Seq("example@email.com")),
+    val teacherUser = MyNDLAUser(
+      id = 1,
+      feideId = "feideid",
+      favoriteSubjects = Seq.empty,
+      userRole = UserRole.EMPLOYEE,
+      lastUpdated = TestData.today,
+      organization = "some org",
+      groups = Seq.empty,
+      username = "teacherusername",
+      displayName = "teacherdisplayname",
+      email = "teacher@example.com",
+      arenaEnabled = false,
+      lastSeen = TestData.today,
     )
-    val multiResult = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
-    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacheruser))
+
+    val multiResult  = domain.SearchResult(0, None, 10, "nn", Seq.empty, Seq.empty, Seq.empty, None)
+    val teacherToken = "abcd"
     when(multiSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
+    when(myndlaApiClient.getDomainUser(teacherToken)).thenReturn(Success(teacherUser))
 
     val baseSettings = TestData
       .searchSettings
       .copy(language = "*", pageSize = 10, sort = Sort.ByRelevanceDesc, resultTypes = Some(List.empty))
-    val teacherToken = "abcd"
 
     val response = simpleHttpClient.send(
       quickRequest
         .get(uri"http://localhost:$serverPort/search-api/v1/search/")
-        .header("FeideAuthorization", teacherToken)
+        .header("FeideAuthorization", s"Bearer $teacherToken")
     )
     val expectedSettings = baseSettings.copy(availability = List(Availability.everyone, Availability.teacher))
     response.code.code should be(200)
     verify(multiSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
-    verify(feideApiClient, times(1)).getFeideExtendedUser(eqTo(Some(teacherToken)))
+    verify(myndlaApiClient, times(1)).getDomainUser(eqTo(teacherToken))
   }
 
   test("That retrieving datetime strings from request works") {

@@ -82,14 +82,16 @@ object TokenUser {
     case Success(value) => DecodeResult.Value(value)
   }
 
-  private implicit val userinfoCodec: Codec[String, TokenUser, TextPlain]  = Codec.string.mapDecode(decode)(encode)
-  private val authScheme                                                   = AuthenticationScheme.Bearer.name
-  private val codec                                                        = implicitly[Codec[List[String], Option[TokenUser], CodecFormat.TextPlain]]
-  private def filterHeaders(headers: List[String])                         = headers.filter(_.toLowerCase.startsWith(authScheme.toLowerCase))
-  private def stringPrefixWithSpace                                        = Mapping.stringPrefixCaseInsensitiveForList(authScheme + " ")
-  private val authCodec: Codec[List[String], Option[TokenUser], TextPlain] = Codec
+  private implicit val userinfoCodec: Codec[String, TokenUser, TextPlain] = Codec.string.mapDecode(decode)(encode)
+  private val authScheme                                                  = AuthenticationScheme.Bearer.name
+  private val codec                                                       = implicitly[Codec[List[String], Option[TokenUser], CodecFormat.TextPlain]]
+  def filterHeaders(headers: List[String]): List[String]                  =
+    headers.filter(_.toLowerCase.startsWith(authScheme.toLowerCase))
+  def stringPrefixWithSpace: Mapping[List[String], List[String]] =
+    Mapping.stringPrefixCaseInsensitiveForList(authScheme + " ")
+  val authCodec: Codec[List[String], Option[TokenUser], TextPlain] = Codec
     .id[List[String], CodecFormat.TextPlain](codec.format, Schema.binary)
-    .map(filterHeaders(_))(identity)
+    .map(filterHeaders)(identity)
     .map(stringPrefixWithSpace)
     .mapDecode(codec.decode)(codec.encode)
     .schema(codec.schema)

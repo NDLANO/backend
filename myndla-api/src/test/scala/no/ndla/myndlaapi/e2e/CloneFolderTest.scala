@@ -19,14 +19,15 @@ import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.{NewFolderData, ResourceDocument}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.UserService
-import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
+import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestData, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
+import no.ndla.network.model.FeideUserWrapper
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, spy, times, verify, when, withSettings}
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
-import scalikejdbc.AutoSession
+import scalikejdbc.DBSession
 import sttp.client3.quick.*
 
 import java.util.UUID
@@ -95,7 +96,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     super.beforeEach()
     reset(myndlaApi.componentRegistry.folderRepository)
     reset(myndlaApi.componentRegistry.userRepository)
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = myndlaApi.componentRegistry.dbUtil.autoSession
     myndlaApi.componentRegistry.userRepository.deleteAllUsers.get
 
     myndlaApi.componentRegistry.userService.getMyNDLAUser(feideId, None).get            // Ensure user exists
@@ -539,7 +540,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
   }
 
   test("that sharing a folder with subfolders will update shared field to current date for each subfolder") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
 
     val created = NDLADate.of(2023, 1, 1, 1, 59)
     val shared  = NDLADate.of(2024, 1, 1, 1, 59)
@@ -699,10 +700,11 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     )
     response.code.code should be(200)
 
+    val feide      = FeideUserWrapper("token", Some(TestData.emptyMyNDLAUser.copy(feideId = feideId)))
     val allFolders = myndlaApi
       .componentRegistry
       .folderReadService
-      .getFolders(includeSubfolders = true, includeResources = true, Some(feideId))
+      .getFolders(includeSubfolders = true, includeResources = true, feide)
       .get
       .folders
 

@@ -20,8 +20,8 @@ import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.language.Language.AllLanguages
 import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.model.FeideUserWrapper
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, ErrorHelpers, TapirController}
 import sttp.model.{Header, MediaType}
@@ -144,7 +144,7 @@ class ArticleControllerV2(using
       fallback: Boolean,
       grepCodes: Seq[String],
       shouldScroll: Boolean,
-      feideToken: Option[String],
+      feide: Option[FeideUserWrapper],
   ): Try[(SearchResultV2DTO, DynamicHeaders)] = {
     val result = readService.search(
       query,
@@ -158,7 +158,7 @@ class ArticleControllerV2(using
       fallback,
       grepCodes,
       shouldScroll,
-      feideToken,
+      feide,
     )
 
     result match {
@@ -176,7 +176,6 @@ class ArticleControllerV2(using
       .get
       .summary("Find published articles.")
       .description("Returns all articles. You can search it too.")
-      .in(feideHeader)
       .in(queryParam)
       .in(articleTypes)
       .in(articleIds)
@@ -191,41 +190,43 @@ class ArticleControllerV2(using
       .out(jsonBody[SearchResultV2DTO])
       .out(EndpointOutput.derived[DynamicHeaders])
       .errorOut(errorOutputsFor())
-      .serverLogicPure {
-        case (
-              feideToken,
-              query,
-              articleTypes,
-              articleIds,
-              language,
-              license,
-              maybePageNo,
-              maybePageSize,
-              maybeSort,
-              fallback,
-              scrollId,
-              grepCodes,
-            ) => scrollSearchOr(scrollId, language.code) {
-            val sort         = Sort.valueOf(maybeSort.getOrElse(""))
-            val pageSize     = maybePageSize.getOrElse(props.DefaultPageSize)
-            val page         = maybePageNo.getOrElse(1)
-            val shouldScroll = scrollId.exists(props.InitialScrollContextKeywords.contains)
+      .withOptionalFeideUser
+      .serverLogicPure { feide =>
+        {
+          case (
+                query,
+                articleTypes,
+                articleIds,
+                language,
+                license,
+                maybePageNo,
+                maybePageSize,
+                maybeSort,
+                fallback,
+                scrollId,
+                grepCodes,
+              ) => scrollSearchOr(scrollId, language.code) {
+              val sort         = Sort.valueOf(maybeSort.getOrElse(""))
+              val pageSize     = maybePageSize.getOrElse(props.DefaultPageSize)
+              val page         = maybePageNo.getOrElse(1)
+              val shouldScroll = scrollId.exists(props.InitialScrollContextKeywords.contains)
 
-            search(
-              query,
-              sort,
-              language.code,
-              license,
-              page,
-              pageSize,
-              articleIds.values,
-              articleTypes.values,
-              fallback,
-              grepCodes.values,
-              shouldScroll,
-              feideToken,
-            )
-          }
+              search(
+                query,
+                sort,
+                language.code,
+                license,
+                page,
+                pageSize,
+                articleIds.values,
+                articleTypes.values,
+                fallback,
+                grepCodes.values,
+                shouldScroll,
+                feide,
+              )
+            }
+        }
       }
   }
 
@@ -234,7 +235,6 @@ class ArticleControllerV2(using
     .in("ids")
     .summary("Fetch articles that matches ids parameter.")
     .description("Returns articles that matches ids parameter.")
-    .in(feideHeader)
     .in(articleIds)
     .in(fallback)
     .in(language)
@@ -242,18 +242,21 @@ class ArticleControllerV2(using
     .in(pageNo)
     .errorOut(errorOutputsFor())
     .out(jsonBody[Seq[ArticleV2DTO]])
-    .serverLogicPure { case (feideToken, ids, fallback, language, mbPageSize, mbPageNo) =>
-      val pageSize = mbPageSize.getOrElse(props.DefaultPageSize) match {
+    .withOptionalFeideUser
+    .serverLogicPure { feide =>
+      { case (ids, fallback, language, mbPageSize, mbPageNo) =>
+        val pageSize = mbPageSize.getOrElse(props.DefaultPageSize) match {
 
-        case tooSmall if tooSmall < 1 => props.DefaultPageSize
-        case x                        => x
-      }
-      val page = mbPageNo.getOrElse(1) match {
-        case tooSmall if tooSmall < 1 => 1
-        case x                        => x
-      }
+          case tooSmall if tooSmall < 1 => props.DefaultPageSize
+          case x                        => x
+        }
+        val page = mbPageNo.getOrElse(1) match {
+          case tooSmall if tooSmall < 1 => 1
+          case x                        => x
+        }
 
-      readService.getArticlesByIds(ids.values, language.code, fallback, page, pageSize, feideToken)
+        readService.getArticlesByIds(ids.values, language.code, fallback, page, pageSize, feide)
+      }
     }
 
   def postSearch: ServerEndpoint[Any, Eff] = endpoint
@@ -261,12 +264,12 @@ class ArticleControllerV2(using
     .in("search")
     .summary("Find published articles.")
     .description("Search all articles.")
-    .in(feideHeader)
     .in(jsonBody[ArticleSearchParamsDTO])
     .errorOut(errorOutputsFor())
     .out(jsonBody[SearchResultV2DTO])
     .out(EndpointOutput.derived[DynamicHeaders])
-    .serverLogicPure { case (feideToken, searchParams) =>
+    .withOptionalFeideUser
+    .serverLogicPure { feide => searchParams =>
       val language = searchParams.language.getOrElse(LanguageCode(AllLanguages))
       val fallback = searchParams.fallback.getOrElse(false)
 
@@ -293,7 +296,7 @@ class ArticleControllerV2(using
           fallback,
           grepCodes,
           shouldScroll,
-          feideToken,
+          feide,
         )
       }
     }
@@ -302,20 +305,20 @@ class ArticleControllerV2(using
     .get
     .in(articleId)
     .in(revision)
-    .in(feideHeader)
     .in(language)
     .in(fallback)
     .errorOut(errorOutputsFor(410))
     .out(jsonBody[ArticleV2DTO])
     .out(EndpointOutput.derived[DynamicHeaders])
-    .serverLogicPure { params =>
-      val (articleId, revisionQuery, feideToken, language, fallback) = params
+    .withOptionalFeideUser
+    .serverLogicPure { feide => params =>
+      val (articleId, revisionQuery, language, fallback) = params
       (
         parseArticleIdAndRevision(articleId) match {
           case (Failure(_), _)                      => readService.getArticleBySlug(articleId, language.code, fallback)
           case (Success(articleId), inlineRevision) =>
             val revision = inlineRevision.orElse(revisionQuery)
-            readService.withIdV2(articleId, language.code, fallback, revision, feideToken)
+            readService.withIdV2(articleId, language.code, fallback, revision, feide)
         }
       ).map(_.Ok())
     }
