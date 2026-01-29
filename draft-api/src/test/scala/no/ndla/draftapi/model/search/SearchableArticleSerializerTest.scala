@@ -12,6 +12,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.ArticleTrait.Video
 import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
+import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
@@ -38,6 +39,7 @@ class SearchableArticleSerializerTest extends UnitSuite with TestEnvironment {
     grepCodes = Seq("KM1337", "KM5432"),
     status = SearchableStatus(DraftStatus.PUBLISHED, Set.empty),
     traits = List(Video),
+    responsible = Some(Responsible("respId12345", NDLADate.of(2018, 2, 22, 13, 0, 51))),
   )
 
   test("That deserialization and serialization of SearchableArticle works as expected") {

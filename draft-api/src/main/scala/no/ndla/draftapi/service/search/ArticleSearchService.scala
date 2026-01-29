@@ -9,6 +9,7 @@
 package no.ndla.draftapi.service.search
 
 import com.sksamuel.elastic4s.ElasticDsl.*
+import com.sksamuel.elastic4s.requests.searches.aggs.responses.bucket.Terms
 import com.sksamuel.elastic4s.requests.searches.queries.compound.BoolQuery
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.draftapi.DraftApiProperties
@@ -127,6 +128,24 @@ class ArticleSearchService(using
           )
         case Failure(ex) => errorHandler(ex)
       }
+    }
+  }
+
+  def getResponsibles(): Try[Seq[String]] = {
+    val searchQuery = search(searchIndex)
+      .size(1000)
+      .aggs(termsAgg("responsiblesAgg", "responsible.responsibleId").size(1000))
+
+    e4sClient.execute(searchQuery) match {
+      case Success(response) =>
+        val agg          = response.result.aggs.result[Terms]("responsiblesAgg")
+        val responsibles = agg
+          .buckets
+          .map { bucket =>
+            bucket.key
+          }
+        Success(responsibles)
+      case Failure(ex) => errorHandler(ex)
     }
   }
 
