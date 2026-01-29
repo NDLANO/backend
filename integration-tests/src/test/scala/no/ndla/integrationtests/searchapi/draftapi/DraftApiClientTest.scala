@@ -81,26 +81,29 @@ class DraftApiClientTest
   }
 
   private def setupArticles() = {
-    DBUtil.writeSession { implicit session =>
-      (
-        1L to 10
-      ).map(id => {
-        draftApi
-          .componentRegistry
-          .draftRepository
-          .insert(
-            draftapi
-              .TestData
-              .sampleDomainArticle
-              .copy(
-                id = Some(id),
-                updated = NDLADate.fromUnixTime(0),
-                created = NDLADate.fromUnixTime(0),
-                published = NDLADate.fromUnixTime(0),
-              )
-          )
-      })
-    }
+    draftApi
+      .componentRegistry
+      .dbUtility
+      .writeSession { implicit session =>
+        (
+          1L to 10
+        ).map(id => {
+          draftApi
+            .componentRegistry
+            .draftRepository
+            .insert(
+              draftapi
+                .TestData
+                .sampleDomainArticle
+                .copy(
+                  id = Some(id),
+                  updated = NDLADate.fromUnixTime(0),
+                  created = NDLADate.fromUnixTime(0),
+                  published = NDLADate.fromUnixTime(0),
+                )
+            )
+        })
+      }
   }
 
   val exampleToken =

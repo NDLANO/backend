@@ -65,24 +65,24 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     }
   }
 
-  def folderCount(implicit session: DBSession = AutoSession): Long = {
+  def folderCount(implicit session: DBSession = DBUtil.autoSession): Long = {
     sql"select count(id) from ${Folder.table}".map(rs => rs.long("count")).single().getOrElse(0)
   }
 
-  def resourceCount(implicit session: DBSession = AutoSession): Long = {
+  def resourceCount(implicit session: DBSession = DBUtil.autoSession): Long = {
     sql"select count(id) from ${Resource.table}".map(rs => rs.long("count")).single().getOrElse(0)
   }
 
-  def folderResourcesCount(implicit session: DBSession = AutoSession): Long = {
+  def folderResourcesCount(implicit session: DBSession = DBUtil.autoSession): Long = {
     sql"select count(folder_id) from ${FolderResource.table}".map(rs => rs.long("count")).single().getOrElse(0)
   }
 
-  def getAllFolders(implicit session: DBSession = AutoSession): List[Folder] = {
+  def getAllFolders(implicit session: DBSession = DBUtil.autoSession): List[Folder] = {
     sql"select * from ${Folder.table}".map(rs => Folder.fromResultSet(rs)).list().sequence.get
   }
 
   test("that inserting and retrieving a folder works as expected") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now().withNano(0)
@@ -98,7 +98,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that inserting and retrieving a resource works as expected") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now().withNano(0)
@@ -137,7 +137,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that connecting folders and resources works as expected") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val folder1 = repository.insertFolder(feideId, TestData.baseFolderDocument)
@@ -158,7 +158,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that updateFolder updates all fields correctly") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now().withNano(0)
@@ -189,7 +189,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that deleting a folder deletes folder-resource connection") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now()
@@ -211,7 +211,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that deleting a resource deletes folder-resource connection") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now()
@@ -238,7 +238,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that resourceWithPathAndFeideId works correctly") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val resource1 = TestData
@@ -278,7 +278,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that foldersWithParentID works correctly") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val parent1 = repository.insertFolder(feideId, TestData.baseFolderDocument)
@@ -293,7 +293,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that getFolderResources works as expected") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now()
@@ -320,10 +320,10 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that resourcesWithFeideId works as expected") {
-    implicit val session: AutoSession.type = AutoSession
-    val feideId1                           = "feide1"
-    val feideId2                           = "feide2"
-    val feideId3                           = "feide3"
+    implicit val session: DBSession = DBUtil.autoSession
+    val feideId1                    = "feide1"
+    val feideId2                    = "feide2"
+    val feideId3                    = "feide3"
     userRepository.reserveFeideIdIfNotExists(feideId1).failIfFailure
     userRepository.reserveFeideIdIfNotExists(feideId2).failIfFailure
     userRepository.reserveFeideIdIfNotExists(feideId3).failIfFailure
@@ -378,7 +378,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("inserting and fetching nested folders with resources works as expected") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now().withNano(0)
@@ -432,12 +432,12 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       resources = List(insertedResource.copy(connection = Some(insertedConnection))),
     )
 
-    val result = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(using ReadOnlyAutoSession)
+    val result = repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(using DBUtil.readOnlySession)
     result should be(Success(Some(expectedResult)))
   }
 
   test("that deleteAllUserFolders works as expected") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists("feide1")
     userRepository.reserveFeideIdIfNotExists("feide2")
     userRepository.reserveFeideIdIfNotExists("feide3")
@@ -455,7 +455,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that deleteAllUserResources works as expected") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists("feide1")
     userRepository.reserveFeideIdIfNotExists("feide2")
     userRepository.reserveFeideIdIfNotExists("feide3")
@@ -477,7 +477,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   test(
     "that deleteAllUserFolders and deleteAllUserResources works as expected when folders and resources are connected"
   ) {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists("feide1")
     userRepository.reserveFeideIdIfNotExists("feide2")
 
@@ -522,7 +522,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that getFoldersAndSubfoldersIds returns ids of folder and its subfolders") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val doc =
@@ -545,7 +545,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that updateFolderStatusInBulk updates status of chosen folders") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val doc =
@@ -565,7 +565,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that getFolderAndChildrenSubfoldersWithResourcesWhere correctly filters data based on filter clause") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now().withNano(0)
@@ -634,18 +634,18 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     )
 
     val resultNormal =
-      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(using ReadOnlyAutoSession)
+      repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id)(using DBUtil.readOnlySession)
     resultNormal should be(Success(Some(expectedResultNormal)))
 
     val resultFiltered =
       repository.getFolderAndChildrenSubfoldersWithResources(insertedMain.id, FolderStatus.SHARED, None)(using
-        ReadOnlyAutoSession
+        DBUtil.readOnlySession
       )
     resultFiltered should be(Success(Some(expectedResultFiltered)))
   }
 
   test("that retrieving folder with subfolder via getFolderAndChildrenSubfolders works as expected") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val folder1 = repository.insertFolder(feideId, TestData.baseFolderDocument)
@@ -656,7 +656,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that creating folder user connection works") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now().withNano(0)
@@ -675,7 +675,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that deleting folder user connection works") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now().withNano(0)
@@ -696,9 +696,9 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that fetched saved folders come with the rank of the user that saved them") {
-    implicit val session: AutoSession.type = AutoSession
-    val feideId1                           = "feide1"
-    val feideId2                           = "feide2"
+    implicit val session: DBSession = DBUtil.autoSession
+    val feideId1                    = "feide1"
+    val feideId2                    = "feide2"
     userRepository.reserveFeideIdIfNotExists(feideId1)
     userRepository.reserveFeideIdIfNotExists(feideId2)
 
@@ -739,10 +739,10 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that number of users with/without favourites return correct amount") {
-    implicit val session: AutoSession.type = AutoSession
-    val feideId1                           = "feide1"
-    val feideId2                           = "feide2"
-    val feideId3                           = "feide3"
+    implicit val session: DBSession = DBUtil.autoSession
+    val feideId1                    = "feide1"
+    val feideId2                    = "feide2"
+    val feideId3                    = "feide3"
     userRepository.reserveFeideIdIfNotExists(feideId1).failIfFailure
     userRepository.reserveFeideIdIfNotExists(feideId2).failIfFailure
     userRepository.reserveFeideIdIfNotExists(feideId3).failIfFailure
@@ -758,7 +758,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   test("that inserting in batches works as expected") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists("feide1")
 
     val now     = NDLADate.now().withNano(0)

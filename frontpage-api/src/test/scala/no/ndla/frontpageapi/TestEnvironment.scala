@@ -9,7 +9,7 @@
 package no.ndla.frontpageapi
 
 import no.ndla.common.Clock
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DataSource, DBUtility}
 import no.ndla.frontpageapi.controller.{
   ControllerErrorHandling,
   FilmPageController,
@@ -42,6 +42,7 @@ trait TestEnvironment extends TapirApplication[FrontpageApiProperties] with Mock
 
   implicit lazy val migrator: DBMigrator   = mock[DBMigrator]
   implicit lazy val dataSource: DataSource = mock[DataSource]
+  implicit lazy val dbUtility: DBUtility   = new DBUtility
 
   implicit lazy val dBSubjectPage: DBSubjectPage     = mock[DBSubjectPage]
   implicit lazy val dBFrontPage: DBFrontPage         = mock[DBFrontPage]

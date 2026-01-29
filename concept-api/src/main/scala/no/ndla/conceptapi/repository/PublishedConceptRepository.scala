@@ -8,6 +8,7 @@
 
 package no.ndla.conceptapi.repository
 
+import no.ndla.database.DBUtility
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Tag
@@ -20,9 +21,9 @@ import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 
-class PublishedConceptRepository extends StrictLogging with Repository[Concept] {
+class PublishedConceptRepository(using dbUtility: DBUtility) extends StrictLogging with Repository[Concept] {
 
-  def insertOrUpdate(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
+  def insertOrUpdate(concept: Concept)(implicit session: DBSession = dbUtility.autoSession): Try[Concept] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(concept))
@@ -46,7 +47,7 @@ class PublishedConceptRepository extends StrictLogging with Repository[Concept] 
     }
   }
 
-  def delete(id: Long)(implicit session: DBSession = AutoSession): Try[?] = {
+  def delete(id: Long)(implicit session: DBSession = dbUtility.autoSession): Try[?] = {
     tsql"""
             delete from ${PublishedConcept.table}
             where id=$id
@@ -59,7 +60,7 @@ class PublishedConceptRepository extends StrictLogging with Repository[Concept] 
 
   def withId(id: Long): Option[Concept] = conceptWhere(sqls"co.id=${id.toInt}")
 
-  def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {
+  def everyTagFromEveryConcept(implicit session: DBSession = dbUtility.readOnlySession): List[List[Tag]] = {
     tsql"""
            select distinct id, document#>'{tags}' as tags
            from ${PublishedConcept.table}
@@ -76,7 +77,7 @@ class PublishedConceptRepository extends StrictLogging with Repository[Concept] 
 
   private def conceptWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): Option[Concept] = {
     val co = PublishedConcept.syntax("co")
     tsql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
       .map(DBConcept.fromResultSet(co))
@@ -84,7 +85,7 @@ class PublishedConceptRepository extends StrictLogging with Repository[Concept] 
       .get
   }
 
-  def conceptCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
+  def conceptCount(implicit session: DBSession = dbUtility.readOnlySession): Long =
     tsql"select count(*) from ${PublishedConcept.table}"
       .map(rs => rs.long("count"))
       .runSingle()
@@ -94,7 +95,7 @@ class PublishedConceptRepository extends StrictLogging with Repository[Concept] 
   override def documentsWithIdBetween(min: Long, max: Long): List[Concept] =
     conceptsWhere(sqls"co.id between $min and $max")
 
-  override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
+  override def minMaxId(implicit session: DBSession = dbUtility.autoSession): (Long, Long) = {
     tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${PublishedConcept.table}"
       .map(rs => (rs.long("mi"), rs.long("ma")))
       .runSingle()
@@ -104,7 +105,7 @@ class PublishedConceptRepository extends StrictLogging with Repository[Concept] 
 
   private def conceptsWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): List[Concept] = {
     val co = PublishedConcept.syntax("co")
     tsql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
       .map(DBConcept.fromResultSet(co))
@@ -112,7 +113,7 @@ class PublishedConceptRepository extends StrictLogging with Repository[Concept] 
       .get
   }
 
-  def getByPage(pageSize: Int, offset: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Concept] = {
+  def getByPage(pageSize: Int, offset: Int)(implicit session: DBSession = dbUtility.readOnlySession): Seq[Concept] = {
     val co = PublishedConcept.syntax("co")
     tsql"""
            select ${co.result.*}

@@ -20,7 +20,7 @@ import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRe
 import no.ndla.conceptapi.service.*
 import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.validation.ContentValidator
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DataSource, DBUtility}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.{MyNDLAApiClient, SearchApiClient}
 import no.ndla.network.tapir.{
@@ -65,6 +65,7 @@ trait TestEnvironment extends TapirApplication[ConceptApiProperties] with Mockit
   implicit lazy val errorHelpers: ErrorHelpers         = new ErrorHelpers
   implicit lazy val errorHandling: ErrorHandling       = mock[ErrorHandling]
   implicit lazy val searchLanguage: SearchLanguage     = mock[SearchLanguage]
+  implicit lazy val dbUtility: DBUtility               = new DBUtility
 
   implicit lazy val ndlaClient: NdlaClient           = mock[NdlaClient]
   implicit lazy val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]

@@ -15,33 +15,30 @@ import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.model.domain.*
 import org.postgresql.util.PGobject
 import scalikejdbc.*
+import no.ndla.database.DBUtility
 import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 
-class ImageRepository extends StrictLogging {
-  def imageCount(implicit session: DBSession = ReadOnlyAutoSession): Try[Long] =
+class ImageRepository(using dbUtility: DBUtility) extends StrictLogging {
+  def imageCount(implicit session: DBSession = dbUtility.readOnlySession): Try[Long] =
     tsql"select count(*) from ${ImageMetaInformation.table}".map(rs => rs.long("count")).runSingle().map(_.getOrElse(0))
 
-  def withId(id: Long): Try[Option[ImageMetaInformation]] = Try {
-    DB readOnly { implicit session =>
-      imageMetaInformationWhere(sqls"im.id = $id")
-    }
-  }.flatten
+  def withId(id: Long): Try[Option[ImageMetaInformation]] = dbUtility.readOnly { implicit session =>
+    imageMetaInformationWhere(sqls"im.id = $id")
+  }
 
-  def withIds(ids: List[Long]): Try[List[ImageMetaInformation]] = Try {
-    DB readOnly { implicit session =>
-      imageMetaInformationsWhere(sqls"im.id in ($ids)")
-    }
-  }.flatten
+  def withIds(ids: List[Long]): Try[List[ImageMetaInformation]] = dbUtility.readOnly { implicit session =>
+    imageMetaInformationsWhere(sqls"im.id in ($ids)")
+  }
 
-  def withExternalId(externalId: String): Try[Option[ImageMetaInformation]] = Try {
-    DB readOnly { implicit session =>
-      imageMetaInformationWhere(sqls"im.external_id = $externalId")
-    }
-  }.flatten
+  def withExternalId(externalId: String): Try[Option[ImageMetaInformation]] = dbUtility.readOnly { implicit session =>
+    imageMetaInformationWhere(sqls"im.external_id = $externalId")
+  }
 
-  def insert(imageMeta: ImageMetaInformation)(implicit session: DBSession = AutoSession): Try[ImageMetaInformation] =
+  def insert(imageMeta: ImageMetaInformation)(implicit
+      session: DBSession = dbUtility.autoSession
+  ): Try[ImageMetaInformation] =
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(imageMeta))
@@ -51,7 +48,7 @@ class ImageRepository extends StrictLogging {
       .map(id => imageMeta.copy(id = Some(id)))
 
   def update(imageMetaInformation: ImageMetaInformation, id: Long)(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): Try[ImageMetaInformation] = {
     val json       = CirceUtil.toJsonString(imageMetaInformation)
     val dataObject = new PGobject()
@@ -62,7 +59,7 @@ class ImageRepository extends StrictLogging {
       .map(_ => imageMetaInformation.copy(id = Some(id)))
   }
 
-  def delete(imageId: Long)(implicit session: DBSession = AutoSession): Try[Int] = Try {
+  def delete(imageId: Long)(implicit session: DBSession = dbUtility.autoSession): Try[Int] = Try {
     tsql"delete from imagemetadata where id = $imageId".update().get
   }.flatMap {
     case n if n < 1 =>
@@ -70,8 +67,8 @@ class ImageRepository extends StrictLogging {
     case n => Success(n)
   }
 
-  def minMaxId: Try[(Long, Long)] = Try {
-    DB readOnly { implicit session =>
+  def minMaxId: Try[(Long, Long)] = dbUtility.readOnly { implicit session =>
+    Try {
       tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from imagemetadata"
         .map(rs => (rs.long("mi"), rs.long("ma")))
         .runSingle()
@@ -96,7 +93,7 @@ class ImageRepository extends StrictLogging {
 
   private def imageMetaInformationsWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[ImageMetaInformation]] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): Try[List[ImageMetaInformation]] = {
     val im = ImageMetaInformation.syntax("im")
     tsql"""
             SELECT ${im.result.*}
@@ -112,7 +109,7 @@ class ImageRepository extends StrictLogging {
 
   def getImageFromFilePath(
       filePath: String
-  )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[ImageMetaInformation]] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[ImageMetaInformation]] = {
     val (withoutSlash, withSlash) = withAndWithoutPrefixSlash(filePath)
     // Cannot use parameters inside the JSON path expression, so we need to send them as a jsonb object to be referenced
     val jsonbVars = new PGobject()
@@ -125,13 +122,13 @@ class ImageRepository extends StrictLogging {
     imageMetaInformationWhere(whereClause)
   }
 
-  def minMaxId(implicit session: DBSession = AutoSession): Try[(Long, Long)] =
+  def minMaxId(implicit session: DBSession = dbUtility.autoSession): Try[(Long, Long)] =
     tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${ImageMetaInformation.table}"
       .map(rs => (rs.long("mi"), rs.long("ma")))
       .runSingle()
       .map(_.getOrElse((0L, 0L)))
 
-  def getRandomImage()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[ImageMetaInformation]] = {
+  def getRandomImage()(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[ImageMetaInformation]] = {
     val im = ImageMetaInformation.syntax("im")
     tsql"""SELECT ${im.result.*}
            FROM ${ImageMetaInformation.as(im)} TABLESAMPLE public.system_rows(1)
@@ -139,7 +136,7 @@ class ImageRepository extends StrictLogging {
   }
 
   def getByPage(pageSize: Int, offset: Int)(implicit
-      session: DBSession = ReadOnlyAutoSession
+      session: DBSession = dbUtility.readOnlySession
   ): Try[Seq[ImageMetaInformation]] = {
     val im = ImageMetaInformation.syntax("im")
     tsql"""
@@ -173,7 +170,7 @@ class ImageRepository extends StrictLogging {
         if (cursor >= total) throw IllegalStateException("Called `next` while `hasNext` is false")
 
         val size = batchSize.min(total - cursor)
-        DB.readOnly { case given DBSession =>
+        dbUtility.readOnly { implicit session =>
           tsql"""
             select ${im.result.*}
             from ${ImageMetaInformation.as(im)}

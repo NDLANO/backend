@@ -12,16 +12,24 @@ import com.typesafe.scalalogging.StrictLogging
 import io.circe.Encoder
 import no.ndla.common.CirceUtil
 import no.ndla.common.TryUtil.throwIfInterrupted
+import no.ndla.common.configuration.BaseProps
 import no.ndla.common.errors.RollbackException
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class DBUtility extends StrictLogging {
+class DBUtility(using props: BaseProps) extends StrictLogging {
+  def namedDb                                                = NamedDB(props.ApplicationName)
+  def autoSession: DBSession                                 = NamedAutoSession(props.ApplicationName)
+  def readOnlySession: DBSession                             = ReadOnlyNamedAutoSession(props.ApplicationName)
+  def localTx[T](func: DBSession => T): T                    = namedDb.localTx(func)
+  private def dbReadOnly[T](func: ReadableDbSession => T): T =
+    namedDb.readOnly(session => func(ReadableDbSession(session)))
+
   def rollbackOnFailure[T](func: WriteableDbSession => Try[T]): Try[T] = {
     try {
-      DB.localTx { session =>
+      localTx { session =>
         val writeableSession = WriteableDbSession(session)
         func(writeableSession) match {
           case Failure(ex)    => throw RollbackException(ex)
@@ -39,18 +47,18 @@ class DBUtility extends StrictLogging {
 
   def writeSession[T](func: WriteableDbSession => Try[T]): Try[T] = Try
     .throwIfInterrupted {
-      DB.localTx { session =>
+      localTx { session =>
         val writeableSession = WriteableDbSession(session)
         func(writeableSession)
       }
     }
     .flatten
 
-  def readOnly[T](func: ReadableDbSession => T): T = readOnly(s => Success(func(s))).get
+  def readOnly[T](func: ReadableDbSession => T): T = dbReadOnly(s => Success(func(s))).get
 
   def readOnly[T](func: ReadableDbSession => Try[T]): Try[T] = Try
     .throwIfInterrupted {
-      DB.readOnly { session =>
+      dbReadOnly { session =>
         val readableSession = ReadableDbSession(session)
         func(readableSession)
       }

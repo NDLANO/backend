@@ -19,6 +19,7 @@ import no.ndla.common.model.domain.concept.Concept
 import no.ndla.conceptapi.Props
 import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.repository.Repository
+import no.ndla.database.DBUtility
 import no.ndla.search.model.domain.{BulkIndexResult, ElasticIndexingException, ReindexResult}
 import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 
@@ -29,6 +30,7 @@ abstract class IndexService(using
     props: Props,
     searchConverterService: SearchConverterService,
     searchLanguage: SearchLanguage,
+    dbUtility: DBUtility,
 ) extends BaseIndexService
     with StrictLogging {
   val repository: Repository[Concept]
@@ -77,10 +79,13 @@ abstract class IndexService(using
   }
 
   private def getRanges: Try[List[(Long, Long)]] = {
-    Try {
-      val (minId, maxId) = repository.minMaxId
-      Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
-    }
+    dbUtility
+      .readOnly { implicit session =>
+        Try(repository.minMaxId)
+      }
+      .map { case (minId, maxId) =>
+        Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
+      }
   }
 
   def indexDocuments(contents: Seq[Concept], indexName: String): Try[Int] = {

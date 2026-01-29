@@ -22,12 +22,10 @@ import scala.util.{Failure, Success, Try}
 
 class RobotRepository(using dbUtility: DBUtility) extends StrictLogging {
   def getSession(readOnly: Boolean): DBSession =
-    if (readOnly) ReadOnlyAutoSession
-    else AutoSession
+    if (readOnly) dbUtility.readOnlySession
+    else dbUtility.autoSession
 
-  def withTx[T](func: DBSession => T): T = DB.localTx { session =>
-    func(session)
-  }
+  def withTx[T](func: DBSession => T): T = dbUtility.localTx(func)
 
   def updateRobotDefinition(robot: RobotDefinition)(implicit session: DBSession): Try[Unit] = Try {
     val column = RobotDefinition.column.c

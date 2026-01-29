@@ -11,6 +11,7 @@ package no.ndla.myndlaapi.repository
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax.*
 import no.ndla.common.model.domain.config.{ConfigKey, ConfigMeta}
+import no.ndla.database.DBUtility
 import no.ndla.database.implicits.*
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -18,7 +19,7 @@ import sqls.count
 
 import scala.util.{Success, Try}
 
-class ConfigRepository extends StrictLogging {
+class ConfigRepository(using dbUtility: DBUtility) extends StrictLogging {
   import ConfigMeta.*
 
   implicit val configValueParameterBinderFactory: ParameterBinderFactory[ConfigMeta] =
@@ -31,14 +32,14 @@ class ConfigRepository extends StrictLogging {
       }
     }
 
-  def configCount(implicit session: DBSession = ReadOnlyAutoSession): Int = {
+  def configCount(implicit session: DBSession = dbUtility.readOnlySession): Int = {
     val c = ConfigMeta.syntax("c")
     withSQL {
       select(count(c.column("configkey"))).from(ConfigMeta as c)
     }.map(_.int(1)).single().getOrElse(0)
   }
 
-  def updateConfigParam(config: ConfigMeta)(implicit session: DBSession = AutoSession): Try[ConfigMeta] = {
+  def updateConfigParam(config: ConfigMeta)(implicit session: DBSession = dbUtility.autoSession): Try[ConfigMeta] = {
     val updatedCount = withSQL {
       update(ConfigMeta)
         .set(ConfigMeta.column.column("value") -> config)
@@ -61,7 +62,9 @@ class ConfigRepository extends StrictLogging {
     }
   }
 
-  def getConfigWithKey(key: ConfigKey)(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[ConfigMeta]] =
+  def getConfigWithKey(key: ConfigKey)(implicit
+      session: DBSession = dbUtility.readOnlySession
+  ): Try[Option[ConfigMeta]] =
     val keyName = key.entryName
     val c       = ConfigMeta.syntax("c")
     tsql"""
