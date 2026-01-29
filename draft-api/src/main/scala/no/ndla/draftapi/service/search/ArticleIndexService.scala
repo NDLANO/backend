@@ -53,6 +53,7 @@ class ArticleIndexService(using
       keywordField("users"),
       keywordField("grepCodes"),
       keywordField("traits"),
+      ObjectField("responsible", properties = Seq(keywordField("responsibleId"), dateField("lastUpdated"))),
       ObjectField("status", properties = Seq(keywordField("current"), keywordField("other"))),
     )
     val dynamics = generateLanguageSupportedFieldList("title", keepRaw = true) ++
