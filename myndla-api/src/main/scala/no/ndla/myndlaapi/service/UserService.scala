@@ -11,6 +11,7 @@ package no.ndla.myndlaapi.service
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.*
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.myndla
 import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
@@ -36,15 +37,16 @@ class UserService(using
   def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
       session: DBSession
   ): Try[MyNDLAUser] = {
-    getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
+    for {
+      user     <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
+      lastSeen <- userRepository.updateLastSeen(feideId, NDLADate.now())(using session)
+    } yield user.copy(lastSeen = lastSeen)
   }
 
   def getMyNdlaUserDataDomain(feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
     for {
       feideId  <- feideApiClient.getFeideID(feideAccessToken)
-      userData <- dbUtility.rollbackOnFailure(session =>
-        getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
-      )
+      userData <- dbUtility.rollbackOnFailure(session => getMyNDLAUser(feideId, feideAccessToken)(using session))
     } yield userData
   }
 
@@ -172,6 +174,7 @@ class UserService(using
     val userRole     =
       if (feideUser.isTeacher) UserRole.EMPLOYEE
       else UserRole.STUDENT
+    val lastSeen = NDLADate.now()
     val updatedMyNDLAUser = MyNDLAUser(
       id = userData.id,
       feideId = userData.feideId,
@@ -184,6 +187,7 @@ class UserService(using
       displayName = feideUser.displayName,
       email = feideUser.email,
       arenaEnabled = userData.arenaEnabled || userRole == UserRole.EMPLOYEE,
+      lastSeen = lastSeen,
     )
     userRepository.updateUser(feideId, updatedMyNDLAUser)(using session)
   }

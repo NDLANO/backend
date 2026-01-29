@@ -29,6 +29,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
   override def beforeEach(): Unit = {
     super.beforeEach()
     resetMocks()
+    when(userRepository.updateLastSeen(any, any[NDLADate])(using any)).thenReturn(Success(NDLADate.now()))
   }
 
   test("That updateUserData updates user if user exist") {
@@ -45,6 +46,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
+      lastSeen = clock.now(),
     )
     val updatedUserData = UpdatedMyNDLAUserDTO(favoriteSubjects = Some(Seq("r", "e")), arenaEnabled = None)
     val userAfterMerge  = MyNDLAUser(
@@ -59,6 +61,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
+      lastSeen = clock.now(),
     )
     val expected = MyNDLAUserDTO(
       id = 42,
@@ -130,6 +133,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
+      lastSeen = clock.now(),
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -186,6 +190,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
+      lastSeen = clock.now(),
     )
     val apiUserData = MyNDLAUserDTO(
       id = 42,
@@ -238,6 +243,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
+      lastSeen = clock.now(),
     )
     val updatedFeideUser = FeideExtendedUserInfo(
       displayName = "name",

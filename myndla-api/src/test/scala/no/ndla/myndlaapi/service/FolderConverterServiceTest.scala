@@ -427,6 +427,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
+      lastSeen = NDLADate.now(),
     )
     val expectedUserData = MyNDLAUserDTO(
       id = 42,
@@ -445,18 +446,20 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That mergeUserData works correctly") {
+    val now            = clock.now()
     val domainUserData = MyNDLAUser(
       id = 42,
       feideId = "feide",
       favoriteSubjects = Seq("a", "b"),
       userRole = UserRole.STUDENT,
-      lastUpdated = clock.now(),
+      lastUpdated = now,
       organization = "oslo",
       groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
+      lastSeen = now,
     )
     val updatedUserData1 = UpdatedMyNDLAUserDTO(favoriteSubjects = None, arenaEnabled = None)
     val updatedUserData2 = UpdatedMyNDLAUserDTO(favoriteSubjects = Some(Seq.empty), arenaEnabled = None)
@@ -474,6 +477,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
+      lastSeen = now,
     )
     val expectedUserData2 = MyNDLAUser(
       id = 42,
@@ -487,6 +491,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
+      lastSeen = now,
     )
     val expectedUserData3 = MyNDLAUser(
       id = 42,
@@ -500,6 +505,7 @@ class FolderConverterServiceTest extends UnitTestSuite with TestEnvironment {
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
+      lastSeen = now,
     )
 
     service.mergeUserData(domainUserData, updatedUserData1, None).get should be(expectedUserData1)
