@@ -10,7 +10,7 @@ package no.ndla.myndlaapi.repository
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.config.{BooleanValue, ConfigKey, ConfigMeta}
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.*
@@ -21,6 +21,7 @@ class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   override lazy val schemaName: String              = "myndlaapi_test"
   override implicit lazy val dataSource: DataSource = testDataSource.get
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
+  override implicit lazy val DBUtil: DBUtility      = new DBUtility
 
   var repository: ConfigRepository = scala.compiletime.uninitialized
 

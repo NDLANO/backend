@@ -12,10 +12,14 @@ import com.typesafe.scalalogging.StrictLogging
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
-class DataSource(hikariConfig: HikariConfig) extends HikariDataSource(hikariConfig) with StrictLogging {
+class DataSource(hikariConfig: HikariConfig)(using props: DatabaseProps)
+    extends HikariDataSource(hikariConfig)
+    with StrictLogging {
   def connectToDatabase(): Unit = {
     logger.info(s"Connecting to database: ${this.getJdbcUrl}")
-    ConnectionPool.singleton(new DataSourceConnectionPool(this))
+    val connectionPool = new DataSourceConnectionPool(this)
+    ConnectionPool.add(props.ApplicationName, connectionPool)
+    ConnectionPool.singleton(connectionPool)
   }
 }
 

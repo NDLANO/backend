@@ -40,15 +40,13 @@ import scala.util.{Failure, Success, Try}
 
 class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictLogging {
   def getSession(readOnly: Boolean): DBSession =
-    if (readOnly) ReadOnlyAutoSession
-    else AutoSession
+    if (readOnly) dbUtility.readOnlySession
+    else dbUtility.autoSession
 
-  def withTx[T](func: DBSession => T): T = DB.localTx { session =>
-    func(session)
-  }
+  def withTx[T](func: DBSession => T): T = dbUtility.localTx(func)
 
   def insertFolder(feideId: FeideID, folderData: NewFolderData)(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): Try[Folder] = Try {
     val newId   = UUID.randomUUID()
     val created = clock.now()
@@ -94,7 +92,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       resourceType: ResourceType,
       created: NDLADate,
       document: ResourceDocument,
-  )(implicit session: DBSession = AutoSession): Try[Resource] = Try {
+  )(implicit session: DBSession = dbUtility.autoSession): Try[Resource] = Try {
     val newId  = UUID.randomUUID()
     val column = Resource.column.c
 
@@ -116,7 +114,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
   }
 
   def createFolderResourceConnection(folderId: UUID, resourceId: UUID, rank: Int, favoritedDate: NDLADate)(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): Try[FolderResource] = Try {
     val _ = withSQL {
       insert
@@ -133,35 +131,36 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
     FolderResource(folderId = folderId, resourceId = resourceId, rank = rank, favoritedDate = favoritedDate)
   }
 
-  def updateFolder(id: UUID, feideId: FeideID, folder: Folder)(implicit session: DBSession = AutoSession): Try[Folder] =
-    Try {
-      val column = Folder.column.c
-      withSQL {
-        update(Folder)
-          .set(
-            column("parent_id")   -> folder.parentId,
-            column("name")        -> folder.name,
-            column("status")      -> folder.status.toString,
-            column("shared")      -> folder.shared,
-            column("updated")     -> folder.updated,
-            column("description") -> folder.description,
-          )
-          .where
-          .eq(column("id"), id)
-          .and
-          .eq(column("feide_id"), feideId)
-      }.update()
-    } match {
-      case Failure(ex)                  => Failure(ex)
-      case Success(count) if count == 1 =>
-        logger.info(s"Updated folder with id $id")
-        Success(folder)
-      case Success(count) =>
-        Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
-    }
+  def updateFolder(id: UUID, feideId: FeideID, folder: Folder)(implicit
+      session: DBSession = dbUtility.autoSession
+  ): Try[Folder] = Try {
+    val column = Folder.column.c
+    withSQL {
+      update(Folder)
+        .set(
+          column("parent_id")   -> folder.parentId,
+          column("name")        -> folder.name,
+          column("status")      -> folder.status.toString,
+          column("shared")      -> folder.shared,
+          column("updated")     -> folder.updated,
+          column("description") -> folder.description,
+        )
+        .where
+        .eq(column("id"), id)
+        .and
+        .eq(column("feide_id"), feideId)
+    }.update()
+  } match {
+    case Failure(ex)                  => Failure(ex)
+    case Success(count) if count == 1 =>
+      logger.info(s"Updated folder with id $id")
+      Success(folder)
+    case Success(count) =>
+      Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
+  }
 
   def updateFolderStatusInBulk(folderIds: List[UUID], newStatus: FolderStatus.Value)(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): Try[List[UUID]] = Try {
     val newSharedValue =
       if (newStatus == FolderStatus.SHARED) Some(clock.now())
@@ -182,7 +181,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       Failure(NDLASQLException(s"This is a Bug! The expected rows count should be ${folderIds.length} and was $count."))
   }
 
-  def updateResource(resource: Resource)(implicit session: DBSession = AutoSession): Try[Resource] = {
+  def updateResource(resource: Resource)(implicit session: DBSession = dbUtility.autoSession): Try[Resource] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(resource))
@@ -201,7 +200,9 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
     }
   }
 
-  def folderResourceConnectionCount(resourceId: UUID)(implicit session: DBSession = AutoSession): Try[Long] = {
+  def folderResourceConnectionCount(
+      resourceId: UUID
+  )(implicit session: DBSession = dbUtility.autoSession): Try[Long] = {
     tsql"select count(*) from ${FolderResource.table} where resource_id=$resourceId"
       .map(rs => rs.long("count"))
       .runSingle()
@@ -209,7 +210,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
   }
 
   def getConnection(folderId: UUID, resourceId: UUID)(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): Try[Option[FolderResource]] = {
     tsql"select resource_id, folder_id, rank, favorited_date from ${FolderResource.table} where resource_id=$resourceId and folder_id=$folderId"
       .map(rs => {
@@ -225,7 +226,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       .flatten
   }
 
-  def getConnections(folderId: UUID)(implicit session: DBSession = AutoSession): Try[List[FolderResource]] =
+  def getConnections(folderId: UUID)(implicit session: DBSession = dbUtility.autoSession): Try[List[FolderResource]] =
     tsql"select resource_id, folder_id, rank, favorited_date from ${FolderResource.table} where folder_id=$folderId order by rank ASC"
       .map(rs => {
         for {
@@ -237,7 +238,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       })
       .runListFlat()
 
-  def deleteFolder(id: UUID)(implicit session: DBSession = AutoSession): Try[UUID] = {
+  def deleteFolder(id: UUID)(implicit session: DBSession = dbUtility.autoSession): Try[UUID] = {
     tsql"delete from ${Folder.table} where id = $id".update() match {
       case Failure(ex)                      => Failure(ex)
       case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"Folder with id $id does not exist"))
@@ -247,7 +248,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
     }
   }
 
-  def deleteResource(id: UUID)(implicit session: DBSession = AutoSession): Try[UUID] = {
+  def deleteResource(id: UUID)(implicit session: DBSession = dbUtility.autoSession): Try[UUID] = {
     tsql"delete from ${Resource.table} where id = $id".update() match {
       case Failure(ex)                      => Failure(ex)
       case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"Resource with id $id does not exist"))
@@ -258,7 +259,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
   }
 
   def deleteFolderResourceConnection(folderId: UUID, resourceId: UUID)(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): Try[UUID] =
     tsql"delete from ${FolderResource.table} where folder_id=$folderId and resource_id=$resourceId".update() match {
       case Failure(ex)                      => Failure(ex)
@@ -288,7 +289,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
   }
 
   def getRecentFavorited(size: Option[Int], excludeResourceTypes: List[ResourceType])(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): Try[List[Resource]] = {
     val fr    = FolderResource.syntax("fr")
     val r     = Resource.syntax("r")
@@ -321,17 +322,17 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
          """.map(rs => rs.long("count")).runSingle().map(_.getOrElse(0L)).get
     }
 
-  def numberOfUsersWithFavourites(implicit session: DBSession = AutoSession): Try[Option[Long]] = tsql"""
+  def numberOfUsersWithFavourites(implicit session: DBSession = dbUtility.autoSession): Try[Option[Long]] = tsql"""
            select count(distinct feide_id) as count from ${Resource.table}
          """.map(rs => rs.long("count")).runSingle()
 
-  def numberOfUsersWithoutFavourites(implicit session: DBSession = AutoSession): Try[Option[Long]] = tsql"""
+  def numberOfUsersWithoutFavourites(implicit session: DBSession = dbUtility.autoSession): Try[Option[Long]] = tsql"""
            select count(distinct u.feide_id) as count from ${DBMyNDLAUser.table} u
            left join ${Resource.table} r on u.feide_id = r.feide_id
            where r.feide_id is null
          """.map(rs => rs.long("count")).runSingle()
 
-  def deleteAllUserFolders(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {
+  def deleteAllUserFolders(feideId: FeideID)(implicit session: DBSession = dbUtility.autoSession): Try[Int] = {
     tsql"delete from ${Folder.table} where feide_id = $feideId".update() match {
       case Failure(ex)      => Failure(ex)
       case Success(numRows) =>
@@ -340,7 +341,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
     }
   }
 
-  def deleteAllUserResources(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[Int] = {
+  def deleteAllUserResources(feideId: FeideID)(implicit session: DBSession = dbUtility.autoSession): Try[Int] = {
     tsql"delete from ${Resource.table} where feide_id = $feideId".update() match {
       case Failure(ex)      => Failure(ex)
       case Success(numRows) =>
@@ -349,35 +350,36 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
     }
   }
 
-  def folderWithId(id: UUID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Folder] =
+  def folderWithId(id: UUID)(implicit session: DBSession = dbUtility.readOnlySession): Try[Folder] =
     folderWhere(sqls"f.id=$id").flatMap {
       case None         => Failure(NotFoundException(s"Folder with id $id does not exist"))
       case Some(folder) => Success(folder)
     }
 
-  def folderWithFeideId(id: UUID, feideId: FeideID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Folder] =
-    folderWhere(sqls"f.id=$id and f.feide_id=$feideId").flatMap {
-      case None         => Failure(NotFoundException(s"Folder with id $id does not exist"))
-      case Some(folder) => Success(folder)
-    }
+  def folderWithFeideId(id: UUID, feideId: FeideID)(implicit
+      session: DBSession = dbUtility.readOnlySession
+  ): Try[Folder] = folderWhere(sqls"f.id=$id and f.feide_id=$feideId").flatMap {
+    case None         => Failure(NotFoundException(s"Folder with id $id does not exist"))
+    case Some(folder) => Success(folder)
+  }
 
-  def resourceWithId(id: UUID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Resource] =
+  def resourceWithId(id: UUID)(implicit session: DBSession = dbUtility.readOnlySession): Try[Resource] =
     resourceWhere(sqls"r.id=$id").flatMap({
       case None           => Failure(NotFoundException(s"Resource with id $id does not exist"))
       case Some(resource) => Success(resource)
     })
 
   def resourcesWithFeideId(feideId: FeideID, size: Int)(implicit
-      session: DBSession = ReadOnlyAutoSession
+      session: DBSession = dbUtility.readOnlySession
   ): Try[List[Resource]] = resourcesWhere(sqls"r.feide_id=$feideId order by r.created desc limit $size")
 
   def resourceWithPathAndTypeAndFeideId(path: String, resourceType: ResourceType, feideId: FeideID)(implicit
-      session: DBSession = ReadOnlyAutoSession
+      session: DBSession = dbUtility.readOnlySession
   ): Try[Option[Resource]] =
     resourceWhere(sqls"path=$path and resource_type=${resourceType.entryName} and feide_id=$feideId")
 
   def foldersWithFeideAndParentID(parentId: Option[UUID], feideId: FeideID)(implicit
-      session: DBSession = ReadOnlyAutoSession
+      session: DBSession = dbUtility.readOnlySession
   ): Try[List[Folder]] = {
     val parentIdClause = parentId match {
       case Some(pid) => sqls"f.parent_id=$pid"
@@ -530,7 +532,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       .runListFlat()
       .map(data => buildTreeStructureFromListOfChildren(id, data))
 
-  def getFoldersDepth(parentId: UUID)(implicit session: DBSession = ReadOnlyAutoSession): Try[Long] = tsql"""
+  def getFoldersDepth(parentId: UUID)(implicit session: DBSession = dbUtility.readOnlySession): Try[Long] = tsql"""
            WITH RECURSIVE parents AS (
                 SELECT id AS f_id, parent_id AS f_parent_id, 0 dpth
                 FROM ${Folder.table} child
@@ -543,8 +545,9 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
             SELECT * FROM parents ORDER BY parents.dpth DESC
          """.map(rs => rs.long("dpth")).runFirst().map(_.getOrElse(0L))
 
-  def getFoldersAndSubfoldersIds(folderId: UUID)(implicit session: DBSession = ReadOnlyAutoSession): Try[List[UUID]] =
-    tsql"""
+  def getFoldersAndSubfoldersIds(folderId: UUID)(implicit
+      session: DBSession = dbUtility.readOnlySession
+  ): Try[List[UUID]] = tsql"""
              WITH RECURSIVE parent (id) as (
                   SELECT id
                   FROM ${Folder.table} child
@@ -558,10 +561,12 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
            """.map(rs => rs.get[Try[UUID]]("id")).runListFlat()
 
   def foldersWithParentID(parentId: Option[UUID])(implicit
-      session: DBSession = ReadOnlyAutoSession
+      session: DBSession = dbUtility.readOnlySession
   ): Try[List[Folder]] = foldersWhere(sqls"f.parent_id=$parentId")
 
-  def getFolderResources(folderId: UUID)(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Resource]] = {
+  def getFolderResources(
+      folderId: UUID
+  )(implicit session: DBSession = dbUtility.readOnlySession): Try[List[Resource]] = {
     val fr = FolderResource.syntax("fr")
     val r  = Resource.syntax("r")
     tsql"""select ${r.result.*}, ${fr.result.*} from ${FolderResource.as(fr)}
@@ -639,7 +644,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
         Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
     }
 
-  def numberOfTags()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] =
+  def numberOfTags()(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Long]] =
     tsql"select count(tag) from (select distinct jsonb_array_elements_text(document->'tags') from ${Resource.table}) as tag"
       .map(rs => rs.long("count"))
       .runSingle()
@@ -742,24 +747,24 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
     val _ = insertSql.batch(batchParams*).apply()
   }
 
-  def numberOfResources()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] =
+  def numberOfResources()(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Long]] =
     tsql"select count(*) from ${Resource.table}".map(rs => rs.long("count")).runSingle()
 
-  def numberOfFolders()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] =
+  def numberOfFolders()(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Long]] =
     tsql"select count(*) from ${Folder.table}".map(rs => rs.long("count")).runSingle()
 
-  def numberOfSharedFolders()(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Long]] =
+  def numberOfSharedFolders()(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Long]] =
     tsql"select count(*) from ${Folder.table} where status = ${FolderStatus.SHARED.toString}"
       .map(rs => rs.long("count"))
       .runSingle()
 
-  def numberOfResourcesGrouped()(implicit session: DBSession = ReadOnlyAutoSession): Try[List[(Long, String)]] =
+  def numberOfResourcesGrouped()(implicit session: DBSession = dbUtility.readOnlySession): Try[List[(Long, String)]] =
     tsql"select count(*) as antall, resource_type from ${Resource.table} group by resource_type"
       .map(rs => (rs.long("antall"), rs.string("resource_type")))
       .runList()
 
   def createFolderUserConnection(folderId: UUID, feideId: FeideID, rank: Int)(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): Try[SavedSharedFolder] = Try {
     val _ = withSQL {
       insert
@@ -775,21 +780,22 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
     SavedSharedFolder(folderId = folderId, feideId = feideId, rank = rank)
   }
 
-  def deleteFolderUserConnections(folderIds: List[UUID])(implicit session: DBSession = AutoSession): Try[List[UUID]] =
-    Try {
-      val column = SavedSharedFolder.column.c
-      withSQL {
-        delete.from(SavedSharedFolder).where.in(column("folder_id"), folderIds)
-      }.update()
-    } match {
-      case Failure(ex)      => Failure(ex)
-      case Success(numRows) =>
-        logger.info(s"Deleted $numRows shared folder user connections with folder ids (${folderIds.mkString(", ")})")
-        Success(folderIds)
-    }
+  def deleteFolderUserConnections(
+      folderIds: List[UUID]
+  )(implicit session: DBSession = dbUtility.autoSession): Try[List[UUID]] = Try {
+    val column = SavedSharedFolder.column.c
+    withSQL {
+      delete.from(SavedSharedFolder).where.in(column("folder_id"), folderIds)
+    }.update()
+  } match {
+    case Failure(ex)      => Failure(ex)
+    case Success(numRows) =>
+      logger.info(s"Deleted $numRows shared folder user connections with folder ids (${folderIds.mkString(", ")})")
+      Success(folderIds)
+  }
 
   def deleteFolderUserConnection(folderId: Option[UUID], feideId: Option[FeideID])(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): Try[Int] = Try {
     (folderId, feideId) match {
       case (Some(folderId), Some(feideId)) =>
@@ -813,7 +819,9 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
     }
   }
 
-  def getSavedSharedFolders(feideId: FeideID)(implicit session: DBSession = AutoSession): Try[List[Folder]] = {
+  def getSavedSharedFolders(
+      feideId: FeideID
+  )(implicit session: DBSession = dbUtility.autoSession): Try[List[Folder]] = {
     val f   = Folder.syntax("f")
     val sfu = SavedSharedFolder.syntax("sfu")
     tsql"""

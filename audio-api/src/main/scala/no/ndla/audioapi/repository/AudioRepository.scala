@@ -15,12 +15,15 @@ import no.ndla.common.CirceUtil
 import no.ndla.network.tapir.ErrorHelpers
 import org.postgresql.util.PGobject
 import scalikejdbc.*
+import no.ndla.database.DBUtility
 import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 
-class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging with Repository[AudioMetaInformation] {
-  def audioCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
+class AudioRepository(using errorHelpers: ErrorHelpers, dbUtility: DBUtility)
+    extends StrictLogging
+    with Repository[AudioMetaInformation] {
+  def audioCount(implicit session: DBSession = dbUtility.readOnlySession): Long =
     tsql"select count(*) from ${AudioMetaInformation.table}"
       .map(rs => rs.long("count"))
       .runSingle()
@@ -28,26 +31,26 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
       .get
 
   def withId(id: Long): Option[AudioMetaInformation] = {
-    DB readOnly { implicit session =>
+    dbUtility.readOnly { implicit session =>
       audioMetaInformationWhere(sqls"au.id = $id")
     }
   }
 
   def withIds(ids: List[Long]): Try[List[AudioMetaInformation]] = {
-    DB readOnly { implicit session =>
+    dbUtility.readOnly { implicit session =>
       audioMetaInformationsWhere(sqls"au.id in ($ids)")
     }
   }
 
   def withExternalId(externalId: String): Option[AudioMetaInformation] = {
-    DB readOnly { implicit session =>
+    dbUtility.readOnly { implicit session =>
       audioMetaInformationWhere(sqls"au.external_id = $externalId")
     }
   }
 
   def insert(
       audioMetaInformation: AudioMetaInformation
-  )(implicit session: DBSession = AutoSession): AudioMetaInformation = {
+  )(implicit session: DBSession = dbUtility.autoSession): AudioMetaInformation = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(audioMetaInformation))
@@ -64,7 +67,7 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(audioMetaInformation))
 
-    DB localTx { implicit session =>
+    dbUtility.localTx { implicit session =>
       val startRevision = 1
       tsql"insert into audiodata(external_id, document, revision) values($externalId, $dataObject, $startRevision)"
         .updateAndReturnGeneratedKey()
@@ -77,7 +80,7 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(audioMetaInformation))
 
-    DB localTx { implicit session =>
+    dbUtility.localTx { implicit session =>
       val newRevision = audioMetaInformation.revision.getOrElse(0) + 1
 
       tsql"""
@@ -98,7 +101,9 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
     }
   }
 
-  def setSeriesId(audioMetaId: Long, seriesId: Option[Long])(implicit session: DBSession = AutoSession): Try[Long] = {
+  def setSeriesId(audioMetaId: Long, seriesId: Option[Long])(implicit
+      session: DBSession = dbUtility.autoSession
+  ): Try[Long] = {
     tsql"""
            update ${AudioMetaInformation.table}
            set series_id = $seriesId
@@ -107,19 +112,19 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
   }
 
   def numElements: Int = {
-    DB readOnly { implicit session =>
+    dbUtility.readOnly { implicit session =>
       tsql"select count(*) from audiodata".map(rs => rs.int("count")).runSingle().map(_.getOrElse(0)).get
     }
   }
 
-  override def minMaxId(implicit session: DBSession = ReadOnlyAutoSession): Try[(Long, Long)] = {
+  override def minMaxId(implicit session: DBSession = dbUtility.readOnlySession): Try[(Long, Long)] = {
     tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from audiodata"
       .map(rs => (rs.long("mi"), rs.long("ma")))
       .runSingle()
       .map(_.getOrElse((0L, 0L)))
   }
 
-  def deleteAudio(audioId: Long)(implicit session: DBSession = AutoSession): Int = {
+  def deleteAudio(audioId: Long)(implicit session: DBSession = dbUtility.autoSession): Int = {
     tsql"delete from ${AudioMetaInformation.table} where id=$audioId".update().get
   }
 
@@ -150,7 +155,7 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
 
   private def audioMetaInformationsWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[AudioMetaInformation]] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): Try[List[AudioMetaInformation]] = {
     val au = AudioMetaInformation.syntax("au")
     val se = Series.syntax("se")
     tsql"""
@@ -167,7 +172,7 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
       .runList()
   }
 
-  def getRandomAudio()(implicit session: DBSession = ReadOnlyAutoSession): Option[AudioMetaInformation] = {
+  def getRandomAudio()(implicit session: DBSession = dbUtility.readOnlySession): Option[AudioMetaInformation] = {
     val au = AudioMetaInformation.syntax("au")
     tsql"select ${au.result.*} from ${AudioMetaInformation.as(au)} tablesample public.system_rows(1)"
       .map(AudioMetaInformation.fromResultSet(au))
@@ -176,7 +181,7 @@ class AudioRepository(using errorHelpers: ErrorHelpers) extends StrictLogging wi
   }
 
   def getByPage(pageSize: Int, offset: Int)(implicit
-      session: DBSession = ReadOnlyAutoSession
+      session: DBSession = dbUtility.readOnlySession
   ): Seq[AudioMetaInformation] = {
     val au = AudioMetaInformation.syntax("au")
     tsql"""
