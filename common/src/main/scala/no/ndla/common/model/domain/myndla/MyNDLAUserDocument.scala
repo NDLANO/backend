@@ -23,7 +23,7 @@ case class MyNDLAUserDocument(
     email: String,
     arenaEnabled: Boolean,
 ) {
-  def toFullUser(id: Long, feideId: String): MyNDLAUser = {
+  def toFullUser(id: Long, feideId: String, lastSeen: NDLADate): MyNDLAUser = {
     MyNDLAUser(
       id = id,
       feideId = feideId,
@@ -36,6 +36,7 @@ case class MyNDLAUserDocument(
       displayName = displayName,
       email = email,
       arenaEnabled = arenaEnabled,
+      lastSeen = lastSeen,
     )
   }
 }

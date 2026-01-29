@@ -260,6 +260,7 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
         displayName = domainUserData.displayName,
         email = domainUserData.email,
         arenaEnabled = arenaEnabled,
+        lastSeen = clock.now(),
       )
     )
   }

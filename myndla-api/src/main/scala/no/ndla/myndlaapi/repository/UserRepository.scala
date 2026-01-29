@@ -11,6 +11,7 @@ package no.ndla.myndlaapi.repository
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.errors.NotFoundException
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.database.DBUtility
 import no.ndla.database.implicits.*
@@ -65,19 +66,20 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
   def insertUser(feideId: FeideID, document: MyNDLAUserDocument)(implicit
       session: DBSession = dbUtility.autoSession
   ): Try[MyNDLAUser] = {
+    val lastSeen   = NDLADate.now()
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(document))
 
     tsql"""
         update ${DBMyNDLAUser.table}
-        set document=$dataObject
+        set document=$dataObject, last_seen=${NDLADate.parameterBinderFactory(lastSeen)}
         where feide_id=$feideId
         """
       .updateAndReturnGeneratedKey()
       .map { userId =>
         logger.info(s"Inserted new user with id: $userId")
-        document.toFullUser(id = userId, feideId = feideId)
+        document.toFullUser(id = userId, feideId = feideId, lastSeen = lastSeen)
       }
   }
 
@@ -109,7 +111,8 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
 
     tsql"""
         update ${DBMyNDLAUser.table}
-                  set document=$dataObject
+                  set document=$dataObject,
+                      last_seen=${NDLADate.parameterBinderFactory(user.lastSeen)}
                   where feide_id=$feideId
         """
       .update()
@@ -118,6 +121,19 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
           logger.info(s"Updated user with feide_id $feideId")
           Success(user)
         case count => Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
+      }
+  }
+
+  def updateLastSeen(feideId: FeideID, lastSeen: NDLADate)(implicit session: DBSession): Try[NDLADate] = {
+    tsql"""
+        update ${DBMyNDLAUser.table}
+        set last_seen=${NDLADate.parameterBinderFactory(lastSeen)}
+        where feide_id=$feideId
+        """
+      .update()
+      .flatMap {
+        case count if count == 1 => Success(lastSeen)
+        case count               => Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
       }
   }
 
@@ -158,11 +174,12 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
 
   /** Returns false if the user was inserted, true if the user already existed. */
   def reserveFeideIdIfNotExists(feideId: FeideID)(implicit session: DBSession): Try[Boolean] = {
+    val lastSeen = NDLADate.now()
     tsql"""
             with inserted as (
                 insert into ${DBMyNDLAUser.table}
-                (feide_id, document)
-                values ($feideId, null)
+                (feide_id, document, last_seen)
+                values ($feideId, null, ${NDLADate.parameterBinderFactory(lastSeen)})
                 on conflict do nothing
                 returning id, feide_id, document
             )

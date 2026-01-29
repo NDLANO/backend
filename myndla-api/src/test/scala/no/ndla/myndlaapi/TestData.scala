@@ -92,6 +92,7 @@ object TestData {
     displayName = "",
     email = "",
     arenaEnabled = false,
+    lastSeen = today,
   )
 
 }
