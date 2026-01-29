@@ -219,7 +219,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that getArticlesByIds performs filter and returns articles that can only be seen by everyone") {
-    val feideId  = "asd"
     val ids      = List(1L, 2L, 3L)
     val article1 = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
     val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)

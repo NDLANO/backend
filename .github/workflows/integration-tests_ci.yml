@@ -12,6 +12,7 @@ on:
       - article-api/**
       - draft-api/**
       - learningpath-api/**
+      - myndla-api/**
       - search-api/**
       - modules/**
       - build.mill
@@ -23,6 +24,7 @@ on:
       - article-api/**
       - draft-api/**
       - learningpath-api/**
+      - myndla-api/**
       - search-api/**
       - modules/**
       - build.mill

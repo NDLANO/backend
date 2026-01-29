@@ -28,7 +28,7 @@ class UserRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with Te
   val baseLastUpdated: NDLADate = NDLADate.of(2024, 1, 1, 12, 0, 0)
 
   def emptyTestDatabase: Boolean = {
-    DB autoCommit (implicit session => {
+    DBUtil.writeSession(implicit session => {
       sql"delete from my_ndla_users;".execute()(using session)
     })
   }

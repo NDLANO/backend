@@ -34,7 +34,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   var feideId = "feide"
 
   def emptyTestDatabase: Boolean = {
-    DB autoCommit (implicit session => {
+    DBUtil.writeSession(implicit session => {
       sql"delete from my_ndla_users;".execute()(using session)
     })
   }

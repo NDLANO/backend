@@ -30,7 +30,7 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
   val feideId = "feide1"
 
   def emptyTestDatabase: Boolean = {
-    DB autoCommit (implicit session => {
+    DBUtil.writeSession(implicit session => {
       sql"delete from my_ndla_users;".execute()(using session)
     })
   }

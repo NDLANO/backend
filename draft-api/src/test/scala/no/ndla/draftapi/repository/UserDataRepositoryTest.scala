@@ -25,13 +25,13 @@ class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironme
   var repository: UserDataRepository                = scala.compiletime.uninitialized
 
   def emptyTestDatabase: Boolean = {
-    DB autoCommit (implicit session => {
+    dbUtility.writeSession(implicit session => {
       sql"delete from userdata;".execute()(using session)
     })
   }
 
   private def resetIdSequence() = {
-    DB autoCommit (implicit session => {
+    dbUtility.writeSession(implicit session => {
       sql"select setval('userdata_id_seq', 1, false);".execute()
     })
   }
