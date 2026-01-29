@@ -3,14 +3,12 @@ ARG JAVA_VERSION=25
 FROM eclipse-temurin:${JAVA_VERSION}-alpine AS builder
 ARG MODULE
 ARG JAVA_VERSION
-ARG MILL_VERSION=1.0.4-jvm
 
 WORKDIR /app
 
 # Build Scala backend module
 RUN apk add --no-cache curl
 COPY . .
-ENV MILL_VERSION=${MILL_VERSION}
 RUN ./mill -i ${MODULE}.assembly
 
 # Create list of required Java modules
@@ -44,5 +42,4 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 # Set up and run Scala app
 COPY --from=builder /app/out/${MODULE}/assembly.dest/out.jar /app/out.jar
 ENV LOG_APPENDER=Docker
-ENV JAVA_OPTS="-XX:InitialRAMPercentage=25 -XX:MinRAMPercentage=25 -XX:MaxRAMPercentage=85"
 ENTRYPOINT ["sh", "-c", "exec java -jar /app/out.jar $JAVA_OPTS"]
