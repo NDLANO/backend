@@ -18,15 +18,15 @@ import sttp.tapir.generic.auto.*
 import sttp.tapir.codec.enumeratum.*
 import no.ndla.common.model.api.config.{ConfigMetaDTO, ConfigMetaRestrictedDTO, ConfigMetaValueDTO}
 import no.ndla.common.model.domain.config.ConfigKey
+import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
 import no.ndla.myndlaapi.service.ConfigService
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.auth.Permission.LEARNINGPATH_API_ADMIN
 
 class ConfigController(using
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
     configService: ConfigService,
-    myNDLAApiClient: MyNDLAApiClient,
+    myNDLAApiClient: InternalMyNDLAApiClient,
 ) extends TapirController {
   override val serviceName: String = "config"
 

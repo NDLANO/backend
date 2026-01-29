@@ -9,16 +9,14 @@
 package no.ndla.searchapi.controller
 
 import cats.implicits.*
-import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
-import no.ndla.common.model.api.search.{LearningResourceType, MultiSearchResultDTO, ArticleTrait, SearchType}
+import no.ndla.common.model.api.search.{ArticleTrait, LearningResourceType, MultiSearchResultDTO, SearchType}
 import no.ndla.common.model.domain.Availability
 import no.ndla.language.Language.AllLanguages
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient}
+import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.{AllErrors, DynamicHeaders, ErrorHandling, ErrorHelpers, NonEmptyString, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.DRAFT_API_WRITE
@@ -56,12 +54,12 @@ import no.ndla.common.model.domain.Priority
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.learningpath.LearningPathStatus
 import no.ndla.common.model.taxonomy.NodeType
+import no.ndla.network.model.FeideUserWrapper
 
 class SearchController(using
     multiSearchService: MultiSearchService,
     searchConverterService: SearchConverterService,
     multiDraftSearchService: MultiDraftSearchService,
-    feideApiClient: FeideApiClient,
     props: Props,
     errorHandling: ErrorHandling,
     errorHelpers: ErrorHelpers,
@@ -112,16 +110,18 @@ class SearchController(using
     .in("group")
     .in(SearchQueryParams.input)
     .in(includeMissingResourceTypeGroup)
-    .in(feideHeader)
     .out(jsonBody[Seq[GroupSearchResultDTO]])
     .errorOut(errorOutputsFor(401, 403))
-    .serverLogicPure { case (q, includeMissingResourceTypeGroup, feideToken) =>
-      getAvailability(feideToken) match {
-        case Failure(ex)           => returnLeftError(ex)
-        case Success(availability) =>
-          val searchParams = asSearchParamsDTO(q)
-          val settings     = asSettings(searchParams.some, availability)
-          groupSearch(settings, includeMissingResourceTypeGroup)
+    .withOptionalFeideUser
+    .serverLogicPure { feide =>
+      { case (q, includeMissingResourceTypeGroup) =>
+        getAvailability(feide) match {
+          case Failure(ex)           => returnLeftError(ex)
+          case Success(availability) =>
+            val searchParams = asSearchParamsDTO(q)
+            val settings     = asSettings(searchParams.some, availability)
+            groupSearch(settings, includeMissingResourceTypeGroup)
+        }
       }
     }
 
@@ -269,11 +269,11 @@ class SearchController(using
     .out(jsonBody[MultiSearchResultDTO])
     .out(EndpointOutput.derived[DynamicHeaders])
     .in(SearchQueryParams.input)
-    .in(feideHeader)
-    .serverLogicPure { case (queryWrapper, feideToken) =>
+    .withOptionalFeideUser
+    .serverLogicPure { feide => queryWrapper =>
       scrollWithOr(queryWrapper.searchParams.scrollId, queryWrapper.searchParams.language, multiSearchService) {
         val searchParams = asSearchParamsDTO(queryWrapper)
-        getAvailability(feideToken).flatMap { availability =>
+        getAvailability(feide).flatMap { availability =>
           val settings = asSettings(searchParams.some, availability)
           multiSearchService.matchingQuery(settings) match {
             case Success(searchResult) =>
@@ -284,6 +284,7 @@ class SearchController(using
           }
         }
       }
+
     }
 
   def postSearchLearningResources: ServerEndpoint[Any, Eff] = endpoint
@@ -294,9 +295,9 @@ class SearchController(using
     .out(jsonBody[MultiSearchResultDTO])
     .out(EndpointOutput.derived[DynamicHeaders])
     .in(jsonBody[Option[SearchParamsDTO]].schema(SearchParamsDTO.schema.asOption))
-    .in(feideHeader)
-    .serverLogicPure { case (searchParams, feideToken) =>
-      getAvailability(feideToken).flatMap(availability => {
+    .withOptionalFeideUser
+    .serverLogicPure { feide => searchParams =>
+      getAvailability(feide).flatMap(availability => {
         val settings = asSettings(searchParams, availability)
         scrollWithOr(searchParams.flatMap(_.scrollId), LanguageCode(settings.language), multiSearchService) {
           multiSearchService
@@ -464,22 +465,14 @@ class SearchController(using
       grepSearchService.getReplacements(input.values)
     }
 
-  /** This method fetches availability based on FEIDE access token in the request This does an actual api-call to the
-    * feide api and should be used sparingly.
-    */
-  private def getAvailability(feideToken: Option[String]): Try[List[Availability]] = {
-    feideToken match {
-      case None        => Success(List.empty)
-      case Some(token) => feideApiClient.getFeideExtendedUser(Some(token)) match {
-          case Success(user)                      => Success(user.availabilities.toList)
-          case Failure(ex: AccessDeniedException) =>
-            logger.info(s"Access denied when fetching user from feide with accessToken '$token': ${ex.getMessage}", ex)
-            Success(List.empty)
-          case Failure(ex) =>
-            logger.error(s"Error when fetching user from feide with accessToken '$token': ${ex.getMessage}", ex)
-            Failure(ex)
-        }
-    }
+  private def getAvailability(feide: Option[FeideUserWrapper]): Try[List[Availability]] = feide match {
+    case None               => Success(List.empty)
+    case Some(feideWrapper) => feideWrapper.userOrAccessDenied match {
+        case Success(user) => Success(user.availabilities.toList)
+        case Failure(ex)   =>
+          logger.info(s"Access denied when fetching user from feide ${feideWrapper}: ${ex.getMessage}", ex)
+          Success(List.empty)
+      }
   }
 
   private def asSettings(p: Option[SearchParamsDTO], availability: List[Availability]): SearchSettings = {

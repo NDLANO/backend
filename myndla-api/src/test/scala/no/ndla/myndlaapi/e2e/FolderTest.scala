@@ -25,7 +25,7 @@ import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, spy, when, withSettings}
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
-import scalikejdbc.AutoSession
+import scalikejdbc.DBSession
 import sttp.client3.quick.*
 
 import java.util.UUID
@@ -98,7 +98,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     reset(myndlaApi.componentRegistry.folderRepository)
     reset(myndlaApi.componentRegistry.userRepository)
 
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = myndlaApi.componentRegistry.dbUtil.autoSession
     myndlaApi.componentRegistry.userRepository.deleteAllUsers
   }
 

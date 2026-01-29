@@ -18,7 +18,7 @@ import no.ndla.myndlaapi.controller.{
   StatsController,
   UserController,
 }
-import no.ndla.myndlaapi.integration.{LearningPathApiClient, SearchApiClient}
+import no.ndla.myndlaapi.integration.{InternalMyNDLAApiClient, LearningPathApiClient, SearchApiClient}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, RobotRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
@@ -30,7 +30,7 @@ import no.ndla.myndlaapi.service.{
   UserService,
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.{
   ErrorHelpers,
   Routes,
@@ -73,7 +73,7 @@ trait TestEnvironment extends TapirApplication[MyNdlaApiProperties] with Mockito
   implicit lazy val searchApiClient: SearchApiClient               = mock[SearchApiClient]
   implicit lazy val learningPathApiClient: LearningPathApiClient   = mock[LearningPathApiClient]
   implicit lazy val ndlaClient: NdlaClient                         = mock[NdlaClient]
-  implicit lazy val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]
+  implicit lazy val myndlaApiClient: InternalMyNDLAApiClient       = mock[InternalMyNDLAApiClient]
   implicit lazy val DBUtil: DBUtility                              = DBUtilityStub()
   implicit lazy val services: List[TapirController]                = List.empty
   implicit lazy val swagger: SwaggerController                     = mock[SwaggerController]
@@ -82,6 +82,7 @@ trait TestEnvironment extends TapirApplication[MyNdlaApiProperties] with Mockito
     reset(clock)
     reset(migrator)
     reset(dataSource)
+    reset(myndlaApiClient)
     reset(folderRepository)
     reset(folderReadService)
     reset(folderWriteService)

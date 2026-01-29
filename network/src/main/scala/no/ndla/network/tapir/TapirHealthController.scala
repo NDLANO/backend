@@ -9,14 +9,14 @@
 package no.ndla.network.tapir
 
 import no.ndla.common.Warmup
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.clients.MyNDLAProvider
 import sttp.model.StatusCode
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 
 class TapirHealthController(using
-    myNDLAApiClient: MyNDLAApiClient,
+    myNDLAApiClient: MyNDLAProvider,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
 ) extends TapirController

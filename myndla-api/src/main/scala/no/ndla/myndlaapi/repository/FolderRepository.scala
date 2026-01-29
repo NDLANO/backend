@@ -369,9 +369,8 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       case Some(resource) => Success(resource)
     })
 
-  def userResourceWithId(path: String, feideId: FeideID)(implicit
-      session: DBSession = ReadOnlyAutoSession
-  ): Try[Option[Resource]] = resourceWhere(sqls"path=$path and feide_id=$feideId")
+  def userResourceWithId(path: String, feideId: FeideID)(implicit session: DBSession): Try[Option[Resource]] =
+    resourceWhere(sqls"path=$path and feide_id=$feideId")
 
   def resourcesWithFeideId(feideId: FeideID, size: Int)(implicit
       session: DBSession = dbUtility.readOnlySession

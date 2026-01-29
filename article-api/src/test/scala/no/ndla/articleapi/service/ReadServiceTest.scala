@@ -18,7 +18,9 @@ import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.{NDLADate, TagAttribute}
 import no.ndla.common.model.api.{FrontPageDTO, MenuDTO}
 import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.myndla.MyNDLAUser
 import no.ndla.network.clients.FeideExtendedUserInfo
+import no.ndla.network.model.FeideUserWrapper
 import no.ndla.validation.ResourceType
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.*
@@ -143,7 +145,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       fallback = false,
       grepCodes = Seq.empty,
       shouldScroll = false,
-      feideAccessToken = None,
+      feide = None,
     )
 
     val expectedSettings = SearchSettings(
@@ -178,14 +180,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(Success(List("")))
 
     val result = readService
-      .getArticlesByIds(
-        articleIds = ids,
-        language = "nb",
-        fallback = true,
-        page = 1,
-        pageSize = 10,
-        feideAccessToken = None,
-      )
+      .getArticlesByIds(articleIds = ids, language = "nb", fallback = true, page = 1, pageSize = 10, feide = None)
       .get
     result.length should be(3)
 
@@ -193,7 +188,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that getArticlesByIds performs filter and returns articles that can only be seen by teacher") {
-    val feideId     = "asd"
     val ids         = List(1L, 2L, 3L)
     val article1    = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
     val article2    = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
@@ -206,6 +200,10 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     )
     when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(Success(List("")))
 
+    val userMock = mock[MyNDLAUser]
+    when(userMock.isTeacher).thenReturn(true)
+    val feideUserInfo = FeideUserWrapper("test-token", Some(userMock))
+
     val result = readService
       .getArticlesByIds(
         articleIds = ids,
@@ -213,23 +211,23 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         fallback = true,
         page = 1,
         pageSize = 10,
-        feideAccessToken = Some(feideId),
+        feide = Some(feideUserInfo),
       )
       .get
     result.length should be(3)
 
-    verify(feideApiClient, times(1)).getFeideExtendedUser(Some(feideId))
   }
 
   test("that getArticlesByIds performs filter and returns articles that can only be seen by everyone") {
-    val feideId     = "asd"
-    val ids         = List(1L, 2L, 3L)
-    val article1    = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
-    val article2    = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
-    val article3    = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
-    val teacherUser = FeideExtendedUserInfo("", eduPersonAffiliation = Seq("student"), None, "", None)
+    val feideId  = "asd"
+    val ids      = List(1L, 2L, 3L)
+    val article1 = TestData.sampleDomainArticle.copy(id = Some(1), availability = Availability.everyone)
+    val article2 = TestData.sampleDomainArticle.copy(id = Some(2), availability = Availability.everyone)
+    val article3 = TestData.sampleDomainArticle.copy(id = Some(3), availability = Availability.teacher)
+    val userMock = mock[MyNDLAUser]
+    when(userMock.isTeacher).thenReturn(false)
+    val feideUserInfo = FeideUserWrapper("test-token", Some(userMock))
 
-    when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Success(teacherUser))
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
       Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
@@ -242,13 +240,11 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         fallback = true,
         page = 1,
         pageSize = 10,
-        feideAccessToken = Some(feideId),
+        feide = Some(feideUserInfo),
       )
       .get
     result.length should be(2)
     result.map(res => res.availability).contains("teacher") should be(false)
-
-    verify(feideApiClient, times(1)).getFeideExtendedUser(Some(feideId))
   }
 
   test("that getArticlesByIds performs filter if feideAccessToken is not set") {
@@ -265,14 +261,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new RuntimeException))
 
     val result = readService
-      .getArticlesByIds(
-        articleIds = ids,
-        language = "nb",
-        fallback = true,
-        page = 1,
-        pageSize = 10,
-        feideAccessToken = None,
-      )
+      .getArticlesByIds(articleIds = ids, language = "nb", fallback = true, page = 1, pageSize = 10, feide = None)
       .get
     result.length should be(2)
     result.map(res => res.availability).contains("teacher") should be(false)
@@ -288,7 +277,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       fallback = true,
       page = 1,
       pageSize = 10,
-      feideAccessToken = None,
+      feide = None,
     )
     result.failed.get.asInstanceOf[ValidationException].errors.head.message should be(
       "Query parameter 'ids' is missing"

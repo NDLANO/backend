@@ -50,7 +50,10 @@ case class MyNDLAUserDTO(
     groups: Seq[MyNDLAGroupDTO],
     @description("Whether arena is explicitly enabled for the user")
     arenaEnabled: Boolean,
-)
+) {
+  def isStudent: Boolean = role == UserRole.STUDENT
+  def isTeacher: Boolean = role == UserRole.EMPLOYEE
+}
 
 object MyNDLAUserDTO {
   implicit def encoder: Encoder[MyNDLAUserDTO] = deriveEncoder

@@ -9,7 +9,6 @@
 package no.ndla.myndlaapi.controller
 
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.{ErrorHelpers, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.tapir.EndpointInput
@@ -19,7 +18,7 @@ import sttp.tapir.generic.auto.*
 import no.ndla.common.model.api.myndla.{MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
 import no.ndla.myndlaapi.model.api.ExportedUserDataDTO
 import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService, UserService}
-import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
 
 class UserController(using
     userService: UserService,
@@ -27,7 +26,7 @@ class UserController(using
     folderReadService: FolderReadService,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient,
+    myNDLAApiClient: InternalMyNDLAApiClient,
 ) extends TapirController {
   override val serviceName: String = "users"
 
@@ -37,23 +36,23 @@ class UserController(using
     .get
     .summary("Get user data")
     .description("Get user data")
-    .in(feideHeader)
     .out(jsonBody[MyNDLAUserDTO])
     .errorOut(errorOutputsFor(401, 403, 404))
-    .serverLogicPure { feideHeader =>
-      userService.getMyNDLAUserData(feideHeader)
-    }
+    .withFeideUser
+    .serverLogicPure(feide => _ => userService.getMyNDLAUserData(Some(feide.token)))
 
   def updateMyNDLAUser: ServerEndpoint[Any, Eff] = endpoint
     .patch
     .summary("Update user data")
     .description("Update user data")
-    .in(feideHeader)
     .in(jsonBody[UpdatedMyNDLAUserDTO])
     .out(jsonBody[MyNDLAUserDTO])
     .errorOut(errorOutputsFor(401, 403, 404))
-    .serverLogicPure { case (feideHeader, updatedMyNdlaUser) =>
-      userService.updateMyNDLAUserData(updatedMyNdlaUser, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { updatedMyNdlaUser =>
+        userService.updateMyNDLAUserData(updatedMyNdlaUser, feide)
+      }
     }
 
   def deleteAllUserData: ServerEndpoint[Any, Eff] = endpoint
@@ -61,36 +60,32 @@ class UserController(using
     .summary("Delete all data connected to this user")
     .description("Delete all data connected to this user")
     .in("delete-personal-data")
-    .in(feideHeader)
     .errorOut(errorOutputsFor(401, 403))
     .out(noContent)
-    .serverLogicPure { feideHeader =>
-      userService.deleteAllUserData(feideHeader)
-    }
+    .withFeideUser
+    .serverLogicPure(feide => _ => userService.deleteAllUserData(feide))
 
   def exportUserData: ServerEndpoint[Any, Eff] = endpoint
     .get
     .summary("Export all stored user-related data as a json structure")
     .description("Export all stored user-related data as a json structure")
     .in("export")
-    .in(feideHeader)
     .out(jsonBody[ExportedUserDataDTO])
     .errorOut(errorOutputsFor(401, 403))
-    .serverLogicPure { feideHeader =>
-      folderReadService.exportUserData(feideHeader)
-    }
+    .withFeideUser
+    .serverLogicPure(feide => _ => folderReadService.exportUserData(feide))
 
   def importUserData: ServerEndpoint[Any, Eff] = endpoint
     .post
     .summary("Import all stored user-related data from a exported json structure")
     .description("Import all stored user-related data from a exported json structure")
     .in("import")
-    .in(feideHeader)
     .in(jsonBody[ExportedUserDataDTO])
     .out(jsonBody[ExportedUserDataDTO])
     .errorOut(errorOutputsFor(401, 403))
-    .serverLogicPure { case (feideHeader, importBody) =>
-      folderWriteService.importUserData(importBody, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide => importBody =>
+      folderWriteService.importUserData(importBody, feide)
     }
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] =
