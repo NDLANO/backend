@@ -19,6 +19,7 @@ import no.ndla.audioapi.model.search.SearchableAudioInformation
 import no.ndla.audioapi.repository.AudioRepository
 import no.ndla.common.CirceUtil
 import no.ndla.common.errors.MissingIdException
+import no.ndla.database.DBUtility
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 import scala.util.{Failure, Try}
@@ -30,6 +31,7 @@ class AudioIndexService(using
     audioRepository: AudioRepository,
     props: Props,
     searchLanguage: SearchLanguage,
+    dbUtility: DBUtility,
 ) extends IndexService[AudioMetaInformation, SearchableAudioInformation]
     with StrictLogging {
   override val documentType: String        = props.SearchDocument

@@ -19,10 +19,13 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.network.tapir.ErrorHelpers
 import no.ndla.database.implicits.*
+import no.ndla.database.DBUtility
 
 import scala.util.{Failure, Success, Try}
 
-class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with Repository[Series] {
+class SeriesRepository(using helpers: ErrorHelpers, dbUtility: DBUtility)
+    extends StrictLogging
+    with Repository[Series] {
 
   /** Method to fetch single series from database
     * @param id
@@ -38,14 +41,14 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
     else serieWhereNoEpisodes(sqls"se.id = $id")
   }
 
-  def deleteWithId(id: Long)(implicit session: DBSession = AutoSession): Try[Int] = {
+  def deleteWithId(id: Long)(implicit session: DBSession = dbUtility.autoSession): Try[Int] = {
     tsql"""
            delete from ${Series.table}
            where id=$id
            """.update()
   }
 
-  def update(series: domain.Series)(implicit session: DBSession = AutoSession): Try[domain.Series] = {
+  def update(series: domain.Series)(implicit session: DBSession = dbUtility.autoSession): Try[domain.Series] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(series))
@@ -70,7 +73,9 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
       }
   }
 
-  def insert(newSeries: domain.SeriesWithoutId)(implicit session: DBSession = AutoSession): Try[domain.Series] = {
+  def insert(
+      newSeries: domain.SeriesWithoutId
+  )(implicit session: DBSession = dbUtility.autoSession): Try[domain.Series] = {
     val startRevision = 1
     val dataObject    = new PGobject()
     dataObject.setType("jsonb")
@@ -82,7 +87,7 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
            """.updateAndReturnGeneratedKey().map(id => Series.fromId(id, startRevision, newSeries))
   }
 
-  override def minMaxId(implicit session: DBSession = ReadOnlyAutoSession): Try[(Long, Long)] = {
+  override def minMaxId(implicit session: DBSession = dbUtility.readOnlySession): Try[(Long, Long)] = {
     tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Series.table}"
       .map(rs => (rs.long("mi"), rs.long("ma")))
       .runSingle()
@@ -95,7 +100,7 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
 
   private def serieWhereNoEpisodes(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Series]] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Series]] = {
     val se = Series.syntax("se")
 
     tsql"""
@@ -107,7 +112,7 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
 
   private def serieWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[Series]] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Series]] = {
     val se = Series.syntax("se")
     val au = AudioMetaInformation.syntax("au")
 
@@ -127,7 +132,7 @@ class SeriesRepository(using helpers: ErrorHelpers) extends StrictLogging with R
 
   private def seriesWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): Try[List[Series]] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): Try[List[Series]] = {
     val se = Series.syntax("se")
     val au = AudioMetaInformation.syntax("au")
 

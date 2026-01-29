@@ -18,6 +18,7 @@ import no.ndla.audioapi.model.domain.Series
 import no.ndla.audioapi.model.search.SearchableSeries
 import no.ndla.audioapi.repository.SeriesRepository
 import no.ndla.common.CirceUtil
+import no.ndla.database.DBUtility
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
@@ -28,6 +29,7 @@ class SeriesIndexService(using
     seriesRepository: SeriesRepository,
     props: Props,
     searchLanguage: SearchLanguage,
+    dbUtility: DBUtility,
 ) extends IndexService[Series, SearchableSeries]
     with StrictLogging {
   override val documentType: String         = props.SeriesSearchDocument

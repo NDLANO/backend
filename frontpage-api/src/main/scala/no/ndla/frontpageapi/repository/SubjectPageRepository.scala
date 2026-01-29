@@ -8,6 +8,7 @@
 
 package no.ndla.frontpageapi.repository
 
+import no.ndla.database.DBUtility
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax.*
 import no.ndla.common.model.domain.frontpage.SubjectPage
@@ -18,9 +19,9 @@ import scalikejdbc.*
 
 import scala.util.Try
 
-class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) extends StrictLogging {
+class SubjectPageRepository(using dBSubjectPage: DBSubjectPage, dbUtility: DBUtility) extends StrictLogging {
   def newSubjectPage(subj: SubjectPage, externalId: String)(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): Try[SubjectPage] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
@@ -34,7 +35,7 @@ class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) extends StrictLo
       })
   }
 
-  def updateSubjectPage(subj: SubjectPage)(implicit session: DBSession = AutoSession): Try[SubjectPage] = {
+  def updateSubjectPage(subj: SubjectPage)(implicit session: DBSession = dbUtility.autoSession): Try[SubjectPage] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(subj.copy(id = None).asJson.noSpacesDropNull)
@@ -44,7 +45,7 @@ class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) extends StrictLo
       .map(_ => subj)
   }
 
-  def all(offset: Int, limit: Int)(implicit session: DBSession = ReadOnlyAutoSession): Try[List[SubjectPage]] = {
+  def all(offset: Int, limit: Int)(implicit session: DBSession = dbUtility.readOnlySession): Try[List[SubjectPage]] = {
     val su = dBSubjectPage.DBSubjectPage.syntax("su")
     tsql"""
             select ${su.result.*}
@@ -59,7 +60,7 @@ class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) extends StrictLo
   def withId(subjectId: Long): Try[Option[SubjectPage]] = subjectPageWhere(sqls"su.id=${subjectId.toInt}")
 
   def withIds(subjectIds: List[Long], offset: Int, pageSize: Int)(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): Try[List[SubjectPage]] = {
     val su = dBSubjectPage.DBSubjectPage.syntax("su")
     tsql"""
@@ -72,18 +73,18 @@ class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) extends StrictLo
          """.map(dBSubjectPage.DBSubjectPage.fromDb(su)).runListFlat()
   }
 
-  def getIdFromExternalId(externalId: String)(implicit sesstion: DBSession = AutoSession): Try[Option[Long]] =
+  def getIdFromExternalId(externalId: String)(implicit sesstion: DBSession = dbUtility.autoSession): Try[Option[Long]] =
     tsql"select id from ${dBSubjectPage.DBSubjectPage.table} where external_id=${externalId}"
       .map(rs => rs.long("id"))
       .runSingle()
 
-  def exists(subjectId: Long)(implicit sesstion: DBSession = AutoSession): Try[Boolean] =
+  def exists(subjectId: Long)(implicit sesstion: DBSession = dbUtility.autoSession): Try[Boolean] =
     tsql"select id from ${dBSubjectPage.DBSubjectPage.table} where id=${subjectId}"
       .map(rs => rs.long("id"))
       .runSingle()
       .map(_.isDefined)
 
-  def totalCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
+  def totalCount(implicit session: DBSession = dbUtility.readOnlySession): Long =
     tsql"select count(*) from ${dBSubjectPage.DBSubjectPage.table} where document is not NULL"
       .map(rs => rs.long("count"))
       .runSingle()
@@ -92,7 +93,7 @@ class SubjectPageRepository(using dBSubjectPage: DBSubjectPage) extends StrictLo
 
   private def subjectPageWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[SubjectPage]] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[SubjectPage]] = {
     val su = dBSubjectPage.DBSubjectPage.syntax("su")
 
     tsql"select ${su.result.*} from ${dBSubjectPage.DBSubjectPage.as(su)} where su.document is not NULL and $whereClause"

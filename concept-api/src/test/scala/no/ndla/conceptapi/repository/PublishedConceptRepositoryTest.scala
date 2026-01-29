@@ -15,7 +15,7 @@ import no.ndla.conceptapi.*
 import no.ndla.conceptapi.model.domain.PublishedConcept
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
-import scalikejdbc.{DB, *}
+import scalikejdbc.*
 
 import java.net.Socket
 import scala.util.{Success, Try}

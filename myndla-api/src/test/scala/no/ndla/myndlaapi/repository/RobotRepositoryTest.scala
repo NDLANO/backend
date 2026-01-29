@@ -62,7 +62,7 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
   }
 
   test("that inserting and retrieving a robot works as expected") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.readOnlySession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now().withNano(0)
@@ -96,7 +96,7 @@ class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
   }
 
   test("that updating a robot works as expected") {
-    implicit val session: AutoSession.type = AutoSession
+    implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now().withNano(0)

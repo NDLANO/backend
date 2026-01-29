@@ -16,7 +16,7 @@ import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaAWSTranscribeClient
 import no.ndla.common.brightcove.NdlaBrightcoveClient
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DataSource, DBUtility}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{
@@ -44,6 +44,7 @@ trait TestEnvironment extends TapirApplication[AudioApiProperties] with MockitoS
   implicit lazy val dataSource: DataSource             = mock[DataSource]
   implicit lazy val audioRepository: AudioRepository   = mock[AudioRepository]
   implicit lazy val seriesRepository: SeriesRepository = mock[SeriesRepository]
+  implicit lazy val dbUtility: DBUtility               = new DBUtility
 
   implicit lazy val s3Client: NDLAS3Client                    = mock[NDLAS3Client]
   implicit lazy val brightcoveClient: NdlaBrightcoveClient    = mock[NdlaBrightcoveClient]

@@ -8,11 +8,11 @@
 
 package no.ndla.audioapi.repository
 
-import scalikejdbc.{AutoSession, DBSession}
+import scalikejdbc.DBSession
 
 import scala.util.Try
 
 trait Repository[T] {
-  def minMaxId(implicit session: DBSession = AutoSession): Try[(Long, Long)]
+  def minMaxId(implicit session: DBSession): Try[(Long, Long)]
   def documentsWithIdBetween(min: Long, max: Long): Try[Seq[T]]
 }

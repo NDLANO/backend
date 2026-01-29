@@ -16,13 +16,18 @@ import com.sksamuel.elastic4s.requests.mappings.MappingDefinition
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.Props
 import no.ndla.audioapi.repository.Repository
+import no.ndla.database.DBUtility
 import no.ndla.search.model.domain.{BulkIndexResult, ReindexResult}
 import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 
 import scala.util.{Failure, Success, Try}
 
-abstract class IndexService[D, T](using e4sClient: NdlaE4sClient, props: Props, searchLanguage: SearchLanguage)
-    extends BaseIndexService
+abstract class IndexService[D, T](using
+    e4sClient: NdlaE4sClient,
+    props: Props,
+    searchLanguage: SearchLanguage,
+    dbUtility: DBUtility,
+) extends BaseIndexService
     with StrictLogging {
   override val MaxResultWindowOption: Int = props.ElasticSearchIndexMaxResultWindow
 
@@ -56,13 +61,15 @@ abstract class IndexService[D, T](using e4sClient: NdlaE4sClient, props: Props, 
   }
 
   def getRanges: Try[List[(Long, Long)]] = {
-    val minMaxT = repository.minMaxId
-    minMaxT.flatMap { case (minId, maxId) =>
-      Try {
-        Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
+    dbUtility
+      .readOnly { implicit session =>
+        repository.minMaxId
       }
-    }
-
+      .flatMap { case (minId, maxId) =>
+        Try {
+          Seq.range(minId, maxId + 1).grouped(props.IndexBulkSize).map(group => (group.head, group.last)).toList
+        }
+      }
   }
 
   def indexDocuments(contents: Seq[D], indexName: String): Try[BulkIndexResult] = {
