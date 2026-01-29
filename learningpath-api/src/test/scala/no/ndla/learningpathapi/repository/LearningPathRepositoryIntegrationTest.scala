@@ -27,7 +27,7 @@ import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.mapping.License
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import org.mockito.Mockito.when
 import scalikejdbc.*
@@ -40,6 +40,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   override lazy val schemaName                      = "learningpathapi_test"
   override implicit lazy val dataSource: DataSource = testDataSource.get
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
+  override implicit lazy val DBUtil: DBUtility      = new DBUtility
 
   var repository: LearningPathRepository = scala.compiletime.uninitialized
 
@@ -506,7 +507,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   def emptyTestDatabase: Boolean = {
-    DB autoCommit (implicit session => {
+    DBUtil.writeSession(implicit session => {
       sql"delete from learningpaths;".execute()(using session)
       sql"delete from learningsteps;".execute()(using session)
     })

@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.concept
 import no.ndla.common.model.domain.concept.ConceptContent
 import no.ndla.conceptapi.*
 import no.ndla.conceptapi.model.domain.PublishedConcept
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.*
 
@@ -24,10 +24,11 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
 
   override implicit lazy val dataSource: DataSource = testDataSource.get
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
+  override implicit lazy val dbUtility: DBUtility   = new DBUtility
   var repository: PublishedConceptRepository        = scala.compiletime.uninitialized
 
   def emptyTestDatabase: Boolean = {
-    DB autoCommit (implicit session => {
+    dbUtility.writeSession(implicit session => {
       sql"delete from ${PublishedConcept.table};".execute()(using session)
     })
   }

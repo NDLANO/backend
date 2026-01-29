@@ -30,12 +30,12 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
   var repository: DraftRepository                   = scala.compiletime.uninitialized
   val sampleArticle: Draft                          = TestData.sampleArticleWithByNcSa
 
-  def emptyTestDatabase(): Unit = DB autoCommit (implicit session => {
+  def emptyTestDatabase(): Unit = dbUtility.writeSession(implicit session => {
     sql"delete from articledata;".execute()(using session)
   })
 
   private def resetIdSequence(): Boolean = {
-    DB autoCommit (implicit session => {
+    dbUtility.writeSession(implicit session => {
       sql"select setval('article_id_sequence', 1, false);".execute()
     })
   }

@@ -26,7 +26,7 @@ class ConfigRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   var repository: ConfigRepository = scala.compiletime.uninitialized
 
   def emptyTestDatabase: Boolean = {
-    DB autoCommit (implicit session => {
+    DBUtil.writeSession(implicit session => {
       sql"delete from configtable;".execute()(using session)
       sql"delete from configtable;".execute()(using session)
     })
