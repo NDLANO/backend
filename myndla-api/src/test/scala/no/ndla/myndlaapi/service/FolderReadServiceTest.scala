@@ -510,4 +510,36 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     )
   }
 
+  test("That hasFavoritedResource returns true when resource is favorited") {
+    val ownerId  = "ownerId"
+    val created  = clock.now()
+    val path     = "/subject/1/topic/1/resource/4"
+    val resource = Resource(
+      id = UUID.randomUUID(),
+      feideId = ownerId,
+      resourceType = ResourceType.Article,
+      path = path,
+      created = created,
+      tags = List.empty,
+      resourceId = "1",
+      connection = None,
+    )
+
+    when(feideApiClient.getFeideID(any)).thenReturn(Success(ownerId))
+    when(folderRepository.userResourceWithId(eqTo(path), eqTo(ownerId))(using any)).thenReturn(Success(Some(resource)))
+
+    val result = service.hasFavoritedResource(path, Some("token"))
+    result should be(Success(true))
+  }
+
+  test("That hasFavoritedResource returns false when resource belongs to someone else") {
+    val ownerId = "ownerId"
+    val path    = "/subject/1/topic/1/resource/4"
+
+    when(feideApiClient.getFeideID(any)).thenReturn(Success(ownerId))
+    when(folderRepository.userResourceWithId(eqTo(path), eqTo(ownerId))(using any)).thenReturn(Success(None))
+
+    val result = service.hasFavoritedResource(path, Some("token"))
+    result should be(Success(false))
+  }
 }

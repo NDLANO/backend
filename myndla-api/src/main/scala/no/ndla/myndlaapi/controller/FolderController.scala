@@ -60,6 +60,7 @@ class FolderController(using
 
   private val pathFolderId        = path[UUID]("folder-id").description("The UUID of the folder")
   private val sourceFolderId      = path[UUID]("source-folder-id").description("Source UUID of the folder.")
+  private val queryResourcePath   = query[String]("path").description("The path of the resource to check")
   private val destinationFolderId = query[Option[UUID]]("destination-folder-id").description(
     "Destination UUID of the folder. If None it will be cloned as a root folder."
   )
@@ -171,6 +172,19 @@ class FolderController(using
     .serverLogicPure { case (queryRecentSize, queryExcludeResourceTypes) =>
       folderReadService.getRecentFavorite(queryRecentSize, queryExcludeResourceTypes.values)
 
+    }
+
+  private def hasFavoritedResource: ServerEndpoint[Any, Eff] = endpoint
+    .get
+    .summary("Check if a resource has been favorited by the user")
+    .description("Check if a resource has been favorited by the user")
+    .in("resources" / "has-favorited")
+    .in(queryResourcePath)
+    .in(feideHeader)
+    .out(jsonBody[Boolean])
+    .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
+    .serverLogicPure { case (resourcePath, feideHeader) =>
+      folderReadService.hasFavoritedResource(resourcePath, feideHeader)
     }
 
   private def createFolderResource: ServerEndpoint[Any, Eff] = endpoint
@@ -322,6 +336,7 @@ class FolderController(using
     fetchAllResources,
     fetchRecent,
     getSingleFolder,
+    hasFavoritedResource,
     createNewFolder,
     updateFolder(),
     removeFolder(),
