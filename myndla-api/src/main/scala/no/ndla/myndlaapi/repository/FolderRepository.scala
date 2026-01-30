@@ -302,7 +302,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
             left join ${Resource.as(r)}
                 on ${fr.resourceId} = ${r.id}
             $where
-            order by favorited_date DESC
+            order by created DESC
             limit ${size.getOrElse(1)}
            """
       .one(Resource.fromResultSet(r, withConnection = false))
