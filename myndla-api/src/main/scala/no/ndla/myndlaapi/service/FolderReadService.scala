@@ -97,25 +97,18 @@ class FolderReadService(using
     })
   }
 
-  def getSharedFolder(id: UUID, maybeFeideToken: Option[FeideAccessToken]): Try[FolderDTO] = {
+  def getSharedFolder(id: UUID): Try[FolderDTO] = {
     implicit val session: DBSession = folderRepository.getSession(true)
     for {
-      feideId             <- maybeFeideToken.traverse(token => feideApiClient.getFeideID(Some(token)))
-      folderWithResources <-
-        folderRepository.getFolderAndChildrenSubfoldersWithResources(id, FolderStatus.SHARED, feideId)
-      folderWithContent <- getWith404IfNone(id, Success(folderWithResources))
-      _                 <-
-        if (folderWithContent.isShared || feideId.contains(folderWithContent.feideId)) Success(())
+      folderWithResources <- folderRepository.getFolderAndChildrenSubfoldersWithResources(id, FolderStatus.SHARED, None)
+      folderWithContent   <- getWith404IfNone(id, Success(folderWithResources))
+      _                   <-
+        if (folderWithContent.isShared) Success(())
         else Failure(NotFoundException("Folder does not exist"))
       folderAsTopFolder = folderWithContent.copy(parentId = None)
       breadcrumbs      <- getBreadcrumbs(folderAsTopFolder)
       feideUser        <- userRepository.userWithFeideId(folderWithContent.feideId)
-      converted        <- folderConverterService.toApiFolder(
-        folderAsTopFolder,
-        breadcrumbs,
-        feideUser,
-        feideId.contains(folderWithContent.feideId),
-      )
+      converted        <- folderConverterService.toApiFolder(folderAsTopFolder, breadcrumbs, feideUser, false)
     } yield converted
   }
 

@@ -216,11 +216,10 @@ class FolderController(using
     .summary("Fetch a shared folder and all its content")
     .description("Fetch a shared folder and all its content")
     .in("shared" / pathFolderId)
-    .in(feideHeader)
     .out(jsonBody[FolderDTO])
     .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-    .serverLogicPure { case (folderId, feideHeader) =>
-      folderReadService.getSharedFolder(folderId, feideHeader)
+    .serverLogicPure { case (folderId) =>
+      folderReadService.getSharedFolder(folderId)
     }
 
   private val folderStatus: EndpointInput.Query[FolderStatus.Value] = query[FolderStatus.Value]("folder-status")
