@@ -351,7 +351,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     ).thenReturn(Success(Some(folderWithId)))
     when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
 
-    service.getSharedFolder(folderUUID, None) should be(Success(apiFolder))
+    service.getSharedFolder(folderUUID) should be(Success(apiFolder))
   }
 
   test("That getSharedFolder returns a folder with owner info if the owner wants to") {
@@ -387,7 +387,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     ).thenReturn(Success(Some(folderWithId)))
     when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(Some(domainUserData)))
 
-    service.getSharedFolder(folderUUID, None) should be(Success(apiFolder))
+    service.getSharedFolder(folderUUID) should be(Success(apiFolder))
   }
 
   test("That getSharedFolder returns a Failure Not Found if the status is not shared") {
@@ -400,7 +400,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       )
     ).thenReturn(Success(Some(folderWithId)))
 
-    val Failure(result: NotFoundException) = service.getSharedFolder(folderUUID, None): @unchecked
+    val Failure(result: NotFoundException) = service.getSharedFolder(folderUUID): @unchecked
     result.message should be("Folder does not exist")
   }
 
@@ -437,35 +437,10 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     )
   }
 
-  test("That getSharedFolder returns an unshared folder if requested by the owner") {
-    val feideId      = "feide"
-    val folderUUID   = UUID.randomUUID()
-    val folderWithId = emptyDomainFolder.copy(id = folderUUID, status = FolderStatus.PRIVATE, feideId = feideId)
-    val apiFolder    = emptyApiFolder.copy(
-      id = folderUUID,
-      name = "",
-      status = "private",
-      breadcrumbs = List(api.BreadcrumbDTO(id = folderUUID, name = "")),
-    )
-
-    when(feideApiClient.getFeideID(Some(feideId))).thenReturn(Success(feideId))
-    when(
-      folderRepository.getFolderAndChildrenSubfoldersWithResources(
-        eqTo(folderUUID),
-        eqTo(FolderStatus.SHARED),
-        eqTo(Some(feideId)),
-      )(using any)
-    ).thenReturn(Success(Some(folderWithId)))
-    when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
-
-    service.getSharedFolder(folderUUID, Some(feideId)) should be(Success(apiFolder))
-  }
-
-  test("That getSharedFolder returns folder with tags only if owner") {
+  test("That getSharedFolder returns folder with empty tags") {
     reset(feideApiClient)
     when(clock.now()).thenReturn(TestData.today)
     val ownerId      = "ownerId"
-    val otherId      = "someOtherId"
     val folderUUID   = UUID.randomUUID()
     val resourceUUID = UUID.randomUUID()
     val resource     = emptyDomainResource.copy(
@@ -502,19 +477,11 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     )
 
     when(feideApiClient.getFeideID(Some(ownerId))).thenReturn(Success(ownerId))
-    when(feideApiClient.getFeideID(Some(otherId))).thenReturn(Success(otherId))
     when(
       folderRepository.getFolderAndChildrenSubfoldersWithResources(
         eqTo(folderUUID),
         eqTo(FolderStatus.SHARED),
-        eqTo(Some(ownerId)),
-      )(using any)
-    ).thenReturn(Success(Some(folderWithId)))
-    when(
-      folderRepository.getFolderAndChildrenSubfoldersWithResources(
-        eqTo(folderUUID),
-        eqTo(FolderStatus.SHARED),
-        eqTo(Some(otherId)),
+        eqTo(None),
       )(using any)
     ).thenReturn(Success(Some(folderWithId)))
 
@@ -538,29 +505,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       )
     )
 
-    when(userRepository.userWithFeideId(eqTo(otherId))(using any[DBSession])).thenReturn(
-      Success(
-        Some(
-          MyNDLAUser(
-            id = 2,
-            feideId = otherId,
-            favoriteSubjects = Seq.empty,
-            userRole = UserRole.EMPLOYEE,
-            lastUpdated = TestData.today,
-            organization = "lal",
-            groups = Seq.empty,
-            username = "username",
-            displayName = "User Name",
-            email = "user_name@example.com",
-            arenaEnabled = true,
-          )
-        )
-      )
-    )
-
-    service.getSharedFolder(folderUUID, Some(ownerId)) should be(Success(apiFolder))
-
-    service.getSharedFolder(folderUUID, Some(otherId)) should be(
+    service.getSharedFolder(folderUUID) should be(
       Success(apiFolder.copy(resources = List(apiResource.copy(tags = List.empty))))
     )
   }
