@@ -1688,10 +1688,7 @@ export interface operations {
     "getMyndla-apiV1FoldersSharedFolder-id": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description The UUID of the folder */
                 "folder-id": string;
