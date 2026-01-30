@@ -58,15 +58,6 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
       }
   }
 
-  override def afterEach(): Unit = dbUtility
-    .namedDb
-    .autoCommit { implicit session =>
-      repository
-        .getAllIds
-        .flatMap(_.traverse(articleId => repository.deleteMaxRevision(articleId.articleId)))
-        .failIfFailure
-    }
-
   test("getAllIds returns a list with all ids in the database") {
     val externalIdsAndRegularIds = (
       100 to 150
