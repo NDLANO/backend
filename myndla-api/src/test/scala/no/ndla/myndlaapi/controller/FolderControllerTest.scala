@@ -9,8 +9,9 @@
 package no.ndla.myndlaapi.controller
 
 import no.ndla.common.Clock
+import no.ndla.common.model.domain.ResourceType.Article
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
-import no.ndla.myndlaapi.model.api.FolderDTO
+import no.ndla.myndlaapi.model.api.{FolderDTO, ResourceDTO}
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.scalatestsuite.UnitTestSuite
@@ -92,6 +93,33 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
 
     verify(folderReadService, times(0)).getAllResources(any, any)
     verify(folderReadService, times(1)).getSingleFolder(eqTo(someId), any, any, any)
+    response.code.code should be(200)
+  }
+
+  test("That fetching resources for a single folder works") {
+    val someId = UUID.randomUUID()
+    when(folderReadService.getFolderResources(eqTo(someId), any)).thenReturn(
+      Success(
+        List(
+          ResourceDTO(
+            id = UUID.randomUUID(),
+            resourceType = Article,
+            path = "/some/path",
+            created = TestData.today,
+            tags = List.empty,
+            resourceId = "123",
+            rank = Some(1),
+          )
+        )
+      )
+    )
+    val request = quickRequest
+      .get(uri"http://localhost:$serverPort/myndla-api/v1/folders/${someId.toString}/resources")
+      .header("FeideAuthorization", s"Bearer $feideToken")
+    val response = simpleHttpClient.send(request)
+
+    verify(folderReadService, times(0)).getAllResources(any, any)
+    verify(folderReadService, times(1)).getFolderResources(eqTo(someId), any)
     response.code.code should be(200)
   }
 }

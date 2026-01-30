@@ -186,6 +186,18 @@ class FolderController(using
       folderWriteService.newFolderResourceConnection(folderId, newResource, feideHeader)
     }
 
+  private def getFolderResources: ServerEndpoint[Any, Eff] = endpoint
+    .get
+    .summary("Fetch resources in a folder")
+    .description("Fetch resources in a folder")
+    .in(feideHeader)
+    .in(pathFolderId / "resources")
+    .errorOut(errorOutputsFor(400, 401, 403, 404))
+    .out(jsonBody[List[ResourceDTO]])
+    .serverLogicPure { case (feideHeader, folderId) =>
+      folderReadService.getFolderResources(folderId, feideHeader)
+    }
+
   private def updateResource(): ServerEndpoint[Any, Eff] = endpoint
     .patch
     .summary("Updated selected resource")
@@ -326,6 +338,7 @@ class FolderController(using
     updateFolder(),
     removeFolder(),
     createFolderResource,
+    getFolderResources,
     updateResource(),
     deleteResource(),
     fetchSharedFolder,
