@@ -4,8 +4,8 @@ import mill._, mill.scalalib._
 import build.modules.SharedDependencies
 
 object `package` extends ScalaModule {
-  def scalaVersion = "3.7.2"
-  def mvnDeps      = Seq(
+  def scalaVersion: T[String] = SharedDependencies.ScalaVersion
+  def mvnDeps: T[Seq[Dep]]    = Seq(
     mvn"org.scalameta::scalameta:${SharedDependencies.ScalaMetaVersion}",
     mvn"org.scalameta:semanticdb-shared_2.13:${SharedDependencies.ScalaMetaVersion}",
   )
