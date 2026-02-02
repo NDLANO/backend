@@ -91,6 +91,26 @@ export type paths = {
         patch: operations["patchMyndla-apiV1FoldersFolder-id"];
         trace?: never;
     };
+    "/myndla-api/v1/folders/resources/has-favorited": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check if a resource has been favorited by the user
+         * @description Check if a resource has been favorited by the user
+         */
+        get: operations["getMyndla-apiV1FoldersResourcesHas-favorited"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/myndla-api/v1/folders/{folder-id}/resources": {
         parameters: {
             query?: never;
@@ -1470,6 +1490,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "getMyndla-apiV1FoldersResourcesHas-favorited": {
+        parameters: {
+            query: {
+                /** @description The path of the resource to check */
+                path: string;
+            };
+            header?: {
+                /** @description Header containing FEIDE access token. */
+                FeideAuthorization?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": boolean;
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
