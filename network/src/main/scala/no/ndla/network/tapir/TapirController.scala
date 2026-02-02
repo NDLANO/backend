@@ -147,26 +147,6 @@ abstract class TapirController(using
       PartialServerEndpoint(newEndpoint, securityLogic)
     }
 
-    def withOptionalMyNDLAUser[F[_]]
-        : PartialServerEndpoint[Option[String], Option[MyNDLAUserDTO], I, AllErrors, O, R, F] = {
-      val newEndpoint                                                          = self.securityIn(AuthUtility.feideOauth())
-      val authFunc: Option[String] => Either[AllErrors, Option[MyNDLAUserDTO]] = (maybeToken: Option[String]) => {
-        maybeToken match {
-          case None        => Right(None)
-          case Some(token) => myNDLAApiClient.getUserWithFeideToken(token) match {
-              case Failure(ex: HttpRequestException) if ex.code == 401 => errorHelpers.unauthorized.asLeft
-              case Failure(ex: HttpRequestException) if ex.code == 403 => errorHelpers.forbidden.asLeft
-              case Failure(ex)                                         =>
-                logger.error("Got exception when fetching user", ex)
-                errorHelpers.generic.asLeft
-              case Success(user) => Some(user).asRight
-            }
-        }
-      }
-      val securityLogic = (m: MonadError[F]) => (a: Option[String]) => m.unit(authFunc(a))
-      PartialServerEndpoint(newEndpoint, securityLogic)
-    }
-
     def withOptionalMyNDLAUserOrTokenUser[F[_]]
         : PartialServerEndpoint[(Option[TokenUser], Option[String]), CombinedUser, I, AllErrors, O, R, F] = {
       val newEndpoint = self.securityIn(TokenUser.oauth2Input(Seq.empty)).securityIn(AuthUtility.feideOauth())
