@@ -307,7 +307,7 @@ class ArticleControllerV2(using
     .in(revision)
     .in(language)
     .in(fallback)
-    .errorOut(errorOutputsFor(410))
+    .errorOut(errorOutputsFor(401, 403, 410))
     .out(jsonBody[ArticleV2DTO])
     .out(EndpointOutput.derived[DynamicHeaders])
     .withOptionalFeideUser

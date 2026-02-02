@@ -79,6 +79,9 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
   val articleApiBaseUrl: String        = s"http://localhost:${articleApiProperties.ApplicationPort}"
   val myndlaApiBaseUrl: String         = s"http://localhost:${myndlaApiProperties.ApplicationPort}"
 
+  val studentFeideToken: String = "student-token"
+  val teacherFeideToken: String = "teacher-token"
+
   override def beforeAll(): Unit = {
     super.beforeAll()
     println(s"Article API port: $articleApiPort, MyNDLA API port: $myndlaApiPort")
@@ -124,12 +127,18 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
         })
     }: Unit
 
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(any)).thenReturn(Success("feideid"))
-    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(any)).thenReturn(
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(Some(teacherFeideToken))).thenReturn(Success("teacher"))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(Some(teacherFeideToken))).thenReturn(
       Success(FeideExtendedUserInfo("", Seq("employee"), Some("employee"), "email@ndla.no", Some(Seq("email@ndla.no"))))
     )
-    when(myndlaApi.componentRegistry.feideApiClient.getOrganization(any)).thenReturn(Success("org"))
+    when(myndlaApi.componentRegistry.feideApiClient.getOrganization(Some(teacherFeideToken))).thenReturn(Success("org"))
     when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(Some(studentFeideToken))).thenReturn(Success("student"))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideExtendedUser(Some(studentFeideToken))).thenReturn(
+      Success(FeideExtendedUserInfo("", Seq(), None, "email@ndla.no", Some(Seq("email@ndla.no"))))
+    )
+    when(myndlaApi.componentRegistry.feideApiClient.getOrganization(Some(studentFeideToken))).thenReturn(Success("org"))
 
     blockUntilHealthy(s"$myndlaApiBaseUrl/health/readiness")
     blockUntilHealthy(s"$articleApiBaseUrl/health/readiness")
@@ -138,8 +147,6 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
   override def afterAll(): Unit = {
     super.afterAll()
   }
-
-  val feideToken: String = "valid-feide-token"
 
   class LocalArticleApiTestData {
     implicit lazy val props: ArticleApiProperties = articleApiProperties
@@ -170,7 +177,7 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
 
   val dataFixer = new LocalArticleApiTestData
 
-  test("teacher-only article lookup triggers myndla /intern/get-user via FeideAuthorization") {
+  test("teacher-only article works only if authorized as teacher") {
     val article = dataFixer
       .td
       .sampleDomainArticle
@@ -188,12 +195,21 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
 
     insertResult.isSuccess should be(true)
 
-    val response = simpleHttpClient.send(
+    val teacherResponse = simpleHttpClient.send(
       quickRequest
         .get(uri"$articleApiBaseUrl/article-api/v2/articles/123")
-        .header("FeideAuthorization", s"Bearer $feideToken")
+        .header("FeideAuthorization", s"Bearer $teacherFeideToken")
     )
 
-    response.isSuccess should be(true)
+    val studentResponse = simpleHttpClient.send(
+      quickRequest
+        .get(uri"$articleApiBaseUrl/article-api/v2/articles/123")
+        .header("FeideAuthorization", s"Bearer $studentFeideToken")
+    )
+    val unauthedResponse = simpleHttpClient.send(quickRequest.get(uri"$articleApiBaseUrl/article-api/v2/articles/123"))
+
+    teacherResponse.code.code should be(200)
+    studentResponse.code.code should be(403)
+    unauthedResponse.code.code should be(401)
   }
 }
