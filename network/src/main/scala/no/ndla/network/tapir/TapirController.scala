@@ -12,7 +12,6 @@ import cats.implicits.catsSyntaxEitherId
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.SchemaImplicits
-import no.ndla.common.model.api.myndla.MyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.auth.AuthUtility
 import no.ndla.network.clients.MyNDLAProvider
 import no.ndla.network.model.{

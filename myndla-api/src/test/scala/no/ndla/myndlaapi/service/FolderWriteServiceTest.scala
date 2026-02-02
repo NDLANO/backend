@@ -1133,10 +1133,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     "that canWriteDuringWriteRestrictionsOrAccessDenied returns Success if user is a Teacher during write restriction"
   ) {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE)
-
-    when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(Success(myNDLAUser))
-
-    val result = service.canWriteOrAccessDenied("spiller ing", Some("en rolle"))
+    val result     = service.canWriteOrAccessDenied(FeideUserWrapper("spiller ing", Some(myNDLAUser)))
     result.isSuccess should be(true)
   }
 
@@ -1145,10 +1142,9 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   ) {
     val myNDLAUser = emptyMyNDLAUser.copy(userRole = UserRole.STUDENT)
 
-    when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
 
-    val result = service.canWriteOrAccessDenied("spiller ing", Some("en rolle"))
+    val result = service.canWriteOrAccessDenied(FeideUserWrapper("spiller ing", Some(myNDLAUser)))
     result should be(Failure(AccessDeniedException("You do not have write access while write restriction is active.")))
   }
 
@@ -1160,7 +1156,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(false))
 
-    val result = service.canWriteOrAccessDenied("spiller ing", Some("en rolle"))
+    val result = service.canWriteOrAccessDenied(FeideUserWrapper("spiller ing", Some(myNDLAUser)))
     result.isSuccess should be(true)
   }
 

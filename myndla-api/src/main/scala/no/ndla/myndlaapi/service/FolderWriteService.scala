@@ -44,7 +44,7 @@ import no.ndla.myndlaapi.model.domain.{
   SavedSharedFolder,
 }
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
-import no.ndla.network.model.{FeideAccessToken, FeideID, FeideUserWrapper}
+import no.ndla.network.model.{FeideID, FeideUserWrapper}
 import scalikejdbc.DBSession
 
 import java.util.UUID
@@ -658,20 +658,6 @@ class FolderWriteService(using
         if (can) Success(())
         else Failure(AccessDeniedException("You do not have write access while write restriction is active."))
     } yield user
-  }
-
-  def canWriteOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
-      session: DBSession = dbUtility.readOnlySession
-  ): Try[?] = {
-    userService
-      .getMyNDLAUser(feideId, feideAccessToken)(using session)
-      .flatMap(myNDLAUser =>
-        canWriteNow(myNDLAUser).flatMap {
-          case true  => Success(())
-          case false =>
-            Failure(AccessDeniedException("You do not have write access while write restriction is active."))
-        }
-      )
   }
 
   def newSaveSharedFolder(folderId: UUID, feide: FeideUserWrapper): Try[Unit] = {
