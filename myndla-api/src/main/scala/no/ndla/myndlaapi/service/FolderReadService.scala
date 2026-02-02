@@ -228,6 +228,14 @@ class FolderReadService(using
     } yield convertedResources
   }
 
+  def hasFavoritedResource(path: String, feideAccessToken: Option[FeideAccessToken]): Try[Boolean] = {
+    for {
+      feideId     <- feideApiClient.getFeideID(feideAccessToken)
+      resource    <- folderRepository.userResourceWithId(path, feideId)
+      isFavorited <- Success(resource.isDefined)
+    } yield isFavorited
+  }
+
   private def createFavorite(feideId: FeideID): Try[domain.Folder] = {
     val favoriteFolder = domain.NewFolderData(
       parentId = None,
