@@ -19,7 +19,6 @@ case class FeideUserWrapper(token: FeideAccessToken, user: Option[MyNDLAUser]) {
 }
 
 extension (maybeUser: Option[FeideUserWrapper]) {
-  def userOrAccessDenied: Try[MyNDLAUser] = maybeUser
-    .toTry(FeideApiClient.accessDeniedException)
-    .flatMap(_.userOrAccessDenied)
+  def userOrAccessDenied: Try[MyNDLAUser] = maybeUser.flatMap(_.user).toTry(FeideApiClient.accessDeniedException)
+
 }

@@ -75,7 +75,7 @@ class ReadService(using
         case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
           Cachable.yes(converterService.toApiArticleV2(article, language, externalIds, fallback))
         case Some(ArticleRow(_, _, _, _, Some(article))) =>
-          val userIsTeacher = feide.userOrAccessDenied.exists(_.isTeacher)
+          val userIsTeacher = feide.flatMap(_.user).exists(_.isTeacher)
           article.availability match {
             case Availability.teacher if !userIsTeacher =>
               Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
