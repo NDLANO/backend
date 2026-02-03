@@ -22,14 +22,13 @@ import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Try}
 
 class NdlaS3Client(bucket: String, region: Option[String]) {
-  private val builder: S3ClientBuilder = S3Client.builder()
-
-  val client: S3Client = region match {
-    case Some(value) => builder.region(Region.of(value)).build()
-    case None        => builder.build()
+  lazy val client: S3Client = {
+    val builder: S3ClientBuilder = S3Client.builder()
+    region match {
+      case Some(value) => builder.region(Region.of(value)).build()
+      case None        => builder.build()
+    }
   }
-
-  val foundRegion: Region = client.serviceClientConfiguration().region()
 
   def headObject(key: String): Try[HeadObjectResponse] = Try.throwIfInterrupted {
     val headObjectRequest = HeadObjectRequest.builder().bucket(bucket).key(key).build()
