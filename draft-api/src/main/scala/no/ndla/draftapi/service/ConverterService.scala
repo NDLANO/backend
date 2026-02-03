@@ -129,6 +129,7 @@ class ConverterService(using
         qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation),
         disclaimer = domainDisclaimer,
         traits = traits,
+        publishedCount = None,
       )
     )
   }
@@ -739,6 +740,7 @@ class ConverterService(using
       qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
       disclaimer = updatedDisclaimer,
       traits = traitUtil.getArticleTraits(updatedContents),
+      publishedCount = None,
     )
 
     Success(converted)

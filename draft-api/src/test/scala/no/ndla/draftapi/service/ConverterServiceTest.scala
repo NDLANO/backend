@@ -195,6 +195,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.withValue("Disclaimer test", "nb"),
       traits = List.empty,
+      publishedCount = None,
     )
 
     val updatedNothing = TestData.blankUpdatedArticle.copy(revision = 4, language = Some("nb"))
@@ -241,6 +242,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.withValue("Disclaimer test", "nb"),
       traits = List.empty,
+      publishedCount = None,
     )
 
     val expectedArticle = Draft(
@@ -277,6 +279,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.withValue("NyDisclaimer test", "nb"),
       traits = List.empty,
+      publishedCount = None,
     )
 
     val updatedEverything = TestData
@@ -346,6 +349,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
+      publishedCount = None,
     )
 
     val expectedArticle = Draft(
@@ -390,6 +394,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
+      publishedCount = None,
     )
 
     val updatedEverything = TestData
@@ -763,6 +768,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.withValue("articleDisclaimer", "nb"),
       traits = List.empty,
+      publishedCount = None,
     )
     val article = common
       .model

@@ -131,6 +131,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
               status = CommonStatus(current = DraftStatus.IN_PROGRESS, other = Set(DraftStatus.PUBLISHED)),
             )
           ),
+          publishedCount = Some(0),
         ),
       nodes = nodes,
     )
