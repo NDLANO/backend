@@ -578,6 +578,7 @@ object TestData {
     slug = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = None,
   )
 
   val emptyDomainDraft: Draft = Draft(
@@ -1015,7 +1016,7 @@ object TestData {
     draft16,
     draft17,
   )
-
+  
   val paul: Author                        = Author(ContributorType.Writer, "Truly Weird Rand Paul")
   val license: String                     = License.PublicDomain.toString
   val copyright: LearningpathCopyright    = common.learningpath.LearningpathCopyright(license, List(paul))
@@ -1970,6 +1971,7 @@ object TestData {
     favorited = 0,
     learningResourceType = LearningResourceType.Article,
     typeName = List(),
+    publishedCount = 0,
     domainObject = TestData
       .draft1
       .copy(
