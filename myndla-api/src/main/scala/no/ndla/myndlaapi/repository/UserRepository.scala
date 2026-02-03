@@ -218,4 +218,23 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
     val u = DBMyNDLAUser.syntax("u")
     tsql"select ${u.result.*} from ${DBMyNDLAUser.as(u)}".map(DBMyNDLAUser.fromResultSet(u)).runList().get
   }
+
+  def getUserNotSeenSince(cutoffDate: NDLADate)(implicit session: DBSession): Try[List[MyNDLAUser]] = {
+    val u = DBMyNDLAUser.syntax("u")
+    tsql"""
+         select ${u.result.*} from ${DBMyNDLAUser.as(u)}
+         where last_seen < ${NDLADate.parameterBinderFactory(cutoffDate)}
+         """.map(DBMyNDLAUser.fromResultSet(u)).runList()
+  }
+
+  def getUserNotSeenBeforeOrAfter(beforeDate: NDLADate, afterDate: NDLADate)(implicit
+      session: DBSession
+  ): Try[List[MyNDLAUser]] = {
+    val u = DBMyNDLAUser.syntax("u")
+    tsql"""
+         select ${u.result.*} from ${DBMyNDLAUser.as(u)}
+         where last_seen < ${NDLADate.parameterBinderFactory(beforeDate)}
+         or last_seen > ${NDLADate.parameterBinderFactory(afterDate)}
+         """.map(DBMyNDLAUser.fromResultSet(u)).runList()
+  }
 }
