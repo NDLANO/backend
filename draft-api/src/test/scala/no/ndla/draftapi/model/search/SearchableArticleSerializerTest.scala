@@ -12,7 +12,6 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.ArticleTrait.Video
 import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.common.model.domain.Responsible
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
