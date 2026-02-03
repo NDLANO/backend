@@ -54,18 +54,13 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
     val domainDraft = TestData
       .draft1
       .copy(
+        status = Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)),
         content = Seq(
           ArticleContent(
             """<section><h1>hei</h1><ndlaembed data-resource="image" data-title="heidu" data-resource_id="1"></ndlaembed><ndlaembed data-resource="h5p" data-title="yo"></ndlaembed></section>""",
             "nb",
           )
         ),
-        status = Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)),
-        notes = Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
-        previousVersionsNotes =
-          Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
-        revisionMeta = Seq(RevisionMeta(UUID.randomUUID(), now, "hei", RevisionStatus.NeedsRevision)),
-        traits = List(ArticleTrait.Interactive),
         copyright = Some(
           DraftCopyright(
             license = Some("hei"),
@@ -78,7 +73,12 @@ class DraftIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite
             false,
           )
         ),
+        notes = Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
+        previousVersionsNotes =
+          Seq(EditorNote("hei", "test", Status(DraftStatus.PLANNED, Set(DraftStatus.IMPORTED)), now)),
+        revisionMeta = Seq(RevisionMeta(UUID.randomUUID(), now, "hei", RevisionStatus.NeedsRevision)),
         responsible = Some(Responsible("yolo", now)),
+        traits = List(ArticleTrait.Interactive),
       )
     val searchableToTestWith = searchConverterService
       .asSearchableDraft(
