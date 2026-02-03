@@ -191,7 +191,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     resp.code.code should be(200)
 
     when(readService.withId(articleId, lang)).thenReturn(
-      Success(TestData.apiArticleUserTest.copy(status = api.StatusDTO(EXTERNAL_REVIEW.toString, Seq.empty), publishedCount = 0))
+      Success(TestData.apiArticleUserTest.copy(status = api.StatusDTO(EXTERNAL_REVIEW.toString, Seq.empty)))
     )
 
     val resp2 = simpleHttpClient.send(
@@ -213,7 +213,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
     }
 
     when(readService.withId(articleId, lang)).thenReturn(
-      Success(TestData.apiArticleUserTest.copy(status = api.StatusDTO(EXTERNAL_REVIEW.toString, Seq.empty), publishedCount = 0))
+      Success(TestData.apiArticleUserTest.copy(status = api.StatusDTO(EXTERNAL_REVIEW.toString, Seq.empty)))
     )
 
     {

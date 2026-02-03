@@ -399,6 +399,7 @@ class SearchController(using
             publishedDateTo = dateParamOrNone("published-date-to"),
             resultTypes = stringListParam("result-types").flatMap(SearchType.withNameOption).some,
             tags = stringListParam("tags").some,
+            publishedCount = intParamOrNone("published-count"),
           )
         )
 
@@ -557,6 +558,7 @@ class SearchController(using
           publishedFilterTo = params.publishedDateTo,
           resultTypes = params.resultTypes,
           tags = params.tags.getOrElse(List.empty),
+          publishedCount = params.publishedCount,
         )
     }
   }

@@ -766,7 +766,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.withValue("articleDisclaimer", "nb"),
       traits = List.empty,
-      publishedCount = None,
+      publishedCount = Some(1),
     )
     val article = common
       .model

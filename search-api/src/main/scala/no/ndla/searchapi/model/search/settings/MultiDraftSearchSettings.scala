@@ -56,6 +56,7 @@ case class MultiDraftSearchSettings(
     publishedFilterTo: Option[NDLADate],
     resultTypes: Option[List[SearchType]],
     tags: List[String],
+    publishedCount: Option[Int],
 )
 
 object MultiDraftSearchSettings {
@@ -93,9 +94,10 @@ object MultiDraftSearchSettings {
     articleTypes = List.empty,
     filterInactive = false,
     priority = List.empty,
-    publishedFilterTo = None,
     publishedFilterFrom = None,
+    publishedFilterTo = None,
     resultTypes = Some(List(SearchType.Articles, SearchType.LearningPaths)),
     tags = List.empty,
+    publishedCount = None,
   )
 }
