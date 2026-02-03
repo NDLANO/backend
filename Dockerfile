@@ -1,8 +1,8 @@
-ARG JAVA_VERSION=25
+ARG JAVA_MAJOR_VERSION=25
 
-FROM eclipse-temurin:${JAVA_VERSION}-alpine AS builder
+FROM eclipse-temurin:${JAVA_MAJOR_VERSION}-alpine AS builder
 ARG MODULE
-ARG JAVA_VERSION
+ARG JAVA_MAJOR_VERSION
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ RUN ./mill -i ${MODULE}.assembly
 RUN $JAVA_HOME/bin/jdeps \
     --ignore-missing-deps \
     --print-module-deps \
-    --multi-release ${JAVA_VERSION} \
+    --multi-release ${JAVA_MAJOR_VERSION} \
     out/${MODULE}/assembly.dest/out.jar > /deps.info
 
 # Create custom JRE with the above modules
