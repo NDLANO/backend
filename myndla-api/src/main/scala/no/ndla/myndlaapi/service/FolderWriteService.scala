@@ -44,9 +44,8 @@ import no.ndla.myndlaapi.model.domain.{
   SavedSharedFolder,
 }
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
-import no.ndla.network.clients.FeideApiClient
-import no.ndla.network.model.{FeideAccessToken, FeideID}
-import scalikejdbc.{DBSession, ReadOnlyAutoSession}
+import no.ndla.network.model.{FeideID, FeideUserWrapper}
+import scalikejdbc.DBSession
 
 import java.util.UUID
 import scala.annotation.tailrec
@@ -55,7 +54,6 @@ import scala.util.{Failure, Success, Try}
 class FolderWriteService(using
     folderReadService: FolderReadService,
     clock: Clock,
-    feideApiClient: FeideApiClient,
     folderRepository: FolderRepository,
     folderConverterService: FolderConverterService,
     userRepository: UserRepository,
@@ -67,12 +65,11 @@ class FolderWriteService(using
   val MaxFolderDepth = 5L
 
   private[service] def isOperationAllowedOrAccessDenied(
-      feideId: FeideID,
-      feideAccessToken: Option[FeideAccessToken],
+      feide: FeideUserWrapper,
       updatedFolder: UpdatedFolderDTO,
-  )(implicit session: DBSession = ReadOnlyAutoSession): Try[?] = {
-    userService
-      .getMyNDLAUser(feideId, feideAccessToken)(using session)
+  ): Try[?] = {
+    feide
+      .userOrAccessDenied
       .flatMap(myNDLAUser => {
         if (myNDLAUser.isStudent && updatedFolder.status.contains(FolderStatus.SHARED.toString))
           Failure(AccessDeniedException("You do not have necessary permissions to share folders."))
@@ -103,13 +100,13 @@ class FolderWriteService(using
   def changeStatusOfFolderAndItsSubfolders(
       folderId: UUID,
       newStatus: FolderStatus.Value,
-      feideAccessToken: Option[FeideAccessToken],
+      feide: FeideUserWrapper,
   ): Try[List[UUID]] = dbUtility.rollbackOnFailure({ implicit session =>
     for {
-      feideId    <- feideApiClient.getFeideID(feideAccessToken)
-      _          <- isTeacherOrAccessDenied(feideId, feideAccessToken)
+      user       <- feide.userOrAccessDenied
+      _          <- isTeacherOrAccessDenied(feide)
       folder     <- folderRepository.folderWithId(folderId)
-      _          <- folder.isOwner(feideId)
+      _          <- folder.isOwner(user.feideId)
       ids        <- folderRepository.getFoldersAndSubfoldersIds(folderId)
       updatedIds <- folderRepository.updateFolderStatusInBulk(ids, newStatus)
       _          <- handleFolderUserConnectionsOnUnShare(ids, newStatus, folder.status)
@@ -217,24 +214,24 @@ class FolderWriteService(using
     } yield clonedFolder
   }
 
-  def cloneFolder(
-      sourceId: UUID,
-      destinationId: Option[UUID],
-      feideAccessToken: Option[FeideAccessToken],
-  ): Try[FolderDTO] = {
+  def cloneFolder(sourceId: UUID, destinationId: Option[UUID], feide: FeideUserWrapper): Try[FolderDTO] = {
     dbUtility.rollbackOnFailure { implicit session =>
       for {
-        feideId    <- feideApiClient.getFeideID(feideAccessToken)
-        _          <- canWriteOrAccessDenied(feideId, feideAccessToken)
-        maybeFolder =
-          folderRepository.getFolderAndChildrenSubfoldersWithResources(sourceId, FolderStatus.SHARED, Some(feideId))
+        user       <- feide.userOrAccessDenied
+        _          <- canWriteOrAccessDenied(feide)
+        maybeFolder = folderRepository.getFolderAndChildrenSubfoldersWithResources(
+          sourceId,
+          FolderStatus.SHARED,
+          Some(user.feideId),
+        )
         sourceFolder <- folderReadService.getWith404IfNone(sourceId, maybeFolder)
-        isOwner       = sourceFolder.feideId == feideId
+        isOwner       = sourceFolder.feideId == user.feideId
         _            <- sourceFolder.isClonable
-        clonedFolder <- cloneRecursively(sourceFolder, destinationId, feideId, "_Kopi".some, isOwner)(using session)
-        breadcrumbs  <- folderReadService.getBreadcrumbs(clonedFolder)
-        feideUser    <- userRepository.userWithFeideId(feideId)
-        converted    <- folderConverterService.toApiFolder(clonedFolder, breadcrumbs, feideUser, isOwner)
+        clonedFolder <-
+          cloneRecursively(sourceFolder, destinationId, user.feideId, "_Kopi".some, isOwner)(using session)
+        breadcrumbs <- folderReadService.getBreadcrumbs(clonedFolder)
+        feideUser   <- userRepository.userWithFeideId(user.feideId)
+        converted   <- folderConverterService.toApiFolder(clonedFolder, breadcrumbs, feideUser, isOwner)
       } yield converted
     }
   }
@@ -247,25 +244,20 @@ class FolderWriteService(using
 
   private def importUserDataAuthenticated(
       toImport: ExportedUserDataDTO,
-      feideId: FeideID,
-      maybeFeideToken: Option[FeideAccessToken],
+      feide: FeideUserWrapper,
   ): Try[ExportedUserDataDTO] = {
     dbUtility.rollbackOnFailure { session =>
       for {
-        _ <- canWriteOrAccessDenied(feideId, maybeFeideToken)
-        _ <- userService.importUser(toImport.userData, feideId, maybeFeideToken)(using session)
-        _ <- importFolders(toImport.folders, feideId)(using session)
+        user <- feide.userOrAccessDenied
+        _    <- canWriteOrAccessDenied(feide)
+        _    <- userService.importUser(toImport.userData, feide)(using session)
+        _    <- importFolders(toImport.folders, user.feideId)(using session)
       } yield toImport
     }
   }
 
-  def importUserData(
-      toImport: ExportedUserDataDTO,
-      maybeFeideToken: Option[FeideAccessToken],
-  ): Try[ExportedUserDataDTO] = {
-    feideApiClient
-      .getFeideID(maybeFeideToken)
-      .flatMap(feideId => importUserDataAuthenticated(toImport, feideId, maybeFeideToken))
+  def importUserData(toImport: ExportedUserDataDTO, feide: FeideUserWrapper): Try[ExportedUserDataDTO] = {
+    importUserDataAuthenticated(toImport, feide)
   }
 
   private def connectIfNotConnected(folderId: UUID, resourceId: UUID, rank: Int, favoritedDate: NDLADate)(implicit
@@ -276,40 +268,32 @@ class FolderWriteService(using
     case Failure(ex)               => Failure(ex)
   }
 
-  def updateFolder(
-      id: UUID,
-      updatedFolder: UpdatedFolderDTO,
-      feideAccessToken: Option[FeideAccessToken],
-  ): Try[FolderDTO] = {
+  def updateFolder(id: UUID, updatedFolder: UpdatedFolderDTO, feide: FeideUserWrapper): Try[FolderDTO] = {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
-      feideId        <- feideApiClient.getFeideID(feideAccessToken)
-      _              <- isOperationAllowedOrAccessDenied(feideId, feideAccessToken, updatedFolder)
+      user           <- feide.userOrAccessDenied
+      _              <- isOperationAllowedOrAccessDenied(feide, updatedFolder)
       existingFolder <- folderRepository.folderWithId(id)
-      _              <- existingFolder.isOwner(feideId)
+      _              <- existingFolder.isOwner(user.feideId)
       converted      <- folderConverterService.mergeFolder(existingFolder, updatedFolder)
-      maybeSiblings  <- getFolderWithDirectChildren(converted.parentId, feideId)
+      maybeSiblings  <- getFolderWithDirectChildren(converted.parentId, user.feideId)
       _              <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
-      updated        <- folderRepository.updateFolder(id, feideId, converted)
-      crumbs         <- folderReadService.getBreadcrumbs(updated)(using ReadOnlyAutoSession)
-      siblingsToSort <- getFolderWithDirectChildren(updated.parentId, feideId)
+      updated        <- folderRepository.updateFolder(id, user.feideId, converted)
+      crumbs         <- folderReadService.getBreadcrumbs(updated)(using dbUtility.readOnlySession)
+      siblingsToSort <- getFolderWithDirectChildren(updated.parentId, user.feideId)
       sortRequest     = FolderSortRequestDTO(sortedIds = siblingsToSort.childrenFolders.map(_.id))
-      _              <- performSort(siblingsToSort.childrenFolders, sortRequest, feideId, sharedFolderSort = false)
-      feideUser      <- userRepository.userWithFeideId(feideId)
+      _              <- performSort(siblingsToSort.childrenFolders, sortRequest, user.feideId, sharedFolderSort = false)
+      feideUser      <- userRepository.userWithFeideId(user.feideId)
       api            <- folderConverterService.toApiFolder(updated, crumbs, feideUser, isOwner = true)
     } yield api
   }
 
-  def updateResource(
-      id: UUID,
-      updatedResource: UpdatedResourceDTO,
-      feideAccessToken: Option[FeideAccessToken] = None,
-  ): Try[ResourceDTO] = {
+  def updateResource(id: UUID, updatedResource: UpdatedResourceDTO, feide: FeideUserWrapper): Try[ResourceDTO] = {
     for {
-      feideId          <- feideApiClient.getFeideID(feideAccessToken)
-      _                <- canWriteOrAccessDenied(feideId, feideAccessToken)
+      user             <- feide.userOrAccessDenied
+      _                <- canWriteOrAccessDenied(feide)
       existingResource <- folderRepository.resourceWithId(id)
-      _                <- existingResource.isOwner(feideId)
+      _                <- existingResource.isOwner(user.feideId)
       converted         = folderConverterService.mergeResource(existingResource, updatedResource)
       updated          <- folderRepository.updateResource(converted)
       api              <- folderConverterService.toApiResource(updated, isOwner = true)
@@ -333,48 +317,48 @@ class FolderWriteService(using
     } yield folder.id
   }
 
-  def deleteFolder(id: UUID, feideAccessToken: Option[FeideAccessToken]): Try[UUID] = {
+  def deleteFolder(id: UUID, feide: FeideUserWrapper): Try[UUID] = {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
-      feideId        <- feideApiClient.getFeideID(feideAccessToken)
-      _              <- canWriteOrAccessDenied(feideId, feideAccessToken)
+      user           <- feide.userOrAccessDenied
+      _              <- canWriteOrAccessDenied(feide)
       folder         <- folderRepository.folderWithId(id)
-      _              <- folder.isOwner(feideId)
-      parent         <- getFolderWithDirectChildren(folder.parentId, feideId)
+      _              <- folder.isOwner(user.feideId)
+      parent         <- getFolderWithDirectChildren(folder.parentId, user.feideId)
       folderWithData <-
         folderReadService.getSingleFolderWithContent(id, includeSubfolders = true, includeResources = true)
-      deletedFolderId <- deleteRecursively(folderWithData, feideId)
+      deletedFolderId <- deleteRecursively(folderWithData, user.feideId)
       siblingsToSort   = parent.childrenFolders.filterNot(_.id == deletedFolderId)
       sortRequest      = FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.id))
-      _               <- performSort(siblingsToSort, sortRequest, feideId, sharedFolderSort = false)
+      _               <- performSort(siblingsToSort, sortRequest, user.feideId, sharedFolderSort = false)
     } yield deletedFolderId
   }
 
-  def deleteConnection(folderId: UUID, resourceId: UUID, feideAccessToken: Option[FeideAccessToken]): Try[UUID] = {
+  def deleteConnection(folderId: UUID, resourceId: UUID, feide: FeideUserWrapper): Try[UUID] = {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
-      feideId       <- feideApiClient.getFeideID(feideAccessToken)
-      _             <- canWriteOrAccessDenied(feideId, feideAccessToken)
+      user          <- feide.userOrAccessDenied
+      _             <- canWriteOrAccessDenied(feide)
       folder        <- folderRepository.folderWithId(folderId)
-      _             <- folder.isOwner(feideId)
+      _             <- folder.isOwner(user.feideId)
       resource      <- folderRepository.resourceWithId(resourceId)
-      _             <- resource.isOwner(feideId)
+      _             <- resource.isOwner(user.feideId)
       id            <- deleteResourceIfNoConnection(folderId, resourceId)
-      parent        <- getFolderWithDirectChildren(folder.id.some, feideId)
+      parent        <- getFolderWithDirectChildren(folder.id.some, user.feideId)
       siblingsToSort = parent.childrenResources.filterNot(c => c.resourceId == resourceId && c.folderId == folderId)
       sortRequest    = api.FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.resourceId))
       _              = updateSearchApi(resource)
-      _             <- performSort(siblingsToSort, sortRequest, feideId, sharedFolderSort = false)
+      _             <- performSort(siblingsToSort, sortRequest, user.feideId, sharedFolderSort = false)
     } yield id
   }
 
-  def deleteAllUserData(feideAccessToken: Option[FeideAccessToken]): Try[Unit] = {
+  def deleteAllUserData(feide: FeideUserWrapper): Try[Unit] = {
     for {
-      feideId <- feideApiClient.getFeideID(feideAccessToken)
-      _       <- folderRepository.deleteAllUserFolders(feideId)
-      _       <- folderRepository.deleteAllUserResources(feideId)
-      _       <- userRepository.deleteUser(feideId)
-      _       <- folderRepository.deleteFolderUserConnection(None, feideId.some)
+      user <- feide.userOrAccessDenied
+      _    <- folderRepository.deleteAllUserFolders(user.feideId)
+      _    <- folderRepository.deleteAllUserResources(user.feideId)
+      _    <- userRepository.deleteUser(user.feideId)
+      _    <- folderRepository.deleteFolderUserConnection(None, user.feideId.some)
     } yield ()
   }
 
@@ -441,11 +425,11 @@ class FolderWriteService(using
   def sortFolder(
       folderSortObject: domain.FolderSortObject,
       sortRequest: api.FolderSortRequestDTO,
-      feideAccessToken: Option[FeideAccessToken],
+      feide: FeideUserWrapper,
   ): Try[Unit] = permitTry {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
-    val feideId                     = feideApiClient.getFeideID(feideAccessToken).?
-    canWriteOrAccessDenied(feideId, feideAccessToken).??
+    val feideId                     = feide.userOrAccessDenied.map(_.feideId).?
+    canWriteOrAccessDenied(feide).??
     folderSortObject match {
       case ResourceSorting(parentId) => sortNonRootFolderResources(parentId, sortRequest, feideId)
       case FolderSorting(parentId)   => sortNonRootFolderSubfolders(parentId, sortRequest, feideId)
@@ -578,14 +562,14 @@ class FolderWriteService(using
     }
   }
 
-  def newFolder(newFolder: NewFolderDTO, feideAccessToken: Option[FeideAccessToken]): Try[FolderDTO] = {
+  def newFolder(newFolder: NewFolderDTO, feide: FeideUserWrapper): Try[FolderDTO] = {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
-      feideId   <- feideApiClient.getFeideID(feideAccessToken)
-      _         <- canWriteOrAccessDenied(feideId, feideAccessToken)
-      inserted  <- createNewFolder(newFolder, feideId, makeUniqueNamePostfix = None, isCloning = false)
-      crumbs    <- folderReadService.getBreadcrumbs(inserted)(using ReadOnlyAutoSession)
-      feideUser <- userRepository.userWithFeideId(feideId)
+      user      <- feide.userOrAccessDenied
+      _         <- canWriteOrAccessDenied(feide)
+      inserted  <- createNewFolder(newFolder, user.feideId, makeUniqueNamePostfix = None, isCloning = false)
+      crumbs    <- folderReadService.getBreadcrumbs(inserted)(using dbUtility.readOnlySession)
+      feideUser <- userRepository.userWithFeideId(user.feideId)
       api       <- folderConverterService.toApiFolder(inserted, crumbs, feideUser, isOwner = true)
     } yield api
   }
@@ -615,13 +599,13 @@ class FolderWriteService(using
   def newFolderResourceConnection(
       folderId: UUID,
       newResource: NewResourceDTO,
-      feideAccessToken: Option[FeideAccessToken],
+      feide: FeideUserWrapper,
   ): Try[ResourceDTO] = {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
-      feideId   <- feideApiClient.getFeideID(feideAccessToken)
-      _         <- canWriteOrAccessDenied(feideId, feideAccessToken)
-      resource  <- createOrUpdateFolderResourceConnection(folderId, newResource, feideId)
+      user      <- feide.userOrAccessDenied
+      _         <- canWriteOrAccessDenied(feide)
+      resource  <- createOrUpdateFolderResourceConnection(folderId, newResource, user.feideId)
       converted <- folderConverterService.toApiResource(resource, isOwner = true)
     } yield converted
   }
@@ -666,26 +650,23 @@ class FolderWriteService(using
       case _ => Success(parentId)
     }
 
-  def canWriteOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
-      session: DBSession = ReadOnlyAutoSession
-  ): Try[?] = {
-    userService
-      .getMyNDLAUser(feideId, feideAccessToken)(using session)
-      .flatMap(myNDLAUser =>
-        canWriteNow(myNDLAUser).flatMap {
-          case true  => Success(())
-          case false =>
-            Failure(AccessDeniedException("You do not have write access while write restriction is active."))
-        }
-      )
+  def canWriteOrAccessDenied(feide: FeideUserWrapper): Try[MyNDLAUser] = {
+    for {
+      user <- feide.userOrAccessDenied
+      can  <- canWriteNow(user)
+      _    <-
+        if (can) Success(())
+        else Failure(AccessDeniedException("You do not have write access while write restriction is active."))
+    } yield user
   }
 
-  def newSaveSharedFolder(folderId: UUID, feideAccessToken: Option[FeideAccessToken]): Try[Unit] = {
-    implicit val session: DBSession = folderRepository.getSession(readOnly = false)
-    for {
-      feideId <- feideApiClient.getFeideID(feideAccessToken)
-      _       <- createSharedFolderUserConnection(folderId, feideId)
-    } yield ()
+  def newSaveSharedFolder(folderId: UUID, feide: FeideUserWrapper): Try[Unit] = {
+    dbUtility.writeSession { implicit session =>
+      for {
+        user <- feide.userOrAccessDenied
+        _    <- createSharedFolderUserConnection(folderId, user.feideId)
+      } yield ()
+    }
   }
 
   private def createSharedFolderUserConnection(folderId: UUID, feideId: FeideID)(implicit
@@ -699,23 +680,22 @@ class FolderWriteService(using
     } yield folderUser
   }
 
-  def deleteSavedSharedFolder(folderId: UUID, feideAccessToken: Option[FeideAccessToken]): Try[Unit] = {
-    implicit val session: DBSession = folderRepository.getSession(readOnly = false)
-    for {
-      feideId <- feideApiClient.getFeideID(feideAccessToken)
-      _       <- deleteFolderUserConnection(folderId, feideId)
-    } yield ()
+  def deleteSavedSharedFolder(folderId: UUID, feide: FeideUserWrapper): Try[Unit] = {
+    dbUtility.writeSession { implicit session =>
+      for {
+        user <- feide.userOrAccessDenied
+        _    <- deleteFolderUserConnection(folderId, user.feideId)
+      } yield ()
+    }
   }
 
   private def deleteFolderUserConnection(folderId: UUID, feideId: FeideID)(implicit session: DBSession): Try[Int] = {
     folderRepository.deleteFolderUserConnection(folderId.some, feideId.some)
   }
 
-  private def isTeacherOrAccessDenied(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
-      session: DBSession
-  ): Try[?] = {
-    userService
-      .getMyNDLAUser(feideId, feideAccessToken)(using session)
+  private def isTeacherOrAccessDenied(feide: FeideUserWrapper): Try[?] = {
+    feide
+      .userOrAccessDenied
       .flatMap(myNDLAUser => {
         if (myNDLAUser.isTeacher) Success(())
         else Failure(AccessDeniedException("You do not have necessary permissions to share folders."))

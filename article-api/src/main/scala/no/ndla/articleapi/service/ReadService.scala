@@ -30,7 +30,7 @@ import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Availability}
 import no.ndla.database.DBUtility
 import no.ndla.language.Language
-import no.ndla.network.clients.FeideApiClient
+import no.ndla.network.model.{FeideUserWrapper, userOrAccessDenied}
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
 import no.ndla.validation.ResourceType
 import org.jsoup.nodes.Element
@@ -43,7 +43,6 @@ import scala.util.{Failure, Success, Try}
 
 class ReadService(using
     articleRepository: ArticleRepository,
-    feideApiClient: FeideApiClient,
     converterService: ConverterService,
     articleSearchService: ArticleSearchService,
     dBUtility: DBUtility,
@@ -59,7 +58,7 @@ class ReadService(using
       language: String,
       fallback: Boolean,
       revision: Option[Int],
-      feideAccessToken: Option[String],
+      feide: Option[FeideUserWrapper],
   ): Try[Cachable[api.ArticleV2DTO]] = dBUtility.readOnly { implicit session =>
     val articleWithExternalIds = for {
       article <- revision match {
@@ -75,15 +74,19 @@ class ReadService(using
         case Some(ArticleRow(_, _, _, _, None))                                                           => Failure(ArticleErrorHelpers.ArticleGoneException())
         case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
           Cachable.yes(converterService.toApiArticleV2(article, language, externalIds, fallback))
-        case Some(ArticleRow(_, _, _, _, Some(article))) => feideApiClient
-            .getFeideExtendedUser(feideAccessToken)
-            .flatMap(feideUser =>
-              article.availability match {
-                case Availability.teacher if !feideUser.isTeacher =>
-                  Failure(AccessDeniedException("User is missing required role(s) to perform this operation"))
-                case _ => Cachable.no(converterService.toApiArticleV2(article, language, externalIds, fallback))
-              }
-            )
+        case Some(ArticleRow(_, _, _, _, Some(article))) =>
+          val feideUser     = feide.flatMap(_.user)
+          val userIsTeacher = feideUser.exists(_.isTeacher)
+          article.availability match {
+            case Availability.teacher if !userIsTeacher =>
+              Failure(
+                AccessDeniedException(
+                  "User is missing required role(s) to perform this operation",
+                  unauthorized = feideUser.isEmpty,
+                )
+              )
+            case _ => Cachable.no(converterService.toApiArticleV2(article, language, externalIds, fallback))
+          }
       }
     }
   }
@@ -220,14 +223,14 @@ class ReadService(using
       fallback: Boolean,
       grepCodes: Seq[String],
       shouldScroll: Boolean,
-      feideAccessToken: Option[String],
+      feide: Option[FeideUserWrapper],
   ): Try[Cachable[SearchResult[ArticleSummaryV2DTO]]] = {
-    val availabilities = feideApiClient.getFeideExtendedUser(feideAccessToken) match {
-      case Success(user)                     => user.availabilities
-      case Failure(_: AccessDeniedException) =>
+    val availabilities = feide.map(_.userOrAccessDenied) match {
+      case Some(Success(user)) => user.availabilities
+      case None                => Seq.empty
+      case Some(Failure(_))    =>
         logger.info("User is not authenticated with Feide, assuming non-user")
         Seq.empty
-      case Failure(ex) => return Failure(ex)
     }
 
     val settings = query.emptySomeToNone match {
@@ -274,15 +277,14 @@ class ReadService(using
     else Cachable.yes(result)
   }
 
-  private def getAvailabilityFilter(feideAccessToken: Option[String]): Option[Availability] = {
-    feideApiClient.getFeideExtendedUser(feideAccessToken) match {
+  private def getAvailabilityFilter(feide: Option[FeideUserWrapper]): Option[Availability] =
+    feide.userOrAccessDenied match {
       case Success(user) if user.isTeacher => None
       case _                               => Some(Availability.everyone)
     }
-  }
 
-  private def applyAvailabilityFilter(feideAccessToken: Option[String], articles: Seq[Article]): Seq[Article] = {
-    val availabilityFilter = getAvailabilityFilter(feideAccessToken)
+  private def applyAvailabilityFilter(feide: Option[FeideUserWrapper], articles: Seq[Article]): Seq[Article] = {
+    val availabilityFilter = getAvailabilityFilter(feide)
     val filteredArticles   = availabilityFilter
       .map(avaFilter => articles.filter(article => article.availability == avaFilter))
       .getOrElse(articles)
@@ -295,7 +297,7 @@ class ReadService(using
       fallback: Boolean,
       page: Int,
       pageSize: Int,
-      feideAccessToken: Option[String],
+      feide: Option[FeideUserWrapper],
   ): Try[Seq[api.ArticleV2DTO]] = dBUtility.readOnly { implicit session =>
     val offset = (page - 1) * pageSize
 
@@ -305,7 +307,7 @@ class ReadService(using
       articles      = articleRows.toArticles.map(addUrlsOnEmbedResources)
       isFeideNeeded = articles.exists(article => article.availability == Availability.teacher)
       filtered      =
-        if (isFeideNeeded) applyAvailabilityFilter(feideAccessToken, articles)
+        if (isFeideNeeded) applyAvailabilityFilter(feide, articles)
         else articles
       apiArticles <- filtered.traverse { article =>
         val triedExternalIds = article
@@ -342,9 +344,8 @@ class ReadService(using
       .map { case x: MenuDTO =>
         x.articleId
       }
-    val articles = articleIds.traverse(id =>
-      withIdV2(id, Language.DefaultLanguage, fallback = true, revision = None, feideAccessToken = None)
-    )
+    val articles =
+      articleIds.traverse(id => withIdV2(id, Language.DefaultLanguage, fallback = true, revision = None, feide = None))
     articles.map(Cachable.merge)
   }
 

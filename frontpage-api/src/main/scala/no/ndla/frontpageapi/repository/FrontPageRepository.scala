@@ -8,6 +8,7 @@
 
 package no.ndla.frontpageapi.repository
 
+import no.ndla.database.DBUtility
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax.*
 import no.ndla.database.implicits.*
@@ -17,10 +18,10 @@ import scalikejdbc.*
 
 import scala.util.Try
 
-class FrontPageRepository(using dBFrontPage: DBFrontPage) extends StrictLogging {
+class FrontPageRepository(using dBFrontPage: DBFrontPage, dbUtility: DBUtility) extends StrictLogging {
   import FrontPage.*
 
-  def newFrontPage(page: FrontPage)(implicit session: DBSession = AutoSession): Try[FrontPage] = {
+  def newFrontPage(page: FrontPage)(implicit session: DBSession = dbUtility.autoSession): Try[FrontPage] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(page.asJson.noSpacesDropNull)
@@ -34,7 +35,7 @@ class FrontPageRepository(using dBFrontPage: DBFrontPage) extends StrictLogging 
   private def deleteAllBut(id: Long)(implicit session: DBSession): Try[Long] =
     tsql"delete from ${dBFrontPage.DBFrontPageData.table} where id<>${id} ".update().map(_ => id)
 
-  def getFrontPage(implicit session: DBSession = ReadOnlyAutoSession): Try[Option[FrontPage]] = {
+  def getFrontPage(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[FrontPage]] = {
     val fr = dBFrontPage.DBFrontPageData.syntax("fr")
     tsql"select ${fr.result.*} from ${dBFrontPage.DBFrontPageData.as(fr)} order by fr.id desc limit 1"
       .map(dBFrontPage.DBFrontPageData.fromResultSet(fr))

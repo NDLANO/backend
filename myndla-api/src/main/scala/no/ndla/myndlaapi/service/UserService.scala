@@ -11,6 +11,7 @@ package no.ndla.myndlaapi.service
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.*
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.myndla
 import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
@@ -18,8 +19,8 @@ import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
-import no.ndla.network.model.{FeideAccessToken, FeideID}
-import scalikejdbc.{AutoSession, DBSession}
+import no.ndla.network.model.{FeideAccessToken, FeideID, FeideUserWrapper}
+import scalikejdbc.DBSession
 
 import scala.util.{Failure, Success, Try}
 
@@ -36,16 +37,24 @@ class UserService(using
   def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
       session: DBSession
   ): Try[MyNDLAUser] = {
-    getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
+    for {
+      user     <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
+      lastSeen <- userRepository.updateLastSeen(feideId, NDLADate.now())(using session)
+    } yield user.copy(lastSeen = lastSeen)
   }
 
   def getMyNdlaUserDataDomain(feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
     for {
       feideId  <- feideApiClient.getFeideID(feideAccessToken)
-      userData <- dbUtility.rollbackOnFailure(session =>
-        getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
-      )
+      userData <- dbUtility.rollbackOnFailure(session => getMyNDLAUser(feideId, feideAccessToken)(using session))
     } yield userData
+  }
+
+  def getMyNdlaUserDataDTO(feideAccessToken: Option[FeideAccessToken]): Try[myndla.MyNDLAUserDTO] = {
+    for {
+      userData <- getMyNdlaUserDataDomain(feideAccessToken)
+      apiData   = folderConverterService.toApiUserData(userData)
+    } yield apiData
   }
 
   def getArenaEnabledUser(feideAccessToken: Option[FeideAccessToken]): Try[MyNDLAUser] = {
@@ -67,51 +76,46 @@ class UserService(using
   private def getOrCreateMyNDLAUserIfNotExist(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
       session: DBSession
   ): Try[MyNDLAUser] = {
-    userRepository
-      .reserveFeideIdIfNotExists(feideId)(using session)
-      .flatMap {
+
+    for {
+      alreadyExists <- userRepository.reserveFeideIdIfNotExists(feideId)(using session)
+      r             <- alreadyExists match {
         case false => createMyNDLAUser(feideId, feideAccessToken)(using session)
-        case true  => userRepository
-            .userWithFeideId(feideId)(using session)
-            .flatMap {
+        case true  => for {
+            data   <- userRepository.userWithFeideId(feideId)(using session)
+            result <- data match {
               case None                                         => Failure(new IllegalStateException(s"User with feide_id $feideId was not found."))
               case Some(userData) if userData.wasUpdatedLast24h => Success(userData)
               case Some(userData)                               => fetchDataAndUpdateMyNDLAUser(feideId, feideAccessToken, userData)(using session)
             }
+          } yield result
       }
+    } yield r
   }
 
-  def updateMyNDLAUserData(
-      updatedUser: UpdatedMyNDLAUserDTO,
-      feideAccessToken: Option[FeideAccessToken],
-  ): Try[myndla.MyNDLAUserDTO] = {
-    feideApiClient
-      .getFeideID(feideAccessToken)
-      .flatMap(feideId => updateFeideUserDataAuthenticated(updatedUser, feideId, feideAccessToken)(using AutoSession))
-  }
+  def updateMyNDLAUserData(updatedUser: UpdatedMyNDLAUserDTO, feide: FeideUserWrapper): Try[myndla.MyNDLAUserDTO] =
+    dbUtility.writeSession { implicit session =>
+      updateFeideUserDataAuthenticated(updatedUser, feide)
+    }
 
-  def importUser(userData: myndla.MyNDLAUserDTO, feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
+  def importUser(userData: myndla.MyNDLAUserDTO, feide: FeideUserWrapper)(implicit
       session: DBSession
   ): Try[myndla.MyNDLAUserDTO] = for {
-    existingUser <- getOrCreateMyNDLAUserIfNotExist(feideId, feideAccessToken)(using session)
-    newFavorites  = (
-      existingUser.favoriteSubjects ++ userData.favoriteSubjects
-    ).distinct
-    updatedFeideUser = UpdatedMyNDLAUserDTO(favoriteSubjects = Some(newFavorites), arenaEnabled = None)
-    updated         <- updateFeideUserDataAuthenticated(updatedFeideUser, feideId, feideAccessToken)(using session)
+    existingUser    <- feide.userOrAccessDenied
+    newFavorites     = existingUser.favoriteSubjects ++ userData.favoriteSubjects
+    updatedFeideUser = UpdatedMyNDLAUserDTO(favoriteSubjects = Some(newFavorites.distinct), arenaEnabled = None)
+    updated         <- updateFeideUserDataAuthenticated(updatedFeideUser, feide)(using session)
   } yield updated
 
-  private def updateFeideUserDataAuthenticated(
-      updatedUser: UpdatedMyNDLAUserDTO,
-      feideId: FeideID,
-      feideAccessToken: Option[FeideAccessToken],
-  )(implicit session: DBSession): Try[myndla.MyNDLAUserDTO] = {
+  private def updateFeideUserDataAuthenticated(updatedUser: UpdatedMyNDLAUserDTO, feide: FeideUserWrapper)(implicit
+      session: DBSession
+  ): Try[myndla.MyNDLAUserDTO] = {
     for {
-      _                <- folderWriteService.canWriteOrAccessDenied(feideId, feideAccessToken)
-      existingUserData <- getMyNDLAUserOrFail(feideId)
-      combined         <- folderConverterService.mergeUserData(existingUserData, updatedUser, None)
-      updated          <- userRepository.updateUser(feideId, combined)
-      api               = folderConverterService.toApiUserData(updated)
+      user     <- feide.userOrAccessDenied
+      _        <- folderWriteService.canWriteOrAccessDenied(feide)
+      combined <- folderConverterService.mergeUserData(user, updatedUser, None)
+      updated  <- userRepository.updateUser(user.feideId, combined)
+      api       = folderConverterService.toApiUserData(updated)
     } yield api
   }
 
@@ -172,6 +176,9 @@ class UserService(using
     val userRole     =
       if (feideUser.isTeacher) UserRole.EMPLOYEE
       else UserRole.STUDENT
+
+    val lastSeen = NDLADate.now()
+
     val updatedMyNDLAUser = MyNDLAUser(
       id = userData.id,
       feideId = userData.feideId,
@@ -184,20 +191,19 @@ class UserService(using
       displayName = feideUser.displayName,
       email = feideUser.email,
       arenaEnabled = userData.arenaEnabled || userRole == UserRole.EMPLOYEE,
+      lastSeen = lastSeen,
     )
     userRepository.updateUser(feideId, updatedMyNDLAUser)(using session)
   }
 
-  def deleteAllUserData(feideAccessToken: Option[FeideAccessToken]): Try[Unit] =
-    dbUtility.rollbackOnFailure(session => {
-      for {
-        feideToken   <- feideApiClient.getFeideAccessTokenOrFail(feideAccessToken)
-        feideId      <- feideApiClient.getFeideID(feideAccessToken)
-        nodebbUserId <- nodeBBClient.getUserId(feideToken)
-        _            <- folderRepository.deleteAllUserFolders(feideId)(using session)
-        _            <- folderRepository.deleteAllUserResources(feideId)(using session)
-        _            <- nodeBBClient.deleteUser(nodebbUserId, feideToken)
-        _            <- userRepository.deleteUser(feideId)(using session)
-      } yield ()
-    })
+  def deleteAllUserData(feide: FeideUserWrapper): Try[Unit] = dbUtility.rollbackOnFailure(session => {
+    for {
+      user         <- feide.userOrAccessDenied
+      nodebbUserId <- nodeBBClient.getUserId(feide.token)
+      _            <- folderRepository.deleteAllUserFolders(user.feideId)(using session)
+      _            <- folderRepository.deleteAllUserResources(user.feideId)(using session)
+      _            <- nodeBBClient.deleteUser(nodebbUserId, feide.token)
+      _            <- userRepository.deleteUser(user.feideId)(using session)
+    } yield ()
+  })
 }

@@ -13,9 +13,7 @@ import no.ndla.common.secrets.PropertyKeys
 
 import scala.util.Properties.propOrElse
 
-trait DatabaseProps {
-  this: BaseProps =>
-
+trait DatabaseProps extends BaseProps {
   val MetaUserName: Prop[String] = prop(PropertyKeys.MetaUserNameKey)
   val MetaPassword: Prop[String] = prop(PropertyKeys.MetaPasswordKey)
   val MetaResource: Prop[String] = prop(PropertyKeys.MetaResourceKey)

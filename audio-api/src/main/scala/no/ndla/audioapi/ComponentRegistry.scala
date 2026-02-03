@@ -17,7 +17,7 @@ import no.ndla.audioapi.service.search.*
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaAWSTranscribeClient
 import no.ndla.common.brightcove.NdlaBrightcoveClient
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DataSource, DBUtility}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{ErrorHelpers, Routes, SwaggerController, TapirApplication}
@@ -31,6 +31,7 @@ class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication
   given errorHelpers: ErrorHelpers             = new ErrorHelpers
   given errorHandling: ControllerErrorHandling = new ControllerErrorHandling
   given searchLanguage: SearchLanguage         = new SearchLanguage
+  given dbUtility: DBUtility                   = new DBUtility
 
   given s3Client: NDLAS3Client                 = new NDLAS3Client(props.StorageName, props.StorageRegion)
   given s3TranscribeClient: TranscribeS3Client =

@@ -56,7 +56,7 @@ trait DatabaseIntegrationSuite extends UnitTestSuite with ContainerSuite {
       dataSourceConfig.setJdbcUrl(s"jdbc:postgresql://${pgc.getHost}:${pgc.getMappedPort(5432)}/${pgc.getDatabaseName}")
       dataSourceConfig.setSchema(schemaName)
       dataSourceConfig.setMaximumPoolSize(10)
-      new DataSource(dataSourceConfig)
+      new DataSource(dataSourceConfig)(using props)
     }
   )
 

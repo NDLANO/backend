@@ -14,13 +14,19 @@ import no.ndla.myndlaapi.controller.{
   ConfigController,
   ControllerErrorHandling,
   FolderController,
+  InternController,
   RobotController,
   StatsController,
   SwaggerDocControllerConfig,
   UserController,
 }
 import no.ndla.myndlaapi.db.migrationwithdependencies.V16__MigrateResourcePaths
-import no.ndla.myndlaapi.integration.{LearningPathApiClient, SearchApiClient, TaxonomyApiClient}
+import no.ndla.myndlaapi.integration.{
+  InternalMyNDLAApiClient,
+  LearningPathApiClient,
+  SearchApiClient,
+  TaxonomyApiClient,
+}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, RobotRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
@@ -32,7 +38,7 @@ import no.ndla.myndlaapi.service.{
   UserService,
 }
 import no.ndla.network.NdlaClient
-import no.ndla.network.clients.{FeideApiClient, MyNDLAApiClient, RedisClient}
+import no.ndla.network.clients.{FeideApiClient, RedisClient}
 import no.ndla.network.tapir.{
   ErrorHelpers,
   Routes,
@@ -46,11 +52,11 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
   given props: MyNdlaApiProperties = properties
   implicit lazy val clock: Clock   = new Clock
   given dataSource: DataSource     = DataSource.getDataSource
-  given migrator: DBMigrator       = new DBMigrator(v16__MigrateResourcePaths)
+  given migrator: DBMigrator       = DBMigrator(v16__MigrateResourcePaths)
   given dbUtil: DBUtility          = new DBUtility
 
   given ndlaClient: NdlaClient                                  = new NdlaClient
-  given myndlaApiClient: MyNDLAApiClient                        = new MyNDLAApiClient
+  implicit lazy val myndlaApiClient: InternalMyNDLAApiClient    = new InternalMyNDLAApiClient
   implicit lazy val redisClient: RedisClient                    = new RedisClient(props.RedisHost, props.RedisPort)
   implicit lazy val feideApiClient: FeideApiClient              = new FeideApiClient
   implicit lazy val nodebb: NodeBBClient                        = new NodeBBClient
@@ -77,9 +83,18 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
   given healthController: TapirHealthController = new TapirHealthController
   given folderController: FolderController      = new FolderController
   given robotController: RobotController        = new RobotController
+  given internController: InternController      = new InternController
 
   given swagger: SwaggerController = new SwaggerController(
-    List(healthController, folderController, robotController, userController, configController, statsController),
+    List(
+      healthController,
+      folderController,
+      robotController,
+      userController,
+      configController,
+      statsController,
+      internController,
+    ),
     SwaggerDocControllerConfig.swaggerInfo,
   )
   given services: List[TapirController] = swagger.getServices()

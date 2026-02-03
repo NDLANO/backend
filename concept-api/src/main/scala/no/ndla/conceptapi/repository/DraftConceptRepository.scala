@@ -8,6 +8,7 @@
 
 package no.ndla.conceptapi.repository
 
+import no.ndla.database.DBUtility
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.Tag
@@ -22,10 +23,10 @@ import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 
-class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
+class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers, dbUtility: DBUtility)
     extends StrictLogging
     with Repository[Concept] {
-  def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
+  def insert(concept: Concept)(implicit session: DBSession = dbUtility.autoSession): Concept = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(concept))
@@ -41,7 +42,9 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
     concept.copy(id = Some(conceptId), revision = Some(newRevision))
   }
 
-  def insertwithListingId(concept: Concept, listingId: Long)(implicit session: DBSession = AutoSession): Concept = {
+  def insertwithListingId(concept: Concept, listingId: Long)(implicit
+      session: DBSession = dbUtility.autoSession
+  ): Concept = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(concept))
@@ -57,10 +60,9 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
     concept.copy(id = Some(conceptId))
   }
 
-  def updateWithListingId(
-      concept: Concept,
-      listingId: Long,
-  )(implicit session: DBSession = AutoSession): Try[Concept] = {
+  def updateWithListingId(concept: Concept, listingId: Long)(implicit
+      session: DBSession = dbUtility.autoSession
+  ): Try[Concept] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(concept))
@@ -77,7 +79,7 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
     }
   }
 
-  def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession): List[List[Tag]] = {
+  def everyTagFromEveryConcept(implicit session: DBSession = dbUtility.readOnlySession): List[List[Tag]] = {
     tsql"""
            select distinct id, document#>'{tags}' as tags
            from ${DBConcept.table}
@@ -94,7 +96,7 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
 
   def withListingId(listingId: Long): Option[Concept] = conceptWhere(sqls"co.listing_id=$listingId")
 
-  def insertWithId(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
+  def insertWithId(concept: Concept)(implicit session: DBSession = dbUtility.autoSession): Try[Concept] = {
     concept.id match {
       case Some(id) =>
         val dataObject = new PGobject()
@@ -116,7 +118,7 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
     }
   }
 
-  def update(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
+  def update(concept: Concept)(implicit session: DBSession = dbUtility.autoSession): Try[Concept] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(concept))
@@ -158,18 +160,18 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
 
   def withId(id: Long): Option[Concept] = conceptWhere(sqls"co.id=${id.toInt} ORDER BY revision DESC LIMIT 1")
 
-  def exists(id: Long)(implicit session: DBSession = AutoSession): Boolean = {
+  def exists(id: Long)(implicit session: DBSession = dbUtility.autoSession): Boolean = {
     tsql"select id from ${DBConcept.table} where id=$id".map(rs => rs.long("id")).runSingle().get.isDefined
   }
 
-  def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
+  def getIdFromExternalId(externalId: String)(implicit session: DBSession = dbUtility.autoSession): Option[Long] = {
     tsql"select id from ${DBConcept.table} where $externalId = any(external_id)"
       .map(rs => rs.long("id"))
       .runSingle()
       .get
   }
 
-  override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
+  override def minMaxId(implicit session: DBSession = dbUtility.autoSession): (Long, Long) = {
     tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${DBConcept.table}"
       .map(rs => (rs.long("mi"), rs.long("ma")))
       .runSingle()
@@ -182,7 +184,7 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
 
   private def conceptWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): Option[Concept] = {
     val co = DBConcept.syntax("co")
     tsql"select ${co.result.*} from ${DBConcept.as(co)} where co.document is not NULL and $whereClause"
       .map(DBConcept.fromResultSet(co))
@@ -192,7 +194,7 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
 
   private def conceptsWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): List[Concept] = {
     val co = DBConcept.syntax("co")
     tsql"select ${co.result.*} from ${DBConcept.as(co)} where co.document is not NULL and $whereClause"
       .map(DBConcept.fromResultSet(co))
@@ -200,17 +202,17 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
       .get
   }
 
-  def conceptCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
+  def conceptCount(implicit session: DBSession = dbUtility.readOnlySession): Long =
     tsql"select count(*) from ${DBConcept.table}".map(rs => rs.long("count")).runSingle().map(_.getOrElse(0L)).get
 
-  private def getHighestId(implicit session: DBSession = ReadOnlyAutoSession): Long =
+  private def getHighestId(implicit session: DBSession = dbUtility.readOnlySession): Long =
     tsql"select id from ${DBConcept.table} order by id desc limit 1"
       .map(rs => rs.long("id"))
       .runSingle()
       .map(_.getOrElse(0L))
       .get
 
-  def updateIdCounterToHighestId()(implicit session: DBSession = AutoSession): Unit = {
+  def updateIdCounterToHighestId()(implicit session: DBSession = dbUtility.autoSession): Unit = {
     val idToStartAt = SQLSyntax.createUnsafely(
       (
         getHighestId() + 1
@@ -223,7 +225,7 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
   }
 
   def getTags(input: String, pageSize: Int, offset: Int, language: String)(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): (Seq[String], Int) = {
     val sanitizedInput    = input.replaceAll("%", "")
     val sanitizedLanguage = language.replaceAll("%", "")
@@ -253,7 +255,7 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers)
 
   }
 
-  def getByPage(pageSize: Int, offset: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Concept] = {
+  def getByPage(pageSize: Int, offset: Int)(implicit session: DBSession = dbUtility.readOnlySession): Seq[Concept] = {
     val co = DBConcept.syntax("co")
     tsql"""
            select ${co.result.*}, ${co.revision} as revision

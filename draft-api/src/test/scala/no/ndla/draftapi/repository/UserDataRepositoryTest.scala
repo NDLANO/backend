@@ -8,7 +8,7 @@
 
 package no.ndla.draftapi.repository
 
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.model.api.SavedSearchDTO
 
 import java.net.Socket
@@ -20,17 +20,18 @@ import scala.util.{Success, Try}
 
 class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
   override implicit lazy val dataSource: DataSource = testDataSource.get
+  override implicit lazy val dbUtility: DBUtility   = new DBUtility
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
   var repository: UserDataRepository                = scala.compiletime.uninitialized
 
   def emptyTestDatabase: Boolean = {
-    DB autoCommit (implicit session => {
+    dbUtility.writeSession(implicit session => {
       sql"delete from userdata;".execute()(using session)
     })
   }
 
   private def resetIdSequence() = {
-    DB autoCommit (implicit session => {
+    dbUtility.writeSession(implicit session => {
       sql"select setval('userdata_id_seq', 1, false);".execute()
     })
   }
@@ -68,9 +69,9 @@ class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironme
     val data2 = TestData.emptyDomainUserData.copy(userId = "user2")
     val data3 = TestData.emptyDomainUserData.copy(userId = "user3")
 
-    val res1 = repository.insert(data1)(using AutoSession)
-    val res2 = repository.insert(data2)(using AutoSession)
-    val res3 = repository.insert(data3)(using AutoSession)
+    val res1 = repository.insert(data1)(using dbUtility.autoSession)
+    val res2 = repository.insert(data2)(using dbUtility.autoSession)
+    val res3 = repository.insert(data3)(using dbUtility.autoSession)
 
     res1.get.id should be(Some(1))
     res2.get.id should be(Some(2))
@@ -86,15 +87,19 @@ class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironme
     val data2 = TestData.emptyDomainUserData.copy(userId = "second", latestEditedArticles = Some(Seq("kake")))
     val data3 = TestData.emptyDomainUserData.copy(userId = "third", favoriteSubjects = Some(Seq("bok")))
 
-    repository.insert(data1)(using AutoSession).get
-    repository.insert(data2)(using AutoSession).get
-    repository.insert(data3)(using AutoSession).get
+    repository.insert(data1)(using dbUtility.autoSession).get
+    repository.insert(data2)(using dbUtility.autoSession).get
+    repository.insert(data3)(using dbUtility.autoSession).get
 
-    repository.withId(1)(using AutoSession).get.get should be(repository.withUserId("first")(using AutoSession).get.get)
-    repository.withId(2)(using AutoSession).get.get should be(
-      repository.withUserId("second")(using AutoSession).get.get
+    repository.withId(1)(using dbUtility.autoSession).get.get should be(
+      repository.withUserId("first")(using dbUtility.autoSession).get.get
     )
-    repository.withId(3)(using AutoSession).get.get should be(repository.withUserId("third")(using AutoSession).get.get)
+    repository.withId(2)(using dbUtility.autoSession).get.get should be(
+      repository.withUserId("second")(using dbUtility.autoSession).get.get
+    )
+    repository.withId(3)(using dbUtility.autoSession).get.get should be(
+      repository.withUserId("third")(using dbUtility.autoSession).get.get
+    )
   }
 
   test("that updating updates all fields correctly") {
@@ -109,8 +114,8 @@ class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironme
         favoriteSubjects = Some(Seq("methematics", "PEBCAK-studies")),
       )
 
-    val inserted1 = repository.insert(initialUserData1)(using AutoSession)
-    val inserted2 = repository.insert(initialUserData2)(using AutoSession)
+    val inserted1 = repository.insert(initialUserData1)(using dbUtility.autoSession)
+    val inserted2 = repository.insert(initialUserData2)(using dbUtility.autoSession)
 
     val updatedUserData1 = inserted1
       .get
@@ -128,10 +133,10 @@ class UserDataRepositoryTest extends DatabaseIntegrationSuite with TestEnvironme
         favoriteSubjects = Some(Seq.empty),
       )
 
-    val res1 = repository.update(updatedUserData1)(using AutoSession)
-    val res2 = repository.update(updatedUserData2)(using AutoSession)
+    val res1 = repository.update(updatedUserData1)(using dbUtility.autoSession)
+    val res2 = repository.update(updatedUserData2)(using dbUtility.autoSession)
 
-    res1.get should be(repository.withUserId("first")(using AutoSession).get.get)
-    res2.get should be(repository.withUserId("second")(using AutoSession).get.get)
+    res1.get should be(repository.withUserId("first")(using dbUtility.autoSession).get.get)
+    res2.get should be(repository.withUserId("second")(using dbUtility.autoSession).get.get)
   }
 }

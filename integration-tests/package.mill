@@ -18,6 +18,7 @@ object `package` extends BaseModule {
       build.`draft-api`.test,
       build.`learningpath-api`,
       build.`learningpath-api`.test,
+      build.`myndla-api`,
       build.`search-api`,
       build.`search-api`.test,
     )

@@ -17,9 +17,10 @@ import no.ndla.myndlaapi.model.api.{FolderDTO, OwnerDTO, ResourceStatsDTO, UserS
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.Resource
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
+import no.ndla.network.model.FeideUserWrapper
 import no.ndla.scalatestsuite.UnitTestSuite
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{times, verify, when}
 import scalikejdbc.DBSession
 
 import java.util.UUID
@@ -39,6 +40,9 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     when(clock.now()).thenReturn(TestData.today)
     when(folderRepository.getSession(any)).thenReturn(mock[DBSession])
   }
+
+  private def feideWrapper(feideId: String): FeideUserWrapper =
+    FeideUserWrapper("token", Some(emptyMyNDLAUser.copy(feideId = feideId)))
 
   test("That getSingleFolder returns folder and its data when user is the owner") {
     val created        = clock.now()
@@ -172,7 +176,6 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
 
     val whgaterh = mainFolder.copy(subfolders = List(subFolder1, subFolder2), resources = List(resource1))
 
-    when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
     when(folderRepository.folderWithId(eqTo(mainFolderUUID))(using any)).thenReturn(Success(mainFolder))
     when(folderRepository.foldersWithParentID(eqTo(Some(mainFolderUUID)))(using any)).thenReturn(
       Success(List(subFolder1, subFolder2))
@@ -191,7 +194,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       id = mainFolderUUID,
       includeSubfolders = true,
       includeResources = true,
-      feideAccessToken = None,
+      feide = feideWrapper(feideId),
     )
     result should be(Success(expected))
   }
@@ -199,11 +202,15 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
   test("That getSingleFolder fails if user does not own the folder") {
     val mainFolderUUID = UUID.randomUUID()
 
-    when(feideApiClient.getFeideID(any)).thenReturn(Success("not daijoubu"))
     when(folderRepository.folderWithId(eqTo(mainFolderUUID))(using any)).thenReturn(Success(emptyDomainFolder))
     when(folderRepository.getFolderAndChildrenSubfolders(any)(using any)).thenReturn(Success(Some(emptyDomainFolder)))
 
-    val result = service.getSingleFolder(mainFolderUUID, includeSubfolders = true, includeResources = false, None)
+    val result = service.getSingleFolder(
+      mainFolderUUID,
+      includeSubfolders = true,
+      includeResources = false,
+      feide = feideWrapper("not daijoubu"),
+    )
     result should be(Failure(AccessDeniedException("You do not have access to this entity.")))
     verify(folderRepository, times(0)).foldersWithParentID(any)(using any)
     verify(folderRepository, times(0)).getFolderResources(any)(using any)
@@ -220,7 +227,6 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       breadcrumbs = List(api.BreadcrumbDTO(id = favoriteUUID, name = "favorite")),
     )
 
-    when(feideApiClient.getFeideID(Some("token"))).thenReturn(Success(feideId))
     when(folderRepository.insertFolder(any, any)(using any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(using any)).thenReturn(
       Success(List.empty)
@@ -228,11 +234,10 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.folderWithId(eqTo(favoriteUUID))(using any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.getSavedSharedFolders(any)(using any[DBSession])).thenReturn(Success(List.empty))
     when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
-    when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(
-      Success(TestData.emptyMyNDLAUser.copy(feideId = feideId))
-    )
-
-    val result = service.getFolders(includeSubfolders = false, includeResources = false, Some("token")).get.folders
+    val result = service
+      .getFolders(includeSubfolders = false, includeResources = false, feideWrapper(feideId))
+      .get
+      .folders
     result.length should be(1)
     result.find(_.name == "favorite").get should be(favoriteApiFolder)
 
@@ -264,7 +269,6 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       owner = Some(OwnerDTO(name = user.displayName)),
     )
 
-    when(feideApiClient.getFeideID(Some("token"))).thenReturn(Success(feideId))
     when(folderRepository.insertFolder(any, any)(using any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(using any)).thenReturn(
       Success(List.empty)
@@ -280,11 +284,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       Success(Option(savedFolderDomain))
     )
     when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
-    when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(
-      Success(TestData.emptyMyNDLAUser.copy(feideId = feideId))
-    )
-
-    val result = service.getFolders(includeSubfolders = false, includeResources = false, Some("token")).get
+    val result = service.getFolders(includeSubfolders = false, includeResources = false, feideWrapper(feideId)).get
     result.folders.length should be(1)
     result.folders.find(_.name == "favorite").get should be(favoriteApiFolder)
 
@@ -310,7 +310,6 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     val folderResourcesResponse2 = Success(List(domainResource))
     val folderResourcesResponse3 = Success(List.empty)
 
-    when(feideApiClient.getFeideID(Some("token"))).thenReturn(Success(feideId))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(using any)).thenReturn(
       Success(List(folderWithId, folderWithId))
     )
@@ -322,11 +321,10 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     )
     when(folderRepository.getSavedSharedFolders(any)(using any)).thenReturn(Success(List.empty))
     when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
-    when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(
-      Success(TestData.emptyMyNDLAUser.copy(feideId = feideId))
-    )
-
-    val result = service.getFolders(includeSubfolders = false, includeResources = true, Some("token")).get.folders
+    val result = service
+      .getFolders(includeSubfolders = false, includeResources = true, feideWrapper(feideId))
+      .get
+      .folders
     result.length should be(2)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(using any)
@@ -356,18 +354,20 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
 
   test("That getSharedFolder returns a folder with owner info if the owner wants to") {
     val feideId        = "feide"
+    val now            = clock.now()
     val domainUserData = MyNDLAUser(
       id = 42,
       feideId = feideId,
       favoriteSubjects = Seq.empty,
       userRole = UserRole.EMPLOYEE,
-      lastUpdated = clock.now(),
+      lastUpdated = now,
       organization = "oslo",
       groups = Seq(MyNDLAGroup(id = "id", displayName = "oslo", isPrimarySchool = false, parentId = None)),
       username = "example@email.com",
       displayName = "Feide",
       email = "example@email.com",
       arenaEnabled = false,
+      lastSeen = now,
     )
 
     val folderUUID   = UUID.randomUUID()
@@ -438,8 +438,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
   }
 
   test("That getSharedFolder returns folder with empty tags") {
-    reset(feideApiClient)
     when(clock.now()).thenReturn(TestData.today)
+    val now          = clock.now()
     val ownerId      = "ownerId"
     val folderUUID   = UUID.randomUUID()
     val resourceUUID = UUID.randomUUID()
@@ -476,7 +476,6 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       owner = Some(OwnerDTO(name = "User Name")),
     )
 
-    when(feideApiClient.getFeideID(Some(ownerId))).thenReturn(Success(ownerId))
     when(
       folderRepository.getFolderAndChildrenSubfoldersWithResources(
         eqTo(folderUUID),
@@ -500,6 +499,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
             displayName = "User Name",
             email = "user_name@example.com",
             arenaEnabled = true,
+            lastSeen = now,
           )
         )
       )
@@ -525,10 +525,9 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       connection = None,
     )
 
-    when(feideApiClient.getFeideID(any)).thenReturn(Success(ownerId))
     when(folderRepository.userResourceWithId(eqTo(path), eqTo(ownerId))(using any)).thenReturn(Success(Some(resource)))
 
-    val result = service.hasFavoritedResource(path, Some("token"))
+    val result = service.hasFavoritedResource(path, feideWrapper(ownerId))
     result should be(Success(true))
   }
 
@@ -536,10 +535,9 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     val ownerId = "ownerId"
     val path    = "/subject/1/topic/1/resource/4"
 
-    when(feideApiClient.getFeideID(any)).thenReturn(Success(ownerId))
     when(folderRepository.userResourceWithId(eqTo(path), eqTo(ownerId))(using any)).thenReturn(Success(None))
 
-    val result = service.hasFavoritedResource(path, Some("token"))
+    val result = service.hasFavoritedResource(path, feideWrapper(ownerId))
     result should be(Success(false))
   }
 }

@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.repository
 
+import no.ndla.database.DBUtility
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.{Author, Tag}
@@ -26,22 +27,22 @@ import no.ndla.database.implicits.*
 import java.util.UUID
 import scala.util.Try
 
-class LearningPathRepository extends StrictLogging {
+class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
 
   def inTransaction[A](work: DBSession => A)(implicit session: DBSession = null): A = {
     Option(session) match {
       case Some(x) => work(x)
-      case None    => DB localTx { implicit newSession =>
+      case None    => dbUtility.localTx { implicit newSession =>
           work(newSession)
         }
     }
   }
 
-  def withId(id: Long)(implicit session: DBSession = AutoSession): Option[LearningPath] = {
+  def withId(id: Long)(implicit session: DBSession = dbUtility.autoSession): Option[LearningPath] = {
     learningPathWhere(sqls"lp.id = $id AND lp.document->>'status' <> ${LearningPathStatus.DELETED.toString}")
   }
 
-  def withIdIncludingDeleted(id: Long)(implicit session: DBSession = AutoSession): Option[LearningPath] = {
+  def withIdIncludingDeleted(id: Long)(implicit session: DBSession = dbUtility.autoSession): Option[LearningPath] = {
     learningPathWhere(sqls"lp.id = $id")
   }
 
@@ -55,7 +56,7 @@ class LearningPathRepository extends StrictLogging {
     )
   }
 
-  def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
+  def getIdFromExternalId(externalId: String)(implicit session: DBSession = dbUtility.autoSession): Option[Long] = {
     tsql"select id from learningpaths where external_id = $externalId".map(rs => rs.long("id")).runSingle().get
   }
 
@@ -63,7 +64,9 @@ class LearningPathRepository extends StrictLogging {
     learningPathsWhere(sqls"lp.document->>'isBasedOn' = ${isBasedOnId.toString}")
   }
 
-  def learningStepsFor(learningPathId: Long)(implicit session: DBSession = ReadOnlyAutoSession): Seq[LearningStep] = {
+  def learningStepsFor(
+      learningPathId: Long
+  )(implicit session: DBSession = dbUtility.readOnlySession): Seq[LearningStep] = {
     val ls = DBLearningStep.syntax("ls")
     tsql"select ${ls.result.*} from ${DBLearningStep.as(ls)} where ${ls.learningPathId} = $learningPathId"
       .map(DBLearningStep.fromResultSet(ls.resultName))
@@ -72,7 +75,7 @@ class LearningPathRepository extends StrictLogging {
   }
 
   def learningStepWithId(learningPathId: Long, learningStepId: Long)(implicit
-      session: DBSession = ReadOnlyAutoSession
+      session: DBSession = dbUtility.readOnlySession
   ): Option[LearningStep] = {
     val ls = DBLearningStep.syntax("ls")
     tsql"select ${ls.result.*} from ${DBLearningStep.as(ls)} where ${ls.learningPathId} = $learningPathId and ${ls.id} = $learningStepId"
@@ -82,7 +85,7 @@ class LearningPathRepository extends StrictLogging {
   }
 
   def learningStepWithExternalIdAndForLearningPath(externalId: Option[String], learningPathId: Option[Long])(implicit
-      session: DBSession = ReadOnlyAutoSession
+      session: DBSession = dbUtility.readOnlySession
   ): Option[LearningStep] = {
     if (externalId.isEmpty || learningPathId.isEmpty) {
       None
@@ -95,7 +98,7 @@ class LearningPathRepository extends StrictLogging {
     }
   }
 
-  def insert(learningpath: LearningPath)(implicit session: DBSession = AutoSession): LearningPath = {
+  def insert(learningpath: LearningPath)(implicit session: DBSession = dbUtility.autoSession): LearningPath = {
     val startRevision = 1
     val dataObject    = new PGobject()
     dataObject.setType("jsonb")
@@ -119,7 +122,7 @@ class LearningPathRepository extends StrictLogging {
   }
 
   def insertWithImportId(learningpath: LearningPath, importId: String)(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): LearningPath = {
     val startRevision = 1
     val dataObject    = new PGobject()
@@ -145,7 +148,7 @@ class LearningPathRepository extends StrictLogging {
 
   def idAndimportIdOfLearningpath(
       externalId: String
-  )(implicit session: DBSession = AutoSession): Option[(Long, Option[String])] = {
+  )(implicit session: DBSession = dbUtility.autoSession): Option[(Long, Option[String])] = {
     val lp = DBLearningPath.syntax("lp")
     tsql"""select id, import_id
             from ${DBLearningPath.as(lp)}
@@ -155,7 +158,9 @@ class LearningPathRepository extends StrictLogging {
       .get
   }
 
-  def insertLearningStep(learningStep: LearningStep)(implicit session: DBSession = AutoSession): LearningStep = {
+  def insertLearningStep(
+      learningStep: LearningStep
+  )(implicit session: DBSession = dbUtility.autoSession): LearningStep = {
     val startRevision = 1
     val stepObject    = new PGobject()
     stepObject.setType("jsonb")
@@ -169,7 +174,7 @@ class LearningPathRepository extends StrictLogging {
     learningStep.copy(id = Some(learningStepId), revision = Some(startRevision))
   }
 
-  def update(learningpath: LearningPath)(implicit session: DBSession = AutoSession): LearningPath = {
+  def update(learningpath: LearningPath)(implicit session: DBSession = dbUtility.autoSession): LearningPath = {
     if (learningpath.id.isEmpty) {
       throw new RuntimeException("A non-persisted learningpath cannot be updated without being saved first.")
     }
@@ -196,7 +201,7 @@ class LearningPathRepository extends StrictLogging {
   }
 
   def updateWithImportId(learningpath: LearningPath, importId: String)(implicit
-      session: DBSession = AutoSession
+      session: DBSession = dbUtility.autoSession
   ): LearningPath = {
     if (learningpath.id.isEmpty) {
       throw new RuntimeException("A non-persisted learningpath cannot be updated without being saved first.")
@@ -224,7 +229,9 @@ class LearningPathRepository extends StrictLogging {
     learningpath.copy(revision = Some(newRevision))
   }
 
-  def updateLearningStep(learningStep: LearningStep)(implicit session: DBSession = AutoSession): LearningStep = {
+  def updateLearningStep(
+      learningStep: LearningStep
+  )(implicit session: DBSession = dbUtility.autoSession): LearningStep = {
     if (learningStep.id.isEmpty) {
       throw new RuntimeException("A non-persisted learningStep cannot be updated without being saved first.")
     }
@@ -249,11 +256,11 @@ class LearningPathRepository extends StrictLogging {
     learningStep.copy(revision = Some(newRevision))
   }
 
-  def deletePath(learningPathId: Long)(implicit session: DBSession = AutoSession): Int = {
+  def deletePath(learningPathId: Long)(implicit session: DBSession = dbUtility.autoSession): Int = {
     tsql"delete from learningpaths where id = $learningPathId".update().get
   }
 
-  def deleteStep(learningStepId: Long)(implicit session: DBSession = AutoSession): Int = {
+  def deleteStep(learningStepId: Long)(implicit session: DBSession = dbUtility.autoSession): Int = {
     tsql"delete from learningsteps where id = $learningStepId".update().get
   }
 
@@ -263,7 +270,7 @@ class LearningPathRepository extends StrictLogging {
   } yield ()
 
   def learningPathsWithIdBetween(min: Long, max: Long)(implicit
-      session: DBSession = ReadOnlyAutoSession
+      session: DBSession = dbUtility.readOnlySession
   ): List[LearningPath] = {
     val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
     val status   = LearningPathStatus.PUBLISHED.toString
@@ -282,7 +289,7 @@ class LearningPathRepository extends StrictLogging {
       .get
   }
 
-  def minMaxId(implicit session: DBSession = ReadOnlyAutoSession): (Long, Long) = {
+  def minMaxId(implicit session: DBSession = dbUtility.readOnlySession): (Long, Long) = {
     tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from learningpaths"
       .map(rs => (rs.long("mi"), rs.long("ma")))
       .runSingle()
@@ -290,7 +297,7 @@ class LearningPathRepository extends StrictLogging {
       .getOrElse((0L, 0L))
   }
 
-  def allPublishedTags(implicit session: DBSession = ReadOnlyAutoSession): List[Tag] = {
+  def allPublishedTags(implicit session: DBSession = dbUtility.readOnlySession): List[Tag] = {
     val allTags =
       tsql"""select document->>'tags' from learningpaths where document->>'status' = ${LearningPathStatus.PUBLISHED.toString}"""
         .map(rs => {
@@ -308,7 +315,7 @@ class LearningPathRepository extends StrictLogging {
       .toList
   }
 
-  def allPublishedContributors(implicit session: DBSession = ReadOnlyAutoSession): List[Author] = {
+  def allPublishedContributors(implicit session: DBSession = dbUtility.readOnlySession): List[Author] = {
     val allCopyrights =
       tsql"""select document->>'copyright' from learningpaths where document->>'status' = ${LearningPathStatus.PUBLISHED.toString}"""
         .map(rs => {
@@ -328,7 +335,7 @@ class LearningPathRepository extends StrictLogging {
 
   private def learningPathsWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): List[LearningPath] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): List[LearningPath] = {
     val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
     tsql"select ${lp.result.*}, ${ls.result.*} from ${DBLearningPath.as(lp)} left join ${DBLearningStep.as(ls)} on ${lp.id} = ${ls.learningPathId} where $whereClause"
       .one(DBLearningPath.fromResultSet(lp.resultName))
@@ -342,7 +349,7 @@ class LearningPathRepository extends StrictLogging {
 
   private def learningPathWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): Option[LearningPath] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): Option[LearningPath] = {
     val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
     tsql"select ${lp.result.*}, ${ls.result.*} from ${DBLearningPath.as(lp)} left join ${DBLearningStep.as(ls)} on ${lp.id} = ${ls.learningPathId} where $whereClause"
       .one(DBLearningPath.fromResultSet(lp.resultName))
@@ -355,7 +362,7 @@ class LearningPathRepository extends StrictLogging {
   }
 
   def pageWithIds(ids: Seq[Long], pageSize: Int, offset: Int)(implicit
-      session: DBSession = ReadOnlyAutoSession
+      session: DBSession = dbUtility.readOnlySession
   ): List[LearningPath] = {
     val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
     val lps      = SubQuery.syntax("lps").include(lp)
@@ -377,7 +384,7 @@ class LearningPathRepository extends StrictLogging {
   }
 
   def getAllLearningPathsByPage(pageSize: Int, offset: Int)(implicit
-      session: DBSession = ReadOnlyAutoSession
+      session: DBSession = dbUtility.readOnlySession
   ): List[LearningPath] = {
     val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
     val lps      = SubQuery.syntax("lps").include(lp)
@@ -398,7 +405,7 @@ class LearningPathRepository extends StrictLogging {
       .get
   }
 
-  def getExternalLinkStepSamples()(implicit session: DBSession = ReadOnlyAutoSession): List[LearningPath] = {
+  def getExternalLinkStepSamples()(implicit session: DBSession = dbUtility.readOnlySession): List[LearningPath] = {
     val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
     tsql"""
       WITH candidates AS (
@@ -437,7 +444,7 @@ class LearningPathRepository extends StrictLogging {
   }
 
   def getPublishedLearningPathByPage(pageSize: Int, offset: Int)(implicit
-      session: DBSession = ReadOnlyAutoSession
+      session: DBSession = dbUtility.readOnlySession
   ): List[LearningPath] = {
     val (lp, ls) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
     val lps      = SubQuery.syntax("lps").include(lp)
@@ -461,11 +468,11 @@ class LearningPathRepository extends StrictLogging {
 
   def learningPathsWithStatus(
       status: LearningPathStatus
-  )(implicit session: DBSession = ReadOnlyAutoSession): List[LearningPath] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): List[LearningPath] = {
     learningPathsWhere(sqls"lp.document#>>'{status}' = ${status.toString}")
   }
 
-  def publishedLearningPathCount(implicit session: DBSession = ReadOnlyAutoSession): Long = {
+  def publishedLearningPathCount(implicit session: DBSession = dbUtility.readOnlySession): Long = {
     val (lp, _) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
     tsql"select count(*) from ${DBLearningPath.as(lp)} where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}"
       .map(rs => rs.long("count"))
@@ -474,12 +481,12 @@ class LearningPathRepository extends StrictLogging {
       .getOrElse(0)
   }
 
-  def learningPathCount(implicit session: DBSession = ReadOnlyAutoSession): Long = {
+  def learningPathCount(implicit session: DBSession = dbUtility.readOnlySession): Long = {
     val (lp, _) = (DBLearningPath.syntax("lp"), DBLearningStep.syntax("ls"))
     tsql"select count(*) from ${DBLearningPath.as(lp)}".map(rs => rs.long("count")).runSingle().get.getOrElse(0)
   }
 
-  def myNdlaLearningPathCount(implicit session: DBSession = ReadOnlyAutoSession): Long = {
+  def myNdlaLearningPathCount(implicit session: DBSession = dbUtility.readOnlySession): Long = {
     val lp = DBLearningPath.syntax("lp")
     tsql"""
            select count(*) from ${DBLearningPath.as(lp)}
@@ -487,7 +494,7 @@ class LearningPathRepository extends StrictLogging {
          """.map(rs => rs.long("count")).runSingle().get.getOrElse(0)
   }
 
-  def myNdlaLearningPathOwnerCount(implicit session: DBSession = ReadOnlyAutoSession): Long = {
+  def myNdlaLearningPathOwnerCount(implicit session: DBSession = dbUtility.readOnlySession): Long = {
     val lp = DBLearningPath.syntax("lp")
     tsql"""
            select count(distinct document ->> 'owner') from ${DBLearningPath.as(lp)}

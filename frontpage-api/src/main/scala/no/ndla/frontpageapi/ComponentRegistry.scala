@@ -9,7 +9,7 @@
 package no.ndla.frontpageapi
 
 import no.ndla.common.Clock
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DataSource, DBUtility}
 import no.ndla.frontpageapi.controller.*
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
@@ -34,6 +34,7 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   given dataSource: DataSource        = DataSource.getDataSource
   given migrator: DBMigrator          = DBMigrator()
   given ndlaClient: NdlaClient        = new NdlaClient
+  given dbUtility: DBUtility          = new DBUtility
 
   given DBSubjectPage                                    = new DBSubjectPage
   given DBFrontPage                                      = new DBFrontPage

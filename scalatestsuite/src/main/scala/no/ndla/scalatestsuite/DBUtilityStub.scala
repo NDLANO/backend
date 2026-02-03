@@ -8,13 +8,14 @@
 
 package no.ndla.scalatestsuite
 
+import no.ndla.common.configuration.BaseProps
 import no.ndla.database.{DBUtility, ReadableDbSession, WriteableDbSession}
 import org.scalatestplus.mockito.MockitoSugar
 import scalikejdbc.DBSession
 
 import scala.util.Try
 
-case class DBUtilityStub() extends DBUtility, MockitoSugar {
+class DBUtilityStub(using props: BaseProps) extends DBUtility, MockitoSugar {
   private val session      = mock[DBSession]
   private val writeSession = session.asInstanceOf[WriteableDbSession]
   private val readSession  = session.asInstanceOf[ReadableDbSession]

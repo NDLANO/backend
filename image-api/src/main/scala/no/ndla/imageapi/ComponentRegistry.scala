@@ -47,6 +47,7 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given converterService: ConverterService             = new ConverterService
   given myndlaApiClient: MyNDLAApiClient               = new MyNDLAApiClient
   given searchConverterService: SearchConverterService = new SearchConverterService
+  given dbUtility: DBUtility                           = new DBUtility
   given imageRepository: ImageRepository               = new ImageRepository
   given imageIndexService: ImageIndexService           = new ImageIndexService
   given imageSearchService: ImageSearchService         = new ImageSearchService
@@ -55,7 +56,6 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given validationService: ValidationService           = new ValidationService
   given readService: ReadService                       = new ReadService
   given imageStorage: ImageStorageService              = new ImageStorageService
-  given dbUtility: DBUtility                           = new DBUtility // TODO: Remove this after completing variants migration of existing images
   given writeService: WriteService                     = new WriteService
 
   given migrator: DBMigrator =

@@ -11,7 +11,7 @@ package no.ndla.draftapi.repository
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.domain.{ArticleContent, Comment, EditorNote, Status}
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.*
 import no.ndla.draftapi.model.domain.*
 import no.ndla.network.tapir.auth.{Permission, TokenUser}
@@ -24,17 +24,18 @@ import java.util.UUID
 import scala.util.{Success, Try}
 
 class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment {
+  override implicit lazy val dbUtility: DBUtility   = new DBUtility
   override implicit lazy val dataSource: DataSource = testDataSource.get
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
   var repository: DraftRepository                   = scala.compiletime.uninitialized
   val sampleArticle: Draft                          = TestData.sampleArticleWithByNcSa
 
-  def emptyTestDatabase(): Unit = DB autoCommit (implicit session => {
+  def emptyTestDatabase(): Unit = dbUtility.writeSession(implicit session => {
     sql"delete from articledata;".execute()(using session)
   })
 
   private def resetIdSequence(): Boolean = {
-    DB autoCommit (implicit session => {
+    dbUtility.writeSession(implicit session => {
       sql"select setval('article_id_sequence', 1, false);".execute()
     })
   }
@@ -67,14 +68,18 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
 
   test("withId also returns archieved articles") {
     repository
-      .insert(sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty)))(using AutoSession)
+      .insert(sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty)))(using
+        dbUtility.autoSession
+      )
       .get
     repository
-      .insert(sampleArticle.copy(id = Some(2), status = Status(DraftStatus.ARCHIVED, Set.empty)))(using AutoSession)
+      .insert(sampleArticle.copy(id = Some(2), status = Status(DraftStatus.ARCHIVED, Set.empty)))(using
+        dbUtility.autoSession
+      )
       .get
 
-    repository.withId(1)(using ReadOnlyAutoSession).get.isDefined should be(true)
-    repository.withId(2)(using ReadOnlyAutoSession).get.isDefined should be(true)
+    repository.withId(1)(using dbUtility.readOnlySession).get.isDefined should be(true)
+    repository.withId(2)(using dbUtility.readOnlySession).get.isDefined should be(true)
   }
 
   test("Updating an article should work as expected") {
@@ -83,30 +88,30 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     val art3 = sampleArticle.copy(id = Some(3), status = Status(DraftStatus.PLANNED, Set.empty))
     val art4 = sampleArticle.copy(id = Some(4), status = Status(DraftStatus.PLANNED, Set.empty))
 
-    repository.insert(art1)(using AutoSession).get
-    repository.insert(art2)(using AutoSession).get
-    repository.insert(art3)(using AutoSession).get
-    repository.insert(art4)(using AutoSession).get
+    repository.insert(art1)(using dbUtility.autoSession).get
+    repository.insert(art2)(using dbUtility.autoSession).get
+    repository.insert(art3)(using dbUtility.autoSession).get
+    repository.insert(art4)(using dbUtility.autoSession).get
 
     val updatedContent = Seq(ArticleContent("What u do mr", "nb"))
 
-    repository.updateArticle(art1.copy(content = updatedContent))(using AutoSession)
+    repository.updateArticle(art1.copy(content = updatedContent))(using dbUtility.autoSession)
 
-    repository.withId(art1.id.get)(using ReadOnlyAutoSession).get.get.content should be(updatedContent)
-    repository.withId(art2.id.get)(using ReadOnlyAutoSession).get.get.content should be(art2.content)
-    repository.withId(art3.id.get)(using ReadOnlyAutoSession).get.get.content should be(art3.content)
-    repository.withId(art4.id.get)(using ReadOnlyAutoSession).get.get.content should be(art4.content)
+    repository.withId(art1.id.get)(using dbUtility.readOnlySession).get.get.content should be(updatedContent)
+    repository.withId(art2.id.get)(using dbUtility.readOnlySession).get.get.content should be(art2.content)
+    repository.withId(art3.id.get)(using dbUtility.readOnlySession).get.get.content should be(art3.content)
+    repository.withId(art4.id.get)(using dbUtility.readOnlySession).get.get.content should be(art4.content)
   }
 
   test("Updating an article with notes should merge the notes") {
     val art1     = sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty))
-    val inserted = repository.insert(art1)(using AutoSession).get
+    val inserted = repository.insert(art1)(using dbUtility.autoSession).get
     val numNotes = inserted.notes.length
 
     val updatedNotes = Seq(EditorNote("A note", "SomeId", art1.status, NDLADate.now()))
-    repository.updateArticleNotes(art1.id.get, updatedNotes)(using AutoSession)
+    repository.updateArticleNotes(art1.id.get, updatedNotes)(using dbUtility.autoSession)
 
-    val updated = repository.withId(art1.id.get)(using ReadOnlyAutoSession).get.get
+    val updated = repository.withId(art1.id.get)(using dbUtility.readOnlySession).get.get
     updated.notes.length should be(numNotes + 1)
     updated.revision should be(art1.revision)
   }
@@ -117,15 +122,15 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     val art3 = sampleArticle.copy(id = Some(3), status = Status(DraftStatus.INTERNAL_REVIEW, Set.empty))
     val art4 = sampleArticle.copy(id = Some(4), status = Status(DraftStatus.PLANNED, Set.empty))
 
-    repository.insert(art1)(using AutoSession).get
-    repository.insert(art2)(using AutoSession).get
-    repository.insert(art3)(using AutoSession).get
-    repository.insert(art4)(using AutoSession).get
+    repository.insert(art1)(using dbUtility.autoSession).get
+    repository.insert(art2)(using dbUtility.autoSession).get
+    repository.insert(art3)(using dbUtility.autoSession).get
+    repository.insert(art4)(using dbUtility.autoSession).get
 
-    repository.withId(art1.id.get)(using ReadOnlyAutoSession).get.get should be(art1)
-    repository.withId(art2.id.get)(using ReadOnlyAutoSession).get.get should be(art2)
-    repository.withId(art3.id.get)(using ReadOnlyAutoSession).get.get should be(art3)
-    repository.withId(art4.id.get)(using ReadOnlyAutoSession).get.get should be(art4)
+    repository.withId(art1.id.get)(using dbUtility.readOnlySession).get.get should be(art1)
+    repository.withId(art2.id.get)(using dbUtility.readOnlySession).get.get should be(art2)
+    repository.withId(art3.id.get)(using dbUtility.readOnlySession).get.get should be(art3)
+    repository.withId(art4.id.get)(using dbUtility.readOnlySession).get.get should be(art4)
   }
 
   test("That getAllIds returns all articles") {
@@ -134,12 +139,12 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     val art3 = sampleArticle.copy(id = Some(3), status = Status(DraftStatus.EXTERNAL_REVIEW, Set.empty))
     val art4 = sampleArticle.copy(id = Some(4), status = Status(DraftStatus.PLANNED, Set.empty))
 
-    repository.insert(art1)(using AutoSession).get
-    repository.insert(art2)(using AutoSession).get
-    repository.insert(art3)(using AutoSession).get
-    repository.insert(art4)(using AutoSession).get
+    repository.insert(art1)(using dbUtility.autoSession).get
+    repository.insert(art2)(using dbUtility.autoSession).get
+    repository.insert(art3)(using dbUtility.autoSession).get
+    repository.insert(art4)(using dbUtility.autoSession).get
 
-    repository.getAllIds(using AutoSession) should be(
+    repository.getAllIds(using dbUtility.autoSession) should be(
       Success(
         Seq(
           ArticleIds(art1.id.get, List.empty),
@@ -154,53 +159,69 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
   test("That newEmptyArticle creates the latest available article_id") {
     this.resetIdSequence()
 
-    repository.newEmptyArticleId()(using AutoSession) should be(Success(1))
-    repository.newEmptyArticleId()(using AutoSession) should be(Success(2))
-    repository.newEmptyArticleId()(using AutoSession) should be(Success(3))
-    repository.newEmptyArticleId()(using AutoSession) should be(Success(4))
-    repository.newEmptyArticleId()(using AutoSession) should be(Success(5))
-    repository.newEmptyArticleId()(using AutoSession) should be(Success(6))
-    repository.newEmptyArticleId()(using AutoSession) should be(Success(7))
+    repository.newEmptyArticleId()(using dbUtility.autoSession) should be(Success(1))
+    repository.newEmptyArticleId()(using dbUtility.autoSession) should be(Success(2))
+    repository.newEmptyArticleId()(using dbUtility.autoSession) should be(Success(3))
+    repository.newEmptyArticleId()(using dbUtility.autoSession) should be(Success(4))
+    repository.newEmptyArticleId()(using dbUtility.autoSession) should be(Success(5))
+    repository.newEmptyArticleId()(using dbUtility.autoSession) should be(Success(6))
+    repository.newEmptyArticleId()(using dbUtility.autoSession) should be(Success(7))
   }
   test("That idsWithStatus returns correct drafts") {
     repository
-      .insert(sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty)))(using AutoSession)
+      .insert(sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty)))(using
+        dbUtility.autoSession
+      )
       .get
     repository
-      .insert(sampleArticle.copy(id = Some(2), status = Status(DraftStatus.PLANNED, Set.empty)))(using AutoSession)
+      .insert(sampleArticle.copy(id = Some(2), status = Status(DraftStatus.PLANNED, Set.empty)))(using
+        dbUtility.autoSession
+      )
       .get
     repository
-      .insert(sampleArticle.copy(id = Some(3), status = Status(DraftStatus.IN_PROGRESS, Set.empty)))(using AutoSession)
+      .insert(sampleArticle.copy(id = Some(3), status = Status(DraftStatus.IN_PROGRESS, Set.empty)))(using
+        dbUtility.autoSession
+      )
       .get
     repository
-      .insert(sampleArticle.copy(id = Some(4), status = Status(DraftStatus.PLANNED, Set.empty)))(using AutoSession)
+      .insert(sampleArticle.copy(id = Some(4), status = Status(DraftStatus.PLANNED, Set.empty)))(using
+        dbUtility.autoSession
+      )
       .get
     repository
-      .insert(sampleArticle.copy(id = Some(5), status = Status(DraftStatus.IN_PROGRESS, Set.empty)))(using AutoSession)
+      .insert(sampleArticle.copy(id = Some(5), status = Status(DraftStatus.IN_PROGRESS, Set.empty)))(using
+        dbUtility.autoSession
+      )
       .get
     repository
-      .insert(sampleArticle.copy(id = Some(6), status = Status(DraftStatus.PUBLISHED, Set.empty)))(using AutoSession)
+      .insert(sampleArticle.copy(id = Some(6), status = Status(DraftStatus.PUBLISHED, Set.empty)))(using
+        dbUtility.autoSession
+      )
       .get
     repository
-      .insert(sampleArticle.copy(id = Some(7), status = Status(DraftStatus.END_CONTROL, Set.empty)))(using AutoSession)
+      .insert(sampleArticle.copy(id = Some(7), status = Status(DraftStatus.END_CONTROL, Set.empty)))(using
+        dbUtility.autoSession
+      )
       .get
     repository
-      .insert(sampleArticle.copy(id = Some(8), status = Status(DraftStatus.IN_PROGRESS, Set.empty)))(using AutoSession)
+      .insert(sampleArticle.copy(id = Some(8), status = Status(DraftStatus.IN_PROGRESS, Set.empty)))(using
+        dbUtility.autoSession
+      )
       .get
 
-    repository.idsWithStatus(DraftStatus.PLANNED)(using AutoSession) should be(
+    repository.idsWithStatus(DraftStatus.PLANNED)(using dbUtility.autoSession) should be(
       Success(List(ArticleIds(1, List.empty), ArticleIds(2, List.empty), ArticleIds(4, List.empty)))
     )
 
-    repository.idsWithStatus(DraftStatus.IN_PROGRESS)(using AutoSession) should be(
+    repository.idsWithStatus(DraftStatus.IN_PROGRESS)(using dbUtility.autoSession) should be(
       Success(List(ArticleIds(3, List.empty), ArticleIds(5, List.empty), ArticleIds(8, List.empty)))
     )
 
-    repository.idsWithStatus(DraftStatus.PUBLISHED)(using AutoSession) should be(
+    repository.idsWithStatus(DraftStatus.PUBLISHED)(using dbUtility.autoSession) should be(
       Success(List(ArticleIds(6, List.empty)))
     )
 
-    repository.idsWithStatus(DraftStatus.END_CONTROL)(using AutoSession) should be(
+    repository.idsWithStatus(DraftStatus.END_CONTROL)(using dbUtility.autoSession) should be(
       Success(List(ArticleIds(7, List.empty)))
     )
   }
@@ -212,34 +233,38 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     val art4 = sampleArticle.copy(id = Some(3), status = Status(DraftStatus.PLANNED, Set.empty))
     val art5 = sampleArticle.copy(id = Some(4), status = Status(DraftStatus.PLANNED, Set.empty))
     val art6 = sampleArticle.copy(id = Some(5), status = Status(DraftStatus.PLANNED, Set.empty))
-    repository.insert(art1)(using AutoSession).get
-    repository.insert(art2)(using AutoSession).get
-    repository.insert(art3)(using AutoSession).get
-    repository.insert(art4)(using AutoSession).get
-    repository.insert(art5)(using AutoSession).get
-    repository.insert(art6)(using AutoSession).get
+    repository.insert(art1)(using dbUtility.autoSession).get
+    repository.insert(art2)(using dbUtility.autoSession).get
+    repository.insert(art3)(using dbUtility.autoSession).get
+    repository.insert(art4)(using dbUtility.autoSession).get
+    repository.insert(art5)(using dbUtility.autoSession).get
+    repository.insert(art6)(using dbUtility.autoSession).get
 
     val pageSize = 4
-    repository.getArticlesByPage(pageSize, pageSize * 0)(using AutoSession).get should be(Seq(art2, art3, art4, art5))
-    repository.getArticlesByPage(pageSize, pageSize * 1)(using AutoSession).get should be(Seq(art6))
+    repository.getArticlesByPage(pageSize, pageSize * 0)(using dbUtility.autoSession).get should be(
+      Seq(art2, art3, art4, art5)
+    )
+    repository.getArticlesByPage(pageSize, pageSize * 1)(using dbUtility.autoSession).get should be(Seq(art6))
   }
 
   test("published, then copied article creates new db version and bumps revision by two") {
     val article = TestData
       .sampleDomainArticle
       .copy(status = Status(DraftStatus.UNPUBLISHED, Set.empty), revision = Some(3))
-    repository.insert(article)(using AutoSession).get
-    val oldCount                = repository.articlesWithId(article.id.get)(using AutoSession).get.size
+    repository.insert(article)(using dbUtility.autoSession).get
+    val oldCount                = repository.articlesWithId(article.id.get)(using dbUtility.autoSession).get.size
     val publishedArticle        = article.copy(status = Status(DraftStatus.PUBLISHED, Set.empty))
-    val updatedArticle          = repository.updateArticle(publishedArticle)(using AutoSession).get
-    val updatedAndCopiedArticle = repository.storeArticleAsNewVersion(updatedArticle, None)(using AutoSession).get
+    val updatedArticle          = repository.updateArticle(publishedArticle)(using dbUtility.autoSession).get
+    val updatedAndCopiedArticle = repository
+      .storeArticleAsNewVersion(updatedArticle, None)(using dbUtility.autoSession)
+      .get
 
     updatedAndCopiedArticle.revision should be(Some(5))
 
     updatedAndCopiedArticle.notes.length should be(0)
     updatedAndCopiedArticle should equal(publishedArticle.copy(notes = Seq(), revision = Some(5)))
 
-    val count = repository.articlesWithId(article.id.get)(using AutoSession).get.size
+    val count = repository.articlesWithId(article.id.get)(using dbUtility.autoSession).get.size
     count should be(oldCount + 1)
 
   }
@@ -265,27 +290,27 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
       .sampleDomainArticle
       .copy(status = Status(DraftStatus.UNPUBLISHED, Set.empty), revision = Some(3), notes = prevNotes1)
 
-    val inserted = repository.insert(draftArticle1)(using AutoSession).get
-    val fetched  = repository.withId(inserted.id.get)(using ReadOnlyAutoSession).get.get
+    val inserted = repository.insert(draftArticle1)(using dbUtility.autoSession).get
+    val fetched  = repository.withId(inserted.id.get)(using dbUtility.readOnlySession).get.get
     fetched.notes should be(prevNotes1)
     fetched.previousVersionsNotes should be(Seq.empty)
 
     val toPublish1      = inserted.copy(status = Status(DraftStatus.PUBLISHED, Set.empty))
-    val updatedArticle1 = repository.updateArticle(toPublish1)(using AutoSession).get
+    val updatedArticle1 = repository.updateArticle(toPublish1)(using dbUtility.autoSession).get
 
     updatedArticle1.notes should be(prevNotes1)
     updatedArticle1.previousVersionsNotes should be(Seq.empty)
 
-    val copiedArticle1 = repository.storeArticleAsNewVersion(updatedArticle1, None)(using AutoSession).get
+    val copiedArticle1 = repository.storeArticleAsNewVersion(updatedArticle1, None)(using dbUtility.autoSession).get
     copiedArticle1.notes should be(Seq.empty)
     copiedArticle1.previousVersionsNotes should be(prevNotes1)
 
     val draftArticle2   = copiedArticle1.copy(status = Status(DraftStatus.PUBLISHED, Set.empty), notes = prevNotes2)
-    val updatedArticle2 = repository.updateArticle(draftArticle2)(using AutoSession).get
+    val updatedArticle2 = repository.updateArticle(draftArticle2)(using dbUtility.autoSession).get
     updatedArticle2.notes should be(prevNotes2)
     updatedArticle2.previousVersionsNotes should be(prevNotes1)
 
-    val copiedArticle2 = repository.storeArticleAsNewVersion(updatedArticle2, None)(using AutoSession).get
+    val copiedArticle2 = repository.storeArticleAsNewVersion(updatedArticle2, None)(using dbUtility.autoSession).get
     copiedArticle2.notes should be(Seq.empty)
     copiedArticle2.previousVersionsNotes should be(prevNotes1 ++ prevNotes2)
 
@@ -298,11 +323,11 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     val draftArticle1 = TestData
       .sampleDomainArticle
       .copy(status = Status(DraftStatus.PLANNED, Set.empty), notes = Seq.empty)
-    repository.insert(draftArticle1)(using AutoSession).get
+    repository.insert(draftArticle1)(using dbUtility.autoSession).get
 
     val copiedArticle1 = repository
       .storeArticleAsNewVersion(draftArticle1, Some(TokenUser("user-id", Set(Permission.DRAFT_API_WRITE), None)))(using
-        AutoSession
+        dbUtility.autoSession
       )
       .get
     copiedArticle1.notes.length should be(1)
@@ -311,9 +336,9 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
   }
 
   test("withId parse relatedContent correctly") {
-    repository.insert(sampleArticle.copy(id = Some(1), relatedContent = Seq(Right(2))))(using AutoSession).get
+    repository.insert(sampleArticle.copy(id = Some(1), relatedContent = Seq(Right(2))))(using dbUtility.autoSession).get
 
-    val Right(relatedId) = repository.withId(1)(using ReadOnlyAutoSession).get.get.relatedContent.head: @unchecked
+    val Right(relatedId) = repository.withId(1)(using dbUtility.readOnlySession).get.get.relatedContent.head: @unchecked
     relatedId should be(2L)
 
   }
@@ -321,8 +346,8 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
   test("That slugs are stored and extracted as lowercase") {
     val article = sampleArticle.copy(id = Some(1), slug = Some("ApeKaTt"))
 
-    val inserted = repository.insert(article)(using AutoSession).get
-    val fetched  = repository.withSlug("aPEkAtT")(using ReadOnlyAutoSession).get.get
+    val inserted = repository.insert(article)(using dbUtility.autoSession).get
+    val fetched  = repository.withSlug("aPEkAtT")(using dbUtility.readOnlySession).get.get
     fetched should be(inserted)
   }
 
@@ -341,10 +366,10 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
         revision = Some(1),
       )
 
-    repository.insert(article)(using AutoSession).get
-    repository.insert(topicArticle)(using AutoSession).get
-    val publishedArticle      = repository.storeArticleAsNewVersion(article, None)(using AutoSession).get
-    val publishedTopicArticle = repository.storeArticleAsNewVersion(topicArticle, None)(using AutoSession).get
+    repository.insert(article)(using dbUtility.autoSession).get
+    repository.insert(topicArticle)(using dbUtility.autoSession).get
+    val publishedArticle      = repository.storeArticleAsNewVersion(article, None)(using dbUtility.autoSession).get
+    val publishedTopicArticle = repository.storeArticleAsNewVersion(topicArticle, None)(using dbUtility.autoSession).get
 
     publishedArticle.comments should be(Seq())
     publishedTopicArticle.comments should be(comments)
@@ -355,14 +380,14 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     val article = TestData
       .sampleDomainArticle
       .copy(revision = Some(1), notes = Seq(EditorNote("note1", "user1", Status(DraftStatus.PLANNED, Set.empty), now)))
-    val inserted = repository.insert(article)(using AutoSession).get
+    val inserted = repository.insert(article)(using dbUtility.autoSession).get
     repository.updateArticleNotes(1L, Seq(EditorNote("note2", "user2", Status(DraftStatus.PLANNED, Set.empty), now)))(
-      using AutoSession
+      using dbUtility.autoSession
     )
     repository.updateArticle(
       inserted.copy(notes = article.notes :+ EditorNote("note3", "user3", Status(DraftStatus.PLANNED, Set.empty), now))
-    )(using AutoSession)
-    val updated = repository.withId(inserted.id.get)(using AutoSession).get.get
+    )(using dbUtility.autoSession)
+    val updated = repository.withId(inserted.id.get)(using dbUtility.autoSession).get.get
     updated.notes.length should be(3)
   }
 }

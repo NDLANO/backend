@@ -11,6 +11,7 @@ package no.ndla.articleapi.service
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Article
+import no.ndla.database.DBUtility
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
@@ -22,6 +23,7 @@ import scala.util.{Success, Try}
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
   override implicit lazy val converterService: ConverterService = new ConverterService
+  val dbUtil                                                    = new DBUtility
 
   val today: NDLADate     = NDLADate.now()
   val yesterday: NDLADate = NDLADate.now().minusDays(1)
@@ -71,7 +73,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       useImportValidation = false,
       useSoftValidation = false,
       skipValidation = false,
-    )(AutoSession)
+    )(dbUtil.autoSession)
 
     val argCap1: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
     val argCap2: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])

@@ -11,6 +11,7 @@ package no.ndla.myndlaapi.controller
 import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.FolderStatus
+import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
 import no.ndla.myndlaapi.model.api.{
   FolderDTO,
   FolderSortRequestDTO,
@@ -28,9 +29,7 @@ import no.ndla.myndlaapi.model.domain.FolderSortObject.{
   SharedFolderSorting,
 }
 import no.ndla.myndlaapi.service.{FolderReadService, FolderWriteService}
-import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
-import no.ndla.network.tapir.Parameters.feideHeader
 import no.ndla.network.tapir.{ErrorHelpers, TapirController}
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import sttp.tapir.*
@@ -44,7 +43,7 @@ class FolderController(using
     folderWriteService: FolderWriteService,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
-    myNDLAApiClient: MyNDLAApiClient,
+    myNDLAApiClient: InternalMyNDLAApiClient,
 ) extends TapirController {
   override val serviceName: String = "folders"
 
@@ -77,13 +76,15 @@ class FolderController(using
     .get
     .summary("Fetch top folders that belongs to a user")
     .description("Fetch top folders that belongs to a user")
-    .in(feideHeader)
     .in(includeResources)
     .in(includeSubfolders)
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .out(jsonBody[UserFolderDTO])
-    .serverLogicPure { case (feideHeader, includeResources, includeSubfolders) =>
-      folderReadService.getFolders(includeSubfolders, includeResources, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (includeResources, includeSubfolders) =>
+        folderReadService.getFolders(includeSubfolders, includeResources, feide)
+      }
     }
 
   private def getSingleFolder: ServerEndpoint[Any, Eff] = endpoint
@@ -91,51 +92,54 @@ class FolderController(using
     .summary("Fetch a folder and all its content")
     .description("Fetch a folder and all its content")
     .in(pathFolderId)
-    .in(feideHeader)
     .in(includeResources)
     .in(includeSubfolders)
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .out(jsonBody[FolderDTO])
-    .serverLogicPure { case (folderId, feideHeader, includeResources, includeSubfolders) =>
-      folderReadService.getSingleFolder(folderId, includeSubfolders, includeResources, feideHeader)
-
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (folderId, includeResources, includeSubfolders) =>
+        folderReadService.getSingleFolder(folderId, includeSubfolders, includeResources, feide)
+      }
     }
 
   private def createNewFolder: ServerEndpoint[Any, Eff] = endpoint
     .post
     .summary("Creates new folder")
     .description("Creates new folder")
-    .in(feideHeader)
     .in(jsonBody[NewFolderDTO])
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .out(jsonBody[FolderDTO])
-    .serverLogicPure { case (feideHeader, newFolder) =>
-      folderWriteService.newFolder(newFolder, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide => newFolder =>
+      folderWriteService.newFolder(newFolder, feide)
     }
 
   private def updateFolder(): ServerEndpoint[Any, Eff] = endpoint
     .patch
     .summary("Update folder with new data")
     .description("Update folder with new data")
-    .in(feideHeader)
     .in(pathFolderId)
     .in(jsonBody[UpdatedFolderDTO])
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .out(jsonBody[FolderDTO])
-    .serverLogicPure { case (feideHeader, folderId, updatedFolder) =>
-      folderWriteService.updateFolder(folderId, updatedFolder, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (folderId, updatedFolder) =>
+        folderWriteService.updateFolder(folderId, updatedFolder, feide)
+      }
     }
 
   private def removeFolder(): ServerEndpoint[Any, Eff] = endpoint
     .delete
     .summary("Remove folder from user folders")
     .description("Remove folder from user folders")
-    .in(feideHeader)
     .in(pathFolderId)
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .out(noContent)
-    .serverLogicPure { case (feideHeader, folderId) =>
-      folderWriteService.deleteFolder(folderId, feideHeader).map(_ => ())
+    .withFeideUser
+    .serverLogicPure { feide => folderId =>
+      folderWriteService.deleteFolder(folderId, feide).map(_ => ())
     }
 
   private val defaultSize: Int       = 5
@@ -148,15 +152,15 @@ class FolderController(using
     .summary("Fetch all resources that belongs to a user")
     .description("Fetch all resources that belongs to a user")
     .in("resources")
-    .in(feideHeader)
     .in(size)
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .out(jsonBody[List[ResourceDTO]])
-    .serverLogicPure { case (feideHeader, inputSize) =>
+    .withFeideUser
+    .serverLogicPure { feide => inputSize =>
       val size =
         if (inputSize < 1) defaultSize
         else inputSize
-      folderReadService.getAllResources(size, feideHeader)
+      folderReadService.getAllResources(size, feide)
     }
 
   private def fetchRecent: ServerEndpoint[Any, Eff] = endpoint
@@ -180,24 +184,26 @@ class FolderController(using
     .description("Check if a resource has been favorited by the user")
     .in("resources" / "has-favorited")
     .in(queryResourcePath)
-    .in(feideHeader)
     .out(jsonBody[Boolean])
     .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-    .serverLogicPure { case (resourcePath, feideHeader) =>
-      folderReadService.hasFavoritedResource(resourcePath, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide => resourcePath =>
+      folderReadService.hasFavoritedResource(resourcePath, feide)
     }
 
   private def createFolderResource: ServerEndpoint[Any, Eff] = endpoint
     .post
     .summary("Creates new folder resource")
     .description("Creates new folder resource")
-    .in(feideHeader)
     .in(pathFolderId / "resources")
     .in(jsonBody[NewResourceDTO])
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .out(jsonBody[ResourceDTO])
-    .serverLogicPure { case (feideHeader, folderId, newResource) =>
-      folderWriteService.newFolderResourceConnection(folderId, newResource, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (folderId, newResource) =>
+        folderWriteService.newFolderResourceConnection(folderId, newResource, feide)
+      }
     }
 
   private def updateResource(): ServerEndpoint[Any, Eff] = endpoint
@@ -205,24 +211,28 @@ class FolderController(using
     .summary("Updated selected resource")
     .description("Updates selected resource")
     .in("resources" / pathResourceId)
-    .in(feideHeader)
     .in(jsonBody[UpdatedResourceDTO])
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .out(jsonBody[ResourceDTO])
-    .serverLogicPure { case (resourceId, feideHeader, updatedResource) =>
-      folderWriteService.updateResource(resourceId, updatedResource, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (resourceId, updatedResource) =>
+        folderWriteService.updateResource(resourceId, updatedResource, feide)
+      }
     }
 
   private def deleteResource(): ServerEndpoint[Any, Eff] = endpoint
     .delete
     .summary("Delete selected resource")
     .description("Delete selected resource")
-    .in(feideHeader)
     .in(pathFolderId / "resources" / pathResourceId)
     .out(noContent)
     .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-    .serverLogicPure { case (feideHeader, folderId, resourceId) =>
-      folderWriteService.deleteConnection(folderId, resourceId, feideHeader).map(_ => ())
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (folderId, resourceId) =>
+        folderWriteService.deleteConnection(folderId, resourceId, feide).map(_ => ())
+      }
     }
 
   private def fetchSharedFolder: ServerEndpoint[Any, Eff] = endpoint
@@ -232,7 +242,7 @@ class FolderController(using
     .in("shared" / pathFolderId)
     .out(jsonBody[FolderDTO])
     .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-    .serverLogicPure { case (folderId) =>
+    .serverLogicPure { folderId =>
       folderReadService.getSharedFolder(folderId)
     }
 
@@ -244,11 +254,13 @@ class FolderController(using
     .description("Change status for given folder and all its subfolders")
     .in("shared" / pathFolderId)
     .in(folderStatus)
-    .in(feideHeader)
     .out(jsonBody[List[UUID]])
     .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-    .serverLogicPure { case (folderId, status, feideHeader) =>
-      folderWriteService.changeStatusOfFolderAndItsSubfolders(folderId, status, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (folderId, status) =>
+        folderWriteService.changeStatusOfFolderAndItsSubfolders(folderId, status, feide)
+      }
     }
 
   private def cloneFolder: ServerEndpoint[Any, Eff] = endpoint
@@ -257,11 +269,13 @@ class FolderController(using
     .description("Creates new folder structure based on source folder structure")
     .in("clone" / sourceFolderId)
     .in(destinationFolderId)
-    .in(feideHeader)
     .out(jsonBody[FolderDTO])
     .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-    .serverLogicPure { case (sourceFolderId, destinationFolderId, feideId) =>
-      folderWriteService.cloneFolder(sourceFolderId, destinationFolderId, feideId)
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (sourceFolderId, destinationFolderId) =>
+        folderWriteService.cloneFolder(sourceFolderId, destinationFolderId, feide)
+      }
     }
 
   private def sortFolderResources: ServerEndpoint[Any, Eff] = endpoint
@@ -269,13 +283,15 @@ class FolderController(using
     .summary("Decide order of resource ids in a folder")
     .description("Decide order of resource ids in a folder")
     .in("sort-resources" / pathFolderId)
-    .in(feideHeader)
     .in(jsonBody[FolderSortRequestDTO])
     .out(noContent)
     .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-    .serverLogicPure { case (folderId, feideHeader, sortRequest) =>
-      val sortObject = ResourceSorting(folderId)
-      folderWriteService.sortFolder(sortObject, sortRequest, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (folderId, sortRequest) =>
+        val sortObject = ResourceSorting(folderId)
+        folderWriteService.sortFolder(sortObject, sortRequest, feide)
+      }
     }
 
   private def sortFolderFolders: ServerEndpoint[Any, Eff] = endpoint
@@ -283,14 +299,16 @@ class FolderController(using
     .summary("Decide order of subfolder ids in a folder")
     .description("Decide order of subfolder ids in a folder")
     .in("sort-subfolders")
-    .in(feideHeader)
     .in(jsonBody[FolderSortRequestDTO])
     .in(queryFolderId)
     .out(noContent)
     .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-    .serverLogicPure { case (feideHeader, sortRequest, folderId) =>
-      val sortObject = folderId.map(id => FolderSorting(id)).getOrElse(RootFolderSorting())
-      folderWriteService.sortFolder(sortObject, sortRequest, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (sortRequest, folderId) =>
+        val sortObject = folderId.map(id => FolderSorting(id)).getOrElse(RootFolderSorting())
+        folderWriteService.sortFolder(sortObject, sortRequest, feide)
+      }
     }
 
   private def sortSavedSharedFolders: ServerEndpoint[Any, Eff] = endpoint
@@ -298,13 +316,13 @@ class FolderController(using
     .summary("Decide order of saved shared folders")
     .description("Decide order of saved shared folders")
     .in("sort-saved")
-    .in(feideHeader)
     .in(jsonBody[FolderSortRequestDTO])
     .out(noContent)
     .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-    .serverLogicPure { case (feideHeader, sortRequest) =>
+    .withFeideUser
+    .serverLogicPure { feide => sortRequest =>
       val sortObject = SharedFolderSorting()
-      folderWriteService.sortFolder(sortObject, sortRequest, feideHeader)
+      folderWriteService.sortFolder(sortObject, sortRequest, feide)
     }
 
   private def createFolderUserConnection: ServerEndpoint[Any, Eff] = endpoint
@@ -312,11 +330,11 @@ class FolderController(using
     .summary("Saves a shared folder")
     .description("Saves a shared folder")
     .in("shared" / pathFolderId / "save")
-    .in(feideHeader)
     .out(noContent)
     .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-    .serverLogicPure { case (folderId, feideHeader) =>
-      folderWriteService.newSaveSharedFolder(folderId, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide => folderId =>
+      folderWriteService.newSaveSharedFolder(folderId, feide)
     }
 
   private def deleteFolderUserConnection(): ServerEndpoint[Any, Eff] = endpoint
@@ -324,11 +342,11 @@ class FolderController(using
     .summary("Deletes a saved shared folder")
     .description("Deletes a saved shared folder")
     .in("shared" / pathFolderId / "save")
-    .in(feideHeader)
     .out(noContent)
     .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
-    .serverLogicPure { case (folderId, feideHeader) =>
-      folderWriteService.deleteSavedSharedFolder(folderId, feideHeader)
+    .withFeideUser
+    .serverLogicPure { feide => folderId =>
+      folderWriteService.deleteSavedSharedFolder(folderId, feide)
     }
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

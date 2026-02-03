@@ -12,6 +12,7 @@ import no.ndla.common.Clock
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
 import no.ndla.myndlaapi.model.api.FolderDTO
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
+import no.ndla.network.model.FeideUserWrapper
 import no.ndla.network.tapir.{ErrorHelpers, Routes, TapirController}
 import no.ndla.scalatestsuite.UnitTestSuite
 import no.ndla.tapirtesting.TapirControllerTest
@@ -33,6 +34,7 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
   override def beforeEach(): Unit = {
     resetMocks()
     when(clock.now()).thenReturn(TestData.today)
+    when(myndlaApiClient.getDomainUser(any)).thenReturn(Success(testUser))
   }
 
   val feideToken = "aec48787-36b7-4d04-8c11-40e374256f1e"
@@ -50,23 +52,24 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
     displayName = "displayName",
     email = "some@example.com",
     arenaEnabled = true,
+    lastSeen = TestData.today,
   )
 
   test("That resources fetching works and doesnt interfere with folder/:id") {
-    when(folderReadService.getAllResources(any, any)).thenReturn(Success(List.empty))
+    when(folderReadService.getAllResources(any, any[FeideUserWrapper])).thenReturn(Success(List.empty))
     val request = quickRequest
       .get(uri"http://localhost:$serverPort/myndla-api/v1/folders/resources")
       .header("FeideAuthorization", s"Bearer $feideToken")
     val response = simpleHttpClient.send(request)
 
-    verify(folderReadService, times(1)).getAllResources(any, any)
-    verify(folderReadService, times(0)).getSingleFolder(any, any, any, any)
+    verify(folderReadService, times(1)).getAllResources(any, any[FeideUserWrapper])
+    verify(folderReadService, times(0)).getSingleFolder(any, any, any, any[FeideUserWrapper])
     response.code.code should be(200)
   }
 
   test("That fetching single folder works with id") {
     val someId = UUID.randomUUID()
-    when(folderReadService.getSingleFolder(eqTo(someId), any, any, any)).thenReturn(
+    when(folderReadService.getSingleFolder(eqTo(someId), any, any, any[FeideUserWrapper])).thenReturn(
       Success(
         FolderDTO(
           id = someId,
@@ -90,8 +93,8 @@ class FolderControllerTest extends UnitTestSuite with TestEnvironment with Tapir
       .header("FeideAuthorization", s"Bearer $feideToken")
     val response = simpleHttpClient.send(request)
 
-    verify(folderReadService, times(0)).getAllResources(any, any)
-    verify(folderReadService, times(1)).getSingleFolder(eqTo(someId), any, any, any)
+    verify(folderReadService, times(0)).getAllResources(any, any[FeideUserWrapper])
+    verify(folderReadService, times(1)).getSingleFolder(eqTo(someId), any, any, any[FeideUserWrapper])
     response.code.code should be(200)
   }
 }

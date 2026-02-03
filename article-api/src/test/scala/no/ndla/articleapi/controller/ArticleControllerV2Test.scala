@@ -216,7 +216,7 @@ class ArticleControllerV2Test extends UnitSuite with TestEnvironment with TapirC
       fallback = any,
       grepCodes = any,
       shouldScroll = eqTo(true),
-      feideAccessToken = any,
+      feide = any,
     )
     verify(articleSearchService, times(0)).scroll(any[String], any[String])
   }

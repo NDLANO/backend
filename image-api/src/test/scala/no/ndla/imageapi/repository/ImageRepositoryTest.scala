@@ -12,8 +12,7 @@ import java.net.Socket
 import no.ndla.imageapi.model.domain.ImageTitle
 import no.ndla.imageapi.{ImageApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
-import no.ndla.database.{DataSource, DBMigrator}
-import scalikejdbc.DB
+import no.ndla.database.{DataSource, DBMigrator, DBUtility}
 
 import scala.util.{Success, Try}
 import scalikejdbc.*
@@ -21,6 +20,7 @@ import scalikejdbc.*
 class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
   override implicit lazy val props: ImageApiProperties = new ImageApiProperties
   override implicit lazy val dataSource: DataSource    = testDataSource.get
+  override implicit lazy val dbUtility: DBUtility      = new DBUtility
   override implicit lazy val migrator: DBMigrator      = new DBMigrator
   var repository: ImageRepository                      = scala.compiletime.uninitialized
 
@@ -35,7 +35,7 @@ class ImageRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with T
     }
   }
 
-  def emptyTestDatabase: Boolean = DB autoCommit (implicit session => {
+  def emptyTestDatabase: Boolean = dbUtility.writeSession(implicit session => {
     sql"delete from imagemetadata;".execute()(using session)
   })
 

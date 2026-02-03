@@ -14,7 +14,7 @@ import no.ndla.common.model.domain.concept.ConceptContent
 import no.ndla.conceptapi.TestData.*
 import no.ndla.conceptapi.model.api.OptimisticLockException
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.database.{DBMigrator, DataSource}
+import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.*
 
@@ -23,11 +23,12 @@ import scala.util.{Failure, Success, Try}
 
 class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
   override implicit lazy val dataSource: DataSource = testDataSource.get
+  override implicit lazy val dbUtility: DBUtility   = new DBUtility
   override implicit lazy val migrator: DBMigrator   = new DBMigrator
   var repository: DraftConceptRepository            = scala.compiletime.uninitialized
 
   def emptyTestDatabase: Boolean = {
-    DB autoCommit (implicit session => {
+    dbUtility.writeSession(implicit session => {
       sql"delete from conceptdata;".execute()(using session)
     })
   }

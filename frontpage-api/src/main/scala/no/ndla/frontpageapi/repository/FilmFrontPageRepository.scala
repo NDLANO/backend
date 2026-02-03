@@ -8,6 +8,7 @@
 
 package no.ndla.frontpageapi.repository
 
+import no.ndla.database.DBUtility
 import com.typesafe.scalalogging.StrictLogging
 import io.circe.syntax.*
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, FilmFrontPage}
@@ -17,10 +18,10 @@ import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 
-class FilmFrontPageRepository(using dBFilmFrontPage: DBFilmFrontPage) extends StrictLogging {
+class FilmFrontPageRepository(using dBFilmFrontPage: DBFilmFrontPage, dbUtility: DBUtility) extends StrictLogging {
   import FilmFrontPage._
 
-  def newFilmFrontPage(page: FilmFrontPage)(implicit session: DBSession = AutoSession): Try[FilmFrontPage] = {
+  def newFilmFrontPage(page: FilmFrontPage)(implicit session: DBSession = dbUtility.autoSession): Try[FilmFrontPage] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(page.asJson.noSpacesDropNull)
@@ -35,7 +36,7 @@ class FilmFrontPageRepository(using dBFilmFrontPage: DBFilmFrontPage) extends St
     tsql"delete from ${dBFilmFrontPage.DBFilmFrontPageData.table} where id<>${id} ".update().map(_ => id)
   }
 
-  def get(implicit session: DBSession = ReadOnlyAutoSession): Option[FilmFrontPage] = {
+  def get(implicit session: DBSession = dbUtility.readOnlySession): Option[FilmFrontPage] = {
     val fr = dBFilmFrontPage.DBFilmFrontPageData.syntax("fr")
 
     tsql"select ${fr.result.*} from ${dBFilmFrontPage.DBFilmFrontPageData.as(fr)} order by fr.id desc limit 1"
@@ -50,7 +51,7 @@ class FilmFrontPageRepository(using dBFilmFrontPage: DBFilmFrontPage) extends St
 
   }
 
-  def update(page: FilmFrontPage)(implicit session: DBSession = AutoSession): Try[FilmFrontPage] = {
+  def update(page: FilmFrontPage)(implicit session: DBSession = dbUtility.autoSession): Try[FilmFrontPage] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(page.asJson.noSpacesDropNull)

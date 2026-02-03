@@ -16,6 +16,7 @@ import no.ndla.audioapi.Props
 import no.ndla.audioapi.model.domain.{AudioMetaInformation, SearchableTag}
 import no.ndla.audioapi.repository.{AudioRepository, Repository}
 import no.ndla.common.CirceUtil
+import no.ndla.database.DBUtility
 import no.ndla.search.{NdlaE4sClient, SearchLanguage}
 
 import scala.util.{Success, Try}
@@ -26,6 +27,7 @@ class TagIndexService(using
     audioRepository: AudioRepository,
     props: Props,
     searchLanguage: SearchLanguage,
+    dbUtility: DBUtility,
 ) extends IndexService[AudioMetaInformation, SearchableTag]
     with StrictLogging {
   override val documentType: String                         = props.AudioTagSearchDocument
