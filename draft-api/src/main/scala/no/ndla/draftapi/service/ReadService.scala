@@ -227,12 +227,10 @@ class ReadService(using
       Success(ArticleRevisionHistoryDTO(articles, canDeleteCurrentRevision))
     }
 
-  def getAllResponsibles: Try[Seq[String]] = boundary {
-    dbUtility.readOnly { implicit session =>
-      draftRepository.getAllResponsibles match {
-        case Failure(exception) => boundary.break(Failure(exception))
-        case Success(value)     => Success(value)
-      }
+  def getAllResponsibles: Try[Seq[String]] = dbUtility.readOnly { implicit session =>
+    draftRepository.getAllResponsibles match {
+      case Failure(exception) => Failure(exception)
+      case Success(value)     => Success(value)
     }
   }
 
