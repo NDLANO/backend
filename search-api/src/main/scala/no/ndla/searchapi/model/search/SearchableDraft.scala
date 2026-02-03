@@ -61,6 +61,7 @@ case class SearchableDraft(
     favorited: Long,
     learningResourceType: LearningResourceType,
     typeName: List[String],
+    publishedCount: Int,
     domainObject: Draft,
     nodes: List[Node],
 )
