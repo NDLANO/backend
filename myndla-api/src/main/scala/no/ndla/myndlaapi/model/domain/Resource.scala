@@ -28,7 +28,7 @@ case class ResourceDocument(tags: List[String], resourceId: String) {
       resourceType: ResourceType,
       feideId: String,
       created: NDLADate,
-      connection: Option[FolderResource],
+      connection: Option[ResourceConnection],
   ): Resource = Resource(
     id = id,
     feideId = feideId,
@@ -54,7 +54,7 @@ case class Resource(
     resourceType: ResourceType,
     tags: List[String],
     resourceId: String,
-    connection: Option[FolderResource],
+    connection: Option[ResourceConnection],
 ) extends FeideContent
     with Rankable
     with CopyableResource {
@@ -72,7 +72,7 @@ object Resource extends SQLSyntaxSupport[Resource] {
   def fromResultSet(lp: SyntaxProvider[Resource], withConnection: Boolean)(rs: WrappedResultSet): Try[Resource] =
     fromResultSet(s => lp.resultName.c(s), withConnection)(rs)
 
-  def fromResultSetSyntaxProviderWithConnection(lp: SyntaxProvider[Resource], sp: SyntaxProvider[FolderResource])(
+  def fromResultSetSyntaxProviderWithConnection(lp: SyntaxProvider[Resource], sp: SyntaxProvider[ResourceConnection])(
       rs: WrappedResultSet
   ): Try[Option[Resource]] = {
     import no.ndla.myndlaapi.maybeUuidBinder
@@ -88,10 +88,10 @@ object Resource extends SQLSyntaxSupport[Resource] {
   private def fromResultSet(rs: WrappedResultSet, withConnection: Boolean): Try[Resource] =
     fromResultSet(s => s, withConnection)(rs)
 
-  private def fromResultSetSyntaxProvider(colNameWrapper: String => String, sp: SyntaxProvider[FolderResource])(
+  private def fromResultSetSyntaxProvider(colNameWrapper: String => String, sp: SyntaxProvider[ResourceConnection])(
       rs: WrappedResultSet
   ): Try[Resource] = {
-    val connection = FolderResource.fromResultSet(sp)(rs).toOption
+    val connection = ResourceConnection.fromResultSet(sp)(rs).toOption
     toResource(colNameWrapper, connection)(rs)
   }
 
@@ -99,12 +99,12 @@ object Resource extends SQLSyntaxSupport[Resource] {
       rs: WrappedResultSet
   ): Try[Resource] = {
     val connection =
-      if (withConnection) FolderResource.fromResultSet(colNameWrapper, rs).toOption
+      if (withConnection) ResourceConnection.fromResultSet(colNameWrapper, rs).toOption
       else None
     toResource(colNameWrapper, connection)(rs)
   }
 
-  private def toResource(colNameWrapper: String => String, connection: Option[FolderResource])(
+  private def toResource(colNameWrapper: String => String, connection: Option[ResourceConnection])(
       rs: WrappedResultSet
   ): Try[Resource] = {
     import no.ndla.myndlaapi.uuidBinder

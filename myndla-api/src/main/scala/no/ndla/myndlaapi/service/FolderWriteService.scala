@@ -50,6 +50,7 @@ import scalikejdbc.DBSession
 import java.util.UUID
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
+import no.ndla.myndlaapi.model.domain.ResourceConnection
 
 class FolderWriteService(using
     folderReadService: FolderReadService,
@@ -144,8 +145,8 @@ class FolderWriteService(using
             )
           )
           .addConnection(
-            domain.FolderResource(
-              folderId = destination.id,
+            domain.ResourceConnection(
+              folderId = destination.id.some,
               resourceId = newResourceId,
               rank = idx + 1,
               favoritedDate = now,
@@ -260,11 +261,11 @@ class FolderWriteService(using
     importUserDataAuthenticated(toImport, feide)
   }
 
-  private def connectIfNotConnected(folderId: UUID, resourceId: UUID, rank: Int, favoritedDate: NDLADate)(implicit
-      session: DBSession
-  ): Try[domain.FolderResource] = folderRepository.getConnection(folderId, resourceId) match {
+  private def connectIfNotConnected(folderId: Option[UUID], resourceId: UUID, rank: Int, favoritedDate: NDLADate)(
+      implicit session: DBSession
+  ): Try[domain.ResourceConnection] = folderRepository.getConnection(folderId, resourceId) match {
     case Success(Some(connection)) => Success(connection)
-    case Success(None)             => folderRepository.createFolderResourceConnection(folderId, resourceId, rank, favoritedDate)
+    case Success(None)             => folderRepository.createResourceConnection(folderId, resourceId, rank, favoritedDate)
     case Failure(ex)               => Failure(ex)
   }
 
@@ -300,17 +301,19 @@ class FolderWriteService(using
     } yield api
   }
 
-  private def deleteResourceIfNoConnection(folderId: UUID, resourceId: UUID)(implicit session: DBSession): Try[UUID] = {
-    folderRepository.folderResourceConnectionCount(resourceId) match {
+  private def deleteResourceIfNoConnection(folderId: Option[UUID], resourceId: UUID)(implicit
+      session: DBSession
+  ): Try[UUID] = {
+    folderRepository.resourceConnectionCount(resourceId) match {
       case Failure(exception)            => Failure(exception)
       case Success(count) if count == 1L => folderRepository.deleteResource(resourceId)
-      case Success(_)                    => folderRepository.deleteFolderResourceConnection(folderId, resourceId)
+      case Success(_)                    => folderRepository.deleteResourceConnection(folderId, resourceId)
     }
   }
 
   private def deleteRecursively(folder: domain.Folder, feideId: FeideID)(implicit session: DBSession): Try[UUID] = {
     for {
-      _ <- folder.resources.traverse(res => deleteResourceIfNoConnection(folder.id, res.id))
+      _ <- folder.resources.traverse(res => deleteResourceIfNoConnection(Some(folder.id), res.id))
       _ <- folder.subfolders.traverse(childFolder => deleteRecursively(childFolder, feideId))
       _ <- folderRepository.deleteFolder(folder.id)
       _ <- folderRepository.deleteFolderUserConnection(folder.id.some, None)
@@ -334,23 +337,31 @@ class FolderWriteService(using
     } yield deletedFolderId
   }
 
-  def deleteConnection(folderId: UUID, resourceId: UUID, feide: FeideUserWrapper): Try[UUID] = {
-    implicit val session: DBSession = folderRepository.getSession(readOnly = false)
-    for {
-      user          <- feide.userOrAccessDenied
-      _             <- canWriteOrAccessDenied(feide)
-      folder        <- folderRepository.folderWithId(folderId)
-      _             <- folder.isOwner(user.feideId)
-      resource      <- folderRepository.resourceWithId(resourceId)
-      _             <- resource.isOwner(user.feideId)
-      id            <- deleteResourceIfNoConnection(folderId, resourceId)
-      parent        <- getFolderWithDirectChildren(folder.id.some, user.feideId)
-      siblingsToSort = parent.childrenResources.filterNot(c => c.resourceId == resourceId && c.folderId == folderId)
-      sortRequest    = api.FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.resourceId))
-      _              = updateSearchApi(resource)
-      _             <- performSort(siblingsToSort, sortRequest, user.feideId, sharedFolderSort = false)
-    } yield id
-  }
+  def deleteConnection(folderId: Option[UUID], resourceId: UUID, feide: FeideUserWrapper): Try[UUID] = dbUtility
+    .rollbackOnFailure { implicit session =>
+      for {
+        user           <- feide.userOrAccessDenied
+        _              <- canWriteOrAccessDenied(feide)
+        _              <- folderId.traverse(fid => folderRepository.folderWithId(fid).flatMap(_.isOwner(user.feideId)))
+        resource       <- folderRepository.resourceWithId(resourceId)
+        _              <- resource.isOwner(user.feideId)
+        deletedId      <- deleteResourceIfNoConnection(folderId, resourceId)
+        siblingsToSort <- folderId match {
+          case Some(fid) => getFolderWithDirectChildren(fid.some, user.feideId).map(
+              _.childrenResources
+                .filterNot(c => c.resourceId == resourceId && c.folderId.map(_ == fid).getOrElse(false))
+            )
+          case None => folderRepository
+              .getRootResources(user.feideId)
+              .map {
+                _.flatMap(_.connection).filterNot(_.resourceId == resourceId)
+              }
+        }
+        sortRequest = api.FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.resourceId))
+        _           = updateSearchApi(resource)
+        _          <- performSort(siblingsToSort, sortRequest, user.feideId, sharedFolderSort = false)
+      } yield deletedId
+    }
 
   def deleteAllUserData(feide: FeideUserWrapper): Try[Unit] = {
     for {
@@ -384,8 +395,8 @@ class FolderWriteService(using
               folderRepository.setSharedFolderRank(folderId, newRank, feideId)(using session)
             case Some(domain.Folder(folderId, _, _, _, _, _, _, _, _, _, _, _, _)) =>
               folderRepository.setFolderRank(folderId, newRank, feideId)(using session)
-            case Some(domain.FolderResource(folderId, resourceId, _, _)) =>
-              folderRepository.setResourceConnectionRank(folderId, resourceId, newRank)(using session)
+            case Some(domain.ResourceConnection(folderId, resourceId, _, _)) => folderRepository
+                .setResourceConnectionRank(folderId, resourceId, newRank)(using session)
             case _ => Failure(FolderSortException("Something went wrong when sorting! This seems like a bug!"))
           }
         })
@@ -408,12 +419,15 @@ class FolderWriteService(using
       .flatMap(savedFolders => performSort(savedFolders, sortRequest, feideId, sharedFolderSort = true))
   }
 
-  private def sortNonRootFolderResources(folderId: UUID, sortRequest: api.FolderSortRequestDTO, feideId: FeideID)(
-      implicit session: DBSession
-  ): Try[Unit] = getFolderWithDirectChildren(folderId.some, feideId).flatMap {
-    case FolderAndDirectChildren(_, _, resources) =>
-      performSort(resources, sortRequest, feideId, sharedFolderSort = false)
-  }
+  private def sortResources(folderId: Option[UUID], sortRequest: api.FolderSortRequestDTO, feideId: FeideID)(implicit
+      session: DBSession
+  ): Try[Unit] = for {
+    resources <- folderId match {
+      case None      => folderRepository.getRootResources(feideId).map(_.flatMap(_.connection))
+      case Some(fid) => getFolderWithDirectChildren(fid.some, feideId).map(_.childrenResources)
+    }
+    sortResult <- performSort(resources, sortRequest, feideId, sharedFolderSort = false)
+  } yield sortResult
 
   private def sortNonRootFolderSubfolders(folderId: UUID, sortRequest: api.FolderSortRequestDTO, feideId: FeideID)(
       implicit session: DBSession
@@ -431,10 +445,10 @@ class FolderWriteService(using
     val feideId                     = feide.userOrAccessDenied.map(_.feideId).?
     canWriteOrAccessDenied(feide).??
     folderSortObject match {
-      case ResourceSorting(parentId) => sortNonRootFolderResources(parentId, sortRequest, feideId)
-      case FolderSorting(parentId)   => sortNonRootFolderSubfolders(parentId, sortRequest, feideId)
-      case RootFolderSorting()       => sortRootFolders(sortRequest, feideId)
-      case SharedFolderSorting()     => sortSavedSharedFolders(sortRequest, feideId)
+      case ResourceSorting(fid)    => sortResources(fid, sortRequest, feideId)
+      case FolderSorting(parentId) => sortNonRootFolderSubfolders(parentId, sortRequest, feideId)
+      case RootFolderSorting()     => sortRootFolders(sortRequest, feideId)
+      case SharedFolderSorting()   => sortSavedSharedFolders(sortRequest, feideId)
     }
   }
 
@@ -467,7 +481,7 @@ class FolderWriteService(using
         case Failure(ex)     => Failure(ex)
         case Success(parent) => for {
             siblingFolders   <- folderRepository.foldersWithFeideAndParentID(parentId.some, feideId)
-            siblingResources <- folderRepository.getConnections(parentId)
+            siblingResources <- folderRepository.getConnections(parentId.some)
           } yield domain.FolderAndDirectChildren(Some(parent), siblingFolders, siblingResources)
       }
   }
@@ -574,17 +588,6 @@ class FolderWriteService(using
     } yield api
   }
 
-  private def createOrUpdateFolderResourceConnection(folderId: UUID, newResource: NewResourceDTO, feideId: FeideID)(
-      implicit session: DBSession
-  ): Try[domain.Resource] = for {
-    _ <- folderRepository
-      .folderWithFeideId(folderId, feideId)
-      .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
-    siblings          <- getFolderWithDirectChildren(folderId.some, feideId)
-    insertedOrUpdated <- createNewResourceOrUpdateExisting(newResource, folderId, siblings, feideId)
-    _                  = updateSearchApi(insertedOrUpdated)
-  } yield insertedOrUpdated
-
   private def updateSearchApi(resource: domain.Resource): Unit = {
     resource.resourceType match {
       case ResourceType.Multidisciplinary                               => searchApiClient.reindexDraft(resource.resourceId)
@@ -596,23 +599,37 @@ class FolderWriteService(using
     }
   }
 
-  def newFolderResourceConnection(
-      folderId: UUID,
+  def newResourceConnection(
+      folderId: Option[UUID],
       newResource: NewResourceDTO,
       feide: FeideUserWrapper,
-  ): Try[ResourceDTO] = {
-    implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+  ): Try[ResourceDTO] = dbUtility.rollbackOnFailure { implicit session =>
     for {
-      user      <- feide.userOrAccessDenied
-      _         <- canWriteOrAccessDenied(feide)
-      resource  <- createOrUpdateFolderResourceConnection(folderId, newResource, user.feideId)
+      user <- feide.userOrAccessDenied
+      _    <- canWriteOrAccessDenied(feide)
+      _    <- folderId.traverse(fid =>
+        folderRepository
+          .folderWithFeideId(fid, user.feideId)
+          .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
+      )
+      siblings <- folderId match {
+        case Some(fid) => getFolderWithDirectChildren(fid.some, user.feideId)
+        case None      => folderRepository
+            .getRootResources(user.feideId)
+            .map { resources =>
+              domain.FolderAndDirectChildren(None, Seq.empty, resources.flatMap(_.connection))
+            }
+      }
+      resource  <- createNewResourceOrUpdateExisting(newResource, folderId, siblings, user.feideId)
+      _          = updateSearchApi(resource)
       converted <- folderConverterService.toApiResource(resource, isOwner = true)
+
     } yield converted
   }
 
   private[service] def createNewResourceOrUpdateExisting(
       newResource: NewResourceDTO,
-      folderId: UUID,
+      folderId: Option[UUID],
       siblings: domain.FolderAndDirectChildren,
       feideId: FeideID,
   )(implicit session: DBSession): Try[domain.Resource] = {
@@ -626,7 +643,7 @@ class FolderWriteService(using
           for {
             inserted <-
               folderRepository.insertResource(feideId, newResource.path, newResource.resourceType, date, document)
-            connection <- folderRepository.createFolderResourceConnection(folderId, inserted.id, rank, date)
+            connection <- folderRepository.createResourceConnection(folderId, inserted.id, rank, date)
           } yield inserted.copy(connection = connection.some)
         case Some(existingResource) =>
           val mergedResource = folderConverterService.mergeResource(existingResource, newResource)

@@ -223,6 +223,19 @@ class FolderReadService(using
     }
   }
 
+  def getRootResources(feide: FeideUserWrapper): Try[List[ResourceDTO]] = {
+    dbUtility.readOnly { implicit session =>
+      for {
+        user               <- feide.userOrAccessDenied
+        resources          <- folderRepository.getRootResources(user.feideId)
+        convertedResources <- folderConverterService.domainToApiModel(
+          resources,
+          resource => folderConverterService.toApiResource(resource, isOwner = true),
+        )
+      } yield convertedResources
+    }
+  }
+
   def hasFavoritedResource(path: String, feide: FeideUserWrapper): Try[Boolean] = dbUtility.readOnly {
     implicit session =>
       for {

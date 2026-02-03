@@ -72,7 +72,7 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
   implicit lazy val userService: UserService                    = new UserService
   given robotRepository: RobotRepository                        = new RobotRepository
   given robotService: RobotService                              = new RobotService
-  given searchApiClient: SearchApiClient                        = new SearchApiClient
+  implicit lazy val searchApiClient: SearchApiClient            = new SearchApiClient
   given taxonomyApiClient: TaxonomyApiClient                    = new TaxonomyApiClient
   given learningPathApiClient: LearningPathApiClient            = new LearningPathApiClient
   lazy val v16__MigrateResourcePaths: V16__MigrateResourcePaths = new V16__MigrateResourcePaths

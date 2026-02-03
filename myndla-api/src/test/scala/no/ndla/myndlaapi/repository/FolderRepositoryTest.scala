@@ -14,7 +14,14 @@ import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.ResourceType.Article
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
-import no.ndla.myndlaapi.model.domain.{BulkInserts, Folder, FolderResource, NewFolderData, Resource, ResourceDocument}
+import no.ndla.myndlaapi.model.domain.{
+  BulkInserts,
+  Folder,
+  ResourceConnection,
+  NewFolderData,
+  Resource,
+  ResourceDocument,
+}
 import no.ndla.myndlaapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import org.mockito.Mockito.when
@@ -74,7 +81,17 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   def folderResourcesCount(implicit session: DBSession = DBUtil.autoSession): Long = {
-    sql"select count(folder_id) from ${FolderResource.table}".map(rs => rs.long("count")).single().getOrElse(0)
+    sql"select count(resource_id) from ${ResourceConnection.table} where folder_id is not null"
+      .map(rs => rs.long("count"))
+      .single()
+      .getOrElse(0)
+  }
+
+  def rootResourcesCount(implicit session: DBSession = DBUtil.autoSession): Long = {
+    sql"select count(resource_id) from ${ResourceConnection.table} where folder_id is null"
+      .map(rs => rs.long("count"))
+      .single()
+      .getOrElse(0)
   }
 
   def getAllFolders(implicit session: DBSession = DBUtil.autoSession): List[Folder] = {
@@ -150,11 +167,29 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     val resource2 =
       repository.insertResource(feideId, "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
 
-    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1, created)
-    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2, created)
-    repository.createFolderResourceConnection(folder2.get.id, resource2.get.id, 3, created)
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource1.get.id, 1, created)
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource2.get.id, 2, created)
+    repository.createResourceConnection(folder2.toOption.map(_.id), resource2.get.id, 3, created)
 
     folderResourcesCount should be(3)
+  }
+
+  test("that inserting a root resource works as expected") {
+    implicit val session: DBSession = DBUtil.autoSession
+    userRepository.reserveFeideIdIfNotExists(feideId)
+
+    val created = NDLADate.now().withNano(0)
+
+    val resource1 =
+      repository.insertResource(feideId, "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
+    val resource2 =
+      repository.insertResource(feideId, "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
+
+    repository.createResourceConnection(None, resource1.get.id, 1, created)
+    repository.createResourceConnection(None, resource2.get.id, 2, created)
+
+    folderResourcesCount should be(0)
+    rootResourcesCount should be(2)
   }
 
   test("that updateFolder updates all fields correctly") {
@@ -201,9 +236,9 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       repository.insertResource(feideId, "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
     val resource2 =
       repository.insertResource(feideId, "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1, created)
-    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2, created)
-    repository.createFolderResourceConnection(folder2.get.id, resource2.get.id, 3, created)
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource1.get.id, 1, created)
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource2.get.id, 2, created)
+    repository.createResourceConnection(folder2.toOption.map(_.id), resource2.get.id, 3, created)
 
     folderResourcesCount() should be(3)
     repository.deleteFolder(folder1.get.id)
@@ -215,6 +250,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     userRepository.reserveFeideIdIfNotExists(feideId)
 
     val created = NDLADate.now()
+    when(clock.now()).thenReturn(created)
 
     val folder1 = repository.insertFolder(feideId, TestData.baseFolderDocument)
     val folder2 = repository.insertFolder(feideId, TestData.baseFolderDocument)
@@ -224,15 +260,20 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     val resource2 =
       repository.insertResource(feideId, "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
 
-    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1, created)
-    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 1, created)
-    repository.createFolderResourceConnection(folder2.get.id, resource1.get.id, 1, created)
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource1.get.id, 1, created)
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource2.get.id, 1, created)
+    repository.createResourceConnection(folder2.toOption.map(_.id), resource1.get.id, 1, created)
+    repository.createResourceConnection(None, resource1.get.id, 1, created)
 
-    repository.folderResourceConnectionCount(resource1.get.id).get should be(2)
-    repository.folderResourceConnectionCount(resource2.get.id).get should be(1)
+    repository.getConnections(None).get.size should be(1)
+
+    repository.resourceConnectionCount(resource1.get.id).get should be(3)
+    repository.resourceConnectionCount(resource2.get.id).get should be(1)
+    rootResourcesCount should be(1)
     folderResourcesCount() should be(3)
     repository.deleteResource(resource1.get.id)
     folderResourcesCount() should be(1)
+    rootResourcesCount should be(0)
     repository.deleteResource(resource2.get.id)
     folderResourcesCount() should be(0)
   }
@@ -292,7 +333,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     repository.foldersWithFeideAndParentID(Some(parent2.get.id), feideId).get.length should be(1)
   }
 
-  test("that getFolderResources works as expected") {
+  test("that getFolderResources and getRootResources works as expected") {
     implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
 
@@ -310,13 +351,42 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     val resource3 =
       repository.insertResource(feideId, "/path3", ResourceType.Article, created, TestData.baseResourceDocument)
 
-    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1, created)
-    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2, created)
-    repository.createFolderResourceConnection(folder1.get.id, resource3.get.id, 3, created)
-    repository.createFolderResourceConnection(folder2.get.id, resource1.get.id, 4, created)
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource1.get.id, 1, created)
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource2.get.id, 2, created)
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource3.get.id, 3, created)
+    repository.createResourceConnection(folder2.toOption.map(_.id), resource1.get.id, 4, created)
+
+    repository.createResourceConnection(None, resource1.get.id, 1, created)
+    repository.createResourceConnection(None, resource2.get.id, 1, created)
+    repository.createResourceConnection(None, resource3.get.id, 1, created)
 
     repository.getFolderResources(folder1.get.id).get.length should be(3)
     repository.getFolderResources(folder2.get.id).get.length should be(1)
+
+    repository.getRootResources(feideId).get.length should be(3)
+  }
+
+  test("that getConnection works with both root and folder resources") {
+    implicit val session: DBSession = DBUtil.autoSession
+    userRepository.reserveFeideIdIfNotExists(feideId)
+
+    val now = NDLADate.now().withNano(0)
+
+    val folder1   = repository.insertFolder(feideId, TestData.baseFolderDocument)
+    val resource1 = repository
+      .insertResource(feideId, "/path1", ResourceType.Article, now, TestData.baseResourceDocument)
+      .failIfFailure
+
+    val expectedRoot = ResourceConnection(folderId = None, resourceId = resource1.id, rank = 1, favoritedDate = now)
+
+    val expectedFolderResource =
+      ResourceConnection(folderId = Some(folder1.get.id), resourceId = resource1.id, rank = 1, favoritedDate = now)
+
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource1.id, 1, now).failIfFailure
+    repository.createResourceConnection(None, resource1.id, 1, now).failIfFailure
+
+    repository.getConnection(None, resource1.id).get should be(Some(expectedRoot))
+    repository.getConnection(Some(folder1.get.id), resource1.id).get should be(Some(expectedFolderResource))
   }
 
   test("that resourcesWithFeideId works as expected") {
@@ -422,7 +492,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       .insertResource(feideId, "/testPath", ResourceType.Article, created, ResourceDocument(List(), "1"))
       .failIfFailure
     val insertedConnection = repository
-      .createFolderResourceConnection(insertedMain.id, insertedResource.id, 1, created)
+      .createResourceConnection(Some(insertedMain.id), insertedResource.id, 1, created)
       .failIfFailure
 
     val expectedSubfolders = List(insertedChild2, insertedChild1.copy(subfolders = List(insertedChild3)))
@@ -500,15 +570,18 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     val resource4 =
       repository.insertResource("feide2", "/path4", ResourceType.Article, created, TestData.baseResourceDocument)
 
-    repository.createFolderResourceConnection(folder1.get.id, resource1.get.id, 1, created)
-    repository.createFolderResourceConnection(folder1.get.id, resource2.get.id, 2, created)
-    repository.createFolderResourceConnection(folder1.get.id, resource3.get.id, 3, created)
-    repository.createFolderResourceConnection(folder2.get.id, resource1.get.id, 4, created)
-    repository.createFolderResourceConnection(folder3.get.id, resource4.get.id, 5, created)
-
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource1.get.id, 1, created)
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource2.get.id, 2, created)
+    repository.createResourceConnection(folder1.toOption.map(_.id), resource3.get.id, 3, created)
+    repository.createResourceConnection(folder2.toOption.map(_.id), resource1.get.id, 4, created)
+    repository.createResourceConnection(folder3.toOption.map(_.id), resource4.get.id, 5, created)
+    repository.createResourceConnection(None, resource1.get.id, 1, created)
+    repository.createResourceConnection(None, resource2.get.id, 2, created)
+    repository.createResourceConnection(None, resource4.get.id, 3, created)
     folderCount() should be(3)
     resourceCount() should be(4)
     folderResourcesCount() should be(5)
+    rootResourcesCount should be(3)
 
     repository.deleteAllUserFolders(feideId = "feide1") should be(Success(2))
     folderCount() should be(1)
@@ -519,6 +592,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     folderCount() should be(1)
     resourceCount() should be(1)
     folderResourcesCount() should be(1)
+    rootResourcesCount should be(1)
   }
 
   test("that getFoldersAndSubfoldersIds returns ids of folder and its subfolders") {
@@ -618,7 +692,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
       )
       .failIfFailure
     val insertedConnection = repository
-      .createFolderResourceConnection(insertedMain.id, insertedResource.id, 1, created)
+      .createResourceConnection(Some(insertedMain.id), insertedResource.id, 1, created)
       .failIfFailure
 
     val expectedSubfolders = List(insertedChild2, insertedChild1.copy(subfolders = List(insertedChild3)))
@@ -821,10 +895,10 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     val resource3 = resource2.copy(id = UUID.randomUUID())
 
     val folderResource1 =
-      FolderResource(folderId = folder1.id, resourceId = resource1.id, rank = 1, favoritedDate = now)
+      ResourceConnection(folderId = Some(folder1.id), resourceId = resource1.id, rank = 1, favoritedDate = now)
 
     val folderResource2 =
-      FolderResource(folderId = folder2.id, resourceId = resource3.id, rank = 1, favoritedDate = now)
+      ResourceConnection(folderId = Some(folder2.id), resourceId = resource3.id, rank = 1, favoritedDate = now)
 
     val bulkInserts = BulkInserts(
       folders = List(folder1, folder2),
@@ -847,12 +921,12 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
 
     repository.insertResourceConnectionInBulk(bulkInserts).get
 
-    val conn1 = repository.getConnection(folder1.id, resource1.id).get
+    val conn1 = repository.getConnection(Some(folder1.id), resource1.id).get
     conn1 should be(Some(folderResource1))
 
     // Make sure folderResource connections are replaced with correct resources
     // so even if we reference resource3 in the connection we get a connection to 2 since there is a conflict
-    val conn2 = repository.getConnection(folder2.id, resource2.id).get
+    val conn2 = repository.getConnection(Some(folder2.id), resource2.id).get
     conn2 should be(Some(folderResource2.copy(resourceId = resource2.id)))
   }
 }
