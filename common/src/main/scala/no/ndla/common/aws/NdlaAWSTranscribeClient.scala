@@ -8,18 +8,19 @@
 
 package no.ndla.common.aws
 
+import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.transcribe.model.*
 import software.amazon.awssdk.services.transcribe.{TranscribeClient, TranscribeClientBuilder}
 
 import scala.util.{Failure, Try}
 
 class NdlaAWSTranscribeClient(region: Option[String]) {
-
-  private val builder: TranscribeClientBuilder = TranscribeClient.builder()
-
-  val client: TranscribeClient = region match {
-    case Some(value) => builder.region(software.amazon.awssdk.regions.Region.of(value)).build()
-    case None        => builder.build()
+  lazy val client: TranscribeClient = {
+    val builder: TranscribeClientBuilder = TranscribeClient.builder()
+    region match {
+      case Some(value) => builder.region(Region.of(value)).build()
+      case None        => builder.build()
+    }
   }
 
   def startTranscriptionJob(
