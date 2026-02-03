@@ -335,6 +335,7 @@ class ConverterService(using
           qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation),
           disclaimer = disclaimer,
           traits = article.traits,
+          publishedCount = article.publishedCount.getOrElse(1),
         )
       )
     } else {
@@ -522,6 +523,7 @@ class ConverterService(using
               slug = draft.slug,
               disclaimer = draft.disclaimer,
               traits = draft.traits,
+              publishedCount = draft.publishedCount,
             )
         )
     }

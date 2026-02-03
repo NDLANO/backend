@@ -205,6 +205,7 @@ object TestData {
     slug = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = None,
   )
 
   val sampleDomainArticle: Article = Article(
@@ -232,6 +233,7 @@ object TestData {
     slug = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = None,
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -259,6 +261,7 @@ object TestData {
     slug = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = None,
   )
 
   val sampleArticleWithByNcSa: Article =
@@ -516,7 +519,6 @@ object TestData {
     .copy(
       id = Option(14),
       title = List(Title("Forsideartikkel", "nb")),
-      slug = Some("forsideartikkel"),
       content = List(
         ArticleContent(
           s"Forsideartikkel <p>avsnitt</p><$EmbedTagName data-resource=\"concept\" data-content-id=\"123\" data-title=\"Forklaring\" data-type=\"block\"></$EmbedTagName>",
@@ -531,6 +533,7 @@ object TestData {
       updated = today.minusDays(5),
       published = today.minusDays(5),
       articleType = ArticleType.FrontpageArticle,
+      slug = Some("forsideartikkel"),
     )
 
   val articlesToIndex: Seq[Article] = List(

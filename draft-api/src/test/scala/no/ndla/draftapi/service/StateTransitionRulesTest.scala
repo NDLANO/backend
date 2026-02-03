@@ -391,6 +391,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
         slug = None,
         disclaimer = OptLanguageFields.empty,
         traits = List.empty,
+        publishedCount = Some(1),
       )
     val status = common.Status(END_CONTROL, Set.empty)
 

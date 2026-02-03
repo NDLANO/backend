@@ -801,6 +801,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         slug = Some("kjempe-slug"),
         disclaimer = OptLanguageFields.withValue("articleDisclaimer", "nb"),
         traits = List.empty,
+        publishedCount = Some(1),
       )
 
     val result = service.toArticleApiArticle(draft)

@@ -72,10 +72,10 @@ abstract class HtmlMigration extends DocumentMigration {
 
     val newArticle = oldArticle.copy(
       title = convertedTitle,
-      introduction = convertedIntroduction,
       content = convertedContent,
-      metaDescription = convertedMetaDescription,
       visualElement = convertedVisualElement,
+      introduction = convertedIntroduction,
+      metaDescription = convertedMetaDescription,
     )
     newArticle.asJson.noSpaces
   }
