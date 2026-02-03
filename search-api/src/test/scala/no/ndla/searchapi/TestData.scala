@@ -1003,7 +1003,7 @@ object TestData {
     draft16,
     draft17,
   )
-  
+
   val paul: Author                        = Author(ContributorType.Writer, "Truly Weird Rand Paul")
   val license: String                     = License.PublicDomain.toString
   val copyright: LearningpathCopyright    = common.learningpath.LearningpathCopyright(license, List(paul))
@@ -1788,6 +1788,7 @@ object TestData {
     publishedFilterTo = None,
     resultTypes = None,
     tags = List.empty,
+    publishedCount = None,
   )
 
   val searchableResourceTypes: List[ContextResourceType] = List(

@@ -304,6 +304,12 @@ class MultiDraftSearchService(using
       boolQuery().should(settings.priority.map(p => termQuery("priority", p.entryName)))
     )
 
+    val publishedCountFilter = settings
+      .publishedCount
+      .map { count =>
+        termQuery("publishedCount", count)
+      }
+
     val articleTypeFilter =
       Some(boolQuery().should(settings.articleTypes.map(articleType => termQuery("articleType", articleType))))
     val learningResourceType        = learningResourceFilter(settings.learningResourceTypes)
@@ -337,6 +343,7 @@ class MultiDraftSearchService(using
       responsibleIdFilter,
       priorityFilter,
       learningResourceType,
+      publishedCountFilter,
     ).flatten
   }
 
