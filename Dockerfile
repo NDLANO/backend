@@ -30,7 +30,6 @@ RUN $JAVA_HOME/bin/jlink \
 
 FROM alpine:3.23
 ARG MODULE
-ARG APP_JAR=/out.jar
 
 WORKDIR /app
 
