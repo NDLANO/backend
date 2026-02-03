@@ -438,4 +438,14 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     sq.map(rs => rs.long("count")).runSingle().map(_.exists(_ > 0))
   }
 
+  def getAllResponsibles(using session: DBSession): Try[Seq[String]] = {
+    val ar = DBArticle.syntax("ar")
+    tsql"""
+      select distinct (ar.document->'responsible'->>'responsibleId) as responsibleId
+      from ${DBArticle.as(ar)}
+      where ar.document is not NULL
+      and (ar.document->'responsible') is not null
+    """.map(rs => rs.string("responsibleId")).runList()
+  }
+
 }

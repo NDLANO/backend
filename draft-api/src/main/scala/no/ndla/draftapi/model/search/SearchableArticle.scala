@@ -12,7 +12,6 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{ArticleTrait, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.common.model.domain.Responsible
 
 case class SearchableArticle(
     id: Long,
@@ -32,7 +31,6 @@ case class SearchableArticle(
     grepCodes: Seq[String],
     status: SearchableStatus,
     traits: List[ArticleTrait],
-    responsible: Option[Responsible],
 )
 
 object SearchableArticle {

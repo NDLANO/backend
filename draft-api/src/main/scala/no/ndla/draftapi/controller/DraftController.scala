@@ -683,7 +683,7 @@ class DraftController(using
     .errorOut(errorOutputsFor(401, 403))
     .requirePermission(DRAFT_API_WRITE)
     .serverLogicPure { _ => _ =>
-      articleSearchService.getResponsibles() match {
+      readService.getAllResponsibles match {
         case Success(resp) => Right(resp)
         case Failure(ex)   => errorHandling.returnLeftError(ex)
       }
