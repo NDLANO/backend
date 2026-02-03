@@ -145,7 +145,7 @@ class FolderWriteService(using
           )
           .addConnection(
             domain.FolderResource(
-              folderId = destination.id,
+              folderId = destination.id.some,
               resourceId = newResourceId,
               rank = idx + 1,
               favoritedDate = now,
@@ -260,8 +260,8 @@ class FolderWriteService(using
     importUserDataAuthenticated(toImport, feide)
   }
 
-  private def connectIfNotConnected(folderId: UUID, resourceId: UUID, rank: Int, favoritedDate: NDLADate)(implicit
-      session: DBSession
+  private def connectIfNotConnected(folderId: Option[UUID], resourceId: UUID, rank: Int, favoritedDate: NDLADate)(
+      implicit session: DBSession
   ): Try[domain.FolderResource] = folderRepository.getConnection(folderId, resourceId) match {
     case Success(Some(connection)) => Success(connection)
     case Success(None)             => folderRepository.createFolderResourceConnection(folderId, resourceId, rank, favoritedDate)
@@ -300,7 +300,9 @@ class FolderWriteService(using
     } yield api
   }
 
-  private def deleteResourceIfNoConnection(folderId: UUID, resourceId: UUID)(implicit session: DBSession): Try[UUID] = {
+  private def deleteResourceIfNoConnection(folderId: Option[UUID], resourceId: UUID)(implicit
+      session: DBSession
+  ): Try[UUID] = {
     folderRepository.folderResourceConnectionCount(resourceId) match {
       case Failure(exception)            => Failure(exception)
       case Success(count) if count == 1L => folderRepository.deleteResource(resourceId)
@@ -310,7 +312,7 @@ class FolderWriteService(using
 
   private def deleteRecursively(folder: domain.Folder, feideId: FeideID)(implicit session: DBSession): Try[UUID] = {
     for {
-      _ <- folder.resources.traverse(res => deleteResourceIfNoConnection(folder.id, res.id))
+      _ <- folder.resources.traverse(res => deleteResourceIfNoConnection(Some(folder.id), res.id))
       _ <- folder.subfolders.traverse(childFolder => deleteRecursively(childFolder, feideId))
       _ <- folderRepository.deleteFolder(folder.id)
       _ <- folderRepository.deleteFolderUserConnection(folder.id.some, None)
@@ -343,13 +345,27 @@ class FolderWriteService(using
       _             <- folder.isOwner(user.feideId)
       resource      <- folderRepository.resourceWithId(resourceId)
       _             <- resource.isOwner(user.feideId)
-      id            <- deleteResourceIfNoConnection(folderId, resourceId)
+      id            <- deleteResourceIfNoConnection(Some(folderId), resourceId)
       parent        <- getFolderWithDirectChildren(folder.id.some, user.feideId)
-      siblingsToSort = parent.childrenResources.filterNot(c => c.resourceId == resourceId && c.folderId == folderId)
-      sortRequest    = api.FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.resourceId))
-      _              = updateSearchApi(resource)
-      _             <- performSort(siblingsToSort, sortRequest, user.feideId, sharedFolderSort = false)
+      siblingsToSort = parent
+        .childrenResources
+        .filterNot(c => c.resourceId == resourceId && c.folderId.map(_ == folderId).getOrElse(false))
+      sortRequest = api.FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.resourceId))
+      _           = updateSearchApi(resource)
+      _          <- performSort(siblingsToSort, sortRequest, user.feideId, sharedFolderSort = false)
     } yield id
+  }
+
+  def deleteRootConnection(resourceId: UUID, feide: FeideUserWrapper): Try[UUID] = {
+    implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+    for {
+      user     <- feide.userOrAccessDenied
+      _        <- canWriteOrAccessDenied(feide)
+      resource <- folderRepository.resourceWithId(resourceId)
+      _        <- resource.isOwner(user.feideId)
+      id       <- deleteResourceIfNoConnection(None, resourceId)
+    } yield id
+
   }
 
   def deleteAllUserData(feide: FeideUserWrapper): Try[Unit] = {
@@ -467,7 +483,7 @@ class FolderWriteService(using
         case Failure(ex)     => Failure(ex)
         case Success(parent) => for {
             siblingFolders   <- folderRepository.foldersWithFeideAndParentID(parentId.some, feideId)
-            siblingResources <- folderRepository.getConnections(parentId)
+            siblingResources <- folderRepository.getConnections(parentId.some)
           } yield domain.FolderAndDirectChildren(Some(parent), siblingFolders, siblingResources)
       }
   }
@@ -581,7 +597,7 @@ class FolderWriteService(using
       .folderWithFeideId(folderId, feideId)
       .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
     siblings          <- getFolderWithDirectChildren(folderId.some, feideId)
-    insertedOrUpdated <- createNewResourceOrUpdateExisting(newResource, folderId, siblings, feideId)
+    insertedOrUpdated <- createNewResourceOrUpdateExisting(newResource, folderId.some, siblings, feideId)
     _                  = updateSearchApi(insertedOrUpdated)
   } yield insertedOrUpdated
 
@@ -610,9 +626,24 @@ class FolderWriteService(using
     } yield converted
   }
 
+  def newRootResourceConnection(newResource: NewResourceDTO, feide: FeideUserWrapper): Try[ResourceDTO] = {
+    implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+    for {
+      user     <- feide.userOrAccessDenied
+      _        <- canWriteOrAccessDenied(feide)
+      resource <- createNewResourceOrUpdateExisting(
+        newResource,
+        None,
+        FolderAndDirectChildren(None, Seq.empty, Seq.empty),
+        user.feideId,
+      )
+      converted <- folderConverterService.toApiResource(resource, isOwner = true)
+    } yield converted
+  }
+
   private[service] def createNewResourceOrUpdateExisting(
       newResource: NewResourceDTO,
-      folderId: UUID,
+      folderId: Option[UUID],
       siblings: domain.FolderAndDirectChildren,
       feideId: FeideID,
   )(implicit session: DBSession): Try[domain.Resource] = {

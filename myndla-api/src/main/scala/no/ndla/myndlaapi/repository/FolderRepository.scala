@@ -113,8 +113,8 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
     document.toFullResource(newId, path, resourceType, feideId, created, None)
   }
 
-  def createFolderResourceConnection(folderId: UUID, resourceId: UUID, rank: Int, favoritedDate: NDLADate)(implicit
-      session: DBSession = dbUtility.autoSession
+  def createFolderResourceConnection(folderId: Option[UUID], resourceId: UUID, rank: Int, favoritedDate: NDLADate)(
+      implicit session: DBSession = dbUtility.autoSession
   ): Try[FolderResource] = Try {
     val _ = withSQL {
       insert
@@ -209,14 +209,14 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       .map(_.getOrElse(0))
   }
 
-  def getConnection(folderId: UUID, resourceId: UUID)(implicit
+  def getConnection(folderId: Option[UUID], resourceId: UUID)(implicit
       session: DBSession = dbUtility.autoSession
   ): Try[Option[FolderResource]] = {
     tsql"select resource_id, folder_id, rank, favorited_date from ${FolderResource.table} where resource_id=$resourceId and folder_id=$folderId"
       .map(rs => {
+        val folderId = rs.get[Option[UUID]]("folder_id")
         for {
           resourceId   <- rs.get[Try[UUID]]("resource_id")
-          folderId     <- rs.get[Try[UUID]]("folder_id")
           rank          = rs.int("rank")
           favoritedDate = NDLADate.fromUtcDate(rs.localDateTime("favorited_date"))
         } yield FolderResource(folderId, resourceId, rank, favoritedDate)
@@ -226,12 +226,14 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       .flatten
   }
 
-  def getConnections(folderId: UUID)(implicit session: DBSession = dbUtility.autoSession): Try[List[FolderResource]] =
+  def getConnections(
+      folderId: Option[UUID]
+  )(implicit session: DBSession = dbUtility.autoSession): Try[List[FolderResource]] =
     tsql"select resource_id, folder_id, rank, favorited_date from ${FolderResource.table} where folder_id=$folderId order by rank ASC"
       .map(rs => {
+        val folderId = rs.get[Option[UUID]]("folder_id")
         for {
           resourceId   <- rs.get[Try[UUID]]("resource_id")
-          folderId     <- rs.get[Try[UUID]]("folder_id")
           rank          = rs.int("rank")
           favoritedDate = NDLADate.fromUtcDate(rs.localDateTime("favorited_date"))
         } yield FolderResource(folderId, resourceId, rank, favoritedDate)
@@ -258,7 +260,7 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
     }
   }
 
-  def deleteFolderResourceConnection(folderId: UUID, resourceId: UUID)(implicit
+  def deleteFolderResourceConnection(folderId: Option[UUID], resourceId: UUID)(implicit
       session: DBSession = dbUtility.autoSession
   ): Try[UUID] =
     tsql"delete from ${FolderResource.table} where folder_id=$folderId and resource_id=$resourceId".update() match {
@@ -567,6 +569,22 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       session: DBSession = dbUtility.readOnlySession
   ): Try[List[Folder]] = foldersWhere(sqls"f.parent_id=$parentId")
 
+  def getRootResources(
+      feideId: FeideID
+  )(implicit session: DBSession = dbUtility.readOnlySession): Try[List[Resource]] = {
+    val fr = FolderResource.syntax("fr")
+    val r  = Resource.syntax("r")
+    tsql"""select ${r.result.*}, ${fr.result.*} from ${FolderResource.as(fr)}
+            left join ${Resource.as(r)}
+                on ${fr.resourceId} = ${r.id}
+            where ${r.feideId} = $feideId and ${fr.folderId} is null;
+           """
+      .one(Resource.fromResultSet(r, withConnection = false))
+      .toOne(rs => FolderResource.fromResultSet(fr)(rs).toOption)
+      .map((resource, connection) => resource.map(_.copy(connection = connection)))
+      .runListFlat()
+  }
+
   def getFolderResources(
       folderId: UUID
   )(implicit session: DBSession = dbUtility.readOnlySession): Try[List[Resource]] = {
@@ -633,19 +651,20 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
   }
 
-  def setResourceConnectionRank(folderId: UUID, resourceId: UUID, rank: Int)(implicit session: DBSession): Try[Unit] =
-    tsql"""
+  def setResourceConnectionRank(folderId: Option[UUID], resourceId: UUID, rank: Int)(implicit
+      session: DBSession
+  ): Try[Unit] = tsql"""
           update ${FolderResource.table}
           set rank=$rank
           where folder_id=$folderId and resource_id=$resourceId
       """.update() match {
-      case Failure(ex)                  => Failure(ex)
-      case Success(count) if count == 1 =>
-        logger.info(s"Updated rank for folder-resource connection with folderId $folderId and resourceId $resourceId")
-        Success(())
-      case Success(count) =>
-        Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
-    }
+    case Failure(ex)                  => Failure(ex)
+    case Success(count) if count == 1 =>
+      logger.info(s"Updated rank for folder-resource connection with folderId $folderId and resourceId $resourceId")
+      Success(())
+    case Success(count) =>
+      Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
+  }
 
   def numberOfTags()(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Long]] =
     tsql"select count(tag) from (select distinct jsonb_array_elements_text(document->'tags') from ${Resource.table}) as tag"

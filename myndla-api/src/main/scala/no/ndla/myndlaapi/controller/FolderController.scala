@@ -191,6 +191,19 @@ class FolderController(using
       folderReadService.hasFavoritedResource(resourcePath, feide)
     }
 
+  private def getRootResources: ServerEndpoint[Any, Eff] = endpoint
+    .get
+    .summary("Fetch root resources")
+    .description("Fetch root resources")
+    .in("resources" / "root")
+    .out(jsonBody[List[ResourceDTO]])
+    .errorOut(errorOutputsFor(400, 401, 403, 404))
+    .withFeideUser
+    .serverLogicPure { feide => _ =>
+      folderReadService.getRootResources(feide)
+
+    }
+
   private def createFolderResource: ServerEndpoint[Any, Eff] = endpoint
     .post
     .summary("Creates new folder resource")
@@ -204,6 +217,22 @@ class FolderController(using
       { case (folderId, newResource) =>
         folderWriteService.newFolderResourceConnection(folderId, newResource, feide)
       }
+    }
+
+  private def createRootResource: ServerEndpoint[Any, Eff] = endpoint
+    .post
+    .summary("Creates a resource at root level")
+    .description("Creates a resource at root level")
+    .in("resources" / "root")
+    .in(jsonBody[NewResourceDTO])
+    .errorOut(errorOutputsFor(400, 401, 403, 404))
+    .out(jsonBody[ResourceDTO])
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (newResource) =>
+        folderWriteService.newRootResourceConnection(newResource, feide)
+      }
+
     }
 
   private def updateResource(): ServerEndpoint[Any, Eff] = endpoint
@@ -233,6 +262,18 @@ class FolderController(using
       { case (folderId, resourceId) =>
         folderWriteService.deleteConnection(folderId, resourceId, feide).map(_ => ())
       }
+    }
+
+  private def deleteRootResource(): ServerEndpoint[Any, Eff] = endpoint
+    .delete
+    .summary("Delete selected root resource")
+    .description("Delete selected root resource")
+    .in("resources" / "root" / pathResourceId)
+    .out(noContent)
+    .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
+    .withFeideUser
+    .serverLogicPure { feide => resourceId =>
+      folderWriteService.deleteRootConnection(resourceId, feide).map(_ => ())
     }
 
   private def fetchSharedFolder: ServerEndpoint[Any, Eff] = endpoint
@@ -359,8 +400,11 @@ class FolderController(using
     updateFolder(),
     removeFolder(),
     createFolderResource,
+    createRootResource,
+    getRootResources,
     updateResource(),
     deleteResource(),
+    deleteRootResource(),
     fetchSharedFolder,
     changeStatusForFolderAndSubFolders,
     cloneFolder,

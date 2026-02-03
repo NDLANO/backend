@@ -143,9 +143,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderReadService.getSingleFolderWithContent(eqTo(folder.id), any, eqTo(true))(using any)).thenReturn(
       Success(folderWithChildren)
     )
-    when(folderRepository.deleteFolderResourceConnection(eqTo(mainFolderId), eqTo(resourceId))(using any)).thenReturn(
-      Success(resourceId)
-    )
+    when(folderRepository.deleteFolderResourceConnection(eqTo(Some(mainFolderId)), eqTo(resourceId))(using any))
+      .thenReturn(Success(resourceId))
     when(folderRepository.deleteFolderUserConnection(eqTo(Some(subFolder2Id)), eqTo(None))(using any)).thenReturn(
       Success(1)
     )
@@ -177,7 +176,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val correctFeideId = "FEIDE"
     val folder         = emptyDomainFolder.copy(id = folderId, feideId = "FEIDE")
     val resource       = emptyDomainResource.copy(id = resourceId, feideId = "FEIDE")
-    val folderResource = FolderResource(folderId = folder.id, resourceId = resource.id, rank = 1, clock.now())
+    val folderResource = FolderResource(folderId = Some(folder.id), resourceId = resource.id, rank = 1, clock.now())
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(correctFeideId))
     when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(Success(emptyMyNDLAUser))
@@ -193,8 +192,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(folderId)), any)(using any)).thenReturn(
       Success(List.empty)
     )
-    when(folderRepository.getConnections(eqTo(folderId))(using any)).thenReturn(Success(List(folderResource)))
-    when(folderRepository.deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(using any)).thenReturn(
+    when(folderRepository.getConnections(eqTo(Some(folderId)))(using any)).thenReturn(Success(List(folderResource)))
+    when(folderRepository.deleteFolderResourceConnection(eqTo(Some(folderId)), eqTo(resourceId))(using any)).thenReturn(
       Success(resourceId)
     )
 
@@ -203,7 +202,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(using any)
     verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(using any)
     verify(folderRepository, times(1)).resourceWithId(eqTo(resourceId))(using any)
-    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(using any)
+    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(Some(folderId)), eqTo(resourceId))(using any)
     verify(folderRepository, times(0)).deleteResource(any)(using any)
   }
 
@@ -213,12 +212,12 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val correctFeideId = "FEIDE"
     val folder         = emptyDomainFolder.copy(id = folderId, feideId = "FEIDE")
     val resource       = emptyDomainResource.copy(id = resourceId, feideId = "FEIDE")
-    val folderResource = FolderResource(folderId = folder.id, resourceId = resource.id, rank = 1, clock.now())
+    val folderResource = FolderResource(folderId = Some(folder.id), resourceId = resource.id, rank = 1, clock.now())
 
     when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(Success(folder))
     when(folderRepository.resourceWithId(eqTo(resourceId))(using any)).thenReturn(Success(resource))
     when(folderRepository.folderResourceConnectionCount(eqTo(resourceId))(using any)).thenReturn(Success(1L))
-    when(folderRepository.deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(using any)).thenReturn(
+    when(folderRepository.deleteFolderResourceConnection(eqTo(Some(folderId)), eqTo(resourceId))(using any)).thenReturn(
       Success(resourceId)
     )
     when(folderRepository.deleteResource(eqTo(resourceId))(using any)).thenReturn(Success(resourceId))
@@ -230,7 +229,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(folderId)), any)(using any)).thenReturn(
       Success(List.empty)
     )
-    when(folderRepository.getConnections(eqTo(folderId))(using any)).thenReturn(Success(List(folderResource)))
+    when(folderRepository.getConnections(eqTo(Some(folderId)))(using any)).thenReturn(Success(List(folderResource)))
     when(folderRepository.foldersWithFeideAndParentID(any, any)(using any)).thenReturn(Success(List.empty))
 
     service.deleteConnection(folderId, resourceId, feideWrapper(correctFeideId)).failIfFailure should be(resourceId)
@@ -238,7 +237,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(using any)
     verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(using any)
     verify(folderRepository, times(1)).resourceWithId(eqTo(resourceId))(using any)
-    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(using any)
+    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(Some(folderId)), eqTo(resourceId))(using any)
     verify(folderRepository, times(1)).deleteResource(eqTo(resourceId))(using any)
   }
 
@@ -257,7 +256,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(using any)
     verify(folderRepository, times(0)).resourceWithId(eqTo(resourceId))(using any)
     verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(using any)
-    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(using any)
+    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(Some(folderId)), eqTo(resourceId))(using any)
     verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(using any)
   }
 
@@ -278,7 +277,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(using any)
     verify(folderRepository, times(1)).resourceWithId(eqTo(resourceId))(using any)
     verify(folderRepository, times(0)).folderResourceConnectionCount(eqTo(resourceId))(using any[DBSession])
-    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(folderId), eqTo(resourceId))(using
+    verify(folderRepository, times(0)).deleteFolderResourceConnection(eqTo(Some(folderId)), eqTo(resourceId))(using
       any[DBSession]
     )
     verify(folderRepository, times(0)).deleteResource(eqTo(resourceId))(using any[DBSession])
@@ -324,7 +323,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     service
       .createNewResourceOrUpdateExisting(
         newResource,
-        folderId,
+        Some(folderId),
         FolderAndDirectChildren(None, Seq.empty, Seq.empty),
         feideId,
       )(using mock[DBSession])
@@ -343,8 +342,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       any,
       any,
     )(using any)
-    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any, any)(using
-      any
+    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(Some(folderId)), eqTo(resourceId), any, any)(
+      using any
     )
     verify(folderConverterService, times(0)).mergeResource(any, any[NewResourceDTO])
     verify(folderRepository, times(0)).updateResource(any)(using any)
@@ -395,7 +394,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     service
       .createNewResourceOrUpdateExisting(
         newResource,
-        folderId,
+        Some(folderId),
         FolderAndDirectChildren(None, Seq.empty, Seq.empty),
         feideId,
       )(using mock[DBSession])
@@ -410,8 +409,8 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     verify(folderRepository, times(0)).insertResource(any, any, any, any, any)(using any)
     verify(folderConverterService, times(1)).mergeResource(eqTo(resource), eqTo(newResource))
     verify(folderRepository, times(1)).updateResource(eqTo(resource))(using any)
-    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(folderId), eqTo(resourceId), any, any)(using
-      any
+    verify(folderRepository, times(1)).createFolderResourceConnection(eqTo(Some(folderId)), eqTo(resourceId), any, any)(
+      using any
     )
   }
 
@@ -453,15 +452,17 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       Success(2L),
       Success(1L),
     )
-    when(folderRepository.deleteFolderResourceConnection(eqTo(folder1Id), eqTo(resource1Id))(using any[DBSession]))
-      .thenReturn(Success(resource1Id))
+    when(
+      folderRepository.deleteFolderResourceConnection(eqTo(Some(folder1Id)), eqTo(resource1Id))(using any[DBSession])
+    ).thenReturn(Success(resource1Id))
     when(folderRepository.deleteResource(eqTo(resource1Id))(using any[DBSession])).thenReturn(Success(resource1Id))
     when(folderRepository.folderResourceConnectionCount(eqTo(resource2Id))(using any[DBSession])).thenReturn(
       Success(2L),
       Success(1L),
     )
-    when(folderRepository.deleteFolderResourceConnection(eqTo(folder2Id), eqTo(resource2Id))(using any[DBSession]))
-      .thenReturn(Success(resource2Id))
+    when(
+      folderRepository.deleteFolderResourceConnection(eqTo(Some(folder2Id)), eqTo(resource2Id))(using any[DBSession])
+    ).thenReturn(Success(resource2Id))
     when(folderRepository.deleteResource(eqTo(resource2Id))(using any[DBSession])).thenReturn(Success(resource2Id))
     when(folderRepository.folderResourceConnectionCount(eqTo(resource3Id))(using any[DBSession])).thenReturn(
       Success(1L)
@@ -495,8 +496,12 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resource3Id))(using any)
 
     verify(folderRepository, times(2)).deleteFolderResourceConnection(any, any)(using any)
-    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(folder1Id), eqTo(resource1Id))(using any)
-    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(folder2Id), eqTo(resource2Id))(using any)
+    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(Some(folder1Id)), eqTo(resource1Id))(using
+      any
+    )
+    verify(folderRepository, times(1)).deleteFolderResourceConnection(eqTo(Some(folder2Id)), eqTo(resource2Id))(using
+      any
+    )
 
     verify(folderRepository, times(3)).deleteResource(any)(using any)
     verify(folderRepository, times(1)).deleteResource(eqTo(resource1Id))(using any)
@@ -1044,7 +1049,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.folderWithFeideId(eqTo(child1.id), any)(using any)).thenReturn(Success(child1))
     when(folderRepository.folderWithFeideId(eqTo(child2.id), any)(using any)).thenReturn(Success(child2))
     when(folderRepository.folderWithFeideId(eqTo(child3.id), any)(using any)).thenReturn(Success(child3))
-    when(folderRepository.getConnections(eqTo(parent.id))(using any)).thenReturn(Success(List()))
+    when(folderRepository.getConnections(eqTo(Some(parent.id)))(using any)).thenReturn(Success(List()))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(Some(parent.id)), any)(using any)).thenReturn(
       Success(List(child1, child2, child3))
     )
