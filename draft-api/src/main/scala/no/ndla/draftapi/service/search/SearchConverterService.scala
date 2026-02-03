@@ -60,7 +60,6 @@ class SearchConverterService(using converterService: ConverterService) extends S
       grepCodes = ai.grepCodes,
       status = SearchableStatus(ai.status.current, ai.status.other),
       traits = ai.traits,
-      responsible = ai.responsible,
     )
   }
 
