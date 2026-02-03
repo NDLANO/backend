@@ -670,10 +670,7 @@ export interface operations {
                 /** @description The page number of the search hits to display. */
                 page?: number;
             };
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -777,10 +774,7 @@ export interface operations {
                 /** @description Fallback to existing language if language is specified. */
                 fallback?: boolean;
             };
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description Id or slug of the article that is to be fetched. */
                 article_id: string;
@@ -798,6 +792,22 @@ export interface operations {
                 };
             };
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -866,10 +876,7 @@ export interface operations {
                 /** @description A comma separated list of codes from GREP API the resources should be filtered by. */
                 "grep-codes"?: string[];
             };
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -912,10 +919,7 @@ export interface operations {
     "postArticle-apiV2ArticlesSearch": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };

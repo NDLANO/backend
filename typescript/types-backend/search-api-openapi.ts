@@ -1060,10 +1060,7 @@ export interface operations {
                 /** @description Whether to include group without resource-types for group-search. Defaults to false. */
                 "missing-group"?: boolean;
             };
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -1147,10 +1144,7 @@ export interface operations {
                 "node-types"?: string[];
                 tags?: string[];
             };
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -1209,10 +1203,7 @@ export interface operations {
     "postSearch-apiV1Search": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };

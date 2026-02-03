@@ -1038,10 +1038,7 @@ export interface operations {
                 /** @description Choose if sub-folders should be included in the response */
                 "include-subfolders"?: boolean;
             };
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -1100,10 +1097,7 @@ export interface operations {
     "postMyndla-apiV1Folders": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -1169,10 +1163,7 @@ export interface operations {
                 /** @description Limit the number of results to this many elements */
                 size?: number;
             };
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -1300,10 +1291,7 @@ export interface operations {
                 /** @description Choose if sub-folders should be included in the response */
                 "include-subfolders"?: boolean;
             };
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description The UUID of the folder */
                 "folder-id": string;
@@ -1365,10 +1353,7 @@ export interface operations {
     "deleteMyndla-apiV1FoldersFolder-id": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description The UUID of the folder */
                 "folder-id": string;
@@ -1428,10 +1413,7 @@ export interface operations {
     "patchMyndla-apiV1FoldersFolder-id": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description The UUID of the folder */
                 "folder-id": string;
@@ -1500,10 +1482,7 @@ export interface operations {
                 /** @description The path of the resource to check */
                 path: string;
             };
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -1570,10 +1549,7 @@ export interface operations {
     "postMyndla-apiV1FoldersFolder-idResources": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description The UUID of the folder */
                 "folder-id": string;
@@ -1639,10 +1615,7 @@ export interface operations {
     "patchMyndla-apiV1FoldersResourcesResource-id": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description The UUID of the resource */
                 "resource-id": string;
@@ -1708,10 +1681,7 @@ export interface operations {
     "deleteMyndla-apiV1FoldersFolder-idResourcesResource-id": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description The UUID of the folder */
                 "folder-id": string;
@@ -1854,10 +1824,7 @@ export interface operations {
                 /** @description Status of the folder */
                 "folder-status": components["schemas"]["FolderStatus"];
             };
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description The UUID of the folder */
                 "folder-id": string;
@@ -1930,10 +1897,7 @@ export interface operations {
                 /** @description Destination UUID of the folder. If None it will be cloned as a root folder. */
                 "destination-folder-id"?: string;
             };
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description Source UUID of the folder. */
                 "source-folder-id": string;
@@ -2003,10 +1967,7 @@ export interface operations {
     "putMyndla-apiV1FoldersSort-resourcesFolder-id": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description The UUID of the folder */
                 "folder-id": string;
@@ -2081,10 +2042,7 @@ export interface operations {
                 /** @description The UUID of the folder */
                 "folder-id"?: string;
             };
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2153,10 +2111,7 @@ export interface operations {
     "putMyndla-apiV1FoldersSort-saved": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2225,10 +2180,7 @@ export interface operations {
     "postMyndla-apiV1FoldersSharedFolder-idSave": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description The UUID of the folder */
                 "folder-id": string;
@@ -2296,10 +2248,7 @@ export interface operations {
     "deleteMyndla-apiV1FoldersSharedFolder-idSave": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 /** @description The UUID of the folder */
                 "folder-id": string;
@@ -2367,10 +2316,7 @@ export interface operations {
     "getMyndla-apiV1Robots": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2429,10 +2375,7 @@ export interface operations {
     "postMyndla-apiV1Robots": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2495,10 +2438,7 @@ export interface operations {
     "getMyndla-apiV1RobotsRobot-id": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 "robot-id": string;
             };
@@ -2559,10 +2499,7 @@ export interface operations {
     "putMyndla-apiV1RobotsRobot-id": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 "robot-id": string;
             };
@@ -2627,10 +2564,7 @@ export interface operations {
     "deleteMyndla-apiV1RobotsRobot-id": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 "robot-id": string;
             };
@@ -2689,10 +2623,7 @@ export interface operations {
     "putMyndla-apiV1RobotsRobot-idRobot-status": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path: {
                 "robot-id": string;
                 "robot-status": components["schemas"]["RobotStatus"];
@@ -2754,10 +2685,7 @@ export interface operations {
     "getMyndla-apiV1Users": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2816,10 +2744,7 @@ export interface operations {
     "patchMyndla-apiV1Users": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2882,10 +2807,7 @@ export interface operations {
     "deleteMyndla-apiV1UsersDelete-personal-data": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2942,10 +2864,7 @@ export interface operations {
     "getMyndla-apiV1UsersExport": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -3004,10 +2923,7 @@ export interface operations {
     "postMyndla-apiV1UsersImport": {
         parameters: {
             query?: never;
-            header?: {
-                /** @description Header containing FEIDE access token. */
-                FeideAuthorization?: string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
