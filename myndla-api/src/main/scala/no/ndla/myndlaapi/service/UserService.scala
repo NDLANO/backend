@@ -15,7 +15,7 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.myndla
 import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
-import no.ndla.database.DBUtility
+import no.ndla.database.{DBUtility, WriteableDbSession}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
@@ -206,4 +206,15 @@ class UserService(using
       _            <- userRepository.deleteUser(user.feideId)(using session)
     } yield ()
   })
+
+  def cleanupOldUsers(): Try[Unit] = {
+    val emailCutoff  = NDLADate.now().minusDays(180)
+    val deleteCutoff = emailCutoff.minusDays(30)
+
+    dbUtility.writeSession { implicit session =>
+      // userRepository.findUsersOlderThan()
+    }
+
+    Success(())
+  }
 }

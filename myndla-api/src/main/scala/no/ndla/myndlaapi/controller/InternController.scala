@@ -19,11 +19,13 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.codec.enumeratum.*
 import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
+import no.ndla.myndlaapi.service.UserService
 
 class InternController(using
     internalMyNDLAApiClient: InternalMyNDLAApiClient,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
+    userService: UserService,
 ) extends TapirController
     with StrictLogging {
   override val prefix: EndpointInput[Unit] = "intern"
@@ -37,6 +39,14 @@ class InternController(using
     .errorOut(errorOutputsFor(400))
     .withFeideUser
     .serverLogicPure(feide => _ => feide.userOrAccessDenied)
+
+  private def cleanupOldUsers: ServerEndpoint[Any, Eff] = endpoint
+    .summary("Cleanup old users from myNDLA")
+    .post
+    .in("cleanup-old-users")
+    .out(emptyOutput)
+    .errorOut(errorOutputsFor(400))
+    .serverLogicPure(_ => userService.cleanupOldUsers())
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getDomainUser)
 

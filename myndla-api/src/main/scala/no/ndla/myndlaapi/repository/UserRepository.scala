@@ -9,11 +9,11 @@
 package no.ndla.myndlaapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.CirceUtil
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, MyNDLAUserDocument, UserRole}
-import no.ndla.database.DBUtility
+import no.ndla.database.{DBUtility, ReadableDbSession, WriteableDbSession}
 import no.ndla.database.implicits.*
 import no.ndla.myndlaapi.model.domain.{DBMyNDLAUser, NDLASQLException}
 import no.ndla.network.model.FeideID
@@ -22,7 +22,7 @@ import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
+class UserRepository(using dbUtility: DBUtility, clock: Clock) extends StrictLogging {
 
   def getUsersPaginated(offset: Long, limit: Long, filterTeachers: Boolean, query: Option[String])(implicit
       session: DBSession
@@ -66,7 +66,7 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
   def insertUser(feideId: FeideID, document: MyNDLAUserDocument)(implicit
       session: DBSession = dbUtility.autoSession
   ): Try[MyNDLAUser] = {
-    val lastSeen   = NDLADate.now()
+    val lastSeen   = clock.now()
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(document))
@@ -217,5 +217,24 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
   def getAllUsers(implicit session: DBSession): List[MyNDLAUser] = {
     val u = DBMyNDLAUser.syntax("u")
     tsql"select ${u.result.*} from ${DBMyNDLAUser.as(u)}".map(DBMyNDLAUser.fromResultSet(u)).runList().get
+  }
+
+  def findUsersOlderThan(date: NDLADate)(implicit session: ReadableDbSession): Try[List[MyNDLAUser]] = {
+    val u = DBMyNDLAUser.syntax("u")
+    tsql"""
+         select ${u.result.*} from ${DBMyNDLAUser.as(u)}
+         where ${u.lastSeen} < ${NDLADate.parameterBinderFactory(date)}
+       """.map(DBMyNDLAUser.fromResultSet(u)).runList()
+  }
+
+  def deleteUsersOlderThan(date: NDLADate)(implicit session: WriteableDbSession): Try[Int] = {
+    val num = tsql"""
+         delete from ${DBMyNDLAUser.table}
+         where last_seen < ${NDLADate.parameterBinderFactory(date)}
+       """.update()
+
+    logger.info(s"Deleted $num users older than ${date.asString}")
+
+    num
   }
 }

@@ -14,6 +14,7 @@ import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.{TestEnvironment, UnitSuite}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.*
+import org.mockito.Mockito.when
 
 import java.net.Socket
 import scala.util.{Success, Try}
@@ -46,6 +47,7 @@ class UserRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with Te
 
   override def beforeEach(): Unit = {
     repository = new UserRepository
+    when(clock.now()).thenReturn(NDLADate.now())
     if (serverIsListening) {
       emptyTestDatabase
     }
@@ -142,4 +144,27 @@ class UserRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with Te
     repository.numberOfFavouritedSubjects()(using session).get should be(Some(3L))
   }
 
+  test("that fetching users older than a given date works") {
+    DBUtil.writeSession { implicit session =>
+      val now      = NDLADate.now()
+      val veryOld  = now.minusDays(300)
+      val notSoOld = now.minusDays(10)
+      when(clock.now()).thenReturn(veryOld)
+      val oldUser = insertUser("feide-old-user", userDocument("Old User", "olduser", UserRole.STUDENT))
+      when(clock.now()).thenReturn(notSoOld)
+      val newerUser = insertUser("feide-newer-user", userDocument("Newer User", "neweruser", UserRole.STUDENT))
+
+      val fetchedOldUsers = repository.findUsersOlderThan(now.minusDays(200))(using session).get
+      fetchedOldUsers.head.feideId should be(oldUser.feideId)
+      fetchedOldUsers.head.lastSeen should be(veryOld)
+      fetchedOldUsers.size should be(1)
+
+      val fetchedOldUsers2 = repository.findUsersOlderThan(now.minusDays(5))(using session).get
+      fetchedOldUsers2.head.feideId should be(oldUser.feideId)
+      fetchedOldUsers2.head.lastSeen should be(veryOld)
+      fetchedOldUsers2(1).feideId should be(newerUser.feideId)
+      fetchedOldUsers2(1).lastSeen should be(notSoOld)
+      fetchedOldUsers2.size should be(2)
+    }
+  }
 }
