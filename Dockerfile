@@ -7,20 +7,23 @@ ARG JAVA_MAJOR_VERSION
 WORKDIR /app
 
 # Build Scala backend module
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl jq
 COPY . .
 RUN ./mill -i ${MODULE}.assembly
 
 # Create list of required Java modules
+RUN ./mill -i show ${MODULE}.runClasspath | jq -r 'join(":")' > classpath.info
 RUN $JAVA_HOME/bin/jdeps \
     --ignore-missing-deps \
     --print-module-deps \
+    --recursive \
     --multi-release ${JAVA_MAJOR_VERSION} \
-    out/${MODULE}/assembly.dest/out.jar > /deps.info
+    --class-path "$(cat classpath.info)" \
+    out/${MODULE}/compile.dest/classes > deps.info
 
 # Create custom JRE with the above modules
 RUN $JAVA_HOME/bin/jlink \
-         --add-modules $(cat /deps.info) \
+         --add-modules $(cat deps.info) \
          --strip-debug \
          --no-man-pages \
          --no-header-files \
