@@ -215,7 +215,7 @@ class FolderController(using
     .withFeideUser
     .serverLogicPure { feide =>
       { case (folderId, newResource) =>
-        folderWriteService.newFolderResourceConnection(folderId, newResource, feide)
+        folderWriteService.newResourceConnection(Some(folderId), newResource, feide)
       }
     }
 
@@ -230,7 +230,7 @@ class FolderController(using
     .withFeideUser
     .serverLogicPure { feide =>
       { case (newResource) =>
-        folderWriteService.newRootResourceConnection(newResource, feide)
+        folderWriteService.newResourceConnection(None, newResource, feide)
       }
 
     }

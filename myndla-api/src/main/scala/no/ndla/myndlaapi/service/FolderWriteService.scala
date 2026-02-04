@@ -607,31 +607,23 @@ class FolderWriteService(using
     }
   }
 
-  def newFolderResourceConnection(
-      folderId: UUID,
+  def newResourceConnection(
+      folderId: Option[UUID],
       newResource: NewResourceDTO,
       feide: FeideUserWrapper,
-  ): Try[ResourceDTO] = {
-    implicit val session: DBSession = folderRepository.getSession(readOnly = false)
-    for {
-      user      <- feide.userOrAccessDenied
-      _         <- canWriteOrAccessDenied(feide)
-      resource  <- createOrUpdateFolderResourceConnection(folderId, newResource, user.feideId)
-      converted <- folderConverterService.toApiResource(resource, isOwner = true)
-    } yield converted
-  }
-
-  def newRootResourceConnection(newResource: NewResourceDTO, feide: FeideUserWrapper): Try[ResourceDTO] = {
-    implicit val session: DBSession = folderRepository.getSession(readOnly = false)
+  ): Try[ResourceDTO] = dbUtility.rollbackOnFailure { implicit session =>
     for {
       user     <- feide.userOrAccessDenied
       _        <- canWriteOrAccessDenied(feide)
-      resource <- createNewResourceOrUpdateExisting(
-        newResource,
-        None,
-        FolderAndDirectChildren(None, Seq.empty, Seq.empty),
-        user.feideId,
-      )
+      resource <- folderId match {
+        case Some(fid) => createOrUpdateFolderResourceConnection(fid, newResource, user.feideId)
+        case None      => createNewResourceOrUpdateExisting(
+            newResource,
+            None,
+            FolderAndDirectChildren(None, Seq.empty, Seq.empty),
+            user.feideId,
+          )
+      }
       converted <- folderConverterService.toApiResource(resource, isOwner = true)
     } yield converted
   }
