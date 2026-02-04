@@ -14,6 +14,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.TryUtil.throwIfInterrupted
 import no.ndla.common.configuration.BaseProps
 import no.ndla.common.errors.RollbackException
+import no.ndla.common.implicits.ControlFlowException
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
@@ -37,6 +38,9 @@ class DBUtility(using props: BaseProps) extends StrictLogging {
         }
       }
     } catch {
+      case cex: ControlFlowException =>
+        logger.info("Rolling back transaction due to control flow exception", cex)
+        Failure(cex.returnValue)
       case rbex: RollbackException =>
         logger.info("Rolling back transaction due to failure", rbex)
         Failure(rbex.ex)
