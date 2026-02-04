@@ -209,16 +209,22 @@ class UserService(using
   })
 
   def cleanupInactiveUsers(): Try[InactiveUserResultDTO] = dbUtility.writeSession { implicit session =>
-    val emailInterval  = 180
-    val deleteInterval = 210
-    val now            = clock.now()
+    val emailInterval    = 180
+    val deleteInterval   = 210
+    val now              = clock.now()
+    val deleteBeforeDate = now.minusDays(deleteInterval)
+    val emailBeforeDate  = now.minusDays(emailInterval)
+    
     for {
       lastCleanupRun <- userRepository.getLastCleanup
-      _              <- lastCleanupRun match {
-        case Some(lastRun) =>
-        case _             => Success(())
+      users          <- userRepository.getUserNotSeenSince()
+      usersToDelete  <- lastCleanupRun match {
+        case Some(lastRun) => Success(())
+        case None          => Success(())
       }
-    } yield lastCleanupRun
-    Success(InactiveUserResultDTO())
+      
+      deleted <- userRepository.deleteUser()
+      
+    } yield InactiveUserResultDTO(0, 0)
   }
 }

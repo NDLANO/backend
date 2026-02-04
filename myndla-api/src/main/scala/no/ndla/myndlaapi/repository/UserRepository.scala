@@ -151,9 +151,9 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
     }
   }
 
-  def deleteAllUsers(implicit session: DBSession): Try[Unit] = Try {
-    val _ = tsql"delete from ${DBMyNDLAUser.table}".execute()
-  }
+  def deleteAllUsers(implicit session: DBSession): Try[Unit] = tsql"delete from ${DBMyNDLAUser.table}"
+    .execute()
+    .map(_ => ())
 
   def resetSequences(implicit session: DBSession): Try[Unit] = Try {
     val _ = tsql"alter sequence my_ndla_users_id_seq restart with 1".execute()
