@@ -438,15 +438,12 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     sq.map(rs => rs.long("count")).runSingle().map(_.exists(_ > 0))
   }
 
+  def refreshResponsibleView(using session: DBSession): Try[Unit] = {
+    tsql"refresh materialized view responsible_view".update().map(_ => ())
+  }
+
   def getAllResponsibles(using session: DBSession): Try[Seq[String]] = {
-    val ar = DBArticle.syntax("ar")
-    tsql"""
-      select distinct (ar.document -> 'responsible' ->> 'responsibleId') as responsibleId
-      from ${DBArticle.as(ar)}
-      where ar.document is not NULL
-      and (ar.document -> 'responsible') is not null
-      and (ar.document -> 'responsible' ->> 'responsibleId') is not null
-    """.map(rs => rs.string("responsibleId")).runList()
+    tsql"""select responsibleId from responsible_view""".map(rs => rs.string("responsibleId")).runList()
   }
 
 }
