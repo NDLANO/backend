@@ -585,17 +585,6 @@ class FolderWriteService(using
     } yield api
   }
 
-  private def createOrUpdateFolderResourceConnection(folderId: UUID, newResource: NewResourceDTO, feideId: FeideID)(
-      implicit session: DBSession
-  ): Try[domain.Resource] = for {
-    _ <- folderRepository
-      .folderWithFeideId(folderId, feideId)
-      .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
-    siblings          <- getFolderWithDirectChildren(folderId.some, feideId)
-    insertedOrUpdated <- createNewResourceOrUpdateExisting(newResource, folderId.some, siblings, feideId)
-    _                  = updateSearchApi(insertedOrUpdated)
-  } yield insertedOrUpdated
-
   private def updateSearchApi(resource: domain.Resource): Unit = {
     resource.resourceType match {
       case ResourceType.Multidisciplinary                               => searchApiClient.reindexDraft(resource.resourceId)
@@ -613,18 +602,25 @@ class FolderWriteService(using
       feide: FeideUserWrapper,
   ): Try[ResourceDTO] = dbUtility.rollbackOnFailure { implicit session =>
     for {
-      user     <- feide.userOrAccessDenied
-      _        <- canWriteOrAccessDenied(feide)
-      resource <- folderId match {
-        case Some(fid) => createOrUpdateFolderResourceConnection(fid, newResource, user.feideId)
-        case None      => createNewResourceOrUpdateExisting(
-            newResource,
-            None,
-            FolderAndDirectChildren(None, Seq.empty, Seq.empty),
-            user.feideId,
-          )
+      user <- feide.userOrAccessDenied
+      _    <- canWriteOrAccessDenied(feide)
+      _    <- folderId.traverse(fid =>
+        folderRepository
+          .folderWithFeideId(fid, user.feideId)
+          .orElse(Failure(NotFoundException(s"Can't connect resource to non-existing folder")))
+      )
+      siblings <- folderId match {
+        case Some(fid) => getFolderWithDirectChildren(fid.some, user.feideId)
+        case None      => folderRepository
+            .getRootResources(user.feideId)
+            .map { resources =>
+              domain.FolderAndDirectChildren(None, Seq.empty, resources.flatMap(_.connection))
+            }
       }
+      resource  <- createNewResourceOrUpdateExisting(newResource, folderId, siblings, user.feideId)
+      _          = updateSearchApi(resource)
       converted <- folderConverterService.toApiResource(resource, isOwner = true)
+
     } yield converted
   }
 
