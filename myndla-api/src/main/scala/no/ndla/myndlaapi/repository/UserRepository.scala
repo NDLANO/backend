@@ -13,9 +13,9 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, MyNDLAUserDocument, UserRole}
-import no.ndla.database.DBUtility
+import no.ndla.database.{DBUtility, ReadableDbSession}
 import no.ndla.database.implicits.*
-import no.ndla.myndlaapi.model.domain.{DBMyNDLAUser, NDLASQLException}
+import no.ndla.myndlaapi.model.domain.{DBMyNDLAUser, InactiveUserCleanupResult, NDLASQLException}
 import no.ndla.network.model.FeideID
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -236,5 +236,22 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
          where last_seen < ${NDLADate.parameterBinderFactory(beforeDate)}
          or last_seen > ${NDLADate.parameterBinderFactory(afterDate)}
          """.map(DBMyNDLAUser.fromResultSet(u)).runList()
+  }
+
+  def getLastCleanup(implicit session: ReadableDbSession): Try[Option[InactiveUserCleanupResult]] = {
+    tsql"""
+         select id, num_cleanup, num_emailed, lsat_cleanup_date from inactive_user_cleanup_log
+         order by last_cleanup desc
+         limit 1
+         """
+      .map(rs =>
+        InactiveUserCleanupResult(
+          id = rs.long("id"),
+          numCleanup = rs.int("num_cleanup"),
+          numEmailed = rs.int("num_emailed"),
+          lastCleanupDate = rs.get[NDLADate]("last_cleanup_date"),
+        )
+      )
+      .runSingle()
   }
 }

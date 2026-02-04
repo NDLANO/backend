@@ -17,6 +17,7 @@ import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
+import no.ndla.myndlaapi.model.api.InactiveUserResultDTO
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID, FeideUserWrapper}
@@ -206,4 +207,18 @@ class UserService(using
       _            <- userRepository.deleteUser(user.feideId)(using session)
     } yield ()
   })
+
+  def cleanupInactiveUsers(): Try[InactiveUserResultDTO] = dbUtility.writeSession { implicit session =>
+    val emailInterval  = 180
+    val deleteInterval = 210
+    val now            = clock.now()
+    for {
+      lastCleanupRun <- userRepository.getLastCleanup
+      _              <- lastCleanupRun match {
+        case Some(lastRun) =>
+        case _             => Success(())
+      }
+    } yield lastCleanupRun
+    Success(InactiveUserResultDTO())
+  }
 }
