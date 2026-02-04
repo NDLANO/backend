@@ -50,6 +50,7 @@ import scalikejdbc.DBSession
 import java.util.UUID
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
+import no.ndla.myndlaapi.model.domain.FolderResource
 
 class FolderWriteService(using
     folderReadService: FolderReadService,
@@ -336,37 +337,31 @@ class FolderWriteService(using
     } yield deletedFolderId
   }
 
-  def deleteConnection(folderId: UUID, resourceId: UUID, feide: FeideUserWrapper): Try[UUID] = {
-    implicit val session: DBSession = folderRepository.getSession(readOnly = false)
-    for {
-      user          <- feide.userOrAccessDenied
-      _             <- canWriteOrAccessDenied(feide)
-      folder        <- folderRepository.folderWithId(folderId)
-      _             <- folder.isOwner(user.feideId)
-      resource      <- folderRepository.resourceWithId(resourceId)
-      _             <- resource.isOwner(user.feideId)
-      id            <- deleteResourceIfNoConnection(Some(folderId), resourceId)
-      parent        <- getFolderWithDirectChildren(folder.id.some, user.feideId)
-      siblingsToSort = parent
-        .childrenResources
-        .filterNot(c => c.resourceId == resourceId && c.folderId.map(_ == folderId).getOrElse(false))
-      sortRequest = api.FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.resourceId))
-      _           = updateSearchApi(resource)
-      _          <- performSort(siblingsToSort, sortRequest, user.feideId, sharedFolderSort = false)
-    } yield id
-  }
-
-  def deleteRootConnection(resourceId: UUID, feide: FeideUserWrapper): Try[UUID] = {
-    implicit val session: DBSession = folderRepository.getSession(readOnly = false)
-    for {
-      user     <- feide.userOrAccessDenied
-      _        <- canWriteOrAccessDenied(feide)
-      resource <- folderRepository.resourceWithId(resourceId)
-      _        <- resource.isOwner(user.feideId)
-      id       <- deleteResourceIfNoConnection(None, resourceId)
-    } yield id
-
-  }
+  def deleteConnection(folderId: Option[UUID], resourceId: UUID, feide: FeideUserWrapper): Try[UUID] = dbUtility
+    .rollbackOnFailure { implicit session =>
+      for {
+        user           <- feide.userOrAccessDenied
+        _              <- canWriteOrAccessDenied(feide)
+        _              <- folderId.traverse(fid => folderRepository.folderWithId(fid).flatMap(_.isOwner(user.feideId)))
+        resource       <- folderRepository.resourceWithId(resourceId)
+        _              <- resource.isOwner(user.feideId)
+        deletedId      <- deleteResourceIfNoConnection(folderId, resourceId)
+        siblingsToSort <- folderId match {
+          case Some(fid) => getFolderWithDirectChildren(fid.some, user.feideId).map(
+              _.childrenResources
+                .filterNot(c => c.resourceId == resourceId && c.folderId.map(_ == fid).getOrElse(false))
+            )
+          case None => folderRepository
+              .getRootResources(user.feideId)
+              .map {
+                _.flatMap(_.connection).filterNot(_.resourceId == resourceId)
+              }
+        }
+        sortRequest = api.FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.resourceId))
+        _           = updateSearchApi(resource)
+        _          <- performSort(siblingsToSort, sortRequest, user.feideId, sharedFolderSort = false)
+      } yield deletedId
+    }
 
   def deleteAllUserData(feide: FeideUserWrapper): Try[Unit] = {
     for {

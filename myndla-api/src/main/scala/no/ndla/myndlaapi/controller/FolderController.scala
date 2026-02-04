@@ -260,7 +260,7 @@ class FolderController(using
     .withFeideUser
     .serverLogicPure { feide =>
       { case (folderId, resourceId) =>
-        folderWriteService.deleteConnection(folderId, resourceId, feide).map(_ => ())
+        folderWriteService.deleteConnection(Some(folderId), resourceId, feide).map(_ => ())
       }
     }
 
@@ -273,7 +273,7 @@ class FolderController(using
     .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
     .withFeideUser
     .serverLogicPure { feide => resourceId =>
-      folderWriteService.deleteRootConnection(resourceId, feide).map(_ => ())
+      folderWriteService.deleteConnection(None, resourceId, feide).map(_ => ())
     }
 
   private def fetchSharedFolder: ServerEndpoint[Any, Eff] = endpoint

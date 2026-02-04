@@ -197,7 +197,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
       Success(resourceId)
     )
 
-    service.deleteConnection(folderId, resourceId, feideWrapper(correctFeideId)).failIfFailure
+    service.deleteConnection(Some(folderId), resourceId, feideWrapper(correctFeideId)).failIfFailure
 
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(using any)
     verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(using any)
@@ -232,7 +232,9 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.getConnections(eqTo(Some(folderId)))(using any)).thenReturn(Success(List(folderResource)))
     when(folderRepository.foldersWithFeideAndParentID(any, any)(using any)).thenReturn(Success(List.empty))
 
-    service.deleteConnection(folderId, resourceId, feideWrapper(correctFeideId)).failIfFailure should be(resourceId)
+    service.deleteConnection(Some(folderId), resourceId, feideWrapper(correctFeideId)).failIfFailure should be(
+      resourceId
+    )
 
     verify(folderRepository, times(1)).folderResourceConnectionCount(eqTo(resourceId))(using any)
     verify(folderRepository, times(1)).folderWithId(eqTo(folderId))(using any)
@@ -249,7 +251,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
 
     when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(Success(folder))
 
-    val res = service.deleteConnection(folderId, resourceId, feideWrapper(correctFeideId))
+    val res = service.deleteConnection(Some(folderId), resourceId, feideWrapper(correctFeideId))
     res.isFailure should be(true)
     res should be(Failure(AccessDeniedException("You do not have access to this entity.")))
 
@@ -270,7 +272,7 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     when(folderRepository.folderWithId(eqTo(folderId))(using any)).thenReturn(Success(folder))
     when(folderRepository.resourceWithId(eqTo(resourceId))(using any)).thenReturn(Success(resource))
 
-    val res = service.deleteConnection(folderId, resourceId, feideWrapper(correctFeideId))
+    val res = service.deleteConnection(Some(folderId), resourceId, feideWrapper(correctFeideId))
     res.isFailure should be(true)
     res should be(Failure(AccessDeniedException("You do not have access to this entity.")))
 
