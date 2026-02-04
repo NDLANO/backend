@@ -289,7 +289,7 @@ class ConverterService(using props: Props) extends StrictLogging {
           slug = article.slug,
           disclaimer = disclaimer,
           traits = article.traits,
-          publishedCount = 1,
+          publishedCount = article.publishedCount.getOrElse(1),
         )
       )
     } else {
