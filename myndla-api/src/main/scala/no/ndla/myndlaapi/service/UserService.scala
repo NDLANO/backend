@@ -8,6 +8,7 @@
 
 package no.ndla.myndlaapi.service
 
+import cats.implicits.*
 import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.*
@@ -208,23 +209,36 @@ class UserService(using
     } yield ()
   })
 
+  def sendInactivityEmail(user: MyNDLAUser): Try[Boolean] = {
+    // TODO: implement actual email sending.
+    Success(true)
+  }
+
   def cleanupInactiveUsers(): Try[InactiveUserResultDTO] = dbUtility.writeSession { implicit session =>
-    val emailInterval    = 180
-    val deleteInterval   = 210
+    val emailAfter       = 180
+    val deleteAfter      = 210
     val now              = clock.now()
-    val deleteBeforeDate = now.minusDays(deleteInterval)
-    val emailBeforeDate  = now.minusDays(emailInterval)
-    
+    val deleteBeforeDate = now.minusDays(deleteAfter)
+    val emailBeforeDate  = now.minusDays(emailAfter)
+
     for {
-      lastCleanupRun <- userRepository.getLastCleanup
-      users          <- userRepository.getUserNotSeenSince()
-      usersToDelete  <- lastCleanupRun match {
-        case Some(lastRun) => Success(())
-        case None          => Success(())
+      lastCleanupRun  <- userRepository.getLastCleanup
+      usersToDelete   <- userRepository.getUserNotSeenSince(deleteBeforeDate)
+      emailCandidates <- userRepository.getUserNotSeenSince(emailBeforeDate)
+      usersToEmailFiltered = lastCleanupRun match {
+        case None => emailCandidates
+        case Some(lastRun) =>
+          val lastEmailCutoff = lastRun.lastCleanupDate.minusDays(emailAfter)
+          emailCandidates.filter(user => user.lastSeen.isAfter(lastEmailCutoff))
       }
-      
-      deleted <- userRepository.deleteUser()
-      
-    } yield InactiveUserResultDTO(0, 0)
+      _ <- usersToEmailFiltered.traverse(user =>
+        sendInactivityEmail(user).flatMap {
+          case true  => Success(())
+          case false => Failure(new Exception(s"Failed to send inactivity email to user ${user.id}"))
+        }
+      )
+      _ <- usersToDelete.traverse(user => userRepository.deleteUser(user.feideId).map(_ => ()))
+      _ <- userRepository.insertCleanupResult(usersToDelete.size, usersToEmailFiltered.size, now)
+    } yield InactiveUserResultDTO(usersToDelete.size, usersToEmailFiltered.size)
   }
 }
