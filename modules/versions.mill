@@ -9,7 +9,7 @@ object SharedDependencies {
   val ScalaTestV            = "3.2.19"
   val Log4JV                = "2.25.0"
   val AwsSdkV               = "2.31.64"
-  val Elastic4sV            = "8.11.5"
+  val Elastic4sV            = "8.18.2"
   val JacksonV              = "2.19.1"
   val CatsEffectV           = "3.6.1"
   val FlywayV               = "11.10.5"
@@ -88,7 +88,7 @@ object SharedDependencies {
   def jsoup: Dep    = mvn"org.jsoup:jsoup:$JsoupV"
   def scalaUri: Dep = mvn"io.lemonlabs::scala-uri:4.0.3".exclude("org.typelevel" -> "cats-parse")
 
-  def elastic4s: Dep     = mvn"com.sksamuel.elastic4s::elastic4s-client-esjava:$Elastic4sV"
-  def elastic4sTest: Dep = mvn"com.sksamuel.elastic4s::elastic4s-testkit:$Elastic4sV"
+  def elastic4s: Dep     = mvn"nl.gn0s1s::elastic4s-client-esjava:$Elastic4sV"
+  def elastic4sTest: Dep = mvn"nl.gn0s1s::elastic4s-testkit:$Elastic4sV"
   def jave: Seq[Dep]     = Seq(mvn"ws.schild:jave-core:3.5.0", mvn"ws.schild:jave-all-deps:3.5.0")
 }
