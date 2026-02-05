@@ -138,6 +138,8 @@ case class MultiSearchSummaryDTO(
     resultType: SearchType,
     @description("List of codes the resource is tagged with")
     grepCodes: Seq[String],
+    @description("Number of times resource is published")
+    publishedCount: Option[Int],
 ) extends MultiSummaryBaseDTO
 
 object MultiSearchSummaryDTO extends SchemaImplicits {

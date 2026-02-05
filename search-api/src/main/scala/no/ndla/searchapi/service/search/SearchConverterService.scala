@@ -244,6 +244,7 @@ class SearchConverterService(using
         availability = ai.availability.toString,
         learningResourceType = learningResourceType,
         typeName = typeNames,
+        publishedCount = ai.publishedCount.getOrElse(1),
         domainObject = ai,
         nodes = nodes,
       )
@@ -561,6 +562,7 @@ class SearchConverterService(using
         favorited = favorited,
         learningResourceType = learningResourceType,
         typeName = typeNames,
+        publishedCount = draft.publishedCount.getOrElse(0),
         domainObject = draft,
         nodes = nodes,
       )
@@ -738,6 +740,8 @@ class SearchConverterService(using
           paths = getPathsFromContext(searchableArticle.contexts),
           lastUpdated = searchableArticle.lastUpdated,
           license = Some(searchableArticle.license),
+          revision = searchableArticle.domainObject.revision,
+          started = false,
           revisions = Seq.empty,
           responsible = None,
           comments = None,
@@ -748,9 +752,8 @@ class SearchConverterService(using
           published = None,
           favorited = None,
           resultType = SearchType.Articles,
-          revision = searchableArticle.domainObject.revision,
-          started = false,
           grepCodes = Seq.empty,
+          publishedCount = Some(searchableArticle.publishedCount),
         )
       )
     }
@@ -842,6 +845,8 @@ class SearchConverterService(using
           paths = getPathsFromContext(searchableDraft.contexts),
           lastUpdated = searchableDraft.lastUpdated,
           license = searchableDraft.license,
+          revision = searchableDraft.domainObject.revision,
+          started = searchableDraft.domainObject.started,
           revisions = revisions,
           responsible = responsible,
           comments = Some(comments),
@@ -852,9 +857,8 @@ class SearchConverterService(using
           published = Some(searchableDraft.published),
           favorited = Some(searchableDraft.favorited),
           resultType = SearchType.Drafts,
-          revision = searchableDraft.domainObject.revision,
-          started = searchableDraft.domainObject.started,
           grepCodes = searchableDraft.domainObject.grepCodes,
+          publishedCount = Some(searchableDraft.publishedCount),
         )
       )
     }
@@ -933,6 +937,8 @@ class SearchConverterService(using
         paths = getPathsFromContext(searchableLearningPath.contexts),
         lastUpdated = searchableLearningPath.lastUpdated,
         license = Some(searchableLearningPath.license),
+        revision = searchableLearningPath.domainObject.revision,
+        started = false,
         revisions = revisions,
         responsible = responsible,
         comments = Some(comments),
@@ -943,9 +949,8 @@ class SearchConverterService(using
         published = None,
         favorited = Some(searchableLearningPath.favorited),
         resultType = SearchType.LearningPaths,
-        revision = searchableLearningPath.domainObject.revision,
         grepCodes = searchableLearningPath.grepCodes,
-        started = false,
+        publishedCount = None,
       )
     )
   }
@@ -998,6 +1003,8 @@ class SearchConverterService(using
         paths = List.empty,
         lastUpdated = searchableConcept.lastUpdated,
         license = searchableConcept.license,
+        revision = None,
+        started = false,
         revisions = Seq.empty,
         responsible = responsible,
         comments = None,
@@ -1008,9 +1015,8 @@ class SearchConverterService(using
         published = None,
         favorited = Some(searchableConcept.favorited),
         resultType = SearchType.Concepts,
-        revision = None,
         grepCodes = Seq.empty,
-        started = false,
+        publishedCount = None,
       )
     )
   }

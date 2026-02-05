@@ -53,6 +53,8 @@ class MultiSearchSummaryDTOTest extends UnitTestSuiteBase {
       paths = List(),
       lastUpdated = now,
       license = None,
+      revision = None,
+      started = false,
       revisions = Seq(),
       responsible = None,
       comments = None,
@@ -64,8 +66,7 @@ class MultiSearchSummaryDTOTest extends UnitTestSuiteBase {
       favorited = None,
       resultType = SearchType.Articles,
       grepCodes = Seq.empty,
-      revision = None,
-      started = false,
+      publishedCount = Some(1),
     )
     import io.circe.syntax.*
 
