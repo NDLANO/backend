@@ -27,6 +27,7 @@ import no.ndla.searchapi.controller.parameters.GrepSearchInputDTO
 import no.ndla.searchapi.model.api.grep.GrepSortDTO.*
 import no.ndla.searchapi.model.api.grep.{GrepResultDTO, GrepSearchResultsDTO, GrepSortDTO}
 import no.ndla.searchapi.model.grep.{
+  GrepFagkode,
   GrepKjerneelement,
   GrepKompetansemaal,
   GrepKompetansemaalSett,
@@ -282,6 +283,7 @@ class GrepSearchService(using
       case x: GrepKjerneelement      => getCoreElementReplacement(x)
       case x: GrepKompetansemaal     => getKompetansemaalReplacement(x)
       case x: GrepLaererplan         => Success(getLaererplanReplacement(x).getOrElse(x.kode))
+      case x: GrepFagkode            => Success(x.kode)
     }
 
     result.map(r => code.code -> r)

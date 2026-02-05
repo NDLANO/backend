@@ -66,18 +66,22 @@ class GrepApiClient(using props: Props) extends StrictLogging {
   private def getLaereplanerLK20(dump: File): Try[List[GrepLaererplan]] =
     readGrepJsonFiles[GrepLaererplan](dump, "laereplaner-lk20")
 
+  private def getFagkoder(dump: File): Try[List[GrepFagkode]] = readGrepJsonFiles[GrepFagkode](dump, "fagkoder")
+
   private def getBundleFromDump(dump: File): Try[GrepBundle] = for {
     kjerneelementer    <- getKjerneelementerLK20(dump)
     kompetansemaal     <- getKompetansemaalLK20(dump)
     kompetansemaalsett <- getKompetansemaalsettLK20(dump)
     tverrfagligeTemaer <- getTverrfagligeTemaerLK20(dump)
     laereplaner        <- getLaereplanerLK20(dump)
+    fagkoder           <- getFagkoder(dump)
   } yield GrepBundle(
     kjerneelementer = kjerneelementer,
     kompetansemaal = kompetansemaal,
     kompetansemaalsett = kompetansemaalsett,
     tverrfagligeTemaer = tverrfagligeTemaer,
     laereplaner = laereplaner,
+    fagkoder = fagkoder,
   )
 
   val getGrepBundle: () => Try[GrepBundle]                   = () => _getGrepBundle(())

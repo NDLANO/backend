@@ -48,36 +48,59 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
   val grepTestBundle: GrepBundle = GrepBundle(
     kjerneelementer = List(
       GrepKjerneelement(
-        "KE12",
-        GrepStatusDTO.Published,
-        GrepTextObj(
+        kode = "KE12",
+        uri = "http://psi.udir.no/kl06/KE12",
+        status = GrepStatusDTO.Published,
+        tittel = GrepTextObj(
           List(GrepTitle("default", "Utforsking og problemløysing"), GrepTitle("nob", "Utforsking og problemløsning"))
         ),
-        GrepTextObj(List(GrepTitle("default", ""))),
-        BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP1"),
+        beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
+        `tilhoerer-laereplan` = BelongsToObj(
+          kode = "LP1",
+          uri = "http://psi.udir.no/kl06/LP1",
+          status = GrepStatusDTO.Published,
+          tittel = "Dette er LP1",
+        ),
       ),
       GrepKjerneelement(
-        "KE34",
-        GrepStatusDTO.Published,
-        GrepTextObj(
+        kode = "KE34",
+        uri = "http://psi.udir.no/kl06/KE34",
+        status = GrepStatusDTO.Published,
+        tittel = GrepTextObj(
           List(GrepTitle("default", "Abstraksjon og generalisering"), GrepTitle("nob", "Abstraksjon og generalisering"))
         ),
-        GrepTextObj(List(GrepTitle("default", ""))),
-        BelongsToObj("LP2", GrepStatusDTO.Published, "Dette er LP2"),
+        beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
+        `tilhoerer-laereplan` = BelongsToObj(
+          kode = "LP2",
+          uri = "http://psi.udir.no/kl06/LP2",
+          status = GrepStatusDTO.Published,
+          tittel = "Dette er LP2",
+        ),
       ),
     ),
     kompetansemaal = List(
       GrepKompetansemaal(
         kode = "KM123",
-        GrepStatusDTO.Published,
+        uri = "http://psi.udir.no/kl06/KM123",
+        status = GrepStatusDTO.Published,
         tittel = GrepTextObj(
           List(
             GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
             GrepTitle("nob", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"),
           )
         ),
-        `tilhoerer-laereplan` = BelongsToObj("LP2", GrepStatusDTO.Published, "Dette er LP2"),
-        `tilhoerer-kompetansemaalsett` = BelongsToObj("KV200", GrepStatusDTO.Published, "Kompetansemaalsett"),
+        `tilhoerer-laereplan` = BelongsToObj(
+          kode = "LP2",
+          uri = "http://psi.udir.no/kl06/LP2",
+          status = GrepStatusDTO.Published,
+          tittel = "Dette er LP2",
+        ),
+        `tilhoerer-kompetansemaalsett` = BelongsToObj(
+          kode = "KV200",
+          uri = "http://psi.udir.no/kl06/KV200",
+          status = GrepStatusDTO.Published,
+          tittel = "Kompetansemaalsett",
+        ),
         `tilknyttede-tverrfaglige-temaer` = List(),
         `tilknyttede-kjerneelementer` = List(),
         `gjenbruk-av` = None,
@@ -86,24 +109,36 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
     kompetansemaalsett = List.empty,
     tverrfagligeTemaer = List(
       GrepTverrfagligTema(
-        "TT2",
-        GrepStatusDTO.Published,
-        Seq(GrepTitle("default", "Demokrati og medborgerskap"), GrepTitle("nob", "Demokrati og medborgerskap")),
+        kode = "TT2",
+        uri = "http://psi.udir.no/kl06/KE12",
+        status = GrepStatusDTO.Published,
+        tittel = Seq(GrepTitle("default", "Demokrati og medborgerskap"), GrepTitle("nob", "Demokrati og medborgerskap")),
       )
     ),
     laereplaner = List(
       GrepLaererplan(
-        "LP1",
-        GrepStatusDTO.Published,
-        GrepTextObj(List(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk"))),
-        List.empty,
+        kode = "LP1",
+        uri = "http://psi.udir.no/kl06/LP1",
+        status = GrepStatusDTO.Published,
+        tittel = GrepTextObj(List(GrepTitle("default", "Læreplan i norsk"), GrepTitle("nob", "Læreplan i norsk"))),
+        `erstattes-av` = List.empty,
       ),
       GrepLaererplan(
-        "LP2",
-        GrepStatusDTO.Published,
-        GrepTextObj(List(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk"))),
-        List.empty,
+        kode = "LP2",
+        uri = "http://psi.udir.no/kl06/LP2",
+        status = GrepStatusDTO.Published,
+        tittel = GrepTextObj(List(GrepTitle("default", "Læreplan i engelsk"), GrepTitle("nob", "Læreplan i engelsk"))),
+        `erstattes-av` = List.empty,
       ),
+    ),
+    fagkoder = List(
+      GrepFagkode(
+        kode = "LMI01-05",
+        uri = "http://psi.udir.no/kl06/LMI01-05",
+        status = GrepStatusDTO.Published,
+        tittel = Seq(GrepTitle("default", "Medieproduksjon"), GrepTitle("nob", "Medieproduksjon")),
+        kortform = Seq(GrepTitle("default", "Medieproduksjon"), GrepTitle("nob", "Medieproduksjon")),
+      )
     ),
   )
 
@@ -181,10 +216,12 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
     blockUntil(() => grepIndexService.countDocuments == grepTestBundle.grepContext.size)
 
     val result1 = grepSearchService.searchGreps(emptyInput.copy(sort = Some(ByCodeAsc))).get
-    result1.results.map(_.code) should be(List("KE12", "KE34", "KM123", "LP1", "LP2", "TT2"))
+    result1.results.size should be(grepTestBundle.grepContext.size)
+    result1.results.map(_.code) should be(List("KE12", "KE34", "KM123", "LMI01-05", "LP1", "LP2", "TT2"))
 
     val result2 = grepSearchService.searchGreps(emptyInput.copy(sort = Some(ByCodeDesc))).get
-    result2.results.map(_.code) should be(List("TT2", "LP2", "LP1", "KM123", "KE34", "KE12"))
+    result2.results.size should be(grepTestBundle.grepContext.size)
+    result2.results.map(_.code) should be(List("TT2", "LP2", "LP1", "LMI01-05", "KM123", "KE34", "KE12"))
   }
 
   test("That prefix filter is case insensitive") {
