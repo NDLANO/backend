@@ -307,8 +307,10 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
             limit ${size.getOrElse(1)}
            """
       .one(Resource.fromResultSet(r, withConnection = false))
-      .toOne(rs => FolderResource.fromResultSet(fr)(rs).toOption)
-      .map((resource, connection) => resource.map(_.copy(connection = connection)))
+      .toMany(rs => FolderResource.fromResultSet(fr)(rs).toOption)
+      .map((resource, connections) =>
+        resource.map(r => r.copy(connection = connections.find(c => c.resourceId == r.id)))
+      )
       .runListFlat()
   }
 
