@@ -15,14 +15,22 @@ class V82__ConvertNorgesfilmUrls extends HtmlMigration {
   override val convertVisualElement: Boolean                        = true
   override def convertHtml(doc: Element, language: String): Element = {
     doc
-      .select("ndlaembed[data-resource='iframe']")
+      .select("ndlaembed[data-resource='iframe'][data-url^='https://ndla.filmiundervisning.no']")
       .forEach(embed => {
         val url = embed.attr("data-url")
-        if (url.contains("ndla.filmiundervisning.no/film/ndlafilm.aspx?filmId=")) {
-          embed.attr("data-url", url.replace("ndla.", "ndla2.").replace("/ndlafilm.aspx?filmId=", "/")): Unit
-        }
+        embed.attr("data-url", convertNorgesfilmUrl(url)): Unit
       })
     doc
+      .select("a[href^='https://ndla.filmiundervisning.no']")
+      .forEach(link => {
+        val url = link.attr("href")
+        link.attr("href", convertNorgesfilmUrl(url)): Unit
+      })
+    doc
+  }
+
+  private def convertNorgesfilmUrl(url: String): String = {
+    url.replace("ndla.", "ndla2.").replace("/ndlafilm.aspx?filmId=", "/")
   }
 
 }
