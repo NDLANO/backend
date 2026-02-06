@@ -16,7 +16,8 @@ import scalikejdbc.*
 import java.util.UUID
 import scala.util.Try
 
-case class FolderResource(folderId: UUID, resourceId: UUID, rank: Int, favoritedDate: NDLADate) extends Rankable {
+case class FolderResource(folderId: Option[UUID], resourceId: UUID, rank: Int, favoritedDate: NDLADate)
+    extends Rankable {
   override val sortId: UUID          = resourceId
   override val sortRank: Option[Int] = Some(rank)
 }
@@ -31,9 +32,9 @@ object FolderResource extends SQLSyntaxSupport[FolderResource] {
     fromResultSet(s => lp.resultName.c(s), rs)
 
   def fromResultSet(colNameWrapper: String => String, rs: WrappedResultSet): Try[FolderResource] = {
-    import no.ndla.myndlaapi.uuidBinder
+    import no.ndla.myndlaapi.{uuidBinder, maybeUuidBinder}
+    val folderId = rs.get[Option[UUID]](colNameWrapper("folder_id"))
     for {
-      folderId      <- rs.get[Try[UUID]](colNameWrapper("folder_id"))
       resourceId    <- rs.get[Try[UUID]](colNameWrapper("resource_id"))
       rank          <- Try(rs.int(colNameWrapper("rank")))
       favoritedDate <- Try(NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("favorited_date"))))
