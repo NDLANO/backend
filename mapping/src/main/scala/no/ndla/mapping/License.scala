@@ -7,6 +7,7 @@
  */
 
 package no.ndla.mapping
+import no.ndla.language.model.LanguageField
 
 object License extends Enumeration {
   val CC0: Value          = Value("CC0-1.0")
@@ -24,41 +25,85 @@ object License extends Enumeration {
     LicenseDefinition(
       CC0,
       "Creative Commons Zero",
-      Some("https://creativecommons.org/publicdomain/zero/1.0/legalcode"),
+      Seq(
+        LicenseUrl("https://creativecommons.org/publicdomain/zero/1.0", "en"),
+        LicenseUrl("https://creativecommons.org/publicdomain/zero/1.0/deed.no", "nb"),
+        LicenseUrl("https://creativecommons.org/publicdomain/zero/1.0/deed.no", "nn"),
+      ),
     ),
-    LicenseDefinition(PublicDomain, "Public Domain Mark", Some("https://creativecommons.org/about/pdm")),
-    LicenseDefinition(Copyrighted, "Copyrighted", None),
+    LicenseDefinition(
+      PublicDomain,
+      "Public Domain Mark",
+      Seq(
+        LicenseUrl("https://creativecommons.org/publicdomain/mark/1.0", "en"),
+        LicenseUrl("https://creativecommons.org/publicdomain/mark/1.0/deed.no", "nb"),
+        LicenseUrl("https://creativecommons.org/publicdomain/mark/1.0/deed.no", "nn"),
+      ),
+    ),
+    LicenseDefinition(
+      Copyrighted,
+      "Copyrighted",
+      Seq(
+        LicenseUrl("https://ndla.no/en/article/opphavsrett", "en"),
+        LicenseUrl("https://ndla.no/nb/article/opphavsrett", "nb"),
+        LicenseUrl("https://ndla.no/nn/article/opphavsrett", "nn"),
+      ),
+    ),
     LicenseDefinition(
       CC_BY,
       "Creative Commons Attribution 4.0 International",
-      Some("https://creativecommons.org/licenses/by/4.0/"),
+      Seq(
+        LicenseUrl("https://creativecommons.org/licenses/by/4.0", "en"),
+        LicenseUrl("https://creativecommons.org/licenses/by/4.0/deed.no", "nb"),
+        LicenseUrl("https://creativecommons.org/licenses/by/4.0/deed.no", "nn"),
+      ),
     ),
     LicenseDefinition(
       CC_BY_SA,
       "Creative Commons Attribution-ShareAlike 4.0 International",
-      Some("https://creativecommons.org/licenses/by-sa/4.0/"),
+      Seq(
+        LicenseUrl("https://creativecommons.org/licenses/by-sa/4.0", "en"),
+        LicenseUrl("https://creativecommons.org/licenses/by-sa/4.0/deed.no", "nb"),
+        LicenseUrl("https://creativecommons.org/licenses/by-sa/4.0/deed.no", "nn"),
+      ),
     ),
     LicenseDefinition(
       CC_BY_NC,
       "Creative Commons Attribution-NonCommercial 4.0 International",
-      Some("https://creativecommons.org/licenses/by-nc/4.0/"),
+      Seq(
+        LicenseUrl("https://creativecommons.org/licenses/by-nc/4.0", "en"),
+        LicenseUrl("https://creativecommons.org/licenses/by-nc/4.0/deed.no", "nb"),
+        LicenseUrl("https://creativecommons.org/licenses/by-nc/4.0/deed.no", "nn"),
+      ),
     ),
     LicenseDefinition(
       CC_BY_ND,
       "Creative Commons Attribution-NoDerivs 4.0 International",
-      Some("https://creativecommons.org/licenses/by-nd/4.0/"),
+      Seq(
+        LicenseUrl("https://creativecommons.org/licenses/by-nd/4.0", "en"),
+        LicenseUrl("https://creativecommons.org/licenses/by-nd/4.0/deed.no", "nb"),
+        LicenseUrl("https://creativecommons.org/licenses/by-nd/4.0/deed.no", "nn"),
+      ),
     ),
     LicenseDefinition(
       CC_BY_NC_SA,
       "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International",
-      Some("https://creativecommons.org/licenses/by-nc-sa/4.0/"),
+      Seq(
+        LicenseUrl("https://creativecommons.org/licenses/by-nc-sa/4.0", "en"),
+        LicenseUrl("https://creativecommons.org/licenses/by-nc-sa/4.0/deed.no", "nb"),
+        LicenseUrl("https://creativecommons.org/licenses/by-nc-sa/4.0/deed.no", "nn"),
+      ),
     ),
     LicenseDefinition(
       CC_BY_NC_ND,
       "Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International",
-      Some("https://creativecommons.org/licenses/by-nc-nd/4.0/"),
+      Seq(
+        LicenseUrl("https://creativecommons.org/licenses/by-nc-nd/4.0", "en"),
+        LicenseUrl("https://creativecommons.org/licenses/by-nc-nd/4.0/deed.no", "nb"),
+        LicenseUrl("https://creativecommons.org/licenses/by-nc-nd/4.0/deed.no", "nn"),
+      ),
     ),
-    LicenseDefinition(NA, "Not Applicable", None),
+    LicenseDefinition(NA, "Not Applicable", Seq.empty),
   )
 
   private val licenseToLicenseDefinitionsMap = licenseToLicenseDefinitionsSeq.map(x => x.license.toString -> x).toMap
@@ -68,4 +113,9 @@ object License extends Enumeration {
   def getLicenses: Seq[LicenseDefinition] = licenseToLicenseDefinitionsSeq
 }
 
-case class LicenseDefinition(license: License.Value, description: String, url: Option[String])
+case class LicenseDefinition(license: License.Value, description: String, url: Seq[LicenseUrl])
+
+case class LicenseUrl(url: String, language: String) extends LanguageField[String] {
+  override def value: String    = url
+  override def isEmpty: Boolean = url.isEmpty
+}

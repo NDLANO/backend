@@ -73,13 +73,17 @@ class ConverterService(using
     api.LearningPathTagsDTO(tags.tags, tags.language)
   }
 
-  def asApiCopyright(copyright: learningpath.LearningpathCopyright): api.CopyrightDTO = {
-    api.CopyrightDTO(asApiLicense(copyright.license), copyright.contributors.map(_.toApi))
+  def asApiCopyright(copyright: learningpath.LearningpathCopyright, language: String): api.CopyrightDTO = {
+    api.CopyrightDTO(asApiLicense(copyright.license, language), copyright.contributors.map(_.toApi))
   }
 
-  def asApiLicense(license: String): commonApi.LicenseDTO = getLicense(license) match {
-    case Some(l) => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url)
-    case None    => commonApi.LicenseDTO(license, Some("Invalid license"), None)
+  def asApiLicense(license: String, language: String): commonApi.LicenseDTO = getLicense(license) match {
+    case Some(l) => commonApi.LicenseDTO(
+        l.license.toString,
+        Option(l.description),
+        findByLanguageOrBestEffort(l.url, language).map(_.url),
+      )
+    case None => commonApi.LicenseDTO(license, Some("Invalid license"), None)
   }
 
   def asAuthor(user: domain.NdlaUserName): commonApi.AuthorDTO = {
@@ -164,7 +168,7 @@ class ConverterService(using
           created = lp.created,
           lastUpdated = lp.lastUpdated,
           tags = tags,
-          copyright = asApiCopyright(lp.copyright),
+          copyright = asApiCopyright(lp.copyright, language),
           canEdit = lp.canEditPath(userInfo),
           supportedLanguages = supportedLanguages,
           ownerId = owner,
@@ -530,7 +534,7 @@ class ConverterService(using
     val description  = newLearningPath.description.map(Description(_, newLearningPath.language)).toSeq
     val introduction = newLearningPath.introduction.map(Introduction(_, newLearningPath.language)).toSeq
 
-    val copyright = newLearningPath.copyright.getOrElse(newDefaultCopyright(user))
+    val copyright = newLearningPath.copyright.getOrElse(newDefaultCopyright(user, newLearningPath.language))
 
     val priority = newLearningPath.priority.getOrElse(common.Priority.Unspecified)
 
@@ -579,13 +583,13 @@ class ConverterService(using
       }
   }
 
-  private def newDefaultCopyright(user: CombinedUser): CopyrightDTO = {
+  private def newDefaultCopyright(user: CombinedUser, language: String): CopyrightDTO = {
     val contributors = user
       .myndlaUser
       .map(_.displayName)
       .map(name => Seq(commonApi.AuthorDTO(ContributorType.Writer, name)))
       .getOrElse(Seq.empty)
-    CopyrightDTO(asApiLicense(License.CC_BY.toString), contributors)
+    CopyrightDTO(asApiLicense(License.CC_BY.toString, language), contributors)
   }
 
   def getApiIntroduction(learningSteps: Seq[LearningStep]): Seq[api.IntroductionDTO] = {
@@ -634,7 +638,7 @@ class ConverterService(using
         learningpath.created,
         learningpath.lastUpdated,
         tags,
-        asApiCopyright(learningpath.copyright),
+        asApiCopyright(learningpath.copyright, AllLanguages),
         supportedLanguages,
         learningpath.isBasedOn,
         message,
@@ -666,7 +670,7 @@ class ConverterService(using
       val description  = findByLanguageOrBestEffort(ls.description, language).map(asApiDescription)
       val embedUrl     = findByLanguageOrBestEffort(ls.embedUrl, language).map(asApiEmbedUrlV2).map(createEmbedUrl)
 
-      val copyright = ls.copyright.map(asApiCopyright)
+      val copyright = ls.copyright.map(copyright => asApiCopyright(copyright, language))
 
       Success(
         api.LearningStepV2DTO(

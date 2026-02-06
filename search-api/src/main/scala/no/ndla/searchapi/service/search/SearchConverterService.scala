@@ -589,10 +589,11 @@ class SearchConverterService(using
     }
   }
 
-  private def asLearningPathApiLicense(license: String): LicenseDTO = {
+  private def asLearningPathApiLicense(license: String, language: String): LicenseDTO = {
     getLicense(license) match {
-      case Some(l) => LicenseDTO(l.license.toString, Option(l.description), l.url)
-      case None    => LicenseDTO(license, Some("Invalid license"), None)
+      case Some(l) =>
+        LicenseDTO(l.license.toString, Option(l.description), findByLanguageOrBestEffort(l.url, language).map(_.url))
+      case None => LicenseDTO(license, Some("Invalid license"), None)
     }
   }
 
