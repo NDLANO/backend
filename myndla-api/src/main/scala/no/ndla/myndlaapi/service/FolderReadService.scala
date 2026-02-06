@@ -231,6 +231,18 @@ class FolderReadService(using
       } yield resource.isDefined
   }
 
+  def getFolderResources(folderId: UUID, feideAccessToken: Option[FeideAccessToken]): Try[List[ResourceDTO]] = {
+    for {
+      feideId            <- feideApiClient.getFeideID(feideAccessToken)
+      resources          <- folderRepository.getFolderResources(folderId)
+      _                  <- resources.traverse(r => r.isOwner(feideId))
+      convertedResources <- folderConverterService.domainToApiModel(
+        resources,
+        resource => folderConverterService.toApiResource(resource, isOwner = true),
+      )
+    } yield convertedResources
+  }
+
   private def createFavorite(feideId: FeideID): Try[domain.Folder] = {
     val favoriteFolder = domain.NewFolderData(
       parentId = None,
