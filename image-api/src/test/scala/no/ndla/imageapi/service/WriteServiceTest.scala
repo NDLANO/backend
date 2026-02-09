@@ -535,6 +535,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     verify(imageStorage, times(0)).deleteObject(any)
     verify(imageStorage, times(0)).moveObjects(any)
     verify(imageRepository, times(1)).update(any, any)(using any)
+    verify(cloudFrontClient, times(1)).createInvalidation(any, any)
   }
 
   test("That uploading image for a new language just adds a new one") {

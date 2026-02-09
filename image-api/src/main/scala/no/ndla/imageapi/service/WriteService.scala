@@ -12,12 +12,14 @@ import cats.implicits.*
 import com.sksamuel.scrimage.webp.WebpWriter
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
+import no.ndla.common.aws.NdlaCloudFrontClient
 import no.ndla.common.errors.{MissingBucketKeyException, MissingIdException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Deletable, Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.database.DBUtility
+import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.*
 import no.ndla.imageapi.model.api.{
   ImageMetaInformationV2DTO,
@@ -50,8 +52,10 @@ class WriteService(using
     imageStorage: ImageStorageService,
     imageConverter: ImageConverter,
     tagIndexService: TagIndexService,
+    cloudFrontClient: NdlaCloudFrontClient,
     clock: Clock,
     random: Random,
+    props: Props,
 ) extends StrictLogging {
 
   def deleteImageLanguageVersionV2(
@@ -336,7 +340,10 @@ class WriteService(using
         movedImage
       case _ => imageFileFromUpload
     }
-
+    cloudFrontClient.createInvalidation(
+      props.CloudFrontDistributionId,
+      Seq(s"/${imageFileFromUpload.fileName}", s"/${imageFileFromUpload.getFileStem}/*"),
+    )
     val withNew = converterService.withNewImageFile(oldImage, newImageFile, language, user)
     Success(withNew)
   }
