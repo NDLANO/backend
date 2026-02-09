@@ -291,27 +291,16 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
   def getRecentFavorited(size: Option[Int], excludeResourceTypes: List[ResourceType])(implicit
       session: DBSession = dbUtility.autoSession
   ): Try[List[Resource]] = {
-    val fr    = FolderResource.syntax("fr")
     val r     = Resource.syntax("r")
-    val where =
+    val limit = sqls"limit ${size.getOrElse(1)}"
+    val where = {
       if (excludeResourceTypes.nonEmpty) {
-        sqls"""where ${r.resourceType} not in (${excludeResourceTypes.map(_.entryName)})"""
+        sqls"""${r.resourceType} not in (${excludeResourceTypes.map(_.entryName)}) $limit"""
       } else {
-        sqls""
+        sqls"""1=1 $limit"""
       }
-    tsql"""select ${r.result.*}, ${fr.result.*} from ${FolderResource.as(fr)}
-            left join ${Resource.as(r)}
-                on ${fr.resourceId} = ${r.id}
-            $where
-            order by favorited_date DESC
-            limit ${size.getOrElse(1)}
-           """
-      .one(Resource.fromResultSet(r, withConnection = false))
-      .toMany(rs => FolderResource.fromResultSet(fr)(rs).toOption)
-      .map((resource, connections) =>
-        resource.map(r => r.copy(connection = connections.find(c => c.resourceId == r.id)))
-      )
-      .runListFlat()
+    }
+    resourcesWhere(whereClause = where)
   }
 
   def numberOfFavouritesForResource(resourceId: String, resourceType: String)(implicit session: DBSession): Try[Long] =
