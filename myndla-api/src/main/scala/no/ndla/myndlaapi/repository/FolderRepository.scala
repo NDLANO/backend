@@ -291,13 +291,13 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
   def getRecentFavorited(size: Option[Int], excludeResourceTypes: List[ResourceType])(implicit
       session: DBSession = dbUtility.autoSession
   ): Try[List[Resource]] = {
-    val r     = Resource.syntax("r")
-    val limit = sqls"limit ${size.getOrElse(1)}"
-    val where = {
+    val r             = Resource.syntax("r")
+    val orderAndLimit = sqls"order by r.created desc limit ${size.getOrElse(1)}"
+    val where         = {
       if (excludeResourceTypes.nonEmpty) {
-        sqls"""${r.resourceType} not in (${excludeResourceTypes.map(_.entryName)}) $limit"""
+        sqls"""${r.resourceType} not in (${excludeResourceTypes.map(_.entryName)}) $orderAndLimit"""
       } else {
-        sqls"""1=1 $limit"""
+        sqls"""1=1 $orderAndLimit"""
       }
     }
     resourcesWhere(whereClause = where)
