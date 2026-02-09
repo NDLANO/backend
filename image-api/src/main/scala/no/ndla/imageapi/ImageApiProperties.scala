@@ -70,10 +70,11 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
   val ElasticSearchScrollKeepAlive               = "1m"
   val InitialScrollContextKeywords: List[String] = List("0", "initial", "start", "first")
 
-  lazy val Domain: String       = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
-  val ImageApiV2UrlBase: String = Domain + ImageControllerV2Path + "/"
-  val ImageApiV3UrlBase: String = Domain + ImageControllerV3Path + "/"
-  val RawImageUrlBase: String   = propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", Domain + RawControllerPath)
+  lazy val Domain: String                      = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
+  val ImageApiV2UrlBase: String                = Domain + ImageControllerV2Path + "/"
+  val ImageApiV3UrlBase: String                = Domain + ImageControllerV3Path + "/"
+  val RawImageUrlBase: String                  = propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", Domain + RawControllerPath)
+  val CloudFrontDistributionId: Option[String] = propOrNone("IMAGE_API_CLOUDFRONT_DISTRIBUTION_ID")
 
   override def MetaMigrationLocation: String      = "no/ndla/imageapi/db/migration"
   override def MetaMigrationTable: Option[String] = Some("schema_version")

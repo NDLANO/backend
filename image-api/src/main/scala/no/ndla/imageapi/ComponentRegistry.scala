@@ -9,7 +9,7 @@
 package no.ndla.imageapi
 
 import no.ndla.common.Clock
-import no.ndla.common.aws.NdlaS3Client
+import no.ndla.common.aws.{NdlaCloudFrontClient, NdlaS3Client}
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.imageapi.controller.*
 import no.ndla.imageapi.db.migrationwithdependencies.{
@@ -38,25 +38,26 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given errorHelpers: ErrorHelpers   = new ErrorHelpers
   given errorHandling: ErrorHandling = new ControllerErrorHandling
 
-  given s3Client: NdlaS3Client                         = new NdlaS3Client(props.StorageName, props.StorageRegion)
-  given ndlaClient: NdlaClient                         = new NdlaClient
-  given e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
-  given searchLanguage: SearchLanguage                 = new SearchLanguage
-  given imageConverter: ImageConverter                 = new ImageConverter
-  given random: Random                                 = new Random
-  given converterService: ConverterService             = new ConverterService
-  given myndlaApiClient: MyNDLAApiClient               = new MyNDLAApiClient
-  given searchConverterService: SearchConverterService = new SearchConverterService
-  given dbUtility: DBUtility                           = new DBUtility
-  given imageRepository: ImageRepository               = new ImageRepository
-  given imageIndexService: ImageIndexService           = new ImageIndexService
-  given imageSearchService: ImageSearchService         = new ImageSearchService
-  given tagIndexService: TagIndexService               = new TagIndexService
-  given tagSearchService: TagSearchService             = new TagSearchService
-  given validationService: ValidationService           = new ValidationService
-  given readService: ReadService                       = new ReadService
-  given imageStorage: ImageStorageService              = new ImageStorageService
-  given writeService: WriteService                     = new WriteService
+  given s3Client: NdlaS3Client                             = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  implicit lazy val cloudFrontClient: NdlaCloudFrontClient = new NdlaCloudFrontClient
+  given ndlaClient: NdlaClient                             = new NdlaClient
+  given e4sClient: NdlaE4sClient                           = Elastic4sClientFactory.getClient(props.SearchServer)
+  given searchLanguage: SearchLanguage                     = new SearchLanguage
+  given imageConverter: ImageConverter                     = new ImageConverter
+  given random: Random                                     = new Random
+  given converterService: ConverterService                 = new ConverterService
+  given myndlaApiClient: MyNDLAApiClient                   = new MyNDLAApiClient
+  given searchConverterService: SearchConverterService     = new SearchConverterService
+  given dbUtility: DBUtility                               = new DBUtility
+  given imageRepository: ImageRepository                   = new ImageRepository
+  given imageIndexService: ImageIndexService               = new ImageIndexService
+  given imageSearchService: ImageSearchService             = new ImageSearchService
+  given tagIndexService: TagIndexService                   = new TagIndexService
+  given tagSearchService: TagSearchService                 = new TagSearchService
+  given validationService: ValidationService               = new ValidationService
+  given readService: ReadService                           = new ReadService
+  given imageStorage: ImageStorageService                  = new ImageStorageService
+  given writeService: WriteService                         = new WriteService
 
   given migrator: DBMigrator =
     DBMigrator(new V6__AddAgreementToImages, new V7__TranslateUntranslatedAuthors, new V25__FixUrlEncodedFileNames)
