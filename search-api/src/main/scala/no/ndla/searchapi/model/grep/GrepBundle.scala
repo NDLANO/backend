@@ -14,13 +14,15 @@ case class GrepBundle(
     kompetansemaalsett: List[GrepKompetansemaalSett],
     tverrfagligeTemaer: List[GrepElement],
     laereplaner: List[GrepLaererplan],
+    fagkoder: List[GrepFagkode],
 ) {
 
   val grepContext: List[GrepElement] = kjerneelementer ++
     kompetansemaal ++
     kompetansemaalsett ++
     tverrfagligeTemaer ++
-    laereplaner
+    laereplaner ++
+    fagkoder
 
   val grepContextByCode: Map[String, GrepElement] = Map.from(grepContext.map(elem => elem.kode -> elem))
 

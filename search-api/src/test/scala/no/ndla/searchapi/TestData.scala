@@ -1663,48 +1663,87 @@ object TestData {
     kompetansemaalsett = List.empty,
     tverrfagligeTemaer = List.empty,
     laereplaner = List.empty,
+    fagkoder = List.empty,
   )
 
   val grepBundle: GrepBundle = emptyGrepBundle.copy(
     kjerneelementer = List(
       GrepKjerneelement(
         kode = "KE12",
-        GrepStatusDTO.Published,
+        uri = "http://psi.udir.no/kl06/KE12",
+        status = GrepStatusDTO.Published,
         tittel = GrepTextObj(List(GrepTitle("default", "Utforsking og problemløysing"))),
         beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
-        `tilhoerer-laereplan` = BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP1"),
+        `tilhoerer-laereplan` = BelongsToObj(
+          kode = "LP1",
+          uri = "http://psi.udir.no/kl06/KE12",
+          status = GrepStatusDTO.Published,
+          tittel = "Dette er LP1",
+        ),
       ),
       GrepKjerneelement(
         kode = "KE34",
-        GrepStatusDTO.Published,
+        uri = "http://psi.udir.no/kl06/KE34",
+        status = GrepStatusDTO.Published,
         tittel = GrepTextObj(List(GrepTitle("default", "Abstraksjon og generalisering"))),
         beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
-        `tilhoerer-laereplan` = BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP2"),
+        `tilhoerer-laereplan` = BelongsToObj(
+          kode = "LP1",
+          uri = "http://psi.udir.no/kl06/LP1",
+          status = GrepStatusDTO.Published,
+          tittel = "Dette er LP2",
+        ),
       ),
     ),
     kompetansemaal = List(
       GrepKompetansemaal(
         kode = "KM123",
-        GrepStatusDTO.Published,
+        uri = "http://psi.udir.no/kl06/KM123",
+        status = GrepStatusDTO.Published,
         tittel = GrepTextObj(
           List(GrepTitle("default", "bruke ulike kilder på en kritisk, hensiktsmessig og etterrettelig måte"))
         ),
-        `tilhoerer-laereplan` = BelongsToObj("LP1", GrepStatusDTO.Published, "Dette er LP1"),
-        `tilhoerer-kompetansemaalsett` = BelongsToObj("KMS1", GrepStatusDTO.Published, "Dette er KMS1"),
+        `tilhoerer-laereplan` = BelongsToObj(
+          kode = "LP1",
+          uri = "http://psi.udir.no/kl06/LP1",
+          status = GrepStatusDTO.Published,
+          tittel = "Dette er LP1",
+        ),
+        `tilhoerer-kompetansemaalsett` = BelongsToObj(
+          kode = "KMS1",
+          uri = "http://psi.udir.no/kl06/KMS1",
+          status = GrepStatusDTO.Published,
+          tittel = "Dette er KMS1",
+        ),
         `tilknyttede-tverrfaglige-temaer` = List(),
         `tilknyttede-kjerneelementer` = List(),
         `gjenbruk-av` = None,
       )
     ),
     tverrfagligeTemaer = List(
-      GrepTverrfagligTema("TT2", GrepStatusDTO.Published, Seq(GrepTitle("default", "Demokrati og medborgerskap")))
+      GrepTverrfagligTema(
+        kode = "TT2",
+        uri = "http://psi.udir.no/kl06/TT2",
+        status = GrepStatusDTO.Published,
+        tittel = Seq(GrepTitle("default", "Demokrati og medborgerskap")),
+      )
     ),
     laereplaner = List(
       GrepLaererplan(
-        "LP1",
-        GrepStatusDTO.Published,
-        GrepTextObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)"))),
+        kode = "LP1",
+        uri = "http://psi.udir.no/kl06/LP1",
+        status = GrepStatusDTO.Published,
+        tittel = GrepTextObj(List(GrepTitle("default", "Læreplan i norsk (NOR01-04)"))),
         `erstattes-av` = List.empty,
+      )
+    ),
+    fagkoder = List(
+      GrepFagkode(
+        kode = "LMI01-05",
+        uri = "http://psi.udir.no/kl06/LMI01-05",
+        status = GrepStatusDTO.Published,
+        tittel = Seq(GrepTitle("default", "Norsk")),
+        kortform = Seq(GrepTitle("default", "Norsk")),
       )
     ),
   )

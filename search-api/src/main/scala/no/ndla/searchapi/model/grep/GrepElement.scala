@@ -16,6 +16,7 @@ import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 
 sealed trait GrepElement {
   val kode: String
+  val uri: String
   val status: GrepStatusDTO
   def getTitle: Seq[GrepTitle]
   def getTitleValue(language: String): Option[String] = {
@@ -28,6 +29,7 @@ object GrepElement {
     Decoder[GrepKompetansemaal].widen,
     Decoder[GrepKompetansemaalSett].widen,
     Decoder[GrepLaererplan].widen,
+    Decoder[GrepFagkode].widen,
     Decoder[GrepTverrfagligTema].widen,
   ).reduceLeft(_ or _)
 
@@ -36,6 +38,7 @@ object GrepElement {
     case x: GrepKompetansemaal     => x.asJson
     case x: GrepKompetansemaalSett => x.asJson
     case x: GrepLaererplan         => x.asJson
+    case x: GrepFagkode            => x.asJson
     case x: GrepTverrfagligTema    => x.asJson
   }
 }
@@ -52,6 +55,7 @@ object GrepTextObj {
 
 case class GrepKjerneelement(
     kode: String,
+    uri: String,
     status: GrepStatusDTO,
     tittel: GrepTextObj,
     beskrivelse: GrepTextObj,
@@ -65,13 +69,13 @@ object GrepKjerneelement {
   implicit val decoder: Decoder[GrepKjerneelement] = deriveDecoder
 }
 
-case class BelongsToObj(kode: String, status: GrepStatusDTO, tittel: String)
+case class BelongsToObj(kode: String, uri: String, status: GrepStatusDTO, tittel: String)
 object BelongsToObj {
   implicit val encoder: Encoder[BelongsToObj] = deriveEncoder
   implicit val decoder: Decoder[BelongsToObj] = deriveDecoder
 }
 
-case class ReferenceObj(kode: String, status: GrepStatusDTO, tittel: String)
+case class ReferenceObj(kode: String, uri: String, status: GrepStatusDTO, tittel: String)
 object ReferenceObj {
   implicit val encoder: Encoder[ReferenceObj] = deriveEncoder
   implicit val decoder: Decoder[ReferenceObj] = deriveDecoder
@@ -85,6 +89,7 @@ object ReferenceWrapperObj {
 
 case class GrepKompetansemaal(
     kode: String,
+    uri: String,
     status: GrepStatusDTO,
     tittel: GrepTextObj,
     `tilhoerer-laereplan`: BelongsToObj,
@@ -103,6 +108,7 @@ object GrepKompetansemaal {
 
 case class GrepKompetansemaalSett(
     kode: String,
+    uri: String,
     status: GrepStatusDTO,
     tittel: GrepTextObj,
     `tilhoerer-laereplan`: BelongsToObj,
@@ -116,8 +122,13 @@ object GrepKompetansemaalSett {
   implicit val decoder: Decoder[GrepKompetansemaalSett] = deriveDecoder
 }
 
-case class GrepLaererplan(kode: String, status: GrepStatusDTO, tittel: GrepTextObj, `erstattes-av`: List[ReferenceObj])
-    extends GrepElement {
+case class GrepLaererplan(
+    kode: String,
+    uri: String,
+    status: GrepStatusDTO,
+    tittel: GrepTextObj,
+    `erstattes-av`: List[ReferenceObj],
+) extends GrepElement {
   override def getTitle: Seq[GrepTitle] = tittel.tekst
 }
 object GrepLaererplan {
@@ -125,7 +136,22 @@ object GrepLaererplan {
   implicit val decoder: Decoder[GrepLaererplan] = deriveDecoder
 }
 
-case class GrepTverrfagligTema(kode: String, status: GrepStatusDTO, tittel: Seq[GrepTitle]) extends GrepElement {
+case class GrepFagkode(
+    kode: String,
+    uri: String,
+    status: GrepStatusDTO,
+    tittel: Seq[GrepTitle],
+    kortform: Seq[GrepTitle],
+) extends GrepElement {
+  override def getTitle: Seq[GrepTitle] = tittel
+}
+object GrepFagkode {
+  implicit val encoder: Encoder[GrepFagkode] = deriveEncoder
+  implicit val decoder: Decoder[GrepFagkode] = deriveDecoder
+}
+
+case class GrepTverrfagligTema(kode: String, uri: String, status: GrepStatusDTO, tittel: Seq[GrepTitle])
+    extends GrepElement {
   override def getTitle: Seq[GrepTitle] = tittel
 }
 object GrepTverrfagligTema {

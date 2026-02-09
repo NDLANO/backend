@@ -406,34 +406,63 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       .copy(
         kjerneelementer = List(
           GrepKjerneelement(
-            "KE12",
-            GrepStatusDTO.Published,
-            GrepTextObj(List(GrepTitle("default", "tittel12"))),
-            GrepTextObj(List(GrepTitle("default", ""))),
-            BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
+            kode = "KE12",
+            uri = "http://psi.udir.no/kl06/KE12",
+            status = GrepStatusDTO.Published,
+            tittel = GrepTextObj(List(GrepTitle("default", "tittel12"))),
+            beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
+            `tilhoerer-laereplan` = BelongsToObj(
+              kode = "LP123",
+              uri = "http://psi.udir.no/kl06/LP123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er LP123",
+            ),
           ),
           GrepKjerneelement(
-            "KE34",
-            GrepStatusDTO.Published,
-            GrepTextObj(List(GrepTitle("default", "tittel34"))),
-            GrepTextObj(List(GrepTitle("default", ""))),
-            BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
+            kode = "KE34",
+            uri = "http://psi.udir.no/kl06/KE34",
+            status = GrepStatusDTO.Published,
+            tittel = GrepTextObj(List(GrepTitle("default", "tittel34"))),
+            beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
+            `tilhoerer-laereplan` = BelongsToObj(
+              kode = "LP123",
+              uri = "http://psi.udir.no/kl06/LP123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er LP123",
+            ),
           ),
         ),
         kompetansemaal = List(
           GrepKompetansemaal(
-            "KM123",
-            GrepStatusDTO.Published,
-            GrepTextObj(List(GrepTitle("default", "tittel123"))),
-            BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
-            BelongsToObj("KMS123", GrepStatusDTO.Published, "Dette er KMS123"),
-            List(),
-            List(),
-            None,
+            kode = "KM123",
+            uri = "http://psi.udir.no/kl06/Km123",
+            status = GrepStatusDTO.Published,
+            tittel = GrepTextObj(List(GrepTitle("default", "tittel123"))),
+            `tilhoerer-laereplan` = BelongsToObj(
+              kode = "LP123",
+              uri = "http://psi.udir.no/kl06/LP123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er LP123",
+            ),
+            `tilhoerer-kompetansemaalsett` = BelongsToObj(
+              kode = "KMS123",
+              uri = "http://psi.udir.no/kl06/KMS123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er KMS123",
+            ),
+            `tilknyttede-kjerneelementer` = List(),
+            `tilknyttede-tverrfaglige-temaer` = List(),
+            `gjenbruk-av` = None,
           )
         ),
-        tverrfagligeTemaer =
-          List(GrepTverrfagligTema("TT2", GrepStatusDTO.Published, Seq(GrepTitle("default", "tittel2")))),
+        tverrfagligeTemaer = List(
+          GrepTverrfagligTema(
+            kode = "TT2",
+            uri = "http://psi.udir.no/kl06/TT2",
+            status = GrepStatusDTO.Published,
+            tittel = Seq(GrepTitle("default", "tittel2")),
+          )
+        ),
       )
     val grepContexts = List(
       SearchableGrepContext("KE12", Some("tittel12"), "Published"),
@@ -454,34 +483,63 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       .copy(
         kjerneelementer = List(
           GrepKjerneelement(
-            "KE12",
-            GrepStatusDTO.Published,
-            GrepTextObj(List(GrepTitle("default", "tittel12"))),
-            GrepTextObj(List(GrepTitle("default", ""))),
-            BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
+            kode = "KE12",
+            uri = "http://psi.udir.no/kl06/KE12",
+            status = GrepStatusDTO.Published,
+            tittel = GrepTextObj(List(GrepTitle("default", "tittel12"))),
+            beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
+            `tilhoerer-laereplan` = BelongsToObj(
+              kode = "LP123",
+              uri = "http://psi.udir.no/kl06/LP123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er LP123",
+            ),
           ),
           GrepKjerneelement(
-            "KE34",
-            GrepStatusDTO.Published,
-            GrepTextObj(List(GrepTitle("default", "tittel34"))),
-            GrepTextObj(List(GrepTitle("default", ""))),
-            BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
+            kode = "KE34",
+            uri = "http://psi.udir.no/kl06/KE34",
+            status = GrepStatusDTO.Published,
+            tittel = GrepTextObj(List(GrepTitle("default", "tittel34"))),
+            beskrivelse = GrepTextObj(List(GrepTitle("default", ""))),
+            `tilhoerer-laereplan` = BelongsToObj(
+              kode = "LP123",
+              uri = "http://psi.udir.no/kl06/LP123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er LP123",
+            ),
           ),
         ),
         kompetansemaal = List(
           GrepKompetansemaal(
-            "KM123",
-            GrepStatusDTO.Published,
-            GrepTextObj(List(GrepTitle("default", "tittel123"))),
-            BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
-            BelongsToObj("KMS123", GrepStatusDTO.Published, "Dette er KMS123"),
-            List(),
-            List(),
-            None,
+            kode = "KM123",
+            uri = "http://psi.udir.no/kl06/KM123",
+            status = GrepStatusDTO.Published,
+            tittel = GrepTextObj(List(GrepTitle("default", "tittel123"))),
+            `tilhoerer-laereplan` = BelongsToObj(
+              kode = "LP123",
+              uri = "http://psi.udir.no/kl06/LP123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er LP123",
+            ),
+            `tilhoerer-kompetansemaalsett` = BelongsToObj(
+              kode = "KMS123",
+              uri = "http://psi.udir.no/kl06/KMS123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er KMS123",
+            ),
+            `tilknyttede-kjerneelementer` = List(),
+            `tilknyttede-tverrfaglige-temaer` = List(),
+            `gjenbruk-av` = None,
           )
         ),
-        tverrfagligeTemaer =
-          List(GrepTverrfagligTema("TT2", GrepStatusDTO.Published, Seq(GrepTitle("default", "tittel2")))),
+        tverrfagligeTemaer = List(
+          GrepTverrfagligTema(
+            kode = "TT2",
+            uri = "http://psi.udir.no/kl06/TT2",
+            status = GrepStatusDTO.Published,
+            tittel = Seq(GrepTitle("default", "tittel2")),
+          )
+        ),
       )
     val grepContexts = List.empty
 
@@ -516,36 +574,74 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
       .copy(
         kompetansemaalsett = List(
           GrepKompetansemaalSett(
-            "KV123",
-            GrepStatusDTO.Published,
-            GrepTextObj(List(GrepTitle("default", "tittel123"))),
-            BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
-            List(
-              ReferenceObj("KM123", GrepStatusDTO.Published, "Tittel KM123"),
-              ReferenceObj("KM234", GrepStatusDTO.Published, "Tittel KM234"),
+            kode = "KV123",
+            uri = "http://psi.udir.no/kl06/KV123",
+            status = GrepStatusDTO.Published,
+            tittel = GrepTextObj(List(GrepTitle("default", "tittel123"))),
+            `tilhoerer-laereplan` = BelongsToObj(
+              kode = "LP123",
+              uri = "http://psi.udir.no/kl06/LP123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er LP123",
+            ),
+            kompetansemaal = List(
+              ReferenceObj(
+                kode = "KM123",
+                uri = "http://psi.udir.no/kl06/KM123",
+                status = GrepStatusDTO.Published,
+                tittel = "Tittel KM123",
+              ),
+              ReferenceObj(
+                kode = "KM234",
+                uri = "http://psi.udir.no/kl06/KM234",
+                status = GrepStatusDTO.Published,
+                tittel = "Tittel KM234",
+              ),
             ),
           )
         ),
         kompetansemaal = List(
           GrepKompetansemaal(
-            "KM123",
-            GrepStatusDTO.Published,
-            GrepTextObj(List(GrepTitle("default", "tittel123"))),
-            BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
-            BelongsToObj("KV123", GrepStatusDTO.Published, "Dette er KV123"),
-            List(),
-            List(),
-            None,
+            kode = "KM123",
+            uri = "http://psi.udir.no/kl06/KM123",
+            status = GrepStatusDTO.Published,
+            tittel = GrepTextObj(List(GrepTitle("default", "tittel123"))),
+            `tilhoerer-laereplan` = BelongsToObj(
+              kode = "LP123",
+              uri = "http://psi.udir.no/kl06/LP123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er LP123",
+            ),
+            `tilhoerer-kompetansemaalsett` = BelongsToObj(
+              kode = "KV123",
+              uri = "http://psi.udir.no/kl06/KV123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er KV123",
+            ),
+            `tilknyttede-kjerneelementer` = List(),
+            `tilknyttede-tverrfaglige-temaer` = List(),
+            `gjenbruk-av` = None,
           ),
           GrepKompetansemaal(
-            "KM234",
-            GrepStatusDTO.Published,
-            GrepTextObj(List(GrepTitle("default", "tittel234"))),
-            BelongsToObj("LP123", GrepStatusDTO.Published, "Dette er LP123"),
-            BelongsToObj("KV123", GrepStatusDTO.Published, "Dette er KV123"),
-            List(),
-            List(),
-            None,
+            kode = "KM234",
+            uri = "http://psi.udir.no/kl06/KM234",
+            status = GrepStatusDTO.Published,
+            tittel = GrepTextObj(List(GrepTitle("default", "tittel234"))),
+            `tilhoerer-laereplan` = BelongsToObj(
+              kode = "LP123",
+              uri = "http://psi.udir.no/kl06/LP123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er LP123",
+            ),
+            `tilhoerer-kompetansemaalsett` = BelongsToObj(
+              kode = "KV123",
+              uri = "http://psi.udir.no/kl06/KV123",
+              status = GrepStatusDTO.Published,
+              tittel = "Dette er KV123",
+            ),
+            `tilknyttede-kjerneelementer` = List(),
+            `tilknyttede-tverrfaglige-temaer` = List(),
+            `gjenbruk-av` = None,
           ),
         ),
       )
