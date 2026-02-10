@@ -9,11 +9,13 @@ on:
       - language/**
       - modules/**
       - build.mill
+      - Dockerfile
   pull_request:
     paths:
       - language/**
       - modules/**
       - build.mill
+      - Dockerfile
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

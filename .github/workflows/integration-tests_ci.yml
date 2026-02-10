@@ -16,6 +16,7 @@ on:
       - search-api/**
       - modules/**
       - build.mill
+      - Dockerfile
   pull_request:
     paths:
       - integration-tests/**
@@ -28,6 +29,7 @@ on:
       - search-api/**
       - modules/**
       - build.mill
+      - Dockerfile
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

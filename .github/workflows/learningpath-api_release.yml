@@ -20,6 +20,7 @@ on:
       - scalatestsuite/**
       - modules/**
       - build.mill
+      - Dockerfile
 jobs:
   release:
     uses: ndlano/reusable-workflows/.github/workflows/release.yaml@main

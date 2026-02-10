@@ -12,6 +12,7 @@ on:
       - database/**
       - modules/**
       - build.mill
+      - Dockerfile
   pull_request:
     paths:
       - scalatestsuite/**
@@ -20,6 +21,7 @@ on:
       - database/**
       - modules/**
       - build.mill
+      - Dockerfile
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml

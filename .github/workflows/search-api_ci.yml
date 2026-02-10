@@ -17,6 +17,7 @@ on:
       - scalatestsuite/**
       - modules/**
       - build.mill
+      - Dockerfile
   pull_request:
     paths:
       - search-api/**
@@ -30,6 +31,7 @@ on:
       - scalatestsuite/**
       - modules/**
       - build.mill
+      - Dockerfile
 jobs:
   unit_tests:
     uses: ./.github/workflows/ci.yaml
