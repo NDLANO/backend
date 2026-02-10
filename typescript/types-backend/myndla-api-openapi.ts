@@ -770,6 +770,11 @@ export type components = {
         OwnerDTO: {
             /** @description Name of the owner */
             name: string;
+            /**
+             * Format: int64
+             * @description ID of the owner
+             */
+            id: number;
         };
         /** ResourceDTO */
         ResourceDTO: {
