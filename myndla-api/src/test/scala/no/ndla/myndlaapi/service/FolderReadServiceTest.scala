@@ -266,7 +266,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       name = "SharedFolder",
       status = "shared",
       breadcrumbs = List(api.BreadcrumbDTO(id = folderId, name = "SharedFolder")),
-      owner = Some(OwnerDTO(name = user.displayName)),
+      owner = Some(OwnerDTO(name = user.displayName, id = user.id)),
     )
 
     when(folderRepository.insertFolder(any, any)(using any)).thenReturn(Success(favoriteDomainFolder))
@@ -377,7 +377,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       name = "",
       status = "shared",
       breadcrumbs = List(api.BreadcrumbDTO(id = folderUUID, name = "")),
-      owner = Some(OwnerDTO("Feide")),
+      owner = Some(OwnerDTO("Feide", domainUserData.id)),
     )
 
     when(
@@ -473,7 +473,7 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       status = "shared",
       breadcrumbs = List(api.BreadcrumbDTO(id = folderUUID, name = "")),
       resources = List(apiResource),
-      owner = Some(OwnerDTO(name = "User Name")),
+      owner = Some(OwnerDTO(name = "User Name", id = 1L)),
     )
 
     when(

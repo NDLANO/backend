@@ -66,7 +66,7 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
               updated = folder.updated,
               shared = folder.shared,
               description = folder.description,
-              owner = feideUser.map(user => OwnerDTO(user.displayName)),
+              owner = feideUser.map(user => OwnerDTO(user.displayName, user.id)),
             )
           })
       )

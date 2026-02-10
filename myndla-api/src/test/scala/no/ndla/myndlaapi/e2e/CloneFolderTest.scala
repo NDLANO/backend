@@ -171,6 +171,12 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val customId       = UUID.randomUUID()
     val parentId       = Some(customId)
 
+    val expectedUser = myndlaApi
+      .componentRegistry
+      .userService
+      .getMyNDLAUser(destinationFeideId, None)(using myndlaApi.componentRegistry.dbUtil.autoSession)
+      .get
+
     val parentChild1 = api.FolderDTO(
       id = customId,
       name = "p_child1",
@@ -185,7 +191,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 1"),
-      owner = Some(OwnerDTO("")),
+      owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
     val parentChild2 = api.FolderDTO(
@@ -202,7 +208,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 2"),
-      owner = Some(OwnerDTO("")),
+      owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
     val parentChild3 = api.ResourceDTO(
@@ -228,7 +234,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 0"),
-      owner = Some(OwnerDTO("")),
+      owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -257,6 +263,12 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val sourceFolderId = prepareFolderToClone()
     val customId       = UUID.randomUUID()
     val parentId       = Some(customId)
+
+    val expectedUser = myndlaApi
+      .componentRegistry
+      .userService
+      .getMyNDLAUser(destinationFeideId, None)(using myndlaApi.componentRegistry.dbUtil.autoSession)
+      .get
 
     val folderThatShouldNotBeCloned = NewFolderData(
       parentId = Some(sourceFolderId),
@@ -297,7 +309,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 1"),
-      owner = Some(OwnerDTO("")),
+      owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
     val parentChild2 = api.FolderDTO(
@@ -314,7 +326,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 2"),
-      owner = Some(OwnerDTO("")),
+      owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
     val parentChild3 = api.ResourceDTO(
@@ -340,7 +352,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 0"),
-      owner = Some(OwnerDTO("")),
+      owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
@@ -369,6 +381,12 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val customId       = UUID.randomUUID()
     val parentId       = Some(customId)
 
+    val expectedUser = myndlaApi
+      .componentRegistry
+      .userService
+      .getMyNDLAUser(destinationFeideId, None)(using myndlaApi.componentRegistry.dbUtil.autoSession)
+      .get
+
     val destinationFolder = NewFolderData(
       parentId = None,
       name = "destination",
@@ -395,7 +413,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 1"),
-      owner = Some(OwnerDTO("")),
+      owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
     val parentChild2 = api.FolderDTO(
@@ -415,7 +433,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 2"),
-      owner = Some(OwnerDTO("")),
+      owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
     val parentChild3 = api.ResourceDTO(
@@ -444,7 +462,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 0"),
-      owner = Some(OwnerDTO("")),
+      owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
     val response = simpleHttpClient.send(
@@ -731,6 +749,12 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
     val customId       = UUID.randomUUID()
     val parentId       = Some(customId)
 
+    val expectedUser = myndlaApi
+      .componentRegistry
+      .userService
+      .getMyNDLAUser(destinationFeideId, None)(using myndlaApi.componentRegistry.dbUtil.autoSession)
+      .get
+
     val parentChild1 = api.FolderDTO(
       id = customId,
       name = "p_child1",
@@ -745,7 +769,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 1"),
-      owner = Some(OwnerDTO("")),
+      owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
     val parentChild2 = api.FolderDTO(
@@ -762,7 +786,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 2"),
-      owner = Some(OwnerDTO("")),
+      owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
     val parentChild3 = api.ResourceDTO(
@@ -788,7 +812,7 @@ class CloneFolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuit
       updated = testClock.now(),
       shared = None,
       description = Some("samling 0"),
-      owner = Some(OwnerDTO("")),
+      owner = Some(OwnerDTO("", expectedUser.id)),
     )
 
     val destinationFoldersBefore = folderRepository.foldersWithFeideAndParentID(None, destinationFeideId)
