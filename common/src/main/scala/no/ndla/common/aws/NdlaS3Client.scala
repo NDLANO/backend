@@ -58,7 +58,7 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
         )
       )
       .recoverWith {
-        case _: NoSuchKeyException => Failure(MissingBucketKeyException(s"The bucket key '$key' does not exist"))
+        case _: NoSuchKeyException => Failure(MissingBucketKeyException(key))
         case ex                    => Failure(ex)
       }
   }

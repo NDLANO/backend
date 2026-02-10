@@ -44,6 +44,7 @@ class ControllerErrorHandling(using props: Props, dataSource: => DataSource, err
           .rootCause
           .exists(x => x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
       errorBody(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION, 400)
-    case _: FileTooBigException => errorBody(FILE_TOO_BIG, fileTooBigError, 413)
+    case _: FileTooBigException         => errorBody(FILE_TOO_BIG, fileTooBigError, 413)
+    case MissingBucketKeyException(key) => notFoundWithMsg(s"The requested image '$key' was not found.")
   }
 }
