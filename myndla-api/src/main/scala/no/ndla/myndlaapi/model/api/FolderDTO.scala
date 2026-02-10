@@ -24,7 +24,9 @@ import no.ndla.common.model.api.UpdateOrDelete
 
 case class OwnerDTO(
     @description("Name of the owner")
-    name: String
+    name: String,
+    @description("ID of the owner")
+    id: Long,
 )
 
 object OwnerDTO {
@@ -93,7 +95,7 @@ object FolderDataDTO {
       updated: NDLADate,
       shared: Option[NDLADate],
       description: Option[String],
-      username: Option[String],
+      user: Option[(String, Long)],
   ): FolderDataDTO = {
     FolderDTO(
       id,
@@ -108,7 +110,7 @@ object FolderDataDTO {
       updated,
       shared,
       description,
-      username.map(name => OwnerDTO(name)),
+      user.map((username, id) => OwnerDTO(username, id)),
     )
   }
 }
