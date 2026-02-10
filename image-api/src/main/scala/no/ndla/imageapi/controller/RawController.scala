@@ -9,7 +9,7 @@
 package no.ndla.imageapi.controller
 
 import cats.implicits.catsSyntaxEitherId
-import no.ndla.common.errors.{ValidationException, ValidationMessage}
+import no.ndla.common.errors.{MissingBucketKeyException, ValidationException, ValidationMessage}
 import no.ndla.imageapi.model.domain.{ImageStream, ProcessableImage}
 import no.ndla.imageapi.service.*
 import no.ndla.network.clients.MyNDLAApiClient
@@ -91,6 +91,7 @@ class RawController(using
       case Success(stream: ImageStream.Processable)   => stream
       case Success(stream: ImageStream.Gif)           => return Success(stream)
       case Success(stream: ImageStream.Unprocessable) => return Success(stream)
+      case Failure(ex: MissingBucketKeyException)     => return Failure(ex)
       case Failure(ex)                                =>
         logger.error(s"Failed to get image '$imageName' from S3", ex)
         return Failure(ex)
