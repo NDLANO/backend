@@ -54,7 +54,7 @@ trait GithubWorkflowPlugin extends ScalaModule {
        |    paths:$paths
        |jobs:
        |  release:
-       |    uses: ndlano/reusable-workflows/.github/workflows/release.yaml@main
+       |    uses: ndlano/reusable-workflows/.github/workflows/release.yaml@feat/mise
        |    secrets: inherit
        |    with:
        |      component: $moduleName
