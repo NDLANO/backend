@@ -20,7 +20,7 @@ class MainClass(override val props: MyNdlaApiProperties) extends NdlaTapirMain[C
   override def warmup(): Unit = {
     warmupRequest("/health", Map.empty)
 
-    componentRegistry.healthController.setWarmedUp()
+    componentRegistry.healthController.setRunning()
   }
 
   override def beforeStart(): Unit = {

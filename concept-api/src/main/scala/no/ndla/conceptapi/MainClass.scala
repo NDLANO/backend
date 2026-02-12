@@ -22,7 +22,7 @@ class MainClass(override val props: ConceptApiProperties) extends NdlaTapirMain[
     warmupRequest("/concept-api/v1/concepts/1", Map.empty)
     warmupRequest("/health", Map.empty)
 
-    componentRegistry.healthController.setWarmedUp()
+    componentRegistry.healthController.setRunning()
   }
 
   override def beforeStart(): Unit = {

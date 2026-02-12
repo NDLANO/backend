@@ -24,6 +24,6 @@ class MainClass(override val props: FrontpageApiProperties) extends NdlaTapirMai
     warmupRequest("/frontpage-api/v1/subjectpage/1")
     warmupRequest("/health")
 
-    componentRegistry.healthController.setWarmedUp()
+    componentRegistry.healthController.setRunning()
   }
 }

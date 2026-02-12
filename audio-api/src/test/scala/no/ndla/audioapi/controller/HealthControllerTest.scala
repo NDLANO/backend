@@ -32,7 +32,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   val controller: HealthController                                  = new HealthController
   override implicit lazy val services: List[TapirController]        = List(controller)
   override implicit lazy val routes: Routes                         = new Routes
-  controller.setWarmedUp()
+  controller.setRunning()
 
   override def beforeEach(): Unit = {
     Mockito.reset(audioRepository, s3Client)

@@ -36,7 +36,7 @@ class HealthController(using
     case Success(_) => Right(())
   }
 
-  override def checkReadiness(): Either[String, String] = for {
+  override def checkAppReadiness(): Either[String, String] = for {
     _ <- checkDatabaseAccess()
     _ <- checkBucketAccess()
   } yield "Ready"

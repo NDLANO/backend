@@ -21,7 +21,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   override val controller: TapirHealthController             = new TapirHealthController()
   override implicit lazy val services: List[TapirController] = List(controller)
   override implicit lazy val routes: Routes                  = new Routes
-  controller.setWarmedUp()
+  controller.setRunning()
 
   test("That /health returns 200 ok") {
     val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/health"))

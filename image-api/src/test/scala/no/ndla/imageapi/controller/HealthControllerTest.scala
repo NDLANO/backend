@@ -38,7 +38,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   val controller: HealthController                           = new HealthController
   override implicit lazy val services: List[TapirController] = List(controller)
   override implicit lazy val routes: Routes                  = new Routes
-  controller.setWarmedUp()
+  controller.setRunning()
 
   val updated: NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
   val created: NDLADate = NDLADate.of(2017, 3, 1, 12, 15, 32)

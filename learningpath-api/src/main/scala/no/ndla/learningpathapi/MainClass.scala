@@ -22,7 +22,7 @@ class MainClass(override val props: LearningpathApiProperties) extends NdlaTapir
     warmupRequest("/learningpath-api/v2/learningpaths/1", Map.empty)
     warmupRequest("/health", Map.empty)
 
-    componentRegistry.healthController.setWarmedUp()
+    componentRegistry.healthController.setRunning()
   }
 
   override def beforeStart(): Unit = {
