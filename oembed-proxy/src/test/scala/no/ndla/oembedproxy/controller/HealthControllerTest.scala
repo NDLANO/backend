@@ -21,7 +21,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
   override implicit lazy val routes: Routes                  = new Routes
   override implicit lazy val clock: NDLAClock                = mock[NDLAClock]
   override implicit lazy val errorHelpers: ErrorHelpers      = new ErrorHelpers
-  controller.setWarmedUp()
+  controller.setRunning()
 
   test("That /health returns 200 ok") {
     val response = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/health"))

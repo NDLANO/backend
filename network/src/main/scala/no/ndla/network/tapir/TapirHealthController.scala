@@ -8,37 +8,39 @@
 
 package no.ndla.network.tapir
 
-import no.ndla.common.Warmup
 import no.ndla.network.clients.MyNDLAProvider
+import no.ndla.network.model.ServerStatus
 import sttp.model.StatusCode
 import sttp.tapir.EndpointInput
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.*
 
+import java.util.concurrent.atomic.AtomicReference
+
 class TapirHealthController(using
     myNDLAApiClient: MyNDLAProvider,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
-) extends TapirController
-    with Warmup {
-  @volatile
-  private var isShuttingDown: Boolean = false
-  override val enableSwagger: Boolean = false
-  val prefix: EndpointInput[Unit]     = "health"
+) extends TapirController {
+  private val serverStatus: AtomicReference[ServerStatus] = AtomicReference(ServerStatus.Starting)
+  override val enableSwagger: Boolean                     = false
+  val prefix: EndpointInput[Unit]                         = "health"
 
-  def setShuttingDown(): Unit = {
-    isShuttingDown = true
-  }
+  def setRunning(): Unit  = serverStatus.compareAndSet(ServerStatus.Starting, ServerStatus.Running): Unit
+  def setStopping(): Unit = serverStatus.set(ServerStatus.Stopping): Unit
 
   override def handleErrors: PartialFunction[Throwable, AllErrors] = { case e: Throwable =>
     errorHelpers.generic
   }
 
-  private def checkLiveness(): Either[String, String]    = Right("Healthy")
-  protected def checkReadiness(): Either[String, String] = {
-    if (isShuttingDown) Left("Service is shutting down")
-    else if (isWarmedUp) Right("Ready")
-    else Left("Service is not ready")
+  private def checkLiveness(): Either[String, String] = Right("Healthy")
+
+  protected def checkAppReadiness(): Either[String, String] = Right("Ready")
+
+  private def checkReadiness(): Either[String, String] = serverStatus.get() match {
+    case ServerStatus.Starting => Left("Service is starting up")
+    case ServerStatus.Running  => checkAppReadiness()
+    case ServerStatus.Stopping => Left("Service is shutting down")
   }
 
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(

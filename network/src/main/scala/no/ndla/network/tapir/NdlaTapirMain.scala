@@ -51,11 +51,11 @@ trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
         logger.info(s"Warmup procedure finished in ${warmupTime}ms.")
       }
     } else {
-      componentRegistry.healthController.setWarmedUp()
+      componentRegistry.healthController.setRunning()
     }
 
   private def setupShutdownHook(): Unit = sys.addShutdownHook {
-    componentRegistry.healthController.setShuttingDown()
+    componentRegistry.healthController.setStopping()
     this.serverBinding match {
       case Some(server) =>
         // Make sure to wait for readiness probe to fail before we stop the server

@@ -19,7 +19,7 @@ class MainClass(override val props: OEmbedProxyProperties) extends NdlaTapirMain
     warmupRequest("/oembed-proxy/v1/oembed", Map("url" -> "https://ndla.no/article/1"))
     warmupRequest("/health", Map.empty)
 
-    componentRegistry.healthController.setWarmedUp()
+    componentRegistry.healthController.setRunning()
   }
 
   override def beforeStart(): Unit = componentRegistry.providerService.loadProviders(): Unit

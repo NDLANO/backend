@@ -23,7 +23,7 @@ class MainClass(override val props: ArticleApiProperties) extends NdlaTapirMain[
     warmupRequest("/article-api/v2/articles/ids/", Map("ids" -> "100,1000,2000,3000", "fallback" -> "true"))
     warmupRequest("/health", Map.empty)
 
-    componentRegistry.healthController.setWarmedUp()
+    componentRegistry.healthController.setRunning()
   }
 
   override def beforeStart(): Unit = {

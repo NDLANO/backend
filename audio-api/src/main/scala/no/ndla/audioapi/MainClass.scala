@@ -22,7 +22,7 @@ class MainClass(val props: AudioApiProperties) extends NdlaTapirMain[ComponentRe
     warmupRequest("/audio-api/v1/series/1", Map("language" -> "nb"))
     warmupRequest("/health", Map.empty)
 
-    componentRegistry.healthController.setWarmedUp()
+    componentRegistry.healthController.setRunning()
   }
 
   def beforeStart(): Unit = {
