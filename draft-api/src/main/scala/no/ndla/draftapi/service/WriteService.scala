@@ -145,7 +145,7 @@ class WriteService(using
   def contentWithClonedFiles(contents: List[common.ArticleContent]): Try[List[common.ArticleContent]] = {
     contents.traverse(content => {
       val doc    = HtmlTagRules.stringToJsoupDocument(content.content)
-      val embeds = doc.select(s"$EmbedTagName[${TagAttribute.DataResource}='${ResourceType.File}']").asScala
+      val embeds = doc.select(s"$EmbedTagName[${TagAttribute.DataResource}='${EmbedType.File}']").asScala
 
       embeds.toList.traverse(cloneEmbedAndUpdateElement) match {
         case Failure(ex) => Failure(ex)

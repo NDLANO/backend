@@ -210,7 +210,7 @@ class ConverterService(using
   def getEmbeddedConceptIds(article: Draft): Seq[Long] = {
     val htmlElements  = article.content.map(content => HtmlTagRules.stringToJsoupDocument(content.content))
     val conceptEmbeds = htmlElements.flatMap(elem => {
-      val conceptSelector = s"$EmbedTagName[${TagAttribute.DataResource}=${ResourceType.Concept}]"
+      val conceptSelector = s"$EmbedTagName[${TagAttribute.DataResource}=${EmbedType.Concept}]"
       elem.select(conceptSelector).asScala.toSeq
     })
 
@@ -228,7 +228,7 @@ class ConverterService(using
   def getEmbeddedH5PPaths(article: Draft): Seq[String] = {
     val getH5PEmbeds = (htmlElements: Seq[Element]) => {
       htmlElements.flatMap(elem => {
-        val h5pSelector = s"$EmbedTagName[${TagAttribute.DataResource}=${ResourceType.H5P}]"
+        val h5pSelector = s"$EmbedTagName[${TagAttribute.DataResource}=${EmbedType.H5P}]"
         elem.select(h5pSelector).asScala.toSeq
       })
     }
@@ -268,7 +268,7 @@ class ConverterService(using
       .select(EmbedTagName)
       .asScala
       .foreach(el => {
-        ResourceType
+        EmbedType
           .withNameOption(el.attr(TagAttribute.DataResource.toString))
           .map(EmbedTagRules.attributesForResourceType)
           .map(knownAttributes => HtmlTagRules.removeIllegalAttributes(el, knownAttributes.all.map(_.toString)))
@@ -547,7 +547,7 @@ class ConverterService(using
 
   private def getExistingPaths(content: String): Seq[String] = {
     val doc        = HtmlTagRules.stringToJsoupDocument(content)
-    val fileEmbeds = doc.select(s"$EmbedTagName[${TagAttribute.DataResource}='${ResourceType.File}']").asScala.toSeq
+    val fileEmbeds = doc.select(s"$EmbedTagName[${TagAttribute.DataResource}='${EmbedType.File}']").asScala.toSeq
     fileEmbeds.flatMap(e => Option(e.attr(TagAttribute.DataPath.toString)))
   }
 
@@ -555,7 +555,7 @@ class ConverterService(using
     val existingFiles = existingContent.flatMap(getExistingPaths)
 
     val doc        = HtmlTagRules.stringToJsoupDocument(newContent)
-    val fileEmbeds = doc.select(s"$EmbedTagName[${TagAttribute.DataResource}='${ResourceType.File}']").asScala
+    val fileEmbeds = doc.select(s"$EmbedTagName[${TagAttribute.DataResource}='${EmbedType.File}']").asScala
 
     val embedsToCloneFile = fileEmbeds.filter(embed => {
       Option(embed.attr(TagAttribute.DataPath.toString)).exists(dataPath => existingFiles.contains(dataPath))

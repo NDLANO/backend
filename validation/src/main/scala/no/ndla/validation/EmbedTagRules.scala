@@ -15,22 +15,22 @@ import scala.io.Source
 import scala.language.postfixOps
 
 object EmbedTagRules {
-  private[validation] lazy val attributeRules: Map[ResourceType, TagRules.TagAttributeRules] = embedRulesToJson
+  private[validation] lazy val attributeRules: Map[EmbedType, TagRules.TagAttributeRules] = embedRulesToJson
 
   lazy val allEmbedTagAttributes: Set[TagAttribute] = attributeRules.flatMap { case (_, attrRules) =>
     attrRules.all
   } toSet
 
-  def attributesForResourceType(resourceType: ResourceType): TagRules.TagAttributeRules = attributeRules(resourceType)
+  def attributesForResourceType(resourceType: EmbedType): TagRules.TagAttributeRules = attributeRules(resourceType)
 
-  private def embedRulesToJson: Map[ResourceType, TagRules.TagAttributeRules] = {
+  private def embedRulesToJson: Map[EmbedType, TagRules.TagAttributeRules] = {
     val classLoader = getClass.getClassLoader
     val jsonStr     = Source.fromResource("embed-tag-rules.json", classLoader).mkString
     val attrs       = TagRules.convertJsonStrToAttributeRules(jsonStr)
 
-    def strToResourceType(str: String): ResourceType = ResourceType
+    def strToResourceType(str: String): EmbedType = EmbedType
       .withNameOption(str)
-      .getOrElse(throw new ConfigurationException(s"Missing declaration of resource type '$str' in ResourceType enum"))
+      .getOrElse(throw new ConfigurationException(s"Missing declaration of resource type '$str' in EmbedType enum"))
 
     attrs.map { case (resourceType, attrRules) =>
       strToResourceType(resourceType) -> attrRules
@@ -38,35 +38,35 @@ object EmbedTagRules {
   }
 }
 
-sealed abstract class ResourceType(override val entryName: String) extends EnumEntry {
+sealed abstract class EmbedType(override val entryName: String) extends EnumEntry {
   override def toString: String = entryName
 }
 
-object ResourceType extends Enum[ResourceType] {
-  val values: IndexedSeq[ResourceType] = findValues
+object EmbedType extends Enum[EmbedType] {
+  val values: IndexedSeq[EmbedType] = findValues
 
-  case object Audio           extends ResourceType("audio")
-  case object Brightcove      extends ResourceType("brightcove")
-  case object CampaignBlock   extends ResourceType("campaign-block")
-  case object CodeBlock       extends ResourceType("code-block")
-  case object Comment         extends ResourceType("comment")
-  case object Concept         extends ResourceType("concept")
-  case object ContactBlock    extends ResourceType("contact-block")
-  case object ContentLink     extends ResourceType("content-link")
-  case object Copyright       extends ResourceType("copyright")
-  case object Error           extends ResourceType("error")
-  case object ExternalContent extends ResourceType("external")
-  case object File            extends ResourceType("file")
-  case object FootNote        extends ResourceType("footnote")
-  case object H5P             extends ResourceType("h5p")
-  case object IframeContent   extends ResourceType("iframe")
-  case object Image           extends ResourceType("image")
-  case object KeyFigure       extends ResourceType("key-figure")
-  case object LinkBlock       extends ResourceType("link-block")
-  case object NRKContent      extends ResourceType("nrk")
-  case object Pitch           extends ResourceType("pitch")
-  case object RelatedContent  extends ResourceType("related-content")
-  case object Symbol          extends ResourceType("symbol")
-  case object UuDisclaimer    extends ResourceType("uu-disclaimer")
+  case object Audio           extends EmbedType("audio")
+  case object Brightcove      extends EmbedType("brightcove")
+  case object CampaignBlock   extends EmbedType("campaign-block")
+  case object CodeBlock       extends EmbedType("code-block")
+  case object Comment         extends EmbedType("comment")
+  case object Concept         extends EmbedType("concept")
+  case object ContactBlock    extends EmbedType("contact-block")
+  case object ContentLink     extends EmbedType("content-link")
+  case object Copyright       extends EmbedType("copyright")
+  case object Error           extends EmbedType("error")
+  case object ExternalContent extends EmbedType("external")
+  case object File            extends EmbedType("file")
+  case object FootNote        extends EmbedType("footnote")
+  case object H5P             extends EmbedType("h5p")
+  case object IframeContent   extends EmbedType("iframe")
+  case object Image           extends EmbedType("image")
+  case object KeyFigure       extends EmbedType("key-figure")
+  case object LinkBlock       extends EmbedType("link-block")
+  case object NRKContent      extends EmbedType("nrk")
+  case object Pitch           extends EmbedType("pitch")
+  case object RelatedContent  extends EmbedType("related-content")
+  case object Symbol          extends EmbedType("symbol")
+  case object UuDisclaimer    extends EmbedType("uu-disclaimer")
 
 }

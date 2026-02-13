@@ -35,7 +35,7 @@ import no.ndla.mapping.License.getLicense
 import no.ndla.network.tapir.auth.Permission.CONCEPT_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
-import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType}
+import no.ndla.validation.{EmbedTagRules, HtmlTagRules, EmbedType}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 
@@ -237,7 +237,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       .select(EmbedTagName)
       .asScala
       .foreach(el => {
-        ResourceType
+        EmbedType
           .withNameOption(el.attr(TagAttribute.DataResource.toString))
           .map(EmbedTagRules.attributesForResourceType)
           .map(knownAttributes => HtmlTagRules.removeIllegalAttributes(el, knownAttributes.all.map(_.toString)))
@@ -388,8 +388,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
 
   private def addUrlOnEmbedTag(embedTag: Element): Unit = {
     val typeAndPathOption = embedTag.attr(TagAttribute.DataResource.toString) match {
-      case resourceType
-          if resourceType == ResourceType.H5P.toString && embedTag.hasAttr(TagAttribute.DataPath.toString) =>
+      case resourceType if resourceType == EmbedType.H5P.toString && embedTag.hasAttr(TagAttribute.DataPath.toString) =>
         val path = embedTag.attr(TagAttribute.DataPath.toString)
         Some((resourceType, path))
 

@@ -32,7 +32,7 @@ import no.ndla.database.DBUtility
 import no.ndla.language.Language
 import no.ndla.network.model.{FeideUserWrapper, userOrAccessDenied}
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
-import no.ndla.validation.ResourceType
+import no.ndla.validation.EmbedType
 import org.jsoup.nodes.Element
 import scalikejdbc.DBSession
 
@@ -174,8 +174,9 @@ class ReadService(using
   private def addUrlOnEmbedTag(embedTag: Element): Unit = {
     val typeAndPathOption = embedTag.attr(TagAttribute.DataResource.toString) match {
       case resourceType
-          if resourceType == ResourceType.File.toString || resourceType == ResourceType.H5P.toString && embedTag
-            .hasAttr(TagAttribute.DataPath.toString) =>
+          if resourceType == EmbedType.File.toString || resourceType == EmbedType.H5P.toString && embedTag.hasAttr(
+            TagAttribute.DataPath.toString
+          ) =>
         val path = embedTag.attr(TagAttribute.DataPath.toString)
         Some((resourceType, path))
 

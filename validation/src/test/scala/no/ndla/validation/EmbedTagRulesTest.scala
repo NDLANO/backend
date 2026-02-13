@@ -17,7 +17,7 @@ class EmbedTagRulesTest extends UnitSuite {
 
   test("Rules for all resource types should be defined") {
     val resourceTypesFromConfigFile      = EmbedTagRules.attributeRules.keys
-    val resourceTypesFromEnumDeclaration = ResourceType.values
+    val resourceTypesFromEnumDeclaration = EmbedType.values
 
     resourceTypesFromEnumDeclaration.foreach(rt => {
       resourceTypesFromConfigFile.should(contain(rt))

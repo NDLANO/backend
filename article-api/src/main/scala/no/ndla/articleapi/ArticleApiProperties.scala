@@ -11,7 +11,7 @@ package no.ndla.articleapi
 import no.ndla.common.configuration.{BaseProps, Prop}
 import no.ndla.database.DatabaseProps
 import no.ndla.network.{AuthUser, Domains}
-import no.ndla.validation.ResourceType
+import no.ndla.validation.EmbedType
 
 import scala.util.Properties.*
 
@@ -49,11 +49,11 @@ class ArticleApiProperties extends BaseProps with DatabaseProps {
   private def Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
   def externalApiUrls: Map[String, String] = Map(
-    ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
-    "raw-image"                 -> propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", s"$Domain/image-api/raw").concat("/id"),
-    ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio",
-    ResourceType.File.toString  -> Domain,
-    ResourceType.H5P.toString   -> H5PAddress,
+    EmbedType.Image.toString -> s"$Domain/image-api/v2/images",
+    "raw-image"              -> propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", s"$Domain/image-api/raw").concat("/id"),
+    EmbedType.Audio.toString -> s"$Domain/audio-api/v1/audio",
+    EmbedType.File.toString  -> Domain,
+    EmbedType.H5P.toString   -> H5PAddress,
   )
 
   def InlineHtmlTags: Set[String]       = Set("code", "em", "span", "sub", "sup")
