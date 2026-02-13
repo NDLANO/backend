@@ -27,7 +27,7 @@ import no.ndla.network.model.CombinedUserWithMyNDLAUser
 import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{doAnswer, never, times, verify, when}
+import org.mockito.Mockito.{doAnswer, doReturn, never, times, verify, when}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
 
@@ -431,8 +431,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         val id             = i.getArgument[Long](0)
         val includeDeleted = i.getArgument[Boolean](1)
         val session        = i.getArgument[DBSession](2)
-        if (includeDeleted) learningPathRepository.withIdIncludingDeleted(id)(using session)
-        else learningPathRepository.withId(id)(using session)
+        val fetched =
+          if (includeDeleted) learningPathRepository.withIdIncludingDeleted(id)(using session)
+          else learningPathRepository.withId(id)(using session)
+        Option(fetched).flatten
       }
     )
     doAnswer((i: InvocationOnMock) => {
@@ -505,14 +507,19 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     val deletedStep             = STEP1.copy(status = StepStatus.DELETED)
     val learningPathWithDeleted = PRIVATE_LEARNINGPATH.copy(learningsteps = Seq(STEP2, deletedStep))
 
+    // Simulate repository filtering for withId, and ensure update uses raw steps.
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(
-      Some(learningPathWithDeleted)
+      Some(learningPathWithDeleted.withOnlyActiveSteps)
     )
+    doReturn(Some(learningPathWithDeleted))
+      .when(learningPathRepository)
+      .withIdRaw(eqTo(PRIVATE_ID), eqTo(false))(using any[DBSession])
     when(learningPathRepository.update(any[LearningPath])(using any[DBSession])).thenAnswer(_.getArgument(0))
     when(learningPathRepository.learningPathsWithIsBasedOnRaw(any[Long])).thenReturn(List.empty)
 
     val pathCaptor: ArgumentCaptor[LearningPath] = ArgumentCaptor.forClass(classOf[LearningPath])
     service.updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER.toCombined).get
+    verify(learningPathRepository, times(1)).withIdRaw(eqTo(PRIVATE_ID), eqTo(false))(using any[DBSession])
     verify(learningPathRepository).update(pathCaptor.capture())(using any)
     pathCaptor.getValue.learningsteps.exists(_.status == StepStatus.DELETED) should be(true)
   }

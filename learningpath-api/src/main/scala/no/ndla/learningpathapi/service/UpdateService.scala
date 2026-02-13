@@ -472,8 +472,8 @@ class UpdateService(using
 
   private def withId(learningPathId: Long, includeDeleted: Boolean = false): Try[LearningPath] = {
     val lpOpt =
-      if (includeDeleted) learningPathRepository.withIdIncludingDeleted(learningPathId)
-      else learningPathRepository.withId(learningPathId)
+      if (includeDeleted) learningPathRepository.withIdRaw(learningPathId, includeDeleted = true)
+      else learningPathRepository.withIdRaw(learningPathId)
 
     lpOpt match {
       case Some(learningPath) => Success(learningPath)
