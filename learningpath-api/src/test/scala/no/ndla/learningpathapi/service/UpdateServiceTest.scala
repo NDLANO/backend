@@ -428,7 +428,10 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withIdRaw(any[Long], any[Boolean])(using any[DBSession])).thenAnswer(
       (i: InvocationOnMock) => {
         val id = i.getArgument[Long](0)
-        learningPathRepository.withId(id)(using i.getArgument[DBSession](2))
+        val includeDeleted = i.getArgument[Boolean](1)
+        val session        = i.getArgument[DBSession](2)
+        if (includeDeleted) learningPathRepository.withIdIncludingDeleted(id)(using session)
+        else learningPathRepository.withId(id)(using session)
       }
     )
     doAnswer((i: InvocationOnMock) => {
@@ -495,6 +498,20 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     assertResult(PUBLISHED_LEARNINGPATH.id.get) {
       service.updateLearningPathV2(PUBLISHED_ID, UPDATED_PUBLISHED_LEARNINGPATHV2, PUBLISHED_OWNER.toCombined).get.id
     }
+  }
+
+  test("That updateLearningPathV2 preserves deleted steps on update") {
+    val deletedStep = STEP1.copy(status = StepStatus.DELETED)
+    val learningPathWithDeleted = PRIVATE_LEARNINGPATH.copy(learningsteps = Seq(STEP2, deletedStep))
+
+    when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(Some(learningPathWithDeleted))
+    when(learningPathRepository.update(any[LearningPath])(using any[DBSession])).thenAnswer(_.getArgument(0))
+    when(learningPathRepository.learningPathsWithIsBasedOn(any[Long])).thenReturn(List.empty)
+
+    val pathCaptor: ArgumentCaptor[LearningPath] = ArgumentCaptor.forClass(classOf[LearningPath])
+    service.updateLearningPathV2(PRIVATE_ID, UPDATED_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER.toCombined).get
+    verify(learningPathRepository).update(pathCaptor.capture())(using any)
+    pathCaptor.getValue.learningsteps.exists(_.status == StepStatus.DELETED) should be(true)
   }
 
   test("That updateLearningPathV2 returns Failure if user is not the owner") {

@@ -461,12 +461,7 @@ class UpdateService(using
     else from + 1 to to
 
   private def withId(learningPathId: Long, includeDeleted: Boolean = false): Try[LearningPath] = {
-    val lpOpt =
-      if (includeDeleted) {
-        learningPathRepository.withIdIncludingDeleted(learningPathId)
-      } else {
-        learningPathRepository.withId(learningPathId)
-      }
+    val lpOpt = Option(learningPathRepository.withIdRaw(learningPathId, includeDeleted)).flatten
 
     lpOpt match {
       case Some(learningPath) => Success(learningPath)

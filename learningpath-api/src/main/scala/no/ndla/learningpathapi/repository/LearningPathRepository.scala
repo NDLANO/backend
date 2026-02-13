@@ -17,7 +17,6 @@ import no.ndla.common.model.domain.learningpath.{
   LearningPathStatus,
   LearningStep,
   LearningpathCopyright,
-  StepStatus,
 }
 import no.ndla.learningpathapi.model.domain.*
 import org.postgresql.util.PGobject
@@ -78,47 +77,47 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
   def learningStepWithId(learningPathId: Long, learningStepId: Long)(implicit
       session: DBSession = dbUtility.readOnlySession
   ): Option[LearningStep] = {
-    val ls = DBLearningPath.syntax("lp")
-    tsql"""select ${ls.result.*} from ${DBLearningPath.as(ls)}
-           where ${ls.id} = $learningPathId
-           and jsonb_path_query_array(document, '$$.learningsteps[*].id') @> '[5]'::jsonb;
-        """
-      .map(DBLearningPath.fromResultSet(ls.resultName))
-      .runSingle()
-      .get
-      .flatMap(_.learningsteps.find(_.id.contains(learningStepId)))
+    learningStepsFor(learningPathId).find(_.id.contains(learningStepId))
   }
 
   def insert(learningpath: LearningPath)(implicit session: DBSession = dbUtility.autoSession): Try[LearningPath] = {
-    val startRevision = 1
-    val dataObject    = new PGobject()
-    dataObject.setType("jsonb")
-    dataObject.setValue(CirceUtil.toJsonString(learningpath))
+    Try {
+      val startRevision = 1
+      val learningPathId = generateLearningPathId
+      val toInsert       = withStepIdsForInsert(learningpath, learningPathId, startRevision)
+      val dataObject     = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(CirceUtil.toJsonString(toInsert))
 
-    tsql"insert into learningpaths(external_id, document, revision) values(${learningpath.externalId}, $dataObject, $startRevision)"
-      .updateAndReturnGeneratedKey()
-      .map { learningPathId =>
-        logger.info(s"Inserted learningpath with id $learningPathId")
-        learningpath.copy(id = Some(learningPathId), revision = Some(startRevision))
-      }
+      val updated =
+        tsql"insert into learningpaths(id, external_id, document, revision) values($learningPathId, ${learningpath.externalId}, $dataObject, $startRevision)"
+          .update()
+          .get
+      if (updated != 1) throw new RuntimeException(s"Failed to insert learningpath with id $learningPathId")
+      logger.info(s"Inserted learningpath with id $learningPathId")
+      toInsert
+    }
   }
 
   def insertWithImportId(learningpath: LearningPath, importId: String)(implicit
       session: DBSession = dbUtility.autoSession
   ): LearningPath = {
     val startRevision = 1
-    val dataObject    = new PGobject()
+    val learningPathId = generateLearningPathId
+    val toInsert       = withStepIdsForInsert(learningpath, learningPathId, startRevision)
+    val dataObject     = new PGobject()
     dataObject.setType("jsonb")
-    dataObject.setValue(CirceUtil.toJsonString(learningpath))
+    dataObject.setValue(CirceUtil.toJsonString(toInsert))
 
     val importIdUUID         = Try(UUID.fromString(importId)).toOption
-    val learningPathId: Long =
-      tsql"insert into learningpaths(external_id, document, revision, import_id) values(${learningpath.externalId}, $dataObject, $startRevision, $importIdUUID)"
-        .updateAndReturnGeneratedKey()
+    val updated =
+      tsql"insert into learningpaths(id, external_id, document, revision, import_id) values($learningPathId, ${learningpath.externalId}, $dataObject, $startRevision, $importIdUUID)"
+        .update()
         .get
+    if (updated != 1) throw new RuntimeException(s"Failed to insert learningpath with id $learningPathId")
 
     logger.info(s"Inserted learningpath with id $learningPathId")
-    learningpath.copy(id = Some(learningPathId), revision = Some(startRevision))
+    toInsert
   }
 
   def idAndimportIdOfLearningpath(
@@ -441,6 +440,19 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
       .map(rs => rs.long(1))
       .single()
       .getOrElse(throw new RuntimeException("Could not generate learning path id."))
+  }
+
+  private def withStepIdsForInsert(
+      learningpath: LearningPath,
+      learningPathId: Long,
+      startRevision: Int,
+  )(implicit session: DBSession): LearningPath = {
+    val updatedSteps = learningpath.learningsteps.map { step =>
+      val stepId       = step.id.getOrElse(nextLearningStepId)
+      val stepRevision = step.revision.orElse(Some(startRevision))
+      step.copy(id = Some(stepId), revision = stepRevision, learningPathId = Some(learningPathId))
+    }
+    learningpath.copy(id = Some(learningPathId), revision = Some(startRevision), learningsteps = updatedSteps)
   }
 
   def withIdRaw(id: Long, includeDeleted: Boolean = false)(implicit

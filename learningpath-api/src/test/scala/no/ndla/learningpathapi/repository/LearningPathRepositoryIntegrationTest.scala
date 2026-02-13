@@ -369,6 +369,21 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     repository.deletePath(learningPath.id.get)
   }
 
+  test("That insert assigns ids to embedded steps and learningStepWithId reads from the document") {
+    val steps = Seq(DefaultLearningStep, DefaultLearningStep.copy(seqNo = 1))
+    val learningPath = repository.insert(DefaultLearningPath.copy(learningsteps = steps)).get
+
+    learningPath.learningsteps.forall(_.id.isDefined) should be(true)
+    learningPath.learningsteps.forall(_.learningPathId.contains(learningPath.id.get)) should be(true)
+
+    val stepId = learningPath.learningsteps.head.id.get
+    val found  = repository.learningStepWithId(learningPath.id.get, stepId)
+    found.isDefined should be(true)
+    found.get.id should be(Some(stepId))
+
+    repository.deletePath(learningPath.id.get)
+  }
+
   test("That getLearningPathByPage returns correct result when pageSize is smaller than amount of steps") {
     when(clock.now()).thenReturn(NDLADate.fromUnixTime(0))
     val steps = List(DefaultLearningStep, DefaultLearningStep, DefaultLearningStep)
