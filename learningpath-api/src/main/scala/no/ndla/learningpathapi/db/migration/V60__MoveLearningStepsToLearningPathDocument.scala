@@ -50,18 +50,23 @@ class V60__MoveLearningStepsToLearningPathDocument extends BaseJavaMigration wit
       from learningsteps
       where learning_path_id = $learningPathId and document is not null
       order by id
-    """.map { rs =>
-      StepDocumentRowWithMeta(
-        learningStepId = rs.long("id"),
-        learningPathId = rs.long("learning_path_id"),
-        revision = rs.int("revision"),
-        externalId = rs.stringOpt("external_id"),
-        learningStepDocument = rs.string("document"),
-      )
-    }.list()
+    """
+      .map { rs =>
+        StepDocumentRowWithMeta(
+          learningStepId = rs.long("id"),
+          learningPathId = rs.long("learning_path_id"),
+          revision = rs.int("revision"),
+          externalId = rs.stringOpt("external_id"),
+          learningStepDocument = rs.string("document"),
+        )
+      }
+      .list()
   }
 
-  private def updateLp(row: LpDocumentRowWithId, steps: List[StepDocumentRowWithMeta])(using session: DBSession): Unit = {
+  private def updateLp(
+      row: LpDocumentRowWithId,
+      steps: List[StepDocumentRowWithMeta],
+  )(using session: DBSession): Unit = {
     val updatedLpJson = CirceUtil.tryParse(mergeLearningSteps(row.learningPathDocument, steps)).get
 
     val dataObject = new PGobject()
@@ -69,7 +74,8 @@ class V60__MoveLearningStepsToLearningPathDocument extends BaseJavaMigration wit
     dataObject.setValue(updatedLpJson.noSpaces)
 
     val updated = sql"update learningpaths set document = $dataObject where id = ${row.learningPathId}".update()
-    if (updated != 1) throw new RuntimeException(s"Failed to update learning path document for id ${row.learningPathId}")
+    if (updated != 1)
+      throw new RuntimeException(s"Failed to update learning path document for id ${row.learningPathId}")
   }
 
   private[migration] def mergeLearningSteps(

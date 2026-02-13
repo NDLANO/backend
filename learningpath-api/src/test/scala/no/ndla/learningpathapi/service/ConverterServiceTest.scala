@@ -609,8 +609,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       .sampleDomainLearningPath
       .copy(
         id = Some(lpId),
-        learningsteps =
-          Seq(TestData.domainLearningStep1.copy(seqNo = 0), TestData.domainLearningStep2.copy(seqNo = 1)),
+        learningsteps = Seq(TestData.domainLearningStep1.copy(seqNo = 0), TestData.domainLearningStep2.copy(seqNo = 1)),
       )
 
     service.asDomainLearningStep(newLs, lp1, owner.id).get.seqNo should be(0)

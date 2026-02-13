@@ -370,7 +370,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   }
 
   test("That insert assigns ids to embedded steps and learningStepWithId reads from the document") {
-    val steps = Seq(DefaultLearningStep, DefaultLearningStep.copy(seqNo = 1))
+    val steps        = Seq(DefaultLearningStep, DefaultLearningStep.copy(seqNo = 1))
     val learningPath = repository.insert(DefaultLearningPath.copy(learningsteps = steps)).get
 
     learningPath.learningsteps.forall(_.id.isDefined) should be(true)

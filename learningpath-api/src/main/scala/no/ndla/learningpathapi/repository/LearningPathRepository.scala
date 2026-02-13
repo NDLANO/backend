@@ -12,12 +12,7 @@ import no.ndla.database.DBUtility
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.{Author, Tag}
-import no.ndla.common.model.domain.learningpath.{
-  LearningPath,
-  LearningPathStatus,
-  LearningStep,
-  LearningpathCopyright,
-}
+import no.ndla.common.model.domain.learningpath.{LearningPath, LearningPathStatus, LearningStep, LearningpathCopyright}
 import no.ndla.learningpathapi.model.domain.*
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -63,6 +58,10 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
     learningPathsWhere(sqls"lp.document->>'isBasedOn' = ${isBasedOnId.toString}")
   }
 
+  def learningPathsWithIsBasedOnRaw(isBasedOnId: Long): List[LearningPath] = {
+    learningPathsWhereRaw(sqls"lp.document->>'isBasedOn' = ${isBasedOnId.toString}")
+  }
+
   def learningStepsFor(
       learningPathId: Long
   )(implicit session: DBSession = dbUtility.readOnlySession): Seq[LearningStep] = {
@@ -82,7 +81,7 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
 
   def insert(learningpath: LearningPath)(implicit session: DBSession = dbUtility.autoSession): Try[LearningPath] = {
     Try {
-      val startRevision = 1
+      val startRevision  = 1
       val learningPathId = generateLearningPathId
       val toInsert       = withStepIdsForInsert(learningpath, learningPathId, startRevision)
       val dataObject     = new PGobject()
@@ -102,15 +101,15 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
   def insertWithImportId(learningpath: LearningPath, importId: String)(implicit
       session: DBSession = dbUtility.autoSession
   ): LearningPath = {
-    val startRevision = 1
+    val startRevision  = 1
     val learningPathId = generateLearningPathId
     val toInsert       = withStepIdsForInsert(learningpath, learningPathId, startRevision)
     val dataObject     = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(toInsert))
 
-    val importIdUUID         = Try(UUID.fromString(importId)).toOption
-    val updated =
+    val importIdUUID = Try(UUID.fromString(importId)).toOption
+    val updated      =
       tsql"insert into learningpaths(id, external_id, document, revision, import_id) values($learningPathId, ${learningpath.externalId}, $dataObject, $startRevision, $importIdUUID)"
         .update()
         .get
@@ -310,6 +309,16 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
       .get
   }
 
+  private def learningPathsWhereRaw(
+      whereClause: SQLSyntax
+  )(implicit session: DBSession = dbUtility.readOnlySession): List[LearningPath] = {
+    val lp = DBLearningPath.syntax("lp")
+    tsql"select ${lp.result.*} from ${DBLearningPath.as(lp)} where $whereClause"
+      .map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs))
+      .runList()
+      .get
+  }
+
   private def learningPathWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = dbUtility.readOnlySession): Option[LearningPath] = {
@@ -442,16 +451,16 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
       .getOrElse(throw new RuntimeException("Could not generate learning path id."))
   }
 
-  private def withStepIdsForInsert(
-      learningpath: LearningPath,
-      learningPathId: Long,
-      startRevision: Int,
-  )(implicit session: DBSession): LearningPath = {
-    val updatedSteps = learningpath.learningsteps.map { step =>
-      val stepId       = step.id.getOrElse(nextLearningStepId)
-      val stepRevision = step.revision.orElse(Some(startRevision))
-      step.copy(id = Some(stepId), revision = stepRevision, learningPathId = Some(learningPathId))
-    }
+  private def withStepIdsForInsert(learningpath: LearningPath, learningPathId: Long, startRevision: Int)(implicit
+      session: DBSession
+  ): LearningPath = {
+    val updatedSteps = learningpath
+      .learningsteps
+      .map { step =>
+        val stepId       = step.id.getOrElse(nextLearningStepId)
+        val stepRevision = step.revision.orElse(Some(startRevision))
+        step.copy(id = Some(stepId), revision = stepRevision, learningPathId = Some(learningPathId))
+      }
     learningpath.copy(id = Some(learningPathId), revision = Some(startRevision), learningsteps = updatedSteps)
   }
 
