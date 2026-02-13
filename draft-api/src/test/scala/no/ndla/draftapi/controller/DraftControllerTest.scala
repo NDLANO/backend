@@ -27,6 +27,7 @@ import org.mockito.Mockito.{reset, times, verify, when}
 import sttp.client3.quick.*
 
 import scala.util.{Failure, Success}
+import no.ndla.language.Language.findByLanguageOrBestEffort
 
 class DraftControllerTest extends UnitSuite with TestEnvironment with TapirControllerTest {
   override val controller: DraftController                   = new DraftController
@@ -78,7 +79,13 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
   test("That GET /licenses/ with filter sat to by only returns creative common licenses") {
     val creativeCommonlicenses = getLicenses
       .filter(_.license.toString.startsWith("by"))
-      .map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url))
+      .map(l =>
+        commonApi.LicenseDTO(
+          l.license.toString,
+          Option(l.description),
+          findByLanguageOrBestEffort(l.url, "en").map(_.url),
+        )
+      )
       .toSet
 
     val resp =
@@ -89,8 +96,16 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
   }
 
   test("That GET /licenses/ with filter not specified returns all licenses") {
-    val allLicenses = getLicenses.map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url)).toSet
-    val resp        = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/licenses"))
+    val allLicenses = getLicenses
+      .map(l =>
+        commonApi.LicenseDTO(
+          l.license.toString,
+          Option(l.description),
+          findByLanguageOrBestEffort(l.url, "en").map(_.url),
+        )
+      )
+      .toSet
+    val resp = simpleHttpClient.send(quickRequest.get(uri"http://localhost:$serverPort/draft-api/v1/drafts/licenses"))
     resp.code.code should be(200)
     val convertedBody = CirceUtil.unsafeParseAs[Set[commonApi.LicenseDTO]](resp.body)
     convertedBody should equal(allLicenses)

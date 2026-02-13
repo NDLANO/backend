@@ -47,7 +47,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     0,
     "",
     commonApi.CopyrightDTO(
-      commonApi.LicenseDTO(BySa.license.toString, Some(BySa.description), BySa.url),
+      commonApi.LicenseDTO(BySa.license.toString, Some(BySa.description), BySa.url.headOption.map(_.url)),
       None,
       List(),
       List(),

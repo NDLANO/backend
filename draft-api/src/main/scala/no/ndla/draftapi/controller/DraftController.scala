@@ -32,6 +32,7 @@ import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 
 import scala.util.{Failure, Success, Try}
+import no.ndla.language.Language.findByLanguageOrBestEffort
 
 class DraftController(using
     readService: ReadService,
@@ -433,8 +434,9 @@ class DraftController(using
     .errorOut(errorOutputsFor(401, 403))
     .out(jsonBody[Seq[LicenseDTO]])
     .in(filterNot)
+    .in(language)
     .in(filter)
-    .serverLogicPure { case (filterNot, filter) =>
+    .serverLogicPure { case (filterNot, language, filter) =>
       val licenses: Seq[LicenseDefinition] = mapping
         .License
         .getLicenses
@@ -447,7 +449,15 @@ class DraftController(using
           case _                                                 => false
         }
 
-      licenses.map(x => LicenseDTO(x.license.toString, Option(x.description), x.url)).asRight
+      licenses
+        .map(x =>
+          LicenseDTO(
+            x.license.toString,
+            Option(x.description),
+            findByLanguageOrBestEffort(x.url, language.code).map(_.url),
+          )
+        )
+        .asRight
     }
 
   def newArticle: ServerEndpoint[Any, Eff] = endpoint

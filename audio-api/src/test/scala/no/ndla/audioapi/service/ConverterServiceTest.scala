@@ -60,7 +60,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       audioMeta.revision.get,
       api.TitleDTO("Batmen er på vift med en bil", "nb"),
       service.toApiAudio(audioMeta.filePaths.headOption),
-      service.toApiCopyright(audioMeta.copyright),
+      service.toApiCopyright(audioMeta.copyright, "nb"),
       api.TagDTO(Seq("fisk"), "nb"),
       Seq("nb"),
       "standard",
@@ -80,7 +80,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       audioMeta.revision.get,
       api.TitleDTO("Batmen er på vift med en bil", "nb"),
       service.toApiAudio(audioMeta.filePaths.headOption),
-      service.toApiCopyright(audioMeta.copyright),
+      service.toApiCopyright(audioMeta.copyright, "nb"),
       api.TagDTO(Seq("fisk"), "nb"),
       Seq("nb"),
       "standard",
@@ -108,13 +108,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Some("https://creativecommons.org/licenses/by-sa/4.0/"),
     )
 
-    service.toApiLicence(licenseAbbr) should equal(license)
+    service.toApiLicence(licenseAbbr, "nb") should equal(license)
   }
 
   test("That toApiLicense returns unknown if the license is invalid") {
     val licenseAbbr = "garbage"
 
-    service.toApiLicence(licenseAbbr) should equal(commonApi.LicenseDTO("unknown", None, None))
+    service.toApiLicence(licenseAbbr, "nb") should equal(commonApi.LicenseDTO("unknown", None, None))
   }
 
   test("That mergeLanguageField merges language fields as expected") {
