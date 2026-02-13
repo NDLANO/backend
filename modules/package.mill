@@ -7,6 +7,7 @@ import mill.scalalib.scalafmt.ScalafmtModule
 import mill.util.Tasks
 import os.Path
 
+import java.io.File
 import java.security.MessageDigest
 import scala.util.{Failure, Success, Try}
 import scala.io.Source
@@ -63,14 +64,14 @@ object Yarn extends mill.Module {
     private val installedPaths = scala.collection.mutable.Map.empty[String, String]
     private val digest         = MessageDigest.getInstance("SHA-256")
 
-    private def runCommand(cmd: String): Unit = {
-      println(s"Running command: $cmd")
+    private def runCommand(command: String, cwd: String): Unit = {
+      println(s"Running command '$command' in directory $cwd")
       import sys.process.*
-      val result = cmd.!
+      val result = Process(command, File(cwd)).!
       if (result != 0) {
-        throw new Exception(s"Failed to run command: $cmd")
+        throw new Exception(s"Failed to run command: $command")
       }
-      println(s"Command executed successfully: $cmd")
+      println(s"Command executed successfully: $command")
     }
 
     private def runIfLockHashMismatch(path: String)(f: => Unit): Unit = {
@@ -91,12 +92,12 @@ object Yarn extends mill.Module {
 
     def yarnInstall(path: String): Unit = synchronized {
       runIfLockHashMismatch(path) {
-        runCommand(s"yarn --cwd $path install")
+        runCommand("yarn install", path)
       }
     }
 
     def generateOpenapiTypescriptFile(typescriptPath: String, moduleName: String): Unit = {
-      runCommand(s"yarn --cwd ${typescriptPath} generate-typescript $moduleName")
+      runCommand(s"yarn generate-typescript $moduleName", typescriptPath)
     }
   }
 }
