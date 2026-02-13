@@ -142,4 +142,45 @@ class UserRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with Te
     repository.numberOfFavouritedSubjects()(using session).get should be(Some(3L))
   }
 
+  test("that getUserNotSeenSince returns users last seen before cutoff") {
+    implicit val session: DBSession = DBUtil.autoSession
+
+    val cutoff = NDLADate.of(2024, 2, 15, 0, 0, 0).withNano(0)
+
+    insertUser("feide-old-1", userDocument("Old One", "old1", UserRole.STUDENT))
+    insertUser("feide-old-2", userDocument("Old Two", "old2", UserRole.STUDENT))
+    insertUser("feide-new-1", userDocument("New One", "new1", UserRole.EMPLOYEE))
+    insertUser("feide-cutoff", userDocument("Cutoff", "cutoff", UserRole.EMPLOYEE))
+
+    repository.updateLastSeen("feide-old-1", NDLADate.of(2024, 1, 1, 0, 0, 0).withNano(0)).get
+    repository.updateLastSeen("feide-old-2", NDLADate.of(2024, 2, 1, 0, 0, 0).withNano(0)).get
+    repository.updateLastSeen("feide-new-1", NDLADate.of(2024, 3, 1, 0, 0, 0).withNano(0)).get
+    repository.updateLastSeen("feide-cutoff", cutoff).get
+
+    val results = repository.getUserNotSeenSince(cutoff)(using session).get
+    results.map(_.username).toSet should be(Set("old1", "old2"))
+  }
+
+  test("that getUserNotSeenBeforeOrAfter respects before/after boundaries") {
+    implicit val session: DBSession = DBUtil.autoSession
+
+    val beforeDate = NDLADate.of(2024, 2, 1, 0, 0, 0).withNano(0)
+    val afterDate  = NDLADate.of(2024, 3, 1, 0, 0, 0).withNano(0)
+
+    insertUser("feide-before", userDocument("Before", "before", UserRole.STUDENT))
+    insertUser("feide-between", userDocument("Between", "between", UserRole.STUDENT))
+    insertUser("feide-after", userDocument("After", "after", UserRole.EMPLOYEE))
+    insertUser("feide-boundary-before", userDocument("Boundary Before", "boundary-before", UserRole.EMPLOYEE))
+    insertUser("feide-boundary-after", userDocument("Boundary After", "boundary-after", UserRole.EMPLOYEE))
+
+    repository.updateLastSeen("feide-before", NDLADate.of(2024, 1, 15, 0, 0, 0).withNano(0)).get
+    repository.updateLastSeen("feide-between", NDLADate.of(2024, 2, 15, 0, 0, 0).withNano(0)).get
+    repository.updateLastSeen("feide-after", NDLADate.of(2024, 3, 15, 0, 0, 0).withNano(0)).get
+    repository.updateLastSeen("feide-boundary-before", beforeDate).get
+    repository.updateLastSeen("feide-boundary-after", afterDate).get
+
+    val results = repository.getUserNotSeenBeforeOrAfter(beforeDate, afterDate)(using session).get
+    results.map(_.username).toSet should be(Set("before", "after"))
+  }
+
 }

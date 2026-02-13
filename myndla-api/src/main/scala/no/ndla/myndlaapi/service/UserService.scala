@@ -8,15 +8,20 @@
 
 package no.ndla.myndlaapi.service
 
+import cats.implicits.*
+import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
-import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
+import no.ndla.common.aws.NdlaEmailClient
+import no.ndla.common.errors.{AccessDeniedException, InactivityEmailException, NotFoundException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.myndla
 import no.ndla.common.model.api.myndla.UpdatedMyNDLAUserDTO
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
-import no.ndla.database.DBUtility
+import no.ndla.database.{DBUtility, ReadableDbSession}
+import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
+import no.ndla.myndlaapi.model.api.InactiveUserResultDTO
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID, FeideUserWrapper}
@@ -33,7 +38,9 @@ class UserService(using
     nodeBBClient: NodeBBClient,
     folderRepository: FolderRepository,
     dbUtility: DBUtility,
-) {
+    emailClient: NdlaEmailClient,
+    props: Props,
+) extends StrictLogging {
   def getMyNDLAUser(feideId: FeideID, feideAccessToken: Option[FeideAccessToken])(implicit
       session: DBSession
   ): Try[MyNDLAUser] = {
@@ -206,4 +213,67 @@ class UserService(using
       _            <- userRepository.deleteUser(user.feideId)(using session)
     } yield ()
   })
+
+  private val emailAfter           = 180
+  private val deleteAfter          = 210
+  private def emailSubject: String = "Min NDLA brukeren din blir snart slettet"
+  private def emailBody: String    = s"""Hei!<br>
+                                        |<br>
+                                        |Du har ikke brukt kontoen din på Min NDLA på en stund.<br>
+                                        |Kontoer som ikke har vært i bruk på $deleteAfter dager, blir slettet. Kontoen din har nå vært inaktiv i $emailAfter dager.<br>
+                                        |<br>
+                                        |Ønsker du å beholde kontoen? Da må du logge inn på Min NDLA i løpet av de neste ${deleteAfter - emailAfter} dagene.<br>
+                                        |Hvis du ikke lenger har behov for kontoen, trenger du ikke å gjøre noe.<br>
+                                        |<br>
+                                        |Har du spørsmål, kan du lese mer på <a href="https://ndla.no">ndla.no</a> eller sende oss en e-post på <a href="mailto:hjelp@ndla.no">hjelp@ndla.no</a>.<br>
+                                        |<br>
+                                        |Vennlig hilsen<br>
+                                        |NDLA<br>
+                                        |""".stripMargin
+
+  def sendInactivityEmail(user: MyNDLAUser): Try[Boolean] = {
+    props.Environment match {
+      case "prod" =>
+        logger.info(s"Sending inactivity email to user ${user.feideId} at email ${user.email}")
+        emailClient.sendEmail(user.email, emailSubject, emailBody)
+      case _ =>
+        logger.info(s"Skipping sending inactivity email to user ${user.feideId} in non-prod environment")
+        Success(true)
+    }
+  }
+
+  def sendInactivityEmailIgnoreEnvironment(email: String): Try[Boolean] =
+    emailClient.sendEmail(email, emailSubject, emailBody)
+
+  private def getUsersToEmail(now: NDLADate)(implicit session: ReadableDbSession): Try[List[MyNDLAUser]] = for {
+    lastCleanupRun      <- userRepository.getLastCleanup
+    emailCandidates     <- userRepository.getUserNotSeenSince(now.minusDays(emailAfter))
+    usersToEmailFiltered = lastCleanupRun match {
+      case None          => emailCandidates
+      case Some(lastRun) =>
+        val lastEmailCutoff = lastRun.lastCleanupDate.minusDays(emailAfter)
+        emailCandidates.filter(user => user.lastSeen.isAfter(lastEmailCutoff))
+    }
+  } yield usersToEmailFiltered
+
+  private def sendInactivityEmails(usersToEmail: List[MyNDLAUser]) = usersToEmail.traverse(user =>
+    sendInactivityEmail(user).flatMap {
+      case true  => Success(())
+      case false => Failure(InactivityEmailException(s"Failed to send inactivity email to user ${user.id}"))
+    }
+  )
+
+  def cleanupInactiveUsers(): Try[InactiveUserResultDTO] = dbUtility.writeSession { implicit session =>
+    val now              = clock.now()
+    val deleteBeforeDate = now.minusDays(deleteAfter)
+
+    for {
+      usersToDelete <- userRepository.getUserNotSeenSince(deleteBeforeDate)
+      deleteFeideIds = usersToDelete.map(_.feideId).toSet
+      usersToEmail  <- getUsersToEmail(now).map(_.filterNot(user => deleteFeideIds.contains(user.feideId)))
+      _             <- sendInactivityEmails(usersToEmail)
+      _             <- usersToDelete.traverse(user => userRepository.deleteUser(user.feideId).map(_ => ()))
+      cleanupResult <- userRepository.insertCleanupResult(usersToDelete.size, usersToEmail.size, now)
+    } yield InactiveUserResultDTO(cleanupResult.numCleanup, cleanupResult.numEmailed)
+  }
 }
