@@ -13,7 +13,7 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits.toTry
-import no.ndla.common.model.TagAttribute
+import no.ndla.common.model.{EmbedType, TagAttribute}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus.PUBLISHED
 import no.ndla.database.DBUtility

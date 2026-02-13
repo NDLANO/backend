@@ -8,7 +8,7 @@
 
 package no.ndla.validation
 
-import no.ndla.common.model.TagAttribute
+import no.ndla.common.model.{EmbedType, TagAttribute}
 
 import scala.io.Source
 import scala.language.postfixOps

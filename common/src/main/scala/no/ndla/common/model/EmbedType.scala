@@ -1,22 +1,26 @@
 /*
- * Part of NDLA validation
+ * Part of NDLA common
  * Copyright (C) 2026 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.validation
+package no.ndla.common.model
 
-import enumeratum.{Enum, EnumEntry}
-import no.ndla.validation.EmbedType.findValues
+import enumeratum.*
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.schemaForEnumEntry
 
 sealed abstract class EmbedType(override val entryName: String) extends EnumEntry {
   override def toString: String = entryName
 }
 
-object EmbedType extends Enum[EmbedType] {
-  val values: IndexedSeq[EmbedType] = findValues
+object EmbedType extends Enum[EmbedType] with CirceEnum[EmbedType] {
+  val values: IndexedSeq[EmbedType]      = findValues
+  implicit val schema: Schema[EmbedType] = schemaForEnumEntry[EmbedType]
+
+  def valueOf(s: String): Option[EmbedType] = EmbedType.values.find(_.entryName == s)
 
   case object Audio           extends EmbedType("audio")
   case object Brightcove      extends EmbedType("brightcove")

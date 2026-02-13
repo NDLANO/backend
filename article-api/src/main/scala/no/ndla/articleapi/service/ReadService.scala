@@ -24,7 +24,7 @@ import no.ndla.common.TryUtil.when
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{AccessDeniedException, MissingIdException, ValidationException}
 import no.ndla.common.implicits.*
-import no.ndla.common.model.TagAttribute
+import no.ndla.common.model.{EmbedType, TagAttribute}
 import no.ndla.common.model.api.MenuDTO
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.{ArticleType, Availability}
@@ -32,7 +32,6 @@ import no.ndla.database.DBUtility
 import no.ndla.language.Language
 import no.ndla.network.model.{FeideUserWrapper, userOrAccessDenied}
 import no.ndla.validation.HtmlTagRules.{jsoupDocumentToString, stringToJsoupDocument}
-import no.ndla.validation.EmbedType
 import org.jsoup.nodes.Element
 import scalikejdbc.DBSession
 

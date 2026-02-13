@@ -16,13 +16,12 @@ import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
-import no.ndla.common.model.{TagAttribute, api as commonApi}
+import no.ndla.common.model.{EmbedType, TagAttribute, api as commonApi}
 import no.ndla.common.util.TraitUtil
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.validation.EmbedType
 import org.jsoup.nodes.Element
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.when

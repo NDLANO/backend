@@ -9,9 +9,9 @@
 package no.ndla.articleapi
 
 import no.ndla.common.configuration.{BaseProps, Prop}
+import no.ndla.common.model.EmbedType
 import no.ndla.database.DatabaseProps
 import no.ndla.network.{AuthUser, Domains}
-import no.ndla.validation.EmbedType
 
 import scala.util.Properties.*
 

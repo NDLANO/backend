@@ -15,13 +15,12 @@ import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.{TestEnvironment, UnitSuite}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
-import no.ndla.common.model.{NDLADate, TagAttribute}
+import no.ndla.common.model.{EmbedType, NDLADate, TagAttribute}
 import no.ndla.common.model.api.{FrontPageDTO, MenuDTO}
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.myndla.MyNDLAUser
 import no.ndla.network.clients.FeideExtendedUserInfo
 import no.ndla.network.model.FeideUserWrapper
-import no.ndla.validation.EmbedType
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.*
 
