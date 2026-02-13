@@ -18,7 +18,9 @@ import sttp.tapir.*
 import sttp.tapir.docs.openapi.{OpenAPIDocsInterpreter, OpenAPIDocsOptions}
 import sttp.tapir.server.ServerEndpoint
 
+import java.nio.file.{Files, Paths}
 import scala.collection.immutable.ListMap
+import scala.util.Try
 
 class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInfo)(using
     props: BaseProps,
@@ -77,16 +79,8 @@ class SwaggerController(services: List[TapirController], swaggerInfo: SwaggerInf
     docsWithComponents.asJson
   }
 
-  def saveSwagger(): Unit = {
-    import java.io.*
-    val swaggerLocation = new File(s"./typescript/types-backend/openapi")
-    val jsonFile        = new File(swaggerLocation, s"${props.ApplicationName}.json")
-
-    swaggerLocation.mkdir()
-
-    val pw = new PrintWriter(jsonFile)
-    pw.write(docs.noSpaces)
-    pw.close()
+  def saveSwagger(): Try[Unit] = {
+    Try(Files.write(Paths.get(s"${props.ApplicationName}.json"), docs.noSpaces.getBytes)).map(_ => ())
   }
 
   private def addCorsHeaders[A, I, X, O, R](end: Endpoint[A, I, X, O, R]) =

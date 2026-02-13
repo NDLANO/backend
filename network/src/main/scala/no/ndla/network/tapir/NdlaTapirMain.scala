@@ -98,7 +98,7 @@ trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
     setPropsFromEnv()
     Log4jBridgeHandler.install(true, null, true)
     if (args.contains("--generate-openapi")) {
-      Try(componentRegistry.swagger.saveSwagger())
+      componentRegistry.swagger.saveSwagger()
     } else {
       props.throwIfFailedProps()
       runServer()
