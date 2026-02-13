@@ -150,7 +150,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
       }
       fail("Exception should prevent normal execution")
     } catch {
-      case _: Throwable => repository.withOwner(owner).length should be(0)
+      case _: Throwable => repository.withOwner(owner, Sort.ByCreatedDesc).length should be(0)
     }
   }
 
@@ -515,7 +515,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
 
   def deleteAllWithOwner(owner: String): Unit = {
     repository.inTransaction { implicit session =>
-      repository.withOwner(owner).foreach(lp => repository.deletePath(lp.id.get))
+      repository.withOwner(owner, Sort.ByCreatedDesc).foreach(lp => repository.deletePath(lp.id.get))
     }
   }
 }
