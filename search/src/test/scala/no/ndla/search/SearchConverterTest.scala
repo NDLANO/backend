@@ -8,6 +8,7 @@
 
 package no.ndla.search
 
+import no.ndla.common.model.EmbedType.{Brightcove, IframeContent, Image}
 import no.ndla.search.model.domain.EmbedValues
 import no.ndla.testbase.UnitTestSuiteBase
 
@@ -19,7 +20,7 @@ class SearchConverterTest extends UnitTestSuiteBase {
       val html    =
         s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="image" data-resource_id="$imageId"></ndlaembed>"""
 
-      val expected = List(EmbedValues(id = List(imageId), resource = Some("image"), language = "nb"))
+      val expected = List(EmbedValues(id = List(imageId), resource = Some(Image), language = "nb"))
 
       SearchConverter.getEmbedValues(html, "nb") should be(expected)
     }
@@ -28,7 +29,7 @@ class SearchConverterTest extends UnitTestSuiteBase {
       val html    =
         s"""<section><h1>Hello my dear friends</h1><ndlaembed data-account="4806596774001" data-caption="Kildebruk" data-player="BkLm8fT" data-resource="brightcove" data-videoid="$videoId"></ndlaembed>"""
 
-      val expected = List(EmbedValues(id = List(videoId), resource = Some("brightcove"), language = "nb"))
+      val expected = List(EmbedValues(id = List(videoId), resource = Some(Brightcove), language = "nb"))
       SearchConverter.getEmbedValues(html, "nb") should be(expected)
     }
   }
@@ -37,9 +38,9 @@ class SearchConverterTest extends UnitTestSuiteBase {
     val videoId        = "2398472394"
     val videoIdAndData = s"$videoId&amp;t="
     val html           =
-      s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="video" data-videoid="$videoIdAndData"></ndlaembed>"""
+      s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="brightcove" data-videoid="$videoIdAndData"></ndlaembed>"""
 
-    val expected = List(EmbedValues(id = List(videoId), resource = Some("video"), language = "nb"))
+    val expected = List(EmbedValues(id = List(videoId), resource = Some(Brightcove), language = "nb"))
 
     SearchConverter.getEmbedValues(html, "nb") should be(expected)
   }
@@ -51,7 +52,8 @@ class SearchConverterTest extends UnitTestSuiteBase {
       val html           =
         s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="iframe" data-url="$videoIdAndData"></ndlaembed>"""
 
-      val expected = List(EmbedValues(id = List(videoIdAndData, videoId), resource = Some("iframe"), language = "nb"))
+      val expected =
+        List(EmbedValues(id = List(videoIdAndData, videoId), resource = Some(IframeContent), language = "nb"))
       SearchConverter.getEmbedValues(html, "nb") should be(expected)
     }
     {
@@ -60,7 +62,7 @@ class SearchConverterTest extends UnitTestSuiteBase {
       val html     =
         s"""<section><h1>Hello my dear friends</h1><ndlaembed data-resource="iframe" data-url="$videoUrl" data-type="iframe"></ndlaembed>"""
 
-      val expected = List(EmbedValues(id = List(videoUrl, videoId), resource = Some("iframe"), language = "nb"))
+      val expected = List(EmbedValues(id = List(videoUrl, videoId), resource = Some(IframeContent), language = "nb"))
       SearchConverter.getEmbedValues(html, "nb") should be(expected)
     }
   }

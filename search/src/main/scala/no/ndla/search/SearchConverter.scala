@@ -9,7 +9,7 @@
 package no.ndla.search
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model.TagAttribute
+import no.ndla.common.model.{EmbedType, TagAttribute}
 import no.ndla.search.model.domain.EmbedValues
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -31,10 +31,10 @@ object SearchConverter {
   private def getEmbedValuesFromEmbed(embed: Element, language: String): EmbedValues =
     EmbedValues(resource = getEmbedResource(embed), id = getEmbedIds(embed), language = language)
 
-  private def getEmbedResource(embed: Element): Option[String] = {
+  private def getEmbedResource(embed: Element): Option[EmbedType] = {
     embed.attr(TagAttribute.DataResource.toString) match {
       case "" => None
-      case a  => Some(a)
+      case a  => EmbedType.valueOf(a)
     }
   }
 
@@ -68,21 +68,29 @@ object SearchConverter {
       }
     } else List(resourceUrl)
   }
+
+  private def addTypeDiscriminator(embed: Element, value: String): List[String] = {
+    val contentType = embed.attr(TagAttribute.DataContentType.toString)
+    getEmbedResource(embed) match {
+      case Some(EmbedType.ContentLink)    => List(value, s"$contentType:$value")
+      case Some(EmbedType.RelatedContent) => List(value, s"article:$value")
+      case _                              => List(value)
+    }
+  }
+
   private def getEmbedIds(embed: Element): List[String] = {
     AttributesToKeep.flatMap(attr =>
       embed.attr(attr.toString) match {
         case ""    => None
-        case value => {
-          attr match {
+        case value => attr match {
+            case TagAttribute.DataArticleId   => addTypeDiscriminator(embed, value)
+            case TagAttribute.DataContentId   => addTypeDiscriminator(embed, value)
+            case TagAttribute.DataImageId     => List(value)
             case TagAttribute.DataUrl         => extractIdFromUrl(value)
             case TagAttribute.DataVideoId     => List(stripIdPostfix(value))
             case TagAttribute.DataResource_Id => List(value)
-            case TagAttribute.DataContentId   => List(value)
-            case TagAttribute.DataArticleId   => List(value)
-            case TagAttribute.DataImageId     => List(value)
             case _                            => None
           }
-        }
       }
     )
   }

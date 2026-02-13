@@ -25,13 +25,12 @@ import no.ndla.common.errors.{
 }
 import no.ndla.common.implicits.*
 import no.ndla.common.logging.logTaskTime
-import no.ndla.common.model.TagAttribute
+import no.ndla.common.model.{EmbedType, NDLADate, TagAttribute, domain as common}
 import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.article.PartialPublishArticleDTO
 import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, UploadedFile}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.database.DBUtility
 import no.ndla.draftapi.DraftUtil.shouldPartialPublish
 import no.ndla.draftapi.Props
@@ -145,7 +144,7 @@ class WriteService(using
   def contentWithClonedFiles(contents: List[common.ArticleContent]): Try[List[common.ArticleContent]] = {
     contents.traverse(content => {
       val doc    = HtmlTagRules.stringToJsoupDocument(content.content)
-      val embeds = doc.select(s"$EmbedTagName[${TagAttribute.DataResource}='${ResourceType.File}']").asScala
+      val embeds = doc.select(s"$EmbedTagName[${TagAttribute.DataResource}='${EmbedType.File}']").asScala
 
       embeds.toList.traverse(cloneEmbedAndUpdateElement) match {
         case Failure(ex) => Failure(ex)

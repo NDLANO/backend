@@ -16,13 +16,12 @@ import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.draft.{Draft, DraftCopyright, DraftStatus}
 import no.ndla.common.model.domain.language.OptLanguageFields
-import no.ndla.common.model.{TagAttribute, api as commonApi}
+import no.ndla.common.model.{EmbedType, TagAttribute, api as commonApi}
 import no.ndla.common.util.TraitUtil
 import no.ndla.draftapi.model.api
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.validation.ResourceType
 import org.jsoup.nodes.Element
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.when
@@ -109,15 +108,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toDomainArticleShould should remove unneeded attributes on embed-tags") {
     val content =
-      s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}" ${TagAttribute.DataUrl}="http://some-url" data-random="hehe"></$EmbedTagName>"""
+      s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${EmbedType.Image}" ${TagAttribute.DataUrl}="http://some-url" data-random="hehe"></$EmbedTagName>"""
     val expectedContent =
-      s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}"></$EmbedTagName>"""
+      s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${EmbedType.Image}"></$EmbedTagName>"""
     val visualElement =
-      s"""<$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}" ${TagAttribute.DataUrl}="http://some-url" data-random="hehe"></$EmbedTagName>"""
-    val expectedVisualElement =
-      s"""<$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Image}"></$EmbedTagName>"""
-    val apiArticle   = TestData.newArticle.copy(content = Some(content), visualElement = Some(visualElement))
-    val expectedTime = TestData.today
+      s"""<$EmbedTagName ${TagAttribute.DataResource}="${EmbedType.Image}" ${TagAttribute.DataUrl}="http://some-url" data-random="hehe"></$EmbedTagName>"""
+    val expectedVisualElement = s"""<$EmbedTagName ${TagAttribute.DataResource}="${EmbedType.Image}"></$EmbedTagName>"""
+    val apiArticle            = TestData.newArticle.copy(content = Some(content), visualElement = Some(visualElement))
+    val expectedTime          = TestData.today
 
     when(clock.now()).thenReturn(expectedTime)
 
@@ -812,7 +810,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test("filterComments should remove comments") {
     val content = Seq(
       ArticleContent(
-        s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="inline"><p>Litt tekst</p></$EmbedTagName>""",
+        s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${EmbedType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="inline"><p>Litt tekst</p></$EmbedTagName>""",
         "nb",
       )
     )
@@ -820,11 +818,11 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val blockContent = Seq(
       ArticleContent(
-        s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="block"></$EmbedTagName>""",
+        s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${EmbedType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="block"></$EmbedTagName>""",
         "nb",
       ),
       ArticleContent(
-        s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${ResourceType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="block"></$EmbedTagName>""",
+        s"""<h1>hello</h1><$EmbedTagName ${TagAttribute.DataResource}="${EmbedType.Comment}" ${TagAttribute.DataText}="Dette er min kommentar" ${TagAttribute.DataType}="block"></$EmbedTagName>""",
         "nn",
       ),
     )

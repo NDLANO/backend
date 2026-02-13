@@ -13,7 +13,7 @@ import io.lemonlabs.uri.{Path, Url}
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits.toTry
-import no.ndla.common.model.TagAttribute
+import no.ndla.common.model.{EmbedType, TagAttribute}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus.PUBLISHED
 import no.ndla.database.DBUtility
@@ -139,8 +139,9 @@ class ReadService(using
   private def addUrlOnEmbedTag(embedTag: Element): Unit = {
     val typeAndPathOption = embedTag.attr(TagAttribute.DataResource.toString) match {
       case resourceType
-          if resourceType == ResourceType.File.toString || resourceType == ResourceType.H5P.toString && embedTag
-            .hasAttr(TagAttribute.DataPath.toString) =>
+          if resourceType == EmbedType.File.toString || resourceType == EmbedType.H5P.toString && embedTag.hasAttr(
+            TagAttribute.DataPath.toString
+          ) =>
         val path = embedTag.attr(TagAttribute.DataPath.toString)
         Some((resourceType, path))
 

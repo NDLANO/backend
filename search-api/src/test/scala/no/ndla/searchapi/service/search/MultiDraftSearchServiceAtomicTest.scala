@@ -784,7 +784,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         id = Some(1),
         content = Seq(
           ArticleContent(
-            s"""<section><div data-type="related-content"><$EmbedTagName data-resource="video" data-videoid="$videoId&amp;t=1"></$EmbedTagName></div></section>""",
+            s"""<section><div data-type="related-content"><$EmbedTagName data-resource="brightcove" data-videoid="$videoId&amp;t=1"></$EmbedTagName></div></section>""",
             "nb",
           )
         ),
@@ -794,7 +794,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 1)
 
     val Success(search1) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(embedId = Some(videoId), embedResource = List("video"))
+      multiDraftSearchSettings.copy(embedId = Some(videoId), embedResource = List("brightcove"))
     ): @unchecked
 
     search1.totalCount should be(1)

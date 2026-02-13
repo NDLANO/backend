@@ -10,14 +10,14 @@ package no.ndla.validation
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.common.model.TagAttribute
+import no.ndla.common.model.{EmbedType, TagAttribute}
 import no.ndla.validation.TagRules.Condition
 
 class EmbedTagRulesTest extends UnitSuite {
 
   test("Rules for all resource types should be defined") {
     val resourceTypesFromConfigFile      = EmbedTagRules.attributeRules.keys
-    val resourceTypesFromEnumDeclaration = ResourceType.values
+    val resourceTypesFromEnumDeclaration = EmbedType.values
 
     resourceTypesFromEnumDeclaration.foreach(rt => {
       resourceTypesFromConfigFile.should(contain(rt))
