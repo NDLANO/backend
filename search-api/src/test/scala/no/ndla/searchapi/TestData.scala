@@ -442,7 +442,10 @@ object TestData {
       title = List(Title("Katter", "nb"), Title("Cats", "en"), Title("Chhattisgarhi", "hne")),
       content = List(
         ArticleContent(
-          s"<p>Søkeord: delt?streng delt!streng delt&streng</p><$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\" /><p>Noe om en katt</p>",
+          s"""<p>Søkeord: delt?streng delt!streng delt&streng</p>
+             |<$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\" /><p>Noe om en katt</p>
+             |<$EmbedTagName data-resource=\"content-link\" data-content-type=\"article\" data-content-id=\"666\"></$EmbedTagName>"""
+            .stripMargin,
           "nb",
         ),
         ArticleContent("<p>Something about a cat</p>", "en"),
@@ -470,7 +473,8 @@ object TestData {
              |<$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName>
              |<$EmbedTagName data-videoid=\"77\" data-resource=\"brightcove\"></$EmbedTagName>
              |<$EmbedTagName data-resource=\"audio\" data-resource_id=\"66\"></$EmbedTagName>
-             |<$EmbedTagName data-resource=\"external\" data-url=\"http://test\" data-resource_id=\"test-id1\"></$EmbedTagName>"""
+             |<$EmbedTagName data-resource=\"external\" data-url=\"http://test\" data-resource_id=\"test-id1\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"content-link\" data-content-type=\"learningpath\" data-content-id=\"666\"></$EmbedTagName>"""
             .stripMargin,
           "nb",
         ),
@@ -880,7 +884,9 @@ object TestData {
              |<$EmbedTagName data-resource=\"audio\" data-resource_id=\"66\"></$EmbedTagName>
              |<$EmbedTagName data-resource=\"iframe\" data-url=\"https://norgesfilm.no/film/1234\"></$EmbedTagName>
              |<$EmbedTagName data-resource=\"brightcove\" data-videoid="6369137446112"></$EmbedTagName>
-             |<$EmbedTagName data-resource=\"external\"  data-url=\"http://test.test\"></$EmbedTagName>""".stripMargin,
+             |<$EmbedTagName data-resource=\"external\"  data-url=\"http://test.test\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"content-link\" data-content-type=\"learningpath\" data-content-id=\"666\"></$EmbedTagName>"""
+            .stripMargin,
           "nb",
         )
       ),
@@ -899,7 +905,7 @@ object TestData {
       metaDescription = List(common.Description("", "nb")),
       content = List(
         ArticleContent(
-          "<section><p>Helsesøster</p><p>Søkeord: delt?streng delt!streng delt&streng</p></section>",
+          s"<section><p>Helsesøster</p><p>Søkeord: delt?streng delt!streng delt&streng</p><$EmbedTagName data-resource=\"content-link\" data-content-type=\"article\" data-content-id=\"666\"></$EmbedTagName></section>",
           "nb",
         ),
         ArticleContent(
