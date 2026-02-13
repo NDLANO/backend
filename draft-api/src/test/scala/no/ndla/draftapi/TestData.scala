@@ -121,6 +121,7 @@ object TestData {
     qualityEvaluation = None,
     disclaimer = None,
     traits = List.empty,
+    publishedCount = 1,
   )
 
   val blankUpdatedArticle: UpdatedArticleDTO = api.UpdatedArticleDTO(
@@ -240,6 +241,7 @@ object TestData {
     qualityEvaluation = None,
     disclaimer = None,
     traits = List.empty,
+    publishedCount = 1,
   )
 
   val apiArticleUserTest: api.ArticleDTO = api.ArticleDTO(
@@ -296,6 +298,7 @@ object TestData {
     qualityEvaluation = None,
     disclaimer = None,
     traits = List.empty,
+    publishedCount = 1,
   )
 
   val sampleTopicArticle: Draft = Draft(
@@ -332,6 +335,7 @@ object TestData {
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = None,
   )
 
   val sampleArticleWithPublicDomain: Draft = Draft(
@@ -368,6 +372,7 @@ object TestData {
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = None,
   )
 
   val sampleDomainArticle: Draft = Draft(
@@ -406,6 +411,7 @@ object TestData {
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = None,
   )
 
   val newArticle: NewArticleDTO = api.NewArticleDTO(
@@ -460,9 +466,9 @@ object TestData {
     content = Seq(
       common.ArticleContent(
         """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
-          |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
-          |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
-          |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
+        |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
+        |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
+        |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
     """.stripMargin,
         "en",
       )
@@ -508,6 +514,7 @@ object TestData {
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = None,
   )
 
   val apiArticleWithHtmlFaultV2: api.ArticleDTO = api.ArticleDTO(
@@ -519,9 +526,9 @@ object TestData {
     content = Some(
       api.ArticleContentDTO(
         """<ul><li><h1>Det er ikke lov å gjøre dette.</h1> Tekst utenfor.</li><li>Dette er helt ok</li></ul>
-          |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
-          |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
-          |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
+        |<ul><li><h2>Det er ikke lov å gjøre dette.</h2></li><li>Dette er helt ok</li></ul>
+        |<ol><li><h3>Det er ikke lov å gjøre dette.</h3></li><li>Dette er helt ok</li></ol>
+        |<ol><li><h4>Det er ikke lov å gjøre dette.</h4></li><li>Dette er helt ok</li></ol>
       """.stripMargin,
         "en",
       )
@@ -567,6 +574,7 @@ object TestData {
     qualityEvaluation = None,
     disclaimer = None,
     traits = List.empty,
+    publishedCount = 1,
   )
 
   val (nodeId, nodeId2)         = ("1234", "4321")

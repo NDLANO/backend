@@ -119,6 +119,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       favorited = 0,
       learningResourceType = LearningResourceType.Article,
       typeName = List.empty,
+      publishedCount = 0,
       domainObject = TestData
         .draft1
         .copy(
@@ -131,6 +132,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
               status = CommonStatus(current = DraftStatus.IN_PROGRESS, other = Set(DraftStatus.PUBLISHED)),
             )
           ),
+          publishedCount = Some(0),
         ),
       nodes = nodes,
     )

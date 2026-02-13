@@ -42,6 +42,7 @@ case class SearchableArticle(
     availability: String,
     learningResourceType: LearningResourceType,
     typeName: List[String],
+    publishedCount: Int,
     domainObject: Article,
     nodes: List[Node],
 )

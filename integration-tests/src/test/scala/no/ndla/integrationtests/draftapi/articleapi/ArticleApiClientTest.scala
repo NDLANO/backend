@@ -135,6 +135,7 @@ class ArticleApiClientTest
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = None,
   )
 
   val exampleToken =
@@ -156,8 +157,8 @@ class ArticleApiClientTest
             td.sampleDomainArticle
               .copy(
                 id = Some(id),
-                updated = NDLADate.fromUnixTime(0),
                 created = NDLADate.fromUnixTime(0),
+                updated = NDLADate.fromUnixTime(0),
                 published = NDLADate.fromUnixTime(0),
               ),
             List(s"1$id"),
