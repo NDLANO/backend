@@ -6,6 +6,7 @@ import mill.scalalib.*
 import mill.api.Task.Simple.create
 import mill.api.daemon.Result
 import build.modules.Yarn
+import os.Path
 
 import java.io.{BufferedWriter, File, FileWriter}
 
@@ -24,15 +25,36 @@ trait OpenAPITSPlugin extends ScalaModule {
     if (isComponent) {
       Task.Command {
         generateOpenAPIFile()
-        Yarn.worker().yarnInstall(typescriptPath.toString)
-        Yarn.worker().generateOpenapiTypescriptFile(typescriptPath.toString, moduleName)
+        typescript.generate()
       }
     } else {
       Task.Command {
         Result.Success(())
       }
     }
-
   }
 
+  object typescript extends Module {
+    override def moduleDir: Path = BuildCtx.workspaceRoot / "typescript" / "types-backend"
+
+    def sources = Task.Sources("package.json", "yarn.lock", "generate-openapi.ts", "scripts", moduleName)
+
+    def yarnInstall = Task {
+      sources().foreach { src =>
+        val rel    = src.path.relativeTo(moduleDir)
+        val target = Task.dest / rel
+        os.copy(src.path, target, createFolders = true)
+      }
+
+      os.call(("corepack", "enable"))
+      os.call(("yarn", "install", "--immutable"))
+
+      PathRef(Task.dest)
+    }
+
+    def generate = Task {
+      os.copy(yarnInstall().path, Task.dest, mergeFolders = true)
+      os.call(("yarn", "generate-typescript", moduleName))
+    }
+  }
 }
