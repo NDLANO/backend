@@ -8,12 +8,9 @@ jobs:
     name: Formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: coursier/cache-action@v6
-      - uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: ${{ vars.JAVA_VERSION }}
+      - uses: actions/checkout@v6
+      - uses: coursier/cache-action@v8
+      - uses: jdx/mise-action@v3
       - name: Check all formatting
         run: ./checkfmt.sh
       - name: Check copyrights
@@ -22,12 +19,9 @@ jobs:
     name: Linting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: coursier/cache-action@v6
-      - uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: ${{ vars.JAVA_VERSION }}
+      - uses: actions/checkout@v6
+      - uses: coursier/cache-action@v8
+      - uses: jdx/mise-action@v3
       - name: Build required semanticdb files
         run: ./mill -i _.semanticDbData
       - name: Check dependency cycles

@@ -19,16 +19,8 @@ jobs:
     name: Publish typescript types
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.CI_GITHUB_TOKEN }}
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "22.15.0"
-      - name: Enable yarn v4
-        run: |
-          corepack enable
-          yarn set version 4.10.3
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v3
       - name: Setup git
         run: |
           git config user.email "$KNOWIT_EMAIL"
@@ -36,6 +28,7 @@ jobs:
       - name: Publish typescript types
         run: |
           cd typescript/types-backend
+          corepack enable
           yarn
           yarn build
           yarn version patch

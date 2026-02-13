@@ -13,12 +13,9 @@ jobs:
     name: Run ghGenerate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: coursier/cache-action@v6
-      - uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: ${{ vars.JAVA_VERSION }}
+      - uses: actions/checkout@v6
+      - uses: coursier/cache-action@v8
+      - uses: jdx/mise-action@v3
       - name: Run ghGenerate
         run: ./mill -i _.ghGenerate
       - name: Verify generated files are up to date

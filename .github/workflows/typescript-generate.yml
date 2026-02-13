@@ -21,33 +21,17 @@ jobs:
     name: Generate typescript types
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.CI_GITHUB_TOKEN }}
-      - uses: coursier/cache-action@v6
-      - uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: ${{ vars.JAVA_VERSION }}
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "22.15.0"
-      - uses: ndlano/reusable-workflows/.github/actions/setup-ndla-login@main
-        with:
-          AWS_CLIENT_ID: ${{ secrets.CI_AWS_CLIENT_ID }}
-          AWS_CLIENT_SECRET: ${{ secrets.CI_AWS_CLIENT_SECRET }}
-          AWS_ECR_REPO: ${{ secrets.NDLA_AWS_ECR_REPO }}
-          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-          RELEASE_ROLE: ${{ secrets.CI_RELEASE_ROLE }}
-      - name: Enable yarn v4
-        run: |
-          corepack enable
-          yarn set version 4.10.3
+      - uses: actions/checkout@v6
+      - uses: coursier/cache-action@v8
+      - uses: jdx/mise-action@v3
       - name: Generate typescript types
         run: ./mill -i _.generateTypescript
       - name: Verify typescript types
-        run: cd typescript/types-backend && yarn install && yarn tsc
+        run: |
+          cd typescript/types-backend
+          corepack enable
+          yarn install
+          yarn tsc
       - name: Commit typescript changes
         continue-on-error: true
         run: |
