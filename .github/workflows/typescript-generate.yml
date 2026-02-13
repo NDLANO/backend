@@ -31,7 +31,6 @@ jobs:
       - name: Verify typescript types
         run: |
           cd typescript/types-backend
-          yarn install
           yarn tsc
       - name: Commit typescript changes
         continue-on-error: true
