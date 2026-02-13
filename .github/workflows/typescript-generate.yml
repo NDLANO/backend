@@ -24,12 +24,13 @@ jobs:
       - uses: actions/checkout@v6
       - uses: coursier/cache-action@v8
       - uses: jdx/mise-action@v3
+      - name: Enable corepack
+        run: corepack enable
       - name: Generate typescript types
         run: ./mill -i _.generateTypescript
       - name: Verify typescript types
         run: |
           cd typescript/types-backend
-          corepack enable
           yarn install
           yarn tsc
       - name: Commit typescript changes
