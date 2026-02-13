@@ -50,7 +50,7 @@ class StatsController(using
   private val pathResourceIds =
     path[CommaSeparated[String]]("resourceIds").description("IDs of the resources to look up")
 
-  private def getFolderResourceFavorites: ServerEndpoint[Any, Eff] = endpoint
+  private def getResourceFavorites: ServerEndpoint[Any, Eff] = endpoint
     .get
     .summary("Get folder resource favorites")
     .description("Get folder resource favorites")
@@ -72,6 +72,5 @@ class StatsController(using
       folderReadService.getAllTheFavorites
     }
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] =
-    List(getStats, getAllTheFavorites, getFolderResourceFavorites)
+  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getStats, getAllTheFavorites, getResourceFavorites)
 }
