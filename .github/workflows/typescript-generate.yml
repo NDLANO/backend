@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
       - uses: coursier/cache-action@v8
       - uses: jdx/mise-action@v3
       - name: Enable corepack
