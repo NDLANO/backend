@@ -15,6 +15,7 @@ import no.ndla.common
 import no.ndla.common.CirceUtil
 import no.ndla.common.errors.MissingIdException
 import no.ndla.common.implicits.*
+import no.ndla.common.model.EmbedType.Image
 import no.ndla.common.model.api.search.*
 import no.ndla.common.model.api.{AuthorDTO, CommentDTO, LicenseDTO, ResponsibleDTO}
 import no.ndla.common.model.domain.article.Article
@@ -111,7 +112,7 @@ class SearchConverterService(using
     val contentTuples       = content.flatMap(c => getEmbedValues(c.content, c.language))
     val visualElementTuples = visualElement.flatMap(v => getEmbedValues(v.resource, v.language))
     val metaImageTuples     =
-      metaImage.map(m => EmbedValues(id = List(m.imageId), resource = Some("image"), language = m.language))
+      metaImage.map(m => EmbedValues(id = List(m.imageId), resource = Some(Image), language = m.language))
     (
       contentTuples ++ visualElementTuples ++ metaImageTuples
     ).toList

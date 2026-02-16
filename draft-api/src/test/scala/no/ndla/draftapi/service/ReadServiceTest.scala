@@ -10,10 +10,9 @@ package no.ndla.draftapi.service
 
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationException
-import no.ndla.common.model.TagAttribute
+import no.ndla.common.model.{EmbedType, TagAttribute}
 import no.ndla.common.model.domain.{ArticleContent, Description, VisualElement}
 import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.validation.ResourceType
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}
 import scalikejdbc.DBSession
@@ -27,8 +26,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   val externalImageApiUrl: String = props.externalApiUrls("image")
   val resourceIdAttr: String      = s"${TagAttribute.DataResource_Id}"
   val resourceAttr: String        = s"${TagAttribute.DataResource}"
-  val imageType: String           = s"${ResourceType.Image}"
-  val h5pType: String             = s"${ResourceType.H5P}"
+  val imageType: String           = s"${EmbedType.Image}"
+  val h5pType: String             = s"${EmbedType.H5P}"
   val urlAttr: String             = s"${TagAttribute.DataUrl}"
 
   val content1: String =
@@ -95,9 +94,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("addUrlOnResource adds url attribute on file embeds") {
     val filePath = "files/lel/fileste.pdf"
     val content  =
-      s"""<div data-type="file"><$EmbedTagName $resourceAttr="${ResourceType.File}" ${TagAttribute.DataPath}="$filePath" ${TagAttribute.Title}="This fancy pdf"></$EmbedTagName><$EmbedTagName $resourceAttr="${ResourceType.File}" ${TagAttribute.DataPath}="$filePath" ${TagAttribute.Title}="This fancy pdf"></$EmbedTagName></div>"""
+      s"""<div data-type="file"><$EmbedTagName $resourceAttr="${EmbedType.File}" ${TagAttribute.DataPath}="$filePath" ${TagAttribute.Title}="This fancy pdf"></$EmbedTagName><$EmbedTagName $resourceAttr="${EmbedType.File}" ${TagAttribute.DataPath}="$filePath" ${TagAttribute.Title}="This fancy pdf"></$EmbedTagName></div>"""
     val expectedResult =
-      s"""<div data-type="file"><$EmbedTagName $resourceAttr="${ResourceType.File}" ${TagAttribute.DataPath}="$filePath" ${TagAttribute.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath"></$EmbedTagName><$EmbedTagName $resourceAttr="${ResourceType.File}" ${TagAttribute.DataPath}="$filePath" ${TagAttribute.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath"></$EmbedTagName></div>"""
+      s"""<div data-type="file"><$EmbedTagName $resourceAttr="${EmbedType.File}" ${TagAttribute.DataPath}="$filePath" ${TagAttribute.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath"></$EmbedTagName><$EmbedTagName $resourceAttr="${EmbedType.File}" ${TagAttribute.DataPath}="$filePath" ${TagAttribute.Title}="This fancy pdf" $urlAttr="http://api-gateway.ndla-local/$filePath"></$EmbedTagName></div>"""
     val result = readService.addUrlOnResource(content)
     result should equal(expectedResult)
   }
@@ -105,9 +104,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
   test("addUrlOnResource adds url attribute on h5p embeds") {
     val h5pPath = "/resource/89734643-4006-4c65-a5de-34989ba7b2c8"
     val content =
-      s"""<div><$EmbedTagName $resourceAttr="${ResourceType.H5P}" ${TagAttribute.DataPath}="$h5pPath" ${TagAttribute.Title}="This fancy h5p"></$EmbedTagName><$EmbedTagName $resourceAttr="${ResourceType.H5P}" ${TagAttribute.DataPath}="$h5pPath" ${TagAttribute.Title}="This fancy h5p"></$EmbedTagName></div>"""
+      s"""<div><$EmbedTagName $resourceAttr="${EmbedType.H5P}" ${TagAttribute.DataPath}="$h5pPath" ${TagAttribute.Title}="This fancy h5p"></$EmbedTagName><$EmbedTagName $resourceAttr="${EmbedType.H5P}" ${TagAttribute.DataPath}="$h5pPath" ${TagAttribute.Title}="This fancy h5p"></$EmbedTagName></div>"""
     val expectedResult =
-      s"""<div><$EmbedTagName $resourceAttr="${ResourceType.H5P}" ${TagAttribute.DataPath}="$h5pPath" ${TagAttribute.Title}="This fancy h5p" $urlAttr="https://h5p-test.ndla.no$h5pPath"></$EmbedTagName><$EmbedTagName $resourceAttr="${ResourceType.H5P}" ${TagAttribute.DataPath}="$h5pPath" ${TagAttribute.Title}="This fancy h5p" $urlAttr="https://h5p-test.ndla.no$h5pPath"></$EmbedTagName></div>"""
+      s"""<div><$EmbedTagName $resourceAttr="${EmbedType.H5P}" ${TagAttribute.DataPath}="$h5pPath" ${TagAttribute.Title}="This fancy h5p" $urlAttr="https://h5p-test.ndla.no$h5pPath"></$EmbedTagName><$EmbedTagName $resourceAttr="${EmbedType.H5P}" ${TagAttribute.DataPath}="$h5pPath" ${TagAttribute.Title}="This fancy h5p" $urlAttr="https://h5p-test.ndla.no$h5pPath"></$EmbedTagName></div>"""
     val result = readService.addUrlOnResource(content)
     result should equal(expectedResult)
   }

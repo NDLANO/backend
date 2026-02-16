@@ -769,7 +769,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val Success(results) = multiSearchService.matchingQuery(
       searchSettings.copy(
         query = Some(NonEmptyString.fromString("Ekstra").get),
-        embedResource = List("video"),
+        embedResource = List("brightcove"),
         embedId = Some("77"),
       )
     ): @unchecked
@@ -782,7 +782,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val Success(results) = multiSearchService.matchingQuery(
       searchSettings.copy(
         query = Some(NonEmptyString.fromString("query-string-without-match").get),
-        embedResource = List("video"),
+        embedResource = List("brightcove"),
         embedId = Some("77"),
       )
     ): @unchecked
@@ -791,7 +791,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That search on embed data-resource matches") {
     val Success(results) =
-      multiSearchService.matchingQuery(searchSettings.copy(embedResource = List("video"))): @unchecked
+      multiSearchService.matchingQuery(searchSettings.copy(embedResource = List("brightcove"))): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)
     hits.head.id should be(12)
@@ -812,6 +812,29 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     hits.head.id should be(12)
   }
 
+  test("That search on embed content-link with type matches") {
+    {
+      val Success(results) = multiSearchService.matchingQuery(searchSettings.copy(embedId = Some("666"))): @unchecked
+      val hits             = results.summaryResults
+      results.totalCount should be(2)
+      hits.map(_.id) should be(Seq(11, 12))
+    }
+    {
+      val Success(results) =
+        multiSearchService.matchingQuery(searchSettings.copy(embedId = Some("article:666"))): @unchecked
+      val hits = results.summaryResults
+      results.totalCount should be(1)
+      hits.head.id should be(11)
+    }
+    {
+      val Success(results) =
+        multiSearchService.matchingQuery(searchSettings.copy(embedId = Some("learningpath:666"))): @unchecked
+      val hits = results.summaryResults
+      results.totalCount should be(1)
+      hits.head.id should be(12)
+    }
+  }
+
   test("That search on query as embed data-resource_id matches") {
     val Success(results) = multiSearchService.matchingQuery(
       searchSettings.copy(query = Some(NonEmptyString.fromString("77").get))
@@ -823,7 +846,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That search on query as embed data-resouce matches") {
     val Success(results) = multiSearchService.matchingQuery(
-      searchSettings.copy(query = Some(NonEmptyString.fromString("video").get))
+      searchSettings.copy(query = Some(NonEmptyString.fromString("brightcove").get))
     ): @unchecked
     val hits = results.summaryResults
     results.totalCount should be(1)

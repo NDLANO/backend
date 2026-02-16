@@ -9,6 +9,7 @@
 package no.ndla.searchapi.model.search
 
 import no.ndla.common.CirceUtil
+import no.ndla.common.model.EmbedType.RelatedContent
 import no.ndla.common.model.api.search.{
   LanguageValue,
   LearningResourceType,
@@ -46,7 +47,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
     )
 
     val embedResourcesAndIds =
-      List(EmbedValues(resource = Some("test resource 1"), id = List("test id 1"), language = "nb"))
+      List(EmbedValues(resource = Some(RelatedContent), id = List("test id 1"), language = "nb"))
 
     val metaImages = List(ArticleMetaImage("1", "alt", "nb"))
 
@@ -112,7 +113,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
     )
 
     val embedResourcesAndIds =
-      List(EmbedValues(resource = Some("test resource 1"), id = List("test id 1"), language = "nb"))
+      List(EmbedValues(resource = Some(RelatedContent), id = List("test id 1"), language = "nb"))
 
     val metaImages = List(ArticleMetaImage("1", "alt", "nb"))
 

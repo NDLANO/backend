@@ -9,6 +9,7 @@
 package no.ndla.searchapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
+import no.ndla.common.model.EmbedType.RelatedContent
 import no.ndla.common.model.api.MyNDLABundleDTO
 import no.ndla.common.model.api.search.*
 import no.ndla.common.model.domain.article.{Article, Copyright}
@@ -441,7 +442,10 @@ object TestData {
       title = List(Title("Katter", "nb"), Title("Cats", "en"), Title("Chhattisgarhi", "hne")),
       content = List(
         ArticleContent(
-          s"<p>Søkeord: delt?streng delt!streng delt&streng</p><$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\" /><p>Noe om en katt</p>",
+          s"""<p>Søkeord: delt?streng delt!streng delt&streng</p>
+             |<$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\" /><p>Noe om en katt</p>
+             |<$EmbedTagName data-resource=\"content-link\" data-content-type=\"article\" data-content-id=\"666\"></$EmbedTagName>"""
+            .stripMargin,
           "nb",
         ),
         ArticleContent("<p>Something about a cat</p>", "en"),
@@ -464,7 +468,14 @@ object TestData {
       title = List(Title("Ekstrastoff", "nb"), Title("extra", "en")),
       content = List(
         ArticleContent(
-          s"Helsesøster H5P <p>delt-streng</p><$EmbedTagName data-title=\"Flubber\" data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName><$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName><$EmbedTagName data-videoid=\"77\" data-resource=\"video\"></$EmbedTagName><$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"></$EmbedTagName><$EmbedTagName data-resource=\"video\" data-url=\"http://test\" data-resource_id=\"test-id1\"></$EmbedTagName>",
+          s"""Helsesøster H5P <p>delt-streng</p>
+             |<$EmbedTagName data-title=\"Flubber\" data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName>
+             |<$EmbedTagName data-videoid=\"77\" data-resource=\"brightcove\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"audio\" data-resource_id=\"66\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"external\" data-url=\"http://test\" data-resource_id=\"test-id1\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"content-link\" data-content-type=\"learningpath\" data-content-id=\"666\"></$EmbedTagName>"""
+            .stripMargin,
           "nb",
         ),
         ArticleContent(
@@ -869,11 +880,13 @@ object TestData {
              |<$EmbedTagName data-resource=\"image\" data-resource_id=\"test-image.id\"  data-url=\"test-image.url\"></$EmbedTagName>
              |<$EmbedTagName data-resource=\"image\" data-resource_id=\"55\"></$EmbedTagName>
              |<$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName>
-             |<$EmbedTagName data-videoid=\"77\" data-resource=\"video\"></$EmbedTagName>
-             |<$EmbedTagName data-resource=\"video\" data-resource_id=\"66\"></$EmbedTagName>
+             |<$EmbedTagName data-videoid=\"77\" data-resource=\"brightcove\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"audio\" data-resource_id=\"66\"></$EmbedTagName>
              |<$EmbedTagName data-resource=\"iframe\" data-url=\"https://norgesfilm.no/film/1234\"></$EmbedTagName>
              |<$EmbedTagName data-resource=\"brightcove\" data-videoid="6369137446112"></$EmbedTagName>
-             |<$EmbedTagName data-resource=\"video\"  data-url=\"http://test.test\"></$EmbedTagName>""".stripMargin,
+             |<$EmbedTagName data-resource=\"external\"  data-url=\"http://test.test\"></$EmbedTagName>
+             |<$EmbedTagName data-resource=\"content-link\" data-content-type=\"learningpath\" data-content-id=\"666\"></$EmbedTagName>"""
+            .stripMargin,
           "nb",
         )
       ),
@@ -892,7 +905,7 @@ object TestData {
       metaDescription = List(common.Description("", "nb")),
       content = List(
         ArticleContent(
-          "<section><p>Helsesøster</p><p>Søkeord: delt?streng delt!streng delt&streng</p></section>",
+          s"<section><p>Helsesøster</p><p>Søkeord: delt?streng delt!streng delt&streng</p><$EmbedTagName data-resource=\"content-link\" data-content-type=\"article\" data-content-id=\"666\"></$EmbedTagName></section>",
           "nb",
         ),
         ArticleContent(
@@ -1895,7 +1908,7 @@ object TestData {
     SearchableLanguageList.from("nb" -> Seq("En norsk", "To norsk"), "en" -> Seq("One english"))
 
   val searchableEmbedResourcesAndIds: List[EmbedValues] =
-    List(EmbedValues(resource = Some("test resource 1"), id = List("test id 1"), language = "nb"))
+    List(EmbedValues(resource = Some(RelatedContent), id = List("test id 1"), language = "nb"))
 
   val olddate: NDLADate = today.minusDays(5)
 

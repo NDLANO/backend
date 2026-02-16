@@ -13,7 +13,7 @@ import cats.implicits.*
 import io.lemonlabs.uri.typesafe.dsl.*
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.errors.ValidationMessage
-import no.ndla.common.model.TagAttribute
+import no.ndla.common.model.{EmbedType, TagAttribute}
 import no.ndla.validation.AttributeType.*
 import no.ndla.validation.TagRules.TagAttributeRules
 import org.jsoup.nodes.{Element, Node}
@@ -100,7 +100,7 @@ object TagValidator {
       fieldName: String,
       attributes: Map[TagAttribute, String],
       requiredToOptional: Map[String, Seq[String]],
-  ): Either[ValidationMessage, (ResourceType, TagAttributeRules)] = {
+  ): Either[ValidationMessage, (EmbedType, TagAttributeRules)] = {
     val attributeKeys = attributes.keySet
     if (!attributeKeys.contains(TagAttribute.DataResource)) {
       return Left(
@@ -108,16 +108,16 @@ object TagValidator {
       )
     }
 
-    if (!ResourceType.values.map(_.toString).contains(attributes(TagAttribute.DataResource))) {
+    if (!EmbedType.values.map(_.toString).contains(attributes(TagAttribute.DataResource))) {
       return Left(
         ValidationMessage(
           fieldName,
-          s"The ${TagAttribute.DataResource} attribute can only contain one of the following values: ${ResourceType.values.mkString(", ")}",
+          s"The ${TagAttribute.DataResource} attribute can only contain one of the following values: ${EmbedType.values.mkString(", ")}",
         )
       )
     }
 
-    val resourceType         = ResourceType.withNameOption(attributes(TagAttribute.DataResource)).get
+    val resourceType         = EmbedType.withNameOption(attributes(TagAttribute.DataResource)).get
     val attributeRulesForTag = EmbedTagRules
       .attributesForResourceType(resourceType)
       .withOptionalRequired(requiredToOptional.getOrElse(resourceType.toString, Seq.empty))
@@ -126,7 +126,7 @@ object TagValidator {
 
   }
 
-  private def verifyParent(fieldName: String, resourceType: ResourceType, embed: Element): Seq[ValidationMessage] = {
+  private def verifyParent(fieldName: String, resourceType: EmbedType, embed: Element): Seq[ValidationMessage] = {
     val attributeRulesForTag = EmbedTagRules.attributesForResourceType(resourceType)
     attributeRulesForTag
       .mustBeDirectChildOf
@@ -236,7 +236,7 @@ object TagValidator {
   private def verifyRequiredOptional(
       fieldName: String,
       attributes: Map[TagAttribute, String],
-      resourceType: ResourceType,
+      resourceType: EmbedType,
       attributeRulesForTag: TagAttributeRules,
   ): Seq[ValidationMessage] = {
     val legalOptionals              = attributeRulesForTag.optional.map(f => f.name)
@@ -256,7 +256,7 @@ object TagValidator {
 
   private def validateChildren(
       fieldName: String,
-      resourceType: ResourceType,
+      resourceType: EmbedType,
       tagRules: TagAttributeRules,
       embed: Element,
   ): Option[ValidationMessage] = {
@@ -358,7 +358,7 @@ object TagValidator {
   private def verifyAttributeResource(
       fieldName: String,
       attributeRulesForTag: TagAttributeRules,
-      resourceType: ResourceType,
+      resourceType: EmbedType,
       attributes: Map[TagAttribute, String],
   ): Seq[ValidationMessage] = {
     val partialErrorMessage = s"Tag '$EmbedTagName' with ${TagAttribute.DataResource}=$resourceType"
@@ -372,7 +372,7 @@ object TagValidator {
       fieldName: String,
       attrRules: TagAttributeRules,
       actualAttributes: Map[TagAttribute, String],
-      resourceType: ResourceType,
+      resourceType: EmbedType,
   ): Seq[ValidationMessage] = {
     val requiredAttrs     = attrRules.required
     val missingAttributes = getMissingAttributes(requiredAttrs, actualAttributes.keySet)

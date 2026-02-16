@@ -10,9 +10,9 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.BaseProps
+import no.ndla.common.model.EmbedType
 import no.ndla.database.DatabaseProps
 import no.ndla.network.{AuthUser, Domains}
-import no.ndla.validation.ResourceType
 
 import scala.util.Properties.*
 
@@ -54,10 +54,10 @@ class ConceptApiProperties extends BaseProps with DatabaseProps with StrictLoggi
   )
 
   def externalApiUrls: Map[String, String] = Map(
-    ResourceType.Audio.toString -> s"$Domain/audio-api/v1/audio",
-    ResourceType.H5P.toString   -> H5PAddress,
-    ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
-    "raw-image"                 -> propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", s"$Domain/image-api/raw").concat("/id"),
+    EmbedType.Audio.toString -> s"$Domain/audio-api/v1/audio",
+    EmbedType.H5P.toString   -> H5PAddress,
+    EmbedType.Image.toString -> s"$Domain/image-api/v2/images",
+    "raw-image"              -> propOrElse("IMAGE_API_CLOUDFRONT_DOMAIN", s"$Domain/image-api/raw").concat("/id"),
   )
 
   override def MetaMigrationLocation: String = "no/ndla/conceptapi/db/migration"
