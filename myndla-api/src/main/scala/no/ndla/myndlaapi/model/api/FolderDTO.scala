@@ -159,6 +159,18 @@ object ResourceDTO {
   implicit val decoder: Decoder[ResourceDTO] = deriveDecoder[ResourceDTO]
 }
 
+case class ResourceConnectionDTO(
+    @description("The id of the resource this connection points to")
+    resourceId: UUID,
+    @description("The id of the folder this connection points to")
+    folderId: Option[UUID],
+)
+
+object ResourceConnectionDTO {
+  implicit val encoder: Encoder[ResourceConnectionDTO] = deriveEncoder[ResourceConnectionDTO]
+  implicit val decoder: Decoder[ResourceConnectionDTO] = deriveDecoder[ResourceConnectionDTO]
+}
+
 case class NewResourceDTO(
     @description("Type of the resource. (Article, Learningpath)")
     resourceType: ResourceType,

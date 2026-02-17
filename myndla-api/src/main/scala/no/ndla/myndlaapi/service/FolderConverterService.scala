@@ -172,6 +172,10 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
     )
   }
 
+  def toApiResourceConnection(conn: domain.ResourceConnection): api.ResourceConnectionDTO = {
+    api.ResourceConnectionDTO(resourceId = conn.resourceId, folderId = conn.folderId)
+  }
+
   def toNewFolderData(newFolder: api.NewFolderDTO, parentId: Option[UUID], newRank: Int): Try[domain.NewFolderData] = {
     val newStatus = myndla.FolderStatus.valueOf(newFolder.status).getOrElse(myndla.FolderStatus.PRIVATE)
 

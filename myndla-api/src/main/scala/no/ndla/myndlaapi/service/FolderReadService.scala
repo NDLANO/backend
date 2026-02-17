@@ -19,7 +19,15 @@ import no.ndla.common.model.domain.myndla.{FolderStatus, UserRole}
 import no.ndla.database.DBUtility
 import no.ndla.myndlaapi.FavoriteFolderDefaultName
 import no.ndla.myndlaapi.integration.LearningPathApiClient
-import no.ndla.myndlaapi.model.api.{ExportedUserDataDTO, FolderDTO, ResourceDTO, StatsDTO, UserFolderDTO, UserStatsDTO}
+import no.ndla.myndlaapi.model.api.{
+  ExportedUserDataDTO,
+  FolderDTO,
+  ResourceDTO,
+  StatsDTO,
+  UserFolderDTO,
+  UserStatsDTO,
+  ResourceConnectionDTO,
+}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.network.model.{FeideID, FeideUserWrapper}
@@ -336,6 +344,15 @@ class FolderReadService(using
     })
 
     Success(result.flatten)
+  }
+
+  def getResourceConnectionsByPath(path: String, feide: FeideUserWrapper): Try[List[ResourceConnectionDTO]] = {
+    implicit val session: DBSession = folderRepository.getSession(true)
+    for {
+      user        <- feide.userOrAccessDenied
+      connections <- folderRepository.getConnectionsByPath(path, user.feideId)
+    } yield connections.map(c => folderConverterService.toApiResourceConnection(c))
+
   }
 
 }

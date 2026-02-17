@@ -246,6 +246,20 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
       })
       .runListFlat()
 
+  def getConnectionsByPath(path: String, feideId: FeideID)(implicit
+      session: DBSession = dbUtility.readOnlySession
+  ): Try[List[ResourceConnection]] = {
+    val fr = ResourceConnection.syntax("fr")
+    val r  = Resource.syntax("r")
+
+    tsql"""select ${fr.result.*} from ${ResourceConnection.as(fr)}
+            left join ${Resource.as(r)}
+                on ${fr.resourceId} = ${r.id}
+            where ${r.path} = $path and ${r.feideId} = $feideId
+            order by favorited_date DESC;
+            """.map(rs => ResourceConnection.fromResultSet(fr)(rs)).runListFlat()
+  }
+
   def deleteFolder(id: UUID)(implicit session: DBSession = dbUtility.autoSession): Try[UUID] = {
     tsql"delete from ${Folder.table} where id = $id".update() match {
       case Failure(ex)                      => Failure(ex)
