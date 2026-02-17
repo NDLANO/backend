@@ -91,6 +91,26 @@ export type paths = {
         patch: operations["patchMyndla-apiV1FoldersFolder-id"];
         trace?: never;
     };
+    "/myndla-api/v1/folders/resources/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fetch resource connections by resource path
+         * @description Fetch resource connections by resource path
+         */
+        get: operations["getMyndla-apiV1FoldersResourcesConnections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/myndla-api/v1/folders/resources/has-favorited": {
         parameters: {
             query?: never;
@@ -840,6 +860,19 @@ export type components = {
              */
             id: number;
         };
+        /** ResourceConnectionDTO */
+        ResourceConnectionDTO: {
+            /**
+             * Format: uuid
+             * @description The id of the resource this connection points to
+             */
+            resourceId: string;
+            /**
+             * Format: uuid
+             * @description The id of the folder this connection points to
+             */
+            folderId?: string;
+        };
         /** ResourceDTO */
         ResourceDTO: {
             /**
@@ -1541,6 +1574,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "getMyndla-apiV1FoldersResourcesConnections": {
+        parameters: {
+            query: {
+                /** @description The path of the resource to check */
+                path: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceConnectionDTO"][];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };

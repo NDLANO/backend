@@ -25,6 +25,7 @@ export type NewFolderDTO = schemas["NewFolderDTO"];
 export type NewResourceDTO = schemas["NewResourceDTO"];
 export type NotFoundWithSupportedLanguages = schemas["NotFoundWithSupportedLanguages"];
 export type OwnerDTO = schemas["OwnerDTO"];
+export type ResourceConnectionDTO = schemas["ResourceConnectionDTO"];
 export type ResourceDTO = schemas["ResourceDTO"];
 export type ResourceStatsDTO = schemas["ResourceStatsDTO"];
 export type ResourceType = schemas["ResourceType"];
