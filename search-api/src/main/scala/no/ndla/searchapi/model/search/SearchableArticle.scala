@@ -25,6 +25,7 @@ case class SearchableArticle(
     metaDescription: SearchableLanguageValues,
     tags: SearchableLanguageList,
     lastUpdated: NDLADate,
+    published: NDLADate,
     license: String,
     status: String,
     authors: List[String],

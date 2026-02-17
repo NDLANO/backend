@@ -223,6 +223,7 @@ class SearchConverterService(using
           .SearchableLanguageValues(ai.metaDescription.map(meta => LanguageValue(meta.language, meta.content))),
         tags = SearchableLanguageList(ai.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         lastUpdated = ai.updated,
+        published = ai.published,
         license = ai.copyright.license,
         status = "PUBLISHED",
         authors = (

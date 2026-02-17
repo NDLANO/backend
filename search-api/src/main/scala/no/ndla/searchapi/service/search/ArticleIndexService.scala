@@ -70,6 +70,7 @@ class ArticleIndexService(using
       keywordField("defaultTitle"),
       textField("typeName"),
       dateField("lastUpdated"),
+      dateField("published"),
       keywordField("license"),
       keywordField("status"),
       keywordField("owner"),
