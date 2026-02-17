@@ -96,6 +96,10 @@ class ImageControllerV2(using
       modelReleasedStatus: Seq[ModelReleasedStatus.Value],
       user: Option[TokenUser],
       inactive: Option[Boolean],
+      widthFrom: Option[Int],
+      widthTo: Option[Int],
+      heightFrom: Option[Int],
+      heightTo: Option[Int],
   ) = {
     val settings = query match {
       case Some(searchString) => SearchSettings(
@@ -112,6 +116,10 @@ class ImageControllerV2(using
           modelReleased = modelReleasedStatus,
           userFilter = List.empty,
           inactive = inactive,
+          widthFrom = widthFrom,
+          widthTo = widthTo,
+          heightFrom = heightFrom,
+          heightTo = heightTo,
         )
       case None => SearchSettings(
           query = None,
@@ -127,6 +135,10 @@ class ImageControllerV2(using
           modelReleased = modelReleasedStatus,
           userFilter = List.empty,
           inactive = inactive,
+          widthFrom = widthFrom,
+          widthTo = widthTo,
+          heightFrom = heightFrom,
+          heightTo = heightTo,
         )
     }
 
@@ -155,6 +167,10 @@ class ImageControllerV2(using
     .in(scrollId)
     .in(modelReleased)
     .in(inactive)
+    .in(widthFrom)
+    .in(widthTo)
+    .in(heightFrom)
+    .in(heightTo)
     .errorOut(errorOutputsFor(400))
     .out(jsonBody[SearchResultDTO])
     .out(EndpointOutput.derived[DynamicHeaders])
@@ -174,6 +190,10 @@ class ImageControllerV2(using
               scrollId,
               modelReleased,
               inactive,
+              widthFrom,
+              widthTo,
+              heightFrom,
+              heightTo,
             ) => scrollSearchOr(scrollId, language, user) {
             val sort                = Sort.valueOf(sortStr)
             val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
@@ -193,6 +213,10 @@ class ImageControllerV2(using
               modelReleasedStatus,
               user,
               inactive,
+              widthFrom,
+              widthTo,
+              heightFrom,
+              heightTo,
             )
           }.handleErrorsOrOk
       }
@@ -222,6 +246,10 @@ class ImageControllerV2(using
         val shouldScroll        = searchParams.scrollId.exists(props.InitialScrollContextKeywords.contains)
         val inactive            = searchParams.inactive
         val modelReleasedStatus = searchParams.modelReleased.getOrElse(Seq.empty).flatMap(ModelReleasedStatus.valueOf)
+        val widthFrom           = searchParams.widthFrom
+        val widthTo             = searchParams.widthTo
+        val heightFrom          = searchParams.heightFrom
+        val heightTo            = searchParams.heightTo
 
         search(
           minimumSize,
@@ -237,6 +265,10 @@ class ImageControllerV2(using
           modelReleasedStatus,
           user,
           inactive,
+          widthFrom,
+          widthTo,
+          heightFrom,
+          heightTo,
         )
       }.handleErrorsOrOk
     })

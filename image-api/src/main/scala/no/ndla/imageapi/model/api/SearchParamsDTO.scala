@@ -37,7 +37,7 @@ case class SearchParamsDTO(
     page: Option[Int],
     @description("The number of search hits to display for each page.")
     pageSize: Option[Int],
-    @description("Only show podcast friendly images.")
+    @description("Only show podcast friendly images. Same width and height, and between 1400 and 3000 pixels.")
     podcastFriendly: Option[Boolean],
     @description("A search context retrieved from the response header of a previous search.")
     scrollId: Option[String],
@@ -47,6 +47,14 @@ case class SearchParamsDTO(
     modelReleased: Option[Seq[String]],
     @description("Filter editors of the image(s). Multiple values can be specified in a comma separated list.")
     users: Option[List[String]],
+    @description("Filter images with width greater than or equal to this value.")
+    widthFrom: Option[Int],
+    @description("Filter images with width less than or equal to this value.")
+    widthTo: Option[Int],
+    @description("Filter images with height greater than or equal to this value.")
+    heightFrom: Option[Int],
+    @description("Filter images with height less than or equal to this value.")
+    heightTo: Option[Int],
 )
 
 object SearchParamsDTO {
