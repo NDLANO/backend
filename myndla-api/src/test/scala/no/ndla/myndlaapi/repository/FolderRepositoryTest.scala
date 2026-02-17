@@ -929,4 +929,102 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     val conn2 = repository.getConnection(Some(folder2.id), resource2.id).get
     conn2 should be(Some(folderResource2.copy(resourceId = resource2.id)))
   }
+
+  test("That getting all resource connections works as intended") {
+    implicit val session: DBSession = DBUtil.autoSession
+    val feideId                     = "feide1"
+    val feideId2                    = "feide2"
+    userRepository.reserveFeideIdIfNotExists(feideId)
+    userRepository.reserveFeideIdIfNotExists(feideId2)
+
+    val now = NDLADate.now().withNano(0)
+    val id1 = UUID.randomUUID()
+    val id2 = UUID.randomUUID()
+
+    val folder1 = Folder(
+      id = id1,
+      feideId = feideId,
+      parentId = None,
+      name = "folder1",
+      status = FolderStatus.PRIVATE,
+      description = Some("Beskrivelse 1"),
+      rank = 1,
+      created = now,
+      updated = now,
+      resources = List.empty,
+      subfolders = List.empty,
+      shared = None,
+      user = None,
+    )
+
+    val folder2 = Folder(
+      id = id2,
+      feideId = feideId,
+      parentId = None,
+      name = "folder2",
+      status = FolderStatus.PRIVATE,
+      description = Some("Beskrivelse 2"),
+      rank = 2,
+      created = now,
+      updated = now,
+      resources = List.empty,
+      subfolders = List.empty,
+      shared = None,
+      user = None,
+    )
+
+    val resource1 = Resource(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      created = now,
+      path = "/r/norsk-sf-vg2/an-be-het-else-ord/140d6a7263",
+      resourceType = ResourceType.Article,
+      tags = List("tag"),
+      resourceId = "16434",
+      connection = None,
+    )
+
+    val resource2 = Resource(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      created = now,
+      path = "/r/norsk-sf-vg2/hvordan-skrive-kortsvar-om-grammatikk/c44c43b139",
+      resourceType = ResourceType.Article,
+      tags = List("tag"),
+      resourceId = "35549",
+      connection = None,
+    )
+
+    val resource3 = resource2.copy(id = UUID.randomUUID(), feideId = feideId2)
+
+    val conn1 =
+      ResourceConnection(folderId = Some(folder1.id), resourceId = resource1.id, rank = 1, favoritedDate = now)
+
+    val conn2 =
+      ResourceConnection(folderId = Some(folder1.id), resourceId = resource2.id, rank = 2, favoritedDate = now)
+
+    val conn3 =
+      ResourceConnection(folderId = Some(folder2.id), resourceId = resource2.id, rank = 1, favoritedDate = now)
+
+    val conn4 = ResourceConnection(folderId = None, resourceId = resource2.id, rank = 1, favoritedDate = now)
+
+    val conn5 = ResourceConnection(folderId = None, resourceId = resource3.id, rank = 1, favoritedDate = now)
+
+    val bulkInserts = BulkInserts(
+      folders = List(folder1, folder2),
+      resources = List(resource1, resource2, resource3),
+      connections = List(conn1, conn2, conn3, conn4, conn5),
+    )
+
+    repository.insertFolderInBulk(bulkInserts).get
+    repository.insertResourcesInBulk(bulkInserts).get
+    repository.insertResourceConnectionInBulk(bulkInserts).get
+
+    val connections = repository.getConnectionsByPath(resource2.path, feideId).get
+
+    connections.size should be(3)
+    connections.map(_.resourceId).toSet should be(Set(resource2.id))
+    connections.filter(_.folderId.isEmpty).size should be(1)
+
+  }
 }

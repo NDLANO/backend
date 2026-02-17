@@ -21,6 +21,7 @@ import no.ndla.myndlaapi.model.api.{
   UpdatedFolderDTO,
   UpdatedResourceDTO,
   UserFolderDTO,
+  ResourceConnectionDTO,
 }
 import no.ndla.myndlaapi.model.domain.FolderSortObject.{
   FolderSorting,
@@ -287,6 +288,19 @@ class FolderController(using
       folderReadService.getSharedFolder(folderId)
     }
 
+  private def getResourceConnectionsByPath: ServerEndpoint[Any, Eff] = endpoint
+    .get
+    .summary("Fetch resource connections by resource path")
+    .description("Fetch resource connections by resource path")
+    .in("resources" / "connections")
+    .in(queryResourcePath)
+    .out(jsonBody[List[ResourceConnectionDTO]])
+    .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
+    .withFeideUser
+    .serverLogicPure { feide => resourcePath =>
+      folderReadService.getResourceConnectionsByPath(resourcePath, feide)
+    }
+
   private val folderStatus: EndpointInput.Query[FolderStatus.Value] = query[FolderStatus.Value]("folder-status")
     .description("Status of the folder")
   private def changeStatusForFolderAndSubFolders: ServerEndpoint[Any, Eff] = endpoint
@@ -409,6 +423,7 @@ class FolderController(using
     fetchAllResources,
     fetchRecent,
     getSingleFolder,
+    getResourceConnectionsByPath,
     hasFavoritedResource,
     createNewFolder,
     updateFolder(),
