@@ -3191,33 +3191,3 @@ export interface operations {
         };
     };
 }
-export enum ApiPaths {
-    getDraft_apiV1DraftsLicenses = "/draft-api/v1/drafts/licenses",
-    getDraft_apiV1DraftsTag_search = "/draft-api/v1/drafts/tag-search",
-    getDraft_apiV1DraftsGrep_codes = "/draft-api/v1/drafts/grep-codes",
-    getDraft_apiV1Drafts = "/draft-api/v1/drafts",
-    postDraft_apiV1Drafts = "/draft-api/v1/drafts",
-    postDraft_apiV1DraftsSearch = "/draft-api/v1/drafts/search",
-    getDraft_apiV1DraftsStatus_state_machine = "/draft-api/v1/drafts/status-state-machine",
-    getDraft_apiV1DraftsIds = "/draft-api/v1/drafts/ids",
-    getDraft_apiV1DraftsArticle_id = "/draft-api/v1/drafts/{article_id}",
-    patchDraft_apiV1DraftsArticle_id = "/draft-api/v1/drafts/{article_id}",
-    getDraft_apiV1DraftsArticle_idHistory = "/draft-api/v1/drafts/{article_id}/history",
-    getDraft_apiV1DraftsArticle_idRevision_history = "/draft-api/v1/drafts/{article_id}/revision-history",
-    getDraft_apiV1DraftsExternal_idDeprecated_node_id = "/draft-api/v1/drafts/external_id/{deprecated_node_id}",
-    putDraft_apiV1DraftsArticle_idStatusStatus = "/draft-api/v1/drafts/{article_id}/status/{STATUS}",
-    putDraft_apiV1DraftsArticle_idValidate = "/draft-api/v1/drafts/{article_id}/validate",
-    deleteDraft_apiV1DraftsArticle_idLanguageLanguage = "/draft-api/v1/drafts/{article_id}/language/{language}",
-    postDraft_apiV1DraftsCloneArticle_id = "/draft-api/v1/drafts/clone/{article_id}",
-    postDraft_apiV1DraftsPartial_publishArticle_id = "/draft-api/v1/drafts/partial-publish/{article_id}",
-    postDraft_apiV1DraftsPartial_publish = "/draft-api/v1/drafts/partial-publish",
-    postDraft_apiV1DraftsCopyrevisiondatesNode_id = "/draft-api/v1/drafts/copyRevisionDates/{node_id}",
-    getDraft_apiV1DraftsSlugSlug = "/draft-api/v1/drafts/slug/{slug}",
-    postDraft_apiV1DraftsMigrate_greps = "/draft-api/v1/drafts/migrate-greps",
-    postDraft_apiV1DraftsNotes = "/draft-api/v1/drafts/notes",
-    deleteDraft_apiV1DraftsArticle_idCurrent_revision = "/draft-api/v1/drafts/{article_id}/current-revision",
-    postDraft_apiV1Files = "/draft-api/v1/files",
-    deleteDraft_apiV1Files = "/draft-api/v1/files",
-    getDraft_apiV1User_data = "/draft-api/v1/user-data",
-    patchDraft_apiV1User_data = "/draft-api/v1/user-data"
-}

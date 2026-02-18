@@ -1130,14 +1130,3 @@ export interface operations {
         };
     };
 }
-export enum ApiPaths {
-    getArticle_apiV2ArticlesTag_search = "/article-api/v2/articles/tag-search",
-    getArticle_apiV2ArticlesIds = "/article-api/v2/articles/ids",
-    getArticle_apiV2ArticlesSlugRss_xml = "/article-api/v2/articles/{slug}/rss.xml",
-    getArticle_apiV2ArticlesArticle_id = "/article-api/v2/articles/{article_id}",
-    getArticle_apiV2Articles = "/article-api/v2/articles",
-    postArticle_apiV2ArticlesSearch = "/article-api/v2/articles/search",
-    getArticle_apiV2ArticlesArticle_idRevisions = "/article-api/v2/articles/{article_id}/revisions",
-    getArticle_apiV2ArticlesExternal_idDeprecated_node_id = "/article-api/v2/articles/external_id/{deprecated_node_id}",
-    getArticle_apiV2ArticlesExternal_idsDeprecated_node_id = "/article-api/v2/articles/external_ids/{deprecated_node_id}"
-}

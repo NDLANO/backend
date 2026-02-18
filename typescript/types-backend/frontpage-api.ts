@@ -996,16 +996,3 @@ export interface operations {
         };
     };
 }
-export enum ApiPaths {
-    getFrontpage_apiV1Subjectpage = "/frontpage-api/v1/subjectpage",
-    postFrontpage_apiV1Subjectpage = "/frontpage-api/v1/subjectpage",
-    getFrontpage_apiV1SubjectpageIds = "/frontpage-api/v1/subjectpage/ids",
-    getFrontpage_apiV1SubjectpageSubjectpage_id = "/frontpage-api/v1/subjectpage/{subjectpage-id}",
-    patchFrontpage_apiV1SubjectpageSubjectpage_id = "/frontpage-api/v1/subjectpage/{subjectpage-id}",
-    deleteFrontpage_apiV1SubjectpageSubjectpage_idLanguageLanguage = "/frontpage-api/v1/subjectpage/{subjectpage-id}/language/{language}",
-    getFrontpage_apiV1Frontpage = "/frontpage-api/v1/frontpage",
-    postFrontpage_apiV1Frontpage = "/frontpage-api/v1/frontpage",
-    getFrontpage_apiV1Filmfrontpage = "/frontpage-api/v1/filmfrontpage",
-    postFrontpage_apiV1Filmfrontpage = "/frontpage-api/v1/filmfrontpage",
-    deleteFrontpage_apiV1FilmfrontpageLanguageLanguage = "/frontpage-api/v1/filmfrontpage/language/{language}"
-}

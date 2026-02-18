@@ -1655,19 +1655,3 @@ export interface operations {
         };
     };
 }
-export enum ApiPaths {
-    getConcept_apiV1DraftsStatus_state_machine = "/concept-api/v1/drafts/status-state-machine",
-    getConcept_apiV1DraftsTags = "/concept-api/v1/drafts/tags",
-    postConcept_apiV1DraftsSearch = "/concept-api/v1/drafts/search",
-    getConcept_apiV1DraftsConcept_id = "/concept-api/v1/drafts/{concept_id}",
-    deleteConcept_apiV1DraftsConcept_id = "/concept-api/v1/drafts/{concept_id}",
-    patchConcept_apiV1DraftsConcept_id = "/concept-api/v1/drafts/{concept_id}",
-    putConcept_apiV1DraftsConcept_idStatusStatus = "/concept-api/v1/drafts/{concept_id}/status/{STATUS}",
-    getConcept_apiV1DraftsTag_search = "/concept-api/v1/drafts/tag-search",
-    getConcept_apiV1Drafts = "/concept-api/v1/drafts",
-    postConcept_apiV1Drafts = "/concept-api/v1/drafts",
-    getConcept_apiV1ConceptsTags = "/concept-api/v1/concepts/tags",
-    getConcept_apiV1ConceptsConcept_id = "/concept-api/v1/concepts/{concept_id}",
-    getConcept_apiV1Concepts = "/concept-api/v1/concepts",
-    postConcept_apiV1ConceptsSearch = "/concept-api/v1/concepts/search"
-}

@@ -30,7 +30,6 @@ async function generate_types(appName: string) {
     rootTypes: true,
     rootTypesKeepCasing: true,
     rootTypesNoSchemaPrefix: true,
-    makePathsEnum: true,
     // https://openapi-ts.dev/migration-guide#defaultnonnullable-true-by-default
     defaultNonNullable: false,
     transform(schemaObject, _options): TypeNode | undefined {

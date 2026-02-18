@@ -2255,27 +2255,3 @@ export interface operations {
         };
     };
 }
-export enum ApiPaths {
-    getImage_apiV2Images = "/image-api/v2/images",
-    postImage_apiV2Images = "/image-api/v2/images",
-    getImage_apiV2ImagesTag_search = "/image-api/v2/images/tag-search",
-    postImage_apiV2ImagesSearch = "/image-api/v2/images/search",
-    getImage_apiV2ImagesImage_id = "/image-api/v2/images/{image_id}",
-    deleteImage_apiV2ImagesImage_id = "/image-api/v2/images/{image_id}",
-    patchImage_apiV2ImagesImage_id = "/image-api/v2/images/{image_id}",
-    getImage_apiV2ImagesExternal_idExternal_id = "/image-api/v2/images/external_id/{external_id}",
-    deleteImage_apiV2ImagesImage_idLanguageLanguage = "/image-api/v2/images/{image_id}/language/{language}",
-    getImage_apiV3Images = "/image-api/v3/images",
-    postImage_apiV3Images = "/image-api/v3/images",
-    getImage_apiV3ImagesIds = "/image-api/v3/images/ids",
-    getImage_apiV3ImagesTag_search = "/image-api/v3/images/tag-search",
-    postImage_apiV3ImagesSearch = "/image-api/v3/images/search",
-    getImage_apiV3ImagesImage_id = "/image-api/v3/images/{image_id}",
-    deleteImage_apiV3ImagesImage_id = "/image-api/v3/images/{image_id}",
-    patchImage_apiV3ImagesImage_id = "/image-api/v3/images/{image_id}",
-    getImage_apiV3ImagesExternal_idExternal_id = "/image-api/v3/images/external_id/{external_id}",
-    deleteImage_apiV3ImagesImage_idLanguageLanguage = "/image-api/v3/images/{image_id}/language/{language}",
-    postImage_apiV3ImagesImage_idCopy = "/image-api/v3/images/{image_id}/copy",
-    getImage_apiRawIdImage_id = "/image-api/raw/id/{image_id}",
-    getImage_apiRawImage_name = "/image-api/raw/{image_name}"
-}
