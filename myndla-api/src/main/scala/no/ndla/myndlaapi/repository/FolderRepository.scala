@@ -701,6 +701,12 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
         Failure(NDLASQLException(s"This is a Bug! The expected rows count should be 1 and was $count."))
     }
 
+  def getDistinctTags(feideId: String)(implicit session: DBSession = dbUtility.readOnlySession): Try[List[String]] = {
+    tsql"select distinct jsonb_array_elements_text(document->'tags') as tag from ${Resource.table} where feide_id = $feideId"
+      .map(rs => rs.string("tag"))
+      .runList()
+  }
+
   def numberOfTags()(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Long]] =
     tsql"select count(tag) from (select distinct jsonb_array_elements_text(document->'tags') from ${Resource.table}) as tag"
       .map(rs => rs.long("count"))

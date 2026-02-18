@@ -231,6 +231,15 @@ class FolderReadService(using
     }
   }
 
+  def getAllTags(feide: FeideUserWrapper): Try[List[String]] = {
+    dbUtility.readOnly { implicit session =>
+      for {
+        user <- feide.userOrAccessDenied
+        tags <- folderRepository.getDistinctTags(user.feideId)
+      } yield tags
+    }
+  }
+
   def getRootResources(feide: FeideUserWrapper): Try[List[ResourceDTO]] = {
     dbUtility.readOnly { implicit session =>
       for {

@@ -314,6 +314,18 @@ class FolderController(using
       folderReadService.getResourceConnectionsByPath(resourcePath, feide)
     }
 
+  private def getTags: ServerEndpoint[Any, Eff] = endpoint
+    .get
+    .summary("Fetch all tags that belongs to a user")
+    .description("Fetch all tags that belongs to a user")
+    .in("resources" / "tags")
+    .out(jsonBody[List[String]])
+    .errorOut(errorOutputsFor(400, 401, 403, 404))
+    .withFeideUser
+    .serverLogicPure { feide => _ =>
+      folderReadService.getAllTags(feide)
+    }
+
   private val folderStatus: EndpointInput.Query[FolderStatus.Value] = query[FolderStatus.Value]("folder-status")
     .description("Status of the folder")
   private def changeStatusForFolderAndSubFolders: ServerEndpoint[Any, Eff] = endpoint
@@ -438,6 +450,7 @@ class FolderController(using
     getSingleFolder,
     getResourceConnectionsByPath,
     getResourceByPath,
+    getTags,
     hasFavoritedResource,
     createNewFolder,
     updateFolder(),

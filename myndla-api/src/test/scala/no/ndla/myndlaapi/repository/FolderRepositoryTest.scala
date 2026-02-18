@@ -1027,4 +1027,73 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     connections.filter(_.folderId.isEmpty).size should be(1)
 
   }
+
+  test("that getting all tags deduplicates tags") {
+    implicit val session: DBSession = DBUtil.autoSession
+    val feideId                     = "feide1"
+    val now                         = NDLADate.now().withNano(0)
+    userRepository.reserveFeideIdIfNotExists(feideId)
+
+    val id1 = UUID.randomUUID()
+
+    val folder1 = Folder(
+      id = id1,
+      feideId = feideId,
+      parentId = None,
+      name = "folder1",
+      status = FolderStatus.PRIVATE,
+      description = Some("Beskrivelse 1"),
+      rank = 1,
+      created = now,
+      updated = now,
+      resources = List.empty,
+      subfolders = List.empty,
+      shared = None,
+      user = None,
+    )
+
+    val resource1 = Resource(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      created = now,
+      path = "/r/norsk-sf-vg2/an-be-het-else-ord/140d6a7263",
+      resourceType = ResourceType.Article,
+      tags = List("norsk", "tag", "ndla", "backend"),
+      resourceId = "16434",
+      connection = None,
+    )
+
+    val resource2 = Resource(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      created = now,
+      path = "/r/norsk-sf-vg2/hvordan-skrive-kortsvar-om-grammatikk/c44c43b139",
+      resourceType = ResourceType.Article,
+      tags = List("tag", "norsk", "orm", "ndla"),
+      resourceId = "35549",
+      connection = None,
+    )
+
+    val conn1 =
+      ResourceConnection(folderId = Some(folder1.id), resourceId = resource1.id, rank = 1, favoritedDate = now)
+
+    val conn2 = ResourceConnection(folderId = None, resourceId = resource2.id, rank = 2, favoritedDate = now)
+
+    val conn3 = ResourceConnection(folderId = None, resourceId = resource1.id, rank = 3, favoritedDate = now)
+
+    val bulkInserts = BulkInserts(
+      folders = List(folder1),
+      resources = List(resource1, resource2),
+      connections = List(conn1, conn2, conn3),
+    )
+
+    repository.insertFolderInBulk(bulkInserts).get
+    repository.insertResourcesInBulk(bulkInserts).get
+    repository.insertResourceConnectionInBulk(bulkInserts).get
+
+    val tags = repository.getDistinctTags(feideId).get
+
+    tags should be(List("norsk", "orm", "backend", "tag", "ndla"))
+
+  }
 }
