@@ -314,6 +314,9 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
     acc + (resourceType -> newRtMap)
   }
 
+  /*
+   * Gets the most recently favorited resources, independent from users! Used to display the "recently favorited" in ed.
+   */
   def getRecentFavorited(size: Option[Int], excludeResourceTypes: List[ResourceType])(implicit
       session: DBSession = dbUtility.autoSession
   ): Try[List[Resource]] = {
@@ -333,8 +336,10 @@ class FolderRepository(using clock: Clock, dbUtility: DBUtility) extends StrictL
             limit ${size.getOrElse(1)}
            """
       .one(Resource.fromResultSet(r, withConnection = false))
-      .toOne(rs => ResourceConnection.fromResultSet(fr)(rs).toOption)
-      .map((resource, connection) => resource.map(_.copy(connection = connection)))
+      .toMany(rs => ResourceConnection.fromResultSet(fr)(rs).toOption)
+      .map((resource, connections) =>
+        resource.map(r => r.copy(connection = connections.find(c => c.resourceId == r.id)))
+      )
       .runListFlat()
   }
 

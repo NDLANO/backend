@@ -166,8 +166,8 @@ class FolderController(using
 
   private def fetchRecent: ServerEndpoint[Any, Eff] = endpoint
     .get
-    .summary("Fetch the most recent favorited resource")
-    .description("Fetch the most recent favorited resource")
+    .summary("Fetch the most recent favorited resource across all users")
+    .description("Fetch the most recent favorited resource across all users")
     .in("resources")
     .in("recent")
     .in(queryRecentSize)
