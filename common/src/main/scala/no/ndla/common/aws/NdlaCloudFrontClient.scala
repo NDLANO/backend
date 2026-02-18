@@ -12,7 +12,7 @@ import software.amazon.awssdk.services.cloudfront.CloudFrontClient
 import software.amazon.awssdk.services.cloudfront.model.{CreateInvalidationRequest, InvalidationBatch, Paths}
 
 import java.util.UUID
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class NdlaCloudFrontClient {
 
@@ -21,11 +21,7 @@ class NdlaCloudFrontClient {
     builder.build()
   }
 
-  def createInvalidation(distributionId: Option[String], paths: Seq[String]): Unit = {
-    val distId = distributionId.getOrElse {
-      throw new IllegalArgumentException("Distribution ID must be provided for CloudFront invalidation.")
-    }
-
+  def createInvalidation(distributionId: String, paths: Seq[String]): Unit = {
     val invalidationBatch = InvalidationBatch
       .builder()
       .paths(Paths.builder().items(paths.asJava).quantity(paths.size).build())
@@ -34,10 +30,10 @@ class NdlaCloudFrontClient {
 
     val request = CreateInvalidationRequest
       .builder()
-      .distributionId(distId)
+      .distributionId(distributionId)
       .invalidationBatch(invalidationBatch)
       .build()
 
-    client.createInvalidation(request).invalidation(): Unit
+    client.createInvalidation(request): Unit
   }
 }

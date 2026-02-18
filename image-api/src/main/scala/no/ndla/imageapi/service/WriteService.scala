@@ -340,10 +340,18 @@ class WriteService(using
         movedImage
       case _ => imageFileFromUpload
     }
-    cloudFrontClient.createInvalidation(
-      props.CloudFrontDistributionId,
-      Seq(s"/${imageFileFromUpload.fileName}", s"/${imageFileFromUpload.getFileStem}/*"),
-    )
+    props
+      .CloudFrontDistributionId
+      .map(distId => {
+        Try {
+          cloudFrontClient.createInvalidation(
+            distId,
+            Seq(s"/${newImageFile.fileName}", s"/${newImageFile.getFileStem}/*"),
+          )
+        }.recover { case ex =>
+          logger.error(s"Failed to create CloudFront invalidation for image '${newImageFile.fileName}'", ex)
+        }
+      }): Unit
     val withNew = converterService.withNewImageFile(oldImage, newImageFile, language, user)
     Success(withNew)
   }
