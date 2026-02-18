@@ -14,10 +14,9 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.SingleResourceStatsDTO
 import no.ndla.common.model.api.learningpath.LearningPathStatsDTO
 import no.ndla.common.model.domain.TryMaybe.*
-import no.ndla.common.model.domain.{ResourceType, TryMaybe, myndla}
+import no.ndla.common.model.domain.{ResourceType, TryMaybe}
 import no.ndla.common.model.domain.myndla.{FolderStatus, UserRole}
 import no.ndla.database.DBUtility
-import no.ndla.myndlaapi.FavoriteFolderDefaultName
 import no.ndla.myndlaapi.integration.LearningPathApiClient
 import no.ndla.myndlaapi.model.api.{
   ExportedUserDataDTO,
@@ -51,10 +50,9 @@ class FolderReadService(using
       feideId: FeideID,
   )(session: DBSession): Try[List[FolderDTO]] = {
     for {
-      withFavorite <- mergeWithFavorite(topFolders, feideId)
-      withData     <- getSubfolders(withFavorite, includeSubfolders, includeResources)(using session)
-      feideUser    <- userRepository.userWithFeideId(feideId)(using session)
-      apiFolders   <- folderConverterService.domainToApiModel(
+      withData   <- getSubfolders(topFolders, includeSubfolders, includeResources)(using session)
+      feideUser  <- userRepository.userWithFeideId(feideId)(using session)
+      apiFolders <- folderConverterService.domainToApiModel(
         withData,
         v =>
           folderConverterService.toApiFolder(
@@ -114,15 +112,6 @@ class FolderReadService(using
       feideUser        <- userRepository.userWithFeideId(folderWithContent.feideId)
       converted        <- folderConverterService.toApiFolder(folderAsTopFolder, breadcrumbs, feideUser, false)
     } yield converted
-  }
-
-  private[service] def mergeWithFavorite(folders: List[domain.Folder], feideId: FeideID): Try[List[domain.Folder]] = {
-    for {
-      favorite <-
-        if (folders.isEmpty) createFavorite(feideId).map(_.some)
-        else Success(None)
-      combined = favorite.toList ++ folders
-    } yield combined
   }
 
   private def withResources(folderId: UUID, shouldIncludeResources: Boolean)(implicit
@@ -250,17 +239,6 @@ class FolderReadService(using
         user     <- feide.userOrAccessDenied
         resource <- folderRepository.userResourceWithId(path, user.feideId)
       } yield resource.isDefined
-  }
-
-  private def createFavorite(feideId: FeideID): Try[domain.Folder] = {
-    val favoriteFolder = domain.NewFolderData(
-      parentId = None,
-      name = FavoriteFolderDefaultName,
-      status = myndla.FolderStatus.PRIVATE,
-      rank = 1,
-      description = None,
-    )
-    folderRepository.insertFolder(feideId, favoriteFolder)
   }
 
   private def getUserStats(numberOfUsersWithLearningpath: Long, session: DBSession): Try[Option[UserStatsDTO]] = {
