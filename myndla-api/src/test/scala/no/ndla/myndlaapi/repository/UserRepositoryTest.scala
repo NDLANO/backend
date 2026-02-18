@@ -161,26 +161,4 @@ class UserRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with Te
     results.map(_.username).toSet should be(Set("old1", "old2"))
   }
 
-  test("that getUserNotSeenBeforeOrAfter respects before/after boundaries") {
-    implicit val session: DBSession = DBUtil.autoSession
-
-    val beforeDate = NDLADate.of(2024, 2, 1, 0, 0, 0).withNano(0)
-    val afterDate  = NDLADate.of(2024, 3, 1, 0, 0, 0).withNano(0)
-
-    insertUser("feide-before", userDocument("Before", "before", UserRole.STUDENT))
-    insertUser("feide-between", userDocument("Between", "between", UserRole.STUDENT))
-    insertUser("feide-after", userDocument("After", "after", UserRole.EMPLOYEE))
-    insertUser("feide-boundary-before", userDocument("Boundary Before", "boundary-before", UserRole.EMPLOYEE))
-    insertUser("feide-boundary-after", userDocument("Boundary After", "boundary-after", UserRole.EMPLOYEE))
-
-    repository.updateLastSeen("feide-before", NDLADate.of(2024, 1, 15, 0, 0, 0).withNano(0)).get
-    repository.updateLastSeen("feide-between", NDLADate.of(2024, 2, 15, 0, 0, 0).withNano(0)).get
-    repository.updateLastSeen("feide-after", NDLADate.of(2024, 3, 15, 0, 0, 0).withNano(0)).get
-    repository.updateLastSeen("feide-boundary-before", beforeDate).get
-    repository.updateLastSeen("feide-boundary-after", afterDate).get
-
-    val results = repository.getUserNotSeenBeforeOrAfter(beforeDate, afterDate)(using session).get
-    results.map(_.username).toSet should be(Set("before", "after"))
-  }
-
 }

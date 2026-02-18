@@ -227,17 +227,6 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
          """.map(DBMyNDLAUser.fromResultSet(u)).runList()
   }
 
-  def getUserNotSeenBeforeOrAfter(beforeDate: NDLADate, afterDate: NDLADate)(implicit
-      session: DBSession
-  ): Try[List[MyNDLAUser]] = {
-    val u = DBMyNDLAUser.syntax("u")
-    tsql"""
-         select ${u.result.*} from ${DBMyNDLAUser.as(u)}
-         where last_seen < ${NDLADate.parameterBinderFactory(beforeDate)}
-         or last_seen > ${NDLADate.parameterBinderFactory(afterDate)}
-         """.map(DBMyNDLAUser.fromResultSet(u)).runList()
-  }
-
   def getLastCleanup(implicit session: ReadableDbSession): Try[Option[InactiveUserCleanupResult]] = {
     tsql"""
          select id, num_cleanup, num_emailed, last_cleanup_date from user_cleanup_audit
