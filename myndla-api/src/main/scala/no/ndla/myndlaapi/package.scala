@@ -18,8 +18,6 @@ import scala.util.{Failure, Success, Try}
 package object myndlaapi {
   type Eff[A] = Identity[A]
 
-  val FavoriteFolderDefaultName: String = "Favoritter"
-
   // Binders used for UUID binding of scalikejdbc results
   implicit val uuidBinder: Binders[Try[UUID]] = Binders.of[Try[UUID]] {
     case v: UUID => Success(v)

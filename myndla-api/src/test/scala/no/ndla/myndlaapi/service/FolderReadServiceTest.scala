@@ -216,46 +216,8 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     verify(folderRepository, times(0)).getFolderResources(any)(using any)
   }
 
-  test("That getFolders creates favorite folder if user has no folders") {
-    val feideId              = "yee boiii"
-    val favoriteUUID         = UUID.randomUUID()
-    val favoriteDomainFolder = emptyDomainFolder.copy(id = favoriteUUID, name = "favorite")
-    val favoriteApiFolder    = emptyApiFolder.copy(
-      id = favoriteUUID,
-      name = "favorite",
-      status = "private",
-      breadcrumbs = List(api.BreadcrumbDTO(id = favoriteUUID, name = "favorite")),
-    )
-
-    when(folderRepository.insertFolder(any, any)(using any)).thenReturn(Success(favoriteDomainFolder))
-    when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(using any)).thenReturn(
-      Success(List.empty)
-    )
-    when(folderRepository.folderWithId(eqTo(favoriteUUID))(using any)).thenReturn(Success(favoriteDomainFolder))
-    when(folderRepository.getSavedSharedFolders(any)(using any[DBSession])).thenReturn(Success(List.empty))
-    when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
-    val result = service
-      .getFolders(includeSubfolders = false, includeResources = false, feideWrapper(feideId))
-      .get
-      .folders
-    result.length should be(1)
-    result.find(_.name == "favorite").get should be(favoriteApiFolder)
-
-    verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(using any)
-    verify(folderRepository, times(1)).insertFolder(any, any)(using any)
-  }
-
-  test("that getFolders include sharefolder that is saved by the user") {
-    val feideId              = "yee boiii"
-    val favoriteUUID         = UUID.randomUUID()
-    val favoriteDomainFolder = emptyDomainFolder.copy(id = favoriteUUID, name = "favorite")
-    val favoriteApiFolder    = emptyApiFolder.copy(
-      id = favoriteUUID,
-      name = "favorite",
-      status = "private",
-      breadcrumbs = List(api.BreadcrumbDTO(id = favoriteUUID, name = "favorite")),
-    )
-
+  test("that getFolders includes folders saved from other users") {
+    val feideId            = "feide1"
     val user               = emptyMyNDLAUser.copy(id = 1996, displayName = "hallois")
     val folderId           = UUID.randomUUID()
     val sharedFolderDomain = emptyDomainFolder.copy(id = folderId, name = "SharedFolder", status = FolderStatus.SHARED)
@@ -269,11 +231,9 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
       owner = Some(OwnerDTO(name = user.displayName, id = user.id)),
     )
 
-    when(folderRepository.insertFolder(any, any)(using any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(using any)).thenReturn(
       Success(List.empty)
     )
-    when(folderRepository.folderWithId(eqTo(favoriteUUID))(using any)).thenReturn(Success(favoriteDomainFolder))
     when(folderRepository.getSavedSharedFolders(any)(using any[DBSession])).thenReturn(
       Success(List(sharedFolderDomain))
     )
@@ -285,14 +245,12 @@ class FolderReadServiceTest extends UnitTestSuite with TestEnvironment {
     )
     when(userRepository.userWithFeideId(any)(using any[DBSession])).thenReturn(Success(None))
     val result = service.getFolders(includeSubfolders = false, includeResources = false, feideWrapper(feideId)).get
-    result.folders.length should be(1)
-    result.folders.find(_.name == "favorite").get should be(favoriteApiFolder)
+    result.folders.length should be(0)
 
     result.sharedFolders.length should be(1)
     result.sharedFolders.find(_.name == "SharedFolder").get should be(sharedFolderApi)
 
     verify(folderRepository, times(1)).foldersWithFeideAndParentID(eqTo(None), eqTo(feideId))(using any)
-    verify(folderRepository, times(1)).insertFolder(any, any)(using any)
     verify(folderRepository, times(1)).getSavedSharedFolders(any)(using any)
   }
 
