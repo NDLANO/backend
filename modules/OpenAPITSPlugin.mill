@@ -59,7 +59,7 @@ trait OpenAPITSPlugin extends ScalaModule {
 
     def outputFiles(): Task.Command[Unit] = Task.Command {
       val generatedPath = generateTypeScriptFiles().path
-      Seq(s"openapi/$moduleName.json", s"$moduleName-openapi.ts", s"$moduleName.ts").foreach { pathStr =>
+      Seq(s"openapi/$moduleName.json", s"$moduleName.ts").foreach { pathStr =>
         val relativePath = os.SubPath(pathStr)
         os.copy(generatedPath / relativePath, moduleDir / relativePath, createFolders = true, replaceExisting = true)
       }
