@@ -51,8 +51,8 @@ export type paths = {
             cookie?: never;
         };
         /**
-         * Fetch the most recent favorited resource
-         * @description Fetch the most recent favorited resource
+         * Fetch the most recent favorited resource across all users
+         * @description Fetch the most recent favorited resource across all users
          */
         get: operations["getMyndla-apiV1FoldersResourcesRecent"];
         put?: never;
