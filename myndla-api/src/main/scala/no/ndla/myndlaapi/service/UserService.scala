@@ -251,6 +251,8 @@ class UserService(using
     usersToEmailFiltered = lastCleanupRun match {
       case None          => emailCandidates
       case Some(lastRun) =>
+        // NOTE: This is the cutoff for which users would have been sent an email in the last run.
+        //       Since we only want to email users once, we filter out users that would have been emailed in the last run, even if they are still inactive.
         val lastEmailCutoff = lastRun.lastCleanupDate.minusDays(emailAfter)
         emailCandidates.filter(user => user.lastSeen.isAfter(lastEmailCutoff))
     }
