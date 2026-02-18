@@ -249,3 +249,6 @@ export interface operations {
         };
     };
 }
+export enum ApiPaths {
+    getOembed_proxyV1Oembed = "/oembed-proxy/v1/oembed"
+}

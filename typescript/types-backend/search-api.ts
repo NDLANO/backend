@@ -1643,3 +1643,13 @@ export interface operations {
         };
     };
 }
+export enum ApiPaths {
+    getSearch_apiV1SearchGroup = "/search-api/v1/search/group",
+    getSearch_apiV1Search = "/search-api/v1/search",
+    postSearch_apiV1Search = "/search-api/v1/search",
+    getSearch_apiV1SearchEditorial = "/search-api/v1/search/editorial",
+    postSearch_apiV1SearchEditorial = "/search-api/v1/search/editorial",
+    postSearch_apiV1SearchSubjects = "/search-api/v1/search/subjects",
+    postSearch_apiV1SearchGrep = "/search-api/v1/search/grep",
+    getSearch_apiV1SearchGrepReplacements = "/search-api/v1/search/grep/replacements"
+}

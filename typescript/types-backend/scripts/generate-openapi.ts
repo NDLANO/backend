@@ -7,7 +7,7 @@
  */
 
 import fs from "node:fs";
-import openapiTS, { astToString, TransformObject } from "openapi-typescript";
+import openapiTS, { astToString } from "openapi-typescript";
 import ts, { TypeNode } from "typescript";
 
 if (process.argv.length !== 3) {
@@ -30,6 +30,7 @@ async function generate_types(appName: string) {
     rootTypes: true,
     rootTypesKeepCasing: true,
     rootTypesNoSchemaPrefix: true,
+    makePathsEnum: true,
     // https://openapi-ts.dev/migration-guide#defaultnonnullable-true-by-default
     defaultNonNullable: false,
     transform(schemaObject, _options): TypeNode | undefined {

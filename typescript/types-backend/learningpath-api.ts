@@ -3090,3 +3090,35 @@ export interface operations {
         };
     };
 }
+export enum ApiPaths {
+    getLearningpath_apiV2Learningpaths = "/learningpath-api/v2/learningpaths",
+    postLearningpath_apiV2Learningpaths = "/learningpath-api/v2/learningpaths",
+    postLearningpath_apiV2LearningpathsSearch = "/learningpath-api/v2/learningpaths/search",
+    getLearningpath_apiV2LearningpathsTags = "/learningpath-api/v2/learningpaths/tags",
+    getLearningpath_apiV2LearningpathsLicenses = "/learningpath-api/v2/learningpaths/licenses",
+    getLearningpath_apiV2LearningpathsMine = "/learningpath-api/v2/learningpaths/mine",
+    getLearningpath_apiV2LearningpathsContributors = "/learningpath-api/v2/learningpaths/contributors",
+    getLearningpath_apiV2LearningpathsExternal_samples = "/learningpath-api/v2/learningpaths/external-samples",
+    getLearningpath_apiV2LearningpathsIds = "/learningpath-api/v2/learningpaths/ids",
+    getLearningpath_apiV2LearningpathsLearningpath_id = "/learningpath-api/v2/learningpaths/{learningpath_id}",
+    deleteLearningpath_apiV2LearningpathsLearningpath_id = "/learningpath-api/v2/learningpaths/{learningpath_id}",
+    patchLearningpath_apiV2LearningpathsLearningpath_id = "/learningpath-api/v2/learningpaths/{learningpath_id}",
+    getLearningpath_apiV2LearningpathsLearningpath_idStatus = "/learningpath-api/v2/learningpaths/{learningpath_id}/status",
+    putLearningpath_apiV2LearningpathsLearningpath_idStatus = "/learningpath-api/v2/learningpaths/{learningpath_id}/status",
+    getLearningpath_apiV2LearningpathsLearningpath_idLearningstepsTrash = "/learningpath-api/v2/learningpaths/{learningpath_id}/learningsteps/trash",
+    getLearningpath_apiV2LearningpathsLearningpath_idLearningsteps = "/learningpath-api/v2/learningpaths/{learningpath_id}/learningsteps",
+    postLearningpath_apiV2LearningpathsLearningpath_idLearningsteps = "/learningpath-api/v2/learningpaths/{learningpath_id}/learningsteps",
+    getLearningpath_apiV2LearningpathsLearningpath_idLearningstepsLearningstep_id = "/learningpath-api/v2/learningpaths/{learningpath_id}/learningsteps/{learningstep_id}",
+    deleteLearningpath_apiV2LearningpathsLearningpath_idLearningstepsLearningstep_id = "/learningpath-api/v2/learningpaths/{learningpath_id}/learningsteps/{learningstep_id}",
+    patchLearningpath_apiV2LearningpathsLearningpath_idLearningstepsLearningstep_id = "/learningpath-api/v2/learningpaths/{learningpath_id}/learningsteps/{learningstep_id}",
+    getLearningpath_apiV2LearningpathsContains_articleArticle_id = "/learningpath-api/v2/learningpaths/contains-article/{article_id}",
+    getLearningpath_apiV2LearningpathsLearningpath_idLearningstepsLearningstep_idStatus = "/learningpath-api/v2/learningpaths/{learningpath_id}/learningsteps/{learningstep_id}/status",
+    putLearningpath_apiV2LearningpathsLearningpath_idLearningstepsLearningstep_idStatus = "/learningpath-api/v2/learningpaths/{learningpath_id}/learningsteps/{learningstep_id}/status",
+    postLearningpath_apiV2LearningpathsLearningpath_idCopy = "/learningpath-api/v2/learningpaths/{learningpath_id}/copy",
+    putLearningpath_apiV2LearningpathsLearningpath_idLearningstepsLearningstep_idSeqno = "/learningpath-api/v2/learningpaths/{learningpath_id}/learningsteps/{learningstep_id}/seqNo",
+    deleteLearningpath_apiV2LearningpathsLearningpath_idLearningstepsLearningstep_idLanguageP1 = "/learningpath-api/v2/learningpaths/{learningpath_id}/learningsteps/{learningstep_id}/language/{p1}",
+    getLearningpath_apiV2LearningpathsStatusStatus = "/learningpath-api/v2/learningpaths/status/{STATUS}",
+    deleteLearningpath_apiV2LearningpathsLearningpath_idLanguageP1 = "/learningpath-api/v2/learningpaths/{learningpath_id}/language/{p1}",
+    postLearningpath_apiV2LearningpathsLearningpath_idUpdate_taxonomy = "/learningpath-api/v2/learningpaths/{learningpath_id}/update-taxonomy",
+    getLearningpath_apiV1Stats = "/learningpath-api/v1/stats"
+}

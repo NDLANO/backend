@@ -2176,3 +2176,27 @@ export interface operations {
         };
     };
 }
+export enum ApiPaths {
+    getAudio_apiV1Audio = "/audio-api/v1/audio",
+    postAudio_apiV1Audio = "/audio-api/v1/audio",
+    postAudio_apiV1AudioSearch = "/audio-api/v1/audio/search",
+    getAudio_apiV1AudioIds = "/audio-api/v1/audio/ids",
+    getAudio_apiV1AudioTag_search = "/audio-api/v1/audio/tag-search",
+    getAudio_apiV1AudioAudio_id = "/audio-api/v1/audio/{audio-id}",
+    putAudio_apiV1AudioAudio_id = "/audio-api/v1/audio/{audio-id}",
+    deleteAudio_apiV1AudioAudio_id = "/audio-api/v1/audio/{audio-id}",
+    deleteAudio_apiV1AudioAudio_idLanguageLanguage = "/audio-api/v1/audio/{audio-id}/language/{language}",
+    getAudio_apiV1Series = "/audio-api/v1/series",
+    postAudio_apiV1Series = "/audio-api/v1/series",
+    postAudio_apiV1SeriesSearch = "/audio-api/v1/series/search",
+    getAudio_apiV1SeriesSeries_id = "/audio-api/v1/series/{series-id}",
+    putAudio_apiV1SeriesSeries_id = "/audio-api/v1/series/{series-id}",
+    deleteAudio_apiV1SeriesSeries_id = "/audio-api/v1/series/{series-id}",
+    deleteAudio_apiV1SeriesSeries_idLanguageLanguage = "/audio-api/v1/series/{series-id}/language/{language}",
+    getAudio_apiV1TranscriptionVideoidLanguageExtract_audio = "/audio-api/v1/transcription/{videoId}/{language}/extract-audio",
+    postAudio_apiV1TranscriptionVideoidLanguageExtract_audio = "/audio-api/v1/transcription/{videoId}/{language}/extract-audio",
+    getAudio_apiV1TranscriptionVideoVideoidLanguage = "/audio-api/v1/transcription/video/{videoId}/{language}",
+    postAudio_apiV1TranscriptionVideoVideoidLanguage = "/audio-api/v1/transcription/video/{videoId}/{language}",
+    postAudio_apiV1TranscriptionAudioAudionameAudioidLanguage = "/audio-api/v1/transcription/audio/{audioName}/{audioId}/{language}",
+    getAudio_apiV1TranscriptionAudioAudioidLanguage = "/audio-api/v1/transcription/audio/{audioId}/{language}"
+}
