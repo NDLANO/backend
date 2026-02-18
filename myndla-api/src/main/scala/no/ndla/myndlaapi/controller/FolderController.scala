@@ -205,6 +205,19 @@ class FolderController(using
 
     }
 
+  private def getResourceByPath: ServerEndpoint[Any, Eff] = endpoint
+    .get
+    .summary("Fetch resource by path")
+    .description("Fetch resource by path")
+    .in("resources" / "path")
+    .in(queryResourcePath)
+    .out(jsonBody[Option[ResourceDTO]])
+    .errorOut(errorOutputsFor(400, 401, 403, 404))
+    .withFeideUser
+    .serverLogicPure { feide => resourcePath =>
+      folderReadService.getResourceByPath(resourcePath, feide)
+    }
+
   private def createFolderResource: ServerEndpoint[Any, Eff] = endpoint
     .post
     .summary("Creates new folder resource")
@@ -424,6 +437,7 @@ class FolderController(using
     fetchRecent,
     getSingleFolder,
     getResourceConnectionsByPath,
+    getResourceByPath,
     hasFavoritedResource,
     createNewFolder,
     updateFolder(),

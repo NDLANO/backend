@@ -355,4 +355,13 @@ class FolderReadService(using
 
   }
 
+  def getResourceByPath(path: String, feide: FeideUserWrapper): Try[Option[ResourceDTO]] = {
+    implicit val session: DBSession = folderRepository.getSession(true)
+    for {
+      user      <- feide.userOrAccessDenied
+      resource  <- folderRepository.userResourceWithId(path, user.feideId)
+      converted <- resource.traverse(r => folderConverterService.toApiResource(r, isOwner = true))
+    } yield converted
+  }
+
 }
