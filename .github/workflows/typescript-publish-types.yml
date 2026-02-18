@@ -36,8 +36,8 @@ jobs:
           yarn version patch
           yarn npm publish --provenance --access public
           git add package.json
-          VERSION=$(jq -r .version package.json)
-          git commit -m "v$VERSION"
-          git tag "v$VERSION"
+          VERSION=$(jq -j .version package.json)
+          git commit -m "AUTOMATION: Bumped types-backend to v$VERSION"
+          git tag -a "v$VERSION" -m "v$VERSION"
           git push
           git push --tags
