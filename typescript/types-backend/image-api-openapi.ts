@@ -708,7 +708,7 @@ export type components = {
              * @description The number of search hits to display for each page.
              */
             pageSize?: number;
-            /** @description Only show podcast friendly images. */
+            /** @description Only show podcast friendly images. Same width and height, and between 1400 and 3000 pixels. */
             podcastFriendly?: boolean;
             /** @description A search context retrieved from the response header of a previous search. */
             scrollId?: string;
@@ -718,6 +718,26 @@ export type components = {
             modelReleased?: string[];
             /** @description Filter editors of the image(s). Multiple values can be specified in a comma separated list. */
             users?: string[];
+            /**
+             * Format: int32
+             * @description Filter images with width greater than or equal to this value.
+             */
+            widthFrom?: number;
+            /**
+             * Format: int32
+             * @description Filter images with width less than or equal to this value.
+             */
+            widthTo?: number;
+            /**
+             * Format: int32
+             * @description Filter images with height greater than or equal to this value.
+             */
+            heightFrom?: number;
+            /**
+             * Format: int32
+             * @description Filter images with height less than or equal to this value.
+             */
+            heightTo?: number;
         };
         /**
          * SearchResultDTO
@@ -901,6 +921,14 @@ export interface operations {
                 "model-released"?: string[];
                 /** @description Include inactive images */
                 inactive?: boolean;
+                /** @description Filter images with width greater than or equal to this value. */
+                "width-from"?: number;
+                /** @description Filter images with width less than or equal to this value. */
+                "width-to"?: number;
+                /** @description Filter images with height greater than or equal to this value. */
+                "height-from"?: number;
+                /** @description Filter images with height less than or equal to this value. */
+                "height-to"?: number;
             };
             header?: never;
             path?: never;
@@ -1475,6 +1503,14 @@ export interface operations {
                 users?: string[];
                 /** @description Include inactive images */
                 inactive?: boolean;
+                /** @description Filter images with width greater than or equal to this value. */
+                "width-from"?: number;
+                /** @description Filter images with width less than or equal to this value. */
+                "width-to"?: number;
+                /** @description Filter images with height greater than or equal to this value. */
+                "height-from"?: number;
+                /** @description Filter images with height less than or equal to this value. */
+                "height-to"?: number;
             };
             header?: never;
             path?: never;
