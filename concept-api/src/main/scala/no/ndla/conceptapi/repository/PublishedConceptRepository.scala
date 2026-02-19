@@ -21,14 +21,16 @@ import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 
-class PublishedConceptRepository(using dbUtility: DBUtility) extends StrictLogging with Repository[Concept] {
+class PublishedConceptRepository(using dbUtility: DBUtility, dbConcept: DBConcept, publishedConcept: PublishedConcept)
+    extends StrictLogging
+    with Repository[Concept] {
 
   def insertOrUpdate(concept: Concept)(implicit session: DBSession = dbUtility.autoSession): Try[Concept] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(concept))
 
-    tsql"""update ${PublishedConcept.table}
+    tsql"""update ${publishedConcept.table}
               set
                 document=$dataObject,
                 revision=${concept.revision}
@@ -40,7 +42,7 @@ class PublishedConceptRepository(using dbUtility: DBUtility) extends StrictLoggi
       case Success(_) =>
         logger.info(s"No published concept with id ${concept.id} exists, creating...")
         tsql"""
-                  insert into ${PublishedConcept.table} (id, document, revision)
+                  insert into ${publishedConcept.table} (id, document, revision)
                   values (${concept.id}, $dataObject, ${concept.revision})
               """.updateAndReturnGeneratedKey().map(_ => concept)
       case Failure(ex) => Failure(ex)
@@ -49,7 +51,7 @@ class PublishedConceptRepository(using dbUtility: DBUtility) extends StrictLoggi
 
   def delete(id: Long)(implicit session: DBSession = dbUtility.autoSession): Try[?] = {
     tsql"""
-            delete from ${PublishedConcept.table}
+            delete from ${publishedConcept.table}
             where id=$id
          """.update() match {
       case Success(count) if count > 0 => Success(id)
@@ -63,7 +65,7 @@ class PublishedConceptRepository(using dbUtility: DBUtility) extends StrictLoggi
   def everyTagFromEveryConcept(implicit session: DBSession = dbUtility.readOnlySession): List[List[Tag]] = {
     tsql"""
            select distinct id, document#>'{tags}' as tags
-           from ${PublishedConcept.table}
+           from ${publishedConcept.table}
            where jsonb_array_length(document#>'{tags}') > 0
            order by id
          """
@@ -78,15 +80,15 @@ class PublishedConceptRepository(using dbUtility: DBUtility) extends StrictLoggi
   private def conceptWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = dbUtility.readOnlySession): Option[Concept] = {
-    val co = PublishedConcept.syntax("co")
-    tsql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
-      .map(DBConcept.fromResultSet(co))
+    val co = publishedConcept.syntax("co")
+    tsql"select ${co.result.*} from ${publishedConcept.as(co)} where co.document is not NULL and $whereClause"
+      .map(dbConcept.fromResultSet(co))
       .runSingle()
       .get
   }
 
   def conceptCount(implicit session: DBSession = dbUtility.readOnlySession): Long =
-    tsql"select count(*) from ${PublishedConcept.table}"
+    tsql"select count(*) from ${publishedConcept.table}"
       .map(rs => rs.long("count"))
       .runSingle()
       .map(_.getOrElse(0L))
@@ -96,7 +98,7 @@ class PublishedConceptRepository(using dbUtility: DBUtility) extends StrictLoggi
     conceptsWhere(sqls"co.id between $min and $max")
 
   override def minMaxId(implicit session: DBSession = dbUtility.autoSession): (Long, Long) = {
-    tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${PublishedConcept.table}"
+    tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${publishedConcept.table}"
       .map(rs => (rs.long("mi"), rs.long("ma")))
       .runSingle()
       .map(_.getOrElse((0L, 0L)))
@@ -106,22 +108,22 @@ class PublishedConceptRepository(using dbUtility: DBUtility) extends StrictLoggi
   private def conceptsWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = dbUtility.readOnlySession): List[Concept] = {
-    val co = PublishedConcept.syntax("co")
-    tsql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
-      .map(DBConcept.fromResultSet(co))
+    val co = publishedConcept.syntax("co")
+    tsql"select ${co.result.*} from ${publishedConcept.as(co)} where co.document is not NULL and $whereClause"
+      .map(dbConcept.fromResultSet(co))
       .runList()
       .get
   }
 
   def getByPage(pageSize: Int, offset: Int)(implicit session: DBSession = dbUtility.readOnlySession): Seq[Concept] = {
-    val co = PublishedConcept.syntax("co")
+    val co = publishedConcept.syntax("co")
     tsql"""
            select ${co.result.*}
-           from ${PublishedConcept.as(co)}
+           from ${publishedConcept.as(co)}
            where document is not null
            order by ${co.id}
            offset $offset
            limit $pageSize
-      """.map(DBConcept.fromResultSet(co)).runList().get
+      """.map(dbConcept.fromResultSet(co)).runList().get
   }
 }

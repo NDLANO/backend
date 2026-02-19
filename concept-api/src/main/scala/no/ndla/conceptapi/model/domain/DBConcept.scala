@@ -10,10 +10,12 @@ package no.ndla.conceptapi.model.domain
 
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.concept.Concept
+import no.ndla.conceptapi.Props
 import scalikejdbc.*
 
-object DBConcept extends SQLSyntaxSupport[Concept] {
-  override val tableName = "conceptdata"
+class DBConcept(using props: Props) extends SQLSyntaxSupport[Concept] {
+  override val tableName                  = "conceptdata"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept = fromResultSet(lp.resultName)(rs)
 
@@ -45,6 +47,7 @@ object DBConcept extends SQLSyntaxSupport[Concept] {
   }
 }
 
-object PublishedConcept extends SQLSyntaxSupport[Concept] {
-  override val tableName = "publishedconceptdata"
+class PublishedConcept(using props: Props) extends SQLSyntaxSupport[Concept] {
+  override val tableName                  = "publishedconceptdata"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 }

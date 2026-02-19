@@ -20,9 +20,13 @@ import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 
-class ImageRepository(using dbUtility: DBUtility) extends StrictLogging {
+class ImageRepository(using dbUtility: DBUtility, dbImageMetaInformation: DBImageMetaInformation)
+    extends StrictLogging {
   def imageCount(implicit session: DBSession = dbUtility.readOnlySession): Try[Long] =
-    tsql"select count(*) from ${ImageMetaInformation.table}".map(rs => rs.long("count")).runSingle().map(_.getOrElse(0))
+    tsql"select count(*) from ${dbImageMetaInformation.table}"
+      .map(rs => rs.long("count"))
+      .runSingle()
+      .map(_.getOrElse(0))
 
   def withId(id: Long): Try[Option[ImageMetaInformation]] = dbUtility.readOnly { implicit session =>
     imageMetaInformationWhere(sqls"im.id = $id")
@@ -83,10 +87,10 @@ class ImageRepository(using dbUtility: DBUtility) extends StrictLogging {
   private def imageMetaInformationWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession): Try[Option[ImageMetaInformation]] = {
-    val im = ImageMetaInformation.syntax("im")
+    val im = dbImageMetaInformation.syntax("im")
     tsql"""
             SELECT ${im.result.*}
-            FROM ${ImageMetaInformation.as(im)}
+            FROM ${dbImageMetaInformation.as(im)}
             WHERE $whereClause
          """.map(ImageMetaInformation.fromResultSet(im.resultName)).runSingleFlat()
   }
@@ -94,10 +98,10 @@ class ImageRepository(using dbUtility: DBUtility) extends StrictLogging {
   private def imageMetaInformationsWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = dbUtility.readOnlySession): Try[List[ImageMetaInformation]] = {
-    val im = ImageMetaInformation.syntax("im")
+    val im = dbImageMetaInformation.syntax("im")
     tsql"""
             SELECT ${im.result.*}
-            FROM ${ImageMetaInformation.as(im)}
+            FROM ${dbImageMetaInformation.as(im)}
             WHERE $whereClause
          """.map(ImageMetaInformation.fromResultSet(im.resultName)).runListFlat()
   }
@@ -123,25 +127,25 @@ class ImageRepository(using dbUtility: DBUtility) extends StrictLogging {
   }
 
   def minMaxId(implicit session: DBSession = dbUtility.autoSession): Try[(Long, Long)] =
-    tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${ImageMetaInformation.table}"
+    tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${dbImageMetaInformation.table}"
       .map(rs => (rs.long("mi"), rs.long("ma")))
       .runSingle()
       .map(_.getOrElse((0L, 0L)))
 
   def getRandomImage()(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[ImageMetaInformation]] = {
-    val im = ImageMetaInformation.syntax("im")
+    val im = dbImageMetaInformation.syntax("im")
     tsql"""SELECT ${im.result.*}
-           FROM ${ImageMetaInformation.as(im)} TABLESAMPLE public.system_rows(1)
+           FROM ${dbImageMetaInformation.as(im)} TABLESAMPLE public.system_rows(1)
            LIMIT 1""".map(ImageMetaInformation.fromResultSet(im)).runSingle().map(_.sequence).flatten
   }
 
   def getByPage(pageSize: Int, offset: Int)(implicit
       session: DBSession = dbUtility.readOnlySession
   ): Try[Seq[ImageMetaInformation]] = {
-    val im = ImageMetaInformation.syntax("im")
+    val im = dbImageMetaInformation.syntax("im")
     tsql"""
            select ${im.result.*}
-           from ${ImageMetaInformation.as(im)}
+           from ${dbImageMetaInformation.as(im)}
            where metadata is not null
            order by ${im.id}
            offset $offset
@@ -151,7 +155,7 @@ class ImageRepository(using dbUtility: DBUtility) extends StrictLogging {
 
   // TODO: Remove this after completing variants migration of existing images
   def getImageFileBatched(batchSize: Long): Try[Iterator[Seq[ImageMetaInformation]]] =
-    val im    = ImageMetaInformation.syntax("im")
+    val im    = dbImageMetaInformation.syntax("im")
     val total = imageCount match {
       case Success(count) => count
       case Failure(ex)    => return Failure(ex)
@@ -173,7 +177,7 @@ class ImageRepository(using dbUtility: DBUtility) extends StrictLogging {
         dbUtility.readOnly { implicit session =>
           tsql"""
             select ${im.result.*}
-            from ${ImageMetaInformation.as(im)}
+            from ${dbImageMetaInformation.as(im)}
             where metadata is not null
             order by ${im.id}
             offset $cursor

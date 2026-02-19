@@ -79,8 +79,7 @@ case class ConfigMeta(key: ConfigKey, value: ConfigMetaValue, updatedAt: NDLADat
   }
 }
 
-object ConfigMeta extends SQLSyntaxSupport[ConfigMeta] with StrictLogging {
-  override val tableName = "configtable"
+object ConfigMeta extends StrictLogging {
 
   def fromResultSet(c: SyntaxProvider[ConfigMeta])(rs: WrappedResultSet): Try[ConfigMeta] =
     fromResultSet(c.resultName)(rs)

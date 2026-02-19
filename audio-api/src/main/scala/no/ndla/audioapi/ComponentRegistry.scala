@@ -11,6 +11,7 @@ package no.ndla.audioapi
 import no.ndla.audioapi.controller.*
 import no.ndla.audioapi.db.migrationwithdependencies.{V5__AddAgreementToAudio, V6__TranslateUntranslatedAuthors}
 import no.ndla.audioapi.integration.{NDLAS3Client, TranscribeS3Client}
+import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.*
 import no.ndla.audioapi.service.search.*
@@ -24,14 +25,16 @@ import no.ndla.network.tapir.{ErrorHelpers, Routes, SwaggerController, TapirAppl
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 class ComponentRegistry(properties: AudioApiProperties) extends TapirApplication[AudioApiProperties] {
-  given props: AudioApiProperties              = properties
-  given dataSource: DataSource                 = DataSource.getDataSource
-  given clock: Clock                           = new Clock
-  given migrator: DBMigrator                   = DBMigrator(new V5__AddAgreementToAudio, new V6__TranslateUntranslatedAuthors)
-  given errorHelpers: ErrorHelpers             = new ErrorHelpers
-  given errorHandling: ControllerErrorHandling = new ControllerErrorHandling
-  given searchLanguage: SearchLanguage         = new SearchLanguage
-  given dbUtility: DBUtility                   = new DBUtility
+  given props: AudioApiProperties                      = properties
+  given dataSource: DataSource                         = DataSource.getDataSource
+  given clock: Clock                                   = new Clock
+  given migrator: DBMigrator                           = DBMigrator(new V5__AddAgreementToAudio, new V6__TranslateUntranslatedAuthors)
+  given errorHelpers: ErrorHelpers                     = new ErrorHelpers
+  given errorHandling: ControllerErrorHandling         = new ControllerErrorHandling
+  given searchLanguage: SearchLanguage                 = new SearchLanguage
+  given dbUtility: DBUtility                           = new DBUtility
+  given dbAudioMetaInformation: DBAudioMetaInformation = new DBAudioMetaInformation
+  given dbSeries: DBSeries                             = new DBSeries
 
   given s3Client: NDLAS3Client                 = new NDLAS3Client(props.StorageName, props.StorageRegion)
   given s3TranscribeClient: TranscribeS3Client =

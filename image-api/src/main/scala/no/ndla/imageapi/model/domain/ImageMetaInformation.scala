@@ -14,6 +14,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Tag
 import no.ndla.common.model.domain.article.Copyright
+import no.ndla.imageapi.Props
 import scalikejdbc.*
 
 import scala.util.Try
@@ -35,8 +36,7 @@ case class ImageMetaInformation(
     inactive: Boolean,
 )
 
-object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
-  override val tableName: String = "imagemetadata"
+object ImageMetaInformation {
 
   implicit val encoder: Encoder[ImageMetaInformation] = deriveEncoder[ImageMetaInformation]
   implicit val decoder: Decoder[ImageMetaInformation] = deriveDecoder[ImageMetaInformation]
@@ -49,4 +49,9 @@ object ImageMetaInformation extends SQLSyntaxSupport[ImageMetaInformation] {
     val jsonString = rs.string(im.c("metadata"))
     CirceUtil.tryParseAs[ImageMetaInformation](jsonString).map(_.copy(Some(id)))
   }
+}
+
+class DBImageMetaInformation(using props: Props) extends SQLSyntaxSupport[ImageMetaInformation] {
+  override val tableName: String          = "imagemetadata"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 }

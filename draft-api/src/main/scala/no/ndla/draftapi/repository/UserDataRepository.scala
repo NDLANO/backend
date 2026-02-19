@@ -11,20 +11,20 @@ package no.ndla.draftapi.repository
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.database.implicits.*
-import no.ndla.draftapi.model.domain.UserData
+import no.ndla.draftapi.model.domain.{DBUserData, UserData}
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 
 import scala.util.Try
 
-class UserDataRepository extends StrictLogging {
+class UserDataRepository(using dbUserData: DBUserData) extends StrictLogging {
   def insert(userData: UserData)(using DBSession): Try[UserData] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(userData))
 
     tsql"""
-      insert into ${UserData.table} (user_id, document) values (${userData.userId}, $dataObject)
+      insert into ${dbUserData.table} (user_id, document) values (${userData.userId}, $dataObject)
     """
       .updateAndReturnGeneratedKey()
       .map { userDataId =>
@@ -39,7 +39,7 @@ class UserDataRepository extends StrictLogging {
     dataObject.setValue(CirceUtil.toJsonString(userData))
 
     tsql"""
-      update ${UserData.table}
+      update ${dbUserData.table}
       set document=$dataObject
       where user_id=${userData.userId}
     """
@@ -55,8 +55,8 @@ class UserDataRepository extends StrictLogging {
   def withUserId(userId: String)(using DBSession): Try[Option[UserData]] = userDataWhere(sqls"ud.user_id=$userId")
 
   private def userDataWhere(whereClause: SQLSyntax)(using DBSession): Try[Option[UserData]] = {
-    val ud = UserData.syntax("ud")
-    tsql"select ${ud.result.*} from ${UserData.as(ud)} where $whereClause".map(UserData.fromResultSet(ud)).runSingle()
+    val ud = dbUserData.syntax("ud")
+    tsql"select ${ud.result.*} from ${dbUserData.as(ud)} where $whereClause".map(UserData.fromResultSet(ud)).runSingle()
   }
 
 }
