@@ -8,6 +8,7 @@
 
 package no.ndla.common.aws
 
+import no.ndla.common.TryUtil.throwIfInterrupted
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient
 import software.amazon.awssdk.services.cloudfront.model.{CreateInvalidationRequest, InvalidationBatch, Paths}
 
@@ -23,7 +24,7 @@ class NdlaCloudFrontClient {
   }
 
   def createInvalidation(distributionId: String, paths: Seq[String]): Try[Unit] = {
-    Try {
+    Try.throwIfInterrupted {
       val invalidationBatch = InvalidationBatch
         .builder()
         .paths(Paths.builder().items(paths.asJava).quantity(paths.size).build())
