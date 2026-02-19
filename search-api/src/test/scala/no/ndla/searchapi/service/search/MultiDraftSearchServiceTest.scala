@@ -562,7 +562,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     search.summaryResults.map(_.id) should be(Seq(2, 3, 4, 5, 6, 10, 11, 13, 15))
 
     val Success(search2) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(language = "*", supportedLanguages = List("en", "nb"), pageSize = 100)
+      multiDraftSearchSettings.copy(language = "*", pageSize = 100, supportedLanguages = List("en", "nb"))
     ): @unchecked
     search2.totalCount should be(21)
     search2.summaryResults.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16))
@@ -791,10 +791,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchSettings.copy(statusFilter = List(DraftStatus.UNPUBLISHED))
     ): @unchecked
     val Success(search3) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(
-        withIdIn = List(14, 17), // 14 is archived, 17 is unpublished
-        statusFilter = List.empty,
-      )
+      multiDraftSearchSettings.copy(withIdIn = List(14, 17), statusFilter = List.empty)
     ): @unchecked
 
     search1.summaryResults.map(_.id) should be(Seq(14))
@@ -1176,10 +1173,10 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That filtering on tags works") {
     val Success(search) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(tags = List("fugl"), language = "nb")
+      multiDraftSearchSettings.copy(language = "nb", tags = List("fugl"))
     ): @unchecked
     val Success(search2) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(tags = List("hulk"), language = "nb")
+      multiDraftSearchSettings.copy(language = "nb", tags = List("hulk"))
     ): @unchecked
 
     search.totalCount should be(2)

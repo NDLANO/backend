@@ -172,7 +172,7 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val expectedSettings = TestData
       .multiDraftSearchSettings
-      .copy(fallback = true, language = "nn", pageSize = 10, shouldScroll = true, sort = Sort.ByRelevanceDesc)
+      .copy(fallback = true, language = "nn", pageSize = 10, sort = Sort.ByRelevanceDesc, shouldScroll = true)
 
     verify(multiDraftSearchService, times(0)).scroll(any[String], any[String])
     verify(multiDraftSearchService, times(1)).matchingQuery(eqTo(expectedSettings))

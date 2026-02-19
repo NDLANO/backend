@@ -293,8 +293,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         title = Seq(Title("Parent title", "nb")),
         metaDescription = Seq(Description("Parent description", "nb")),
         metaImage = Seq(ArticleMetaImage("1000", "alt", "nb")),
-        slug = Some("some-slug"),
         published = date,
+        slug = Some("some-slug"),
       )
 
     val article1 = TestData
@@ -304,8 +304,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         title = Seq(Title("Article1 title", "nb")),
         metaDescription = Seq(Description("Article1 description", "nb")),
         metaImage = Seq(ArticleMetaImage("1000", "alt", "nb")),
-        slug = Some("slug-one"),
         published = date,
+        slug = Some("slug-one"),
       )
 
     val article2 = TestData
@@ -315,8 +315,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         title = Seq(Title("Article2 title", "nb")),
         metaDescription = Seq(Description("Article2 description", "nb")),
         metaImage = Seq(),
-        slug = Some("slug-two"),
         published = date,
+        slug = Some("slug-two"),
       )
 
     val frontPage = FrontPageDTO(

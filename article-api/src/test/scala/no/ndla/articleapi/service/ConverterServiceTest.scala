@@ -203,12 +203,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData
       .sampleDomainArticle
       .copy(
-        availability = Availability.everyone,
-        grepCodes = Seq("old", "code"),
         copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
-        metaDescription = Seq(Description("gammelDesc", "nb")),
-        relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
         tags = Seq(Tag(Seq("gammel", "Tag"), "nb")),
+        metaDescription = Seq(Description("gammelDesc", "nb")),
+        grepCodes = Seq("old", "code"),
+        availability = Availability.everyone,
+        relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
       )
 
     val revisionDate = NDLADate.now()
@@ -232,18 +232,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData
       .sampleDomainArticle
       .copy(
-        availability = Availability.teacher,
-        grepCodes = Seq("New", "grep", "codes"),
         copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
+        tags = Seq(Tag(Seq("nye", "Tags"), "nb")),
         metaDescription = Seq(Description("nyDesc", "nb")),
+        published = revisionDate,
+        grepCodes = Seq("New", "grep", "codes"),
+        availability = Availability.teacher,
         relatedContent = Seq(
           Left(RelatedContentLink("New Title", "New Url")),
           Left(RelatedContentLink("Newer Title", "Newer Url")),
           Right(42L),
         ),
-        tags = Seq(Tag(Seq("nye", "Tags"), "nb")),
         revisionDate = Some(revisionDate),
-        published = revisionDate,
       )
 
     service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)
@@ -254,13 +254,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData
       .sampleDomainArticle
       .copy(
-        availability = Availability.everyone,
-        grepCodes = Seq("old", "code"),
         copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
+        tags = Seq(Tag(Seq("Gluten", "Tag"), "de")),
         metaDescription = Seq(Description("oldDesc", "de")),
+        grepCodes = Seq("old", "code"),
+        availability = Availability.everyone,
         relatedContent =
           Seq(Left(RelatedContentLink("title1", "url1")), Left(RelatedContentLink("old title", "old url"))),
-        tags = Seq(Tag(Seq("Gluten", "Tag"), "de")),
       )
 
     val revisionDate   = NDLADate.now()
@@ -289,14 +289,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData
       .sampleDomainArticle
       .copy(
-        availability = Availability.teacher,
-        grepCodes = Seq("New", "grep", "codes"),
         copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
-        metaDescription = Seq(Description("neuDesc", "de")),
-        relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
         tags = Seq(Tag(Seq("Guten", "Tag"), "de")),
-        revisionDate = Some(revisionDate),
+        metaDescription = Seq(Description("neuDesc", "de")),
         published = revisionDate,
+        grepCodes = Seq("New", "grep", "codes"),
+        availability = Availability.teacher,
+        relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
+        revisionDate = Some(revisionDate),
       )
 
     service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)

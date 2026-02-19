@@ -112,6 +112,7 @@ class DraftIndexService(using
       keywordField("defaultParentTopicName"),
       keywordField("defaultRoot"),
       keywordField("defaultResourceTypeName"),
+      intField("publishedCount"),
     )
     val dynamics = languageValuesMapping("title", keepRaw = true) ++
       languageValuesMapping("metaDescription") ++

@@ -189,14 +189,14 @@ class ConverterService(using props: Props) extends StrictLogging {
     val newPublishedDate = partialArticle.published.getOrElse(existingArticle.published)
 
     existingArticle.copy(
-      availability = newAvailability,
-      grepCodes = newGrepCodes,
       copyright = existingArticle.copyright.copy(license = newLicense),
-      metaDescription = newMeta,
-      relatedContent = newRelatedContent,
       tags = newTags,
-      revisionDate = newRevisionDate,
+      metaDescription = newMeta,
       published = newPublishedDate,
+      grepCodes = newGrepCodes,
+      availability = newAvailability,
+      relatedContent = newRelatedContent,
+      revisionDate = newRevisionDate,
     )
   }
 
@@ -289,6 +289,7 @@ class ConverterService(using props: Props) extends StrictLogging {
           slug = article.slug,
           disclaimer = disclaimer,
           traits = article.traits,
+          publishedCount = article.publishedCount.getOrElse(1),
         )
       )
     } else {

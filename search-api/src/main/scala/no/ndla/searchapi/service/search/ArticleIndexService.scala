@@ -93,6 +93,7 @@ class ArticleIndexService(using
       ),
       nestedField("metaImage").fields(keywordField("imageId"), keywordField("altText"), keywordField("language")),
       dateField("nextRevision.revisionDate"), // This is needed for sorting, even if it is never used for articles
+      intField("publishedCount"),
     )
     val dynamics = languageValuesMapping("title", keepRaw = true) ++
       languageValuesMapping("metaDescription") ++

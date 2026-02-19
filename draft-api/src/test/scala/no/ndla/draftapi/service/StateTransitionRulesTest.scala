@@ -362,6 +362,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
+      publishedCount = None,
     )
     val article = common
       .article
@@ -390,6 +391,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
         slug = None,
         disclaimer = OptLanguageFields.empty,
         traits = List.empty,
+        publishedCount = Some(1),
       )
     val status = common.Status(END_CONTROL, Set.empty)
 
@@ -491,6 +493,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
+      publishedCount = None,
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == PUBLISHED)
@@ -550,6 +553,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
+      publishedCount = None,
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == ARCHIVED)
@@ -611,6 +615,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
+      publishedCount = None,
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == UNPUBLISHED)
@@ -673,6 +678,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
+      publishedCount = None,
     )
     val status                            = common.Status(PUBLISHED, Set.empty)
     val transitionToTest: StateTransition = PUBLISHED -> IN_PROGRESS
