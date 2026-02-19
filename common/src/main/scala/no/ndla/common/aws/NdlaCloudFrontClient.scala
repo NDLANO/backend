@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.cloudfront.model.{CreateInvalidationReque
 
 import java.util.UUID
 import scala.jdk.CollectionConverters.*
+import scala.util.Try
 
 class NdlaCloudFrontClient {
 
@@ -21,19 +22,21 @@ class NdlaCloudFrontClient {
     builder.build()
   }
 
-  def createInvalidation(distributionId: String, paths: Seq[String]): Unit = {
-    val invalidationBatch = InvalidationBatch
-      .builder()
-      .paths(Paths.builder().items(paths.asJava).quantity(paths.size).build())
-      .callerReference(UUID.randomUUID().toString)
-      .build()
+  def createInvalidation(distributionId: String, paths: Seq[String]): Try[Unit] = {
+    Try {
+      val invalidationBatch = InvalidationBatch
+        .builder()
+        .paths(Paths.builder().items(paths.asJava).quantity(paths.size).build())
+        .callerReference(UUID.randomUUID().toString)
+        .build()
 
-    val request = CreateInvalidationRequest
-      .builder()
-      .distributionId(distributionId)
-      .invalidationBatch(invalidationBatch)
-      .build()
+      val request = CreateInvalidationRequest
+        .builder()
+        .distributionId(distributionId)
+        .invalidationBatch(invalidationBatch)
+        .build()
 
-    client.createInvalidation(request): Unit
+      client.createInvalidation(request): Unit
+    }
   }
 }
