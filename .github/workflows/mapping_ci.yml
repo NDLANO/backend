@@ -7,12 +7,14 @@ on:
   push:
     paths:
       - mapping/**
+      - language/**
       - modules/**
       - build.mill
       - Dockerfile
   pull_request:
     paths:
       - mapping/**
+      - language/**
       - modules/**
       - build.mill
       - Dockerfile
