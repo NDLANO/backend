@@ -10,7 +10,7 @@ package no.ndla.audioapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.audioapi.model.api.OptimisticLockException
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, Series}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, DBAudioMetaInformation, DBSeries, Series}
 import no.ndla.common.CirceUtil
 import no.ndla.network.tapir.ErrorHelpers
 import org.postgresql.util.PGobject
@@ -20,11 +20,15 @@ import no.ndla.database.implicits.*
 
 import scala.util.{Failure, Success, Try}
 
-class AudioRepository(using errorHelpers: ErrorHelpers, dbUtility: DBUtility)
-    extends StrictLogging
+class AudioRepository(using
+    errorHelpers: ErrorHelpers,
+    dbUtility: DBUtility,
+    dbAudioMetaInformation: DBAudioMetaInformation,
+    dbSeries: DBSeries,
+) extends StrictLogging
     with Repository[AudioMetaInformation] {
   def audioCount(implicit session: DBSession = dbUtility.readOnlySession): Long =
-    tsql"select count(*) from ${AudioMetaInformation.table}"
+    tsql"select count(*) from ${dbAudioMetaInformation.table}"
       .map(rs => rs.long("count"))
       .runSingle()
       .map(_.getOrElse(0L))
@@ -105,7 +109,7 @@ class AudioRepository(using errorHelpers: ErrorHelpers, dbUtility: DBUtility)
       session: DBSession = dbUtility.autoSession
   ): Try[Long] = {
     tsql"""
-           update ${AudioMetaInformation.table}
+           update ${dbAudioMetaInformation.table}
            set series_id = $seriesId
            where id = $audioMetaId
            """.update().map(_ => audioMetaId)
@@ -125,7 +129,7 @@ class AudioRepository(using errorHelpers: ErrorHelpers, dbUtility: DBUtility)
   }
 
   def deleteAudio(audioId: Long)(implicit session: DBSession = dbUtility.autoSession): Int = {
-    tsql"delete from ${AudioMetaInformation.table} where id=$audioId".update().get
+    tsql"delete from ${dbAudioMetaInformation.table} where id=$audioId".update().get
   }
 
   override def documentsWithIdBetween(min: Long, max: Long): Try[List[AudioMetaInformation]] = {
@@ -135,12 +139,12 @@ class AudioRepository(using errorHelpers: ErrorHelpers, dbUtility: DBUtility)
   private def audioMetaInformationWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession): Option[AudioMetaInformation] = {
-    val au = AudioMetaInformation.syntax("au")
-    val se = Series.syntax("se")
+    val au = dbAudioMetaInformation.syntax("au")
+    val se = dbSeries.syntax("se")
     tsql"""
            select ${au.result.*}, ${se.result.*}
-           from ${AudioMetaInformation.as(au)}
-           left join ${Series.as(se)} on ${au.seriesId} = ${se.id}
+           from ${dbAudioMetaInformation.as(au)}
+           left join ${dbSeries.as(se)} on ${au.seriesId} = ${se.id}
            where $whereClause
          """
       .map { rs =>
@@ -156,12 +160,12 @@ class AudioRepository(using errorHelpers: ErrorHelpers, dbUtility: DBUtility)
   private def audioMetaInformationsWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = dbUtility.readOnlySession): Try[List[AudioMetaInformation]] = {
-    val au = AudioMetaInformation.syntax("au")
-    val se = Series.syntax("se")
+    val au = dbAudioMetaInformation.syntax("au")
+    val se = dbSeries.syntax("se")
     tsql"""
            select ${au.result.*}, ${se.result.*}
-           from ${AudioMetaInformation.as(au)}
-           left join ${Series.as(se)} on ${au.seriesId} = ${se.id}
+           from ${dbAudioMetaInformation.as(au)}
+           left join ${dbSeries.as(se)} on ${au.seriesId} = ${se.id}
            where $whereClause
          """
       .map { rs =>
@@ -173,8 +177,8 @@ class AudioRepository(using errorHelpers: ErrorHelpers, dbUtility: DBUtility)
   }
 
   def getRandomAudio()(implicit session: DBSession = dbUtility.readOnlySession): Option[AudioMetaInformation] = {
-    val au = AudioMetaInformation.syntax("au")
-    tsql"select ${au.result.*} from ${AudioMetaInformation.as(au)} tablesample public.system_rows(1)"
+    val au = dbAudioMetaInformation.syntax("au")
+    tsql"select ${au.result.*} from ${dbAudioMetaInformation.as(au)} tablesample public.system_rows(1)"
       .map(AudioMetaInformation.fromResultSet(au))
       .runSingle()
       .get
@@ -183,10 +187,10 @@ class AudioRepository(using errorHelpers: ErrorHelpers, dbUtility: DBUtility)
   def getByPage(pageSize: Int, offset: Int)(implicit
       session: DBSession = dbUtility.readOnlySession
   ): Seq[AudioMetaInformation] = {
-    val au = AudioMetaInformation.syntax("au")
+    val au = dbAudioMetaInformation.syntax("au")
     tsql"""
            select ${au.result.*}
-           from ${AudioMetaInformation.as(au)}
+           from ${dbAudioMetaInformation.as(au)}
            where document is not null
            order by id
            offset $offset
