@@ -9,6 +9,7 @@
 package no.ndla.conceptapi
 
 import no.ndla.conceptapi.controller.*
+import no.ndla.conceptapi.model.domain.{DBConcept, PublishedConcept}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.*
 import no.ndla.conceptapi.service.*
@@ -33,7 +34,9 @@ import sttp.tapir.stringToPath
 import no.ndla.network.tapir.auth.Permission
 
 class ComponentRegistry(properties: ConceptApiProperties) extends TapirApplication[ConceptApiProperties] {
-  given props: ConceptApiProperties = properties
+  given props: ConceptApiProperties        = properties
+  given dbConcept: DBConcept               = new DBConcept
+  given publishedConcept: PublishedConcept = new PublishedConcept
 
   given clock: Clock                       = new Clock
   given e4sClient: NdlaE4sClient           = Elastic4sClientFactory.getClient(props.SearchServer)

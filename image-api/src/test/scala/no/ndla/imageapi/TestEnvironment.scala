@@ -12,6 +12,7 @@ import no.ndla.common.Clock
 import no.ndla.common.aws.{NdlaCloudFrontClient, NdlaS3Client}
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.imageapi.controller.{ImageControllerV2, ImageControllerV3, InternController, RawController}
+import no.ndla.imageapi.model.domain.DBImageMetaInformation
 import no.ndla.imageapi.repository.*
 import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
@@ -45,11 +46,12 @@ trait TestEnvironment extends TapirApplication[ImageApiProperties] with MockitoS
 
   val TestData: TestData = new TestData
 
-  implicit lazy val migrator: DBMigrator                   = mock[DBMigrator]
-  implicit lazy val s3Client: NdlaS3Client                 = mock[NdlaS3Client]
-  implicit lazy val cloudFrontClient: NdlaCloudFrontClient = mock[NdlaCloudFrontClient]
-  implicit lazy val dataSource: DataSource                 = mock[DataSource]
-  implicit lazy val dbUtility: DBUtility                   = new DBUtility
+  implicit lazy val migrator: DBMigrator                           = mock[DBMigrator]
+  implicit lazy val s3Client: NdlaS3Client                         = mock[NdlaS3Client]
+  implicit lazy val cloudFrontClient: NdlaCloudFrontClient         = mock[NdlaCloudFrontClient]
+  implicit lazy val dataSource: DataSource                         = mock[DataSource]
+  implicit lazy val dbUtility: DBUtility                           = new DBUtility
+  implicit lazy val dbImageMetaInformation: DBImageMetaInformation = new DBImageMetaInformation
 
   implicit lazy val imageIndexService: ImageIndexService   = mock[ImageIndexService]
   implicit lazy val imageSearchService: ImageSearchService = mock[ImageSearchService]

@@ -8,7 +8,6 @@
 
 package no.ndla.frontpageapi.model.domain
 
-import cats.implicits.catsSyntaxOptionId
 import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.frontpageapi.Props
 import scalikejdbc.*
@@ -19,7 +18,7 @@ class DBSubjectPage(using props: Props) {
 
   object DBSubjectPage extends SQLSyntaxSupport[SubjectPage] {
     override val tableName                  = "subjectpage"
-    override val schemaName: Option[String] = props.MetaSchema.toString.some
+    override val schemaName: Option[String] = Some(props.MetaSchema)
 
     def fromDb(lp: SyntaxProvider[SubjectPage])(rs: WrappedResultSet): Try[SubjectPage] = fromDb(lp.resultName)(rs)
 
