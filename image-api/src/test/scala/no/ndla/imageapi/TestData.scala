@@ -392,5 +392,9 @@ class TestData(using props: Props) {
     modelReleased = Seq.empty,
     userFilter = List.empty,
     inactive = None,
+    widthFrom = None,
+    widthTo = None,
+    heightFrom = None,
+    heightTo = None,
   )
 }

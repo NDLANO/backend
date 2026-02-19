@@ -90,6 +90,18 @@ trait BaseImageController(using props: Props) {
   val inactive: EndpointInput.Query[Option[Boolean]] =
     query[Option[Boolean]]("inactive").description("Include inactive images")
 
+  val widthFrom: EndpointInput.Query[Option[Int]] =
+    query[Option[Int]]("width-from").description("Filter images with width greater than or equal to this value.")
+
+  val widthTo: EndpointInput.Query[Option[Int]] =
+    query[Option[Int]]("width-to").description("Filter images with width less than or equal to this value.")
+
+  val heightFrom: EndpointInput.Query[Option[Int]] =
+    query[Option[Int]]("height-from").description("Filter images with height greater than or equal to this value.")
+
+  val heightTo: EndpointInput.Query[Option[Int]] =
+    query[Option[Int]]("height-to").description("Filter images with height less than or equal to this value.")
+
   val maxImageFileSizeBytes: Int = props.MaxImageFileSizeBytes
 
   def doWithStream[T](filePart: Part[File])(f: UploadedFile => Try[T]): Try[T] = {

@@ -161,8 +161,33 @@ class ImageSearchService(using
       case nonEmptyList => Some(termsQuery("users", nonEmptyList))
     }
 
-    val filters =
-      List(languageFilter, licenseFilter, sizeFilter, modelReleasedFilter, inactiveFilter, podcastFilter, userFilter)
+    val widthFilter = (settings.widthFrom, settings.widthTo) match {
+      case (Some(from), Some(to)) =>
+        Some(nestedQuery("imageFiles", rangeQuery("imageFiles.dimensions.width").gte(from).lte(to)))
+      case (Some(from), None) => Some(nestedQuery("imageFiles", rangeQuery("imageFiles.dimensions.width").gte(from)))
+      case (None, Some(to))   => Some(nestedQuery("imageFiles", rangeQuery("imageFiles.dimensions.width").lte(to)))
+      case (None, None)       => None
+    }
+
+    val heightFilter = (settings.heightFrom, settings.heightTo) match {
+      case (Some(from), Some(to)) =>
+        Some(nestedQuery("imageFiles", rangeQuery("imageFiles.dimensions.height").gte(from).lte(to)))
+      case (Some(from), None) => Some(nestedQuery("imageFiles", rangeQuery("imageFiles.dimensions.height").gte(from)))
+      case (None, Some(to))   => Some(nestedQuery("imageFiles", rangeQuery("imageFiles.dimensions.height").lte(to)))
+      case (None, None)       => None
+    }
+
+    val filters = List(
+      languageFilter,
+      licenseFilter,
+      sizeFilter,
+      modelReleasedFilter,
+      inactiveFilter,
+      podcastFilter,
+      userFilter,
+      widthFilter,
+      heightFilter,
+    )
     val filteredSearch = queryBuilder.filter(filters.flatten)
 
     val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

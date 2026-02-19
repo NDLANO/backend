@@ -22,4 +22,8 @@ case class SearchSettings(
     modelReleased: Seq[ModelReleasedStatus.Value],
     userFilter: List[String],
     inactive: Option[Boolean],
+    widthFrom: Option[Int],
+    widthTo: Option[Int],
+    heightFrom: Option[Int],
+    heightTo: Option[Int],
 )
