@@ -15,6 +15,7 @@ object `package` extends BaseModule, DockerComponent {
       SharedDependencies.catsEffect,
       SharedDependencies.scalaUri,
       SharedDependencies.awsS3,
+      SharedDependencies.awsCloudfront,
       SharedDependencies.jsoup,
       mvn"com.sksamuel.scrimage:scrimage-core:4.3.5",
       mvn"com.sksamuel.scrimage:scrimage-webp:4.3.5",

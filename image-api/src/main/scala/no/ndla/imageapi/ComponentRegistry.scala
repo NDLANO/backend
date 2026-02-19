@@ -9,7 +9,7 @@
 package no.ndla.imageapi
 
 import no.ndla.common.Clock
-import no.ndla.common.aws.NdlaS3Client
+import no.ndla.common.aws.{NdlaCloudFrontClient, NdlaS3Client}
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.imageapi.controller.*
 import no.ndla.imageapi.db.migrationwithdependencies.{
@@ -39,6 +39,7 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given errorHandling: ErrorHandling = new ControllerErrorHandling
 
   given s3Client: NdlaS3Client                         = new NdlaS3Client(props.StorageName, props.StorageRegion)
+  given cloudFrontClient: NdlaCloudFrontClient         = new NdlaCloudFrontClient
   given ndlaClient: NdlaClient                         = new NdlaClient
   given e4sClient: NdlaE4sClient                       = Elastic4sClientFactory.getClient(props.SearchServer)
   given searchLanguage: SearchLanguage                 = new SearchLanguage
