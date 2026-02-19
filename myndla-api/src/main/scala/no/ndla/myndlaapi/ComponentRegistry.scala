@@ -28,6 +28,15 @@ import no.ndla.myndlaapi.integration.{
   TaxonomyApiClient,
 }
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
+import no.ndla.myndlaapi.model.domain.{
+  DBConfigMeta,
+  DBMyNDLAUser,
+  DBFolder,
+  DBResource,
+  DBResourceConnection,
+  DBRobotDefinition,
+  DBSavedSharedFolder,
+}
 import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, RobotRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
   ConfigService,
@@ -49,11 +58,18 @@ import no.ndla.network.tapir.{
 }
 
 class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplication[MyNdlaApiProperties] {
-  given props: MyNdlaApiProperties = properties
-  implicit lazy val clock: Clock   = new Clock
-  given dataSource: DataSource     = DataSource.getDataSource
-  given migrator: DBMigrator       = DBMigrator(v16__MigrateResourcePaths)
-  given dbUtil: DBUtility          = new DBUtility
+  given props: MyNdlaApiProperties                 = properties
+  implicit lazy val clock: Clock                   = new Clock
+  given dataSource: DataSource                     = DataSource.getDataSource
+  given migrator: DBMigrator                       = DBMigrator(v16__MigrateResourcePaths)
+  given dbUtil: DBUtility                          = new DBUtility
+  given dbConfigMeta: DBConfigMeta                 = new DBConfigMeta
+  given dbMyNDLAUser: DBMyNDLAUser                 = new DBMyNDLAUser
+  given dbResourceConnection: DBResourceConnection = new DBResourceConnection
+  given dbResource: DBResource                     = new DBResource
+  given dbFolder: DBFolder                         = new DBFolder
+  given dbSavedSharedFolder: DBSavedSharedFolder   = new DBSavedSharedFolder
+  given dbRobotDefinition: DBRobotDefinition       = new DBRobotDefinition
 
   given ndlaClient: NdlaClient                                  = new NdlaClient
   implicit lazy val myndlaApiClient: InternalMyNDLAApiClient    = new InternalMyNDLAApiClient

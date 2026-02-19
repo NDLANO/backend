@@ -14,6 +14,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
+import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.model.api.robot.RobotConfigurationDTO
 import no.ndla.network.model.FeideID
 import scalikejdbc.*
@@ -76,8 +77,7 @@ object RobotConfiguration {
 
 }
 
-object RobotDefinition extends SQLSyntaxSupport[RobotDefinition] {
-  override val tableName: String = "robot_definitions"
+object RobotDefinition {
 
   def fromResultSet(sp: SyntaxProvider[RobotDefinition])(rs: WrappedResultSet): Try[RobotDefinition] = {
     val wrapper: String => String = (s: String) => sp.resultName.c(s)
@@ -114,4 +114,9 @@ object RobotDefinition extends SQLSyntaxSupport[RobotDefinition] {
     )
   }
 
+}
+
+class DBRobotDefinition(using props: Props) extends SQLSyntaxSupport[RobotDefinition] {
+  override val tableName: String          = "robot_definitions"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 }

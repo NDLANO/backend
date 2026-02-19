@@ -14,6 +14,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
+import no.ndla.myndlaapi.Props
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.network.model.FeideID
 import scalikejdbc.*
@@ -63,8 +64,7 @@ case class Resource(
   override val rank: Option[Int]     = sortRank
 }
 
-object Resource extends SQLSyntaxSupport[Resource] {
-  override val tableName = "resources"
+object Resource {
 
   implicit val encoder: Encoder[Resource] = deriveEncoder
   implicit val decoder: Decoder[Resource] = deriveDecoder
@@ -121,4 +121,9 @@ object Resource extends SQLSyntaxSupport[Resource] {
       metaData <- CirceUtil.tryParseAs[ResourceDocument](jsonString)
     } yield metaData.toFullResource(id, path, resourceType, feideId, created, connection)
   }
+}
+
+class DBResource(using props: Props) extends SQLSyntaxSupport[Resource] {
+  override val tableName: String          = "resources"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 }
