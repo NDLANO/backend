@@ -80,7 +80,10 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
               if (keepDraftData) article.priority
               else Priority.Unspecified,
             comments =
-              if (keepDraftData | article.articleType == ArticleType.TopicArticle) article.comments
+              if (
+                keepDraftData | article.articleType == ArticleType.TopicArticle | article.articleType == ArticleType
+                  .CaseArticle
+              ) article.comments
               else Seq.empty,
           )
           dataObject = {

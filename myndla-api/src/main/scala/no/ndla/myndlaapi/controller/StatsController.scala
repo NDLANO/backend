@@ -45,7 +45,7 @@ class StatsController(using
     }
 
   private val pathResourceType = path[CommaSeparated[String]]("resourceType").description(
-    s"The type of the resource to look up. Comma separated list to support ${ResourceType.Multidisciplinary}. Possible values ${ResourceType.values.mkString(", ")}"
+    s"The type of the resource to look up. Separate with comma to search for several types simultaneously. Possible values ${ResourceType.values.mkString(", ")}"
   )
   private val pathResourceIds =
     path[CommaSeparated[String]]("resourceIds").description("IDs of the resources to look up")

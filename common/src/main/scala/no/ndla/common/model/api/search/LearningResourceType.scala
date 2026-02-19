@@ -22,6 +22,7 @@ object LearningResourceType extends Enum[LearningResourceType] with CirceEnum[Le
   case object Article          extends LearningResourceType("standard")
   case object TopicArticle     extends LearningResourceType("topic-article")
   case object FrontpageArticle extends LearningResourceType("frontpage-article")
+  case object CaseArticle      extends LearningResourceType("case-article")
   case object LearningPath     extends LearningResourceType("learningpath")
   case object Concept          extends LearningResourceType("concept")
   case object Gloss            extends LearningResourceType("gloss")
@@ -37,6 +38,7 @@ object LearningResourceType extends Enum[LearningResourceType] with CirceEnum[Le
       case ArticleType.Standard         => Article
       case ArticleType.TopicArticle     => TopicArticle
       case ArticleType.FrontpageArticle => FrontpageArticle
+      case ArticleType.CaseArticle      => CaseArticle
     }
   }
 
