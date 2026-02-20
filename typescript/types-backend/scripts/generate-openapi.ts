@@ -7,7 +7,7 @@
  */
 
 import fs from "node:fs";
-import openapiTS, { astToString, TransformObject } from "openapi-typescript";
+import openapiTS, { astToString } from "openapi-typescript";
 import ts, { TypeNode } from "typescript";
 
 if (process.argv.length !== 3) {
@@ -27,6 +27,9 @@ async function generate_types(appName: string) {
 
   const ast = await openapiTS(schemaContent, {
     exportType: true,
+    rootTypes: true,
+    rootTypesKeepCasing: true,
+    rootTypesNoSchemaPrefix: true,
     // https://openapi-ts.dev/migration-guide#defaultnonnullable-true-by-default
     defaultNonNullable: false,
     transform(schemaObject, _options): TypeNode | undefined {
@@ -40,28 +43,11 @@ async function generate_types(appName: string) {
     },
   });
 
-  const outputPath = `./${appName}-openapi.ts`;
+  const outputPath = `./${appName}.ts`;
   const output = astToString(ast);
 
   console.log(`Outputting to ${outputPath}`);
   fs.writeFileSync(outputPath, output);
-
-  let fileContent = `// This file is generated automatically. Do not edit.
-import * as openapi from "./${appName}-openapi";
-type schemas = openapi.components["schemas"];
-export { openapi };
-
-`;
-
-  const schemas = schemaContent.components.schemas;
-  const schemaNames = Object.keys(schemas);
-  for (const schemaName of schemaNames) {
-    fileContent += `export type ${schemaName} = schemas["${schemaName}"];\n`;
-  }
-
-  const apiTypesFile = `./${appName}.ts`;
-  console.log(`Outputting to ${apiTypesFile}`);
-  fs.writeFileSync(apiTypesFile, fileContent);
 }
 
 generate_types(process.argv[2]);
