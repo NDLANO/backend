@@ -336,7 +336,7 @@ class WriteService(using
       statusWasUpdated: Boolean,
       updatedApiArticle: api.UpdatedArticleDTO,
       shouldNotAutoUpdateStatus: Boolean,
-  ): Draft = {
+  )(using DBSession): Draft = {
     val isAutomaticResponsibleChange = updatedApiArticle.responsibleId match {
       case UpdateWith(_) => false
       case _             => true
@@ -353,7 +353,16 @@ class WriteService(using
       draft.copy(started = true)
     } else {
       val responsibleIdWasUpdated = hasResponsibleBeenUpdated(draft, oldDraft)
-
+      if (responsibleIdWasUpdated) {
+        draftRepository
+          .refreshResponsibleView
+          .recover { case ex =>
+            logger.error(
+              s"Failed to refresh responsible view after responsible change for article ${draft.id.getOrElse("unknown")}",
+              ex,
+            )
+          }: Unit
+      }
       val shouldReset = statusWasUpdated && !isAutomaticStatusChange || responsibleIdWasUpdated
       draft.copy(started = !shouldReset)
     }

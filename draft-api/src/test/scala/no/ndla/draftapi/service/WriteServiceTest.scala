@@ -1278,6 +1278,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .copy(revision = 1, title = Some("updated title"), language = Some("nb"), responsibleId = UpdateWith("heiho"))
     when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
+    when(draftRepository.refreshResponsibleView(using any)).thenReturn(Success(()))
     val result = service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess).get
 
     result.started should be(false)

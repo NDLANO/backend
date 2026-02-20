@@ -123,6 +123,7 @@ class DraftController(using
     migrateOutdatedGreps,
     addNotes,
     deleteCurrentRevision,
+    getResponsibles,
   )
 
   /** Does a scroll with [[ArticleSearchService]] If no scrollId is specified execute the function @orFunction in the
@@ -671,5 +672,20 @@ class DraftController(using
     .requirePermission(DRAFT_API_WRITE)
     .serverLogicPure { _ => articleId =>
       writeService.deleteCurrentRevision(articleId).handleErrorsOrOk
+    }
+
+  def getResponsibles: ServerEndpoint[Any, Eff] = endpoint
+    .get
+    .in("responsibles" / "list")
+    .summary("Get list of responsibles for drafts")
+    .description("Get list of responsibles for drafts")
+    .out(jsonBody[Seq[String]])
+    .errorOut(errorOutputsFor(401, 403))
+    .requirePermission(DRAFT_API_WRITE)
+    .serverLogicPure { _ => _ =>
+      readService.getAllResponsibles match {
+        case Success(resp) => Right(resp)
+        case Failure(ex)   => errorHandling.returnLeftError(ex)
+      }
     }
 }
