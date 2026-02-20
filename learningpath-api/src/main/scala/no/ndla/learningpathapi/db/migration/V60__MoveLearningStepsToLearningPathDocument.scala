@@ -87,11 +87,6 @@ class V60__MoveLearningStepsToLearningPathDocument extends BaseJavaMigration wit
     oldLp.mapObject(_.remove("learningsteps").add("learningsteps", Json.fromValues(updatedSteps))).noSpaces
   }
 
-  private def deleteSteps(learningPathId: Long)(using session: DBSession): Unit = {
-    val deleted = sql"delete from learningsteps where learning_path_id = $learningPathId".update()
-    logger.info(s"Deleted $deleted learning steps for learning path $learningPathId")
-  }
-
   private def enrichStep(step: StepDocumentRowWithMeta): Json = {
     val json = CirceUtil.tryParse(step.learningStepDocument).get
     json.mapObject { obj =>
@@ -121,7 +116,6 @@ class V60__MoveLearningStepsToLearningPathDocument extends BaseJavaMigration wit
       allLearningPaths(offset * chunkSize).foreach { lpData =>
         val steps = getStepDatas(lpData.learningPathId)(using session)
         updateLp(lpData, steps)(using session)
-        deleteSteps(lpData.learningPathId)(using session)
       }
       numPagesLeft -= 1
       offset += 1
