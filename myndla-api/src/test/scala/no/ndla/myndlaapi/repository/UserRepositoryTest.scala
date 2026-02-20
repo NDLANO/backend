@@ -142,4 +142,23 @@ class UserRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with Te
     repository.numberOfFavouritedSubjects()(using session).get should be(Some(3L))
   }
 
+  test("that getUserNotSeenSince returns users last seen before cutoff") {
+    implicit val session: DBSession = DBUtil.autoSession
+
+    val cutoff = NDLADate.of(2024, 2, 15, 0, 0, 0).withNano(0)
+
+    insertUser("feide-old-1", userDocument("Old One", "old1", UserRole.STUDENT))
+    insertUser("feide-old-2", userDocument("Old Two", "old2", UserRole.STUDENT))
+    insertUser("feide-new-1", userDocument("New One", "new1", UserRole.EMPLOYEE))
+    insertUser("feide-cutoff", userDocument("Cutoff", "cutoff", UserRole.EMPLOYEE))
+
+    repository.updateLastSeen("feide-old-1", NDLADate.of(2024, 1, 1, 0, 0, 0).withNano(0)).get
+    repository.updateLastSeen("feide-old-2", NDLADate.of(2024, 2, 1, 0, 0, 0).withNano(0)).get
+    repository.updateLastSeen("feide-new-1", NDLADate.of(2024, 3, 1, 0, 0, 0).withNano(0)).get
+    repository.updateLastSeen("feide-cutoff", cutoff).get
+
+    val results = repository.getUserNotSeenSince(cutoff)(using session).get
+    results.map(_.username).toSet should be(Set("old1", "old2"))
+  }
+
 }

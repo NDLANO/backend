@@ -19,11 +19,14 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.codec.enumeratum.*
 import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
+import no.ndla.myndlaapi.model.api.InactiveUserResultDTO
+import no.ndla.myndlaapi.service.UserService
 
 class InternController(using
     internalMyNDLAApiClient: InternalMyNDLAApiClient,
     errorHandling: ControllerErrorHandling,
     errorHelpers: ErrorHelpers,
+    userService: UserService,
 ) extends TapirController
     with StrictLogging {
   override val prefix: EndpointInput[Unit] = "intern"
@@ -38,6 +41,23 @@ class InternController(using
     .withFeideUser
     .serverLogicPure(feide => _ => feide.userOrAccessDenied)
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getDomainUser)
+  private def cleanupInactiveUsers: ServerEndpoint[Any, Eff] = endpoint
+    .summary("Notifies, and removes inactive users")
+    .post
+    .in("cleanup-inactive-users")
+    .out(jsonBody[InactiveUserResultDTO])
+    .errorOut(errorOutputsFor(400))
+    .serverLogicPure(_ => userService.cleanupInactiveUsers())
+
+  private def sendTestEmail: ServerEndpoint[Any, Eff] = endpoint
+    .summary("Sends inactivty test email")
+    .post
+    .in("send-test-email")
+    .in(query[String]("email").description("Email to send test email to"))
+    .out(jsonBody[Boolean])
+    .errorOut(errorOutputsFor(400))
+    .serverLogicPure(userService.sendInactivityEmailIgnoreEnvironment)
+
+  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(getDomainUser, cleanupInactiveUsers, sendTestEmail)
 
 }

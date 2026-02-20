@@ -9,6 +9,7 @@
 package no.ndla.myndlaapi
 
 import no.ndla.common.Clock
+import no.ndla.common.aws.NdlaEmailClient
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.myndlaapi.controller.{
   ConfigController,
@@ -55,26 +56,28 @@ class ComponentRegistry(properties: MyNdlaApiProperties) extends TapirApplicatio
   given migrator: DBMigrator       = DBMigrator(v16__MigrateResourcePaths)
   given dbUtil: DBUtility          = new DBUtility
 
-  given ndlaClient: NdlaClient                                  = new NdlaClient
-  implicit lazy val myndlaApiClient: InternalMyNDLAApiClient    = new InternalMyNDLAApiClient
-  implicit lazy val redisClient: RedisClient                    = new RedisClient(props.RedisHost, props.RedisPort)
-  implicit lazy val feideApiClient: FeideApiClient              = new FeideApiClient
-  implicit lazy val nodebb: NodeBBClient                        = new NodeBBClient
-  given errorHelpers: ErrorHelpers                              = new ErrorHelpers
-  given errorHandling: ControllerErrorHandling                  = new ControllerErrorHandling
-  implicit lazy val folderRepository: FolderRepository          = new FolderRepository
-  given folderConverterService: FolderConverterService          = new FolderConverterService
-  implicit lazy val userRepository: UserRepository              = new UserRepository
-  given configRepository: ConfigRepository                      = new ConfigRepository
-  given configService: ConfigService                            = new ConfigService
-  implicit lazy val folderReadService: FolderReadService        = new FolderReadService
-  implicit lazy val folderWriteService: FolderWriteService      = new FolderWriteService
-  implicit lazy val userService: UserService                    = new UserService
-  given robotRepository: RobotRepository                        = new RobotRepository
-  given robotService: RobotService                              = new RobotService
-  implicit lazy val searchApiClient: SearchApiClient            = new SearchApiClient
-  given taxonomyApiClient: TaxonomyApiClient                    = new TaxonomyApiClient
-  given learningPathApiClient: LearningPathApiClient            = new LearningPathApiClient
+  given ndlaClient: NdlaClient                               = new NdlaClient
+  implicit lazy val myndlaApiClient: InternalMyNDLAApiClient = new InternalMyNDLAApiClient
+  implicit lazy val redisClient: RedisClient                 = new RedisClient(props.RedisHost, props.RedisPort)
+  implicit lazy val feideApiClient: FeideApiClient           = new FeideApiClient
+  implicit lazy val nodebb: NodeBBClient                     = new NodeBBClient
+  given errorHelpers: ErrorHelpers                           = new ErrorHelpers
+  given errorHandling: ControllerErrorHandling               = new ControllerErrorHandling
+  implicit lazy val folderRepository: FolderRepository       = new FolderRepository
+  given folderConverterService: FolderConverterService       = new FolderConverterService
+  implicit lazy val userRepository: UserRepository           = new UserRepository
+  given configRepository: ConfigRepository                   = new ConfigRepository
+  given configService: ConfigService                         = new ConfigService
+  implicit lazy val folderReadService: FolderReadService     = new FolderReadService
+  implicit lazy val folderWriteService: FolderWriteService   = new FolderWriteService
+  implicit lazy val userService: UserService                 = new UserService
+  given robotRepository: RobotRepository                     = new RobotRepository
+  given robotService: RobotService                           = new RobotService
+  implicit lazy val searchApiClient: SearchApiClient         = new SearchApiClient
+  given taxonomyApiClient: TaxonomyApiClient                 = new TaxonomyApiClient
+  given learningPathApiClient: LearningPathApiClient         = new LearningPathApiClient
+  implicit lazy val emailClient: NdlaEmailClient             =
+    new NdlaEmailClient(props.outgoingEmail, props.outgoingEmailName, props.AWSEmailRegion)
   lazy val v16__MigrateResourcePaths: V16__MigrateResourcePaths = new V16__MigrateResourcePaths
 
   given userController: UserController          = new UserController

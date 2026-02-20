@@ -13,9 +13,9 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.errors.NotFoundException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, MyNDLAUserDocument, UserRole}
-import no.ndla.database.DBUtility
+import no.ndla.database.{DBUtility, ReadableDbSession, WriteableDbSession}
 import no.ndla.database.implicits.*
-import no.ndla.myndlaapi.model.domain.{DBMyNDLAUser, NDLASQLException}
+import no.ndla.myndlaapi.model.domain.{DBMyNDLAUser, InactiveUserCleanupResult, NDLASQLException}
 import no.ndla.network.model.FeideID
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -151,9 +151,9 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
     }
   }
 
-  def deleteAllUsers(implicit session: DBSession): Try[Unit] = Try {
-    val _ = tsql"delete from ${DBMyNDLAUser.table}".execute()
-  }
+  def deleteAllUsers(implicit session: DBSession): Try[Unit] = tsql"delete from ${DBMyNDLAUser.table}"
+    .execute()
+    .map(_ => ())
 
   def resetSequences(implicit session: DBSession): Try[Unit] = Try {
     val _ = tsql"alter sequence my_ndla_users_id_seq restart with 1".execute()
@@ -217,5 +217,48 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
   def getAllUsers(implicit session: DBSession): List[MyNDLAUser] = {
     val u = DBMyNDLAUser.syntax("u")
     tsql"select ${u.result.*} from ${DBMyNDLAUser.as(u)}".map(DBMyNDLAUser.fromResultSet(u)).runList().get
+  }
+
+  def getUserNotSeenSince(cutoffDate: NDLADate)(implicit session: DBSession): Try[List[MyNDLAUser]] = {
+    val u = DBMyNDLAUser.syntax("u")
+    tsql"""
+         select ${u.result.*} from ${DBMyNDLAUser.as(u)}
+         where last_seen < ${NDLADate.parameterBinderFactory(cutoffDate)}
+         """.map(DBMyNDLAUser.fromResultSet(u)).runList()
+  }
+
+  def getLastCleanup(implicit session: ReadableDbSession): Try[Option[InactiveUserCleanupResult]] = {
+    tsql"""
+         select id, num_cleanup, num_emailed, last_cleanup_date from user_cleanup_audit
+         order by last_cleanup_date desc
+         limit 1
+         """
+      .map(rs =>
+        InactiveUserCleanupResult(
+          id = rs.long("id"),
+          numCleanup = rs.int("num_cleanup"),
+          numEmailed = rs.int("num_emailed"),
+          lastCleanupDate = NDLADate.fromUtcDate(rs.localDateTime("last_cleanup_date")),
+        )
+      )
+      .runSingle()
+  }
+
+  def insertCleanupResult(numCleanup: Int, numEmailed: Int, lastCleanupDate: NDLADate)(implicit
+      session: WriteableDbSession
+  ): Try[InactiveUserCleanupResult] = {
+    tsql"""
+         insert into user_cleanup_audit (num_cleanup, num_emailed, last_cleanup_date)
+         values ($numCleanup, $numEmailed, ${NDLADate.parameterBinderFactory(lastCleanupDate)})
+         """
+      .updateAndReturnGeneratedKey()
+      .map(id =>
+        InactiveUserCleanupResult(
+          id = id,
+          numCleanup = numCleanup,
+          numEmailed = numEmailed,
+          lastCleanupDate = lastCleanupDate,
+        )
+      )
   }
 }

@@ -8,12 +8,15 @@
 
 package no.ndla.myndlaapi.service
 
+import no.ndla.common.aws.NdlaEmailClient
 import no.ndla.common.errors.AccessDeniedException
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.myndla.{MyNDLAGroupDTO, MyNDLAUserDTO, UpdatedMyNDLAUserDTO}
 import no.ndla.common.model.domain.myndla.{MyNDLAGroup, MyNDLAUser, MyNDLAUserDocument, UserRole}
 import no.ndla.myndlaapi.TestData.emptyMyNDLAUser
 import no.ndla.myndlaapi.TestEnvironment
+import no.ndla.myndlaapi.model.api.InactiveUserResultDTO
+import no.ndla.myndlaapi.model.domain.InactiveUserCleanupResult
 import no.ndla.network.clients.{FeideExtendedUserInfo, FeideGroup, Membership}
 import no.ndla.network.model.FeideUserWrapper
 import no.ndla.scalatestsuite.UnitTestSuite
@@ -24,7 +27,18 @@ import scala.util.{Failure, Success, Try}
 
 class UserServiceTest extends UnitTestSuite with TestEnvironment {
   override implicit lazy val folderConverterService: FolderConverterService = spy(new FolderConverterService)
+  implicit lazy val emailClient: NdlaEmailClient                            = mock[NdlaEmailClient]
   val service: UserService                                                  = spy(new UserService)
+
+  override def resetMocks(): Unit = {
+    super.resetMocks()
+    reset(service)
+    reset(emailClient)
+    reset(folderConverterService)
+  }
+
+  private def userWithLastSeen(id: Long, feideId: String, lastSeen: NDLADate): MyNDLAUser =
+    emptyMyNDLAUser.copy(id = id, feideId = feideId, lastSeen = lastSeen)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -283,6 +297,94 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     verify(userRepository, times(1)).userWithFeideId(any)(using any)
     verify(userRepository, times(0)).insertUser(any, any)(using any)
     verify(userRepository, times(1)).updateUser(any, any)(using any)
+  }
+
+  test("That cleanupInactiveUsers emails all candidates when no previous cleanup exists") {
+    val now = NDLADate.of(2025, 1, 1, 0, 0, 0)
+    when(clock.now()).thenReturn(now)
+
+    val usersToDelete   = List(userWithLastSeen(id = 1, feideId = "delete-1", lastSeen = now.minusDays(220)))
+    val emailCandidates = List(
+      userWithLastSeen(id = 2, feideId = "email-1", lastSeen = now.minusDays(181)),
+      userWithLastSeen(id = 3, feideId = "email-2", lastSeen = now.minusDays(200)),
+    )
+
+    when(userRepository.getLastCleanup(using any)).thenReturn(Success(None))
+    when(userRepository.getUserNotSeenSince(any[NDLADate])(using any)).thenReturn(
+      Success(usersToDelete),
+      Success(emailCandidates),
+    )
+    when(userRepository.deleteUser(any)(using any)).thenReturn(Success("deleted"))
+    when(userRepository.insertCleanupResult(eqTo(usersToDelete.size), eqTo(emailCandidates.size), eqTo(now))(using any))
+      .thenReturn(Success(InactiveUserCleanupResult(1, usersToDelete.size, emailCandidates.size, now)))
+
+    service.cleanupInactiveUsers() should be(Success(InactiveUserResultDTO(usersToDelete.size, emailCandidates.size)))
+
+    verify(service, times(emailCandidates.size)).sendInactivityEmail(any)
+    verify(userRepository, times(usersToDelete.size)).deleteUser(any)(using any)
+    verify(userRepository, times(1)).insertCleanupResult(
+      eqTo(usersToDelete.size),
+      eqTo(emailCandidates.size),
+      eqTo(now),
+    )(using any)
+  }
+
+  test("That cleanupInactiveUsers does not email users that will be deleted in the same run") {
+    val now = NDLADate.of(2025, 1, 1, 0, 0, 0)
+    when(clock.now()).thenReturn(now)
+
+    val deleteUser      = userWithLastSeen(id = 1, feideId = "delete-1", lastSeen = now.minusDays(220))
+    val usersToDelete   = List(deleteUser)
+    val shouldEmail     = userWithLastSeen(id = 2, feideId = "email-1", lastSeen = now.minusDays(181))
+    val emailCandidates = List(deleteUser, shouldEmail)
+    val expectedEmailed = 1
+
+    when(userRepository.getLastCleanup(using any)).thenReturn(Success(None))
+    when(userRepository.getUserNotSeenSince(any[NDLADate])(using any)).thenReturn(
+      Success(usersToDelete),
+      Success(emailCandidates),
+    )
+    when(userRepository.deleteUser(any)(using any)).thenReturn(Success("deleted"))
+    when(userRepository.insertCleanupResult(eqTo(usersToDelete.size), eqTo(expectedEmailed), eqTo(now))(using any))
+      .thenReturn(Success(InactiveUserCleanupResult(1, usersToDelete.size, expectedEmailed, now)))
+
+    service.cleanupInactiveUsers() should be(Success(InactiveUserResultDTO(usersToDelete.size, expectedEmailed)))
+
+    verify(service, times(1)).sendInactivityEmail(eqTo(shouldEmail))
+    verify(service, times(0)).sendInactivityEmail(eqTo(deleteUser))
+    verify(userRepository, times(usersToDelete.size)).deleteUser(any)(using any)
+    verify(userRepository, times(1)).insertCleanupResult(eqTo(usersToDelete.size), eqTo(expectedEmailed), eqTo(now))(
+      using any
+    )
+  }
+
+  test("That cleanupInactiveUsers only emails users who became inactive since the last successful run") {
+    val now             = NDLADate.of(2025, 1, 1, 0, 0, 0)
+    val lastCleanupDate = now.minusDays(5)
+    when(clock.now()).thenReturn(now)
+
+    val usersToDelete   = List.empty[MyNDLAUser]
+    val shouldEmail     = userWithLastSeen(id = 10, feideId = "email-new", lastSeen = now.minusDays(181))
+    val shouldSkip      = userWithLastSeen(id = 11, feideId = "email-old", lastSeen = now.minusDays(190))
+    val emailCandidates = List(shouldEmail, shouldSkip)
+
+    when(userRepository.getLastCleanup(using any)).thenReturn(
+      Success(Some(InactiveUserCleanupResult(1, 0, 0, lastCleanupDate)))
+    )
+    when(userRepository.getUserNotSeenSince(any[NDLADate])(using any)).thenReturn(
+      Success(usersToDelete),
+      Success(emailCandidates),
+    )
+    when(userRepository.insertCleanupResult(eqTo(0), eqTo(1), eqTo(now))(using any)).thenReturn(
+      Success(InactiveUserCleanupResult(2, 0, 1, now))
+    )
+
+    service.cleanupInactiveUsers() should be(Success(InactiveUserResultDTO(0, 1)))
+
+    verify(service, times(1)).sendInactivityEmail(eqTo(shouldEmail))
+    verify(service, times(0)).sendInactivityEmail(eqTo(shouldSkip))
+    verify(userRepository, times(0)).deleteUser(any)(using any)
+    verify(userRepository, times(1)).insertCleanupResult(eqTo(0), eqTo(1), eqTo(now))(using any)
   }
 
 }
