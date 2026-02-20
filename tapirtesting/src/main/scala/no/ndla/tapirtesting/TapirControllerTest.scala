@@ -35,7 +35,6 @@ trait TapirControllerTest extends UnitTestSuite {
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-
     Thread
       .ofVirtual()
       .start(() => {
@@ -52,7 +51,6 @@ trait TapirControllerTest extends UnitTestSuite {
   }
 
   override def afterAll(): Unit = server.foreach(_.stop())
-
   test("That no endpoints are shadowed") {
     import sttp.tapir.testing.EndpointVerifier
     val errors = EndpointVerifier(controller.endpoints.map(_.endpoint))
