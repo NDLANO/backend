@@ -51,8 +51,8 @@ export type paths = {
             cookie?: never;
         };
         /**
-         * Fetch the most recent favorited resource
-         * @description Fetch the most recent favorited resource
+         * Fetch the most recent favorited resource across all users
+         * @description Fetch the most recent favorited resource across all users
          */
         get: operations["getMyndla-apiV1FoldersResourcesRecent"];
         put?: never;
@@ -103,6 +103,46 @@ export type paths = {
          * @description Fetch resource connections by resource path
          */
         get: operations["getMyndla-apiV1FoldersResourcesConnections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/myndla-api/v1/folders/resources/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fetch resource by path
+         * @description Fetch resource by path
+         */
+        get: operations["getMyndla-apiV1FoldersResourcesPath"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/myndla-api/v1/folders/resources/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fetch all tags that belongs to a user
+         * @description Fetch all tags that belongs to a user
+         */
+        get: operations["getMyndla-apiV1FoldersResourcesTags"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1684,6 +1724,127 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+        };
+    };
+    "getMyndla-apiV1FoldersResourcesPath": {
+        parameters: {
+            query: {
+                /** @description The path of the resource to check */
+                path: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "getMyndla-apiV1FoldersResourcesTags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };
