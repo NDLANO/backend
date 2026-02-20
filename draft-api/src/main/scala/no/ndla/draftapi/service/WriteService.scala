@@ -354,7 +354,14 @@ class WriteService(using
     } else {
       val responsibleIdWasUpdated = hasResponsibleBeenUpdated(draft, oldDraft)
       if (responsibleIdWasUpdated) {
-        draftRepository.refreshResponsibleView: Unit
+        draftRepository
+          .refreshResponsibleView
+          .recover { case ex =>
+            logger.error(
+              s"Failed to refresh responsible view after responsible change for article ${draft.id.getOrElse("unknown")}",
+              ex,
+            )
+          }: Unit
       }
       val shouldReset = statusWasUpdated && !isAutomaticStatusChange || responsibleIdWasUpdated
       draft.copy(started = !shouldReset)
