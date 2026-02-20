@@ -21,7 +21,7 @@ import no.ndla.database.implicits.*
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
-class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
+class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearningPath) extends StrictLogging {
 
   def inTransaction[A](work: DBSession => A)(implicit session: DBSession = null): A = {
     Option(session) match {
@@ -65,9 +65,9 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
   def learningStepsFor(
       learningPathId: Long
   )(implicit session: DBSession = dbUtility.readOnlySession): Seq[LearningStep] = {
-    val lp = DBLearningPath.syntax("lp")
-    tsql"select ${lp.result.*} from ${DBLearningPath.as(lp)} where ${lp.id} = $learningPathId"
-      .map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).learningsteps)
+    val lp = dbLearningPath.syntax("lp")
+    tsql"select ${lp.result.*} from ${dbLearningPath.as(lp)} where ${lp.id} = $learningPathId"
+      .map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs).learningsteps)
       .runSingle()
       .get
       .getOrElse(Seq.empty)
@@ -211,14 +211,14 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
   def learningPathsWithIdBetween(min: Long, max: Long)(implicit
       session: DBSession = dbUtility.readOnlySession
   ): List[LearningPath] = {
-    val lp     = DBLearningPath.syntax("lp")
+    val lp     = dbLearningPath.syntax("lp")
     val status = LearningPathStatus.PUBLISHED.toString
 
     tsql"""select ${lp.result.*}
-               from ${DBLearningPath.as(lp)}
+               from ${dbLearningPath.as(lp)}
                where lp.document->>'status' = $status
                and lp.id between $min and $max
-        """.map(DBLearningPath.fromResultSet(lp.resultName)).runList().get
+        """.map(dbLearningPath.fromResultSet(lp.resultName)).runList().get
   }
 
   def minMaxId(implicit session: DBSession = dbUtility.readOnlySession): (Long, Long) = {
@@ -268,9 +268,9 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
   private def learningPathsWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = dbUtility.readOnlySession): List[LearningPath] = {
-    val lp = DBLearningPath.syntax("lp")
-    tsql"select ${lp.result.*} from ${DBLearningPath.as(lp)} where $whereClause"
-      .map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps)
+    val lp = dbLearningPath.syntax("lp")
+    tsql"select ${lp.result.*} from ${dbLearningPath.as(lp)} where $whereClause"
+      .map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps)
       .runList()
       .get
   }
@@ -278,9 +278,9 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
   private def learningPathsWhereWithInactive(
       whereClause: SQLSyntax
   )(implicit session: DBSession = dbUtility.readOnlySession): List[LearningPath] = {
-    val lp = DBLearningPath.syntax("lp")
-    tsql"select ${lp.result.*} from ${DBLearningPath.as(lp)} where $whereClause"
-      .map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs))
+    val lp = dbLearningPath.syntax("lp")
+    tsql"select ${lp.result.*} from ${dbLearningPath.as(lp)} where $whereClause"
+      .map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs))
       .runList()
       .get
   }
@@ -288,9 +288,9 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
   private def learningPathWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = dbUtility.readOnlySession): Option[LearningPath] = {
-    val lp = DBLearningPath.syntax("lp")
-    tsql"select ${lp.result.*} from ${DBLearningPath.as(lp)} where $whereClause"
-      .map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps)
+    val lp = dbLearningPath.syntax("lp")
+    tsql"select ${lp.result.*} from ${dbLearningPath.as(lp)} where $whereClause"
+      .map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps)
       .runSingle()
       .get
   }
@@ -298,32 +298,32 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
   def pageWithIds(ids: Seq[Long], pageSize: Int, offset: Int)(implicit
       session: DBSession = dbUtility.readOnlySession
   ): List[LearningPath] = {
-    val lp = DBLearningPath.syntax("lp")
+    val lp = dbLearningPath.syntax("lp")
     tsql"""
             select ${lp.resultAll}
-            from ${DBLearningPath.as(lp)}
+            from ${dbLearningPath.as(lp)}
             where ${lp.c("id")} in ($ids)
             order by ${lp.id}
             limit $pageSize
             offset $offset
-      """.map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).runList().get
+      """.map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).runList().get
   }
 
   def getAllLearningPathsByPage(pageSize: Int, offset: Int)(implicit
       session: DBSession = dbUtility.readOnlySession
   ): List[LearningPath] = {
-    val lp = DBLearningPath.syntax("lp")
+    val lp = dbLearningPath.syntax("lp")
     tsql"""
             select ${lp.resultAll}, ${lp.id} as row_id
-            from ${DBLearningPath.as(lp)}
+            from ${dbLearningPath.as(lp)}
             order by row_id
             limit $pageSize
             offset $offset
-      """.map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).runList().get
+      """.map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).runList().get
   }
 
   def getExternalLinkStepSamples()(implicit session: DBSession = dbUtility.readOnlySession): List[LearningPath] = {
-    val lp = DBLearningPath.syntax("lp")
+    val lp = dbLearningPath.syntax("lp")
     tsql"""
       WITH candidates AS (
           SELECT DISTINCT clp.id
@@ -346,25 +346,25 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
       )
       SELECT ${lp.result.*}
       FROM matched_ids ids
-      JOIN ${DBLearningPath.as(lp)} ON ${lp.id} = ids.id
-    """.map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).runList().get
+      JOIN ${dbLearningPath.as(lp)} ON ${lp.id} = ids.id
+    """.map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).runList().get
 
   }
 
   def getPublishedLearningPathByPage(pageSize: Int, offset: Int)(implicit
       session: DBSession = dbUtility.readOnlySession
   ): List[LearningPath] = {
-    val lp  = DBLearningPath.syntax("lp")
+    val lp  = dbLearningPath.syntax("lp")
     val lps = SubQuery.syntax("lps").include(lp)
     tsql"""
             select ${lps.resultAll} from (select ${lp.resultAll}, ${lp.id} as row_id
-                                          from ${DBLearningPath.as(lp)}
+                                          from ${dbLearningPath.as(lp)}
                                           where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}
                                           order by ${lp.id}
                                           limit $pageSize
                                           offset $offset) lps
             order by row_id
-      """.map(rs => DBLearningPath.fromResultSet(lps(lp).resultName)(rs).withOnlyActiveSteps).runList().get
+      """.map(rs => dbLearningPath.fromResultSet(lps(lp).resultName)(rs).withOnlyActiveSteps).runList().get
   }
 
   def learningPathsWithStatus(
@@ -374,8 +374,8 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
   }
 
   def publishedLearningPathCount(implicit session: DBSession = dbUtility.readOnlySession): Long = {
-    val lp = DBLearningPath.syntax("lp")
-    tsql"select count(*) from ${DBLearningPath.as(lp)} where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}"
+    val lp = dbLearningPath.syntax("lp")
+    tsql"select count(*) from ${dbLearningPath.as(lp)} where document#>>'{status}' = ${LearningPathStatus.PUBLISHED.toString}"
       .map(rs => rs.long("count"))
       .runSingle()
       .get
@@ -383,22 +383,22 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
   }
 
   def learningPathCount(implicit session: DBSession = dbUtility.readOnlySession): Long = {
-    val lp = DBLearningPath.syntax("lp")
-    tsql"select count(*) from ${DBLearningPath.as(lp)}".map(rs => rs.long("count")).runSingle().get.getOrElse(0)
+    val lp = dbLearningPath.syntax("lp")
+    tsql"select count(*) from ${dbLearningPath.as(lp)}".map(rs => rs.long("count")).runSingle().get.getOrElse(0)
   }
 
   def myNdlaLearningPathCount(implicit session: DBSession = dbUtility.readOnlySession): Long = {
-    val lp = DBLearningPath.syntax("lp")
+    val lp = dbLearningPath.syntax("lp")
     tsql"""
-           select count(*) from ${DBLearningPath.as(lp)}
+           select count(*) from ${dbLearningPath.as(lp)}
            where document@>'{"isMyNDLAOwner": true}' and document->>'status' != ${LearningPathStatus.DELETED.toString}
          """.map(rs => rs.long("count")).runSingle().get.getOrElse(0)
   }
 
   def myNdlaLearningPathOwnerCount(implicit session: DBSession = dbUtility.readOnlySession): Long = {
-    val lp = DBLearningPath.syntax("lp")
+    val lp = dbLearningPath.syntax("lp")
     tsql"""
-           select count(distinct document ->> 'owner') from ${DBLearningPath.as(lp)}
+           select count(distinct document ->> 'owner') from ${dbLearningPath.as(lp)}
            where document@>'{"isMyNDLAOwner": true}' and document->>'status' != ${LearningPathStatus.DELETED.toString}
          """.map(rs => rs.long("count")).runSingle().get.getOrElse(0)
   }
@@ -464,9 +464,9 @@ class LearningPathRepository(using dbUtility: DBUtility) extends StrictLogging {
   private[repository] def learningPathWhereWithInactiveSteps(
       whereClause: SQLSyntax
   )(implicit session: DBSession = ReadOnlyAutoSession): Option[LearningPath] = {
-    val lp = DBLearningPath.syntax("lp")
-    tsql"select ${lp.result.*} from ${DBLearningPath.as(lp)} where $whereClause"
-      .map(rs => DBLearningPath.fromResultSet(lp.resultName)(rs))
+    val lp = dbLearningPath.syntax("lp")
+    tsql"select ${lp.result.*} from ${dbLearningPath.as(lp)} where $whereClause"
+      .map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs))
       .runSingle()
       .get
   }

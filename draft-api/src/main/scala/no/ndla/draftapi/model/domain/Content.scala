@@ -12,6 +12,7 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.draft.Draft
+import no.ndla.draftapi.Props
 import no.ndla.draftapi.model.api.SavedSearchDTO
 import scalikejdbc.*
 
@@ -25,8 +26,9 @@ case class UserData(
     favoriteSubjects: Option[Seq[String]],
 )
 
-object DBArticle extends SQLSyntaxSupport[Draft] {
-  override val tableName = "articledata"
+class DBArticle(using props: Props) extends SQLSyntaxSupport[Draft] {
+  override val tableName                  = "articledata"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[Draft])(rs: WrappedResultSet): Draft = fromResultSet(lp.resultName)(rs)
 
@@ -37,8 +39,7 @@ object DBArticle extends SQLSyntaxSupport[Draft] {
   }
 }
 
-object UserData extends SQLSyntaxSupport[UserData] {
-  override val tableName = "userdata"
+object UserData {
 
   implicit val encoder: Encoder[UserData] = deriveEncoder
   implicit val decoder: Decoder[UserData] = deriveDecoder
@@ -49,4 +50,9 @@ object UserData extends SQLSyntaxSupport[UserData] {
     val userData = CirceUtil.unsafeParseAs[UserData](rs.string(lp.c("document")))
     userData.copy(id = Some(rs.long(lp.c("id"))))
   }
+}
+
+class DBUserData(using props: Props) extends SQLSyntaxSupport[UserData] {
+  override val tableName: String          = "userdata"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 }

@@ -73,29 +73,29 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
   }
 
   def folderCount(implicit session: DBSession = DBUtil.autoSession): Long = {
-    sql"select count(id) from ${Folder.table}".map(rs => rs.long("count")).single().getOrElse(0)
+    sql"select count(id) from folders".map(rs => rs.long("count")).single().getOrElse(0)
   }
 
   def resourceCount(implicit session: DBSession = DBUtil.autoSession): Long = {
-    sql"select count(id) from ${Resource.table}".map(rs => rs.long("count")).single().getOrElse(0)
+    sql"select count(id) from resources".map(rs => rs.long("count")).single().getOrElse(0)
   }
 
   def folderResourcesCount(implicit session: DBSession = DBUtil.autoSession): Long = {
-    sql"select count(resource_id) from ${ResourceConnection.table} where folder_id is not null"
+    sql"select count(resource_id) from resource_connections where folder_id is not null"
       .map(rs => rs.long("count"))
       .single()
       .getOrElse(0)
   }
 
   def rootResourcesCount(implicit session: DBSession = DBUtil.autoSession): Long = {
-    sql"select count(resource_id) from ${ResourceConnection.table} where folder_id is null"
+    sql"select count(resource_id) from resource_connections where folder_id is null"
       .map(rs => rs.long("count"))
       .single()
       .getOrElse(0)
   }
 
   def getAllFolders(implicit session: DBSession = DBUtil.autoSession): List[Folder] = {
-    sql"select * from ${Folder.table}".map(rs => Folder.fromResultSet(rs)).list().sequence.get
+    sql"select * from folders".map(rs => Folder.fromResultSet(rs)).list().sequence.get
   }
 
   test("that inserting and retrieving a folder works as expected") {

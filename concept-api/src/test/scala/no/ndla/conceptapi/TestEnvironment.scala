@@ -16,6 +16,7 @@ import no.ndla.conceptapi.controller.{
   InternController,
   PublishedConceptController,
 }
+import no.ndla.conceptapi.model.domain.{DBConcept, PublishedConcept}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.*
 import no.ndla.conceptapi.service.search.*
@@ -39,6 +40,8 @@ trait TestEnvironment extends TapirApplication[ConceptApiProperties] with Mockit
   implicit lazy val props: ConceptApiProperties = new ConceptApiProperties {
     override def IntroductionHtmlTags: Set[String] = Set("br", "code", "em", "p", "span", "strong", "sub", "sup")
   }
+  implicit lazy val dbConcept: DBConcept               = new DBConcept
+  implicit lazy val publishedConcept: PublishedConcept = new PublishedConcept
 
   implicit lazy val migrator: DBMigrator                                   = mock[DBMigrator]
   implicit lazy val draftConceptRepository: DraftConceptRepository         = mock[DraftConceptRepository]

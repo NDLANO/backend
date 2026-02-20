@@ -13,6 +13,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Title
+import no.ndla.audioapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import scalikejdbc.*
 
@@ -59,8 +60,7 @@ case class Series(
   )
 }
 
-object Series extends SQLSyntaxSupport[Series] {
-  override val tableName = "seriesdata"
+object Series {
 
   implicit val encoder: Encoder[Series] = deriveEncoder
   implicit val decoder: Decoder[Series] = deriveDecoder
@@ -87,4 +87,9 @@ object Series extends SQLSyntaxSupport[Series] {
 
     meta.map(m => fromId(id = rs.long(s.c("id")), revision = rs.int(s.c("revision")), series = m))
   }
+}
+
+class DBSeries(using props: Props) extends SQLSyntaxSupport[Series] {
+  override val tableName: String          = "seriesdata"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 }

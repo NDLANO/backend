@@ -9,7 +9,7 @@
 package no.ndla.audioapi.repository
 
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.audioapi.model.domain.{AudioMetaInformation, Series}
+import no.ndla.audioapi.model.domain.{AudioMetaInformation, DBAudioMetaInformation, DBSeries, Series}
 import no.ndla.audioapi.model.domain
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -23,8 +23,12 @@ import no.ndla.database.DBUtility
 
 import scala.util.{Failure, Success, Try}
 
-class SeriesRepository(using helpers: ErrorHelpers, dbUtility: DBUtility)
-    extends StrictLogging
+class SeriesRepository(using
+    helpers: ErrorHelpers,
+    dbUtility: DBUtility,
+    dbSeries: DBSeries,
+    dbAudioMetaInformation: DBAudioMetaInformation,
+) extends StrictLogging
     with Repository[Series] {
 
   /** Method to fetch single series from database
@@ -43,7 +47,7 @@ class SeriesRepository(using helpers: ErrorHelpers, dbUtility: DBUtility)
 
   def deleteWithId(id: Long)(implicit session: DBSession = dbUtility.autoSession): Try[Int] = {
     tsql"""
-           delete from ${Series.table}
+           delete from ${dbSeries.table}
            where id=$id
            """.update()
   }
@@ -56,7 +60,7 @@ class SeriesRepository(using helpers: ErrorHelpers, dbUtility: DBUtility)
     val newRevision = series.revision + 1
 
     tsql"""
-            update ${Series.table}
+            update ${dbSeries.table}
             set document=$dataObject, revision=$newRevision
             where id=${series.id} and revision=${series.revision}
            """
@@ -82,13 +86,13 @@ class SeriesRepository(using helpers: ErrorHelpers, dbUtility: DBUtility)
     dataObject.setValue(CirceUtil.toJsonString(newSeries))
 
     tsql"""
-           insert into ${Series.table}(document, revision)
+           insert into ${dbSeries.table}(document, revision)
            values ($dataObject, $startRevision)
            """.updateAndReturnGeneratedKey().map(id => Series.fromId(id, startRevision, newSeries))
   }
 
   override def minMaxId(implicit session: DBSession = dbUtility.readOnlySession): Try[(Long, Long)] = {
-    tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Series.table}"
+    tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${dbSeries.table}"
       .map(rs => (rs.long("mi"), rs.long("ma")))
       .runSingle()
       .map(_.getOrElse((0L, 0L)))
@@ -101,11 +105,11 @@ class SeriesRepository(using helpers: ErrorHelpers, dbUtility: DBUtility)
   private def serieWhereNoEpisodes(
       whereClause: SQLSyntax
   )(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Series]] = {
-    val se = Series.syntax("se")
+    val se = dbSeries.syntax("se")
 
     tsql"""
            select ${se.result.*}
-           from ${Series.as(se)}
+           from ${dbSeries.as(se)}
            where $whereClause
            """.map(Series.fromResultSet(se.resultName)).runSingle().map(_.sequence).flatten
   }
@@ -113,13 +117,13 @@ class SeriesRepository(using helpers: ErrorHelpers, dbUtility: DBUtility)
   private def serieWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Series]] = {
-    val se = Series.syntax("se")
-    val au = AudioMetaInformation.syntax("au")
+    val se = dbSeries.syntax("se")
+    val au = dbAudioMetaInformation.syntax("au")
 
     tsql"""
            select ${se.result.*}, ${au.result.*}
-           from ${Series.as(se)}
-           left join ${AudioMetaInformation.as(au)} on ${se.id} = ${au.seriesId}
+           from ${dbSeries.as(se)}
+           left join ${dbAudioMetaInformation.as(au)} on ${se.id} = ${au.seriesId}
            where $whereClause
            """
       .one(Series.fromResultSet(se.resultName))
@@ -133,13 +137,13 @@ class SeriesRepository(using helpers: ErrorHelpers, dbUtility: DBUtility)
   private def seriesWhere(
       whereClause: SQLSyntax
   )(implicit session: DBSession = dbUtility.readOnlySession): Try[List[Series]] = {
-    val se = Series.syntax("se")
-    val au = AudioMetaInformation.syntax("au")
+    val se = dbSeries.syntax("se")
+    val au = dbAudioMetaInformation.syntax("au")
 
     tsql"""
            select ${se.result.*}, ${au.result.*}
-           from ${Series.as(se)}
-           left join ${AudioMetaInformation.as(au)} on ${se.id} = ${au.seriesId}
+           from ${dbSeries.as(se)}
+           left join ${dbAudioMetaInformation.as(au)} on ${se.id} = ${au.seriesId}
            where $whereClause
            """
       .one(Series.fromResultSet(se.resultName))

@@ -20,6 +20,15 @@ import no.ndla.myndlaapi.controller.{
 }
 import no.ndla.myndlaapi.integration.{InternalMyNDLAApiClient, LearningPathApiClient, SearchApiClient}
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
+import no.ndla.myndlaapi.model.domain.{
+  DBConfigMeta,
+  DBFolder,
+  DBMyNDLAUser,
+  DBResource,
+  DBResourceConnection,
+  DBRobotDefinition,
+  DBSavedSharedFolder,
+}
 import no.ndla.myndlaapi.repository.{ConfigRepository, FolderRepository, RobotRepository, UserRepository}
 import no.ndla.myndlaapi.service.{
   ConfigService,
@@ -45,6 +54,13 @@ import org.scalatestplus.mockito.MockitoSugar
 
 trait TestEnvironment extends TapirApplication[MyNdlaApiProperties] with MockitoSugar {
   implicit lazy val props: MyNdlaApiProperties                     = new MyNdlaApiProperties
+  implicit lazy val dbConfigMeta: DBConfigMeta                     = new DBConfigMeta
+  implicit lazy val dbMyNDLAUser: DBMyNDLAUser                     = new DBMyNDLAUser
+  implicit lazy val dbFolder: DBFolder                             = new DBFolder
+  implicit lazy val dbResourceConnection: DBResourceConnection     = new DBResourceConnection
+  implicit lazy val dbResource: DBResource                         = new DBResource
+  implicit lazy val dbSavedSharedFolder: DBSavedSharedFolder       = new DBSavedSharedFolder
+  implicit lazy val dbRobotDefinition: DBRobotDefinition           = new DBRobotDefinition
   implicit lazy val routes: Routes                                 = mock[Routes]
   implicit lazy val errorHandling: ControllerErrorHandling         = mock[ControllerErrorHandling]
   implicit lazy val errorHelpers: ErrorHelpers                     = mock[ErrorHelpers]

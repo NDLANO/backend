@@ -16,8 +16,8 @@ import scalikejdbc.*
 class DBArticle(using props: Props) {
   object Article extends SQLSyntaxSupport[Article] {
 
-    override val tableName                       = "contentdata"
-    override lazy val schemaName: Option[String] = Some(props.MetaSchema)
+    override val tableName                  = "contentdata"
+    override val schemaName: Option[String] = Some(props.MetaSchema)
 
     def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): ArticleRow = fromResultSet(lp.resultName)(rs)
 
