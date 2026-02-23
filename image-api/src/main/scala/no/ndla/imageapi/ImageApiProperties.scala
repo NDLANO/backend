@@ -11,6 +11,7 @@ package no.ndla.imageapi
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.configuration.BaseProps
 import no.ndla.database.DatabaseProps
+import no.ndla.imageapi.model.domain.ImageContentType
 import no.ndla.network.{AuthUser, Domains}
 
 import scala.util.Properties.*
@@ -31,19 +32,7 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
   val ImageControllerV3Path: String = s"$ImageApiBasePath/v3/images"
   val RawControllerPath: String     = s"$ImageApiBasePath/raw"
 
-  val ValidFileExtensions: Seq[String] = Seq(".jpg", ".png", ".jpeg", ".bmp", ".gif", ".svg", ".jfif")
-
-  val ValidMimeTypes: Seq[String] = Seq(
-    "image/bmp",
-    "image/gif",
-    "image/jpeg",
-    "image/x-citrix-jpeg",
-    "image/pjpeg",
-    "image/png",
-    "image/x-citrix-png",
-    "image/x-png",
-    "image/svg+xml",
-  )
+  val ValidMimeTypes: Seq[String] = ImageContentType.values.map(c => c.entryName)
 
   val IsoMappingCacheAgeInMs: Int     = 1000 * 60 * 60 // 1 hour caching
   val LicenseMappingCacheAgeInMs: Int = 1000 * 60 * 60 // 1 hour caching
