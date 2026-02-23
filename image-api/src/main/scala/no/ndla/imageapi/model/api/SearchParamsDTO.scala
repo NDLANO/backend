@@ -55,6 +55,8 @@ case class SearchParamsDTO(
     heightFrom: Option[Int],
     @description("Filter images with height less than or equal to this value.")
     heightTo: Option[Int],
+    @description("Filter images by content type (e.g., 'image/jpeg', 'image/png').")
+    contentType: Option[String],
 )
 
 object SearchParamsDTO {

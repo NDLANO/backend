@@ -71,6 +71,7 @@ class ImageIndexService(using
       nestedField("imageFiles").fields(
         intField("imageSize"),
         textField("previewUrl"),
+        keywordField("contentType"),
         ObjectField("dimensions", properties = Seq(intField("width"), intField("height"))),
       ),
     )

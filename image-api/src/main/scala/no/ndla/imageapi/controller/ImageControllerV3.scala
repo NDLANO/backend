@@ -88,6 +88,7 @@ class ImageControllerV3(using
       widthTo: Option[Int],
       heightFrom: Option[Int],
       heightTo: Option[Int],
+      contentType: Option[String],
   ) = {
     val settings = query match {
       case Some(searchString) => SearchSettings(
@@ -108,6 +109,7 @@ class ImageControllerV3(using
           widthTo = widthTo,
           heightFrom = heightFrom,
           heightTo = heightTo,
+          contentType = contentType,
         )
       case None => SearchSettings(
           query = None,
@@ -127,6 +129,7 @@ class ImageControllerV3(using
           widthTo = widthTo,
           heightFrom = heightFrom,
           heightTo = heightTo,
+          contentType = contentType,
         )
     }
     for {
@@ -158,6 +161,7 @@ class ImageControllerV3(using
     .in(widthTo)
     .in(heightFrom)
     .in(heightTo)
+    .in(contentType)
     .errorOut(errorOutputsFor(400))
     .out(jsonBody[SearchResultV3DTO])
     .out(EndpointOutput.derived[DynamicHeaders])
@@ -183,6 +187,7 @@ class ImageControllerV3(using
               widthTo,
               heightFrom,
               heightTo,
+              contentType,
             ) => scrollSearchOr(scrollId, language.code, user) {
             val sort                = Sort.valueOf(sortStr)
             val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
@@ -208,6 +213,7 @@ class ImageControllerV3(using
               widthTo,
               heightFrom,
               heightTo,
+              contentType,
             )
           }.handleErrorsOrOk
       }
@@ -248,6 +254,7 @@ class ImageControllerV3(using
           val widthTo             = searchParams.widthTo
           val heightFrom          = searchParams.heightFrom
           val heightTo            = searchParams.heightTo
+          val contentType         = searchParams.contentType
 
           searchV3(
             minimumSize,
@@ -268,6 +275,7 @@ class ImageControllerV3(using
             widthTo,
             heightFrom,
             heightTo,
+            contentType,
           )
         }.handleErrorsOrOk
       }

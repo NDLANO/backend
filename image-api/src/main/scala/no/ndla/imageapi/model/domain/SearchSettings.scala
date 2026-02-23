@@ -26,4 +26,5 @@ case class SearchSettings(
     widthTo: Option[Int],
     heightFrom: Option[Int],
     heightTo: Option[Int],
+    contentType: Option[String],
 )

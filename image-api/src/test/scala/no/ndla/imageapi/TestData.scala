@@ -396,5 +396,6 @@ class TestData(using props: Props) {
     widthTo = None,
     heightFrom = None,
     heightTo = None,
+    contentType = None,
   )
 }
