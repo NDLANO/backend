@@ -135,7 +135,7 @@ class ArticleApiClientTest
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
-    publishedCount = None,
+    publishedCount = 0,
   )
 
   val exampleToken =
