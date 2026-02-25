@@ -213,18 +213,18 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     })
   }
 
-  def asApiImageTag(domainImageTag: commonDomain.Tag): api.ImageTagDTO = {
+  private def asApiImageTag(domainImageTag: commonDomain.Tag): api.ImageTagDTO = {
     api.ImageTagDTO(domainImageTag.tags, domainImageTag.language)
   }
 
-  def asApiCaption(domainImageCaption: domain.ImageCaption): api.ImageCaptionDTO =
+  private def asApiCaption(domainImageCaption: domain.ImageCaption): api.ImageCaptionDTO =
     api.ImageCaptionDTO(domainImageCaption.caption, domainImageCaption.language)
 
-  def asApiImageTitle(domainImageTitle: domain.ImageTitle): api.ImageTitleDTO = {
+  private def asApiImageTitle(domainImageTitle: domain.ImageTitle): api.ImageTitleDTO = {
     api.ImageTitleDTO(domainImageTitle.title, domainImageTitle.language)
   }
 
-  def asApiLicense(license: String): commonApi.LicenseDTO = {
+  private def asApiLicense(license: String): commonApi.LicenseDTO = {
     getLicense(license)
       .map(l => commonApi.LicenseDTO(l.license.toString, Some(l.description), l.url))
       .getOrElse(commonApi.LicenseDTO("unknown", None, None))

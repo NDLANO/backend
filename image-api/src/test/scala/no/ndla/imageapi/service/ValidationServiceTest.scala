@@ -31,7 +31,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
       new ImageFileData(
         fileName = "image.jpg",
         size = 1024,
-        contentType = "image/jpeg",
+        contentType = ImageContentType.Jpeg,
         dimensions = None,
         variants = Seq.empty,
         language = "nb",

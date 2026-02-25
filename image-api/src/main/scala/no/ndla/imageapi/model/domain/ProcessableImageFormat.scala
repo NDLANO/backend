@@ -11,10 +11,10 @@ package no.ndla.imageapi.model.domain
 import enumeratum.{Enum, EnumEntry}
 
 sealed trait ProcessableImageFormat extends EnumEntry {
-  def toContentType: String = this match {
-    case ProcessableImageFormat.Jpeg => "image/jpeg"
-    case ProcessableImageFormat.Png  => "image/png"
-    case ProcessableImageFormat.Webp => "image/webp"
+  def toContentType: ImageContentType = this match {
+    case ProcessableImageFormat.Jpeg => ImageContentType.Jpeg
+    case ProcessableImageFormat.Png  => ImageContentType.Png
+    case ProcessableImageFormat.Webp => ImageContentType.Webp
   }
 }
 

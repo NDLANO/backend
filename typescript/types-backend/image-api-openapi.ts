@@ -738,6 +738,8 @@ export type components = {
              * @description Filter images with height less than or equal to this value.
              */
             heightTo?: number;
+            /** @description Filter images by content type (e.g., 'image/jpeg', 'image/png'). */
+            contentType?: string;
         };
         /**
          * SearchResultDTO
@@ -929,6 +931,8 @@ export interface operations {
                 "height-from"?: number;
                 /** @description Filter images with height less than or equal to this value. */
                 "height-to"?: number;
+                /** @description Filter images by content type (e.g., 'image/jpeg', 'image/png'). */
+                "content-type"?: string;
             };
             header?: never;
             path?: never;
@@ -1511,6 +1515,8 @@ export interface operations {
                 "height-from"?: number;
                 /** @description Filter images with height less than or equal to this value. */
                 "height-to"?: number;
+                /** @description Filter images by content type (e.g., 'image/jpeg', 'image/png'). */
+                "content-type"?: string;
             };
             header?: never;
             path?: never;

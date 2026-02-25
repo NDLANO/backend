@@ -10,6 +10,7 @@ package no.ndla.imageapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.imageapi.model.domain.ImageContentType
 import no.ndla.language.Language.LanguageDocString
 import sttp.tapir.Schema.annotations.description
 
@@ -20,7 +21,7 @@ case class ImageFileDTO(
     @description("The size of the image in bytes")
     size: Long,
     @description("The mimetype of the image")
-    contentType: String,
+    contentType: ImageContentType,
     @description("The full url to where the image can be downloaded")
     imageUrl: String,
     @description("Dimensions of the image")

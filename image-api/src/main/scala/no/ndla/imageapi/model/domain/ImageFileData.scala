@@ -15,7 +15,7 @@ import no.ndla.language.model.WithLanguage
 case class ImageFileData(
     fileName: String,
     size: Long,
-    contentType: String,
+    contentType: ImageContentType,
     dimensions: Option[ImageDimensions],
     variants: Seq[ImageVariant],
     override val language: String,

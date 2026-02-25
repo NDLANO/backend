@@ -9,21 +9,24 @@
 package no.ndla.imageapi.service
 
 import no.ndla.common.aws.NdlaS3Object
+import no.ndla.imageapi.model.domain.{ImageContentType, ImageMetaInformation}
 import no.ndla.imageapi.service.ImageStorageService
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException
+import org.mockito.ArgumentMatchers.{any, anyMap, anyString}
+import org.mockito.Mockito.{reset, times, verify, when}
+import software.amazon.awssdk.services.s3.model.{HeadObjectResponse, NoSuchKeyException}
 
+import scala.jdk.CollectionConverters.MutableMapHasAsJava
+import scala.collection.mutable
 import scala.util.{Failure, Success}
 
 class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
 
-  val ImageStorageName           = props.StorageName
-  val ImageWithNoThumb           = TestData.nonexistingWithoutThumb
-  val Content                    = "content"
-  val ContentType                = "image/jpeg"
-  override lazy val imageStorage = new ImageStorageService
+  val ImageStorageName: String               = props.StorageName
+  val ImageWithNoThumb: ImageMetaInformation = TestData.nonexistingWithoutThumb
+  val Content                                = "content"
+  val ContentType: ImageContentType          = ImageContentType.Jpeg
+  override lazy val imageStorage             = new ImageStorageService
 
   override def beforeEach(): Unit = {
     reset(s3Client)
@@ -40,7 +43,7 @@ class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That AmazonImageStorage.get returns a tuple with contenttype and data when the key exists") {
-    val s3Object = NdlaS3Object("bucket", "existing", TestData.ndlaLogoImageStream.stream, ContentType, 0)
+    val s3Object = NdlaS3Object("bucket", "existing", TestData.ndlaLogoImageStream.stream, ContentType.toString, 0)
     when(s3Client.getObject(any)).thenReturn(Success(s3Object))
 
     val image = imageStorage.get("existing").failIfFailure
@@ -51,6 +54,22 @@ class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
   test("That AmazonImageStorage.get returns None when the key does not exist") {
     when(s3Client.getObject(any)).thenReturn(Failure(NoSuchKeyException.builder().build()))
     assert(imageStorage.get("nonexisting").isFailure)
+  }
+
+  test("That AmazonImageStorage.get fixes content-type when it is binary/octet-stream") {
+    val s3Object     = NdlaS3Object("bucket", "existing", TestData.ndlaLogoImageStream.stream, "binary/octet-stream", 100)
+    val headResponse = mock[HeadObjectResponse]
+
+    when(s3Client.getObject(any)).thenReturn(Success(s3Object))
+    when(s3Client.headObject(anyString())).thenReturn(Success(headResponse))
+    when(headResponse.metadata()).thenReturn(mutable.Map("content-type" -> "image/jpeg").asJava)
+    when(s3Client.updateMetadata(anyString(), anyMap())).thenReturn(Success(()))
+    when(readService.getImageFileFromFilePath(any)).thenReturn(Success(ImageWithNoThumb.images.head))
+    imageStorage.get("existing")
+
+    verify(s3Client, times(1)).getObject(anyString())
+    verify(s3Client, times(1)).headObject(anyString())
+    verify(s3Client, times(1)).updateMetadata(anyString(), anyMap())
   }
 
 }

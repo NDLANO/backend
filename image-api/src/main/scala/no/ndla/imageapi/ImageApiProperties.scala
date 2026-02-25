@@ -32,7 +32,7 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
   val ImageControllerV3Path: String = s"$ImageApiBasePath/v3/images"
   val RawControllerPath: String     = s"$ImageApiBasePath/raw"
 
-  val ValidMimeTypes: Seq[String] = ImageContentType.values.map(c => c.entryName)
+  val ValidMimeTypes: Seq[ImageContentType] = ImageContentType.values
 
   val IsoMappingCacheAgeInMs: Int     = 1000 * 60 * 60 // 1 hour caching
   val LicenseMappingCacheAgeInMs: Int = 1000 * 60 * 60 // 1 hour caching

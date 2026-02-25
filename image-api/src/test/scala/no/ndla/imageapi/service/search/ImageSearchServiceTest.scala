@@ -44,7 +44,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   val largeImage: ImageFileData = ImageFileData(
     "large-full-url",
     10000,
-    "image/jpeg",
+    ImageContentType.Jpeg,
     Some(ImageDimensions(width = 1920, height = 1080)),
     Seq.empty,
     "und",
@@ -52,7 +52,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   val smallImage: ImageFileData = ImageFileData(
     "small-full-url",
     100,
-    "image/jpeg",
+    ImageContentType.Jpeg,
     Some(ImageDimensions(width = 640, height = 480)),
     Seq.empty,
     "und",
@@ -60,7 +60,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   val podcastImage: ImageFileData = ImageFileData(
     "podcast-full-url",
     100,
-    "image/jpeg",
+    ImageContentType.Jpeg,
     Some(ImageDimensions(width = 1400, height = 1400)),
     Seq.empty,
     "und",
@@ -68,7 +68,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   val wideImage: ImageFileData = ImageFileData(
     "wide-full-url",
     5000,
-    "image/jpeg",
+    ImageContentType.Jpeg,
     Some(ImageDimensions(width = 3840, height = 2160)),
     Seq.empty,
     "und",
@@ -76,17 +76,23 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   val tallImage: ImageFileData = ImageFileData(
     "tall-full-url",
     3000,
-    "image/jpeg",
+    ImageContentType.Jpeg,
     Some(ImageDimensions(width = 1080, height = 1920)),
     Seq.empty,
     "und",
   )
-  val pngImage: ImageFileData =
-    ImageFileData("png-full-url", 2000, "image/png", Some(ImageDimensions(width = 800, height = 600)), Seq.empty, "und")
+  val pngImage: ImageFileData = ImageFileData(
+    "png-full-url",
+    2000,
+    ImageContentType.Png,
+    Some(ImageDimensions(width = 800, height = 600)),
+    Seq.empty,
+    "und",
+  )
   val svgImage: ImageFileData = ImageFileData(
     "svg-full-url",
     500,
-    "image/svg+xml",
+    ImageContentType.Svg,
     Some(ImageDimensions(width = 512, height = 512)),
     Seq.empty,
     "und",

@@ -18,6 +18,7 @@ import no.ndla.common.model.domain.UploadedFile
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.ImageUnprocessableFormatException
 import no.ndla.imageapi.model.domain.*
+import no.ndla.imageapi.model.domain.ImageContentType
 
 import java.io.{BufferedInputStream, InputStream}
 import java.lang.Math.{abs, max, min}
@@ -46,30 +47,37 @@ object PercentPoint {
 }
 
 class ImageConverter(using props: Props) extends StrictLogging {
-  private val svgMimeTypes = List("image/svg", "image/svg+xml")
+  def s3ObjectToImageStream(s3Object: NdlaS3Object): Try[ImageStream] = inputStreamToImageStream(
+    s3Object.stream,
+    s3Object.key,
+    s3Object.contentLength,
+    ImageContentType.valueOf(s3Object.contentType),
+  )
 
-  def s3ObjectToImageStream(s3Object: NdlaS3Object): Try[ImageStream] =
-    inputStreamToImageStream(s3Object.stream, s3Object.key, s3Object.contentLength, s3Object.contentType)
-
-  def uploadedFileToImageStream(file: UploadedFile, fileName: String): Try[ImageStream] =
-    inputStreamToImageStream(file.createStream(), fileName, file.fileSize, file.contentType.getOrElse(""))
+  def uploadedFileToImageStream(file: UploadedFile, fileName: String): Try[ImageStream] = inputStreamToImageStream(
+    file.createStream(),
+    fileName,
+    file.fileSize,
+    file.contentType.flatMap(ImageContentType.valueOf),
+  )
 
   private def maybeScrimageFormatToImageStream(
       stream: BufferedInputStream,
       fileName: String,
       contentLength: Long,
-      contentType: String,
+      contentType: Option[ImageContentType],
       maybeScrimageFormat: Try[Option[Format]],
   ): Try[ImageStream] = {
     import ImageStream.*
     maybeScrimageFormat.flatMap {
-      case Some(Format.GIF)                           => Success(Gif(stream, fileName, contentLength))
-      case Some(Format.PNG)                           => Success(Processable(stream, fileName, contentLength, ProcessableImageFormat.Png))
-      case Some(Format.JPEG)                          => Success(Processable(stream, fileName, contentLength, ProcessableImageFormat.Jpeg))
-      case Some(Format.WEBP)                          => Success(Processable(stream, fileName, contentLength, ProcessableImageFormat.Webp))
-      case None if svgMimeTypes.contains(contentType) =>
-        Success(Unprocessable(stream, fileName, contentLength, contentType))
-      case None => Failure(ImageUnprocessableFormatException(contentType))
+      case Some(Format.GIF)  => Success(Gif(stream, fileName, contentLength))
+      case Some(Format.PNG)  => Success(Processable(stream, fileName, contentLength, ProcessableImageFormat.Png))
+      case Some(Format.JPEG) => Success(Processable(stream, fileName, contentLength, ProcessableImageFormat.Jpeg))
+      case Some(Format.WEBP) => Success(Processable(stream, fileName, contentLength, ProcessableImageFormat.Webp))
+      case None              => contentType match {
+          case Some(ct) => Success(Unprocessable(stream, fileName, contentLength, ct))
+          case None     => Failure(ImageUnprocessableFormatException("unknown content type"))
+        }
     }
   }
 
@@ -77,7 +85,7 @@ class ImageConverter(using props: Props) extends StrictLogging {
       inputStream: InputStream,
       fileName: String,
       contentLength: Long,
-      contentType: String,
+      contentType: Option[ImageContentType],
   ): Try[ImageStream] = Try
     .throwIfInterrupted {
       // Use buffered stream with mark to avoid creating multiple streams

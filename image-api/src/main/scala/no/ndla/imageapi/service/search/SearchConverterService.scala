@@ -39,7 +39,7 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
         imageSize = i.size,
         previewUrl = parse("/" + i.fileName.dropWhile(_ == '/')).toString,
         fileSize = i.size,
-        contentType = i.contentType,
+        contentType = i.contentType.toString,
         dimensions = i.dimensions,
         language = i.language,
       )

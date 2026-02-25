@@ -17,17 +17,16 @@ sealed abstract class ImageContentType(override val entryName: String, val fileE
 }
 
 object ImageContentType extends Enum[ImageContentType], CirceEnumWithErrors[ImageContentType] {
+  case object Bmp             extends ImageContentType("image/bmp", List(".bmp"))
+  case object Gif             extends ImageContentType("image/gif", List(".gif"))
   case object Jpeg            extends ImageContentType("image/jpeg", List(".jpg", ".jpeg"))
   case object JpegCitrix      extends ImageContentType("image/x-citrix-jpeg", List(".jpg", ".jpeg"))
   case object JpegProgressive extends ImageContentType("image/pjpeg", List(".jpg", ".jpeg"))
   case object Png             extends ImageContentType("image/png", List(".png"))
   case object PngXToken       extends ImageContentType("image/x-png", List(".png"))
-  case object Gif             extends ImageContentType("image/gif", List(".gif"))
-  case object Webp            extends ImageContentType("image/webp", List(".webp"))
   case object Svg             extends ImageContentType("image/svg+xml", List(".svg"))
-  case object Bmp             extends ImageContentType("image/bmp", List(".bmp"))
+  case object Webp            extends ImageContentType("image/webp", List(".webp"))
 
   override def values: IndexedSeq[ImageContentType] = findValues
-
-  def valueOf(s: String): Option[ImageContentType] = ImageContentType.values.find(_.entryName == s)
+  def valueOf(s: String): Option[ImageContentType]  = ImageContentType.values.find(_.entryName == s)
 }

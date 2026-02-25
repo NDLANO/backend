@@ -12,6 +12,7 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CopyrightDTO
+import no.ndla.imageapi.model.domain.ImageContentType
 import sttp.tapir.Schema.annotations.description
 
 @description("Meta information for the image")
@@ -29,7 +30,7 @@ case class ImageMetaInformationV2DTO(
     @description("The size of the image in bytes")
     size: Long,
     @description("The mimetype of the image")
-    contentType: String,
+    contentType: ImageContentType,
     @description("Describes the copyright information for the image")
     copyright: CopyrightDTO,
     @description("Searchable tags for the image")
