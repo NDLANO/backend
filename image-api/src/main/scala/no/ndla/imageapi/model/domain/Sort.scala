@@ -29,6 +29,10 @@ object Sort extends Enum[Sort] with CirceEnum[Sort] {
   case object ByLastUpdatedAsc  extends Sort("lastUpdated")
   case object ByIdDesc          extends Sort("-id")
   case object ByIdAsc           extends Sort("id")
+  case object ByWidthDesc       extends Sort("-width")
+  case object ByWidthAsc        extends Sort("width")
+  case object ByHeightDesc      extends Sort("-height")
+  case object ByHeightAsc       extends Sort("height")
 
   def valueOf(s: String): Option[Sort] = Sort.values.find(_.entryName == s)
 
