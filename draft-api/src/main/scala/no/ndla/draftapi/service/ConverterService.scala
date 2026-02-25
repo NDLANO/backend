@@ -129,7 +129,7 @@ class ConverterService(using
         qualityEvaluation = qualityEvaluationToDomain(newArticle.qualityEvaluation),
         disclaimer = domainDisclaimer,
         traits = traits,
-        publishedCount = None,
+        publishedCount = 0,
       )
     )
   }
@@ -335,7 +335,7 @@ class ConverterService(using
           qualityEvaluation = toApiQualityEvaluation(article.qualityEvaluation),
           disclaimer = disclaimer,
           traits = article.traits,
-          publishedCount = article.publishedCount.getOrElse(1),
+          publishedCount = article.publishedCount,
         )
       )
     } else {
@@ -523,7 +523,7 @@ class ConverterService(using
               slug = draft.slug,
               disclaimer = draft.disclaimer,
               traits = draft.traits,
-              publishedCount = draft.publishedCount,
+              publishedCount = Some(draft.publishedCount),
             )
         )
     }
@@ -742,7 +742,7 @@ class ConverterService(using
       qualityEvaluation = qualityEvaluationToDomain(article.qualityEvaluation),
       disclaimer = updatedDisclaimer,
       traits = traitUtil.getArticleTraits(updatedContents),
-      publishedCount = None,
+      publishedCount = toMergeInto.publishedCount,
     )
 
     Success(converted)

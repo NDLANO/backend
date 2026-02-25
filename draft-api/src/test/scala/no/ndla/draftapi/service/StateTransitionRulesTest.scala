@@ -136,7 +136,11 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   test("doTransition should publish the article when transitioning to PUBLISHED") {
     val expectedStatus  = common.Status(PUBLISHED, Set.empty)
     val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, NDLADate.now()))
-    val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
+    val expectedArticle = InProcessArticle.copy(
+      status = expectedStatus,
+      notes = editorNotes,
+      publishedCount = InProcessArticle.publishedCount + 1,
+    )
     when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List("1234")))
     when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
     when(converterService.getEmbeddedH5PPaths(any[Draft])).thenReturn(Seq.empty)
@@ -362,7 +366,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
-      publishedCount = None,
+      publishedCount = 0,
     )
     val article = common
       .article
@@ -419,7 +423,11 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val h5pPaths        = Seq(s"/resource/$h5pId")
     val expectedStatus  = common.Status(PUBLISHED, Set.empty)
     val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, NDLADate.now()))
-    val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
+    val expectedArticle = InProcessArticle.copy(
+      status = expectedStatus,
+      notes = editorNotes,
+      publishedCount = InProcessArticle.publishedCount + 1,
+    )
     when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List("1234")))
     when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
     when(converterService.getEmbeddedH5PPaths(any[Draft])).thenReturn(h5pPaths)
@@ -493,7 +501,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
-      publishedCount = None,
+      publishedCount = 0,
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == PUBLISHED)
@@ -553,7 +561,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
-      publishedCount = None,
+      publishedCount = 0,
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == ARCHIVED)
@@ -615,7 +623,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
-      publishedCount = None,
+      publishedCount = 0,
     )
     val status            = common.Status(PLANNED, Set.empty)
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == UNPUBLISHED)
@@ -678,7 +686,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
-      publishedCount = None,
+      publishedCount = 0,
     )
     val status                            = common.Status(PUBLISHED, Set.empty)
     val transitionToTest: StateTransition = PUBLISHED -> IN_PROGRESS

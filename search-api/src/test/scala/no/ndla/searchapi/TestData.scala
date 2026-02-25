@@ -615,7 +615,7 @@ object TestData {
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
-    publishedCount = None,
+    publishedCount = 0,
   )
 
   val draftStatus: Status         = Status(DraftStatus.PLANNED, Set.empty)
@@ -680,7 +680,7 @@ object TestData {
     qualityEvaluation = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
-    publishedCount = None,
+    publishedCount = 0,
   )
 
   val sampleDraftWithByNcSa: Draft      = sampleDraftWithPublicDomain.copy(copyright = Some(draftByNcSaCopyright))
@@ -1985,7 +1985,7 @@ object TestData {
             status = Status(current = DraftStatus.IN_PROGRESS, other = Set(DraftStatus.PUBLISHED)),
           )
         ),
-        publishedCount = None,
+        publishedCount = 0,
       ),
     nodes = List.empty,
   )

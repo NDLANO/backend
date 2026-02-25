@@ -78,13 +78,14 @@ class StateTransitionRules(using
     (article, user) =>
       article.id match {
         case Some(id) => for {
-            externalIds   <- dbUtility.readOnly(implicit session => draftRepository.getExternalIdsFromId(id))
-            h5pPaths       = converterService.getEmbeddedH5PPaths(article)
-            _              = h5pApiClient.publishH5Ps(h5pPaths, user)
-            taxonomyT      = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
-            articleUpdateT = articleApiClient.updateArticle(id, article, externalIds, useSoftValidation, user)
-            _             <- taxonomyT
-            articleUpdate <- articleUpdateT
+            externalIds     <- dbUtility.readOnly(implicit session => draftRepository.getExternalIdsFromId(id))
+            h5pPaths         = converterService.getEmbeddedH5PPaths(article)
+            _                = h5pApiClient.publishH5Ps(h5pPaths, user)
+            withPublishCount = article.copy(publishedCount = article.publishedCount + 1)
+            taxonomyT        = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
+            articleUpdateT   = articleApiClient.updateArticle(id, withPublishCount, externalIds, useSoftValidation, user)
+            _               <- taxonomyT
+            articleUpdate   <- articleUpdateT
           } yield articleUpdate
         case None => Failure(NotFoundException("This is a bug, article to publish has no id."))
       },
@@ -262,7 +263,7 @@ class StateTransitionRules(using
     }
   }
 
-  def debugLog(x: Any): Unit = {
+  private def debugLog(x: Any): Unit = {
     if (scala.util.Properties.propOrEmpty("DEBUG_FLAKE") == "true") {
       println(x)
     }

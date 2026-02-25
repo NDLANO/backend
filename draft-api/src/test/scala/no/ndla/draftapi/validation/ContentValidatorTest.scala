@@ -25,7 +25,7 @@ import java.util.UUID
 import scala.util.{Failure, Success}
 
 class ContentValidatorTest extends UnitSuite with TestEnvironment {
-  override implicit lazy val dbUtility                          = new DBUtility
+  override implicit lazy val dbUtility: DBUtility               = new DBUtility
   override implicit lazy val contentValidator: ContentValidator = new ContentValidator()
   override implicit lazy val converterService: ConverterService = new ConverterService
   val validDocument                                             = """<section><h1>heisann</h1><h2>heia</h2></section>"""

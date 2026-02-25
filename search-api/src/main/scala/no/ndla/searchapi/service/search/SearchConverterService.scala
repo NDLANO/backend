@@ -564,7 +564,7 @@ class SearchConverterService(using
         favorited = favorited,
         learningResourceType = learningResourceType,
         typeName = typeNames,
-        publishedCount = draft.publishedCount.getOrElse(0),
+        publishedCount = draft.publishedCount,
         domainObject = draft,
         nodes = nodes,
       )

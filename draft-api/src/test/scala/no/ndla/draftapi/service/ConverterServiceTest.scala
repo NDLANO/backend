@@ -193,7 +193,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.withValue("Disclaimer test", "nb"),
       traits = List.empty,
-      publishedCount = None,
+      publishedCount = 0,
     )
 
     val updatedNothing = TestData.blankUpdatedArticle.copy(revision = 4, language = Some("nb"))
@@ -240,7 +240,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.withValue("Disclaimer test", "nb"),
       traits = List.empty,
-      publishedCount = None,
+      publishedCount = 0,
     )
 
     val expectedArticle = Draft(
@@ -277,7 +277,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.withValue("NyDisclaimer test", "nb"),
       traits = List.empty,
-      publishedCount = None,
+      publishedCount = 0,
     )
 
     val updatedEverything = TestData
@@ -347,7 +347,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
-      publishedCount = None,
+      publishedCount = 0,
     )
 
     val expectedArticle = Draft(
@@ -392,7 +392,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
-      publishedCount = None,
+      publishedCount = 0,
     )
 
     val updatedEverything = TestData
@@ -632,7 +632,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     ): @unchecked
 
     res1.availability should be(Availability.teacher)
-    res1.availability should not be (Availability.everyone)
+    res1.availability should not be Availability.everyone
     // Should default til everyone
     res2.availability should be(Availability.everyone)
     res3.availability should be(Availability.everyone)
@@ -722,9 +722,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     ): @unchecked
 
     res1.responsible.get.responsibleId should be("nyid")
-    res1.responsible.get.lastUpdated should not be (yesterday)
+    res1.responsible.get.lastUpdated should not be yesterday
     res2.responsible.get.responsibleId should be("nyid")
-    res2.responsible.get.lastUpdated should not be (yesterday)
+    res2.responsible.get.lastUpdated should not be yesterday
     res3.responsible.get.responsibleId should be("oldId")
     res3.responsible.get.lastUpdated should be(yesterday)
   }
@@ -766,7 +766,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       qualityEvaluation = None,
       disclaimer = OptLanguageFields.withValue("articleDisclaimer", "nb"),
       traits = List.empty,
-      publishedCount = Some(1),
+      publishedCount = 1,
     )
     val article = common
       .model
