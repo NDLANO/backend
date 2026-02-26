@@ -16,8 +16,8 @@ import no.ndla.network.model.CombinedUser
 
 import scala.util.{Failure, Success, Try}
 
-extension (learningPath: LearningPath) {
-  def canSetStatus(status: LearningPathStatus, user: CombinedUser): Try[LearningPath] = {
+extension [LP <: LearningPath](learningPath: LP) {
+  def canSetStatus(status: LearningPathStatus, user: CombinedUser): Try[LP] = {
     if (status == LearningPathStatus.PUBLISHED && !user.canPublish) {
       Failure(AccessDeniedException("You need to be a publisher to publish learningpaths."))
     } else {
@@ -25,7 +25,7 @@ extension (learningPath: LearningPath) {
     }
   }
 
-  def canEditLearningPath(user: CombinedUser): Try[LearningPath] = {
+  def canEditLearningPath(user: CombinedUser): Try[LP] = {
     if (
       user.id.contains(learningPath.owner) ||
       user.isAdmin ||
@@ -37,7 +37,7 @@ extension (learningPath: LearningPath) {
     }
   }
 
-  def isOwnerOrPublic(user: CombinedUser): Try[LearningPath] = {
+  def isOwnerOrPublic(user: CombinedUser): Try[LP] = {
     if (learningPath.isPrivate) {
       canEditLearningPath(user)
     } else {
@@ -55,7 +55,7 @@ extension (learningPath: LearningPath) {
     }
   }
 
-  def validateForPublishing(): Try[LearningPath] = {
+  def validateForPublishing(): Try[LP] = {
     val validationResult = new DurationValidator().validateRequired(learningPath.duration).toList
     if (validationResult.isEmpty) Success(learningPath)
     else Failure(new ValidationException(errors = validationResult))

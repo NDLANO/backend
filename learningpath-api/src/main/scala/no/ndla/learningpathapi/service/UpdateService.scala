@@ -15,9 +15,9 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.domain.learningpath.StepStatus.DELETED
 import no.ndla.common.model.domain.learningpath.{
-  ActiveLearningPath,
   LearningPath,
   LearningPathStatus,
+  LearningPathWithAllSteps,
   LearningStep,
   Message,
   StepStatus,
@@ -496,7 +496,7 @@ class UpdateService(using
     if (from > to) to until from
     else from + 1 to to
 
-  private def withId(learningPathId: Long, includeDeleted: Boolean = false): Try[LearningPath] = {
+  private def withId(learningPathId: Long, includeDeleted: Boolean = false): Try[LearningPathWithAllSteps] = {
     val lpOpt =
       if (includeDeleted) learningPathRepository.withIdWithInactiveSteps(learningPathId, includeDeleted = true)
       else learningPathRepository.withIdWithInactiveSteps(learningPathId)

@@ -22,11 +22,23 @@ import no.ndla.common.model.domain.learningpath.StepStatus.ACTIVE
 trait ActiveStepsMarker
 type ActiveLearningPath = LearningPath & ActiveStepsMarker
 
+trait AllStepsMarker
+type LearningPathWithAllSteps = LearningPath & AllStepsMarker
+
 /** A type that represents a [[LearningPath]] where all steps are active, so it is safe to return to end users. */
 object ActiveLearningPath {
   def from(learningPath: LearningPath): ActiveLearningPath = {
     val activeSteps = learningPath.learningsteps.filter(_.status == ACTIVE)
     learningPath.copy(learningsteps = activeSteps).asInstanceOf
+  }
+}
+
+/** A type that represents a [[LearningPath]] loaded with all steps (including inactive/deleted) from a trusted
+  * source such as repository methods that do not filter steps.
+  */
+object LearningPathWithAllSteps {
+  def fromTrustedSource(learningPath: LearningPath): LearningPathWithAllSteps = {
+    learningPath.asInstanceOf
   }
 }
 

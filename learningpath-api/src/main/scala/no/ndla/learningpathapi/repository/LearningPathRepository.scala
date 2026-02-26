@@ -16,6 +16,7 @@ import no.ndla.common.model.domain.learningpath.{
   ActiveLearningPath,
   LearningPath,
   LearningPathStatus,
+  LearningPathWithAllSteps,
   LearningStep,
   LearningpathCopyright,
 }
@@ -64,7 +65,7 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
     learningPathsWhere(sqls"lp.document->>'isBasedOn' = ${isBasedOnId.toString}")
   }
 
-  def learningPathsWithIsBasedOnRaw(isBasedOnId: Long): List[LearningPath] = {
+  def learningPathsWithIsBasedOnRaw(isBasedOnId: Long): List[LearningPathWithAllSteps] = {
     learningPathsWhereWithInactive(sqls"lp.document->>'isBasedOn' = ${isBasedOnId.toString}")
   }
 
@@ -283,10 +284,10 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
 
   private def learningPathsWhereWithInactive(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = dbUtility.readOnlySession): List[LearningPath] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): List[LearningPathWithAllSteps] = {
     val lp = dbLearningPath.syntax("lp")
     tsql"select ${lp.result.*} from ${dbLearningPath.as(lp)} where $whereClause"
-      .map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs))
+      .map(rs => LearningPathWithAllSteps.fromTrustedSource(dbLearningPath.fromResultSet(lp.resultName)(rs)))
       .runList()
       .get
   }
@@ -440,7 +441,7 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
 
   def withIdWithInactiveSteps(id: Long, includeDeleted: Boolean = false)(implicit
       session: DBSession = AutoSession
-  ): Option[LearningPath] = {
+  ): Option[LearningPathWithAllSteps] = {
     if (includeDeleted) {
       learningPathWhereWithInactiveSteps(sqls"lp.id = $id")
     } else {
@@ -452,10 +453,10 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
 
   private[repository] def learningPathWhereWithInactiveSteps(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = ReadOnlyAutoSession): Option[LearningPath] = {
+  )(implicit session: DBSession = ReadOnlyAutoSession): Option[LearningPathWithAllSteps] = {
     val lp = dbLearningPath.syntax("lp")
     tsql"select ${lp.result.*} from ${dbLearningPath.as(lp)} where $whereClause"
-      .map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs))
+      .map(rs => LearningPathWithAllSteps.fromTrustedSource(dbLearningPath.fromResultSet(lp.resultName)(rs)))
       .runSingle()
       .get
   }
