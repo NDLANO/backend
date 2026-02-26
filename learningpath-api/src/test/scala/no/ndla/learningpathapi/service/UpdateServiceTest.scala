@@ -436,7 +436,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
         val fetched        =
           if (includeDeleted) learningPathRepository.withIdIncludingDeleted(id)(using session)
           else learningPathRepository.withId(id)(using session)
-        Option(fetched).flatten
+        fetched.map(LearningPathWithAllSteps.fromTrustedSource)
       }
     )
     doAnswer((i: InvocationOnMock) => {
@@ -513,7 +513,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(
       Some(ActiveLearningPath.unwrap(learningPathWithDeleted.withOnlyActiveSteps))
     )
-    doReturn(Some(learningPathWithDeleted))
+    doReturn(Some(LearningPathWithAllSteps.fromTrustedSource(learningPathWithDeleted)))
       .when(learningPathRepository)
       .withIdWithInactiveSteps(eqTo(PRIVATE_ID), eqTo(false))(using any[DBSession])
     when(learningPathRepository.update(any[LearningPath])(using any[DBSession])).thenAnswer(_.getArgument(0))
