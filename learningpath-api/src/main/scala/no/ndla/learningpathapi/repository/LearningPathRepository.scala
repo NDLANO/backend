@@ -12,7 +12,13 @@ import no.ndla.database.DBUtility
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.{Author, Tag}
-import no.ndla.common.model.domain.learningpath.{LearningPath, LearningPathStatus, LearningStep, LearningpathCopyright}
+import no.ndla.common.model.domain.learningpath.{
+  ActiveLearningPath,
+  LearningPath,
+  LearningPathStatus,
+  LearningStep,
+  LearningpathCopyright,
+}
 import no.ndla.learningpathapi.model.domain.*
 import org.postgresql.util.PGobject
 import scalikejdbc.*
@@ -32,19 +38,19 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
     }
   }
 
-  def withId(id: Long)(implicit session: DBSession = dbUtility.autoSession): Option[LearningPath] = {
+  def withId(id: Long)(implicit session: DBSession = dbUtility.autoSession): Option[ActiveLearningPath] = {
     learningPathWhere(sqls"lp.id = $id AND lp.document->>'status' <> ${LearningPathStatus.DELETED.toString}")
   }
 
-  def withIdIncludingDeleted(id: Long)(implicit session: DBSession = dbUtility.autoSession): Option[LearningPath] = {
+  def withIdIncludingDeleted(id: Long)(implicit session: DBSession = dbUtility.autoSession): Option[ActiveLearningPath] = {
     learningPathWhere(sqls"lp.id = $id")
   }
 
-  def withExternalId(externalId: String): Option[LearningPath] = {
+  def withExternalId(externalId: String): Option[ActiveLearningPath] = {
     learningPathWhere(sqls"lp.external_id = $externalId")
   }
 
-  def withOwner(owner: String): List[LearningPath] = {
+  def withOwner(owner: String): List[ActiveLearningPath] = {
     learningPathsWhere(
       sqls"lp.document->>'owner' = $owner AND lp.document->>'status' <> ${LearningPathStatus.DELETED.toString} order by lp.document->>'created' DESC"
     )
@@ -54,7 +60,7 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
     tsql"select id from learningpaths where external_id = $externalId".map(rs => rs.long("id")).runSingle().get
   }
 
-  def learningPathsWithIsBasedOn(isBasedOnId: Long): List[LearningPath] = {
+  def learningPathsWithIsBasedOn(isBasedOnId: Long): List[ActiveLearningPath] = {
     learningPathsWhere(sqls"lp.document->>'isBasedOn' = ${isBasedOnId.toString}")
   }
 
@@ -267,7 +273,7 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
 
   private def learningPathsWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = dbUtility.readOnlySession): List[LearningPath] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): List[ActiveLearningPath] = {
     val lp = dbLearningPath.syntax("lp")
     tsql"select ${lp.result.*} from ${dbLearningPath.as(lp)} where $whereClause"
       .map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps)
@@ -287,7 +293,7 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
 
   private def learningPathWhere(
       whereClause: SQLSyntax
-  )(implicit session: DBSession = dbUtility.readOnlySession): Option[LearningPath] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): Option[ActiveLearningPath] = {
     val lp = dbLearningPath.syntax("lp")
     tsql"select ${lp.result.*} from ${dbLearningPath.as(lp)} where $whereClause"
       .map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps)
@@ -297,7 +303,7 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
 
   def pageWithIds(ids: Seq[Long], pageSize: Int, offset: Int)(implicit
       session: DBSession = dbUtility.readOnlySession
-  ): List[LearningPath] = {
+  ): List[ActiveLearningPath] = {
     val lp = dbLearningPath.syntax("lp")
     tsql"""
             select ${lp.resultAll}
@@ -311,7 +317,7 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
 
   def getAllLearningPathsByPage(pageSize: Int, offset: Int)(implicit
       session: DBSession = dbUtility.readOnlySession
-  ): List[LearningPath] = {
+  ): List[ActiveLearningPath] = {
     val lp = dbLearningPath.syntax("lp")
     tsql"""
             select ${lp.resultAll}, ${lp.id} as row_id
@@ -322,7 +328,9 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
       """.map(rs => dbLearningPath.fromResultSet(lp.resultName)(rs).withOnlyActiveSteps).runList().get
   }
 
-  def getExternalLinkStepSamples()(implicit session: DBSession = dbUtility.readOnlySession): List[LearningPath] = {
+  def getExternalLinkStepSamples()(implicit
+      session: DBSession = dbUtility.readOnlySession
+  ): List[ActiveLearningPath] = {
     val lp = dbLearningPath.syntax("lp")
     tsql"""
       WITH candidates AS (
@@ -353,7 +361,7 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
 
   def getPublishedLearningPathByPage(pageSize: Int, offset: Int)(implicit
       session: DBSession = dbUtility.readOnlySession
-  ): List[LearningPath] = {
+  ): List[ActiveLearningPath] = {
     val lp  = dbLearningPath.syntax("lp")
     val lps = SubQuery.syntax("lps").include(lp)
     tsql"""
@@ -369,7 +377,7 @@ class LearningPathRepository(using dbUtility: DBUtility, dbLearningPath: DBLearn
 
   def learningPathsWithStatus(
       status: LearningPathStatus
-  )(implicit session: DBSession = dbUtility.readOnlySession): List[LearningPath] = {
+  )(implicit session: DBSession = dbUtility.readOnlySession): List[ActiveLearningPath] = {
     learningPathsWhere(sqls"lp.document#>>'{status}' = ${status.toString}")
   }
 

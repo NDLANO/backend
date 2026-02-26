@@ -199,7 +199,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     )
     service.asApiLearningpathV2(
-      domainLearningPath.copy(title = domainLearningPath.title :+ Title("test", "en")),
+      domainLearningPath.copy(title = domainLearningPath.title :+ Title("test", "en")).withOnlyActiveSteps,
       props.DefaultLanguage,
       false,
       TokenUser("me", Set.empty, None).toCombined,
@@ -208,7 +208,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("asApiLearningpathV2 returns Failure if fallback is false and language is not supported") {
     service.asApiLearningpathV2(
-      domainLearningPath,
+      domainLearningPath.withOnlyActiveSteps,
       "hurr-durr-lang",
       false,
       TokenUser("me", Set.empty, None).toCombined,
@@ -258,7 +258,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     )
     service.asApiLearningpathV2(
-      domainLearningPath.copy(title = domainLearningPath.title :+ Title("test", "en")),
+      domainLearningPath.copy(title = domainLearningPath.title :+ Title("test", "en")).withOnlyActiveSteps,
       "hurr durr I'm a language",
       true,
       TokenUser("me", Set.empty, None).toCombined,
@@ -295,7 +295,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       )
     )
     service.asApiLearningpathSummaryV2(
-      domainLearningPath.copy(title = domainLearningPath.title :+ Title("test", "en")),
+      domainLearningPath.copy(title = domainLearningPath.title :+ Title("test", "en")).withOnlyActiveSteps,
       TokenUser.PublicUser.toCombined,
     ) should equal(expected)
   }
@@ -515,13 +515,13 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
 
   test("That a apiLearningPath should only contain ownerId if admin") {
     val noAdmin = service.asApiLearningpathV2(
-      domainLearningPath,
+      domainLearningPath.withOnlyActiveSteps,
       "nb",
       false,
       TokenUser(domainLearningPath.owner, Set.empty, None).toCombined,
     )
     val admin = service.asApiLearningpathV2(
-      domainLearningPath,
+      domainLearningPath.withOnlyActiveSteps,
       "nb",
       false,
       TokenUser("kwakk", Set(LEARNINGPATH_API_ADMIN), None).toCombined,

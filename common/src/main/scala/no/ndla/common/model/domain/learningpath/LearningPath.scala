@@ -19,6 +19,17 @@ import no.ndla.common.DeriveHelpers
 import no.ndla.common.model.domain.RevisionMeta
 import no.ndla.common.model.domain.learningpath.StepStatus.ACTIVE
 
+trait ActiveStepsMarker
+type ActiveLearningPath = LearningPath & ActiveStepsMarker
+
+/** A type that represents a [[LearningPath]] where all steps are active, so it is safe to return to end users. */
+object ActiveLearningPath {
+  def from(learningPath: LearningPath): ActiveLearningPath = {
+    val activeSteps = learningPath.learningsteps.filter(_.status == ACTIVE)
+    learningPath.copy(learningsteps = activeSteps).asInstanceOf
+  }
+}
+
 case class LearningPath(
     id: Option[Long],
     revision: Option[Int],
@@ -53,15 +64,11 @@ case class LearningPath(
     allSupportedLanguages.distinct
   }
 
-  def isPrivate: Boolean   = Seq(LearningPathStatus.PRIVATE, LearningPathStatus.READY_FOR_SHARING).contains(status)
-  def isPublished: Boolean = status == LearningPathStatus.PUBLISHED
-  def isDeleted: Boolean   = status == LearningPathStatus.DELETED
-
-  def withOnlyActiveSteps: LearningPath = {
-    val activeSteps = learningsteps.filter(_.status == ACTIVE)
-    this.copy(learningsteps = activeSteps)
-  }
-
+  def isPrivate: Boolean                      = Seq(LearningPathStatus.PRIVATE, LearningPathStatus.READY_FOR_SHARING).contains(status)
+  def isPublished: Boolean                    = status == LearningPathStatus.PUBLISHED
+  def isDeleted: Boolean                      = status == LearningPathStatus.DELETED
+  def hasOnlyActiveSteps: Boolean             = learningsteps.forall(_.status == ACTIVE)
+  def withOnlyActiveSteps: ActiveLearningPath = ActiveLearningPath.from(this)
 }
 
 object LearningPath {

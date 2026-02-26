@@ -35,7 +35,7 @@ class ReadService(using learningPathRepository: LearningPathRepository, converte
   def withOwnerV2(user: CombinedUserRequired, language: String, fallback: Boolean): List[LearningPathV2DTO] = {
     learningPathRepository
       .withOwner(user.id)
-      .flatMap(value => converterService.asApiLearningpathV2(value, language, fallback, user).toOption)
+      .flatMap(value => converterService.asApiLearningpathV2(value.withOnlyActiveSteps, language, fallback, user).toOption)
   }
 
   def withIdV2List(
@@ -53,7 +53,7 @@ class ReadService(using learningPathRepository: LearningPathRepository, converte
       learningpaths
         .map(_.isOwnerOrPublic(userInfo))
         .collect { case Success(lp) =>
-          converterService.asApiLearningpathV2(lp, language, fallback, userInfo)
+          converterService.asApiLearningpathV2(lp.withOnlyActiveSteps, language, fallback, userInfo)
         }
         .sequence
     }
@@ -66,7 +66,7 @@ class ReadService(using learningPathRepository: LearningPathRepository, converte
       user: CombinedUser,
   ): Try[LearningPathV2DTO] = {
     withIdAndAccessGranted(learningPathId, user).flatMap(lp =>
-      converterService.asApiLearningpathV2(lp, language, fallback, user)
+      converterService.asApiLearningpathV2(lp.withOnlyActiveSteps, language, fallback, user)
     )
   }
 
@@ -154,7 +154,7 @@ class ReadService(using learningPathRepository: LearningPathRepository, converte
     if (user.isAdmin) {
       val lps = learningPathRepository
         .getExternalLinkStepSamples()
-        .flatMap(lp => converterService.asApiLearningpathV2(lp, "all", fallback = true, user).toOption)
+        .flatMap(lp => converterService.asApiLearningpathV2(lp.withOnlyActiveSteps, "all", fallback = true, user).toOption)
       Success(lps)
     } else {
       Failure(AccessDeniedException("You do not have access to this resource."))
@@ -167,7 +167,9 @@ class ReadService(using learningPathRepository: LearningPathRepository, converte
         case Some(ps) => Success(
             learningPathRepository
               .learningPathsWithStatus(ps)
-              .flatMap(lp => converterService.asApiLearningpathV2(lp, "all", fallback = true, user).toOption)
+              .flatMap(lp =>
+                converterService.asApiLearningpathV2(lp.withOnlyActiveSteps, "all", fallback = true, user).toOption
+              )
           )
         case _ => Failure(InvalidLpStatusException(s"Parameter '$status' is not a valid status"))
       }
