@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep, StepType}
+import no.ndla.common.model.domain.learningpath.{ActiveLearningPath, LearningPath, LearningStep, StepType}
 import no.ndla.language.Language.{
   findByLanguageOrBestEffort,
   getDefault,
@@ -69,7 +69,8 @@ class SearchConverterServiceComponent(using converterService: ConverterService, 
   }
 
   def asSearchableLearningpath(learningPath: LearningPath): SearchableLearningPath = {
-    val defaultTitle = getDefault(learningPath.title)
+    val activeLearningPath = learningPath.withOnlyActiveSteps
+    val defaultTitle       = getDefault(learningPath.title)
 
     SearchableLearningPath(
       id = learningPath.id.get,
@@ -87,7 +88,7 @@ class SearchConverterServiceComponent(using converterService: ConverterService, 
       learningPath.lastUpdated,
       defaultTitle.map(_.title),
       SearchableLanguageList(learningPath.tags.map(tags => LanguageValue(tags.language, tags.tags))),
-      learningPath.withOnlyActiveSteps.learningsteps.map(asSearchableLearningStep).toList,
+      activeLearningPath.learningsteps.map(asSearchableLearningStep).toList,
       converterService.asApiCopyright(learningPath.copyright),
       learningPath.isBasedOn,
       learningPath.grepCodes,

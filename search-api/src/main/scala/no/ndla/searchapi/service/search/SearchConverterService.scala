@@ -22,7 +22,7 @@ import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.concept.Concept
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.frontpage.{AboutSubject, SubjectPage}
-import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep}
+import no.ndla.common.model.domain.learningpath.{ActiveLearningPath, LearningPath, LearningStep}
 import no.ndla.common.model.domain.{
   ArticleContent,
   ArticleMetaImage,

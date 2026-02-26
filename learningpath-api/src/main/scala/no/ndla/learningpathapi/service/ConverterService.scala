@@ -16,6 +16,7 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Delete, Missing, ResponsibleDTO, UpdateOrDelete, UpdateWith}
 import no.ndla.common.model.domain.{ContributorType, Responsible, RevisionMeta, learningpath}
 import no.ndla.common.model.domain.learningpath.{
+  ActiveLearningPath,
   Description,
   EmbedType,
   EmbedUrl,
@@ -111,7 +112,7 @@ class ConverterService(using
     ResponsibleDTO(responsibleId = responsible.responsibleId, lastUpdated = responsible.lastUpdated)
 
   def asApiLearningpathV2(
-      lp: LearningPath,
+      lp: ActiveLearningPath,
       language: String,
       fallback: Boolean,
       userInfo: CombinedUser,
@@ -590,7 +591,10 @@ class ConverterService(using
     supportedLanguages.isEmpty || (!supportedLanguages.contains(language) && language != AllLanguages)
   }
 
-  def asApiLearningpathSummaryV2(learningpath: LearningPath, user: CombinedUser): Try[api.LearningPathSummaryV2DTO] = {
+  def asApiLearningpathSummaryV2(
+      learningpath: ActiveLearningPath,
+      user: CombinedUser,
+  ): Try[api.LearningPathSummaryV2DTO] = {
     val supportedLanguages = learningpath.supportedLanguages
 
     val title = findByLanguageOrBestEffort(learningpath.title, AllLanguages)

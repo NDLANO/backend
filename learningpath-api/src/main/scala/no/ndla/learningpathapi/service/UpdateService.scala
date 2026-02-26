@@ -14,7 +14,14 @@ import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.domain.learningpath
 import no.ndla.common.model.domain.learningpath.StepStatus.DELETED
-import no.ndla.common.model.domain.learningpath.{LearningPath, LearningPathStatus, LearningStep, Message, StepStatus}
+import no.ndla.common.model.domain.learningpath.{
+  ActiveLearningPath,
+  LearningPath,
+  LearningPathStatus,
+  LearningStep,
+  Message,
+  StepStatus,
+}
 import no.ndla.learningpathapi.Props
 import no.ndla.learningpathapi.integration.{SearchApiClient, TaxonomyApiClient}
 import no.ndla.learningpathapi.model.api.*
@@ -57,7 +64,7 @@ class UpdateService(using
         case Failure(ex) => Failure(ex)
         case Success(lp) => taxonomyApiClient
             .updateTaxonomyForLearningPath(lp, createResourceIfMissing, userInfo.tokenUser)
-            .flatMap(l => converterService.asApiLearningpathV2(l, language, fallback, userInfo))
+            .flatMap(l => converterService.asApiLearningpathV2(l.withOnlyActiveSteps, language, fallback, userInfo))
       }
     }
   }
@@ -83,7 +90,12 @@ class UpdateService(using
           toInsert  <- converterService.newFromExistingLearningPath(existing, newLearningPath, owner)
           validated <- learningPathValidator.validate(toInsert, allowUnknownLanguage = true)
           inserted  <- learningPathRepository.insert(validated)
-          converted <- converterService.asApiLearningpathV2(inserted, newLearningPath.language, fallback = true, owner)
+          converted <- converterService.asApiLearningpathV2(
+            inserted.withOnlyActiveSteps,
+            newLearningPath.language,
+            fallback = true,
+            owner,
+          )
         } yield converted
     }
   }
@@ -94,7 +106,12 @@ class UpdateService(using
         learningPath <- converterService.newLearningPath(newLearningPath, owner)
         validated    <- learningPathValidator.validate(learningPath)
         inserted     <- learningPathRepository.insert(validated)
-        converted    <- converterService.asApiLearningpathV2(inserted, newLearningPath.language, fallback = true, owner)
+        converted    <- converterService.asApiLearningpathV2(
+          inserted.withOnlyActiveSteps,
+          newLearningPath.language,
+          fallback = true,
+          owner,
+        )
       } yield converted
     }
 

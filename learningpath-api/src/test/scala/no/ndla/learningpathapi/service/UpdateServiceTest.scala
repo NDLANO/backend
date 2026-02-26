@@ -511,7 +511,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
 
     // Simulate repository filtering for withId, and ensure update uses raw steps.
     when(learningPathRepository.withId(eqTo(PRIVATE_ID))(using any[DBSession])).thenReturn(
-      Some(learningPathWithDeleted.withOnlyActiveSteps)
+      Some(ActiveLearningPath.unwrap(learningPathWithDeleted.withOnlyActiveSteps))
     )
     doReturn(Some(learningPathWithDeleted))
       .when(learningPathRepository)
