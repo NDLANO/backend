@@ -8,16 +8,18 @@
 
 package no.ndla.myndlaapi.db.migrationwithdependencies
 
-import no.ndla.database.TableMigration
+import no.ndla.database.{TableIdType, TableMigration}
 import no.ndla.myndlaapi.integration.TaxonomyApiClient
 import scalikejdbc.{DBSession, WrappedResultSet, scalikejdbcSQLInterpolationImplicitDef}
 
 import java.util.UUID
 
 class V16__MigrateResourcePaths(using taxonomyApiClient: TaxonomyApiClient) extends TableMigration[ResourceRow] {
-  override val tableName: String                                 = "resources"
-  override lazy val whereClause: scalikejdbc.SQLSyntax           = sqls"path is not null"
-  override val chunkSize: Int                                    = 1000
+  override val tableName: String                       = "resources"
+  override lazy val whereClause: scalikejdbc.SQLSyntax = sqls"path is not null"
+  override val chunkSize: Int                          = 1000
+  override val tableIdType: TableIdType                = TableIdType.UUID
+
   override def extractRowData(rs: WrappedResultSet): ResourceRow =
     ResourceRow(UUID.fromString(rs.string("id")), rs.string("resource_type"), rs.string("path"))
   override def updateRow(rowData: ResourceRow)(implicit session: DBSession): Int = {
