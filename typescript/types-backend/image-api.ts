@@ -794,7 +794,7 @@ export type components = {
          * @description The sorting used on results. The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id. Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
          * @enum {string}
          */
-        Sort: "-relevance" | "relevance" | "-title" | "title" | "-lastUpdated" | "lastUpdated" | "-id" | "id";
+        Sort: "-relevance" | "relevance" | "-title" | "title" | "-lastUpdated" | "lastUpdated" | "-id" | "id" | "-width" | "width" | "-height" | "height";
         /**
          * TagsSearchResultDTO
          * @description Information about tags-search-results
@@ -931,7 +931,7 @@ export interface operations {
                 license?: string;
                 /**
                  * @description The sorting used on results.
-                 *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id.
+                 *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id, -width, width, -height, height.
                  *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
                  */
                 sort?: string;
@@ -1085,7 +1085,7 @@ export interface operations {
                 language?: string;
                 /**
                  * @description The sorting used on results.
-                 *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id.
+                 *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id, -width, width, -height, height.
                  *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
                  */
                 sort?: string;
@@ -1507,7 +1507,7 @@ export interface operations {
                 includeCopyrighted?: boolean;
                 /**
                  * @description The sorting used on results.
-                 *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id.
+                 *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id, -width, width, -height, height.
                  *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
                  */
                 sort?: string;
@@ -1691,7 +1691,7 @@ export interface operations {
                 language?: string;
                 /**
                  * @description The sorting used on results.
-                 *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id.
+                 *                  The following are supported: -relevance, relevance, -title, title, -lastUpdated, lastUpdated, -id, id, -width, width, -height, height.
                  *                  Default is by -relevance (desc) when query is set, and title (asc) when query is empty.
                  */
                 sort?: string;
