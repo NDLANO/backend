@@ -20,6 +20,7 @@ object ArticleType extends Enum[ArticleType] with CirceEnum[ArticleType] {
   case object Standard         extends ArticleType("standard")
   case object TopicArticle     extends ArticleType("topic-article")
   case object FrontpageArticle extends ArticleType("frontpage-article")
+  case object CaseArticle      extends ArticleType("case-article")
 
   implicit def schema: Schema[ArticleType]    = schemaForEnumEntry[ArticleType]
   implicit def codec: PlainCodec[ArticleType] = plainCodecEnumEntry[ArticleType]
