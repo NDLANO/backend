@@ -52,6 +52,7 @@ case class Draft(
     qualityEvaluation: Option[QualityEvaluation],
     disclaimer: OptLanguageFields[String],
     traits: List[ArticleTrait],
+    publishedCount: Int,
 ) extends Content {
 
   def supportedLanguages: Seq[String] = getSupportedLanguages(

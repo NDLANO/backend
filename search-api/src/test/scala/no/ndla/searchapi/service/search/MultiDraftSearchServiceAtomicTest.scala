@@ -109,14 +109,14 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 3)
 
     val Success(search1) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(embedId = Some("3"), embedResource = List("content-link"))
+      multiDraftSearchSettings.copy(embedResource = List("content-link"), embedId = Some("3"))
     ): @unchecked
 
     search1.totalCount should be(1)
     search1.summaryResults.map(_.id) should be(List(2))
 
     val Success(search2) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(embedId = Some("3"), embedResource = List("content-link", "related-content"))
+      multiDraftSearchSettings.copy(embedResource = List("content-link", "related-content"), embedId = Some("3"))
     ): @unchecked
 
     search2.totalCount should be(2)
@@ -454,7 +454,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
 
     multiDraftSearchService
       .matchingQuery(
-        multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByResponsibleLastUpdatedAsc)
+        multiDraftSearchSettings.copy(sort = Sort.ByResponsibleLastUpdatedAsc, responsibleIdFilter = List.empty)
       )
       .get
       .summaryResults
@@ -462,7 +462,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
 
     multiDraftSearchService
       .matchingQuery(
-        multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByResponsibleLastUpdatedDesc)
+        multiDraftSearchSettings.copy(sort = Sort.ByResponsibleLastUpdatedDesc, responsibleIdFilter = List.empty)
       )
       .get
       .summaryResults
@@ -714,13 +714,13 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 4)
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByStatusAsc))
+      .matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByStatusAsc, responsibleIdFilter = List.empty))
       .get
       .summaryResults
       .map(_.id) should be(Seq(4, 3, 1, 2))
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByStatusDesc))
+      .matchingQuery(multiDraftSearchSettings.copy(sort = Sort.ByStatusDesc, responsibleIdFilter = List.empty))
       .get
       .summaryResults
       .map(_.id) should be(Seq(2, 1, 3, 4))
@@ -789,6 +789,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
           )
         ),
       )
+
     draftIndexService.indexDocument(draft1, indexingBundle).get
 
     blockUntil(() => draftIndexService.countDocuments == 1)
@@ -1018,8 +1019,8 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          sort = Sort.ByIdAsc,
           query = NonEmptyString.fromString("giraff"),
+          sort = Sort.ByIdAsc,
           resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
         )
       )
@@ -1030,8 +1031,8 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          sort = Sort.ByIdAsc,
           query = NonEmptyString.fromString("apekatt"),
+          sort = Sort.ByIdAsc,
           resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
         )
       )
@@ -1133,8 +1134,8 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     val search = multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
           responsibleIdFilter = List("some-user"),
+          resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
         )
       )
       .get

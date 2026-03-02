@@ -50,16 +50,16 @@ case class DraftSearchParamsDTO(
     languageFilter: Option[List[String]],
     @description(
       """A list of relevances the learning resources should be filtered by.
-          |If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
-          |If levels are specified the learning resource must have specified relevances in relation to a specified level."""
+    |If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
+    |If levels are specified the learning resource must have specified relevances in relation to a specified level."""
         .stripMargin
     )
     relevance: Option[List[String]],
     @description(
       s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ["0", "initial", "start", "first"].
-           |When scrolling, the parameters from the initial search is used, except in the case of 'language' and 'fallback'.
-           |This value may change between scrolls. Always use the one in the latest scroll result.
-           |""".stripMargin
+     |When scrolling, the parameters from the initial search is used, except in the case of 'language' and 'fallback'.
+     |This value may change between scrolls. Always use the one in the latest scroll result.
+     |""".stripMargin
     )
     scrollId: Option[String],
     @description(
@@ -67,8 +67,8 @@ case class DraftSearchParamsDTO(
     )
     draftStatus: Option[List[String]],
     @description(s"""List of users to filter by.
-         |The value to search for is the user-id from Auth0.
-         |UpdatedBy on article and user in editorial-notes are searched.""".stripMargin)
+     |The value to search for is the user-id from Auth0.
+     |UpdatedBy on article and user in editorial-notes are searched.""".stripMargin)
     users: Option[List[String]],
     @description("A list of codes from GREP API the resources should be filtered by.")
     grepCodes: Option[List[String]],
@@ -106,6 +106,8 @@ case class DraftSearchParamsDTO(
     resultTypes: Option[List[SearchType]],
     @description("Only return results that have one of the specified tags.")
     tags: Option[List[String]],
+    @description("Only return results that have specified publishedCount")
+    publishedCount: Option[Int],
 )
 
 object DraftSearchParamsDTO {
