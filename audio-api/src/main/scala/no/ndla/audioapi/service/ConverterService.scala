@@ -98,7 +98,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
         revision = audioMeta.revision.get,
         title = maybeToApiTitle(findByLanguageOrBestEffort(audioMeta.titles, language)),
         audioFile = toApiAudio(findByLanguageOrBestEffort(audioMeta.filePaths, language)),
-        copyright = toApiCopyright(audioMeta.copyright),
+        copyright = toApiCopyright(audioMeta.copyright, language.getOrElse(props.DefaultLanguage)),
         tags = toApiTags(findByLanguageOrBestEffort(audioMeta.tags, language)),
         supportedLanguages = audioMeta.supportedLanguages,
         audioType = audioMeta.audioType.toString,
@@ -137,18 +137,22 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     }
   }
 
-  def toApiLicence(licenseAbbrevation: String): commonApi.LicenseDTO = {
+  def toApiLicence(licenseAbbrevation: String, language: String): commonApi.LicenseDTO = {
     getLicense(licenseAbbrevation) match {
-      case Some(license) => commonApi.LicenseDTO(license.license.toString, Option(license.description), license.url)
-      case None          =>
+      case Some(license) => commonApi.LicenseDTO(
+          license.license.toString,
+          Option(license.description),
+          findByLanguageOrBestEffort(license.url, language).map(_.url),
+        )
+      case None =>
         logger.warn("Could not retrieve license information for {}", licenseAbbrevation)
         commonApi.LicenseDTO("unknown", None, None)
     }
   }
 
-  def toApiCopyright(copyright: Copyright): commonApi.CopyrightDTO = {
+  def toApiCopyright(copyright: Copyright, language: String): commonApi.CopyrightDTO = {
     commonApi.CopyrightDTO(
-      toApiLicence(copyright.license),
+      toApiLicence(copyright.license, language),
       copyright.origin,
       copyright.creators.map(_.toApi),
       copyright.processors.map(_.toApi),

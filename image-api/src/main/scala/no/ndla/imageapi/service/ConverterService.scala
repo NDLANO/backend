@@ -37,9 +37,9 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     commonApi.AuthorDTO(domainAuthor.`type`, domainAuthor.name)
   }
 
-  def asApiCopyright(domainCopyright: commonDomain.article.Copyright): commonApi.CopyrightDTO = {
+  def asApiCopyright(domainCopyright: commonDomain.article.Copyright, language: String): commonApi.CopyrightDTO = {
     commonApi.CopyrightDTO(
-      asApiLicense(domainCopyright.license),
+      asApiLicense(domainCopyright.license, language),
       domainCopyright.origin,
       domainCopyright.creators.map(asApiAuthor),
       domainCopyright.processors.map(asApiAuthor),
@@ -112,7 +112,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
           metaUrl = metaUrl,
           title = title,
           alttext = alttext,
-          copyright = asApiCopyright(imageMeta.copyright),
+          copyright = asApiCopyright(imageMeta.copyright, language.getOrElse(props.DefaultLanguage)),
           tags = tags,
           caption = caption,
           supportedLanguages = supportedLanguages,
@@ -199,7 +199,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
           imageUrl = apiUrl,
           size = image.size,
           contentType = image.contentType,
-          copyright = asApiCopyright(imageMeta.copyright),
+          copyright = asApiCopyright(imageMeta.copyright, language.getOrElse(props.DefaultLanguage)),
           tags = tags,
           caption = caption,
           supportedLanguages = supportedLanguages,
@@ -224,9 +224,15 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     api.ImageTitleDTO(domainImageTitle.title, domainImageTitle.language)
   }
 
-  def asApiLicense(license: String): commonApi.LicenseDTO = {
+  def asApiLicense(license: String, language: String): commonApi.LicenseDTO = {
     getLicense(license)
-      .map(l => commonApi.LicenseDTO(l.license.toString, Some(l.description), l.url))
+      .map(l =>
+        commonApi.LicenseDTO(
+          l.license.toString,
+          Some(l.description),
+          findByLanguageOrBestEffort(l.url, language).map(_.url),
+        )
+      )
       .getOrElse(commonApi.LicenseDTO("unknown", None, None))
   }
 

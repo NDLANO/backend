@@ -306,7 +306,7 @@ class ConverterService(using
           status = toApiStatus(article.status),
           title = title,
           content = articleContent,
-          copyright = article.copyright.map(toApiCopyright),
+          copyright = article.copyright.map(lic => toApiCopyright(lic, language)),
           tags = tags,
           requiredLibraries = article.requiredLibraries.map(toApiRequiredLibrary),
           visualElement = visualElement,
@@ -377,11 +377,11 @@ class ConverterService(using
     )
   }
 
-  private def toApiCopyright(copyright: common.draft.DraftCopyright): DraftCopyrightDTO = {
+  private def toApiCopyright(copyright: common.draft.DraftCopyright, language: String): DraftCopyrightDTO = {
     model
       .api
       .DraftCopyrightDTO(
-        copyright.license.map(toApiLicense),
+        copyright.license.map(lic => toApiLicense(lic, language)),
         copyright.origin,
         copyright.creators.map(_.toApi),
         copyright.processors.map(_.toApi),
@@ -392,9 +392,15 @@ class ConverterService(using
       )
   }
 
-  def toApiLicense(shortLicense: String): commonApi.LicenseDTO = {
+  def toApiLicense(shortLicense: String, language: String): commonApi.LicenseDTO = {
     getLicense(shortLicense)
-      .map(l => commonApi.LicenseDTO(l.license.toString, Option(l.description), l.url))
+      .map(l =>
+        commonApi.LicenseDTO(
+          l.license.toString,
+          Option(l.description),
+          findByLanguageOrBestEffort(l.url, language).map(_.url),
+        )
+      )
       .getOrElse(commonApi.LicenseDTO("unknown", None, None))
   }
 

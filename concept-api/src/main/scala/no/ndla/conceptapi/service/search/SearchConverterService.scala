@@ -113,7 +113,7 @@ class SearchConverterService(using converterService: ConverterService) extends S
       .getOrElse(api.ConceptContent("", "", UnknownLanguage.toString()))
     val tag           = findByLanguageOrBestEffort(tags, language).map(converterService.toApiTags)
     val visualElement = findByLanguageOrBestEffort(visualElements, language).map(converterService.toApiVisualElement)
-    val license       = converterService.toApiLicense(searchableConcept.license)
+    val license       = converterService.toApiLicense(searchableConcept.license, language)
     val copyright     = searchableConcept
       .copyright
       .map(c => {
