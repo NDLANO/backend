@@ -51,21 +51,21 @@ class ImageConverter(using props: Props) extends StrictLogging {
     s3Object.stream,
     s3Object.key,
     s3Object.contentLength,
-    ImageContentType.valueOf(s3Object.contentType),
+    ImageContentType.valueOf(s3Object.contentType).map(ct => Right(ct)).getOrElse(Left(s3Object.contentType)),
   )
 
   def uploadedFileToImageStream(file: UploadedFile, fileName: String): Try[ImageStream] = inputStreamToImageStream(
     file.createStream(),
     fileName,
     file.fileSize,
-    file.contentType.flatMap(ImageContentType.valueOf),
+    file.contentType.flatMap(ImageContentType.valueOf).map(ct => Right(ct)).getOrElse(Left(file.contentType.get)),
   )
 
   private def maybeScrimageFormatToImageStream(
       stream: BufferedInputStream,
       fileName: String,
       contentLength: Long,
-      contentType: Option[ImageContentType],
+      contentType: Either[String, ImageContentType],
       maybeScrimageFormat: Try[Option[Format]],
   ): Try[ImageStream] = {
     import ImageStream.*
@@ -75,8 +75,8 @@ class ImageConverter(using props: Props) extends StrictLogging {
       case Some(Format.JPEG) => Success(Processable(stream, fileName, contentLength, ProcessableImageFormat.Jpeg))
       case Some(Format.WEBP) => Success(Processable(stream, fileName, contentLength, ProcessableImageFormat.Webp))
       case None              => contentType match {
-          case Some(ct) => Success(Unprocessable(stream, fileName, contentLength, ct))
-          case None     => Failure(ImageUnprocessableFormatException("unknown content type"))
+          case Right(ct) => Success(Unprocessable(stream, fileName, contentLength, ct))
+          case Left(ct)  => Failure(ImageUnprocessableFormatException(ct))
         }
     }
   }
@@ -85,7 +85,7 @@ class ImageConverter(using props: Props) extends StrictLogging {
       inputStream: InputStream,
       fileName: String,
       contentLength: Long,
-      contentType: Option[ImageContentType],
+      contentType: Either[String, ImageContentType],
   ): Try[ImageStream] = Try
     .throwIfInterrupted {
       // Use buffered stream with mark to avoid creating multiple streams
