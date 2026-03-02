@@ -67,6 +67,22 @@ class ImageSearchService(using
       case Sort.ByLastUpdatedDesc => fieldSort("lastUpdated").sortOrder(SortOrder.Desc).missing("_last")
       case Sort.ByIdAsc           => fieldSort("id").sortOrder(SortOrder.Asc).missing("_last")
       case Sort.ByIdDesc          => fieldSort("id").sortOrder(SortOrder.Desc).missing("_last")
+      case Sort.ByWidthAsc        => fieldSort("imageFiles.dimensions.width")
+          .sortOrder(SortOrder.Asc)
+          .missing("_last")
+          .nested(nestedSort().path("imageFiles"))
+      case Sort.ByWidthDesc => fieldSort("imageFiles.dimensions.width")
+          .sortOrder(SortOrder.Desc)
+          .missing("_last")
+          .nested(nestedSort().path("imageFiles"))
+      case Sort.ByHeightAsc => fieldSort("imageFiles.dimensions.height")
+          .sortOrder(SortOrder.Asc)
+          .missing("_last")
+          .nested(nestedSort().path("imageFiles"))
+      case Sort.ByHeightDesc => fieldSort("imageFiles.dimensions.height")
+          .sortOrder(SortOrder.Desc)
+          .missing("_last")
+          .nested(nestedSort().path("imageFiles"))
     }
   }
 
