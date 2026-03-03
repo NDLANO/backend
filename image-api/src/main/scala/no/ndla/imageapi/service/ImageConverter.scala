@@ -51,14 +51,14 @@ class ImageConverter(using props: Props) extends StrictLogging {
     s3Object.stream,
     s3Object.key,
     s3Object.contentLength,
-    ImageContentType.valueOf(s3Object.contentType).map(ct => Right(ct)).getOrElse(Left(s3Object.contentType)),
+    ImageContentType.withNameOption(s3Object.contentType).map(ct => Right(ct)).getOrElse(Left(s3Object.contentType)),
   )
 
   def uploadedFileToImageStream(file: UploadedFile, fileName: String): Try[ImageStream] = inputStreamToImageStream(
     file.createStream(),
     fileName,
     file.fileSize,
-    file.contentType.flatMap(ImageContentType.valueOf).map(ct => Right(ct)).getOrElse(Left(file.contentType.get)),
+    file.contentType.flatMap(ImageContentType.withNameOption).map(ct => Right(ct)).getOrElse(Left(file.contentType.get)),
   )
 
   private def maybeScrimageFormatToImageStream(

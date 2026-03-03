@@ -10,6 +10,8 @@ package no.ndla.imageapi.model.domain
 
 import enumeratum.{Enum, EnumEntry}
 import no.ndla.common.CirceUtil.CirceEnumWithErrors
+import sttp.tapir.Schema
+import sttp.tapir.codec.enumeratum.*
 
 sealed abstract class ImageContentType(override val entryName: String, val fileEndings: List[String])
     extends EnumEntry {
@@ -28,5 +30,5 @@ object ImageContentType extends Enum[ImageContentType], CirceEnumWithErrors[Imag
   case object Webp            extends ImageContentType("image/webp", List(".webp"))
 
   override def values: IndexedSeq[ImageContentType] = findValues
-  def valueOf(s: String): Option[ImageContentType]  = ImageContentType.values.find(_.entryName == s)
+  implicit def schema: Schema[ImageContentType]     = schemaForEnumEntry[ImageContentType]
 }

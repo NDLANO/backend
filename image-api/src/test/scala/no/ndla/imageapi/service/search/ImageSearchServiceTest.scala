@@ -821,7 +821,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering on contentType returns only images with specified content type") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(contentType = Some("image/jpeg")), None): @unchecked
+      imageSearchService.matchingQuery(searchSettings.copy(contentType = Some(ImageContentType.Jpeg)), None): @unchecked
 
     searchResult.totalCount should be(8)
     searchResult.results.map(_.id) should be(Seq("1", "2", "3", "4", "5", "6", "7", "8"))
@@ -829,7 +829,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering on contentType for PNG returns only PNG images") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(contentType = Some("image/png")), None): @unchecked
+      imageSearchService.matchingQuery(searchSettings.copy(contentType = Some(ImageContentType.Png)), None): @unchecked
 
     searchResult.totalCount should be(1)
     searchResult.results.map(_.id) should be(Seq("9"))
@@ -837,7 +837,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering on contentType for SVG returns only SVG images") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(contentType = Some("image/svg+xml")), None): @unchecked
+      imageSearchService.matchingQuery(searchSettings.copy(contentType = Some(ImageContentType.Svg)), None): @unchecked
 
     searchResult.totalCount should be(1)
     searchResult.results.map(_.id) should be(Seq("10"))
@@ -845,7 +845,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering on non-existent contentType returns empty result") {
     val Success(searchResult) =
-      imageSearchService.matchingQuery(searchSettings.copy(contentType = Some("image/gif")), None): @unchecked
+      imageSearchService.matchingQuery(searchSettings.copy(contentType = Some(ImageContentType.Gif)), None): @unchecked
 
     searchResult.totalCount should be(0)
     searchResult.results should be(Seq.empty)
@@ -854,7 +854,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   test("That contentType filter can be combined with other filters") {
     // PNG images with YES model released status
     val Success(searchResult1) = imageSearchService.matchingQuery(
-      searchSettings.copy(contentType = Some("image/png"), modelReleased = Seq(ModelReleasedStatus.YES)),
+      searchSettings.copy(contentType = Some(ImageContentType.Png), modelReleased = Seq(ModelReleasedStatus.YES)),
       None,
     ): @unchecked
 
@@ -863,7 +863,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
     // JPEG images larger than 500 bytes
     val Success(searchResult2) = imageSearchService.matchingQuery(
-      searchSettings.copy(contentType = Some("image/jpeg"), minimumSize = Some(500)),
+      searchSettings.copy(contentType = Some(ImageContentType.Jpeg), minimumSize = Some(500)),
       None,
     ): @unchecked
 
@@ -872,7 +872,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
     // SVG images with public domain license
     val Success(searchResult3) = imageSearchService.matchingQuery(
-      searchSettings.copy(contentType = Some("image/svg+xml"), license = Some(PublicDomain.toString)),
+      searchSettings.copy(contentType = Some(ImageContentType.Svg), license = Some(PublicDomain.toString)),
       None,
     ): @unchecked
 
@@ -883,7 +883,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   test("That contentType filter works with search queries") {
     // Search for "logo" with PNG content type
     val Success(searchResult) = imageSearchService.matchingQuery(
-      searchSettings.copy(query = Some("logo"), contentType = Some("image/png")),
+      searchSettings.copy(query = Some("logo"), contentType = Some(ImageContentType.Png)),
       None,
     ): @unchecked
 

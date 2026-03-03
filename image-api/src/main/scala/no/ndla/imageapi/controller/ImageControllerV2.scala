@@ -13,7 +13,7 @@ import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.imageapi.controller.multipart.{MetaDataAndFileForm, UpdateMetaDataAndFileForm}
 import no.ndla.imageapi.model.api.*
-import no.ndla.imageapi.model.domain.{ModelReleasedStatus, SearchSettings, Sort}
+import no.ndla.imageapi.model.domain.{ImageContentType, ModelReleasedStatus, SearchSettings, Sort}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
 import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
@@ -100,7 +100,7 @@ class ImageControllerV2(using
       widthTo: Option[Int],
       heightFrom: Option[Int],
       heightTo: Option[Int],
-      contentType: Option[String],
+      contentType: Option[ImageContentType],
   ) = {
     val settings = query match {
       case Some(searchString) => SearchSettings(
@@ -222,7 +222,7 @@ class ImageControllerV2(using
               widthTo,
               heightFrom,
               heightTo,
-              contentType,
+              contentType.flatMap(ImageContentType.withNameOption),
             )
           }.handleErrorsOrOk
       }

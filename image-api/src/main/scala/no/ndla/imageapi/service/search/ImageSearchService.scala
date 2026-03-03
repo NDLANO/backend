@@ -194,7 +194,7 @@ class ImageSearchService(using
     }
 
     val contentTypeFilter = settings.contentType match {
-      case Some(ct) => Some(nestedQuery("imageFiles", termQuery("imageFiles.contentType", ct)))
+      case Some(ct) => Some(nestedQuery("imageFiles", termQuery("imageFiles.contentType", ct.toString)))
       case None     => None
     }
 

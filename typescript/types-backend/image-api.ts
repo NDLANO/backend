@@ -443,6 +443,11 @@ export type components = {
             language: string;
         };
         /**
+         * ImageContentType
+         * @enum {string}
+         */
+        ImageContentType: "image/bmp" | "image/gif" | "image/jpeg" | "image/x-citrix-jpeg" | "image/pjpeg" | "image/png" | "image/x-png" | "image/svg+xml" | "image/webp";
+        /**
          * ImageDimensionsDTO
          * @description Dimensions of the image
          */
@@ -471,7 +476,7 @@ export type components = {
              */
             size: number;
             /** @description The mimetype of the image */
-            contentType: string;
+            contentType: components["schemas"]["ImageContentType"];
             /** @description The full url to where the image can be downloaded */
             imageUrl: string;
             dimensions?: components["schemas"]["ImageDimensionsDTO"];
@@ -501,7 +506,7 @@ export type components = {
              */
             size: number;
             /** @description The mimetype of the image */
-            contentType: string;
+            contentType: components["schemas"]["ImageContentType"];
             copyright: components["schemas"]["CopyrightDTO"];
             tags: components["schemas"]["ImageTagDTO"];
             /** @description Searchable caption for the image */
@@ -738,6 +743,8 @@ export type components = {
              * @description Filter images with height less than or equal to this value.
              */
             heightTo?: number;
+            /** @description Filter images by content type (e.g., 'image/jpeg', 'image/png'). */
+            contentType?: components["schemas"]["ImageContentType"];
         };
         /**
          * SearchResultDTO
@@ -892,6 +899,7 @@ export type EditorNoteDTO = components['schemas']['EditorNoteDTO'];
 export type ErrorBody = components['schemas']['ErrorBody'];
 export type ImageAltTextDTO = components['schemas']['ImageAltTextDTO'];
 export type ImageCaptionDTO = components['schemas']['ImageCaptionDTO'];
+export type ImageContentType = components['schemas']['ImageContentType'];
 export type ImageDimensionsDTO = components['schemas']['ImageDimensionsDTO'];
 export type ImageFileDTO = components['schemas']['ImageFileDTO'];
 export type ImageMetaInformationV2DTO = components['schemas']['ImageMetaInformationV2DTO'];
@@ -960,6 +968,8 @@ export interface operations {
                 "height-from"?: number;
                 /** @description Filter images with height less than or equal to this value. */
                 "height-to"?: number;
+                /** @description Filter images by content type (e.g., 'image/jpeg', 'image/png'). */
+                "content-type"?: string;
             };
             header?: never;
             path?: never;
@@ -1542,6 +1552,8 @@ export interface operations {
                 "height-from"?: number;
                 /** @description Filter images with height less than or equal to this value. */
                 "height-to"?: number;
+                /** @description Filter images by content type (e.g., 'image/jpeg', 'image/png'). */
+                "content-type"?: string;
             };
             header?: never;
             path?: never;

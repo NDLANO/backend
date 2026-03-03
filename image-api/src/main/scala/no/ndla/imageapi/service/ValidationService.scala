@@ -27,7 +27,7 @@ class ValidationService(using props: Props) {
     val actualMimeType = imageFile.contentType.getOrElse("")
 
     // Find the ImageContentType for the provided mime type
-    ImageContentType.valueOf(actualMimeType) match {
+    ImageContentType.withNameOption(actualMimeType) match {
       case None => Some(
           ValidationMessage(
             "file",

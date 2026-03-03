@@ -11,7 +11,7 @@ package no.ndla.imageapi.model.api
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.api.LanguageCode
-import no.ndla.imageapi.model.domain.Sort
+import no.ndla.imageapi.model.domain.{ImageContentType, Sort}
 import sttp.tapir.Schema.annotations.{deprecated, description}
 
 @description("The search parameters")
@@ -56,7 +56,7 @@ case class SearchParamsDTO(
     @description("Filter images with height less than or equal to this value.")
     heightTo: Option[Int],
     @description("Filter images by content type (e.g., 'image/jpeg', 'image/png').")
-    contentType: Option[String],
+    contentType: Option[ImageContentType],
 )
 
 object SearchParamsDTO {

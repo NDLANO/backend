@@ -13,7 +13,7 @@ import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.imageapi.controller.multipart.{CopyMetaDataAndFileForm, MetaDataAndFileForm, UpdateMetaDataAndFileForm}
 import no.ndla.imageapi.model.api.*
-import no.ndla.imageapi.model.domain.{ModelReleasedStatus, SearchSettings, Sort}
+import no.ndla.imageapi.model.domain.{ImageContentType, ModelReleasedStatus, SearchSettings, Sort}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
 import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
@@ -24,7 +24,7 @@ import no.ndla.network.tapir.NoNullJsonPrinter.*
 import no.ndla.network.tapir.TapirUtil.errorOutputsFor
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.network.tapir.{DynamicHeaders, ErrorHelpers, TapirController, ErrorHandling}
+import no.ndla.network.tapir.{DynamicHeaders, ErrorHandling, ErrorHelpers, TapirController}
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.server.ServerEndpoint
@@ -88,7 +88,7 @@ class ImageControllerV3(using
       widthTo: Option[Int],
       heightFrom: Option[Int],
       heightTo: Option[Int],
-      contentType: Option[String],
+      contentType: Option[ImageContentType],
   ) = {
     val settings = query match {
       case Some(searchString) => SearchSettings(
@@ -213,7 +213,7 @@ class ImageControllerV3(using
               widthTo,
               heightFrom,
               heightTo,
-              contentType,
+              contentType.flatMap(ImageContentType.withNameOption),
             )
           }.handleErrorsOrOk
       }
