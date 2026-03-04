@@ -234,4 +234,11 @@ class ReadService(using
     }
   }
 
+  def getAllUserIds: Try[Seq[String]] = dbUtility.readOnly { implicit session =>
+    draftRepository.getAllUserIds match {
+      case Failure(exception) => Failure(exception)
+      case Success(value)     => Success(value)
+    }
+  }
+
 }
