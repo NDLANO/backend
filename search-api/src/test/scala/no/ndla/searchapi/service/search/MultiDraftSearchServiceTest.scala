@@ -432,6 +432,13 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     ): @unchecked
     search.totalCount should be(7)
     search.summaryResults.map(_.id) should be(Seq(1, 5, 5, 6, 7, 11, 12))
+
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", subjects = List("NONE"))
+    ): @unchecked
+    search2.totalCount should be(3)
+    search2.summaryResults.map(_.id) should be(Seq(6, 13, 16))
+
   }
 
   test("That filtering for subjects with inactive contexts works as expected") {
@@ -542,6 +549,23 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
     search3.totalCount should be(1)
     search3.summaryResults.map(_.id) should be(Seq(16))
+  }
+
+  test("That filtering on responsibleIds works") {
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", responsibleIdFilter = List("ndalId54321"))
+    ): @unchecked
+
+    search.totalCount should be(4)
+    search.summaryResults.map(_.id) should be(Seq(1, 5, 9, 13))
+
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", responsibleIdFilter = List("NONE"))
+    ): @unchecked
+
+    search2.totalCount should be(13)
+    search2.summaryResults.map(_.id) should be(Seq(1, 2, 2, 3, 4, 4, 5, 6, 6, 8, 10, 12, 16))
+
   }
 
   test("That filtering on learningpath learningresourcetype returns learningpaths") {

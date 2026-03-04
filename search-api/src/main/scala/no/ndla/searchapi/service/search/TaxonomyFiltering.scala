@@ -63,12 +63,16 @@ trait TaxonomyFiltering {
   protected def subjectFilter(subjects: List[String], filterInactive: Boolean): Option[Query] =
     if (subjects.isEmpty) None
     else {
-      val subjectQueries = subjects.map(subjectId =>
-        if (filterInactive)
-          boolQuery().must(booleanMust("contexts.rootId", subjectId), booleanMust("contexts.isActive", "true"))
-        else booleanMust("contexts.rootId", subjectId)
-      )
-      Some(mustBeConceptOr(nestedQuery("contexts", boolQuery().should(subjectQueries)).ignoreUnmapped(true)))
+      if (subjects.contains("NONE")) {
+        Some(boolQuery().not(nestedQuery("contexts", existsQuery("contexts.rootId")).ignoreUnmapped(true)))
+      } else {
+        val subjectQueries = subjects.map(subjectId =>
+          if (filterInactive)
+            boolQuery().must(booleanMust("contexts.rootId", subjectId), booleanMust("contexts.isActive", "true"))
+          else booleanMust("contexts.rootId", subjectId)
+        )
+        Some(mustBeConceptOr(nestedQuery("contexts", boolQuery().should(subjectQueries)).ignoreUnmapped(true)))
+      }
     }
 
   protected def topicFilter(topics: List[String], filterInactive: Boolean): Option[Query] =
