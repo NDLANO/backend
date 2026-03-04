@@ -15,7 +15,7 @@ import no.ndla.common.model.domain.{ContributorType, UploadedFile}
 import no.ndla.common.model.{NDLADate, api as commonApi, domain as common}
 import no.ndla.imageapi.model.api.*
 import no.ndla.imageapi.model.domain
-import no.ndla.imageapi.model.domain.{ImageMetaInformation, ImageVariantSize, ModelReleasedStatus}
+import no.ndla.imageapi.model.domain.{ImageContentType, ImageMetaInformation, ImageVariantSize, ModelReleasedStatus}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.Permission.IMAGE_API_WRITE
 import no.ndla.network.tapir.auth.TokenUser
@@ -59,7 +59,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       new domain.ImageFileData(
         fileName = "yolo.jpeg",
         size = 100,
-        contentType = "image/jpeg",
+        contentType = ImageContentType.Jpeg,
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
@@ -78,7 +78,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   )
 
   override def beforeEach(): Unit = {
-    when(fileMock1.contentType).thenReturn(Some("image/jpeg"))
+    when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg))
     val imageStream = TestData.ndlaLogoImageStream
     when(fileMock1.createStream()).thenReturn(imageStream.stream)
     when(fileMock1.fileSize).thenReturn(imageStream.contentLength)
@@ -97,10 +97,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("uploadImageWithVariants should return Success if file upload succeeds") {
     when(imageStorage.objectExists(any[String])).thenReturn(false)
     when(imageStorage.uploadFromStream(any, any, any, any)).thenReturn(Success(newFileName))
+    when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg.toString))
     val expectedImage = domain.UploadedImage(
       newFileName,
       fileMock1.fileSize,
-      "image/jpeg",
+      ImageContentType.Jpeg,
       Some(domain.ImageDimensions(189, 60)),
       Seq.empty,
     )
@@ -114,6 +115,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("uploadImageWithVariants should return Failure if file upload failed") {
     when(imageStorage.objectExists(any[String])).thenReturn(false)
     when(imageStorage.uploadFromStream(any, any, any, any)).thenReturn(Failure(new RuntimeException))
+    when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg.toString))
 
     writeService.uploadImageWithVariants(fileMock1).isFailure should be(true)
   }
@@ -124,6 +126,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(validationService.validate(any, any)).thenAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[ImageMetaInformation](0))
     })
+    when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg.toString))
 
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
   }
@@ -152,6 +155,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Failure(new RuntimeException)
     )
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
+    when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg.toString))
 
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
     verify(imageIndexService, times(0)).indexDocument(any[ImageMetaInformation])
@@ -168,6 +172,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
     when(imageStorage.deleteObjects(any)).thenReturn(Success(()))
     when(imageRepository.insert(any)(using any)).thenReturn(Success(domainImageMeta.copy(id = Some(100L))))
+    when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg.toString))
 
     val result = writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser)
     result.isFailure should be(true)
@@ -185,6 +190,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(imageStorage.deleteObject(any)).thenReturn(Success(()))
     when(imageStorage.deleteObjects(any)).thenReturn(Success(()))
     when(imageRepository.insert(any)(using any)).thenReturn(Success(afterInsert))
+    when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg.toString))
 
     writeService.storeNewImage(newImageMeta, fileMock1, TokenUser.SystemUser).isFailure should be(true)
     verify(imageRepository, times(1)).insert(any[ImageMetaInformation])(using any[DBSession])
@@ -201,10 +207,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
     when(imageIndexService.indexDocument(any[ImageMetaInformation])).thenAnswer(i => Success(i.getArgument(0)))
     when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenAnswer(i => Success(i.getArgument(0)))
+    when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg.toString))
     val expectedImageFile = domain.ImageFileData(
       newFileName,
       fileMock1.fileSize,
-      "image/jpeg",
+      ImageContentType.Jpeg,
       Some(domain.ImageDimensions(189, 60)),
       Seq.empty,
       "en",
@@ -336,7 +343,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val image   = domain.ImageFileData(
       fileName = "yo.jpg",
       size = 123,
-      contentType = "image/jpeg",
+      contentType = ImageContentType.Jpeg,
       dimensions = Some(domain.ImageDimensions(10, 10)),
       variants = Seq.empty,
       language = "nb",
@@ -366,7 +373,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val imageId         = 4444.toLong
     val domainWithImage = domainImageMeta.copy(images =
-      Seq(domain.ImageFileData(newFileName, 1024, "image/jpeg", Some(domain.ImageDimensions(189, 60)), Seq.empty, "nb"))
+      Seq(
+        domain.ImageFileData(
+          newFileName,
+          1024,
+          ImageContentType.Jpeg,
+          Some(domain.ImageDimensions(189, 60)),
+          Seq.empty,
+          "nb",
+        )
+      )
     )
 
     when(imageRepository.withId(imageId)).thenReturn(Success(Some(domainWithImage)))
@@ -475,7 +491,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val image = domain.ImageFileData(
       fileName = "apekatt.jpg",
       size = 100,
-      contentType = "image/jpeg",
+      contentType = ImageContentType.Jpeg,
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
@@ -510,6 +526,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(coolDate)
     when(imageStorage.objectExists(any)).thenReturn(false)
     when(random.string(any)).thenReturn("randomstring")
+    when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg.toString))
 
     val expectedResult = dbImage.copy(
       titles = Seq(domain.ImageTitle("new title", "nb")),
@@ -556,7 +573,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val image = domain.ImageFileData(
       fileName = "apekatt.jpg",
       size = 100,
-      contentType = "image/jpeg",
+      contentType = ImageContentType.Jpeg,
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
@@ -587,6 +604,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(coolDate)
     when(imageStorage.objectExists(any)).thenReturn(false)
     when(random.string(any)).thenReturn("randomstring")
+    when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg.toString))
 
     val expectedResult = dbImage.copy(
       titles = Seq(domain.ImageTitle("new title", "nb")),
@@ -624,7 +642,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val image = domain.ImageFileData(
       fileName = "apekatt.jpg",
       size = 100,
-      contentType = "image/jpeg",
+      contentType = ImageContentType.Jpeg,
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
@@ -689,7 +707,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val image = domain.ImageFileData(
       fileName = "apekatt.jpg",
       size = 100,
-      contentType = "image/jpeg",
+      contentType = ImageContentType.Jpeg,
       dimensions = None,
       variants = Seq.empty,
       language = "nb",

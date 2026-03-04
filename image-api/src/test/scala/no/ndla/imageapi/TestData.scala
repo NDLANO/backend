@@ -34,7 +34,7 @@ class TestData(using props: Props) {
       ImageFileData(
         fileName = "Elg.jpg",
         size = 2865539,
-        contentType = "image/jpeg",
+        contentType = ImageContentType.Jpeg,
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
@@ -68,7 +68,7 @@ class TestData(using props: Props) {
     api.ImageAltTextDTO("Elg i busk", "nb"),
     "Elg.jpg",
     2865539,
-    "image/jpeg",
+    ImageContentType.Jpeg,
     commonApi.CopyrightDTO(
       commonApi.LicenseDTO(
         License.CC_BY_NC_SA.toString,
@@ -100,7 +100,7 @@ class TestData(using props: Props) {
     alttext = api.ImageAltTextDTO("Elg i busk", "nb"),
     imageUrl = "",
     size = 141134,
-    contentType = "image/jpeg",
+    contentType = ImageContentType.Jpeg,
     copyright = commonApi.CopyrightDTO(
       commonApi.LicenseDTO(
         License.CC_BY_NC_SA.toString,
@@ -133,7 +133,7 @@ class TestData(using props: Props) {
       new ImageFileData(
         fileName = "Bjørn.jpg",
         size = 14113,
-        contentType = "image/jpeg",
+        contentType = ImageContentType.Jpeg,
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
@@ -168,7 +168,7 @@ class TestData(using props: Props) {
       new ImageFileData(
         fileName = "Jerv.jpg",
         size = 39061,
-        contentType = "image/jpeg",
+        contentType = ImageContentType.Jpeg,
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
@@ -203,7 +203,7 @@ class TestData(using props: Props) {
       new ImageFileData(
         fileName = "Mink.jpg",
         size = 102559,
-        contentType = "image/jpeg",
+        contentType = ImageContentType.Jpeg,
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
@@ -238,7 +238,7 @@ class TestData(using props: Props) {
       new ImageFileData(
         fileName = "Rein.jpg",
         size = 504911,
-        contentType = "image/jpeg",
+        contentType = ImageContentType.Jpeg,
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
@@ -273,7 +273,7 @@ class TestData(using props: Props) {
       new ImageFileData(
         fileName = "Krokodille.jpg",
         size = 2865539,
-        contentType = "image/jpeg",
+        contentType = ImageContentType.Jpeg,
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
@@ -308,7 +308,7 @@ class TestData(using props: Props) {
       new ImageFileData(
         fileName = "Bison.jpg",
         size = 2865539,
-        contentType = "image/jpeg",
+        contentType = ImageContentType.Jpeg,
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
@@ -337,28 +337,28 @@ class TestData(using props: Props) {
 
   val testdata: List[ImageMetaInformation] = List(elg, bjorn, jerv, mink, rein)
 
-  def mockS3ObjectFromDisk(fileName: String, contentType: String): NdlaS3Object = {
+  def mockS3ObjectFromDisk(fileName: String, contentType: ImageContentType): NdlaS3Object = {
     val bytes  = getClass.getResourceAsStream(s"/$fileName").readAllBytes()
     val stream = new ByteArrayInputStream(bytes)
-    NdlaS3Object("", fileName, stream, contentType, bytes.length)
+    NdlaS3Object("", fileName, stream, contentType.toString, bytes.length)
   }
 
   private val imageConverter: ImageConverter = new ImageConverter
 
-  def ndlaLogoImageS3Object: NdlaS3Object          = mockS3ObjectFromDisk("ndla_logo.jpg", "image/jpeg")
+  def ndlaLogoImageS3Object: NdlaS3Object          = mockS3ObjectFromDisk("ndla_logo.jpg", ImageContentType.Jpeg)
   def ndlaLogoImageStream: ImageStream.Processable = imageConverter
     .s3ObjectToImageStream(ndlaLogoImageS3Object)
     .get
     .asInstanceOf[ImageStream.Processable]
   val NdlaLogoImage: ProcessableImage = ProcessableImage.fromStream(ndlaLogoImageStream).get
 
-  def ndlaLogoGIFImageS3Object: NdlaS3Object  = mockS3ObjectFromDisk("ndla_logo.gif", "image/gif")
+  def ndlaLogoGIFImageS3Object: NdlaS3Object  = mockS3ObjectFromDisk("ndla_logo.gif", ImageContentType.Gif)
   def ndlaLogoGifImageStream: ImageStream.Gif = imageConverter
     .s3ObjectToImageStream(ndlaLogoGIFImageS3Object)
     .get
     .asInstanceOf[ImageStream.Gif]
 
-  def ccLogoSvgImageS3Object: NdlaS3Object            = mockS3ObjectFromDisk("cc.svg", "image/svg+xml")
+  def ccLogoSvgImageS3Object: NdlaS3Object            = mockS3ObjectFromDisk("cc.svg", ImageContentType.Svg)
   def ccLogoSvgImageStream: ImageStream.Unprocessable = imageConverter
     .s3ObjectToImageStream(ccLogoSvgImageS3Object)
     .get
@@ -366,7 +366,7 @@ class TestData(using props: Props) {
 
   // From https://pixabay.com/en/children-drawing-home-tree-meadow-582306/
   private val childrensImageFileName = "children-drawing-582306_640.jpg"
-  private val childrensImageS3Object = mockS3ObjectFromDisk(childrensImageFileName, "image/jpeg")
+  private val childrensImageS3Object = mockS3ObjectFromDisk(childrensImageFileName, ImageContentType.Jpeg)
   private val childrensImageStream   = imageConverter
     .s3ObjectToImageStream(childrensImageS3Object)
     .get
@@ -375,7 +375,7 @@ class TestData(using props: Props) {
 
   val childrensImageUploadedFile: UploadedFile = {
     val file = new File(getClass.getResource(s"/$childrensImageFileName").toURI)
-    UploadedFile("file", Some(childrensImageFileName), file.length(), Some("image/jpeg"), file)
+    UploadedFile("file", Some(childrensImageFileName), file.length(), Some(ImageContentType.Jpeg.toString), file)
   }
 
   val searchSettings: SearchSettings = SearchSettings(
@@ -396,5 +396,6 @@ class TestData(using props: Props) {
     widthTo = None,
     heightFrom = None,
     heightTo = None,
+    contentType = None,
   )
 }

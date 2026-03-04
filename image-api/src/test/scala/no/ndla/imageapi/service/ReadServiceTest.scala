@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain as common
 import no.ndla.common.model.domain.ContributorType
 import no.ndla.imageapi.model.api.ImageMetaInformationV2DTO
-import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
+import no.ndla.imageapi.model.domain.{ImageContentType, ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.model.{InvalidUrlException, api, domain}
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import org.mockito.Mockito.when
@@ -85,7 +85,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         new ImageFileData(
           fileName = "Elg.jpg",
           size = 2865539,
-          contentType = "image/jpeg",
+          contentType = ImageContentType.Jpeg,
           dimensions = None,
           variants = Seq.empty,
           language = "nb",

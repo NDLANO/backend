@@ -193,6 +193,11 @@ class ImageSearchService(using
       case (None, None)       => None
     }
 
+    val contentTypeFilter = settings.contentType match {
+      case Some(ct) => Some(nestedQuery("imageFiles", termQuery("imageFiles.contentType", ct.toString)))
+      case None     => None
+    }
+
     val filters = List(
       languageFilter,
       licenseFilter,
@@ -203,6 +208,7 @@ class ImageSearchService(using
       userFilter,
       widthFilter,
       heightFilter,
+      contentTypeFilter,
     )
     val filteredSearch = queryBuilder.filter(filters.flatten)
 

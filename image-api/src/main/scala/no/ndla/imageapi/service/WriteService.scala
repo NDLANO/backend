@@ -470,7 +470,7 @@ class WriteService(using
           // We only process image/jpeg and image/png in this job, so a GIF or unprocessable image is an error
           case stream: (
                 ImageStream.Gif | ImageStream.Unprocessable
-              ) => Failure(ImageUnprocessableFormatException(stream.contentType))
+              ) => Failure(ImageUnprocessableFormatException("unprocessable format"))
         }
         .recoverWith { ex =>
           Try(s3Object.stream.close()) match {
@@ -584,7 +584,7 @@ class WriteService(using
               resizedImage.toProcessableStreamWithWriter(getWebpWriterForFormat(format), ProcessableImageFormat.Webp)
             bucketKey     = s"$fileStem/${variantSize.entryName}.webp"
             imageVariant <- imageStorage
-              .uploadFromStream(bucketKey, webpStream.stream, webpStream.contentLength, "image/webp")
+              .uploadFromStream(bucketKey, webpStream.stream, webpStream.contentLength, ImageContentType.Webp)
               .map(_ => ImageVariant(variantSize, bucketKey))
           } yield imageVariant
         }

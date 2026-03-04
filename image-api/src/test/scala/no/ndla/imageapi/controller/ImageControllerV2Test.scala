@@ -243,7 +243,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
         new ImageFileData(
           fileName = "/img.jpg",
           size = 1024,
-          contentType = "image/jpeg",
+          contentType = ImageContentType.Jpeg,
           dimensions = None,
           variants = Seq.empty,
           language = "und",

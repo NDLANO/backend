@@ -13,7 +13,7 @@ import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.imageapi.model.api
 import no.ndla.imageapi.model.api.{ImageAltTextDTO, ImageCaptionDTO, ImageTagDTO, ImageTitleDTO}
-import no.ndla.imageapi.model.domain.{ImageFileData, ImageMetaInformation, ModelReleasedStatus}
+import no.ndla.imageapi.model.domain.{ImageContentType, ImageFileData, ImageMetaInformation, ModelReleasedStatus}
 import no.ndla.imageapi.service.ConverterService
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.{CC_BY, getLicense}
@@ -45,7 +45,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     ImageAltTextDTO("", "nb"),
     s"${props.RawImageUrlBase}/test.jpg",
     0,
-    "",
+    ImageContentType.Jpeg,
     commonApi.CopyrightDTO(
       commonApi.LicenseDTO(BySa.license.toString, Some(BySa.description), BySa.url),
       None,
@@ -74,7 +74,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
       new ImageFileData(
         fileName = "test.jpg",
         size = 0,
-        contentType = "",
+        contentType = ImageContentType.Jpeg,
         dimensions = None,
         variants = Seq.empty,
         language = "und",

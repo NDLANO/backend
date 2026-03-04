@@ -13,7 +13,8 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.aws.{NdlaS3Client, NdlaS3Object}
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.domain.ImageStream
+import no.ndla.imageapi.model.ImageNotFoundException
+import no.ndla.imageapi.model.domain.{ImageContentType, ImageStream}
 
 import java.io.InputStream
 import scala.util.{Failure, Success, Try}
@@ -24,28 +25,24 @@ class ImageStorageService(using
     imageConverter: ImageConverter,
     props: Props,
 ) extends StrictLogging {
-  private def ensureS3ContentType(s3Object: NdlaS3Object): String = {
-    val s3ContentType = s3Object.contentType
-    val fileName      = s3Object.key
-    if (s3ContentType == "binary/octet-stream") {
+  private def ensureS3ContentType(s3Object: NdlaS3Object): Try[Unit] = {
+    val fileName = s3Object.key
+    if (s3Object.contentType == "binary/octet-stream") {
       readService.getImageFileFromFilePath(fileName) match {
-        case Failure(ex) =>
-          logger.warn(s"Couldn't get meta for $fileName so using s3 content-type of '$s3ContentType'", ex)
-          s3ContentType
-        case Success(meta)
-            if meta.contentType != "" && meta.contentType != "binary/octet-stream" && props
-              .ValidMimeTypes
-              .contains(meta.contentType) =>
+        case Success(meta) if props.ValidMimeTypes.contains(meta.contentType) =>
           updateContentType(s3Object.key, meta.contentType) match {
             case Failure(ex) =>
               logger.error(s"Could not update content-type s3-metadata of $fileName to ${meta.contentType}", ex)
             case Success(_) =>
               logger.info(s"Successfully updated content-type s3-metadata of $fileName to ${meta.contentType}")
           }
-          meta.contentType
-        case _ => s3ContentType
+          Success(())
+        case _ =>
+          val message = s"Failed to find image based on file path: $fileName"
+          logger.error(message)
+          Failure(ImageNotFoundException(message))
       }
-    } else s3ContentType
+    } else Success(())
   }
 
   def get(imageKey: String): Try[ImageStream] = {
@@ -58,15 +55,19 @@ class ImageStorageService(using
 
   def getRaw(bucketKey: String): Try[NdlaS3Object] = s3Client.getObject(bucketKey)
 
-  def uploadFromStream(storageKey: String, stream: InputStream, contentLength: Long, contentType: String): Try[String] =
-    s3Client
-      .putObject(storageKey, stream, contentLength, contentType, props.S3NewFileCacheControlHeader.some)
-      .map(_ => storageKey)
+  def uploadFromStream(
+      storageKey: String,
+      stream: InputStream,
+      contentLength: Long,
+      contentType: ImageContentType,
+  ): Try[String] = s3Client
+    .putObject(storageKey, stream, contentLength, contentType.toString, props.S3NewFileCacheControlHeader.some)
+    .map(_ => storageKey)
 
-  def updateContentType(storageKey: String, contentType: String): Try[Unit] = for {
+  def updateContentType(storageKey: String, contentType: ImageContentType): Try[Unit] = for {
     meta    <- s3Client.headObject(storageKey)
     metadata = meta.metadata()
-    _        = metadata.put("Content-Type", contentType)
+    _        = metadata.put("Content-Type", contentType.toString)
     _       <- s3Client.updateMetadata(storageKey, metadata)
   } yield ()
 

@@ -13,7 +13,7 @@ import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.api.LanguageCode
 import no.ndla.imageapi.controller.multipart.{MetaDataAndFileForm, UpdateMetaDataAndFileForm}
 import no.ndla.imageapi.model.api.*
-import no.ndla.imageapi.model.domain.{ModelReleasedStatus, SearchSettings, Sort}
+import no.ndla.imageapi.model.domain.{ImageContentType, ModelReleasedStatus, SearchSettings, Sort}
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageSearchService, SearchConverterService}
 import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
@@ -100,6 +100,7 @@ class ImageControllerV2(using
       widthTo: Option[Int],
       heightFrom: Option[Int],
       heightTo: Option[Int],
+      contentType: Option[ImageContentType],
   ) = {
     val settings = query match {
       case Some(searchString) => SearchSettings(
@@ -120,6 +121,7 @@ class ImageControllerV2(using
           widthTo = widthTo,
           heightFrom = heightFrom,
           heightTo = heightTo,
+          contentType = contentType,
         )
       case None => SearchSettings(
           query = None,
@@ -139,6 +141,7 @@ class ImageControllerV2(using
           widthTo = widthTo,
           heightFrom = heightFrom,
           heightTo = heightTo,
+          contentType = contentType,
         )
     }
 
@@ -171,6 +174,7 @@ class ImageControllerV2(using
     .in(widthTo)
     .in(heightFrom)
     .in(heightTo)
+    .in(contentType)
     .errorOut(errorOutputsFor(400))
     .out(jsonBody[SearchResultDTO])
     .out(EndpointOutput.derived[DynamicHeaders])
@@ -194,6 +198,7 @@ class ImageControllerV2(using
               widthTo,
               heightFrom,
               heightTo,
+              contentType,
             ) => scrollSearchOr(scrollId, language, user) {
             val sort                = Sort.valueOf(sortStr)
             val shouldScroll        = scrollId.exists(props.InitialScrollContextKeywords.contains)
@@ -217,6 +222,7 @@ class ImageControllerV2(using
               widthTo,
               heightFrom,
               heightTo,
+              contentType.flatMap(ImageContentType.withNameOption),
             )
           }.handleErrorsOrOk
       }
@@ -250,6 +256,7 @@ class ImageControllerV2(using
         val widthTo             = searchParams.widthTo
         val heightFrom          = searchParams.heightFrom
         val heightTo            = searchParams.heightTo
+        val contentType         = searchParams.contentType
 
         search(
           minimumSize,
@@ -269,6 +276,7 @@ class ImageControllerV2(using
           widthTo,
           heightFrom,
           heightTo,
+          contentType,
         )
       }.handleErrorsOrOk
     })

@@ -23,28 +23,38 @@ import scala.util.{Failure, Success, Try}
 class ValidationService(using props: Props) {
 
   def validateImageFile(imageFile: UploadedFile): Option[ValidationMessage] = {
-    val fn = imageFile.fileName.getOrElse("").stripPrefix("\"").stripSuffix("\"")
-    if (!hasValidFileExtension(fn, props.ValidFileExtensions)) return Some(
-      ValidationMessage(
-        "file",
-        s"The file $fn does not have a known file extension. Must be one of ${props.ValidFileExtensions.mkString(",")}",
-      )
-    )
-
+    val fn             = imageFile.fileName.getOrElse("").stripPrefix("\"").stripSuffix("\"")
     val actualMimeType = imageFile.contentType.getOrElse("")
 
-    if (!props.ValidMimeTypes.contains(actualMimeType)) return Some(
-      ValidationMessage(
-        "file",
-        s"The file $fn is not a valid image file. Only valid type is '${props.ValidMimeTypes.mkString(",")}', but was '$actualMimeType'",
-      )
-    )
-
-    None
+    // Find the ImageContentType for the provided mime type
+    ImageContentType.withNameOption(actualMimeType) match {
+      case None => Some(
+          ValidationMessage(
+            "file",
+            s"The file $fn has an invalid content type '$actualMimeType'. Must be one of ${props.ValidMimeTypes.mkString(", ")}",
+          )
+        )
+      case Some(contentType) =>
+        // Verify that the file extension matches the content type
+        val fileExtension = getFileExtension(fn)
+        if (!contentType.fileEndings.contains(fileExtension)) {
+          Some(
+            ValidationMessage(
+              "file",
+              s"The file extension '$fileExtension' does not match the content type '$actualMimeType'. Expected one of ${contentType.fileEndings.mkString(", ")}",
+            )
+          )
+        } else {
+          None
+        }
+    }
   }
 
-  private def hasValidFileExtension(filename: String, extensions: Seq[String]): Boolean = {
-    extensions.exists(extension => filename.toLowerCase.endsWith(extension))
+  private def getFileExtension(filename: String): String = {
+    val lowerFilename = filename.toLowerCase
+    val dotIndex      = lowerFilename.lastIndexOf('.')
+    if (dotIndex >= 0) lowerFilename.substring(dotIndex)
+    else ""
   }
 
   def validate(image: ImageMetaInformation, oldImage: Option[ImageMetaInformation]): Try[ImageMetaInformation] = {

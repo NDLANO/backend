@@ -41,16 +41,62 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   }
   override implicit lazy val imageSearchService: ImageSearchService = new ImageSearchService
 
-  val largeImage: ImageFileData =
-    ImageFileData("large-full-url", 10000, "jpg", Some(ImageDimensions(width = 1920, height = 1080)), Seq.empty, "und")
-  val smallImage: ImageFileData =
-    ImageFileData("small-full-url", 100, "jpg", Some(ImageDimensions(width = 640, height = 480)), Seq.empty, "und")
-  val podcastImage: ImageFileData =
-    ImageFileData("podcast-full-url", 100, "jpg", Some(ImageDimensions(width = 1400, height = 1400)), Seq.empty, "und")
-  val wideImage: ImageFileData =
-    ImageFileData("wide-full-url", 5000, "jpg", Some(ImageDimensions(width = 3840, height = 2160)), Seq.empty, "und")
-  val tallImage: ImageFileData =
-    ImageFileData("tall-full-url", 3000, "jpg", Some(ImageDimensions(width = 1080, height = 1920)), Seq.empty, "und")
+  val largeImage: ImageFileData = ImageFileData(
+    "large-full-url",
+    10000,
+    ImageContentType.Jpeg,
+    Some(ImageDimensions(width = 1920, height = 1080)),
+    Seq.empty,
+    "und",
+  )
+  val smallImage: ImageFileData = ImageFileData(
+    "small-full-url",
+    100,
+    ImageContentType.Jpeg,
+    Some(ImageDimensions(width = 640, height = 480)),
+    Seq.empty,
+    "und",
+  )
+  val podcastImage: ImageFileData = ImageFileData(
+    "podcast-full-url",
+    100,
+    ImageContentType.Jpeg,
+    Some(ImageDimensions(width = 1400, height = 1400)),
+    Seq.empty,
+    "und",
+  )
+  val wideImage: ImageFileData = ImageFileData(
+    "wide-full-url",
+    5000,
+    ImageContentType.Jpeg,
+    Some(ImageDimensions(width = 3840, height = 2160)),
+    Seq.empty,
+    "und",
+  )
+  val tallImage: ImageFileData = ImageFileData(
+    "tall-full-url",
+    3000,
+    ImageContentType.Jpeg,
+    Some(ImageDimensions(width = 1080, height = 1920)),
+    Seq.empty,
+    "und",
+  )
+  val pngImage: ImageFileData = ImageFileData(
+    "png-full-url",
+    2000,
+    ImageContentType.Png,
+    Some(ImageDimensions(width = 800, height = 600)),
+    Seq.empty,
+    "und",
+  )
+  val svgImage: ImageFileData = ImageFileData(
+    "svg-full-url",
+    500,
+    ImageContentType.Svg,
+    Some(ImageDimensions(width = 512, height = 512)),
+    Seq.empty,
+    "und",
+  )
 
   val byNcSa: Copyright = Copyright(
     CC_BY_NC_SA.toString,
@@ -230,6 +276,40 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     inactive = false,
   )
 
+  val image9 = new ImageMetaInformation(
+    id = Some(9),
+    titles = List(ImageTitle("PNG logo image", "en")),
+    alttexts = List(ImageAltText("A transparent PNG logo", "en")),
+    images = Seq(pngImage),
+    copyright = byNcSa,
+    tags = List(Tag(List("logo"), "en")),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty,
+    inactive = false,
+  )
+
+  val image10 = new ImageMetaInformation(
+    id = Some(10),
+    titles = List(ImageTitle("SVG vector graphic", "en")),
+    alttexts = List(ImageAltText("A scalable vector graphic", "en")),
+    images = Seq(svgImage),
+    copyright = publicDomain,
+    tags = List(Tag(List("vector"), "en")),
+    captions = List(),
+    updatedBy = "ndla124",
+    updated = updated,
+    created = updated,
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty,
+    inactive = false,
+  )
+
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (elasticSearchContainer.isSuccess) {
@@ -244,6 +324,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       imageIndexService.indexDocument(image6).get
       imageIndexService.indexDocument(image7).get
       imageIndexService.indexDocument(image8).get
+      imageIndexService.indexDocument(image9).get
+      imageIndexService.indexDocument(image10).get
 
       val servletRequest = mock[NdlaHttpRequest]
       when(servletRequest.getHeader(any[String])).thenReturn(Some("http"))
@@ -251,7 +333,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       when(servletRequest.servletPath).thenReturn("/image-api/v2/images/")
       ApplicationUrl.set(servletRequest)
 
-      blockUntil(() => imageSearchService.countDocuments() == 8)
+      blockUntil(() => imageSearchService.countDocuments() == 10)
     }
   }
 
@@ -280,28 +362,29 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That all returns all documents ordered by id ascending") {
     val searchResult = imageSearchService.matchingQuery(searchSettings.copy(), None).get
-    searchResult.totalCount should be(8)
-    searchResult.results.size should be(8)
+    searchResult.totalCount should be(10)
+    searchResult.results.size should be(10)
     searchResult.page.get should be(1)
     searchResult.results.head.id should be("1")
-    searchResult.results.last.id should be("8")
+    searchResult.results.last.id should be("10")
   }
 
   test("That all filtering on minimumsize only returns images larger than minimumsize") {
     val Success(searchResult) =
       imageSearchService.matchingQuery(searchSettings.copy(minimumSize = Some(500)), None): @unchecked
-    searchResult.totalCount should be(4)
-    searchResult.results.size should be(4)
+    searchResult.totalCount should be(6)
+    searchResult.results.size should be(6)
     searchResult.results.head.id should be("1")
-    searchResult.results.last.id should be("8")
+    searchResult.results.last.id should be("10")
   }
 
   test("That all filtering on license only returns images with given license") {
     val Success(searchResult) =
       imageSearchService.matchingQuery(searchSettings.copy(license = Some(PublicDomain.toString)), None): @unchecked
-    searchResult.totalCount should be(1)
-    searchResult.results.size should be(1)
+    searchResult.totalCount should be(2)
+    searchResult.results.size should be(2)
     searchResult.results.head.id should be("2")
+    searchResult.results.last.id should be("10")
   }
 
   test("That paging returns only hits on current page and not more than page-size") {
@@ -309,14 +392,14 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       imageSearchService.matchingQuery(searchSettings.copy(page = Some(1), pageSize = Some(2)), None): @unchecked
     val Success(searchResultPage2) =
       imageSearchService.matchingQuery(searchSettings.copy(page = Some(2), pageSize = Some(2)), None): @unchecked
-    searchResultPage1.totalCount should be(8)
+    searchResultPage1.totalCount should be(10)
     searchResultPage1.page.get should be(1)
     searchResultPage1.pageSize should be(2)
     searchResultPage1.results.size should be(2)
     searchResultPage1.results.head.id should be("1")
     searchResultPage1.results.last.id should be("2")
 
-    searchResultPage2.totalCount should be(8)
+    searchResultPage2.totalCount should be(10)
     searchResultPage2.page.get should be(2)
     searchResultPage2.pageSize should be(2)
     searchResultPage2.results.size should be(2)
@@ -329,9 +412,10 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       searchSettings.copy(minimumSize = Some(500), license = Some(PublicDomain.toString)),
       None,
     ): @unchecked
-    searchResult.totalCount should be(1)
-    searchResult.results.size should be(1)
+    searchResult.totalCount should be(2)
+    searchResult.results.size should be(2)
     searchResult.results.head.id should be("2")
+    searchResult.results.last.id should be("10")
   }
 
   test("That search matches title and alttext ordered by relevance") {
@@ -364,9 +448,10 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   test("That search on author matches corresponding author on image") {
     val Success(searchResult) =
       imageSearchService.matchingQuery(searchSettings.copy(query = Some("Bruce Wayne")), None): @unchecked
-    searchResult.totalCount should be(1)
-    searchResult.results.size should be(1)
+    searchResult.totalCount should be(2)
+    searchResult.results.size should be(2)
     searchResult.results.head.id should be("2")
+    searchResult.results.last.id should be("10")
   }
 
   test("That search matches tags") {
@@ -488,7 +573,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That scrolling works as expected") {
     val pageSize    = 2
-    val expectedIds = List("1", "2", "3", "4", "5", "6", "7", "8").sliding(pageSize, pageSize).toList
+    val expectedIds = List("1", "2", "3", "4", "5", "6", "7", "8", "9", "10").sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) = imageSearchService.matchingQuery(
       searchSettings.copy(pageSize = Some(pageSize), shouldScroll = true),
@@ -507,7 +592,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That scrolling v3 works as expected") {
     val pageSize    = 2
-    val expectedIds = List[Long](1, 2, 3, 4, 5, 6, 7, 8).sliding(pageSize, pageSize).toList
+    val expectedIds = List[Long](1, 2, 3, 4, 5, 6, 7, 8, 9, 10).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) = imageSearchService.matchingQueryV3(
       searchSettings.copy(pageSize = Some(pageSize), shouldScroll = true),
@@ -564,12 +649,12 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val Success(searchResult3) =
       imageSearchService.matchingQuery(searchSettings.copy(language = "*", modelReleased = Seq(YES)), None): @unchecked
 
-    searchResult3.results.map(_.id) should be(Seq("3", "4", "5", "6", "7", "8"))
+    searchResult3.results.map(_.id) should be(Seq("3", "4", "5", "6", "7", "8", "9", "10"))
 
     val Success(searchResult4) =
       imageSearchService.matchingQuery(searchSettings.copy(language = "*", modelReleased = Seq.empty), None): @unchecked
 
-    searchResult4.results.map(_.id) should be(Seq("1", "2", "3", "4", "5", "6", "7", "8"))
+    searchResult4.results.map(_.id) should be(Seq("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
 
     val Success(searchResult5) = imageSearchService.matchingQuery(
       searchSettings.copy(language = "*", modelReleased = Seq(NO, NOT_APPLICABLE)),
@@ -623,8 +708,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
   test("That not including inactive option returns all images") {
     val Success(searchResult) = imageSearchService.matchingQuery(searchSettings, None): @unchecked
 
-    searchResult.totalCount should be(8)
-    searchResult.results.last.id should be("8")
+    searchResult.totalCount should be(10)
+    searchResult.results.last.id should be("10")
   }
 
   test("That including inactive images work") {
@@ -639,8 +724,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val Success(searchResult) =
       imageSearchService.matchingQuery(searchSettings.copy(inactive = Some(false)), None): @unchecked
 
-    searchResult.totalCount should be(7)
-    searchResult.results.last.id should be("8")
+    searchResult.totalCount should be(9)
+    searchResult.results.last.id should be("10")
   }
 
   test("That filtering on width-from returns only images with width >= specified value") {
@@ -655,8 +740,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val Success(searchResult) =
       imageSearchService.matchingQuery(searchSettings.copy(widthTo = Some(1080)), None): @unchecked
 
-    searchResult.totalCount should be(4)
-    searchResult.results.map(_.id) should be(Seq("3", "4", "6", "8"))
+    searchResult.totalCount should be(6)
+    searchResult.results.map(_.id) should be(Seq("3", "4", "6", "8", "9", "10"))
   }
 
   test("That filtering on width range (from-to) returns only images within range") {
@@ -681,8 +766,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val Success(searchResult) =
       imageSearchService.matchingQuery(searchSettings.copy(heightTo = Some(1080)), None): @unchecked
 
-    searchResult.totalCount should be(5)
-    searchResult.results.map(_.id) should be(Seq("1", "2", "3", "4", "6"))
+    searchResult.totalCount should be(7)
+    searchResult.results.map(_.id) should be(Seq("1", "2", "3", "4", "6", "9", "10"))
   }
 
   test("That filtering on height range (from-to) returns only images within range") {
@@ -732,5 +817,77 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
     searchResult.totalCount should be(0)
     searchResult.results should be(Seq.empty)
+  }
+
+  test("That filtering on contentType returns only images with specified content type") {
+    val Success(searchResult) =
+      imageSearchService.matchingQuery(searchSettings.copy(contentType = Some(ImageContentType.Jpeg)), None): @unchecked
+
+    searchResult.totalCount should be(8)
+    searchResult.results.map(_.id) should be(Seq("1", "2", "3", "4", "5", "6", "7", "8"))
+  }
+
+  test("That filtering on contentType for PNG returns only PNG images") {
+    val Success(searchResult) =
+      imageSearchService.matchingQuery(searchSettings.copy(contentType = Some(ImageContentType.Png)), None): @unchecked
+
+    searchResult.totalCount should be(1)
+    searchResult.results.map(_.id) should be(Seq("9"))
+  }
+
+  test("That filtering on contentType for SVG returns only SVG images") {
+    val Success(searchResult) =
+      imageSearchService.matchingQuery(searchSettings.copy(contentType = Some(ImageContentType.Svg)), None): @unchecked
+
+    searchResult.totalCount should be(1)
+    searchResult.results.map(_.id) should be(Seq("10"))
+  }
+
+  test("That filtering on non-existent contentType returns empty result") {
+    val Success(searchResult) =
+      imageSearchService.matchingQuery(searchSettings.copy(contentType = Some(ImageContentType.Gif)), None): @unchecked
+
+    searchResult.totalCount should be(0)
+    searchResult.results should be(Seq.empty)
+  }
+
+  test("That contentType filter can be combined with other filters") {
+    // PNG images with YES model released status
+    val Success(searchResult1) = imageSearchService.matchingQuery(
+      searchSettings.copy(contentType = Some(ImageContentType.Png), modelReleased = Seq(ModelReleasedStatus.YES)),
+      None,
+    ): @unchecked
+
+    searchResult1.totalCount should be(1)
+    searchResult1.results.map(_.id) should be(Seq("9"))
+
+    // JPEG images larger than 500 bytes
+    val Success(searchResult2) = imageSearchService.matchingQuery(
+      searchSettings.copy(contentType = Some(ImageContentType.Jpeg), minimumSize = Some(500)),
+      None,
+    ): @unchecked
+
+    searchResult2.totalCount should be(4)
+    searchResult2.results.map(_.id) should be(Seq("1", "2", "7", "8"))
+
+    // SVG images with public domain license
+    val Success(searchResult3) = imageSearchService.matchingQuery(
+      searchSettings.copy(contentType = Some(ImageContentType.Svg), license = Some(PublicDomain.toString)),
+      None,
+    ): @unchecked
+
+    searchResult3.totalCount should be(1)
+    searchResult3.results.map(_.id) should be(Seq("10"))
+  }
+
+  test("That contentType filter works with search queries") {
+    // Search for "logo" with PNG content type
+    val Success(searchResult) = imageSearchService.matchingQuery(
+      searchSettings.copy(query = Some("logo"), contentType = Some(ImageContentType.Png)),
+      None,
+    ): @unchecked
+
+    searchResult.totalCount should be(1)
+    searchResult.results.map(_.id) should be(Seq("9"))
   }
 }

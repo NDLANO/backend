@@ -31,7 +31,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
       new ImageFileData(
         fileName = "image.jpg",
         size = 1024,
-        contentType = "image/jpeg",
+        contentType = ImageContentType.Jpeg,
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
@@ -65,9 +65,10 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
   test("validateImageFile returns a validation message if file has an unknown extension") {
     val fileName = "image.asdf"
     when(fileMock.fileName).thenReturn(Some(fileName))
+    when(fileMock.contentType).thenReturn(Some("image/jpeg"))
     val Some(result) = validationService.validateImageFile(fileMock): @unchecked
 
-    result.message.contains(s"The file $fileName does not have a known file extension") should be(true)
+    result.message.contains(s"The file extension '.asdf' does not match the content type") should be(true)
   }
 
   test("validateImageFile returns a validation message if content type is unknown") {
@@ -76,7 +77,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
     when(fileMock.contentType).thenReturn(Some("text/html"))
     val Some(result) = validationService.validateImageFile(fileMock): @unchecked
 
-    result.message.contains(s"The file $fileName is not a valid image file.") should be(true)
+    result.message.contains(s"The file $fileName has an invalid content type") should be(true)
   }
 
   test("validateImageFile returns None if image file is valid") {

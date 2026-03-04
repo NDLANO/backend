@@ -102,6 +102,10 @@ trait BaseImageController(using props: Props) {
   val heightTo: EndpointInput.Query[Option[Int]] =
     query[Option[Int]]("height-to").description("Filter images with height less than or equal to this value.")
 
+  val contentType: EndpointInput.Query[Option[String]] = query[Option[String]]("content-type").description(
+    "Filter images by content type (e.g., 'image/jpeg', 'image/png')."
+  )
+
   val maxImageFileSizeBytes: Int = props.MaxImageFileSizeBytes
 
   def doWithStream[T](filePart: Part[File])(f: UploadedFile => Try[T]): Try[T] = {

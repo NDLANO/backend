@@ -18,7 +18,12 @@ import scala.util.Using.Releasable
   *   The underlying `InputStream` should be closed after being used, either by closing it directly or with
   *   [[scala.util.Using]]. Failing to close the stream may lead to resource leaks/starvation.
   */
-enum ImageStream(val stream: InputStream, val fileName: String, val contentLength: Long, val contentType: String) {
+enum ImageStream(
+    val stream: InputStream,
+    val fileName: String,
+    val contentLength: Long,
+    val contentType: ImageContentType,
+) {
   case Processable(
       override val stream: InputStream,
       override val fileName: String,
@@ -27,13 +32,13 @@ enum ImageStream(val stream: InputStream, val fileName: String, val contentLengt
   ) extends ImageStream(stream, fileName, contentLength, format.toContentType)
 
   case Gif(override val stream: InputStream, override val fileName: String, override val contentLength: Long)
-      extends ImageStream(stream, fileName, contentLength, "image/gif")
+      extends ImageStream(stream, fileName, contentLength, ImageContentType.Gif)
 
   case Unprocessable(
       override val stream: InputStream,
       override val fileName: String,
       override val contentLength: Long,
-      override val contentType: String,
+      override val contentType: ImageContentType,
   ) extends ImageStream(stream, fileName, contentLength, contentType)
 }
 

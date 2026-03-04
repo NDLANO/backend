@@ -55,7 +55,7 @@ object ImageCaption {
 case class UploadedImage(
     fileName: String,
     size: Long,
-    contentType: String,
+    contentType: ImageContentType,
     dimensions: Option[ImageDimensions],
     variants: Seq[ImageVariant],
 )
