@@ -13,7 +13,7 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.aws.{NdlaS3Client, NdlaS3Object}
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.ImageContentTypeException
+import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.model.domain.{ImageContentType, ImageStream}
 
 import java.io.InputStream
@@ -37,7 +37,10 @@ class ImageStorageService(using
               logger.info(s"Successfully updated content-type s3-metadata of $fileName to ${meta.contentType}")
           }
           Success(())
-        case _ => Failure(ImageContentTypeException("Image content type unknown"))
+        case _ =>
+          val message = s"Failed to find image based on file path: $fileName"
+          logger.error(message)
+          Failure(ImageNotFoundException(message))
       }
     } else Success(())
   }
