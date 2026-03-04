@@ -1,2 +1,2 @@
-CREATE MATERIALIZED VIEW responsible_view AS SELECT distinct ("document" -> 'responsible' ->> 'responsibleId') as responsibleId FROM articledata where ("document" -> 'responsible' ->> 'responsibleId') IS NOT NULL;
-CREATE UNIQUE INDEX responsibleId_idx ON responsible_view(responsibleId);
+CREATE MATERIALIZED VIEW IF NOT EXISTS responsible_view AS SELECT distinct ("document" -> 'responsible' ->> 'responsibleId') as responsibleId FROM articledata where ("document" -> 'responsible' ->> 'responsibleId') IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS responsibleId_idx ON responsible_view(responsibleId);

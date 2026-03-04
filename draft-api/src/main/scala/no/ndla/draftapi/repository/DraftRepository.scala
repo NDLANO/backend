@@ -446,4 +446,12 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     tsql"""select responsibleId from responsible_view""".map(rs => rs.string("responsibleId")).runList()
   }
 
+  def refreshUserIdsView(using session: DBSession): Try[Unit] = {
+    tsql"refresh materialized view user_ids_view".update().map(_ => ())
+  }
+
+  def getAllUserIds(using session: DBSession): Try[Seq[String]] = {
+    tsql"""select userId from user_ids_view""".map(rs => rs.string("userId")).runList()
+  }
+
 }

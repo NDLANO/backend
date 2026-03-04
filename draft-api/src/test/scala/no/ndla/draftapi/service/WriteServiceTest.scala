@@ -69,6 +69,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(grepCodesIndexService)
     reset(contentValidator)
 
+    when(draftRepository.refreshUserIdsView(using any)).thenReturn(Success(()))
     when(draftRepository.withId(eqTo(articleId))(using any)).thenReturn(Success(Some(article)))
     when(articleIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Draft](0))
