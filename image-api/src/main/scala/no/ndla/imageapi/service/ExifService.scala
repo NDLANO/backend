@@ -16,17 +16,31 @@ import java.io.InputStream
 import scala.util.{Try, Using}
 
 object ExifService extends StrictLogging {
+  // Filter out directories that often contain large binary data or irrelevant metadata
+  private val unwantedExifDirectories = Seq("ICC Profile", "Photoshop", "PNG-tEXt")
+
+  /** Sanitizes a string so it is safe for JSON serialization by removing non-printable control characters and replacing
+    * invalid unicode characters with the unicode replacement character.
+    */
+  private def sanitizeForJson(value: String): String = {
+    value.map { ch =>
+      if (Character.isISOControl(ch) && ch != '\n' && ch != '\r' && ch != '\t') '\uFFFD'
+      else if (Character.isHighSurrogate(ch) || Character.isLowSurrogate(ch)) '\uFFFD'
+      else ch
+    }
+  }
 
   private def extractMetadataMap(metadata: ImageMetadata): Map[String, String] = {
     metadata
       .getDirectories
+      .filter(d => !unwantedExifDirectories.contains(d.getName))
       .flatMap { directory =>
         directory
           .getTags
           .flatMap { tag =>
             val name  = s"${directory.getName}:${tag.getName}"
             val value = tag.getRawValue
-            Option.when(value != null && value.nonEmpty)(name -> value)
+            Option.when(value != null && value.nonEmpty)(name -> sanitizeForJson(value))
           }
       }
       .toMap

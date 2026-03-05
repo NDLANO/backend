@@ -42,13 +42,23 @@ class InternController(using
     myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController
     with StrictLogging {
+
   import errorHelpers.*
+
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] =
-    List(postIndex, deleteIndex, getExternImageId, getDomainImageFromUrl, dumpImages, dumpSingleImage, postDump)
+  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+    postIndex,
+    deleteIndex,
+    getExternImageId,
+    getDomainImageFromUrl,
+    dumpImages,
+    dumpSingleImage,
+    postDump,
+    startExifDataMigration,
+  )
 
   def postIndex: ServerEndpoint[Any, Eff] = endpoint
     .post
@@ -130,7 +140,8 @@ class InternController(using
     }
 
   val urlQueryParam: EndpointInput.Query[Option[String]] = query[Option[String]]("url")
-  def getDomainImageFromUrl: ServerEndpoint[Any, Eff]    = endpoint
+
+  def getDomainImageFromUrl: ServerEndpoint[Any, Eff] = endpoint
     .get
     .in("domain_image_from_url")
     .in(urlQueryParam)
@@ -173,5 +184,25 @@ class InternController(using
     .errorOut(errorOutputsFor(400))
     .serverLogicPure { imageMeta =>
       imageRepository.insert(imageMeta)
+    }
+
+  def startExifDataMigration: ServerEndpoint[Any, Eff] = endpoint
+    .post
+    .in("migrate" / "exif")
+    .in(query[Option[Boolean]]("ignore_missing"))
+    .out(jsonBody[String])
+    .serverLogicPure { ignoreMissingObjects =>
+      logger.info("Starting EXIF data extraction for all existing images...")
+
+      Thread
+        .ofVirtual()
+        .start(() => {
+          writeService.extractAndStoreExifDataForExistingImages(ignoreMissingObjects.getOrElse(false)) match {
+            case Success(_)  => logger.info("Successfully finished EXIF data extraction for all existing images")
+            case Failure(ex) => logger.error("Failed to extract EXIF data for existing images", ex)
+          }
+        })
+
+      "Started EXIF data extraction for all existing images".asRight
     }
 }
