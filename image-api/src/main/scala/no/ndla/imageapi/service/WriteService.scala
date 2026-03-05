@@ -627,6 +627,95 @@ class WriteService(using
     }
   }
 
+  /** Batch job that fetches all images from S3, extracts EXIF data, and updates the database. Images that already have
+    * non-empty exifData are skipped. Missing S3 objects can optionally be ignored.
+    */
+  def extractAndStoreExifDataForExistingImages(ignoreMissingObjects: Boolean): Try[Unit] = {
+    val batchSize     = 20
+    val batchIterator = imageRepository.getImageFileBatched(batchSize) match {
+      case Success(it) => it
+      case Failure(ex) => return Failure(ex)
+    }
+    val totalBatchCount    = batchIterator.knownSize
+    given ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(batchSize))
+
+    batchIterator
+      .zipWithIndex
+      .map { (batch, index) =>
+        logger.info(s"EXIF migration: Processing batch ${index + 1} of $totalBatchCount (batch size = $batchSize)")
+
+        val batchFuture = Future.traverse {
+          batch
+            .filter(meta => meta.id.nonEmpty && meta.images.exists(_.exifData.isEmpty))
+            .flatMap(meta => meta.images.filter(_.exifData.isEmpty).map(meta -> _))
+        } { (imageMeta, imageFile) =>
+          extractExifForImageFileAsync(ignoreMissingObjects)(imageMeta, imageFile)
+        }
+
+        val storeResultsFuture = batchFuture.map { results =>
+          results
+            .sequence
+            .flatMap { metasWithFiles =>
+              metasWithFiles
+                .groupMap(_._1)(_._2)
+                .toSeq
+                .traverse { (imageMeta, updatedFiles) =>
+                  val updatedFileMap   = updatedFiles.map(f => (f.fileName, f.language) -> f).toMap
+                  val mergedImageFiles = imageMeta
+                    .images
+                    .map { existing =>
+                      updatedFileMap.getOrElse((existing.fileName, existing.language), existing)
+                    }
+                  dbUtility.writeSession { case given DBSession =>
+                    val updatedMeta = imageMeta.copy(images = mergedImageFiles)
+                    imageRepository.update(updatedMeta, updatedMeta.id.get).map(_ => ())
+                  }
+                }
+            }
+        }
+
+        Await.result(storeResultsFuture, 5.minutes)
+      }
+      .collectFirst { case Failure(ex) =>
+        ex
+      } match {
+      case Some(ex) => Failure(ex)
+      case None     => Success(())
+    }
+  }
+
+  private def extractExifForImageFileAsync(
+      ignoreMissingObjects: Boolean
+  )(imageMeta: ImageMetaInformation, imageFile: ImageFileData)(using
+      ExecutionContext
+  ): Future[Try[(ImageMetaInformation, ImageFileData)]] = Future {
+    imageStorage
+      .getRaw(imageFile.fileName)
+      .map { s3Object =>
+        scala
+          .util
+          .Using
+          .resource(s3Object.stream) { stream =>
+            val exifData    = ExifService.extractExifDataFromStream(stream)
+            val updatedFile = imageFile.copy(exifData = exifData)
+            imageMeta -> updatedFile
+          }
+      }
+  }.map {
+    case success @ Success(_)                                           => success
+    case Failure(ex: MissingBucketKeyException) if ignoreMissingObjects =>
+      logger.warn(
+        s"EXIF migration: Ignoring missing bucket object for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})"
+      )
+      Success(imageMeta -> imageFile)
+    case Failure(ex) =>
+      logger.error(
+        s"EXIF migration: Failed to extract EXIF data for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})",
+        ex,
+      )
+      Failure(ex)
+  }
+
   private def moveImageAndVariants(image: ImageFileData, newBucketPrefix: String): Try[ImageFileData] = {
     val variantKeysToNewVariants = image
       .variants
