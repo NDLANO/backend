@@ -174,7 +174,8 @@ class WriteService(using
     validationService.validate(toInsert, copiedFrom).??
 
     val uploadedImage = uploadImageWithVariants(file).?
-    val imageFile     = converterService.toImageFileData(uploadedImage, language)
+    val exifData      = ExifService.extractExifData(file)
+    val imageFile     = converterService.toImageFileData(uploadedImage, language, exifData)
 
     val deleteUploadedImages = (reason: Throwable) => {
       logger.info(s"Deleting images because of: ${reason.getMessage}", reason)
@@ -349,7 +350,9 @@ class WriteService(using
             logger.error(s"Failed to create CloudFront invalidation for image '${newImageFile.fileName}'", ex)
           }
       }): Unit
-    val withNew = converterService.withNewImageFile(oldImage, newImageFile, language, user)
+    val exifData             = ExifService.extractExifData(newFile)
+    val newImageFileWithExif = newImageFile.copy(exifData = exifData)
+    val withNew              = converterService.withNewImageFile(oldImage, newImageFileWithExif, language, user)
     Success(withNew)
   }
 

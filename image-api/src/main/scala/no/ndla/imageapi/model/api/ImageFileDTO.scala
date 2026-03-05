@@ -30,6 +30,8 @@ case class ImageFileDTO(
     variants: Seq[ImageVariantDTO],
     @description(LanguageDocString)
     language: String,
+    @description("EXIF metadata extracted from the image file")
+    exifData: Map[String, String],
 )
 
 object ImageFileDTO {
