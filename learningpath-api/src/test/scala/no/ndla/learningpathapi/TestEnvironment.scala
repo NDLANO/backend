@@ -13,6 +13,7 @@ import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.database.{DBMigrator, DataSource}
 import no.ndla.learningpathapi.controller.{InternController, LearningpathControllerV2, StatsController}
 import no.ndla.learningpathapi.integration.*
+import no.ndla.learningpathapi.model.domain.DBLearningPath
 import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
@@ -37,6 +38,7 @@ import no.ndla.scalatestsuite.DBUtilityStub
 
 trait TestEnvironment extends TapirApplication[LearningpathApiProperties] with MockitoSugar {
   implicit lazy val props: LearningpathApiProperties = new LearningpathApiProperties
+  implicit lazy val dbLearningPath: DBLearningPath   = new DBLearningPath
 
   implicit lazy val migrator: DBMigrator         = mock[DBMigrator]
   implicit lazy val dataSource: DataSource       = mock[DataSource]

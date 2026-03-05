@@ -10,10 +10,12 @@ package no.ndla.learningpathapi.model.domain
 
 import no.ndla.common.CirceUtil
 import no.ndla.common.model.domain.learningpath.LearningPath
+import no.ndla.learningpathapi.Props
 import scalikejdbc.*
 
-object DBLearningPath extends SQLSyntaxSupport[LearningPath] {
-  override val tableName = "learningpaths"
+class DBLearningPath(using props: Props) extends SQLSyntaxSupport[LearningPath] {
+  override val tableName                  = "learningpaths"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[LearningPath])(rs: WrappedResultSet): LearningPath =
     fromResultSet(lp.resultName)(rs)

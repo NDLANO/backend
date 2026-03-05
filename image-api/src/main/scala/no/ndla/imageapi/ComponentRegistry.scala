@@ -17,6 +17,7 @@ import no.ndla.imageapi.db.migrationwithdependencies.{
   V6__AddAgreementToImages,
   V7__TranslateUntranslatedAuthors,
 }
+import no.ndla.imageapi.model.domain.DBImageMetaInformation
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.*
 import no.ndla.imageapi.service.search.{
@@ -49,6 +50,7 @@ class ComponentRegistry(properties: ImageApiProperties) extends TapirApplication
   given myndlaApiClient: MyNDLAApiClient               = new MyNDLAApiClient
   given searchConverterService: SearchConverterService = new SearchConverterService
   given dbUtility: DBUtility                           = new DBUtility
+  given dbImageMetaInformation: DBImageMetaInformation = new DBImageMetaInformation
   given imageRepository: ImageRepository               = new ImageRepository
   given imageIndexService: ImageIndexService           = new ImageIndexService
   given imageSearchService: ImageSearchService         = new ImageSearchService

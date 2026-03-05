@@ -10,6 +10,7 @@ package no.ndla.myndlaapi.model.domain
 
 import cats.implicits.catsSyntaxOptionId
 import no.ndla.common.model.NDLADate
+import no.ndla.myndlaapi.Props
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
 import no.ndla.network.model.FeideID
 import scalikejdbc.*
@@ -81,8 +82,7 @@ case class Folder(
   }
 }
 
-object Folder extends SQLSyntaxSupport[Folder] {
-  override val tableName = "folders"
+object Folder {
 
   def fromResultSet(lp: SyntaxProvider[Folder])(rs: WrappedResultSet): Try[Folder] = {
     val wrapper: String => String = (s: String) => lp.resultName.c(s)
@@ -124,4 +124,9 @@ object Folder extends SQLSyntaxSupport[Folder] {
       user = None,
     )
   }
+}
+
+class DBFolder(using props: Props) extends SQLSyntaxSupport[Folder] {
+  override val tableName: String          = "folders"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 }

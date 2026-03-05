@@ -22,12 +22,12 @@ import scalikejdbc.*
 
 import scala.util.{Failure, Success, Try}
 
-class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
+class UserRepository(using dbUtility: DBUtility, dbMyNDLAUser: DBMyNDLAUser) extends StrictLogging {
 
   def getUsersPaginated(offset: Long, limit: Long, filterTeachers: Boolean, query: Option[String])(implicit
       session: DBSession
   ): Try[(Long, List[MyNDLAUser])] = Try {
-    val u = DBMyNDLAUser.syntax("u")
+    val u = dbMyNDLAUser.syntax("u")
 
     val teacherClause = Option.when(filterTeachers)(sqls"u.document->>'userRole' = ${UserRole.EMPLOYEE.toString}")
     val queryClause   = query.map(q => {
@@ -43,18 +43,18 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
 
     val count: Long = tsql"""
               select count(*)
-              from ${DBMyNDLAUser.as(u)}
+              from ${dbMyNDLAUser.as(u)}
               $whereClause
            """.map(rs => rs.long("count")).runSingle().map(_.getOrElse(0L)).get
 
     val users = tsql"""
            select ${u.result.*}
-           from ${DBMyNDLAUser.as(u)}
+           from ${dbMyNDLAUser.as(u)}
            $whereClause
            order by ${u.id} asc
            limit $limit
            offset $offset
-           """.map(DBMyNDLAUser.fromResultSet(u)).runList().get
+           """.map(dbMyNDLAUser.fromResultSet(u)).runList().get
 
     count -> users
   }
@@ -72,7 +72,7 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
     dataObject.setValue(CirceUtil.toJsonString(document))
 
     tsql"""
-        update ${DBMyNDLAUser.table}
+        update ${dbMyNDLAUser.table}
         set document=$dataObject, last_seen=${NDLADate.parameterBinderFactory(lastSeen)}
         where feide_id=$feideId
         """
@@ -89,7 +89,7 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
     dataObject.setValue(CirceUtil.toJsonString(user))
 
     tsql"""
-        update ${DBMyNDLAUser.table}
+        update ${dbMyNDLAUser.table}
         set document=$dataObject
         where id=$userId
         """
@@ -110,7 +110,7 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
     dataObject.setValue(CirceUtil.toJsonString(user))
 
     tsql"""
-        update ${DBMyNDLAUser.table}
+        update ${dbMyNDLAUser.table}
                   set document=$dataObject,
                       last_seen=${NDLADate.parameterBinderFactory(user.lastSeen)}
                   where feide_id=$feideId
@@ -126,7 +126,7 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
 
   def updateLastSeen(feideId: FeideID, lastSeen: NDLADate)(implicit session: DBSession): Try[NDLADate] = {
     tsql"""
-        update ${DBMyNDLAUser.table}
+        update ${dbMyNDLAUser.table}
         set last_seen=${NDLADate.parameterBinderFactory(lastSeen)}
         where feide_id=$feideId
         """
@@ -142,7 +142,7 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
   ): Try[Option[MyNDLAUser]] = userWhere(sqls"u.document->>'username'=$username")
 
   def deleteUser(feideId: FeideID)(implicit session: DBSession = dbUtility.autoSession): Try[FeideID] = {
-    tsql"delete from ${DBMyNDLAUser.table} where feide_id = $feideId".update() match {
+    tsql"delete from ${dbMyNDLAUser.table} where feide_id = $feideId".update() match {
       case Failure(ex)                      => Failure(ex)
       case Success(numRows) if numRows != 1 => Failure(NotFoundException(s"User with feide_id $feideId does not exist"))
       case Success(_)                       =>
@@ -152,7 +152,7 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
   }
 
   def deleteAllUsers(implicit session: DBSession): Try[Unit] = Try {
-    val _ = tsql"delete from ${DBMyNDLAUser.table}".execute()
+    val _ = tsql"delete from ${dbMyNDLAUser.table}".execute()
   }
 
   def resetSequences(implicit session: DBSession): Try[Unit] = Try {
@@ -166,9 +166,9 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
   def userWithId(userId: Long)(implicit session: DBSession): Try[Option[MyNDLAUser]] = userWhere(sqls"u.id=$userId")
 
   private def userWhere(whereClause: SQLSyntax)(implicit session: DBSession): Try[Option[MyNDLAUser]] = {
-    val u = DBMyNDLAUser.syntax("u")
-    tsql"select ${u.result.*} from ${DBMyNDLAUser.as(u)} where $whereClause"
-      .map(DBMyNDLAUser.fromResultSet(u))
+    val u = dbMyNDLAUser.syntax("u")
+    tsql"select ${u.result.*} from ${dbMyNDLAUser.as(u)} where $whereClause"
+      .map(dbMyNDLAUser.fromResultSet(u))
       .runSingle()
   }
 
@@ -177,7 +177,7 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
     val lastSeen = NDLADate.now()
     tsql"""
             with inserted as (
-                insert into ${DBMyNDLAUser.table}
+                insert into ${dbMyNDLAUser.table}
                 (feide_id, document, last_seen)
                 values ($feideId, null, ${NDLADate.parameterBinderFactory(lastSeen)})
                 on conflict do nothing
@@ -196,26 +196,26 @@ class UserRepository(using dbUtility: DBUtility) extends StrictLogging {
   }
 
   def numberOfUsers()(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Long]] =
-    tsql"select count(*) from ${DBMyNDLAUser.table}".map(rs => rs.long("count")).runSingle()
+    tsql"select count(*) from ${dbMyNDLAUser.table}".map(rs => rs.long("count")).runSingle()
 
   def usersGrouped()(implicit session: DBSession = dbUtility.readOnlySession): Try[Map[UserRole, Long]] =
-    tsql"select count(*), (document->>'userRole') as rolle from ${DBMyNDLAUser.table} group by rolle"
+    tsql"select count(*), (document->>'userRole') as rolle from ${dbMyNDLAUser.table} group by rolle"
       .map(rs => (UserRole.withName(rs.string("rolle")), rs.long("count")))
       .runList()
       .map(_.toMap)
 
   def numberOfFavouritedSubjects()(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Long]] =
-    tsql"select count(favoriteSubject) from (select jsonb_array_elements_text(document->'favoriteSubjects') from ${DBMyNDLAUser.table}) as favoriteSubject"
+    tsql"select count(favoriteSubject) from (select jsonb_array_elements_text(document->'favoriteSubjects') from ${dbMyNDLAUser.table}) as favoriteSubject"
       .map(rs => rs.long("count"))
       .runSingle()
 
   def numberOfUsersInArena(implicit session: DBSession = dbUtility.readOnlySession): Try[Option[Long]] = tsql"""
-           select count(*) as count from ${DBMyNDLAUser.table}
+           select count(*) as count from ${dbMyNDLAUser.table}
            where (document->'arenaAccepted')::boolean = true
          """.map(rs => rs.long("count")).runSingle()
 
   def getAllUsers(implicit session: DBSession): List[MyNDLAUser] = {
-    val u = DBMyNDLAUser.syntax("u")
-    tsql"select ${u.result.*} from ${DBMyNDLAUser.as(u)}".map(DBMyNDLAUser.fromResultSet(u)).runList().get
+    val u = dbMyNDLAUser.syntax("u")
+    tsql"select ${u.result.*} from ${dbMyNDLAUser.as(u)}".map(dbMyNDLAUser.fromResultSet(u)).runList().get
   }
 }

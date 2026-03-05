@@ -10,6 +10,7 @@ package no.ndla.audioapi
 
 import no.ndla.audioapi.controller.{AudioController, ControllerErrorHandling, InternController, SeriesController}
 import no.ndla.audioapi.integration.{NDLAS3Client, TranscribeS3Client}
+import no.ndla.audioapi.model.domain.{DBAudioMetaInformation, DBSeries}
 import no.ndla.audioapi.repository.{AudioRepository, SeriesRepository}
 import no.ndla.audioapi.service.*
 import no.ndla.audioapi.service.search.*
@@ -41,10 +42,12 @@ trait TestEnvironment extends TapirApplication[AudioApiProperties] with MockitoS
   implicit lazy val services: List[TapirController]        = List.empty
   implicit lazy val searchLanguage: SearchLanguage         = mock[SearchLanguage]
 
-  implicit lazy val dataSource: DataSource             = mock[DataSource]
-  implicit lazy val audioRepository: AudioRepository   = mock[AudioRepository]
-  implicit lazy val seriesRepository: SeriesRepository = mock[SeriesRepository]
-  implicit lazy val dbUtility: DBUtility               = new DBUtility
+  implicit lazy val dataSource: DataSource                         = mock[DataSource]
+  implicit lazy val audioRepository: AudioRepository               = mock[AudioRepository]
+  implicit lazy val seriesRepository: SeriesRepository             = mock[SeriesRepository]
+  implicit lazy val dbUtility: DBUtility                           = new DBUtility
+  implicit lazy val dbAudioMetaInformation: DBAudioMetaInformation = new DBAudioMetaInformation
+  implicit lazy val dbSeries: DBSeries                             = new DBSeries
 
   implicit lazy val s3Client: NDLAS3Client                    = mock[NDLAS3Client]
   implicit lazy val brightcoveClient: NdlaBrightcoveClient    = mock[NdlaBrightcoveClient]

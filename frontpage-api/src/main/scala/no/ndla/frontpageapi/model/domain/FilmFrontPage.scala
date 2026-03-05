@@ -8,7 +8,6 @@
 
 package no.ndla.frontpageapi.model.domain
 
-import cats.implicits.*
 import io.circe.generic.semiauto.*
 import io.circe.parser.*
 import io.circe.{Decoder, Encoder}
@@ -43,7 +42,7 @@ class DBFilmFrontPage(using props: Props) {
 
   object DBFilmFrontPageData extends SQLSyntaxSupport[FilmFrontPage] {
     override val tableName                  = "filmfrontpage"
-    override val schemaName: Option[String] = props.MetaSchema.toString.some
+    override val schemaName: Option[String] = Some(props.MetaSchema)
 
     def fromDb(lp: SyntaxProvider[FilmFrontPage])(rs: WrappedResultSet): Try[FilmFrontPage] = fromDb(lp.resultName)(rs)
 

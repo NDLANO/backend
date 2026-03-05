@@ -13,13 +13,14 @@ import io.circe.syntax.*
 import no.ndla.common.model.domain.config.{ConfigKey, ConfigMeta}
 import no.ndla.database.DBUtility
 import no.ndla.database.implicits.*
+import no.ndla.myndlaapi.model.domain.DBConfigMeta
 import org.postgresql.util.PGobject
 import scalikejdbc.*
 import sqls.count
 
 import scala.util.{Success, Try}
 
-class ConfigRepository(using dbUtility: DBUtility) extends StrictLogging {
+class ConfigRepository(using dbUtility: DBUtility, dbConfigMeta: DBConfigMeta) extends StrictLogging {
   import ConfigMeta.*
 
   implicit val configValueParameterBinderFactory: ParameterBinderFactory[ConfigMeta] =
@@ -33,26 +34,26 @@ class ConfigRepository(using dbUtility: DBUtility) extends StrictLogging {
     }
 
   def configCount(implicit session: DBSession = dbUtility.readOnlySession): Int = {
-    val c = ConfigMeta.syntax("c")
+    val c = dbConfigMeta.syntax("c")
     withSQL {
-      select(count(c.column("configkey"))).from(ConfigMeta as c)
+      select(count(c.column("configkey"))).from(dbConfigMeta as c)
     }.map(_.int(1)).single().getOrElse(0)
   }
 
   def updateConfigParam(config: ConfigMeta)(implicit session: DBSession = dbUtility.autoSession): Try[ConfigMeta] = {
     val updatedCount = withSQL {
-      update(ConfigMeta)
-        .set(ConfigMeta.column.column("value") -> config)
+      update(dbConfigMeta)
+        .set(dbConfigMeta.column.column("value") -> config)
         .where
-        .eq(ConfigMeta.column.column("configkey"), config.key.entryName)
+        .eq(dbConfigMeta.column.column("configkey"), config.key.entryName)
     }.update()
 
     if (updatedCount != 1) {
       logger.info(s"No existing value for ${config.key}, inserting the value.")
       val _ = withSQL {
-        insertInto(ConfigMeta).namedValues(
-          ConfigMeta.column.c("configkey") -> config.key.entryName,
-          ConfigMeta.column.c("value")     -> config,
+        insertInto(dbConfigMeta).namedValues(
+          dbConfigMeta.column.c("configkey") -> config.key.entryName,
+          dbConfigMeta.column.c("value")     -> config,
         )
       }.update()
       Success(config)
@@ -66,10 +67,10 @@ class ConfigRepository(using dbUtility: DBUtility) extends StrictLogging {
       session: DBSession = dbUtility.readOnlySession
   ): Try[Option[ConfigMeta]] =
     val keyName = key.entryName
-    val c       = ConfigMeta.syntax("c")
+    val c       = dbConfigMeta.syntax("c")
     tsql"""
            select ${c.result.*}
-           from ${ConfigMeta.as(c)}
+           from ${dbConfigMeta.as(c)}
            where configkey = $keyName;
         """.map(ConfigMeta.fromResultSet(c)).runSingleFlat()
 }
