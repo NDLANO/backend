@@ -30,6 +30,8 @@ case class ImageFileDTO(
     variants: Seq[ImageVariantDTO],
     @description(LanguageDocString)
     language: String,
+    @description("Date image was taken, if available")
+    createdDate: Option[String] = None,
 )
 
 object ImageFileDTO {
