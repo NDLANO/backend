@@ -517,7 +517,7 @@ class WriteService(using
   /** Batch job that fetches all images from S3, extracts EXIF data, and updates the database. Images that already have
     * non-empty exifData are skipped. Missing S3 objects can optionally be ignored.
     */
-  def extractAndStoreExifDataForExistingImages(ignoreMissingObjects: Boolean): Try[Unit] = {
+  def extractAndStoreExifDataForExistingImages(): Try[Unit] = {
     val batchSize     = 20
     val batchIterator = imageRepository.getImageFileBatched(batchSize) match {
       case Success(it) => it
@@ -536,7 +536,7 @@ class WriteService(using
             .filter(meta => meta.id.nonEmpty && meta.images.exists(_.exifData.isEmpty))
             .flatMap(meta => meta.images.filter(_.exifData.isEmpty).map(meta -> _))
         } { (imageMeta, imageFile) =>
-          extractExifForImageFileAsync(ignoreMissingObjects)(imageMeta, imageFile)
+          extractExifForImageFileAsync()(imageMeta, imageFile)
         }
 
         val storeResultsFuture = batchFuture.map { results =>
@@ -571,9 +571,7 @@ class WriteService(using
     }
   }
 
-  private def extractExifForImageFileAsync(
-      ignoreMissingObjects: Boolean
-  )(imageMeta: ImageMetaInformation, imageFile: ImageFileData)(using
+  private def extractExifForImageFileAsync()(imageMeta: ImageMetaInformation, imageFile: ImageFileData)(using
       ExecutionContext
   ): Future[Try[(ImageMetaInformation, ImageFileData)]] = Future {
     imageStorage
@@ -589,8 +587,8 @@ class WriteService(using
           }
       }
   }.map {
-    case success @ Success(_)                                           => success
-    case Failure(ex: MissingBucketKeyException) if ignoreMissingObjects =>
+    case success @ Success(_)                   => success
+    case Failure(ex: MissingBucketKeyException) =>
       logger.warn(
         s"EXIF migration: Ignoring missing bucket object for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})"
       )

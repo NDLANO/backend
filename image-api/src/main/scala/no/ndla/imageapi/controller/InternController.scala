@@ -189,15 +189,14 @@ class InternController(using
   def startExifDataMigration: ServerEndpoint[Any, Eff] = endpoint
     .post
     .in("migrate" / "exif")
-    .in(query[Option[Boolean]]("ignore_missing"))
     .out(jsonBody[String])
-    .serverLogicPure { ignoreMissingObjects =>
+    .serverLogicPure { _ =>
       logger.info("Starting EXIF data extraction for all existing images...")
 
       Thread
         .ofVirtual()
         .start(() => {
-          writeService.extractAndStoreExifDataForExistingImages(ignoreMissingObjects.getOrElse(false)) match {
+          writeService.extractAndStoreExifDataForExistingImages() match {
             case Success(_)  => logger.info("Successfully finished EXIF data extraction for all existing images")
             case Failure(ex) => logger.error("Failed to extract EXIF data for existing images", ex)
           }
