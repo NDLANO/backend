@@ -292,4 +292,24 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   }
 
+  test("That query-fields are mapped from editorial GET requests") {
+    reset(multiDraftSearchService)
+    val multiResult = domain.SearchResult(0, None, 10, "nb", Seq.empty, Seq.empty, Seq.empty, None)
+    when(multiDraftSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
+
+    val response = simpleHttpClient.send(
+      quickRequest
+        .get(uri"http://localhost:$serverPort/search-api/v1/search/editorial/?query=gris&query-fields=title,content")
+        .headers(authHeadersWithWriteRole)
+    )
+
+    response.code.code should be(200)
+
+    val captor: ArgumentCaptor[MultiDraftSearchSettings] = ArgumentCaptor.forClass(classOf[MultiDraftSearchSettings])
+    verify(multiDraftSearchService, times(1)).matchingQuery(captor.capture())
+
+    captor.getValue.query.map(_.underlying) should be(Some("gris"))
+    captor.getValue.queryFields should be(List(domain.DraftSearchField.Title, domain.DraftSearchField.Content))
+  }
+
 }

@@ -197,6 +197,11 @@ export type components = {
             /** @description ISO 639-1 code that represents the language used in title */
             language: string;
         };
+        /**
+         * DraftSearchField
+         * @enum {string}
+         */
+        DraftSearchField: "title" | "introduction" | "metaDescription" | "content" | "tags" | "embedAttributes" | "creators" | "processors" | "rightsholders" | "contexts.contextId" | "contextids" | "id" | "revisionMeta.note" | "notes" | "previousVersionsNotes" | "embedResource" | "embedId";
         /** DraftSearchParamsDTO */
         DraftSearchParamsDTO: {
             /**
@@ -223,6 +228,8 @@ export type components = {
             license?: string;
             /** @description Return only results with content matching the specified query. */
             query?: string;
+            /** @description Restrict query searches to the specified fields. If omitted or empty, all the fields are used. */
+            queryFields?: components["schemas"]["DraftSearchField"][];
             /** @description Return only results with notes matching the specified note-query. */
             noteQuery?: string;
             sort?: components["schemas"]["Sort"];
@@ -1080,6 +1087,7 @@ export type ApiTaxonomyContextDTO = components['schemas']['ApiTaxonomyContextDTO
 export type ArticleTrait = components['schemas']['ArticleTrait'];
 export type CommentDTO = components['schemas']['CommentDTO'];
 export type DescriptionDTO = components['schemas']['DescriptionDTO'];
+export type DraftSearchField = components['schemas']['DraftSearchField'];
 export type DraftSearchParamsDTO = components['schemas']['DraftSearchParamsDTO'];
 export type ErrorBody = components['schemas']['ErrorBody'];
 export type GrepFagkodeDTO = components['schemas']['GrepFagkodeDTO'];
