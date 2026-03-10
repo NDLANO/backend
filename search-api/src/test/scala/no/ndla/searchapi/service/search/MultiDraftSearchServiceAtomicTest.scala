@@ -15,6 +15,7 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.*
 import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.taxonomy.{Node, NodeType, TaxonomyBundle, TaxonomyContext}
@@ -1151,6 +1152,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         tags = Seq.empty,
         notes = Seq.empty,
         previousVersionsNotes = Seq.empty,
+        disclaimer = OptLanguageFields.empty,
       )
     val draft2 = TestData
       .draft1
@@ -1163,18 +1165,33 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         tags = Seq.empty,
         notes = Seq.empty,
         previousVersionsNotes = Seq.empty,
+        disclaimer = OptLanguageFields.empty,
+      )
+    val draft3 = TestData
+      .draft1
+      .copy(
+        id = Some(3),
+        title = Seq(Title("Hund", "nb")),
+        introduction = Seq.empty,
+        metaDescription = Seq.empty,
+        content = Seq(ArticleContent("Hund", "nb")),
+        tags = Seq.empty,
+        notes = Seq.empty,
+        previousVersionsNotes = Seq.empty,
+        disclaimer = OptLanguageFields.empty[String].withValue("Gris", "nb"),
       )
 
     draftIndexService.indexDocument(draft1, indexingBundle).failIfFailure
     draftIndexService.indexDocument(draft2, indexingBundle).failIfFailure
+    draftIndexService.indexDocument(draft3, indexingBundle).failIfFailure
 
-    blockUntil(() => draftIndexService.countDocuments == 2)
+    blockUntil(() => draftIndexService.countDocuments == 3)
 
     multiDraftSearchService
       .matchingQuery(multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("Gris").get)))
       .get
       .summaryResults
-      .map(_.id) should be(Seq(1, 2))
+      .map(_.id) should be(Seq(1, 2, 3))
 
     multiDraftSearchService
       .matchingQuery(
@@ -1197,6 +1214,17 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       .get
       .summaryResults
       .map(_.id) should be(Seq(2))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          query = Some(NonEmptyString.fromString("Gris").get),
+          queryFields = List(DraftSearchField.Disclaimer),
+        )
+      )
+      .get
+      .summaryResults
+      .map(_.id) should be(Seq(3))
   }
 
   test("That contributor query fields can be searched separately") {

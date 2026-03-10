@@ -190,6 +190,7 @@ class MultiDraftSearchService(using
         Option.when(shouldSearch(DraftSearchField.Title))(langQueryFunc("title", 20)),
         Option.when(shouldSearch(DraftSearchField.Introduction))(langQueryFunc("introduction", 2)),
         Option.when(shouldSearch(DraftSearchField.MetaDescription))(langQueryFunc("metaDescription", 1)),
+        Option.when(shouldSearch(DraftSearchField.Disclaimer))(langQueryFunc("disclaimer", 1)),
         Option.when(shouldSearch(DraftSearchField.Content))(langQueryFunc("content", 1)),
         Option.when(shouldSearch(DraftSearchField.Tags))(langQueryFunc("tags", 1)),
         Option.when(shouldSearch(DraftSearchField.EmbedAttributes))(langQueryFunc("embedAttributes", 1)),

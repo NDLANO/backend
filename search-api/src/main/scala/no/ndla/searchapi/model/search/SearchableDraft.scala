@@ -28,6 +28,7 @@ case class SearchableDraft(
     content: SearchableLanguageValues,
     introduction: SearchableLanguageValues,
     metaDescription: SearchableLanguageValues,
+    disclaimer: SearchableLanguageValues,
     tags: SearchableLanguageList,
     lastUpdated: NDLADate,
     license: Option[String],

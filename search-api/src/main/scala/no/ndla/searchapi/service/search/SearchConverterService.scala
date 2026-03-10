@@ -461,6 +461,7 @@ class SearchConverterService(using
       draft.metaDescription,
       draft.content,
       draft.tags,
+      draft.disclaimer.getWithLanguageFields,
     ).toList
 
     val notes: List[String] = draft.notes.map(_.note).toList
@@ -504,10 +505,16 @@ class SearchConverterService(using
       }
     ).?
 
-    val title                = SearchableLanguageValues.fromFieldsMap(draft.title)(toPlaintext)
-    val content              = SearchableLanguageValues.fromFieldsMap(draft.content)(toPlaintext)
-    val introduction         = SearchableLanguageValues.fromFieldsMap(draft.introduction)(toPlaintext)
-    val metaDescription      = SearchableLanguageValues.fromFields(draft.metaDescription)
+    val title           = SearchableLanguageValues.fromFieldsMap(draft.title)(toPlaintext)
+    val content         = SearchableLanguageValues.fromFieldsMap(draft.content)(toPlaintext)
+    val introduction    = SearchableLanguageValues.fromFieldsMap(draft.introduction)(toPlaintext)
+    val metaDescription = SearchableLanguageValues.fromFields(draft.metaDescription)
+    val disclaimer      = SearchableLanguageValues(
+      draft
+        .disclaimer
+        .getWithLanguageFields
+        .map(disclaimer => LanguageValue(disclaimer.language, toPlaintext(disclaimer.value)))
+    )
     val contexts             = asSearchableTaxonomyContexts(taxonomyContexts)
     val context              = asSearchableTaxonomyContexts(primaryContext.toList).headOption
     val learningResourceType = LearningResourceType.fromArticleType(draft.articleType)
@@ -520,6 +527,7 @@ class SearchConverterService(using
         content = content,
         introduction = introduction,
         metaDescription = metaDescription,
+        disclaimer = disclaimer,
         tags = SearchableLanguageList(draft.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         lastUpdated = draft.updated,
         license = draft.copyright.flatMap(_.license),

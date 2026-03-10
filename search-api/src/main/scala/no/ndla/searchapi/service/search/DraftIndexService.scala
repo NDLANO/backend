@@ -119,6 +119,7 @@ class DraftIndexService(using
       languageValuesMapping("metaDescription") ++
       languageValuesMapping("content") ++
       languageValuesMapping("introduction") ++
+      languageValuesMapping("disclaimer") ++
       languageValuesMapping("tags") ++
       languageValuesMapping("embedAttributes") ++
       languageValuesMapping("relevance") ++

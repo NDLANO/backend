@@ -22,6 +22,7 @@ object DraftSearchField extends Enum[DraftSearchField] with CirceEnum[DraftSearc
   case object Title           extends DraftSearchField("title")
   case object Introduction    extends DraftSearchField("introduction")
   case object MetaDescription extends DraftSearchField("metaDescription")
+  case object Disclaimer      extends DraftSearchField("disclaimer")
   case object Content         extends DraftSearchField("content")
   case object Tags            extends DraftSearchField("tags")
   case object EmbedAttributes extends DraftSearchField("embedAttributes")
