@@ -170,15 +170,22 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     response.code.code should be(200)
     response.headers("search-context").head should be(newValidScrollId)
 
-    val expectedSettings = TestData
-      .multiDraftSearchSettings
-      .copy(fallback = true, language = "nn", pageSize = 10, shouldScroll = true, sort = Sort.ByRelevanceDesc)
+    val captor: ArgumentCaptor[MultiDraftSearchSettings] = ArgumentCaptor.forClass(classOf[MultiDraftSearchSettings])
 
     verify(multiDraftSearchService, times(0)).scroll(any[String], any[String])
-    verify(multiDraftSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
+    verify(multiDraftSearchService, times(1)).matchingQuery(captor.capture())
     verify(multiSearchService, times(0)).scroll(any[String], any[String])
     verify(multiSearchService, times(0)).matchingQuery(any[SearchSettings])
 
+    val captured = captor.getValue
+    captured.fallback should be(true)
+    captured.language should be("nn")
+    captured.pageSize should be(10)
+    captured.shouldScroll should be(true)
+    captured.sort should be(Sort.ByRelevanceDesc)
+    captured.query should be(None)
+    captured.noteQuery should be(None)
+    captured.queryFields should be(List.empty)
   }
 
   test("That scrolling doesn't happen on 'initial' scrollId") {
@@ -299,7 +306,9 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     val response = simpleHttpClient.send(
       quickRequest
-        .get(uri"http://localhost:$serverPort/search-api/v1/search/editorial/?query=gris&query-fields=title,content")
+        .get(
+          uri"http://localhost:$serverPort/search-api/v1/search/editorial/?query=gris&query-fields=title,content,disclaimer"
+        )
         .headers(authHeadersWithWriteRole)
     )
 
@@ -309,7 +318,8 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     verify(multiDraftSearchService, times(1)).matchingQuery(captor.capture())
 
     captor.getValue.query.map(_.underlying) should be(Some("gris"))
-    captor.getValue.queryFields should be(List(domain.DraftSearchField.Title, domain.DraftSearchField.Content))
+    captor.getValue.queryFields should be(
+      List(domain.DraftSearchField.Title, domain.DraftSearchField.Content, domain.DraftSearchField.Disclaimer)
+    )
   }
-
 }

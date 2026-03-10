@@ -201,7 +201,7 @@ export type components = {
          * DraftSearchField
          * @enum {string}
          */
-        DraftSearchField: "title" | "introduction" | "metaDescription" | "content" | "tags" | "embedAttributes" | "creators" | "processors" | "rightsholders" | "contexts.contextId" | "contextids" | "id" | "revisionMeta.note" | "notes" | "previousVersionsNotes" | "embedResource" | "embedId";
+        DraftSearchField: "title" | "introduction" | "metaDescription" | "disclaimer" | "content" | "tags" | "embedAttributes" | "creators" | "processors" | "rightsholders" | "revisionMeta" | "notes";
         /** DraftSearchParamsDTO */
         DraftSearchParamsDTO: {
             /**
