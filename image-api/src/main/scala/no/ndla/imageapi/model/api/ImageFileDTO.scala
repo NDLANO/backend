@@ -31,7 +31,7 @@ case class ImageFileDTO(
     @description(LanguageDocString)
     language: String,
     @description("Date image was taken, if available")
-    originalDate: Option[String] = None,
+    originalDate: Option[String],
 )
 
 object ImageFileDTO {
