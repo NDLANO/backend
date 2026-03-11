@@ -59,7 +59,9 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     Some(1),
     Seq(ImageTitle("Batmen er på vift med en bil", "nb")),
     Seq(ImageAltText("Batmen er på vift med en bil", "nb")),
-    Seq(ImageFileData("file.jpg", 1024, ImageContentType.Jpeg, Some(ImageDimensions(1, 1)), Seq.empty, "nb")),
+    Seq(
+      ImageFileData("file.jpg", 1024, ImageContentType.Jpeg, Some(ImageDimensions(1, 1)), Seq.empty, "nb", Map.empty)
+    ),
     copyrighted,
     Seq.empty,
     Seq(ImageCaption("Batmen er på vift med en bil", "nb")),
