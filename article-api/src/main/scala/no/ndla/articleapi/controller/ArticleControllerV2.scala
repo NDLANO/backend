@@ -372,6 +372,21 @@ class ArticleControllerV2(using
       readService.getArticleFrontpageRSS(slug).map(_.Ok(List(Header.contentType(MediaType.ApplicationXml))))
     }
 
+  private def getArticleRevisionHistory: ServerEndpoint[Any, Eff] = endpoint
+    .get
+    .in(articleIdLong)
+    .in("revision-history")
+    .summary("Get the revision history for an article")
+    .description("Get an object that describes the revision history for a specific article")
+    .in(language)
+    .in(fallback)
+    .out(jsonBody[ArticleRevisionHistoryDTO])
+    .errorOut(errorOutputsFor(400, 404))
+    .serverLogicPure { case (articleId, language, fallback) =>
+      readService.getArticleRevisionHistory(articleId, language.code, fallback)
+
+    }
+
   override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
     tagSearch,
     getByIds,
@@ -382,5 +397,6 @@ class ArticleControllerV2(using
     getRevisions,
     getByExternal,
     getIdsByExternal,
+    getArticleRevisionHistory,
   )
 }
