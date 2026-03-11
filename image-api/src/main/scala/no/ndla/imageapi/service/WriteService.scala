@@ -699,19 +699,19 @@ class WriteService(using
             imageMeta -> updatedFile
           }
       }
-  }.map {
-    case success @ Success(_)                   => success
-    case Failure(ex: MissingBucketKeyException) =>
-      logger.warn(
-        s"EXIF migration: Ignoring missing bucket object for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})"
-      )
-      Success(imageMeta -> imageFile)
-    case Failure(ex) =>
-      logger.error(
-        s"EXIF migration: Failed to extract EXIF data for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})",
-        ex,
-      )
-      Failure(ex)
+      .recoverWith {
+        case ex: MissingBucketKeyException =>
+          logger.warn(
+            s"EXIF migration: Ignoring missing bucket object for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})"
+          )
+          Success(imageMeta -> imageFile)
+        case ex =>
+          logger.error(
+            s"EXIF migration: Failed to extract EXIF data for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})",
+            ex,
+          )
+          Failure(ex)
+      }
   }
 
   private def moveImageAndVariants(image: ImageFileData, newBucketPrefix: String): Try[ImageFileData] = {
