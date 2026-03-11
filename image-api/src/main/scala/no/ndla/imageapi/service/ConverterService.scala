@@ -144,7 +144,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       dimensions = dimensions,
       variants = variants,
       language = image.language,
-      originalDate = image.exifData.get("Exif SubIFD:Date/Time Original"),
+      originalDate = image.exifData.get(props.ExifDateTimeOriginal),
     )
   }
 

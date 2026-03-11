@@ -174,7 +174,7 @@ class WriteService(using
     validationService.validate(toInsert, copiedFrom).??
 
     val uploadedImage = uploadImageWithVariants(file).?
-    val exifData      = ExifService.extractExifData(file)
+    val exifData      = ExifUtil.extractExifData(file)
     val imageFile     = converterService.toImageFileData(uploadedImage, language, exifData)
 
     val deleteUploadedImages = (reason: Throwable) => {
@@ -350,7 +350,7 @@ class WriteService(using
             logger.error(s"Failed to create CloudFront invalidation for image '${newImageFile.fileName}'", ex)
           }
       }): Unit
-    val exifData             = ExifService.extractExifData(newFile)
+    val exifData             = ExifUtil.extractExifData(newFile)
     val newImageFileWithExif = newImageFile.copy(exifData = exifData)
     val withNew              = converterService.withNewImageFile(oldImage, newImageFileWithExif, language, user)
     Success(withNew)
@@ -694,7 +694,7 @@ class WriteService(using
           .util
           .Using
           .resource(s3Object.stream) { stream =>
-            val exifData    = ExifService.extractExifDataFromStream(stream)
+            val exifData    = ExifUtil.extractExifDataFromStream(stream)
             val updatedFile = imageFile.copy(exifData = exifData)
             imageMeta -> updatedFile
           }

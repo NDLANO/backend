@@ -15,7 +15,7 @@ import no.ndla.common.model.domain.UploadedFile
 import java.io.InputStream
 import scala.util.{Try, Using}
 
-object ExifService extends StrictLogging {
+object ExifUtil extends StrictLogging {
   // Filter out directories that often contain large binary data or irrelevant metadata
   private val unwantedExifDirectories = Seq("ICC Profile", "Photoshop", "PNG-tEXt")
 
