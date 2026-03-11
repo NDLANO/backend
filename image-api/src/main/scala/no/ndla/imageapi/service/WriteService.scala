@@ -523,55 +523,55 @@ class WriteService(using
       case Success(it) => it
       case Failure(ex) => return Failure(ex)
     }
-    val totalBatchCount    = batchIterator.knownSize
-    given ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(batchSize))
+    val totalBatchCount = batchIterator.knownSize
+    Using(ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(batchSize))) {
+      case given ExecutionContext => batchIterator
+          .zipWithIndex
+          .map { (batch, index) =>
+            logger.info(s"EXIF migration: Processing batch ${index + 1} of $totalBatchCount (batch size = $batchSize)")
 
-    batchIterator
-      .zipWithIndex
-      .map { (batch, index) =>
-        logger.info(s"EXIF migration: Processing batch ${index + 1} of $totalBatchCount (batch size = $batchSize)")
+            val batchFuture = Future.traverse {
+              batch
+                .filter(meta => meta.id.nonEmpty && meta.images.exists(_.exifData.isEmpty))
+                .flatMap(meta => meta.images.filter(_.exifData.isEmpty).map(meta -> _))
+            } { (imageMeta, imageFile) =>
+              extractExifForImageFileAsync(imageMeta, imageFile)
+            }
 
-        val batchFuture = Future.traverse {
-          batch
-            .filter(meta => meta.id.nonEmpty && meta.images.exists(_.exifData.isEmpty))
-            .flatMap(meta => meta.images.filter(_.exifData.isEmpty).map(meta -> _))
-        } { (imageMeta, imageFile) =>
-          extractExifForImageFileAsync()(imageMeta, imageFile)
-        }
-
-        val storeResultsFuture = batchFuture.map { results =>
-          results
-            .sequence
-            .flatMap { metasWithFiles =>
-              metasWithFiles
-                .groupMap(_._1)(_._2)
-                .toSeq
-                .traverse { (imageMeta, updatedFiles) =>
-                  val updatedFileMap   = updatedFiles.map(f => (f.fileName, f.language) -> f).toMap
-                  val mergedImageFiles = imageMeta
-                    .images
-                    .map { existing =>
-                      updatedFileMap.getOrElse((existing.fileName, existing.language), existing)
+            val storeResultsFuture = batchFuture.map { results =>
+              results
+                .sequence
+                .flatMap { metasWithFiles =>
+                  metasWithFiles
+                    .groupMap(_._1)(_._2)
+                    .toSeq
+                    .traverse { (imageMeta, updatedFiles) =>
+                      val updatedFileMap   = updatedFiles.map(f => (f.fileName, f.language) -> f).toMap
+                      val mergedImageFiles = imageMeta
+                        .images
+                        .map { existing =>
+                          updatedFileMap.getOrElse((existing.fileName, existing.language), existing)
+                        }
+                      dbUtility.writeSession { case given DBSession =>
+                        val updatedMeta = imageMeta.copy(images = mergedImageFiles)
+                        imageRepository.update(updatedMeta, updatedMeta.id.get).map(_ => ())
+                      }
                     }
-                  dbUtility.writeSession { case given DBSession =>
-                    val updatedMeta = imageMeta.copy(images = mergedImageFiles)
-                    imageRepository.update(updatedMeta, updatedMeta.id.get).map(_ => ())
-                  }
                 }
             }
-        }
 
-        Await.result(storeResultsFuture, 5.minutes)
-      }
-      .collectFirst { case Failure(ex) =>
-        ex
-      } match {
-      case Some(ex) => Failure(ex)
-      case None     => Success(())
-    }
+            Try(Await.result(storeResultsFuture, 5.minutes))
+          }
+          .collectFirst { case Failure(ex) =>
+            ex
+          } match {
+          case Some(ex) => Failure(ex)
+          case None     => Success(())
+        }
+    }.flatten
   }
 
-  private def extractExifForImageFileAsync()(imageMeta: ImageMetaInformation, imageFile: ImageFileData)(using
+  private def extractExifForImageFileAsync(imageMeta: ImageMetaInformation, imageFile: ImageFileData)(using
       ExecutionContext
   ): Future[Try[(ImageMetaInformation, ImageFileData)]] = Future {
     imageStorage
