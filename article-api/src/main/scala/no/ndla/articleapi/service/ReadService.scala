@@ -16,6 +16,7 @@ import no.ndla.articleapi.integration.FrontpageApiClient
 import no.ndla.articleapi.model.{NotFoundException, api}
 import no.ndla.articleapi.controller.ArticleErrorHelpers
 import no.ndla.articleapi.model.api.ArticleSummaryV2DTO
+import no.ndla.articleapi.model.api.ArticleRevisionHistoryDTO
 import no.ndla.articleapi.model.domain.*
 import no.ndla.articleapi.model.search.SearchResult
 import no.ndla.articleapi.repository.ArticleRepository
@@ -203,6 +204,17 @@ class ReadService(using
         case revisions => Success(revisions)
       }
   }
+
+  def getArticleRevisionHistory(articleId: Long, language: String, fallback: Boolean): Try[ArticleRevisionHistoryDTO] =
+    dBUtility.readOnly { implicit session =>
+      for {
+        articleRows       <- articleRepository.articlesWithId(articleId)
+        withUrls           = articleRows.toArticles.map(addUrlsOnEmbedResources)
+        externalIds       <- articleRepository.getExternalIdsFromId(articleId)
+        convertedArticles <-
+          withUrls.traverse(article => converterService.toApiArticleV2(article, language, externalIds, fallback))
+      } yield ArticleRevisionHistoryDTO(convertedArticles)
+    }
 
   def getArticleIdsByExternalId(externalId: String): Try[Option[api.ArticleIdsDTO]] = dBUtility.readOnly {
     implicit session =>

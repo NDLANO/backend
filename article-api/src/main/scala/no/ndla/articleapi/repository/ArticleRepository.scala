@@ -96,6 +96,9 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
   def withSlug(slug: String)(using DBSession): Try[Option[ArticleRow]] =
     articleWhere(sqls"ar.slug=${slug.toLowerCase} ORDER BY revision DESC LIMIT 1")
 
+  def articlesWithId(articleId: Long)(using session: DBSession): Try[List[ArticleRow]] =
+    articlesWhere(sqls"ar.article_id = $articleId ORDER BY ar.revision DESC").map(_.toList)
+
   def withId(articleId: Long)(using DBSession): Try[Option[ArticleRow]] = articleWhere(sqls"""
     ar.article_id=${articleId.toInt}
     ORDER BY revision DESC
@@ -261,6 +264,13 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
           where b.article_id = a.article_id
         )
     """.map(dbArticle.Article.fromResultSet(article)).runList().map(_.toArticles)
+  }
+
+  private def articlesWhere(whereClause: SQLSyntax)(using session: DBSession): Try[List[ArticleRow]] = {
+    val ar = dbArticle.Article.syntax("ar");
+    tsql"""
+    select ${ar.result.*} from ${dbArticle.Article.as(ar)} where ar.document is not NULL and $whereClause
+    """.map(dbArticle.Article.fromResultSet(ar)).runList()
   }
 
   private def articleWhere(whereClause: SQLSyntax)(using DBSession): Try[Option[ArticleRow]] = {
