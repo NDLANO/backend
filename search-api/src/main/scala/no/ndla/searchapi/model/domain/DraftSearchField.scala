@@ -31,6 +31,7 @@ object DraftSearchField extends Enum[DraftSearchField] with CirceEnum[DraftSearc
   case object Rightsholders   extends DraftSearchField("rightsholders")
   case object RevisionMeta    extends DraftSearchField("revisionMeta")
   case object Notes           extends DraftSearchField("notes")
+  case object PreviousNotes   extends DraftSearchField("previousNotes")
 
   implicit val schema: Schema[DraftSearchField]    = schemaForEnumEntry[DraftSearchField]
   implicit val codec: PlainCodec[DraftSearchField] = plainCodecEnumEntry[DraftSearchField]

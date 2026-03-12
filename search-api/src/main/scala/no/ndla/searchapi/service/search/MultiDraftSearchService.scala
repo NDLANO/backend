@@ -201,7 +201,7 @@ class MultiDraftSearchService(using
           nestedQuery("revisionMeta", revisionMetaNoteQuery).ignoreUnmapped(true)
         ),
         Option.when(shouldSearch(DraftSearchField.Notes))(simpleStringQuery(queryString.underlying).field("notes", 1)),
-        Option.when(shouldSearch(DraftSearchField.Notes) && !settings.excludeRevisionHistory)(
+        Option.when(shouldSearch(DraftSearchField.PreviousNotes) || !settings.excludeRevisionHistory)(
           simpleStringQuery(queryString.underlying).field("previousVersionsNotes", 1)
         ),
       ).flatten
