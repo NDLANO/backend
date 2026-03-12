@@ -13,6 +13,6 @@ import no.ndla.myndlaapi.Props
 import scalikejdbc.SQLSyntaxSupport
 
 class DBConfigMeta(using props: Props) extends SQLSyntaxSupport[ConfigMeta] {
-  override val tableName: String          = "configtable"
-  override val schemaName: Option[String] = Some(props.MetaSchema)
+  override def tableName: String          = "configtable"
+  override def schemaName: Option[String] = Some(props.MetaSchema)
 }

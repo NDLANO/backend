@@ -27,8 +27,8 @@ case class UserData(
 )
 
 class DBArticle(using props: Props) extends SQLSyntaxSupport[Draft] {
-  override val tableName                  = "articledata"
-  override val schemaName: Option[String] = Some(props.MetaSchema)
+  override def tableName                  = "articledata"
+  override def schemaName: Option[String] = Some(props.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[Draft])(rs: WrappedResultSet): Draft = fromResultSet(lp.resultName)(rs)
 
@@ -53,6 +53,6 @@ object UserData {
 }
 
 class DBUserData(using props: Props) extends SQLSyntaxSupport[UserData] {
-  override val tableName: String          = "userdata"
-  override val schemaName: Option[String] = Some(props.MetaSchema)
+  override def tableName: String          = "userdata"
+  override def schemaName: Option[String] = Some(props.MetaSchema)
 }

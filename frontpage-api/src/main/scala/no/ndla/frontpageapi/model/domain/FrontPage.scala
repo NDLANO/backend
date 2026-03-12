@@ -37,8 +37,8 @@ object FrontPage {
 class DBFrontPage(using props: Props) {
 
   object DBFrontPageData extends SQLSyntaxSupport[FrontPage] {
-    override val tableName                  = "mainfrontpage"
-    override val schemaName: Option[String] = Some(props.MetaSchema)
+    override def tableName                  = "mainfrontpage"
+    override def schemaName: Option[String] = Some(props.MetaSchema)
 
     def fromResultSet(lp: SyntaxProvider[FrontPage])(rs: WrappedResultSet): Try[FrontPage] =
       fromResultSet(lp.resultName)(rs)

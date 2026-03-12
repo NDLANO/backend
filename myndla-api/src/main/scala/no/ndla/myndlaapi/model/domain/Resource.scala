@@ -124,6 +124,6 @@ object Resource {
 }
 
 class DBResource(using props: Props) extends SQLSyntaxSupport[Resource] {
-  override val tableName: String          = "resources"
-  override val schemaName: Option[String] = Some(props.MetaSchema)
+  override def tableName: String          = "resources"
+  override def schemaName: Option[String] = Some(props.MetaSchema)
 }

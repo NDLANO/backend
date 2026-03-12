@@ -52,6 +52,6 @@ object ImageMetaInformation {
 }
 
 class DBImageMetaInformation(using props: Props) extends SQLSyntaxSupport[ImageMetaInformation] {
-  override val tableName: String          = "imagemetadata"
-  override val schemaName: Option[String] = Some(props.MetaSchema)
+  override def tableName: String          = "imagemetadata"
+  override def schemaName: Option[String] = Some(props.MetaSchema)
 }
