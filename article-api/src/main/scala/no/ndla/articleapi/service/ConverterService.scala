@@ -189,14 +189,14 @@ class ConverterService(using props: Props) extends StrictLogging {
     val newPublishedDate = partialArticle.published.getOrElse(existingArticle.published)
 
     existingArticle.copy(
-      availability = newAvailability,
-      grepCodes = newGrepCodes,
       copyright = existingArticle.copyright.copy(license = newLicense),
-      metaDescription = newMeta,
-      relatedContent = newRelatedContent,
       tags = newTags,
-      revisionDate = newRevisionDate,
+      metaDescription = newMeta,
       published = newPublishedDate,
+      grepCodes = newGrepCodes,
+      availability = newAvailability,
+      relatedContent = newRelatedContent,
+      revisionDate = newRevisionDate,
     )
   }
 
@@ -232,12 +232,7 @@ class ConverterService(using props: Props) extends StrictLogging {
     )
   }
 
-  def toApiArticleV2(
-      article: Article,
-      language: String,
-      externalIds: Seq[String],
-      fallback: Boolean,
-  ): Try[api.ArticleV2DTO] = {
+  def toApiArticleV2(article: Article, language: String, fallback: Boolean): Try[api.ArticleV2DTO] = {
     val supportedLanguages = getSupportedArticleLanguages(article)
     val isLanguageNeutral  = supportedLanguages.contains(UnknownLanguage.toString) && supportedLanguages.length == 1
 
@@ -263,8 +258,7 @@ class ConverterService(using props: Props) extends StrictLogging {
       Success(
         api.ArticleV2DTO(
           id = article.id.get,
-          // First nid in externalId's should always be mainNid after import.
-          oldNdlaUrl = externalIds.headOption.map(createLinkToOldNdla),
+          oldNdlaUrl = article.externalIds.map(createLinkToOldNdla).headOption,
           revision = article.revision.get,
           title = title,
           content = articleContent,

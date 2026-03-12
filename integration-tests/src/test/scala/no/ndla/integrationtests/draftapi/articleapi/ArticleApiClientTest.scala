@@ -97,6 +97,7 @@ class ArticleApiClientTest
   val testArticle: Draft = Draft(
     id = Some(1),
     revision = Some(1),
+    externalIds = List(),
     status = common.Status(common.draft.DraftStatus.PUBLISHED, Set.empty),
     title = Seq(common.Title("Title", "nb")),
     content = Seq(common.ArticleContent("Content", "nb")),
@@ -156,11 +157,11 @@ class ArticleApiClientTest
             td.sampleDomainArticle
               .copy(
                 id = Some(id),
-                updated = NDLADate.fromUnixTime(0),
                 created = NDLADate.fromUnixTime(0),
+                updated = NDLADate.fromUnixTime(0),
                 published = NDLADate.fromUnixTime(0),
-              ),
-            List(s"1$id"),
+                externalIds = List(s"1$id"),
+              )
           )(using articleApi.componentRegistry.dbUtility.autoSession)
       })
       .collectFirst { case Failure(ex) =>

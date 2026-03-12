@@ -125,15 +125,15 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
 
   test("validateArticle should throw an error if title contains HTML tags") {
     val article = articleToValidate.copy(
-      content = Seq(ArticleContent(validDocument, "nb")),
       title = Seq(Title(validDocument, "nb")),
+      content = Seq(ArticleContent(validDocument, "nb")),
     )
     contentValidator.validateArticle(article)(using dbUtility.readOnlySession).isFailure should be(true)
   }
 
   test("validateArticle should not throw an error if title contains plain text") {
     val article =
-      articleToValidate.copy(content = Seq(ArticleContent(validDocument, "nb")), title = Seq(Title("title", "nb")))
+      articleToValidate.copy(title = Seq(Title("title", "nb")), content = Seq(ArticleContent(validDocument, "nb")))
     contentValidator.validateArticle(article)(using dbUtility.readOnlySession).isSuccess should be(true)
   }
 

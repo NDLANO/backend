@@ -183,6 +183,7 @@ object TestData {
   val sampleArticleWithPublicDomain: Article = Article(
     Option(1),
     Option(1),
+    List(),
     Seq(Title("test", "en")),
     Seq(ArticleContent("<section><div>test</div></section>", "en")),
     publicDomainCopyright,
@@ -210,6 +211,7 @@ object TestData {
   val sampleDomainArticle: Article = Article(
     Option(articleId),
     Option(2),
+    List(),
     Seq(Title("title", "nb")),
     Seq(ArticleContent("content", "nb")),
     Copyright("by", None, Seq(), Seq(), Seq(), None, None, false),
@@ -237,6 +239,7 @@ object TestData {
   val sampleDomainArticle2: Article = Article(
     None,
     None,
+    List(),
     Seq(Title("test", "en")),
     Seq(ArticleContent("<article><div>test</div></article>", "en")),
     Copyright(License.PublicDomain.toString, None, Seq(), Seq(), Seq(), None, None, false),
@@ -443,8 +446,8 @@ object TestData {
       content = List(
         ArticleContent(
           s"""<p>Søkeord: delt?streng delt!streng delt&streng</p>
-             |<$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\" /><p>Noe om en katt</p>
-             |<$EmbedTagName data-resource=\"content-link\" data-content-type=\"article\" data-content-id=\"666\"></$EmbedTagName>"""
+           |<$EmbedTagName data-resource=\"concept\" data-resource_id=\"222\" /><p>Noe om en katt</p>
+           |<$EmbedTagName data-resource=\"content-link\" data-content-type=\"article\" data-content-id=\"666\"></$EmbedTagName>"""
             .stripMargin,
           "nb",
         ),
@@ -469,12 +472,12 @@ object TestData {
       content = List(
         ArticleContent(
           s"""Helsesøster H5P <p>delt-streng</p>
-             |<$EmbedTagName data-title=\"Flubber\" data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName>
-             |<$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName>
-             |<$EmbedTagName data-videoid=\"77\" data-resource=\"brightcove\"></$EmbedTagName>
-             |<$EmbedTagName data-resource=\"audio\" data-resource_id=\"66\"></$EmbedTagName>
-             |<$EmbedTagName data-resource=\"external\" data-url=\"http://test\" data-resource_id=\"test-id1\"></$EmbedTagName>
-             |<$EmbedTagName data-resource=\"content-link\" data-content-type=\"learningpath\" data-content-id=\"666\"></$EmbedTagName>"""
+           |<$EmbedTagName data-title=\"Flubber\" data-resource=\"h5p\" data-path=\"/resource/id\"></$EmbedTagName>
+           |<$EmbedTagName data-resource=\"concept\" data-content-id=\"111\" data-title=\"Flubber\"></$EmbedTagName>
+           |<$EmbedTagName data-videoid=\"77\" data-resource=\"brightcove\"></$EmbedTagName>
+           |<$EmbedTagName data-resource=\"audio\" data-resource_id=\"66\"></$EmbedTagName>
+           |<$EmbedTagName data-resource=\"external\" data-url=\"http://test\" data-resource_id=\"test-id1\"></$EmbedTagName>
+           |<$EmbedTagName data-resource=\"content-link\" data-content-type=\"learningpath\" data-content-id=\"666\"></$EmbedTagName>"""
             .stripMargin,
           "nb",
         ),
@@ -516,7 +519,6 @@ object TestData {
     .copy(
       id = Option(14),
       title = List(Title("Forsideartikkel", "nb")),
-      slug = Some("forsideartikkel"),
       content = List(
         ArticleContent(
           s"Forsideartikkel <p>avsnitt</p><$EmbedTagName data-resource=\"concept\" data-content-id=\"123\" data-title=\"Forklaring\" data-type=\"block\"></$EmbedTagName>",
@@ -531,6 +533,7 @@ object TestData {
       updated = today.minusDays(5),
       published = today.minusDays(5),
       articleType = ArticleType.FrontpageArticle,
+      slug = Some("forsideartikkel"),
     )
 
   val articlesToIndex: Seq[Article] = List(
@@ -553,6 +556,7 @@ object TestData {
   val emptyDomainArticle: Article = Article(
     id = None,
     revision = None,
+    externalIds = List(),
     title = Seq.empty,
     content = Seq.empty,
     copyright = Copyright("", None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
@@ -580,6 +584,7 @@ object TestData {
   val emptyDomainDraft: Draft = Draft(
     id = None,
     revision = None,
+    externalIds = List(),
     status = Status(DraftStatus.PLANNED, Set.empty),
     title = Seq.empty,
     content = Seq.empty,
@@ -644,6 +649,7 @@ object TestData {
   val sampleDraftWithPublicDomain: Draft = Draft(
     id = Option(1),
     revision = Option(1),
+    externalIds = List(),
     status = draftStatus,
     title = Seq(Title("test", "en")),
     content = Seq(ArticleContent("<section><div>test</div></section>", "en")),
@@ -685,16 +691,16 @@ object TestData {
     .copy(
       id = Option(1),
       title = List(Title("Batmen er på vift med en bil", "nb")),
-      introduction = List(Introduction("Batmen", "nb")),
-      metaDescription = List.empty,
-      visualElement = List.empty,
       content = List(
         ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
       ),
+      copyright = Some(draftByNcSaCopyright.copy(creators = List(Author(ContributorType.Writer, "Kjekspolitiet")))),
       tags = List(Tag(List("fugl"), "nb")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Batmen", "nb")),
+      metaDescription = List.empty,
       created = today.minusDays(4),
       updated = today.minusDays(3),
-      copyright = Some(draftByNcSaCopyright.copy(creators = List(Author(ContributorType.Writer, "Kjekspolitiet")))),
       grepCodes = Seq("K123", "K456"),
     )
 
@@ -703,19 +709,19 @@ object TestData {
     .copy(
       id = Option(2),
       title = List(Title("Pingvinen er ute og går", "nb")),
-      introduction = List(Introduction("Pingvinen", "nb")),
-      metaDescription = List.empty,
-      visualElement = List.empty,
       content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
-      tags = List(Tag(List("fugl"), "nb")),
-      created = today.minusDays(4),
-      updated = today.minusDays(2),
       copyright = Some(
         draftPublicDomainCopyright.copy(
           creators = List(Author(ContributorType.Writer, "Pjolter")),
           processors = List(Author(ContributorType.Editorial, "Svims")),
         )
       ),
+      tags = List(Tag(List("fugl"), "nb")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Pingvinen", "nb")),
+      metaDescription = List.empty,
+      created = today.minusDays(4),
+      updated = today.minusDays(2),
       grepCodes = Seq("K456", "K123"),
     )
 
@@ -724,11 +730,11 @@ object TestData {
     .copy(
       id = Option(3),
       title = List(Title("Donald Duck kjører bil", "nb")),
-      introduction = List(Introduction("Donald Duck", "nb")),
-      metaDescription = List.empty,
-      visualElement = List.empty,
       content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
       tags = List(Tag(List("and"), "nb")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Donald Duck", "nb")),
+      metaDescription = List.empty,
       created = today.minusDays(4),
       updated = today.minusDays(1),
       grepCodes = Seq("K123"),
@@ -739,12 +745,12 @@ object TestData {
     .copy(
       id = Option(4),
       title = List(Title("Superman er ute og flyr", "nb")),
-      introduction = List(Introduction("Superman", "nb")),
-      metaDescription = List.empty,
-      visualElement = List.empty,
       content =
         List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
       tags = List(Tag(List("supermann"), "nb")),
+      visualElement = List.empty,
+      introduction = List(Introduction("Superman", "nb")),
+      metaDescription = List.empty,
       created = today.minusDays(4),
       updated = today,
     )

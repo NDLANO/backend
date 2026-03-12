@@ -465,10 +465,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .sampleDomainArticle
       .copy(
         id = Some(5),
-        title = Seq(Title("Tittel", "nb"), Title("Title", "en")),
         status = Status(DraftStatus.PUBLISHED, Set.empty),
-        updated = yesterday,
+        title = Seq(Title("Tittel", "nb"), Title("Title", "en")),
         created = yesterday.minusDays(1),
+        updated = yesterday,
         published = yesterday,
       )
 
@@ -479,14 +479,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val expectedInsertedArticle = article.copy(
       id = Some(newId),
-      title = Seq(Title("Tittel (Kopi)", "nb"), Title("Title (Kopi)", "en")),
       revision = Some(1),
-      updated = today,
-      created = today,
-      published = today,
-      updatedBy = userinfo.id,
-      responsible = Some(Responsible(userinfo.id, today)),
       status = Status(DraftStatus.PLANNED, Set.empty),
+      title = Seq(Title("Tittel (Kopi)", "nb"), Title("Title (Kopi)", "en")),
+      created = today,
+      updated = today,
+      updatedBy = userinfo.id,
+      published = today,
       notes = article.notes ++
         converterService
           .newNotes(
@@ -495,6 +494,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
             Status(DraftStatus.PLANNED, Set.empty),
           )
           .get,
+      responsible = Some(Responsible(userinfo.id, today)),
     )
     when(draftRepository.withId(any)(using any)).thenReturn(Success(Some(article)))
 
@@ -516,10 +516,10 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .sampleDomainArticle
       .copy(
         id = Some(5),
-        title = Seq(Title("Tittel", "nb"), Title("Title", "en")),
         status = Status(DraftStatus.PUBLISHED, Set.empty),
-        updated = yesterday,
+        title = Seq(Title("Tittel", "nb"), Title("Title", "en")),
         created = yesterday.minusDays(1),
+        updated = yesterday,
         published = yesterday,
       )
 
@@ -531,12 +531,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val expectedInsertedArticle = article.copy(
       id = Some(newId),
       revision = Some(1),
-      updated = today,
-      created = today,
-      published = today,
-      updatedBy = userinfo.id,
-      responsible = Some(Responsible(userinfo.id, today)),
       status = Status(DraftStatus.PLANNED, Set.empty),
+      created = today,
+      updated = today,
+      updatedBy = userinfo.id,
+      published = today,
       notes = article.notes ++
         converterService
           .newNotes(
@@ -545,6 +544,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
             Status(DraftStatus.PLANNED, Set.empty),
           )
           .get,
+      responsible = Some(Responsible(userinfo.id, today)),
     )
     when(draftRepository.withId(any)(using any)).thenReturn(Success(Some(article)))
     service.copyArticleFromId(5, userinfo, "*", true, false)
@@ -583,7 +583,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val existing = TestData
       .sampleDomainArticle
-      .copy(title = Seq(Title(existingTitle, "nb")), status = TestData.statusWithPublished)
+      .copy(status = TestData.statusWithPublished, title = Seq(Title(existingTitle, "nb")))
     when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
     val Success(result1) =
@@ -624,14 +624,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existing = TestData
       .sampleDomainArticle
       .copy(
-        title = Seq(Title(existingTitle, "nb")),
         status = TestData.statusWithPublished,
-        availability = Availability.everyone,
-        grepCodes = Seq.empty,
+        title = Seq(Title(existingTitle, "nb")),
         copyright = Some(TestData.publicDomainCopyright.copy(license = Some("oldLicense"), origin = None)),
-        metaDescription = Seq.empty,
-        relatedContent = Seq.empty,
         tags = Seq.empty,
+        metaDescription = Seq.empty,
+        grepCodes = Seq.empty,
+        availability = Availability.everyone,
+        relatedContent = Seq.empty,
       )
 
     when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
@@ -682,14 +682,14 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existing = TestData
       .sampleDomainArticle
       .copy(
-        title = Seq(Title(existingTitle, "nb")),
         status = TestData.statusWithPublished,
-        availability = Availability.everyone,
-        grepCodes = Seq.empty,
+        title = Seq(Title(existingTitle, "nb")),
         copyright = Some(TestData.publicDomainCopyright.copy(license = Some("oldLicense"), origin = None)),
-        metaDescription = Seq.empty,
-        relatedContent = Seq.empty,
         tags = Seq.empty,
+        metaDescription = Seq.empty,
+        grepCodes = Seq.empty,
+        availability = Availability.everyone,
+        relatedContent = Seq.empty,
         responsible = Some(Responsible("hei", TestData.today)),
       )
 
@@ -740,15 +740,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existing = TestData
       .sampleDomainArticle
       .copy(
-        title = Seq(Title(existingTitle, "nb")),
         status = TestData.statusWithPublished,
-        availability = Availability.everyone,
-        grepCodes = Seq.empty,
+        title = Seq(Title(existingTitle, "nb")),
         copyright = Some(TestData.publicDomainCopyright.copy(license = Some("oldLicense"), origin = None)),
-        metaDescription = Seq.empty,
-        relatedContent = Seq.empty,
         tags = Seq.empty,
+        metaDescription = Seq.empty,
+        grepCodes = Seq.empty,
         conceptIds = Seq.empty,
+        availability = Availability.everyone,
+        relatedContent = Seq.empty,
         responsible = Some(Responsible("hei", TestData.today)),
       )
 
@@ -875,24 +875,24 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData
       .sampleDomainArticle
       .copy(
-        availability = Availability.everyone,
-        grepCodes = Seq("A", "B"),
         copyright = Some(DraftCopyright(Some("CC-BY-4.0"), Some("origin"), Seq(), Seq(), Seq(), None, None, false)),
+        tags = Seq(Tag(Seq("old", "tag"), "nb"), Tag(Seq("guten", "tag"), "de"), Tag(Seq("oldd", "tagg"), "es")),
         metaDescription = Seq(
           Description("oldDesc", "nb"),
           Description("oldDescc", "es"),
           Description("oldDesccc", "ru"),
           Description("oldDescccc", "nn"),
         ),
+        published = tomorrow,
+        grepCodes = Seq("A", "B"),
+        availability = Availability.everyone,
         relatedContent = Seq(Left(RelatedContentLink("title1", "url2")), Right(12L)),
-        tags = Seq(Tag(Seq("old", "tag"), "nb"), Tag(Seq("guten", "tag"), "de"), Tag(Seq("oldd", "tagg"), "es")),
         revisionMeta = Seq(
           RevisionMeta(UUID.randomUUID(), yesterday, "Test1", RevisionStatus.Revised),
           RevisionMeta(UUID.randomUUID(), tomorrow, "Test2", RevisionStatus.Revised),
           RevisionMeta(UUID.randomUUID(), tomorrow, "Test3", RevisionStatus.NeedsRevision),
           RevisionMeta(UUID.randomUUID(), afterTomorrow, "Test4", RevisionStatus.NeedsRevision),
         ),
-        published = tomorrow,
       )
 
     val articleFieldsToUpdate = Seq(

@@ -123,9 +123,6 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
             "en",
           ),
         ),
-        metaImage = List(ArticleMetaImage("hei", "hå", "nb"), ArticleMetaImage("hei", "hå", "en")),
-        metaDescription = Seq(Description("hei", "nb"), Description("hei", "en")),
-        visualElement = Seq(VisualElement("hei", "nb"), VisualElement("hei", "en")),
         copyright = Copyright(
           license = "CC-BY-SA-4.0",
           origin = None,
@@ -136,6 +133,9 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
           validTo = None,
           processed = false,
         ),
+        visualElement = Seq(VisualElement("hei", "nb"), VisualElement("hei", "en")),
+        metaDescription = Seq(Description("hei", "nb"), Description("hei", "en")),
+        metaImage = List(ArticleMetaImage("hei", "hå", "nb"), ArticleMetaImage("hei", "hå", "en")),
         traits = List(Interactive),
       )
 

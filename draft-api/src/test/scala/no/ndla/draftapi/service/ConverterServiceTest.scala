@@ -162,6 +162,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val art    = Draft(
       id = Some(3),
       revision = Some(4),
+      externalIds = List(),
       status = status,
       title = Seq(Title("Title test", "nb")),
       content = Seq(ArticleContent("Content test", "nb")),
@@ -208,6 +209,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val art    = Draft(
       id = Some(3),
       revision = Some(4),
+      externalIds = List(),
       status = status,
       title = Seq(Title("Title test", "nb")),
       content = Seq(ArticleContent("Content test", "nb")),
@@ -244,6 +246,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedArticle = Draft(
       id = Some(3),
       revision = Some(4),
+      externalIds = List(),
       status = status,
       title = Seq(Title("NyTittel", "nb")),
       content = Seq(ArticleContent("NyContent", "nb")),
@@ -313,6 +316,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val art    = Draft(
       id = Some(3),
       revision = Some(4),
+      externalIds = List(),
       status = status,
       title = Seq(Title("Title test", "nb")),
       content = Seq(ArticleContent("Content test", "nb")),
@@ -349,6 +353,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedArticle = Draft(
       id = Some(3),
       revision = Some(4),
+      externalIds = List(),
       status = status,
       title = Seq(Title("Title test", "nb"), Title("NyTittel", "en")),
       content = Seq(ArticleContent("Content test", "nb"), ArticleContent("NyContent", "en")),
@@ -730,6 +735,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val draft     = Draft(
       id = Some(articleId),
       revision = Some(3),
+      externalIds = List(),
       status = Status(PLANNED, Set.empty),
       title = Seq(Title("articleTitle", "nb")),
       content = Seq(ArticleContent("content", "nb")),
@@ -769,6 +775,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       .Article(
         id = Some(articleId),
         revision = Some(3),
+        externalIds = List(),
         title = Seq(Title("articleTitle", "nb")),
         content = Seq(ArticleContent("content", "nb")),
         copyright = common
