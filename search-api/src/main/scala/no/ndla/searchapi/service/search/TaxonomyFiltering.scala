@@ -60,20 +60,20 @@ trait TaxonomyFiltering {
   private val booleanMust: (String, String) => BoolQuery =
     (field: String, id: String) => boolQuery().must(termQuery(field, id))
 
-  protected def subjectFilter(subjects: List[String], filterInactive: Boolean): Option[Query] =
-    if (subjects.isEmpty) None
-    else {
-      if (subjects.contains("NONE")) {
+  protected def subjectFilter(subjects: Option[List[String]], filterInactive: Boolean): Option[Query] = {
+    subjects match {
+      case Some(subs) if subs.isEmpty =>
         Some(boolQuery().not(nestedQuery("contexts", existsQuery("contexts.rootId")).ignoreUnmapped(true)))
-      } else {
-        val subjectQueries = subjects.map(subjectId =>
+      case Some(subs) =>
+        val subjectQueries = subs.map(subjectId =>
           if (filterInactive)
             boolQuery().must(booleanMust("contexts.rootId", subjectId), booleanMust("contexts.isActive", "true"))
           else booleanMust("contexts.rootId", subjectId)
         )
         Some(mustBeConceptOr(nestedQuery("contexts", boolQuery().should(subjectQueries)).ignoreUnmapped(true)))
-      }
+      case None => None
     }
+  }
 
   protected def topicFilter(topics: List[String], filterInactive: Boolean): Option[Query] =
     if (topics.isEmpty) None
