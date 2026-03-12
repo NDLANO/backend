@@ -327,7 +327,8 @@ class WriteService(using
       user: TokenUser,
   ): Try[ImageMetaInformation] = permitTry {
     val uploaded            = uploadImageWithVariants(newFile).?
-    val imageFileFromUpload = converterService.toImageFileData(uploaded, language)
+    val exifData            = ExifUtil.extractExifData(newFile)
+    val imageFileFromUpload = converterService.toImageFileData(uploaded, language, exifData)
 
     val imageForLang  = oldImage.images.find(_.language == language)
     val allOtherPaths = oldImage.images.filterNot(_.language == language).map(_.fileName)
@@ -347,9 +348,7 @@ class WriteService(using
             logger.error(s"Failed to create CloudFront invalidation for image '${newImageFile.fileName}'", ex)
           }
       }): Unit
-    val exifData             = ExifUtil.extractExifData(newFile)
-    val newImageFileWithExif = newImageFile.copy(exifData = exifData)
-    val withNew              = converterService.withNewImageFile(oldImage, newImageFileWithExif, language, user)
+    val withNew = converterService.withNewImageFile(oldImage, newImageFile, language, user)
     Success(withNew)
   }
 
