@@ -313,7 +313,7 @@ class MultiSearchService(using
     )
     val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, settings.filterByNoResourceType)
     val taxonomySubjectFilter       = subjectFilter(settings.subjects, settings.filterInactive)
-    val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
+    val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects.getOrElse(List.empty))
     val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
 
     val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
