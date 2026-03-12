@@ -11,7 +11,7 @@ package no.ndla.imageapi.service
 import com.typesafe.scalalogging.StrictLogging
 import io.lemonlabs.uri.typesafe.dsl.*
 import io.lemonlabs.uri.UrlPath
-import no.ndla.common.model.{api as commonApi, domain as commonDomain}
+import no.ndla.common.model.{NDLADate, api as commonApi, domain as commonDomain}
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.domain.{
   ImageFileData,
@@ -134,7 +134,12 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       .map { case domain.ImageDimensions(width, height) =>
         api.ImageDimensionsDTO(width, height)
       }
-    val variants = image.variants.map(asApiImageVariant)
+    val variants     = image.variants.map(asApiImageVariant)
+    val originalDate = image
+      .exifData
+      .get(props.ExifDateTimeOriginal)
+      .filter(s => s != "")
+      .map(s => NDLADate.fromString(s).get)
 
     api.ImageFileDTO(
       fileName = image.fileName,
@@ -144,7 +149,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       dimensions = dimensions,
       variants = variants,
       language = image.language,
-      originalDate = image.exifData.get(props.ExifDateTimeOriginal),
+      originalDate = originalDate,
     )
   }
 
