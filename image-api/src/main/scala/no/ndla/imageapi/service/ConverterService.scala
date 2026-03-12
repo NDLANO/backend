@@ -341,11 +341,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     )
   }
 
-  def toImageFileData(
-      upload: UploadedImage,
-      language: String,
-      exifData: Map[String, String] = Map.empty,
-  ): ImageFileData = {
+  def toImageFileData(upload: UploadedImage, language: String, exifData: Map[String, String]): ImageFileData = {
     ImageFileData(
       fileName = upload.fileName,
       size = upload.size,
