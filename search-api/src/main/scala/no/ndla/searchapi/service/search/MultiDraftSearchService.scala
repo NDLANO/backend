@@ -161,8 +161,10 @@ class MultiDraftSearchService(using
   private def buildContentIndexesQuery(settings: MultiDraftSearchSettings) = settings
     .query
     .map(queryString => {
-      val selectedFields                                 = settings.queryFields.toSet
-      def shouldSearch(field: DraftSearchField): Boolean = selectedFields.isEmpty || selectedFields.contains(field)
+      val draftSearchFields = settings.queryFields match {
+        case Nil => DraftSearchField.values.toList
+        case l   => l
+      }
 
       val langQueryFunc = (fieldName: String, boost: Double) =>
         buildSimpleStringQuery(
@@ -186,27 +188,35 @@ class MultiDraftSearchService(using
         buildNestedEmbedField(List.empty, Some(queryString.underlying), settings.language, settings.fallback),
       ).flatten
 
-      val selectableQueries: List[Query] = List(
-        Option.when(shouldSearch(DraftSearchField.Title))(langQueryFunc("title", 20)),
-        Option.when(shouldSearch(DraftSearchField.Introduction))(langQueryFunc("introduction", 2)),
-        Option.when(shouldSearch(DraftSearchField.MetaDescription))(langQueryFunc("metaDescription", 1)),
-        Option.when(shouldSearch(DraftSearchField.Disclaimer))(langQueryFunc("disclaimer", 1)),
-        Option.when(shouldSearch(DraftSearchField.Content))(langQueryFunc("content", 1)),
-        Option.when(shouldSearch(DraftSearchField.Tags))(langQueryFunc("tags", 1)),
-        Option.when(shouldSearch(DraftSearchField.EmbedAttributes))(langQueryFunc("embedAttributes", 1)),
-        Option.when(shouldSearch(DraftSearchField.Creators))(contributorQuery("creators")),
-        Option.when(shouldSearch(DraftSearchField.Processors))(contributorQuery("processors")),
-        Option.when(shouldSearch(DraftSearchField.Rightsholders))(contributorQuery("rightsholders")),
-        Option.when(shouldSearch(DraftSearchField.RevisionMeta))(
-          nestedQuery("revisionMeta", revisionMetaNoteQuery).ignoreUnmapped(true)
-        ),
-        Option.when(shouldSearch(DraftSearchField.Notes))(simpleStringQuery(queryString.underlying).field("notes", 1)),
-        Option.when(shouldSearch(DraftSearchField.PreviousNotes) || !settings.excludeRevisionHistory)(
-          simpleStringQuery(queryString.underlying).field("previousVersionsNotes", 1)
-        ),
-      ).flatten
+      val draftFieldQueries = draftSearchFields
+        .distinct
+        .map {
+          case DraftSearchField.Title           => langQueryFunc("title", 20)
+          case DraftSearchField.Introduction    => langQueryFunc("introduction", 2)
+          case DraftSearchField.MetaDescription => langQueryFunc("metaDescription", 1)
+          case DraftSearchField.Disclaimer      => langQueryFunc("disclaimer", 1)
+          case DraftSearchField.Content         => langQueryFunc("content", 1)
+          case DraftSearchField.Tags            => langQueryFunc("tags", 1)
+          case DraftSearchField.EmbedAttributes => langQueryFunc("embedAttributes", 1)
+          case DraftSearchField.Creators        => contributorQuery("creators")
+          case DraftSearchField.Processors      => contributorQuery("processors")
+          case DraftSearchField.Rightsholders   => contributorQuery("rightsholders")
+          case DraftSearchField.RevisionMeta    => nestedQuery("revisionMeta", revisionMetaNoteQuery).ignoreUnmapped(true)
+          case DraftSearchField.Notes           =>
+            val notesQuery = simpleStringQuery(queryString.underlying).field("notes", 1)
+            if (settings.excludeRevisionHistory) {
+              notesQuery
+            } else {
+              boolQuery().should(
+                notesQuery,
+                simpleStringQuery(queryString.underlying).field("previousVersionsNotes", 1),
+              )
+            }
+          case DraftSearchField.PreviousNotes =>
+            simpleStringQuery(queryString.underlying).field("previousVersionsNotes", 1)
+        }
 
-      boolQuery().should(alwaysIncludedQueries ++ selectableQueries)
+      boolQuery().should(alwaysIncludedQueries ++ draftFieldQueries)
     })
 
   private def filteredCountSearch(settings: MultiDraftSearchSettings): Try[Long] = {
