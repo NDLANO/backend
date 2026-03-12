@@ -214,6 +214,56 @@ class UserService(using
     } yield ()
   })
 
+  def sendInactivityEmail(user: MyNDLAUser): Try[Boolean] = {
+    props.Environment match {
+      case "prod" =>
+        logger.info(s"Sending inactivity email to user ${user.feideId} at email ${user.email}")
+        emailClient.sendEmail(user.email, UserService.emailSubject, UserService.emailBody)
+      case _ =>
+        logger.info(s"Skipping sending inactivity email to user ${user.feideId} in non-prod environment")
+        Success(true)
+    }
+  }
+
+  def sendInactivityEmailIgnoreEnvironment(email: String): Try[Boolean] =
+    emailClient.sendEmail(email, UserService.emailSubject, UserService.emailBody)
+
+  private def getUsersToEmail(now: NDLADate)(implicit session: ReadableDbSession): Try[List[MyNDLAUser]] = for {
+    lastCleanupRun      <- userRepository.getLastCleanup
+    emailCandidates     <- userRepository.getUserNotSeenSince(now.minusDays(UserService.emailAfter))
+    usersToEmailFiltered = lastCleanupRun match {
+      case None          => emailCandidates
+      case Some(lastRun) =>
+        // NOTE: This is the cutoff for which users would have been sent an email in the last run.
+        //       Since we only want to email users once, we filter out users that would have been emailed in the last run, even if they are still inactive.
+        val lastEmailCutoff = lastRun.lastCleanupDate.minusDays(UserService.emailAfter)
+        emailCandidates.filter(user => user.lastSeen.isAfter(lastEmailCutoff))
+    }
+  } yield usersToEmailFiltered
+
+  private def sendInactivityEmails(usersToEmail: List[MyNDLAUser]) = usersToEmail.traverse(user =>
+    sendInactivityEmail(user).flatMap {
+      case true  => Success(())
+      case false => Failure(InactivityEmailException(s"Failed to send inactivity email to user ${user.id}"))
+    }
+  )
+
+  def cleanupInactiveUsers(): Try[InactiveUserResultDTO] = dbUtility.writeSession { implicit session =>
+    val now              = clock.now()
+    val deleteBeforeDate = now.minusDays(UserService.deleteAfter)
+
+    for {
+      usersToDelete <- userRepository.getUserNotSeenSince(deleteBeforeDate)
+      deleteFeideIds = usersToDelete.map(_.feideId).toSet
+      usersToEmail  <- getUsersToEmail(now).map(_.filterNot(user => deleteFeideIds.contains(user.feideId)))
+      _             <- sendInactivityEmails(usersToEmail)
+      _             <- usersToDelete.traverse(user => userRepository.deleteUser(user.feideId).map(_ => ()))
+      cleanupResult <- userRepository.insertCleanupResult(usersToDelete.size, usersToEmail.size, now)
+    } yield InactiveUserResultDTO(cleanupResult.numCleanup, cleanupResult.numEmailed)
+  }
+}
+
+object UserService {
   private val emailAfter           = 180
   private val deleteAfter          = 210
   private def emailSubject: String = "Min NDLA brukeren din blir snart slettet"
@@ -231,51 +281,4 @@ class UserService(using
                                         |NDLA<br>
                                         |""".stripMargin
 
-  def sendInactivityEmail(user: MyNDLAUser): Try[Boolean] = {
-    props.Environment match {
-      case "prod" =>
-        logger.info(s"Sending inactivity email to user ${user.feideId} at email ${user.email}")
-        emailClient.sendEmail(user.email, emailSubject, emailBody)
-      case _ =>
-        logger.info(s"Skipping sending inactivity email to user ${user.feideId} in non-prod environment")
-        Success(true)
-    }
-  }
-
-  def sendInactivityEmailIgnoreEnvironment(email: String): Try[Boolean] =
-    emailClient.sendEmail(email, emailSubject, emailBody)
-
-  private def getUsersToEmail(now: NDLADate)(implicit session: ReadableDbSession): Try[List[MyNDLAUser]] = for {
-    lastCleanupRun      <- userRepository.getLastCleanup
-    emailCandidates     <- userRepository.getUserNotSeenSince(now.minusDays(emailAfter))
-    usersToEmailFiltered = lastCleanupRun match {
-      case None          => emailCandidates
-      case Some(lastRun) =>
-        // NOTE: This is the cutoff for which users would have been sent an email in the last run.
-        //       Since we only want to email users once, we filter out users that would have been emailed in the last run, even if they are still inactive.
-        val lastEmailCutoff = lastRun.lastCleanupDate.minusDays(emailAfter)
-        emailCandidates.filter(user => user.lastSeen.isAfter(lastEmailCutoff))
-    }
-  } yield usersToEmailFiltered
-
-  private def sendInactivityEmails(usersToEmail: List[MyNDLAUser]) = usersToEmail.traverse(user =>
-    sendInactivityEmail(user).flatMap {
-      case true  => Success(())
-      case false => Failure(InactivityEmailException(s"Failed to send inactivity email to user ${user.id}"))
-    }
-  )
-
-  def cleanupInactiveUsers(): Try[InactiveUserResultDTO] = dbUtility.writeSession { implicit session =>
-    val now              = clock.now()
-    val deleteBeforeDate = now.minusDays(deleteAfter)
-
-    for {
-      usersToDelete <- userRepository.getUserNotSeenSince(deleteBeforeDate)
-      deleteFeideIds = usersToDelete.map(_.feideId).toSet
-      usersToEmail  <- getUsersToEmail(now).map(_.filterNot(user => deleteFeideIds.contains(user.feideId)))
-      _             <- sendInactivityEmails(usersToEmail)
-      _             <- usersToDelete.traverse(user => userRepository.deleteUser(user.feideId).map(_ => ()))
-      cleanupResult <- userRepository.insertCleanupResult(usersToDelete.size, usersToEmail.size, now)
-    } yield InactiveUserResultDTO(cleanupResult.numCleanup, cleanupResult.numEmailed)
-  }
 }
