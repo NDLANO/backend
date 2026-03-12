@@ -311,8 +311,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
 
     when(userRepository.getLastCleanup(using any)).thenReturn(Success(None))
     when(userRepository.getUserNotSeenSince(any[NDLADate])(using any)).thenReturn(
-      Success(usersToDelete),
-      Success(emailCandidates),
+      Success(usersToDelete ++ emailCandidates)
     )
     when(userRepository.deleteUser(any)(using any)).thenReturn(Success("deleted"))
     when(userRepository.insertCleanupResult(eqTo(usersToDelete.size), eqTo(emailCandidates.size), eqTo(now))(using any))
@@ -336,19 +335,19 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
     val deleteUser      = userWithLastSeen(id = 1, feideId = "delete-1", lastSeen = now.minusDays(220))
     val usersToDelete   = List(deleteUser)
     val shouldEmail     = userWithLastSeen(id = 2, feideId = "email-1", lastSeen = now.minusDays(181))
-    val emailCandidates = List(deleteUser, shouldEmail)
+    val emailCandidates = List(shouldEmail)
     val expectedEmailed = 1
 
     when(userRepository.getLastCleanup(using any)).thenReturn(Success(None))
     when(userRepository.getUserNotSeenSince(any[NDLADate])(using any)).thenReturn(
-      Success(usersToDelete),
-      Success(emailCandidates),
+      Success(usersToDelete ++ emailCandidates)
     )
     when(userRepository.deleteUser(any)(using any)).thenReturn(Success("deleted"))
     when(userRepository.insertCleanupResult(eqTo(usersToDelete.size), eqTo(expectedEmailed), eqTo(now))(using any))
       .thenReturn(Success(InactiveUserCleanupResult(1, usersToDelete.size, expectedEmailed, now)))
 
-    service.cleanupInactiveUsers() should be(Success(InactiveUserResultDTO(usersToDelete.size, expectedEmailed)))
+    val result = service.cleanupInactiveUsers()
+    result should be(Success(InactiveUserResultDTO(usersToDelete.size, expectedEmailed)))
 
     verify(service, times(1)).sendInactivityEmail(eqTo(shouldEmail))
     verify(service, times(0)).sendInactivityEmail(eqTo(deleteUser))
@@ -372,8 +371,7 @@ class UserServiceTest extends UnitTestSuite with TestEnvironment {
       Success(Some(InactiveUserCleanupResult(1, 0, 0, lastCleanupDate)))
     )
     when(userRepository.getUserNotSeenSince(any[NDLADate])(using any)).thenReturn(
-      Success(usersToDelete),
-      Success(emailCandidates),
+      Success(usersToDelete ++ emailCandidates)
     )
     when(userRepository.insertCleanupResult(eqTo(0), eqTo(1), eqTo(now))(using any)).thenReturn(
       Success(InactiveUserCleanupResult(2, 0, 1, now))

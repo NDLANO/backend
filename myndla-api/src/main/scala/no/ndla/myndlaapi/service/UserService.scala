@@ -228,10 +228,11 @@ class UserService(using
   def sendInactivityEmailIgnoreEnvironment(email: String): Try[Boolean] =
     emailClient.sendEmail(email, UserService.emailSubject, UserService.emailBody)
 
-  private def getUsersToEmail(now: NDLADate)(implicit session: ReadableDbSession): Try[List[MyNDLAUser]] = for {
-    lastCleanupRun      <- userRepository.getLastCleanup
-    emailCandidates     <- userRepository.getUserNotSeenSince(now.minusDays(UserService.emailAfter))
-    usersToEmailFiltered = lastCleanupRun match {
+  private def filterUsersToEmail(
+      emailCandidates: List[MyNDLAUser]
+  )(implicit session: ReadableDbSession): Try[List[MyNDLAUser]] = userRepository
+    .getLastCleanup
+    .map {
       case None          => emailCandidates
       case Some(lastRun) =>
         // NOTE: This is the cutoff for which users would have been sent an email in the last run.
@@ -239,7 +240,6 @@ class UserService(using
         val lastEmailCutoff = lastRun.lastCleanupDate.minusDays(UserService.emailAfter)
         emailCandidates.filter(user => user.lastSeen.isAfter(lastEmailCutoff))
     }
-  } yield usersToEmailFiltered
 
   private def sendInactivityEmails(usersToEmail: List[MyNDLAUser]) = usersToEmail.traverse(user =>
     sendInactivityEmail(user).flatMap {
@@ -253,12 +253,12 @@ class UserService(using
     val deleteBeforeDate = now.minusDays(UserService.deleteAfter)
 
     for {
-      usersToDelete <- userRepository.getUserNotSeenSince(deleteBeforeDate)
-      deleteFeideIds = usersToDelete.map(_.feideId).toSet
-      usersToEmail  <- getUsersToEmail(now).map(_.filterNot(user => deleteFeideIds.contains(user.feideId)))
-      _             <- sendInactivityEmails(usersToEmail)
-      _             <- usersToDelete.traverse(user => userRepository.deleteUser(user.feideId).map(_ => ()))
-      cleanupResult <- userRepository.insertCleanupResult(usersToDelete.size, usersToEmail.size, now)
+      usersToEmailOrDelete              <- userRepository.getUserNotSeenSince(now.minusDays(UserService.emailAfter))
+      (usersToDelete, usersToMaybeEmail) = usersToEmailOrDelete.partition(_.lastSeen.isBefore(deleteBeforeDate))
+      usersToEmail                      <- filterUsersToEmail(usersToMaybeEmail)
+      _                                 <- sendInactivityEmails(usersToEmail)
+      _                                 <- usersToDelete.traverse(user => userRepository.deleteUser(user.feideId).map(_ => ()))
+      cleanupResult                     <- userRepository.insertCleanupResult(usersToDelete.size, usersToEmail.size, now)
     } yield InactiveUserResultDTO(cleanupResult.numCleanup, cleanupResult.numEmailed)
   }
 }

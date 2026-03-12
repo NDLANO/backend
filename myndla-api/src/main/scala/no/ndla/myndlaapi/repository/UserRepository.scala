@@ -220,11 +220,11 @@ class UserRepository(using dbUtility: DBUtility, dbMyNDLAUser: DBMyNDLAUser) ext
   }
 
   def getUserNotSeenSince(cutoffDate: NDLADate)(implicit session: DBSession): Try[List[MyNDLAUser]] = {
-    val u = DBMyNDLAUser.syntax("u")
+    val u = dbMyNDLAUser.syntax("u")
     tsql"""
-         select ${u.result.*} from ${DBMyNDLAUser.as(u)}
+         select ${u.result.*} from ${dbMyNDLAUser.as(u)}
          where last_seen < ${NDLADate.parameterBinderFactory(cutoffDate)}
-         """.map(DBMyNDLAUser.fromResultSet(u)).runList()
+         """.map(dbMyNDLAUser.fromResultSet(u)).runList()
   }
 
   def getLastCleanup(implicit session: ReadableDbSession): Try[Option[InactiveUserCleanupResult]] = {
