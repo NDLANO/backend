@@ -351,7 +351,7 @@ class DraftConceptController(using
     .in(jsonBody[NewConceptDTO])
     .out(statusCode(StatusCode.Created).and(jsonBody[ConceptDTO]))
     .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
-    .errorOut(errorOutputsFor(400, 403, 404))
+    .errorOut(errorOutputsFor(400, 401, 403, 404))
     .requirePermission(CONCEPT_API_WRITE)
     .serverLogicPure { user =>
       { concept =>
@@ -367,7 +367,7 @@ class DraftConceptController(using
     .in(jsonBody[UpdatedConceptDTO])
     .out(jsonBody[ConceptDTO])
     .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
-    .errorOut(errorOutputsFor(400, 403, 404))
+    .errorOut(errorOutputsFor(400, 401, 403, 404))
     .requirePermission(CONCEPT_API_WRITE)
     .serverLogicPure { user =>
       { case (conceptId, updatedConcept) =>
