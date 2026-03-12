@@ -291,7 +291,7 @@ class DraftConceptController(using
     .in(language)
     .out(jsonBody[ConceptDTO])
     .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
-    .errorOut(errorOutputsFor(400, 403, 404))
+    .errorOut(errorOutputsFor(400, 404))
     .requirePermission(CONCEPT_API_WRITE)
     .serverLogicPure { user =>
       { case (conceptId, language) =>
@@ -306,7 +306,7 @@ class DraftConceptController(using
     .in(pathConceptId / "status" / pathStatus)
     .out(jsonBody[ConceptDTO])
     .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
-    .errorOut(errorOutputsFor(400, 401, 403, 404))
+    .errorOut(errorOutputsFor(400, 404))
     .requirePermission(CONCEPT_API_WRITE)
     .serverLogicPure { user =>
       { case (conceptId, status) =>
@@ -321,7 +321,7 @@ class DraftConceptController(using
     .in("status-state-machine")
     .out(jsonBody[Map[String, List[String]]])
     .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
-    .errorOut(errorOutputsFor(400, 401, 403, 404))
+    .errorOut(errorOutputsFor(400, 404))
     .requirePermission(CONCEPT_API_WRITE)
     .serverLogicPure { user => _ =>
       stateTransitionRules.stateTransitionsToApi(user).asRight
@@ -351,7 +351,7 @@ class DraftConceptController(using
     .in(jsonBody[NewConceptDTO])
     .out(statusCode(StatusCode.Created).and(jsonBody[ConceptDTO]))
     .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
-    .errorOut(errorOutputsFor(400, 401, 403, 404))
+    .errorOut(errorOutputsFor(400, 404))
     .requirePermission(CONCEPT_API_WRITE)
     .serverLogicPure { user =>
       { concept =>
@@ -367,7 +367,7 @@ class DraftConceptController(using
     .in(jsonBody[UpdatedConceptDTO])
     .out(jsonBody[ConceptDTO])
     .out(header(HeaderNames.CacheControl, CacheDirective.Private.toString))
-    .errorOut(errorOutputsFor(400, 401, 403, 404))
+    .errorOut(errorOutputsFor(400, 404))
     .requirePermission(CONCEPT_API_WRITE)
     .serverLogicPure { user =>
       { case (conceptId, updatedConcept) =>

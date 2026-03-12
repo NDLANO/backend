@@ -16,12 +16,14 @@ import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 
 object TapirUtil extends StrictLogging {
-  private def variantsForCodes(codes: Seq[Int]): Seq[OneOfVariant[AllErrors]] = codes.map(code => {
+  private def variantsForCodes(codes: Seq[Int]): Seq[OneOfVariant[AllErrors]] = codes.map(errorOutputVariantFor)
+
+  def errorOutputVariantFor(code: Int): OneOfVariant[AllErrors] = {
     val statusCode = StatusCode(code)
     oneOfVariantValueMatcher(statusCode, NoNullJsonPrinter.jsonBody[AllErrors]) { case errorBody: AllErrors =>
       errorBody.statusCode == statusCode.code
     }
-  })
+  }
 
   private val internalServerErrorDefaultVariant: OneOfVariant[ErrorBody] = oneOfDefaultVariant(
     statusCode(StatusCode.InternalServerError)
