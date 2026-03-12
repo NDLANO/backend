@@ -112,6 +112,16 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Tap
       .code should be(403)
   }
 
+  test("POST / should return 401 if authorization header is missing") {
+    val res = simpleHttpClient.send(
+      quickRequest
+        .post(uri"http://localhost:$serverPort/concept-api/v1/drafts/")
+        .body(CirceUtil.toJsonString(TestData.sampleNewConcept))
+    )
+
+    res.code.code should be(401)
+  }
+
   test("PATCH / should return 200 on updated") {
     when(writeService.updateConcept(eqTo(1.toLong), any[UpdatedConceptDTO], any)).thenReturn(
       Success(TestData.sampleNbApiConcept)
