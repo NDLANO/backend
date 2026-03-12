@@ -10,6 +10,7 @@ package no.ndla.myndlaapi.model.domain
 
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.myndlaapi.Props
 import no.ndla.network.model.FeideID
 import scalikejdbc.*
 
@@ -18,11 +19,9 @@ import scala.util.Try
 
 case class SavedSharedFolder(folderId: UUID, feideId: FeideID, rank: Int) {}
 
-object SavedSharedFolder extends SQLSyntaxSupport[SavedSharedFolder] {
+object SavedSharedFolder {
   implicit val encoder: Encoder[SavedSharedFolder] = deriveEncoder
   implicit val decoder: Decoder[SavedSharedFolder] = deriveDecoder
-
-  override val tableName = "saved_shared_folder"
 
   def fromResultSet(sp: SyntaxProvider[SavedSharedFolder], rs: WrappedResultSet): Try[SavedSharedFolder] = {
     fromResultSet((s: String) => sp.resultName.c(s))(rs)
@@ -36,4 +35,9 @@ object SavedSharedFolder extends SQLSyntaxSupport[SavedSharedFolder] {
       rank     <- Try(rs.int(colNameWrapper("rank")))
     } yield SavedSharedFolder(folderId = folderId, feideId = feideId, rank = rank)
   }
+}
+
+class DBSavedSharedFolder(using props: Props) extends SQLSyntaxSupport[SavedSharedFolder] {
+  override val tableName: String          = "saved_shared_folder"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 }

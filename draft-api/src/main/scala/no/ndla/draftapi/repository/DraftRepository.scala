@@ -27,7 +27,7 @@ import scalikejdbc.*
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
-class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
+class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, dbArticle: DBArticle)
     extends StrictLogging
     with Repository[Draft] {
   import draftErrorHelpers.*
@@ -40,7 +40,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     val slug = article.slug.map(_.toLowerCase)
 
     tsql"""
-      insert into ${DBArticle.table} (document, revision, article_id, slug)
+      insert into ${dbArticle.table} (document, revision, article_id, slug)
       values ($dataObject, $startRevision, ${article.id}, $slug)
     """
       .updateAndReturnGeneratedKey()
@@ -92,7 +92,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
           uuid = Try(importId.map(UUID.fromString)).toOption.flatten
           slug = article.slug.map(_.toLowerCase)
           _   <- tsql"""
-            insert into ${DBArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id, slug)
+            insert into ${dbArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id, slug)
             values (ARRAY[$externalIds]::text[],
                     ARRAY[$externalSubjectIds]::text[],
                     $dataObject,
@@ -143,13 +143,13 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     val whereClause = sqls"""
       where article_id=${article.id}
       and revision=$oldRevision
-      and revision=(select max(revision) from ${DBArticle.table} where article_id=${article.id})
+      and revision=(select max(revision) from ${dbArticle.table} where article_id=${article.id})
     """
 
     for {
       oldNotes <- tsql"""
         select document->'notes' as notes
-        from ${DBArticle.table}
+        from ${dbArticle.table}
         $whereClause
         for update
       """.map(editorNotesFromRS).runSingle()
@@ -158,7 +158,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
         case None    => article.notes
       }
       count <- tsql"""
-        update ${DBArticle.table}
+        update ${dbArticle.table}
         set document=jsonb_set($dataObject,'{notes}',(${CirceUtil.toJsonString(notes.distinct)}::jsonb)),
             revision=$newRevision,
             slug=$slug
@@ -178,10 +178,10 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     dataObject.setValue(CirceUtil.toJsonString(notes))
 
     tsql"""
-      update ${DBArticle.table}
+      update ${dbArticle.table}
       set document=jsonb_set(document, '{notes}',(document -> 'notes') || $dataObject)
       where article_id=$articleId
-      and revision=(select max(revision) from ${DBArticle.table} where article_id=$articleId)
+      and revision=(select max(revision) from ${dbArticle.table} where article_id=$articleId)
     """
       .update()
       .flatMap {
@@ -197,41 +197,41 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
   """)
 
   def withIds(articleIds: List[Long], offset: Long, pageSize: Long)(using session: DBSession): Try[Seq[Draft]] = {
-    val ar  = DBArticle.syntax("ar")
-    val ar2 = DBArticle.syntax("ar2")
+    val ar  = dbArticle.syntax("ar")
+    val ar2 = dbArticle.syntax("ar2")
     tsql"""
       select ${ar.result.*}
-      from ${DBArticle.as(ar)}
+      from ${dbArticle.as(ar)}
       where ar.document is not NULL
       and ar.article_id in ($articleIds)
       and ar.revision = (
           select max(revision)
-          from ${DBArticle.as(ar2)}
+          from ${dbArticle.as(ar2)}
           where ar2.article_id = ar.article_id
       )
       offset $offset
       limit $pageSize
-    """.map(DBArticle.fromResultSet(ar)).runList()
+    """.map(dbArticle.fromResultSet(ar)).runList()
   }
 
   def idsWithStatus(status: DraftStatus)(using session: DBSession): Try[List[ArticleIds]] = {
-    val ar = DBArticle.syntax("ar")
+    val ar = dbArticle.syntax("ar")
     tsql"""
       select article_id, external_id
-      from ${DBArticle.as(ar)}
+      from ${dbArticle.as(ar)}
       where ar.document is not NULL and ar.document#>>'{status,current}' = ${status.toString}
     """.map(rs => ArticleIds(rs.long("article_id"), externalIdsFromResultSet(rs))).runList()
   }
 
   def exists(id: Long)(using session: DBSession): Try[Boolean] = {
-    tsql"select article_id from ${DBArticle.table} where article_id=$id order by revision desc limit 1"
+    tsql"select article_id from ${dbArticle.table} where article_id=$id order by revision desc limit 1"
       .map(rs => rs.long("article_id"))
       .runSingle()
       .map(_.isDefined)
   }
 
   def deleteArticle(articleId: Long)(using session: DBSession): Try[Long] = {
-    tsql"delete from ${DBArticle.table} where article_id = $articleId"
+    tsql"delete from ${dbArticle.table} where article_id = $articleId"
       .update()
       .flatMap {
         case 1 => Success(articleId)
@@ -240,7 +240,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
   }
 
   def deleteArticleRevision(articleId: Long, revision: Int)(using session: DBSession): Try[Unit] =
-    tsql"delete from ${DBArticle.table} where article_id = $articleId and revision = $revision"
+    tsql"delete from ${dbArticle.table} where article_id = $articleId and revision = $revision"
       .update()
       .flatMap {
         case 1 => Success(())
@@ -248,15 +248,15 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
       }
 
   def getCurrentAndPreviousRevision(articleId: Long)(using session: DBSession): Try[(Draft, Draft)] = {
-    val ar = DBArticle.syntax("ar")
+    val ar = dbArticle.syntax("ar")
     tsql"""
       select ${ar.result.*}
-      from ${DBArticle.as(ar)}
+      from ${dbArticle.as(ar)}
       where ar.article_id = $articleId
       order by revision desc
       limit 2
     """
-      .map(DBArticle.fromResultSet(ar))
+      .map(dbArticle.fromResultSet(ar))
       .runList()
       .flatMap {
         case List(current, previous) => Success((current, previous))
@@ -267,7 +267,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
   def getIdFromExternalId(externalId: String)(using session: DBSession): Try[Option[Long]] = {
     tsql"""
       select article_id
-      from ${DBArticle.table}
+      from ${dbArticle.table}
       where $externalId = any (external_id)
       order by revision desc
       limit 1
@@ -285,7 +285,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
   def getExternalIdsFromId(id: Long)(using session: DBSession): Try[List[String]] = {
     tsql"""
       select external_id
-      from ${DBArticle.table}
+      from ${dbArticle.table}
       where article_id=${id.toInt}
       order by revision desc
       limit 1
@@ -303,7 +303,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
   def getExternalSubjectIdsFromId(id: Long)(using session: DBSession): Try[Seq[String]] = {
     tsql"""
       select external_subject_id
-      from ${DBArticle.table}
+      from ${dbArticle.table}
       where article_id=${id.toInt}
       order by revision desc
       limit 1
@@ -313,7 +313,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
   def getImportIdFromId(id: Long)(using session: DBSession): Try[Option[String]] = {
     tsql"""
       select import_id
-      from ${DBArticle.table}
+      from ${dbArticle.table}
       where article_id=${id.toInt}
       order by revision desc
       limit 1
@@ -321,20 +321,20 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
   }
 
   def getAllIds(using session: DBSession): Try[Seq[ArticleIds]] = {
-    tsql"select article_id, max(external_id) as external_id from ${DBArticle.table} group by article_id order by article_id asc"
+    tsql"select article_id, max(external_id) as external_id from ${dbArticle.table} group by article_id order by article_id asc"
       .map(rs => ArticleIds(rs.long("article_id"), externalIdsFromResultSet(rs)))
       .runList()
   }
 
   def articleCount(using session: DBSession): Try[Long] = {
-    tsql"select count(distinct article_id) from ${DBArticle.table} where document is not NULL"
+    tsql"select count(distinct article_id) from ${dbArticle.table} where document is not NULL"
       .map(rs => rs.long("count"))
       .runSingle()
       .map(_.getOrElse(0))
   }
 
   def getArticlesByPage(pageSize: Int, offset: Int)(using session: DBSession): Try[Seq[Draft]] = {
-    val ar = DBArticle.syntax("ar")
+    val ar = dbArticle.syntax("ar")
     tsql"""
       select *
       from (select
@@ -342,68 +342,68 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
               ${ar.id} as row_id,
               ${ar.revision} as revision,
               max(revision) over (partition by article_id) as max_revision
-            from ${DBArticle.as(ar)}
+            from ${dbArticle.as(ar)}
             where document is not NULL) _
       where revision = max_revision
       order by row_id
       offset $offset
       limit $pageSize
-    """.map(DBArticle.fromResultSet(ar)).runList()
+    """.map(dbArticle.fromResultSet(ar)).runList()
   }
 
   def minMaxArticleId(using session: DBSession): Try[(Long, Long)] = {
-    tsql"select coalesce(MIN(article_id),0) as mi, coalesce(MAX(article_id),0) as ma from ${DBArticle.table}"
+    tsql"select coalesce(MIN(article_id),0) as mi, coalesce(MAX(article_id),0) as ma from ${dbArticle.table}"
       .map(rs => (rs.long("mi"), rs.long("ma")))
       .runSingle()
       .map(_.getOrElse((0L, 0L)))
   }
 
   override def minMaxId(using session: DBSession): Try[(Long, Long)] = {
-    tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${DBArticle.table}"
+    tsql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${dbArticle.table}"
       .map(rs => (rs.long("mi"), rs.long("ma")))
       .runSingle()
       .map(_.getOrElse((0L, 0L)))
   }
 
   def documentsWithArticleIdBetween(min: Long, max: Long)(using session: DBSession): Try[List[Draft]] = {
-    val ar       = DBArticle.syntax("ar")
-    val subquery = DBArticle.syntax("b")
+    val ar       = dbArticle.syntax("ar")
+    val subquery = dbArticle.syntax("b")
     tsql"""
       select ${ar.result.*}
-      from ${DBArticle.as(ar)}
+      from ${dbArticle.as(ar)}
       where ar.document is not NULL
       and ar.article_id between $min and $max
       and ar.document#>>'{status,current}' <> ${DraftStatus.ARCHIVED.toString}
       and ar.revision = (
         select max(b.revision)
-        from ${DBArticle.as(subquery)}
+        from ${dbArticle.as(subquery)}
         where b.article_id = ar.article_id
       )
-    """.map(DBArticle.fromResultSet(ar)).runList()
+    """.map(dbArticle.fromResultSet(ar)).runList()
   }
 
   override def documentsWithIdBetween(min: Long, max: Long)(using session: DBSession): Try[List[Draft]] = {
-    val ar       = DBArticle.syntax("ar")
-    val subquery = DBArticle.syntax("b")
+    val ar       = dbArticle.syntax("ar")
+    val subquery = dbArticle.syntax("b")
     tsql"""
       select ${ar.result.*}
-      from ${DBArticle.as(ar)}
+      from ${dbArticle.as(ar)}
       where ar.document is not NULL
       and ar.id between $min and $max
       and ar.document#>>'{status,current}' <> ${DraftStatus.ARCHIVED.toString}
       and ar.revision = (
         select max(b.revision)
-        from ${DBArticle.as(subquery)}
+        from ${dbArticle.as(subquery)}
         where b.article_id = ar.article_id
       )
-    """.map(DBArticle.fromResultSet(ar)).runList()
+    """.map(dbArticle.fromResultSet(ar)).runList()
   }
 
   private def articleWhere(whereClause: SQLSyntax)(using session: DBSession): Try[Option[Draft]] = {
-    val ar = DBArticle.syntax("ar")
+    val ar = dbArticle.syntax("ar")
 
-    tsql"select ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL and $whereClause "
-      .map(DBArticle.fromResultSet(ar))
+    tsql"select ${ar.result.*} from ${dbArticle.as(ar)} where ar.document is not NULL and $whereClause "
+      .map(dbArticle.fromResultSet(ar))
       .runSingle()
   }
 
@@ -411,16 +411,16 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
     articlesWhere(sqls"ar.article_id = $articleId").map(_.toList)
 
   private def articlesWhere(whereClause: SQLSyntax)(using session: DBSession): Try[Seq[Draft]] = {
-    val ar = DBArticle.syntax("ar")
-    tsql"select ${ar.result.*} from ${DBArticle.as(ar)} where ar.document is not NULL and $whereClause"
-      .map(DBArticle.fromResultSet(ar))
+    val ar = dbArticle.syntax("ar")
+    tsql"select ${ar.result.*} from ${dbArticle.as(ar)} where ar.document is not NULL and $whereClause"
+      .map(dbArticle.fromResultSet(ar))
       .runList()
   }
 
   def importIdOfArticle(externalId: String)(using session: DBSession): Try[Option[ImportId]] = {
-    val ar = DBArticle.syntax("ar")
+    val ar = dbArticle.syntax("ar")
     tsql"""select ${ar.result.*}, import_id, external_id
-           from ${DBArticle.as(ar)}
+           from ${dbArticle.as(ar)}
            where ar.document is not NULL and $externalId = any (ar.external_id)"""
       .map(rs => ImportId(rs.stringOpt("import_id")))
       .runSingle()
@@ -431,9 +431,9 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock)
 
   def slugExists(slug: String, articleId: Option[Long])(using session: DBSession): Try[Boolean] = {
     val sq = articleId match {
-      case None     => tsql"select count(*) from ${DBArticle.table} where slug = ${slug.toLowerCase}"
+      case None     => tsql"select count(*) from ${dbArticle.table} where slug = ${slug.toLowerCase}"
       case Some(id) =>
-        tsql"select count(*) from ${DBArticle.table} where slug = ${slug.toLowerCase} and article_id != $id"
+        tsql"select count(*) from ${dbArticle.table} where slug = ${slug.toLowerCase} and article_id != $id"
     }
     sq.map(rs => rs.long("count")).runSingle().map(_.exists(_ > 0))
   }

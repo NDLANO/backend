@@ -10,6 +10,7 @@ package no.ndla.myndlaapi.model.domain
 
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.myndlaapi.Props
 import no.ndla.common.model.NDLADate
 import scalikejdbc.*
 
@@ -22,11 +23,9 @@ case class ResourceConnection(folderId: Option[UUID], resourceId: UUID, rank: In
   override val sortRank: Option[Int] = Some(rank)
 }
 
-object ResourceConnection extends SQLSyntaxSupport[ResourceConnection] {
+object ResourceConnection {
   implicit val encoder: Encoder[ResourceConnection] = deriveEncoder
   implicit val decoder: Decoder[ResourceConnection] = deriveDecoder
-
-  override val tableName = "resource_connections"
 
   def fromResultSet(lp: SyntaxProvider[ResourceConnection])(rs: WrappedResultSet): Try[ResourceConnection] =
     fromResultSet(s => lp.resultName.c(s), rs)
@@ -41,4 +40,9 @@ object ResourceConnection extends SQLSyntaxSupport[ResourceConnection] {
     } yield ResourceConnection(folderId = folderId, resourceId = resourceId, rank = rank, favoritedDate = favoritedDate)
   }
 
+}
+
+class DBResourceConnection(using props: Props) extends SQLSyntaxSupport[ResourceConnection] {
+  override val tableName: String          = "resource_connections"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 }

@@ -27,6 +27,7 @@ import no.ndla.learningpathapi.db.migrationwithdependencies.{
   V33__AiDefaultEnabledOrgs,
 }
 import no.ndla.learningpathapi.integration.*
+import no.ndla.learningpathapi.model.domain.DBLearningPath
 import no.ndla.learningpathapi.repository.LearningPathRepository
 import no.ndla.learningpathapi.service.*
 import no.ndla.learningpathapi.service.search.{SearchConverterServiceComponent, SearchIndexService, SearchService}
@@ -53,6 +54,7 @@ import no.ndla.database.DBUtility
 
 class ComponentRegistry(properties: LearningpathApiProperties) extends TapirApplication[LearningpathApiProperties] {
   given props: LearningpathApiProperties = properties
+  given dbLearningPath: DBLearningPath   = new DBLearningPath
   given dataSource: DataSource           = DataSource.getDataSource
   implicit lazy val clock: Clock         = new Clock
   given uuidUtil: UUIDUtil               = new UUIDUtil

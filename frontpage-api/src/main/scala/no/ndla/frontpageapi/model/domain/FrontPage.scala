@@ -14,7 +14,6 @@ import io.circe.parser.*
 import no.ndla.frontpageapi.Props
 import scalikejdbc.WrappedResultSet
 import scalikejdbc.*
-import cats.implicits.*
 
 import scala.util.Try
 
@@ -39,7 +38,7 @@ class DBFrontPage(using props: Props) {
 
   object DBFrontPageData extends SQLSyntaxSupport[FrontPage] {
     override val tableName                  = "mainfrontpage"
-    override val schemaName: Option[String] = props.MetaSchema.toString.some
+    override val schemaName: Option[String] = Some(props.MetaSchema)
 
     def fromResultSet(lp: SyntaxProvider[FrontPage])(rs: WrappedResultSet): Try[FrontPage] =
       fromResultSet(lp.resultName)(rs)

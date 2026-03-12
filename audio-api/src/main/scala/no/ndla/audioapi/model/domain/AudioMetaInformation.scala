@@ -15,6 +15,7 @@ import no.ndla.common.CirceUtil
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.article.Copyright
 import no.ndla.common.model.domain.{Tag, Title}
+import no.ndla.audioapi.Props
 import no.ndla.language.Language.getSupportedLanguages
 import no.ndla.language.model.LanguageField
 import scalikejdbc.*
@@ -69,8 +70,7 @@ object Audio {
   implicit val decoder: Decoder[Audio] = deriveDecoder
 }
 
-object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
-  override val tableName = "audiodata"
+object AudioMetaInformation {
 
   implicit val encoder: Encoder[AudioMetaInformation] = deriveEncoder
   implicit val decoder: Decoder[AudioMetaInformation] = deriveDecoder
@@ -93,4 +93,9 @@ object AudioMetaInformation extends SQLSyntaxSupport[AudioMetaInformation] {
   def fromResultSetOpt(au: ResultName[AudioMetaInformation])(rs: WrappedResultSet): Option[AudioMetaInformation] = {
     rs.longOpt(au.c("id")).map(_ => fromResultSet(au)(rs))
   }
+}
+
+class DBAudioMetaInformation(using props: Props) extends SQLSyntaxSupport[AudioMetaInformation] {
+  override val tableName: String          = "audiodata"
+  override val schemaName: Option[String] = Some(props.MetaSchema)
 }

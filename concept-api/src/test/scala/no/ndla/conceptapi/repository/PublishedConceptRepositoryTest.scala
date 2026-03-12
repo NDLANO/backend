@@ -12,7 +12,6 @@ import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.common.model.domain.concept
 import no.ndla.common.model.domain.concept.ConceptContent
 import no.ndla.conceptapi.*
-import no.ndla.conceptapi.model.domain.PublishedConcept
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.*
@@ -29,7 +28,7 @@ class PublishedConceptRepositoryTest extends DatabaseIntegrationSuite with TestE
 
   def emptyTestDatabase: Boolean = {
     dbUtility.writeSession(implicit session => {
-      sql"delete from ${PublishedConcept.table};".execute()(using session)
+      sql"delete from publishedconceptdata;".execute()(using session)
     })
   }
 
