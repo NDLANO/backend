@@ -153,8 +153,7 @@ class ImageRepository(using dbUtility: DBUtility, dbImageMetaInformation: DBImag
       """.map(ImageMetaInformation.fromResultSet(im)).runListFlat()
   }
 
-  // TODO: Remove this after completing variants migration of existing images
-  def getImageFileBatched(batchSize: Long): Try[Iterator[Seq[ImageMetaInformation]]] =
+  def getImageMetaBatched(batchSize: Long): Try[Iterator[Seq[ImageMetaInformation]]] =
     val im    = dbImageMetaInformation.syntax("im")
     val total = imageCount match {
       case Success(count) => count

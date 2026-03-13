@@ -26,20 +26,19 @@ class TestData(using props: Props) {
 
   val ByNcSa: String = mapping.License.CC_BY_NC_SA.toString
 
+  val elgFileData = ImageFileData(
+    fileName = "Elg.jpg",
+    size = 2865539,
+    contentType = ImageContentType.Jpeg,
+    dimensions = None,
+    variants = Seq.empty,
+    language = "nb",
+  )
   val elg = new ImageMetaInformation(
     id = Some(1),
     titles = List(ImageTitle("Elg i busk", "nb")),
     alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Seq(
-      ImageFileData(
-        fileName = "Elg.jpg",
-        size = 2865539,
-        contentType = ImageContentType.Jpeg,
-        dimensions = None,
-        variants = Seq.empty,
-        language = "nb",
-      )
-    ),
+    images = Seq(elgFileData),
     copyright = Copyright(
       ByNcSa,
       Some("http://www.scanpix.no"),

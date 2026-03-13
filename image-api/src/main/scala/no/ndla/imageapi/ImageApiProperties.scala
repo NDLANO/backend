@@ -45,6 +45,11 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
   val StorageRegion: Option[String] = propOrNone("IMAGE_FILE_S3_BUCKET_REGION")
 
   val S3NewFileCacheControlHeader: String = propOrElse("IMAGE_FILE_S3_BUCKET_CACHE_CONTROL", "max-age=2592000")
+  val StandaloneVariantGenerationEnabled: Boolean =
+    booleanPropOrFalse("STANDALONE_VARIANT_GENERATION_ENABLED")
+  val StandaloneVariantGenerationMode: Option[String] = propOrNone("STANDALONE_VARIANT_GENERATION_MODE")
+  val StandaloneVariantGenerationIgnoreMissing: Boolean =
+    booleanPropOrFalse("STANDALONE_VARIANT_GENERATION_IGNORE_MISSING")
 
   val SearchIndex: String    = propOrElse("SEARCH_INDEX_NAME", "images")
   val SearchDocument         = "image"

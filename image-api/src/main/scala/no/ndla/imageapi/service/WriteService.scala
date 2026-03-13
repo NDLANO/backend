@@ -18,7 +18,6 @@ import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Deletable, Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.{NDLADate, domain as common}
-import no.ndla.database.DBUtility
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.*
 import no.ndla.imageapi.model.api.{
@@ -35,7 +34,6 @@ import no.ndla.language.Language
 import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
-import scalikejdbc.DBSession
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
@@ -46,7 +44,6 @@ import scala.util.{Failure, Success, Try, Using}
 class WriteService(using
     converterService: ConverterService,
     validationService: ValidationService,
-    dbUtility: DBUtility, // TODO: Remove this after completing variants migration of existing images
     imageRepository: ImageRepository,
     imageIndexService: ImageIndexService,
     imageStorage: ImageStorageService,
@@ -399,64 +396,7 @@ class WriteService(using
     converted <- converterService.asApiImageMetaInformationV3(updated, updateMeta.language.some, user.some)
   } yield converted
 
-  // TODO: Remove this after completing variants migration of existing images
-  def generateAndUploadVariantsForExistingImages(ignoreMissingObjects: Boolean): Try[Unit] = {
-    val processableContentTypes = Seq("image/png", "image/jpeg")
-    val batchSize               = 20
-    val batchIterator           = imageRepository.getImageFileBatched(batchSize) match {
-      case Success(it) => it
-      case Failure(ex) => return Failure(ex)
-    }
-    val totalBatchCount    = batchIterator.knownSize
-    given ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(batchSize))
-
-    batchIterator
-      .zipWithIndex
-      .map { (batch, index) =>
-        logger.info(s"Processing batch ${index + 1} of $totalBatchCount (batch size = $batchSize)")
-
-        val batchFuture = Future.traverse {
-          batch
-            .mapFilter { imageMeta =>
-              Option.when(imageMeta.id.nonEmpty && imageMeta.images.exists(_.variants.isEmpty))(imageMeta)
-            }
-            .flatMap(imageMeta => imageMeta.images.tupleLeft(imageMeta))
-        } { (imageMeta, imageFile) =>
-          if (processableContentTypes.contains(imageFile.contentType)) {
-            generateAndUploadVariantsForImageFileDataAsync(ignoreMissingObjects)(imageMeta, imageFile)
-          } else {
-            Future.successful(Success(imageMeta -> imageFile))
-          }
-        }
-
-        val storeResultsFuture = batchFuture.map { metasWithFilesT =>
-          metasWithFilesT
-            .sequence
-            .flatMap { metasWithFiles =>
-              metasWithFiles
-                .groupMap((meta, _) => meta)((_, file) => file)
-                .toSeq
-                .traverse { (imageMeta, imageFiles) =>
-                  dbUtility.rollbackOnFailure { case given DBSession =>
-                    val updatedMeta = imageMeta.copy(images = imageFiles)
-                    imageRepository.update(updatedMeta, updatedMeta.id.get).map(_ => ())
-                  }
-                }
-            }
-        }
-
-        Await.result(storeResultsFuture, 5.minutes)
-      }
-      .collectFirst { case Failure(ex) =>
-        ex
-      } match {
-      case Some(ex) => Failure(ex)
-      case None     => Success(())
-    }
-  }
-
-  // TODO: Remove this after completing variants migration of existing images
-  private def generateAndUploadVariantsForImageFileDataAsync(
+  private[service] def generateAndUploadVariantsForImageFileDataAsync(
       ignoreMissingObjects: Boolean
   )(imageMeta: ImageMetaInformation, imageFile: ImageFileData)(using
       ExecutionContext
