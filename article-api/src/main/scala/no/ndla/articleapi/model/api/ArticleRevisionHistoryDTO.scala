@@ -15,7 +15,7 @@ import sttp.tapir.Schema.annotations.description
 @description("Information about article revision history")
 case class ArticleRevisionHistoryDTO(
     @description("The revisions of an article, with the latest revision being the first in the list")
-    revision: Seq[ArticleV2DTO]
+    revisions: Seq[ArticleV2DTO]
 )
 
 object ArticleRevisionHistoryDTO {
