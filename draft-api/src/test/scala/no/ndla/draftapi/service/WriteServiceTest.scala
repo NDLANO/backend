@@ -69,7 +69,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     reset(grepCodesIndexService)
     reset(contentValidator)
 
-    when(draftRepository.refreshUserIdsView(using any)).thenReturn(Success(()))
     when(draftRepository.withId(eqTo(articleId))(using any)).thenReturn(Success(Some(article)))
     when(articleIndexService.indexDocument(any[Draft])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Draft](0))
@@ -1279,7 +1278,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .copy(revision = 1, title = Some("updated title"), language = Some("nb"), responsibleId = UpdateWith("heiho"))
     when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
-    when(draftRepository.refreshResponsibleView(using any)).thenReturn(Success(()))
     val result = service.updateArticle(existing.id.get, updatedArticle, TestData.userWithWriteAccess).get
 
     result.started should be(false)
