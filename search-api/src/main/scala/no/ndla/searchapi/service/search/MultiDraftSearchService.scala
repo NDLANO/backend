@@ -301,9 +301,9 @@ class MultiDraftSearchService(using
     val publishedDateFilter     = dateRangeFilter("published", settings.publishedFilterFrom, settings.publishedFilterTo)
     val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
     val responsibleFilter       = settings.responsibleIdFilter match {
-      case Some(ids) if ids.isEmpty => Some(boolQuery().not(existsQuery("responsible.responsibleId")))
-      case Some(ids)                => Some(termsQuery("responsible.responsibleId", ids))
-      case None                     => None
+      case Some(Nil) => Some(boolQuery().not(existsQuery("responsible.responsibleId")))
+      case Some(ids) => Some(termsQuery("responsible.responsibleId", ids))
+      case None      => None
     }
 
     val priorityFilter = Option.when(settings.priority.nonEmpty)(
