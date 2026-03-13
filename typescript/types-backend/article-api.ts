@@ -172,6 +172,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/article-api/v2/articles/{article_id}/revision-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the revision history for an article
+         * @description Get an object that describes the revision history for a specific article
+         */
+        get: operations["getArticle-apiV2ArticlesArticle_idRevision-history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 };
 export type webhooks = Record<string, never>;
 export type components = {
@@ -235,6 +255,14 @@ export type components = {
             alt: string;
             /** @description The ISO 639-1 language code describing which article translation this meta description belongs to */
             language: string;
+        };
+        /**
+         * ArticleRevisionHistoryDTO
+         * @description Information about article revision history
+         */
+        ArticleRevisionHistoryDTO: {
+            /** @description The revisions of an article, with the latest revision being the first in the list */
+            revision: components["schemas"]["ArticleV2DTO"][];
         };
         /**
          * ArticleSearchParamsDTO
@@ -609,6 +637,7 @@ export type ArticleIdsDTO = components['schemas']['ArticleIdsDTO'];
 export type ArticleIntroductionDTO = components['schemas']['ArticleIntroductionDTO'];
 export type ArticleMetaDescriptionDTO = components['schemas']['ArticleMetaDescriptionDTO'];
 export type ArticleMetaImageDTO = components['schemas']['ArticleMetaImageDTO'];
+export type ArticleRevisionHistoryDTO = components['schemas']['ArticleRevisionHistoryDTO'];
 export type ArticleSearchParamsDTO = components['schemas']['ArticleSearchParamsDTO'];
 export type ArticleSummaryV2DTO = components['schemas']['ArticleSummaryV2DTO'];
 export type ArticleTagDTO = components['schemas']['ArticleTagDTO'];
@@ -1125,6 +1154,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AllErrors"] | components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    "getArticle-apiV2ArticlesArticle_idRevision-history": {
+        parameters: {
+            query?: {
+                /** @description The ISO 639-1 language code describing language. */
+                language?: string;
+                /** @description Fallback to existing language if language is specified. */
+                fallback?: boolean;
+            };
+            header?: never;
+            path: {
+                /** @description Id or slug of the article that is to be fetched. */
+                article_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArticleRevisionHistoryDTO"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
                 };
             };
         };
