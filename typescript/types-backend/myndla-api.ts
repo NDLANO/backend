@@ -1266,12 +1266,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -1329,12 +1329,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -1391,12 +1391,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -1455,12 +1455,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -1522,12 +1522,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -1582,12 +1582,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -1648,12 +1648,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -1710,15 +1710,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1780,12 +1780,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -1839,12 +1839,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -1901,15 +1901,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1975,12 +1975,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -2034,12 +2034,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -2097,12 +2097,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -2163,12 +2163,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -2225,15 +2225,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2293,15 +2293,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2363,15 +2363,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2436,15 +2436,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2509,15 +2509,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2578,15 +2578,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2650,15 +2650,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2722,15 +2722,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2791,15 +2791,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2859,15 +2859,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2927,15 +2927,15 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            502: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            502: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2994,12 +2994,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3057,12 +3057,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3118,12 +3118,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3183,12 +3183,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3242,12 +3242,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3304,12 +3304,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3363,12 +3363,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3426,12 +3426,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3483,12 +3483,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3542,12 +3542,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3605,12 +3605,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3667,12 +3667,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3733,12 +3733,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3776,12 +3776,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3819,12 +3819,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
@@ -3867,12 +3867,12 @@ export interface operations {
                     "application/json": components["schemas"]["AllErrors"];
                 };
             };
-            500: {
+            default: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorBody"];
+                    "application/json": components["schemas"]["AllErrors"];
                 };
             };
         };
