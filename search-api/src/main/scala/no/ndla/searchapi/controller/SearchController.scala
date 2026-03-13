@@ -244,7 +244,7 @@ class SearchController(using
       license = q.license,
       sort = sort,
       ids = q.learningResourceIds.values.some,
-      subjects = q.subjects.values.some,
+      subjects = q.subjects.optValues,
       resourceTypes = q.resourceTypes.values.some,
       contextTypes = q.contextTypes.values.some,
       relevance = q.relevanceFilter.values.some,
