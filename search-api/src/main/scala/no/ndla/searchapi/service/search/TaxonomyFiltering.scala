@@ -62,7 +62,7 @@ trait TaxonomyFiltering {
 
   protected def subjectFilter(subjects: Option[List[String]], filterInactive: Boolean): Option[Query] = {
     subjects match {
-      case Some(subs) if subs.isEmpty =>
+      case Some(Nil) =>
         Some(boolQuery().not(nestedQuery("contexts", existsQuery("contexts.rootId")).ignoreUnmapped(true)))
       case Some(subs) =>
         val subjectQueries = subs.map(subjectId =>
