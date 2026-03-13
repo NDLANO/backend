@@ -30,6 +30,7 @@ import sttp.monad.MonadError
 import sttp.tapir.*
 import sttp.tapir.server.{PartialServerEndpoint, ServerEndpoint}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
+import no.ndla.network.tapir.TapirUtil.errorOutputVariantFor
 import no.ndla.network.tapir.auth.TokenUser.{filterHeaders, stringPrefixWithSpace}
 import sttp.model.headers.WWWAuthenticateChallenge
 import sttp.tapir.CodecFormat.TextPlain
@@ -115,10 +116,16 @@ abstract class TapirController(using
   }
 
   implicit class authlessEndpoint[A, I, E, O, R](self: Endpoint[Unit, I, AllErrors, O, R]) {
+    private val unauthorizedErrorOutput = errorOutputVariantFor(StatusCode.Unauthorized.code)
+    private val forbiddenErrorOutput    = errorOutputVariantFor(StatusCode.Forbidden.code)
+
     def requirePermission[F[_]](
         requiredPermission: Permission*
     ): PartialServerEndpoint[Option[TokenUser], TokenUser, I, AllErrors, O, R, F] = {
-      val newEndpoint   = self.securityIn(TokenUser.oauth2Input(requiredPermission))
+      val endpointWithPermissionErrors = self
+        .errorOutVariantPrepend(unauthorizedErrorOutput)
+        .errorOutVariantPrepend(forbiddenErrorOutput)
+      val newEndpoint   = endpointWithPermissionErrors.securityIn(TokenUser.oauth2Input(requiredPermission))
       val authFunc      = requireScope(requiredPermission*)
       val securityLogic = (m: MonadError[F]) => (a: Option[TokenUser]) => m.unit(authFunc(a))
       PartialServerEndpoint(newEndpoint, securityLogic)
