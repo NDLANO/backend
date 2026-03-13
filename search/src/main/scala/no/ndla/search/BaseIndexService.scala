@@ -156,17 +156,22 @@ abstract class BaseIndexService(using e4sClient: NdlaE4sClient, props: BaseProps
     }
   }
 
-  def createIndexIfNotExists(): Try[?] = getAliasTarget.flatMap {
-    case Some(index) => Success(index)
-    case None        => createIndexAndAlias(indexShards.some)
+  def createIndexIfNotExists(): Try[?] = synchronized {
+    getAliasTarget.flatMap {
+      case Some(index) => Success(index)
+      case None        => createIndexAndAlias(indexShards.some)
+    }
   }
 
   def createIndexAndAlias(): Try[String] = createIndexAndAlias(None)
 
-  def createIndexAndAlias(numberOfShards: Option[Int]): Try[String] = for {
-    newIndex <- createIndexWithGeneratedName(numberOfShards)
-    _        <- updateAliasTarget(None, newIndex)
-  } yield newIndex
+  def createIndexAndAlias(numberOfShards: Option[Int]): Try[String] = synchronized {
+    for {
+      aliasTarget <- getAliasTarget
+      newIndex    <- createIndexWithGeneratedName(numberOfShards)
+      _           <- updateAliasTarget(aliasTarget, newIndex)
+    } yield newIndex
+  }
 
   def getAliasTarget: Try[Option[String]] = {
     val response = e4sClient.execute {
