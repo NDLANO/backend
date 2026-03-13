@@ -202,18 +202,11 @@ class MultiDraftSearchService(using
           case DraftSearchField.Processors      => contributorQuery("processors")
           case DraftSearchField.Rightsholders   => contributorQuery("rightsholders")
           case DraftSearchField.RevisionMeta    => nestedQuery("revisionMeta", revisionMetaNoteQuery).ignoreUnmapped(true)
-          case DraftSearchField.Notes           =>
-            val notesQuery = simpleStringQuery(queryString.underlying).field("notes", 1)
-            if (settings.excludeRevisionHistory) {
-              notesQuery
-            } else {
-              boolQuery().should(
-                notesQuery,
-                simpleStringQuery(queryString.underlying).field("previousVersionsNotes", 1),
-              )
-            }
-          case DraftSearchField.PreviousNotes =>
-            simpleStringQuery(queryString.underlying).field("previousVersionsNotes", 1)
+          case DraftSearchField.Notes           => simpleStringQuery(queryString.underlying).field("notes", 1)
+          case DraftSearchField.PreviousNotes   =>
+            val previousNotes = simpleStringQuery(queryString.underlying).field("previousVersionsNotes", 1)
+            if (settings.excludeRevisionHistory) boolQuery().not(previousNotes)
+            else previousNotes
         }
 
       boolQuery().should(alwaysIncludedQueries ++ draftFieldQueries)
