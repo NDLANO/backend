@@ -262,7 +262,7 @@ export type components = {
          */
         ArticleRevisionHistoryDTO: {
             /** @description The revisions of an article, with the latest revision being the first in the list */
-            revision: components["schemas"]["ArticleV2DTO"][];
+            revisions: components["schemas"]["ArticleV2DTO"][];
         };
         /**
          * ArticleSearchParamsDTO
