@@ -43,6 +43,6 @@ object ResourceConnection {
 }
 
 class DBResourceConnection(using props: Props) extends SQLSyntaxSupport[ResourceConnection] {
-  override val tableName: String          = "resource_connections"
-  override val schemaName: Option[String] = Some(props.MetaSchema)
+  override def tableName: String          = "resource_connections"
+  override def schemaName: Option[String] = Some(props.MetaSchema)
 }

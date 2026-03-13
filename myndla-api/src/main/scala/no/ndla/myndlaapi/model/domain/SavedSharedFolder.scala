@@ -38,6 +38,6 @@ object SavedSharedFolder {
 }
 
 class DBSavedSharedFolder(using props: Props) extends SQLSyntaxSupport[SavedSharedFolder] {
-  override val tableName: String          = "saved_shared_folder"
-  override val schemaName: Option[String] = Some(props.MetaSchema)
+  override def tableName: String          = "saved_shared_folder"
+  override def schemaName: Option[String] = Some(props.MetaSchema)
 }

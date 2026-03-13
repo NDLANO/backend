@@ -16,8 +16,8 @@ import scalikejdbc.*
 
 class DBMyNDLAUser(using props: Props) extends SQLSyntaxSupport[MyNDLAUser] {
 
-  override val tableName                  = "my_ndla_users"
-  override val schemaName: Option[String] = Some(props.MetaSchema)
+  override def tableName                  = "my_ndla_users"
+  override def schemaName: Option[String] = Some(props.MetaSchema)
 
   def fromResultSet(lp: SyntaxProvider[MyNDLAUser])(rs: WrappedResultSet): MyNDLAUser =
     fromResultSetWithWrapper((s: String) => lp.resultName.c(s))(rs)

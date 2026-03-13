@@ -17,8 +17,8 @@ import scala.util.Try
 class DBSubjectPage(using props: Props) {
 
   object DBSubjectPage extends SQLSyntaxSupport[SubjectPage] {
-    override val tableName                  = "subjectpage"
-    override val schemaName: Option[String] = Some(props.MetaSchema)
+    override def tableName                  = "subjectpage"
+    override def schemaName: Option[String] = Some(props.MetaSchema)
 
     def fromDb(lp: SyntaxProvider[SubjectPage])(rs: WrappedResultSet): Try[SubjectPage] = fromDb(lp.resultName)(rs)
 

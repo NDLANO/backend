@@ -117,6 +117,6 @@ object RobotDefinition {
 }
 
 class DBRobotDefinition(using props: Props) extends SQLSyntaxSupport[RobotDefinition] {
-  override val tableName: String          = "robot_definitions"
-  override val schemaName: Option[String] = Some(props.MetaSchema)
+  override def tableName: String          = "robot_definitions"
+  override def schemaName: Option[String] = Some(props.MetaSchema)
 }

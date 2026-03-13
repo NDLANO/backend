@@ -90,6 +90,6 @@ object Series {
 }
 
 class DBSeries(using props: Props) extends SQLSyntaxSupport[Series] {
-  override val tableName: String          = "seriesdata"
-  override val schemaName: Option[String] = Some(props.MetaSchema)
+  override def tableName: String          = "seriesdata"
+  override def schemaName: Option[String] = Some(props.MetaSchema)
 }

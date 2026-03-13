@@ -96,6 +96,6 @@ object AudioMetaInformation {
 }
 
 class DBAudioMetaInformation(using props: Props) extends SQLSyntaxSupport[AudioMetaInformation] {
-  override val tableName: String          = "audiodata"
-  override val schemaName: Option[String] = Some(props.MetaSchema)
+  override def tableName: String          = "audiodata"
+  override def schemaName: Option[String] = Some(props.MetaSchema)
 }

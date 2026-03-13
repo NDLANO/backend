@@ -41,8 +41,8 @@ object FilmFrontPage {
 class DBFilmFrontPage(using props: Props) {
 
   object DBFilmFrontPageData extends SQLSyntaxSupport[FilmFrontPage] {
-    override val tableName                  = "filmfrontpage"
-    override val schemaName: Option[String] = Some(props.MetaSchema)
+    override def tableName                  = "filmfrontpage"
+    override def schemaName: Option[String] = Some(props.MetaSchema)
 
     def fromDb(lp: SyntaxProvider[FilmFrontPage])(rs: WrappedResultSet): Try[FilmFrontPage] = fromDb(lp.resultName)(rs)
 

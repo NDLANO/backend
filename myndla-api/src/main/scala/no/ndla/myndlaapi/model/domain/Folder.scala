@@ -127,6 +127,6 @@ object Folder {
 }
 
 class DBFolder(using props: Props) extends SQLSyntaxSupport[Folder] {
-  override val tableName: String          = "folders"
-  override val schemaName: Option[String] = Some(props.MetaSchema)
+  override def tableName: String          = "folders"
+  override def schemaName: Option[String] = Some(props.MetaSchema)
 }
