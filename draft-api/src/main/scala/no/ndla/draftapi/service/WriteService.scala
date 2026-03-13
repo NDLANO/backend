@@ -203,7 +203,9 @@ class WriteService(using
         }
     }
 
-  def updateArticleAndStoreAsNewIfPublished(article: Draft, statusWasUpdated: Boolean)(using DBSession): Try[Draft] = {
+  private def updateArticleAndStoreAsNewIfPublished(article: Draft, statusWasUpdated: Boolean)(using
+      DBSession
+  ): Try[Draft] = {
     val storeAsNewVersion = statusWasUpdated && article.status.current == PUBLISHED
     draftRepository.updateArticle(article) match {
       case Success(updated) if storeAsNewVersion => draftRepository.storeArticleAsNewVersion(updated, None)

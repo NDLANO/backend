@@ -97,6 +97,8 @@ case class ArticleDTO(
     disclaimer: Option[DisclaimerDTO],
     @description("Traits extracted from the article content")
     traits: List[ArticleTrait],
+    @description("Number of times the article is published")
+    publishedCount: Int,
 )
 
 object ArticleDTO {

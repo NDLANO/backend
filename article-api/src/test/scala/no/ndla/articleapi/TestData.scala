@@ -83,6 +83,7 @@ class TestData {
     slug = None,
     disclaimer = None,
     traits = List.empty,
+    publishedCount = 1,
   )
 
   val apiArticleV2: api.ArticleV2DTO = api.ArticleV2DTO(
@@ -129,6 +130,7 @@ class TestData {
     slug = None,
     disclaimer = None,
     traits = List.empty,
+    publishedCount = 1,
   )
 
   val sampleArticleWithPublicDomain: Article = Article(
@@ -161,6 +163,7 @@ class TestData {
     slug = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = Some(1),
   )
 
   val sampleDomainArticle: Article = Article(
@@ -188,6 +191,7 @@ class TestData {
     slug = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = Some(1),
   )
 
   val sampleDomainArticle2: Article = Article(
@@ -215,6 +219,7 @@ class TestData {
     slug = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = Some(1),
   )
 
   val sampleArticleWithByNcSa: Article      = sampleArticleWithPublicDomain.copy(copyright = byNcSaCopyright)
@@ -254,6 +259,7 @@ class TestData {
     slug = None,
     disclaimer = OptLanguageFields.empty,
     traits = List.empty,
+    publishedCount = Some(1),
   )
 
   val apiArticleWithHtmlFaultV2: api.ArticleV2DTO = api.ArticleV2DTO(
@@ -301,6 +307,7 @@ class TestData {
     slug = None,
     disclaimer = None,
     traits = List.empty,
+    publishedCount = 1,
   )
 
   val (nodeId, nodeId2)  = ("1234", "4321")
@@ -337,6 +344,7 @@ class TestData {
       slug = None,
       disclaimer = OptLanguageFields.empty,
       traits = List.empty,
+      publishedCount = Some(1),
     )
   }
 
