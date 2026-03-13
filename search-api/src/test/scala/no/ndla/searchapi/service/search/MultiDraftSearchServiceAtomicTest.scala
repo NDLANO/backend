@@ -414,25 +414,25 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 3)
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List.empty))
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = None))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 2, 3))
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List("hei")))
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = Some(List("hei"))))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 3))
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List("hei2")))
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = Some(List("hei2"))))
       .get
       .summaryResults
       .map(_.id) should be(Seq(2))
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List("hei", "hei2")))
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = Some(List("hei", "hei2"))))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 2, 3))
@@ -453,16 +453,14 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 4)
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByResponsibleLastUpdatedAsc)
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = None, sort = Sort.ByResponsibleLastUpdatedAsc))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 3, 2, 4))
 
     multiDraftSearchService
       .matchingQuery(
-        multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByResponsibleLastUpdatedDesc)
+        multiDraftSearchSettings.copy(responsibleIdFilter = None, sort = Sort.ByResponsibleLastUpdatedDesc)
       )
       .get
       .summaryResults
@@ -714,13 +712,13 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 4)
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByStatusAsc))
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = None, sort = Sort.ByStatusAsc))
       .get
       .summaryResults
       .map(_.id) should be(Seq(4, 3, 1, 2))
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByStatusDesc))
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = None, sort = Sort.ByStatusDesc))
       .get
       .summaryResults
       .map(_.id) should be(Seq(2, 1, 3, 4))
@@ -1134,7 +1132,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       .matchingQuery(
         multiDraftSearchSettings.copy(
           resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
-          responsibleIdFilter = List("some-user"),
+          responsibleIdFilter = Some(List("some-user")),
         )
       )
       .get

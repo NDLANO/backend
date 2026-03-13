@@ -336,7 +336,7 @@ class WriteService(using
       statusWasUpdated: Boolean,
       updatedApiArticle: api.UpdatedArticleDTO,
       shouldNotAutoUpdateStatus: Boolean,
-  ): Draft = {
+  )(using DBSession): Draft = {
     val isAutomaticResponsibleChange = updatedApiArticle.responsibleId match {
       case UpdateWith(_) => false
       case _             => true
@@ -353,11 +353,29 @@ class WriteService(using
       draft.copy(started = true)
     } else {
       val responsibleIdWasUpdated = hasResponsibleBeenUpdated(draft, oldDraft)
-
+      if (responsibleIdWasUpdated) {
+        draftRepository
+          .refreshResponsibleView
+          .recover { case ex =>
+            logger.error(
+              s"Failed to refresh responsible view after responsible change for article ${draft.id.getOrElse("unknown")}",
+              ex,
+            )
+          }: Unit
+      }
       val shouldReset = statusWasUpdated && !isAutomaticStatusChange || responsibleIdWasUpdated
       draft.copy(started = !shouldReset)
     }
   }
+
+  private def updateUsersView(draftId: Option[Long])(using DBSession): Unit = draftRepository
+    .refreshUserIdsView
+    .recover { case ex =>
+      logger.error(
+        s"Failed to refresh user ids view after article update for article ${draftId.getOrElse("unknown")}",
+        ex,
+      )
+    }: Unit
 
   private def updatePriorityField(draft: Draft, oldDraft: Option[Draft], statusWasUpdated: Boolean): Draft = {
     if (draft.priority == Priority.OnHold) {
@@ -403,6 +421,7 @@ class WriteService(using
     for {
       _             <- contentValidator.validateArticleOnLanguage(oldArticle, toUpdate, language)
       domainArticle <- performArticleUpdate(withPriority, createNewVersion, user, statusWasUpdated)
+      _              = updateUsersView(domainArticle.id)
       _              = partialPublishIfNeeded(domainArticle, fieldsToPartialPublish.toSeq, languageOrAll, user)
       _              = indexArticle(domainArticle, user)
       _             <- updateTaxonomyForArticle(domainArticle, user)

@@ -226,4 +226,19 @@ class ReadService(using
 
       Success(ArticleRevisionHistoryDTO(articles, canDeleteCurrentRevision))
     }
+
+  def getAllResponsibles: Try[Seq[String]] = dbUtility.readOnly { implicit session =>
+    draftRepository.getAllResponsibles match {
+      case Failure(exception) => Failure(exception)
+      case Success(value)     => Success(value)
+    }
+  }
+
+  def getAllUserIds: Try[Seq[String]] = dbUtility.readOnly { implicit session =>
+    draftRepository.getAllUserIds match {
+      case Failure(exception) => Failure(exception)
+      case Success(value)     => Success(value)
+    }
+  }
+
 }

@@ -75,18 +75,22 @@ class MultiDraftSearchService(using
     val flowStatuses                                                    = DraftStatus.values.filterNot(s => flowExcludeStatuses.contains(s)).toList
     def aggregateSubject(subjectId: String): Try[SubjectAggregationDTO] = for {
       old <- filteredCountSearch(
-        MultiDraftSearchSettings.default(user).copy(subjects = List(subjectId), publishedFilterTo = Some(fiveYearsAgo))
+        MultiDraftSearchSettings
+          .default(user)
+          .copy(subjects = Some(List(subjectId)), publishedFilterTo = Some(fiveYearsAgo))
       )
       revisions <- filteredCountSearch(
-        MultiDraftSearchSettings.default(user).copy(subjects = List(subjectId), revisionDateFilterTo = Some(inOneYear))
+        MultiDraftSearchSettings
+          .default(user)
+          .copy(subjects = Some(List(subjectId)), revisionDateFilterTo = Some(inOneYear))
       )
       publishedArticles <- filteredCountSearch(
         MultiDraftSearchSettings
           .default(user)
-          .copy(subjects = List(subjectId), statusFilter = List(DraftStatus.PUBLISHED))
+          .copy(subjects = Some(List(subjectId)), statusFilter = List(DraftStatus.PUBLISHED))
       )
       inFlow <- filteredCountSearch(
-        MultiDraftSearchSettings.default(user).copy(subjects = List(subjectId), statusFilter = flowStatuses)
+        MultiDraftSearchSettings.default(user).copy(subjects = Some(List(subjectId)), statusFilter = flowStatuses)
       )
       favorited <- aggregateFavorites(subjectId)
     } yield SubjectAggregationDTO(
@@ -296,8 +300,10 @@ class MultiDraftSearchService(using
       dateRangeFilter("nextRevision.revisionDate", settings.revisionDateFilterFrom, settings.revisionDateFilterTo)
     val publishedDateFilter     = dateRangeFilter("published", settings.publishedFilterFrom, settings.publishedFilterTo)
     val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
-    val responsibleIdFilter     = Option.when(settings.responsibleIdFilter.nonEmpty) {
-      termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
+    val responsibleFilter       = settings.responsibleIdFilter match {
+      case Some(Nil) => Some(boolQuery().not(existsQuery("responsible.responsibleId")))
+      case Some(ids) => Some(termsQuery("responsible.responsibleId", ids))
+      case None      => None
     }
 
     val priorityFilter = Option.when(settings.priority.nonEmpty)(
@@ -309,9 +315,9 @@ class MultiDraftSearchService(using
     val learningResourceType        = learningResourceFilter(settings.learningResourceTypes)
     val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, filterByNoResourceType = false)
     val taxonomySubjectFilter       = subjectFilter(settings.subjects, settings.filterInactive)
-    val conceptSubjectFilter        = subjectFilterForConcept(settings.subjects)
+    val conceptSubjectFilter        = subjectFilterForConcept(settings.subjects.getOrElse(List.empty))
     val taxonomyTopicFilter         = topicFilter(settings.topics, settings.filterInactive)
-    val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
+    val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects.getOrElse(List.empty))
     val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
 
     List(
@@ -334,7 +340,7 @@ class MultiDraftSearchService(using
       embedResourceAndIdFilter,
       revisionDateFilter,
       publishedDateFilter,
-      responsibleIdFilter,
+      responsibleFilter,
       priorityFilter,
       learningResourceType,
     ).flatten

@@ -28,6 +28,7 @@ object CommaSeparatedList {
   }
 
   implicit class sepOps[T](val sep: CommaSeparatedList[T]) extends AnyVal {
-    def values: List[T] = sep.map(_.values).getOrElse(List.empty)
+    def values: List[T]            = sep.map(_.values).getOrElse(List.empty)
+    def optValues: Option[List[T]] = sep.map(_.values)
   }
 }
