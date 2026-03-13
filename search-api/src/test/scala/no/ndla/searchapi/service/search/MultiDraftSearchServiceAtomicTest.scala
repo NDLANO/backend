@@ -1239,8 +1239,9 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         content = Seq(ArticleContent("Hund", "nb")),
         notes = Seq.empty,
         previousVersionsNotes = Seq.empty,
-        copyright = Some(baseCopyright.copy(creators = List(Author(ContributorType.Writer, "Skaper")))),
+        copyright = Some(baseCopyright.copy(creators = List(Author(ContributorType.Writer, "NDLA")))),
       )
+
     val draft2 = TestData
       .draft1
       .copy(
@@ -1249,7 +1250,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         content = Seq(ArticleContent("Hund", "nb")),
         notes = Seq.empty,
         previousVersionsNotes = Seq.empty,
-        copyright = Some(baseCopyright.copy(processors = List(Author(ContributorType.Editorial, "Bearbeider")))),
+        copyright = Some(baseCopyright.copy(processors = List(Author(ContributorType.Editorial, "NDLA")))),
       )
     val draft3 = TestData
       .draft1
@@ -1259,8 +1260,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
         content = Seq(ArticleContent("Hund", "nb")),
         notes = Seq.empty,
         previousVersionsNotes = Seq.empty,
-        copyright =
-          Some(baseCopyright.copy(rightsholders = List(Author(ContributorType.RightsHolder, "Rettighetshaver")))),
+        copyright = Some(baseCopyright.copy(rightsholders = List(Author(ContributorType.RightsHolder, "NDLA")))),
       )
 
     draftIndexService.indexDocument(draft1, indexingBundle).failIfFailure
@@ -1272,7 +1272,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("Skaper").get),
+          query = Some(NonEmptyString.fromString("NDLA").get),
           queryFields = List(DraftSearchField.Creators),
         )
       )
@@ -1283,7 +1283,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("Bearbeider").get),
+          query = Some(NonEmptyString.fromString("NDLA").get),
           queryFields = List(DraftSearchField.Processors),
         )
       )
@@ -1294,13 +1294,19 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     multiDraftSearchService
       .matchingQuery(
         multiDraftSearchSettings.copy(
-          query = Some(NonEmptyString.fromString("Rettighetshaver").get),
+          query = Some(NonEmptyString.fromString("NDLA").get),
           queryFields = List(DraftSearchField.Rightsholders),
         )
       )
       .get
       .summaryResults
       .map(_.id) should be(Seq(3))
+
+    multiDraftSearchService
+      .matchingQuery(multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("NDLA").get)))
+      .get
+      .summaryResults
+      .map(_.id) should be(Seq(1, 2, 3))
 
     multiDraftSearchService
       .matchingQuery(
