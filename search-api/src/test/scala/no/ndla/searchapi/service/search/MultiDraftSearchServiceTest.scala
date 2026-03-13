@@ -629,7 +629,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     search.summaryResults.map(_.id) should be(Seq(1, 1, 2, 2, 4, 4, 9, 12))
   }
 
-  test("That searching for authors works as expected") {
+  test("That searching for contributors works as expected") {
     val Success(search1) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(
         query = Some(NonEmptyString.fromString("Kjekspolitiet").get),
@@ -644,6 +644,12 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     ): @unchecked
     search2.totalCount should be(2)
     search2.summaryResults.map(_.id) should be(Seq(2, 5))
+
+    val Success(search3) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("Clark Kent").get), language = AllLanguages)
+    ): @unchecked
+    search3.totalCount should be(1)
+    search3.summaryResults.map(_.id) should be(Seq(4))
   }
 
   test("That filtering by relevance id works when no subject is specified") {

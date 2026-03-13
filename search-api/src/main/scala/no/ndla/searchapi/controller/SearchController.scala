@@ -31,7 +31,7 @@ import no.ndla.searchapi.controller.parameters.{
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.grep.GrepSearchResultsDTO
 import no.ndla.searchapi.model.api.{GroupSearchResultDTO, SubjectAggregationsDTO}
-import no.ndla.searchapi.model.domain.Sort
+import no.ndla.searchapi.model.domain.{DraftSearchField, Sort}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.service.search.{
   GrepSearchService,
@@ -373,6 +373,7 @@ class SearchController(using
             resourceTypes = stringListParam("resource-types").some,
             license = stringParamOrNone("license"),
             query = NonEmptyString.fromOptString(stringParamOrNone("query")),
+            queryFields = stringListParam("query-fields").flatMap(DraftSearchField.withNameOption).some,
             noteQuery = NonEmptyString.fromOptString(stringParamOrNone("note-query")),
             sort = stringParamOrNone("sort").flatMap(Sort.valueOf),
             fallback = booleanParamOrNone("fallback"),
@@ -523,6 +524,7 @@ class SearchController(using
           user = user,
           query = params.query,
           noteQuery = params.noteQuery,
+          queryFields = params.queryFields.getOrElse(List.empty),
           fallback = params.fallback.getOrElse(false),
           language = params.language.getOrElse(AllLanguages),
           license = params.license,
