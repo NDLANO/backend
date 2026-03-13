@@ -12,8 +12,9 @@ import no.ndla.common.Clock
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, NonEmptyString, Routes, TapirController}
 import no.ndla.searchapi.model.domain
+import no.ndla.searchapi.model.domain.DraftSearchField
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.service.ConverterService
@@ -170,22 +171,14 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     response.code.code should be(200)
     response.headers("search-context").head should be(newValidScrollId)
 
-    val captor: ArgumentCaptor[MultiDraftSearchSettings] = ArgumentCaptor.forClass(classOf[MultiDraftSearchSettings])
+    val expectedSettings = TestData
+      .multiDraftSearchSettings
+      .copy(fallback = true, language = "nn", pageSize = 10, shouldScroll = true, sort = Sort.ByRelevanceDesc)
 
     verify(multiDraftSearchService, times(0)).scroll(any[String], any[String])
-    verify(multiDraftSearchService, times(1)).matchingQuery(captor.capture())
+    verify(multiDraftSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
     verify(multiSearchService, times(0)).scroll(any[String], any[String])
     verify(multiSearchService, times(0)).matchingQuery(any[SearchSettings])
-
-    val captured = captor.getValue
-    captured.fallback should be(true)
-    captured.language should be("nn")
-    captured.pageSize should be(10)
-    captured.shouldScroll should be(true)
-    captured.sort should be(Sort.ByRelevanceDesc)
-    captured.query should be(None)
-    captured.noteQuery should be(None)
-    captured.queryFields should be(List.empty)
   }
 
   test("That scrolling doesn't happen on 'initial' scrollId") {
@@ -314,12 +307,18 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     response.code.code should be(200)
 
-    val captor: ArgumentCaptor[MultiDraftSearchSettings] = ArgumentCaptor.forClass(classOf[MultiDraftSearchSettings])
-    verify(multiDraftSearchService, times(1)).matchingQuery(captor.capture())
+    val expectedSettings = TestData
+      .multiDraftSearchSettings
+      .copy(
+        language = "*",
+        query = NonEmptyString("gris"),
+        queryFields = List(DraftSearchField.Title, DraftSearchField.Content, DraftSearchField.Disclaimer),
+        pageSize = 10,
+        sort = Sort.ByRelevanceDesc,
+        resultTypes = Some(List()),
+      )
 
-    captor.getValue.query.map(_.underlying) should be(Some("gris"))
-    captor.getValue.queryFields should be(
-      List(domain.DraftSearchField.Title, domain.DraftSearchField.Content, domain.DraftSearchField.Disclaimer)
-    )
+    verify(multiDraftSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
+
   }
 }
