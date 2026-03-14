@@ -10,6 +10,7 @@ package no.ndla.imageapi.model.api
 
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.NDLADate
 import no.ndla.imageapi.model.domain.ImageContentType
 import no.ndla.language.Language.LanguageDocString
 import sttp.tapir.Schema.annotations.description
@@ -30,6 +31,8 @@ case class ImageFileDTO(
     variants: Seq[ImageVariantDTO],
     @description(LanguageDocString)
     language: String,
+    @description("Date image was taken, if available")
+    originalDate: Option[NDLADate],
 )
 
 object ImageFileDTO {

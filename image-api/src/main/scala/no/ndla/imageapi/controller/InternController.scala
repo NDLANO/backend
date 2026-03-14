@@ -43,7 +43,9 @@ class InternController(using
     myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController
     with StrictLogging {
+
   import errorHelpers.*
+
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
@@ -57,6 +59,7 @@ class InternController(using
     dumpSingleImage,
     postDump,
     startImageVariantsMigration, // TODO: Remove this after completing variants migration of existing images
+    startExifDataMigration,
   )
 
   def postIndex: ServerEndpoint[Any, Eff] = endpoint
@@ -139,7 +142,8 @@ class InternController(using
     }
 
   val urlQueryParam: EndpointInput.Query[Option[String]] = query[Option[String]]("url")
-  def getDomainImageFromUrl: ServerEndpoint[Any, Eff]    = endpoint
+
+  def getDomainImageFromUrl: ServerEndpoint[Any, Eff] = endpoint
     .get
     .in("domain_image_from_url")
     .in(urlQueryParam)
@@ -203,5 +207,24 @@ class InternController(using
         })
 
       "Started generation of image variants for all existing images".asRight
+    }
+
+  def startExifDataMigration: ServerEndpoint[Any, Eff] = endpoint
+    .post
+    .in("migrate" / "exif")
+    .out(jsonBody[String])
+    .serverLogicPure { _ =>
+      logger.info("Starting EXIF data extraction for all existing images...")
+
+      Thread
+        .ofVirtual()
+        .start(() => {
+          writeService.extractAndStoreExifDataForExistingImages() match {
+            case Success(_)  => logger.info("Successfully finished EXIF data extraction for all existing images")
+            case Failure(ex) => logger.error("Failed to extract EXIF data for existing images", ex)
+          }
+        })
+
+      "Started EXIF data extraction for all existing images".asRight
     }
 }
