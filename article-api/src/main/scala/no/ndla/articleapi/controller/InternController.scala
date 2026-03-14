@@ -201,8 +201,7 @@ class InternController(using
       dBUtility.rollbackOnFailure {
         val (id, externalIds, useImportValidation, useSoftValidation, article) = params
         writeService.updateArticle(
-          article.copy(id = Some(id)),
-          externalIds.values.filterNot(_.isEmpty),
+          article.copy(id = Some(id), externalIds = externalIds.values.filterNot(_.isEmpty)),
           useImportValidation,
           useSoftValidation,
           skipValidation = false,

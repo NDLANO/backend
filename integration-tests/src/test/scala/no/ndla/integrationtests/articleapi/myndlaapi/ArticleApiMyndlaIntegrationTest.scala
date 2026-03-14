@@ -162,11 +162,11 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
             td.sampleDomainArticle
               .copy(
                 id = Some(id),
-                updated = NDLADate.fromUnixTime(0),
                 created = NDLADate.fromUnixTime(0),
+                updated = NDLADate.fromUnixTime(0),
                 published = NDLADate.fromUnixTime(0),
-              ),
-            List(s"1$id"),
+                externalIds = List(s"1$id"),
+              )
           )(using articleApi.componentRegistry.dbUtility.autoSession)
       })
       .collectFirst { case Failure(ex) =>
@@ -183,15 +183,16 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
       .sampleDomainArticle
       .copy(
         id = Some(123L),
-        updated = NDLADate.fromUnixTime(0),
+        externalIds = List("123"),
         created = NDLADate.fromUnixTime(0),
+        updated = NDLADate.fromUnixTime(0),
         published = NDLADate.fromUnixTime(0),
         availability = Availability.teacher,
       )
     val insertResult = articleApi
       .componentRegistry
       .articleRepository
-      .updateArticleFromDraftApi(article, List("123"))(using articleApi.componentRegistry.dbUtility.autoSession)
+      .updateArticleFromDraftApi(article)(using articleApi.componentRegistry.dbUtility.autoSession)
 
     insertResult.isSuccess should be(true)
 

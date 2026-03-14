@@ -32,6 +32,7 @@ trait UnitSuite extends UnitTestSuite {
   def toArticleRow(article: Article): ArticleRow = {
     ArticleRow(
       rowId = article.id.get,
+      externalIds = article.externalIds,
       revision = article.revision.get,
       articleId = article.id.get,
       slug = article.slug,

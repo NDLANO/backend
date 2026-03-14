@@ -45,7 +45,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(readService.addUrlsOnEmbedResources(any[Article])).thenAnswer((invocation: InvocationOnMock) =>
       invocation.getArgument[Article](0)
     )
-    when(articleRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List("1234")))
     when(clock.now()).thenReturn(today)
     when(contentValidator.validateArticle(any[Article], any[Boolean])(using any)).thenAnswer(
       (invocation: InvocationOnMock) => Success(invocation.getArgument[Article](0))
@@ -59,7 +58,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedAndInserted = articleToUpdate.copy(revision = articleToUpdate.revision.map(_ + 1), updated = today)
 
     when(articleRepository.withId(eqTo(10L))(using any)).thenReturn(Success(Some(toArticleRow(articleToUpdate))))
-    when(articleRepository.updateArticleFromDraftApi(any[Article], any)(using any[DBSession])).thenReturn(
+    when(articleRepository.updateArticleFromDraftApi(any[Article])(using any[DBSession])).thenReturn(
       Success(updatedAndInserted)
     )
 
@@ -69,7 +68,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     service.updateArticle(
       articleToUpdate,
-      List.empty,
       useImportValidation = false,
       useSoftValidation = false,
       skipValidation = false,
