@@ -564,8 +564,11 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchSettings.copy(language = "*", responsibleIdFilter = Some(List()))
     ): @unchecked
 
-    search2.totalCount should be(13)
-    search2.summaryResults.map(_.id) should be(Seq(1, 2, 2, 3, 4, 4, 5, 6, 6, 8, 10, 12, 16))
+    val (draftResults, lpResults) = search2
+      .summaryResults
+      .partition(_.resultType == SearchType.Drafts)
+    draftResults.map(_.id) should be(Seq(2, 4, 6, 8, 10, 12, 16))
+    lpResults.map(_.id) should be(Seq(1, 2, 3, 4, 5, 6))
 
   }
 
