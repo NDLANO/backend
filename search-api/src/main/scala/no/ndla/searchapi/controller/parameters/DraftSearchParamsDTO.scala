@@ -45,14 +45,14 @@ case class DraftSearchParamsDTO(
     @description("Fallback to existing language if language is specified.")
     fallback: Option[Boolean],
     @description("""A comma separated list of subjects the resources should be filtered by (OR filter).
-        |The value 'NONE' can be used to filter for resources not in subjects.""".stripMargin)
+        | Sending in an empty list can be used to filter for resources not in subjects.""".stripMargin)
     subjects: Option[List[String]],
     @description("A list of ISO 639-1 language codes that the resource can be available in.")
     languageFilter: Option[List[String]],
     @description(
       """A list of relevances the resources should be filtered by.
-          |If subjects are specified the resource must have specified relevances in relation to a specified subject.
-          |If levels are specified the resource must have specified relevances in relation to a specified level."""
+          | If subjects are specified the resource must have specified relevances in relation to a specified subject.
+          | If levels are specified the resource must have specified relevances in relation to a specified level."""
         .stripMargin
     )
     relevance: Option[List[String]],
@@ -78,7 +78,7 @@ case class DraftSearchParamsDTO(
     @description("List of index-paths that should be term-aggregated and returned in result.")
     aggregatePaths: Option[List[String]],
     @description("""Return only results with embed data-resource the specified resource.
-        |Can specify multiple with a comma separated list to filter for one of the embed types.""".stripMargin)
+        | Can specify multiple with a comma separated list to filter for one of the embed types.""".stripMargin)
     embedResource: Option[List[String]],
     @description("Return only results with embed data-resource_id, data-videoid or data-url with the specified id.")
     embedId: Option[String],
@@ -91,7 +91,7 @@ case class DraftSearchParamsDTO(
     @description("Set to true to avoid including hits from the revision history log.")
     excludeRevisionLog: Option[Boolean],
     @description("""List of responsible ids to filter by (OR filter).
-        |The value 'NONE' can be used to filter for resources without responsible.""".stripMargin)
+        | Sending in an empty list can be used to filter for resources without responsible.""".stripMargin)
     responsibleIds: Option[List[String]],
     @description("Filter out inactive taxonomy contexts.")
     filterInactive: Option[Boolean],
