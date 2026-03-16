@@ -71,14 +71,14 @@ class UserDataController(using
 
   def getUserIds: ServerEndpoint[Any, Eff] = endpoint
     .get
-    .in("user-ids")
+    .in("editors")
     .summary("Get list of user IDs that have edited drafts")
     .description("Get list of user IDs from updatedBy and editor notes in drafts")
     .out(jsonBody[Seq[String]])
     .errorOut(errorOutputsFor(401, 403))
     .serverLogicPure { _ =>
-      readService.getAllUserIds match {
-        case Success(userIds) => Right(userIds)
+      readService.getAllEditors match {
+        case Success(editors) => Right(editors)
         case Failure(ex)      => errorHandling.returnLeftError(ex)
       }
     }
