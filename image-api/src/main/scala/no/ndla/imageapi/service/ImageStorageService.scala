@@ -13,7 +13,6 @@ import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.aws.{NdlaS3Client, NdlaS3Object}
 import no.ndla.imageapi.Props
-import no.ndla.imageapi.model.ImageNotFoundException
 import no.ndla.imageapi.model.domain.{ImageContentType, ImageStream}
 
 import java.io.InputStream
@@ -25,31 +24,29 @@ class ImageStorageService(using
     imageConverter: ImageConverter,
     props: Props,
 ) extends StrictLogging {
-  private def ensureS3ContentType(s3Object: NdlaS3Object): Try[Unit] = {
-    val fileName = s3Object.key
+  private def attemptFixS3ContentType(s3Object: NdlaS3Object): Unit =
     if (s3Object.contentType == "binary/octet-stream") {
+      val fileName = s3Object.key
       readService.getImageFileFromFilePath(fileName) match {
-        case Success(meta) if props.ValidMimeTypes.contains(meta.contentType) =>
-          updateContentType(s3Object.key, meta.contentType) match {
-            case Failure(ex) =>
-              logger.error(s"Could not update content-type s3-metadata of $fileName to ${meta.contentType}", ex)
-            case Success(_) =>
-              logger.info(s"Successfully updated content-type s3-metadata of $fileName to ${meta.contentType}")
+        case Success(meta) if meta.contentType.toString != "binary/octet-stream" =>
+          if (props.ValidMimeTypes.contains(meta.contentType)) {
+            s3Client.updateContentType(s3Object.key, meta.contentType.toString) match {
+              case Success(_)  => logger.info(s"Updated Content-Type of $fileName to ${meta.contentType}")
+              case Failure(ex) => logger.error(s"Failed to update Content-Type of $fileName to ${meta.contentType}", ex)
+            }
+          } else {
+            logger.error(s"Content-Type of '$fileName' is '${meta.contentType}', which is not a supported MIME type")
           }
-          Success(())
-        case _ =>
-          val message = s"Failed to find image based on file path: $fileName"
-          logger.error(message)
-          Failure(ImageNotFoundException(message))
+        case Success(_)  => ()
+        case Failure(ex) => logger.error(s"Failed to get image from file path: $fileName", ex)
       }
-    } else Success(())
-  }
+    }
 
   def get(imageKey: String): Try[ImageStream] = {
     for {
       s3Object    <- s3Client.getObject(imageKey)
       imageStream <- imageConverter.s3ObjectToImageStream(s3Object)
-      _            = ensureS3ContentType(s3Object)
+      _            = attemptFixS3ContentType(s3Object)
     } yield imageStream
   }
 
@@ -63,13 +60,6 @@ class ImageStorageService(using
   ): Try[String] = s3Client
     .putObject(storageKey, stream, contentLength, contentType.toString, props.S3NewFileCacheControlHeader.some)
     .map(_ => storageKey)
-
-  def updateContentType(storageKey: String, contentType: ImageContentType): Try[Unit] = for {
-    meta    <- s3Client.headObject(storageKey)
-    metadata = meta.metadata()
-    _        = metadata.put("Content-Type", contentType.toString)
-    _       <- s3Client.updateMetadata(storageKey, metadata)
-  } yield ()
 
   def checkBucketAccess(): Try[Unit] = s3Client.canAccessBucket
 
