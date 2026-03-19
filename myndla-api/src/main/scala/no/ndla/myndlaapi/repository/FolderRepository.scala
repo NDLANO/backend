@@ -292,6 +292,39 @@ class FolderRepository(using
     }
   }
 
+  def moveResourceConnection(resourceId: UUID, fromFolderId: Option[UUID], toFolderId: Option[UUID], newRank: Int)(
+      implicit session: DBSession = dbUtility.autoSession
+  ): Try[UUID] = {
+    val fromFolderClause = fromFolderId match {
+      case Some(id) => sqls"folder_id=$id"
+      case None     => sqls"folder_id is null"
+    }
+    val setQuery = toFolderId match {
+      case Some(id) => sqls"set folder_id=$id, rank=$newRank"
+      case None     => sqls"set folder_id=null, rank=$newRank"
+    }
+
+    tsql"""
+          update ${dbResourceConnection.table}
+          $setQuery
+          where $fromFolderClause and resource_id=$resourceId
+        """.update() match {
+      case Failure(ex)                  => Failure(ex)
+      case Success(count) if count != 1 =>
+        Failure(
+          NotFoundException(
+            s"Folder resource connection with folder_id $fromFolderId and resource_id $resourceId does not exist"
+          )
+        )
+      case Success(_) => {
+        logger.info(
+          s"Moved folder-resource connection with folder_id $fromFolderId and resource_id $resourceId to folder_id $toFolderId"
+        )
+        Success(resourceId)
+      }
+    }
+  }
+
   def deleteResourceConnection(folderId: Option[UUID], resourceId: UUID)(implicit
       session: DBSession = dbUtility.autoSession
   ): Try[UUID] =

@@ -15,14 +15,14 @@ import no.ndla.common.model.domain.ResourceType.Article
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.myndlaapi.model.api
-import no.ndla.myndlaapi.model.api.FolderDTO
+import no.ndla.myndlaapi.model.api.{FolderDTO, MoveResourceDTO}
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
 import no.ndla.myndlaapi.service.UserService
 import no.ndla.myndlaapi.{ComponentRegistry, MainClass, MyNdlaApiProperties, TestEnvironment, UnitSuite}
 import no.ndla.network.clients.{FeideApiClient, FeideExtendedUserInfo}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, RedisIntegrationSuite}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
-import org.mockito.Mockito.{reset, spy, when, doNothing, withSettings}
+import org.mockito.Mockito.{doNothing, reset, spy, when, withSettings}
 import org.mockito.quality.Strictness
 import org.testcontainers.postgresql.PostgreSQLContainer
 import scalikejdbc.DBSession
@@ -302,6 +302,22 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     )
   }
 
+  def moveResource(feideId: String, dto: MoveResourceDTO, failOnError: Boolean = true): Int = {
+    import io.circe.generic.auto.*
+    val body     = CirceUtil.toJsonString(dto)
+    val response = simpleHttpClient.send(
+      quickRequest
+        .put(uri"$myndlaApiFolderUrl/resources/move")
+        .header("FeideAuthorization", s"Bearer $feideId")
+        .contentType("application/json")
+        .body(body)
+    )
+    if (failOnError && !response.isSuccess) fail(
+      s"Moving resource ${dto.resourceId} from folder ${dto.fromFolderId} to folder ${dto.toFolderId} failed with code ${response.code} and body:\n${response.body}"
+    )
+    response.code.code
+  }
+
   def deleteResourceFromFolder(feideId: String, folderId: UUID, resourceId: UUID): Unit = {
     val response = simpleHttpClient.send(
       quickRequest
@@ -578,5 +594,212 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     subfoldersOfF1(2).id should be(f3.id)
     subfoldersOfF1(2).rank should be(3)
 
+  }
+
+  test("moving resources to and from different folders work as intended") {
+    val feideId1 = "feide1"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+
+    /*
+        f1
+        ├─ f2
+        ├─ f3
+            └─ f4
+     */
+    val f1 = createFolder(feideId1, "folder1", None)
+    val f2 = createFolder(feideId1, "folder2", Some(f1.id.toString))
+    val f3 = createFolder(feideId1, "folder3", Some(f1.id.toString))
+    val f4 = createFolder(feideId1, "folder4", Some(f3.id.toString))
+
+    val folderResourceDto =
+      api.NewResourceDTO(resourceType = Article, path = "path/to/1", tags = None, resourceId = "1")
+
+    val folderResourceDto2 =
+      api.NewResourceDTO(resourceType = Article, path = "path/to/2", tags = None, resourceId = "2")
+
+    val rr1 = addRootResource(feideId = feideId1, resource = folderResourceDto)
+    val rr2 = addRootResource(feideId = feideId1, resource = folderResourceDto2)
+
+    val fr1 = addResourceToFolder(feideId = feideId1, folderId = f1.id, resource = folderResourceDto)
+
+    val fr2 = addResourceToFolder(feideId = feideId1, folderId = f4.id, resource = folderResourceDto)
+
+    doNothing().when(searchApiClient).reindexDraft(any)
+
+    // Initial state: root has rr1 (rank 1), rr2 (rank 2)
+    // fr1.id == rr1.id == fr2.id (same underlying resource, path "path/to/1")
+    val rootResourcesInitial = getRootResources(feideId1)
+    rootResourcesInitial.length should be(2)
+    rootResourcesInitial.map(_.id) should be(List(rr1.id, rr2.id))
+
+    val f1InitialResources = getFolderResources(feideId1, f1.id)
+    f1InitialResources.resources.length should be(1)
+    f1InitialResources.resources.head.id should be(fr1.id)
+
+    val f4InitialResources = getFolderResources(feideId1, f4.id)
+    f4InitialResources.resources.length should be(1)
+    f4InitialResources.resources.head.id should be(fr2.id)
+
+    // Add a second resource to f2 so we can verify rank is computed correctly when moving to a non-empty folder
+    val folderResourceDto3 =
+      api.NewResourceDTO(resourceType = Article, path = "path/to/3", tags = None, resourceId = "3")
+    val fr3 = addResourceToFolder(feideId = feideId1, folderId = f2.id, resource = folderResourceDto3)
+
+    // Move fr1 from f1 to f2 (folder-to-folder, target folder is non-empty)
+    moveResource(
+      feideId1,
+      MoveResourceDTO(fromFolderId = Some(f1.id), toFolderId = Some(f2.id), resourceId = fr1.id),
+    ) should be(204)
+
+    val f1AfterFolderMove = getFolderResources(feideId1, f1.id)
+    f1AfterFolderMove.resources.length should be(0)
+
+    val f2AfterFolderMove = getFolderResources(feideId1, f2.id)
+    f2AfterFolderMove.resources.length should be(2)
+    f2AfterFolderMove.resources.map(_.id) should be(List(fr3.id, fr1.id))
+    f2AfterFolderMove.resources.flatMap(_.rank) should be(List(1, 2))
+
+    // Root should be unaffected by the folder-to-folder move
+    val rootAfterFolderMove = getRootResources(feideId1)
+    rootAfterFolderMove.length should be(2)
+    rootAfterFolderMove.map(_.id) should be(List(rr1.id, rr2.id))
+
+    // Move rr1 from root to f3 (root-to-folder)
+    moveResource(
+      feideId1,
+      MoveResourceDTO(fromFolderId = None, toFolderId = Some(f3.id), resourceId = rr1.id),
+    ) should be(204)
+
+    val rootAfterRootToFolderMove = getRootResources(feideId1)
+    rootAfterRootToFolderMove.length should be(1)
+    rootAfterRootToFolderMove.map(_.id) should be(List(rr2.id))
+    rootAfterRootToFolderMove.flatMap(_.rank) should be(List(1))
+
+    val f3AfterMove = getFolderResources(feideId1, f3.id)
+    f3AfterMove.resources.length should be(1)
+    f3AfterMove.resources.head.id should be(rr1.id)
+    f3AfterMove.resources.head.rank should be(Some(1))
+
+    // Move fr2 from f4 to root (folder-to-root)
+    moveResource(
+      feideId1,
+      MoveResourceDTO(fromFolderId = Some(f4.id), toFolderId = None, resourceId = fr2.id),
+    ) should be(204)
+
+    val f4AfterFolderToRootMove = getFolderResources(feideId1, f4.id)
+    f4AfterFolderToRootMove.resources.length should be(0)
+
+    val rootAfterFolderToRootMove = getRootResources(feideId1)
+    rootAfterFolderToRootMove.length should be(2)
+    rootAfterFolderToRootMove.map(_.id) should be(List(rr2.id, fr2.id))
+    rootAfterFolderToRootMove.flatMap(_.rank) should be(List(1, 2))
+
+  }
+
+  test("moving a resource to the same folder returns 400") {
+    val feideId1 = "feide1"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+
+    val f1  = createFolder(feideId1, "folder1", None)
+    val res = addResourceToFolder(
+      feideId1,
+      f1.id,
+      api.NewResourceDTO(resourceType = Article, path = "path/to/1", tags = None, resourceId = "1"),
+    )
+
+    moveResource(
+      feideId1,
+      MoveResourceDTO(fromFolderId = Some(f1.id), toFolderId = Some(f1.id), resourceId = res.id),
+      failOnError = false,
+    ) should be(400)
+  }
+
+  test("moving a resource from a folder you don't own returns 403") {
+    val feideId1 = "feide1"
+    val feideId2 = "feide2"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId2)))).thenReturn(Success(feideId2))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+
+    val f1  = createFolder(feideId1, "folder1", None)
+    val f2  = createFolder(feideId1, "folder2", None)
+    val res = addResourceToFolder(
+      feideId1,
+      f1.id,
+      api.NewResourceDTO(resourceType = Article, path = "path/to/1", tags = None, resourceId = "1"),
+    )
+
+    moveResource(
+      feideId2,
+      MoveResourceDTO(fromFolderId = Some(f1.id), toFolderId = Some(f2.id), resourceId = res.id),
+      failOnError = false,
+    ) should be(403)
+  }
+
+  test("moving a resource to a folder you don't own returns 403") {
+    val feideId1 = "feide1"
+    val feideId2 = "feide2"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId2)))).thenReturn(Success(feideId2))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+
+    val f1U1 = createFolder(feideId1, "folder1", None)
+    val f1U2 = createFolder(feideId2, "folder1", None)
+    val res  = addResourceToFolder(
+      feideId1,
+      f1U1.id,
+      api.NewResourceDTO(resourceType = Article, path = "path/to/1", tags = None, resourceId = "1"),
+    )
+
+    moveResource(
+      feideId1,
+      MoveResourceDTO(fromFolderId = Some(f1U1.id), toFolderId = Some(f1U2.id), resourceId = res.id),
+      failOnError = false,
+    ) should be(403)
+  }
+
+  test("moving a resource you don't own returns 403") {
+    val feideId1 = "feide1"
+    val feideId2 = "feide2"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId2)))).thenReturn(Success(feideId2))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+
+    val f1U1  = createFolder(feideId1, "folder1", None)
+    val u1Res = addResourceToFolder(
+      feideId1,
+      f1U1.id,
+      api.NewResourceDTO(resourceType = Article, path = "path/to/1", tags = None, resourceId = "1"),
+    )
+
+    val f1U2 = createFolder(feideId2, "folder1", None)
+    val f2U2 = createFolder(feideId2, "folder2", None)
+
+    moveResource(
+      feideId2,
+      MoveResourceDTO(fromFolderId = Some(f1U2.id), toFolderId = Some(f2U2.id), resourceId = u1Res.id),
+      failOnError = false,
+    ) should be(403)
+  }
+
+  test("moving a resource to a folder that already contains it fails") {
+    val feideId1 = "feide1"
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideID(eqTo(Some(feideId1)))).thenReturn(Success(feideId1))
+    when(myndlaApi.componentRegistry.feideApiClient.getFeideGroups(any)).thenReturn(Success(Seq.empty))
+
+    val f1 = createFolder(feideId1, "folder1", None)
+    val f2 = createFolder(feideId1, "folder2", None)
+
+    val resourceDto = api.NewResourceDTO(resourceType = Article, path = "path/to/1", tags = None, resourceId = "1")
+    val r1          = addResourceToFolder(feideId1, f1.id, resourceDto)
+    addResourceToFolder(feideId1, f2.id, resourceDto)
+
+    moveResource(
+      feideId1,
+      MoveResourceDTO(fromFolderId = Some(f1.id), toFolderId = Some(f2.id), resourceId = r1.id),
+      failOnError = false,
+    ) should be(400)
   }
 }

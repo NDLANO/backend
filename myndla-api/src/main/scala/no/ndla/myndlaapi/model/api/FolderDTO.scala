@@ -188,3 +188,12 @@ case class UpdatedResourceDTO(
     @description("The id of the resource, useful for fetching metadata for the resource")
     resourceId: Option[String],
 )
+
+case class MoveResourceDTO(
+    @description("Folder to move from")
+    fromFolderId: Option[UUID],
+    @description("Folder to move to")
+    toFolderId: Option[UUID],
+    @description("The resource to move")
+    resourceId: UUID,
+)
