@@ -62,7 +62,8 @@ class UserDataController(using
     .description("Get list of responsibles for drafts")
     .out(jsonBody[Seq[String]])
     .errorOut(errorOutputsFor(400))
-    .serverLogicPure { _ =>
+    .requirePermission(DRAFT_API_WRITE)
+    .serverLogicPure { _ => _ =>
       readService.getAllResponsibles match {
         case Success(resp) => Right(resp)
         case Failure(ex)   => errorHandling.returnLeftError(ex)
@@ -76,7 +77,8 @@ class UserDataController(using
     .description("Get list of user IDs from updatedBy and editor notes in drafts")
     .out(jsonBody[Seq[String]])
     .errorOut(errorOutputsFor(400))
-    .serverLogicPure { _ =>
+    .requirePermission(DRAFT_API_WRITE)
+    .serverLogicPure { _ => _ =>
       readService.getAllEditors match {
         case Success(editors) => Right(editors)
         case Failure(ex)      => errorHandling.returnLeftError(ex)
