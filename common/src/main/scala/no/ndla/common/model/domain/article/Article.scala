@@ -41,6 +41,7 @@ case class Article(
     slug: Option[String],
     disclaimer: OptLanguageFields[String],
     traits: List[ArticleTrait],
+    publishedCount: Option[Int],
 ) extends Content
 
 object Article {

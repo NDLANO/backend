@@ -80,6 +80,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       availability = "everyone",
       learningResourceType = LearningResourceType.Article,
       typeName = List.empty,
+      publishedCount = 42,
       domainObject = TestData.article1,
       nodes = nodes,
     )
@@ -147,6 +148,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       availability = "everyone",
       learningResourceType = LearningResourceType.Article,
       typeName = List.empty,
+      publishedCount = 42,
       domainObject = TestData.article1,
       nodes = nodes,
     )

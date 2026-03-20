@@ -72,14 +72,14 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(1),
       title = List(Title("Batmen er på vift med en bil", "nb")),
-      introduction = List(Introduction("Batmen", "nb")),
       content = List(
         ArticleContent("Bilde av en <strong>bil</strong> flaggermusmann som vifter med vingene <em>bil</em>.", "nb")
       ),
       tags = List(Tag(List("fugl"), "nb")),
+      introduction = List(Introduction("Batmen", "nb")),
+      metaImage = List(ArticleMetaImage("5555", "Alt text is here friend", "nb")),
       created = today.minusDays(4),
       updated = today.minusDays(3),
-      metaImage = List(ArticleMetaImage("5555", "Alt text is here friend", "nb")),
       grepCodes = Seq("KV123", "KV456"),
     )
 
@@ -88,9 +88,9 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(2),
       title = List(Title("Pingvinen er ute og går", "nb")),
-      introduction = List(Introduction("Pingvinen", "nb")),
       content = List(ArticleContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
       tags = List(Tag(List("fugl"), "nb")),
+      introduction = List(Introduction("Pingvinen", "nb")),
       created = today.minusDays(4),
       updated = today.minusDays(2),
       grepCodes = Seq("KV123", "KV456"),
@@ -101,9 +101,9 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(3),
       title = List(Title("Donald Duck kjører bil", "nb")),
-      introduction = List(Introduction("Donald Duck", "nb")),
       content = List(ArticleContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
       tags = List(Tag(List("and"), "nb")),
+      introduction = List(Introduction("Donald Duck", "nb")),
       created = today.minusDays(4),
       updated = today.minusDays(1),
       grepCodes = Seq("KV456"),
@@ -114,10 +114,10 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(4),
       title = List(Title("Superman er ute og flyr", "nb")),
-      introduction = List(Introduction("Superman", "nb")),
       content =
         List(ArticleContent("<p>Bilde av en flygende mann</p><p> som <strong>har</strong> superkrefter.</p>", "nb")),
       tags = List(Tag(List("supermann"), "nb")),
+      introduction = List(Introduction("Superman", "nb")),
       created = today.minusDays(4),
       updated = today,
     )
@@ -127,9 +127,9 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(5),
       title = List(Title("Hulken løfter biler", "nb")),
-      introduction = List(Introduction("Hulken", "nb")),
       content = List(ArticleContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
       tags = List(Tag(List("hulk"), "nb")),
+      introduction = List(Introduction("Hulken", "nb")),
       created = today.minusDays(40),
       updated = today.minusDays(35),
     )
@@ -139,7 +139,6 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(6),
       title = List(Title("Loke og Tor prøver å fange midgaardsormen", "nb")),
-      introduction = List(Introduction("Loke og Tor", "nb")),
       content = List(
         ArticleContent(
           "<p>Bilde av <em>Loke</em> og <em>Tor</em></p><p> som <strong>fisker</strong> fra Naglfar.</p>",
@@ -147,6 +146,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
         )
       ),
       tags = List(Tag(List("Loke", "Tor", "Naglfar"), "nb")),
+      introduction = List(Introduction("Loke og Tor", "nb")),
       created = today.minusDays(30),
       updated = today.minusDays(25),
     )
@@ -156,9 +156,9 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(7),
       title = List(Title("Yggdrasil livets tre", "nb")),
-      introduction = List(Introduction("Yggdrasil", "nb")),
       content = List(ArticleContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
       tags = List(Tag(List("yggdrasil"), "nb")),
+      introduction = List(Introduction("Yggdrasil", "nb")),
       created = today.minusDays(20),
       updated = today.minusDays(15),
     )
@@ -168,9 +168,9 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(8),
       title = List(Title("Baldur har mareritt", "nb")),
-      introduction = List(Introduction("Baldur", "nb")),
       content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
       tags = List(Tag(List("baldur"), "nb")),
+      introduction = List(Introduction("Baldur", "nb")),
       created = today.minusDays(10),
       updated = today.minusDays(5),
       articleType = ArticleType.TopicArticle,
@@ -181,9 +181,9 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(9),
       title = List(Title("En Baldur har mareritt om Ragnarok", "nb")),
-      introduction = List(Introduction("Baldur", "nb")),
       content = List(ArticleContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
       tags = List(Tag(List("baldur"), "nb")),
+      introduction = List(Introduction("Baldur", "nb")),
       created = today.minusDays(10),
       updated = today.minusDays(5),
       articleType = ArticleType.TopicArticle,
@@ -194,9 +194,9 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(10),
       title = List(Title("This article is in english", "en")),
-      introduction = List(Introduction("Engulsk", "en")),
       content = List(ArticleContent("<p>Something something <em>english</em> What about", "en")),
       tags = List(Tag(List("englando"), "en")),
+      introduction = List(Introduction("Engulsk", "en")),
       created = today.minusDays(10),
       updated = today.minusDays(5),
       articleType = ArticleType.TopicArticle,
@@ -207,15 +207,15 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(11),
       title = List(Title("Katter", "nb"), Title("Cats", "en"), Title("Baloi", "biz")),
+      content =
+        List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
+      tags = List(Tag(List("ikkehund"), "nb"), Tag(List("notdog"), "en")),
       introduction = List(
         Introduction("Katter er store", "nb"),
         Introduction("Cats are big", "en"),
         Introduction("Cats are baloi", "biz"),
       ),
       metaDescription = List(Description("hurr durr ima sheep", "en")),
-      content =
-        List(ArticleContent("<p>Noe om en katt</p>", "nb"), ArticleContent("<p>Something about a cat</p>", "en")),
-      tags = List(Tag(List("ikkehund"), "nb"), Tag(List("notdog"), "en")),
       created = today.minusDays(10),
       updated = today.minusDays(5),
       articleType = ArticleType.TopicArticle,
@@ -226,10 +226,10 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(12),
       title = List(Title("availability - Hemmelig lærer artikkel", "nb")),
-      introduction = List(Introduction("Lærer", "nb")),
-      metaDescription = List(Description("lærer", "nb")),
       content = List(ArticleContent("<p>Lærer</p>", "nb")),
       tags = List(Tag(List("lærer"), "nb")),
+      introduction = List(Introduction("Lærer", "nb")),
+      metaDescription = List(Description("lærer", "nb")),
       created = today.minusDays(10),
       updated = today.minusDays(5),
       articleType = ArticleType.Standard,
@@ -241,10 +241,10 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSu
     .copy(
       id = Option(13),
       title = List(Title("availability - Hemmelig student artikkel", "nb")),
-      introduction = List(Introduction("Student", "nb")),
-      metaDescription = List(Description("student", "nb")),
       content = List(ArticleContent("<p>Student</p>", "nb")),
       tags = List(Tag(List("student"), "nb")),
+      introduction = List(Introduction("Student", "nb")),
+      metaDescription = List(Description("student", "nb")),
       created = today.minusDays(10),
       updated = today.minusDays(5),
       articleType = ArticleType.Standard,
