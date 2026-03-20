@@ -696,6 +696,7 @@ object TestData {
       updated = today.minusDays(3),
       copyright = Some(draftByNcSaCopyright.copy(creators = List(Author(ContributorType.Writer, "Kjekspolitiet")))),
       grepCodes = Seq("K123", "K456"),
+      responsible = Some(Responsible("ndalId54321", today.minusDays(3))),
     )
 
   val draft2: Draft = TestData
@@ -732,6 +733,7 @@ object TestData {
       created = today.minusDays(4),
       updated = today.minusDays(1),
       grepCodes = Seq("K123"),
+      responsible = Some(Responsible("ndalId12345", today.minusDays(3))),
     )
 
   val draft4: Draft = TestData
@@ -767,6 +769,7 @@ object TestData {
         EditorNote("kultgammeltnotat", "ndalId12345", Status(DraftStatus.PLANNED, Set.empty), today.minusDays(31))
       ),
       grepCodes = Seq("K456"),
+      responsible = Some(Responsible("ndalId54321", today.minusDays(3))),
     )
 
   val draft6: Draft = TestData
@@ -800,6 +803,7 @@ object TestData {
       tags = List(Tag(List("yggdrasil"), "nb")),
       created = today.minusDays(20),
       updated = today.minusDays(15),
+      responsible = Some(Responsible("ndalId12345", today.minusDays(3))),
     )
 
   val draft8: Draft = TestData
@@ -830,6 +834,7 @@ object TestData {
       created = today.minusDays(10),
       updated = today.minusDays(5),
       articleType = ArticleType.TopicArticle,
+      responsible = Some(Responsible("ndalId54321", today.minusDays(3))),
     )
 
   val draft10: Draft = TestData
@@ -864,6 +869,7 @@ object TestData {
       created = today.minusDays(10),
       updated = today.minusDays(5),
       articleType = ArticleType.TopicArticle,
+      responsible = Some(Responsible("ndalId12345", today.minusDays(3))),
     )
 
   val draft12: Draft = TestData
@@ -923,6 +929,7 @@ object TestData {
       updated = today.minusDays(5),
       updatedBy = "someotheruser",
       articleType = ArticleType.TopicArticle,
+      responsible = Some(Responsible("ndalId54321", today.minusDays(3))),
     )
 
   val draft14: Draft = TestData
@@ -956,6 +963,7 @@ object TestData {
       created = today.minusDays(10),
       updated = today.minusDays(5),
       articleType = ArticleType.TopicArticle,
+      responsible = Some(Responsible("ndalId12345", today.minusDays(3))),
     )
 
   val draft16: Draft = TestData
@@ -989,6 +997,7 @@ object TestData {
       created = today.minusDays(10),
       updated = today.minusDays(5),
       articleType = ArticleType.TopicArticle,
+      responsible = Some(Responsible("ndalId54321", today.minusDays(3))),
     )
 
   val draftsToIndex: List[Draft] = List(
@@ -1771,7 +1780,7 @@ object TestData {
     pageSize = 20,
     sort = Sort.ByIdAsc,
     withIdIn = List.empty,
-    subjects = List.empty,
+    subjects = None,
     resourceTypes = List.empty,
     learningResourceTypes = List.empty,
     supportedLanguages = List.empty,
@@ -1808,7 +1817,7 @@ object TestData {
     pageSize = 30,
     sort = Sort.ByIdAsc,
     withIdIn = List.empty,
-    subjects = List.empty,
+    subjects = None,
     topics = List.empty,
     resourceTypes = List.empty,
     learningResourceTypes = List.empty,
@@ -1827,7 +1836,7 @@ object TestData {
     revisionDateFilterFrom = None,
     revisionDateFilterTo = None,
     excludeRevisionHistory = false,
-    responsibleIdFilter = List.empty,
+    responsibleIdFilter = None,
     articleTypes = List.empty,
     filterInactive = false,
     priority = List.empty,

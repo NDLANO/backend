@@ -353,8 +353,7 @@ class WriteService(using
       draft.copy(started = true)
     } else {
       val responsibleIdWasUpdated = hasResponsibleBeenUpdated(draft, oldDraft)
-
-      val shouldReset = statusWasUpdated && !isAutomaticStatusChange || responsibleIdWasUpdated
+      val shouldReset             = statusWasUpdated && !isAutomaticStatusChange || responsibleIdWasUpdated
       draft.copy(started = !shouldReset)
     }
   }
@@ -366,7 +365,6 @@ class WriteService(using
         draft.copy(priority = Priority.Unspecified)
       } else draft
     } else draft
-
   }
 
   private def addPartialPublishNote(

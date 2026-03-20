@@ -418,7 +418,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering for subjects works as expected") {
     val Success(search) = multiSearchService.matchingQuery(
-      searchSettings.copy(language = "*", subjects = List("urn:subject:2"))
+      searchSettings.copy(language = "*", subjects = Some(List("urn:subject:2")))
     ): @unchecked
     search.totalCount should be(7)
     search.summaryResults.head.contexts.length should be(2)
@@ -430,7 +430,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering for subjects returns all resources with any of listed subjects") {
     val Success(search) = multiSearchService.matchingQuery(
-      searchSettings.copy(subjects = List("urn:subject:2", "urn:subject:1"))
+      searchSettings.copy(subjects = Some(List("urn:subject:2", "urn:subject:1")))
     ): @unchecked
     search.totalCount should be(14)
     search.summaryResults.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 5, 6, 7, 8, 9, 11, 12))
@@ -438,7 +438,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   test("That filtering for invisible subjects returns nothing") {
     val Success(search) =
-      multiSearchService.matchingQuery(searchSettings.copy(subjects = List("urn:subject:3"))): @unchecked
+      multiSearchService.matchingQuery(searchSettings.copy(subjects = Some(List("urn:subject:3")))): @unchecked
     search.totalCount should be(0)
   }
 
@@ -626,7 +626,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val Success(search1) = multiSearchService.matchingQuery(
       searchSettings.copy(
         language = AllLanguages,
-        subjects = List("urn:subject:2"),
+        subjects = Some(List("urn:subject:2")),
         relevanceIds = List("urn:relevance:core"),
       )
     ): @unchecked

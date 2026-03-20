@@ -226,4 +226,9 @@ class ReadService(using
 
       Success(ArticleRevisionHistoryDTO(articles, canDeleteCurrentRevision))
     }
+
+  def getAllResponsibles: Try[Seq[String]] = dbUtility.readOnly(implicit session => draftRepository.getAllResponsibles)
+
+  def getAllEditors: Try[Seq[String]] = dbUtility.readOnly(implicit session => draftRepository.getAllEditors)
+
 }

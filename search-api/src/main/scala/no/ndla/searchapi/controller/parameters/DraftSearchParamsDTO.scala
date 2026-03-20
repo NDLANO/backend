@@ -26,13 +26,13 @@ case class DraftSearchParamsDTO(
     pageSize: Option[Int],
     @description("A list of article-types the search should be filtered by.")
     articleTypes: Option[List[String]],
-    @description("A list of context-types the learning resources should be filtered by.")
+    @description("A list of context-types the resources should be filtered by.")
     contextTypes: Option[List[String]],
     @description("The ISO 639-1 language code describing language.")
     language: Option[String],
-    @description("Return only learning resources that have one of the provided ids.")
+    @description("Return only resources that have one of the provided ids.")
     ids: Option[List[Long]],
-    @description("Return only learning resources of specific type(s).")
+    @description("Return only resources of specific type(s).")
     resourceTypes: Option[List[String]],
     @description("Return only results with provided license.")
     license: Option[String],
@@ -44,14 +44,15 @@ case class DraftSearchParamsDTO(
     sort: Option[Sort],
     @description("Fallback to existing language if language is specified.")
     fallback: Option[Boolean],
-    @description("A comma separated list of subjects the learning resources should be filtered by.")
+    @description("""A comma separated list of subjects the resources should be filtered by (OR filter).
+        | Sending in an empty list can be used to filter for resources not in subjects.""".stripMargin)
     subjects: Option[List[String]],
-    @description("A list of ISO 639-1 language codes that the learning resource can be available in.")
+    @description("A list of ISO 639-1 language codes that the resource can be available in.")
     languageFilter: Option[List[String]],
     @description(
-      """A list of relevances the learning resources should be filtered by.
-          |If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
-          |If levels are specified the learning resource must have specified relevances in relation to a specified level."""
+      """A list of relevances the resources should be filtered by.
+          | If subjects are specified the resource must have specified relevances in relation to a specified subject.
+          | If levels are specified the resource must have specified relevances in relation to a specified level."""
         .stripMargin
     )
     relevance: Option[List[String]],
@@ -63,7 +64,7 @@ case class DraftSearchParamsDTO(
     )
     scrollId: Option[String],
     @description(
-      "List of statuses to filter by. A draft only needs to have one of the available statuses to be included in result (OR)."
+      "List of statuses to filter by. A draft only needs to have one of the available statuses to be included in result (OR filter)."
     )
     draftStatus: Option[List[String]],
     @description(s"""List of users to filter by.
@@ -76,9 +77,8 @@ case class DraftSearchParamsDTO(
     traits: Option[List[ArticleTrait]],
     @description("List of index-paths that should be term-aggregated and returned in result.")
     aggregatePaths: Option[List[String]],
-    @description(
-      "Return only results with embed data-resource the specified resource. Can specify multiple with a comma separated list to filter for one of the embed types."
-    )
+    @description("""Return only results with embed data-resource the specified resource.
+        | Can specify multiple with a comma separated list to filter for one of the embed types.""".stripMargin)
     embedResource: Option[List[String]],
     @description("Return only results with embed data-resource_id, data-videoid or data-url with the specified id.")
     embedId: Option[String],
@@ -90,13 +90,14 @@ case class DraftSearchParamsDTO(
     revisionDateTo: Option[NDLADate],
     @description("Set to true to avoid including hits from the revision history log.")
     excludeRevisionLog: Option[Boolean],
-    @description("List of responsible ids to filter by (OR filter).")
+    @description("""List of responsible ids to filter by (OR filter).
+        | Sending in an empty list can be used to filter for resources without responsible.""".stripMargin)
     responsibleIds: Option[List[String]],
     @description("Filter out inactive taxonomy contexts.")
     filterInactive: Option[Boolean],
     @description("List of priority-levels to filter by.")
     priority: Option[List[Priority]],
-    @description("A list of parent topics the learning resources should be filtered by.")
+    @description("A list of parent topics the resources should be filtered by.")
     topics: Option[List[String]],
     @description("Return only results having published date after this date.")
     publishedDateFrom: Option[NDLADate],
