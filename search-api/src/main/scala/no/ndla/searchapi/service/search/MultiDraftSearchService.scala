@@ -186,22 +186,23 @@ class MultiDraftSearchService(using
 
       val draftFieldQueries = draftSearchFields
         .distinct
-        .map {
-          case DraftSearchField.Title           => langQueryFunc("title", 20)
-          case DraftSearchField.Introduction    => langQueryFunc("introduction", 2)
-          case DraftSearchField.MetaDescription => langQueryFunc("metaDescription", 1)
-          case DraftSearchField.Disclaimer      => langQueryFunc("disclaimer", 1)
-          case DraftSearchField.Content         => langQueryFunc("content", 1)
-          case DraftSearchField.Tags            => langQueryFunc("tags", 1)
-          case DraftSearchField.EmbedAttributes => langQueryFunc("embedAttributes", 1)
-          case DraftSearchField.Creators        => contributorQuery("creators")
-          case DraftSearchField.Processors      => contributorQuery("processors")
-          case DraftSearchField.Rightsholders   => contributorQuery("rightsholders")
-          case DraftSearchField.RevisionMeta    => nestedQuery("revisionMeta", revisionMetaNoteQuery).ignoreUnmapped(true)
-          case DraftSearchField.Notes           => simpleStringQuery(queryString.underlying).field("notes", 1)
-          case DraftSearchField.PreviousNotes   =>
-            if (settings.excludeRevisionHistory) simpleStringQuery(queryString.underlying).field("", 0)
-            else simpleStringQuery(queryString.underlying).field("previousVersionsNotes", 1)
+        .flatMap {
+          case DraftSearchField.Title           => Some(langQueryFunc("title", 20))
+          case DraftSearchField.Introduction    => Some(langQueryFunc("introduction", 2))
+          case DraftSearchField.MetaDescription => Some(langQueryFunc("metaDescription", 1))
+          case DraftSearchField.Disclaimer      => Some(langQueryFunc("disclaimer", 1))
+          case DraftSearchField.Content         => Some(langQueryFunc("content", 1))
+          case DraftSearchField.Tags            => Some(langQueryFunc("tags", 1))
+          case DraftSearchField.EmbedAttributes => Some(langQueryFunc("embedAttributes", 1))
+          case DraftSearchField.Creators        => Some(contributorQuery("creators"))
+          case DraftSearchField.Processors      => Some(contributorQuery("processors"))
+          case DraftSearchField.Rightsholders   => Some(contributorQuery("rightsholders"))
+          case DraftSearchField.RevisionMeta    =>
+            Some(nestedQuery("revisionMeta", revisionMetaNoteQuery).ignoreUnmapped(true))
+          case DraftSearchField.Notes         => Some(simpleStringQuery(queryString.underlying).field("notes", 1))
+          case DraftSearchField.PreviousNotes => Option.when(!settings.excludeRevisionHistory)(
+              simpleStringQuery(queryString.underlying).field("previousVersionsNotes", 1)
+            )
         }
 
       boolQuery().should(alwaysIncludedQueries ++ draftFieldQueries)
