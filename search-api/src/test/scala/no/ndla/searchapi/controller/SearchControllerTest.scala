@@ -12,8 +12,9 @@ import no.ndla.common.Clock
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.Availability
 import no.ndla.common.model.domain.myndla.{MyNDLAUser, UserRole}
-import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
+import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, NonEmptyString, Routes, TapirController}
 import no.ndla.searchapi.model.domain
+import no.ndla.searchapi.model.domain.DraftSearchField
 import no.ndla.searchapi.model.domain.Sort
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.service.ConverterService
@@ -178,7 +179,6 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
     verify(multiDraftSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
     verify(multiSearchService, times(0)).scroll(any[String], any[String])
     verify(multiSearchService, times(0)).matchingQuery(any[SearchSettings])
-
   }
 
   test("That scrolling doesn't happen on 'initial' scrollId") {
@@ -292,4 +292,33 @@ class SearchControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   }
 
+  test("That query-fields are mapped from editorial GET requests") {
+    reset(multiDraftSearchService)
+    val multiResult = domain.SearchResult(0, None, 10, "nb", Seq.empty, Seq.empty, Seq.empty, None)
+    when(multiDraftSearchService.matchingQuery(any)).thenReturn(Success(multiResult))
+
+    val response = simpleHttpClient.send(
+      quickRequest
+        .get(
+          uri"http://localhost:$serverPort/search-api/v1/search/editorial/?query=gris&query-fields=title,content,disclaimer"
+        )
+        .headers(authHeadersWithWriteRole)
+    )
+
+    response.code.code should be(200)
+
+    val expectedSettings = TestData
+      .multiDraftSearchSettings
+      .copy(
+        language = "*",
+        query = NonEmptyString("gris"),
+        queryFields = List(DraftSearchField.Title, DraftSearchField.Content, DraftSearchField.Disclaimer),
+        pageSize = 10,
+        sort = Sort.ByRelevanceDesc,
+        resultTypes = Some(List()),
+      )
+
+    verify(multiDraftSearchService, times(1)).matchingQuery(eqTo(expectedSettings))
+
+  }
 }

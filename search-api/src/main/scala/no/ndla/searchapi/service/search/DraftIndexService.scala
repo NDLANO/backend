@@ -76,7 +76,9 @@ class DraftIndexService(using
       keywordField("license"),
       keywordField("defaultTitle"),
       textField("typeName"),
-      textField("authors"),
+      textField("creators"),
+      textField("processors"),
+      textField("rightsholders"),
       keywordField("articleType"),
       keywordField("supportedLanguages"),
       textField("notes"),
@@ -117,6 +119,7 @@ class DraftIndexService(using
       languageValuesMapping("metaDescription") ++
       languageValuesMapping("content") ++
       languageValuesMapping("introduction") ++
+      languageValuesMapping("disclaimer") ++
       languageValuesMapping("tags") ++
       languageValuesMapping("embedAttributes") ++
       languageValuesMapping("relevance") ++
