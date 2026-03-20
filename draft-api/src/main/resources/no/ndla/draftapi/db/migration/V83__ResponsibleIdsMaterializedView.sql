@@ -16,6 +16,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE TRIGGER refresh_responsible_view_trigger
-    AFTER UPDATE ON articledata
+    AFTER UPDATE OR INSERT OR DELETE ON articledata
     FOR EACH STATEMENT
     EXECUTE FUNCTION refresh_responsible_view();

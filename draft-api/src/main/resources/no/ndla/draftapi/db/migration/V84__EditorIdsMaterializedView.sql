@@ -21,7 +21,7 @@ RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE  TRIGGER refresh_editor_view_trigger
-    AFTER UPDATE ON articledata
+CREATE OR REPLACE TRIGGER refresh_editor_view_trigger
+    AFTER UPDATE OR INSERT OR DELETE ON articledata
     FOR EACH STATEMENT
     EXECUTE FUNCTION refresh_editor_view();
