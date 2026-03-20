@@ -12,12 +12,10 @@ import no.ndla.common.aws.NdlaS3Object
 import no.ndla.imageapi.model.domain.{ImageContentType, ImageMetaInformation}
 import no.ndla.imageapi.service.ImageStorageService
 import no.ndla.imageapi.{TestEnvironment, UnitSuite}
-import org.mockito.ArgumentMatchers.{any, anyMap, anyString}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.{reset, times, verify, when}
-import software.amazon.awssdk.services.s3.model.{HeadObjectResponse, NoSuchKeyException}
+import software.amazon.awssdk.services.s3.model.{CopyObjectResponse, NoSuchKeyException}
 
-import scala.jdk.CollectionConverters.MutableMapHasAsJava
-import scala.collection.mutable
 import scala.util.{Failure, Success}
 
 class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
@@ -57,19 +55,14 @@ class ImageStorageServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That AmazonImageStorage.get fixes content-type when it is binary/octet-stream") {
-    val s3Object     = NdlaS3Object("bucket", "existing", TestData.ndlaLogoImageStream.stream, "binary/octet-stream", 100)
-    val headResponse = mock[HeadObjectResponse]
-
+    val s3Object = NdlaS3Object("bucket", "existing", TestData.ndlaLogoImageStream.stream, "binary/octet-stream", 100)
     when(s3Client.getObject(any)).thenReturn(Success(s3Object))
-    when(s3Client.headObject(anyString())).thenReturn(Success(headResponse))
-    when(headResponse.metadata()).thenReturn(mutable.Map("content-type" -> "image/jpeg").asJava)
-    when(s3Client.updateMetadata(anyString(), anyMap())).thenReturn(Success(()))
     when(readService.getImageFileFromFilePath(any)).thenReturn(Success(ImageWithNoThumb.images.head))
+    when(s3Client.updateContentType(any, any)).thenReturn(Success(mock[CopyObjectResponse]))
+
     imageStorage.get("existing")
 
-    verify(s3Client, times(1)).getObject(anyString())
-    verify(s3Client, times(1)).headObject(anyString())
-    verify(s3Client, times(1)).updateMetadata(anyString(), anyMap())
+    verify(s3Client, times(1)).getObject(eqTo(s3Object.key))
+    verify(s3Client, times(1)).updateContentType(eqTo(s3Object.key), eqTo("image/jpeg"))
   }
-
 }

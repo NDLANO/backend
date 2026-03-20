@@ -116,15 +116,19 @@ class NdlaS3Client(bucket: String, region: Option[String]) {
     Try.throwIfInterrupted(client.putObject(porWithCacheControl.build(), requestBody))
   }
 
-  def updateMetadata(key: String, metadata: java.util.Map[String, String]): Try[?] = Try.throwIfInterrupted {
+  def updateContentType(key: String, contentType: String): Try[CopyObjectResponse] = Try.throwIfInterrupted {
+    val hor  = HeadObjectRequest.builder().bucket(bucket).key(key)
+    val head = client.headObject(hor.build())
+
     val cor = CopyObjectRequest
       .builder()
       .sourceBucket(bucket)
       .destinationBucket(bucket)
       .sourceKey(key)
       .destinationKey(key)
-      .metadata(metadata)
-
+      .contentType(contentType)
+      .cacheControl(head.cacheControl())
+      .metadataDirective(MetadataDirective.REPLACE)
     client.copyObject(cor.build())
   }
 
