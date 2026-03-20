@@ -211,13 +211,13 @@ export type components = {
             pageSize?: number;
             /** @description A list of article-types the search should be filtered by. */
             articleTypes?: string[];
-            /** @description A list of context-types the learning resources should be filtered by. */
+            /** @description A list of context-types the resources should be filtered by. */
             contextTypes?: string[];
             /** @description The ISO 639-1 language code describing language. */
             language?: string;
-            /** @description Return only learning resources that have one of the provided ids. */
+            /** @description Return only resources that have one of the provided ids. */
             ids?: number[];
-            /** @description Return only learning resources of specific type(s). */
+            /** @description Return only resources of specific type(s). */
             resourceTypes?: string[];
             /** @description Return only results with provided license. */
             license?: string;
@@ -228,14 +228,17 @@ export type components = {
             sort?: components["schemas"]["Sort"];
             /** @description Fallback to existing language if language is specified. */
             fallback?: boolean;
-            /** @description A comma separated list of subjects the learning resources should be filtered by. */
+            /**
+             * @description A comma separated list of subjects the resources should be filtered by (OR filter).
+             *      Sending in an empty list can be used to filter for resources not in subjects.
+             */
             subjects?: string[];
-            /** @description A list of ISO 639-1 language codes that the learning resource can be available in. */
+            /** @description A list of ISO 639-1 language codes that the resource can be available in. */
             languageFilter?: string[];
             /**
-             * @description A list of relevances the learning resources should be filtered by.
-             *     If subjects are specified the learning resource must have specified relevances in relation to a specified subject.
-             *     If levels are specified the learning resource must have specified relevances in relation to a specified level.
+             * @description A list of relevances the resources should be filtered by.
+             *      If subjects are specified the resource must have specified relevances in relation to a specified subject.
+             *      If levels are specified the resource must have specified relevances in relation to a specified level.
              */
             relevance?: string[];
             /**
@@ -244,7 +247,7 @@ export type components = {
              *     This value may change between scrolls. Always use the one in the latest scroll result.
              */
             scrollId?: string;
-            /** @description List of statuses to filter by. A draft only needs to have one of the available statuses to be included in result (OR). */
+            /** @description List of statuses to filter by. A draft only needs to have one of the available statuses to be included in result (OR filter). */
             draftStatus?: string[];
             /**
              * @description List of users to filter by.
@@ -258,7 +261,10 @@ export type components = {
             traits?: components["schemas"]["ArticleTrait"][];
             /** @description List of index-paths that should be term-aggregated and returned in result. */
             aggregatePaths?: string[];
-            /** @description Return only results with embed data-resource the specified resource. Can specify multiple with a comma separated list to filter for one of the embed types. */
+            /**
+             * @description Return only results with embed data-resource the specified resource.
+             *      Can specify multiple with a comma separated list to filter for one of the embed types.
+             */
             embedResource?: string[];
             /** @description Return only results with embed data-resource_id, data-videoid or data-url with the specified id. */
             embedId?: string;
@@ -270,13 +276,16 @@ export type components = {
             revisionDateTo?: string;
             /** @description Set to true to avoid including hits from the revision history log. */
             excludeRevisionLog?: boolean;
-            /** @description List of responsible ids to filter by (OR filter). */
+            /**
+             * @description List of responsible ids to filter by (OR filter).
+             *      Sending in an empty list can be used to filter for resources without responsible.
+             */
             responsibleIds?: string[];
             /** @description Filter out inactive taxonomy contexts. */
             filterInactive?: boolean;
             /** @description List of priority-levels to filter by. */
             priority?: components["schemas"]["Priority"][];
-            /** @description A list of parent topics the learning resources should be filtered by. */
+            /** @description A list of parent topics the resources should be filtered by. */
             topics?: string[];
             /** @description Return only results having published date after this date. */
             publishedDateFrom?: string;
