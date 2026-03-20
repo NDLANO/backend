@@ -190,9 +190,9 @@ case class UpdatedResourceDTO(
 )
 
 case class MoveResourceDTO(
-    @description("Folder to move from")
+    @description("Folder to move from. Empty value indicates root-resource.")
     fromFolderId: Option[UUID],
-    @description("Folder to move to")
+    @description("Folder to move to. Empty value moves resource to root.")
     toFolderId: Option[UUID],
     @description("The resource to move")
     resourceId: UUID,
