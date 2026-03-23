@@ -46,10 +46,10 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
 
   val S3NewFileCacheControlHeader: String = propOrElse("IMAGE_FILE_S3_BUCKET_CACHE_CONTROL", "max-age=2592000")
 
-  val SearchIndex: String    = propOrElse("SEARCH_INDEX_NAME", "images")
-  val SearchDocument         = "image"
-  val TagSearchIndex: String = propOrElse("TAG_SEARCH_INDEX_NAME", "tags")
-  val TagSearchDocument      = "tag"
+  lazy val SearchIndex: String    = propOrElse("SEARCH_INDEX_NAME", "images")
+  val SearchDocument              = "image"
+  lazy val TagSearchIndex: String = propOrElse("TAG_SEARCH_INDEX_NAME", "tags")
+  val TagSearchDocument           = "tag"
 
   val DefaultPageSize: Int                       = 10
   val MaxPageSize: Int                           = 10000

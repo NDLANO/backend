@@ -23,8 +23,6 @@ import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.validation.HtmlTagRules
 import no.ndla.{articleapi, draftapi}
-import org.testcontainers.postgresql.PostgreSQLContainer
-
 import java.util.UUID
 import java.util.concurrent.Executors
 import scala.annotation.unused
@@ -45,16 +43,16 @@ class ArticleApiClientTest
   val WeNeedThisToMakeTheTestsWorkNoIdeaWhyReadTheComment: Set[String] = HtmlTagRules.PermittedHTML.tags
 
   val articleApiPort: Int                        = findFreePort
-  val pgc: PostgreSQLContainer                   = postgresContainer.get
+  val pgc: PgConnectionInfo                      = pgConnectionInfo.get
   val esHost: String                             = elasticSearchHost.get
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
     override def ApplicationPort: Int              = articleApiPort
-    override val MetaServer: Prop[String]          = propFromTestValue("META_SERVER", pgc.getHost)
-    override val MetaResource: Prop[String]        = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
-    override val MetaUserName: Prop[String]        = propFromTestValue("META_USER_NAME", pgc.getUsername)
-    override val MetaPassword: Prop[String]        = propFromTestValue("META_PASSWORD", pgc.getPassword)
-    override val MetaPort: Prop[Int]               = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
-    override val MetaSchema: Prop[String]          = propFromTestValue("META_SCHEMA", "testschema")
+    override val MetaServer: Prop[String]          = propFromTestValue("META_SERVER", pgc.host)
+    override val MetaResource: Prop[String]        = propFromTestValue("META_RESOURCE", pgc.databaseName)
+    override val MetaUserName: Prop[String]        = propFromTestValue("META_USER_NAME", pgc.username)
+    override val MetaPassword: Prop[String]        = propFromTestValue("META_PASSWORD", pgc.password)
+    override val MetaPort: Prop[Int]               = propFromTestValue("META_PORT", pgc.port)
+    override val MetaSchema: Prop[String]          = propFromTestValue("META_SCHEMA", schemaName)
     override val BrightcoveAccountId: Prop[String] = propFromTestValue("BRIGHTCOVE_ACCOUNT_ID", "BRIGHTCOVE_ACCOUNT_ID")
     override val BrightcovePlayerId: Prop[String]  = propFromTestValue("BRIGHTCOVE_PLAYER_ID", "BRIGHTCOVE_PLAYER_ID")
     override def SearchServer: String              = esHost

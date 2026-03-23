@@ -22,7 +22,6 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{when, withSettings}
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.quality.Strictness
-import org.testcontainers.postgresql.PostgreSQLContainer
 import sttp.client3.{Identity, RequestT, Response}
 import sttp.client3.quick.*
 
@@ -38,15 +37,15 @@ class LearningPathAndStepCreationTests
     with TestEnvironment {
 
   val learningpathApiPort: Int                             = findFreePort
-  val pgc: PostgreSQLContainer                             = postgresContainer.get
+  val pgc: PgConnectionInfo                                = pgConnectionInfo.get
   val learningpathApiProperties: LearningpathApiProperties = new LearningpathApiProperties {
     override def ApplicationPort: Int       = learningpathApiPort
-    override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.getHost)
-    override val MetaResource: Prop[String] = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
-    override val MetaUserName: Prop[String] = propFromTestValue("META_USER_NAME", pgc.getUsername)
-    override val MetaPassword: Prop[String] = propFromTestValue("META_PASSWORD", pgc.getPassword)
-    override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
-    override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", "testschema")
+    override val MetaServer: Prop[String]   = propFromTestValue("META_SERVER", pgc.host)
+    override val MetaResource: Prop[String] = propFromTestValue("META_RESOURCE", pgc.databaseName)
+    override val MetaUserName: Prop[String] = propFromTestValue("META_USER_NAME", pgc.username)
+    override val MetaPassword: Prop[String] = propFromTestValue("META_PASSWORD", pgc.password)
+    override val MetaPort: Prop[Int]        = propFromTestValue("META_PORT", pgc.port)
+    override val MetaSchema: Prop[String]   = propFromTestValue("META_SCHEMA", schemaName)
     override def disableWarmup: Boolean     = true
     override def SearchServer: String       = elasticSearchHost.get
   }

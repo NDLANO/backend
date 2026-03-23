@@ -27,7 +27,7 @@ trait UnitSuite extends UnitTestSuite {
   setPropEnv("BRIGHTCOVE_PLAYER_ID", "some-player-id")
   setPropEnv("BRIGHTCOVE_API_CLIENT_ID", "some-client-id")
   setPropEnv("BRIGHTCOVE_API_CLIENT_SECRET", "some-secret")
-  setPropEnv("SEARCH_INDEX_NAME", "article-integration-test-index")
+  setPropEnv("SEARCH_INDEX_NAME", s"article-integration-test-index-${ProcessHandle.current().pid()}")
 
   def toArticleRow(article: Article): ArticleRow = {
     ArticleRow(

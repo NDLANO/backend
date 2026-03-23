@@ -52,7 +52,7 @@ class TagSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite 
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
+    if (elasticSearchHost.isSuccess) {
       tagIndexService.createIndexAndAlias().get
       imagesToIndex.foreach(a => tagIndexService.indexDocument(a).get)
 

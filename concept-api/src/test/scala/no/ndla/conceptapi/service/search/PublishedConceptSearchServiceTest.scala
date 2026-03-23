@@ -226,7 +226,7 @@ class PublishedConceptSearchServiceTest extends ElasticsearchIntegrationSuite wi
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
+    if (elasticSearchHost.isSuccess) {
       publishedConceptIndexService.createIndexWithName(props.DraftConceptSearchIndex)
 
       publishedConceptIndexService.indexDocument(concept1)

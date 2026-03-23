@@ -26,12 +26,12 @@ import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.service.ConverterService
-import no.ndla.searchapi.{TestData, TestEnvironment}
+import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 import java.util.UUID
 import scala.util.{Success, Try}
 
-class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   override implicit lazy val e4sClient: NdlaE4sClient =
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
@@ -55,7 +55,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   }
 
   override def beforeEach(): Unit = {
-    if (elasticSearchContainer.isSuccess) {
+    if (elasticSearchHost.isSuccess) {
       draftConceptIndexService.createIndexAndAlias().get
       articleIndexService.createIndexAndAlias().get
       draftIndexService.createIndexAndAlias().get
@@ -64,7 +64,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   }
 
   override def afterEach(): Unit = {
-    if (elasticSearchContainer.isSuccess) {
+    if (elasticSearchHost.isSuccess) {
       articleIndexService.deleteIndexAndAlias()
       draftIndexService.deleteIndexAndAlias()
       learningPathIndexService.deleteIndexAndAlias()

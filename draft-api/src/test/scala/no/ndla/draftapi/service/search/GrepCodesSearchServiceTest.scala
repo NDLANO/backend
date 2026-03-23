@@ -42,7 +42,7 @@ class GrepCodesSearchServiceTest extends ElasticsearchIntegrationSuite with Test
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
+    if (elasticSearchHost.isSuccess) {
       tagIndexService.createIndexWithName(props.DraftGrepCodesSearchIndex)
 
       articlesToIndex.foreach(a => grepCodesIndexService.indexDocument(a))

@@ -22,7 +22,6 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{when, withSettings}
 import org.mockito.quality.Strictness
 import org.scalatestplus.mockito.MockitoSugar
-import org.testcontainers.postgresql.PostgreSQLContainer
 import sttp.client3.quick.*
 
 import java.util.concurrent.Executors
@@ -43,16 +42,16 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
   val myndlaSchema: String  = "myndla_testschema"
 
   override lazy val schemaName: String = articleSchema
-  val pgc: PostgreSQLContainer         = postgresContainer.get
+  val pgc: PgConnectionInfo            = pgConnectionInfo.get
 
   val myndlaApiProperties: MyNdlaApiProperties = new MyNdlaApiProperties {
     override def ApplicationPort: Int = myndlaApiPort
 
-    override val MetaServer: Prop[String]           = propFromTestValue("META_SERVER", pgc.getHost)
-    override val MetaResource: Prop[String]         = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
-    override val MetaUserName: Prop[String]         = propFromTestValue("META_USER_NAME", pgc.getUsername)
-    override val MetaPassword: Prop[String]         = propFromTestValue("META_PASSWORD", pgc.getPassword)
-    override val MetaPort: Prop[Int]                = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
+    override val MetaServer: Prop[String]           = propFromTestValue("META_SERVER", pgc.host)
+    override val MetaResource: Prop[String]         = propFromTestValue("META_RESOURCE", pgc.databaseName)
+    override val MetaUserName: Prop[String]         = propFromTestValue("META_USER_NAME", pgc.username)
+    override val MetaPassword: Prop[String]         = propFromTestValue("META_PASSWORD", pgc.password)
+    override val MetaPort: Prop[Int]                = propFromTestValue("META_PORT", pgc.port)
     override val MetaSchema: Prop[String]           = propFromTestValue("META_SCHEMA", myndlaSchema)
     override def MetaMigrationTable: Option[String] = Some("myndla_schema_version")
     override def disableWarmup: Boolean             = true
@@ -60,11 +59,11 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
 
   val articleApiProperties: ArticleApiProperties = new ArticleApiProperties {
     override def ApplicationPort: Int              = articleApiPort
-    override val MetaServer: Prop[String]          = propFromTestValue("META_SERVER", pgc.getHost)
-    override val MetaResource: Prop[String]        = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
-    override val MetaUserName: Prop[String]        = propFromTestValue("META_USER_NAME", pgc.getUsername)
-    override val MetaPassword: Prop[String]        = propFromTestValue("META_PASSWORD", pgc.getPassword)
-    override val MetaPort: Prop[Int]               = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
+    override val MetaServer: Prop[String]          = propFromTestValue("META_SERVER", pgc.host)
+    override val MetaResource: Prop[String]        = propFromTestValue("META_RESOURCE", pgc.databaseName)
+    override val MetaUserName: Prop[String]        = propFromTestValue("META_USER_NAME", pgc.username)
+    override val MetaPassword: Prop[String]        = propFromTestValue("META_PASSWORD", pgc.password)
+    override val MetaPort: Prop[Int]               = propFromTestValue("META_PORT", pgc.port)
     override val MetaSchema: Prop[String]          = propFromTestValue("META_SCHEMA", articleSchema)
     override val BrightcoveAccountId: Prop[String] = propFromTestValue("BRIGHTCOVE_ACCOUNT_ID", "123")
     override val BrightcovePlayerId: Prop[String]  = propFromTestValue("BRIGHTCOVE_PLAYER_ID", "123")

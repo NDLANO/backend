@@ -266,7 +266,7 @@ class DraftConceptSearchServiceTest extends ElasticsearchIntegrationSuite with T
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
+    if (elasticSearchHost.isSuccess) {
       draftConceptIndexService.createIndexAndAlias().get
 
       draftConceptIndexService.indexDocument(concept1).get

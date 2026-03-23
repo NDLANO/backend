@@ -43,7 +43,7 @@ class TagSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnviro
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
+    if (elasticSearchHost.isSuccess) {
       tagIndexService.createIndexAndAlias().get
 
       articlesToIndex.foreach(a => tagIndexService.indexDocument(a).get)

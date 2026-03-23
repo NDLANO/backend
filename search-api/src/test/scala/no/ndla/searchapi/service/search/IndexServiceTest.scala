@@ -11,11 +11,11 @@ package no.ndla.searchapi.service.search
 import com.sksamuel.elastic4s.ElasticDsl.*
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
-import no.ndla.searchapi.TestEnvironment
+import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 
 import scala.util.Success
 
-class IndexServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+class IndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   override implicit lazy val e4sClient: NdlaE4sClient =
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage

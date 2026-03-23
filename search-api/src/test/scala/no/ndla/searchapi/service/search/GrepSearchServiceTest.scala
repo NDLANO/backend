@@ -13,14 +13,14 @@ import no.ndla.common.util.TraitUtil
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
-import no.ndla.searchapi.TestEnvironment
+import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 import no.ndla.searchapi.controller.parameters.GrepSearchInputDTO
 import no.ndla.searchapi.model.api.grep.GrepSortDTO.{ByCodeAsc, ByCodeDesc}
 import no.ndla.searchapi.model.api.grep.GrepStatusDTO
 import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.service.ConverterService
 
-class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   override implicit lazy val e4sClient: NdlaE4sClient =
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
 
@@ -34,13 +34,13 @@ class GrepSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvir
   }
 
   override def beforeEach(): Unit = {
-    if (elasticSearchContainer.isSuccess) {
+    if (elasticSearchHost.isSuccess) {
       grepIndexService.createIndexAndAlias().get
     }
   }
 
   override def afterEach(): Unit = {
-    if (elasticSearchContainer.isSuccess) {
+    if (elasticSearchHost.isSuccess) {
       grepIndexService.deleteIndexAndAlias()
     }
   }

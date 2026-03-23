@@ -10,15 +10,10 @@ package no.ndla.common.caching
 
 import com.typesafe.scalalogging.StrictLogging
 
-import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 import scala.util.{Failure, Try, Success}
 
-class Memoize[R](
-    maxCacheAgeMs: Long,
-    f: () => Try[R],
-    autoRefreshCache: Boolean = false,
-    retryOnErrorMs: Option[Long] = None,
-) extends (() => Try[R])
+class Memoize[R](maxCacheAgeMs: Long, f: () => Try[R], retryOnErrorMs: Option[Long] = None)
+    extends (() => Try[R])
     with StrictLogging {
 
   case class CacheValue(value: R, lastUpdated: Long) {
@@ -34,7 +29,7 @@ class Memoize[R](
     Success(value)
   }
 
-  def setCacheTime(cacheTime: Long): Unit = {
+  private def setCacheTime(cacheTime: Long): Unit = {
     cache match {
       case Some(cacheValue) => cache = Some(cacheValue.copy(lastUpdated = cacheTime))
       case None             => logger.warn(s"Attempted to set cache time to $cacheTime, but no cached value exists.")
@@ -71,17 +66,8 @@ class Memoize[R](
     }
   }
 
-  if (autoRefreshCache) {
-    val threadPool = new ScheduledThreadPoolExecutor(1)
-    val task       = new Runnable {
-      def run(): Unit = renewCache(): Unit
-    }
-    threadPool.scheduleAtFixedRate(task, 20, maxCacheAgeMs, TimeUnit.MILLISECONDS): Unit
-  }
-
   def apply(): Try[R] = {
     cache match {
-      case Some(cachedValue) if autoRefreshCache       => Success(cachedValue.value)
       case Some(cachedValue) if !cachedValue.isExpired => Success(cachedValue.value)
       case _                                           => renewCache()
     }

@@ -232,7 +232,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     when(converterService.toApiCoverPhoto(any)).thenCallRealMethod()
     when(converterService.toApiPodcastMeta(any)).thenCallRealMethod()
 
-    if (elasticSearchContainer.isSuccess) {
+    if (elasticSearchHost.isSuccess) {
       audioIndexService.createIndexAndAlias().get
       audioIndexService.indexDocument(audio1).get
       audioIndexService.indexDocument(audio2).get

@@ -239,7 +239,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
+    if (elasticSearchHost.isSuccess) {
       articleIndexService.createIndexAndAlias().get
 
       articleIndexService.indexDocument(article1).get

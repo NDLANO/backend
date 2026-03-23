@@ -11,5 +11,6 @@ package no.ndla.scalatestsuite
 import scala.sys.env
 
 trait ContainerSuite {
-  val skipContainerSpawn: Boolean = env.getOrElse("NDLA_SKIP_CONTAINER_SPAWN", "false") == "true"
+  val skipContainerSpawn: Boolean      = env.getOrElse("NDLA_SKIP_CONTAINER_SPAWN", "false") == "true"
+  val disableSharedContainers: Boolean = env.getOrElse("NDLA_DISABLE_SHARED_CONTAINERS", "false") == "true"
 }

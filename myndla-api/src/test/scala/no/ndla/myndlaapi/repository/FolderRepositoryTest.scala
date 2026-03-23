@@ -32,6 +32,7 @@ import java.util.UUID
 import scala.util.{Success, Try}
 
 class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
+  override lazy val schemaName: String                      = s"folderrepotest_${ProcessHandle.current().pid()}"
   override implicit lazy val dataSource: DataSource         = testDataSource.get
   override implicit lazy val migrator: DBMigrator           = new DBMigrator
   var repository: FolderRepository                          = scala.compiletime.uninitialized

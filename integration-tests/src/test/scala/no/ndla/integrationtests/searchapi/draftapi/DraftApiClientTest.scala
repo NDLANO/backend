@@ -23,8 +23,6 @@ import no.ndla.searchapi.service.search.SearchConverterService
 import no.ndla.{draftapi, searchapi}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.testcontainers.postgresql.PostgreSQLContainer
-
 import java.util.concurrent.Executors
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.Success
@@ -41,16 +39,16 @@ class DraftApiClientTest
   override implicit lazy val DBUtil: DBUtility                              = new DBUtility
 
   val draftApiPort: Int                      = findFreePort
-  val pgc: PostgreSQLContainer               = postgresContainer.get
+  val pgc: PgConnectionInfo                  = pgConnectionInfo.get
   val esHost: String                         = elasticSearchHost.get
   val draftApiProperties: DraftApiProperties = new DraftApiProperties {
     override def ApplicationPort: Int                  = draftApiPort
-    override val MetaServer: Prop[String]              = propFromTestValue("META_SERVER", pgc.getHost)
-    override val MetaResource: Prop[String]            = propFromTestValue("META_RESOURCE", pgc.getDatabaseName)
-    override val MetaUserName: Prop[String]            = propFromTestValue("META_USER_NAME", pgc.getUsername)
-    override val MetaPassword: Prop[String]            = propFromTestValue("META_PASSWORD", pgc.getPassword)
-    override val MetaPort: Prop[Int]                   = propFromTestValue("META_PORT", pgc.getMappedPort(5432))
-    override val MetaSchema: Prop[String]              = propFromTestValue("META_SCHEMA", "testschema")
+    override val MetaServer: Prop[String]              = propFromTestValue("META_SERVER", pgc.host)
+    override val MetaResource: Prop[String]            = propFromTestValue("META_RESOURCE", pgc.databaseName)
+    override val MetaUserName: Prop[String]            = propFromTestValue("META_USER_NAME", pgc.username)
+    override val MetaPassword: Prop[String]            = propFromTestValue("META_PASSWORD", pgc.password)
+    override val MetaPort: Prop[Int]                   = propFromTestValue("META_PORT", pgc.port)
+    override val MetaSchema: Prop[String]              = propFromTestValue("META_SCHEMA", schemaName)
     override val auth0ManagementClientId: Prop[String] =
       propFromTestValue("AUTH0_MANAGEMENT_CLIENT_ID", "auth0_test_id")
     override val auth0ManagementClientSecret: Prop[String] =

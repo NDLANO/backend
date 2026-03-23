@@ -24,11 +24,11 @@ import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.model.search.SearchPagination
 import no.ndla.searchapi.service.ConverterService
-import no.ndla.searchapi.{TestData, TestEnvironment}
+import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
 
 import scala.util.Success
 
-class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   override implicit lazy val e4sClient: NdlaE4sClient =
     Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse(""))
   override implicit lazy val searchLanguage: SearchLanguage                 = new SearchLanguage
@@ -57,7 +57,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
+    if (elasticSearchHost.isSuccess) {
       draftIndexService.createIndexAndAlias()
       learningPathIndexService.createIndexAndAlias()
       draftConceptIndexService.createIndexAndAlias()
