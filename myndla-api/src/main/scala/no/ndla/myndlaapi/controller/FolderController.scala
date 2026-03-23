@@ -15,13 +15,14 @@ import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
 import no.ndla.myndlaapi.model.api.{
   FolderDTO,
   FolderSortRequestDTO,
+  MoveResourceDTO,
   NewFolderDTO,
   NewResourceDTO,
+  ResourceConnectionDTO,
   ResourceDTO,
   UpdatedFolderDTO,
   UpdatedResourceDTO,
   UserFolderDTO,
-  ResourceConnectionDTO,
 }
 import no.ndla.myndlaapi.model.domain.FolderSortObject.{
   FolderSorting,
@@ -264,6 +265,21 @@ class FolderController(using
       }
     }
 
+  private def moveResourceConnection: ServerEndpoint[Any, Eff] = endpoint
+    .put
+    .summary("Move a resource from one folder to another")
+    .description("Move a resource from one folder to another")
+    .in("resources" / "move")
+    .out(noContent)
+    .in(jsonBody[MoveResourceDTO])
+    .errorOut(errorOutputsFor(400, 401, 403, 404))
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (move) =>
+        folderWriteService.moveResourceConnection(move, feide)
+      }
+    }
+
   private def deleteResource(): ServerEndpoint[Any, Eff] = endpoint
     .delete
     .summary("Delete selected resource")
@@ -470,5 +486,6 @@ class FolderController(using
     sortSavedSharedFolders,
     createFolderUserConnection,
     deleteFolderUserConnection(),
+    moveResourceConnection,
   )
 }
