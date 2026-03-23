@@ -1,0 +1,32 @@
+/*
+ * Part of NDLA article-api
+ * Copyright (C) 2026 NDLA
+ *
+ * See LICENSE
+ *
+ */
+
+package no.ndla.articleapi.db.migration
+
+import no.ndla.articleapi.{TestEnvironment, UnitSuite}
+
+class V69__UnwrapNestedMathTagsTest extends UnitSuite with TestEnvironment {
+  test("That nested math tags are unwrapped while keeping the outermost math tag") {
+    val migration  = new V69__UnwrapNestedMathTags
+    val oldArticle =
+      """<section><p><math><math xmlns="http://www.w3.org/1998/Math/MathML"><mi>x</mi></math></math></p></section>"""
+    val newArticle = """<section><p><math xmlns="http://www.w3.org/1998/Math/MathML"><mi>x</mi></math></p></section>"""
+
+    migration.convertContent(oldArticle, "nb") should be(newArticle)
+  }
+
+  test("That deeply nested math tags are fully unwrapped and missing attributes are copied to the outermost tag") {
+    val migration  = new V69__UnwrapNestedMathTags
+    val oldArticle =
+      """<section><p><math display="block"><math xmlns="http://www.w3.org/1998/Math/MathML"><math style="color:red"><mi>x</mi></math><mo>+</mo><mi>y</mi></math></math></p></section>"""
+    val newArticle =
+      """<section><p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML" style="color:red"><mi>x</mi><mo>+</mo><mi>y</mi></math></p></section>"""
+
+    migration.convertContent(oldArticle, "nb") should be(newArticle)
+  }
+}
