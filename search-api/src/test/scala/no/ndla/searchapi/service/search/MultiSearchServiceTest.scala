@@ -56,7 +56,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
+    if (ElasticSearchEnabled) {
       articleIndexService.createIndexAndAlias()
       draftIndexService.createIndexAndAlias()
       learningPathIndexService.createIndexAndAlias()

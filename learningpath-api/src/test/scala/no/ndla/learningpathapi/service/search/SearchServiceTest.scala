@@ -105,7 +105,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
+    if (ElasticSearchEnabled) {
       searchIndexService.createIndexAndAlias().get
 
       doReturn(commonApi.AuthorDTO(ContributorType.Writer, "En eier"), Nil*)

@@ -14,7 +14,7 @@ import no.ndla.draftapi.service.ConverterService
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
-class GrepCodesIndexServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+class GrepCodesIndexServiceTest extends UnitSuite with ElasticsearchIntegrationSuite with TestEnvironment {
   override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
   override implicit lazy val traitUtil: TraitUtil           = new TraitUtil
 

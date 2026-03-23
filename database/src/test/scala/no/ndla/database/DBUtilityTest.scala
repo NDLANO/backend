@@ -14,18 +14,20 @@ import scalikejdbc.*
 import scala.util.{Failure, Success, Try}
 
 class DBUtilityTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironment {
-  val dataSource: DataSource = testDataSource.get
+  override lazy val schemaName: String = s"dbutilitytest_${ProcessHandle.current().pid()}"
+  val dataSource: DataSource           = testDataSource.get
 
   override def beforeAll(): Unit = {
     super.beforeAll()
 
     dataSource.connectToDatabase()
 
+    val schemaSql = SQLSyntax.createUnsafely(schemaName)
     DB.autoCommit { implicit session =>
       sql"""
-            create schema if not exists testschema;
-            create table test (id int primary key, data text);
-            create table test_json (id int primary key, payload jsonb);""".execute()
+            create schema if not exists $schemaSql;
+            create table if not exists test (id int primary key, data text);
+            create table if not exists test_json (id int primary key, payload jsonb);""".execute()
     }
   }
 

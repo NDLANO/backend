@@ -21,6 +21,7 @@ import java.util.UUID
 import scala.util.{Success, Try}
 
 class RobotRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
+  override lazy val schemaName: String                      = s"robotrepotest_${ProcessHandle.current().pid()}"
   override implicit lazy val dataSource: DataSource         = testDataSource.get
   override implicit lazy val migrator: DBMigrator           = new DBMigrator
   override implicit lazy val DBUtil: DBUtility              = new DBUtility

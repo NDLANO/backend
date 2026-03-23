@@ -23,7 +23,7 @@ import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
 import scala.util.Success
 
-class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEnvironment {
+class ArticleSearchServiceTest extends UnitSuite with ElasticsearchIntegrationSuite with TestEnvironment {
   override implicit lazy val searchLanguage: SearchLanguage = new SearchLanguage
   override implicit lazy val traitUtil: TraitUtil           = new TraitUtil
   override implicit lazy val e4sClient: NdlaE4sClient       = Elastic4sClientFactory.getClient(elasticSearchHost)
@@ -238,7 +238,7 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
+    if (ElasticSearchEnabled) {
       articleIndexService.createIndexAndAlias().get
 
       articleIndexService.indexDocument(article1).get

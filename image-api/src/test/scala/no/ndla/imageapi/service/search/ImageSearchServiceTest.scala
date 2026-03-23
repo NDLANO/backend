@@ -328,7 +328,7 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    if (elasticSearchContainer.isSuccess) {
+    if (ElasticSearchEnabled) {
       val indexName = imageIndexService.createIndexWithGeneratedName
       imageIndexService.updateAliasTarget(None, indexName.get)
 

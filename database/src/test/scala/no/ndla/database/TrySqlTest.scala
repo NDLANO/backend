@@ -16,20 +16,23 @@ import scalikejdbc.*
 import scala.util.Failure
 
 class TrySqlTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironment {
-  val dataSource: DataSource = testDataSource.get
+  override lazy val schemaName: String = s"trysqltest_${ProcessHandle.current().pid()}"
+  val dataSource: DataSource           = testDataSource.get
 
   override def beforeAll(): Unit = {
     super.beforeAll()
 
     dataSource.connectToDatabase()
 
+    val schemaSql = SQLSyntax.createUnsafely(schemaName)
     DB.autoCommit { implicit session =>
       sql"""
-            create schema if not exists testschema;
-            create table test (id int primary key, data text);
-            create table test2 (id int primary key, data text, parent int not null references test(id));
-            create table test3 (id int primary key, data text, parent int not null references test(id));
-            create table test4 (id int primary key, data text, parent int not null references test(id));""".execute()
+            create schema if not exists $schemaSql;
+            create table if not exists test (id int primary key, data text);
+            create table if not exists test2 (id int primary key, data text, parent int not null references test(id));
+            create table if not exists test3 (id int primary key, data text, parent int not null references test(id));
+            create table if not exists test4 (id int primary key, data text, parent int not null references test(id));"""
+        .execute()
     }
   }
 

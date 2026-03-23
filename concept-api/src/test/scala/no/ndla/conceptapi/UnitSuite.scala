@@ -17,8 +17,9 @@ trait UnitSuite extends UnitTestSuite {
   setPropEnv("SEARCH_SERVER", "some-server")
   setPropEnv("SEARCH_REGION", "some-region")
   setPropEnv("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
-  setPropEnv("SEARCH_INDEX_NAME", "draft-integration-test-index")
-  setPropEnv("CONCEPT_SEARCH_INDEX_NAME", "concept-integration-test-index")
+  private val pid = ProcessHandle.current().pid()
+  setPropEnv("SEARCH_INDEX_NAME", s"draft-integration-test-index-$pid")
+  setPropEnv("CONCEPT_SEARCH_INDEX_NAME", s"concept-integration-test-index-$pid")
 
   setPropEnv("AUDIO_API_URL", "localhost:30014")
   setPropEnv("IMAGE_API_URL", "localhost:30001")

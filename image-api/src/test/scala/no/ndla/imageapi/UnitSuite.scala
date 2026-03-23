@@ -16,7 +16,9 @@ trait UnitSuite extends UnitTestSuite {
   setPropEnv("SEARCH_SERVER", "search-server")
   setPropEnv("SEARCH_REGION", "some-region")
   setPropEnv("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
-  setPropEnv("SEARCH_INDEX_NAME", "image-integration-test-index")
+  private val pid = ProcessHandle.current().pid()
+  setPropEnv("SEARCH_INDEX_NAME", s"image-integration-test-index-$pid")
+  setPropEnv("TAG_SEARCH_INDEX_NAME", s"image-tags-$pid")
 
   setPropEnv(PropertyKeys.MetaUserNameKey, "username")
   setPropEnv(PropertyKeys.MetaPasswordKey, "secret")
