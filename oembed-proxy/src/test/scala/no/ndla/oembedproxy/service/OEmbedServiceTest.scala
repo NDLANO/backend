@@ -54,7 +54,7 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
   )
 
   override implicit lazy val oEmbedService: OEmbedService     = new OEmbedService(Some(List(ndlaProvider, youtubeProvider)))
-  val providerMemoize                                         = new Memoize(0, () => List[OEmbedProvider]())
+  val providerMemoize                                         = new Memoize(0, () => Success(List.empty[OEmbedProvider]))
   override implicit lazy val providerService: ProviderService = new ProviderService {
     override val loadProviders: Memoize[List[OEmbedProvider]] = providerMemoize
   }

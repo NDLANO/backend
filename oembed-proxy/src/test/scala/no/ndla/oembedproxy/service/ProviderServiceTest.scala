@@ -36,13 +36,11 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
   override implicit lazy val providerService: ProviderService = new ProviderService
 
   test("That loadProvidersFromRequest fails on invalid url/bad response") {
-    val invalidUrl = "invalidUrl123"
-    when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(using any)).thenReturn(
-      Failure(new HttpRequestException("An error occured"))
-    )
-    intercept[HttpRequestException] {
-      providerService.loadProvidersFromRequest(quickRequest.get(uri"$invalidUrl"))
-    }
+    val invalidUrl        = "invalidUrl123"
+    val expectedException = new HttpRequestException("An error occured")
+    when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(using any)).thenReturn(Failure(expectedException))
+    val result = providerService.loadProvidersFromRequest(quickRequest.get(uri"$invalidUrl"))
+    result should be(Failure(expectedException))
   }
 
   test("That loadProvidersFromRequest does not return an incomplete provider") {
@@ -50,7 +48,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
       Success(List(IncompleteProvider))
     )
 
-    val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])
+    val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest]).get
     providers.size should be(0)
   }
 
@@ -59,7 +57,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
       Success(List(CompleteProvider))
     )
 
-    val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])
+    val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest]).get
     providers.size should be(1)
   }
 
@@ -68,7 +66,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
       Success(List(IncompleteProvider, CompleteProvider))
     )
 
-    val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest])
+    val providers = providerService.loadProvidersFromRequest(mock[NdlaRequest]).get
     providers.size should be(1)
   }
 
