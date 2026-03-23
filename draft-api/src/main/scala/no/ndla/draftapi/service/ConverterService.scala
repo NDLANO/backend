@@ -97,7 +97,8 @@ class ConverterService(using
       Draft(
         id = Some(newArticleId),
         revision = None,
-        status,
+        externalIds = List(),
+        status = status,
         title = domainTitles,
         content = content,
         copyright = newArticle.copyright.map(toDomainCopyright),
@@ -140,11 +141,11 @@ class ConverterService(using
 
   def withSortedLanguageFields(article: Draft): Draft = {
     article.copy(
-      visualElement = article.visualElement.sorted,
+      title = article.title.sorted,
       content = article.content.sorted,
+      visualElement = article.visualElement.sorted,
       introduction = article.introduction.sorted,
       metaImage = article.metaImage.sorted,
-      title = article.title.sorted,
     )
   }
 
@@ -499,6 +500,7 @@ class ConverterService(using
             .Article(
               id = draft.id,
               revision = draft.revision,
+              externalIds = draft.externalIds,
               title = draft.title,
               content = filterComments(draft.content),
               copyright = toArticleApiCopyright(copyright),
@@ -708,6 +710,7 @@ class ConverterService(using
     val converted = Draft(
       id = toMergeInto.id,
       revision = Option(article.revision),
+      externalIds = toMergeInto.externalIds,
       status = toMergeInto.status,
       title = updatedTitles,
       content = updatedContents,

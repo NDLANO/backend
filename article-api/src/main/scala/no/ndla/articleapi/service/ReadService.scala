@@ -60,21 +60,18 @@ class ReadService(using
       revision: Option[Int],
       feide: Option[FeideUserWrapper],
   ): Try[Cachable[api.ArticleV2DTO]] = dBUtility.readOnly { implicit session =>
-    val articleWithExternalIds = for {
-      article <- revision match {
-        case Some(rev) => articleRepository.withIdAndRevision(id, rev)
-        case None      => articleRepository.withId(id)
-      }
-      externalIds <- articleRepository.getExternalIdsFromId(id)
-    } yield (article, externalIds)
+    val maybeArticleRow = revision match {
+      case Some(rev) => articleRepository.withIdAndRevision(id, rev)
+      case None      => articleRepository.withId(id)
+    }
 
-    articleWithExternalIds.flatMap { (article, externalIds) =>
+    maybeArticleRow.flatMap { article =>
       article.mapArticle(addUrlsOnEmbedResources) match {
-        case None                                                                                         => Failure(NotFoundException(s"The article with id $id was not found"))
-        case Some(ArticleRow(_, _, _, _, None))                                                           => Failure(ArticleErrorHelpers.ArticleGoneException())
-        case Some(ArticleRow(_, _, _, _, Some(article))) if article.availability == Availability.everyone =>
-          Cachable.yes(converterService.toApiArticleV2(article, language, externalIds, fallback))
-        case Some(ArticleRow(_, _, _, _, Some(article))) =>
+        case None                                                                                            => Failure(NotFoundException(s"The article with id $id was not found"))
+        case Some(ArticleRow(_, _, _, _, _, None))                                                           => Failure(ArticleErrorHelpers.ArticleGoneException())
+        case Some(ArticleRow(_, _, _, _, _, Some(article))) if article.availability == Availability.everyone =>
+          Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
+        case Some(ArticleRow(_, _, _, _, _, Some(article))) =>
           val feideUser     = feide.flatMap(_.user)
           val userIsTeacher = feideUser.exists(_.isTeacher)
           article.availability match {
@@ -85,7 +82,7 @@ class ReadService(using
                   unauthorized = feideUser.isEmpty,
                 )
               )
-            case _ => Cachable.no(converterService.toApiArticleV2(article, language, externalIds, fallback))
+            case _ => Cachable.no(converterService.toApiArticleV2(article, language, fallback))
           }
       }
     }
@@ -95,9 +92,9 @@ class ReadService(using
     .withSlug(slug)
     .flatMap { article =>
       article.mapArticle(addUrlsOnEmbedResources) match {
-        case None                                        => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
-        case Some(ArticleRow(_, _, _, _, None))          => Failure(ArticleErrorHelpers.ArticleGoneException())
-        case Some(ArticleRow(_, _, _, _, Some(article))) => Success(article)
+        case None                                           => Failure(NotFoundException(s"The article with slug '$slug' was not found"))
+        case Some(ArticleRow(_, _, _, _, _, None))          => Failure(ArticleErrorHelpers.ArticleGoneException())
+        case Some(ArticleRow(_, _, _, _, _, Some(article))) => Success(article)
       }
     }
 
@@ -106,11 +103,9 @@ class ReadService(using
       for {
         article         <- getDomainArticleBySlug(slug)
         articleId       <- article.id.toTry(MissingIdException("Article ID was missing"))
-        externalIds     <- articleRepository.getExternalIdsFromId(articleId)
         cachableArticle <- article.availability match {
-          case Availability.everyone =>
-            Cachable.yes(converterService.toApiArticleV2(article, language, externalIds, fallback))
-          case _ => Cachable.no(converterService.toApiArticleV2(article, language, externalIds, fallback))
+          case Availability.everyone => Cachable.yes(converterService.toApiArticleV2(article, language, fallback))
+          case _                     => Cachable.no(converterService.toApiArticleV2(article, language, fallback))
         }
       } yield cachableArticle
     }
@@ -141,14 +136,7 @@ class ReadService(using
         articleCount <- articleRepository.articleCount
         articles     <- articleRepository.getArticlesByPage(safePageSize, (safePageNo - 1) * safePageSize)
         apiArticles  <- articles.traverse { article =>
-          article
-            .id
-            .toTry(MissingIdException("Article ID was missing"))
-            .flatMap { id =>
-              articleRepository
-                .getExternalIdsFromId(id)
-                .flatMap(externalIds => converterService.toApiArticleV2(article, lang, externalIds, fallback))
-            }
+          converterService.toApiArticleV2(article, lang, fallback)
         }
       } yield api.ArticleDumpDTO(articleCount, pageNo, pageSize, lang, apiArticles)
     }
@@ -210,9 +198,7 @@ class ReadService(using
       for {
         articleRows       <- articleRepository.articlesWithId(articleId)
         withUrls           = articleRows.toArticles.map(addUrlsOnEmbedResources)
-        externalIds       <- articleRepository.getExternalIdsFromId(articleId)
-        convertedArticles <-
-          withUrls.traverse(article => converterService.toApiArticleV2(article, language, externalIds, fallback))
+        convertedArticles <- withUrls.traverse(article => converterService.toApiArticleV2(article, language, fallback))
       } yield ArticleRevisionHistoryDTO(convertedArticles)
     }
 
@@ -322,14 +308,7 @@ class ReadService(using
         if (isFeideNeeded) applyAvailabilityFilter(feide, articles)
         else articles
       apiArticles <- filtered.traverse { article =>
-        val triedExternalIds = article
-          .id
-          .toTry(MissingIdException("Article ID was missing"))
-          .flatMap(id => articleRepository.getExternalIdsFromId(id))
-
-        triedExternalIds.flatMap { externalIds =>
-          converterService.toApiArticleV2(article, language, externalIds, fallback)
-        }
+        converterService.toApiArticleV2(article, language, fallback)
       }
     } yield apiArticles
   }

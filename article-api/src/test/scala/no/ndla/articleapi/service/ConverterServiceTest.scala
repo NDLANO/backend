@@ -79,53 +79,48 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2") {
-    service.toApiArticleV2(TestData.sampleDomainArticle, "nb", List(TestData.externalId), false) should equal(
-      Success(TestData.apiArticleV2)
-    )
+    service.toApiArticleV2(
+      TestData.sampleDomainArticle.copy(externalIds = List(TestData.externalId)),
+      "nb",
+      false,
+    ) should equal(Success(TestData.apiArticleV2))
   }
 
   test("that toApiArticleV2 returns sorted supportedLanguages") {
     val result = service.toApiArticleV2(
       TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ Title("hehe", "und")),
       "nb",
-      List(TestData.externalId),
       false,
     )
     result.get.supportedLanguages should be(Seq("nb", "und"))
   }
 
   test("toApiArticleV2 returns None when language is not supported") {
-    service
-      .toApiArticleV2(TestData.sampleDomainArticle, "someRandomLanguage", List(TestData.externalId), false)
-      .isFailure should be(true)
-    service.toApiArticleV2(TestData.sampleDomainArticle, "", List(TestData.externalId), false).isFailure should be(true)
+    service.toApiArticleV2(TestData.sampleDomainArticle, "someRandomLanguage", false).isFailure should be(true)
+    service.toApiArticleV2(TestData.sampleDomainArticle, "", false).isFailure should be(true)
   }
 
   test("toApiArticleV2 should always an article if language neutral") {
     val domainArticle = TestData.sampleDomainArticleWithLanguage("und")
-    service.toApiArticleV2(domainArticle, "someRandomLanguage", List(TestData.externalId), false).isSuccess should be(
-      true
-    )
+    service.toApiArticleV2(domainArticle, "someRandomLanguage", false).isSuccess should be(true)
   }
 
   test(
     "toApiArticleV2 should return Failure if article does not exist on the language asked for and is not language neutral"
   ) {
     val domainArticle = TestData.sampleDomainArticleWithLanguage("en")
-    service.toApiArticleV2(domainArticle, "someRandomLanguage", List(TestData.externalId), false).isFailure should be(
-      true
-    )
+    service.toApiArticleV2(domainArticle, "someRandomLanguage", false).isFailure should be(true)
   }
 
   test("that toApiArticleV2 returns none if article does not exist on language, and fallback is not specified") {
-    val result = service.toApiArticleV2(TestData.sampleDomainArticle, "en", List(TestData.externalId), false)
+    val result = service.toApiArticleV2(TestData.sampleDomainArticle, "en", false)
     result.isFailure should be(true)
   }
 
   test(
     "That toApiArticleV2 returns article on existing language if fallback is specified even if selected language does not exist"
   ) {
-    val result = service.toApiArticleV2(TestData.sampleDomainArticle, "en", List(TestData.externalId), true)
+    val result = service.toApiArticleV2(TestData.sampleDomainArticle, "en", true)
     result.get.title.language should be("nb")
     result.get.title.title should be(TestData.sampleDomainArticle.title.head.title)
     result.isFailure should be(false)
@@ -203,12 +198,12 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData
       .sampleDomainArticle
       .copy(
-        availability = Availability.everyone,
-        grepCodes = Seq("old", "code"),
         copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
-        metaDescription = Seq(Description("gammelDesc", "nb")),
-        relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
         tags = Seq(Tag(Seq("gammel", "Tag"), "nb")),
+        metaDescription = Seq(Description("gammelDesc", "nb")),
+        grepCodes = Seq("old", "code"),
+        availability = Availability.everyone,
+        relatedContent = Seq(Left(RelatedContentLink("title1", "url1")), Right(12L)),
       )
 
     val revisionDate = NDLADate.now()
@@ -232,18 +227,18 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData
       .sampleDomainArticle
       .copy(
-        availability = Availability.teacher,
-        grepCodes = Seq("New", "grep", "codes"),
         copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
+        tags = Seq(Tag(Seq("nye", "Tags"), "nb")),
         metaDescription = Seq(Description("nyDesc", "nb")),
+        published = revisionDate,
+        grepCodes = Seq("New", "grep", "codes"),
+        availability = Availability.teacher,
         relatedContent = Seq(
           Left(RelatedContentLink("New Title", "New Url")),
           Left(RelatedContentLink("Newer Title", "Newer Url")),
           Right(42L),
         ),
-        tags = Seq(Tag(Seq("nye", "Tags"), "nb")),
         revisionDate = Some(revisionDate),
-        published = revisionDate,
       )
 
     service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)
@@ -254,13 +249,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val existingArticle = TestData
       .sampleDomainArticle
       .copy(
-        availability = Availability.everyone,
-        grepCodes = Seq("old", "code"),
         copyright = Copyright("CC-BY-4.0", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
+        tags = Seq(Tag(Seq("Gluten", "Tag"), "de")),
         metaDescription = Seq(Description("oldDesc", "de")),
+        grepCodes = Seq("old", "code"),
+        availability = Availability.everyone,
         relatedContent =
           Seq(Left(RelatedContentLink("title1", "url1")), Left(RelatedContentLink("old title", "old url"))),
-        tags = Seq(Tag(Seq("Gluten", "Tag"), "de")),
       )
 
     val revisionDate   = NDLADate.now()
@@ -289,14 +284,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updatedArticle = TestData
       .sampleDomainArticle
       .copy(
-        availability = Availability.teacher,
-        grepCodes = Seq("New", "grep", "codes"),
         copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
-        metaDescription = Seq(Description("neuDesc", "de")),
-        relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
         tags = Seq(Tag(Seq("Guten", "Tag"), "de")),
-        revisionDate = Some(revisionDate),
+        metaDescription = Seq(Description("neuDesc", "de")),
         published = revisionDate,
+        grepCodes = Seq("New", "grep", "codes"),
+        availability = Availability.teacher,
+        relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),
+        revisionDate = Some(revisionDate),
       )
 
     service.updateArticleFields(existingArticle, partialArticle) should be(updatedArticle)

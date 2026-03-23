@@ -39,13 +39,12 @@ class WriteService(using
 
   private def performArticleValidation(
       article: Article,
-      externalIds: List[String],
       useSoftValidation: Boolean,
       skipValidation: Boolean,
       useImportValidation: Boolean,
   )(using DBSession): Try[Article] = {
     val strictValidationResult =
-      contentValidator.validateArticle(article, isImported = externalIds.nonEmpty || useImportValidation)
+      contentValidator.validateArticle(article, isImported = article.externalIds.nonEmpty || useImportValidation)
 
     val softOrStrictValidationResult =
       if (useSoftValidation && !skipValidation) {
@@ -87,15 +86,12 @@ class WriteService(using
 
   def updateArticle(
       article: Article,
-      externalIds: List[String],
       useImportValidation: Boolean,
       useSoftValidation: Boolean,
       skipValidation: Boolean,
   )(session: DBSession): Try[Article] = for {
-    _ <- performArticleValidation(article, externalIds, useSoftValidation, skipValidation, useImportValidation)(using
-      session
-    )
-    domainArticle <- articleRepository.updateArticleFromDraftApi(article, externalIds)(using session)
+    _             <- performArticleValidation(article, useSoftValidation, skipValidation, useImportValidation)(using session)
+    domainArticle <- articleRepository.updateArticleFromDraftApi(article)(using session)
     _             <- articleIndexService.indexDocument(domainArticle)
     _             <- Try(searchApiClient.indexDocument("article", domainArticle, None))
   } yield domainArticle
@@ -111,16 +107,12 @@ class WriteService(using
     existingArticle <- maybeArticleRow
       .toArticle
       .toTry(NotFoundException(s"Could not find article with id '$articleId' to partial publish"))
-    externalIds     <- articleRepository.getExternalIdsFromId(articleId)(using session)
     newArticle       = converterService.updateArticleFields(existingArticle, partialArticle)
-    insertedArticle <- updateArticle(
-      newArticle,
-      externalIds,
-      useImportValidation = false,
-      useSoftValidation = true,
-      skipValidation = isInBulk,
-    )(session)
-    converted <- converterService.toApiArticleV2(insertedArticle, language, externalIds, fallback)
+    insertedArticle <-
+      updateArticle(newArticle, useImportValidation = false, useSoftValidation = true, skipValidation = isInBulk)(
+        session
+      )
+    converted <- converterService.toApiArticleV2(insertedArticle, language, fallback)
   } yield converted
 
   def partialUpdateBulk(bulkInput: PartialPublishArticlesBulkDTO): Try[Unit] = {

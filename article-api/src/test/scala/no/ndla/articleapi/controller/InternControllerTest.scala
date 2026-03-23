@@ -113,7 +113,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
   test("that update article arguments are parsed correctly") {
     reset(writeService)
-    when(writeService.updateArticle(any, any, any, any, any)(any)).thenAnswer((i: InvocationOnMock) =>
+    when(writeService.updateArticle(any, any, any, any)(any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Article](0))
     )
     val authHeaderWithWriteRole =
@@ -133,7 +133,6 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
 
     verify(writeService, times(1)).updateArticle(
       article = eqTo(art),
-      externalIds = eqTo(List.empty),
       useImportValidation = eqTo(false),
       useSoftValidation = eqTo(false),
       skipValidation = eqTo(false),

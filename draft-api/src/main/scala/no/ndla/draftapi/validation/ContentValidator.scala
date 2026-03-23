@@ -73,12 +73,12 @@ class ContentValidator(using
 
   private def getArticleOnLanguage(article: Draft, language: String): Draft = {
     article.copy(
-      content = article.content.filter(_.language == language),
-      introduction = article.introduction.filter(_.language == language),
-      metaDescription = article.metaDescription.filter(_.language == language),
       title = article.title.filter(_.language == language),
+      content = article.content.filter(_.language == language),
       tags = article.tags.filter(_.language == language),
       visualElement = article.visualElement.filter(_.language == language),
+      introduction = article.introduction.filter(_.language == language),
+      metaDescription = article.metaDescription.filter(_.language == language),
       metaImage = article.metaImage.filter(_.language == language),
     )
   }
@@ -130,12 +130,12 @@ class ContentValidator(using
             .withSortedLanguageFields(article)
             .copy(
               revision = None,
+              updated = NDLADate.MIN,
+              updatedBy = "",
               notes = Seq.empty,
               editorLabels = Seq.empty,
-              comments = List.empty,
-              updated = NDLADate.MIN,
               revisionMeta = Seq.empty,
-              updatedBy = "",
+              comments = List.empty,
             )
 
         withComparableValues(oldArticle) == withComparableValues(changedArticle)
