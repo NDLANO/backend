@@ -40,7 +40,7 @@ class ProviderServiceTest extends UnitSuite with TestEnvironment {
     when(ndlaClient.fetch[OEmbedDTO](any[NdlaRequest])(using any)).thenReturn(
       Failure(new HttpRequestException("An error occured"))
     )
-    intercept[DoNotUpdateMemoizeException] {
+    intercept[HttpRequestException] {
       providerService.loadProvidersFromRequest(quickRequest.get(uri"$invalidUrl"))
     }
   }

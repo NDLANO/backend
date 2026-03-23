@@ -12,8 +12,8 @@ import com.typesafe.scalalogging.StrictLogging
 import no.ndla.network.NdlaClient
 import no.ndla.network.model.NdlaRequest
 import no.ndla.oembedproxy.OEmbedProxyProperties
-import no.ndla.oembedproxy.caching.Memoize
-import no.ndla.oembedproxy.model.{DoNotUpdateMemoizeException, OEmbedEndpoint, OEmbedProvider}
+import no.ndla.common.caching.Memoize
+import no.ndla.oembedproxy.model.{OEmbedEndpoint, OEmbedProvider}
 import no.ndla.oembedproxy.service.OEmbedConverterService.{
   addYoutubeTimestampIfdefinedInRequest,
   handleYoutubeRequestUrl,
@@ -90,10 +90,14 @@ class ProviderService(using ndlaClient: NdlaClient, props: OEmbedProxyProperties
   val IssuuProvider: OEmbedProvider =
     OEmbedProvider("Issuu", "https://issuu.com", List(IssuuEndpoint), removeQueryStringAndFragment)
 
-  val loadProviders: Memoize[List[OEmbedProvider]] = Memoize(() => {
-    logger.info("Provider cache was not found or out of date, fetching providers")
-    _loadProviders()
-  })
+  val loadProviders: Memoize[List[OEmbedProvider]] = new Memoize(
+    props.ProviderListCacheAgeInMs,
+    () => {
+      logger.info("Provider cache was not found or out of date, fetching providers")
+      _loadProviders()
+    },
+    retryOnErrorMs = Some(props.ProviderListRetryTimeInMs),
+  )
 
   def _loadProviders(): List[OEmbedProvider] = {
     val requestProviders = loadProvidersFromRequest(quickRequest.get(uri"${props.JSonProviderUrl}"))
@@ -108,7 +112,7 @@ class ProviderService(using ndlaClient: NdlaClient, props: OEmbedProxyProperties
         providers.filter(_.endpoints.nonEmpty).filter(_.endpoints.forall(endpoint => endpoint.url.nonEmpty))
       case Failure(ex) =>
         logger.error(s"Failed to load providers from ${request.uri}.")
-        throw new DoNotUpdateMemoizeException(ex.getMessage)
+        throw ex
     }
   }
 }
