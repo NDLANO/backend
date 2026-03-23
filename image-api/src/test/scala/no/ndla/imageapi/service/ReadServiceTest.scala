@@ -89,6 +89,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
           dimensions = None,
           variants = Seq.empty,
           language = "nb",
+          exifData = Map.empty,
         )
       ),
       copyright = Copyright(
