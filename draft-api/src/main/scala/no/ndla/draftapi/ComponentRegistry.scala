@@ -13,7 +13,6 @@ import no.ndla.common.converter.CommonConverter
 import no.ndla.common.util.TraitUtil
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
-import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
 import no.ndla.draftapi.db.migrationwithdependencies.*
 import no.ndla.draftapi.integration.*
@@ -39,7 +38,6 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
   implicit lazy val e4sClient: NdlaE4sClient                   = Elastic4sClientFactory.getClient(props.SearchServer)
   implicit lazy val searchLanguage: SearchLanguage             = new SearchLanguage
   implicit lazy val dbUtility: DBUtility                       = new DBUtility
-  implicit lazy val memoizeHelpers: MemoizeHelpers             = new MemoizeHelpers
   implicit lazy val uuidUtil: UUIDUtil                         = new UUIDUtil
   implicit lazy val commonConverter: CommonConverter           = new CommonConverter
   implicit lazy val stateTransitionRules: StateTransitionRules = new StateTransitionRules

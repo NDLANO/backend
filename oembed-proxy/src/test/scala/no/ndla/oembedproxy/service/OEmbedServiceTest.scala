@@ -9,7 +9,7 @@
 package no.ndla.oembedproxy.service
 
 import no.ndla.network.model.{HttpRequestException, NdlaRequest}
-import no.ndla.oembedproxy.caching.Memoize
+import no.ndla.common.caching.Memoize
 import no.ndla.oembedproxy.model.*
 import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
 import org.mockito.ArgumentMatchers.any
@@ -54,7 +54,7 @@ class OEmbedServiceTest extends UnitSuite with TestEnvironment {
   )
 
   override implicit lazy val oEmbedService: OEmbedService     = new OEmbedService(Some(List(ndlaProvider, youtubeProvider)))
-  val providerMemoize                                         = new Memoize(0, 0, () => List[OEmbedProvider](), false)
+  val providerMemoize                                         = new Memoize(0, () => Success(List.empty[OEmbedProvider]))
   override implicit lazy val providerService: ProviderService = new ProviderService {
     override val loadProviders: Memoize[List[OEmbedProvider]] = providerMemoize
   }

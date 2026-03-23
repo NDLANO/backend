@@ -1,6 +1,6 @@
 /*
  * Part of NDLA common
- * Copyright (C) 2020 NDLA
+ * Copyright (C) 2016 NDLA
  *
  * See LICENSE
  *
@@ -10,53 +10,84 @@ package no.ndla.common.caching
 
 import com.typesafe.scalalogging.StrictLogging
 
-import java.util.concurrent.Executors
-import scala.collection.mutable.Map as MutableMap
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
-import scala.util.{Failure, Success}
+import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
+import scala.util.{Failure, Try, Success}
 
-class Memoize[I, R](maxCacheAgeMs: Long, f: I => R) extends StrictLogging {
-  implicit val ec: ExecutionContextExecutorService =
-    ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))
+class Memoize[R](
+    maxCacheAgeMs: Long,
+    f: () => Try[R],
+    autoRefreshCache: Boolean = false,
+    retryOnErrorMs: Option[Long] = None,
+) extends (() => Try[R])
+    with StrictLogging {
 
-  case class CacheValue(input: I, value: R, lastUpdated: Long) {
-
+  case class CacheValue(value: R, lastUpdated: Long) {
     def isExpired: Boolean = lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
   }
-  private val cache: MutableMap[I, CacheValue]              = MutableMap.empty
-  private val isUpdating: MutableMap[I, Future[CacheValue]] = MutableMap.empty
 
-  private def scheduleRenewCache(input: I): Future[CacheValue] = synchronized {
-    val fut = Future {
-      CacheValue(input, f(input), System.currentTimeMillis())
-    }
+  @volatile
+  private var cache: Option[CacheValue] = None
 
-    isUpdating.put(input, fut): Unit
-
-    fut.onComplete {
-      case Success(value) => updateCache(value)
-      case Failure(ex)    => logger.error(s"Failed to update memoized function. Failed with: ${ex.getMessage}", ex)
-    }
-    fut
+  private def setCache(value: R): Try[R]                  = setCache(value, System.currentTimeMillis())
+  private def setCache(value: R, cacheTime: Long): Try[R] = {
+    cache = Some(CacheValue(value, cacheTime))
+    Success(value)
   }
 
-  def apply(input: I): R = {
-    cache.get(input) match {
-      case Some(cachedValue) if !cachedValue.isExpired => cachedValue.value
-      case _                                           =>
-        val fut = isUpdating.get(input) match {
-          case Some(value) => value
-          case None        => scheduleRenewCache(input)
+  def setCacheTime(cacheTime: Long): Unit = {
+    cache match {
+      case Some(cacheValue) => cache = Some(cacheValue.copy(lastUpdated = cacheTime))
+      case None             => logger.warn(s"Attempted to set cache time to $cacheTime, but no cached value exists.")
+    }
+  }
+
+  private def recoverFailure(ex: Throwable): Try[R] = {
+    (retryOnErrorMs, cache) match {
+      case (Some(retryMs), Some(cacheValue)) =>
+        val retryTime = System.currentTimeMillis() - maxCacheAgeMs + retryMs
+        setCacheTime(retryTime)
+        logger.warn(s"Caught ${ex.getClass.getName}, with message: '${ex.getMessage}', will not update cached output.")
+        Success(cacheValue.value)
+      case _ =>
+        logger.warn(
+          s"Caught ${ex.getClass.getName}, with message: '${ex.getMessage}', no cached output to fall back to."
+        )
+        Failure(ex)
+    }
+  }
+
+  private def renewCache(): Try[R] = {
+    try {
+      val callResult = f()
+      callResult match {
+        case Success(result) => setCache(result)
+        case Failure(ex)     => recoverFailure(ex)
+      }
+    } catch {
+      case ex: Throwable => recoverFailure(ex) match {
+          case Failure(exception) => throw exception
+          case Success(value)     => Success(value)
         }
-
-        Await.result(fut, 20.minutes).value
     }
   }
 
-  private def updateCache(result: CacheValue): Unit = {
-    isUpdating.remove(result.input): Unit
-    cache.put(result.input, result): Unit
-    System.gc()
+  if (autoRefreshCache) {
+    val threadPool = new ScheduledThreadPoolExecutor(1)
+    val task       = new Runnable {
+      def run(): Unit = renewCache(): Unit
+    }
+    threadPool.scheduleAtFixedRate(task, 20, maxCacheAgeMs, TimeUnit.MILLISECONDS): Unit
   }
+
+  def apply(): Try[R] = {
+    cache match {
+      case Some(cachedValue) if autoRefreshCache       => Success(cachedValue.value)
+      case Some(cachedValue) if !cachedValue.isExpired => Success(cachedValue.value)
+      case _                                           => renewCache()
+    }
+  }
+}
+
+object Memoize {
+  def apply[R](maxCacheAgeMs: Long, f: () => Try[R]): Memoize[R] = new Memoize(maxCacheAgeMs, f)
 }
