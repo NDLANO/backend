@@ -403,10 +403,12 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     updated.responsible.map(r => r.responsibleId) should be(Some("new-responsible"))
     updated.notes.head.user should be("new-responsible")
 
-    // repository.getAllResponsibles(using dbUtility.readOnlySession).get should contain("new-responsible")
-    // repository.getAllEditors(using dbUtility.readOnlySession).get should contain("new-responsible")
+    repository.updateEditorsAndResponsibleViews(using dbUtility.autoSession).get
+    repository.getAllResponsibles(using dbUtility.readOnlySession).get should contain("new-responsible")
+    repository.getAllEditors(using dbUtility.readOnlySession).get should contain("new-responsible")
 
     repository.deleteArticle(updated.id.get)(using dbUtility.autoSession).get
+    repository.updateEditorsAndResponsibleViews(using dbUtility.autoSession).get
     repository.getAllResponsibles(using dbUtility.readOnlySession).get should not(contain("new-responsible"))
     repository.getAllEditors(using dbUtility.readOnlySession).get should not(contain("new-responsible"))
 

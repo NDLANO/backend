@@ -446,4 +446,11 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
     tsql"""select editorId from editor_view""".map(rs => rs.string("editorId")).runList()
   }
 
+  def updateEditorsAndResponsibleViews(using session: DBSession): Try[Unit] = {
+    tsql"""
+      REFRESH MATERIALIZED VIEW CONCURRENTLY responsible_view;
+      REFRESH MATERIALIZED VIEW CONCURRENTLY editor_view;
+    """.update().map(_ => ())
+  }
+
 }
