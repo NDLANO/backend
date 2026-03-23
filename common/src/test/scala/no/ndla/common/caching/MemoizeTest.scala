@@ -1,18 +1,17 @@
 /*
- * Part of NDLA oembed-proxy
- * Copyright (C) 2017 NDLA
+ * Part of NDLA common
+ * Copyright (C) 2016 NDLA
  *
  * See LICENSE
  *
  */
 
-package no.ndla.oembedproxy.caching
+package no.ndla.common.caching
 
-import no.ndla.oembedproxy.{TestEnvironment, UnitSuite}
-import no.ndla.oembedproxy.model.DoNotUpdateMemoizeException
+import no.ndla.testbase.UnitTestSuiteBase
 import org.mockito.Mockito.{times, verify, when}
 
-class MemoizeTest extends UnitSuite with TestEnvironment {
+class MemoizeTest extends UnitTestSuiteBase {
 
   class Target {
     def targetMethod(): String = "Hei"
@@ -20,7 +19,7 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
 
   test("That an uncached value will do an actual call") {
     val targetMock     = mock[Target]
-    val memoizedTarget = new Memoize[String](Long.MaxValue, Long.MaxValue, targetMock.targetMethod, false)
+    val memoizedTarget = new Memoize[String](Long.MaxValue, () => targetMock.targetMethod())
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
     memoizedTarget() should equal("Hello from mock")
@@ -29,7 +28,7 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
 
   test("That a cached value will not forward the call to the target") {
     val targetMock     = mock[Target]
-    val memoizedTarget = new Memoize[String](Long.MaxValue, Long.MaxValue, targetMock.targetMethod, false)
+    val memoizedTarget = new Memoize[String](Long.MaxValue, () => targetMock.targetMethod())
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
     Seq(1 to 10).foreach(_ => {
@@ -40,9 +39,8 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
 
   test("That the cache is invalidated after cacheMaxAge") {
     val cacheMaxAgeInMs = 20L
-    val cacheRetryInMs  = 20L
     val targetMock      = mock[Target]
-    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, cacheRetryInMs, targetMock.targetMethod, false)
+    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, () => targetMock.targetMethod())
 
     when(targetMock.targetMethod()).thenReturn("Hello from mock")
 
@@ -55,13 +53,24 @@ class MemoizeTest extends UnitSuite with TestEnvironment {
     verify(targetMock, times(2)).targetMethod()
   }
 
-  test("That the cache is stored on failure") {
-    val cacheMaxAgeInMs = 20L
-    val cacheRetryInMs  = 20L
-    val targetMock      = mock[Target]
-    val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, cacheRetryInMs, targetMock.targetMethod, false)
+  test("That an error on first call throws even when retryOnErrorMs is set") {
+    val targetMock     = mock[Target]
+    val memoizedTarget = new Memoize[String](Long.MaxValue, () => targetMock.targetMethod(), retryOnErrorMs = Some(20L))
 
-    when(targetMock.targetMethod()).thenReturn("Hello from mock").thenThrow(new DoNotUpdateMemoizeException("Woop"))
+    when(targetMock.targetMethod()).thenThrow(new RuntimeException("Boom"))
+    intercept[RuntimeException] {
+      memoizedTarget()
+    }
+  }
+
+  test("That the cache is preserved on error when retryOnErrorMs is set") {
+    val cacheMaxAgeInMs = 20L
+    val retryMs         = 20L
+    val targetMock      = mock[Target]
+    val memoizedTarget  =
+      new Memoize[String](cacheMaxAgeInMs, () => targetMock.targetMethod(), retryOnErrorMs = Some(retryMs))
+
+    when(targetMock.targetMethod()).thenReturn("Hello from mock").thenThrow(new RuntimeException("Woop"))
 
     memoizedTarget() should equal("Hello from mock")
     Thread.sleep(cacheMaxAgeInMs)

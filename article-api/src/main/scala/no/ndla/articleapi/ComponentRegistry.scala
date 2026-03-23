@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi
 
-import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.controller.*
 import no.ndla.articleapi.db.migrationwithdependencies.{
   R__SetArticleLanguageFromTaxonomy,
@@ -60,7 +59,6 @@ class ComponentRegistry(properties: ArticleApiProperties) extends TapirApplicati
   given articleRepository: ArticleRepository           = new ArticleRepository
   given converterService: ConverterService             = new ConverterService
   given redisClient: RedisClient                       = new RedisClient(props.RedisHost, props.RedisPort)
-  given memoizeHelpers: MemoizeHelpers                 = new MemoizeHelpers
   given ndlaClient: NdlaClient                         = new NdlaClient
   given searchApiClient: SearchApiClient               = new SearchApiClient(props.SearchApiUrl)
   given feideApiClient: FeideApiClient                 = new FeideApiClient
