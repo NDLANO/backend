@@ -88,6 +88,7 @@ class InternController(using
     dumpArticles,
     dumpSingleArticle,
     postDump,
+    refreshViews,
   )
 
   def postIndex: ServerEndpoint[Any, Eff] = endpoint
@@ -271,5 +272,13 @@ class InternController(using
     .out(jsonBody[Draft])
     .serverLogicPure { article =>
       writeService.insertDump(article)
+    }
+
+  def refreshViews: ServerEndpoint[Any, Eff] = endpoint
+    .post
+    .in("refreshViews")
+    .errorOut(errorOutputsFor(400, 500))
+    .serverLogicPure { _ =>
+      writeService.updateEditorAndResponsibleViews(using dbUtility.autoSession)
     }
 }
