@@ -27,8 +27,11 @@ class OEmbedService(optionalProviders: Option[List[OEmbedProvider]] = None)(usin
 ) extends StrictLogging {
   private val remoteTimeout: FiniteDuration = 10.seconds
 
-  private lazy val providers                                   = optionalProviders.toList.flatten ++ providerService.loadProviders()
-  private def getProvider(url: String): Option[OEmbedProvider] = providers.find(_.supports(url))
+  private lazy val providers: Try[List[OEmbedProvider]] = providerService
+    .loadProviders()
+    .map(loaded => optionalProviders.toList.flatten ++ loaded)
+
+  private def getProvider(url: String): Try[Option[OEmbedProvider]] = providers.map(_.find(_.supports(url)))
 
   private val MaxFetchOembedRetries: Int = 3
   @tailrec
@@ -58,7 +61,7 @@ class OEmbedService(optionalProviders: Option[List[OEmbedProvider]] = None)(usin
   def get(url: String, maxWidth: Option[String], maxHeight: Option[String]): Try[OEmbedDTO] = {
     io.lemonlabs.uri.Uri.parseTry(url) match {
       case Failure(_) => Failure(InvalidUrlException(s"$url does not seem to be a valid url."))
-      case Success(_) => getProvider(url) match {
+      case Success(_) => getProvider(url).flatMap {
           case None           => Failure(ProviderNotSupportedException(s"Could not find an oembed-provider for the url '$url'"))
           case Some(provider) =>
             MDC.put("oembedProvider", provider.providerName): Unit

@@ -11,18 +11,20 @@ package no.ndla.common.caching
 import no.ndla.testbase.UnitTestSuiteBase
 import org.mockito.Mockito.{times, verify, when}
 
+import scala.util.{Success, Try}
+
 class MemoizeTest extends UnitTestSuiteBase {
 
   class Target {
-    def targetMethod(): String = "Hei"
+    def targetMethod(): Try[String] = Success("Hei")
   }
 
   test("That an uncached value will do an actual call") {
     val targetMock     = mock[Target]
     val memoizedTarget = new Memoize[String](Long.MaxValue, () => targetMock.targetMethod())
 
-    when(targetMock.targetMethod()).thenReturn("Hello from mock")
-    memoizedTarget() should equal("Hello from mock")
+    when(targetMock.targetMethod()).thenReturn(Success("Hello from mock"))
+    memoizedTarget() should equal(Success("Hello from mock"))
     verify(targetMock, times(1)).targetMethod()
   }
 
@@ -30,9 +32,9 @@ class MemoizeTest extends UnitTestSuiteBase {
     val targetMock     = mock[Target]
     val memoizedTarget = new Memoize[String](Long.MaxValue, () => targetMock.targetMethod())
 
-    when(targetMock.targetMethod()).thenReturn("Hello from mock")
+    when(targetMock.targetMethod()).thenReturn(Success("Hello from mock"))
     Seq(1 to 10).foreach(_ => {
-      memoizedTarget() should equal("Hello from mock")
+      memoizedTarget() should equal(Success("Hello from mock"))
     })
     verify(targetMock, times(1)).targetMethod()
   }
@@ -42,13 +44,13 @@ class MemoizeTest extends UnitTestSuiteBase {
     val targetMock      = mock[Target]
     val memoizedTarget  = new Memoize[String](cacheMaxAgeInMs, () => targetMock.targetMethod())
 
-    when(targetMock.targetMethod()).thenReturn("Hello from mock")
+    when(targetMock.targetMethod()).thenReturn(Success("Hello from mock"))
 
-    memoizedTarget() should equal("Hello from mock")
-    memoizedTarget() should equal("Hello from mock")
+    memoizedTarget() should equal(Success("Hello from mock"))
+    memoizedTarget() should equal(Success("Hello from mock"))
     Thread.sleep(cacheMaxAgeInMs)
-    memoizedTarget() should equal("Hello from mock")
-    memoizedTarget() should equal("Hello from mock")
+    memoizedTarget() should equal(Success("Hello from mock"))
+    memoizedTarget() should equal(Success("Hello from mock"))
 
     verify(targetMock, times(2)).targetMethod()
   }
@@ -70,10 +72,10 @@ class MemoizeTest extends UnitTestSuiteBase {
     val memoizedTarget  =
       new Memoize[String](cacheMaxAgeInMs, () => targetMock.targetMethod(), retryOnErrorMs = Some(retryMs))
 
-    when(targetMock.targetMethod()).thenReturn("Hello from mock").thenThrow(new RuntimeException("Woop"))
+    when(targetMock.targetMethod()).thenReturn(Success("Hello from mock")).thenThrow(new RuntimeException("Woop"))
 
-    memoizedTarget() should equal("Hello from mock")
+    memoizedTarget() should equal(Success("Hello from mock"))
     Thread.sleep(cacheMaxAgeInMs)
-    memoizedTarget() should equal("Hello from mock")
+    memoizedTarget() should equal(Success("Hello from mock"))
   }
 }
