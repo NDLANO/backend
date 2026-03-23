@@ -13,7 +13,6 @@ import no.ndla.common.converter.CommonConverter
 import no.ndla.common.util.TraitUtil
 import no.ndla.common.{Clock, UUIDUtil}
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
-import no.ndla.draftapi.caching.MemoizeHelpers
 import no.ndla.draftapi.controller.*
 import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.DraftErrorHelpers
@@ -40,7 +39,6 @@ trait TestEnvironment extends TapirApplication[DraftApiProperties] with MockitoS
   implicit lazy val dbArticle: DBArticle                 = new DBArticle
   implicit lazy val dbUserData: DBUserData               = new DBUserData
   implicit lazy val uuidUtil: UUIDUtil                   = mock[UUIDUtil]
-  implicit lazy val memoizeHelpers: MemoizeHelpers       = mock[MemoizeHelpers]
   implicit lazy val searchLanguage: SearchLanguage       = mock[SearchLanguage]
   implicit lazy val errorHelpers: ErrorHelpers           = new ErrorHelpers
   implicit lazy val draftErrorHelpers: DraftErrorHelpers = new DraftErrorHelpers
