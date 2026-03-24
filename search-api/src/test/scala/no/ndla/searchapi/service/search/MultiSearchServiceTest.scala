@@ -588,7 +588,7 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     )
   }
 
-  test("That searching for authors works as expected") {
+  test("That searching for contributors works as expected") {
     val Success(search1) = multiSearchService.matchingQuery(
       searchSettings.copy(Some(NonEmptyString.fromString("Kjekspolitiet").get), language = AllLanguages)
     ): @unchecked

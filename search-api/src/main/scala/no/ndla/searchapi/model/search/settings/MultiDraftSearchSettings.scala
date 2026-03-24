@@ -16,12 +16,13 @@ import no.ndla.common.model.domain.learningpath.LearningPathStatus
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.searchapi.model.domain.Sort
+import no.ndla.searchapi.model.domain.{DraftSearchField, Sort}
 
 case class MultiDraftSearchSettings(
     user: TokenUser,
     query: Option[NonEmptyString],
     noteQuery: Option[NonEmptyString],
+    queryFields: List[DraftSearchField],
     fallback: Boolean,
     language: String,
     license: Option[String],
@@ -63,6 +64,7 @@ object MultiDraftSearchSettings {
     user = user,
     query = None,
     noteQuery = None,
+    queryFields = List.empty,
     fallback = false,
     language = Language.AllLanguages,
     license = None,

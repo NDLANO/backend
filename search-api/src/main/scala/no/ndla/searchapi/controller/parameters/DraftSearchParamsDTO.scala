@@ -13,7 +13,7 @@ import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{ArticleTrait, SearchType}
 import no.ndla.network.tapir.NonEmptyString
-import no.ndla.searchapi.model.domain.Sort
+import no.ndla.searchapi.model.domain.{DraftSearchField, Sort}
 import sttp.tapir.Schema
 import sttp.tapir.Schema.annotations.description
 import no.ndla.common.model.domain.Priority
@@ -38,6 +38,8 @@ case class DraftSearchParamsDTO(
     license: Option[String],
     @description("Return only results with content matching the specified query.")
     query: Option[NonEmptyString],
+    @description("Restrict query searches to the specified fields. If omitted or empty, all the fields are used.")
+    queryFields: Option[List[DraftSearchField]],
     @description("Return only results with notes matching the specified note-query.")
     noteQuery: Option[NonEmptyString],
     @description("The sorting used on results.")

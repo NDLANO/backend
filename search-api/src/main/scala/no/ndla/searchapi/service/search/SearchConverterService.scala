@@ -226,12 +226,9 @@ class SearchConverterService(using
         published = ai.published,
         license = ai.copyright.license,
         status = "PUBLISHED",
-        authors = (
-          ai.copyright.creators.map(_.name) ++ ai.copyright.processors.map(_.name) ++ ai
-            .copyright
-            .rightsholders
-            .map(_.name)
-        ).toList,
+        creators = ai.copyright.creators.map(_.name).toList,
+        processors = ai.copyright.processors.map(_.name).toList,
+        rightsholders = ai.copyright.rightsholders.map(_.name).toList,
         articleType = ai.articleType.entryName,
         metaImage = ai.metaImage.toList,
         defaultTitle = defaultTitle.map(t => t.title),
@@ -298,7 +295,8 @@ class SearchConverterService(using
 
       val supportedLanguages = getSupportedLanguages(lp.title, lp.description).toList
       val defaultTitle       = getDefault(lp.title)
-      val license            = api
+
+      val license = api
         .learningpath
         .CopyrightDTO(
           asLearningPathApiLicense(lp.copyright.license),
@@ -366,7 +364,9 @@ class SearchConverterService(using
           copyright = license,
           isBasedOn = lp.isBasedOn,
           supportedLanguages = supportedLanguages,
-          authors = lp.copyright.contributors.map(_.name).toList,
+          creators = lp.copyright.contributors.map(_.name).toList,
+          processors = lp.copyright.contributors.map(_.name).toList,
+          rightsholders = lp.copyright.contributors.map(_.name).toList,
           context = context,
           contexts = contexts,
           contextids = nodes.flatMap(_.contextids),
@@ -411,12 +411,6 @@ class SearchConverterService(using
     val tags      = SearchableLanguageList.fromFields(c.tags)
     val favorited = getFavoritedCountFor(indexingBundle, c.id.get.toString, List(MyNDLAResourceType.Concept)).?
 
-    val authors = (
-      c.copyright.map(_.creators).toList ++
-        c.copyright.map(_.processors).toList ++
-        c.copyright.map(_.rightsholders).toList
-    ).flatten.map(_.name)
-
     val users: Seq[String] = c.updatedBy ++ c.editorNotes.map(_.user)
 
     val status               = StatusDTO(c.status.current.toString, c.status.other.map(_.toString).toSeq)
@@ -435,7 +429,9 @@ class SearchConverterService(using
         users = users.toList,
         updatedBy = c.updatedBy,
         license = c.copyright.flatMap(_.license),
-        authors = authors,
+        creators = c.copyright.map(_.creators).getOrElse(Seq.empty).map(_.name).toList,
+        processors = c.copyright.map(_.processors).getOrElse(Seq.empty).map(_.name).toList,
+        rightsholders = c.copyright.map(_.rightsholders).getOrElse(Seq.empty).map(_.name).toList,
         created = c.created,
         source = c.copyright.flatMap(_.origin),
         responsible = c.responsible,
@@ -465,13 +461,8 @@ class SearchConverterService(using
       draft.metaDescription,
       draft.content,
       draft.tags,
+      draft.disclaimer.getWithLanguageFields,
     ).toList
-
-    val authors = (
-      draft.copyright.map(_.creators).toList ++
-        draft.copyright.map(_.processors).toList ++
-        draft.copyright.map(_.rightsholders).toList
-    ).flatten.map(_.name)
 
     val notes: List[String] = draft.notes.map(_.note).toList
     val users: List[String] = List(draft.updatedBy) ++ draft.notes.map(_.user) ++ draft
@@ -514,10 +505,16 @@ class SearchConverterService(using
       }
     ).?
 
-    val title                = SearchableLanguageValues.fromFieldsMap(draft.title)(toPlaintext)
-    val content              = SearchableLanguageValues.fromFieldsMap(draft.content)(toPlaintext)
-    val introduction         = SearchableLanguageValues.fromFieldsMap(draft.introduction)(toPlaintext)
-    val metaDescription      = SearchableLanguageValues.fromFields(draft.metaDescription)
+    val title           = SearchableLanguageValues.fromFieldsMap(draft.title)(toPlaintext)
+    val content         = SearchableLanguageValues.fromFieldsMap(draft.content)(toPlaintext)
+    val introduction    = SearchableLanguageValues.fromFieldsMap(draft.introduction)(toPlaintext)
+    val metaDescription = SearchableLanguageValues.fromFields(draft.metaDescription)
+    val disclaimer      = SearchableLanguageValues(
+      draft
+        .disclaimer
+        .getWithLanguageFields
+        .map(disclaimer => LanguageValue(disclaimer.language, toPlaintext(disclaimer.value)))
+    )
     val contexts             = asSearchableTaxonomyContexts(taxonomyContexts)
     val context              = asSearchableTaxonomyContexts(primaryContext.toList).headOption
     val learningResourceType = LearningResourceType.fromArticleType(draft.articleType)
@@ -530,10 +527,13 @@ class SearchConverterService(using
         content = content,
         introduction = introduction,
         metaDescription = metaDescription,
+        disclaimer = disclaimer,
         tags = SearchableLanguageList(draft.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         lastUpdated = draft.updated,
         license = draft.copyright.flatMap(_.license),
-        authors = authors,
+        creators = draft.copyright.map(_.creators).getOrElse(Seq.empty).map(_.name).toList,
+        processors = draft.copyright.map(_.processors).getOrElse(Seq.empty).map(_.name).toList,
+        rightsholders = draft.copyright.map(_.rightsholders).getOrElse(Seq.empty).map(_.name).toList,
         articleType = draft.articleType.entryName,
         defaultTitle = defaultTitle.map(t => t.title),
         supportedLanguages = supportedLanguages,
