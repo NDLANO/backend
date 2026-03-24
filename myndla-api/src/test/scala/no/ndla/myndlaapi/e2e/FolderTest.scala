@@ -11,6 +11,7 @@ package no.ndla.myndlaapi.e2e
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.UpdateWith
+import no.ndla.common.model.api.{Value, NullValue}
 import no.ndla.common.model.domain.ResourceType.Article
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.common.{CirceUtil, Clock}
@@ -649,7 +650,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     // Move fr1 from f1 to f2 (folder-to-folder, target folder is non-empty)
     moveResource(
       feideId1,
-      MoveResourceDTO(fromFolderId = Some(f1.id), toFolderId = Some(f2.id), resourceId = fr1.id),
+      MoveResourceDTO(fromFolderId = Value(f1.id), toFolderId = Value(f2.id), resourceId = fr1.id),
     ) should be(204)
 
     val f1AfterFolderMove = getFolderResources(feideId1, f1.id)
@@ -668,7 +669,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     // Move rr1 from root to f3 (root-to-folder)
     moveResource(
       feideId1,
-      MoveResourceDTO(fromFolderId = None, toFolderId = Some(f3.id), resourceId = rr1.id),
+      MoveResourceDTO(fromFolderId = NullValue, toFolderId = Value(f3.id), resourceId = rr1.id),
     ) should be(204)
 
     val rootAfterRootToFolderMove = getRootResources(feideId1)
@@ -684,7 +685,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
     // Move fr2 from f4 to root (folder-to-root)
     moveResource(
       feideId1,
-      MoveResourceDTO(fromFolderId = Some(f4.id), toFolderId = None, resourceId = fr2.id),
+      MoveResourceDTO(fromFolderId = Value(f4.id), toFolderId = NullValue, resourceId = fr2.id),
     ) should be(204)
 
     val f4AfterFolderToRootMove = getFolderResources(feideId1, f4.id)
@@ -711,7 +712,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
 
     moveResource(
       feideId1,
-      MoveResourceDTO(fromFolderId = Some(f1.id), toFolderId = Some(f1.id), resourceId = res.id),
+      MoveResourceDTO(fromFolderId = Value(f1.id), toFolderId = Value(f1.id), resourceId = res.id),
       failOnError = false,
     ) should be(400)
   }
@@ -733,7 +734,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
 
     moveResource(
       feideId2,
-      MoveResourceDTO(fromFolderId = Some(f1.id), toFolderId = Some(f2.id), resourceId = res.id),
+      MoveResourceDTO(fromFolderId = Value(f1.id), toFolderId = Value(f2.id), resourceId = res.id),
       failOnError = false,
     ) should be(403)
   }
@@ -755,7 +756,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
 
     moveResource(
       feideId1,
-      MoveResourceDTO(fromFolderId = Some(f1U1.id), toFolderId = Some(f1U2.id), resourceId = res.id),
+      MoveResourceDTO(fromFolderId = Value(f1U1.id), toFolderId = Value(f1U2.id), resourceId = res.id),
       failOnError = false,
     ) should be(403)
   }
@@ -779,7 +780,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
 
     moveResource(
       feideId2,
-      MoveResourceDTO(fromFolderId = Some(f1U2.id), toFolderId = Some(f2U2.id), resourceId = u1Res.id),
+      MoveResourceDTO(fromFolderId = Value(f1U2.id), toFolderId = Value(f2U2.id), resourceId = u1Res.id),
       failOnError = false,
     ) should be(403)
   }
@@ -798,7 +799,7 @@ class FolderTest extends DatabaseIntegrationSuite with RedisIntegrationSuite wit
 
     moveResource(
       feideId1,
-      MoveResourceDTO(fromFolderId = Some(f1.id), toFolderId = Some(f2.id), resourceId = r1.id),
+      MoveResourceDTO(fromFolderId = Value(f1.id), toFolderId = Value(f2.id), resourceId = r1.id),
       failOnError = false,
     ) should be(400)
   }

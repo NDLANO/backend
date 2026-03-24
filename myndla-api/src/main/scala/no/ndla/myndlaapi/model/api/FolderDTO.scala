@@ -20,7 +20,7 @@ import sttp.tapir.Schema.annotations.description
 
 import java.util.UUID
 import no.ndla.common.DeriveHelpers
-import no.ndla.common.model.api.UpdateOrDelete
+import no.ndla.common.model.api.{NullableOrValue, UpdateOrDelete}
 
 case class OwnerDTO(
     @description("Name of the owner")
@@ -191,9 +191,9 @@ case class UpdatedResourceDTO(
 
 case class MoveResourceDTO(
     @description("Folder to move from. Empty value indicates root-resource.")
-    fromFolderId: Option[UUID],
+    fromFolderId: NullableOrValue[UUID],
     @description("Folder to move to. Empty value moves resource to root.")
-    toFolderId: Option[UUID],
+    toFolderId: NullableOrValue[UUID],
     @description("The resource to move")
     resourceId: UUID,
 )
