@@ -272,14 +272,18 @@ class FolderWriteService(using
   def updateFolder(id: UUID, updatedFolder: UpdatedFolderDTO, feide: FeideUserWrapper): Try[FolderDTO] = {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
-      user           <- feide.userOrAccessDenied
-      _              <- isOperationAllowedOrAccessDenied(feide, updatedFolder)
-      existingFolder <- folderRepository.folderWithId(id)
-      _              <- existingFolder.isOwner(user.feideId)
-      converted      <- folderConverterService.mergeFolder(existingFolder, updatedFolder)
-      maybeSiblings  <- getFolderWithDirectChildren(converted.parentId, user.feideId)
-      _              <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
-      updated        <- folderRepository.updateFolder(id, user.feideId, converted)
+      user                    <- feide.userOrAccessDenied
+      _                       <- isOperationAllowedOrAccessDenied(feide, updatedFolder)
+      existingFolder          <- folderRepository.folderWithId(id)
+      _                       <- existingFolder.isOwner(user.feideId)
+      converted               <- folderConverterService.mergeFolder(existingFolder, updatedFolder)
+      maybeSiblings           <- getFolderWithDirectChildren(converted.parentId, user.feideId)
+      _                       <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
+      convertedWithUpdatedRank =
+        if (converted.parentId != existingFolder.parentId) {
+          converted.copy(rank = getNextRank(maybeSiblings.childrenFolders))
+        } else converted
+      updated        <- folderRepository.updateFolder(id, user.feideId, convertedWithUpdatedRank)
       crumbs         <- folderReadService.getBreadcrumbs(updated)(using dbUtility.readOnlySession)
       siblingsToSort <- getFolderWithDirectChildren(updated.parentId, user.feideId)
       sortRequest     = FolderSortRequestDTO(sortedIds = siblingsToSort.childrenFolders.map(_.id))
