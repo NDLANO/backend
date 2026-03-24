@@ -335,6 +335,11 @@ class SearchController(using
     .map(_.split(",").toList)
     .getOrElse(List.empty)
 
+  def stringListParamOrNone(name: String)(implicit queryParams: QueryParams): Option[List[String]] = queryParams
+    .get(name)
+    .map(_.split(",").toList.some)
+    .getOrElse(None)
+
   def dateParamOrNone(name: String)(implicit queryParams: QueryParams): Option[NDLADate] = queryParams
     .get(name)
     .flatMap(str => NDLADate.fromString(str).toOption)
@@ -377,7 +382,7 @@ class SearchController(using
             noteQuery = NonEmptyString.fromOptString(stringParamOrNone("note-query")),
             sort = stringParamOrNone("sort").flatMap(Sort.valueOf),
             fallback = booleanParamOrNone("fallback"),
-            subjects = stringListParam("subjects").some,
+            subjects = stringListParamOrNone("subjects"),
             languageFilter = stringListParam("language-filter").some,
             relevance = stringListParam("relevance").some,
             scrollId = stringParamOrNone("search-context"),
@@ -392,7 +397,7 @@ class SearchController(using
             revisionDateFrom = dateParamOrNone("revision-date-from"),
             revisionDateTo = dateParamOrNone("revision-date-to"),
             excludeRevisionLog = booleanParamOrNone("exclude-revision-log"),
-            responsibleIds = stringListParam("responsible-ids").some,
+            responsibleIds = stringListParamOrNone("responsible-ids"),
             filterInactive = booleanParamOrNone("filter-inactive"),
             priority = stringListParam("priority").flatMap(Priority.withNameOption).some,
             topics = stringListParam("topics").some,
