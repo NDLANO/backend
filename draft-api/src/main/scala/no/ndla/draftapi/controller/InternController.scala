@@ -281,6 +281,6 @@ class InternController(using
     .in("refreshViews")
     .errorOut(errorOutputsFor(400, 500))
     .serverLogicPure { _ =>
-      writeService.updateEditorAndResponsibleViews(using dbUtility.autoSession)
+      writeService.updateEditorView(using dbUtility.autoSession)
     }
 }

@@ -391,26 +391,30 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     updated.notes.length should be(3)
   }
 
-  test("That creating or deleting article updates the materialized views") {
-    repository.getAllResponsibles(using dbUtility.readOnlySession).get should not(contain("new-responsible"))
-    repository.getAllEditors(using dbUtility.readOnlySession).get should not(contain("new-responsible"))
+  test("That creating or deleting article returns correct responsibles and editors") {
+    repository.updateEditorView(using dbUtility.autoSession) // Needed until we get rid of materialized view
+
+    repository.getAllResponsibles(using dbUtility.readOnlySession).get should be(Nil)
+    repository.getAllEditors(using dbUtility.readOnlySession).get should be(Nil)
 
     val article = sampleArticle.copy(
-      responsible = Some(Responsible(responsibleId = "new-responsible", lastUpdated = TestData.today)),
-      notes = Seq(EditorNote("note1", "new-responsible", Status(DraftStatus.PLANNED, Set.empty), TestData.today)),
+      responsible = Some(Responsible(responsibleId = "responsible-user", lastUpdated = TestData.today)),
+      notes = Seq(
+        EditorNote("note1", "note-user", Status(DraftStatus.PLANNED, Set.empty), TestData.today),
+        EditorNote("note2", "note-user", Status(DraftStatus.IN_PROGRESS, Set.empty), TestData.today),
+      ),
+      updatedBy = "updated-user",
     )
-    val updated = repository.insert(article)(using dbUtility.autoSession).get
-    updated.responsible.map(r => r.responsibleId) should be(Some("new-responsible"))
-    updated.notes.head.user should be("new-responsible")
+    val id = repository.insert(article)(using dbUtility.autoSession).get.id.get
+    repository.updateEditorView(using dbUtility.autoSession) // Needed until we get rid of materialized view
 
-    repository.updateEditorsAndResponsibleViews(using dbUtility.autoSession).get
-    repository.getAllResponsibles(using dbUtility.readOnlySession).get should contain("new-responsible")
-    repository.getAllEditors(using dbUtility.readOnlySession).get should contain("new-responsible")
+    repository.getAllResponsibles(using dbUtility.readOnlySession).get should be(Seq("responsible-user"))
+    repository.getAllEditors(using dbUtility.readOnlySession).get should be(Seq("note-user", "updated-user"))
 
-    repository.deleteArticle(updated.id.get)(using dbUtility.autoSession).get
-    repository.updateEditorsAndResponsibleViews(using dbUtility.autoSession).get
-    repository.getAllResponsibles(using dbUtility.readOnlySession).get should not(contain("new-responsible"))
-    repository.getAllEditors(using dbUtility.readOnlySession).get should not(contain("new-responsible"))
+    repository.deleteArticle(id)(using dbUtility.autoSession).get
+    repository.updateEditorView(using dbUtility.autoSession) // Needed until we get rid of materialized view
 
+    repository.getAllResponsibles(using dbUtility.readOnlySession).get should be(Nil)
+    repository.getAllEditors(using dbUtility.readOnlySession).get should be(Nil)
   }
 }

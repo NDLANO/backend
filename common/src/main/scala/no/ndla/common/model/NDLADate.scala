@@ -8,12 +8,13 @@
 
 package no.ndla.common.model
 
-import io.circe.{Decoder, Encoder, FailedCursor}
 import io.circe.syntax.*
-import scalikejdbc.ParameterBinderFactory
+import io.circe.{Decoder, Encoder, FailedCursor}
+import scalikejdbc.*
 import sttp.tapir.Schema
 
-import java.time.{Instant, LocalDateTime, Month, ZoneId, ZoneOffset, ZonedDateTime}
+import java.sql.ResultSet
+import java.time.*
 import java.time.format.DateTimeFormatter
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
@@ -24,7 +25,8 @@ case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate] {
     this.copy(underlying = f(underlying))
   }
 
-  def asUtcLocalDateTime: LocalDateTime = underlying.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime
+  def asUtcLocalDateTime: LocalDateTime = underlying.withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime
+  def toOffsetDateTime: OffsetDateTime  = underlying.toOffsetDateTime
 
   def minusSeconds(seconds: Long): NDLADate = withUnderlying(_.minusSeconds(seconds))
   def plusSeconds(seconds: Long): NDLADate  = withUnderlying(_.plusSeconds(seconds))
@@ -53,13 +55,15 @@ case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate] {
   override def compare(that: NDLADate): Int = {
     this.underlying.compareTo(that.underlying)
   }
+
+  def toTimestamptzParameterBinder: ParameterBinderWithValue = NDLADate.timestamptzBinder.apply(this)
 }
 
 object NDLADate {
   case class NDLADateError(message: String) extends RuntimeException(message)
 
   private val baseFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-  private val utcZone: ZoneId                  = ZoneId.of("UTC")
+  private val utcZone: ZoneOffset              = ZoneOffset.UTC
   private val localZone: ZoneId                = ZoneId.systemDefault()
 
   val MIN: NDLADate = fromDate(LocalDateTime.MIN)
@@ -86,7 +90,7 @@ object NDLADate {
   }
 
   def fromUnixTime(timestamp: Long): NDLADate = {
-    val date = LocalDateTime.ofEpochSecond(timestamp, 0, ZoneOffset.UTC)
+    val date = LocalDateTime.ofEpochSecond(timestamp, 0, utcZone)
     fromDate(date)
   }
 
@@ -103,7 +107,7 @@ object NDLADate {
   def fromDate(date: ZonedDateTime): NDLADate = new NDLADate(date)
 
   def fromTimestampSeconds(seconds: Long): NDLADate =
-    new NDLADate(ZonedDateTime.ofInstant(Instant.ofEpochSecond(seconds), ZoneId.systemDefault()))
+    new NDLADate(ZonedDateTime.ofInstant(Instant.ofEpochSecond(seconds), localZone))
 
   def fromString(str: String): Try[NDLADate] = {
     @tailrec
@@ -161,4 +165,21 @@ object NDLADate {
       ps.setObject(idx, v.asUtcLocalDateTime)
   }
 
+  // TODO: Make implicit/given after migrating DB columns to timestamptz
+  val timestamptzBinder: Binders[NDLADate] = new Binders[NDLADate] {
+    override def apply(value: NDLADate): ParameterBinderWithValue = {
+      if (value == null) ParameterBinder.NullParameterBinder
+      else ParameterBinder(value, (ps, idx) => ps.setObject(idx, value.toOffsetDateTime))
+    }
+
+    override def apply(rs: ResultSet, columnIndex: Int): NDLADate = {
+      val offsetDateTime = rs.getObject(columnIndex, classOf[OffsetDateTime])
+      NDLADate(offsetDateTime.atZoneSameInstant(localZone))
+    }
+
+    override def apply(rs: ResultSet, columnLabel: String): NDLADate = {
+      val offsetDateTime = rs.getObject(columnLabel, classOf[OffsetDateTime])
+      NDLADate(offsetDateTime.atZoneSameInstant(localZone))
+    }
+  }
 }

@@ -13,6 +13,6 @@ object `package` extends BaseModule {
     Seq(sttp, scalikejdbc, awsCloudfront, awsS3, awsTranscribe, jsoup)
   override def moduleDeps = Seq(build.language)
   object test extends TestBase {
-    override def moduleDeps = super.moduleDeps :+ build.testbase
+    override def moduleDeps = super.moduleDeps :+ build.scalatestsuite
   }
 }
