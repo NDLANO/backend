@@ -514,7 +514,7 @@ class WriteService(using
   }
 
   /** Batch job that fetches all images from S3, extracts EXIF data, and updates the database. Images that already have
-    * non-empty exifData are skipped. Missing S3 objects can optionally be ignored.
+    * non-empty exifData are skipped. Missing S3 objects are ignored.
     */
   def extractAndStoreExifDataForExistingImages(): Try[Unit] = {
     val batchSize     = 20
