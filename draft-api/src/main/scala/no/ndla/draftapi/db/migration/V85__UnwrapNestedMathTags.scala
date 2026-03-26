@@ -11,7 +11,7 @@ package no.ndla.draftapi.db.migration
 import no.ndla.draftapi.db.HtmlMigration
 import org.jsoup.nodes.Element
 
-class V83__UnwrapNestedMathTags extends HtmlMigration {
+class V85__UnwrapNestedMathTags extends HtmlMigration {
   override def convertHtml(doc: Element, language: String): Element = {
     doc
       .select("math math")
@@ -31,10 +31,12 @@ class V83__UnwrapNestedMathTags extends HtmlMigration {
     doc
   }
 
+  private def findOutermostMath(element: Element): Element = findOutermostMath(element.parent(), element)
+
   @annotation.tailrec
-  private def findOutermostMath(element: Element): Element = {
-    val parent = element.parent()
-    if (parent != null && parent.normalName() == "math") findOutermostMath(parent)
-    else element
+  private def findOutermostMath(current: Element, outermostMath: Element): Element = {
+    if (current == null) outermostMath
+    else if (current.normalName() == "math") findOutermostMath(current.parent(), current)
+    else findOutermostMath(current.parent(), outermostMath)
   }
 }
