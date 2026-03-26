@@ -50,7 +50,7 @@ class StandaloneVariantGenerationTest extends UnitSuite with TestEnvironment {
     when(imageRepository.getImageMetaBatched(any)).thenReturn(Success(Iterator.single(Seq(meta))))
     when(imageStorage.getRaw(eqTo(withoutVariants.fileName))).thenReturn(Success(TestData.clownfishS3Object))
 
-    standaloneVariantGeneration.generateVariantsForExistingImages(ImageVariantGenerationMode.MissingOnly, false).get
+    standaloneVariantGeneration.generateVariantsForExistingImages(ImageVariantGenerationMode.MissingOnly).get
 
     expectedNewFileData
       .variants
@@ -69,7 +69,7 @@ class StandaloneVariantGenerationTest extends UnitSuite with TestEnvironment {
     when(imageRepository.getImageMetaBatched(any)).thenReturn(Success(Iterator.single(Seq(meta))))
     when(imageStorage.getRaw(eqTo(partialVariants.fileName))).thenReturn(Success(TestData.clownfishS3Object))
 
-    standaloneVariantGeneration.generateVariantsForExistingImages(ImageVariantGenerationMode.MissingOnly, false).get
+    standaloneVariantGeneration.generateVariantsForExistingImages(ImageVariantGenerationMode.MissingOnly).get
 
     allVariants
       .variants
@@ -93,7 +93,7 @@ class StandaloneVariantGenerationTest extends UnitSuite with TestEnvironment {
     when(imageStorage.getRaw(eqTo(first.fileName))).thenReturn(Success(TestData.clownfishS3Object))
     when(imageStorage.getRaw(eqTo(second.fileName))).thenReturn(Success(TestData.clownfishS3Object))
 
-    standaloneVariantGeneration.generateVariantsForExistingImages(ImageVariantGenerationMode.ReplaceAll, false).get
+    standaloneVariantGeneration.generateVariantsForExistingImages(ImageVariantGenerationMode.ReplaceAll).get
 
     Seq(expectedFirst.variants, expectedSecond.variants).foreach(variants =>
       variants.foreach { case ImageVariant(_, key) =>
@@ -115,7 +115,7 @@ class StandaloneVariantGenerationTest extends UnitSuite with TestEnvironment {
       when(imageRepository.getImageMetaBatched(any)).thenReturn(Success(Iterator.single(Seq(meta))))
       when(imageRepository.update(any, any)(using any)).thenAnswer(i => Success(i.getArgument(0)))
 
-      standaloneVariantGeneration.generateVariantsForExistingImages(mode, false).get
+      standaloneVariantGeneration.generateVariantsForExistingImages(mode).get
 
       verify(imageRepository, times(1)).getImageMetaBatched(any)
       verify(imageRepository, times(1)).update(eqTo(meta), eqTo(meta.id.get))(using any)
@@ -138,7 +138,7 @@ class StandaloneVariantGenerationTest extends UnitSuite with TestEnvironment {
         Failure(MissingBucketKeyException(fileData.fileName))
       )
 
-      standaloneVariantGeneration.generateVariantsForExistingImages(ImageVariantGenerationMode.MissingOnly, true).get
+      standaloneVariantGeneration.generateVariantsForExistingImages(ImageVariantGenerationMode.MissingOnly).get
 
       verify(imageStorage, times(1)).getRaw(eqTo(fileData.fileName))
       verify(imageRepository, times(1)).update(eqTo(meta), eqTo(meta.id.get))(using any)
@@ -158,7 +158,7 @@ class StandaloneVariantGenerationTest extends UnitSuite with TestEnvironment {
     when(imageStorage.getRaw(eqTo(fileData.fileName))).thenReturn(Success(TestData.clownfishS3Object))
     when(imageStorage.deleteObjects(any)).thenReturn(Failure(storageException))
 
-    standaloneVariantGeneration.generateVariantsForExistingImages(ImageVariantGenerationMode.ReplaceAll, false).get
+    standaloneVariantGeneration.generateVariantsForExistingImages(ImageVariantGenerationMode.ReplaceAll).get
 
     expectedFileData
       .variants

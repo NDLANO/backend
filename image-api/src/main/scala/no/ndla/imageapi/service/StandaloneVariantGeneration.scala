@@ -10,7 +10,6 @@ package no.ndla.imageapi.service
 
 import cats.implicits.*
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.Environment.booleanPropOrFalse
 import no.ndla.common.errors.MissingBucketKeyException
 import no.ndla.database.DBUtility
 import no.ndla.imageapi.model.ImageUnprocessableFormatException
@@ -42,11 +41,10 @@ class StandaloneVariantGeneration(
             ImageVariantGenerationMode.values.map(_.entryName).mkString(", ")
         )
       }
-    val ignoreMissing = booleanPropOrFalse("STANDALONE_VARIANT_GENERATION_IGNORE_MISSING")
 
     logger.info(s"Starting standalone image variant generation in '${mode.entryName}' mode")
 
-    generateVariantsForExistingImages(mode, ignoreMissing) match {
+    generateVariantsForExistingImages(mode) match {
       case Success(_) =>
         logger.info("Standalone image variant generation finished successfully")
         sys.exit(0)
@@ -56,7 +54,7 @@ class StandaloneVariantGeneration(
     }
   }
 
-  def generateVariantsForExistingImages(mode: ImageVariantGenerationMode, ignoreMissingObjects: Boolean): Try[Unit] = {
+  def generateVariantsForExistingImages(mode: ImageVariantGenerationMode): Try[Unit] = {
     val batchIterator = imageRepository.getImageMetaBatched(BatchSize) match {
       case Success(iterator) => iterator
       case Failure(ex)       => return Failure(ex)
@@ -70,7 +68,7 @@ class StandaloneVariantGeneration(
             logger.info(s"Processing batch ${index + 1} of $totalBatchCount (batch size = $BatchSize)")
 
             val batchFuture = Future.traverse(batch) { imageMeta =>
-              processImageMeta(imageMeta, mode, ignoreMissingObjects)
+              processImageMeta(imageMeta, mode)
             }
 
             Try(Await.result(batchFuture, 5.minutes))
@@ -84,11 +82,9 @@ class StandaloneVariantGeneration(
     }.flatten
   }
 
-  private def processImageMeta(
-      imageMeta: ImageMetaInformation,
-      mode: ImageVariantGenerationMode,
-      ignoreMissingObjects: Boolean,
-  )(using ExecutionContext): Future[Unit] = {
+  private def processImageMeta(imageMeta: ImageMetaInformation, mode: ImageVariantGenerationMode)(using
+      ExecutionContext
+  ): Future[Unit] = {
     val imageMetaId = imageMeta.id match {
       case Some(id) => id
       case None     =>
@@ -99,7 +95,7 @@ class StandaloneVariantGeneration(
 
     Future
       .traverse(filesToProcess) { imageFile =>
-        generateAndUploadVariantsForImageFileDataAsync(imageMetaId, imageFile, ignoreMissingObjects)
+        generateAndUploadVariantsForImageFileDataAsync(imageMetaId, imageFile)
       }
       .flatMap { generatedFiles =>
         val updatedMeta = imageMeta.copy(images =
@@ -126,11 +122,9 @@ class StandaloneVariantGeneration(
       case ImageVariantGenerationMode.ReplaceAll => true
     })
 
-  private[service] def generateAndUploadVariantsForImageFileDataAsync(
-      imageMetaId: Long,
-      imageFile: ImageFileData,
-      ignoreMissingObjects: Boolean,
-  )(using ExecutionContext): Future[ImageFileData] = Future {
+  private[service] def generateAndUploadVariantsForImageFileDataAsync(imageMetaId: Long, imageFile: ImageFileData)(using
+      ExecutionContext
+  ): Future[ImageFileData] = Future {
     for {
       s3Object          <- imageStorage.getRaw(imageFile.fileName)
       processableStream <- imageConverter
@@ -167,7 +161,7 @@ class StandaloneVariantGeneration(
             ex
           },
         )
-    case Failure(ex: MissingBucketKeyException) if ignoreMissingObjects =>
+    case Failure(ex: MissingBucketKeyException) =>
       logger.warn(
         s"Ignoring missing bucket object for image (imageMetaId = $imageMetaId, fileName = ${imageFile.fileName})"
       )
