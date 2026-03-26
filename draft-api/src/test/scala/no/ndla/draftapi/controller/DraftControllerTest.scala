@@ -446,7 +446,7 @@ class DraftControllerTest extends UnitSuite with TestEnvironment with TapirContr
       .searchSettings
       .copy(
         searchLanguage = "*",
-        articleTypes = List("standard", "topic-article", "frontpage-article"),
+        articleTypes = List("standard", "topic-article", "frontpage-article", "case-article"),
         shouldScroll = true,
         sort = Sort.ByTitleAsc,
       )
