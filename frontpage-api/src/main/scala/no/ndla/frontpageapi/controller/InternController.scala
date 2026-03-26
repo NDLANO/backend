@@ -12,7 +12,7 @@ import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.frontpageapi.model.api.*
-import no.ndla.frontpageapi.service.ReadService
+import no.ndla.frontpageapi.service.{MatomoService, ReadService}
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -25,6 +25,7 @@ import scala.util.{Failure, Success}
 
 class InternController(using
     readService: ReadService,
+    matomoService: MatomoService,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
@@ -53,8 +54,9 @@ class InternController(using
       .in(query[Int]("page").default(1))
       .in(query[Int]("page-size").default(100))
       .out(jsonBody[SubjectPageDomainDumpDTO])
+      .errorOut(errorOutputsFor(400))
       .serverLogicPure { case (pageNo, pageSize) =>
-        readService.getSubjectPageDomainDump(pageNo, pageSize).asRight
+        readService.getSubjectPageDomainDump(pageNo, pageSize)
       },
     endpoint
       .get
@@ -63,6 +65,15 @@ class InternController(using
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { subjectId =>
         readService.domainSubjectPage(subjectId)
+      },
+    endpoint
+      .post
+      .in("matomo" / "popular-articles")
+      .summary("Trigger fetching popular articles from Matomo for subjectpages")
+      .out(jsonBody[List[PopularArticlesResultDTO]])
+      .errorOut(errorOutputsFor(400, 404, 502))
+      .serverLogicPure { _ =>
+        matomoService.updatePopularArticlesForAllSubjects()
       },
   )
 

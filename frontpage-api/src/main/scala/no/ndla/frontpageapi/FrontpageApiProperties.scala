@@ -11,12 +11,13 @@ package no.ndla.frontpageapi
 import no.ndla.common.configuration.{BaseProps, Prop}
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.database.DatabaseProps
+import no.ndla.network.clients.matomo.MatomoProps
 
 import scala.util.Properties.*
 
 type Props = FrontpageApiProperties
 
-class FrontpageApiProperties extends BaseProps with DatabaseProps {
+class FrontpageApiProperties extends BaseProps with DatabaseProps with MatomoProps {
   def ApplicationName            = "frontpage-api"
   val ApplicationPort: Int       = propOrElse("APPLICATION_PORT", "80").toInt
   val DefaultLanguage: String    = propOrElse("DEFAULT_LANGUAGE", "nb")

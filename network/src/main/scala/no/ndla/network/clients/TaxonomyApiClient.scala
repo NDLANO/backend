@@ -27,6 +27,20 @@ class TaxonomyApiClient(taxonomyBaseUrl: String)(using ndlaClient: NdlaClient) e
   private val TaxonomyApiEndpoint = s"$taxonomyBaseUrl/v1"
   private val timeoutSeconds      = 600.seconds
 
+  def getSubjects(shouldUsePublishedTax: Boolean): Try[List[Node]] = {
+    val params = Seq(
+      "includeContexts" -> "true",
+      "isVisible"       -> getIsVisibleParam(shouldUsePublishedTax),
+      "nodeType"        -> NodeType.SUBJECT.entryName,
+    )
+
+    get[List[Node]](
+      url = s"$TaxonomyApiEndpoint/nodes",
+      headers = getVersionHashHeader(shouldUsePublishedTax),
+      params = params,
+    )
+  }
+
   def getNodesPage(page: Int, pageSize: Int, shouldUsePublishedTax: Boolean): Try[PaginationPage[Node]] =
     get[PaginationPage[Node]](
       s"$TaxonomyApiEndpoint/nodes/page",

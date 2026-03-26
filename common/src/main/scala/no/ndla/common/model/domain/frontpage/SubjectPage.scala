@@ -26,6 +26,7 @@ case class SubjectPage(
     connectedTo: List[String],
     buildsOn: List[String],
     leadsTo: List[String],
+    popularArticles: Seq[PopularArticle] = Seq.empty,
 ) {
 
   def supportedLanguages: Seq[String] = getSupportedLanguages(about, metaDescription)
@@ -33,8 +34,15 @@ case class SubjectPage(
 }
 
 object SubjectPage {
-  implicit val decoder: Decoder[SubjectPage]               = deriveDecoder
-  implicit val encoder: Encoder[SubjectPage]               = deriveEncoder
+  implicit val encoder: Encoder[SubjectPage] = deriveEncoder
+  implicit val decoder: Decoder[SubjectPage] = deriveDecoder[SubjectPage].prepare(
+    _.withFocus(
+      _.mapObject(obj =>
+        if (obj.contains("popularArticles")) obj
+        else obj.add("popularArticles", io.circe.Json.arr())
+      )
+    )
+  )
   def decodeJson(json: String, id: Long): Try[SubjectPage] = {
     parse(json).flatMap(_.as[SubjectPage]).map(_.copy(id = id.some)).toTry
   }
