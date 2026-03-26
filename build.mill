@@ -1,3 +1,4 @@
+//| mill-jvm-version: system
 //| mvnDeps: [
 //|   "com.lihaoyi::mill-contrib-docker:$MILL_VERSION",
 //|   "io.circe::circe-generic:0.14.9",
