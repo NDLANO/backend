@@ -66,7 +66,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     }
   }
 
-  test("withId also returns archieved articles") {
+  test("withId also returns archived articles") {
     repository
       .insert(sampleArticle.copy(id = Some(1), status = Status(DraftStatus.PLANNED, Set.empty)))(using
         dbUtility.autoSession
@@ -250,7 +250,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
   test("published, then copied article creates new db version and bumps revision by two") {
     val article = TestData
       .sampleDomainArticle
-      .copy(status = Status(DraftStatus.UNPUBLISHED, Set.empty), revision = Some(3))
+      .copy(revision = Some(3), status = Status(DraftStatus.UNPUBLISHED, Set.empty))
     repository.insert(article)(using dbUtility.autoSession).get
     val oldCount                = repository.articlesWithId(article.id.get)(using dbUtility.autoSession).get.size
     val publishedArticle        = article.copy(status = Status(DraftStatus.PUBLISHED, Set.empty))
@@ -262,7 +262,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     updatedAndCopiedArticle.revision should be(Some(5))
 
     updatedAndCopiedArticle.notes.length should be(0)
-    updatedAndCopiedArticle should equal(publishedArticle.copy(notes = Seq(), revision = Some(5)))
+    updatedAndCopiedArticle should equal(publishedArticle.copy(revision = Some(5), notes = Seq()))
 
     val count = repository.articlesWithId(article.id.get)(using dbUtility.autoSession).get.size
     count should be(oldCount + 1)
@@ -288,7 +288,7 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     )
     val draftArticle1 = TestData
       .sampleDomainArticle
-      .copy(status = Status(DraftStatus.UNPUBLISHED, Set.empty), revision = Some(3), notes = prevNotes1)
+      .copy(revision = Some(3), status = Status(DraftStatus.UNPUBLISHED, Set.empty), notes = prevNotes1)
 
     val inserted = repository.insert(draftArticle1)(using dbUtility.autoSession).get
     val fetched  = repository.withId(inserted.id.get)(using dbUtility.readOnlySession).get.get
@@ -356,14 +356,14 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     val comments = Seq(Comment(UUID.randomUUID(), now, now, "hei", isOpen = false, solved = true))
     val article  = TestData
       .sampleDomainArticle
-      .copy(status = Status(DraftStatus.IN_PROGRESS, Set.empty), comments = comments, revision = Some(1))
+      .copy(revision = Some(1), status = Status(DraftStatus.IN_PROGRESS, Set.empty), comments = comments)
     val topicArticle = TestData
       .sampleTopicArticle
       .copy(
         id = Some(123L),
+        revision = Some(1),
         status = Status(DraftStatus.IN_PROGRESS, Set.empty),
         comments = comments,
-        revision = Some(1),
       )
 
     repository.insert(article)(using dbUtility.autoSession).get

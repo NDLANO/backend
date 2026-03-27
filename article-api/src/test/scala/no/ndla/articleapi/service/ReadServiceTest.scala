@@ -65,7 +65,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       .copy(content = Seq(articleContent1), visualElement = Seq(VisualElement(visualElementBefore, "nb")))
 
     when(articleRepository.withId(eqTo(1L))(using any)).thenReturn(Success(Some(toArticleRow(article))))
-    when(articleRepository.getExternalIdsFromId(eqTo(1L))(using any)).thenReturn(Success(List("54321")))
 
     val expectedResult: Try[Cachable[api.ArticleV2DTO]] = Cachable.yes(
       converterService.toApiArticleV2(
@@ -74,7 +73,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
           visualElement = Seq(VisualElement(visualElementAfter, "nb")),
         ),
         "nb",
-        List("54321"),
         false,
       )
     )
@@ -176,7 +174,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
       Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
-    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(Success(List("")))
 
     val result = readService
       .getArticlesByIds(articleIds = ids, language = "nb", fallback = true, page = 1, pageSize = 10, feide = None)
@@ -197,7 +194,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
       Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
-    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(Success(List("")))
 
     val userMock = mock[MyNDLAUser]
     when(userMock.isTeacher).thenReturn(true)
@@ -229,7 +225,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
       Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
-    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(Success(List("")))
 
     val result = readService
       .getArticlesByIds(
@@ -255,7 +250,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     when(articleRepository.withIds(any, any, any)(using any)).thenReturn(
       Success(Seq(toArticleRow(article1), toArticleRow(article2), toArticleRow(article3)))
     )
-    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(Success(List("")))
     when(feideApiClient.getFeideExtendedUser(any)).thenReturn(Failure(new RuntimeException))
 
     val result = readService
@@ -293,8 +287,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         title = Seq(Title("Parent title", "nb")),
         metaDescription = Seq(Description("Parent description", "nb")),
         metaImage = Seq(ArticleMetaImage("1000", "alt", "nb")),
-        slug = Some("some-slug"),
         published = date,
+        slug = Some("some-slug"),
       )
 
     val article1 = TestData
@@ -304,8 +298,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         title = Seq(Title("Article1 title", "nb")),
         metaDescription = Seq(Description("Article1 description", "nb")),
         metaImage = Seq(ArticleMetaImage("1000", "alt", "nb")),
-        slug = Some("slug-one"),
         published = date,
+        slug = Some("slug-one"),
       )
 
     val article2 = TestData
@@ -315,8 +309,8 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
         title = Seq(Title("Article2 title", "nb")),
         metaDescription = Seq(Description("Article2 description", "nb")),
         metaImage = Seq(),
-        slug = Some("slug-two"),
         published = date,
+        slug = Some("slug-two"),
       )
 
     val frontPage = FrontPageDTO(
@@ -324,11 +318,10 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       List(MenuDTO(1, List(MenuDTO(2, List.empty, Some(true)), MenuDTO(3, List.empty, Some(true))), Some(false))),
     )
 
-    val rowOne   = Some(ArticleRow(1, 1, 1, Some("some-slug"), Some(parentArticle)))
-    val rowTwo   = Some(ArticleRow(2, 2, 2, Some("slug-one"), Some(article1)))
-    val rowThree = Some(ArticleRow(3, 3, 3, Some("slug-two"), Some(article2)))
+    val rowOne   = Some(ArticleRow(1, List(), 1, 1, Some("some-slug"), Some(parentArticle)))
+    val rowTwo   = Some(ArticleRow(2, List(), 2, 2, Some("slug-one"), Some(article1)))
+    val rowThree = Some(ArticleRow(3, List(), 3, 3, Some("slug-two"), Some(article2)))
 
-    when(articleRepository.getExternalIdsFromId(any)(using any)).thenReturn(Success(List.empty))
     when(frontpageApiClient.getFrontpage).thenReturn(Success(frontPage))
     when(articleRepository.withSlug(eqTo("some-slug"))(using any)).thenReturn(Success(rowOne))
     when(articleRepository.withId(eqTo(1L))(using any)).thenReturn(Success(rowOne))

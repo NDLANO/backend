@@ -10,7 +10,14 @@ package no.ndla.articleapi.model.domain
 
 import no.ndla.common.model.domain.article.Article
 
-case class ArticleRow(rowId: Long, revision: Int, articleId: Long, slug: Option[String], article: Option[Article])
+case class ArticleRow(
+    rowId: Long,
+    externalIds: List[String],
+    revision: Int,
+    articleId: Long,
+    slug: Option[String],
+    article: Option[Article],
+)
 
 object ArticleRow {
 

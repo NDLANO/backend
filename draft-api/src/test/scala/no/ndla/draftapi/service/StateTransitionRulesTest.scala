@@ -329,6 +329,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val draft     = Draft(
       id = Some(articleId),
       revision = None,
+      externalIds = List(),
       status = common.Status(PLANNED, Set.empty),
       title = Seq.empty,
       content = Seq.empty,
@@ -368,6 +369,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       .Article(
         id = Some(articleId),
         revision = None,
+        externalIds = List(),
         title = Seq.empty,
         content = Seq.empty,
         copyright = common.article.Copyright(CC_BY.toString, None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
@@ -458,6 +460,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val draft             = Draft(
       id = Some(articleId),
       revision = None,
+      externalIds = List(),
       status = common.Status(PLANNED, Set.empty),
       title = Seq.empty,
       content = Seq.empty,
@@ -517,6 +520,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val draft             = Draft(
       id = Some(articleId),
       revision = None,
+      externalIds = List(),
       status = common.Status(PLANNED, Set.empty),
       title = Seq.empty,
       content = Seq.empty,
@@ -578,6 +582,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val draft             = Draft(
       id = Some(articleId),
       revision = None,
+      externalIds = List(),
       status = common.Status(PLANNED, Set.empty),
       title = Seq.empty,
       content = Seq.empty,
@@ -640,6 +645,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     val draft     = Draft(
       id = Some(articleId),
       revision = None,
+      externalIds = List(),
       status = common.Status(PUBLISHED, Set.empty),
       title = Seq.empty,
       content = Seq.empty,
