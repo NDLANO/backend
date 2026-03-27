@@ -54,8 +54,9 @@ class InternController(using
       .in(query[Int]("page").default(1))
       .in(query[Int]("page-size").default(100))
       .out(jsonBody[SubjectPageDomainDumpDTO])
+      .errorOut(errorOutputsFor(400))
       .serverLogicPure { case (pageNo, pageSize) =>
-        readService.getSubjectPageDomainDump(pageNo, pageSize).asRight
+        readService.getSubjectPageDomainDump(pageNo, pageSize)
       },
     endpoint
       .get
@@ -67,17 +68,12 @@ class InternController(using
       },
     endpoint
       .post
-      .in("matomo" / "popular-articles" / path[Long]("subjectId"))
-      .in(query[String]("subjectSlug").description("The subject slug used in Matomo dimension13"))
-      .in(query[Option[Int]]("limit").description("Max number of articles to fetch"))
-      .summary("Trigger fetching popular articles from Matomo for a subject page")
-      .out(jsonBody[PopularArticlesResultDTO])
+      .in("matomo" / "popular-articles")
+      .summary("Trigger fetching popular articles from Matomo for subjectpages")
+      .out(jsonBody[List[PopularArticlesResultDTO]])
       .errorOut(errorOutputsFor(400, 404, 502))
-      .serverLogicPure { case (subjectId, subjectSlug, limit) =>
-        matomoService.updatePopularArticlesForSubject(subjectId, subjectSlug, limit.getOrElse(20)) match {
-          case Success(count) => PopularArticlesResultDTO(subjectId, count).asRight
-          case Failure(ex)    => returnLeftError(ex)
-        }
+      .serverLogicPure { _ =>
+        matomoService.updatePopularArticlesForAllSubjects()
       },
   )
 

@@ -71,7 +71,7 @@ class ConverterService(using props: Props) {
               sub.connectedTo,
               sub.buildsOn,
               sub.leadsTo,
-              sub.popularArticles.map(a => PopularArticleDTO(a.pageUrl, a.contextId, a.nbHits)),
+              sub.popularArticles.map(a => PopularArticleDTO(a.pageUrl, a.contextId, a.numHits)),
             )
           )
       }
