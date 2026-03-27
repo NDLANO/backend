@@ -26,14 +26,15 @@ case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate] {
 
   def asUtcLocalDateTime: LocalDateTime = underlying.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime
 
-  def minusSeconds(seconds: Long): NDLADate = withUnderlying(_.minusSeconds(seconds))
-  def plusSeconds(seconds: Long): NDLADate  = withUnderlying(_.plusSeconds(seconds))
-  def minusDays(days: Long): NDLADate       = withUnderlying(_.minusDays(days))
-  def plusDays(days: Long): NDLADate        = withUnderlying(_.plusDays(days))
-  def plusYears(years: Long): NDLADate      = withUnderlying(_.plusYears(years))
-  def minusYears(years: Long): NDLADate     = withUnderlying(_.minusYears(years))
-  def isAfter(date: NDLADate): Boolean      = underlying.isAfter(date.underlying)
-  def isBefore(date: NDLADate): Boolean     = underlying.isBefore(date.underlying)
+  def minusSeconds(seconds: Long): NDLADate                    = withUnderlying(_.minusSeconds(seconds))
+  def plusSeconds(seconds: Long): NDLADate                     = withUnderlying(_.plusSeconds(seconds))
+  def minusDays(days: Long): NDLADate                          = withUnderlying(_.minusDays(days))
+  def plusDays(days: Long): NDLADate                           = withUnderlying(_.plusDays(days))
+  def plusYears(years: Long): NDLADate                         = withUnderlying(_.plusYears(years))
+  def minusYears(years: Long): NDLADate                        = withUnderlying(_.minusYears(years))
+  def isAfter(date: NDLADate): Boolean                         = underlying.isAfter(date.underlying)
+  def isBefore(date: NDLADate): Boolean                        = underlying.isBefore(date.underlying)
+  def between(startDate: NDLADate, endDate: NDLADate): Boolean = isAfter(startDate) && isBefore(endDate)
 
   def withYear(year: Int): NDLADate             = withUnderlying(_.withYear(year))
   def withMonth(month: Int): NDLADate           = withUnderlying(_.withMonth(month))

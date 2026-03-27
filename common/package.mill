@@ -10,7 +10,7 @@ object `package` extends BaseModule {
   def mvnDeps: T[Seq[Dep]] = logging ++
     enumeratum ++
     tapirCirce ++
-    Seq(sttp, scalikejdbc, awsCloudfront, awsS3, awsTranscribe, jsoup)
+    Seq(sttp, scalikejdbc, awsCloudfront, awsS3, awsTranscribe, awsSesV2, jsoup)
   override def moduleDeps = Seq(build.language)
   object test extends TestBase {
     override def moduleDeps = super.moduleDeps :+ build.testbase
