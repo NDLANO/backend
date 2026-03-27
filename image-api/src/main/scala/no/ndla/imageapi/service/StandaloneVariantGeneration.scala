@@ -190,7 +190,7 @@ class StandaloneVariantGeneration(
         obsoleteKeys = originalKeys.diff(updatedKeys)
       } yield obsoleteKeys
 
-      val obsoleteKeys = obsoleteKeySets.reduceLeft((res, elem) => res.union(elem))
+      val obsoleteKeys = obsoleteKeySets.foldLeft(Set.empty[String])((res, elem) => res.union(elem))
       if (obsoleteKeys.nonEmpty) {
         imageStorage.deleteObjects(obsoleteKeys.toSeq) match {
           case Success(_)  => ()
