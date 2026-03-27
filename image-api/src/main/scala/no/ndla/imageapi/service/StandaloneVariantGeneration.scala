@@ -115,14 +115,19 @@ class StandaloneVariantGeneration(
       }
   }
 
-  private def shouldProcess(imageFile: ImageFileData, mode: ImageVariantGenerationMode): Boolean =
-    ProcessableContentTypes.contains(imageFile.contentType) && (mode match {
-      case ImageVariantGenerationMode.MissingOnly =>
-        val expectedSizes = imageFile.dimensions.map(ImageVariantSize.forDimensions).getOrElse(Seq.empty)
-        val actualSizes   = imageFile.variants.map(_.size)
-        actualSizes != expectedSizes
+  private def shouldProcess(imageFile: ImageFileData, mode: ImageVariantGenerationMode): Boolean = {
+    val isProcessableType = ProcessableContentTypes.contains(imageFile.contentType)
+    mode match {
+      case _ if !isProcessableType                => false
+      case ImageVariantGenerationMode.MissingOnly => imageFile.dimensions.map(ImageVariantSize.forDimensions) match {
+          case Some(expectedSizes) =>
+            val actualSizes = imageFile.variants.map(_.size)
+            actualSizes != expectedSizes
+          case None => true
+        }
       case ImageVariantGenerationMode.ReplaceAll => true
-    })
+    }
+  }
 
   private[service] def generateAndUploadVariantsForImageFileDataAsync(imageMetaId: Long, imageFile: ImageFileData)(using
       ExecutionContext
@@ -154,7 +159,7 @@ class StandaloneVariantGeneration(
     case Success((img, dimensions, fileStem, format)) => writeService
         .generateAndUploadVariantsAsync(img, dimensions, fileStem, format)
         .transform(
-          variants => imageFile.copy(variants = variants),
+          variants => imageFile.copy(variants = variants, dimensions = Some(dimensions)),
           { ex =>
             logger.error(
               s"Failed to generate/upload variants for image (imageMetaId = $imageMetaId, fileName = ${imageFile.fileName})",
