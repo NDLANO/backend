@@ -836,12 +836,12 @@ export type components = {
              * Format: uuid
              * @description Folder to move from. Empty value indicates root-resource.
              */
-            fromFolderId?: string;
+            fromFolderId: string | null;
             /**
              * Format: uuid
              * @description Folder to move to. Empty value moves resource to root.
              */
-            toFolderId?: string;
+            toFolderId: string | null;
             /**
              * Format: uuid
              * @description The resource to move
