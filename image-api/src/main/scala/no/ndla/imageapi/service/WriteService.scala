@@ -672,7 +672,7 @@ class WriteService(using
                 }
             }
 
-            Try(Await.result(storeResultsFuture, 5.minutes))
+            Try(Await.result(storeResultsFuture, 5.minutes)).flatten
           }
           .collectFirst { case Failure(ex) =>
             ex
