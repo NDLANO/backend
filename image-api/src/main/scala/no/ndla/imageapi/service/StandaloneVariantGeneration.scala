@@ -102,7 +102,9 @@ class StandaloneVariantGeneration(
           imageMeta
             .images
             .map { imageFile =>
-              generatedFiles.find(updated => updated.fileName == imageFile.fileName).getOrElse(imageFile)
+              generatedFiles
+                .find(updated => updated.fileName == imageFile.fileName && updated.language == imageFile.language)
+                .getOrElse(imageFile)
             }
         )
 
@@ -185,7 +187,7 @@ class StandaloneVariantGeneration(
       val obsoleteKeySets = for {
         original    <- originalMeta.images
         originalKeys = original.variants.map(_.bucketKey).toSet
-        updated     <- updatedMeta.images.find(_.fileName == original.fileName)
+        updated     <- updatedMeta.images.find(u => u.fileName == original.fileName && u.language == original.language)
         updatedKeys  = updated.variants.map(_.bucketKey).toSet
         obsoleteKeys = originalKeys.diff(updatedKeys)
       } yield obsoleteKeys
