@@ -14,6 +14,7 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.{NullValue, Value}
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
 import no.ndla.database.DBUtility
@@ -343,11 +344,20 @@ class FolderWriteService(using
   }
 
   def moveResourceConnection(move: MoveResourceDTO, feide: FeideUserWrapper): Try[Unit] = dbUtility.rollbackOnFailure {
+    val fromFolderId = move.fromFolderId match {
+      case NullValue => None
+      case Value(id) => Some(id)
+    }
+    val toFolderId = move.toFolderId match {
+      case NullValue => None
+      case Value(id) => Some(id)
+    }
+
     implicit session =>
-      (move.fromFolderId, move.toFolderId) match {
+      (fromFolderId, toFolderId) match {
         case (fromFolderId, toFolderId) if fromFolderId == toFolderId =>
           Failure(
-            ValidationException("toFolderId", "fromfolderId and toFolderId has to point to two different folders")
+            ValidationException("toFolderId", "fromFolderId and toFolderId has to point to two different folders")
           )
         case (fromFolderId, toFolderId) => for {
             user         <- feide.userOrAccessDenied
