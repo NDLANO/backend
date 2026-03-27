@@ -12,7 +12,7 @@ import cats.implicits.*
 import io.circe.generic.auto.*
 import no.ndla.common.model.domain.frontpage.SubjectPage
 import no.ndla.frontpageapi.model.api.*
-import no.ndla.frontpageapi.service.ReadService
+import no.ndla.frontpageapi.service.{MatomoService, ReadService}
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, TapirController}
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -25,6 +25,7 @@ import scala.util.{Failure, Success}
 
 class InternController(using
     readService: ReadService,
+    matomoService: MatomoService,
     myNDLAApiClient: MyNDLAApiClient,
     errorHelpers: ErrorHelpers,
     errorHandling: ErrorHandling,
@@ -63,6 +64,20 @@ class InternController(using
       .errorOut(errorOutputsFor(400, 404))
       .serverLogicPure { subjectId =>
         readService.domainSubjectPage(subjectId)
+      },
+    endpoint
+      .post
+      .in("matomo" / "popular-articles" / path[Long]("subjectId"))
+      .in(query[String]("subjectSlug").description("The subject slug used in Matomo dimension13"))
+      .in(query[Option[Int]]("limit").description("Max number of articles to fetch"))
+      .summary("Trigger fetching popular articles from Matomo for a subject page")
+      .out(jsonBody[PopularArticlesResultDTO])
+      .errorOut(errorOutputsFor(400, 404, 502))
+      .serverLogicPure { case (subjectId, subjectSlug, limit) =>
+        matomoService.updatePopularArticlesForSubject(subjectId, subjectSlug, limit.getOrElse(20)) match {
+          case Success(count) => PopularArticlesResultDTO(subjectId, count).asRight
+          case Failure(ex)    => returnLeftError(ex)
+        }
       },
   )
 

@@ -15,7 +15,13 @@ import scala.util.{Failure, Success, Try}
 import cats.implicits.*
 import no.ndla.common.errors.MissingIdException
 import no.ndla.common.model
-import no.ndla.common.model.api.frontpage.{AboutSubjectDTO, BannerImageDTO, SubjectPageDTO, VisualElementDTO}
+import no.ndla.common.model.api.frontpage.{
+  AboutSubjectDTO,
+  BannerImageDTO,
+  PopularArticleDTO,
+  SubjectPageDTO,
+  VisualElementDTO,
+}
 import no.ndla.common.model.domain.frontpage
 import no.ndla.common.model.domain.frontpage.{
   AboutSubject,
@@ -65,6 +71,7 @@ class ConverterService(using props: Props) {
               sub.connectedTo,
               sub.buildsOn,
               sub.leadsTo,
+              sub.popularArticles.map(a => PopularArticleDTO(a.pageUrl, a.contextId, a.nbHits)),
             )
           )
       }

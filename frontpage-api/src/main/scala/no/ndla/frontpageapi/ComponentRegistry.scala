@@ -13,9 +13,10 @@ import no.ndla.database.{DBMigrator, DataSource, DBUtility}
 import no.ndla.frontpageapi.controller.*
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
-import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.frontpageapi.service.{ConverterService, MatomoService, ReadService, WriteService}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.clients.matomo.MatomoApiClient
 import no.ndla.network.tapir.{
   ErrorHandling,
   ErrorHelpers,
@@ -44,6 +45,8 @@ class ComponentRegistry(properties: FrontpageApiProperties) extends TapirApplica
   given filmFrontPageRepository: FilmFrontPageRepository = new FilmFrontPageRepository
   given converterService: ConverterService               = new ConverterService
   given myndlaApiClient: MyNDLAApiClient                 = new MyNDLAApiClient
+  given matomoApiClient: MatomoApiClient                 = new MatomoApiClient
+  given matomoService: MatomoService                     = new MatomoService
 
   given readService: ReadService   = new ReadService
   given writeService: WriteService = new WriteService

@@ -24,6 +24,7 @@ case class SubjectPageDTO(
     connectedTo: List[String],
     buildsOn: List[String],
     leadsTo: List[String],
+    popularArticles: Seq[PopularArticleDTO],
 )
 
 object SubjectPageDTO {

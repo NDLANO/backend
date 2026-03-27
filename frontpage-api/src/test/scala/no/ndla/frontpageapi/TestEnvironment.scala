@@ -18,9 +18,10 @@ import no.ndla.frontpageapi.controller.{
 }
 import no.ndla.frontpageapi.model.domain.{DBFilmFrontPage, DBFrontPage, DBSubjectPage}
 import no.ndla.frontpageapi.repository.{FilmFrontPageRepository, FrontPageRepository, SubjectPageRepository}
-import no.ndla.frontpageapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.frontpageapi.service.{ConverterService, MatomoService, ReadService, WriteService}
 import no.ndla.network.NdlaClient
 import no.ndla.network.clients.MyNDLAApiClient
+import no.ndla.network.clients.matomo.MatomoApiClient
 import no.ndla.network.tapir.{
   ErrorHandling,
   ErrorHelpers,
@@ -61,6 +62,8 @@ trait TestEnvironment extends TapirApplication[FrontpageApiProperties] with Mock
 
   implicit lazy val ndlaClient: NdlaClient           = mock[NdlaClient]
   implicit lazy val myndlaApiClient: MyNDLAApiClient = mock[MyNDLAApiClient]
+  implicit lazy val matomoApiClient: MatomoApiClient = mock[MatomoApiClient]
+  implicit lazy val matomoService: MatomoService     = mock[MatomoService]
 
   implicit lazy val swagger: SwaggerController = mock[SwaggerController]
 }
