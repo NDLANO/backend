@@ -1096,4 +1096,264 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     tags should be(List("norsk", "orm", "backend", "tag", "ndla"))
 
   }
+
+  test("That moving a resource connection works as intended") {
+    implicit val session: DBSession = DBUtil.autoSession
+    val feideId                     = "feide1"
+    userRepository.reserveFeideIdIfNotExists(feideId)
+
+    val now = NDLADate.now().withNano(0)
+    val id1 = UUID.randomUUID()
+    val id2 = UUID.randomUUID()
+
+    val folder1 = Folder(
+      id = id1,
+      feideId = feideId,
+      parentId = None,
+      name = "folder1",
+      status = FolderStatus.PRIVATE,
+      description = Some("Beskrivelse 1"),
+      rank = 1,
+      created = now,
+      updated = now,
+      resources = List.empty,
+      subfolders = List.empty,
+      shared = None,
+      user = None,
+    )
+
+    val folder2 = Folder(
+      id = id2,
+      feideId = feideId,
+      parentId = None,
+      name = "folder2",
+      status = FolderStatus.PRIVATE,
+      description = Some("Beskrivelse 2"),
+      rank = 2,
+      created = now,
+      updated = now,
+      resources = List.empty,
+      subfolders = List.empty,
+      shared = None,
+      user = None,
+    )
+
+    val resource1 = Resource(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      created = now,
+      path = "/r/norsk-sf-vg2/an-be-het-else-ord/140d6a7263",
+      resourceType = ResourceType.Article,
+      tags = List("norsk", "tag", "ndla", "backend"),
+      resourceId = "16434",
+      connection = None,
+    )
+
+    val resource2 = Resource(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      created = now,
+      path = "/r/norsk-sf-vg2/hvordan-skrive-kortsvar-om-grammatikk/c44c43b139",
+      resourceType = ResourceType.Article,
+      tags = List("tag", "norsk", "orm", "ndla"),
+      resourceId = "35549",
+      connection = None,
+    )
+
+    val conn1 =
+      ResourceConnection(folderId = Some(folder1.id), resourceId = resource1.id, rank = 1, favoritedDate = now)
+
+    val conn2 = ResourceConnection(folderId = None, resourceId = resource2.id, rank = 1, favoritedDate = now)
+
+    val conn3 = ResourceConnection(folderId = None, resourceId = resource1.id, rank = 2, favoritedDate = now)
+
+    val bulkInserts = BulkInserts(
+      folders = List(folder1, folder2),
+      resources = List(resource1, resource2),
+      connections = List(conn1, conn2, conn3),
+    )
+
+    repository.insertFolderInBulk(bulkInserts).get
+    repository.insertResourcesInBulk(bulkInserts).get
+    repository.insertResourceConnectionInBulk(bulkInserts).get
+
+    repository.moveResourceConnection(resource2.id, None, Some(folder1.id), 2)
+
+    repository.getFolderResources(folder1.id).get.map(_.id) should be(List(resource1.id, resource2.id))
+
+    repository.moveResourceConnection(resource1.id, Some(folder1.id), Some(folder2.id), 1)
+
+    repository.getFolderResources(folder2.id).get.map(_.id) should be(List(resource1.id))
+
+    repository.getFolderResources(folder1.id).get.map(_.id) should be(List(resource2.id))
+
+    repository.moveResourceConnection(resource2.id, Some(folder1.id), None, 2)
+
+    repository.getRootResources(feideId).get.map(_.id) should be(List(resource1.id, resource2.id))
+  }
+
+  test("That moving a resource connection to a non-existent folder fails") {
+    implicit val session: DBSession = DBUtil.autoSession
+    val feideId                     = "feide1"
+    userRepository.reserveFeideIdIfNotExists(feideId)
+
+    val now = NDLADate.now().withNano(0)
+    val id1 = UUID.randomUUID()
+
+    val folder1 = Folder(
+      id = id1,
+      feideId = feideId,
+      parentId = None,
+      name = "folder1",
+      status = FolderStatus.PRIVATE,
+      description = Some("Beskrivelse 1"),
+      rank = 1,
+      created = now,
+      updated = now,
+      resources = List.empty,
+      subfolders = List.empty,
+      shared = None,
+      user = None,
+    )
+
+    val resource1 = Resource(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      created = now,
+      path = "/r/norsk-sf-vg2/an-be-het-else-ord/140d6a7263",
+      resourceType = ResourceType.Article,
+      tags = List("norsk", "tag", "ndla", "backend"),
+      resourceId = "16434",
+      connection = None,
+    )
+
+    val conn1 =
+      ResourceConnection(folderId = Some(folder1.id), resourceId = resource1.id, rank = 1, favoritedDate = now)
+
+    val bulkInserts = BulkInserts(folders = List(folder1), resources = List(resource1), connections = List(conn1))
+
+    repository.insertFolderInBulk(bulkInserts).get
+    repository.insertResourcesInBulk(bulkInserts).get
+    repository.insertResourceConnectionInBulk(bulkInserts).get
+
+    repository.moveResourceConnection(resource1.id, Some(folder1.id), Some(UUID.randomUUID()), 1).isFailure should be(
+      true
+    )
+
+  }
+  test("That moving a non-existent resource connection fails") {
+    implicit val session: DBSession = DBUtil.autoSession
+    val feideId                     = "feide1"
+    userRepository.reserveFeideIdIfNotExists(feideId)
+
+    val now = NDLADate.now().withNano(0)
+    val id1 = UUID.randomUUID()
+
+    val folder1 = Folder(
+      id = id1,
+      feideId = feideId,
+      parentId = None,
+      name = "folder1",
+      status = FolderStatus.PRIVATE,
+      description = Some("Beskrivelse 1"),
+      rank = 1,
+      created = now,
+      updated = now,
+      resources = List.empty,
+      subfolders = List.empty,
+      shared = None,
+      user = None,
+    )
+
+    val resource1 = Resource(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      created = now,
+      path = "/r/norsk-sf-vg2/an-be-het-else-ord/140d6a7263",
+      resourceType = ResourceType.Article,
+      tags = List("norsk", "tag", "ndla", "backend"),
+      resourceId = "16434",
+      connection = None,
+    )
+
+    val conn1 =
+      ResourceConnection(folderId = Some(folder1.id), resourceId = resource1.id, rank = 1, favoritedDate = now)
+
+    val bulkInserts = BulkInserts(folders = List(folder1), resources = List(resource1), connections = List(conn1))
+
+    repository.insertFolderInBulk(bulkInserts).get
+    repository.insertResourcesInBulk(bulkInserts).get
+    repository.insertResourceConnectionInBulk(bulkInserts).get
+
+    repository.moveResourceConnection(resource1.id, Some(UUID.randomUUID()), None, 1).isFailure should be(true)
+
+  }
+
+  test("That moving a resource into a folder that already contains that resource fails") {
+    implicit val session: DBSession = DBUtil.autoSession
+    val feideId                     = "feide1"
+    userRepository.reserveFeideIdIfNotExists(feideId)
+
+    val now = NDLADate.now().withNano(0)
+    val id1 = UUID.randomUUID()
+    val id2 = UUID.randomUUID()
+
+    val folder1 = Folder(
+      id = id1,
+      feideId = feideId,
+      parentId = None,
+      name = "folder1",
+      status = FolderStatus.PRIVATE,
+      description = Some("Beskrivelse 1"),
+      rank = 1,
+      created = now,
+      updated = now,
+      resources = List.empty,
+      subfolders = List.empty,
+      shared = None,
+      user = None,
+    )
+
+    val folder2 = Folder(
+      id = id2,
+      feideId = feideId,
+      parentId = None,
+      name = "folder2",
+      status = FolderStatus.PRIVATE,
+      description = Some("Beskrivelse 2"),
+      rank = 2,
+      created = now,
+      updated = now,
+      resources = List.empty,
+      subfolders = List.empty,
+      shared = None,
+      user = None,
+    )
+
+    val resource1 = Resource(
+      id = UUID.randomUUID(),
+      feideId = feideId,
+      created = now,
+      path = "/r/norsk-sf-vg2/an-be-het-else-ord/140d6a7263",
+      resourceType = ResourceType.Article,
+      tags = List("norsk", "tag", "ndla", "backend"),
+      resourceId = "16434",
+      connection = None,
+    )
+
+    val conn1 =
+      ResourceConnection(folderId = Some(folder1.id), resourceId = resource1.id, rank = 1, favoritedDate = now)
+
+    val conn2 =
+      ResourceConnection(folderId = Some(folder2.id), resourceId = resource1.id, rank = 1, favoritedDate = now)
+
+    val bulkInserts =
+      BulkInserts(folders = List(folder1, folder2), resources = List(resource1), connections = List(conn1, conn2))
+
+    repository.insertFolderInBulk(bulkInserts).get
+    repository.insertResourcesInBulk(bulkInserts).get
+    repository.insertResourceConnectionInBulk(bulkInserts).get
+
+    repository.moveResourceConnection(resource1.id, Some(folder2.id), Some(folder1.id), 2).isFailure should be(true)
+  }
 }

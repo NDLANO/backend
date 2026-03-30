@@ -438,4 +438,19 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
     sq.map(rs => rs.long("count")).runSingle().map(_.exists(_ > 0))
   }
 
+  def getAllResponsibles(using session: DBSession): Try[Seq[String]] = {
+    tsql"""select responsibleId from responsible_view""".map(rs => rs.string("responsibleId")).runList()
+  }
+
+  def getAllEditors(using session: DBSession): Try[Seq[String]] = {
+    tsql"""select editorId from editor_view""".map(rs => rs.string("editorId")).runList()
+  }
+
+  def updateEditorsAndResponsibleViews(using session: DBSession): Try[Unit] = {
+    tsql"""
+      REFRESH MATERIALIZED VIEW CONCURRENTLY responsible_view;
+      REFRESH MATERIALIZED VIEW CONCURRENTLY editor_view;
+    """.update().map(_ => ())
+  }
+
 }

@@ -85,7 +85,7 @@ class FolderConverterService(using clock: Clock) extends StrictLogging {
     }
     val rank =
       if (parentId != existing.parentId) {
-        0
+        1
       } else {
         existing.rank
       }

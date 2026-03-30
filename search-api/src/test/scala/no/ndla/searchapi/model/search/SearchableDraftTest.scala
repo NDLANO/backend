@@ -50,6 +50,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
     val introductions = SearchableLanguageValues(Seq(LanguageValue("en", "Wroom wroom")))
 
     val metaDescriptions = SearchableLanguageValues(Seq(LanguageValue("nb", "Mammas bil")))
+    val disclaimers      = SearchableLanguageValues(Seq(LanguageValue("en", "Fasten your seatbelt")))
 
     val tags = SearchableLanguageList(Seq(LanguageValue("en", Seq("Mum", "Car", "Wroom"))))
 
@@ -84,10 +85,13 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       content = contents,
       introduction = introductions,
       metaDescription = metaDescriptions,
+      disclaimer = disclaimers,
       tags = tags,
       lastUpdated = TestData.today,
       license = Some(License.CC_BY_SA.toString),
-      authors = List("Jonas", "Papi"),
+      creators = List("Jonas"),
+      processors = List("Papi"),
+      rightsholders = List("Rita"),
       articleType = LearningResourceType.Article.toString,
       defaultTitle = Some("Christian Tut"),
       supportedLanguages = List("en", "nb", "nn"),

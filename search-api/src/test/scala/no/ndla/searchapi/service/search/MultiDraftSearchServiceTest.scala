@@ -9,7 +9,7 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO}
+import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO, SearchType}
 import no.ndla.common.model.domain.ArticleType
 import no.ndla.common.model.domain.draft.DraftStatus
 import no.ndla.common.model.domain.learningpath.LearningPathVerificationStatus.CREATED_BY_NDLA
@@ -428,15 +428,22 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That filtering for subjects works as expected") {
     val Success(search) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(language = "*", subjects = List("urn:subject:2"))
+      multiDraftSearchSettings.copy(language = "*", subjects = Some(List("urn:subject:2")))
     ): @unchecked
     search.totalCount should be(7)
     search.summaryResults.map(_.id) should be(Seq(1, 5, 5, 6, 7, 11, 12))
+
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", subjects = Some(List()))
+    ): @unchecked
+    search2.totalCount should be(3)
+    search2.summaryResults.map(_.id) should be(Seq(6, 13, 16))
+
   }
 
   test("That filtering for subjects with inactive contexts works as expected") {
     val Success(search) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(language = "*", subjects = List("urn:subject:2"), filterInactive = true)
+      multiDraftSearchSettings.copy(language = "*", subjects = Some(List("urn:subject:2")), filterInactive = true)
     ): @unchecked
     search.totalCount should be(4)
     search.summaryResults.flatMap(_.contexts).toList.length should be(5)
@@ -445,15 +452,16 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   test("That filtering for subjects returns all drafts with any of listed subjects") {
     val Success(search) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(subjects = List("urn:subject:2", "urn:subject:1"))
+      multiDraftSearchSettings.copy(subjects = Some(List("urn:subject:2", "urn:subject:1")))
     ): @unchecked
     search.totalCount should be(15)
     search.summaryResults.map(_.id) should be(Seq(1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 7, 8, 9, 11, 12))
   }
 
   test("That filtering for invisible subjects returns all drafts with any of listed subjects") {
-    val Success(search) =
-      multiDraftSearchService.matchingQuery(multiDraftSearchSettings.copy(subjects = List("urn:subject:3"))): @unchecked
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(subjects = Some(List("urn:subject:3")))
+    ): @unchecked
     search.totalCount should be(2)
     search.summaryResults.map(_.id) should be(Seq(1, 15))
   }
@@ -544,6 +552,24 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     search3.summaryResults.map(_.id) should be(Seq(16))
   }
 
+  test("That filtering on responsibleIds works") {
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", responsibleIdFilter = Some(List("ndalId54321")))
+    ): @unchecked
+
+    search.totalCount should be(4)
+    search.summaryResults.map(_.id) should be(Seq(1, 5, 9, 13))
+
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(language = "*", responsibleIdFilter = Some(List()))
+    ): @unchecked
+
+    val (draftResults, lpResults) = search2.summaryResults.partition(_.resultType == SearchType.Drafts)
+    draftResults.map(_.id) should be(Seq(2, 4, 6, 8, 10, 12, 16))
+    lpResults.map(_.id) should be(Seq(1, 2, 3, 4, 5, 6))
+
+  }
+
   test("That filtering on learningpath learningresourcetype returns learningpaths") {
     val Success(search) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(language = "*", learningResourceTypes = List(LearningResourceType.LearningPath))
@@ -629,7 +655,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     search.summaryResults.map(_.id) should be(Seq(1, 1, 2, 2, 4, 4, 9, 12))
   }
 
-  test("That searching for authors works as expected") {
+  test("That searching for contributors works as expected") {
     val Success(search1) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(
         query = Some(NonEmptyString.fromString("Kjekspolitiet").get),
@@ -644,6 +670,12 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     ): @unchecked
     search2.totalCount should be(2)
     search2.summaryResults.map(_.id) should be(Seq(2, 5))
+
+    val Success(search3) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("Clark Kent").get), language = AllLanguages)
+    ): @unchecked
+    search3.totalCount should be(1)
+    search3.summaryResults.map(_.id) should be(Seq(4))
   }
 
   test("That filtering by relevance id works when no subject is specified") {
@@ -670,7 +702,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     val Success(search1) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(
         language = AllLanguages,
-        subjects = List("urn:subject:2"),
+        subjects = Some(List("urn:subject:2")),
         relevanceIds = List("urn:relevance:core"),
       )
     ): @unchecked

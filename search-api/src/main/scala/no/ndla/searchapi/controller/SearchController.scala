@@ -31,7 +31,7 @@ import no.ndla.searchapi.controller.parameters.{
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.grep.GrepSearchResultsDTO
 import no.ndla.searchapi.model.api.{GroupSearchResultDTO, SubjectAggregationsDTO}
-import no.ndla.searchapi.model.domain.Sort
+import no.ndla.searchapi.model.domain.{DraftSearchField, Sort}
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
 import no.ndla.searchapi.service.search.{
   GrepSearchService,
@@ -244,7 +244,7 @@ class SearchController(using
       license = q.license,
       sort = sort,
       ids = q.learningResourceIds.values.some,
-      subjects = q.subjects.values.some,
+      subjects = q.subjects.optValues,
       resourceTypes = q.resourceTypes.values.some,
       contextTypes = q.contextTypes.values.some,
       relevance = q.relevanceFilter.values.some,
@@ -335,6 +335,11 @@ class SearchController(using
     .map(_.split(",").toList)
     .getOrElse(List.empty)
 
+  def stringListParamOrNone(name: String)(implicit queryParams: QueryParams): Option[List[String]] = queryParams
+    .get(name)
+    .map(_.split(",").toList.some)
+    .getOrElse(None)
+
   def dateParamOrNone(name: String)(implicit queryParams: QueryParams): Option[NDLADate] = queryParams
     .get(name)
     .flatMap(str => NDLADate.fromString(str).toOption)
@@ -373,10 +378,11 @@ class SearchController(using
             resourceTypes = stringListParam("resource-types").some,
             license = stringParamOrNone("license"),
             query = NonEmptyString.fromOptString(stringParamOrNone("query")),
+            queryFields = stringListParam("query-fields").flatMap(DraftSearchField.withNameOption).some,
             noteQuery = NonEmptyString.fromOptString(stringParamOrNone("note-query")),
             sort = stringParamOrNone("sort").flatMap(Sort.valueOf),
             fallback = booleanParamOrNone("fallback"),
-            subjects = stringListParam("subjects").some,
+            subjects = stringListParamOrNone("subjects"),
             languageFilter = stringListParam("language-filter").some,
             relevance = stringListParam("relevance").some,
             scrollId = stringParamOrNone("search-context"),
@@ -391,7 +397,7 @@ class SearchController(using
             revisionDateFrom = dateParamOrNone("revision-date-from"),
             revisionDateTo = dateParamOrNone("revision-date-to"),
             excludeRevisionLog = booleanParamOrNone("exclude-revision-log"),
-            responsibleIds = stringListParam("responsible-ids").some,
+            responsibleIds = stringListParamOrNone("responsible-ids"),
             filterInactive = booleanParamOrNone("filter-inactive"),
             priority = stringListParam("priority").flatMap(Priority.withNameOption).some,
             topics = stringListParam("topics").some,
@@ -489,7 +495,7 @@ class SearchController(using
           pageSize = params.pageSize.getOrElse(10),
           sort = params.sort.getOrElse(Sort.ByRelevanceDesc),
           withIdIn = params.ids.getOrElse(List.empty),
-          subjects = params.subjects.getOrElse(List.empty),
+          subjects = params.subjects,
           resourceTypes = params.resourceTypes.getOrElse(List.empty),
           learningResourceTypes = params.contextTypes.getOrElse(List.empty).flatMap(LearningResourceType.valueOf),
           supportedLanguages = params.languageFilter.getOrElse(List.empty),
@@ -523,6 +529,7 @@ class SearchController(using
           user = user,
           query = params.query,
           noteQuery = params.noteQuery,
+          queryFields = params.queryFields.getOrElse(List.empty),
           fallback = params.fallback.getOrElse(false),
           language = params.language.getOrElse(AllLanguages),
           license = params.license,
@@ -530,7 +537,7 @@ class SearchController(using
           pageSize = params.pageSize.getOrElse(10),
           sort = params.sort.getOrElse(Sort.ByRelevanceDesc),
           withIdIn = params.ids.getOrElse(List.empty),
-          subjects = params.subjects.getOrElse(List.empty),
+          subjects = params.subjects,
           topics = params.topics.getOrElse(List.empty),
           resourceTypes = params.resourceTypes.getOrElse(List.empty),
           learningResourceTypes = params.contextTypes.getOrElse(List.empty).flatMap(LearningResourceType.valueOf),
@@ -549,7 +556,7 @@ class SearchController(using
           revisionDateFilterFrom = params.revisionDateFrom,
           revisionDateFilterTo = params.revisionDateTo,
           excludeRevisionHistory = params.excludeRevisionLog.getOrElse(false),
-          responsibleIdFilter = params.responsibleIds.getOrElse(List.empty),
+          responsibleIdFilter = params.responsibleIds,
           articleTypes = params.articleTypes.getOrElse(List.empty),
           filterInactive = params.filterInactive.getOrElse(false),
           priority = params.priority.getOrElse(List.empty),

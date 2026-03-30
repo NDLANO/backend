@@ -15,6 +15,7 @@ import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.*
 import no.ndla.common.model.domain.*
+import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.domain.concept.{ConceptContent, ConceptType}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.common.model.taxonomy.{Node, NodeType, TaxonomyBundle, TaxonomyContext}
@@ -24,7 +25,7 @@ import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
+import no.ndla.searchapi.model.domain.{DraftSearchField, IndexingBundle, Sort}
 import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment}
 
@@ -414,25 +415,25 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 3)
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List.empty))
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = None))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 2, 3))
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List("hei")))
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = Some(List("hei"))))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 3))
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List("hei2")))
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = Some(List("hei2"))))
       .get
       .summaryResults
       .map(_.id) should be(Seq(2))
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List("hei", "hei2")))
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = Some(List("hei", "hei2"))))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 2, 3))
@@ -453,16 +454,14 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 4)
 
     multiDraftSearchService
-      .matchingQuery(
-        multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByResponsibleLastUpdatedAsc)
-      )
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = None, sort = Sort.ByResponsibleLastUpdatedAsc))
       .get
       .summaryResults
       .map(_.id) should be(Seq(1, 3, 2, 4))
 
     multiDraftSearchService
       .matchingQuery(
-        multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByResponsibleLastUpdatedDesc)
+        multiDraftSearchSettings.copy(responsibleIdFilter = None, sort = Sort.ByResponsibleLastUpdatedDesc)
       )
       .get
       .summaryResults
@@ -714,13 +713,13 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
     blockUntil(() => draftIndexService.countDocuments == 4)
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByStatusAsc))
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = None, sort = Sort.ByStatusAsc))
       .get
       .summaryResults
       .map(_.id) should be(Seq(4, 3, 1, 2))
 
     multiDraftSearchService
-      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = List.empty, sort = Sort.ByStatusDesc))
+      .matchingQuery(multiDraftSearchSettings.copy(responsibleIdFilter = None, sort = Sort.ByStatusDesc))
       .get
       .summaryResults
       .map(_.id) should be(Seq(2, 1, 3, 4))
@@ -1134,11 +1133,189 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       .matchingQuery(
         multiDraftSearchSettings.copy(
           resultTypes = Some(List(SearchType.Drafts, SearchType.Concepts, SearchType.LearningPaths)),
-          responsibleIdFilter = List("some-user"),
+          responsibleIdFilter = Some(List("some-user")),
         )
       )
       .get
     search.summaryResults.map(_.id) should be(Seq(1, 3))
+  }
+
+  test("That query fields restrict which draft fields are searched") {
+    val draft1 = TestData
+      .draft1
+      .copy(
+        id = Some(1),
+        title = Seq(Title("Gris", "nb")),
+        introduction = Seq.empty,
+        metaDescription = Seq.empty,
+        content = Seq(ArticleContent("Hund", "nb")),
+        tags = Seq.empty,
+        notes = Seq.empty,
+        previousVersionsNotes = Seq.empty,
+        disclaimer = OptLanguageFields.empty,
+      )
+    val draft2 = TestData
+      .draft1
+      .copy(
+        id = Some(2),
+        title = Seq(Title("Hund", "nb")),
+        introduction = Seq.empty,
+        metaDescription = Seq.empty,
+        content = Seq(ArticleContent("Gris", "nb")),
+        tags = Seq.empty,
+        notes = Seq.empty,
+        previousVersionsNotes = Seq.empty,
+        disclaimer = OptLanguageFields.empty,
+      )
+    val draft3 = TestData
+      .draft1
+      .copy(
+        id = Some(3),
+        title = Seq(Title("Hund", "nb")),
+        introduction = Seq.empty,
+        metaDescription = Seq.empty,
+        content = Seq(ArticleContent("Hund", "nb")),
+        tags = Seq.empty,
+        notes = Seq.empty,
+        previousVersionsNotes = Seq.empty,
+        disclaimer = OptLanguageFields.empty[String].withValue("Gris", "nb"),
+      )
+
+    draftIndexService.indexDocument(draft1, indexingBundle).failIfFailure
+    draftIndexService.indexDocument(draft2, indexingBundle).failIfFailure
+    draftIndexService.indexDocument(draft3, indexingBundle).failIfFailure
+
+    blockUntil(() => draftIndexService.countDocuments == 3)
+
+    multiDraftSearchService
+      .matchingQuery(multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("Gris").get)))
+      .get
+      .summaryResults
+      .map(_.id) should be(Seq(1, 2, 3))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          query = Some(NonEmptyString.fromString("Gris").get),
+          queryFields = List(DraftSearchField.Title),
+        )
+      )
+      .get
+      .summaryResults
+      .map(_.id) should be(Seq(1))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          query = Some(NonEmptyString.fromString("Gris").get),
+          queryFields = List(DraftSearchField.Content),
+        )
+      )
+      .get
+      .summaryResults
+      .map(_.id) should be(Seq(2))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          query = Some(NonEmptyString.fromString("Gris").get),
+          queryFields = List(DraftSearchField.Disclaimer),
+        )
+      )
+      .get
+      .summaryResults
+      .map(_.id) should be(Seq(3))
+  }
+
+  test("That contributor query fields can be searched separately") {
+    val baseCopyright = TestData.draftPublicDomainCopyright
+    val draft1        = TestData
+      .draft1
+      .copy(
+        id = Some(1),
+        title = Seq(Title("Hund", "nb")),
+        content = Seq(ArticleContent("Hund", "nb")),
+        notes = Seq.empty,
+        previousVersionsNotes = Seq.empty,
+        copyright = Some(baseCopyright.copy(creators = List(Author(ContributorType.Writer, "NDLA")))),
+      )
+
+    val draft2 = TestData
+      .draft1
+      .copy(
+        id = Some(2),
+        title = Seq(Title("Hund", "nb")),
+        content = Seq(ArticleContent("Hund", "nb")),
+        notes = Seq.empty,
+        previousVersionsNotes = Seq.empty,
+        copyright = Some(baseCopyright.copy(processors = List(Author(ContributorType.Editorial, "NDLA")))),
+      )
+    val draft3 = TestData
+      .draft1
+      .copy(
+        id = Some(3),
+        title = Seq(Title("Hund", "nb")),
+        content = Seq(ArticleContent("Hund", "nb")),
+        notes = Seq.empty,
+        previousVersionsNotes = Seq.empty,
+        copyright = Some(baseCopyright.copy(rightsholders = List(Author(ContributorType.RightsHolder, "NDLA")))),
+      )
+
+    draftIndexService.indexDocument(draft1, indexingBundle).failIfFailure
+    draftIndexService.indexDocument(draft2, indexingBundle).failIfFailure
+    draftIndexService.indexDocument(draft3, indexingBundle).failIfFailure
+
+    blockUntil(() => draftIndexService.countDocuments == 3)
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          query = Some(NonEmptyString.fromString("NDLA").get),
+          queryFields = List(DraftSearchField.Creators),
+        )
+      )
+      .get
+      .summaryResults
+      .map(_.id) should be(Seq(1))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          query = Some(NonEmptyString.fromString("NDLA").get),
+          queryFields = List(DraftSearchField.Processors),
+        )
+      )
+      .get
+      .summaryResults
+      .map(_.id) should be(Seq(2))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          query = Some(NonEmptyString.fromString("NDLA").get),
+          queryFields = List(DraftSearchField.Rightsholders),
+        )
+      )
+      .get
+      .summaryResults
+      .map(_.id) should be(Seq(3))
+
+    multiDraftSearchService
+      .matchingQuery(multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("NDLA").get)))
+      .get
+      .summaryResults
+      .map(_.id) should be(Seq(1, 2, 3))
+
+    multiDraftSearchService
+      .matchingQuery(
+        multiDraftSearchSettings.copy(
+          query = Some(NonEmptyString.fromString("Bearbeideren").get),
+          queryFields = List(DraftSearchField.Creators),
+        )
+      )
+      .get
+      .summaryResults
+      .map(_.id) should be(Seq.empty)
   }
 
 }

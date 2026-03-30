@@ -28,7 +28,7 @@ import no.ndla.search.AggregationBuilder.{buildTermsAggregation, getAggregations
 import no.ndla.search.{BaseIndexService, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.Props
 import no.ndla.searchapi.model.api.{SubjectAggregationDTO, SubjectAggregationsDTO}
-import no.ndla.searchapi.model.domain.SearchResult
+import no.ndla.searchapi.model.domain.{DraftSearchField, SearchResult}
 import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
 
 import scala.util.{Failure, Success, Try}
@@ -75,18 +75,22 @@ class MultiDraftSearchService(using
     val flowStatuses                                                    = DraftStatus.values.filterNot(s => flowExcludeStatuses.contains(s)).toList
     def aggregateSubject(subjectId: String): Try[SubjectAggregationDTO] = for {
       old <- filteredCountSearch(
-        MultiDraftSearchSettings.default(user).copy(subjects = List(subjectId), publishedFilterTo = Some(fiveYearsAgo))
+        MultiDraftSearchSettings
+          .default(user)
+          .copy(subjects = Some(List(subjectId)), publishedFilterTo = Some(fiveYearsAgo))
       )
       revisions <- filteredCountSearch(
-        MultiDraftSearchSettings.default(user).copy(subjects = List(subjectId), revisionDateFilterTo = Some(inOneYear))
+        MultiDraftSearchSettings
+          .default(user)
+          .copy(subjects = Some(List(subjectId)), revisionDateFilterTo = Some(inOneYear))
       )
       publishedArticles <- filteredCountSearch(
         MultiDraftSearchSettings
           .default(user)
-          .copy(subjects = List(subjectId), statusFilter = List(DraftStatus.PUBLISHED))
+          .copy(subjects = Some(List(subjectId)), statusFilter = List(DraftStatus.PUBLISHED))
       )
       inFlow <- filteredCountSearch(
-        MultiDraftSearchSettings.default(user).copy(subjects = List(subjectId), statusFilter = flowStatuses)
+        MultiDraftSearchSettings.default(user).copy(subjects = Some(List(subjectId)), statusFilter = flowStatuses)
       )
       favorited <- aggregateFavorites(subjectId)
     } yield SubjectAggregationDTO(
@@ -157,6 +161,11 @@ class MultiDraftSearchService(using
   private def buildContentIndexesQuery(settings: MultiDraftSearchSettings) = settings
     .query
     .map(queryString => {
+      val draftSearchFields = settings.queryFields match {
+        case Nil => DraftSearchField.values.toList
+        case l   => l
+      }
+
       val langQueryFunc = (fieldName: String, boost: Double) =>
         buildSimpleStringQuery(
           queryString,
@@ -166,28 +175,41 @@ class MultiDraftSearchService(using
           settings.fallback,
           decompounded = settings.searchDecompounded,
         )
+      val contributorQuery = (fieldName: String) => simpleStringQuery(queryString.underlying).field(fieldName, 1)
 
       val contextIdQuery        = boolQuery().should(termQuery("contexts.contextId", queryString.underlying))
       val revisionMetaNoteQuery = simpleStringQuery(queryString.underlying).field("revisionMeta.note")
 
-      boolQuery().should(
-        List(
-          langQueryFunc("title", 20),
-          langQueryFunc("introduction", 2),
-          langQueryFunc("metaDescription", 1),
-          langQueryFunc("content", 1),
-          langQueryFunc("tags", 1),
-          langQueryFunc("embedAttributes", 1),
-          simpleStringQuery(queryString.underlying).field("authors", 1),
-          nestedQuery("contexts", contextIdQuery).ignoreUnmapped(true),
-          termQuery("contextids", queryString.underlying),
-          idsQuery(queryString.underlying),
-          nestedQuery("revisionMeta", revisionMetaNoteQuery).ignoreUnmapped(true),
-        ) ++
-          getRevisionHistoryLogQuery(queryString.underlying, settings.excludeRevisionHistory) ++
-          buildNestedEmbedField(List(queryString.underlying), None, settings.language, settings.fallback) ++
-          buildNestedEmbedField(List.empty, Some(queryString.underlying), settings.language, settings.fallback)
-      )
+      val alwaysIncludedQueries: List[Query] = List(
+        Some(nestedQuery("contexts", contextIdQuery).ignoreUnmapped(true)),
+        Some(termQuery("contextids", queryString.underlying)),
+        Some(idsQuery(queryString.underlying)),
+        buildNestedEmbedField(List(queryString.underlying), None, settings.language, settings.fallback),
+        buildNestedEmbedField(List.empty, Some(queryString.underlying), settings.language, settings.fallback),
+      ).flatten
+
+      val draftFieldQueries = draftSearchFields
+        .distinct
+        .flatMap {
+          case DraftSearchField.Title           => Some(langQueryFunc("title", 20))
+          case DraftSearchField.Introduction    => Some(langQueryFunc("introduction", 2))
+          case DraftSearchField.MetaDescription => Some(langQueryFunc("metaDescription", 1))
+          case DraftSearchField.Disclaimer      => Some(langQueryFunc("disclaimer", 1))
+          case DraftSearchField.Content         => Some(langQueryFunc("content", 1))
+          case DraftSearchField.Tags            => Some(langQueryFunc("tags", 1))
+          case DraftSearchField.EmbedAttributes => Some(langQueryFunc("embedAttributes", 1))
+          case DraftSearchField.Creators        => Some(contributorQuery("creators"))
+          case DraftSearchField.Processors      => Some(contributorQuery("processors"))
+          case DraftSearchField.Rightsholders   => Some(contributorQuery("rightsholders"))
+          case DraftSearchField.RevisionMeta    =>
+            Some(nestedQuery("revisionMeta", revisionMetaNoteQuery).ignoreUnmapped(true))
+          case DraftSearchField.Notes         => Some(simpleStringQuery(queryString.underlying).field("notes", 1))
+          case DraftSearchField.PreviousNotes => Option.when(!settings.excludeRevisionHistory)(
+              simpleStringQuery(queryString.underlying).field("previousVersionsNotes", 1)
+            )
+        }
+
+      boolQuery().should(alwaysIncludedQueries ++ draftFieldQueries)
     })
 
   private def filteredCountSearch(settings: MultiDraftSearchSettings): Try[Long] = {
@@ -296,8 +318,10 @@ class MultiDraftSearchService(using
       dateRangeFilter("nextRevision.revisionDate", settings.revisionDateFilterFrom, settings.revisionDateFilterTo)
     val publishedDateFilter     = dateRangeFilter("published", settings.publishedFilterFrom, settings.publishedFilterTo)
     val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
-    val responsibleIdFilter     = Option.when(settings.responsibleIdFilter.nonEmpty) {
-      termsQuery("responsible.responsibleId", settings.responsibleIdFilter)
+    val responsibleFilter       = settings.responsibleIdFilter match {
+      case Some(Nil) => Some(boolQuery().not(existsQuery("responsible.responsibleId")))
+      case Some(ids) => Some(termsQuery("responsible.responsibleId", ids))
+      case None      => None
     }
 
     val priorityFilter = Option.when(settings.priority.nonEmpty)(
@@ -309,9 +333,9 @@ class MultiDraftSearchService(using
     val learningResourceType        = learningResourceFilter(settings.learningResourceTypes)
     val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, filterByNoResourceType = false)
     val taxonomySubjectFilter       = subjectFilter(settings.subjects, settings.filterInactive)
-    val conceptSubjectFilter        = subjectFilterForConcept(settings.subjects)
+    val conceptSubjectFilter        = subjectFilterForConcept(settings.subjects.getOrElse(List.empty))
     val taxonomyTopicFilter         = topicFilter(settings.topics, settings.filterInactive)
-    val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
+    val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects.getOrElse(List.empty))
     val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
 
     List(
@@ -334,7 +358,7 @@ class MultiDraftSearchService(using
       embedResourceAndIdFilter,
       revisionDateFilter,
       publishedDateFilter,
-      responsibleIdFilter,
+      responsibleFilter,
       priorityFilter,
       learningResourceType,
     ).flatten
@@ -348,12 +372,6 @@ class MultiDraftSearchService(using
 
   private def learningResourceFilter(types: List[LearningResourceType]): Option[Query] =
     Option.when(types.nonEmpty)(termsQuery("learningResourceType", types.map(_.entryName)))
-
-  private def getRevisionHistoryLogQuery(queryString: String, excludeHistoryLog: Boolean): Seq[Query] = {
-    Seq(simpleStringQuery(queryString).field("notes", 1)) ++ Option.when(!excludeHistoryLog)(
-      simpleStringQuery(queryString).field("previousVersionsNotes", 1)
-    )
-  }
 
   private def dateToEs(date: NDLADate): Long                                                                   = date.toUTCEpochSecond * 1000
   private def dateRangeFilter(field: String, from: Option[NDLADate], to: Option[NDLADate]): Option[RangeQuery] = {

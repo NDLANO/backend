@@ -14,6 +14,7 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
+import no.ndla.common.model.api.{NullValue, Value}
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
 import no.ndla.database.DBUtility
@@ -28,6 +29,7 @@ import no.ndla.myndlaapi.model.api.{
   ExportedUserDataDTO,
   FolderDTO,
   FolderSortRequestDTO,
+  MoveResourceDTO,
   NewFolderDTO,
   NewResourceDTO,
   ResourceDTO,
@@ -41,6 +43,7 @@ import no.ndla.myndlaapi.model.domain.{
   FolderAndDirectChildren,
   FolderSortException,
   Rankable,
+  ResourceConnection,
   SavedSharedFolder,
 }
 import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
@@ -50,7 +53,6 @@ import scalikejdbc.DBSession
 import java.util.UUID
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
-import no.ndla.myndlaapi.model.domain.ResourceConnection
 
 class FolderWriteService(using
     folderReadService: FolderReadService,
@@ -272,14 +274,18 @@ class FolderWriteService(using
   def updateFolder(id: UUID, updatedFolder: UpdatedFolderDTO, feide: FeideUserWrapper): Try[FolderDTO] = {
     implicit val session: DBSession = folderRepository.getSession(readOnly = false)
     for {
-      user           <- feide.userOrAccessDenied
-      _              <- isOperationAllowedOrAccessDenied(feide, updatedFolder)
-      existingFolder <- folderRepository.folderWithId(id)
-      _              <- existingFolder.isOwner(user.feideId)
-      converted      <- folderConverterService.mergeFolder(existingFolder, updatedFolder)
-      maybeSiblings  <- getFolderWithDirectChildren(converted.parentId, user.feideId)
-      _              <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
-      updated        <- folderRepository.updateFolder(id, user.feideId, converted)
+      user                    <- feide.userOrAccessDenied
+      _                       <- isOperationAllowedOrAccessDenied(feide, updatedFolder)
+      existingFolder          <- folderRepository.folderWithId(id)
+      _                       <- existingFolder.isOwner(user.feideId)
+      converted               <- folderConverterService.mergeFolder(existingFolder, updatedFolder)
+      maybeSiblings           <- getFolderWithDirectChildren(converted.parentId, user.feideId)
+      _                       <- validateUpdatedFolder(converted.name, converted.parentId, maybeSiblings, converted)
+      convertedWithUpdatedRank =
+        if (converted.parentId != existingFolder.parentId) {
+          converted.copy(rank = getNextRank(maybeSiblings.childrenFolders))
+        } else converted
+      updated        <- folderRepository.updateFolder(id, user.feideId, convertedWithUpdatedRank)
       crumbs         <- folderReadService.getBreadcrumbs(updated)(using dbUtility.readOnlySession)
       siblingsToSort <- getFolderWithDirectChildren(updated.parentId, user.feideId)
       sortRequest     = FolderSortRequestDTO(sortedIds = siblingsToSort.childrenFolders.map(_.id))
@@ -335,6 +341,56 @@ class FolderWriteService(using
       sortRequest      = FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.id))
       _               <- performSort(siblingsToSort, sortRequest, user.feideId, sharedFolderSort = false)
     } yield deletedFolderId
+  }
+
+  def moveResourceConnection(move: MoveResourceDTO, feide: FeideUserWrapper): Try[Unit] = dbUtility.rollbackOnFailure {
+    val fromFolderId = move.fromFolderId match {
+      case NullValue => None
+      case Value(id) => Some(id)
+    }
+    val toFolderId = move.toFolderId match {
+      case NullValue => None
+      case Value(id) => Some(id)
+    }
+
+    implicit session =>
+      (fromFolderId, toFolderId) match {
+        case (fromFolderId, toFolderId) if fromFolderId == toFolderId =>
+          Failure(
+            ValidationException("toFolderId", "fromFolderId and toFolderId has to point to two different folders")
+          )
+        case (fromFolderId, toFolderId) => for {
+            user         <- feide.userOrAccessDenied
+            _            <- canWriteOrAccessDenied(feide)
+            _            <- fromFolderId.traverse(fid => folderRepository.folderWithId(fid).flatMap(_.isOwner(user.feideId)))
+            toFolder     <- toFolderId.traverse(fid => folderRepository.folderWithId(fid))
+            _            <- toFolder.traverse(_.isOwner(user.feideId))
+            resource     <- folderRepository.resourceWithId(move.resourceId)
+            _            <- resource.isOwner(user.feideId)
+            fromSiblings <- fromFolderId match {
+              case Some(fid) => folderRepository.getConnections(fid.some)
+              case None      => folderRepository.getRootResources(user.feideId).map(_.flatMap(_.connection))
+            }
+            toSiblings <- toFolder
+              .map(f => folderRepository.getFolderResources(f.id))
+              .getOrElse(folderRepository.getRootResources(user.feideId))
+            _ <-
+              if (toSiblings.exists(_.id == move.resourceId))
+                Failure(ValidationException("resourceId", "Resource already exists in the destination folder"))
+              else Success(())
+            _ <- folderRepository.moveResourceConnection(
+              move.resourceId,
+              fromFolderId,
+              toFolderId,
+              getNextRank(toSiblings),
+            )
+            remainingFromSiblings = fromSiblings.filterNot(_.resourceId == move.resourceId)
+            sortRequest           = api.FolderSortRequestDTO(sortedIds = remainingFromSiblings.map(_.resourceId))
+            _                     = updateSearchApi(resource)
+            _                    <- performSort(remainingFromSiblings, sortRequest, user.feideId, sharedFolderSort = false)
+          } yield ()
+      }
+
   }
 
   def deleteConnection(folderId: Option[UUID], resourceId: UUID, feide: FeideUserWrapper): Try[UUID] = dbUtility

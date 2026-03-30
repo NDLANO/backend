@@ -10,7 +10,7 @@ package no.ndla.draftapi.repository
 
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
-import no.ndla.common.model.domain.{ArticleContent, Comment, EditorNote, Status}
+import no.ndla.common.model.domain.{ArticleContent, Comment, EditorNote, Responsible, Status}
 import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.*
 import no.ndla.draftapi.model.domain.*
@@ -389,5 +389,28 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     )(using dbUtility.autoSession)
     val updated = repository.withId(inserted.id.get)(using dbUtility.autoSession).get.get
     updated.notes.length should be(3)
+  }
+
+  test("That creating or deleting article updates the materialized views") {
+    repository.getAllResponsibles(using dbUtility.readOnlySession).get should not(contain("new-responsible"))
+    repository.getAllEditors(using dbUtility.readOnlySession).get should not(contain("new-responsible"))
+
+    val article = sampleArticle.copy(
+      responsible = Some(Responsible(responsibleId = "new-responsible", lastUpdated = TestData.today)),
+      notes = Seq(EditorNote("note1", "new-responsible", Status(DraftStatus.PLANNED, Set.empty), TestData.today)),
+    )
+    val updated = repository.insert(article)(using dbUtility.autoSession).get
+    updated.responsible.map(r => r.responsibleId) should be(Some("new-responsible"))
+    updated.notes.head.user should be("new-responsible")
+
+    repository.updateEditorsAndResponsibleViews(using dbUtility.autoSession).get
+    repository.getAllResponsibles(using dbUtility.readOnlySession).get should contain("new-responsible")
+    repository.getAllEditors(using dbUtility.readOnlySession).get should contain("new-responsible")
+
+    repository.deleteArticle(updated.id.get)(using dbUtility.autoSession).get
+    repository.updateEditorsAndResponsibleViews(using dbUtility.autoSession).get
+    repository.getAllResponsibles(using dbUtility.readOnlySession).get should not(contain("new-responsible"))
+    repository.getAllEditors(using dbUtility.readOnlySession).get should not(contain("new-responsible"))
+
   }
 }

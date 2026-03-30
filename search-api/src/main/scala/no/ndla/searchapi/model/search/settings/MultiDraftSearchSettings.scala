@@ -16,12 +16,13 @@ import no.ndla.common.model.domain.learningpath.LearningPathStatus
 import no.ndla.language.Language
 import no.ndla.network.tapir.NonEmptyString
 import no.ndla.network.tapir.auth.TokenUser
-import no.ndla.searchapi.model.domain.Sort
+import no.ndla.searchapi.model.domain.{DraftSearchField, Sort}
 
 case class MultiDraftSearchSettings(
     user: TokenUser,
     query: Option[NonEmptyString],
     noteQuery: Option[NonEmptyString],
+    queryFields: List[DraftSearchField],
     fallback: Boolean,
     language: String,
     license: Option[String],
@@ -29,7 +30,7 @@ case class MultiDraftSearchSettings(
     pageSize: Int,
     sort: Sort,
     withIdIn: List[Long],
-    subjects: List[String],
+    subjects: Option[List[String]],
     topics: List[String],
     resourceTypes: List[String],
     learningResourceTypes: List[LearningResourceType],
@@ -48,7 +49,7 @@ case class MultiDraftSearchSettings(
     revisionDateFilterFrom: Option[NDLADate],
     revisionDateFilterTo: Option[NDLADate],
     excludeRevisionHistory: Boolean,
-    responsibleIdFilter: List[String],
+    responsibleIdFilter: Option[List[String]],
     articleTypes: List[String],
     filterInactive: Boolean,
     priority: List[Priority],
@@ -63,6 +64,7 @@ object MultiDraftSearchSettings {
     user = user,
     query = None,
     noteQuery = None,
+    queryFields = List.empty,
     fallback = false,
     language = Language.AllLanguages,
     license = None,
@@ -70,7 +72,7 @@ object MultiDraftSearchSettings {
     pageSize = 10,
     sort = Sort.ByRelevanceDesc,
     withIdIn = List.empty,
-    subjects = List.empty,
+    subjects = None,
     topics = List.empty,
     resourceTypes = List.empty,
     learningResourceTypes = List.empty,
@@ -89,7 +91,7 @@ object MultiDraftSearchSettings {
     revisionDateFilterFrom = None,
     revisionDateFilterTo = None,
     excludeRevisionHistory = false,
-    responsibleIdFilter = List.empty,
+    responsibleIdFilter = None,
     articleTypes = List.empty,
     filterInactive = false,
     priority = List.empty,

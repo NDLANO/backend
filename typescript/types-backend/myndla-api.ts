@@ -423,6 +423,26 @@ export type paths = {
         patch?: never;
         trace?: never;
     };
+    "/myndla-api/v1/folders/resources/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Move a resource from one folder to another
+         * @description Move a resource from one folder to another
+         */
+        put: operations["putMyndla-apiV1FoldersResourcesMove"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/myndla-api/v1/robots": {
         parameters: {
             query?: never;
@@ -810,6 +830,24 @@ export type components = {
         Map_Map_String_Long: {
             [key: string]: components["schemas"]["Map_Long"];
         };
+        /** MoveResourceDTO */
+        MoveResourceDTO: {
+            /**
+             * Format: uuid
+             * @description Folder to move from. Empty value indicates root-resource.
+             */
+            fromFolderId: string | null;
+            /**
+             * Format: uuid
+             * @description Folder to move to. Empty value moves resource to root.
+             */
+            toFolderId: string | null;
+            /**
+             * Format: uuid
+             * @description The resource to move
+             */
+            resourceId: string;
+        };
         /** MyNDLAGroupDTO */
         MyNDLAGroupDTO: {
             /** @description ID of the group */
@@ -1186,6 +1224,7 @@ export type FolderStatus = components['schemas']['FolderStatus'];
 export type ListOfRobotDefinitionsDTO = components['schemas']['ListOfRobotDefinitionsDTO'];
 export type Map_Long = components['schemas']['Map_Long'];
 export type Map_Map_String_Long = components['schemas']['Map_Map_String_Long'];
+export type MoveResourceDTO = components['schemas']['MoveResourceDTO'];
 export type MyNDLAGroupDTO = components['schemas']['MyNDLAGroupDTO'];
 export type MyNDLAUserDTO = components['schemas']['MyNDLAUserDTO'];
 export type NewFolderDTO = components['schemas']['NewFolderDTO'];
@@ -2928,6 +2967,67 @@ export interface operations {
                 };
             };
             502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+        };
+    };
+    "putMyndla-apiV1FoldersResourcesMove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveResourceDTO"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

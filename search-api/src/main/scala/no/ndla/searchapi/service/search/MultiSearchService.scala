@@ -120,7 +120,9 @@ class MultiSearchService(using
                 langQueryFunc("content", 1),
                 langQueryFunc("tags", 1),
                 langQueryFunc("embedAttributes", 1),
-                simpleStringQuery(q.underlying).field("authors", 1),
+                simpleStringQuery(q.underlying).field("creators", 1),
+                simpleStringQuery(q.underlying).field("processors", 1),
+                simpleStringQuery(q.underlying).field("rightsholders", 1),
                 simpleStringQuery(q.underlying).field("grepContexts.title", 1),
                 nestedQuery("contexts", boolQuery().should(termQuery("contexts.contextId", q.underlying))),
                 termQuery("contextids", q.underlying),
@@ -313,7 +315,7 @@ class MultiSearchService(using
     )
     val taxonomyResourceTypesFilter = resourceTypeFilter(settings.resourceTypes, settings.filterByNoResourceType)
     val taxonomySubjectFilter       = subjectFilter(settings.subjects, settings.filterInactive)
-    val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects)
+    val taxonomyRelevanceFilter     = relevanceFilter(settings.relevanceIds, settings.subjects.getOrElse(List.empty))
     val taxonomyContextActiveFilter = contextActiveFilter(settings.filterInactive)
 
     val supportedLanguageFilter = supportedLanguagesFilter(settings.supportedLanguages)
