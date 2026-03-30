@@ -649,7 +649,7 @@ class ConverterService(using
       .map(rm =>
         updateDefaultRevisjonMetaDateIfUpdated(
           rm,
-          !article.published.getOrElse(toMergeInto.published).eq(toMergeInto.published),
+          article.published.exists(_ != toMergeInto.published),
         )
       )
     val responsible        = getNewResponsible(toMergeInto, article)
