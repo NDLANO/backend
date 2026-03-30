@@ -144,7 +144,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       dimensions = dimensions,
       variants = variants,
       language = image.language,
-      originalDate = image.exifData.get(props.ExifDateTimeOriginal),
+      originalDate = image.exifData.flatMap(data => data.get(ExifUtil.ExifDateTimeOriginal)),
     )
   }
 
@@ -341,7 +341,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
     )
   }
 
-  def toImageFileData(upload: UploadedImage, language: String, exifData: Map[String, String]): ImageFileData = {
+  def toImageFileData(upload: UploadedImage, language: String, exifData: Option[Map[String, String]]): ImageFileData = {
     ImageFileData(
       fileName = upload.fileName,
       size = upload.size,

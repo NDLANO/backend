@@ -18,6 +18,7 @@ import scala.util.{Try, Using}
 object ExifUtil extends StrictLogging {
   // Filter out directories that often contain large binary data or irrelevant metadata
   private val unwantedExifDirectories = Seq("ICC Profile", "Photoshop", "PNG-tEXt")
+  val ExifDateTimeOriginal            = "Exif SubIFD:Date/Time Original"
 
   /** Sanitizes a string so it is safe for JSON serialization by removing non-printable control characters and replacing
     * invalid unicode characters with the unicode replacement character.

@@ -63,7 +63,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = DomainCopyright("", None, List(), List(), List(), None, None, false),
@@ -216,7 +216,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = Some(domain.ImageDimensions(189, 60)),
       variants = Seq.empty,
       language = "en",
-      exifData = Map.empty,
+      exifData = None,
     )
     val expectedImageMeta = domainImageMeta.copy(id = Some(1), images = Seq(expectedImageFile))
 
@@ -349,7 +349,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = Some(domain.ImageDimensions(10, 10)),
       variants = Seq.empty,
       language = "nb",
-      exifData = Map.empty,
+      exifData = None,
     )
     val existing = TestData
       .elg
@@ -384,7 +384,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           dimensions = Some(domain.ImageDimensions(189, 60)),
           variants = Seq.empty,
           language = "nb",
-          exifData = Map.empty,
+          exifData = None,
         )
       )
     )
@@ -499,7 +499,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
-      exifData = Map.empty,
+      exifData = None,
     )
 
     val dbImage = TestData
@@ -582,7 +582,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
-      exifData = Map.empty,
+      exifData = None,
     )
 
     val dbImage = TestData
@@ -652,7 +652,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
-      exifData = Map.empty,
+      exifData = None,
     )
 
     val dbImage = TestData
@@ -718,7 +718,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
-      exifData = Map.empty,
+      exifData = None,
     )
 
     val dbImage = TestData

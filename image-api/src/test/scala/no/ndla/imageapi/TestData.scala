@@ -33,7 +33,7 @@ class TestData(using imageConverter: ImageConverter) {
     dimensions = None,
     variants = Seq.empty,
     language = "nb",
-    exifData = Map.empty,
+    exifData = None,
   )
   val elg = new ImageMetaInformation(
     id = Some(1),
@@ -137,7 +137,7 @@ class TestData(using imageConverter: ImageConverter) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -173,7 +173,7 @@ class TestData(using imageConverter: ImageConverter) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -209,7 +209,7 @@ class TestData(using imageConverter: ImageConverter) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -245,7 +245,7 @@ class TestData(using imageConverter: ImageConverter) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -281,7 +281,7 @@ class TestData(using imageConverter: ImageConverter) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -317,7 +317,7 @@ class TestData(using imageConverter: ImageConverter) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(

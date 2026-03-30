@@ -247,7 +247,7 @@ class ImageControllerV2Test extends UnitSuite with TestEnvironment with TapirCon
           dimensions = None,
           variants = Seq.empty,
           language = "und",
-          exifData = Map.empty,
+          exifData = None,
         )
       ),
       copyright = copyright,
