@@ -15,7 +15,7 @@ import no.ndla.common.converter.CommonConverter
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Delete, DisclaimerDTO, DraftCopyrightDTO, Missing, ResponsibleDTO, UpdateWith}
-import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible, RevisionMeta}
+import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible}
 import no.ndla.common.model.domain.draft.DraftStatus.PLANNED
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.language.OptLanguageFields
