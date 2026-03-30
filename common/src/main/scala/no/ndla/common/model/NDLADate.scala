@@ -72,6 +72,7 @@ object NDLADate {
       "yyyy-MM-dd'T'HH:mm:ss",
       "yyyy-MM-dd'T'HH:mm:ss.SSS",
       "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS",
+      "yyyy:MM:dd HH:mm:ss",
     ).map(DateTimeFormatter.ofPattern)
 
   def now(): NDLADate = NDLADate.fromDate(ZonedDateTime.now(localZone))

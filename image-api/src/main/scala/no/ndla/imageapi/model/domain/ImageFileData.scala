@@ -19,6 +19,7 @@ case class ImageFileData(
     dimensions: Option[ImageDimensions],
     variants: Seq[ImageVariant],
     override val language: String,
+    exifData: Option[Map[String, String]],
 ) extends WithLanguage {
   def getFileStem: String = {
     fileName.lastIndexOf(".") match {

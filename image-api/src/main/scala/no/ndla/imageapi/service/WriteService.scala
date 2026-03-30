@@ -174,7 +174,11 @@ class WriteService(using
     validationService.validate(toInsert, copiedFrom).??
 
     val uploadedImage = uploadImageWithVariants(file).?
-    val imageFile     = converterService.toImageFileData(uploadedImage, language)
+    val exifMap       = ExifUtil.extractExifData(file)
+    val exifData      =
+      if (exifMap.isEmpty) None
+      else Some(exifMap)
+    val imageFile = converterService.toImageFileData(uploadedImage, language, exifData)
 
     val deleteUploadedImages = (reason: Throwable) => {
       logger.info(s"Deleting images because of: ${reason.getMessage}", reason)
@@ -328,8 +332,12 @@ class WriteService(using
       language: String,
       user: TokenUser,
   ): Try[ImageMetaInformation] = permitTry {
-    val uploaded            = uploadImageWithVariants(newFile).?
-    val imageFileFromUpload = converterService.toImageFileData(uploaded, language)
+    val uploaded = uploadImageWithVariants(newFile).?
+    val exifMap  = ExifUtil.extractExifData(newFile)
+    val exifData =
+      if (exifMap.isEmpty) None
+      else Some(exifMap)
+    val imageFileFromUpload = converterService.toImageFileData(uploaded, language, exifData)
 
     val imageForLang  = oldImage.images.find(_.language == language)
     val allOtherPaths = oldImage.images.filterNot(_.language == language).map(_.fileName)
@@ -622,6 +630,95 @@ class WriteService(using
       case Nil => Success(())
       case exs => Failure(ImageDeleteException("Failed to delete original image and/or variants", exs.toSeq))
     }
+  }
+
+  /** Batch job that fetches all images from S3, extracts EXIF data, and updates the database. Images that already have
+    * non-empty exifData are skipped. Missing S3 objects are ignored.
+    */
+  def extractAndStoreExifDataForExistingImages(): Try[Unit] = {
+    val batchSize     = 20
+    val batchIterator = imageRepository.getImageFileBatched(batchSize) match {
+      case Success(it) => it
+      case Failure(ex) => return Failure(ex)
+    }
+    val totalBatchCount = batchIterator.knownSize
+    Using(ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(batchSize))) {
+      case given ExecutionContext => batchIterator
+          .zipWithIndex
+          .map { (batch, index) =>
+            logger.info(s"EXIF migration: Processing batch ${index + 1} of $totalBatchCount (batch size = $batchSize)")
+
+            val batchFuture = Future.traverse {
+              batch
+                .filter(meta => meta.id.nonEmpty && meta.images.exists(_.exifData.isEmpty))
+                .flatMap(meta => meta.images.filter(_.exifData.isEmpty).map(meta -> _))
+            } { (imageMeta, imageFile) =>
+              extractExifForImageFileAsync(imageMeta, imageFile)
+            }
+
+            val storeResultsFuture = batchFuture.map { results =>
+              results
+                .sequence
+                .flatMap { metasWithFiles =>
+                  metasWithFiles
+                    .groupMap(_._1)(_._2)
+                    .toSeq
+                    .traverse { (imageMeta, updatedFiles) =>
+                      val updatedFileMap   = updatedFiles.map(f => (f.fileName, f.language) -> f).toMap
+                      val mergedImageFiles = imageMeta
+                        .images
+                        .map { existing =>
+                          updatedFileMap.getOrElse((existing.fileName, existing.language), existing)
+                        }
+                      dbUtility.writeSession { case given DBSession =>
+                        val updatedMeta = imageMeta.copy(images = mergedImageFiles)
+                        imageRepository.update(updatedMeta, updatedMeta.id.get).map(_ => ())
+                      }
+                    }
+                }
+            }
+
+            Try(Await.result(storeResultsFuture, 5.minutes)).flatten
+          }
+          .collectFirst { case Failure(ex) =>
+            ex
+          } match {
+          case Some(ex) => Failure(ex)
+          case None     => Success(())
+        }
+    }.flatten
+  }
+
+  private def extractExifForImageFileAsync(imageMeta: ImageMetaInformation, imageFile: ImageFileData)(using
+      ExecutionContext
+  ): Future[Try[(ImageMetaInformation, ImageFileData)]] = Future {
+    imageStorage
+      .getRaw(imageFile.fileName)
+      .map { s3Object =>
+        Using(s3Object.stream) { stream =>
+          val exifData    = ExifUtil.extractExifDataFromStream(stream)
+          val updatedFile = imageFile.copy(exifData = Some(exifData))
+          imageMeta -> updatedFile
+        }.getOrElse {
+          logger.warn(
+            s"EXIF migration: Failed to extract EXIF data for image due to error reading stream (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})"
+          )
+          imageMeta -> imageFile
+        }
+      }
+      .recoverWith {
+        case ex: MissingBucketKeyException =>
+          logger.warn(
+            s"EXIF migration: Ignoring missing bucket object for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})"
+          )
+          Success(imageMeta -> imageFile)
+        case ex =>
+          logger.error(
+            s"EXIF migration: Failed to extract EXIF data for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})",
+            ex,
+          )
+          Failure(ex)
+      }
   }
 
   private def moveImageAndVariants(image: ImageFileData, newBucketPrefix: String): Try[ImageFileData] = {

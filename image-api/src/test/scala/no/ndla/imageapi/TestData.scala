@@ -38,6 +38,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -137,6 +138,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -172,6 +174,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -207,6 +210,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -242,6 +246,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -277,6 +282,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -312,6 +318,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        exifData = None,
       )
     ),
     copyright = Copyright(
