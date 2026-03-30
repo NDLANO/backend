@@ -174,8 +174,11 @@ class WriteService(using
     validationService.validate(toInsert, copiedFrom).??
 
     val uploadedImage = uploadImageWithVariants(file).?
-    val exifData      = ExifUtil.extractExifData(file)
-    val imageFile     = converterService.toImageFileData(uploadedImage, language, exifData)
+    val exifMap       = ExifUtil.extractExifData(file)
+    val exifData      =
+      if (exifMap.isEmpty) None
+      else Some(exifMap)
+    val imageFile = converterService.toImageFileData(uploadedImage, language, exifData)
 
     val deleteUploadedImages = (reason: Throwable) => {
       logger.info(s"Deleting images because of: ${reason.getMessage}", reason)
@@ -329,8 +332,11 @@ class WriteService(using
       language: String,
       user: TokenUser,
   ): Try[ImageMetaInformation] = permitTry {
-    val uploaded            = uploadImageWithVariants(newFile).?
-    val exifData            = ExifUtil.extractExifData(newFile)
+    val uploaded = uploadImageWithVariants(newFile).?
+    val exifMap  = ExifUtil.extractExifData(newFile)
+    val exifData =
+      if (exifMap.isEmpty) None
+      else Some(exifMap)
     val imageFileFromUpload = converterService.toImageFileData(uploaded, language, exifData)
 
     val imageForLang  = oldImage.images.find(_.language == language)
@@ -694,7 +700,7 @@ class WriteService(using
           .Using
           .resource(s3Object.stream) { stream =>
             val exifData    = ExifUtil.extractExifDataFromStream(stream)
-            val updatedFile = imageFile.copy(exifData = exifData)
+            val updatedFile = imageFile.copy(exifData = Some(exifData))
             imageMeta -> updatedFile
           }
       }

@@ -78,7 +78,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
         dimensions = None,
         variants = Seq.empty,
         language = "und",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(CC_BY.toString, None, List(), List(), List(), None, None, false),

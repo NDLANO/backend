@@ -25,8 +25,6 @@ class ImageApiProperties extends BaseProps with DatabaseProps with StrictLogging
   val ApplicationPort: Int    = propOrElse("APPLICATION_PORT", "80").toInt
   val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
 
-  val ExifDateTimeOriginal = "Exif SubIFD:Date/Time Original"
-
   val HealthControllerPath          = "/health"
   val ImageApiBasePath              = "/image-api"
   val ApiDocsPath: String           = s"$ImageApiBasePath/api-docs"

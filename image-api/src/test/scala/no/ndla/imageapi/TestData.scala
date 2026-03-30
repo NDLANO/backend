@@ -38,7 +38,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -138,7 +138,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -174,7 +174,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -210,7 +210,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -246,7 +246,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -282,7 +282,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(
@@ -318,7 +318,7 @@ class TestData(using props: Props) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = Map.empty,
+        exifData = None,
       )
     ),
     copyright = Copyright(
