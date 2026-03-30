@@ -15,11 +15,11 @@ import no.ndla.common.converter.CommonConverter
 import no.ndla.common.errors.ValidationException
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Delete, DisclaimerDTO, DraftCopyrightDTO, Missing, ResponsibleDTO, UpdateWith}
-import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible, RevisionMeta, RevisionStatus}
+import no.ndla.common.model.domain.{ArticleContent, Priority, Responsible, RevisionMeta}
 import no.ndla.common.model.domain.draft.DraftStatus.PLANNED
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.language.OptLanguageFields
-import no.ndla.common.model.{EmbedType, NDLADate, RelatedContentLink, TagAttribute, api as commonApi, domain as common}
+import no.ndla.common.model.{EmbedType, RelatedContentLink, TagAttribute, api as commonApi, domain as common}
 import no.ndla.common.{Clock, model}
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.model.api.{NotFoundException, UpdatedArticleDTO}
@@ -646,7 +646,6 @@ class ConverterService(using
       .revisionMeta
       .map(_.map(commonConverter.revisionMetaApiToDomain))
       .getOrElse(toMergeInto.revisionMeta)
-      .map(rm => updateDefaultRevisionMetaDateIfUpdated(rm, article.published.exists(_ != toMergeInto.published)))
     val responsible        = getNewResponsible(toMergeInto, article)
     val copyright          = article.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright)
     val priority           = getNewPriority(toMergeInto, article)
@@ -743,14 +742,6 @@ class ConverterService(using
     )
 
     Success(converted)
-  }
-
-  private def updateDefaultRevisionMetaDateIfUpdated(revisionMeta: RevisionMeta, isUpdated: Boolean): RevisionMeta = {
-    if (
-      isUpdated && revisionMeta.note == RevisionMeta.defaultNote && revisionMeta.status == RevisionStatus.NeedsRevision
-    ) {
-      revisionMeta.copy(revisionDate = clock.now().plusYears(3).withNano(0))
-    } else revisionMeta
   }
 
   def toApiArticleGrepCodes(result: domain.LanguagelessSearchResult[String]): api.GrepCodesSearchResultDTO = {

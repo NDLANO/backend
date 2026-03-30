@@ -572,19 +572,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val Success(_) = service.toDomainArticle(existingArticle, apiArticle, TestData.userWithWriteAccess): @unchecked
   }
 
-  test("toDomainArticle(UpdateArticle) should update revisionMeta date") {
-
-    val beforeUpdate = TestData.sampleDomainArticle.copy(revisionMeta = RevisionMeta.default)
-
-    val Success(res1) = service.toDomainArticle(
-      beforeUpdate,
-      TestData.sampleApiUpdateArticle.copy(language = Some("nb"), published = Some(TestData.today.plusDays(1))),
-      TestData.userWithWriteAccess,
-    ): @unchecked
-
-    res1.revisionMeta.head.revisionDate should be(TestData.today.plusYears(3).withNano(0))
-  }
-
   test("Extracting h5p paths works as expected") {
     val enPath1 = s"/resources/${UUID.randomUUID().toString}"
     val enPath2 = s"/resources/${UUID.randomUUID().toString}"
