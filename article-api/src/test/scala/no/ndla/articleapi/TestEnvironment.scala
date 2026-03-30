@@ -8,7 +8,6 @@
 
 package no.ndla.articleapi
 
-import no.ndla.articleapi.caching.MemoizeHelpers
 import no.ndla.articleapi.controller.*
 import no.ndla.articleapi.integration.*
 import no.ndla.articleapi.repository.ArticleRepository
@@ -36,7 +35,6 @@ trait TestEnvironment extends MockitoSugar {
   implicit lazy val migrator: DBMigrator           = mock[DBMigrator]
   implicit lazy val dbUtility: DBUtility           = DBUtilityStub()
   implicit lazy val dbArticle: DBArticle           = mock[DBArticle]
-  implicit lazy val memoizeHelpers: MemoizeHelpers = mock[MemoizeHelpers]
   implicit lazy val searchLanguage: SearchLanguage = mock[SearchLanguage]
   implicit lazy val errorHelpers: ErrorHelpers     = mock[ErrorHelpers]
   implicit lazy val errorHandling: ErrorHandling   = mock[ErrorHandling]
