@@ -21,25 +21,24 @@ import no.ndla.mapping.License
 
 import java.io.{ByteArrayInputStream, File}
 
-class TestData(using props: Props) {
+class TestData(using imageConverter: ImageConverter) {
   def updated(): NDLADate = NDLADate.of(2017, 4, 1, 12, 15, 32)
 
   val ByNcSa: String = mapping.License.CC_BY_NC_SA.toString
 
+  val elgFileData = ImageFileData(
+    fileName = "Elg.jpg",
+    size = 2865539,
+    contentType = ImageContentType.Jpeg,
+    dimensions = None,
+    variants = Seq.empty,
+    language = "nb",
+  )
   val elg = new ImageMetaInformation(
     id = Some(1),
     titles = List(ImageTitle("Elg i busk", "nb")),
     alttexts = List(ImageAltText("Elg i busk", "nb")),
-    images = Seq(
-      ImageFileData(
-        fileName = "Elg.jpg",
-        size = 2865539,
-        contentType = ImageContentType.Jpeg,
-        dimensions = None,
-        variants = Seq.empty,
-        language = "nb",
-      )
-    ),
+    images = Seq(elgFileData),
     copyright = Copyright(
       ByNcSa,
       Some("http://www.scanpix.no"),
@@ -343,8 +342,6 @@ class TestData(using props: Props) {
     NdlaS3Object("", fileName, stream, contentType.toString, bytes.length)
   }
 
-  private val imageConverter: ImageConverter = new ImageConverter
-
   def ndlaLogoImageS3Object: NdlaS3Object          = mockS3ObjectFromDisk("ndla_logo.jpg", ImageContentType.Jpeg)
   def ndlaLogoImageStream: ImageStream.Processable = imageConverter
     .s3ObjectToImageStream(ndlaLogoImageS3Object)
@@ -377,6 +374,49 @@ class TestData(using props: Props) {
     val file = new File(getClass.getResource(s"/$childrensImageFileName").toURI)
     UploadedFile("file", Some(childrensImageFileName), file.length(), Some(ImageContentType.Jpeg.toString), file)
   }
+
+  val clownfishFileData = ImageFileData(
+    fileName = "clownfish.jpg",
+    size = 2865539,
+    contentType = ImageContentType.Jpeg,
+    dimensions = Some(ImageDimensions(1280, 853)),
+    variants = Seq.empty,
+    language = "nb",
+  )
+  val clownfishFileDataWithVariants: ImageFileData = clownfishFileData.copy(variants =
+    Seq(
+      ImageVariant(ImageVariantSize.Icon, "clownfish/icon.webp"),
+      ImageVariant(ImageVariantSize.ExtraSmall, "clownfish/xsmall.webp"),
+      ImageVariant(ImageVariantSize.Small, "clownfish/small.webp"),
+      ImageVariant(ImageVariantSize.Medium, "clownfish/medium.webp"),
+    )
+  )
+  val clownfish = ImageMetaInformation(
+    id = Some(7),
+    titles = List(ImageTitle("Klovnefisk", "nb")),
+    alttexts = List(ImageAltText("Klovnefisk", "nb")),
+    images = Seq(clownfishFileData),
+    copyright = Copyright(
+      License.PublicDomain.toString,
+      None,
+      List(Author(ContributorType.Photographer, "Test Testesen")),
+      List(),
+      List(),
+      None,
+      None,
+      false,
+    ),
+    tags = List(Tag(List("fisk", "klovn"), "nb")),
+    captions = List(ImageCaption("Klovnefisk", "nb")),
+    updatedBy = "ndla124",
+    updated = updated(),
+    created = updated(),
+    createdBy = "ndla124",
+    modelReleased = ModelReleasedStatus.YES,
+    editorNotes = Seq.empty,
+    inactive = false,
+  )
+  def clownfishS3Object: NdlaS3Object = mockS3ObjectFromDisk("clownfish.jpg", ImageContentType.Jpeg)
 
   val searchSettings: SearchSettings = SearchSettings(
     query = None,
