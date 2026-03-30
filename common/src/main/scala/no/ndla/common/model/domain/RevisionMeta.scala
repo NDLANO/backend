@@ -22,14 +22,10 @@ case class RevisionMeta(id: UUID, revisionDate: NDLADate, note: String, status: 
 object RevisionMeta {
   implicit val encoder: Encoder[RevisionMeta] = deriveEncoder
   implicit val decoder: Decoder[RevisionMeta] = deriveDecoder
+  val defaultNote                             = "Automatisk revisjonsdato satt av systemet"
 
   def default: Seq[RevisionMeta] = Seq(
-    RevisionMeta(
-      UUID.randomUUID(),
-      NDLADate.now().plusYears(5).withNano(0),
-      "Automatisk revisjonsdato satt av systemet",
-      RevisionStatus.NeedsRevision,
-    )
+    RevisionMeta(UUID.randomUUID(), NDLADate.now().plusYears(5).withNano(0), defaultNote, RevisionStatus.NeedsRevision)
   )
 }
 

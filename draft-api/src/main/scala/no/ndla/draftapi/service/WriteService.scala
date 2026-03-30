@@ -28,7 +28,7 @@ import no.ndla.common.logging.logTaskTime
 import no.ndla.common.model.{EmbedType, NDLADate, TagAttribute, domain as common}
 import no.ndla.common.model.api.UpdateWith
 import no.ndla.common.model.domain.article.PartialPublishArticleDTO
-import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, UploadedFile}
+import no.ndla.common.model.domain.{EditorNote, Priority, Responsible, RevisionMeta, RevisionStatus, UploadedFile}
 import no.ndla.common.model.domain.draft.DraftStatus.{IN_PROGRESS, PLANNED, PUBLISHED}
 import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.database.DBUtility
@@ -530,11 +530,18 @@ class WriteService(using
 
       articleWithStatus <-
         updateStatusIfNeeded(convertedArticle, existing, updatedApiArticle, user, shouldNotAutoUpdateStatus)
-
       didUpdateStatus = articleWithStatus.status.current != convertedArticle.status.current
 
+      articleWithUpdatedRevsionMeta = articleWithStatus.copy(revisionMeta =
+        articleWithStatus
+          .revisionMeta
+          .map(rm =>
+            updateDefaultRevisionMetaDateIfUpdated(rm, updatedApiArticle.published.exists(_ != existing.published))
+          )
+      )
+
       updatedArticle <- updateArticle(
-        articleWithStatus,
+        articleWithUpdatedRevsionMeta,
         language = updatedApiArticle.language,
         createNewVersion = updatedApiArticle.createNewVersion.getOrElse(false),
         oldArticle = Some(existing),
@@ -551,6 +558,14 @@ class WriteService(using
         fallback = updatedApiArticle.language.isEmpty,
       )
     } yield apiArticle
+  }
+
+  private def updateDefaultRevisionMetaDateIfUpdated(revisionMeta: RevisionMeta, isUpdated: Boolean): RevisionMeta = {
+    if (
+      isUpdated && revisionMeta.note == RevisionMeta.defaultNote && revisionMeta.status == RevisionStatus.NeedsRevision
+    ) {
+      revisionMeta.copy(revisionDate = clock.now().plusYears(3).withNano(0))
+    } else revisionMeta
   }
 
   def deleteLanguage(id: Long, language: String, userInfo: TokenUser): Try[api.ArticleDTO] = dbUtility

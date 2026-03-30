@@ -570,7 +570,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     })
 
     val Success(_) = service.toDomainArticle(existingArticle, apiArticle, TestData.userWithWriteAccess): @unchecked
-
   }
 
   test("Extracting h5p paths works as expected") {
