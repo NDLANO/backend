@@ -359,7 +359,7 @@ object TestData {
     conceptIds = Seq.empty,
     availability = common.Availability.everyone,
     relatedContent = Seq.empty,
-    revisionMeta = common.RevisionMeta.default,
+    revisionMeta = common.RevisionMeta.default.map(_.copy(revisionDate = today.plusYears(5).withNano(0))),
     responsible = None,
     slug = None,
     comments = Seq.empty,

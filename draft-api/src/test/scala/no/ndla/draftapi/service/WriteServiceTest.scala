@@ -41,8 +41,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   override implicit lazy val traitUtil: TraitUtil                       = new TraitUtil
   override implicit lazy val converterService: ConverterService         = new ConverterService
 
-  val today: NDLADate       = NDLADate.now()
-  val yesterday: NDLADate   = NDLADate.now().minusDays(1)
+  val today: NDLADate       = TestData.today
+  val yesterday: NDLADate   = today.minusDays(1)
   val service: WriteService = new WriteService()
 
   val articleId   = 13L
@@ -235,6 +235,15 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updated = today,
       published = yesterday,
       articleType = ArticleType.TopicArticle,
+      notes = List(
+        EditorNote(
+          "Endret revisjon Automatisk revisjonsdato satt av systemet.",
+          "unit test",
+          Status(current = DraftStatus.PLANNED, other = Set.empty),
+          today,
+        )
+      ),
+      revisionMeta = article.revisionMeta.map(rm => rm.copy(revisionDate = rm.revisionDate.minusYears(2))),
     )
 
     when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
