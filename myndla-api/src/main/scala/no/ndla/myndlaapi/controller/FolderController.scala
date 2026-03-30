@@ -294,6 +294,21 @@ class FolderController(using
       }
     }
 
+  private def batchDeleteResources(): ServerEndpoint[Any, Eff] = endpoint
+    .delete
+    .summary("Delete a set of resources from a folder")
+    .description("Delete a set of resources from a folder")
+    .in(pathFolderId / "resources" / "batch")
+    .in(jsonBody[List[UUID]])
+    .out(noContent)
+    .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (folderId, resourceIds) =>
+        folderWriteService.deleteConnections(Some(folderId), resourceIds, feide).map(_ => ())
+      }
+    }
+
   private def deleteRootResource(): ServerEndpoint[Any, Eff] = endpoint
     .delete
     .summary("Delete selected root resource")
@@ -304,6 +319,21 @@ class FolderController(using
     .withFeideUser
     .serverLogicPure { feide => resourceId =>
       folderWriteService.deleteConnection(None, resourceId, feide).map(_ => ())
+    }
+
+  private def batchDeleteRootResources(): ServerEndpoint[Any, Eff] = endpoint
+    .delete
+    .summary("Delete a set of root resources")
+    .description("Delete a set of root resources")
+    .in("resources" / "root" / "batch")
+    .in(jsonBody[List[UUID]])
+    .out(noContent)
+    .errorOut(errorOutputsFor(400, 401, 403, 404, 502))
+    .withFeideUser
+    .serverLogicPure { feide =>
+      { case (resourceIds) =>
+        folderWriteService.deleteConnections(None, resourceIds, feide).map(_ => ())
+      }
     }
 
   private def fetchSharedFolder: ServerEndpoint[Any, Eff] = endpoint
@@ -475,7 +505,9 @@ class FolderController(using
     createRootResource,
     getRootResources,
     updateResource(),
+    batchDeleteResources(),
     deleteResource(),
+    batchDeleteRootResources(),
     deleteRootResource(),
     fetchSharedFolder,
     changeStatusForFolderAndSubFolders,
