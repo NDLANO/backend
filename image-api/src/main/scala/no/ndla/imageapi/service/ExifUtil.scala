@@ -51,10 +51,8 @@ object ExifUtil extends StrictLogging {
     * reading fails.
     */
   def extractExifData(file: UploadedFile): Map[String, String] = {
-    Try {
-      Using.resource(file.createStream()) { stream =>
-        extractMetadataMap(ImageMetadata.fromStream(stream))
-      }
+    Using(file.createStream()) { stream =>
+      extractExifDataFromStream(stream)
     }.recover { case ex =>
         logger.warn(s"Failed to extract EXIF data from uploaded image: ${ex.getMessage}", ex)
         Map.empty[String, String]

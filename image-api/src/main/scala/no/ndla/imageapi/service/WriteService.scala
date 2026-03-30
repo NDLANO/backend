@@ -695,14 +695,16 @@ class WriteService(using
     imageStorage
       .getRaw(imageFile.fileName)
       .map { s3Object =>
-        scala
-          .util
-          .Using
-          .resource(s3Object.stream) { stream =>
-            val exifData    = ExifUtil.extractExifDataFromStream(stream)
-            val updatedFile = imageFile.copy(exifData = Some(exifData))
-            imageMeta -> updatedFile
-          }
+        Using(s3Object.stream) { stream =>
+          val exifData    = ExifUtil.extractExifDataFromStream(stream)
+          val updatedFile = imageFile.copy(exifData = Some(exifData))
+          imageMeta -> updatedFile
+        }.getOrElse {
+          logger.warn(
+            s"EXIF migration: Failed to extract EXIF data for image due to error reading stream (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})"
+          )
+          imageMeta -> imageFile
+        }
       }
       .recoverWith {
         case ex: MissingBucketKeyException =>
