@@ -646,12 +646,7 @@ class ConverterService(using
       .revisionMeta
       .map(_.map(commonConverter.revisionMetaApiToDomain))
       .getOrElse(toMergeInto.revisionMeta)
-      .map(rm =>
-        updateDefaultRevisjonMetaDateIfUpdated(
-          rm,
-          article.published.exists(_ != toMergeInto.published),
-        )
-      )
+      .map(rm => updateDefaultRevisionMetaDateIfUpdated(rm, article.published.exists(_ != toMergeInto.published)))
     val responsible        = getNewResponsible(toMergeInto, article)
     val copyright          = article.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright)
     val priority           = getNewPriority(toMergeInto, article)
@@ -750,7 +745,7 @@ class ConverterService(using
     Success(converted)
   }
 
-  private def updateDefaultRevisjonMetaDateIfUpdated(revisionMeta: RevisionMeta, isUpdated: Boolean): RevisionMeta = {
+  private def updateDefaultRevisionMetaDateIfUpdated(revisionMeta: RevisionMeta, isUpdated: Boolean): RevisionMeta = {
     if (
       isUpdated && revisionMeta.note == RevisionMeta.defaultNote && revisionMeta.status == RevisionStatus.NeedsRevision
     ) {
