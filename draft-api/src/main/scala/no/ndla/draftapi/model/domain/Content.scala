@@ -35,7 +35,10 @@ class DBArticle(using props: Props) extends SQLSyntaxSupport[Draft] {
   def fromResultSet(d: ResultName[Draft])(rs: WrappedResultSet): Draft = {
     val meta        = CirceUtil.unsafeParseAs[Draft](rs.string(d.c("document")))
     val slug        = rs.stringOpt(d.c("slug"))
-    val externalIds = rs.array(d.c("external_id")).getArray.asInstanceOf[Array[String]].toList
+    val externalIds = rs
+      .arrayOpt(d.c("external_id"))
+      .map(_.getArray.asInstanceOf[Array[String]].toList)
+      .getOrElse(List.empty)
     meta.copy(
       id = Some(rs.long(d.c("article_id"))),
       revision = Some(rs.int(d.c("revision"))),
