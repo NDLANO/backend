@@ -144,7 +144,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       dimensions = dimensions,
       variants = variants,
       language = image.language,
-      originalDate = image.exifData.flatMap(data => data.get(ExifUtil.ExifDateTimeOriginal)),
+      originalDate = ExifUtil.extractDate(image.exifData),
     )
   }
 
