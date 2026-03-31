@@ -10,14 +10,14 @@ package no.ndla.imageapi.service
 
 import com.sksamuel.scrimage.metadata.ImageMetadata
 import com.typesafe.scalalogging.StrictLogging
-import no.ndla.common.model.domain.UploadedFile
 
 import java.io.InputStream
-import scala.util.{Try, Using}
+import scala.util.Try
 
 object ExifUtil extends StrictLogging {
   // Filter out directories that often contain large binary data or irrelevant metadata
   private val unwantedExifDirectories = Seq("ICC Profile", "Photoshop", "PNG-tEXt")
+
   // Common EXIF date/time tags to check for when extracting the original capture date
   private val ExifDateTimeOriginal = "Exif SubIFD:Date/Time Original"
   private val ExifDateTime         = "Exif IFD0:Date/Time"
@@ -36,7 +36,10 @@ object ExifUtil extends StrictLogging {
     }
   }
 
-  private def extractMetadataMap(metadata: ImageMetadata): Map[String, String] = {
+  /** Extracts all EXIF key-value pairs from an ImageMetadata. Returns an empty map if no EXIF data is found or if
+    * reading fails.
+    */
+  def extractMetadataMap(metadata: ImageMetadata): Map[String, String] = {
     metadata
       .getDirectories
       .filter(d => !unwantedExifDirectories.contains(d.getName))
@@ -50,19 +53,6 @@ object ExifUtil extends StrictLogging {
           }
       }
       .toMap
-  }
-
-  /** Extracts all EXIF key-value pairs from an uploaded image file. Returns an empty map if no EXIF data is found or if
-    * reading fails.
-    */
-  def extractExifData(file: UploadedFile): Map[String, String] = {
-    Using(file.createStream()) { stream =>
-      extractExifDataFromStream(stream)
-    }.recover { case ex =>
-        logger.warn(s"Failed to extract EXIF data from uploaded image: ${ex.getMessage}", ex)
-        Map.empty[String, String]
-      }
-      .getOrElse(Map.empty)
   }
 
   /** Extracts all EXIF key-value pairs from an InputStream. Returns an empty map if no EXIF data is found or if reading

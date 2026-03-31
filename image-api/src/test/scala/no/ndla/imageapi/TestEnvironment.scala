@@ -61,6 +61,7 @@ trait TestEnvironment extends TapirApplication[ImageApiProperties] with MockitoS
   implicit lazy val readService: ReadService          = mock[ReadService]
   implicit lazy val writeService: WriteService        = mock[WriteService]
   implicit lazy val imageStorage: ImageStorageService = mock[ImageStorageService]
+  implicit lazy val exifUtil: ExifUtil.type           = mock[ExifUtil.type]
 
   implicit lazy val ndlaClient: NdlaClient                         = mock[NdlaClient]
   implicit lazy val myndlaApiClient: MyNDLAApiClient               = mock[MyNDLAApiClient]

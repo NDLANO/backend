@@ -47,8 +47,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     ImageContentType.Jpeg,
     Some(ImageDimensions(width = 1920, height = 1080)),
     Seq.empty,
-    "und",
     None,
+    "und",
   )
   val smallImage: ImageFileData = ImageFileData(
     "small-full-url",
@@ -56,8 +56,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     ImageContentType.Jpeg,
     Some(ImageDimensions(width = 640, height = 480)),
     Seq.empty,
-    "und",
     None,
+    "und",
   )
   val podcastImage: ImageFileData = ImageFileData(
     "podcast-full-url",
@@ -65,8 +65,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     ImageContentType.Jpeg,
     Some(ImageDimensions(width = 1400, height = 1400)),
     Seq.empty,
-    "und",
     None,
+    "und",
   )
   val wideImage: ImageFileData = ImageFileData(
     "wide-full-url",
@@ -74,8 +74,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     ImageContentType.Jpeg,
     Some(ImageDimensions(width = 3840, height = 2160)),
     Seq.empty,
-    "und",
     None,
+    "und",
   )
   val tallImage: ImageFileData = ImageFileData(
     "tall-full-url",
@@ -83,8 +83,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     ImageContentType.Jpeg,
     Some(ImageDimensions(width = 1080, height = 1920)),
     Seq.empty,
-    "und",
     None,
+    "und",
   )
   val pngImage: ImageFileData = ImageFileData(
     "png-full-url",
@@ -92,8 +92,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     ImageContentType.Png,
     Some(ImageDimensions(width = 800, height = 600)),
     Seq.empty,
-    "und",
     None,
+    "und",
   )
   val svgImage: ImageFileData = ImageFileData(
     "svg-full-url",
@@ -101,8 +101,8 @@ class ImageSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     ImageContentType.Svg,
     Some(ImageDimensions(width = 512, height = 512)),
     Seq.empty,
-    "und",
     None,
+    "und",
   )
 
   val byNcSa: Copyright = Copyright(

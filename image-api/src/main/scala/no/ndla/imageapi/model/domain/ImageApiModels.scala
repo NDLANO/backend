@@ -58,6 +58,7 @@ case class UploadedImage(
     contentType: ImageContentType,
     dimensions: Option[ImageDimensions],
     variants: Seq[ImageVariant],
+    exifData: Option[Map[String, String]],
 )
 
 object UploadedImage {

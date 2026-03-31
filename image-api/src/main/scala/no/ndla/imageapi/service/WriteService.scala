@@ -171,11 +171,7 @@ class WriteService(using
     validationService.validate(toInsert, copiedFrom).??
 
     val uploadedImage = uploadImageWithVariants(file).?
-    val exifMap       = ExifUtil.extractExifData(file)
-    val exifData      =
-      if (exifMap.isEmpty) None
-      else Some(exifMap)
-    val imageFile = converterService.toImageFileData(uploadedImage, language, exifData)
+    val imageFile     = converterService.toImageFileData(uploadedImage, language)
 
     val deleteUploadedImages = (reason: Throwable) => {
       logger.info(s"Deleting images because of: ${reason.getMessage}", reason)
@@ -329,12 +325,8 @@ class WriteService(using
       language: String,
       user: TokenUser,
   ): Try[ImageMetaInformation] = permitTry {
-    val uploaded = uploadImageWithVariants(newFile).?
-    val exifMap  = ExifUtil.extractExifData(newFile)
-    val exifData =
-      if (exifMap.isEmpty) None
-      else Some(exifMap)
-    val imageFileFromUpload = converterService.toImageFileData(uploaded, language, exifData)
+    val uploaded            = uploadImageWithVariants(newFile).?
+    val imageFileFromUpload = converterService.toImageFileData(uploaded, language)
 
     val imageForLang  = oldImage.images.find(_.language == language)
     val allOtherPaths = oldImage.images.filterNot(_.language == language).map(_.fileName)
@@ -422,7 +414,7 @@ class WriteService(using
     val processableStream = imageConverter.uploadedFileToImageStream(file, fileName) match {
       case Success(stream: ImageStream.Processable)   => stream
       case Success(stream: ImageStream.Gif)           => return uploadGifImageStream(stream)
-      case Success(stream: ImageStream.Unprocessable) => return uploadImageStream(stream, None)
+      case Success(stream: ImageStream.Unprocessable) => return uploadImageStream(stream, None, None)
       case Failure(ex)                                => return Failure(ex)
     }
 
@@ -431,6 +423,8 @@ class WriteService(using
       case Failure(ex)    => return Failure(ex)
     }
     val dimensions = ImageDimensions(processableImage.image.width, processableImage.image.height)
+    val exifData   = ExifUtil.extractMetadataMap(processableImage.image.getMetadata)
+
     // Since a stream cannot be read from twice, we need to create a new stream for uploading the original image.
     // At this point we know that the image is processable, so we can safely create a new processable ImageStream.
     val originalImageStream =
@@ -440,8 +434,13 @@ class WriteService(using
       case given ExecutionContext =>
         val variantsFuture =
           generateAndUploadVariantsAsync(processableImage, dimensions, uniqueFileStem, processableImage.format)
-        val maybeUploadedOriginalImage = uploadImageStream(originalImageStream, Some(dimensions))
-        val maybeVariants              = Try(Await.result(variantsFuture, 1.minute))
+        val maybeUploadedOriginalImage = uploadImageStream(
+          originalImageStream,
+          Some(dimensions),
+          if (exifData.isEmpty) None
+          else Some(exifData),
+        )
+        val maybeVariants = Try(Await.result(variantsFuture, 1.minute))
 
         (maybeUploadedOriginalImage, maybeVariants) match {
           case (Success(uploadedImage), Success(variants)) => Success(uploadedImage.copy(variants = variants))
@@ -498,16 +497,28 @@ class WriteService(using
 
   private def uploadGifImageStream(gifImageStream: ImageStream.Gif): Try[UploadedImage] = ScrimageUtil
     .getDimensionsFromGifStream(gifImageStream)
-    .flatMap((stream, dim) => uploadImageStream(stream, dim.some))
+    .flatMap((stream, dim) => uploadImageStream(stream, dim.some, None))
 
-  private def uploadImageStream(stream: ImageStream, dimensions: Option[ImageDimensions]): Try[UploadedImage] =
-    Using(stream) { imageStream =>
-      val contentLength = imageStream.contentLength
-      val contentType   = imageStream.contentType
-      imageStorage
-        .uploadFromStream(imageStream.fileName, imageStream.stream, contentLength, contentType)
-        .map(bucketKey => UploadedImage(bucketKey, contentLength, contentType, dimensions, Seq.empty))
-    }.flatten
+  private def uploadImageStream(
+      stream: ImageStream,
+      dimensions: Option[ImageDimensions],
+      exifData: Option[Map[String, String]],
+  ): Try[UploadedImage] = Using(stream) { imageStream =>
+    val contentLength = imageStream.contentLength
+    val contentType   = imageStream.contentType
+    imageStorage
+      .uploadFromStream(imageStream.fileName, imageStream.stream, contentLength, contentType)
+      .map(bucketKey =>
+        UploadedImage(
+          fileName = bucketKey,
+          size = contentLength,
+          contentType = contentType,
+          dimensions = dimensions,
+          variants = Seq.empty,
+          exifData = exifData,
+        )
+      )
+  }.flatten
 
   private def deleteImageAndVariants(image: ImageFileData): Try[Unit] = {
     val variantsResult = imageStorage.deleteObjects(image.variants.map(_.bucketKey))
