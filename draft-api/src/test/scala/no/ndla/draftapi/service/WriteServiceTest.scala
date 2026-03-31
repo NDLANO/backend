@@ -87,7 +87,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(contentValidator.validateArticleOnLanguage(any, any[Draft], any)(using any[DBSession])).thenAnswer(
       (i: InvocationOnMock) => Success(i.getArgument[Draft](1))
     )
-    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List("1234")))
     when(clock.now()).thenReturn(today)
     when(draftRepository.updateArticle(any[Draft])(using any[DBSession])).thenAnswer((invocation: InvocationOnMock) => {
       Option(invocation.getArgument[Draft](0)) match {
@@ -116,7 +115,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("newArticle should insert a given article") {
-    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List.empty))
     when(contentValidator.validateArticle(any[Draft])(using any[DBSession])).thenReturn(Success(article))
     when(draftRepository.newEmptyArticleId()(using any[DBSession])).thenReturn(Success(1: Long))
 
@@ -1325,7 +1323,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     scala.util.Properties.setProp("DEBUG_FLAKE", "true")
     doAnswer((i: InvocationOnMock) => {
       Success(i.getArgument[Draft](1))
-    }).when(articleApiClient).updateArticle(any, any, any, any, any)
+    }).when(articleApiClient).updateArticle(any, any, any, any)
 
     val existing = TestData
       .sampleDomainArticle
@@ -1335,6 +1333,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       .copy(revision = 1, status = Some("PUBLISHED"), language = Some("nb"))
     when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
     when(draftRepository.withId(eqTo(existing.id.get))(using any)).thenReturn(Success(Some(existing)))
+    when(h5pApiClient.publishH5Ps(any, any)).thenReturn(Success(()))
     val result = service.updateArticle(existing.id.get, updatedArticle, TestData.userWithAdminAccess).get
 
     result.status.current should be(PUBLISHED.toString)

@@ -281,16 +281,6 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
       .flatMap(Option(_))
   }
 
-  def getExternalIdsFromId(id: Long)(using session: DBSession): Try[List[String]] = {
-    tsql"""
-      select external_id
-      from ${dbArticle.table}
-      where article_id=${id.toInt}
-      order by revision desc
-      limit 1
-    """.map(externalIdsFromResultSet).runSingle().map(_.getOrElse(List.empty))
-  }
-
   private def externalSubjectIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {
     Option(wrappedResultSet.array("external_subject_id"))
       .map(_.getArray.asInstanceOf[Array[String]])

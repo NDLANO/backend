@@ -177,7 +177,12 @@ class ArticleApiClientTest
 
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
-    val response         = articleApiClient.updateArticle(1, testArticle, List("1234"), useSoftValidation = false, authUser)
+    val response         = articleApiClient.updateArticle(
+      1,
+      testArticle.copy(externalIds = List("1234")),
+      useSoftValidation = false,
+      authUser,
+    )
     response.isSuccess should be(true)
   }
 
@@ -218,13 +223,8 @@ class ArticleApiClientTest
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     val invalidArticle  = testArticle.copy(metaDescription = Seq.empty)
-    val result          = articleApiCient.updateArticle(
-      id = 10,
-      draft = invalidArticle,
-      externalIds = List.empty,
-      useSoftValidation = false,
-      user = authUser,
-    )
+    val result          =
+      articleApiCient.updateArticle(id = 10, draft = invalidArticle, useSoftValidation = false, user = authUser)
 
     result.isSuccess should be(false)
   }

@@ -21,7 +21,6 @@ import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.ArticleIndexService
 import no.ndla.articleapi.validation.ContentValidator
 import no.ndla.common.implicits.toTry
-import no.ndla.common.model.api.CommaSeparatedList.*
 import no.ndla.common.model.domain.article.{Article, PartialPublishArticleDTO, PartialPublishArticlesBulkDTO}
 import no.ndla.database.DBUtility
 import no.ndla.language.Language
@@ -190,7 +189,6 @@ class InternController(using
   def updateArticle: ServerEndpoint[Any, Eff] = endpoint
     .post
     .in("article" / path[Long]("id"))
-    .in(listQuery[String]("external-id"))
     .in(query[Boolean]("use-import-validation").default(false))
     .in(query[Boolean]("use-soft-validation").default(false))
     .in(jsonBody[Article])
@@ -199,9 +197,9 @@ class InternController(using
     .requirePermission(ARTICLE_API_WRITE)
     .serverLogicPure { _ => params =>
       dBUtility.rollbackOnFailure {
-        val (id, externalIds, useImportValidation, useSoftValidation, article) = params
+        val (id, useImportValidation, useSoftValidation, article) = params
         writeService.updateArticle(
-          article.copy(id = Some(id), externalIds = externalIds.values.filterNot(_.isEmpty)),
+          article.copy(id = Some(id)),
           useImportValidation,
           useSoftValidation,
           skipValidation = false,

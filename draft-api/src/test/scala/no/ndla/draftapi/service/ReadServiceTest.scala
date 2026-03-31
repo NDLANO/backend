@@ -53,7 +53,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       .copy(content = Seq(articleContent1), visualElement = Seq(VisualElement(visualElementBefore, "nb")))
 
     when(draftRepository.withId(eqTo(1L))(using any)).thenReturn(Success(Some(article)))
-    when(draftRepository.getExternalIdsFromId(any[Long])(using any[DBSession])).thenReturn(Success(List("54321")))
 
     val expectedResult = converterService
       .toApiArticle(
@@ -118,11 +117,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val article3 = TestData.sampleDomainArticle.copy(id = Some(3))
 
     when(draftRepository.withIds(any, any, any)(using any)).thenReturn(Success(Seq(article1, article2, article3)))
-    when(draftRepository.getExternalIdsFromId(any)(using any)).thenReturn(
-      Success(List("")),
-      Success(List("")),
-      Success(List("")),
-    )
 
     val Success(result) = readService.getArticlesByIds(
       articleIds = ids,
@@ -155,7 +149,6 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val currentDraft   = TestData.sampleDomainArticle.copy(revision = Some(42))
     val publishedDraft = currentDraft.copy(status = TestData.statusWithPublished)
     val articleId      = previousDraft.id.get
-    when(draftRepository.getExternalIdsFromId(eqTo(articleId))(using any)).thenReturn(Success(List("123")))
 
     when(draftRepository.articlesWithId(eqTo(articleId))(using any[DBSession])).thenReturn(
       Success(List(previousDraft, publishedDraft))

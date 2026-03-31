@@ -154,16 +154,6 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
       .toList
   }
 
-  def getExternalIdsFromId(id: Long)(using DBSession): Try[List[String]] = {
-    tsql"""
-      select external_id
-      from ${dbArticle.Article.table}
-      where article_id=${id.toInt}
-      order by revision desc
-      limit 1
-    """.map(externalIdsFromResultSet).runSingle().map(_.getOrElse(List.empty))
-  }
-
   def getAllIds(using DBSession): Try[Seq[ArticleIds]] = {
     tsql"select article_id, external_id from ${dbArticle.Article.table}"
       .map(rs => ArticleIds(rs.long("article_id"), externalIdsFromResultSet(rs)))

@@ -123,27 +123,6 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
     repository.withId(res.id.get)(using dbUtility.autoSession).failIfFailure.get.article.get should be(sampleArticle)
   }
 
-  test("Fetching external ids works as expected") {
-    val externalIds     = List("1", "2", "3")
-    val idWithExternals = repository.updateArticleFromDraftApi(
-      sampleArticle.copy(id = Some(1), externalIds = externalIds)
-    )(using dbUtility.autoSession)
-    val idWithoutExternals =
-      repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(2)))(using dbUtility.autoSession)
-
-    val result1 = repository
-      .getExternalIdsFromId(idWithExternals.get.id.get)(using dbUtility.readOnlySession)
-      .failIfFailure
-    result1 should be(externalIds)
-    val result2 = repository
-      .getExternalIdsFromId(idWithoutExternals.get.id.get)(using dbUtility.autoSession)
-      .failIfFailure
-    result2 should be(List.empty)
-
-    repository.deleteMaxRevision(idWithExternals.get.id.get)(using dbUtility.autoSession)
-    repository.deleteMaxRevision(idWithoutExternals.get.id.get)(using dbUtility.autoSession)
-  }
-
   test("updating with a valid article with a that is not in database will be recreated") {
     val article = TestData.sampleDomainArticle.copy(id = Some(110))
 

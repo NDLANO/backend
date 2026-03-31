@@ -23,7 +23,7 @@ import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.tapir.auth.TokenUser
 import org.jsoup.nodes.Element
-import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 
@@ -69,27 +69,25 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiArticle converts a domain.Article to an api.ArticleV2") {
-    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(using any)).thenReturn(
-      Success(List(TestData.externalId))
+    service.toApiArticle(TestData.sampleDomainArticle.copy(externalIds = List(TestData.externalId)), "nb") should equal(
+      Success(TestData.apiArticleV2)
     )
-    service.toApiArticle(TestData.sampleDomainArticle, "nb") should equal(Success(TestData.apiArticleV2))
   }
 
   test("that toApiArticle returns sorted supportedLanguages") {
-    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(using any)).thenReturn(
-      Success(List(TestData.externalId))
-    )
     val result = service.toApiArticle(
-      TestData.sampleDomainArticle.copy(title = TestData.sampleDomainArticle.title :+ Title("hehe", "und")),
+      TestData
+        .sampleDomainArticle
+        .copy(
+          title = TestData.sampleDomainArticle.title :+ Title("hehe", "und"),
+          externalIds = List(TestData.externalId),
+        ),
       "nb",
     )
     result.get.supportedLanguages should be(Seq("nb", "und"))
   }
 
   test("that toApiArticleV2 returns none if article does not exist on language, and fallback is not specified") {
-    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(using any)).thenReturn(
-      Success(List(TestData.externalId))
-    )
     val result = service.toApiArticle(TestData.sampleDomainArticle, "en")
     result.isFailure should be(true)
   }
@@ -97,9 +95,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   test(
     "That toApiArticleV2 returns article on existing language if fallback is specified even if selected language does not exist"
   ) {
-    when(draftRepository.getExternalIdsFromId(eqTo(TestData.articleId))(using any)).thenReturn(
-      Success(List(TestData.externalId))
-    )
     val result = service.toApiArticle(TestData.sampleDomainArticle, "en", fallback = true)
     result.get.title.get.language should be("nb")
     result.get.title.get.title should be(TestData.sampleDomainArticle.title.head.title)

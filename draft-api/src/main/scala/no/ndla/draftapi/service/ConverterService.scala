@@ -24,8 +24,6 @@ import no.ndla.common.{Clock, model}
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.model.api.{NotFoundException, UpdatedArticleDTO}
 import no.ndla.draftapi.model.{api, domain}
-import no.ndla.draftapi.repository.DraftRepository
-import no.ndla.database.DBUtility
 import no.ndla.language.Language.{AllLanguages, UnknownLanguage, findByLanguageOrBestEffort, mergeLanguageFields}
 import no.ndla.mapping.License.getLicense
 import no.ndla.network.tapir.auth.TokenUser
@@ -41,12 +39,10 @@ import no.ndla.common.util.TraitUtil
 
 class ConverterService(using
     clock: Clock,
-    draftRepository: DraftRepository,
     commonConverter: CommonConverter,
     writeService: => WriteService,
     props: DraftApiProperties,
     traitUtil: TraitUtil,
-    dbUtility: DBUtility,
 ) extends StrictLogging {
   def toDomainArticle(newArticleId: Long, newArticle: api.NewArticleDTO, user: TokenUser): Try[Draft] = {
     val domainTitles  = Seq(common.Title(newArticle.title, newArticle.language))
@@ -256,13 +252,6 @@ class ConverterService(using
     common.RequiredLibrary(requiredLibs.mediaType, requiredLibs.name, requiredLibs.url)
   }
 
-  private def getLinkToOldNdla(id: Long): Option[String] = dbUtility
-    .readOnly { session =>
-      draftRepository.getExternalIdsFromId(id)(using session)
-    }
-    .toOption
-    .flatMap(_.map(createLinkToOldNdla).headOption)
-
   private def removeUnknownEmbedTagAttribute(html: String): String = {
     val document = HtmlTagRules.stringToJsoupDocument(html)
     document
@@ -302,7 +291,7 @@ class ConverterService(using
       Success(
         api.ArticleDTO(
           id = article.id.get,
-          oldNdlaUrl = article.id.flatMap(getLinkToOldNdla),
+          oldNdlaUrl = article.externalIds.headOption.map(createLinkToOldNdla),
           revision = article.revision.get,
           status = toApiStatus(article.status),
           title = title,
