@@ -258,7 +258,7 @@ class ConverterService(using props: Props) extends StrictLogging {
       Success(
         api.ArticleV2DTO(
           id = article.id.get,
-          oldNdlaUrl = article.externalIds.map(createLinkToOldNdla).headOption,
+          oldNdlaUrl = article.externalIds.headOption.map(createLinkToOldNdla),
           revision = article.revision.get,
           title = title,
           content = articleContent,
