@@ -19,21 +19,32 @@ class DBArticle(using props: Props) {
     override def tableName                  = "contentdata"
     override def schemaName: Option[String] = Some(props.MetaSchema)
 
-    def fromResultSet(lp: SyntaxProvider[Article])(rs: WrappedResultSet): ArticleRow = fromResultSet(lp.resultName)(rs)
+    def fromResultSet(a: SyntaxProvider[Article])(rs: WrappedResultSet): ArticleRow = fromResultSet(a.resultName)(rs)
 
-    def fromResultSet(lp: ResultName[Article])(rs: WrappedResultSet): ArticleRow = {
-      val articleId = rs.long(lp.c("article_id"))
-      val rowId     = rs.long(lp.c("id"))
-      val document  = rs.stringOpt(lp.c("document"))
-      val revision  = rs.int(lp.c("revision"))
-      val slug      = rs.stringOpt(lp.c("slug"))
+    def fromResultSet(a: ResultName[Article])(rs: WrappedResultSet): ArticleRow = {
+      val articleId   = rs.long(a.c("article_id"))
+      val externalIds = rs
+        .arrayOpt(a.c("external_id"))
+        .map(_.getArray.asInstanceOf[Array[String]].toList)
+        .getOrElse(List.empty)
+      val rowId    = rs.long(a.c("id"))
+      val document = rs.stringOpt(a.c("document"))
+      val revision = rs.int(a.c("revision"))
+      val slug     = rs.stringOpt(a.c("slug"))
 
       val article = document.map(jsonStr => {
         val meta = CirceUtil.unsafeParseAs[Article](jsonStr)
         meta.copy(id = Some(articleId), revision = Some(revision), slug = slug)
       })
 
-      ArticleRow(rowId = rowId, revision = revision, articleId = articleId, slug = slug, article = article)
+      ArticleRow(
+        rowId = rowId,
+        externalIds = externalIds,
+        revision = revision,
+        articleId = articleId,
+        slug = slug,
+        article = article,
+      )
     }
   }
 }

@@ -97,6 +97,7 @@ class ArticleApiClientTest
   val testArticle: Draft = Draft(
     id = Some(1),
     revision = Some(1),
+    externalIds = List(),
     status = common.Status(common.draft.DraftStatus.PUBLISHED, Set.empty),
     title = Seq(common.Title("Title", "nb")),
     content = Seq(common.ArticleContent("Content", "nb")),
@@ -156,11 +157,11 @@ class ArticleApiClientTest
             td.sampleDomainArticle
               .copy(
                 id = Some(id),
-                updated = NDLADate.fromUnixTime(0),
                 created = NDLADate.fromUnixTime(0),
+                updated = NDLADate.fromUnixTime(0),
                 published = NDLADate.fromUnixTime(0),
-              ),
-            List(s"1$id"),
+                externalIds = List(s"1$id"),
+              )
           )(using articleApi.componentRegistry.dbUtility.autoSession)
       })
       .collectFirst { case Failure(ex) =>
@@ -176,7 +177,12 @@ class ArticleApiClientTest
 
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
-    val response         = articleApiClient.updateArticle(1, testArticle, List("1234"), useSoftValidation = false, authUser)
+    val response         = articleApiClient.updateArticle(
+      1,
+      testArticle.copy(externalIds = List("1234")),
+      useSoftValidation = false,
+      authUser,
+    )
     response.isSuccess should be(true)
   }
 
@@ -217,13 +223,8 @@ class ArticleApiClientTest
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     val invalidArticle  = testArticle.copy(metaDescription = Seq.empty)
-    val result          = articleApiCient.updateArticle(
-      id = 10,
-      draft = invalidArticle,
-      externalIds = List.empty,
-      useSoftValidation = false,
-      user = authUser,
-    )
+    val result          =
+      articleApiCient.updateArticle(id = 10, draft = invalidArticle, useSoftValidation = false, user = authUser)
 
     result.isSuccess should be(false)
   }

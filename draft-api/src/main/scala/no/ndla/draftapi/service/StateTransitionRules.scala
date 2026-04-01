@@ -78,11 +78,9 @@ class StateTransitionRules(using
     (article, user) =>
       article.id match {
         case Some(id) => for {
-            externalIds   <- dbUtility.readOnly(implicit session => draftRepository.getExternalIdsFromId(id))
-            h5pPaths       = converterService.getEmbeddedH5PPaths(article)
-            _              = h5pApiClient.publishH5Ps(h5pPaths, user)
+            _             <- h5pApiClient.publishH5Ps(converterService.getEmbeddedH5PPaths(article), user)
             taxonomyT      = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
-            articleUpdateT = articleApiClient.updateArticle(id, article, externalIds, useSoftValidation, user)
+            articleUpdateT = articleApiClient.updateArticle(id, article, useSoftValidation, user)
             _             <- taxonomyT
             articleUpdate <- articleUpdateT
           } yield articleUpdate

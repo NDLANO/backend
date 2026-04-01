@@ -122,16 +122,16 @@ class WriteService(using
             newResponsible  = Some(Responsible(userInfo.id, clock.now()))
             articleToInsert = article.copy(
               id = Some(newId),
+              revision = Some(1),
+              status = status,
               title = newTitles,
               content = newContents,
-              revision = Some(1),
-              updated = clock.now(),
               created = clock.now(),
-              published = clock.now(),
+              updated = clock.now(),
               updatedBy = userInfo.id,
-              responsible = newResponsible,
-              status = status,
+              published = clock.now(),
               notes = notes,
+              responsible = newResponsible,
             )
             inserted  <- draftRepository.insert(articleToInsert)
             _          = indexArticle(inserted, userInfo)

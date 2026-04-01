@@ -63,7 +63,7 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
       100 to 150
     ).map(_.toString).zipWithIndex
     externalIdsAndRegularIds.foreach { case (exId, id) =>
-      repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(id.toLong)), List(exId))(using
+      repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(id.toLong), externalIds = List(exId)))(using
         dbUtility.autoSession
       )
     }
@@ -77,10 +77,14 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
 
   test("getIdFromExternalId works with all ids") {
     val inserted1 = repository
-      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(1)), List("6000", "10"))(using dbUtility.autoSession)
+      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(1), externalIds = List("6000", "10")))(using
+        dbUtility.autoSession
+      )
       .failIfFailure
     val inserted2 = repository
-      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(2)), List("6001", "11"))(using dbUtility.autoSession)
+      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(2), externalIds = List("6001", "11")))(using
+        dbUtility.autoSession
+      )
       .failIfFailure
 
     repository.getIdFromExternalId("6000")(using dbUtility.readOnlySession).failIfFailure should be(inserted1.id.get)
@@ -91,11 +95,11 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
 
   test("getArticleIdsFromExternalId should return ArticleIds object with externalIds") {
     val externalIds = List("1", "6010", "6011", "5084", "763", "8881", "1919")
-    val inserted    = repository
-      .updateArticleFromDraftApi(sampleArticle, externalIds)(using dbUtility.autoSession)
-      .failIfFailure
-    val inserted2 = repository
-      .updateArticleFromDraftApi(sampleArticle.copy(revision = Some(2)), externalIds)(using dbUtility.autoSession)
+    val inserted    = repository.updateArticleFromDraftApi(sampleArticle)(using dbUtility.autoSession).failIfFailure
+    val inserted2   = repository
+      .updateArticleFromDraftApi(sampleArticle.copy(revision = Some(2), externalIds = externalIds))(using
+        dbUtility.autoSession
+      )
       .failIfFailure
 
     repository
@@ -110,41 +114,19 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
   test("updateArticleFromDraftApi should update all columns with data from draft-api") {
 
     val externalIds            = List("123", "456")
-    val sampleArticle: Article = TestData.sampleDomainArticle.copy(id = Some(5), revision = Some(42))
-    val res                    = repository
-      .updateArticleFromDraftApi(sampleArticle, externalIds)(using dbUtility.autoSession)
-      .failIfFailure
+    val sampleArticle: Article = TestData
+      .sampleDomainArticle
+      .copy(id = Some(5), revision = Some(42), externalIds = externalIds)
+    val res = repository.updateArticleFromDraftApi(sampleArticle)(using dbUtility.autoSession).failIfFailure
 
     res.id.isDefined should be(true)
     repository.withId(res.id.get)(using dbUtility.autoSession).failIfFailure.get.article.get should be(sampleArticle)
   }
 
-  test("Fetching external ids works as expected") {
-    val externalIds     = List("1", "2", "3")
-    val idWithExternals =
-      repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(1)), externalIds)(using dbUtility.autoSession)
-    val idWithoutExternals =
-      repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(2)), List.empty)(using dbUtility.autoSession)
-
-    val result1 = repository
-      .getExternalIdsFromId(idWithExternals.get.id.get)(using dbUtility.readOnlySession)
-      .failIfFailure
-    result1 should be(externalIds)
-    val result2 = repository
-      .getExternalIdsFromId(idWithoutExternals.get.id.get)(using dbUtility.autoSession)
-      .failIfFailure
-    result2 should be(List.empty)
-
-    repository.deleteMaxRevision(idWithExternals.get.id.get)(using dbUtility.autoSession)
-    repository.deleteMaxRevision(idWithoutExternals.get.id.get)(using dbUtility.autoSession)
-  }
-
   test("updating with a valid article with a that is not in database will be recreated") {
     val article = TestData.sampleDomainArticle.copy(id = Some(110))
 
-    val updatedArticle = repository
-      .updateArticleFromDraftApi(article, List.empty)(using dbUtility.autoSession)
-      .failIfFailure
+    val updatedArticle = repository.updateArticleFromDraftApi(article)(using dbUtility.autoSession).failIfFailure
 
     repository.deleteMaxRevision(updatedArticle.id.get)(using dbUtility.autoSession)
   }
@@ -159,22 +141,22 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
 
   test("That getArticlesByPage returns all latest articles") {
     val art1 = repository
-      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(1)), List.empty)(using dbUtility.autoSession)
+      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(1)))(using dbUtility.autoSession)
       .failIfFailure
     val art2 = repository
-      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(2)), List.empty)(using dbUtility.autoSession)
+      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(2)))(using dbUtility.autoSession)
       .failIfFailure
     val art3 = repository
-      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(3)), List.empty)(using dbUtility.autoSession)
+      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(3)))(using dbUtility.autoSession)
       .failIfFailure
     val art4 = repository
-      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(4)), List.empty)(using dbUtility.autoSession)
+      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(4)))(using dbUtility.autoSession)
       .failIfFailure
     val art5 = repository
-      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(5)), List.empty)(using dbUtility.autoSession)
+      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(5)))(using dbUtility.autoSession)
       .failIfFailure
     val art6 = repository
-      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(6)), List.empty)(using dbUtility.autoSession)
+      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(6)))(using dbUtility.autoSession)
       .failIfFailure
 
     val pageSize = 4
@@ -188,19 +170,13 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
 
   test("That stored articles are retrieved exactly as they were stored") {
     val art1 = repository
-      .updateArticleFromDraftApi(TestData.sampleArticleWithByNcSa.copy(id = Some(1)), List.empty)(using
-        dbUtility.autoSession
-      )
+      .updateArticleFromDraftApi(TestData.sampleArticleWithByNcSa.copy(id = Some(1)))(using dbUtility.autoSession)
       .failIfFailure
     val art2 = repository
-      .updateArticleFromDraftApi(TestData.sampleArticleWithPublicDomain.copy(id = Some(2)), List.empty)(using
-        dbUtility.autoSession
-      )
+      .updateArticleFromDraftApi(TestData.sampleArticleWithPublicDomain.copy(id = Some(2)))(using dbUtility.autoSession)
       .failIfFailure
     val art3 = repository
-      .updateArticleFromDraftApi(TestData.sampleArticleWithCopyrighted.copy(id = Some(3)), List.empty)(using
-        dbUtility.autoSession
-      )
+      .updateArticleFromDraftApi(TestData.sampleArticleWithCopyrighted.copy(id = Some(3)))(using dbUtility.autoSession)
       .failIfFailure
 
     repository.withId(1)(using dbUtility.readOnlySession).failIfFailure.get.article should be(Some(art1))
@@ -224,10 +200,10 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
       .copy(id = Some(3L), revision = Some(0), tags = Seq(Tag(Seq("def"), "nb"), Tag(Seq("d", "def", "asd"), "nn")))
     val sampleArticle4 = TestData.sampleDomainArticle2.copy(id = Some(4L), revision = Some(0), tags = Seq.empty)
 
-    repository.updateArticleFromDraftApi(sampleArticle1, List.empty)(using dbUtility.autoSession).failIfFailure
-    repository.updateArticleFromDraftApi(sampleArticle2, List.empty)(using dbUtility.autoSession).failIfFailure
-    repository.updateArticleFromDraftApi(sampleArticle3, List.empty)(using dbUtility.autoSession).failIfFailure
-    repository.updateArticleFromDraftApi(sampleArticle4, List.empty)(using dbUtility.autoSession).failIfFailure
+    repository.updateArticleFromDraftApi(sampleArticle1)(using dbUtility.autoSession).failIfFailure
+    repository.updateArticleFromDraftApi(sampleArticle2)(using dbUtility.autoSession).failIfFailure
+    repository.updateArticleFromDraftApi(sampleArticle3)(using dbUtility.autoSession).failIfFailure
+    repository.updateArticleFromDraftApi(sampleArticle4)(using dbUtility.autoSession).failIfFailure
 
     val (tags1, tagsCount1) = repository.getTags("", 5, 0, "nb")(using dbUtility.readOnlySession).failIfFailure
     tags1 should equal(Seq("abc", "bcd", "cde", "ddd", "def"))
@@ -277,9 +253,9 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
 
   test("withId parse relatedContent correctly") {
     repository
-      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(1), relatedContent = Seq(Right(2))), List("6000", "10"))(
-        using dbUtility.autoSession
-      )
+      .updateArticleFromDraftApi(
+        sampleArticle.copy(id = Some(1), relatedContent = Seq(Right(2)), externalIds = List("6000", "10"))
+      )(using dbUtility.autoSession)
       .failIfFailure
 
     val relatedId = repository
@@ -297,15 +273,9 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
     val articleId = 110L
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))
 
-    repository
-      .updateArticleFromDraftApi(article.copy(revision = 1.some), List.empty)(using dbUtility.autoSession)
-      .failIfFailure
-    repository
-      .updateArticleFromDraftApi(article.copy(revision = 2.some), List.empty)(using dbUtility.autoSession)
-      .failIfFailure
-    repository
-      .updateArticleFromDraftApi(article.copy(revision = 3.some), List.empty)(using dbUtility.autoSession)
-      .failIfFailure
+    repository.updateArticleFromDraftApi(article.copy(revision = 1.some))(using dbUtility.autoSession).failIfFailure
+    repository.updateArticleFromDraftApi(article.copy(revision = 2.some))(using dbUtility.autoSession).failIfFailure
+    repository.updateArticleFromDraftApi(article.copy(revision = 3.some))(using dbUtility.autoSession).failIfFailure
 
     val resultBefore = repository.getArticlesByPage(10, 0)(using dbUtility.readOnlySession).failIfFailure
     resultBefore.size should be(1)
@@ -324,11 +294,9 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
     val article2 = article.copy(revision = 2.some)
     val article3 = article.copy(revision = 3.some)
 
-    repository.updateArticleFromDraftApi(article1, List.empty)(using dbUtility.autoSession).failIfFailure
-    repository.updateArticleFromDraftApi(article2, List.empty)(using dbUtility.autoSession).failIfFailure
-    val inserted3 = repository
-      .updateArticleFromDraftApi(article3, List.empty)(using dbUtility.autoSession)
-      .failIfFailure
+    repository.updateArticleFromDraftApi(article1)(using dbUtility.autoSession).failIfFailure
+    repository.updateArticleFromDraftApi(article2)(using dbUtility.autoSession).failIfFailure
+    val inserted3 = repository.updateArticleFromDraftApi(article3)(using dbUtility.autoSession).failIfFailure
 
     repository.withSlug("Detti-er-ein-slug")(using dbUtility.readOnlySession).failIfFailure.toArticle.get should be(
       inserted3
@@ -343,17 +311,13 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
     val article3 = article.copy(id = 3L.some, revision = 1.some)
     val article4 = article.copy(id = 4L.some, revision = 1.some)
 
-    repository.updateArticleFromDraftApi(article1, List.empty)(using dbUtility.autoSession).failIfFailure
-    repository.updateArticleFromDraftApi(article2, List.empty)(using dbUtility.autoSession).failIfFailure
-    repository.updateArticleFromDraftApi(article3, List.empty)(using dbUtility.autoSession).failIfFailure
-    repository.updateArticleFromDraftApi(article4, List.empty)(using dbUtility.autoSession).failIfFailure
+    repository.updateArticleFromDraftApi(article1)(using dbUtility.autoSession).failIfFailure
+    repository.updateArticleFromDraftApi(article2)(using dbUtility.autoSession).failIfFailure
+    repository.updateArticleFromDraftApi(article3)(using dbUtility.autoSession).failIfFailure
+    repository.updateArticleFromDraftApi(article4)(using dbUtility.autoSession).failIfFailure
 
-    repository
-      .updateArticleFromDraftApi(article3.copy(revision = 2.some), List.empty)(using dbUtility.autoSession)
-      .failIfFailure
-    repository
-      .updateArticleFromDraftApi(article3.copy(revision = 3.some), List.empty)(using dbUtility.autoSession)
-      .failIfFailure
+    repository.updateArticleFromDraftApi(article3.copy(revision = 2.some))(using dbUtility.autoSession).failIfFailure
+    repository.updateArticleFromDraftApi(article3.copy(revision = 3.some))(using dbUtility.autoSession).failIfFailure
     val resultBefore = repository.documentsWithIdBetween(1, 10)(using dbUtility.readOnlySession).failIfFailure
     resultBefore.size should be(4)
 

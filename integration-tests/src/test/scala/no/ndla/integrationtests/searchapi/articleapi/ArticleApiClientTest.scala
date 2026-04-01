@@ -93,11 +93,11 @@ class ArticleApiClientTest
             td.sampleDomainArticle
               .copy(
                 id = Some(id),
-                updated = NDLADate.fromUnixTime(0),
                 created = NDLADate.fromUnixTime(0),
+                updated = NDLADate.fromUnixTime(0),
                 published = NDLADate.fromUnixTime(0),
-              ),
-            List(s"1$id"),
+                externalIds = List(s"1$id"),
+              )
           )(using articleApi.componentRegistry.dbUtility.autoSession)
       })
       .collectFirst { case Failure(ex) =>

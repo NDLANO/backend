@@ -301,6 +301,7 @@ object TestData {
   val sampleTopicArticle: Draft = Draft(
     id = Option(1),
     revision = Option(1),
+    externalIds = List(),
     status = common.Status(PLANNED, Set.empty),
     title = Seq(common.Title("test", "en")),
     content = Seq(common.ArticleContent("<section><div>test</div></section>", "en")),
@@ -337,6 +338,7 @@ object TestData {
   val sampleArticleWithPublicDomain: Draft = Draft(
     id = Option(1),
     revision = Option(1),
+    externalIds = List(),
     status = common.Status(PLANNED, Set.empty),
     title = Seq(common.Title("test", "en")),
     content = Seq(common.ArticleContent("<section><div>test</div></section>", "en")),
@@ -373,6 +375,7 @@ object TestData {
   val sampleDomainArticle: Draft = Draft(
     id = Option(articleId),
     revision = Option(2),
+    externalIds = List(),
     status = common.Status(PLANNED, Set.empty),
     title = Seq(common.Title("title", "nb")),
     content = Seq(common.ArticleContent("content", "nb")),
@@ -455,6 +458,7 @@ object TestData {
   val sampleDomainArticleWithHtmlFault: Draft = Draft(
     id = Option(articleId),
     revision = Option(2),
+    externalIds = List(),
     status = common.Status(PLANNED, Set.empty),
     title = Seq(common.Title("test", "en")),
     content = Seq(

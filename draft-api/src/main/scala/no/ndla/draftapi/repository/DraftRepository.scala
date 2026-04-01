@@ -40,8 +40,8 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
     val slug = article.slug.map(_.toLowerCase)
 
     tsql"""
-      insert into ${dbArticle.table} (document, revision, article_id, slug)
-      values ($dataObject, $startRevision, ${article.id}, $slug)
+      insert into ${dbArticle.table} (document, revision, external_id, article_id, slug)
+      values ($dataObject, $startRevision, ARRAY[${article.externalIds}]::text[], ${article.id}, $slug)
     """
       .updateAndReturnGeneratedKey()
       .map { dbId =>
@@ -64,7 +64,6 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
               logger.info(message)
               Failure(new OptimisticLockException)
           }
-          externalIds        <- getExternalIdsFromId(articleId)
           externalSubjectIds <- getExternalSubjectIdsFromId(articleId)
           importId           <- getImportIdFromId(articleId)
           articleRevision     = article.revision.getOrElse(0) + 1
@@ -76,12 +75,12 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
             responsible =
               if (keepDraftData) article.responsible
               else None,
-            priority =
-              if (keepDraftData) article.priority
-              else Priority.Unspecified,
             comments =
               if (keepDraftData | article.articleType == ArticleType.TopicArticle) article.comments
               else Seq.empty,
+            priority =
+              if (keepDraftData) article.priority
+              else Priority.Unspecified,
           )
           dataObject = {
             val obj = new PGobject()
@@ -93,7 +92,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
           slug = article.slug.map(_.toLowerCase)
           _   <- tsql"""
             insert into ${dbArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id, slug)
-            values (ARRAY[$externalIds]::text[],
+            values (ARRAY[${article.externalIds}]::text[],
                     ARRAY[$externalSubjectIds]::text[],
                     $dataObject,
                     $articleRevision,
@@ -280,16 +279,6 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
       .getOrElse(Array.empty[String])
       .toList
       .flatMap(Option(_))
-  }
-
-  def getExternalIdsFromId(id: Long)(using session: DBSession): Try[List[String]] = {
-    tsql"""
-      select external_id
-      from ${dbArticle.table}
-      where article_id=${id.toInt}
-      order by revision desc
-      limit 1
-    """.map(externalIdsFromResultSet).runSingle().map(_.getOrElse(List.empty))
   }
 
   private def externalSubjectIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {

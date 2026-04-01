@@ -50,17 +50,8 @@ class ArticleApiClient(ArticleBaseUrl: String)(using ndlaClient: NdlaClient, con
       .map(res => res.id)
   }
 
-  def updateArticle(
-      id: Long,
-      draft: Draft,
-      externalIds: List[String],
-      useSoftValidation: Boolean,
-      user: TokenUser,
-  ): Try[Draft] = {
-    val extParam = Option.when(externalIds.nonEmpty)("external-id" -> externalIds.mkString(","))
-    val params   =
-      List("use-import-validation" -> false.toString, "use-soft-validation" -> useSoftValidation.toString) ++ extParam
-        .toSeq
+  def updateArticle(id: Long, draft: Draft, useSoftValidation: Boolean, user: TokenUser): Try[Draft] = {
+    val params = Seq("use-import-validation" -> false.toString, "use-soft-validation" -> useSoftValidation.toString)
     for {
       converted <- converterService.toArticleApiArticle(draft)
       _         <- postWithData[common.article.Article, common.article.Article](

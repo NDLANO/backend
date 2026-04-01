@@ -21,9 +21,7 @@ import scala.util.{Failure, Success, Try}
 
 class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
 
-  def updateArticleFromDraftApi(article: Article, externalIds: List[String])(implicit
-      session: DBSession
-  ): Try[Article] = {
+  def updateArticleFromDraftApi(article: Article)(implicit session: DBSession): Try[Article] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
     val jsonString = CirceUtil.toJsonString(article)
@@ -33,7 +31,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
     tsql"""
       update ${dbArticle.Article.table}
       set document=$dataObject,
-        external_id=ARRAY[$externalIds]::text[],
+        external_id=ARRAY[${article.externalIds}]::text[],
         slug=$slug
       where article_id=${article.id} and revision=${article.revision}
     """.update() match {
@@ -46,7 +44,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
 
         tsql"""
           insert into ${dbArticle.Article.table} (article_id, document, external_id, revision, slug)
-          values (${article.id}, $dataObject, ARRAY[$externalIds]::text[], ${article.revision}, $slug)
+          values (${article.id}, $dataObject, ARRAY[${article.externalIds}]::text[], ${article.revision}, $slug)
         """.updateAndReturnGeneratedKey().map(_ => article.copy(slug = slug))
 
       case Failure(ex) => Failure(ex)
@@ -154,16 +152,6 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
       .map(x => x.getArray.asInstanceOf[Array[String]])
       .getOrElse(Array.empty[String])
       .toList
-  }
-
-  def getExternalIdsFromId(id: Long)(using DBSession): Try[List[String]] = {
-    tsql"""
-      select external_id
-      from ${dbArticle.Article.table}
-      where article_id=${id.toInt}
-      order by revision desc
-      limit 1
-    """.map(externalIdsFromResultSet).runSingle().map(_.getOrElse(List.empty))
   }
 
   def getAllIds(using DBSession): Try[Seq[ArticleIds]] = {
