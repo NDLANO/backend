@@ -14,7 +14,7 @@ import io.circe.{Decoder, Encoder}
 import sttp.tapir.generic.auto.*
 import sttp.tapir.Schema
 
-case class ArticleIdsDTO(articleId: Long, externalIds: List[String])
+case class ArticleIdsDTO(articleId: Long, externalId: List[String], importId: Option[String] = None)
 
 object ArticleIdsDTO {
   implicit val encoder: Encoder[ArticleIdsDTO] = deriveEncoder

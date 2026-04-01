@@ -181,14 +181,16 @@ class InternController(using
         case Some(Success(status)) => dbUtility.readOnly { implicit session =>
             draftRepository.idsWithStatus(status) match {
               case Failure(ex)  => throw ex
-              case Success(ids) => Right(ids.map(aid => ArticleIdsDTO(aid.articleId, aid.externalId.getOrElse(Nil))))
+              case Success(ids) =>
+                Right(ids.map(aid => ArticleIdsDTO(aid.articleId, aid.externalId.getOrElse(Nil), aid.importId)))
             }
           }
         case Some(Failure(ex)) => Failure(ex)
         case None              => dbUtility.readOnly { implicit session =>
             draftRepository.getAllIds match {
               case Failure(ex)  => throw ex
-              case Success(ids) => Right(ids.map(aid => ArticleIdsDTO(aid.articleId, aid.externalId.getOrElse(Nil))))
+              case Success(ids) =>
+                Right(ids.map(aid => ArticleIdsDTO(aid.articleId, aid.externalId.getOrElse(Nil), aid.importId)))
             }
           }
       }
