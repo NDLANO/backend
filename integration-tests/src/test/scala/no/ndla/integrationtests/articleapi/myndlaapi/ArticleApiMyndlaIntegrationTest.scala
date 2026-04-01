@@ -162,10 +162,10 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
             td.sampleDomainArticle
               .copy(
                 id = Some(id),
+                externalIds = Some(List(s"1$id")),
                 created = NDLADate.fromUnixTime(0),
                 updated = NDLADate.fromUnixTime(0),
                 published = NDLADate.fromUnixTime(0),
-                externalIds = List(s"1$id"),
               )
           )(using articleApi.componentRegistry.dbUtility.autoSession)
       })
@@ -183,7 +183,7 @@ class ArticleApiMyndlaIntegrationTest extends DatabaseIntegrationSuite with Unit
       .sampleDomainArticle
       .copy(
         id = Some(123L),
-        externalIds = List("123"),
+        externalIds = Some(List("123")),
         created = NDLADate.fromUnixTime(0),
         updated = NDLADate.fromUnixTime(0),
         published = NDLADate.fromUnixTime(0),

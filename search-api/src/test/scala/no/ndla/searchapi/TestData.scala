@@ -183,7 +183,7 @@ object TestData {
   val sampleArticleWithPublicDomain: Article = Article(
     Option(1),
     Option(1),
-    List(),
+    None,
     Seq(Title("test", "en")),
     Seq(ArticleContent("<section><div>test</div></section>", "en")),
     publicDomainCopyright,
@@ -211,7 +211,7 @@ object TestData {
   val sampleDomainArticle: Article = Article(
     Option(articleId),
     Option(2),
-    List(),
+    None,
     Seq(Title("title", "nb")),
     Seq(ArticleContent("content", "nb")),
     Copyright("by", None, Seq(), Seq(), Seq(), None, None, false),
@@ -239,7 +239,7 @@ object TestData {
   val sampleDomainArticle2: Article = Article(
     None,
     None,
-    List(),
+    None,
     Seq(Title("test", "en")),
     Seq(ArticleContent("<article><div>test</div></article>", "en")),
     Copyright(License.PublicDomain.toString, None, Seq(), Seq(), Seq(), None, None, false),
@@ -556,7 +556,7 @@ object TestData {
   val emptyDomainArticle: Article = Article(
     id = None,
     revision = None,
-    externalIds = List(),
+    externalIds = None,
     title = Seq.empty,
     content = Seq.empty,
     copyright = Copyright("", None, Seq.empty, Seq.empty, Seq.empty, None, None, false),
@@ -584,7 +584,7 @@ object TestData {
   val emptyDomainDraft: Draft = Draft(
     id = None,
     revision = None,
-    externalIds = List(),
+    externalIds = None,
     status = Status(DraftStatus.PLANNED, Set.empty),
     title = Seq.empty,
     content = Seq.empty,
@@ -649,7 +649,7 @@ object TestData {
   val sampleDraftWithPublicDomain: Draft = Draft(
     id = Option(1),
     revision = Option(1),
-    externalIds = List(),
+    externalIds = None,
     status = draftStatus,
     title = Seq(Title("test", "en")),
     content = Seq(ArticleContent("<section><div>test</div></section>", "en")),

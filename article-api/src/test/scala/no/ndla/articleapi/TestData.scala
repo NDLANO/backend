@@ -134,7 +134,7 @@ class TestData {
   val sampleArticleWithPublicDomain: Article = Article(
     Option(1),
     Option(1),
-    List(),
+    None,
     Seq(Title("test", "en")),
     Seq(ArticleContent("<section><div>test</div></section>", "en")),
     publicDomainCopyright,
@@ -167,7 +167,7 @@ class TestData {
   val sampleDomainArticle: Article = Article(
     Option(articleId),
     Option(2),
-    List(),
+    None,
     Seq(Title("title", "nb")),
     Seq(ArticleContent("content", "nb")),
     Copyright("CC-BY-4.0", None, Seq(), Seq(), Seq(), None, None, false),
@@ -195,7 +195,7 @@ class TestData {
   val sampleDomainArticle2: Article = Article(
     None,
     None,
-    List(),
+    None,
     Seq(Title("test", "en")),
     Seq(ArticleContent("<article><div>test</div></article>", "en")),
     Copyright(License.PublicDomain.toString, None, Seq(), Seq(), Seq(), None, None, false),
@@ -226,7 +226,7 @@ class TestData {
   val sampleDomainArticleWithHtmlFault: Article = Article(
     Option(articleId),
     Option(2),
-    List(),
+    None,
     Seq(Title("test", "en")),
     Seq(
       ArticleContent(
@@ -319,7 +319,7 @@ class TestData {
     Article(
       Option(articleId),
       Option(2),
-      List(),
+      None,
       Seq(Title("title", lang)),
       Seq(ArticleContent("content", lang)),
       Copyright("by", None, Seq(), Seq(), Seq(), None, None, false),

@@ -147,10 +147,10 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     repository.getAllIds(using dbUtility.autoSession) should be(
       Success(
         Seq(
-          ArticleIds(art1.id.get, List.empty),
-          ArticleIds(art2.id.get, List.empty),
-          ArticleIds(art3.id.get, List.empty),
-          ArticleIds(art4.id.get, List.empty),
+          ArticleIds(art1.id.get, None),
+          ArticleIds(art2.id.get, None),
+          ArticleIds(art3.id.get, None),
+          ArticleIds(art4.id.get, None),
         )
       )
     )
@@ -210,19 +210,19 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
       .get
 
     repository.idsWithStatus(DraftStatus.PLANNED)(using dbUtility.autoSession) should be(
-      Success(List(ArticleIds(1, List.empty), ArticleIds(2, List.empty), ArticleIds(4, List.empty)))
+      Success(List(ArticleIds(1, None), ArticleIds(2, None), ArticleIds(4, None)))
     )
 
     repository.idsWithStatus(DraftStatus.IN_PROGRESS)(using dbUtility.autoSession) should be(
-      Success(List(ArticleIds(3, List.empty), ArticleIds(5, List.empty), ArticleIds(8, List.empty)))
+      Success(List(ArticleIds(3, None), ArticleIds(5, None), ArticleIds(8, None)))
     )
 
     repository.idsWithStatus(DraftStatus.PUBLISHED)(using dbUtility.autoSession) should be(
-      Success(List(ArticleIds(6, List.empty)))
+      Success(List(ArticleIds(6, None)))
     )
 
     repository.idsWithStatus(DraftStatus.END_CONTROL)(using dbUtility.autoSession) should be(
-      Success(List(ArticleIds(7, List.empty)))
+      Success(List(ArticleIds(7, None)))
     )
   }
 

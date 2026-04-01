@@ -93,7 +93,7 @@ class ConverterService(using
       Draft(
         id = Some(newArticleId),
         revision = None,
-        externalIds = List(),
+        externalIds = None,
         status = status,
         title = domainTitles,
         content = content,
@@ -291,7 +291,7 @@ class ConverterService(using
       Success(
         api.ArticleDTO(
           id = article.id.get,
-          oldNdlaUrl = article.externalIds.headOption.map(createLinkToOldNdla),
+          oldNdlaUrl = article.externalIds.getOrElse(List.empty).headOption.map(createLinkToOldNdla),
           revision = article.revision.get,
           status = toApiStatus(article.status),
           title = title,

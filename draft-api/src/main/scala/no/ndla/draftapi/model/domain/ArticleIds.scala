@@ -10,7 +10,7 @@ package no.ndla.draftapi.model.domain
 
 import no.ndla.common.DeriveHelpers
 
-case class ArticleIds(articleId: Long, externalId: List[String], importId: Option[String] = None)
+case class ArticleIds(articleId: Long, externalId: Option[List[String]], importId: Option[String] = None)
 
 object ArticleIds {
   import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}

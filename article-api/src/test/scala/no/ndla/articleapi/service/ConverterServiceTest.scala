@@ -80,7 +80,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
   test("toApiArticleV2 converts a domain.Article to an api.ArticleV2") {
     service.toApiArticleV2(
-      TestData.sampleDomainArticle.copy(externalIds = List(TestData.externalId)),
+      TestData.sampleDomainArticle.copy(externalIds = Some(List(TestData.externalId))),
       "nb",
       false,
     ) should equal(Success(TestData.apiArticleV2))

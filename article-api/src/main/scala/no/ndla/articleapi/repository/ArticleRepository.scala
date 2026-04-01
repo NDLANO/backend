@@ -31,7 +31,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
     tsql"""
       update ${dbArticle.Article.table}
       set document=$dataObject,
-        external_id=ARRAY[${article.externalIds}]::text[],
+        external_id=ARRAY[${article.externalIds.getOrElse(List.empty)}]::text[],
         slug=$slug
       where article_id=${article.id} and revision=${article.revision}
     """.update() match {
@@ -44,7 +44,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
 
         tsql"""
           insert into ${dbArticle.Article.table} (article_id, document, external_id, revision, slug)
-          values (${article.id}, $dataObject, ARRAY[${article.externalIds}]::text[], ${article.revision}, $slug)
+          values (${article.id}, $dataObject, ARRAY[${article.externalIds.getOrElse(List.empty)}]::text[], ${article.revision}, $slug)
         """.updateAndReturnGeneratedKey().map(_ => article.copy(slug = slug))
 
       case Failure(ex) => Failure(ex)
@@ -147,11 +147,12 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
     """.map(rs => rs.int("revision")).runList()
   }
 
-  private def externalIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {
-    Option(wrappedResultSet.array("external_id"))
-      .map(x => x.getArray.asInstanceOf[Array[String]])
-      .getOrElse(Array.empty[String])
-      .toList
+  private def externalIdsFromResultSet(wrappedResultSet: WrappedResultSet): Option[List[String]] = {
+    val externalIds = wrappedResultSet.arrayOpt("external_id").map(_.getArray.asInstanceOf[Array[String]].toList)
+    externalIds match {
+      case Some(Nil) => None
+      case _         => externalIds
+    }
   }
 
   def getAllIds(using DBSession): Try[Seq[ArticleIds]] = {

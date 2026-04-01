@@ -318,9 +318,9 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
       List(MenuDTO(1, List(MenuDTO(2, List.empty, Some(true)), MenuDTO(3, List.empty, Some(true))), Some(false))),
     )
 
-    val rowOne   = Some(ArticleRow(1, List(), 1, 1, Some("some-slug"), Some(parentArticle)))
-    val rowTwo   = Some(ArticleRow(2, List(), 2, 2, Some("slug-one"), Some(article1)))
-    val rowThree = Some(ArticleRow(3, List(), 3, 3, Some("slug-two"), Some(article2)))
+    val rowOne   = Some(ArticleRow(1, None, 1, 1, Some("some-slug"), Some(parentArticle)))
+    val rowTwo   = Some(ArticleRow(2, None, 2, 2, Some("slug-one"), Some(article1)))
+    val rowThree = Some(ArticleRow(3, None, 3, 3, Some("slug-two"), Some(article2)))
 
     when(frontpageApiClient.getFrontpage).thenReturn(Success(frontPage))
     when(articleRepository.withSlug(eqTo("some-slug"))(using any)).thenReturn(Success(rowOne))
