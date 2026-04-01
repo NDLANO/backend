@@ -15,7 +15,6 @@ import no.ndla.articleapi.Props
 import no.ndla.articleapi.controller.ArticleErrorHelpers.ArticleGoneException
 import no.ndla.articleapi.model.NotFoundException
 import no.ndla.articleapi.model.api.*
-import no.ndla.articleapi.model.domain.ArticleIds
 import no.ndla.articleapi.repository.ArticleRepository
 import no.ndla.articleapi.service.*
 import no.ndla.articleapi.service.search.ArticleIndexService
@@ -119,9 +118,16 @@ class InternController(using
   def getIds: ServerEndpoint[Any, Eff] = endpoint
     .get
     .in("ids")
-    .out(jsonBody[Seq[ArticleIds]])
+    .out(jsonBody[Seq[ArticleIdsDTO]])
     .errorOut(errorOutputsFor(500))
-    .serverLogicPure(_ => dBUtility.readOnly(implicit session => articleRepository.getAllIds))
+    .serverLogicPure(_ =>
+      dBUtility.readOnly(implicit session =>
+        articleRepository.getAllIds match {
+          case Success(ids) => Right(ids.map(aid => ArticleIdsDTO(aid.articleId, aid.externalId.getOrElse(Nil))))
+          case Failure(ex)  => errorHandling.returnLeftError(ex)
+        }
+      )
+    )
 
   def getByExternalId: ServerEndpoint[Any, Eff] = endpoint
     .get

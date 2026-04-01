@@ -15,8 +15,8 @@ import no.ndla.common.model.domain.draft.{Draft, DraftStatus}
 import no.ndla.database.DBUtility
 import no.ndla.draftapi.DraftApiProperties
 import no.ndla.draftapi.integration.ArticleApiClient
-import no.ndla.draftapi.model.api.{ArticleDomainDumpDTO, ArticleDumpDTO, ContentIdDTO, NotFoundException}
-import no.ndla.draftapi.model.domain.{ArticleIds, ImportId}
+import no.ndla.draftapi.model.api.{ArticleDomainDumpDTO, ArticleDumpDTO, ArticleIdsDTO, ContentIdDTO, NotFoundException}
+import no.ndla.draftapi.model.domain.ImportId
 import no.ndla.draftapi.repository.DraftRepository
 import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
@@ -175,15 +175,21 @@ class InternController(using
     .in("ids")
     .in(query[Option[String]]("status"))
     .errorOut(errorOutputsFor(400))
-    .out(jsonBody[Seq[ArticleIds]])
+    .out(jsonBody[Seq[ArticleIdsDTO]])
     .serverLogicPure { status =>
       status.map(DraftStatus.valueOfOrError) match {
         case Some(Success(status)) => dbUtility.readOnly { implicit session =>
-            draftRepository.idsWithStatus(status)
+            draftRepository.idsWithStatus(status) match {
+              case Failure(ex)  => throw ex
+              case Success(ids) => Right(ids.map(aid => ArticleIdsDTO(aid.articleId, aid.externalId.getOrElse(Nil))))
+            }
           }
         case Some(Failure(ex)) => Failure(ex)
         case None              => dbUtility.readOnly { implicit session =>
-            draftRepository.getAllIds
+            draftRepository.getAllIds match {
+              case Failure(ex)  => throw ex
+              case Success(ids) => Right(ids.map(aid => ArticleIdsDTO(aid.articleId, aid.externalId.getOrElse(Nil))))
+            }
           }
       }
     }

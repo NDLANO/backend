@@ -148,11 +148,13 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
   }
 
   private def externalIdsFromResultSet(wrappedResultSet: WrappedResultSet): Option[List[String]] = {
-    val externalIds = wrappedResultSet.arrayOpt("external_id").map(_.getArray.asInstanceOf[Array[String]].toList)
-    externalIds match {
-      case Some(Nil) => None
-      case _         => externalIds
-    }
+    wrappedResultSet
+      .arrayOpt("external_id")
+      .map(_.getArray.asInstanceOf[Array[String]].toList.filter(_ != null))
+      .flatMap {
+        case Nil  => None
+        case list => Some(list)
+      }
   }
 
   def getAllIds(using DBSession): Try[Seq[ArticleIds]] = {

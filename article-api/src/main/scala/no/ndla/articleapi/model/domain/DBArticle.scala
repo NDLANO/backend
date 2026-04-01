@@ -23,11 +23,17 @@ class DBArticle(using props: Props) {
 
     def fromResultSet(a: ResultName[Article])(rs: WrappedResultSet): ArticleRow = {
       val articleId   = rs.long(a.c("article_id"))
-      val externalIds = rs.arrayOpt(a.c("external_id")).map(_.getArray.asInstanceOf[Array[String]].toList)
-      val rowId       = rs.long(a.c("id"))
-      val document    = rs.stringOpt(a.c("document"))
-      val revision    = rs.int(a.c("revision"))
-      val slug        = rs.stringOpt(a.c("slug"))
+      val externalIds = rs
+        .arrayOpt(a.c("external_id"))
+        .map(_.getArray.asInstanceOf[Array[String]].toList.filter(_ != null))
+        .flatMap {
+          case Nil => None
+          case ids => Some(ids)
+        }
+      val rowId    = rs.long(a.c("id"))
+      val document = rs.stringOpt(a.c("document"))
+      val revision = rs.int(a.c("revision"))
+      val slug     = rs.stringOpt(a.c("slug"))
 
       val article = document.map(jsonStr => {
         val meta = CirceUtil.unsafeParseAs[Article](jsonStr)
@@ -36,10 +42,7 @@ class DBArticle(using props: Props) {
 
       ArticleRow(
         rowId = rowId,
-        externalIds = externalIds match {
-          case Some(Nil) => None
-          case _         => externalIds
-        },
+        externalIds = externalIds,
         revision = revision,
         articleId = articleId,
         slug = slug,
