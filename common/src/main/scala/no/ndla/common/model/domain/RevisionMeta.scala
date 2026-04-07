@@ -11,6 +11,7 @@ package no.ndla.common.model.domain
 import enumeratum.*
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.common.Clock
 import no.ndla.common.model.NDLADate
 
 import java.util.UUID
@@ -25,7 +26,7 @@ object RevisionMeta {
   val defaultNote                             = "Automatisk revisjonsdato satt av systemet"
 
   def default: Seq[RevisionMeta] = Seq(
-    RevisionMeta(UUID.randomUUID(), NDLADate.now().plusYears(5).withNano(0), defaultNote, RevisionStatus.NeedsRevision)
+    RevisionMeta(UUID.randomUUID(), Clock.now().plusYears(5).withNano(0), defaultNote, RevisionStatus.NeedsRevision)
   )
 }
 

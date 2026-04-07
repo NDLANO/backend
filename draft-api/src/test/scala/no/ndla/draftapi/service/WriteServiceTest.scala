@@ -245,6 +245,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     )
 
     when(draftRepository.slugExists(any, any)(using any)).thenReturn(Success(false))
+    when(clock.now()).thenReturn(today)
 
     service.updateArticle(articleId, updatedApiArticle, TestData.userWithWriteAccess) should equal(
       converterService.toApiArticle(expectedArticle, "en")
