@@ -122,10 +122,7 @@ class InternController(using
     .errorOut(errorOutputsFor(500))
     .serverLogicPure(_ =>
       dBUtility.readOnly(implicit session =>
-        articleRepository.getAllIds match {
-          case Success(ids) => Right(ids.map(aid => ArticleIdsDTO(aid.articleId, aid.externalId.getOrElse(Nil))))
-          case Failure(ex)  => errorHandling.returnLeftError(ex)
-        }
+        articleRepository.getAllIds.map(_.map(aid => ArticleIdsDTO(aid.articleId, aid.externalId.getOrElse(Nil))))
       )
     )
 
