@@ -48,11 +48,15 @@ class Memoize[R](
       case (Some(retryMs), Some(cacheValue)) =>
         val retryTime = System.currentTimeMillis() - maxCacheAgeMs + retryMs
         setCacheTime(retryTime)
-        logger.warn(s"Caught ${ex.getClass.getName}, with message: '${ex.getMessage}', will not update cached output.")
+        logger.warn(
+          s"Caught ${ex.getClass.getName}, with message: '${ex.getMessage}', will not update cached output.",
+          ex,
+        )
         Success(cacheValue.value)
       case _ =>
         logger.warn(
-          s"Caught ${ex.getClass.getName}, with message: '${ex.getMessage}', no cached output to fall back to."
+          s"Caught ${ex.getClass.getName}, with message: '${ex.getMessage}', no cached output to fall back to.",
+          ex,
         )
         Failure(ex)
     }
