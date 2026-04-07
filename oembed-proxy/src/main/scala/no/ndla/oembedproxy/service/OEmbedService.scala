@@ -27,7 +27,7 @@ class OEmbedService(optionalProviders: Option[List[OEmbedProvider]] = None)(usin
 ) extends StrictLogging {
   private val remoteTimeout: FiniteDuration = 10.seconds
 
-  private lazy val providers: Try[List[OEmbedProvider]] = providerService
+  private def providers: Try[List[OEmbedProvider]] = providerService
     .loadProviders()
     .map(loaded => optionalProviders.toList.flatten ++ loaded)
 
