@@ -87,7 +87,3 @@ class Memoize[R](
     }
   }
 }
-
-object Memoize {
-  def apply[R](maxCacheAgeMs: Long, f: () => Try[R]): Memoize[R] = new Memoize(maxCacheAgeMs, f)
-}
