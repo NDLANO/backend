@@ -11,6 +11,7 @@ package no.ndla.common.caching
 import com.typesafe.scalalogging.StrictLogging
 
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.atomic.AtomicReference
 import scala.util.{Failure, Try, Success}
 
 class Memoize[R](
@@ -25,24 +26,25 @@ class Memoize[R](
     def isExpired: Boolean = lastUpdated + maxCacheAgeMs <= System.currentTimeMillis()
   }
 
-  @volatile
-  private var cache: Option[CacheValue] = None
+  private val cache: AtomicReference[Option[CacheValue]] = new AtomicReference(None)
 
   private def setCache(value: R): Try[R]                  = setCache(value, System.currentTimeMillis())
   private def setCache(value: R, cacheTime: Long): Try[R] = {
-    cache = Some(CacheValue(value, cacheTime))
+    cache.set(Some(CacheValue(value, cacheTime)))
     Success(value)
   }
 
   def setCacheTime(cacheTime: Long): Unit = {
-    cache match {
-      case Some(cacheValue) => cache = Some(cacheValue.copy(lastUpdated = cacheTime))
-      case None             => logger.warn(s"Attempted to set cache time to $cacheTime, but no cached value exists.")
-    }
+    cache.updateAndGet {
+      case Some(cacheValue) => Some(cacheValue.copy(lastUpdated = cacheTime))
+      case None =>
+        logger.warn(s"Attempted to set cache time to $cacheTime, but no cached value exists.")
+        None
+    }: Unit
   }
 
   private def recoverFailure(ex: Throwable): Try[R] = {
-    (retryOnErrorMs, cache) match {
+    (retryOnErrorMs, cache.get()) match {
       case (Some(retryMs), Some(cacheValue)) =>
         val retryTime = System.currentTimeMillis() - maxCacheAgeMs + retryMs
         setCacheTime(retryTime)
@@ -80,7 +82,7 @@ class Memoize[R](
   }
 
   def apply(): Try[R] = {
-    cache match {
+    cache.get() match {
       case Some(cachedValue) if autoRefreshCache       => Success(cachedValue.value)
       case Some(cachedValue) if !cachedValue.isExpired => Success(cachedValue.value)
       case _                                           => renewCache()
