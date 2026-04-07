@@ -10,16 +10,11 @@ package no.ndla.common.caching
 
 import com.typesafe.scalalogging.StrictLogging
 
-import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 import java.util.concurrent.atomic.AtomicReference
 import scala.util.{Failure, Try, Success}
 
-class Memoize[R](
-    maxCacheAgeMs: Long,
-    f: () => Try[R],
-    autoRefreshCache: Boolean = false,
-    retryOnErrorMs: Option[Long] = None,
-) extends (() => Try[R])
+class Memoize[R](maxCacheAgeMs: Long, f: () => Try[R], retryOnErrorMs: Option[Long] = None)
+    extends (() => Try[R])
     with StrictLogging {
 
   case class CacheValue(value: R, lastUpdated: Long) {
@@ -34,16 +29,16 @@ class Memoize[R](
     Success(value)
   }
 
-  def setCacheTime(cacheTime: Long): Unit = {
+  private def setCacheTime(cacheTime: Long): Unit = {
     cache.updateAndGet {
       case Some(cacheValue) => Some(cacheValue.copy(lastUpdated = cacheTime))
-      case None =>
+      case None             =>
         logger.warn(s"Attempted to set cache time to $cacheTime, but no cached value exists.")
         None
     }: Unit
   }
 
-  private def recoverFailure(ex: Throwable): Try[R] = {
+  private def recoverFailure(ex: Throwable, rethrowError: Boolean = false): Try[R] = {
     (retryOnErrorMs, cache.get()) match {
       case (Some(retryMs), Some(cacheValue)) =>
         val retryTime = System.currentTimeMillis() - maxCacheAgeMs + retryMs
@@ -58,36 +53,20 @@ class Memoize[R](
           s"Caught ${ex.getClass.getName}, with message: '${ex.getMessage}', no cached output to fall back to.",
           ex,
         )
+        if (rethrowError) throw ex
+
         Failure(ex)
     }
   }
 
-  private def renewCache(): Try[R] = {
-    try {
-      val callResult = f()
-      callResult match {
-        case Success(result) => setCache(result)
-        case Failure(ex)     => recoverFailure(ex)
-      }
-    } catch {
-      case ex: Throwable => recoverFailure(ex) match {
-          case Failure(exception) => throw exception
-          case Success(value)     => Success(value)
-        }
-    }
-  }
-
-  if (autoRefreshCache) {
-    val threadPool = new ScheduledThreadPoolExecutor(1)
-    val task       = new Runnable {
-      def run(): Unit = renewCache(): Unit
-    }
-    threadPool.scheduleAtFixedRate(task, 20, maxCacheAgeMs, TimeUnit.MILLISECONDS): Unit
+  private def renewCache(): Try[R] = Try(f()) match {
+    case Success(Success(value)) => setCache(value)
+    case Success(Failure(ex))    => recoverFailure(ex)
+    case Failure(ex)             => recoverFailure(ex, true)
   }
 
   def apply(): Try[R] = {
     cache.get() match {
-      case Some(cachedValue) if autoRefreshCache       => Success(cachedValue.value)
       case Some(cachedValue) if !cachedValue.isExpired => Success(cachedValue.value)
       case _                                           => renewCache()
     }
