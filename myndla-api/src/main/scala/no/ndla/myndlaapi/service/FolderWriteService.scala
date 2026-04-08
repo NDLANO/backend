@@ -393,15 +393,21 @@ class FolderWriteService(using
 
   }
 
+  private def doDeleteResourceConnection(folderId: Option[UUID], resourceId: UUID, user: MyNDLAUser)(implicit
+      session: DBSession
+  ) = for {
+    _         <- folderId.traverse(fid => folderRepository.folderWithId(fid).flatMap(_.isOwner(user.feideId)))
+    resource  <- folderRepository.resourceWithId(resourceId)
+    _         <- resource.isOwner(user.feideId)
+    deletedId <- deleteResourceIfNoConnection(folderId, resourceId)
+  } yield resource
+
   def deleteConnection(folderId: Option[UUID], resourceId: UUID, feide: FeideUserWrapper): Try[UUID] = dbUtility
     .rollbackOnFailure { implicit session =>
       for {
         user           <- feide.userOrAccessDenied
         _              <- canWriteOrAccessDenied(feide)
-        _              <- folderId.traverse(fid => folderRepository.folderWithId(fid).flatMap(_.isOwner(user.feideId)))
-        resource       <- folderRepository.resourceWithId(resourceId)
-        _              <- resource.isOwner(user.feideId)
-        deletedId      <- deleteResourceIfNoConnection(folderId, resourceId)
+        resource       <- doDeleteResourceConnection(folderId, resourceId, user)
         siblingsToSort <- folderId match {
           case Some(fid) => getFolderWithDirectChildren(fid.some, user.feideId).map(
               _.childrenResources
@@ -416,7 +422,29 @@ class FolderWriteService(using
         sortRequest = api.FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.resourceId))
         _           = updateSearchApi(resource)
         _          <- performSort(siblingsToSort, sortRequest, user.feideId, sharedFolderSort = false)
-      } yield deletedId
+      } yield resourceId
+    }
+
+  def deleteConnections(folderId: Option[UUID], resourceIds: List[UUID], feide: FeideUserWrapper): Try[List[UUID]] =
+    dbUtility.rollbackOnFailure { implicit session =>
+      for {
+        user             <- feide.userOrAccessDenied
+        _                <- canWriteOrAccessDenied(feide)
+        deletedResources <- resourceIds.traverse(resourceId => doDeleteResourceConnection(folderId, resourceId, user))
+        siblingsToSort   <- folderId match {
+          case Some(fid) => getFolderWithDirectChildren(fid.some, user.feideId).map(
+              _.childrenResources.filterNot(c => resourceIds.contains(c.resourceId) && c.folderId.contains(fid))
+            )
+          case None => folderRepository
+              .getRootResources(user.feideId)
+              .map {
+                _.flatMap(_.connection).filterNot(conn => resourceIds.contains(conn.resourceId))
+              }
+        }
+        sortRequest = api.FolderSortRequestDTO(sortedIds = siblingsToSort.map(_.resourceId))
+        _           = deletedResources.map(resource => updateSearchApi(resource))
+        _          <- performSort(siblingsToSort, sortRequest, user.feideId, sharedFolderSort = false)
+      } yield resourceIds
     }
 
   def deleteAllUserData(feide: FeideUserWrapper): Try[Unit] = {
