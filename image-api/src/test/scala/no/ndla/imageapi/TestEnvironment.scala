@@ -44,8 +44,6 @@ trait TestEnvironment extends TapirApplication[ImageApiProperties] with MockitoS
   implicit lazy val routes: Routes                  = mock[Routes]
   implicit lazy val services: List[TapirController] = List.empty
 
-  val TestData: TestData = new TestData
-
   implicit lazy val migrator: DBMigrator                           = mock[DBMigrator]
   implicit lazy val s3Client: NdlaS3Client                         = mock[NdlaS3Client]
   implicit lazy val cloudFrontClient: NdlaCloudFrontClient         = mock[NdlaCloudFrontClient]
@@ -80,4 +78,6 @@ trait TestEnvironment extends TapirApplication[ImageApiProperties] with MockitoS
   implicit lazy val swagger: SwaggerController = mock[SwaggerController]
 
   implicit lazy val imageConverter: ImageConverter = new ImageConverter
+
+  val TestData: TestData = new TestData
 }
