@@ -162,7 +162,7 @@ class MultiDraftSearchService(using
     .query
     .map(queryString => {
       val draftSearchFields = settings.queryFields match {
-        case Nil => DraftSearchField.values.toList
+        case Nil => DraftSearchField.values.filter(v => v.alwaysInclude).toList
         case l   => l
       }
 

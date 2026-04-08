@@ -385,6 +385,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       .matchingQuery(
         multiDraftSearchSettings.copy(
           query = Some(NonEmptyString.fromString("Gris").get),
+          queryFields = List(DraftSearchField.Title, DraftSearchField.Notes, DraftSearchField.PreviousNotes),
           excludeRevisionHistory = true,
         )
       )
@@ -396,6 +397,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       .matchingQuery(
         multiDraftSearchSettings.copy(
           query = Some(NonEmptyString.fromString("Gris").get),
+          queryFields = List(DraftSearchField.Title, DraftSearchField.Notes, DraftSearchField.PreviousNotes),
           excludeRevisionHistory = false,
         )
       )
