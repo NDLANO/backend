@@ -235,6 +235,26 @@ export type paths = {
         patch: operations["patchMyndla-apiV1FoldersResourcesResource-id"];
         trace?: never;
     };
+    "/myndla-api/v1/folders/{folder-id}/resources/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a set of resources from a folder
+         * @description Delete a set of resources from a folder
+         */
+        delete: operations["deleteMyndla-apiV1FoldersFolder-idResourcesBatch"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/myndla-api/v1/folders/{folder-id}/resources/{resource-id}": {
         parameters: {
             query?: never;
@@ -250,6 +270,26 @@ export type paths = {
          * @description Delete selected resource
          */
         delete: operations["deleteMyndla-apiV1FoldersFolder-idResourcesResource-id"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/myndla-api/v1/folders/resources/root/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a set of root resources
+         * @description Delete a set of root resources
+         */
+        delete: operations["deleteMyndla-apiV1FoldersResourcesRootBatch"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2212,6 +2252,78 @@ export interface operations {
             };
         };
     };
+    "deleteMyndla-apiV1FoldersFolder-idResourcesBatch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The UUID of the folder */
+                "folder-id": string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": string[];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+        };
+    };
     "deleteMyndla-apiV1FoldersFolder-idResourcesResource-id": {
         parameters: {
             query?: never;
@@ -2225,6 +2337,75 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllErrors"];
+                };
+            };
+        };
+    };
+    "deleteMyndla-apiV1FoldersResourcesRootBatch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": string[];
+            };
+        };
         responses: {
             204: {
                 headers: {
