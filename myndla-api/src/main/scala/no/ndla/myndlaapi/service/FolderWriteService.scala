@@ -14,7 +14,7 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{NullValue, Value}
+import no.ndla.common.model.api.{NullableOrValue}
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
 import no.ndla.database.DBUtility
@@ -30,6 +30,7 @@ import no.ndla.myndlaapi.model.api.{
   FolderDTO,
   FolderSortRequestDTO,
   MoveResourceDTO,
+  MoveResourcesDTO,
   NewFolderDTO,
   NewResourceDTO,
   ResourceDTO,
@@ -43,6 +44,7 @@ import no.ndla.myndlaapi.model.domain.{
   FolderAndDirectChildren,
   FolderSortException,
   Rankable,
+  Resource,
   ResourceConnection,
   SavedSharedFolder,
 }
@@ -343,53 +345,118 @@ class FolderWriteService(using
     } yield deletedFolderId
   }
 
-  def moveResourceConnection(move: MoveResourceDTO, feide: FeideUserWrapper): Try[Unit] = dbUtility.rollbackOnFailure {
-    val fromFolderId = move.fromFolderId match {
-      case NullValue => None
-      case Value(id) => Some(id)
-    }
-    val toFolderId = move.toFolderId match {
-      case NullValue => None
-      case Value(id) => Some(id)
+  private[service] def getMoveFolderIds[MoveDTO](
+      from: NullableOrValue[UUID],
+      to: NullableOrValue[UUID],
+  ): Try[(Option[UUID], Option[UUID])] = (from.toOption, to.toOption) match {
+    case (from, to) if from == to =>
+      Failure(ValidationException("toFolderId", "fromFolderId and toFolderId has to point to two different folders"))
+    case (from, to) => Success((from, to))
+  }
+
+  private[service] def getResourcesToMove(resources: List[Resource], resourceIds: List[UUID]): Try[List[Resource]] = {
+    val resourceSet  = resourceIds.toSet
+    val (matched, _) = resources.partition(r => resourceSet.contains(r.id))
+
+    if (matched.size == resourceSet.size) Success(matched)
+    else Failure(ValidationException("resourceIds", "Not all IDs passed in resourceIds exist in fromFolder"))
+  }
+
+  private def getResourcesFromFolderOrRoot(folderId: Option[UUID], user: MyNDLAUser): Try[List[Resource]] =
+    folderId match {
+      case Some(fid) => folderRepository.getFolderResources(fid)
+      case None      => folderRepository.getRootResources(user.feideId)
     }
 
-    implicit session =>
-      (fromFolderId, toFolderId) match {
-        case (fromFolderId, toFolderId) if fromFolderId == toFolderId =>
-          Failure(
-            ValidationException("toFolderId", "fromFolderId and toFolderId has to point to two different folders")
-          )
-        case (fromFolderId, toFolderId) => for {
-            user         <- feide.userOrAccessDenied
-            _            <- canWriteOrAccessDenied(feide)
-            _            <- fromFolderId.traverse(fid => folderRepository.folderWithId(fid).flatMap(_.isOwner(user.feideId)))
-            toFolder     <- toFolderId.traverse(fid => folderRepository.folderWithId(fid))
-            _            <- toFolder.traverse(_.isOwner(user.feideId))
-            resource     <- folderRepository.resourceWithId(move.resourceId)
-            _            <- resource.isOwner(user.feideId)
-            fromSiblings <- fromFolderId match {
-              case Some(fid) => folderRepository.getConnections(fid.some)
-              case None      => folderRepository.getRootResources(user.feideId).map(_.flatMap(_.connection))
-            }
-            toSiblings <- toFolder
-              .map(f => folderRepository.getFolderResources(f.id))
-              .getOrElse(folderRepository.getRootResources(user.feideId))
-            _ <-
-              if (toSiblings.exists(_.id == move.resourceId))
-                Failure(ValidationException("resourceId", "Resource already exists in the destination folder"))
-              else Success(())
-            _ <- folderRepository.moveResourceConnection(
-              move.resourceId,
-              fromFolderId,
+  private[service] def getResourcesToMoveAndRemove(
+      resourcesToMove: List[Resource],
+      toResources: List[Resource],
+  ): (List[Resource], List[Resource]) = {
+    val toResourcesById = toResources.groupBy(_.id).view.mapValues(_.head)
+    resourcesToMove.partitionMap(resource => toResourcesById.get(resource.id).toRight(resource))
+  }
+
+  def copyResourceConnections(move: MoveResourcesDTO, feide: FeideUserWrapper): Try[Unit] = dbUtility
+    .rollbackOnFailure { implicit session =>
+      for {
+        (fromFolderId, toFolderId) <- getMoveFolderIds(move.fromFolderId, move.toFolderId)
+        user                       <- feide.userOrAccessDenied
+        _                          <- canWriteOrAccessDenied(feide)
+        _                          <- fromFolderId.traverse(fid => folderRepository.folderWithId(fid).flatMap(_.isOwner(user.feideId)))
+        toFolder                   <- toFolderId.traverse(fid => folderRepository.folderWithId(fid))
+        _                          <- toFolder.traverse(_.isOwner(user.feideId))
+        fromResources              <- getResourcesFromFolderOrRoot(fromFolderId, user)
+        resourcesToMove            <- getResourcesToMove(fromResources, move.resourceIds)
+        toResources                <- getResourcesFromFolderOrRoot(toFolder.map(_.id), user)
+        (toCopy, _)                 = getResourcesToMoveAndRemove(resourcesToMove, toResources)
+        _                          <- toCopy
+          .zipWithIndex
+          .traverse((res, i) =>
+            folderRepository.createResourceConnection(
               toFolderId,
-              getNextRank(toSiblings),
+              res.id,
+              getNextRank(toResources) + i,
+              res.connection.get.favoritedDate,
             )
-            remainingFromSiblings = fromSiblings.filterNot(_.resourceId == move.resourceId)
-            sortRequest           = api.FolderSortRequestDTO(sortedIds = remainingFromSiblings.map(_.resourceId))
-            _                     = updateSearchApi(resource)
-            _                    <- performSort(remainingFromSiblings, sortRequest, user.feideId, sharedFolderSort = false)
-          } yield ()
-      }
+          )
+        _ = toCopy.foreach(resource => updateSearchApi(resource))
+      } yield ()
+    }
+
+  def moveResourceConnections(move: MoveResourcesDTO, feide: FeideUserWrapper): Try[Unit] = dbUtility
+    .rollbackOnFailure { implicit session =>
+      for {
+        (fromFolderId, toFolderId) <- getMoveFolderIds(move.fromFolderId, move.toFolderId)
+        user                       <- feide.userOrAccessDenied
+        _                          <- canWriteOrAccessDenied(feide)
+        _                          <- fromFolderId.traverse(fid => folderRepository.folderWithId(fid).flatMap(_.isOwner(user.feideId)))
+        toFolder                   <- toFolderId.traverse(fid => folderRepository.folderWithId(fid))
+        _                          <- toFolder.traverse(_.isOwner(user.feideId))
+        fromResources              <- getResourcesFromFolderOrRoot(fromFolderId, user)
+        resourcesToMove            <- getResourcesToMove(fromResources, move.resourceIds)
+        toResources                <- getResourcesFromFolderOrRoot(toFolder.map(_.id), user)
+        (toMove, toRemove)          = getResourcesToMoveAndRemove(resourcesToMove, toResources)
+        remainingFromSiblings       = fromResources.filterNot(res => resourcesToMove.exists(_.id == res.id))
+        _                          <- toMove
+          .zipWithIndex
+          .traverse((res, i) =>
+            folderRepository.moveResourceConnection(res.id, fromFolderId, toFolderId, getNextRank(toResources) + i)
+          )
+        _          <- toRemove.traverse(res => deleteResourceIfNoConnection(fromFolderId, res.id))
+        sortRequest = api.FolderSortRequestDTO(sortedIds = remainingFromSiblings.map(_.id))
+        _           = resourcesToMove.foreach(resource => updateSearchApi(resource))
+        _          <-
+          performSort(remainingFromSiblings.map(_.connection.get), sortRequest, user.feideId, sharedFolderSort = false)
+      } yield ()
+
+    }
+
+  def moveResourceConnection(move: MoveResourceDTO, feide: FeideUserWrapper): Try[Unit] = dbUtility.rollbackOnFailure {
+    implicit session =>
+      for {
+        (fromFolderId, toFolderId) <- getMoveFolderIds(move.fromFolderId, move.toFolderId)
+        user                       <- feide.userOrAccessDenied
+        _                          <- canWriteOrAccessDenied(feide)
+        _                          <- fromFolderId.traverse(fid => folderRepository.folderWithId(fid).flatMap(_.isOwner(user.feideId)))
+        toFolder                   <- toFolderId.traverse(fid => folderRepository.folderWithId(fid))
+        _                          <- toFolder.traverse(_.isOwner(user.feideId))
+        resource                   <- folderRepository.resourceWithId(move.resourceId)
+        _                          <- resource.isOwner(user.feideId)
+        fromSiblings               <- fromFolderId match {
+          case Some(fid) => folderRepository.getConnections(fid.some)
+          case None      => folderRepository.getRootResources(user.feideId).map(_.flatMap(_.connection))
+        }
+        toSiblings <- getResourcesFromFolderOrRoot(toFolder.map(_.id), user)
+        _          <-
+          if (toSiblings.exists(_.id == move.resourceId))
+            Failure(ValidationException("resourceId", "Resource already exists in the destination folder"))
+          else Success(())
+        _                    <- folderRepository.moveResourceConnection(move.resourceId, fromFolderId, toFolderId, getNextRank(toSiblings))
+        remainingFromSiblings = fromSiblings.filterNot(_.resourceId == move.resourceId)
+        sortRequest           = api.FolderSortRequestDTO(sortedIds = remainingFromSiblings.map(_.resourceId))
+        _                     = updateSearchApi(resource)
+        _                    <- performSort(remainingFromSiblings, sortRequest, user.feideId, sharedFolderSort = false)
+      } yield ()
 
   }
 

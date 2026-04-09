@@ -11,9 +11,15 @@ package no.ndla.common.model.api
 import io.circe.{Decoder, Encoder, Json}
 import sttp.tapir.Schema
 
-sealed trait NullableOrValue[+T]
-final case class Value[T](value: T) extends NullableOrValue[T]
-case object NullValue               extends NullableOrValue[Nothing]
+sealed trait NullableOrValue[+T] {
+  def toOption: Option[T]
+}
+final case class Value[T](value: T) extends NullableOrValue[T] {
+  override def toOption: Option[T] = Some(value)
+}
+case object NullValue extends NullableOrValue[Nothing] {
+  override def toOption: Option[Nothing] = None
+}
 
 object NullableOrValue {
   implicit def schema[T](implicit subschema: Schema[T]): Schema[NullableOrValue[T]] = subschema.nullable.as
