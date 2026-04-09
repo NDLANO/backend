@@ -562,9 +562,8 @@ class WriteService(using
 
   private def updateDefaultRevisionMetaDateIfUpdated(revisionMeta: RevisionMeta, isUpdated: Boolean): RevisionMeta = {
     if (
-      isUpdated && List(RevisionMeta.defaultNote, s"${RevisionMeta.defaultNote}.").contains(
-        revisionMeta.note
-      ) && revisionMeta.status == RevisionStatus.NeedsRevision
+      isUpdated && revisionMeta.note.startsWith(RevisionMeta.defaultNote) && revisionMeta.status == RevisionStatus
+        .NeedsRevision
     ) {
       revisionMeta.copy(revisionDate = clock.now().plusYears(3).withNano(0))
     } else revisionMeta
