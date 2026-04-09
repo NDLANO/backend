@@ -14,7 +14,7 @@ import no.ndla.imageapi.model.api.{ImageMetaDomainDumpDTO, ImageMetaInformationV
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
-import no.ndla.imageapi.service.{ConverterService, ReadService}
+import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.imageapi.Props
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -33,6 +33,7 @@ import scala.util.{Failure, Success}
 class InternController(using
     imageRepository: ImageRepository,
     readService: ReadService,
+    writeService: WriteService,
     converterService: ConverterService,
     imageIndexService: ImageIndexService,
     tagIndexService: TagIndexService,

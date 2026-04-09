@@ -389,6 +389,7 @@ class TestData(using imageConverter: ImageConverter) {
     dimensions = Some(ImageDimensions(1280, 853)),
     variants = Seq.empty,
     language = "nb",
+    exifData = None,
   )
   val clownfishFileDataWithVariants: ImageFileData = clownfishFileData.copy(variants =
     Seq(

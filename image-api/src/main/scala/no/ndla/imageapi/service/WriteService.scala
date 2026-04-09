@@ -13,11 +13,12 @@ import com.sksamuel.scrimage.webp.WebpWriter
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaCloudFrontClient
-import no.ndla.common.errors.{MissingIdException, ValidationException}
+import no.ndla.common.errors.{MissingBucketKeyException, MissingIdException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Deletable, Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.{NDLADate, domain as common}
+import no.ndla.database.DBUtility
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.*
 import no.ndla.imageapi.model.api.{
@@ -34,6 +35,7 @@ import no.ndla.language.Language
 import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
+import scalikejdbc.DBSession
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
@@ -50,6 +52,7 @@ class WriteService(using
     imageConverter: ImageConverter,
     tagIndexService: TagIndexService,
     cloudFrontClient: NdlaCloudFrontClient,
+    dbUtility: DBUtility,
     clock: Clock,
     random: Random,
     props: Props,
@@ -535,7 +538,7 @@ class WriteService(using
     */
   def extractAndStoreExifDataForExistingImages(): Try[Unit] = {
     val batchSize     = 20
-    val batchIterator = imageRepository.getImageFileBatched(batchSize) match {
+    val batchIterator = imageRepository.getImageMetaBatched(batchSize) match {
       case Success(it) => it
       case Failure(ex) => return Failure(ex)
     }
