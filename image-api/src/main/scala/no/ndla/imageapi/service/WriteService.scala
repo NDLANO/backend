@@ -437,12 +437,8 @@ class WriteService(using
       case given ExecutionContext =>
         val variantsFuture =
           generateAndUploadVariantsAsync(processableImage, dimensions, uniqueFileStem, processableImage.format)
-        val maybeUploadedOriginalImage = uploadImageStream(
-          originalImageStream,
-          Some(dimensions),
-          if (exifData.isEmpty) None
-          else Some(exifData),
-        )
+        val maybeUploadedOriginalImage =
+          uploadImageStream(originalImageStream, Some(dimensions), ExifUtil.extractDate(exifData))
         val maybeVariants = Try(Await.result(variantsFuture, 1.minute))
 
         (maybeUploadedOriginalImage, maybeVariants) match {
@@ -505,7 +501,7 @@ class WriteService(using
   private def uploadImageStream(
       stream: ImageStream,
       dimensions: Option[ImageDimensions],
-      exifData: Option[Map[String, String]],
+      originalDate: Option[String],
   ): Try[UploadedImage] = Using(stream) { imageStream =>
     val contentLength = imageStream.contentLength
     val contentType   = imageStream.contentType
@@ -518,7 +514,7 @@ class WriteService(using
           contentType = contentType,
           dimensions = dimensions,
           variants = Seq.empty,
-          exifData = exifData,
+          originalDate = originalDate,
         )
       )
   }.flatten
@@ -551,8 +547,8 @@ class WriteService(using
 
             val batchFuture = Future.traverse {
               batch
-                .filter(meta => meta.id.nonEmpty && meta.images.exists(_.exifData.isEmpty))
-                .flatMap(meta => meta.images.filter(_.exifData.isEmpty).map(meta -> _))
+                .filter(meta => meta.id.nonEmpty && meta.images.exists(_.originalDate.isEmpty))
+                .flatMap(meta => meta.images.filter(_.originalDate.isEmpty).map(meta -> _))
             } { (imageMeta, imageFile) =>
               extractExifForImageFileAsync(imageMeta, imageFile)
             }
@@ -598,7 +594,7 @@ class WriteService(using
       .map { s3Object =>
         Using(s3Object.stream) { stream =>
           val exifData    = ExifUtil.extractExifDataFromStream(stream)
-          val updatedFile = imageFile.copy(exifData = Some(exifData))
+          val updatedFile = imageFile.copy(originalDate = ExifUtil.extractDate(exifData))
           imageMeta -> updatedFile
         }.getOrElse {
           logger.warn(

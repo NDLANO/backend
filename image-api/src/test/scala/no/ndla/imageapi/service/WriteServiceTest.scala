@@ -63,7 +63,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
-        exifData = None,
+        originalDate = None,
       )
     ),
     copyright = DomainCopyright("", None, List(), List(), List(), None, None, false),
@@ -76,30 +76,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     modelReleased = ModelReleasedStatus.YES,
     editorNotes = Seq.empty,
     inactive = false,
-  )
-
-  val ndlaLogoExifData = Some(
-    Map(
-      "JPEG:Image Height"                      -> "60",
-      "JPEG:Component 3"                       -> "Quantization table 1, Sampling factors 1 horiz/1 vert",
-      "JFIF:Thumbnail Width Pixels"            -> "0",
-      "JPEG:Component 2"                       -> "Quantization table 1, Sampling factors 1 horiz/1 vert",
-      "JPEG:Number of Components"              -> "3",
-      "Huffman:Number of Tables"               -> "4",
-      "JPEG:Image Width"                       -> "189",
-      "JFIF:Resolution Units"                  -> "1",
-      "JFIF:Y Resolution"                      -> "1",
-      "JFIF:Version"                           -> "257",
-      "File Type:Expected File Name Extension" -> "jpg",
-      "JFIF:Thumbnail Height Pixels"           -> "0",
-      "File Type:Detected File Type Name"      -> "JPEG",
-      "File Type:Detected File Type Long Name" -> "Joint Photographic Experts Group",
-      "File Type:Detected MIME Type"           -> "image/jpeg",
-      "JFIF:X Resolution"                      -> "1",
-      "JPEG:Compression Type"                  -> "0",
-      "JPEG:Data Precision"                    -> "8",
-      "JPEG:Component 1"                       -> "Quantization table 0, Sampling factors 2 horiz/2 vert",
-    )
   )
 
   override def beforeEach(): Unit = {
@@ -129,7 +105,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       ImageContentType.Jpeg,
       Some(domain.ImageDimensions(189, 60)),
       Seq.empty,
-      ndlaLogoExifData,
+      None,
     )
 
     val result = writeService.uploadImageWithVariants(fileMock1).failIfFailure
@@ -241,7 +217,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = Some(domain.ImageDimensions(189, 60)),
       variants = Seq.empty,
       language = "en",
-      exifData = ndlaLogoExifData,
+      originalDate = None,
     )
     val expectedImageMeta = domainImageMeta.copy(id = Some(1), images = Seq(expectedImageFile))
 
@@ -374,7 +350,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = Some(domain.ImageDimensions(10, 10)),
       variants = Seq.empty,
       language = "nb",
-      exifData = None,
+      originalDate = None,
     )
     val existing = TestData
       .elg
@@ -409,7 +385,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           dimensions = Some(domain.ImageDimensions(189, 60)),
           variants = Seq.empty,
           language = "nb",
-          exifData = None,
+          originalDate = None,
         )
       )
     )
@@ -524,7 +500,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
-      exifData = ndlaLogoExifData,
+      originalDate = None,
     )
 
     val dbImage = TestData
@@ -607,7 +583,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
-      exifData = ndlaLogoExifData,
+      originalDate = None,
     )
 
     val dbImage = TestData
@@ -677,7 +653,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
-      exifData = None,
+      originalDate = None,
     )
 
     val dbImage = TestData
@@ -743,7 +719,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
-      exifData = None,
+      originalDate = None,
     )
 
     val dbImage = TestData
@@ -817,31 +793,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val expectedDimensions   = domain.ImageDimensions(640, 426)
     val expectedVariantSizes = ImageVariantSize.forDimensions(expectedDimensions)
     expectedVariantSizes.size should be > 0
-    val expectedExif = Some(
-      Map(
-        "JPEG:Image Height"                      -> "426",
-        "JPEG:Component 3"                       -> "Quantization table 1, Sampling factors 1 horiz/1 vert",
-        "JFIF:Thumbnail Width Pixels"            -> "0",
-        "JPEG:Component 2"                       -> "Quantization table 1, Sampling factors 1 horiz/1 vert",
-        "JPEG:Number of Components"              -> "3",
-        "Huffman:Number of Tables"               -> "4",
-        "JPEG:Image Width"                       -> "640",
-        "JFIF:Resolution Units"                  -> "0",
-        "JFIF:Y Resolution"                      -> "1",
-        "JFIF:Version"                           -> "257",
-        "File Type:Expected File Name Extension" -> "jpg",
-        "JFIF:Thumbnail Height Pixels"           -> "0",
-        "File Type:Detected File Type Name"      -> "JPEG",
-        "File Type:Detected File Type Long Name" -> "Joint Photographic Experts Group",
-        "File Type:Detected MIME Type"           -> "image/jpeg",
-        "JFIF:X Resolution"                      -> "1",
-        "JPEG:Compression Type"                  -> "0",
-        "JPEG:Data Precision"                    -> "8",
-        "JPEG:Component 1"                       -> "Quantization table 0, Sampling factors 2 horiz/2 vert",
-      )
-    )
 
-    val domain.UploadedImage(_, _, _, dimensions, variants, exifData) = writeService
+    val domain.UploadedImage(_, _, _, dimensions, variants, originalDate) = writeService
       .uploadImageWithVariants(TestData.childrensImageUploadedFile)
       .failIfFailure
 
@@ -852,6 +805,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     variants.foreach { variant =>
       variant.bucketKey should endWith(s"/${variant.size.entryName}.webp")
     }
-    exifData should equal(expectedExif)
+    originalDate should be(None)
   }
 }
