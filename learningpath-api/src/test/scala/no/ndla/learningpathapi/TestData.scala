@@ -23,8 +23,9 @@ import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.learningpathapi.model.domain.{SearchSettings, Sort}
 import common.learningpath.Introduction
+import no.ndla.common.Clock
 
-object TestData {
+class TestData(using clock: Clock) {
 
   val today: NDLADate = NDLADate.now()
 
@@ -79,6 +80,8 @@ object TestData {
     owner = "me",
   )
 
+  val revisionMeta = common.RevisionMeta.default
+
   val sampleDomainLearningPath: LearningPath = LearningPath(
     id = Some(1),
     revision = Some(1),
@@ -88,7 +91,7 @@ object TestData {
     description = List(Description("deskripsjon", DefaultLanguage)),
     introduction = List(Introduction("<section><p>introduction</p></section>", DefaultLanguage)),
     coverPhotoId = None,
-    duration = Some(60),
+    duration = Some(1),
     status = LearningPathStatus.PUBLISHED,
     verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
     created = today,
@@ -101,7 +104,7 @@ object TestData {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default,
+    revisionMeta = revisionMeta,
     grepCodes = Seq.empty,
   )
 

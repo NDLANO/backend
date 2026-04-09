@@ -19,8 +19,7 @@ import no.ndla.common.model.api.search.{
 import no.ndla.common.model.domain.ArticleMetaImage
 import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.searchapi.TestData.*
+import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 
 class SearchableArticleTest extends UnitSuite with TestEnvironment {
 
@@ -69,9 +68,9 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       metaImage = metaImages,
       defaultTitle = Some("Christian Tut"),
       supportedLanguages = List("en", "nb", "nn"),
-      context = searchableTaxonomyContexts.headOption,
-      contexts = searchableTaxonomyContexts,
-      contextids = searchableTaxonomyContexts.map(_.contextId),
+      context = TestData.searchableTaxonomyContexts.headOption,
+      contexts = TestData.searchableTaxonomyContexts,
+      contextids = TestData.searchableTaxonomyContexts.map(_.contextId),
       grepContexts = List(
         SearchableGrepContext("K123", Some("some title"), "Published"),
         SearchableGrepContext("K456", Some("some title 2"), "Published"),
@@ -83,7 +82,7 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       learningResourceType = LearningResourceType.Article,
       typeName = List.empty,
       domainObject = TestData.article1,
-      nodes = nodes,
+      nodes = TestData.nodes,
     )
     val json         = CirceUtil.toJsonString(original)
     val deserialized = CirceUtil.unsafeParseAs[SearchableArticle](json)
@@ -138,9 +137,9 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       metaImage = metaImages,
       defaultTitle = Some("Christian Tut"),
       supportedLanguages = List("en", "nb", "nn"),
-      context = Some(singleSearchableTaxonomyContext),
-      contexts = List(singleSearchableTaxonomyContext),
-      contextids = List(singleSearchableTaxonomyContext.contextId),
+      context = Some(TestData.singleSearchableTaxonomyContext),
+      contexts = List(TestData.singleSearchableTaxonomyContext),
+      contextids = List(TestData.singleSearchableTaxonomyContext.contextId),
       grepContexts = List(
         SearchableGrepContext("K123", Some("some title"), "Published"),
         SearchableGrepContext("K456", Some("some title 2"), "Published"),
@@ -152,14 +151,16 @@ class SearchableArticleTest extends UnitSuite with TestEnvironment {
       learningResourceType = LearningResourceType.Article,
       typeName = List.empty,
       domainObject = TestData.article1,
-      nodes = nodes,
+      nodes = TestData.nodes,
     )
 
     val json         = CirceUtil.toJsonString(original)
     val deserialized = CirceUtil.unsafeParseAs[SearchableArticle](json)
 
-    val expected =
-      original.copy(context = Some(singleSearchableTaxonomyContext), contexts = List(singleSearchableTaxonomyContext))
+    val expected = original.copy(
+      context = Some(TestData.singleSearchableTaxonomyContext),
+      contexts = List(TestData.singleSearchableTaxonomyContext),
+    )
 
     deserialized should be(expected)
   }

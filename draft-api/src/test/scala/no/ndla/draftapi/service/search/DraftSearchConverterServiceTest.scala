@@ -12,7 +12,6 @@ import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLangua
 import no.ndla.common.model.domain.*
 import no.ndla.draftapi.model.search.*
 import no.ndla.draftapi.{TestEnvironment, UnitSuite}
-import no.ndla.draftapi.TestData
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.search.SearchLanguage
 

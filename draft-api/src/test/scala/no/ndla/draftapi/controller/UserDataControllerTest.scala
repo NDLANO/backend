@@ -10,7 +10,7 @@ package no.ndla.draftapi.controller
 
 import no.ndla.common.Clock
 import no.ndla.draftapi.model.api.UpdatedUserDataDTO
-import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest

@@ -14,7 +14,7 @@ import no.ndla.common.model.domain.draft.{Draft, DraftCopyright}
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.database.DBUtility
 import no.ndla.draftapi.service.ConverterService
-import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY_SA
 import scalikejdbc.DBSession
@@ -41,6 +41,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
     super.beforeEach()
     when(draftRepository.slugExists(any[String], any[Option[Long]])(using any[DBSession])).thenReturn(Success(false))
     when(draftRepository.withId(any[Long])(using any[DBSession])).thenReturn(Success(None))
+    when(clock.now()).thenReturn(TestData.today)
   }
 
   test("validateArticle does not throw an exception on a valid document") {

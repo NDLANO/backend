@@ -33,8 +33,6 @@ import org.mockito.Mockito.when
 import scalikejdbc.*
 
 import scala.util.Try
-import no.ndla.common.model.domain.Priority
-import no.ndla.common.model.domain.RevisionMeta
 
 class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
   override lazy val schemaName                      = "learningpathapi_test"
@@ -49,31 +47,23 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
   val license: String                  = License.PublicDomain.toString
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(clinton))
 
-  val DefaultLearningPath: LearningPath = LearningPath(
-    id = None,
-    revision = None,
-    externalId = None,
-    isBasedOn = None,
-    title = List(Title("UNIT-TEST-1", "unknown")),
-    description = List(Description("UNIT-TEST", "unknown")),
-    introduction = List(Introduction("<section><p>UNIT-TEST</p></section>", "unknown")),
-    coverPhotoId = None,
-    duration = None,
-    status = LearningPathStatus.PRIVATE,
-    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = today,
-    lastUpdated = today,
-    tags = List(),
-    owner = "UNIT-TEST",
-    copyright = copyright,
-    isMyNDLAOwner = false,
-    learningsteps = Seq.empty,
-    responsible = None,
-    comments = Seq.empty,
-    priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default,
-    grepCodes = Seq.empty,
-  )
+  val DefaultLearningPath: LearningPath = TestData
+    .sampleDomainLearningPath
+    .copy(
+      id = None,
+      revision = None,
+      title = List(Title("UNIT-TEST-1", "unknown")),
+      description = List(Description("UNIT-TEST", "unknown")),
+      introduction = List(Introduction("<section><p>UNIT-TEST</p></section>", "unknown")),
+      duration = None,
+      status = LearningPathStatus.PRIVATE,
+      verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+      created = today,
+      lastUpdated = today,
+      tags = List(),
+      owner = "UNIT-TEST",
+      copyright = copyright,
+    )
 
   val DefaultLearningStep: LearningStep = LearningStep(
     id = None,

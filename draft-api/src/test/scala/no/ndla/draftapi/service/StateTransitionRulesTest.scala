@@ -17,7 +17,7 @@ import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{NDLADate, domain as common}
 import no.ndla.draftapi.model.domain.StateTransition
-import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}

@@ -23,7 +23,7 @@ import no.ndla.common.model.domain.learningpath.{
   StepStatus,
   StepType,
 }
-import no.ndla.common.model.domain.{Author, ContributorType, Priority, RevisionMeta, Tag, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
 import no.ndla.learningpathapi.*
 import no.ndla.mapping.License.PublicDomain
 import org.mockito.Mockito.when
@@ -58,31 +58,24 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
   val trump: Author                    = Author(ContributorType.Writer, "Donald Drumpf")
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(trump))
 
-  val ValidLearningPath: LearningPath = LearningPath(
-    id = None,
-    title = List(Title("Gyldig tittel", "nb")),
-    description = List(Description("Gyldig beskrivelse", "nb")),
-    introduction = List(Introduction("<section><p>Gyldig introduksjon</p></section>", "nb")),
-    coverPhotoId = Some(s"http://api.ndla.no/image-api/v2/images/1"),
-    duration = Some(180),
-    tags = List(Tag(Seq("Gyldig tag"), "nb")),
-    revision = None,
-    externalId = None,
-    isBasedOn = None,
-    status = LearningPathStatus.PRIVATE,
-    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = today,
-    lastUpdated = today,
-    owner = "owner",
-    copyright = copyright,
-    isMyNDLAOwner = false,
-    learningsteps = Seq.empty,
-    responsible = None,
-    comments = Seq.empty,
-    priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default,
-    grepCodes = Seq.empty,
-  )
+  val ValidLearningPath: LearningPath = TestData
+    .sampleDomainLearningPath
+    .copy(
+      id = None,
+      title = List(Title("Gyldig tittel", "nb")),
+      description = List(Description("Gyldig beskrivelse", "nb")),
+      introduction = List(Introduction("<section><p>Gyldig introduksjon</p></section>", "nb")),
+      coverPhotoId = Some(s"http://api.ndla.no/image-api/v2/images/1"),
+      duration = Some(180),
+      tags = List(Tag(Seq("Gyldig tag"), "nb")),
+      status = LearningPathStatus.PRIVATE,
+      verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+      created = today,
+      lastUpdated = today,
+      owner = "owner",
+      copyright = copyright,
+      isMyNDLAOwner = false,
+    )
 
   override def beforeEach(): Unit = {
     validator = new LearningStepValidator

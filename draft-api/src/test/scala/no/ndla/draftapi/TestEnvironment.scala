@@ -46,6 +46,7 @@ trait TestEnvironment extends TapirApplication[DraftApiProperties] with MockitoS
   implicit lazy val clock: Clock                         = mock[Clock]
   implicit lazy val routes: Routes                       = mock[Routes]
   implicit lazy val services: List[TapirController]      = List.empty
+  implicit lazy val TestData: TestData                   = new TestData(using Clock())
 
   implicit lazy val articleSearchService: ArticleSearchService     = mock[ArticleSearchService]
   implicit lazy val articleIndexService: ArticleIndexService       = mock[ArticleIndexService]

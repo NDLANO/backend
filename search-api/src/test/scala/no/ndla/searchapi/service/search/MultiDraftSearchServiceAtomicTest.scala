@@ -24,10 +24,10 @@ import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.SearchTestUtility.*
-import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{DraftSearchField, IndexingBundle, Sort}
 import no.ndla.searchapi.service.ConverterService
-import no.ndla.searchapi.{TestData, TestEnvironment}
+import no.ndla.searchapi.TestEnvironment
+import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
 
 import java.util.UUID
 import scala.util.{Success, Try}
@@ -74,10 +74,12 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   }
 
   val indexingBundle: IndexingBundle = IndexingBundle(
-    grepBundle = Some(grepBundle),
-    taxonomyBundle = Some(taxonomyTestBundle),
+    grepBundle = Some(TestData.grepBundle),
+    taxonomyBundle = Some(TestData.taxonomyTestBundle),
     myndlaBundle = Some(TestData.myndlaTestBundle),
   )
+
+  val multiDraftSearchSettings: MultiDraftSearchSettings = TestData.multiDraftSearchSettings
 
   test("That search on embed id supports embed with multiple resources") {
     val draft1 = TestData
@@ -484,7 +486,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       path = "/subject:1",
       breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
       contextType = None,
-      relevanceId = core.id,
+      relevanceId = TestData.core.id,
       relevance = SearchableLanguageValues(Seq.empty),
       resourceTypes = List.empty,
       parentIds = List.empty,
@@ -501,7 +503,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       None,
       Some("/subject:1"),
       Some("/f/matte/asdf1256"),
-      visibleMetadata,
+      TestData.visibleMetadata,
       List.empty,
       NodeType.SUBJECT,
       List.empty,
@@ -515,7 +517,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       Some(s"urn:article:${draft1.id.get}"),
       Some("/subject:1/topic:1"),
       Some("/e/t1/asdf1257"),
-      visibleMetadata,
+      TestData.visibleMetadata,
       List.empty,
       NodeType.TOPIC,
       List.empty,
@@ -523,13 +525,13 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       None,
       List.empty,
     )
-    topic_1.contexts = generateContexts(
+    topic_1.contexts = TestData.generateContexts(
       topic_1,
       subject_1,
       subject_1,
       List.empty,
       None,
-      core,
+      TestData.core,
       isPrimary = true,
       isVisible = true,
       isActive = true,
@@ -540,7 +542,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       Some(s"urn:article:${draft2.id.get}"),
       Some("/subject:1/topic:2"),
       Some("/e/t2/asdf1258"),
-      visibleMetadata,
+      TestData.visibleMetadata,
       List.empty,
       NodeType.TOPIC,
       List.empty,
@@ -548,13 +550,13 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       None,
       List.empty,
     )
-    topic_2.contexts = generateContexts(
+    topic_2.contexts = TestData.generateContexts(
       topic_2,
       subject_1,
       subject_1,
       List.empty,
       None,
-      core,
+      TestData.core,
       isPrimary = true,
       isVisible = true,
       isActive = true,
@@ -565,7 +567,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       Some(s"urn:article:${draft3.id.get}"),
       Some("/subject:1/topic:1/topic:3"),
       Some("/e/t3/asdf1259"),
-      visibleMetadata,
+      TestData.visibleMetadata,
       List.empty,
       NodeType.TOPIC,
       List.empty,
@@ -573,13 +575,13 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       None,
       List.empty,
     )
-    topic_3.contexts = generateContexts(
+    topic_3.contexts = TestData.generateContexts(
       topic_3,
       subject_1,
       topic_1,
       List.empty,
       None,
-      core,
+      TestData.core,
       isPrimary = true,
       isVisible = true,
       isActive = true,
@@ -590,7 +592,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       Some(s"urn:article:${draft4.id.get}"),
       Some("/subject:1/topic:1/topic:4"),
       Some("/e/t4/asdf1260"),
-      visibleMetadata,
+      TestData.visibleMetadata,
       List.empty,
       NodeType.TOPIC,
       List.empty,
@@ -598,13 +600,13 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       None,
       List.empty,
     )
-    topic_4.contexts = generateContexts(
+    topic_4.contexts = TestData.generateContexts(
       topic_4,
       subject_1,
       topic_1,
       List.empty,
       None,
-      core,
+      TestData.core,
       isPrimary = true,
       isVisible = true,
       isActive = true,
@@ -615,7 +617,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       Some(s"urn:article:${draft5.id.get}"),
       Some("/subject:1/topic:1/resource:5"),
       Some("/r/r5/asdf1261"),
-      visibleMetadata,
+      TestData.visibleMetadata,
       List.empty,
       NodeType.RESOURCE,
       List.empty,
@@ -623,24 +625,24 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       None,
       List.empty,
     )
-    resource_5.contexts = generateContexts(
+    resource_5.contexts = TestData.generateContexts(
       resource_5,
       subject_1,
       topic_1,
       List.empty,
       None,
-      core,
+      TestData.core,
       isPrimary = true,
       isVisible = true,
       isActive = true,
     ) ++
-      generateContexts(
+      TestData.generateContexts(
         resource_5,
         subject_1,
         topic_3,
         List.empty,
         None,
-        core,
+        TestData.core,
         isPrimary = false,
         isVisible = true,
         isActive = true,
@@ -651,7 +653,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       Some(s"urn:article:${draft5.id.get}"),
       Some("/subject:1/topic:1/topic:3/resource:6"),
       Some("/r/r6/asdf1262"),
-      visibleMetadata,
+      TestData.visibleMetadata,
       List.empty,
       NodeType.RESOURCE,
       List.empty,
@@ -659,13 +661,13 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
       None,
       List.empty,
     )
-    resource_6.contexts = generateContexts(
+    resource_6.contexts = TestData.generateContexts(
       resource_6,
       subject_1,
       topic_3,
       List.empty,
       None,
-      core,
+      TestData.core,
       isPrimary = true,
       isVisible = true,
       isActive = true,
@@ -822,7 +824,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
                 primaryRoot = SearchableLanguageValues.from("nb" -> "Capekatt rot"),
                 resourceTypeName = SearchableLanguageValues.from("nb" -> "Bapekatt ressurs"),
                 defaultResourceTypeName = Some("Bapekatt ressurs"),
-                nodes = nodes,
+                nodes = TestData.nodes,
               )
           case 2 => TestData
               .searchableDraft
@@ -834,7 +836,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
                 primaryRoot = SearchableLanguageValues.from("nb" -> "Apekatt rot"),
                 resourceTypeName = SearchableLanguageValues.from("nb" -> "Capekatt ressurs"),
                 defaultResourceTypeName = Some("Capekatt ressurs"),
-                nodes = nodes,
+                nodes = TestData.nodes,
               )
           case 3 => TestData
               .searchableDraft
@@ -846,7 +848,7 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
                 primaryRoot = SearchableLanguageValues.from("nb" -> "Bapekatt rot"),
                 resourceTypeName = SearchableLanguageValues.from("nb" -> "Apekatt ressurs"),
                 defaultResourceTypeName = Some("Apekatt ressurs"),
-                nodes = nodes,
+                nodes = TestData.nodes,
               )
           case _ => fail("Unexpected id, this is a bug with the test")
         }

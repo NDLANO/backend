@@ -11,7 +11,7 @@ package no.ndla.draftapi.controller
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.domain
 import no.ndla.draftapi.model.api.UploadedFileDTO
-import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.{ErrorHandling, ErrorHelpers, Routes, TapirController}
 import no.ndla.tapirtesting.TapirControllerTest
 import org.mockito.ArgumentMatchers.any

@@ -19,7 +19,7 @@ import no.ndla.common.model.domain.language.OptLanguageFields
 import no.ndla.common.model.{EmbedType, TagAttribute, api as commonApi}
 import no.ndla.common.util.TraitUtil
 import no.ndla.draftapi.model.api
-import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.tapir.auth.TokenUser
 import org.jsoup.nodes.Element

@@ -12,7 +12,7 @@ import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.model.api.SavedSearchDTO
 
 import java.net.Socket
-import no.ndla.draftapi.{TestData, TestEnvironment}
+import no.ndla.draftapi.TestEnvironment
 import no.ndla.scalatestsuite.DatabaseIntegrationSuite
 import scalikejdbc.*
 

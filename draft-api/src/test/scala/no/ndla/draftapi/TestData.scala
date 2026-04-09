@@ -9,7 +9,7 @@
 package no.ndla.draftapi
 
 import no.ndla.common.configuration.Constants.EmbedTagName
-import no.ndla.common.model
+import no.ndla.common.{Clock, model}
 import no.ndla.common.model.api.{DraftCopyrightDTO, Missing}
 import no.ndla.common.model.domain.{ContributorType, Priority, Title}
 import no.ndla.common.model.domain.draft.Draft
@@ -24,7 +24,7 @@ import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA}
 import no.ndla.network.tapir.auth.Permission.{DRAFT_API_ADMIN, DRAFT_API_PUBLISH, DRAFT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
 
-object TestData {
+class TestData(using clock: Clock) {
 
   val authHeaderWithWriteRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJkcmFmdHM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.5jpF98NxQZlkQQ5-rxVO3oTkNOQRQLDlAexyDnLiZFY"

@@ -45,6 +45,7 @@ trait TestEnvironment extends TapirApplication[LearningpathApiProperties] with M
   implicit lazy val errorHandling: ErrorHandling = mock[ErrorHandling]
   implicit lazy val errorHelpers: ErrorHelpers   = new ErrorHelpers
   implicit lazy val routes: Routes               = mock[Routes]
+  implicit lazy val TestData: TestData           = new TestData(using Clock())
 
   implicit lazy val learningPathRepository: LearningPathRepository          = mock[LearningPathRepository]
   implicit lazy val readService: ReadService                                = mock[ReadService]

@@ -25,8 +25,8 @@ object RevisionMeta {
   implicit val decoder: Decoder[RevisionMeta] = deriveDecoder
   val defaultNote                             = "Automatisk revisjonsdato satt av systemet"
 
-  def default: Seq[RevisionMeta] = Seq(
-    RevisionMeta(UUID.randomUUID(), Clock.now().plusYears(5).withNano(0), defaultNote, RevisionStatus.NeedsRevision)
+  def default(using clock: Clock): Seq[RevisionMeta] = Seq(
+    RevisionMeta(UUID.randomUUID(), clock.now().plusYears(5).withNano(0), defaultNote, RevisionStatus.NeedsRevision)
   )
 }
 

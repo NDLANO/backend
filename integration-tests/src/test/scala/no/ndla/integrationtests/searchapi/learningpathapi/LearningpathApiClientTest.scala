@@ -8,6 +8,7 @@
 
 package no.ndla.integrationtests.searchapi.learningpathapi
 
+import no.ndla.common.Clock
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.LanguageValue
@@ -81,7 +82,10 @@ class LearningpathApiClientTest
         .componentRegistry
         .learningPathRepository
         .insert(
-          learningpathapi.TestData.sampleDomainLearningPath.copy(id = Some(id), lastUpdated = NDLADate.fromUnixTime(0))
+          learningpathapi
+            .TestData(using Clock())
+            .sampleDomainLearningPath
+            .copy(id = Some(id), lastUpdated = NDLADate.fromUnixTime(0))
         )
         .get
     })
@@ -102,7 +106,7 @@ class LearningpathApiClientTest
 
     val searchable = searchConverterService.asSearchableLearningPath(
       fetchedLearningPath,
-      IndexingBundle(None, Some(searchapi.TestData.taxonomyTestBundle), None),
+      IndexingBundle(None, Some(searchapi.TestData(using Clock()).taxonomyTestBundle), None),
     )
 
     searchable.isSuccess should be(true)

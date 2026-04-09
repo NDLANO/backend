@@ -10,7 +10,7 @@ package no.ndla.draftapi.service.search
 
 import no.ndla.common.model.domain.{EditorNote, Status}
 import no.ndla.common.model.domain.draft.DraftStatus
-import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 
 class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
   val service = new SearchConverterService

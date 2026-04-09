@@ -23,7 +23,7 @@ import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
 import no.ndla.searchapi.model.search.SearchableConcept
 import no.ndla.searchapi.service.ConverterService
-import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 
 class DraftConceptIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSuite with TestEnvironment {
   override implicit lazy val converterService: ConverterService             = new ConverterService

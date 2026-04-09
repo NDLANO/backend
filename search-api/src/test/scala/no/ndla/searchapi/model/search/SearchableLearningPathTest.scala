@@ -8,7 +8,7 @@
 
 package no.ndla.searchapi.model.search
 
-import no.ndla.common.CirceUtil
+import no.ndla.common.{Clock, CirceUtil}
 import no.ndla.common.model.api.search.{
   LanguageValue,
   LearningResourceType,
@@ -20,8 +20,7 @@ import no.ndla.common.model.domain.{ContributorType, Priority, Responsible, Revi
 import no.ndla.common.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
 import no.ndla.mapping.License
 import no.ndla.searchapi.model.api.learningpath.CopyrightDTO
-import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
-import no.ndla.searchapi.TestData.*
+import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 
 class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
 
@@ -53,6 +52,8 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       SearchableLearningStep(stepType = StepType.TEXT.toString),
     )
 
+    val revisionMeta = RevisionMeta.default(using Clock())
+
     val original = SearchableLearningPath(
       id = 101,
       title = titles,
@@ -80,9 +81,9 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       creators = List("Yap"),
       processors = List.empty,
       rightsholders = List.empty,
-      context = searchableTaxonomyContexts.headOption,
-      contexts = searchableTaxonomyContexts,
-      contextids = searchableTaxonomyContexts.map(_.contextId),
+      context = TestData.searchableTaxonomyContexts.headOption,
+      contexts = TestData.searchableTaxonomyContexts,
+      contextids = TestData.searchableTaxonomyContexts.map(_.contextId),
       favorited = 0,
       learningResourceType = LearningResourceType.LearningPath,
       typeName = List.empty,
@@ -93,12 +94,12 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       primaryRoot = titles,
       resourceTypeName = titles,
       defaultResourceTypeName = titles.defaultValue,
-      revisionMeta = RevisionMeta.default.toList,
-      nextRevision = RevisionMeta.default.getNextRevision,
+      revisionMeta = revisionMeta.toList,
+      nextRevision = revisionMeta.getNextRevision,
       grepCodes = List("grep1", "grep2"),
       responsible = Some(Responsible("some responsible", TestData.today)),
       domainObject = TestData.DefaultLearningPath.copy(id = Some(101), isBasedOn = Some(1001)),
-      nodes = nodes,
+      nodes = TestData.nodes,
     )
 
     val json         = CirceUtil.toJsonString(original)

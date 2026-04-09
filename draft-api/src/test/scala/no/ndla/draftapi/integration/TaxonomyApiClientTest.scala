@@ -10,7 +10,7 @@ package no.ndla.draftapi.integration
 
 import cats.implicits.*
 import no.ndla.common.model.domain.Title
-import no.ndla.draftapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.draftapi.{TestEnvironment, UnitSuite}
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.*

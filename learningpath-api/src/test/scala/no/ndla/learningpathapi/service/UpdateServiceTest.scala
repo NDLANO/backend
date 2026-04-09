@@ -217,135 +217,76 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   )
   val apiCopyright: CopyrightDTO = api.CopyrightDTO(apiLicense, List(apiRubio))
 
-  val PUBLISHED_LEARNINGPATH: LearningPath = LearningPath(
-    id = Some(PUBLISHED_ID),
-    revision = Some(1),
-    externalId = Some("1"),
-    isBasedOn = None,
-    title = List(Title("Tittel", "nb")),
-    description = List(Description("Beskrivelse", "nb")),
-    introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
-    coverPhotoId = Some("1234"),
-    duration = Some(1),
-    status = LearningPathStatus.PUBLISHED,
-    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = today,
-    lastUpdated = today,
-    tags = List(),
-    owner = PUBLISHED_OWNER.id,
-    copyright = copyright,
-    isMyNDLAOwner = false,
-    learningsteps = STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil,
-    responsible = None,
-    comments = Seq.empty,
-    priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default,
-    grepCodes = Seq.empty,
-  )
+  val PUBLISHED_LEARNINGPATH: LearningPath = TestData
+    .sampleDomainLearningPath
+    .copy(
+      id = Some(PUBLISHED_ID),
+      externalId = Some("1"),
+      title = List(Title("Tittel", "nb")),
+      description = List(Description("Beskrivelse", "nb")),
+      introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
+      coverPhotoId = Some("1234"),
+      verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+      owner = PUBLISHED_OWNER.id,
+      copyright = copyright,
+      learningsteps = STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil,
+    )
 
-  val PUBLISHED_LEARNINGPATH_NO_STEPS: LearningPath = LearningPath(
-    id = Some(PUBLISHED_ID),
-    revision = Some(1),
-    externalId = Some("1"),
-    isBasedOn = None,
-    title = List(Title("Tittel", "nb")),
-    description = List(Description("Beskrivelse", "nb")),
-    introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
-    coverPhotoId = None,
-    duration = Some(1),
-    status = learningpath.LearningPathStatus.PUBLISHED,
-    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = today,
-    lastUpdated = today,
-    tags = List(),
-    owner = PUBLISHED_OWNER.id,
-    copyright = copyright,
-    isMyNDLAOwner = false,
-    learningsteps = Seq.empty,
-    responsible = None,
-    comments = Seq.empty,
-    priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default,
-    grepCodes = Seq.empty,
-  )
+  val PUBLISHED_LEARNINGPATH_NO_STEPS: LearningPath = TestData
+    .sampleDomainLearningPath
+    .copy(
+      id = Some(PUBLISHED_ID),
+      externalId = Some("1"),
+      title = List(Title("Tittel", "nb")),
+      description = List(Description("Beskrivelse", "nb")),
+      introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
+      verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+      owner = PUBLISHED_OWNER.id,
+      copyright = copyright,
+      learningsteps = Seq.empty,
+    )
 
-  val PRIVATE_LEARNINGPATH: LearningPath = LearningPath(
-    id = Some(PRIVATE_ID),
-    revision = Some(1),
-    externalId = None,
-    isBasedOn = None,
-    title = List(Title("Tittel", "nb")),
-    description = List(Description("Beskrivelse", "nb")),
-    introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
-    coverPhotoId = None,
-    duration = Some(1),
-    status = learningpath.LearningPathStatus.PRIVATE,
-    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = today,
-    lastUpdated = today,
-    tags = List(),
-    owner = PRIVATE_OWNER.id,
-    copyright = copyright,
-    isMyNDLAOwner = false,
-    learningsteps = STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil,
-    responsible = None,
-    comments = Seq.empty,
-    priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default,
-    grepCodes = Seq.empty,
-  )
+  val PRIVATE_LEARNINGPATH: LearningPath = TestData
+    .sampleDomainLearningPath
+    .copy(
+      id = Some(PRIVATE_ID),
+      title = List(Title("Tittel", "nb")),
+      description = List(Description("Beskrivelse", "nb")),
+      introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
+      status = learningpath.LearningPathStatus.PRIVATE,
+      verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+      owner = PRIVATE_OWNER.id,
+      copyright = copyright,
+      learningsteps = STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil,
+    )
 
-  val PRIVATE_LEARNINGPATH_NO_STEPS: LearningPath = LearningPath(
-    id = Some(PRIVATE_ID),
-    revision = Some(1),
-    externalId = None,
-    isBasedOn = None,
-    title = List(Title("Tittel", "nb")),
-    description = List(Description("Beskrivelse", "nb")),
-    introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
-    coverPhotoId = None,
-    duration = Some(1),
-    status = learningpath.LearningPathStatus.PRIVATE,
-    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = today,
-    lastUpdated = today,
-    tags = List(),
-    owner = PRIVATE_OWNER.id,
-    copyright = copyright,
-    isMyNDLAOwner = false,
-    learningsteps = Seq.empty,
-    responsible = None,
-    comments = Seq.empty,
-    priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default,
-    grepCodes = Seq.empty,
-  )
+  val PRIVATE_LEARNINGPATH_NO_STEPS: LearningPath = TestData
+    .sampleDomainLearningPath
+    .copy(
+      id = Some(PRIVATE_ID),
+      title = List(Title("Tittel", "nb")),
+      description = List(Description("Beskrivelse", "nb")),
+      introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
+      status = learningpath.LearningPathStatus.PRIVATE,
+      verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+      owner = PRIVATE_OWNER.id,
+      copyright = copyright,
+      learningsteps = Seq.empty,
+    )
 
-  val DELETED_LEARNINGPATH: LearningPath = LearningPath(
-    id = Some(PRIVATE_ID),
-    revision = Some(1),
-    externalId = None,
-    isBasedOn = None,
-    title = List(Title("Tittel", "nb")),
-    description = List(Description("Beskrivelse", "nb")),
-    introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
-    coverPhotoId = None,
-    duration = Some(1),
-    status = learningpath.LearningPathStatus.DELETED,
-    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = today,
-    lastUpdated = today,
-    tags = List(),
-    owner = PRIVATE_OWNER.id,
-    copyright = copyright,
-    isMyNDLAOwner = false,
-    learningsteps = STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil,
-    responsible = None,
-    comments = Seq.empty,
-    priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default,
-    grepCodes = Seq.empty,
-  )
+  val DELETED_LEARNINGPATH: LearningPath = TestData
+    .sampleDomainLearningPath
+    .copy(
+      id = Some(PRIVATE_ID),
+      title = List(Title("Tittel", "nb")),
+      description = List(Description("Beskrivelse", "nb")),
+      introduction = List(Introduction("<section><p>Introduksjon</p></section>", "nb")),
+      status = learningpath.LearningPathStatus.DELETED,
+      verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+      owner = PRIVATE_OWNER.id,
+      copyright = copyright,
+      learningsteps = STEP1 :: STEP2 :: STEP3 :: STEP4 :: STEP5 :: STEP6 :: Nil,
+    )
   val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2DTO = NewLearningPathV2DTO(
     "Tittel",
     Some("Beskrivelse"),
@@ -411,6 +352,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
   override def beforeEach(): Unit = {
     service = new UpdateService
     resetMocks()
+    when(clock.now()).thenReturn(now)
     when(searchIndexService.deleteDocument(any[LearningPath], any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[LearningPath](0))
     )

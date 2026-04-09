@@ -9,7 +9,7 @@
 package no.ndla.searchapi.service
 
 import no.ndla.network.ApplicationUrl
-import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 import no.ndla.searchapi.model.api
 
 class ConverterServiceTest extends UnitSuite with TestEnvironment {

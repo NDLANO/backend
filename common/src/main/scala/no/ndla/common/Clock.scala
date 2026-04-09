@@ -12,10 +12,6 @@ import no.ndla.common.model.NDLADate
 
 class Clock {
   def now(): NDLADate = {
-    Clock.now()
+    NDLADate.now()
   }
-}
-object Clock {
-  def apply(): Clock  = new Clock()
-  def now(): NDLADate = NDLADate.now()
 }

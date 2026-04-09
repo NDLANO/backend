@@ -21,10 +21,10 @@ import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.model.domain.{Bucket, TermAggregation}
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.SearchTestUtility.*
-import no.ndla.searchapi.TestData.{core, generateContexts, subjectMaterial}
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.service.ConverterService
-import no.ndla.searchapi.{TestData, TestEnvironment}
+import no.ndla.searchapi.TestEnvironment
+import no.ndla.searchapi.model.search.settings.SearchSettings
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
 import org.mockito.Mockito.*
 
@@ -72,6 +72,8 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
   val indexingBundle: IndexingBundle =
     IndexingBundle(Some(TestData.grepBundle), Some(TestData.taxonomyTestBundle), Some(TestData.myndlaTestBundle))
 
+  val searchSettings: SearchSettings = TestData.searchSettings
+
   test("That search on embed id supports embed with multiple resources") {
     val article1 = TestData
       .article1
@@ -105,14 +107,14 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
     })
 
     val Success(search1) = multiSearchService.matchingQuery(
-      TestData.searchSettings.copy(embedId = Some("3"), embedResource = List("content-link"))
+      searchSettings.copy(embedId = Some("3"), embedResource = List("content-link"))
     ): @unchecked
 
     search1.totalCount should be(1)
     search1.summaryResults.map(_.id) should be(List(2))
 
     val Success(search2) = multiSearchService.matchingQuery(
-      TestData.searchSettings.copy(embedId = Some("3"), embedResource = List("content-link", "related-content"))
+      searchSettings.copy(embedId = Some("3"), embedResource = List("content-link", "related-content"))
     ): @unchecked
 
     search2.totalCount should be(2)
@@ -135,7 +137,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         path = "/subject:1",
         breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
         contextType = None,
-        relevanceId = core.id,
+        relevanceId = TestData.core.id,
         relevance = SearchableLanguageValues(Seq.empty),
         resourceTypes = List.empty,
         parentIds = List.empty,
@@ -175,13 +177,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      topic_1.contexts = generateContexts(
+      topic_1.contexts = TestData.generateContexts(
         topic_1,
         subject_1,
         subject_1,
         List.empty,
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = false,
         isActive = true,
@@ -201,13 +203,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      topic_2.contexts = generateContexts(
+      topic_2.contexts = TestData.generateContexts(
         topic_2,
         subject_1,
         topic_1,
         List.empty,
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = false,
         isActive = true,
@@ -227,13 +229,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      topic_3.contexts = generateContexts(
+      topic_3.contexts = TestData.generateContexts(
         topic_3,
         subject_1,
         subject_1,
         List.empty,
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = true,
         isActive = true,
@@ -253,13 +255,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      resource_1.contexts = generateContexts(
+      resource_1.contexts = TestData.generateContexts(
         resource_1,
         subject_1,
         topic_2,
-        List(subjectMaterial),
+        List(TestData.subjectMaterial),
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = false,
         isActive = true,
@@ -279,13 +281,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      resource_2.contexts = generateContexts(
+      resource_2.contexts = TestData.generateContexts(
         resource_2,
         subject_1,
         topic_3,
-        List(subjectMaterial),
+        List(TestData.subjectMaterial),
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = true,
         isActive = true,
@@ -307,7 +309,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
       articleIndexService.countDocuments == 1
     })
 
-    val result = multiSearchService.matchingQuery(TestData.searchSettings.copy()).get
+    val result = multiSearchService.matchingQuery(searchSettings.copy()).get
 
     result.summaryResults.head.contexts.map(_.publicId) should be(Seq("urn:resource:2"))
   }
@@ -327,7 +329,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         path = "/subject:1",
         breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
         contextType = None,
-        relevanceId = core.id,
+        relevanceId = TestData.core.id,
         relevance = SearchableLanguageValues(Seq.empty),
         resourceTypes = List.empty,
         parentIds = List.empty,
@@ -367,13 +369,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      topic_1.contexts = generateContexts(
+      topic_1.contexts = TestData.generateContexts(
         topic_1,
         subject_1,
         subject_1,
         List.empty,
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = false,
         isActive = true,
@@ -393,13 +395,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      topic_2.contexts = generateContexts(
+      topic_2.contexts = TestData.generateContexts(
         topic_2,
         subject_1,
         topic_1,
         List.empty,
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = true,
         isActive = true,
@@ -419,13 +421,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      topic_3.contexts = generateContexts(
+      topic_3.contexts = TestData.generateContexts(
         topic_3,
         subject_1,
         subject_1,
         List.empty,
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = true,
         isActive = true,
@@ -469,7 +471,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         path = "/subject:1",
         breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
         contextType = None,
-        relevanceId = core.id,
+        relevanceId = TestData.core.id,
         relevance = SearchableLanguageValues(Seq.empty),
         resourceTypes = List.empty,
         parentIds = List.empty,
@@ -501,7 +503,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         path = "/subject:2",
         breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
         contextType = None,
-        relevanceId = core.id,
+        relevanceId = TestData.core.id,
         relevance = SearchableLanguageValues(Seq.empty),
         resourceTypes = List.empty,
         parentIds = List.empty,
@@ -540,13 +542,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      topic_1.contexts = generateContexts(
+      topic_1.contexts = TestData.generateContexts(
         topic_1,
         subject_1,
         subject_1,
         List.empty,
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = true,
         isActive = true,
@@ -565,13 +567,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      topic_2.contexts = generateContexts(
+      topic_2.contexts = TestData.generateContexts(
         topic_2,
         subject_1,
         subject_1,
         List.empty,
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = true,
         isActive = true,
@@ -590,13 +592,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      topic_3.contexts = generateContexts(
+      topic_3.contexts = TestData.generateContexts(
         topic_3,
         subject_1,
         subject_1,
         List.empty,
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = true,
         isActive = true,
@@ -615,13 +617,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      topic_4.contexts = generateContexts(
+      topic_4.contexts = TestData.generateContexts(
         topic_4,
         subject_2,
         subject_2,
         List.empty,
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = true,
         isActive = true,
@@ -640,13 +642,13 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
         None,
         List.empty,
       )
-      topic_5.contexts = generateContexts(
+      topic_5.contexts = TestData.generateContexts(
         topic_5,
         subject_2,
         subject_2,
         List.empty,
         None,
-        core,
+        TestData.core,
         isPrimary = true,
         isVisible = true,
         isActive = true,
@@ -692,9 +694,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
       articleIndexService.countDocuments == 5
     })
 
-    val result = multiSearchService
-      .matchingQuery(TestData.searchSettings.copy(aggregatePaths = List("contexts.rootId")))
-      .get
+    val result = multiSearchService.matchingQuery(searchSettings.copy(aggregatePaths = List("contexts.rootId"))).get
 
     val expectedAggs = TermAggregation(
       field = List("contexts", "rootId"),
@@ -727,7 +727,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               path = "/subject:19284",
               breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
               contextType = None,
-              relevanceId = core.id,
+              relevanceId = TestData.core.id,
               relevance = SearchableLanguageValues(Seq.empty),
               resourceTypes = List.empty,
               parentIds = List.empty,
@@ -760,7 +760,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               path = "/subject:19285",
               breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
               contextType = None,
-              relevanceId = core.id,
+              relevanceId = TestData.core.id,
               relevance = SearchableLanguageValues(Seq.empty),
               resourceTypes = List.empty,
               parentIds = List.empty,
@@ -873,7 +873,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               path = "/subject:19284",
               breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
               contextType = None,
-              relevanceId = core.id,
+              relevanceId = TestData.core.id,
               relevance = SearchableLanguageValues(Seq.empty),
               resourceTypes = List.empty,
               parentIds = List.empty,
@@ -906,7 +906,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               path = "/subject:19285",
               breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
               contextType = None,
-              relevanceId = core.id,
+              relevanceId = TestData.core.id,
               relevance = SearchableLanguageValues(Seq.empty),
               resourceTypes = List.empty,
               parentIds = List.empty,
@@ -1043,7 +1043,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               path = "/subject:19284",
               breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
               contextType = None,
-              relevanceId = core.id,
+              relevanceId = TestData.core.id,
               relevance = SearchableLanguageValues(Seq.empty),
               resourceTypes = List.empty,
               parentIds = List.empty,
@@ -1076,7 +1076,7 @@ class MultiSearchServiceAtomicTest extends ElasticsearchIntegrationSuite with Te
               path = "/subject:19285",
               breadcrumbs = SearchableLanguageList(Seq(LanguageValue("nb", Seq.empty))),
               contextType = None,
-              relevanceId = core.id,
+              relevanceId = TestData.core.id,
               relevance = SearchableLanguageValues(Seq.empty),
               resourceTypes = List.empty,
               parentIds = List.empty,

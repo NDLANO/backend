@@ -28,8 +28,7 @@ import no.ndla.common.model.domain.{
 }
 import no.ndla.mapping.License
 import no.ndla.search.model.domain.EmbedValues
-import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 
 import java.util.UUID
 
@@ -96,9 +95,9 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       defaultTitle = Some("Christian Tut"),
       supportedLanguages = List("en", "nb", "nn"),
       notes = List("Note1", "note2"),
-      context = searchableTaxonomyContexts.headOption,
-      contexts = searchableTaxonomyContexts,
-      contextids = searchableTaxonomyContexts.map(_.contextId),
+      context = TestData.searchableTaxonomyContexts.headOption,
+      contexts = TestData.searchableTaxonomyContexts,
+      contextids = TestData.searchableTaxonomyContexts.map(_.contextId),
       draftStatus = SearchableStatus(DraftStatus.PLANNED.toString, Seq(DraftStatus.IN_PROGRESS.toString)),
       status = DraftStatus.PLANNED.toString,
       users = List("ndalId54321", "ndalId12345"),
@@ -137,7 +136,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
             )
           ),
         ),
-      nodes = nodes,
+      nodes = TestData.nodes,
     )
 
     val json         = CirceUtil.toJsonString(original)

@@ -8,6 +8,7 @@
 
 package no.ndla.integrationtests.searchapi.draftapi
 
+import no.ndla.common.Clock
 import no.ndla.common.configuration.Prop
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.LanguageValue
@@ -93,7 +94,7 @@ class DraftApiClientTest
             .draftRepository
             .insert(
               draftapi
-                .TestData
+                .TestData(using Clock())
                 .sampleDomainArticle
                 .copy(
                   id = Some(id),
@@ -120,7 +121,11 @@ class DraftApiClientTest
     val fetchedDraft = chunks.head.get.head
     val searchable   = searchConverterService.asSearchableDraft(
       fetchedDraft,
-      IndexingBundle(Some(searchapi.TestData.emptyGrepBundle), Some(searchapi.TestData.taxonomyTestBundle), None),
+      IndexingBundle(
+        Some(searchapi.TestData(using Clock()).emptyGrepBundle),
+        Some(searchapi.TestData(using Clock()).taxonomyTestBundle),
+        None,
+      ),
     )
 
     searchable.isSuccess should be(true)

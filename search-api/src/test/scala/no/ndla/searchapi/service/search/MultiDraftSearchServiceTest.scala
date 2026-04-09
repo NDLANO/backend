@@ -20,11 +20,11 @@ import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.SearchTestUtility.*
-import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{DraftSearchField, IndexingBundle, Sort}
 import no.ndla.searchapi.model.search.SearchPagination
 import no.ndla.searchapi.service.ConverterService
-import no.ndla.searchapi.{TestData, TestEnvironment}
+import no.ndla.searchapi.TestEnvironment
+import no.ndla.searchapi.model.search.settings.MultiDraftSearchSettings
 
 import scala.util.Success
 
@@ -53,7 +53,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   }
 
   val indexingBundle: IndexingBundle =
-    IndexingBundle(Some(emptyGrepBundle), Some(taxonomyTestBundle), Some(TestData.myndlaTestBundle))
+    IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), Some(TestData.myndlaTestBundle))
+
+  val multiDraftSearchSettings: MultiDraftSearchSettings = TestData.multiDraftSearchSettings
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -62,15 +64,15 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       learningPathIndexService.createIndexAndAlias()
       draftConceptIndexService.createIndexAndAlias()
 
-      draftsToIndex.map(draft => draftIndexService.indexDocument(draft, indexingBundle))
+      TestData.draftsToIndex.map(draft => draftIndexService.indexDocument(draft, indexingBundle))
 
-      learningPathsToIndex.map(lp => learningPathIndexService.indexDocument(lp, indexingBundle))
+      TestData.learningPathsToIndex.map(lp => learningPathIndexService.indexDocument(lp, indexingBundle))
 
       blockUntil(() => {
-        draftIndexService.countDocuments == draftsToIndex.size &&
-        learningPathIndexService.countDocuments == learningPathsToIndex.count(lp =>
-          lp.verificationStatus == CREATED_BY_NDLA
-        )
+        draftIndexService.countDocuments == TestData.draftsToIndex.size &&
+        learningPathIndexService.countDocuments == TestData
+          .learningPathsToIndex
+          .count(lp => lp.verificationStatus == CREATED_BY_NDLA)
       })
     }
   }
@@ -78,9 +80,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   private def expectedAllPublicDrafts(language: String) = {
     val x =
       if (language == "*") {
-        draftsToIndex
+        TestData.draftsToIndex
       } else {
-        draftsToIndex.filter(_.title.map(_.language).contains(language))
+        TestData.draftsToIndex.filter(_.title.map(_.language).contains(language))
       }
     x.filterNot(_.status.current == DraftStatus.ARCHIVED).filterNot(_.status.current == DraftStatus.UNPUBLISHED)
   }
@@ -88,9 +90,9 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
   private def expectedAllPublicLearningPaths(language: String) = {
     val x =
       if (language == "*") {
-        learningPathsToIndex
+        TestData.learningPathsToIndex
       } else {
-        learningPathsToIndex.filter(_.title.map(_.language).contains(language))
+        TestData.learningPathsToIndex.filter(_.title.map(_.language).contains(language))
       }
     x.filter(_.verificationStatus == CREATED_BY_NDLA).filter(_.copyright.license != License.Copyrighted.toString)
   }

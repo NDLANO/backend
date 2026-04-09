@@ -9,7 +9,7 @@
 package no.ndla.searchapi.service.search
 
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.search.{LearningResourceType, MetaImageDTO, ArticleTrait}
+import no.ndla.common.model.api.search.{ArticleTrait, LearningResourceType, MetaImageDTO}
 import no.ndla.common.model.domain.article.Article
 import no.ndla.common.model.domain.learningpath.LearningPath
 import no.ndla.common.model.domain.learningpath.LearningPathStatus.PRIVATE
@@ -22,11 +22,11 @@ import no.ndla.network.tapir.NonEmptyString
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.SearchTestUtility.*
-import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
 import no.ndla.searchapi.model.search.SearchPagination
+import no.ndla.searchapi.model.search.settings.SearchSettings
 import no.ndla.searchapi.service.ConverterService
-import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 
 import scala.util.Success
 
@@ -55,6 +55,8 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     override val enableExplanations = true
   }
 
+  val searchSettings: SearchSettings = TestData.searchSettings
+
   override def beforeAll(): Unit = {
     super.beforeAll()
     if (elasticSearchContainer.isSuccess) {
@@ -62,33 +64,49 @@ class MultiSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
       draftIndexService.createIndexAndAlias()
       learningPathIndexService.createIndexAndAlias()
 
-      articlesToIndex.map(article =>
-        articleIndexService.indexDocument(
-          article,
-          IndexingBundle(Some(grepBundle), Some(taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
+      TestData
+        .articlesToIndex
+        .map(article =>
+          articleIndexService.indexDocument(
+            article,
+            IndexingBundle(
+              Some(TestData.grepBundle),
+              Some(TestData.taxonomyTestBundle),
+              Some(TestData.myndlaTestBundle),
+            ),
+          )
         )
-      )
 
-      learningPathsToIndex.map(lp =>
-        learningPathIndexService.indexDocument(
-          lp,
-          IndexingBundle(Some(emptyGrepBundle), Some(taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
+      TestData
+        .learningPathsToIndex
+        .map(lp =>
+          learningPathIndexService.indexDocument(
+            lp,
+            IndexingBundle(
+              Some(TestData.emptyGrepBundle),
+              Some(TestData.taxonomyTestBundle),
+              Some(TestData.myndlaTestBundle),
+            ),
+          )
         )
-      )
 
       blockUntil(() => {
-        articleIndexService.countDocuments == articlesToIndex.size &&
-        learningPathIndexService.countDocuments == learningPathsToIndex.count(_.verificationStatus == CREATED_BY_NDLA)
+        articleIndexService.countDocuments == TestData.articlesToIndex.size &&
+        learningPathIndexService.countDocuments == TestData
+          .learningPathsToIndex
+          .count(_.verificationStatus == CREATED_BY_NDLA)
       })
     }
   }
 
-  def hasTaxonomy(lp: LearningPath): Boolean = taxonomyTestBundle
+  def hasTaxonomy(lp: LearningPath): Boolean = TestData
+    .taxonomyTestBundle
     .nodes
     .map(_.contentUri.get)
     .contains(s"urn:learningpath:${lp.id.get}")
 
-  def hasTaxonomy(ar: Article): Boolean = taxonomyTestBundle
+  def hasTaxonomy(ar: Article): Boolean = TestData
+    .taxonomyTestBundle
     .nodes
     .map(_.contentUri.get)
     .contains(s"urn:article:${ar.id.get}")

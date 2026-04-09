@@ -18,11 +18,10 @@ import no.ndla.common.util.TraitUtil
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.search.TestUtility.{getFields, getMappingFields}
-import no.ndla.searchapi.TestData.*
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.model.search.SearchableArticle
 import no.ndla.searchapi.service.ConverterService
-import no.ndla.searchapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.searchapi.{TestEnvironment, UnitSuite}
 
 import scala.util.Success
 
@@ -47,7 +46,7 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
   test("That articles are indexed correctly") {
     articleIndexService
       .indexDocument(
-        article5,
+        TestData.article5,
         IndexingBundle(
           Some(TestData.emptyGrepBundle),
           Some(TestData.taxonomyTestBundle),
@@ -57,7 +56,7 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
       .get
     articleIndexService
       .indexDocument(
-        article6,
+        TestData.article6,
         IndexingBundle(
           Some(TestData.emptyGrepBundle),
           Some(TestData.taxonomyTestBundle),
@@ -67,7 +66,7 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
       .get
     articleIndexService
       .indexDocument(
-        article7,
+        TestData.article7,
         IndexingBundle(
           Some(TestData.emptyGrepBundle),
           Some(TestData.taxonomyTestBundle),
@@ -88,21 +87,21 @@ class ArticleIndexServiceTest extends ElasticsearchIntegrationSuite with UnitSui
     val articles = sources.map(source => CirceUtil.unsafeParseAs[SearchableArticle](source))
 
     val Success(expectedArticle5) = searchConverterService.asSearchableArticle(
-      article5,
+      TestData.article5,
       IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
     ): @unchecked
     val Success(expectedArticle6) = searchConverterService.asSearchableArticle(
-      article6,
+      TestData.article6,
       IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
     ): @unchecked
     val Success(expectedArticle7) = searchConverterService.asSearchableArticle(
-      article7,
+      TestData.article7,
       IndexingBundle(Some(TestData.emptyGrepBundle), Some(TestData.taxonomyTestBundle), Some(TestData.myndlaTestBundle)),
     ): @unchecked
 
-    val Some(actualArticle5) = articles.find(p => p.id == article5.id.get): @unchecked
-    val Some(actualArticle6) = articles.find(p => p.id == article6.id.get): @unchecked
-    val Some(actualArticle7) = articles.find(p => p.id == article7.id.get): @unchecked
+    val Some(actualArticle5) = articles.find(p => p.id == TestData.article5.id.get): @unchecked
+    val Some(actualArticle6) = articles.find(p => p.id == TestData.article6.id.get): @unchecked
+    val Some(actualArticle7) = articles.find(p => p.id == TestData.article7.id.get): @unchecked
 
     actualArticle5 should be(expectedArticle5)
     actualArticle6 should be(expectedArticle6)

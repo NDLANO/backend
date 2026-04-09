@@ -10,12 +10,11 @@ package no.ndla.learningpathapi.controller
 
 import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.{NDLADate, api as commonApi}
-import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.integration.Node
 import no.ndla.learningpathapi.model.api.{LearningPathSummaryV2DTO, SearchResultV2DTO}
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.model.{api, domain}
-import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
 import no.ndla.mapping.License.getLicenses
 import no.ndla.network.model.CombinedUser
@@ -77,16 +76,18 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
     val apiResult = SearchResultV2DTO(1, Some(1), 1, language, Seq(DefaultLearningPathSummary))
     when(searchConverterService.asApiSearchResult(result)).thenReturn(apiResult)
 
-    val expectedSettings = searchSettings.copy(
-      query = Some(query),
-      withIdIn = List(1, 2),
-      taggedWith = Some(tag),
-      language = Some(language),
-      sort = Sort.ByDurationDesc,
-      page = Some(page),
-      pageSize = Some(pageSize),
-      verificationStatus = Some(verificationStatus),
-    )
+    val expectedSettings = TestData
+      .searchSettings
+      .copy(
+        query = Some(query),
+        withIdIn = List(1, 2),
+        taggedWith = Some(tag),
+        language = Some(language),
+        sort = Sort.ByDurationDesc,
+        page = Some(page),
+        pageSize = Some(pageSize),
+        verificationStatus = Some(verificationStatus),
+      )
 
     when(searchService.matchingQuery(eqTo(expectedSettings))).thenReturn(Success(result))
 
@@ -143,15 +144,17 @@ class LearningpathControllerV2Test extends UnitSuite with TestEnvironment with T
     val apiResult = SearchResultV2DTO(1, Some(page), pageSize, language, Seq(DefaultLearningPathSummary))
     when(searchConverterService.asApiSearchResult(result)).thenReturn(apiResult)
 
-    val expectedSettings = searchSettings.copy(
-      withIdIn = List(1, 2),
-      query = Some(query),
-      taggedWith = Some(tag),
-      language = Some(language),
-      sort = Sort.ByDurationDesc,
-      page = Some(page),
-      pageSize = Some(pageSize),
-    )
+    val expectedSettings = TestData
+      .searchSettings
+      .copy(
+        withIdIn = List(1, 2),
+        query = Some(query),
+        taggedWith = Some(tag),
+        language = Some(language),
+        sort = Sort.ByDurationDesc,
+        page = Some(page),
+        pageSize = Some(pageSize),
+      )
 
     when(searchService.matchingQuery(eqTo(expectedSettings))).thenReturn(Success(result))
     val inputBody =

@@ -23,7 +23,6 @@ import no.ndla.common.model.domain.learningpath.{
 }
 import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title, learningpath}
 import no.ndla.language.Language
-import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
@@ -32,8 +31,6 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.doReturn
 
 import scala.util.Success
-import no.ndla.common.model.domain.Priority
-import no.ndla.common.model.domain.RevisionMeta
 import no.ndla.learningpathapi.model.api.CopyrightDTO
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
@@ -52,31 +49,24 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
   val copyright: LearningpathCopyright = LearningpathCopyright(license, List(paul))
   val today: NDLADate                  = NDLADate.now()
 
-  val DefaultLearningPath: LearningPath = LearningPath(
-    id = None,
-    revision = None,
-    externalId = None,
-    isBasedOn = None,
-    title = List(),
-    description = List(),
-    introduction = List(),
-    coverPhotoId = None,
-    duration = Some(0),
-    status = LearningPathStatus.PUBLISHED,
-    verificationStatus = LearningPathVerificationStatus.EXTERNAL,
-    created = today,
-    lastUpdated = today,
-    tags = List(),
-    owner = "owner",
-    copyright = copyright,
-    isMyNDLAOwner = false,
-    learningsteps = Seq.empty,
-    responsible = None,
-    comments = Seq.empty,
-    priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default,
-    grepCodes = Seq.empty,
-  )
+  val DefaultLearningPath: LearningPath = TestData
+    .sampleDomainLearningPath
+    .copy(
+      id = None,
+      revision = None,
+      title = List(),
+      description = List(),
+      introduction = List(),
+      duration = Some(0),
+      status = LearningPathStatus.PUBLISHED,
+      verificationStatus = LearningPathVerificationStatus.EXTERNAL,
+      created = today,
+      lastUpdated = today,
+      tags = List(),
+      owner = "owner",
+      copyright = copyright,
+      learningsteps = Seq.empty,
+    )
 
   val DefaultLearningStep: LearningStep = LearningStep(
     id = None,
@@ -103,6 +93,8 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
   val UnrelatedId = 4L
   val EnglandoId  = 5L
   val BrumleId    = 6L
+
+  val searchSettings: SearchSettings = TestData.searchSettings
 
   override def beforeAll(): Unit = {
     super.beforeAll()

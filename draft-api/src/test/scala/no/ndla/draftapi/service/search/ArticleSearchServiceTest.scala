@@ -12,7 +12,6 @@ import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.*
 import no.ndla.common.model.domain.draft.*
 import no.ndla.common.util.TraitUtil
-import no.ndla.draftapi.TestData.searchSettings
 import no.ndla.draftapi.*
 import no.ndla.draftapi.model.domain.*
 import no.ndla.draftapi.service.ConverterService
@@ -236,6 +235,8 @@ class ArticleSearchServiceTest extends ElasticsearchIntegrationSuite with TestEn
       updated = today.minusDays(5),
       articleType = ArticleType.TopicArticle,
     )
+
+  val searchSettings: SearchSettings = TestData.searchSettings
 
   override def beforeAll(): Unit = {
     super.beforeAll()

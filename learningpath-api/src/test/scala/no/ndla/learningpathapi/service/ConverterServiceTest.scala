@@ -19,7 +19,7 @@ import no.ndla.learningpathapi.model.api.{
   NewLearningPathV2DTO,
   NewLearningStepV2DTO,
 }
-import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
+import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License
 import no.ndla.mapping.License.CC_BY
 import no.ndla.network.tapir.auth.Permission.{LEARNINGPATH_API_ADMIN, LEARNINGPATH_API_PUBLISH, LEARNINGPATH_API_WRITE}
@@ -123,39 +123,31 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     )
   val apiTags: List[api.LearningPathTagsDTO] = List(api.LearningPathTagsDTO(Seq("tag"), props.DefaultLanguage))
 
-  val randomDate: NDLADate      = clock.now()
+  val randomDate: NDLADate      = NDLADate.now()
   var service: ConverterService = scala.compiletime.uninitialized
 
-  val revisionMeta: Seq[RevisionMeta] = RevisionMeta.default
-
-  val domainLearningPath: LearningPath = LearningPath(
-    id = Some(1L),
-    revision = Some(1),
-    externalId = None,
-    isBasedOn = None,
-    title = List(Title("tittel", props.DefaultLanguage)),
-    description = List(Description("deskripsjon", props.DefaultLanguage)),
-    introduction = List(Introduction("<section><p>introduction</p></section>", props.DefaultLanguage)),
-    coverPhotoId = None,
-    duration = Some(60),
-    status = LearningPathStatus.PRIVATE,
-    verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
-    created = randomDate,
-    lastUpdated = randomDate,
-    tags = List(Tag(List("tag"), props.DefaultLanguage)),
-    owner = "me",
-    copyright = LearningpathCopyright(CC_BY.toString, List.empty),
-    isMyNDLAOwner = false,
-    learningsteps = Seq.empty,
-    responsible = None,
-    comments = Seq.empty,
-    priority = Priority.Unspecified,
-    revisionMeta = revisionMeta,
-    grepCodes = Seq.empty,
-  )
+  val domainLearningPath: LearningPath = TestData
+    .sampleDomainLearningPath
+    .copy(
+      id = Some(1L),
+      revision = Some(1),
+      title = List(Title("tittel", props.DefaultLanguage)),
+      description = List(Description("deskripsjon", props.DefaultLanguage)),
+      introduction = List(Introduction("<section><p>introduction</p></section>", props.DefaultLanguage)),
+      duration = Some(60),
+      status = LearningPathStatus.PRIVATE,
+      verificationStatus = LearningPathVerificationStatus.CREATED_BY_NDLA,
+      created = randomDate,
+      lastUpdated = randomDate,
+      tags = List(Tag(List("tag"), props.DefaultLanguage)),
+      owner = "me",
+      copyright = LearningpathCopyright(CC_BY.toString, List.empty),
+      learningsteps = Seq.empty,
+    )
 
   override def beforeEach(): Unit = {
     service = new ConverterService
+    when(clock.now()).thenReturn(randomDate)
   }
 
   test("asApiLearningpathV2 converts domain to api LearningPathV2") {
@@ -193,7 +185,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        revisionMeta.map(commonConverter.revisionMetaDomainToApi),
+        TestData.revisionMeta.map(commonConverter.revisionMetaDomainToApi),
         api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
         Seq.empty,
       )
@@ -252,7 +244,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        revisionMeta.map(commonConverter.revisionMetaDomainToApi),
+        TestData.revisionMeta.map(commonConverter.revisionMetaDomainToApi),
         api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
         Seq.empty,
       )

@@ -20,7 +20,7 @@ import no.ndla.searchapi.integration.ArticleApiClient
 import no.ndla.searchapi.model.domain.IndexingBundle
 import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.service.search.SearchConverterService
-import no.ndla.searchapi.{TestData, UnitSuite}
+import no.ndla.searchapi.UnitSuite
 import no.ndla.{articleapi, searchapi}
 import org.testcontainers.postgresql.PostgreSQLContainer
 

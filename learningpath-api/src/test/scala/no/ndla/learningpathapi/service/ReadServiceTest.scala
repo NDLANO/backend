@@ -8,6 +8,7 @@
 
 package no.ndla.learningpathapi.service
 
+import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.domain.learningpath.{
@@ -67,7 +68,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default,
+    revisionMeta = RevisionMeta.default(using new Clock()),
     grepCodes = Seq.empty,
   )
 
@@ -93,7 +94,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default,
+    revisionMeta = RevisionMeta.default(using new Clock()),
     grepCodes = Seq.empty,
   )
 
