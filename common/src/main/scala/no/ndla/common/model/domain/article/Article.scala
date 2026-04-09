@@ -19,7 +19,7 @@ import no.ndla.common.model.domain.language.OptLanguageFields
 case class Article(
     id: Option[Long],
     revision: Option[Int],
-    externalIds: List[String],
+    externalIds: Option[List[String]],
     title: Seq[Title],
     content: Seq[ArticleContent],
     copyright: Copyright,

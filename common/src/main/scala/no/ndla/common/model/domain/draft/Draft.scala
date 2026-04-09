@@ -21,7 +21,7 @@ import no.ndla.common.model.api.search.ArticleTrait
 case class Draft(
     id: Option[Long],
     revision: Option[Int],
-    externalIds: List[String],
+    externalIds: Option[List[String]],
     status: Status,
     title: Seq[Title],
     content: Seq[ArticleContent],

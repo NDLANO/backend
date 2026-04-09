@@ -25,8 +25,11 @@ class DBArticle(using props: Props) {
       val articleId   = rs.long(a.c("article_id"))
       val externalIds = rs
         .arrayOpt(a.c("external_id"))
-        .map(_.getArray.asInstanceOf[Array[String]].toList)
-        .getOrElse(List.empty)
+        .map(_.getArray.asInstanceOf[Array[String]].toList.filter(_ != null))
+        .flatMap {
+          case Nil => None
+          case ids => Some(ids)
+        }
       val rowId    = rs.long(a.c("id"))
       val document = rs.stringOpt(a.c("document"))
       val revision = rs.int(a.c("revision"))

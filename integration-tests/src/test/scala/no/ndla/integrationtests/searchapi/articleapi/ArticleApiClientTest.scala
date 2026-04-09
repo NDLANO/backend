@@ -93,10 +93,10 @@ class ArticleApiClientTest
             td.sampleDomainArticle
               .copy(
                 id = Some(id),
+                externalIds = Some(List(s"1$id")),
                 created = NDLADate.fromUnixTime(0),
                 updated = NDLADate.fromUnixTime(0),
                 published = NDLADate.fromUnixTime(0),
-                externalIds = List(s"1$id"),
               )
           )(using articleApi.componentRegistry.dbUtility.autoSession)
       })

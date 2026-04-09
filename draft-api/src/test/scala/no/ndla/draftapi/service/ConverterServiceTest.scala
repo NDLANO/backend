@@ -69,9 +69,10 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("toApiArticle converts a domain.Article to an api.ArticleV2") {
-    service.toApiArticle(TestData.sampleDomainArticle.copy(externalIds = List(TestData.externalId)), "nb") should equal(
-      Success(TestData.apiArticleV2)
-    )
+    service.toApiArticle(
+      TestData.sampleDomainArticle.copy(externalIds = Some(List(TestData.externalId))),
+      "nb",
+    ) should equal(Success(TestData.apiArticleV2))
   }
 
   test("that toApiArticle returns sorted supportedLanguages") {
@@ -80,7 +81,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         .sampleDomainArticle
         .copy(
           title = TestData.sampleDomainArticle.title :+ Title("hehe", "und"),
-          externalIds = List(TestData.externalId),
+          externalIds = Some(List(TestData.externalId)),
         ),
       "nb",
     )
@@ -157,7 +158,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val art    = Draft(
       id = Some(3),
       revision = Some(4),
-      externalIds = List(),
+      externalIds = None,
       status = status,
       title = Seq(Title("Title test", "nb")),
       content = Seq(ArticleContent("Content test", "nb")),
@@ -204,7 +205,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val art    = Draft(
       id = Some(3),
       revision = Some(4),
-      externalIds = List(),
+      externalIds = None,
       status = status,
       title = Seq(Title("Title test", "nb")),
       content = Seq(ArticleContent("Content test", "nb")),
@@ -241,7 +242,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedArticle = Draft(
       id = Some(3),
       revision = Some(4),
-      externalIds = List(),
+      externalIds = None,
       status = status,
       title = Seq(Title("NyTittel", "nb")),
       content = Seq(ArticleContent("NyContent", "nb")),
@@ -311,7 +312,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val art    = Draft(
       id = Some(3),
       revision = Some(4),
-      externalIds = List(),
+      externalIds = None,
       status = status,
       title = Seq(Title("Title test", "nb")),
       content = Seq(ArticleContent("Content test", "nb")),
@@ -348,7 +349,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val expectedArticle = Draft(
       id = Some(3),
       revision = Some(4),
-      externalIds = List(),
+      externalIds = None,
       status = status,
       title = Seq(Title("Title test", "nb"), Title("NyTittel", "en")),
       content = Seq(ArticleContent("Content test", "nb"), ArticleContent("NyContent", "en")),
@@ -626,7 +627,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     ): @unchecked
 
     res1.availability should be(Availability.teacher)
-    res1.availability should not be (Availability.everyone)
+    res1.availability should not be Availability.everyone
     // Should default til everyone
     res2.availability should be(Availability.everyone)
     res3.availability should be(Availability.everyone)
@@ -716,9 +717,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     ): @unchecked
 
     res1.responsible.get.responsibleId should be("nyid")
-    res1.responsible.get.lastUpdated should not be (yesterday)
+    res1.responsible.get.lastUpdated should not be yesterday
     res2.responsible.get.responsibleId should be("nyid")
-    res2.responsible.get.lastUpdated should not be (yesterday)
+    res2.responsible.get.lastUpdated should not be yesterday
     res3.responsible.get.responsibleId should be("oldId")
     res3.responsible.get.lastUpdated should be(yesterday)
   }
@@ -729,7 +730,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val draft     = Draft(
       id = Some(articleId),
       revision = Some(3),
-      externalIds = List(),
+      externalIds = None,
       status = Status(PLANNED, Set.empty),
       title = Seq(Title("articleTitle", "nb")),
       content = Seq(ArticleContent("content", "nb")),
@@ -769,7 +770,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       .Article(
         id = Some(articleId),
         revision = Some(3),
-        externalIds = List(),
+        externalIds = None,
         title = Seq(Title("articleTitle", "nb")),
         content = Seq(ArticleContent("content", "nb")),
         copyright = common

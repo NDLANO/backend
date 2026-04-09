@@ -258,7 +258,7 @@ class ConverterService(using props: Props) extends StrictLogging {
       Success(
         api.ArticleV2DTO(
           id = article.id.get,
-          oldNdlaUrl = article.externalIds.headOption.map(createLinkToOldNdla),
+          oldNdlaUrl = article.externalIds.getOrElse(List.empty).headOption.map(createLinkToOldNdla),
           revision = article.revision.get,
           title = title,
           content = articleContent,
@@ -365,7 +365,8 @@ class ConverterService(using props: Props) extends StrictLogging {
 
   private def createLinkToOldNdla(nodeId: String): String = s"//red.ndla.no/node/$nodeId"
 
-  def toApiArticleIds(ids: ArticleIds): api.ArticleIdsDTO = api.ArticleIdsDTO(ids.articleId, ids.externalId)
+  def toApiArticleIds(ids: ArticleIds): api.ArticleIdsDTO =
+    api.ArticleIdsDTO(ids.articleId, ids.externalId.getOrElse(List.empty))
 
   def toApiArticleTags(
       tags: Seq[String],

@@ -41,7 +41,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
 
     tsql"""
       insert into ${dbArticle.table} (document, revision, external_id, article_id, slug)
-      values ($dataObject, $startRevision, ARRAY[${article.externalIds}]::text[], ${article.id}, $slug)
+      values ($dataObject, $startRevision, ARRAY[${article.externalIds.getOrElse(List.empty)}]::text[], ${article.id}, $slug)
     """
       .updateAndReturnGeneratedKey()
       .map { dbId =>
@@ -92,7 +92,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
           slug = article.slug.map(_.toLowerCase)
           _   <- tsql"""
             insert into ${dbArticle.table} (external_id, external_subject_id, document, revision, import_id, article_id, slug)
-            values (ARRAY[${article.externalIds}]::text[],
+            values (ARRAY[${article.externalIds.getOrElse(List.empty)}]::text[],
                     ARRAY[$externalSubjectIds]::text[],
                     $dataObject,
                     $articleRevision,
@@ -273,12 +273,14 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
     """.map(rs => rs.long("article_id")).runSingle()
   }
 
-  private def externalIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {
-    Option(wrappedResultSet.array("external_id"))
-      .map(_.getArray.asInstanceOf[Array[String]])
-      .getOrElse(Array.empty[String])
-      .toList
-      .flatMap(Option(_))
+  private def externalIdsFromResultSet(wrappedResultSet: WrappedResultSet): Option[List[String]] = {
+    wrappedResultSet
+      .arrayOpt("external_id")
+      .map(_.getArray.asInstanceOf[Array[String]].toList.filter(_ != null))
+      .flatMap {
+        case Nil  => None
+        case list => Some(list)
+      }
   }
 
   private def externalSubjectIdsFromResultSet(wrappedResultSet: WrappedResultSet): List[String] = {

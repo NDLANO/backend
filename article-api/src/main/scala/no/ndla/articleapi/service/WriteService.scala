@@ -43,8 +43,10 @@ class WriteService(using
       skipValidation: Boolean,
       useImportValidation: Boolean,
   )(using DBSession): Try[Article] = {
-    val strictValidationResult =
-      contentValidator.validateArticle(article, isImported = article.externalIds.nonEmpty || useImportValidation)
+    val strictValidationResult = contentValidator.validateArticle(
+      article,
+      isImported = article.externalIds.exists(_.nonEmpty) || useImportValidation,
+    )
 
     val softOrStrictValidationResult =
       if (useSoftValidation && !skipValidation) {

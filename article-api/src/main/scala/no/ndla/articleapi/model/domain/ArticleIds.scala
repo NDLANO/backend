@@ -8,4 +8,4 @@
 
 package no.ndla.articleapi.model.domain
 
-case class ArticleIds(articleId: Long, externalId: List[String])
+case class ArticleIds(articleId: Long, externalId: Option[List[String]])

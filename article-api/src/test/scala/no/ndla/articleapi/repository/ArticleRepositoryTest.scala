@@ -63,13 +63,13 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
       100 to 150
     ).map(_.toString).zipWithIndex
     externalIdsAndRegularIds.foreach { case (exId, id) =>
-      repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(id.toLong), externalIds = List(exId)))(using
-        dbUtility.autoSession
+      repository.updateArticleFromDraftApi(sampleArticle.copy(id = Some(id.toLong), externalIds = Some(List(exId))))(
+        using dbUtility.autoSession
       )
     }
     val expected = externalIdsAndRegularIds
       .map { case (exId, id) =>
-        ArticleIds(id.toLong, List(exId))
+        ArticleIds(id.toLong, Some(List(exId)))
       }
       .toList
     repository.getAllIds(using dbUtility.readOnlySession).failIfFailure should equal(expected)
@@ -77,12 +77,12 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
 
   test("getIdFromExternalId works with all ids") {
     val inserted1 = repository
-      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(1), externalIds = List("6000", "10")))(using
+      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(1), externalIds = Some(List("6000", "10"))))(using
         dbUtility.autoSession
       )
       .failIfFailure
     val inserted2 = repository
-      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(2), externalIds = List("6001", "11")))(using
+      .updateArticleFromDraftApi(sampleArticle.copy(id = Some(2), externalIds = Some(List("6001", "11"))))(using
         dbUtility.autoSession
       )
       .failIfFailure
@@ -94,7 +94,7 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
   }
 
   test("getArticleIdsFromExternalId should return ArticleIds object with externalIds") {
-    val externalIds = List("1", "6010", "6011", "5084", "763", "8881", "1919")
+    val externalIds = Some(List("1", "6010", "6011", "5084", "763", "8881", "1919"))
     val inserted    = repository.updateArticleFromDraftApi(sampleArticle)(using dbUtility.autoSession).failIfFailure
     val inserted2   = repository
       .updateArticleFromDraftApi(sampleArticle.copy(revision = Some(2), externalIds = externalIds))(using
@@ -113,7 +113,7 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
 
   test("updateArticleFromDraftApi should update all columns with data from draft-api") {
 
-    val externalIds            = List("123", "456")
+    val externalIds            = Some(List("123", "456"))
     val sampleArticle: Article = TestData
       .sampleDomainArticle
       .copy(id = Some(5), revision = Some(42), externalIds = externalIds)
@@ -254,7 +254,7 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
   test("withId parse relatedContent correctly") {
     repository
       .updateArticleFromDraftApi(
-        sampleArticle.copy(id = Some(1), relatedContent = Seq(Right(2)), externalIds = List("6000", "10"))
+        sampleArticle.copy(id = Some(1), externalIds = Some(List("6000", "10")), relatedContent = Seq(Right(2)))
       )(using dbUtility.autoSession)
       .failIfFailure
 
