@@ -85,12 +85,12 @@ class GrepSearchService(using
   }
 
   def extractCodesFromQuery(query: String): Set[String] = {
-    val regex = """\b([A-Za-z]{2,3}\d{1,4}(?:-\d{1,4})?)\b""".r
+    val regex = """\b([A-Za-z]{2,3}\d{1,5}(?:-\d{1,5})?)\b""".r
     regex.findAllIn(query).toSet
   }
 
   def extractCodePrefixesFromQuery(query: String): Set[String] = {
-    val regex = """\b([A-Za-z]{2,3}(\d{1,4})?(?:-\d{1,4})?)\b""".r
+    val regex = """\b([A-Za-z]{2,3}(\d{1,5})?(?:-\d{1,5})?)\b""".r
     regex.findAllIn(query).toSet
   }
 
