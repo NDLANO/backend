@@ -10,14 +10,14 @@ package no.ndla.myndlaapi.service
 
 import no.ndla.common.errors.{AccessDeniedException, ValidationException}
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{Missing, UpdateWith}
+import no.ndla.common.model.api.{Missing, NullValue, UpdateWith, Value}
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, UserRole}
 import no.ndla.myndlaapi.TestData.{emptyDomainFolder, emptyDomainResource, emptyMyNDLAUser}
-import no.ndla.myndlaapi.model.api.{FolderDTO, FolderSortRequestDTO, NewFolderDTO, NewResourceDTO}
+import no.ndla.myndlaapi.model.api.{FolderDTO, FolderSortRequestDTO, MoveResourcesDTO, NewFolderDTO, NewResourceDTO}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.FolderSortObject.FolderSorting
-import no.ndla.myndlaapi.model.domain.{FolderAndDirectChildren, ResourceConnection, Resource, SavedSharedFolder}
+import no.ndla.myndlaapi.model.domain.{FolderAndDirectChildren, Resource, ResourceConnection, SavedSharedFolder}
 import no.ndla.myndlaapi.{TestData, TestEnvironment}
 import no.ndla.network.model.FeideUserWrapper
 import no.ndla.scalatestsuite.UnitTestSuite
@@ -1283,4 +1283,212 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     verify(folderRepository, times(1)).deleteFolderUserConnections(any)(using any)
   }
 
+  test("that a move operation does not allow from and to ids to be the same value") {
+    val expectedFailure = {
+      Failure(ValidationException("toFolderId", "fromFolderId and toFolderId has to point to two different folders"))
+    }
+
+    val folder1Id = UUID.randomUUID()
+    val folder2Id = UUID.randomUUID()
+
+    service.getMoveFolderIds(NullValue, NullValue) should be(expectedFailure)
+    service.getMoveFolderIds(Value(folder1Id), Value(folder1Id)) should be(expectedFailure)
+    service.getMoveFolderIds(Value(folder1Id), Value(folder2Id)) should be(Success((Some(folder1Id), Some(folder2Id))))
+    service.getMoveFolderIds(NullValue, Value(folder2Id)) should be(Success((None, Some(folder2Id))))
+  }
+
+  test("that a move operation fails if the source folder does not contain all requested resources") {
+    val resource1Id = UUID.randomUUID()
+    val resource2Id = UUID.randomUUID()
+    val resource3Id = UUID.randomUUID()
+    val resource4Id = UUID.randomUUID()
+    val resource1   = emptyDomainResource.copy(id = resource1Id)
+    val resource2   = emptyDomainResource.copy(id = resource2Id)
+    val resource3   = emptyDomainResource.copy(id = resource3Id)
+
+    val resourceList = List(resource1, resource2, resource3)
+
+    service.getResourcesToMove(resourceList, List(resource1Id, resource2Id, resource4Id)) should be(
+      Failure(ValidationException("resourceIds", "Not all IDs passed in resourceIds exist in fromFolder"))
+    )
+
+    service.getResourcesToMove(resourceList, List(resource1Id, resource2Id)) should be(
+      Success(List(resource1, resource2))
+    )
+  }
+
+  test("That partitioning resources to move and remove works as intended") {
+    val resource1Id = UUID.randomUUID()
+    val resource2Id = UUID.randomUUID()
+    val resource3Id = UUID.randomUUID()
+    val resource4Id = UUID.randomUUID()
+    val resource5Id = UUID.randomUUID()
+    val resource1   = emptyDomainResource.copy(id = resource1Id)
+    val resource2   = emptyDomainResource.copy(id = resource2Id)
+    val resource3   = emptyDomainResource.copy(id = resource3Id)
+    val resource4   = emptyDomainResource.copy(id = resource4Id)
+    val resource5   = emptyDomainResource.copy(id = resource5Id)
+
+    service.getResourcesToMoveAndRemove(
+      List(resource1, resource3, resource4),
+      List(resource1, resource2, resource3, resource5),
+    ) should be((List(resource4), List(resource1, resource3)))
+  }
+
+  test("that copying resources only copies resources not in the target folder") {
+    val feideId        = "feideId"
+    val myNDLAUser     = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE, feideId = feideId)
+    val sourceFolderId = UUID.randomUUID()
+    val targetFolderId = UUID.randomUUID()
+
+    val favoritedDate = NDLADate.now()
+
+    val resource1Id = UUID.randomUUID()
+    val resource2Id = UUID.randomUUID()
+    val resource3Id = UUID.randomUUID()
+    val resource4Id = UUID.randomUUID()
+    val resource5Id = UUID.randomUUID()
+
+    val resource1 = emptyDomainResource.copy(id = resource1Id, feideId = feideId)
+    val resource2 = emptyDomainResource.copy(id = resource2Id, feideId = feideId)
+    val resource3 = emptyDomainResource.copy(id = resource3Id, feideId = feideId)
+    val resource4 = emptyDomainResource.copy(id = resource4Id, feideId = feideId)
+    val resource5 = emptyDomainResource.copy(id = resource5Id, feideId = feideId)
+
+    val sourceFolder = emptyDomainFolder.copy(id = sourceFolderId, feideId = feideId)
+    val targetFolder = emptyDomainFolder.copy(id = targetFolderId, feideId = feideId)
+
+    when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(Success(myNDLAUser))
+    when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
+    when(folderRepository.folderWithId(eqTo(sourceFolderId))(using any)).thenReturn(Success(sourceFolder))
+    when(folderRepository.folderWithId(eqTo(targetFolderId))(using any)).thenReturn(Success(targetFolder))
+
+    val sourceFolderResources = List(
+      resource1.copy(connection = Some(ResourceConnection(Some(sourceFolderId), resource1Id, 1, favoritedDate))),
+      resource2.copy(connection = Some(ResourceConnection(Some(sourceFolderId), resource2Id, 2, favoritedDate))),
+      resource4.copy(connection = Some(ResourceConnection(Some(sourceFolderId), resource4Id, 3, favoritedDate))),
+      resource5.copy(connection = Some(ResourceConnection(Some(sourceFolderId), resource5Id, 4, favoritedDate))),
+    )
+    val targetFolderResources = List(
+      resource1.copy(connection = Some(ResourceConnection(Some(targetFolderId), resource1Id, 1, favoritedDate))),
+      resource3.copy(connection = Some(ResourceConnection(Some(targetFolderId), resource3Id, 2, favoritedDate))),
+      resource4.copy(connection = Some(ResourceConnection(Some(targetFolderId), resource4Id, 3, favoritedDate))),
+    )
+    when(folderRepository.getFolderResources(eqTo(sourceFolderId))(using any)).thenReturn(
+      Success(sourceFolderResources)
+    )
+    when(folderRepository.getFolderResources(eqTo(targetFolderId))(using any)).thenReturn(
+      Success(targetFolderResources)
+    )
+
+    when(
+      folderRepository.createResourceConnection(
+        eqTo(Some(targetFolderId)),
+        eqTo(resource2Id),
+        eqTo(4),
+        eqTo(favoritedDate),
+      )(using any)
+    ).thenReturn(Success(ResourceConnection(Some(targetFolderId), resource4Id, 4, favoritedDate)))
+    when(
+      folderRepository.createResourceConnection(
+        eqTo(Some(targetFolderId)),
+        eqTo(resource5Id),
+        eqTo(5),
+        eqTo(favoritedDate),
+      )(using any)
+    ).thenReturn(Success(ResourceConnection(Some(targetFolderId), resource5Id, 5, favoritedDate)))
+
+    service
+      .copyResourceConnections(
+        MoveResourcesDTO(Value(sourceFolderId), Value(targetFolderId), List(resource1Id, resource2Id, resource5Id)),
+        feideWrapper(feideId, role = UserRole.EMPLOYEE),
+      )
+      .failIfFailure
+  }
+
+  test(
+    "that moving resources only moves resources not in the target folder, and deletes the ones that already exist in the target folder"
+  ) {
+    val feideId        = "feideId"
+    val myNDLAUser     = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE, feideId = feideId)
+    val sourceFolderId = UUID.randomUUID()
+    val targetFolderId = UUID.randomUUID()
+
+    val favoritedDate = NDLADate.now()
+
+    val resource1Id = UUID.randomUUID()
+    val resource2Id = UUID.randomUUID()
+    val resource3Id = UUID.randomUUID()
+    val resource4Id = UUID.randomUUID()
+    val resource5Id = UUID.randomUUID()
+
+    val resource1 = emptyDomainResource.copy(id = resource1Id, feideId = feideId)
+    val resource2 = emptyDomainResource.copy(id = resource2Id, feideId = feideId)
+    val resource3 = emptyDomainResource.copy(id = resource3Id, feideId = feideId)
+    val resource4 = emptyDomainResource.copy(id = resource4Id, feideId = feideId)
+    val resource5 = emptyDomainResource.copy(id = resource5Id, feideId = feideId)
+
+    val sourceFolder = emptyDomainFolder.copy(id = sourceFolderId, feideId = feideId)
+    val targetFolder = emptyDomainFolder.copy(id = targetFolderId, feideId = feideId)
+
+    when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(Success(myNDLAUser))
+    when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
+    when(folderRepository.folderWithId(eqTo(sourceFolderId))(using any)).thenReturn(Success(sourceFolder))
+    when(folderRepository.folderWithId(eqTo(targetFolderId))(using any)).thenReturn(Success(targetFolder))
+
+    val sourceFolderResources = List(
+      resource1.copy(connection = Some(ResourceConnection(Some(sourceFolderId), resource1Id, 1, favoritedDate))),
+      resource2.copy(connection = Some(ResourceConnection(Some(sourceFolderId), resource2Id, 2, favoritedDate))),
+      resource4.copy(connection = Some(ResourceConnection(Some(sourceFolderId), resource4Id, 3, favoritedDate))),
+      resource5.copy(connection = Some(ResourceConnection(Some(sourceFolderId), resource5Id, 4, favoritedDate))),
+    )
+    val targetFolderResources = List(
+      resource1.copy(connection = Some(ResourceConnection(Some(targetFolderId), resource1Id, 1, favoritedDate))),
+      resource3.copy(connection = Some(ResourceConnection(Some(targetFolderId), resource3Id, 2, favoritedDate))),
+      resource4.copy(connection = Some(ResourceConnection(Some(targetFolderId), resource4Id, 3, favoritedDate))),
+    )
+    when(folderRepository.getFolderResources(eqTo(sourceFolderId))(using any)).thenReturn(
+      Success(sourceFolderResources)
+    )
+    when(folderRepository.getFolderResources(eqTo(targetFolderId))(using any)).thenReturn(
+      Success(targetFolderResources)
+    )
+
+    when(
+      folderRepository.moveResourceConnection(
+        eqTo(resource2Id),
+        eqTo(Some(sourceFolderId)),
+        eqTo(Some(targetFolderId)),
+        eqTo(4),
+      )(using any)
+    ).thenReturn(Success(resource2Id))
+
+    when(
+      folderRepository.moveResourceConnection(
+        eqTo(resource5Id),
+        eqTo(Some(sourceFolderId)),
+        eqTo(Some(targetFolderId)),
+        eqTo(5),
+      )(using any)
+    ).thenReturn(Success(resource5Id))
+
+    when(folderRepository.withTx(any[DBSession => Try[Unit]]())).thenAnswer((i: InvocationOnMock) => {
+      val func = i.getArgument[DBSession => Try[Unit]](0)
+      func(mock[DBSession])
+    })
+
+    when(folderRepository.resourceConnectionCount(eqTo(resource1Id))(using any)).thenReturn(Success(2L))
+    when(folderRepository.deleteResourceConnection(eqTo(Some(sourceFolderId)), eqTo(resource1Id))(using any))
+      .thenReturn(Success(resource1Id))
+
+    when(folderRepository.setResourceConnectionRank(eqTo(Some(sourceFolderId)), eqTo(resource4Id), eqTo(1))(using any))
+      .thenReturn(Success(()))
+
+    service
+      .moveResourceConnections(
+        MoveResourcesDTO(Value(sourceFolderId), Value(targetFolderId), List(resource1Id, resource2Id, resource5Id)),
+        feideWrapper(feideId, role = UserRole.EMPLOYEE),
+      )
+      .failIfFailure
+  }
 }

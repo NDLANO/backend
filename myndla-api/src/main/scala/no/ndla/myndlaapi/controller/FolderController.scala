@@ -16,6 +16,7 @@ import no.ndla.myndlaapi.model.api.{
   FolderDTO,
   FolderSortRequestDTO,
   MoveResourceDTO,
+  MoveResourcesDTO,
   NewFolderDTO,
   NewResourceDTO,
   ResourceConnectionDTO,
@@ -274,10 +275,35 @@ class FolderController(using
     .in(jsonBody[MoveResourceDTO])
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .withFeideUser
-    .serverLogicPure { feide =>
-      { case (move) =>
-        folderWriteService.moveResourceConnection(move, feide)
-      }
+    .serverLogicPure { feide => move =>
+      folderWriteService.moveResourceConnection(move, feide)
+    }
+
+  private def batchMoveResourceConnections: ServerEndpoint[Any, Eff] = endpoint
+    .put
+    .summary("Move several resources from one folder to another")
+    .description("Move several resources from one folder to another")
+    .in("resources" / "move" / "batch")
+    .out(noContent)
+    .in(jsonBody[MoveResourcesDTO])
+    .errorOut(errorOutputsFor(400, 401, 403, 404))
+    .withFeideUser
+    .serverLogicPure { feide => move =>
+      folderWriteService.moveResourceConnections(move, feide)
+
+    }
+
+  private def batchCopyResourceConnections: ServerEndpoint[Any, Eff] = endpoint
+    .put
+    .summary("Copy several resources from one folder to another")
+    .description("Copy several resources from one folder to another")
+    .in("resources" / "copy" / "batch")
+    .out(noContent)
+    .in(jsonBody[MoveResourcesDTO])
+    .errorOut(errorOutputsFor(400, 401, 403, 404))
+    .withFeideUser
+    .serverLogicPure { feide => move =>
+      folderWriteService.copyResourceConnections(move, feide)
     }
 
   private def deleteResource(): ServerEndpoint[Any, Eff] = endpoint
@@ -519,5 +545,7 @@ class FolderController(using
     createFolderUserConnection,
     deleteFolderUserConnection(),
     moveResourceConnection,
+    batchMoveResourceConnections,
+    batchCopyResourceConnections,
   )
 }
