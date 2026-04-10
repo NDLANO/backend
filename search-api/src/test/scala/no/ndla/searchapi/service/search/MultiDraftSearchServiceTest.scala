@@ -21,7 +21,7 @@ import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 import no.ndla.searchapi.SearchTestUtility.*
 import no.ndla.searchapi.TestData.*
-import no.ndla.searchapi.model.domain.{IndexingBundle, Sort}
+import no.ndla.searchapi.model.domain.{DraftSearchField, IndexingBundle, Sort}
 import no.ndla.searchapi.model.search.SearchPagination
 import no.ndla.searchapi.service.ConverterService
 import no.ndla.searchapi.{TestData, TestEnvironment}
@@ -233,7 +233,7 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
     hits(1).id should be(2)
   }
 
-  test("That search matches notes") {
+  test("That search matches note users") {
     val Success(results) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(sort = Sort.ByIdAsc, userFilter = List("ndalId12345"))
     ): @unchecked
@@ -642,8 +642,17 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
       multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("kakemonster").get))
     ): @unchecked
 
-    search.totalCount should be(1)
-    search.summaryResults.head.id should be(5)
+    search.totalCount should be(0)
+
+    val Success(searchAgain) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("kakemonster").get),
+        queryFields = List(DraftSearchField.Notes),
+      )
+    ): @unchecked
+
+    searchAgain.totalCount should be(1)
+    searchAgain.summaryResults.head.id should be(5)
   }
 
   test("That filtering for topics returns every child learningResource") {
@@ -787,9 +796,12 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
   }
 
-  test("That search matches previous notes on drafts") {
+  test("That search matches previous notes on drafts, if specified in query fields") {
     val Success(search1) = multiDraftSearchService.matchingQuery(
-      multiDraftSearchSettings.copy(query = Some(NonEmptyString.fromString("kultgammeltnotat").get))
+      multiDraftSearchSettings.copy(
+        query = Some(NonEmptyString.fromString("kultgammeltnotat").get),
+        queryFields = List(DraftSearchField.PreviousNotes),
+      )
     ): @unchecked
     val Success(search2) = multiDraftSearchService.matchingQuery(
       multiDraftSearchSettings.copy(noteQuery = Some(NonEmptyString.fromString("kultgammeltnotat").get))
