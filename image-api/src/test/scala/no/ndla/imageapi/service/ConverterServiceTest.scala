@@ -184,7 +184,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       contentType = ImageContentType.Jpeg,
       dimensions = Some(ImageDimensions(123, 555)),
       variants = Seq.empty,
-      exifData = None,
+      originalDate = None,
       language = "nb",
     )
 
