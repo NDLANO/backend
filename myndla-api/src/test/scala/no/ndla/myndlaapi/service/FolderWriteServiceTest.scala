@@ -1011,19 +1011,11 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val feideId = "feide"
 
     when(feideApiClient.getFeideID(any)).thenReturn(Success(feideId))
-    when(folderRepository.deleteAllUserFolders(any)(using any)).thenReturn(Success(1))
-    when(folderRepository.deleteAllUserResources(any)(using any)).thenReturn(Success(1))
     when(userRepository.deleteUser(any)(using any)).thenReturn(Success(""))
-    when(folderRepository.deleteFolderUserConnection(eqTo(None), eqTo(Some(feideId)))(using any)).thenReturn(
-      Success(eqTo(1))
-    )
 
     service.deleteAllUserData(feideWrapper(feideId)) should be(Success(()))
 
-    verify(folderRepository, times(1)).deleteAllUserFolders(any)(using any)
-    verify(folderRepository, times(1)).deleteAllUserResources(any)(using any)
     verify(userRepository, times(1)).deleteUser(any)(using any)
-    verify(folderRepository, times(1)).deleteFolderUserConnection(eqTo(None), eqTo(Some(feideId)))(using any)
   }
 
   test("That sorting endpoint calls ranking correctly :^)") {

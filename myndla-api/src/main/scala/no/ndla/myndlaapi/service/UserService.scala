@@ -36,7 +36,6 @@ class UserService(using
     clock: Clock,
     folderWriteService: => FolderWriteService,
     nodeBBClient: NodeBBClient,
-    folderRepository: FolderRepository,
     dbUtility: DBUtility,
     emailClient: NdlaEmailClient,
     props: Props,
@@ -207,8 +206,6 @@ class UserService(using
     for {
       user         <- feide.userOrAccessDenied
       nodebbUserId <- nodeBBClient.getUserId(feide.token)
-      _            <- folderRepository.deleteAllUserFolders(user.feideId)(using session)
-      _            <- folderRepository.deleteAllUserResources(user.feideId)(using session)
       _            <- nodeBBClient.deleteUser(nodebbUserId, feide.token)
       _            <- userRepository.deleteUser(user.feideId)(using session)
     } yield ()
