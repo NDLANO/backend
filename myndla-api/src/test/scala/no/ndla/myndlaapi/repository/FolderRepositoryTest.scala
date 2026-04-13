@@ -525,7 +525,7 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     repository.deleteAllUserResources(feideId = "feide1") should be(Success(4))
     resourceCount() should be(2)
   }
-  
+
   test("that getFoldersAndSubfoldersIds returns ids of folder and its subfolders") {
     implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)
