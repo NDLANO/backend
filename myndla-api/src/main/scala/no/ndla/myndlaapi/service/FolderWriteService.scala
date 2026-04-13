@@ -14,7 +14,7 @@ import no.ndla.common.Clock
 import no.ndla.common.errors.{AccessDeniedException, NotFoundException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.NDLADate
-import no.ndla.common.model.api.{NullableOrValue}
+import no.ndla.common.model.api.NullableOrValue
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, MyNDLAUser}
 import no.ndla.database.DBUtility
@@ -26,6 +26,7 @@ import no.ndla.myndlaapi.model.domain.FolderSortObject.{
   SharedFolderSorting,
 }
 import no.ndla.myndlaapi.model.api.{
+  CopyResourcesDTO,
   ExportedUserDataDTO,
   FolderDTO,
   FolderSortRequestDTO,
@@ -376,28 +377,21 @@ class FolderWriteService(using
     resourcesToMove.partitionMap(resource => toResourcesById.get(resource.id).toRight(resource))
   }
 
-  def copyResourceConnections(move: MoveResourcesDTO, feide: FeideUserWrapper): Try[Unit] = dbUtility
+  def copyResourceConnections(move: CopyResourcesDTO, feide: FeideUserWrapper): Try[Unit] = dbUtility
     .rollbackOnFailure { implicit session =>
       for {
-        (fromFolderId, toFolderId) <- getMoveFolderIds(move.fromFolderId, move.toFolderId)
-        user                       <- feide.userOrAccessDenied
-        _                          <- canWriteOrAccessDenied(feide)
-        _                          <- fromFolderId.traverse(fid => folderRepository.folderWithId(fid).flatMap(_.isOwner(user.feideId)))
-        toFolder                   <- toFolderId.traverse(fid => folderRepository.folderWithId(fid))
-        _                          <- toFolder.traverse(_.isOwner(user.feideId))
-        fromResources              <- getResourcesFromFolderOrRoot(fromFolderId, user)
-        resourcesToMove            <- getResourcesToMove(fromResources, move.resourceIds)
-        toResources                <- getResourcesFromFolderOrRoot(toFolder.map(_.id), user)
-        (toCopy, _)                 = getResourcesToMoveAndRemove(resourcesToMove, toResources)
-        _                          <- toCopy
+        user        <- feide.userOrAccessDenied
+        _           <- canWriteOrAccessDenied(feide)
+        toFolderId   = move.toFolderId.toOption
+        toFolder    <- toFolderId.traverse(fid => folderRepository.folderWithId(fid))
+        _           <- toFolder.traverse(_.isOwner(user.feideId))
+        resources   <- folderRepository.userResourcesWithIds(move.resourceIds, user.feideId)
+        toResources <- getResourcesFromFolderOrRoot(toFolder.map(_.id), user)
+        (toCopy, _)  = getResourcesToMoveAndRemove(resources, toResources)
+        _           <- toCopy
           .zipWithIndex
           .traverse((res, i) =>
-            folderRepository.createResourceConnection(
-              toFolderId,
-              res.id,
-              getNextRank(toResources) + i,
-              res.connection.get.favoritedDate,
-            )
+            folderRepository.createResourceConnection(toFolderId, res.id, getNextRank(toResources) + i, clock.now())
           )
         _ = toCopy.foreach(resource => updateSearchApi(resource))
       } yield ()

@@ -13,6 +13,7 @@ import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.FolderStatus
 import no.ndla.myndlaapi.integration.InternalMyNDLAApiClient
 import no.ndla.myndlaapi.model.api.{
+  CopyResourcesDTO,
   FolderDTO,
   FolderSortRequestDTO,
   MoveResourceDTO,
@@ -299,7 +300,7 @@ class FolderController(using
     .description("Copy several resources from one folder to another")
     .in("resources" / "copy" / "batch")
     .out(noContent)
-    .in(jsonBody[MoveResourcesDTO])
+    .in(jsonBody[CopyResourcesDTO])
     .errorOut(errorOutputsFor(400, 401, 403, 404))
     .withFeideUser
     .serverLogicPure { feide => move =>

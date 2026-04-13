@@ -445,6 +445,15 @@ class FolderRepository(using
       case Some(resource) => Success(resource)
     })
 
+  def userResourcesWithIds(ids: List[UUID], feideId: FeideID)(implicit
+      session: DBSession = dbUtility.readOnlySession
+  ): Try[List[Resource]] = {
+    resourcesWhere(sqls"r.feide_id=$feideId and r.id in ($ids)").flatMap({
+      case resources if resources.size != ids.size => Failure(NotFoundException("Failed to find requested resources"))
+      case resources                               => Success(resources)
+    })
+  }
+
   def userResourceWithId(path: String, feideId: FeideID)(implicit session: DBSession): Try[Option[Resource]] =
     resourceWhere(sqls"path=$path and feide_id=$feideId")
 

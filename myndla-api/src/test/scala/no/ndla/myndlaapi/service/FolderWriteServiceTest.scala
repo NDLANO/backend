@@ -14,7 +14,14 @@ import no.ndla.common.model.api.{Missing, NullValue, UpdateWith, Value}
 import no.ndla.common.model.domain.ResourceType
 import no.ndla.common.model.domain.myndla.{FolderStatus, UserRole}
 import no.ndla.myndlaapi.TestData.{emptyDomainFolder, emptyDomainResource, emptyMyNDLAUser}
-import no.ndla.myndlaapi.model.api.{FolderDTO, FolderSortRequestDTO, MoveResourcesDTO, NewFolderDTO, NewResourceDTO}
+import no.ndla.myndlaapi.model.api.{
+  CopyResourcesDTO,
+  FolderDTO,
+  FolderSortRequestDTO,
+  MoveResourcesDTO,
+  NewFolderDTO,
+  NewResourceDTO,
+}
 import no.ndla.myndlaapi.model.{api, domain}
 import no.ndla.myndlaapi.model.domain.FolderSortObject.FolderSorting
 import no.ndla.myndlaapi.model.domain.{FolderAndDirectChildren, Resource, ResourceConnection, SavedSharedFolder}
@@ -1338,7 +1345,6 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
   test("that copying resources only copies resources not in the target folder") {
     val feideId        = "feideId"
     val myNDLAUser     = emptyMyNDLAUser.copy(userRole = UserRole.EMPLOYEE, feideId = feideId)
-    val sourceFolderId = UUID.randomUUID()
     val targetFolderId = UUID.randomUUID()
 
     val favoritedDate = NDLADate.now()
@@ -1355,52 +1361,34 @@ class FolderWriteServiceTest extends UnitTestSuite with TestEnvironment {
     val resource4 = emptyDomainResource.copy(id = resource4Id, feideId = feideId)
     val resource5 = emptyDomainResource.copy(id = resource5Id, feideId = feideId)
 
-    val sourceFolder = emptyDomainFolder.copy(id = sourceFolderId, feideId = feideId)
     val targetFolder = emptyDomainFolder.copy(id = targetFolderId, feideId = feideId)
 
     when(userService.getMyNDLAUser(any, any)(using any[DBSession])).thenReturn(Success(myNDLAUser))
     when(configService.isMyNDLAWriteRestricted).thenReturn(Success(true))
-    when(folderRepository.folderWithId(eqTo(sourceFolderId))(using any)).thenReturn(Success(sourceFolder))
     when(folderRepository.folderWithId(eqTo(targetFolderId))(using any)).thenReturn(Success(targetFolder))
 
-    val sourceFolderResources = List(
-      resource1.copy(connection = Some(ResourceConnection(Some(sourceFolderId), resource1Id, 1, favoritedDate))),
-      resource2.copy(connection = Some(ResourceConnection(Some(sourceFolderId), resource2Id, 2, favoritedDate))),
-      resource4.copy(connection = Some(ResourceConnection(Some(sourceFolderId), resource4Id, 3, favoritedDate))),
-      resource5.copy(connection = Some(ResourceConnection(Some(sourceFolderId), resource5Id, 4, favoritedDate))),
-    )
     val targetFolderResources = List(
       resource1.copy(connection = Some(ResourceConnection(Some(targetFolderId), resource1Id, 1, favoritedDate))),
       resource3.copy(connection = Some(ResourceConnection(Some(targetFolderId), resource3Id, 2, favoritedDate))),
       resource4.copy(connection = Some(ResourceConnection(Some(targetFolderId), resource4Id, 3, favoritedDate))),
     )
-    when(folderRepository.getFolderResources(eqTo(sourceFolderId))(using any)).thenReturn(
-      Success(sourceFolderResources)
-    )
+    when(
+      folderRepository.userResourcesWithIds(eqTo(List(resource1Id, resource2Id, resource5Id)), eqTo(feideId))(using any)
+    ).thenReturn(Success(List(resource1, resource2, resource5)))
     when(folderRepository.getFolderResources(eqTo(targetFolderId))(using any)).thenReturn(
       Success(targetFolderResources)
     )
 
     when(
-      folderRepository.createResourceConnection(
-        eqTo(Some(targetFolderId)),
-        eqTo(resource2Id),
-        eqTo(4),
-        eqTo(favoritedDate),
-      )(using any)
+      folderRepository.createResourceConnection(eqTo(Some(targetFolderId)), eqTo(resource2Id), eqTo(4), any)(using any)
     ).thenReturn(Success(ResourceConnection(Some(targetFolderId), resource4Id, 4, favoritedDate)))
     when(
-      folderRepository.createResourceConnection(
-        eqTo(Some(targetFolderId)),
-        eqTo(resource5Id),
-        eqTo(5),
-        eqTo(favoritedDate),
-      )(using any)
+      folderRepository.createResourceConnection(eqTo(Some(targetFolderId)), eqTo(resource5Id), eqTo(5), any)(using any)
     ).thenReturn(Success(ResourceConnection(Some(targetFolderId), resource5Id, 5, favoritedDate)))
 
     service
       .copyResourceConnections(
-        MoveResourcesDTO(Value(sourceFolderId), Value(targetFolderId), List(resource1Id, resource2Id, resource5Id)),
+        CopyResourcesDTO(Value(targetFolderId), List(resource1Id, resource2Id, resource5Id)),
         feideWrapper(feideId, role = UserRole.EMPLOYEE),
       )
       .failIfFailure
