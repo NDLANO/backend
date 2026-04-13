@@ -206,3 +206,10 @@ case class MoveResourcesDTO(
     @description("The resources to move")
     resourceIds: List[UUID],
 )
+
+case class CopyResourcesDTO(
+    @description("Folder to move to. Empty value moves resource to root.")
+    toFolderId: NullableOrValue[UUID],
+    @description("The resources to move")
+    resourceIds: List[UUID],
+)
