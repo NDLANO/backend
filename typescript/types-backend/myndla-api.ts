@@ -813,6 +813,16 @@ export type components = {
             /** @description Value to set configuration param to. */
             value: string[] | boolean;
         };
+        /** CopyResourcesDTO */
+        CopyResourcesDTO: {
+            /**
+             * Format: uuid
+             * @description Folder to move to. Empty value moves resource to root.
+             */
+            toFolderId: string | null;
+            /** @description The resources to move */
+            resourceIds: string[];
+        };
         /**
          * CreateRobotDefinitionDTO
          * @description DTO for creating a new robot definition
@@ -1309,6 +1319,7 @@ export type ConfigKey = components['schemas']['ConfigKey'];
 export type ConfigMetaDTO = components['schemas']['ConfigMetaDTO'];
 export type ConfigMetaRestrictedDTO = components['schemas']['ConfigMetaRestrictedDTO'];
 export type ConfigMetaValueDTO = components['schemas']['ConfigMetaValueDTO'];
+export type CopyResourcesDTO = components['schemas']['CopyResourcesDTO'];
 export type CreateRobotDefinitionDTO = components['schemas']['CreateRobotDefinitionDTO'];
 export type ErrorBody = components['schemas']['ErrorBody'];
 export type ExportedUserDataDTO = components['schemas']['ExportedUserDataDTO'];
@@ -3352,7 +3363,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["MoveResourcesDTO"];
+                "application/json": components["schemas"]["CopyResourcesDTO"];
             };
         };
         responses: {
