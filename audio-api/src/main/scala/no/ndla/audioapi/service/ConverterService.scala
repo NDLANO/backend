@@ -172,6 +172,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       introduction = meta.introduction,
       coverPhoto = toApiCoverPhoto(meta.coverPhoto),
       language = meta.language,
+      released = meta.released,
     )
   }
 
@@ -190,6 +191,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       introduction = meta.introduction,
       coverPhoto = domain.CoverPhoto(meta.coverPhotoId, meta.coverPhotoAltText),
       language = language,
+      released = meta.released,
     )
   }
 

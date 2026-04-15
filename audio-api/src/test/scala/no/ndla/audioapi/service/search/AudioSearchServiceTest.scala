@@ -197,6 +197,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
         introduction = "podcastintroritehere",
         coverPhoto = domain.CoverPhoto("2", "altyo"),
         language = "nb",
+        released = None,
       )
     ),
     AudioType.Podcast,
@@ -216,8 +217,18 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     updated7,
     created,
     Seq(
-      domain.PodcastMeta(introduction = "spanishintro", coverPhoto = domain.CoverPhoto("2", "meta"), language = "es"),
-      domain.PodcastMeta(introduction = "ukranian intro", coverPhoto = domain.CoverPhoto("1", "alt "), language = "ukr"),
+      domain.PodcastMeta(
+        introduction = "spanishintro",
+        coverPhoto = domain.CoverPhoto("2", "meta"),
+        language = "es",
+        released = None,
+      ),
+      domain.PodcastMeta(
+        introduction = "ukranian intro",
+        coverPhoto = domain.CoverPhoto("1", "alt "),
+        language = "ukr",
+        released = None,
+      ),
     ),
     AudioType.Podcast,
     Seq.empty,
