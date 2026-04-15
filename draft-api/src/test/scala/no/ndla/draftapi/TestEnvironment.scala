@@ -16,7 +16,7 @@ import no.ndla.database.{DBMigrator, DBUtility, DataSource}
 import no.ndla.draftapi.controller.*
 import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.DraftErrorHelpers
-import no.ndla.draftapi.model.domain.{DBArticle, DBUserData}
+import no.ndla.draftapi.model.domain.{DBDraft, DBUserData}
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
@@ -36,7 +36,7 @@ trait TestEnvironment extends TapirApplication[DraftApiProperties] with MockitoS
 
   implicit lazy val migrator: DBMigrator                 = mock[DBMigrator]
   implicit lazy val dbUtility: DBUtility                 = DBUtilityStub()
-  implicit lazy val dbArticle: DBArticle                 = new DBArticle
+  implicit lazy val dbDraft: DBDraft                     = new DBDraft
   implicit lazy val dbUserData: DBUserData               = new DBUserData
   implicit lazy val uuidUtil: UUIDUtil                   = mock[UUIDUtil]
   implicit lazy val searchLanguage: SearchLanguage       = mock[SearchLanguage]

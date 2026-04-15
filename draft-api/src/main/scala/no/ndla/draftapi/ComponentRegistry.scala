@@ -17,7 +17,7 @@ import no.ndla.draftapi.controller.*
 import no.ndla.draftapi.db.migrationwithdependencies.*
 import no.ndla.draftapi.integration.*
 import no.ndla.draftapi.model.api.DraftErrorHelpers
-import no.ndla.draftapi.model.domain.{DBArticle, DBUserData}
+import no.ndla.draftapi.model.domain.{DBDraft, DBUserData}
 import no.ndla.draftapi.repository.{DraftRepository, UserDataRepository}
 import no.ndla.draftapi.service.*
 import no.ndla.draftapi.service.search.*
@@ -52,7 +52,7 @@ class ComponentRegistry(properties: DraftApiProperties) extends TapirApplication
   implicit lazy val learningpathApiClient: LearningpathApiClient   = new LearningpathApiClient
   implicit lazy val h5pApiClient: H5PApiClient                     = new H5PApiClient
   implicit lazy val imageApiClient: ImageApiClient                 = new ImageApiClient
-  implicit lazy val dbArticle: DBArticle                           = new DBArticle
+  implicit lazy val dbDraft: DBDraft                               = new DBDraft
   implicit lazy val dbUserData: DBUserData                         = new DBUserData
   implicit lazy val draftRepository: DraftRepository               = new DraftRepository
   implicit lazy val userDataRepository: UserDataRepository         = new UserDataRepository

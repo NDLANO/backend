@@ -9,15 +9,36 @@
 package no.ndla.common.model
 
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.TestEnvironment
 import no.ndla.common.model.NDLADate.fromTimestampSeconds
 import no.ndla.common.model.domain.draft.NestedOptionalDate
-import no.ndla.testbase.UnitTestSuiteBase
+import no.ndla.database.DataSource
+import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, UnitTestSuite}
+import scalikejdbc.*
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
 import scala.annotation.unused
 import scala.util.Success
 
-class NDLADateTest extends UnitTestSuiteBase {
+class NDLADateTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironment {
+  val dataSource: DataSource = testDataSource.get
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    dataSource.connectToDatabase()
+    DB.autoCommit { implicit session =>
+      sql"""
+            create schema if not exists testschema;
+            create table test (id int primary key, data timestamptz);""".execute()
+    }
+  }
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    DB.autoCommit { implicit session =>
+      sql"delete from test;".execute()
+    }
+  }
 
   test("That parsing from string works as expected") {
     val timestamp = 1691042491L
@@ -46,7 +67,7 @@ class NDLADateTest extends UnitTestSuiteBase {
   test("That parsing and serializing dates in json works as expected") {
     import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
     import io.circe.parser.parse
-    import io.circe.syntax._
+    import io.circe.syntax.*
 
     implicit val decoder: Decoder[TestObjectWithDate] = deriveDecoder[TestObjectWithDate]
     implicit val encoder: Encoder[TestObjectWithDate] = deriveEncoder[TestObjectWithDate]
@@ -79,7 +100,7 @@ class NDLADateTest extends UnitTestSuiteBase {
   test("That circe parses empty string as `None` for optional NDLADates") {
     import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
     import io.circe.parser.parse
-    import io.circe.syntax._
+    import io.circe.syntax.*
 
     implicit val decoder: Decoder[TestObjectWithOptionalDate] = deriveDecoder[TestObjectWithOptionalDate]
     implicit val encoder: Encoder[TestObjectWithOptionalDate] = deriveEncoder[TestObjectWithOptionalDate]
@@ -102,7 +123,7 @@ class NDLADateTest extends UnitTestSuiteBase {
   test("That circe parses null as `None` for optional NDLADates") {
     import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
     import io.circe.parser.parse
-    import io.circe.syntax._
+    import io.circe.syntax.*
 
     implicit val decoder: Decoder[TestObjectWithOptionalDate] = deriveDecoder[TestObjectWithOptionalDate]
     implicit val encoder: Encoder[TestObjectWithOptionalDate] = deriveEncoder[TestObjectWithOptionalDate]
@@ -136,4 +157,20 @@ class NDLADateTest extends UnitTestSuiteBase {
     result should be(expectedObject)
   }
 
+  test("that timestamptz binder works") {
+    val date                = NDLADate.fromString("2023-08-03T06:01:31.000Z").get
+    val dateBinderWithValue = date.toTimestamptzParameterBinder
+
+    DB.autoCommit { implicit session =>
+      sql"insert into test values (1, $dateBinderWithValue)".execute()
+
+      // Ensure that stored timestamptz is correct
+      val res = sql"select 1 from test where data = '2023-08-03T06:01:31.000Z'::timestamptz".map(_.int(1)).single().get
+      res should be(1)
+
+      given TypeBinder[NDLADate] = NDLADate.timestamptzBinder
+      val foundDate              = sql"select data from test where id = 1".map(_.get[NDLADate]("data")).single().get
+      foundDate should be(date)
+    }
+  }
 }
