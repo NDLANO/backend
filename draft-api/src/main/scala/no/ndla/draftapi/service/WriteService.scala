@@ -910,7 +910,4 @@ class WriteService(using
         .unit
     )
 
-  def updateEditorView(using DBSession): Try[Unit] = {
-    draftRepository.updateEditorView
-  }
 }

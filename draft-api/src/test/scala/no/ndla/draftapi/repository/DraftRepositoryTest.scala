@@ -31,7 +31,10 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
   val sampleArticle: Draft                          = TestData.sampleArticleWithByNcSa
 
   def emptyTestDatabase(): Unit = dbUtility.writeSession(implicit session => {
-    sql"delete from articledata;".execute()(using session)
+    sql"""
+      delete from articledata;
+      delete from draft_editors;
+    """.execute()(using session)
   })
 
   private def resetIdSequence(): Boolean = {
@@ -391,28 +394,30 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     updated.notes.length should be(3)
   }
 
-  test("That creating or deleting article returns correct responsibles and editors") {
-    repository.updateEditorView(using dbUtility.autoSession) // Needed until we get rid of materialized view
-
+  test("That creating, updating, and deleting draft returns correct responsibles and editors") {
     repository.getAllResponsibles(using dbUtility.readOnlySession).get should be(Nil)
     repository.getAllEditors(using dbUtility.readOnlySession).get should be(Nil)
 
     val article = sampleArticle.copy(
-      responsible = Some(Responsible(responsibleId = "responsible-user", lastUpdated = TestData.today)),
-      notes = Seq(
-        EditorNote("note1", "note-user", Status(DraftStatus.PLANNED, Set.empty), TestData.today),
-        EditorNote("note2", "note-user", Status(DraftStatus.IN_PROGRESS, Set.empty), TestData.today),
-      ),
-      updatedBy = "updated-user",
+      responsible = Some(Responsible(responsibleId = "responsible-1", lastUpdated = TestData.today)),
+      updatedBy = "updated-by-1",
     )
-    val id = repository.insert(article)(using dbUtility.autoSession).get.id.get
-    repository.updateEditorView(using dbUtility.autoSession) // Needed until we get rid of materialized view
+    val inserted = repository.insert(article)(using dbUtility.autoSession).get
+    val id       = inserted.id.get
 
-    repository.getAllResponsibles(using dbUtility.readOnlySession).get should be(Seq("responsible-user"))
-    repository.getAllEditors(using dbUtility.readOnlySession).get should be(Seq("note-user", "updated-user"))
+    repository.getAllResponsibles(using dbUtility.readOnlySession).get should be(Seq("responsible-1"))
+    repository.getAllEditors(using dbUtility.readOnlySession).get should be(Seq("updated-by-1"))
+
+    val articleUpdate = inserted.copy(
+      responsible = Some(Responsible(responsibleId = "responsible-2", lastUpdated = TestData.today)),
+      updatedBy = "updated-by-2",
+    )
+    repository.updateArticle(articleUpdate)(using dbUtility.autoSession).get
+
+    repository.getAllResponsibles(using dbUtility.readOnlySession).get should be(Seq("responsible-2"))
+    repository.getAllEditors(using dbUtility.readOnlySession).get should be(Seq("updated-by-1", "updated-by-2"))
 
     repository.deleteArticle(id)(using dbUtility.autoSession).get
-    repository.updateEditorView(using dbUtility.autoSession) // Needed until we get rid of materialized view
 
     repository.getAllResponsibles(using dbUtility.readOnlySession).get should be(Nil)
     repository.getAllEditors(using dbUtility.readOnlySession).get should be(Nil)
