@@ -196,7 +196,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         language = Some("en"),
         title = Some(updatedTitle),
         status = Some("PLANNED"),
-        published = Some(updatedPublishedDate),
+        revised = Some(updatedPublishedDate),
         content = Some(updatedContent),
         tags = Some(updatedTags),
         introduction = Some(updatedIntro),
@@ -231,7 +231,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       metaDescription = Seq(Description(updatedMetaDescription, "en")),
       metaImage = Seq(ArticleMetaImage(updatedMetaId, updatedMetaAlt, "en")),
       updated = today,
-      published = yesterday,
+      revised = yesterday,
       articleType = ArticleType.TopicArticle,
       notes = List(
         EditorNote(
@@ -476,7 +476,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         title = Seq(Title("Tittel", "nb"), Title("Title", "en")),
         created = yesterday.minusDays(1),
         updated = yesterday,
-        published = yesterday,
+        published = Some(yesterday),
+        revised = yesterday,
       )
 
     val userinfo = TokenUser("somecoolid", Set.empty, None)
@@ -492,7 +493,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       updatedBy = userinfo.id,
-      published = today,
+      published = None,
+      revised = today,
       notes = article.notes ++
         converterService
           .newNotes(
@@ -527,7 +529,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         title = Seq(Title("Tittel", "nb"), Title("Title", "en")),
         created = yesterday.minusDays(1),
         updated = yesterday,
-        published = yesterday,
+        published = Some(yesterday),
+        revised = yesterday,
       )
 
     val userinfo = TokenUser("somecoolid", Set.empty, None)
@@ -542,7 +545,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       created = today,
       updated = today,
       updatedBy = userinfo.id,
-      published = today,
+      published = None,
+      revised = today,
       notes = article.notes ++
         converterService
           .newNotes(
@@ -890,7 +894,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
           Description("oldDesccc", "ru"),
           Description("oldDescccc", "nn"),
         ),
-        published = tomorrow,
+        published = Some(tomorrow),
+        revised = tomorrow,
         grepCodes = Seq("A", "B"),
         availability = Availability.everyone,
         relatedContent = Seq(Left(RelatedContentLink("title1", "url2")), Right(12L)),
@@ -910,7 +915,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       api.PartialArticleFieldsDTO.relatedContent,
       api.PartialArticleFieldsDTO.tags,
       api.PartialArticleFieldsDTO.revisionDate,
-      api.PartialArticleFieldsDTO.published,
+      api.PartialArticleFieldsDTO.revised,
     )
 
     val expectedPartialPublishFields = PartialPublishArticleDTO(
@@ -921,7 +926,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       relatedContent = Some(Seq(Left(RelatedContentLinkDTO("title1", "url2")), Right(12L))),
       tags = Some(Seq(ArticleTagDTO(Seq("old", "tag"), "nb"))),
       revisionDate = UpdateWith(tomorrow),
-      published = Some(tomorrow),
+      revised = Some(tomorrow),
     )
     val expectedPartialPublishFieldsLangEN = PartialPublishArticleDTO(
       availability = Some(Availability.everyone),
@@ -931,7 +936,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       relatedContent = Some(Seq(Left(RelatedContentLinkDTO("title1", "url2")), Right(12L))),
       tags = Some(Seq.empty),
       revisionDate = UpdateWith(tomorrow),
-      published = Some(tomorrow),
+      revised = Some(tomorrow),
     )
     val expectedPartialPublishFieldsLangALL = PartialPublishArticleDTO(
       availability = Some(Availability.everyone),
@@ -954,7 +959,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         )
       ),
       revisionDate = UpdateWith(tomorrow),
-      published = Some(tomorrow),
+      revised = Some(tomorrow),
     )
 
     service.partialArticleFieldsUpdate(existingArticle, articleFieldsToUpdate, "nb") should be(

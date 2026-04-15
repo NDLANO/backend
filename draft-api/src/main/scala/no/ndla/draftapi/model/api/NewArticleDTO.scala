@@ -23,7 +23,8 @@ import no.ndla.common.DeriveHelpers
 case class NewArticleDTO(
     @description("The chosen language") language: String,
     @description("The title of the article") title: String,
-    @description("The date the article is published") published: Option[NDLADate],
+    @description("The date the article is published. Deprecated") published: Option[NDLADate],
+    @description("The revision date of the article") revised: Option[NDLADate],
     @description("The content of the article") content: Option[String],
     @description("Searchable tags") tags: Option[Seq[String]],
     @description("An introduction") introduction: Option[String],

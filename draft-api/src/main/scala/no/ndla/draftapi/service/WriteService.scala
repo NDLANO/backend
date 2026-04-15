@@ -129,7 +129,8 @@ class WriteService(using
               created = clock.now(),
               updated = clock.now(),
               updatedBy = userInfo.id,
-              published = clock.now(),
+              revised = clock.now(),
+              published = None,
               notes = notes,
               responsible = newResponsible,
             )
@@ -427,7 +428,8 @@ class WriteService(using
           editorLabels = Seq.empty,
           created = NDLADate.MIN,
           updated = NDLADate.MIN,
-          published = NDLADate.MIN,
+          revised = NDLADate.MIN,
+          published = None,
           updatedBy = "",
           availability = common.Availability.everyone,
           grepCodes = Seq.empty,
@@ -488,7 +490,10 @@ class WriteService(using
         else oldStatus
       val newStatus = newManualStatus.getOrElse(newStatusIfUndefined)
 
-      stateTransitionRules.doTransition(convertedArticle, newStatus, user)
+      val maybePublished =
+        if (newStatus == DraftStatus.PUBLISHED) convertedArticle.copy(published = Some(clock.now()))
+        else convertedArticle
+      stateTransitionRules.doTransition(maybePublished, newStatus, user)
     }
   }
 
@@ -536,7 +541,7 @@ class WriteService(using
         articleWithStatus
           .revisionMeta
           .map(rm =>
-            updateDefaultRevisionMetaDateIfUpdated(rm, updatedApiArticle.published.exists(_ != existing.published))
+            updateDefaultRevisionMetaDateIfUpdated(rm, updatedApiArticle.revised.exists(_ != existing.revised))
           )
       )
 
@@ -720,7 +725,7 @@ class WriteService(using
           case `tags` if isAllLanguage            => partial.withTags(article.tags)
           case `tags`                             => partial.withTags(article.tags, language)
           case `revisionDate`                     => partial.withEarliestRevisionDate(article.revisionMeta)
-          case `published`                        => partial.withPublished(article.published)
+          case `revised`                          => partial.withRevised(article.revised)
         }
       })
   }

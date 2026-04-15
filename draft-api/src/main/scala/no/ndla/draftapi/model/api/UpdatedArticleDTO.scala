@@ -37,6 +37,8 @@ case class UpdatedArticleDTO(
     status: Option[String],
     @description("The date the article is published")
     published: Option[NDLADate],
+    @description("The revision date of the article")
+    revised: Option[NDLADate],
     @description("The content of the article")
     content: Option[String],
     @description("Searchable tags")

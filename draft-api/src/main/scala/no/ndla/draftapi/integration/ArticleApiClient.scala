@@ -200,7 +200,7 @@ implicit class PartialPublishArticleDTOImplicits(self: PartialPublishArticleDTO)
     }
     self.copy(revisionDate = newRev)
   }
-  def withPublished(published: NDLADate): PartialPublishArticleDTO = self.copy(published = published.some)
+  def withRevised(revised: NDLADate): PartialPublishArticleDTO = self.copy(revised = revised.some)
 }
 
 object PartialPublishArticle {

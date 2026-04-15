@@ -32,6 +32,7 @@ case class Article(
     created: NDLADate,
     updated: NDLADate,
     updatedBy: String,
+    revised: NDLADate,
     published: NDLADate,
     articleType: ArticleType,
     grepCodes: Seq[String],

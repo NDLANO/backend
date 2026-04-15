@@ -27,7 +27,7 @@ case class PartialPublishArticleDTO(
   @description("A list of content related to the article") relatedContent: Option[Seq[RelatedContent]],
   @description("A list of tag objects") tags: Option[Seq[ArticleTagDTO]],
   @description("A revision date to specify expected earliest revision date of the article") revisionDate:  UpdateOrDelete[NDLADate],
-  @description("A date to specify published date of the article") published:  Option[NDLADate],
+  @description("A date to specify revised date of the article") revised:  Option[NDLADate],
 )
 
 object PartialPublishArticleDTO {

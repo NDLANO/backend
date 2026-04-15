@@ -27,7 +27,7 @@ object PartialArticleFieldsDTO extends Enum[PartialArticleFieldsDTO] with CirceE
   case object relatedContent  extends PartialArticleFieldsDTO
   case object tags            extends PartialArticleFieldsDTO
   case object revisionDate    extends PartialArticleFieldsDTO
-  case object published       extends PartialArticleFieldsDTO
+  case object revised         extends PartialArticleFieldsDTO
 
   implicit def schema: Schema[PartialArticleFieldsDTO]         = schemaForEnumEntry[PartialArticleFieldsDTO]
   implicit def seqSchema: Schema[Seq[PartialArticleFieldsDTO]] = schema.asIterable

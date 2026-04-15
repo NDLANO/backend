@@ -108,7 +108,9 @@ class ConverterService(using
         created = now,
         updated = now,
         updatedBy = user.id,
-        published = newArticle.published.getOrElse(now),
+        published = None,
+        revised =
+          newArticle.revised.getOrElse(newArticle.published.getOrElse(now)), // TODO: Remove fallback when ed is updated
         articleType = common.ArticleType.valueOfOrError(newArticle.articleType),
         notes = notes,
         previousVersionsNotes = Seq.empty,
@@ -307,6 +309,7 @@ class ConverterService(using
           updated = article.updated,
           updatedBy = article.updatedBy,
           published = article.published,
+          revised = article.revised,
           articleType = article.articleType.entryName,
           supportedLanguages = article.supportedLanguages,
           notes = article.notes.map(toApiEditorNote),
@@ -502,7 +505,8 @@ class ConverterService(using
               created = draft.created,
               updated = draft.updated,
               updatedBy = draft.updatedBy,
-              published = draft.published,
+              published = clock.now(),
+              revised = draft.revised,
               articleType = draft.articleType,
               grepCodes = draft.grepCodes,
               conceptIds = draft.conceptIds,
@@ -631,7 +635,8 @@ class ConverterService(using
     val isNewLanguage       = article.language.exists(l => !toMergeInto.supportedLanguages.contains(l))
     val createdDate         = toMergeInto.created
     val updatedDate         = clock.now()
-    val publishedDate       = article.published.getOrElse(toMergeInto.published)
+    val publishedDate       = article.published.orElse(toMergeInto.published)
+    val revisedDate         = article.revised.getOrElse(toMergeInto.revised)
     val updatedAvailability = common.Availability.valueOf(article.availability).getOrElse(toMergeInto.availability)
     val updatedRevision     = article
       .revisionMeta
@@ -714,6 +719,7 @@ class ConverterService(using
       updated = updatedDate,
       updatedBy = user.id,
       published = publishedDate,
+      revised = revisedDate,
       articleType = article.articleType.map(common.ArticleType.valueOfOrError).getOrElse(toMergeInto.articleType),
       notes = newNotes,
       previousVersionsNotes = toMergeInto.previousVersionsNotes,

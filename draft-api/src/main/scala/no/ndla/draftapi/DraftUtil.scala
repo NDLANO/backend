@@ -44,7 +44,7 @@ object DraftUtil {
       case `metaDescription` => old.metaDescription.sorted != changed.metaDescription.sorted
       case `license`         => old.copyright.flatMap(_.license) != changed.copyright.flatMap(_.license)
       case `revisionDate`    => compareRevisionDates(old, changed)
-      case `published`       => old.published != changed.published
+      case `revised`         => old.published != changed.published
     }
 
     Option.when(shouldInclude)(field)
