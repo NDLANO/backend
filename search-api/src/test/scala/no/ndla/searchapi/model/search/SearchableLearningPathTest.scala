@@ -8,7 +8,7 @@
 
 package no.ndla.searchapi.model.search
 
-import no.ndla.common.{Clock, CirceUtil}
+import no.ndla.common.{CirceUtil, Clock}
 import no.ndla.common.model.api.search.{
   LanguageValue,
   LearningResourceType,

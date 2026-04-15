@@ -39,12 +39,14 @@ import no.ndla.searchapi.model.domain.*
 import no.ndla.searchapi.model.grep.*
 import no.ndla.searchapi.model.search.*
 import no.ndla.searchapi.model.search.settings.{MultiDraftSearchSettings, SearchSettings}
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar.mock
 
 import java.net.URI
 import java.util.UUID
 import scala.util.Random
 
-class TestData(using clock: Clock) {
+class TestData {
 
   private val publicDomainCopyright =
     Copyright(License.PublicDomain.toString, None, List(), List(), List(), None, None, false)
@@ -69,6 +71,9 @@ class TestData(using clock: Clock) {
     false,
   )
   val today: NDLADate = NDLADate.now().withNano(0)
+
+  implicit val clockMock: Clock = mock[Clock]
+  when(clockMock.now()).thenReturn(today)
 
   val sampleArticleTitle: ArticleApiTitle                 = ArticleApiTitle("tittell", "tittell", "nb")
   val sampleArticleVisualElement: ArticleApiVisualElement =

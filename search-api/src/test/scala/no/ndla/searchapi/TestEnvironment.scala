@@ -29,8 +29,7 @@ class TestProps extends SearchApiProperties with BaseProps with DatabaseProps {
 }
 
 trait TestEnvironment extends MockitoSugar with StrictLogging {
-  implicit lazy val props: TestProps   = new TestProps
-  implicit lazy val TestData: TestData = new TestData(using Clock())
+  implicit lazy val props: TestProps = new TestProps
 
   implicit lazy val searchController: SearchController      = mock[SearchController]
   implicit lazy val internController: InternController      = mock[InternController]
@@ -55,7 +54,8 @@ trait TestEnvironment extends MockitoSugar with StrictLogging {
   implicit lazy val searchLanguage: SearchLanguage               = mock[SearchLanguage]
   implicit lazy val traitUtil: TraitUtil                         = mock[TraitUtil]
 
-  implicit lazy val clock: Clock = mock[Clock]
+  implicit lazy val clock: Clock       = mock[Clock]
+  implicit lazy val TestData: TestData = new TestData
 
   implicit lazy val converterService: ConverterService             = mock[ConverterService]
   implicit lazy val searchConverterService: SearchConverterService = mock[SearchConverterService]

@@ -23,8 +23,10 @@ import no.ndla.mapping.License
 import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA}
 import no.ndla.network.tapir.auth.Permission.{DRAFT_API_ADMIN, DRAFT_API_PUBLISH, DRAFT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar.mock
 
-class TestData(using clock: Clock) {
+class TestData {
 
   val authHeaderWithWriteRole =
     "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ik9FSTFNVVU0T0RrNU56TTVNekkyTXpaRE9EazFOMFl3UXpkRE1EUXlPRFZDUXpRM1FUSTBNQSJ9.eyJodHRwczovL25kbGEubm8vbmRsYV9pZCI6Inh4eHl5eSIsImlzcyI6Imh0dHBzOi8vbmRsYS5ldS5hdXRoMC5jb20vIiwic3ViIjoieHh4eXl5QGNsaWVudHMiLCJhdWQiOiJuZGxhX3N5c3RlbSIsImlhdCI6MTUxMDMwNTc3MywiZXhwIjoxNTEwMzkyMTczLCJwZXJtaXNzaW9ucyI6WyJkcmFmdHM6d3JpdGUiXSwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.5jpF98NxQZlkQQ5-rxVO3oTkNOQRQLDlAexyDnLiZFY"
@@ -43,6 +45,11 @@ class TestData(using clock: Clock) {
   val userWithPublishAccess: TokenUser = TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH), None)
   val userWithAdminAccess: TokenUser   =
     TokenUser("unit test", Set(DRAFT_API_WRITE, DRAFT_API_PUBLISH, DRAFT_API_ADMIN), None)
+
+  val today: NDLADate = NDLADate.now()
+
+  implicit val clockMock: Clock = mock[Clock]
+  when(clockMock.now()).thenReturn(today)
 
   val publicDomainCopyright: common.draft.DraftCopyright = common
     .draft
@@ -71,7 +78,6 @@ class TestData(using clock: Clock) {
       None,
       false,
     )
-  val today: NDLADate = NDLADate.now()
 
   val (articleId, externalId) = (1L, "751234")
 
