@@ -83,10 +83,11 @@ trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
   private def runServer(): Try[Unit] = {
     logCopyrightHeader()
     setupShutdownHook()
+    beforeStart()
+
     Try(
       startServerAndWait(props.ApplicationName, props.ApplicationPort) { binding =>
         this.serverBinding = Some(binding)
-        beforeStart()
         performWarmup()
       }
     ).recover { ex =>
