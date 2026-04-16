@@ -882,10 +882,10 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   test("Test that filtering published dates works as expected") {
     val today = NDLADate.now().withNano(0)
 
-    val draft1 = TestData.draft1.copy(id = Some(1), published = today.plusDays(1))
-    val draft2 = TestData.draft1.copy(id = Some(2), published = today.minusDays(10))
-    val draft3 = TestData.draft1.copy(id = Some(3), published = today.minusDays(10))
-    val draft4 = TestData.draft1.copy(id = Some(4), published = today.minusDays(15))
+    val draft1 = TestData.draft1.copy(id = Some(1), published = Some(today.plusDays(1)))
+    val draft2 = TestData.draft1.copy(id = Some(2), published = Some(today.minusDays(10)))
+    val draft3 = TestData.draft1.copy(id = Some(3), published = Some(today.minusDays(10)))
+    val draft4 = TestData.draft1.copy(id = Some(4), published = Some(today.minusDays(15)))
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get
@@ -920,10 +920,10 @@ class MultiDraftSearchServiceAtomicTest extends ElasticsearchIntegrationSuite wi
   test("Test sorting published dates works as expected") {
     val today = NDLADate.now().withNano(0)
 
-    val draft1 = TestData.draft1.copy(id = Some(1), published = today.plusDays(1))
-    val draft2 = TestData.draft1.copy(id = Some(2), published = today.minusDays(12))
-    val draft3 = TestData.draft1.copy(id = Some(3), published = today.minusDays(10))
-    val draft4 = TestData.draft1.copy(id = Some(4), published = today.minusDays(15))
+    val draft1 = TestData.draft1.copy(id = Some(1), published = Some(today.plusDays(1)))
+    val draft2 = TestData.draft1.copy(id = Some(2), published = Some(today.minusDays(12)))
+    val draft3 = TestData.draft1.copy(id = Some(3), published = Some(today.minusDays(10)))
+    val draft4 = TestData.draft1.copy(id = Some(4), published = Some(today.minusDays(15)))
     draftIndexService.indexDocument(draft1, indexingBundle).get
     draftIndexService.indexDocument(draft2, indexingBundle).get
     draftIndexService.indexDocument(draft3, indexingBundle).get

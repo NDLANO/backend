@@ -130,8 +130,10 @@ case class MultiSearchSummaryDTO(
     parentTopicName: Option[String],
     @description("Name of the primary context root if exists")
     primaryRootName: Option[String],
-    @description("When the article was last published")
+    @description("When the resource was last published")
     published: Option[NDLADate],
+    @description("Revision date of the resource")
+    revised: Option[NDLADate],
     @description("Number of times favorited in MyNDLA")
     favorited: Option[Long],
     @description("Type of the resource")

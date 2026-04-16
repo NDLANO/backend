@@ -99,7 +99,8 @@ class DraftApiClientTest
                   id = Some(id),
                   created = NDLADate.fromUnixTime(0),
                   updated = NDLADate.fromUnixTime(0),
-                  published = NDLADate.fromUnixTime(0),
+                  published = Some(NDLADate.fromUnixTime(0)),
+                  revised = NDLADate.fromUnixTime(0),
                 )
             )
         })

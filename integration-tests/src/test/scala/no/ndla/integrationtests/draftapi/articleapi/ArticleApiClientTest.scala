@@ -112,7 +112,7 @@ class ArticleApiClientTest
     updated = NDLADate.fromUnixTime(0),
     updatedBy = "updatedBy",
     published = Some(NDLADate.fromUnixTime(0)),
-    reivsed = NDLADate.fromUnixTime(0),
+    revised = NDLADate.fromUnixTime(0),
     articleType = common.ArticleType.Standard,
     notes = Seq.empty,
     previousVersionsNotes = Seq.empty,
