@@ -35,6 +35,7 @@ class ValidationServiceTest extends UnitSuite with TestEnvironment {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        originalDate = None,
       )
     ),
     copyright = Copyright(

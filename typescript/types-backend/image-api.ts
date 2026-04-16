@@ -484,6 +484,8 @@ export type components = {
             variants: components["schemas"]["ImageVariantDTO"][];
             /** @description ISO 639-1 code that represents the language used in the caption */
             language: string;
+            /** @description Date image was taken, if available */
+            originalDate?: string;
         };
         /**
          * ImageMetaInformationV2DTO

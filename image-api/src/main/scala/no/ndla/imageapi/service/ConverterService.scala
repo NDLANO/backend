@@ -144,6 +144,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       dimensions = dimensions,
       variants = variants,
       language = image.language,
+      originalDate = image.originalDate,
     )
   }
 
@@ -347,6 +348,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       contentType = upload.contentType,
       dimensions = upload.dimensions,
       variants = upload.variants,
+      originalDate = upload.originalDate,
       language = language,
     )
   }

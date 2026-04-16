@@ -14,7 +14,7 @@ import no.ndla.imageapi.model.api.{ImageMetaDomainDumpDTO, ImageMetaInformationV
 import no.ndla.imageapi.model.domain.ImageMetaInformation
 import no.ndla.imageapi.repository.ImageRepository
 import no.ndla.imageapi.service.search.{ImageIndexService, TagIndexService}
-import no.ndla.imageapi.service.{ConverterService, ReadService}
+import no.ndla.imageapi.service.{ConverterService, ReadService, WriteService}
 import no.ndla.imageapi.Props
 import no.ndla.network.clients.MyNDLAApiClient
 import no.ndla.network.tapir.NoNullJsonPrinter.jsonBody
@@ -33,6 +33,7 @@ import scala.util.{Failure, Success}
 class InternController(using
     imageRepository: ImageRepository,
     readService: ReadService,
+    writeService: WriteService,
     converterService: ConverterService,
     imageIndexService: ImageIndexService,
     tagIndexService: TagIndexService,
@@ -42,13 +43,23 @@ class InternController(using
     myNDLAApiClient: MyNDLAApiClient,
 ) extends TapirController
     with StrictLogging {
+
   import errorHelpers.*
+
   override val prefix: EndpointInput[Unit] = "intern"
   override val enableSwagger               = false
   private val stringInternalServerError    = statusCode(StatusCode.InternalServerError).and(stringBody)
 
-  override val endpoints: List[ServerEndpoint[Any, Eff]] =
-    List(postIndex, deleteIndex, getExternImageId, getDomainImageFromUrl, dumpImages, dumpSingleImage, postDump)
+  override val endpoints: List[ServerEndpoint[Any, Eff]] = List(
+    postIndex,
+    deleteIndex,
+    getExternImageId,
+    getDomainImageFromUrl,
+    dumpImages,
+    dumpSingleImage,
+    postDump,
+    startExifDataMigration,
+  )
 
   def postIndex: ServerEndpoint[Any, Eff] = endpoint
     .post
@@ -130,7 +141,8 @@ class InternController(using
     }
 
   val urlQueryParam: EndpointInput.Query[Option[String]] = query[Option[String]]("url")
-  def getDomainImageFromUrl: ServerEndpoint[Any, Eff]    = endpoint
+
+  def getDomainImageFromUrl: ServerEndpoint[Any, Eff] = endpoint
     .get
     .in("domain_image_from_url")
     .in(urlQueryParam)
@@ -173,5 +185,24 @@ class InternController(using
     .errorOut(errorOutputsFor(400))
     .serverLogicPure { imageMeta =>
       imageRepository.insert(imageMeta)
+    }
+
+  def startExifDataMigration: ServerEndpoint[Any, Eff] = endpoint
+    .post
+    .in("migrate" / "exif")
+    .out(jsonBody[String])
+    .serverLogicPure { _ =>
+      logger.info("Starting EXIF data extraction for all existing images...")
+
+      Thread
+        .ofVirtual()
+        .start(() => {
+          writeService.extractAndStoreExifDataForExistingImages() match {
+            case Success(_)  => logger.info("Successfully finished EXIF data extraction for all existing images")
+            case Failure(ex) => logger.error("Failed to extract EXIF data for existing images", ex)
+          }
+        })
+
+      "Started EXIF data extraction for all existing images".asRight
     }
 }

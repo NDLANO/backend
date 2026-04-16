@@ -33,6 +33,7 @@ class TestData(using imageConverter: ImageConverter) {
     dimensions = None,
     variants = Seq.empty,
     language = "nb",
+    originalDate = None,
   )
   val elg = new ImageMetaInformation(
     id = Some(1),
@@ -136,6 +137,7 @@ class TestData(using imageConverter: ImageConverter) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        originalDate = None,
       )
     ),
     copyright = Copyright(
@@ -171,6 +173,7 @@ class TestData(using imageConverter: ImageConverter) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        originalDate = None,
       )
     ),
     copyright = Copyright(
@@ -206,6 +209,7 @@ class TestData(using imageConverter: ImageConverter) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        originalDate = None,
       )
     ),
     copyright = Copyright(
@@ -241,6 +245,7 @@ class TestData(using imageConverter: ImageConverter) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        originalDate = None,
       )
     ),
     copyright = Copyright(
@@ -276,6 +281,7 @@ class TestData(using imageConverter: ImageConverter) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        originalDate = None,
       )
     ),
     copyright = Copyright(
@@ -311,6 +317,7 @@ class TestData(using imageConverter: ImageConverter) {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        originalDate = None,
       )
     ),
     copyright = Copyright(
@@ -382,6 +389,7 @@ class TestData(using imageConverter: ImageConverter) {
     dimensions = Some(ImageDimensions(1280, 853)),
     variants = Seq.empty,
     language = "nb",
+    originalDate = None,
   )
   val clownfishFileDataWithVariants: ImageFileData = clownfishFileData.copy(variants =
     Seq(

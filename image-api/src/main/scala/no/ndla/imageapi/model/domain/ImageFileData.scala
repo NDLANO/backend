@@ -18,6 +18,7 @@ case class ImageFileData(
     contentType: ImageContentType,
     dimensions: Option[ImageDimensions],
     variants: Seq[ImageVariant],
+    originalDate: Option[String],
     override val language: String,
 ) extends WithLanguage {
   def getFileStem: String = {

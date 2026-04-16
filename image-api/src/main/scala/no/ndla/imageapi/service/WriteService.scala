@@ -13,11 +13,12 @@ import com.sksamuel.scrimage.webp.WebpWriter
 import com.typesafe.scalalogging.StrictLogging
 import no.ndla.common.Clock
 import no.ndla.common.aws.NdlaCloudFrontClient
-import no.ndla.common.errors.{MissingIdException, ValidationException}
+import no.ndla.common.errors.{MissingBucketKeyException, MissingIdException, ValidationException}
 import no.ndla.common.implicits.*
 import no.ndla.common.model.api.{Deletable, Delete, Missing, UpdateWith}
 import no.ndla.common.model.domain.UploadedFile
 import no.ndla.common.model.{NDLADate, domain as common}
+import no.ndla.database.DBUtility
 import no.ndla.imageapi.Props
 import no.ndla.imageapi.model.*
 import no.ndla.imageapi.model.api.{
@@ -34,6 +35,7 @@ import no.ndla.language.Language
 import no.ndla.language.Language.{mergeLanguageFields, sortByLanguagePriority}
 import no.ndla.language.model.LanguageField
 import no.ndla.network.tapir.auth.TokenUser
+import scalikejdbc.DBSession
 
 import java.util.concurrent.Executors
 import scala.concurrent.duration.DurationInt
@@ -50,6 +52,7 @@ class WriteService(using
     imageConverter: ImageConverter,
     tagIndexService: TagIndexService,
     cloudFrontClient: NdlaCloudFrontClient,
+    dbUtility: DBUtility,
     clock: Clock,
     random: Random,
     props: Props,
@@ -414,7 +417,7 @@ class WriteService(using
     val processableStream = imageConverter.uploadedFileToImageStream(file, fileName) match {
       case Success(stream: ImageStream.Processable)   => stream
       case Success(stream: ImageStream.Gif)           => return uploadGifImageStream(stream)
-      case Success(stream: ImageStream.Unprocessable) => return uploadImageStream(stream, None)
+      case Success(stream: ImageStream.Unprocessable) => return uploadImageStream(stream, None, None)
       case Failure(ex)                                => return Failure(ex)
     }
 
@@ -423,6 +426,8 @@ class WriteService(using
       case Failure(ex)    => return Failure(ex)
     }
     val dimensions = ImageDimensions(processableImage.image.width, processableImage.image.height)
+    val exifData   = ExifUtil.extractMetadataMap(processableImage.image.getMetadata)
+
     // Since a stream cannot be read from twice, we need to create a new stream for uploading the original image.
     // At this point we know that the image is processable, so we can safely create a new processable ImageStream.
     val originalImageStream =
@@ -432,8 +437,9 @@ class WriteService(using
       case given ExecutionContext =>
         val variantsFuture =
           generateAndUploadVariantsAsync(processableImage, dimensions, uniqueFileStem, processableImage.format)
-        val maybeUploadedOriginalImage = uploadImageStream(originalImageStream, Some(dimensions))
-        val maybeVariants              = Try(Await.result(variantsFuture, 1.minute))
+        val maybeUploadedOriginalImage =
+          uploadImageStream(originalImageStream, Some(dimensions), ExifUtil.extractDate(exifData))
+        val maybeVariants = Try(Await.result(variantsFuture, 1.minute))
 
         (maybeUploadedOriginalImage, maybeVariants) match {
           case (Success(uploadedImage), Success(variants)) => Success(uploadedImage.copy(variants = variants))
@@ -490,16 +496,28 @@ class WriteService(using
 
   private def uploadGifImageStream(gifImageStream: ImageStream.Gif): Try[UploadedImage] = ScrimageUtil
     .getDimensionsFromGifStream(gifImageStream)
-    .flatMap((stream, dim) => uploadImageStream(stream, dim.some))
+    .flatMap((stream, dim) => uploadImageStream(stream, dim.some, None))
 
-  private def uploadImageStream(stream: ImageStream, dimensions: Option[ImageDimensions]): Try[UploadedImage] =
-    Using(stream) { imageStream =>
-      val contentLength = imageStream.contentLength
-      val contentType   = imageStream.contentType
-      imageStorage
-        .uploadFromStream(imageStream.fileName, imageStream.stream, contentLength, contentType)
-        .map(bucketKey => UploadedImage(bucketKey, contentLength, contentType, dimensions, Seq.empty))
-    }.flatten
+  private def uploadImageStream(
+      stream: ImageStream,
+      dimensions: Option[ImageDimensions],
+      originalDate: Option[String],
+  ): Try[UploadedImage] = Using(stream) { imageStream =>
+    val contentLength = imageStream.contentLength
+    val contentType   = imageStream.contentType
+    imageStorage
+      .uploadFromStream(imageStream.fileName, imageStream.stream, contentLength, contentType)
+      .map(bucketKey =>
+        UploadedImage(
+          fileName = bucketKey,
+          size = contentLength,
+          contentType = contentType,
+          dimensions = dimensions,
+          variants = Seq.empty,
+          originalDate = originalDate,
+        )
+      )
+  }.flatten
 
   private def deleteImageAndVariants(image: ImageFileData): Try[Unit] = {
     val variantsResult = imageStorage.deleteObjects(image.variants.map(_.bucketKey))
@@ -509,6 +527,95 @@ class WriteService(using
       case Nil => Success(())
       case exs => Failure(ImageDeleteException("Failed to delete original image and/or variants", exs.toSeq))
     }
+  }
+
+  /** Batch job that fetches all images from S3, extracts EXIF data, and updates the database. Images that already have
+    * non-empty exifData are skipped. Missing S3 objects are ignored.
+    */
+  def extractAndStoreExifDataForExistingImages(): Try[Unit] = {
+    val batchSize     = 20
+    val batchIterator = imageRepository.getImageMetaBatched(batchSize) match {
+      case Success(it) => it
+      case Failure(ex) => return Failure(ex)
+    }
+    val totalBatchCount = batchIterator.knownSize
+    Using(ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(batchSize))) {
+      case given ExecutionContext => batchIterator
+          .zipWithIndex
+          .map { (batch, index) =>
+            logger.info(s"EXIF migration: Processing batch ${index + 1} of $totalBatchCount (batch size = $batchSize)")
+
+            val batchFuture = Future.traverse {
+              batch
+                .filter(meta => meta.id.nonEmpty && meta.images.exists(_.originalDate.isEmpty))
+                .flatMap(meta => meta.images.filter(_.originalDate.isEmpty).map(meta -> _))
+            } { (imageMeta, imageFile) =>
+              extractExifForImageFileAsync(imageMeta, imageFile)
+            }
+
+            val storeResultsFuture = batchFuture.map { results =>
+              results
+                .sequence
+                .flatMap { metasWithFiles =>
+                  metasWithFiles
+                    .groupMap(_._1)(_._2)
+                    .toSeq
+                    .traverse { (imageMeta, updatedFiles) =>
+                      val updatedFileMap   = updatedFiles.map(f => (f.fileName, f.language) -> f).toMap
+                      val mergedImageFiles = imageMeta
+                        .images
+                        .map { existing =>
+                          updatedFileMap.getOrElse((existing.fileName, existing.language), existing)
+                        }
+                      dbUtility.writeSession { case given DBSession =>
+                        val updatedMeta = imageMeta.copy(images = mergedImageFiles)
+                        imageRepository.update(updatedMeta, updatedMeta.id.get).map(_ => ())
+                      }
+                    }
+                }
+            }
+
+            Try(Await.result(storeResultsFuture, 5.minutes)).flatten
+          }
+          .collectFirst { case Failure(ex) =>
+            ex
+          } match {
+          case Some(ex) => Failure(ex)
+          case None     => Success(())
+        }
+    }.flatten
+  }
+
+  private def extractExifForImageFileAsync(imageMeta: ImageMetaInformation, imageFile: ImageFileData)(using
+      ExecutionContext
+  ): Future[Try[(ImageMetaInformation, ImageFileData)]] = Future {
+    imageStorage
+      .getRaw(imageFile.fileName)
+      .map { s3Object =>
+        Using(s3Object.stream) { stream =>
+          val exifData    = ExifUtil.extractExifDataFromStream(stream)
+          val updatedFile = imageFile.copy(originalDate = ExifUtil.extractDate(exifData))
+          imageMeta -> updatedFile
+        }.getOrElse {
+          logger.warn(
+            s"EXIF migration: Failed to extract EXIF data for image due to error reading stream (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})"
+          )
+          imageMeta -> imageFile
+        }
+      }
+      .recoverWith {
+        case ex: MissingBucketKeyException =>
+          logger.warn(
+            s"EXIF migration: Ignoring missing bucket object for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})"
+          )
+          Success(imageMeta -> imageFile)
+        case ex =>
+          logger.error(
+            s"EXIF migration: Failed to extract EXIF data for image (imageMetaId = ${imageMeta.id.get}, fileName = ${imageFile.fileName})",
+            ex,
+          )
+          Failure(ex)
+      }
   }
 
   private def moveImageAndVariants(image: ImageFileData, newBucketPrefix: String): Try[ImageFileData] = {

@@ -63,6 +63,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         dimensions = None,
         variants = Seq.empty,
         language = "nb",
+        originalDate = None,
       )
     ),
     copyright = DomainCopyright("", None, List(), List(), List(), None, None, false),
@@ -104,6 +105,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       ImageContentType.Jpeg,
       Some(domain.ImageDimensions(189, 60)),
       Seq.empty,
+      None,
     )
 
     val result = writeService.uploadImageWithVariants(fileMock1).failIfFailure
@@ -209,12 +211,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(tagIndexService.indexDocument(any[ImageMetaInformation])).thenAnswer(i => Success(i.getArgument(0)))
     when(fileMock1.contentType).thenReturn(Some(ImageContentType.Jpeg.toString))
     val expectedImageFile = domain.ImageFileData(
-      newFileName,
-      fileMock1.fileSize,
-      ImageContentType.Jpeg,
-      Some(domain.ImageDimensions(189, 60)),
-      Seq.empty,
-      "en",
+      fileName = newFileName,
+      size = fileMock1.fileSize,
+      contentType = ImageContentType.Jpeg,
+      dimensions = Some(domain.ImageDimensions(189, 60)),
+      variants = Seq.empty,
+      language = "en",
+      originalDate = None,
     )
     val expectedImageMeta = domainImageMeta.copy(id = Some(1), images = Seq(expectedImageFile))
 
@@ -347,6 +350,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = Some(domain.ImageDimensions(10, 10)),
       variants = Seq.empty,
       language = "nb",
+      originalDate = None,
     )
     val existing = TestData
       .elg
@@ -375,12 +379,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val domainWithImage = domainImageMeta.copy(images =
       Seq(
         domain.ImageFileData(
-          newFileName,
-          1024,
-          ImageContentType.Jpeg,
-          Some(domain.ImageDimensions(189, 60)),
-          Seq.empty,
-          "nb",
+          fileName = newFileName,
+          size = 1024,
+          contentType = ImageContentType.Jpeg,
+          dimensions = Some(domain.ImageDimensions(189, 60)),
+          variants = Seq.empty,
+          language = "nb",
+          originalDate = None,
         )
       )
     )
@@ -495,6 +500,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
+      originalDate = None,
     )
 
     val dbImage = TestData
@@ -577,6 +583,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
+      originalDate = None,
     )
 
     val dbImage = TestData
@@ -646,6 +653,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
+      originalDate = None,
     )
 
     val dbImage = TestData
@@ -711,6 +719,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       dimensions = None,
       variants = Seq.empty,
       language = "nb",
+      originalDate = None,
     )
 
     val dbImage = TestData
@@ -785,7 +794,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val expectedVariantSizes = ImageVariantSize.forDimensions(expectedDimensions)
     expectedVariantSizes.size should be > 0
 
-    val domain.UploadedImage(_, _, _, dimensions, variants) = writeService
+    val domain.UploadedImage(_, _, _, dimensions, variants, originalDate) = writeService
       .uploadImageWithVariants(TestData.childrensImageUploadedFile)
       .failIfFailure
 
@@ -796,5 +805,6 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     variants.foreach { variant =>
       variant.bucketKey should endWith(s"/${variant.size.entryName}.webp")
     }
+    originalDate should be(None)
   }
 }
