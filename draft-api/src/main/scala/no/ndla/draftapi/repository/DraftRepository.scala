@@ -158,15 +158,15 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
       .unzip
 
     val whereClause = sqls"""
-      where article_id=${article.id}
-      and revision=$oldRevision
-      and revision=(select max(revision) from ${dbDraft.table} where article_id=${article.id})
+      where dr.article_id=${article.id}
+      and dr.revision=$oldRevision
+      and not exists (select 1 from ${dbDraft.table} dr2 where dr2.article_id = dr.article_id and dr2.revision > dr.revision)
     """
 
     for {
       oldNotes <- tsql"""
-        select document->'notes' as notes
-        from ${dbDraft.table}
+        select dr.document->'notes' as notes
+        from ${dbDraft.table} dr
         $whereClause
         for update
       """.map(editorNotesFromRS).runSingle()
@@ -175,7 +175,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
         case None    => article.notes
       }
       count <- tsql"""
-        update ${dbDraft.table}
+        update ${dbDraft.table} dr
         set document=jsonb_set($dataObject,'{notes}',(${CirceUtil.toJsonString(notes.distinct)}::jsonb)),
             revision=$newRevision,
             slug=$slug,
@@ -198,10 +198,10 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
     dataObject.setValue(CirceUtil.toJsonString(notes))
 
     tsql"""
-      update ${dbDraft.table}
-      set document=jsonb_set(document, '{notes}',(document -> 'notes') || $dataObject)
-      where article_id=$articleId
-      and revision=(select max(revision) from ${dbDraft.table} where article_id=$articleId)
+      update ${dbDraft.table} dr
+      set document=jsonb_set(dr.document, '{notes}',(dr.document -> 'notes') || $dataObject)
+      where dr.article_id=$articleId
+      and not exists (select 1 from ${dbDraft.table} dr2 where dr2.article_id = dr.article_id and dr2.revision > dr.revision)
     """
       .update()
       .flatMap {
@@ -224,10 +224,11 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
       from ${dbDraft.as(dr)}
       where dr.document is not NULL
       and dr.article_id in ($articleIds)
-      and dr.revision = (
-          select max(revision)
+      and not exists (
+          select 1
           from ${dbDraft.as(dr2)}
           where dr2.article_id = dr.article_id
+          and dr2.revision > dr.revision
       )
       offset $offset
       limit $pageSize
@@ -349,18 +350,19 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
   }
 
   def getArticlesByPage(pageSize: Int, offset: Int)(using session: DBSession): Try[Seq[Draft]] = {
-    val dr = dbDraft.syntax("dr")
+    val dr  = dbDraft.syntax("dr")
+    val dr2 = dbDraft.syntax("dr2")
     tsql"""
-      select *
-      from (select
-              ${dr.result.*},
-              ${dr.id} as row_id,
-              ${dr.revision} as revision,
-              max(revision) over (partition by article_id) as max_revision
-            from ${dbDraft.as(dr)}
-            where document is not NULL) _
-      where revision = max_revision
-      order by row_id
+      select ${dr.result.*}
+      from ${dbDraft.as(dr)}
+      where dr.document is not NULL
+      and not exists (
+        select 1
+        from ${dbDraft.as(dr2)}
+        where dr2.article_id = dr.article_id
+        and dr2.revision > dr.revision
+      )
+      order by dr.id
       offset $offset
       limit $pageSize
     """.map(dbDraft.fromResultSet(dr)).runList()
@@ -381,35 +383,37 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
   }
 
   def documentsWithArticleIdBetween(min: Long, max: Long)(using session: DBSession): Try[List[Draft]] = {
-    val dr       = dbDraft.syntax("dr")
-    val subquery = dbDraft.syntax("b")
+    val dr  = dbDraft.syntax("dr")
+    val dr2 = dbDraft.syntax("dr2")
     tsql"""
       select ${dr.result.*}
       from ${dbDraft.as(dr)}
       where dr.document is not NULL
       and dr.article_id between $min and $max
       and dr.document#>>'{status,current}' <> ${DraftStatus.ARCHIVED.toString}
-      and dr.revision = (
-        select max(b.revision)
-        from ${dbDraft.as(subquery)}
-        where b.article_id = dr.article_id
+      and not exists (
+        select 1
+        from ${dbDraft.as(dr2)}
+        where dr2.article_id = dr.article_id
+        and dr2.revision > dr.revision
       )
     """.map(dbDraft.fromResultSet(dr)).runList()
   }
 
   override def documentsWithIdBetween(min: Long, max: Long)(using session: DBSession): Try[List[Draft]] = {
-    val dr       = dbDraft.syntax("dr")
-    val subquery = dbDraft.syntax("b")
+    val dr  = dbDraft.syntax("dr")
+    val dr2 = dbDraft.syntax("dr2")
     tsql"""
       select ${dr.result.*}
       from ${dbDraft.as(dr)}
       where dr.document is not NULL
       and dr.id between $min and $max
       and dr.document#>>'{status,current}' <> ${DraftStatus.ARCHIVED.toString}
-      and dr.revision = (
-        select max(b.revision)
-        from ${dbDraft.as(subquery)}
-        where b.article_id = dr.article_id
+      and not exists (
+        select 1
+        from ${dbDraft.as(dr2)}
+        where dr2.article_id = dr.article_id
+        and dr2.revision > dr.revision
       )
     """.map(dbDraft.fromResultSet(dr)).runList()
   }

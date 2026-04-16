@@ -130,13 +130,13 @@ class DraftConceptRepository(using props: Props, errorHelpers: ErrorHelpers, dbU
         val oldRevision = concept.revision
 
         tsql"""
-              update ${dbConcept.table}
+              update ${dbConcept.table} c
               set
                 document=$dataObject,
                 revision=$newRevision
-              where id=$conceptId
-              and revision=$oldRevision
-              and revision=(select max(revision) from ${dbConcept.table} where id=$conceptId)
+              where c.id=$conceptId
+              and c.revision=$oldRevision
+              and not exists (select 1 from ${dbConcept.table} c2 where c2.id = c.id and c2.revision > c.revision)
             """
           .update()
           .flatMap(updatedRows => failIfRevisionMismatch(updatedRows, concept, newRevision))

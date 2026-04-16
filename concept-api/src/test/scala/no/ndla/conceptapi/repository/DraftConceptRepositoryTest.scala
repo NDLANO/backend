@@ -67,7 +67,7 @@ class DraftConceptRepositoryTest extends DatabaseIntegrationSuite with UnitSuite
     val id3 = repository.insert(art3).id.get
 
     val updatedContent = Seq(ConceptContent("What u do mr", "nb"))
-    repository.update(art1.copy(id = Some(id1), content = updatedContent))
+    repository.update(art1.copy(id = Some(id1), content = updatedContent)).get
 
     repository.withId(id1).get.content should be(updatedContent)
     repository.withId(id2).get.content should be(art2.content)
