@@ -43,15 +43,17 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
       .map(r => (r.responsibleId, r.lastUpdated.toTimestamptzParameterBinder))
       .unzip
 
-    tsql"""
-      insert into ${dbDraft.table} (document, revision, external_id, article_id, slug, responsible, responsible_updated_at)
-      values ($dataObject, $startRevision, ARRAY[${article.externalIds.getOrElse(List.empty)}]::text[], ${article.id}, $slug, $responsibleId, $responsibleUpdatedAt)
-    """
-      .updateAndReturnGeneratedKey()
-      .map { dbId =>
+    for {
+      dbId <- tsql"""
+        insert into ${dbDraft.table} (document, revision, external_id, article_id, slug, responsible, responsible_updated_at)
+        values ($dataObject, $startRevision, ARRAY[${article.externalIds.getOrElse(List.empty)}]::text[], ${article.id}, $slug, $responsibleId, $responsibleUpdatedAt)
+      """.updateAndReturnGeneratedKey()
+      inserted = {
         logger.info(s"Inserted new article: ${article.id}, with revision $startRevision (with db id $dbId)")
         article.copy(revision = Some(startRevision), slug = slug)
       }
+      tracked <- trackEditor(inserted)
+    } yield tracked
   }
 
   def storeArticleAsNewVersion(article: Draft, user: Option[TokenUser], keepDraftData: Boolean = false)(using
@@ -114,7 +116,9 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
             .map { dbId =>
               logger.info(s"Inserted new article: $articleId (with db id $dbId)")
             }
-        } yield copiedArticle.copy(revision = Some(articleRevision))
+          copiedArticleWithRevision = copiedArticle.copy(revision = Some(articleRevision))
+          trackedArticle           <- trackEditor(copiedArticleWithRevision)
+        } yield trackedArticle
     }
   }
 
@@ -180,7 +184,8 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
         $whereClause
       """.update()
       updated <- failIfRevisionMismatch(count, article, newRevision)
-    } yield updated
+      tracked <- trackEditor(updated)
+    } yield tracked
   }
 
   private def editorNotesFromRS(rs: WrappedResultSet): Seq[EditorNote] = {
@@ -246,12 +251,15 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
   }
 
   def deleteArticle(articleId: Long)(using session: DBSession): Try[Long] = {
-    tsql"delete from ${dbDraft.table} where article_id = $articleId"
-      .update()
-      .flatMap {
-        case 1 => Success(articleId)
-        case _ => Failure(NotFoundException(s"Article with id $articleId does not exist"))
-      }
+    for {
+      result <- tsql"delete from ${dbDraft.table} where article_id = $articleId"
+        .update()
+        .flatMap {
+          case 1 => Success(articleId)
+          case _ => Failure(NotFoundException(s"Article with id $articleId does not exist"))
+        }
+      _ <- tsql"delete from draft_editors where draft_id = $articleId".update()
+    } yield result
   }
 
   def deleteArticleRevision(articleId: Long, revision: Int)(using session: DBSession): Try[Unit] =
@@ -452,13 +460,18 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
   }
 
   def getAllEditors(using session: DBSession): Try[Seq[String]] = {
-    tsql"""select editorId from editor_view""".map(rs => rs.string("editorId")).runList()
+    tsql"select distinct user_id from draft_editors".map(rs => rs.string("user_id")).runList()
   }
 
-  def updateEditorView(using session: DBSession): Try[Unit] = {
-    tsql"""
-      REFRESH MATERIALIZED VIEW CONCURRENTLY editor_view;
-    """.update().map(_ => ())
-  }
-
+  private def trackEditor(draft: Draft)(using session: DBSession): Try[Draft] = draft
+    .id
+    .map { id =>
+      tsql"""
+        insert into draft_editors (draft_id, user_id)
+        values ($id, ${draft.updatedBy})
+        on conflict do nothing
+      """.update()
+    }
+    .getOrElse(Success(()))
+    .map(_ => draft)
 }
