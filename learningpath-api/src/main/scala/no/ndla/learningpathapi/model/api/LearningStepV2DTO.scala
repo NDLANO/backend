@@ -12,6 +12,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.LicenseDTO
+import no.ndla.common.model.domain.learningpath.StepType
 import sttp.tapir.Schema.annotations.{deprecated, description}
 
 @description("Information about a learningstep")
@@ -35,7 +36,7 @@ case class LearningStepV2DTO(
     @description("Determines if the title of the step should be displayed in viewmode")
     showTitle: Boolean,
     @description("The type of the step")
-    `type`: String,
+    `type`: StepType,
     @description("Describes the copyright information for the learningstep")
     @deprecated
     license: Option[LicenseDTO],

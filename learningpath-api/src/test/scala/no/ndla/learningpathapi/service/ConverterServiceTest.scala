@@ -84,7 +84,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     description = List(),
     embedUrl = List(),
     articleId = None,
-    `type` = StepType.INTRODUCTION,
+    `type` = StepType.TEXT,
     copyright = None,
     created = today,
     lastUpdated = today,
@@ -102,7 +102,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     description = List(Description("deskripsjon", "nb")),
     embedUrl = List(),
     articleId = None,
-    `type` = StepType.INTRODUCTION,
+    `type` = StepType.TEXT,
     copyright = None,
     created = today,
     lastUpdated = today,
@@ -265,41 +265,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     ) should equal(expected)
   }
 
-  test("asApiLearningpathSummaryV2 converts domain to api LearningpathSummaryV2") {
-    val expected = Success(
-      api.LearningPathSummaryV2DTO(
-        1,
-        Some(1),
-        api.TitleDTO("tittel", props.DefaultLanguage),
-        api.DescriptionDTO("deskripsjon", props.DefaultLanguage),
-        api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
-        "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1",
-        None,
-        Some(60),
-        LearningPathStatus.PRIVATE.toString,
-        randomDate,
-        randomDate,
-        api.LearningPathTagsDTO(Seq("tag"), props.DefaultLanguage),
-        api.CopyrightDTO(
-          commonApi.LicenseDTO(
-            CC_BY.toString,
-            Some("Creative Commons Attribution 4.0 International"),
-            Some("https://creativecommons.org/licenses/by/4.0/"),
-          ),
-          List.empty,
-        ),
-        List("nb", "en"),
-        None,
-        None,
-        Seq.empty,
-      )
-    )
-    service.asApiLearningpathSummaryV2(
-      domainLearningPath.copy(title = domainLearningPath.title :+ Title("test", "en")),
-      TokenUser.PublicUser.toCombined,
-    ) should equal(expected)
-  }
-
   test("asApiLearningStepV2 converts domain learningstep to api LearningStepV2") {
     val learningstep = Success(
       api.LearningStepV2DTO(
@@ -312,7 +277,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         embedUrl = None,
         articleId = None,
         showTitle = false,
-        `type` = "INTRODUCTION",
+        `type` = StepType.TEXT,
         license = None,
         copyright = None,
         metaUrl = "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1",
@@ -363,7 +328,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         embedUrl = None,
         articleId = None,
         showTitle = false,
-        `type` = "INTRODUCTION",
+        `type` = StepType.TEXT,
         license = None,
         copyright = None,
         metaUrl = "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1",
@@ -390,7 +355,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         1,
         1,
         api.TitleDTO("tittel", props.DefaultLanguage),
-        "INTRODUCTION",
+        "TEXT",
         "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1",
       )
     )
@@ -406,7 +371,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         1,
         1,
         api.TitleDTO("tittel", props.DefaultLanguage),
-        "INTRODUCTION",
+        "TEXT",
         "http://api-gateway.ndla-local/learningpath-api/v2/learningpaths/1/learningsteps/1",
       )
     )
@@ -436,34 +401,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     service.createUrlToLearningPath(apiLearningPath.copy(status = "PRIVATE")) should equal(
       s"${props.Domain}${props.LearningpathControllerPath}1"
     )
-  }
-
-  test("That asApiIntroduction returns an introduction for a given step") {
-    val introductions = service.getApiIntroduction(
-      Seq(
-        domainLearningStep.copy(description =
-          Seq(
-            Description("Introduksjon på bokmål", "nb"),
-            Description("Introduksjon på nynorsk", "nn"),
-            Description("Introduction in english", "en"),
-          )
-        )
-      )
-    )
-
-    introductions.size should be(3)
-    introductions.find(_.language.contains("nb")).map(_.introduction) should be(Some("Introduksjon på bokmål"))
-    introductions.find(_.language.contains("nn")).map(_.introduction) should be(Some("Introduksjon på nynorsk"))
-    introductions.find(_.language.contains("en")).map(_.introduction) should be(Some("Introduction in english"))
-  }
-
-  test("That asApiIntroduction returns empty list if no descriptions are available") {
-    val introductions = service.getApiIntroduction(Seq(domainLearningStep))
-    introductions.size should be(0)
-  }
-
-  test("That asApiIntroduction returns an empty list if given a None") {
-    service.getApiIntroduction(Seq()) should equal(Seq())
   }
 
   test("asApiLicense returns a License object for a given valid license") {

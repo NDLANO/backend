@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.service.search
 
 import com.sksamuel.elastic4s.requests.searches.SearchHit
 import no.ndla.common.model.api.search.{LanguageValue, SearchableLanguageList, SearchableLanguageValues}
-import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep, StepType}
+import no.ndla.common.model.domain.learningpath.{LearningPath, LearningStep}
 import no.ndla.language.Language.{
   findByLanguageOrBestEffort,
   getDefault,
@@ -35,15 +35,10 @@ class SearchConverterServiceComponent(using converterService: ConverterService, 
       .descriptions
       .languageValues
       .map(lv => api.DescriptionDTO(lv.value, lv.language))
-    val introductions = searchableLearningPath.introductions.languageValues.size match {
-      case 0 => searchableLearningPath
-          .learningsteps
-          .find(_.stepType == StepType.INTRODUCTION.toString)
-          .map(step => step.descriptions.languageValues.map(lv => api.IntroductionDTO(lv.value, lv.language)))
-          .getOrElse(Seq.empty)
-      case _ =>
-        searchableLearningPath.introductions.languageValues.map(lv => api.IntroductionDTO(lv.value, lv.language))
-    }
+    val introductions = searchableLearningPath
+      .introductions
+      .languageValues
+      .map(lv => api.IntroductionDTO(lv.value, lv.language))
     val tags               = searchableLearningPath.tags.languageValues.map(lv => api.LearningPathTagsDTO(lv.value, lv.language))
     val supportedLanguages = getSupportedLanguages(titles, descriptions, introductions, tags)
 

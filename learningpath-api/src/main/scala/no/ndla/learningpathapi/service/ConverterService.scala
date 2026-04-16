@@ -578,60 +578,8 @@ class ConverterService(using
     CopyrightDTO(asApiLicense(License.CC_BY.toString), contributors)
   }
 
-  def getApiIntroduction(learningSteps: Seq[LearningStep]): Seq[api.IntroductionDTO] = {
-    learningSteps
-      .find(_.`type` == learningpath.StepType.INTRODUCTION)
-      .toList
-      .flatMap(x => x.description)
-      .map(x => api.IntroductionDTO(x.description, x.language))
-  }
-
   def languageIsNotSupported(supportedLanguages: Seq[String], language: String): Boolean = {
     supportedLanguages.isEmpty || (!supportedLanguages.contains(language) && language != AllLanguages)
-  }
-
-  def asApiLearningpathSummaryV2(learningpath: LearningPath, user: CombinedUser): Try[api.LearningPathSummaryV2DTO] = {
-    val supportedLanguages = learningpath.supportedLanguages
-
-    val title = findByLanguageOrBestEffort(learningpath.title, AllLanguages)
-      .map(asApiTitle)
-      .getOrElse(api.TitleDTO("", DefaultLanguage))
-    val description = findByLanguageOrBestEffort(learningpath.description, AllLanguages)
-      .map(asApiDescription)
-      .getOrElse(api.DescriptionDTO("", DefaultLanguage))
-    val tags = findByLanguageOrBestEffort(learningpath.tags, AllLanguages)
-      .map(asApiLearningPathTags)
-      .getOrElse(api.LearningPathTagsDTO(Seq(), DefaultLanguage))
-    val introduction = findByLanguageOrBestEffort(learningpath.introduction.map(asApiIntroduction), AllLanguages)
-      .getOrElse(
-        findByLanguageOrBestEffort(getApiIntroduction(learningpath.learningsteps), AllLanguages).getOrElse(
-          api.IntroductionDTO("", DefaultLanguage)
-        )
-      )
-
-    val message = learningpath.message.filter(_ => learningpath.canEditPath(user)).map(_.message)
-
-    Success(
-      api.LearningPathSummaryV2DTO(
-        learningpath.id.get,
-        revision = learningpath.revision,
-        title,
-        description,
-        introduction,
-        createUrlToLearningPath(learningpath),
-        learningpath.coverPhotoId.flatMap(asCoverPhoto).map(_.url),
-        learningpath.duration,
-        learningpath.status.toString,
-        learningpath.created,
-        learningpath.lastUpdated,
-        tags,
-        asApiCopyright(learningpath.copyright),
-        supportedLanguages,
-        learningpath.isBasedOn,
-        message,
-        learningpath.grepCodes,
-      )
-    )
   }
 
   private def languageIsSupported(supportedLangs: Seq[String], language: String): Boolean = {
@@ -670,7 +618,7 @@ class ConverterService(using
           embedUrl = embedUrl,
           articleId = ls.articleId,
           showTitle = ls.showTitle,
-          `type` = ls.`type`.toString,
+          `type` = ls.`type`,
           license = copyright.map(_.license),
           copyright = copyright,
           metaUrl = createUrlToLearningStep(ls, lp),
