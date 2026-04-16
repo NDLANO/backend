@@ -63,6 +63,7 @@ object SharedDependencies {
   val sttp          = mvn"com.softwaremill.sttp.client3::core:$SttpV"
   val awsS3         = mvn"software.amazon.awssdk:s3:$AwsSdkV"
   val awsTranscribe = mvn"software.amazon.awssdk:transcribe:$AwsSdkV"
+  val awsSesV2      = mvn"software.amazon.awssdk:sesv2:$AwsSdkV"
   val awsCloudfront = mvn"software.amazon.awssdk:cloudfront:$AwsSdkV"
 
   val circe: Seq[Dep] =
