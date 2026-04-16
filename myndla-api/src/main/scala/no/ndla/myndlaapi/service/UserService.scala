@@ -22,7 +22,7 @@ import no.ndla.database.{DBUtility, ReadableDbSession}
 import no.ndla.myndlaapi.Props
 import no.ndla.myndlaapi.integration.nodebb.NodeBBClient
 import no.ndla.myndlaapi.model.api.InactiveUserResultDTO
-import no.ndla.myndlaapi.repository.{FolderRepository, UserRepository}
+import no.ndla.myndlaapi.repository.UserRepository
 import no.ndla.network.clients.{FeideApiClient, FeideGroup}
 import no.ndla.network.model.{FeideAccessToken, FeideID, FeideUserWrapper}
 import scalikejdbc.DBSession

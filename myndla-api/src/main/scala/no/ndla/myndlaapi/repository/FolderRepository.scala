@@ -408,15 +408,6 @@ class FolderRepository(using
            where r.feide_id is null
          """.map(rs => rs.long("count")).runSingle()
 
-  def deleteAllUserResources(feideId: FeideID)(implicit session: DBSession = dbUtility.autoSession): Try[Int] = {
-    tsql"delete from ${dbResource.table} where feide_id = $feideId".update() match {
-      case Failure(ex)      => Failure(ex)
-      case Success(numRows) =>
-        logger.info(s"Deleted $numRows resources with feide_id = $feideId")
-        Success(numRows)
-    }
-  }
-
   def folderWithId(id: UUID)(implicit session: DBSession = dbUtility.readOnlySession): Try[Folder] =
     folderWhere(sqls"f.id=$id").flatMap {
       case None         => Failure(NotFoundException(s"Folder with id $id does not exist"))

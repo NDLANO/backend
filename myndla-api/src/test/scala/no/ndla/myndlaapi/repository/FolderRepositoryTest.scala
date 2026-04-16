@@ -506,26 +506,6 @@ class FolderRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with 
     result should be(Success(Some(expectedResult)))
   }
 
-  test("that deleteAllUserResources works as expected") {
-    implicit val session: DBSession = DBUtil.autoSession
-    userRepository.reserveFeideIdIfNotExists("feide1")
-    userRepository.reserveFeideIdIfNotExists("feide2")
-    userRepository.reserveFeideIdIfNotExists("feide3")
-
-    val created = NDLADate.now()
-
-    repository.insertResource("feide1", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide2", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide3", "/path1", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path2", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path3", ResourceType.Article, created, TestData.baseResourceDocument)
-    repository.insertResource("feide1", "/path4", ResourceType.Article, created, TestData.baseResourceDocument)
-
-    resourceCount() should be(6)
-    repository.deleteAllUserResources(feideId = "feide1") should be(Success(4))
-    resourceCount() should be(2)
-  }
-
   test("that getFoldersAndSubfoldersIds returns ids of folder and its subfolders") {
     implicit val session: DBSession = DBUtil.autoSession
     userRepository.reserveFeideIdIfNotExists(feideId)

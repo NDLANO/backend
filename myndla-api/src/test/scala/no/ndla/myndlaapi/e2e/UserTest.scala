@@ -210,9 +210,6 @@ class UserTest extends DatabaseIntegrationSuite with RedisIntegrationSuite with 
   }
 
   test("Creating and deleting user also deletes folders and resources") {
-    implicit val session: DBSession = myndlaApi.componentRegistry.dbUtil.autoSession
-    myndlaApi.componentRegistry.userService.getMyNDLAUser(feideId, None).get // Ensure user exists
-
     val f1 = createFolder(feideId, "folder1", None)
     addResourceToFolder(feideId, f1.id, api.NewResourceDTO(ResourceType.Article, "/article/1", None, "1"))
     addResourceToFolder(feideId, f1.id, api.NewResourceDTO(ResourceType.Article, "/article/2", None, "2"))
