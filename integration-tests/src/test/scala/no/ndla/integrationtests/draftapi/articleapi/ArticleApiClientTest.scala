@@ -23,6 +23,7 @@ import no.ndla.network.{AuthUser, NdlaClient}
 import no.ndla.scalatestsuite.{DatabaseIntegrationSuite, ElasticsearchIntegrationSuite}
 import no.ndla.validation.HtmlTagRules
 import no.ndla.{articleapi, draftapi}
+import org.mockito.Mockito.when
 import org.testcontainers.postgresql.PostgreSQLContainer
 
 import java.util.UUID
@@ -111,7 +112,7 @@ class ArticleApiClientTest
     created = NDLADate.fromUnixTime(0),
     updated = NDLADate.fromUnixTime(0),
     updatedBy = "updatedBy",
-    published = Some(NDLADate.fromUnixTime(0)),
+    published = None,
     revised = NDLADate.fromUnixTime(0),
     articleType = common.ArticleType.Standard,
     notes = Seq.empty,
@@ -175,6 +176,7 @@ class ArticleApiClientTest
 
   test("that updating articles should work") {
     dataFixer.setupArticles()
+    when(clock.now()).thenReturn(NDLADate.fromUnixTime(0))
 
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiClient = new ArticleApiClient(articleApiBaseUrl)
@@ -203,6 +205,7 @@ class ArticleApiClientTest
   }
 
   test("that verifying an article returns 200 if valid") {
+    when(clock.now()).thenReturn(NDLADate.fromUnixTime(0))
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     val result          = converterService
