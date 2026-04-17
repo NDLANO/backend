@@ -198,7 +198,7 @@ object TestData {
     id = articleId,
     oldNdlaUrl = Some(s"//red.ndla.no/node/$externalId"),
     revision = 2,
-    status = api.StatusDTO(PLANNED.toString, Seq.empty),
+    status = api.StatusDTO(PLANNED.toString, Seq(PUBLISHED.toString)),
     title = Some(api.ArticleTitleDTO("title", "title", "nb")),
     content = Some(api.ArticleContentDTO("content", "nb")),
     copyright = Some(
@@ -230,7 +230,7 @@ object TestData {
     created = today,
     updated = today,
     updatedBy = "ndalId54321",
-    published = None,
+    published = Some(today),
     revised = today,
     articleType = "standard",
     supportedLanguages = Seq("nb"),

@@ -134,9 +134,15 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("doTransition should publish the article when transitioning to PUBLISHED") {
+    val now             = NDLADate.now()
     val expectedStatus  = common.Status(PUBLISHED, Set.empty)
     val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, NDLADate.now()))
-    val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
+    val expectedArticle = InProcessArticle.copy(
+      status = expectedStatus,
+      notes = editorNotes,
+      published = Some(now),
+    )
+    when(clock.now()).thenReturn(now)
     when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
     when(converterService.getEmbeddedH5PPaths(any[Draft])).thenReturn(Seq.empty)
     when(h5pApiClient.publishH5Ps(eqTo(Seq.empty), any)).thenReturn(Success(()))
@@ -411,11 +417,17 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   test("publishArticle should call h5p api") {
     reset(h5pApiClient)
     reset(articleApiClient)
+    val now             = NDLADate.now()
     val h5pId           = "123-kulid-123"
     val h5pPaths        = Seq(s"/resource/$h5pId")
     val expectedStatus  = common.Status(PUBLISHED, Set.empty)
-    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, NDLADate.now()))
-    val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
+    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, now))
+    val expectedArticle = InProcessArticle.copy(
+      status = expectedStatus,
+      notes = editorNotes,
+      published = Some(now),
+    )
+    when(clock.now()).thenReturn(now)
     when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
     when(converterService.getEmbeddedH5PPaths(any[Draft])).thenReturn(h5pPaths)
     when(h5pApiClient.publishH5Ps(eqTo(h5pPaths), any)).thenReturn(Success(()))

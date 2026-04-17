@@ -489,11 +489,7 @@ class WriteService(using
         if (oldStatus == PUBLISHED) IN_PROGRESS
         else oldStatus
       val newStatus = newManualStatus.getOrElse(newStatusIfUndefined)
-
-      val maybePublished =
-        if (newStatus == DraftStatus.PUBLISHED) convertedArticle.copy(published = Some(clock.now()))
-        else convertedArticle
-      stateTransitionRules.doTransition(maybePublished, newStatus, user)
+      stateTransitionRules.doTransition(convertedArticle, newStatus, user)
     }
   }
 

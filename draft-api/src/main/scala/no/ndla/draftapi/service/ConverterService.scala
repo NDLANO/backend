@@ -109,6 +109,7 @@ class ConverterService(using
         updated = now,
         updatedBy = user.id,
         published = None,
+        firstPublished = None,
         revised =
           newArticle.revised.getOrElse(newArticle.published.getOrElse(now)), // TODO: Remove fallback when ed is updated
         articleType = common.ArticleType.valueOfOrError(newArticle.articleType),
@@ -720,6 +721,7 @@ class ConverterService(using
       updatedBy = user.id,
       published = publishedDate,
       revised = revisedDate,
+      firstPublished = toMergeInto.firstPublished,
       articleType = article.articleType.map(common.ArticleType.valueOfOrError).getOrElse(toMergeInto.articleType),
       notes = newNotes,
       previousVersionsNotes = toMergeInto.previousVersionsNotes,
