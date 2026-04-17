@@ -55,7 +55,7 @@ object TestData {
     description = List(Description("Step1Description", "nb")),
     embedUrl = List(),
     articleId = None,
-    `type` = StepType.INTRODUCTION,
+    `type` = StepType.TEXT,
     copyright = None,
     created = today,
     lastUpdated = today,

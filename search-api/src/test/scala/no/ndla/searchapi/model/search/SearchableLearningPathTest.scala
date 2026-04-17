@@ -48,8 +48,8 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
     val tags = SearchableLanguageList(Seq(LanguageValue("en", Seq("Mum", "Car", "Wroom"))))
 
     val learningsteps = List(
-      SearchableLearningStep(stepType = StepType.INTRODUCTION.toString),
-      SearchableLearningStep(stepType = StepType.SUMMARY.toString),
+      SearchableLearningStep(stepType = StepType.ARTICLE.toString),
+      SearchableLearningStep(stepType = StepType.EXTERNAL.toString),
       SearchableLearningStep(stepType = StepType.TEXT.toString),
     )
 
