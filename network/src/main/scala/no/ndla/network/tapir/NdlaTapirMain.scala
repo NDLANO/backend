@@ -15,9 +15,11 @@ import org.apache.logging.log4j.core.LoggerContext
 import org.apache.logging.log4j.jul.Log4jBridgeHandler
 import sttp.tapir.server.netty.sync.NettySyncServerBinding
 
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.Future
 import scala.io.Source
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
   val props: BaseProps
@@ -83,15 +85,36 @@ trait NdlaTapirMain[T <: TapirApplication[?]] extends StrictLogging {
   private def runServer(): Try[Unit] = {
     logCopyrightHeader()
     setupShutdownHook()
-    beforeStart()
 
-    Try(
-      startServerAndWait(props.ApplicationName, props.ApplicationPort) { binding =>
-        this.serverBinding = Some(binding)
-        performWarmup()
+    val serverStartedLatch = new CountDownLatch(1)
+    val serverFailure      = new AtomicReference[Option[Throwable]](None)
+
+    val serverThread = Thread
+      .ofPlatform()
+      .name("netty-server")
+      .start { () =>
+        Try {
+          startServerAndWait(props.ApplicationName, props.ApplicationPort) { binding =>
+            this.serverBinding = Some(binding)
+            serverStartedLatch.countDown()
+          }
+        }.failed.foreach(ex => serverFailure.set(Some(ex)))
+        serverStartedLatch.countDown()
       }
-    ).recover { ex =>
-      logger.error("Failed to start server, exiting...", ex)
+
+    serverStartedLatch.await()
+    serverFailure.get() match {
+      case Some(ex) => return Failure(ex)
+      case None     => ()
+    }
+
+    beforeStart()
+    performWarmup()
+
+    serverThread.join()
+    serverFailure.get() match {
+      case Some(ex) => Failure(ex)
+      case None     => Success(())
     }
   }
 
