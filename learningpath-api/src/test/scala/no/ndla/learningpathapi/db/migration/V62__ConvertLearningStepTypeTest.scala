@@ -16,27 +16,35 @@ class V62__ConvertLearningStepTypeTest extends UnitSuite with TestEnvironment {
   test("that article steps removes remaining embedUrls") {
     val document = """
         |{
-        | "type": "TEXT",
-        | "embedUrl": [
+        | "learningsteps": [
         |   {
-        |     "url": "/article-iframe/12345",
-        |     "language": "nb",
-        |     "embedType": "iframe"
-        |   }
-        |  ],
-        |  "articleId": 1
+        |     "type": "TEXT",
+        |     "embedUrl": [
+        |       {
+        |         "url": "/article-iframe/12345",
+        |         "language": "nb",
+        |         "embedType": "iframe"
+        |       }
+        |     ],
+        |   "articleId": 1
+        |  }
+        | ]
         |}
         |""".stripMargin
 
     val expectedDocument = """
         |{
-        |   "type": "ARTICLE",
-        |   "embedUrl": [],
-        |   "articleId": 1
+        | "learningsteps": [
+        |   {
+        |     "type": "ARTICLE",
+        |     "embedUrl": [],
+        |     "articleId": 1
+        |   }
+        | ]
         |}
         |""".stripMargin
 
-    val result = migration.convertStep(document)
+    val result = migration.convertColumn(document)
 
     val resultJson   = CirceUtil.unsafeParse(result)
     val expectedJson = CirceUtil.unsafeParse(expectedDocument)
@@ -47,27 +55,35 @@ class V62__ConvertLearningStepTypeTest extends UnitSuite with TestEnvironment {
 
     val document = """
         |{
-        | "type": "INTRODUCTION",
-        | "embedUrl": [
+        | "learningsteps": [
         |   {
-        |     "url": "",
-        |     "language": "nb",
-        |     "embedType": "iframe"
-        |   }
-        |  ],
-        |  "articleId": null
+        |     "type": "INTRODUCTION",
+        |     "embedUrl": [
+        |       {
+        |         "url": "",
+        |         "language": "nb",
+        |          "embedType": "iframe"
+        |       }
+        |     ],
+        |     "articleId": null
+        |  }
+        | ]
         |}
         |""".stripMargin
 
     val expectedDocument = """
          |{
-         |   "type": "TEXT",
-         |   "embedUrl": [],
-         |   "articleId": null
+         |  "learningsteps": [
+         |    {
+         |      "type": "TEXT",
+         |      "embedUrl": [],
+         |      "articleId": null
+         |    }
+         |   ]
          |}
          |""".stripMargin
 
-    val result = migration.convertStep(document)
+    val result = migration.convertColumn(document)
 
     val resultJson   = CirceUtil.unsafeParse(result)
     val expectedJson = CirceUtil.unsafeParse(expectedDocument)
@@ -78,38 +94,46 @@ class V62__ConvertLearningStepTypeTest extends UnitSuite with TestEnvironment {
 
     val document = """
          |{
-         | "type": "INTRODUCTION",
-         | "embedUrl": [
-         |   {
-         |     "url": "/article-iframe/12345",
-         |     "language": "nb",
-         |     "embedType": "iframe"
-         |   },
-         |   {
-         |    "url": "",
-         |    "language": "nn",
-         |    "embedType": "iframe"
-         |   }
-         |  ],
-         |  "articleId": null
+         | "learningsteps": [
+         |  {
+         |    "type": "INTRODUCTION",
+         |    "embedUrl": [
+         |      {
+         |        "url": "/article-iframe/12345",
+         |        "language": "nb",
+         |        "embedType": "iframe"
+         |      },
+         |      {
+         |        "url": "",
+         |        "language": "nn",
+         |        "embedType": "iframe"
+         |      }
+         |     ],
+         |    "articleId": null
+         |    }
+         |  ]
          |}
          |""".stripMargin
 
     val expectedDocument = """
          |{
-         |   "type": "EXTERNAL",
-         |   "embedUrl": [
+         |  "learningsteps": [
          |    {
-         |     "url": "/article-iframe/12345",
-         |     "language": "nb",
-         |     "embedType": "iframe"
+         |      "type": "EXTERNAL",
+         |      "embedUrl": [
+         |        {
+         |          "url": "/article-iframe/12345",
+         |          "language": "nb",
+         |          "embedType": "iframe"
+         |        }
+         |      ],
+         |      "articleId": null
          |    }
-         |   ],
-         |   "articleId": null
+         |   ]
          |}
          |""".stripMargin
 
-    val result = migration.convertStep(document)
+    val result = migration.convertColumn(document)
 
     val resultJson   = CirceUtil.unsafeParse(result)
     val expectedJson = CirceUtil.unsafeParse(expectedDocument)
