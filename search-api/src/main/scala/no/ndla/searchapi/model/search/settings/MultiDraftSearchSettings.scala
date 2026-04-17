@@ -57,6 +57,7 @@ case class MultiDraftSearchSettings(
     publishedFilterTo: Option[NDLADate],
     resultTypes: Option[List[SearchType]],
     tags: List[String],
+    isRepublished: Option[Boolean],
 )
 
 object MultiDraftSearchSettings {
@@ -99,5 +100,6 @@ object MultiDraftSearchSettings {
     publishedFilterFrom = None,
     resultTypes = Some(List(SearchType.Articles, SearchType.LearningPaths)),
     tags = List.empty,
+    isRepublished = None,
   )
 }

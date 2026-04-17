@@ -565,6 +565,7 @@ class SearchConverterService(using
         favorited = favorited,
         learningResourceType = learningResourceType,
         typeName = typeNames,
+        isRepublished = draft.published != draft.firstPublished,
         domainObject = draft,
         nodes = nodes,
       )

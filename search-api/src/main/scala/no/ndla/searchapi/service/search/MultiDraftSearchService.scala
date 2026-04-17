@@ -315,6 +315,8 @@ class MultiDraftSearchService(using
         Some(boolQuery().should(settings.tags.map(q => termQuery(s"tags.${settings.language}.exact", q))))
       } else None
 
+    val isRepublishedFilter = settings.isRepublished.map(isRepublished => termQuery("isRepublished", isRepublished))
+
     val embedResourceAndIdFilter =
       buildNestedEmbedField(settings.embedResource, settings.embedId, settings.language, settings.fallback)
 
@@ -361,6 +363,7 @@ class MultiDraftSearchService(using
       grepCodesFilter,
       traitsFilter,
       tagsFilter,
+      isRepublishedFilter,
       embedResourceAndIdFilter,
       revisionDateFilter,
       publishedDateFilter,

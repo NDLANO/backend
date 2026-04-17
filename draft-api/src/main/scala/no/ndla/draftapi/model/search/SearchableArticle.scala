@@ -31,6 +31,7 @@ case class SearchableArticle(
     grepCodes: Seq[String],
     status: SearchableStatus,
     traits: List[ArticleTrait],
+    isRepublished: Boolean,
 )
 
 object SearchableArticle {

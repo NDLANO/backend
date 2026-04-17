@@ -125,6 +125,7 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       favorited = 0,
       learningResourceType = LearningResourceType.Article,
       typeName = List.empty,
+      isRepublished = false,
       domainObject = TestData
         .draft1
         .copy(

@@ -109,6 +109,8 @@ case class DraftSearchParamsDTO(
     resultTypes: Option[List[SearchType]],
     @description("Only return results that have one of the specified tags.")
     tags: Option[List[String]],
+    @description("Only return results matching the isRepublished flag.")
+    isRepublished: Option[Boolean],
 )
 
 object DraftSearchParamsDTO {

@@ -709,6 +709,7 @@ object TestData {
       metaDescription = List.empty,
       created = today.minusDays(4),
       updated = today.minusDays(3),
+      firstPublished = Some(today.minusDays(3)),
       grepCodes = Seq("K123", "K456"),
       responsible = Some(Responsible("ndalId54321", today.minusDays(3))),
     )
@@ -731,6 +732,7 @@ object TestData {
       metaDescription = List.empty,
       created = today.minusDays(4),
       updated = today.minusDays(2),
+      firstPublished = Some(today.minusDays(3)),
       grepCodes = Seq("K456", "K123"),
     )
 
@@ -1863,6 +1865,7 @@ object TestData {
     publishedFilterTo = None,
     resultTypes = None,
     tags = List.empty,
+    isRepublished = None,
   )
 
   val searchableResourceTypes: List[ContextResourceType] = List(
@@ -1998,6 +2001,7 @@ object TestData {
     favorited = 0,
     learningResourceType = LearningResourceType.Article,
     typeName = List(),
+    isRepublished = false,
     domainObject = TestData
       .draft1
       .copy(
