@@ -269,6 +269,48 @@ class ArticleRepositoryTest extends DatabaseIntegrationSuite with UnitSuite with
     relatedId should be(2L)
   }
 
+  test("That withIds returns the latest revision of each requested article and respects paging") {
+    val article  = TestData.sampleDomainArticle
+    val articles = Seq(
+      article.copy(id = 1L.some, revision = 1.some),
+      article.copy(id = 1L.some, revision = 2.some),
+      article.copy(id = 2L.some, revision = 1.some),
+      article.copy(id = 3L.some, revision = 1.some),
+      article.copy(id = 3L.some, revision = 2.some),
+      article.copy(id = 3L.some, revision = 3.some),
+    )
+
+    articles.foreach(repository.updateArticleFromDraftApi(_)(using dbUtility.autoSession).failIfFailure)
+
+    val all = repository.withIds(List(1L, 2L, 3L), 0, 10)(using dbUtility.readOnlySession).failIfFailure
+    all.map(r => r.articleId -> r.revision) should be(Seq(1L -> 2, 2L -> 1, 3L -> 3))
+
+    val page1 = repository.withIds(List(1L, 2L, 3L), 0, 2)(using dbUtility.readOnlySession).failIfFailure
+    val page2 = repository.withIds(List(1L, 2L, 3L), 2, 2)(using dbUtility.readOnlySession).failIfFailure
+    page1.size should be(2)
+    page2.size should be(1)
+    (
+      page1 ++ page2
+    ).map(_.articleId) should be(Seq(1L, 2L, 3L))
+  }
+
+  test("That articleCount counts only the latest article revisions") {
+    val article  = TestData.sampleDomainArticle
+    val articles = Seq(
+      article.copy(id = 1L.some, revision = 1.some),
+      article.copy(id = 1L.some, revision = 2.some),
+      article.copy(id = 2L.some, revision = 1.some),
+    )
+
+    articles.foreach(repository.updateArticleFromDraftApi(_)(using dbUtility.autoSession).failIfFailure)
+
+    repository.articleCount(using dbUtility.readOnlySession).failIfFailure should be(2)
+
+    repository.unpublishMaxRevision(1L)(using dbUtility.autoSession).failIfFailure
+
+    repository.articleCount(using dbUtility.readOnlySession).failIfFailure should be(1)
+  }
+
   test("Dumping articles should ignore unpublished ones") {
     val articleId = 110L
     val article   = TestData.sampleDomainArticle.copy(id = Some(articleId))

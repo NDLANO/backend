@@ -122,6 +122,7 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
         where ar2.article_id = ar.article_id
         and ar2.revision > ar.revision
       )
+      order by ar.article_id
       offset $offset
       limit $pageSize
     """.map(dbArticle.Article.fromResultSet(ar)).runList()

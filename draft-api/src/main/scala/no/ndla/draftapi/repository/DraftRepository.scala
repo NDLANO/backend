@@ -230,6 +230,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
           where dr2.article_id = dr.article_id
           and dr2.revision > dr.revision
       )
+      order by dr.article_id
       offset $offset
       limit $pageSize
     """.map(dbDraft.fromResultSet(dr)).runList()
