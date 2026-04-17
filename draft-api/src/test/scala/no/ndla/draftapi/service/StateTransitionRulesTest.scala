@@ -141,6 +141,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       status = expectedStatus,
       notes = editorNotes,
       published = Some(now),
+      firstPublished = Some(now),
     )
     when(clock.now()).thenReturn(now)
     when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
@@ -347,6 +348,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       updatedBy = "",
       published = None,
       revised = clock.now(),
+      firstPublished = None,
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
       previousVersionsNotes = Seq.empty,
@@ -426,6 +428,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       status = expectedStatus,
       notes = editorNotes,
       published = Some(now),
+      firstPublished = Some(now),
     )
     when(clock.now()).thenReturn(now)
     when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
@@ -480,6 +483,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       updatedBy = "updated",
       published = None,
       revised = clock.now(),
+      firstPublished = None,
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
       previousVersionsNotes = Seq.empty,
@@ -541,6 +545,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       updatedBy = "updated",
       published = None,
       revised = clock.now(),
+      firstPublished = None,
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
       previousVersionsNotes = Seq.empty,
@@ -604,6 +609,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       updatedBy = "updated",
       published = Some(clock.now()),
       revised = clock.now(),
+      firstPublished = Some(clock.now()),
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
       previousVersionsNotes = Seq.empty,
@@ -667,6 +673,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       updatedBy = "updated",
       published = Some(clock.now()),
       revised = clock.now(),
+      firstPublished = Some(clock.now()),
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
       previousVersionsNotes = Seq.empty,

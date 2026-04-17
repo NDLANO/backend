@@ -242,6 +242,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
       select article_id, external_id
       from ${dbDraft.as(dr)}
       where dr.document is not NULL and dr.document#>>'{status,current}' = ${status.toString}
+      order by article_id asc
     """.map(rs => ArticleIds(rs.long("article_id"), externalIdsFromResultSet(rs))).runList()
   }
 

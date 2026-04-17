@@ -37,6 +37,7 @@ case class Draft(
     updatedBy: String,
     published: Option[NDLADate],
     revised: NDLADate,
+    firstPublished: Option[NDLADate],
     articleType: ArticleType,
     notes: Seq[EditorNote],
     previousVersionsNotes: Seq[EditorNote],

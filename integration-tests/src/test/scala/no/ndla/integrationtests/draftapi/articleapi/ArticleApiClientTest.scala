@@ -114,6 +114,7 @@ class ArticleApiClientTest
     updatedBy = "updatedBy",
     published = None,
     revised = NDLADate.fromUnixTime(0),
+    firstPublished = None,
     articleType = common.ArticleType.Standard,
     notes = Seq.empty,
     previousVersionsNotes = Seq.empty,

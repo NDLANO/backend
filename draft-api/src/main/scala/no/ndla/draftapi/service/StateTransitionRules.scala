@@ -78,8 +78,12 @@ class StateTransitionRules(using
     (article, user) =>
       article.id match {
         case Some(id) => for {
-            _             <- h5pApiClient.publishH5Ps(converterService.getEmbeddedH5PPaths(article), user)
-            withDates      = article.copy(published = Some(clock.now()))
+            _        <- h5pApiClient.publishH5Ps(converterService.getEmbeddedH5PPaths(article), user)
+            now       = clock.now()
+            withDates = article.published match {
+              case Some(_) => article.copy(published = Some(now))
+              case None    => article.copy(published = Some(now), firstPublished = Some(now))
+            }
             taxonomyT      = taxonomyApiClient.updateTaxonomyIfExists(id, article, user)
             articleUpdateT = articleApiClient.updateArticle(id, withDates, useSoftValidation, user)
             _             <- taxonomyT
