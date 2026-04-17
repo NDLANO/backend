@@ -505,7 +505,7 @@ class ConverterService(using
               created = draft.created,
               updated = draft.updated,
               updatedBy = draft.updatedBy,
-              published = clock.now(),
+              published = draft.published.getOrElse(clock.now()),
               revised = draft.revised,
               articleType = draft.articleType,
               grepCodes = draft.grepCodes,

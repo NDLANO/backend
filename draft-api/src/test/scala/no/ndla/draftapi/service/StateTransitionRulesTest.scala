@@ -339,7 +339,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       created = clock.now(),
       updated = clock.now(),
       updatedBy = "",
-      published = Some(clock.now()),
+      published = None,
       revised = clock.now(),
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
@@ -451,7 +451,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       id = Some(articleId),
       revision = None,
       externalIds = None,
-      status = common.Status(PLANNED, Set.empty),
+      status = common.Status(IN_PROGRESS, Set.empty),
       title = Seq.empty,
       content = Seq.empty,
       copyright = Some(
@@ -466,7 +466,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       created = clock.now(),
       updated = clock.now(),
       updatedBy = "updated",
-      published = Some(clock.now()),
+      published = None,
       revised = clock.now(),
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
@@ -493,6 +493,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       val x = i.getArgument[Draft](1)
       Success(x)
     })
+    when(h5pApiClient.publishH5Ps(any, any)).thenReturn(Success(()))
 
     for (t <- transitionsToTest) {
       val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
@@ -526,7 +527,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       created = clock.now(),
       updated = clock.now(),
       updatedBy = "updated",
-      published = Some(clock.now()),
+      published = None,
       revised = clock.now(),
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
@@ -556,6 +557,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(articleApiClient.unpublishArticle(any, any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Draft](0))
     )
+    when(searchApiClient.publishedWhereUsed(any, any)).thenReturn(Seq())
     for (t <- transitionsToTest) {
       val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
       val result    = stateTransitionRules.doTransition(fromDraft, ARCHIVED, TestData.userWithAdminAccess)
@@ -573,7 +575,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       id = Some(articleId),
       revision = None,
       externalIds = None,
-      status = common.Status(PLANNED, Set.empty),
+      status = common.Status(PUBLISHED, Set.empty),
       title = Seq.empty,
       content = Seq.empty,
       copyright = Some(
