@@ -92,6 +92,7 @@ object TestData {
         introduction = "Intro",
         coverPhoto = domain.CoverPhoto(imageId = "1", altText = "alt"),
         language = "nb",
+        released = None,
       )
     ),
     audioType = AudioType.Podcast,

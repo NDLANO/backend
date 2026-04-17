@@ -56,7 +56,12 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
           .podcastMeta
           .find(_.language == lv.language)
           .map(meta => {
-            domain.PodcastMeta(introduction = lv.value, coverPhoto = meta.coverPhoto, language = lv.language)
+            domain.PodcastMeta(
+              introduction = lv.value,
+              coverPhoto = meta.coverPhoto,
+              language = lv.language,
+              released = meta.released,
+            )
           })
       })
 
@@ -130,7 +135,7 @@ class SearchConverterService(using converterService: ConverterService, props: Pr
 
     val searchablePodcastMeta = ai
       .podcastMeta
-      .map(pm => SearchablePodcastMeta(coverPhoto = pm.coverPhoto, language = pm.language))
+      .map(pm => SearchablePodcastMeta(coverPhoto = pm.coverPhoto, language = pm.language, released = pm.released))
 
     val searchableAudios = ai.filePaths.map(fp => SearchableAudio(fp.filePath, fp.language))
 

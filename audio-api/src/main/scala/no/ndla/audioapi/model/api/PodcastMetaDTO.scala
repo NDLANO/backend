@@ -11,6 +11,7 @@ package no.ndla.audioapi.model.api
 import sttp.tapir.Schema.annotations.description
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.NDLADate
 
 @description("Meta information about podcast audio")
 case class PodcastMetaDTO(
@@ -20,6 +21,8 @@ case class PodcastMetaDTO(
     coverPhoto: CoverPhotoDTO,
     @description("ISO 639-1 code that represents the language used in the title")
     language: String,
+    @description("The time the podcast was released from its source")
+    released: Option[NDLADate],
 )
 
 object PodcastMetaDTO {

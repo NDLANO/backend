@@ -539,9 +539,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         domain.Manuscript("Manuscript", "en"),
       ),
       podcastMeta = List(
-        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nb"),
-        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nn"),
-        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en"),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nb", None),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nn", None),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en", None),
       ),
     )
 
@@ -552,8 +552,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       tags = List(common.Tag(List("and"), "nb"), common.Tag(List("duck"), "en")),
       manuscript = List(domain.Manuscript("Manuskript", "nb"), domain.Manuscript("Manuscript", "en")),
       podcastMeta = List(
-        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nb"),
-        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en"),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nb", None),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en", None),
       ),
     )
 
