@@ -801,8 +801,7 @@ export type components = {
             articleId?: number;
             /** @description Determines if the title of the step should be displayed in viewmode */
             showTitle: boolean;
-            /** @description The type of the step */
-            type: string;
+            type: components["schemas"]["StepType"];
             /**
              * @deprecated
              * @description Describes the copyright information for the learningstep
@@ -1058,6 +1057,12 @@ export type components = {
          * @enum {string}
          */
         Sort: "-id" | "id" | "-relevance" | "relevance" | "-lastUpdated" | "lastUpdated" | "-duration" | "duration" | "-title" | "title";
+        /**
+         * StepType
+         * @description The type of the step
+         * @enum {string}
+         */
+        StepType: "ARTICLE" | "TEXT" | "EXTERNAL";
         /** TitleDTO */
         TitleDTO: {
             /** @description The title of the content. Must be plain text */
@@ -1236,6 +1241,7 @@ export type RevisionMetaDTO = components['schemas']['RevisionMetaDTO'];
 export type SearchParamsDTO = components['schemas']['SearchParamsDTO'];
 export type SearchResultV2DTO = components['schemas']['SearchResultV2DTO'];
 export type Sort = components['schemas']['Sort'];
+export type StepType = components['schemas']['StepType'];
 export type TitleDTO = components['schemas']['TitleDTO'];
 export type UpdateLearningPathStatusDTO = components['schemas']['UpdateLearningPathStatusDTO'];
 export type UpdatedCommentDTO = components['schemas']['UpdatedCommentDTO'];
