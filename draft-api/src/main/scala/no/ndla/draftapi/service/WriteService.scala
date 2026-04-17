@@ -131,6 +131,7 @@ class WriteService(using
               updatedBy = userInfo.id,
               revised = clock.now(),
               published = None,
+              firstPublished = None,
               notes = notes,
               responsible = newResponsible,
             )
@@ -430,6 +431,7 @@ class WriteService(using
           updated = NDLADate.MIN,
           revised = NDLADate.MIN,
           published = None,
+          firstPublished = None,
           updatedBy = "",
           availability = common.Availability.everyone,
           grepCodes = Seq.empty,

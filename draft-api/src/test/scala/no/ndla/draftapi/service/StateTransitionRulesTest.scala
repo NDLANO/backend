@@ -136,7 +136,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   test("doTransition should publish the article when transitioning to PUBLISHED") {
     val now             = NDLADate.now()
     val expectedStatus  = common.Status(PUBLISHED, Set.empty)
-    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, NDLADate.now()))
+    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, now))
     val expectedArticle = InProcessArticle.copy(
       status = expectedStatus,
       notes = editorNotes,

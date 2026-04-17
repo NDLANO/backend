@@ -477,6 +477,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         created = yesterday.minusDays(1),
         updated = yesterday,
         published = Some(yesterday),
+        firstPublished = Some(yesterday),
         revised = yesterday,
       )
 
@@ -494,6 +495,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updated = today,
       updatedBy = userinfo.id,
       published = None,
+      firstPublished = None,
       revised = today,
       notes = article.notes ++
         converterService
@@ -530,6 +532,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         created = yesterday.minusDays(1),
         updated = yesterday,
         published = Some(yesterday),
+        firstPublished = Some(yesterday),
         revised = yesterday,
       )
 
@@ -546,6 +549,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       updated = today,
       updatedBy = userinfo.id,
       published = None,
+      firstPublished = None,
       revised = today,
       notes = article.notes ++
         converterService
