@@ -558,6 +558,8 @@ export type components = {
             coverPhotoId: string;
             /** @description Cover photo alttext for the podcast */
             coverPhotoAltText: string;
+            /** @description The time the podcast was released from its source */
+            released?: string;
         };
         /**
          * NewSeriesDTO
@@ -614,6 +616,8 @@ export type components = {
             coverPhoto: components["schemas"]["CoverPhotoDTO"];
             /** @description ISO 639-1 code that represents the language used in the title */
             language: string;
+            /** @description The time the podcast was released from its source */
+            released?: string;
         };
         /**
          * SearchParamsDTO
