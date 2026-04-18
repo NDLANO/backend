@@ -16,6 +16,12 @@ trait OpenAPITSPlugin extends JavaModule {
 
   def typescriptModuleDir: Path = BuildCtx.workspaceRoot / "typescript" / "types-backend"
 
+  // Extra classpath entries to add when running the app with --generate-openapi.
+  // Scala/tapir modules don't need anything beyond runClasspath; Java modules that rely
+  // on test-scoped dependencies to boot (e.g. taxonomy-api's testcontainers JDBC driver)
+  // override this to mix in their test classpath.
+  def openApiExtraRunClasspath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+
   def generateTypescript: T[Unit] =
     if (isComponent) Task {
       typescript.outputFiles()()
@@ -33,7 +39,12 @@ trait OpenAPITSPlugin extends JavaModule {
     def generateOpenApiFiles: T[PathRef] = Task {
       Task.log.info(s"Generating OpenAPI file by calling $moduleName...")
       Try(
-        runner().run(args = Args("--generate-openapi").value, mainClass = finalMainClass(), workingDir = Task.dest)
+        runner().run(
+          args = Args("--generate-openapi").value,
+          mainClass = finalMainClass(),
+          workingDir = Task.dest,
+          extraRunClasspath = openApiExtraRunClasspath().map(_.path),
+        )
       ) match {
         case Success(_) => ()
         case Failure(_) => Task.fail("Subprocess failed")

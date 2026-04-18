@@ -1,16 +1,12 @@
 package build.`taxonomy-api`
 
 import mill.*
-import mill.api.BuildCtx
 import mill.scalalib.*
 import build.modules.{JavaBaseModule, JavaDockerComponent, SharedDependencies}
 
 object `package` extends JavaBaseModule, JavaDockerComponent {
-  override def moduleName: String          = "taxonomy-api"
+  override def moduleName: String           = "taxonomy-api"
   override def mainClass: T[Option[String]] = Task { Some("no.ndla.taxonomy.TaxonomyApplication") }
-
-  override def typescriptModuleDir: os.Path =
-    BuildCtx.workspaceRoot / "taxonomy-api" / "typescript"
 
   override def bomMvnDeps: T[Seq[Dep]] = Task { SharedDependencies.springBootBoms }
 
@@ -21,6 +17,11 @@ object `package` extends JavaBaseModule, JavaDockerComponent {
   override def compileMvnDeps: T[Seq[Dep]] = Task {
     SharedDependencies.springBootAnnotationProcessors
   }
+
+  // The `typescript` Spring profile points at `jdbc:tc:postgresql://...`, which needs
+  // testcontainers' JDBC driver on the runtime classpath. Those are test-scoped, so
+  // bring them in only for the OpenAPI→TS generation task.
+  override def openApiExtraRunClasspath: T[Seq[PathRef]] = Task { test.runClasspath() }
 
   object test extends TestBase {
     override def bomMvnDeps: T[Seq[Dep]] = Task { SharedDependencies.springBootBoms }

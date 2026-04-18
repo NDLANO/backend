@@ -11,7 +11,3 @@ target
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
-
-# Typescript
-/typescript/node_modules
-/typescript/build
