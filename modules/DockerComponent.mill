@@ -3,7 +3,7 @@ package build.modules
 import mill._, mill.scalalib._
 import contrib.docker.DockerModule
 
-trait DockerComponent extends ScalaModule, DockerModule {
+trait DockerComponent extends JavaModule, DockerModule {
   override def assemblyRules: Seq[Assembly.Rule] = {
     super.assemblyRules ++ Seq(
       Assembly.Rule.Exclude("module-info.class"),

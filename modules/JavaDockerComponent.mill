@@ -1,0 +1,15 @@
+package build.modules
+
+import mill.*
+import mill.scalalib.*
+
+trait JavaDockerComponent extends DockerComponent {
+  override def assemblyRules: Seq[Assembly.Rule] = super.assemblyRules ++ Seq(
+    // Spring Boot 3 autoconfig lives in META-INF/spring/*.imports; concatenate across jars.
+    Assembly.Rule.AppendPattern("META-INF/spring/.*\\.imports", "\n"),
+    Assembly.Rule.Append("META-INF/spring.factories", "\n"),
+    Assembly.Rule.Append("META-INF/spring.handlers", "\n"),
+    Assembly.Rule.Append("META-INF/spring.schemas", "\n"),
+    Assembly.Rule.AppendPattern("META-INF/additional-spring-configuration-metadata\\.json", ","),
+  )
+}

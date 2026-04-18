@@ -1,0 +1,29 @@
+package build.modules
+
+import mill.*
+import mill.scalalib.*
+import mill.javalib.spotless.SpotlessModule
+
+trait JavaBaseModule
+    extends MavenModule,
+      AutoEnvLoading,
+      OpenAPITSPlugin,
+      GithubWorkflowPlugin,
+      SpotlessModule {
+  def moduleName: String
+  def test: JavaTests
+
+  override def javacOptions: T[Seq[String]] = Task {
+    super.javacOptions() ++ Seq("-parameters")
+  }
+
+  def fmt(): Task.Command[Unit] = Task.Command {
+    spotless(mainargs.Flag(false))()
+  }
+
+  trait TestBase extends MavenTests, TestModule.Junit5 {
+    override def forkArgs: T[Seq[String]] = Task {
+      super.forkArgs() ++ Seq("-XX:+EnableDynamicAgentLoading", "-Xshare:off")
+    }
+  }
+}

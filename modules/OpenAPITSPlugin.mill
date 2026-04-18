@@ -10,9 +10,11 @@ import os.Path
 import java.io.{BufferedWriter, File, FileWriter}
 import scala.util.{Failure, Success, Try}
 
-trait OpenAPITSPlugin extends ScalaModule {
+trait OpenAPITSPlugin extends JavaModule {
   def moduleName: String
   def isComponent: Boolean = true
+
+  def typescriptModuleDir: Path = BuildCtx.workspaceRoot / "typescript" / "types-backend"
 
   def generateTypescript: T[Unit] =
     if (isComponent) Task {
@@ -23,7 +25,7 @@ trait OpenAPITSPlugin extends ScalaModule {
     }
 
   object typescript extends Module {
-    override def moduleDir: Path = BuildCtx.workspaceRoot / "typescript" / "types-backend"
+    override def moduleDir: Path = typescriptModuleDir
 
     def sources: T[Seq[PathRef]] =
       Task.Sources("package.json", "yarn.lock", os.SubPath("scripts") / "generate-openapi.ts")

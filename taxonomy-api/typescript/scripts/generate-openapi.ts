@@ -9,8 +9,12 @@
 import fs from "node:fs";
 import openapiTS, { astToString } from "openapi-typescript";
 
-async function generate_types() {
-  const jsonFile = `./openapi.json`;
+if (process.argv.length !== 3) {
+  throw new Error("Invalid use");
+}
+
+async function generate_types(appName: string) {
+  const jsonFile = `./openapi/${appName}.json`;
   console.log(`Parsing ${jsonFile} to generate typescript files...`);
   const schema = await fs.promises.readFile(jsonFile, "utf8");
   const schemaContent = JSON.parse(schema);
@@ -23,13 +27,11 @@ async function generate_types() {
     rootTypesNoSchemaPrefix: true,
   });
 
-  const outputPath = `./taxonomy-api.ts`;
-
+  const outputPath = `./${appName}.ts`;
   const output = astToString(ast);
 
   console.log(`Outputting to ${outputPath}`);
-
   fs.writeFileSync(outputPath, output);
 }
 
-generate_types();
+generate_types(process.argv[2]);

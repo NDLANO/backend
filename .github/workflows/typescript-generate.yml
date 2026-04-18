@@ -42,5 +42,6 @@ jobs:
           git config user.name "github-actions"
 
           git add typescript/*
+          git add taxonomy-api/typescript/*
           git commit -m "AUTOMATION: Generated new typescript files"
           git push

@@ -7,7 +7,7 @@ import os.Path
 import scala.util.{Failure, Success, Try}
 import scala.io.Source
 
-trait AutoEnvLoading extends ScalaModule {
+trait AutoEnvLoading extends JavaModule {
   def moduleName: String
 
   private def removeQuotes(value: String): String = value.trim match {
