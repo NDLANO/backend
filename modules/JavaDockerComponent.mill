@@ -3,13 +3,90 @@ package build.modules
 import mill.*
 import mill.scalalib.*
 
+import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
+import scala.jdk.CollectionConverters.*
+import scala.collection.mutable
+
 trait JavaDockerComponent extends DockerComponent {
+  // Spring Boot 3 autoconfig lives in META-INF/spring/*.imports; concatenate across jars.
   override def assemblyRules: Seq[Assembly.Rule] = super.assemblyRules ++ Seq(
-    // Spring Boot 3 autoconfig lives in META-INF/spring/*.imports; concatenate across jars.
     Assembly.Rule.AppendPattern("META-INF/spring/.*\\.imports", "\n"),
-    Assembly.Rule.Append("META-INF/spring.factories", "\n"),
     Assembly.Rule.Append("META-INF/spring.handlers", "\n"),
     Assembly.Rule.Append("META-INF/spring.schemas", "\n"),
-    Assembly.Rule.AppendPattern("META-INF/additional-spring-configuration-metadata\\.json", ","),
   )
+
+  // Post-process the shaded jar: Mill's text-concat merge of META-INF/spring.factories
+  // produces duplicate keys, which java.util.Properties silently overwrites. Re-parse and
+  // merge factory values per key so Spring Boot's SpringFactoriesLoader sees all entries.
+  override def assembly: T[PathRef] = Task {
+    val upstream = super.assembly()
+    val fixed    = Task.dest / "out.jar"
+    val src      = upstream.path
+    val in       = new ZipFile(src.toIO)
+    try {
+      val out = new ZipOutputStream(os.write.outputStream(fixed))
+      try {
+        in.entries().asScala.foreach { entry =>
+          val name = entry.getName
+          val newEntry = new ZipEntry(name)
+          out.putNextEntry(newEntry)
+          if (name == "META-INF/spring.factories") {
+            val original = scala.io.Source.fromInputStream(in.getInputStream(entry))("UTF-8").mkString
+            val merged   = mergeSpringFactories(original)
+            out.write(merged.getBytes("UTF-8"))
+          } else {
+            val is = in.getInputStream(entry)
+            try os.Internals.transfer(is, out)
+            finally is.close()
+          }
+          out.closeEntry()
+        }
+      } finally out.close()
+    } finally in.close()
+    PathRef(fixed)
+  }
+
+  private def mergeSpringFactories(content: String): String = {
+    val collapsed = new StringBuilder
+    content.linesIterator.foreach { raw =>
+      val line = raw.stripTrailing()
+      if (collapsed.nonEmpty && collapsed.last == '\\') {
+        collapsed.deleteCharAt(collapsed.length - 1)
+        collapsed.append(line.stripLeading())
+      } else {
+        if (collapsed.nonEmpty) collapsed.append('\n')
+        collapsed.append(line)
+      }
+    }
+    val keyToValues = mutable.LinkedHashMap[String, mutable.LinkedHashSet[String]]()
+    collapsed.toString.linesIterator.foreach { line =>
+      val trimmed = line.trim
+      if (trimmed.nonEmpty && !trimmed.startsWith("#") && !trimmed.startsWith("!")) {
+        val sep = {
+          val eq = trimmed.indexOf('=')
+          val cl = trimmed.indexOf(':')
+          if (eq < 0) cl else if (cl < 0) eq else math.min(eq, cl)
+        }
+        if (sep > 0) {
+          val key    = trimmed.substring(0, sep).trim
+          val values = trimmed.substring(sep + 1).split(",").map(_.trim).filter(_.nonEmpty)
+          val bucket = keyToValues.getOrElseUpdate(key, mutable.LinkedHashSet.empty[String])
+          values.foreach(bucket.add)
+        }
+      }
+    }
+    val sb = new StringBuilder
+    keyToValues.foreach { case (key, values) =>
+      val list = values.toSeq
+      if (list.nonEmpty) {
+        sb.append(key).append("=\\\n")
+        list.zipWithIndex.foreach { case (v, i) =>
+          sb.append(v)
+          if (i < list.size - 1) sb.append(",\\")
+          sb.append('\n')
+        }
+      }
+    }
+    sb.toString
+  }
 }
