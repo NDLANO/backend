@@ -285,9 +285,10 @@ public class NodeService {
                 .findFirstByPublicId(nodePublicId)
                 .orElseThrow(() -> new NotFoundServiceException("Node was not found"));
         if (recursive) {
-            node.getChildConnections().forEach(nc -> nc.getChild()
-                    .filter(n -> n.getNodeType() != NodeType.RESOURCE)
-                    .map(n -> makeAllResourcesPrimary(n.getPublicId(), true)));
+            node.getChildConnections()
+                    .forEach(nc -> nc.getChild()
+                            .filter(n -> n.getNodeType() != NodeType.RESOURCE)
+                            .map(n -> makeAllResourcesPrimary(n.getPublicId(), true)));
         }
 
         node.getResourceChildren()

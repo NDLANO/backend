@@ -91,11 +91,15 @@ class QualityEvaluationServiceConcurrencyTest extends AbstractIntegrationTest {
     @Test
     void concurrent_updates_to_same_child_should_refresh_old_grade_before_updating_parents() throws Exception {
         var ids = transactionTemplate.execute(status -> {
-            builder.node(NodeType.TOPIC, node -> node.name("Parent")
-                    .publicId("urn:topic:2")
-                    .child(NodeType.RESOURCE, child -> child.name("Child")
-                            .publicId("urn:resource:2")
-                            .qualityEvaluation(Grade.Three)));
+            builder.node(
+                    NodeType.TOPIC,
+                    node -> node.name("Parent")
+                            .publicId("urn:topic:2")
+                            .child(
+                                    NodeType.RESOURCE,
+                                    child -> child.name("Child")
+                                            .publicId("urn:resource:2")
+                                            .qualityEvaluation(Grade.Three)));
 
             return List.of(URI.create("urn:topic:2"), URI.create("urn:resource:2"));
         });

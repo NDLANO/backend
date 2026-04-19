@@ -20,7 +20,9 @@ trait OpenAPITSPlugin extends JavaModule {
   // Scala/tapir modules don't need anything beyond runClasspath; Java modules that rely
   // on test-scoped dependencies to boot (e.g. taxonomy-api's testcontainers JDBC driver)
   // override this to mix in their test classpath.
-  def openApiExtraRunClasspath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+  def openApiExtraRunClasspath: T[Seq[PathRef]] = Task {
+    Seq.empty[PathRef]
+  }
 
   def generateTypescript: T[Unit] =
     if (isComponent) Task {

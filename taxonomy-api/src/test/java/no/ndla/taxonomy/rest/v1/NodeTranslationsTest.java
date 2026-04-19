@@ -126,10 +126,12 @@ public class NodeTranslationsTest extends RestTest {
 
     @Test
     public void can_get_all_translations() throws Exception {
-        Node topic = builder.node(NodeType.TOPIC, t -> t.name("Trigonometry")
-                .translation("nb", l -> l.name("Trigonometri"))
-                .translation("en", l -> l.name("Trigonometry"))
-                .translation("de", l -> l.name("Trigonometrie")));
+        Node topic = builder.node(
+                NodeType.TOPIC,
+                t -> t.name("Trigonometry")
+                        .translation("nb", l -> l.name("Trigonometri"))
+                        .translation("en", l -> l.name("Trigonometry"))
+                        .translation("de", l -> l.name("Trigonometrie")));
         URI id = topic.getPublicId();
 
         var translations =
@@ -157,14 +159,16 @@ public class NodeTranslationsTest extends RestTest {
     public void can_get_resources_for_a_node_recursively_with_translation() throws Exception {
         builder.resourceType("article", rt -> rt.name("Article").translation("nb", tr -> tr.name("Artikkel")));
 
-        URI a = builder.node(NodeType.TOPIC, t -> t.resource(r -> r.name("Introduction to calculus")
-                                .translation("nb", tr -> tr.name("Introduksjon til calculus"))
-                                .resourceType("article"))
-                        .child(
-                                NodeType.TOPIC,
-                                st -> st.resource(r -> r.name("Introduction to integration")
-                                        .translation("nb", tr -> tr.name("Introduksjon til integrasjon"))
-                                        .resourceType("article"))))
+        URI a = builder.node(
+                        NodeType.TOPIC,
+                        t -> t.resource(r -> r.name("Introduction to calculus")
+                                        .translation("nb", tr -> tr.name("Introduksjon til calculus"))
+                                        .resourceType("article"))
+                                .child(
+                                        NodeType.TOPIC,
+                                        st -> st.resource(r -> r.name("Introduction to integration")
+                                                .translation("nb", tr -> tr.name("Introduksjon til integrasjon"))
+                                                .resourceType("article"))))
                 .getPublicId();
 
         var response = testUtils.getResource("/v1/nodes/" + a + "/resources?recursive=true&language=nb");
@@ -173,22 +177,30 @@ public class NodeTranslationsTest extends RestTest {
         assertEquals(2, result.length);
         assertAnyTrue(result, r -> "Introduksjon til calculus".equals(r.getName()));
         assertAnyTrue(result, r -> "Introduksjon til integrasjon".equals(r.getName()));
-        assertAllTrue(result, r -> "Artikkel"
-                .equals(r.getResourceTypes().iterator().next().getName()));
+        assertAllTrue(
+                result,
+                r -> "Artikkel".equals(r.getResourceTypes().iterator().next().getName()));
     }
 
     @Test
     public void can_get_resources_for_a_node_without_child_resources_with_translation() throws Exception {
         builder.resourceType("article", rt -> rt.name("Article").translation("nb", tr -> tr.name("Artikkel")));
 
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true).child(NodeType.TOPIC, t -> t.publicId("urn:topic:1")
-                .resource(r -> r.name("resource 1")
-                        .translation("nb", tr -> tr.name("ressurs 1"))
-                        .resourceType("article"))
-                .resource(r -> r.name("resource 2")
-                        .translation("nb", tr -> tr.name("ressurs 2"))
-                        .resourceType("article"))
-                .child(NodeType.TOPIC, st -> st.name("subtopic").resource(r -> r.name("subtopic resource")))));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true)
+                        .child(
+                                NodeType.TOPIC,
+                                t -> t.publicId("urn:topic:1")
+                                        .resource(r -> r.name("resource 1")
+                                                .translation("nb", tr -> tr.name("ressurs 1"))
+                                                .resourceType("article"))
+                                        .resource(r -> r.name("resource 2")
+                                                .translation("nb", tr -> tr.name("ressurs 2"))
+                                                .resourceType("article"))
+                                        .child(
+                                                NodeType.TOPIC,
+                                                st -> st.name("subtopic").resource(r -> r.name("subtopic resource")))));
 
         var response = testUtils.getResource("/v1/nodes/urn:topic:1/resources?language=nb");
         var result = testUtils.getObject(NodeChildDTO[].class, response);
@@ -196,8 +208,9 @@ public class NodeTranslationsTest extends RestTest {
         assertEquals(2, result.length);
         assertAnyTrue(result, r -> "ressurs 1".equals(r.getName()));
         assertAnyTrue(result, r -> "ressurs 2".equals(r.getName()));
-        assertAllTrue(result, r -> "Artikkel"
-                .equals(r.getResourceTypes().iterator().next().getName()));
+        assertAllTrue(
+                result,
+                r -> "Artikkel".equals(r.getResourceTypes().iterator().next().getName()));
     }
 
     private NodeDTO getNode(URI id, String language) throws Exception {

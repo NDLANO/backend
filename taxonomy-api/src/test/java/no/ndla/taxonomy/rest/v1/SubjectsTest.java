@@ -37,10 +37,12 @@ public class SubjectsTest extends RestTest {
 
     @Test
     public void can_get_single_subject() throws Exception {
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true)
-                .name("english")
-                .contentUri("urn:article:1")
-                .publicId("urn:subject:1"));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true)
+                        .name("english")
+                        .contentUri("urn:article:1")
+                        .publicId("urn:subject:1"));
 
         var response = testUtils.getResource("/v1/subjects/urn:subject:1");
         var subject = testUtils.getObject(NodeDTO.class, response);
@@ -189,8 +191,10 @@ public class SubjectsTest extends RestTest {
 
     @Test
     public void can_delete_subject() throws Exception {
-        URI id = builder.node(NodeType.SUBJECT, s -> s.child(NodeType.TOPIC, t -> t.publicId("urn:topic:1"))
-                        .translation("nb", tr -> tr.name("fag")))
+        URI id = builder.node(
+                        NodeType.SUBJECT,
+                        s -> s.child(NodeType.TOPIC, t -> t.publicId("urn:topic:1"))
+                                .translation("nb", tr -> tr.name("fag")))
                 .getPublicId();
 
         testUtils.deleteResource("/v1/subjects/" + id);
@@ -199,11 +203,13 @@ public class SubjectsTest extends RestTest {
 
     @Test
     public void can_get_topics() throws Exception {
-        Node subject = builder.node(NodeType.SUBJECT, s -> s.isContext(true)
-                .name("physics")
-                .child(NodeType.TOPIC, t -> t.name("statics").contentUri("urn:article:1"))
-                .child(NodeType.TOPIC, t -> t.name("electricity").contentUri("urn:article:2"))
-                .child(NodeType.TOPIC, t -> t.name("optics").contentUri("urn:article:3")));
+        Node subject = builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true)
+                        .name("physics")
+                        .child(NodeType.TOPIC, t -> t.name("statics").contentUri("urn:article:1"))
+                        .child(NodeType.TOPIC, t -> t.name("electricity").contentUri("urn:article:2"))
+                        .child(NodeType.TOPIC, t -> t.name("optics").contentUri("urn:article:3")));
 
         var response = testUtils.getResource("/v1/subjects/" + subject.getPublicId() + "/topics");
         var topics = testUtils.getObject(NodeChildDTO[].class, response);
@@ -235,16 +241,28 @@ public class SubjectsTest extends RestTest {
 
     @Test
     public void can_get_topics_recursively() throws Exception {
-        URI subjectId = builder.node("subject", NodeType.SUBJECT, s -> s.isContext(true)
-                        .name("subject")
-                        .publicId("urn:subject:1")
-                        .child("parent", NodeType.TOPIC, parent -> parent.name("parent topic")
-                                .publicId("urn:topic:a")
-                                .child("child", NodeType.TOPIC, child -> child.name("child topic")
-                                        .publicId("urn:topic:aa")
-                                        .child("grandchild", NodeType.TOPIC, grandchild -> grandchild
-                                                .name("grandchild topic")
-                                                .publicId("urn:topic:aaa")))))
+        URI subjectId = builder.node(
+                        "subject",
+                        NodeType.SUBJECT,
+                        s -> s.isContext(true)
+                                .name("subject")
+                                .publicId("urn:subject:1")
+                                .child(
+                                        "parent",
+                                        NodeType.TOPIC,
+                                        parent -> parent.name("parent topic")
+                                                .publicId("urn:topic:a")
+                                                .child(
+                                                        "child",
+                                                        NodeType.TOPIC,
+                                                        child -> child.name("child topic")
+                                                                .publicId("urn:topic:aa")
+                                                                .child(
+                                                                        "grandchild",
+                                                                        NodeType.TOPIC,
+                                                                        grandchild -> grandchild
+                                                                                .name("grandchild topic")
+                                                                                .publicId("urn:topic:aaa")))))
                 .getPublicId();
 
         var response = testUtils.getResource("/v1/subjects/" + subjectId + "/topics?recursive=true");

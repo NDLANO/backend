@@ -482,37 +482,62 @@ public class NodeTest extends AbstractIntegrationTest {
         var parentNode = builder.node(n -> n.nodeType(NodeType.SUBJECT)
                 .name("S1")
                 .qualityEvaluation(Grade.Five)
-                .child(NodeType.TOPIC, t -> t.nodeType(NodeType.TOPIC)
-                        .name("T1")
-                        .qualityEvaluation(Grade.Four)
-                        .child(
-                                NodeType.RESOURCE,
-                                r -> r.nodeType(NodeType.RESOURCE).name("R5").qualityEvaluation(Grade.Two))
-                        .child(
-                                NodeType.RESOURCE,
-                                r -> r.nodeType(NodeType.RESOURCE).name("R1").qualityEvaluation(Grade.Five)))
-                .child(NodeType.TOPIC, t -> t.nodeType(NodeType.TOPIC)
-                        .name("T2")
-                        .qualityEvaluation(Grade.Three)
-                        .child(
-                                NodeType.RESOURCE,
-                                r -> r.nodeType(NodeType.RESOURCE).name("R2").qualityEvaluation(Grade.Three)))
-                .child(NodeType.TOPIC, t -> t.nodeType(NodeType.TOPIC)
-                        .name("T3")
-                        .qualityEvaluation(Grade.Five)
-                        .child(
-                                NodeType.RESOURCE,
-                                r -> r.nodeType(NodeType.RESOURCE).name("R3").qualityEvaluation(Grade.One)))
-                .child(NodeType.TOPIC, t -> t.nodeType(NodeType.TOPIC)
-                        .name("T4")
-                        .qualityEvaluation(Grade.Three)
-                        .child(
-                                NodeType.RESOURCE,
-                                r -> r.nodeType(NodeType.RESOURCE).name("R4").qualityEvaluation(Grade.Two))));
+                .child(
+                        NodeType.TOPIC,
+                        t -> t.nodeType(NodeType.TOPIC)
+                                .name("T1")
+                                .qualityEvaluation(Grade.Four)
+                                .child(
+                                        NodeType.RESOURCE,
+                                        r -> r.nodeType(NodeType.RESOURCE)
+                                                .name("R5")
+                                                .qualityEvaluation(Grade.Two))
+                                .child(
+                                        NodeType.RESOURCE,
+                                        r -> r.nodeType(NodeType.RESOURCE)
+                                                .name("R1")
+                                                .qualityEvaluation(Grade.Five)))
+                .child(
+                        NodeType.TOPIC,
+                        t -> t.nodeType(NodeType.TOPIC)
+                                .name("T2")
+                                .qualityEvaluation(Grade.Three)
+                                .child(
+                                        NodeType.RESOURCE,
+                                        r -> r.nodeType(NodeType.RESOURCE)
+                                                .name("R2")
+                                                .qualityEvaluation(Grade.Three)))
+                .child(
+                        NodeType.TOPIC,
+                        t -> t.nodeType(NodeType.TOPIC)
+                                .name("T3")
+                                .qualityEvaluation(Grade.Five)
+                                .child(
+                                        NodeType.RESOURCE,
+                                        r -> r.nodeType(NodeType.RESOURCE)
+                                                .name("R3")
+                                                .qualityEvaluation(Grade.One)))
+                .child(
+                        NodeType.TOPIC,
+                        t -> t.nodeType(NodeType.TOPIC)
+                                .name("T4")
+                                .qualityEvaluation(Grade.Three)
+                                .child(
+                                        NodeType.RESOURCE,
+                                        r -> r.nodeType(NodeType.RESOURCE)
+                                                .name("R4")
+                                                .qualityEvaluation(Grade.Two))));
         var unrelatedNodes = builder.node(
-                NodeType.SUBJECT, n -> n.name("S2").qualityEvaluation(Grade.One).child(NodeType.TOPIC, t -> t.name("T5")
-                        .qualityEvaluation(Grade.Five)
-                        .child(NodeType.RESOURCE, r -> r.name("R6").qualityEvaluation(Grade.Four))));
+                NodeType.SUBJECT,
+                n -> n.name("S2")
+                        .qualityEvaluation(Grade.One)
+                        .child(
+                                NodeType.TOPIC,
+                                t -> t.name("T5")
+                                        .qualityEvaluation(Grade.Five)
+                                        .child(
+                                                NodeType.RESOURCE,
+                                                r -> r.name("R6").qualityEvaluation(Grade.Four))));
         unrelatedNodes.updateEntireAverageTree();
         parentNode.updateEntireAverageTree();
         assertTrue(parentNode.getChildQualityEvaluationAverage().isPresent());
@@ -523,15 +548,24 @@ public class NodeTest extends AbstractIntegrationTest {
 
     @Test
     public void qualityEvaluationAverageIgnoresLinkChildren() {
-        var linkedTopic = builder.node(NodeType.TOPIC, topic -> topic.name("Linked topic")
-                .child(NodeType.RESOURCE, resource -> resource.name("Linked resource")
-                        .qualityEvaluation(Grade.One)));
+        var linkedTopic = builder.node(
+                NodeType.TOPIC,
+                topic -> topic.name("Linked topic")
+                        .child(
+                                NodeType.RESOURCE,
+                                resource -> resource.name("Linked resource").qualityEvaluation(Grade.One)));
 
-        var parentNode = builder.node(NodeType.SUBJECT, subject -> subject.name("S1")
-                .child(NodeType.TOPIC, topic -> topic.name("Branch topic")
-                        .child(NodeType.RESOURCE, resource -> resource.name("Branch resource")
-                                .qualityEvaluation(Grade.Four)))
-                .link(linkedTopic));
+        var parentNode = builder.node(
+                NodeType.SUBJECT,
+                subject -> subject.name("S1")
+                        .child(
+                                NodeType.TOPIC,
+                                topic -> topic.name("Branch topic")
+                                        .child(
+                                                NodeType.RESOURCE,
+                                                resource -> resource.name("Branch resource")
+                                                        .qualityEvaluation(Grade.Four)))
+                        .link(linkedTopic));
 
         parentNode.updateEntireAverageTree();
 

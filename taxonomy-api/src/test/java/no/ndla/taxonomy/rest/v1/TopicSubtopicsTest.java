@@ -120,9 +120,11 @@ public class TopicSubtopicsTest extends RestTest {
 
     @Test
     public void subtopics_have_default_rank() throws Exception {
-        builder.node(NodeType.TOPIC, t -> t.name("electricity")
-                .child(NodeType.TOPIC, st -> st.name("alternating currents"))
-                .child(NodeType.TOPIC, st -> st.name("wiring")));
+        builder.node(
+                NodeType.TOPIC,
+                t -> t.name("electricity")
+                        .child(NodeType.TOPIC, st -> st.name("alternating currents"))
+                        .child(NodeType.TOPIC, st -> st.name("wiring")));
         MockHttpServletResponse response = testUtils.getResource(("/v1/topic-subtopics"));
         TopicSubtopicDTO[] subtopics = testUtils.getObject(TopicSubtopicDTO[].class, response);
 

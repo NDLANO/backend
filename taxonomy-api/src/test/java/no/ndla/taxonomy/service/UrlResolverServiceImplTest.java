@@ -85,9 +85,11 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
         String otherTopicUrl = "ndla.no/node/54321";
 
         // create another topic and mapping that should NOT match the query for the url above
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true)
-                .publicId(otherSubjectId)
-                .child(NodeType.TOPIC, t -> t.publicId("urn:topic:1:54321")));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true)
+                        .publicId(otherSubjectId)
+                        .child(NodeType.TOPIC, t -> t.publicId("urn:topic:1:54321")));
         entityManager.persist(builder.urlMapping(
                 c -> c.oldUrl(otherTopicUrl).public_id(otherTopicId).subject_id(otherSubjectId)));
         entityManager.flush();
@@ -172,9 +174,11 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
     @Test
     @Transactional
     public void resolveOldUrlBadSubjectPrimaryPath() {
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true)
-                .publicId("urn:subject:2")
-                .child(NodeType.TOPIC, t -> t.publicId("urn:topic:1:183926")));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true)
+                        .publicId("urn:subject:2")
+                        .child(NodeType.TOPIC, t -> t.publicId("urn:topic:1:183926")));
         String oldUrl = "ndla.no/node/183926?fag=127013";
         UrlMapping urlMapping = builder.urlMapping(
                 c -> c.oldUrl(oldUrl).public_id("urn:topic:1:183926").subject_id("urn:subject:11"));
@@ -275,30 +279,40 @@ public class UrlResolverServiceImplTest extends AbstractIntegrationTest {
     public void resolveEntitiesFromPath() {
         builder.node(
                 NodeType.SUBJECT,
-                s -> s.isContext(true).publicId("urn:subject:1").name("Maths").child(NodeType.TOPIC, t -> t.publicId(
-                                "urn:topic:1")
-                        .name("Trignometry")
-                        .resource("resource", resourceBuilder -> resourceBuilder
-                                .publicId("urn:resource:1")
-                                .name("Resource Name")
-                                .contentUri(URI.create("urn:test:1")))));
+                s -> s.isContext(true)
+                        .publicId("urn:subject:1")
+                        .name("Maths")
+                        .child(
+                                NodeType.TOPIC,
+                                t -> t.publicId("urn:topic:1")
+                                        .name("Trignometry")
+                                        .resource(
+                                                "resource",
+                                                resourceBuilder -> resourceBuilder
+                                                        .publicId("urn:resource:1")
+                                                        .name("Resource Name")
+                                                        .contentUri(URI.create("urn:test:1")))));
 
         builder.node(
                 NodeType.SUBJECT,
-                s -> s.isContext(true).publicId("urn:subject:2").name("Biology").child(NodeType.TOPIC, t -> t.publicId(
-                                "urn:topic:2")
-                        .name("Mammals")
-                        .resource("resource")));
+                s -> s.isContext(true)
+                        .publicId("urn:subject:2")
+                        .name("Biology")
+                        .child(
+                                NodeType.TOPIC,
+                                t -> t.publicId("urn:topic:2").name("Mammals").resource("resource")));
 
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true)
-                .publicId("urn:subject:3")
-                .name("Chemistry")
-                .child(NodeType.TOPIC, t -> {
-                    t.publicId("urn:topic:3");
-                    t.isContext(true);
-                    t.name("Acids");
-                    t.resource("resource");
-                }));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true)
+                        .publicId("urn:subject:3")
+                        .name("Chemistry")
+                        .child(NodeType.TOPIC, t -> {
+                            t.publicId("urn:topic:3");
+                            t.isContext(true);
+                            t.name("Acids");
+                            t.resource("resource");
+                        }));
 
         builder.node(NodeType.RESOURCE, r -> r.publicId("urn:resource:2").name("Resource Name"));
 

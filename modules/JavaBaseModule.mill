@@ -4,12 +4,7 @@ import mill.*
 import mill.scalalib.*
 import mill.javalib.spotless.SpotlessModule
 
-trait JavaBaseModule
-    extends MavenModule,
-      AutoEnvLoading,
-      OpenAPITSPlugin,
-      GithubWorkflowPlugin,
-      SpotlessModule {
+trait JavaBaseModule extends MavenModule, AutoEnvLoading, OpenAPITSPlugin, GithubWorkflowPlugin, SpotlessModule {
   def moduleName: String
   def test: JavaTests
 

@@ -141,7 +141,7 @@ public class TestUtils {
 
     public static URI getId(MockHttpServletResponse response) {
         String location = response.getHeader("Location");
-        return URI.create(location.substring(location.lastIndexOf("/") + 1));
+        return URI.create(location.substring(location.lastIndexOf('/') + 1));
     }
 
     public <V> V getObject(Class<V> theClass, MockHttpServletResponse response) throws Exception {

@@ -109,9 +109,9 @@ public class UrlResolverServiceImpl implements UrlResolverService {
     private Optional<String> getNodeId(String url) {
         if (url != null) {
             if (url.contains("?") && url.contains("/")) {
-                return Optional.of(url.substring(url.lastIndexOf("/"), url.indexOf("?")));
+                return Optional.of(url.substring(url.lastIndexOf('/'), url.indexOf('?')));
             } else if (url.contains("/")) {
-                return Optional.of(url.substring(url.lastIndexOf("/")));
+                return Optional.of(url.substring(url.lastIndexOf('/')));
             }
         }
         return Optional.empty();

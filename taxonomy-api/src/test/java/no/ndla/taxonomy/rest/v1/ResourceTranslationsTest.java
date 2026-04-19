@@ -24,8 +24,9 @@ public class ResourceTranslationsTest extends RestTest {
 
     @Test
     public void can_get_all_resources_with_translation() throws Exception {
-        builder.node(NodeType.RESOURCE, r -> r.name("The inner planets")
-                .translation("nb", tr -> tr.name("De indre planetene")));
+        builder.node(
+                NodeType.RESOURCE,
+                r -> r.name("The inner planets").translation("nb", tr -> tr.name("De indre planetene")));
         builder.node(NodeType.RESOURCE, r -> r.name("Gas giants").translation("nb", tr -> tr.name("Gasskjemper")));
 
         MockHttpServletResponse response = testUtils.getResource("/v1/resources?language=nb");
@@ -38,8 +39,10 @@ public class ResourceTranslationsTest extends RestTest {
 
     @Test
     public void can_get_single_resource_with_translation() throws Exception {
-        URI trigonometry = builder.node(NodeType.RESOURCE, s -> s.name("introduction to trigonometry")
-                        .translation("nb", tr -> tr.name("Introduksjon til trigonometri")))
+        URI trigonometry = builder.node(
+                        NodeType.RESOURCE,
+                        s -> s.name("introduction to trigonometry")
+                                .translation("nb", tr -> tr.name("Introduksjon til trigonometri")))
                 .getPublicId();
 
         MockHttpServletResponse response = testUtils.getResource("/v1/resources/" + trigonometry + "?language=nb");
@@ -58,8 +61,10 @@ public class ResourceTranslationsTest extends RestTest {
 
     @Test
     public void can_get_default_language() throws Exception {
-        URI id = builder.node(NodeType.RESOURCE, t -> t.name("Introduction to algrebra")
-                        .translation("nb", l -> l.name("Introduksjon til algebra")))
+        URI id = builder.node(
+                        NodeType.RESOURCE,
+                        t -> t.name("Introduction to algrebra")
+                                .translation("nb", l -> l.name("Introduksjon til algebra")))
                 .getPublicId();
 
         final var resource = getResourceIndexDocument(id, null);
@@ -84,8 +89,9 @@ public class ResourceTranslationsTest extends RestTest {
 
     @Test
     public void can_delete_translation() throws Exception {
-        var resource = builder.node(NodeType.RESOURCE, t -> t.name("Introduction to algrebra")
-                .translation("nb", l -> l.name("Introduksjon til algebra")));
+        var resource = builder.node(
+                NodeType.RESOURCE,
+                t -> t.name("Introduction to algrebra").translation("nb", l -> l.name("Introduksjon til algebra")));
         URI id = resource.getPublicId();
 
         testUtils.deleteResource("/v1/resources/" + id + "/translations/nb");
@@ -95,10 +101,12 @@ public class ResourceTranslationsTest extends RestTest {
 
     @Test
     public void can_get_all_translations() throws Exception {
-        var resource = builder.node(NodeType.RESOURCE, t -> t.name("Introduction to algrebra")
-                .translation("nb", l -> l.name("Introduksjon til algebra"))
-                .translation("en", l -> l.name("Introduction to algrebra"))
-                .translation("de", l -> l.name("Introduktion bis Algebra")));
+        var resource = builder.node(
+                NodeType.RESOURCE,
+                t -> t.name("Introduction to algrebra")
+                        .translation("nb", l -> l.name("Introduksjon til algebra"))
+                        .translation("en", l -> l.name("Introduction to algrebra"))
+                        .translation("de", l -> l.name("Introduktion bis Algebra")));
         URI id = resource.getPublicId();
 
         TranslationDTO[] translations = testUtils.getObject(
@@ -112,8 +120,9 @@ public class ResourceTranslationsTest extends RestTest {
 
     @Test
     public void can_get_single_translation() throws Exception {
-        var resource = builder.node(NodeType.RESOURCE, t -> t.name("Introduction to algrebra")
-                .translation("nb", l -> l.name("Introduksjon til algebra")));
+        var resource = builder.node(
+                NodeType.RESOURCE,
+                t -> t.name("Introduction to algrebra").translation("nb", l -> l.name("Introduksjon til algebra")));
         URI id = resource.getPublicId();
 
         TranslationDTO translation = testUtils.getObject(

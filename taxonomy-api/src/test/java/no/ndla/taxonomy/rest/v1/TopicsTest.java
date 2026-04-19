@@ -38,10 +38,12 @@ public class TopicsTest extends RestTest {
     public void can_get_single_topic() throws Exception {
         builder.node(
                 NodeType.SUBJECT,
-                s -> s.isContext(true).publicId("urn:subject:1").child(t -> t.nodeType(NodeType.TOPIC)
-                        .name("trigonometry")
-                        .contentUri("urn:article:1")
-                        .publicId("urn:topic:1")));
+                s -> s.isContext(true)
+                        .publicId("urn:subject:1")
+                        .child(t -> t.nodeType(NodeType.TOPIC)
+                                .name("trigonometry")
+                                .contentUri("urn:article:1")
+                                .publicId("urn:topic:1")));
 
         var response = testUtils.getResource("/v1/topics/urn:topic:1");
         final var topic = testUtils.getObject(NodeDTO.class, response);
@@ -68,14 +70,17 @@ public class TopicsTest extends RestTest {
     @Test
     public void can_get_topics_by_contentURI() throws Exception {
         builder.node(
-                NodeType.SUBJECT, s -> s.isContext(true).name("Basic science").child(NodeType.TOPIC, t -> {
+                NodeType.SUBJECT,
+                s -> s.isContext(true).name("Basic science").child(NodeType.TOPIC, t -> {
                     t.name("photo synthesis");
                     t.contentUri(URI.create("urn:test:1"));
                 }));
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
-            t.name("trigonometry");
-            t.contentUri(URI.create("urn:test:2"));
-        }));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
+                    t.name("trigonometry");
+                    t.contentUri(URI.create("urn:test:2"));
+                }));
 
         {
             final var response = testUtils.getResource("/v1/topics?contentURI=urn:test:1");
@@ -95,19 +100,22 @@ public class TopicsTest extends RestTest {
     @Test
     public void can_get_topics_by_key_and_value() throws Exception {
         builder.node(
-                NodeType.SUBJECT, s -> s.isContext(true).name("Basic science").child(t -> {
+                NodeType.SUBJECT,
+                s -> s.isContext(true).name("Basic science").child(t -> {
                     t.nodeType(NodeType.TOPIC);
                     t.name("photo synthesis");
                     t.contentUri(URI.create("urn:test:1"));
                     t.grepCode("GREP1");
                     t.customField("test", "value");
                 }));
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
-            t.name("trigonometry");
-            t.contentUri(URI.create("urn:test:2"));
-            t.grepCode("GREP2");
-            t.customField("test", "value2");
-        }));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
+                    t.name("trigonometry");
+                    t.contentUri(URI.create("urn:test:2"));
+                    t.grepCode("GREP2");
+                    t.customField("test", "value2");
+                }));
 
         {
             final var response = testUtils.getResource("/v1/topics?value=value");
@@ -329,10 +337,12 @@ public class TopicsTest extends RestTest {
 
     @Test
     public void can_delete_topic_with_2_resources() throws Exception {
-        Node topic = builder.node(NodeType.TOPIC, child -> child.name("MAIN TOPIC")
-                .translation("nb", tr -> tr.name("HovedEmne"))
-                .resource(r -> r.publicId("urn:resource:1"))
-                .resource(r -> r.publicId("urn:resource:2")));
+        Node topic = builder.node(
+                NodeType.TOPIC,
+                child -> child.name("MAIN TOPIC")
+                        .translation("nb", tr -> tr.name("HovedEmne"))
+                        .resource(r -> r.publicId("urn:resource:1"))
+                        .resource(r -> r.publicId("urn:resource:2")));
 
         final var topicId = topic.getPublicId();
 
@@ -343,10 +353,12 @@ public class TopicsTest extends RestTest {
 
     @Test
     public void can_delete_topic_but_subtopics_remain() throws Exception {
-        Node childTopic = builder.node(NodeType.TOPIC, child -> child.name("DELETE EDGE TO ME")
-                .translation("nb", tr -> tr.name("emne"))
-                .child(NodeType.TOPIC, sub -> sub.publicId("urn:topic:1"))
-                .resource(r -> r.publicId("urn:resource:1")));
+        Node childTopic = builder.node(
+                NodeType.TOPIC,
+                child -> child.name("DELETE EDGE TO ME")
+                        .translation("nb", tr -> tr.name("emne"))
+                        .child(NodeType.TOPIC, sub -> sub.publicId("urn:topic:1"))
+                        .resource(r -> r.publicId("urn:resource:1")));
 
         URI parentId =
                 builder.node(NodeType.TOPIC, parent -> parent.child(childTopic)).getPublicId();
@@ -359,8 +371,10 @@ public class TopicsTest extends RestTest {
 
     @Test
     public void can_delete_topic_but_resources_and_filter_remain() throws Exception {
-        var resource = builder.node("resource", NodeType.RESOURCE, r -> r.translation("nb", tr -> tr.name("ressurs"))
-                .resourceType(rt -> rt.name("Learning path")));
+        var resource = builder.node(
+                "resource",
+                NodeType.RESOURCE,
+                r -> r.translation("nb", tr -> tr.name("ressurs")).resourceType(rt -> rt.name("Learning path")));
 
         URI parentId = builder.node(NodeType.TOPIC, parent -> parent.resource(resource))
                 .getPublicId();

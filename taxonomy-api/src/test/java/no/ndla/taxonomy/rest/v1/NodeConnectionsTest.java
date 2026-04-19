@@ -165,9 +165,11 @@ public class NodeConnectionsTest extends RestTest {
 
     @Test
     public void children_have_default_rank() throws Exception {
-        builder.node(NodeType.TOPIC, t -> t.name("electricity")
-                .child(NodeType.TOPIC, st -> st.name("alternating currents"))
-                .child(NodeType.TOPIC, st -> st.name("wiring")));
+        builder.node(
+                NodeType.TOPIC,
+                t -> t.name("electricity")
+                        .child(NodeType.TOPIC, st -> st.name("alternating currents"))
+                        .child(NodeType.TOPIC, st -> st.name("wiring")));
         MockHttpServletResponse response = testUtils.getResource(("/v1/node-connections"));
         NodeConnectionDTO[] children = testUtils.getObject(NodeConnectionDTO[].class, response);
 

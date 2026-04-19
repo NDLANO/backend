@@ -208,8 +208,8 @@ public class ResourceTypesTest extends RestTest {
 
     @Test
     public void can_get_subtypes_recursively() throws Exception {
-        URI id = builder.resourceType(
-                        rt -> rt.name("external").subtype(st -> st.name("video").subtype(st2 -> st2.name("youtube"))))
+        URI id = builder.resourceType(rt ->
+                        rt.name("external").subtype(st -> st.name("video").subtype(st2 -> st2.name("youtube"))))
                 .getPublicId();
 
         MockHttpServletResponse response =

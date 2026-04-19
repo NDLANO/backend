@@ -36,8 +36,7 @@ public class TaxonomyApplication {
         SpringApplication app = new SpringApplication(TaxonomyApplication.class);
         app.setAdditionalProfiles("typescript");
         try (ConfigurableApplicationContext ctx = app.run()) {
-            int port =
-                    ((WebServerApplicationContext) ctx).getWebServer().getPort();
+            int port = ((WebServerApplicationContext) ctx).getWebServer().getPort();
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create("http://localhost:" + port + "/api-docs"))

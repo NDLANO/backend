@@ -46,10 +46,13 @@ public class NodesTest extends RestTest {
     public void can_get_single_node() throws Exception {
         builder.node(
                 NodeType.SUBJECT,
-                s -> s.isContext(true).name("maths").publicId("urn:subject:1").child(t -> t.nodeType(NodeType.TOPIC)
-                        .name("trigonometry")
-                        .contentUri("urn:article:1")
-                        .publicId("urn:topic:1")));
+                s -> s.isContext(true)
+                        .name("maths")
+                        .publicId("urn:subject:1")
+                        .child(t -> t.nodeType(NodeType.TOPIC)
+                                .name("trigonometry")
+                                .contentUri("urn:article:1")
+                                .publicId("urn:topic:1")));
 
         var response = testUtils.getResource("/v1/nodes/urn:topic:1");
         final var node = testUtils.getObject(NodeDTO.class, response);
@@ -66,22 +69,30 @@ public class NodesTest extends RestTest {
     @Test
     void can_get_single_node_with_wanted_context() throws Exception {
         Node resource = builder.node(NodeType.RESOURCE, r -> r.name("Resource").publicId("urn:resource:1"));
-        builder.node(NodeType.SUBJECT, s1 -> s1.isContext(true)
-                .name("Subject1")
-                .publicId("urn:subject:1")
-                .child(
-                        NodeType.TOPIC,
-                        t1 -> t1.name("Topic1").publicId("urn:topic:1").resource(resource)));
-        builder.node(NodeType.SUBJECT, s2 -> s2.isContext(true)
-                .name("Subject2")
-                .publicId("urn:subject:2")
-                .child(NodeType.TOPIC, t2 -> t2.name("Topic2")
-                        .publicId("urn:topic:2")
-                        .isContext(true)
-                        .child(resource)
+        builder.node(
+                NodeType.SUBJECT,
+                s1 -> s1.isContext(true)
+                        .name("Subject1")
+                        .publicId("urn:subject:1")
                         .child(
                                 NodeType.TOPIC,
-                                t3 -> t3.name("Topic3").publicId("urn:topic:3").resource(resource))));
+                                t1 -> t1.name("Topic1").publicId("urn:topic:1").resource(resource)));
+        builder.node(
+                NodeType.SUBJECT,
+                s2 -> s2.isContext(true)
+                        .name("Subject2")
+                        .publicId("urn:subject:2")
+                        .child(
+                                NodeType.TOPIC,
+                                t2 -> t2.name("Topic2")
+                                        .publicId("urn:topic:2")
+                                        .isContext(true)
+                                        .child(resource)
+                                        .child(
+                                                NodeType.TOPIC,
+                                                t3 -> t3.name("Topic3")
+                                                        .publicId("urn:topic:3")
+                                                        .resource(resource))));
 
         // Specifying rootId and/or parentId picks wanted path
         {
@@ -151,14 +162,17 @@ public class NodesTest extends RestTest {
     @Test
     public void can_get_nodes_by_contentURI() throws Exception {
         builder.node(
-                NodeType.SUBJECT, s -> s.isContext(true).name("Basic science").child(NodeType.TOPIC, t -> {
+                NodeType.SUBJECT,
+                s -> s.isContext(true).name("Basic science").child(NodeType.TOPIC, t -> {
                     t.name("photo synthesis");
                     t.contentUri(URI.create("urn:test:1"));
                 }));
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
-            t.name("trigonometry");
-            t.contentUri(URI.create("urn:test:2"));
-        }));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
+                    t.name("trigonometry");
+                    t.contentUri(URI.create("urn:test:2"));
+                }));
 
         {
             final var response = testUtils.getResource("/v1/nodes?contentURI=urn:test:1");
@@ -181,14 +195,17 @@ public class NodesTest extends RestTest {
     public void can_get_nodes_by_contextId() {
         Node resource = builder.node(NodeType.RESOURCE, r -> r.name("Resource"));
         builder.node(
-                NodeType.SUBJECT, s -> s.isContext(true).name("Basic science").child(NodeType.TOPIC, t -> {
+                NodeType.SUBJECT,
+                s -> s.isContext(true).name("Basic science").child(NodeType.TOPIC, t -> {
                     t.name("photo synthesis");
                     t.contentUri(URI.create("urn:test:1")).resource(resource);
                 }));
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
-            t.name("trigonometry");
-            t.contentUri(URI.create("urn:test:2")).resource(resource);
-        }));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
+                    t.name("trigonometry");
+                    t.contentUri(URI.create("urn:test:2")).resource(resource);
+                }));
 
         Optional<Node> fromDB = nodeRepository.findFirstByPublicId(resource.getPublicId());
         assertTrue(fromDB.isPresent());
@@ -216,7 +233,8 @@ public class NodesTest extends RestTest {
     public void can_get_moved_nodes_by_contextId() {
         Node resource = builder.node(NodeType.RESOURCE, r -> r.name("Resource"));
         builder.node(
-                NodeType.SUBJECT, s -> s.isContext(true).name("Basic science").child(NodeType.TOPIC, t -> {
+                NodeType.SUBJECT,
+                s -> s.isContext(true).name("Basic science").child(NodeType.TOPIC, t -> {
                     t.name("photo synthesis");
                     t.contentUri(URI.create("urn:test:1")).resource(resource);
                 }));
@@ -233,10 +251,12 @@ public class NodesTest extends RestTest {
         nodeRepository.save(node);
 
         // Add resource to new placement
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
-            t.name("trigonometry");
-            t.contentUri(URI.create("urn:test:2")).resource(resource);
-        }));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
+                    t.name("trigonometry");
+                    t.contentUri(URI.create("urn:test:2")).resource(resource);
+                }));
 
         // Try fetching by old contextid
         try {
@@ -254,19 +274,22 @@ public class NodesTest extends RestTest {
     @Test
     public void can_get_nodes_by_key_and_value() throws Exception {
         builder.node(
-                NodeType.SUBJECT, s -> s.isContext(true).name("Basic science").child(t -> {
+                NodeType.SUBJECT,
+                s -> s.isContext(true).name("Basic science").child(t -> {
                     t.nodeType(NodeType.TOPIC);
                     t.name("photo synthesis");
                     t.contentUri(URI.create("urn:test:1"));
                     t.grepCode("GREP1");
                     t.customField("test", "value");
                 }));
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
-            t.name("trigonometry");
-            t.contentUri(URI.create("urn:test:2"));
-            t.grepCode("GREP2");
-            t.customField("test", "value2");
-        }));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true).name("Maths").child(NodeType.TOPIC, t -> {
+                    t.name("trigonometry");
+                    t.contentUri(URI.create("urn:test:2"));
+                    t.grepCode("GREP2");
+                    t.customField("test", "value2");
+                }));
 
         {
             final var response = testUtils.getResource("/v1/nodes?value=value");
@@ -419,11 +442,15 @@ public class NodesTest extends RestTest {
 
     @Test
     public void can_get_sub_nodes() throws Exception {
-        Node subject = builder.node(NodeType.SUBJECT, s -> s.isContext(true)
-                .name("Basic science")
-                .child(NodeType.TOPIC, t -> t.name("photo synthesis").resource(r -> r.name("mithocondria")))
-                .child(NodeType.TOPIC, t -> t.name("trigonometry").resource(r -> r.name("angles")))
-                .child(NodeType.TOPIC, t -> t.name("Random node").child(NodeType.NODE, c -> c.name("Subnode"))));
+        Node subject = builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true)
+                        .name("Basic science")
+                        .child(NodeType.TOPIC, t -> t.name("photo synthesis").resource(r -> r.name("mithocondria")))
+                        .child(NodeType.TOPIC, t -> t.name("trigonometry").resource(r -> r.name("angles")))
+                        .child(
+                                NodeType.TOPIC,
+                                t -> t.name("Random node").child(NodeType.NODE, c -> c.name("Subnode"))));
         {
             var response = testUtils.getResource(
                     "/v1/nodes/" + subject.getPublicId() + "/nodes?recursive=true&nodeType=TOPIC,RESOURCE,NODE");
@@ -484,15 +511,22 @@ public class NodesTest extends RestTest {
         builder.node(
                 NodeType.SUBJECT,
                 s -> s.isContext(true).name("Basic science").child(NodeType.TOPIC, t -> t.name("photo synthesis")));
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true)
-                .name("Maths")
-                .isVisible(false)
-                .child(NodeType.TOPIC, t -> t.name("trigonometry")));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true)
+                        .name("Maths")
+                        .isVisible(false)
+                        .child(NodeType.TOPIC, t -> t.name("trigonometry")));
         builder.node(NodeType.SUBJECT, s -> s.isContext(true).name("Arts and crafts"));
         builder.node(
-                NodeType.NODE, n -> n.isContext(true).name("Random node").child(NodeType.NODE, c -> c.name("Subnode")
-                        .contentUri("urn:article:1")
-                        .isVisible(false)));
+                NodeType.NODE,
+                n -> n.isContext(true)
+                        .name("Random node")
+                        .child(
+                                NodeType.NODE,
+                                c -> c.name("Subnode")
+                                        .contentUri("urn:article:1")
+                                        .isVisible(false)));
 
         {
             var response = testUtils.getResource("/v1/nodes?contentURI=urn:article:1");
@@ -515,19 +549,28 @@ public class NodesTest extends RestTest {
 
     @Test
     public void can_filter_nodes_on_ids() throws Exception {
-        var node1 = builder.node(NodeType.SUBJECT, s -> s.isContext(true)
-                .name("Basic science")
-                .publicId("urn:subject:1")
-                .child(NodeType.TOPIC, t -> t.name("photo synthesis")));
-        var node2 = builder.node(NodeType.SUBJECT, s -> s.isContext(true)
-                .name("Maths")
-                .isVisible(false)
-                .child(NodeType.TOPIC, t -> t.name("trigonometry")));
+        var node1 = builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true)
+                        .name("Basic science")
+                        .publicId("urn:subject:1")
+                        .child(NodeType.TOPIC, t -> t.name("photo synthesis")));
+        var node2 = builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true)
+                        .name("Maths")
+                        .isVisible(false)
+                        .child(NodeType.TOPIC, t -> t.name("trigonometry")));
         builder.node(NodeType.SUBJECT, s -> s.isContext(true).name("Arts and crafts"));
         builder.node(
-                NodeType.NODE, n -> n.isContext(true).name("Random node").child(NodeType.NODE, c -> c.name("Subnode")
-                        .contentUri("urn:article:1")
-                        .isVisible(false)));
+                NodeType.NODE,
+                n -> n.isContext(true)
+                        .name("Random node")
+                        .child(
+                                NodeType.NODE,
+                                c -> c.name("Subnode")
+                                        .contentUri("urn:article:1")
+                                        .isVisible(false)));
 
         {
             var response = testUtils.getResource("/v1/nodes?ids=" + node1.getPublicId() + "," + node2.getPublicId());
@@ -541,21 +584,29 @@ public class NodesTest extends RestTest {
     @Test
     void fetching_subnodes_uses_correct_context() throws Exception {
         Node resource = builder.node(NodeType.RESOURCE, r -> r.name("Leaf").publicId("urn:resource:1"));
-        builder.node(NodeType.SUBJECT, s1 -> s1.isContext(true)
-                .name("Subject1")
-                .publicId("urn:subject:1")
-                .child(
-                        NodeType.TOPIC,
-                        t1 -> t1.name("Topic1").publicId("urn:topic:1").resource(resource)));
-        builder.node(NodeType.SUBJECT, s2 -> s2.isContext(true)
-                .name("Subject2")
-                .publicId("urn:subject:2")
-                .child(NodeType.TOPIC, t2 -> t2.name("Topic2")
-                        .publicId("urn:topic:2")
-                        .isContext(true)
+        builder.node(
+                NodeType.SUBJECT,
+                s1 -> s1.isContext(true)
+                        .name("Subject1")
+                        .publicId("urn:subject:1")
                         .child(
                                 NodeType.TOPIC,
-                                t3 -> t3.name("Topic3").publicId("urn:topic:3").resource(resource))));
+                                t1 -> t1.name("Topic1").publicId("urn:topic:1").resource(resource)));
+        builder.node(
+                NodeType.SUBJECT,
+                s2 -> s2.isContext(true)
+                        .name("Subject2")
+                        .publicId("urn:subject:2")
+                        .child(
+                                NodeType.TOPIC,
+                                t2 -> t2.name("Topic2")
+                                        .publicId("urn:topic:2")
+                                        .isContext(true)
+                                        .child(
+                                                NodeType.TOPIC,
+                                                t3 -> t3.name("Topic3")
+                                                        .publicId("urn:topic:3")
+                                                        .resource(resource))));
 
         {
             var response =
@@ -600,10 +651,14 @@ public class NodesTest extends RestTest {
     public void can_place_subject_below_subject() throws Exception {
         builder.node(
                 NodeType.SUBJECT,
-                s -> s.isContext(true).name("Maths").publicId("urn:subject:1").child(NodeType.SUBJECT, t -> t.name(
-                                "Maths vg1")
-                        .contentUri("urn:frontpage:1")
-                        .publicId("urn:subject:2")));
+                s -> s.isContext(true)
+                        .name("Maths")
+                        .publicId("urn:subject:1")
+                        .child(
+                                NodeType.SUBJECT,
+                                t -> t.name("Maths vg1")
+                                        .contentUri("urn:frontpage:1")
+                                        .publicId("urn:subject:2")));
 
         var response = testUtils.getResource("/v1/nodes/urn:subject:2");
         final var node = testUtils.getObject(NodeDTO.class, response);
@@ -625,11 +680,13 @@ public class NodesTest extends RestTest {
         builder.node(
                 NodeType.SUBJECT,
                 s -> s.isContext(true).name("Physics").publicId("urn:subject:1").child(electricity));
-        builder.node(NodeType.SUBJECT, s -> s.isContext(true)
-                .name("Biology")
-                .publicId("urn:subject:2")
-                .child(chemistry)
-                .link(electricity));
+        builder.node(
+                NodeType.SUBJECT,
+                s -> s.isContext(true)
+                        .name("Biology")
+                        .publicId("urn:subject:2")
+                        .child(chemistry)
+                        .link(electricity));
 
         {
             var response = testUtils.getResource("/v1/nodes/urn:subject:1/nodes");
@@ -963,10 +1020,12 @@ public class NodesTest extends RestTest {
 
     @Test
     public void can_delete_node_with_2_resources() throws Exception {
-        Node topic = builder.node(NodeType.TOPIC, child -> child.name("MAIN TOPIC")
-                .translation("nb", tr -> tr.name("HovedEmne"))
-                .resource(r -> r.publicId("urn:resource:1"))
-                .resource(r -> r.publicId("urn:resource:2")));
+        Node topic = builder.node(
+                NodeType.TOPIC,
+                child -> child.name("MAIN TOPIC")
+                        .translation("nb", tr -> tr.name("HovedEmne"))
+                        .resource(r -> r.publicId("urn:resource:1"))
+                        .resource(r -> r.publicId("urn:resource:2")));
 
         final var topicId = topic.getPublicId();
 
@@ -977,10 +1036,12 @@ public class NodesTest extends RestTest {
 
     @Test
     public void can_delete_node_but_subnodes_remain() throws Exception {
-        Node childTopic = builder.node(NodeType.TOPIC, child -> child.name("DELETE EDGE TO ME")
-                .translation("nb", tr -> tr.name("emne"))
-                .child(NodeType.TOPIC, sub -> sub.publicId("urn:topic:1"))
-                .resource(r -> r.publicId("urn:resource:1")));
+        Node childTopic = builder.node(
+                NodeType.TOPIC,
+                child -> child.name("DELETE EDGE TO ME")
+                        .translation("nb", tr -> tr.name("emne"))
+                        .child(NodeType.TOPIC, sub -> sub.publicId("urn:topic:1"))
+                        .resource(r -> r.publicId("urn:resource:1")));
 
         URI parentId =
                 builder.node(NodeType.TOPIC, parent -> parent.child(childTopic)).getPublicId();
@@ -1026,10 +1087,14 @@ public class NodesTest extends RestTest {
     void making_resources_primary_sets_other_contexts_not_primary() throws Exception {
         var resource = builder.node(NodeType.RESOURCE);
         var resource2 = builder.node(NodeType.RESOURCE);
-        var node1 = builder.node(NodeType.TOPIC, n -> n.resource(resource, false)
-                .child(NodeType.TOPIC, c -> c.publicId("urn:topic:1").resource(resource2, false)));
-        var node2 = builder.node(NodeType.TOPIC, n -> n.resource(resource, true)
-                .child(NodeType.TOPIC, c -> c.publicId("urn:topic:2").resource(resource2, true)));
+        var node1 = builder.node(
+                NodeType.TOPIC,
+                n -> n.resource(resource, false)
+                        .child(NodeType.TOPIC, c -> c.publicId("urn:topic:1").resource(resource2, false)));
+        var node2 = builder.node(
+                NodeType.TOPIC,
+                n -> n.resource(resource, true)
+                        .child(NodeType.TOPIC, c -> c.publicId("urn:topic:2").resource(resource2, true)));
 
         {
             // Only set primary on one level
@@ -1092,10 +1157,12 @@ public class NodesTest extends RestTest {
 
     @Test
     public void can_clone_node() throws Exception {
-        URI publicId = builder.node(NodeType.RESOURCE, r -> r.name("Resource")
-                        .resourceType(rt -> rt.name("Fagstoff"))
-                        .translation("nb", tr -> tr.name("Fagstoff nb"))
-                        .contentUri("urn:article:1"))
+        URI publicId = builder.node(
+                        NodeType.RESOURCE,
+                        r -> r.name("Resource")
+                                .resourceType(rt -> rt.name("Fagstoff"))
+                                .translation("nb", tr -> tr.name("Fagstoff nb"))
+                                .contentUri("urn:article:1"))
                 .getPublicId();
 
         final var command = new NodePostPut() {
@@ -1153,9 +1220,17 @@ public class NodesTest extends RestTest {
         var subjectId = "urn:subject:1";
         var topicId = "urn:topic:1";
         var resourceId = "urn:resource:1";
-        builder.node(NodeType.SUBJECT, n -> n.name("S1").publicId(subjectId).child(NodeType.TOPIC, c -> c.name("T1")
-                .publicId(topicId)
-                .child(NodeType.RESOURCE, rc -> rc.name("R1").publicId(resourceId))));
+        builder.node(
+                NodeType.SUBJECT,
+                n -> n.name("S1")
+                        .publicId(subjectId)
+                        .child(
+                                NodeType.TOPIC,
+                                c -> c.name("T1")
+                                        .publicId(topicId)
+                                        .child(
+                                                NodeType.RESOURCE,
+                                                rc -> rc.name("R1").publicId(resourceId))));
 
         { // Set quality evaluation on resource and check that average on subject & topic is updated
             testUtils.updateResourceRawInput("/v1/nodes/" + resourceId, "{\"qualityEvaluation\": {\"grade\": 5}}");
@@ -1186,9 +1261,17 @@ public class NodesTest extends RestTest {
         var subjectId = "urn:subject:1";
         var topicId = "urn:topic:1";
         var resourceId = "urn:resource:1";
-        builder.node(NodeType.SUBJECT, n -> n.name("S1").publicId(subjectId).child(NodeType.TOPIC, c -> c.name("T1")
-                .publicId(topicId)
-                .child(NodeType.RESOURCE, rc -> rc.name("R1").publicId(resourceId))));
+        builder.node(
+                NodeType.SUBJECT,
+                n -> n.name("S1")
+                        .publicId(subjectId)
+                        .child(
+                                NodeType.TOPIC,
+                                c -> c.name("T1")
+                                        .publicId(topicId)
+                                        .child(
+                                                NodeType.RESOURCE,
+                                                rc -> rc.name("R1").publicId(resourceId))));
 
         testUtils.updateResourceRawInput("/v1/nodes/" + resourceId, "{\"qualityEvaluation\": {\"grade\": 2}}");
         var dbTopic = nodeRepository.getByPublicId(URI.create(topicId));
@@ -1207,20 +1290,30 @@ public class NodesTest extends RestTest {
     @Test
     public void update_and_clone_topic_resource_and_quality_evaluation_matches() throws Exception {
         // Create structure with resources and quality evaluation
-        var parent = builder.node(NodeType.SUBJECT, s1 -> s1.name("S1")
-                .publicId("urn:subject:1")
-                .child(NodeType.TOPIC, t1 -> t1.name("T1")
-                        .publicId("urn:topic:1")
+        var parent = builder.node(
+                NodeType.SUBJECT,
+                s1 -> s1.name("S1")
+                        .publicId("urn:subject:1")
                         .child(
-                                NodeType.RESOURCE,
-                                r1 -> r1.name("R1").publicId("urn:resource:1").qualityEvaluation(Grade.Five))
-                        .child(
-                                NodeType.RESOURCE,
-                                r2 -> r2.name("R2").publicId("urn:resource:2").qualityEvaluation(Grade.Four))
-                        .child(
-                                NodeType.RESOURCE,
-                                r3 -> r3.name("R3").publicId("urn:resource:3").qualityEvaluation(Grade.One)))
-                .child(NodeType.TOPIC, t2 -> t2.name("T2").publicId("urn:topic:2")));
+                                NodeType.TOPIC,
+                                t1 -> t1.name("T1")
+                                        .publicId("urn:topic:1")
+                                        .child(
+                                                NodeType.RESOURCE,
+                                                r1 -> r1.name("R1")
+                                                        .publicId("urn:resource:1")
+                                                        .qualityEvaluation(Grade.Five))
+                                        .child(
+                                                NodeType.RESOURCE,
+                                                r2 -> r2.name("R2")
+                                                        .publicId("urn:resource:2")
+                                                        .qualityEvaluation(Grade.Four))
+                                        .child(
+                                                NodeType.RESOURCE,
+                                                r3 -> r3.name("R3")
+                                                        .publicId("urn:resource:3")
+                                                        .qualityEvaluation(Grade.One)))
+                        .child(NodeType.TOPIC, t2 -> t2.name("T2").publicId("urn:topic:2")));
 
         parent.updateEntireAverageTree();
 
@@ -1276,17 +1369,27 @@ public class NodesTest extends RestTest {
         // Create structure with resources and quality evaluation
         var s1Node = builder.node(
                 NodeType.SUBJECT,
-                s1 -> s1.name("S1").publicId("urn:subject:1").child(NodeType.TOPIC, t1 -> t1.name("T1")
-                        .publicId("urn:topic:1")
+                s1 -> s1.name("S1")
+                        .publicId("urn:subject:1")
                         .child(
-                                NodeType.RESOURCE,
-                                r1 -> r1.name("R1").publicId("urn:resource:1").qualityEvaluation(Grade.Five))
-                        .child(
-                                NodeType.RESOURCE,
-                                r2 -> r2.name("R2").publicId("urn:resource:2").qualityEvaluation(Grade.Four))
-                        .child(
-                                NodeType.RESOURCE,
-                                r3 -> r3.name("R3").publicId("urn:resource:3").qualityEvaluation(Grade.One))));
+                                NodeType.TOPIC,
+                                t1 -> t1.name("T1")
+                                        .publicId("urn:topic:1")
+                                        .child(
+                                                NodeType.RESOURCE,
+                                                r1 -> r1.name("R1")
+                                                        .publicId("urn:resource:1")
+                                                        .qualityEvaluation(Grade.Five))
+                                        .child(
+                                                NodeType.RESOURCE,
+                                                r2 -> r2.name("R2")
+                                                        .publicId("urn:resource:2")
+                                                        .qualityEvaluation(Grade.Four))
+                                        .child(
+                                                NodeType.RESOURCE,
+                                                r3 -> r3.name("R3")
+                                                        .publicId("urn:resource:3")
+                                                        .qualityEvaluation(Grade.One))));
 
         builder.node(NodeType.SUBJECT, s2 -> s2.name("S2").publicId("urn:subject:2"));
 

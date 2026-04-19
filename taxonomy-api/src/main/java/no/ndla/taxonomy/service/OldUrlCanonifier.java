@@ -32,7 +32,7 @@ public class OldUrlCanonifier {
                 nodeId = token.substring(nodeStartsAt);
             } else if (token.contains("fag=")) {
                 int start = token.indexOf("fag=");
-                int ampersandIndex = token.indexOf("&");
+                int ampersandIndex = token.indexOf('&');
                 int end = ampersandIndex > start ? ampersandIndex : token.length();
                 fagId = "?" + token.substring(start, end);
             }
@@ -44,8 +44,8 @@ public class OldUrlCanonifier {
         for (String suffix : KNOWN_NODE_SUFFIXES) {
             if (oldUrl.contains(suffix)) {
                 int start = oldUrl.indexOf(suffix);
-                int indexOfSlashAfter = oldUrl.indexOf("/", start + 1);
-                int indexOfQuestionMark = oldUrl.indexOf("?", start);
+                int indexOfSlashAfter = oldUrl.indexOf('/', start + 1);
+                int indexOfQuestionMark = oldUrl.indexOf('?', start);
                 String partToRemove;
                 if (indexOfSlashAfter != -1) {
                     partToRemove = oldUrl.substring(start, indexOfSlashAfter + 1);
@@ -68,7 +68,7 @@ public class OldUrlCanonifier {
     }
 
     private int findNodeStartsAt(String token) {
-        return token.substring(0, token.lastIndexOf("/")).lastIndexOf("/");
+        return token.substring(0, token.lastIndexOf('/')).lastIndexOf('/');
     }
 
     private String[] tokenize(String oldUrl) {
