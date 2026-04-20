@@ -20,6 +20,6 @@ where metadata is not null
   and not exists (
     select 1
     from jsonb_array_elements(coalesce(metadata->'editorNotes', '[]'::jsonb)) as editor_note(note_json)
-    where editor_note.note_json->>'note' = 'Image created.'
+    where editor_note.note_json->>'note' like 'Image created%'
   );
 
