@@ -250,6 +250,65 @@ class DraftRepositoryTest extends DatabaseIntegrationSuite with TestEnvironment 
     repository.getArticlesByPage(pageSize, pageSize * 1)(using dbUtility.autoSession).get should be(Seq(art6))
   }
 
+  test("That withIds returns the latest revision of articles with paging") {
+    val articles = Seq(
+      sampleArticle.copy(id = Some(1), revision = Some(1)),
+      sampleArticle.copy(id = Some(1), revision = Some(2)),
+      sampleArticle.copy(id = Some(2), revision = Some(1)),
+      sampleArticle.copy(id = Some(3), revision = Some(1)),
+      sampleArticle.copy(id = Some(3), revision = Some(2)),
+    )
+    articles.foreach(repository.insert(_)(using dbUtility.autoSession).get)
+
+    val all = repository.withIds(List(1L, 2L, 3L), 0L, 10L)(using dbUtility.autoSession).get
+    all.map(d => d.id.get -> d.revision.get).sortBy(_._1) should be(Seq(1L -> 2, 2L -> 1, 3L -> 2))
+
+    val page1 = repository.withIds(List(1L, 2L, 3L), 0L, 2L)(using dbUtility.autoSession).get
+    val page2 = repository.withIds(List(1L, 2L, 3L), 2L, 2L)(using dbUtility.autoSession).get
+    page1.size should be(2)
+    page2.size should be(1)
+    (
+      page1 ++ page2
+    ).map(_.id.get) should be(Seq(1L, 2L, 3L))
+  }
+
+  test("That documentsWithArticleIdBetween returns latest revisions excluding archived and out-of-range") {
+    val articles = Seq(
+      sampleArticle.copy(id = Some(1), revision = Some(1)),
+      sampleArticle.copy(id = Some(1), revision = Some(2)),
+      sampleArticle.copy(id = Some(2), revision = Some(1), status = Status(DraftStatus.ARCHIVED, Set.empty)),
+      sampleArticle.copy(id = Some(3), revision = Some(1)),
+      sampleArticle.copy(id = Some(4), revision = Some(1)),
+    )
+    articles.foreach(repository.insert(_)(using dbUtility.autoSession).get)
+
+    val result = repository.documentsWithArticleIdBetween(1L, 3L)(using dbUtility.autoSession).get
+    result.map(d => d.id.get -> d.revision.get) should be(Seq(1L -> 2, 3L -> 1))
+  }
+
+  test("That documentsWithIdBetween returns latest revisions excluding archived and out-of-range") {
+    val lastIdSeqValue = sql"select last_value, is_called from articledata_id_seq"
+      .map(rs => (rs.long("last_value"), rs.boolean("is_called")))
+      .single()(using dbUtility.autoSession)
+      .get match {
+      case (v, true)  => v
+      case (_, false) => 0
+    }
+    val firstDbId = 1L + lastIdSeqValue
+    val lastDbId  = 4L + lastIdSeqValue
+    val articles  = Seq(
+      sampleArticle.copy(id = Some(1), revision = Some(1)),
+      sampleArticle.copy(id = Some(1), revision = Some(2)),
+      sampleArticle.copy(id = Some(2), revision = Some(1), status = Status(DraftStatus.ARCHIVED, Set.empty)),
+      sampleArticle.copy(id = Some(3), revision = Some(1)),
+      sampleArticle.copy(id = Some(4), revision = Some(1)),
+    )
+    articles.foreach(repository.insert(_)(using dbUtility.autoSession).get)
+
+    val result = repository.documentsWithIdBetween(firstDbId, lastDbId)(using dbUtility.autoSession).get
+    result.map(d => d.id.get -> d.revision.get) should be(Seq(1L -> 2, 3L -> 1))
+  }
+
   test("published, then copied article creates new db version and bumps revision by two") {
     val article = TestData
       .sampleDomainArticle

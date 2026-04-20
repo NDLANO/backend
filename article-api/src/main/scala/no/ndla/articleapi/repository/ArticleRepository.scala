@@ -52,10 +52,10 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
   }
 
   def unpublishMaxRevision(articleId: Long)(using DBSession): Try[Long] = tsql"""
-    update ${dbArticle.Article.table}
+    update ${dbArticle.Article.table} ar
     set document=null
-    where article_id=$articleId
-    and revision=(select max(revision) from ${dbArticle.Article.table} where article_id=$articleId)
+    where ar.article_id=$articleId
+    and not exists (select 1 from ${dbArticle.Article.table} ar2 where ar2.article_id = ar.article_id and ar2.revision > ar.revision)
   """.update() match {
     case Success(count) if count == 1 => Success(articleId)
     case Success(_)                   => Failure(NotFoundException(s"Article with id $articleId does not exist"))
@@ -74,9 +74,9 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
   }
 
   def deleteMaxRevision(articleId: Long)(using DBSession): Try[Long] = tsql"""
-    delete from ${dbArticle.Article.table}
-    where article_id = $articleId
-    and revision=(select max(revision) from ${dbArticle.Article.table} where article_id=$articleId)
+    delete from ${dbArticle.Article.table} ar
+    where ar.article_id = $articleId
+    and not exists (select 1 from ${dbArticle.Article.table} ar2 where ar2.article_id = ar.article_id and ar2.revision > ar.revision)
   """.update() match {
     case Success(_)  => Success(articleId)
     case Failure(ex) => Failure(ex)
@@ -116,11 +116,13 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
       from ${dbArticle.Article.as(ar)}
       where ar.document is not NULL
       and ar.article_id in ($articleIds)
-      and ar.revision = (
-        select max(revision)
+      and not exists (
+        select 1
         from ${dbArticle.Article.as(ar2)}
         where ar2.article_id = ar.article_id
+        and ar2.revision > ar.revision
       )
+      order by ar.article_id
       offset $offset
       limit $pageSize
     """.map(dbArticle.Article.fromResultSet(ar)).runList()
@@ -164,32 +166,35 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
   }
 
   def articleCount(using DBSession): Try[Long] = {
-    val ar = dbArticle.Article.syntax("ar")
+    val ar  = dbArticle.Article.syntax("ar")
+    val ar2 = dbArticle.Article.syntax("ar2")
     tsql"""
-      select count(distinct article_id)
-      from (
-        select *, ar.document as doc, max(revision) over (partition by article_id) as max_revision
-        from ${dbArticle.Article.as(ar)}
-      ) _
-      where revision = max_revision
-      and doc is not null
+      select count(distinct ar.article_id)
+      from ${dbArticle.Article.as(ar)}
+      where ar.document is not null
+      and not exists (
+        select 1
+        from ${dbArticle.Article.as(ar2)}
+        where ar2.article_id = ar.article_id
+        and ar2.revision > ar.revision
+      )
     """.map(rs => rs.long("count")).runSingle().map(_.getOrElse(0))
   }
 
   def getArticlesByPage(pageSize: Int, offset: Int)(using DBSession): Try[Seq[Article]] = {
-    val ar = dbArticle.Article.syntax("ar")
+    val ar  = dbArticle.Article.syntax("ar")
+    val ar2 = dbArticle.Article.syntax("ar2")
     tsql"""
-      select *
-      from (select
-              ${ar.result.*},
-              ${ar.revision} as revision,
-              ${ar.id} as row_id,
-              ar.document as doc,
-              max(revision) over (partition by article_id) as max_revision
-            from ${dbArticle.Article.as(ar)}) _
-      where revision = max_revision
-      and doc is not null
-      order by row_id
+      select ${ar.result.*}
+      from ${dbArticle.Article.as(ar)}
+      where ar.document is not null
+      and not exists (
+        select 1
+        from ${dbArticle.Article.as(ar2)}
+        where ar2.article_id = ar.article_id
+        and ar2.revision > ar.revision
+      )
+      order by ${ar.id}
       offset $offset
       limit $pageSize
     """.map(dbArticle.Article.fromResultSet(ar)).runList().map(_.toArticles)
@@ -249,10 +254,11 @@ class ArticleRepository(using dbArticle: DBArticle) extends StrictLogging {
       from ${dbArticle.Article.as(article)}
       where a.document is not NULL
       and a.article_id between $min and $max
-      and a.revision = (
-          select max(b.revision)
+      and not exists (
+          select 1
           from ${dbArticle.Article.as(subqueryArticle)}
           where b.article_id = a.article_id
+          and b.revision > a.revision
         )
     """.map(dbArticle.Article.fromResultSet(article)).runList().map(_.toArticles)
   }
