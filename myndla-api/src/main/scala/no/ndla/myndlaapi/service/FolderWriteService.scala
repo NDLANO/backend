@@ -511,10 +511,7 @@ class FolderWriteService(using
   def deleteAllUserData(feide: FeideUserWrapper): Try[Unit] = {
     for {
       user <- feide.userOrAccessDenied
-      _    <- folderRepository.deleteAllUserFolders(user.feideId)
-      _    <- folderRepository.deleteAllUserResources(user.feideId)
       _    <- userRepository.deleteUser(user.feideId)
-      _    <- folderRepository.deleteFolderUserConnection(None, user.feideId.some)
     } yield ()
   }
 
