@@ -37,6 +37,8 @@ import scala.util.{Failure, Success, Try}
 import common.getNextRevision
 import no.ndla.common.util.TraitUtil
 
+import scala.annotation.nowarn
+
 class ConverterService(using
     clock: Clock,
     commonConverter: CommonConverter,
@@ -110,8 +112,9 @@ class ConverterService(using
         updatedBy = user.id,
         published = None,
         firstPublished = None,
-        revised =
-          newArticle.revised.getOrElse(newArticle.published.getOrElse(now)), // TODO: Remove fallback when ed is updated
+        revised = newArticle.revised.getOrElse(newArticle.published.getOrElse(now)): @nowarn(
+          "msg=value published in class NewArticleDTO is deprecated"
+        ), // TODO: Remove fallback when ed is updated
         articleType = common.ArticleType.valueOfOrError(newArticle.articleType),
         notes = notes,
         previousVersionsNotes = Seq.empty,
