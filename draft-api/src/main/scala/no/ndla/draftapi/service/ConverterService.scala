@@ -33,9 +33,8 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 
 import scala.jdk.CollectionConverters.*
-import scala.util.{Failure, Success, Try, boundary}
+import scala.util.{Failure, Success, Try}
 import common.getNextRevision
-import no.ndla.common.TryUtil.when
 import no.ndla.common.util.TraitUtil
 
 import scala.annotation.nowarn
