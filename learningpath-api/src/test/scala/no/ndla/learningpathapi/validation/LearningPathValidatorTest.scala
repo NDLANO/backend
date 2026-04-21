@@ -23,7 +23,6 @@ import no.ndla.learningpathapi.*
 import no.ndla.mapping.License.PublicDomain
 import org.mockito.Mockito.when
 import no.ndla.common.model.domain.Priority
-import no.ndla.common.model.domain.RevisionMeta
 import no.ndla.learningpathapi.model.api.UpdatedLearningPathV2DTO
 import no.ndla.common.model.domain.learningpath.Introduction
 
@@ -65,7 +64,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default,
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 

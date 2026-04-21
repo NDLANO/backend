@@ -23,7 +23,7 @@ import no.ndla.common.model.domain.learningpath.{
   StepStatus,
   StepType,
 }
-import no.ndla.common.model.domain.{Author, ContributorType, Priority, RevisionMeta, Tag, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Priority, Tag, Title}
 import no.ndla.learningpathapi.*
 import no.ndla.mapping.License.PublicDomain
 import org.mockito.Mockito.when
@@ -80,7 +80,7 @@ class LearningStepValidatorTest extends UnitSuite with TestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default,
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 

@@ -10,7 +10,7 @@ package no.ndla.learningpathapi.service
 
 import no.ndla.common.errors.{NotFoundException, ValidationException}
 import no.ndla.common.model.domain.learningpath.*
-import no.ndla.common.model.domain.{ContributorType, Tag, Title}
+import no.ndla.common.model.domain.{ContributorType, Priority, Tag, Title}
 import no.ndla.common.model.{NDLADate, api as commonApi}
 import no.ndla.learningpathapi.model.api
 import no.ndla.learningpathapi.model.api.{
@@ -28,11 +28,9 @@ import org.mockito.ArgumentMatchers.eq as eqTo
 import org.mockito.Mockito.when
 
 import scala.util.{Failure, Success}
-import no.ndla.common.model.domain.Priority
-import no.ndla.common.model.domain.RevisionMeta
 
 class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
-  val today: NDLADate               = clock.now()
+  val today: NDLADate               = NDLADate.now().withNano(0)
   val clinton: commonApi.AuthorDTO  = commonApi.AuthorDTO(ContributorType.Writer, "Crooked Hillary")
   val license: commonApi.LicenseDTO = commonApi.LicenseDTO(
     License.PublicDomain.toString,
@@ -126,8 +124,6 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
   val randomDate: NDLADate      = clock.now()
   var service: ConverterService = scala.compiletime.uninitialized
 
-  val revisionMeta: Seq[RevisionMeta] = RevisionMeta.default
-
   val domainLearningPath: LearningPath = LearningPath(
     id = Some(1L),
     revision = Some(1),
@@ -150,7 +146,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = revisionMeta,
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 
@@ -193,7 +189,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        revisionMeta.map(commonConverter.revisionMetaDomainToApi),
+        TestData.revisionMetaSeq.map(commonConverter.revisionMetaDomainToApi),
         api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
         Seq.empty,
       )
@@ -252,7 +248,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        revisionMeta.map(commonConverter.revisionMetaDomainToApi),
+        TestData.revisionMetaSeq.map(commonConverter.revisionMetaDomainToApi),
         api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
         Seq.empty,
       )
@@ -502,6 +498,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
       Some("<section><p>Introduksjon</p></section>"),
       None,
     )
+    when(clock.now()).thenReturn(today)
 
     service
       .newFromExistingLearningPath(domainLearningPath, newCopyLp, TokenUser("Me", Set.empty, None).toCombined)

@@ -20,7 +20,7 @@ import no.ndla.common.model.domain.learningpath.{
   StepType,
 }
 import no.ndla.common.model.domain.{Author, ContributorType, Title}
-import no.ndla.learningpathapi.{UnitSuite, UnitTestEnvironment}
+import no.ndla.learningpathapi.{TestData, UnitSuite, UnitTestEnvironment}
 import no.ndla.mapping.License
 import no.ndla.network.tapir.auth.TokenUser
 import org.mockito.ArgumentMatchers.{any, eq as eqTo}
@@ -29,7 +29,6 @@ import scalikejdbc.DBSession
 
 import scala.util.Failure
 import no.ndla.common.model.domain.Priority
-import no.ndla.common.model.domain.RevisionMeta
 
 class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
   override implicit lazy val converterService: ConverterService = new ConverterService
@@ -67,7 +66,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default,
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 
@@ -93,7 +92,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default,
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 
