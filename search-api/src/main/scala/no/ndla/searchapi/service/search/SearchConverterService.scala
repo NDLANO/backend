@@ -565,7 +565,7 @@ class SearchConverterService(using
         favorited = favorited,
         learningResourceType = learningResourceType,
         typeName = typeNames,
-        isRepublished = draft.published != draft.firstPublished,
+        isRepublished = draft.firstPublished.zip(draft.published).exists((firstPub, pub) => firstPub != pub),
         domainObject = draft,
         nodes = nodes,
       )

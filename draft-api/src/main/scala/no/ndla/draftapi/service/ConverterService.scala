@@ -639,7 +639,7 @@ class ConverterService(using
     val isNewLanguage       = article.language.exists(l => !toMergeInto.supportedLanguages.contains(l))
     val createdDate         = toMergeInto.created
     val updatedDate         = clock.now()
-    val publishedDate       = article.published.orElse(toMergeInto.published)
+    val publishedDate       = toMergeInto.published
     val revisedDate         = article.revised.getOrElse(toMergeInto.revised)
     val updatedAvailability = common.Availability.valueOf(article.availability).getOrElse(toMergeInto.availability)
     val updatedRevision     = article
