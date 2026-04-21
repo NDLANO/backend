@@ -33,8 +33,9 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.Entities.EscapeMode
 
 import scala.jdk.CollectionConverters.*
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Try, boundary}
 import common.getNextRevision
+import no.ndla.common.TryUtil.when
 import no.ndla.common.util.TraitUtil
 
 import scala.annotation.nowarn
@@ -488,43 +489,45 @@ class ConverterService(using
   }
 
   def toArticleApiArticle(draft: Draft, validate: Boolean): Try[common.article.Article] = {
-    draft.copyright match {
-      case None            => Failure(ValidationException("copyright", "Copyright must be present when publishing an article"))
-      case Some(copyright) => Success(
-          common
-            .article
-            .Article(
-              id = draft.id,
-              revision = draft.revision,
-              externalIds = draft.externalIds,
-              title = draft.title,
-              content = filterComments(draft.content),
-              copyright = toArticleApiCopyright(copyright),
-              tags = draft.tags,
-              requiredLibraries = draft.requiredLibraries,
-              visualElement = draft.visualElement,
-              introduction = draft.introduction,
-              metaDescription = draft.metaDescription,
-              metaImage = draft.metaImage,
-              created = draft.created,
-              updated = draft.updated,
-              updatedBy = draft.updatedBy,
-              published =
-                if (validate) draft.published.getOrElse(clock.now())
-                else draft.published.get,
-              revised = draft.revised,
-              articleType = draft.articleType,
-              grepCodes = draft.grepCodes,
-              conceptIds = draft.conceptIds,
-              availability = draft.availability,
-              relatedContent = draft.relatedContent,
-              revisionDate = draft.revisionMeta.getNextRevision.map(_.revisionDate),
-              slug = draft.slug,
-              disclaimer = draft.disclaimer,
-              traits = draft.traits,
-            )
-        )
-    }
+    for {
+      copyright <- draft
+        .copyright
+        .toTry(ValidationException("copyright", "Copyright must be present when publishing an article"))
+      publishedDate <- draft.published match {
+        case Some(p)          => Success(p)
+        case None if validate => Success(clock.now())
+        case _                => Failure(ValidationException("published", "Published must be present when publishing an article"))
+      }
+    } yield common
+      .article
+      .Article(
+        id = draft.id,
+        revision = draft.revision,
+        externalIds = draft.externalIds,
+        title = draft.title,
+        content = filterComments(draft.content),
+        copyright = toArticleApiCopyright(copyright),
+        tags = draft.tags,
+        requiredLibraries = draft.requiredLibraries,
+        visualElement = draft.visualElement,
+        introduction = draft.introduction,
+        metaDescription = draft.metaDescription,
+        metaImage = draft.metaImage,
+        created = draft.created,
+        updated = draft.updated,
+        updatedBy = draft.updatedBy,
+        published = publishedDate,
+        revised = draft.revised,
+        articleType = draft.articleType,
+        grepCodes = draft.grepCodes,
+        conceptIds = draft.conceptIds,
+        availability = draft.availability,
+        relatedContent = draft.relatedContent,
+        revisionDate = draft.revisionMeta.getNextRevision.map(_.revisionDate),
+        slug = draft.slug,
+        disclaimer = draft.disclaimer,
+        traits = draft.traits,
+      )
   }
 
   private def languageFieldIsDefined(article: api.UpdatedArticleDTO): Boolean = {
