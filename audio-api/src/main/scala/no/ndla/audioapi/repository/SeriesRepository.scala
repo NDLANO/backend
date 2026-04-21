@@ -55,7 +55,7 @@ class SeriesRepository(using
   def update(series: domain.Series)(implicit session: DBSession = dbUtility.autoSession): Try[domain.Series] = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
-    dataObject.setValue(CirceUtil.toJsonString(series))
+    dataObject.setValue(CirceUtil.toJsonString(series.copy(episodes = None)))
 
     val newRevision = series.revision + 1
 
@@ -83,7 +83,7 @@ class SeriesRepository(using
     val startRevision = 1
     val dataObject    = new PGobject()
     dataObject.setType("jsonb")
-    dataObject.setValue(CirceUtil.toJsonString(newSeries))
+    dataObject.setValue(CirceUtil.toJsonString(newSeries.copy(episodes = None)))
 
     tsql"""
            insert into ${dbSeries.table}(document, revision)

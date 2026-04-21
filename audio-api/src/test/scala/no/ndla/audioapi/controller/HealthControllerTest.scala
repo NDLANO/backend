@@ -67,6 +67,7 @@ class HealthControllerTest extends UnitSuite with TestEnvironment with TapirCont
     Seq.empty,
     None,
     None,
+    created,
   )
 
   test("that /health/readiness returns 200 on success") {

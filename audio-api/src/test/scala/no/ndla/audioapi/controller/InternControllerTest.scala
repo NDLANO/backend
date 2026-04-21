@@ -47,6 +47,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     Seq.empty,
     None,
     None,
+    created,
   )
 
   val DefaultDomainAudioNoLanguage: AudioMetaInformation = domain.AudioMetaInformation(
@@ -64,6 +65,7 @@ class InternControllerTest extends UnitSuite with TestEnvironment with TapirCont
     Seq.empty,
     None,
     None,
+    created,
   )
 
   test("That DELETE /index removes all indexes") {

@@ -10,6 +10,7 @@ package no.ndla.audioapi.model.api
 
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.CopyrightDTO
 import sttp.tapir.Schema.annotations.description
 
@@ -31,6 +32,8 @@ case class NewAudioMetaInformationDTO(
     seriesId: Option[Long],
     @description("Manuscript for the audio")
     manuscript: Option[String],
+    @description("The time the audio was released from its source")
+    released: Option[NDLADate],
 )
 
 object NewAudioMetaInformationDTO {

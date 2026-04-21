@@ -384,6 +384,7 @@ class WriteService(using
         series = series,
         seriesId = toUpdate.seriesId,
         audioType = existing.audioType,
+        released = toUpdate.released.getOrElse(existing.released),
       )
 
       (merged, savedAudio)

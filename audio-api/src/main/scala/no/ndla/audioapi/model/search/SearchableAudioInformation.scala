@@ -14,7 +14,7 @@ import no.ndla.audioapi.model.domain.CoverPhoto
 import no.ndla.common.model.NDLADate
 import no.ndla.common.model.api.search.{SearchableLanguageList, SearchableLanguageValues}
 
-case class SearchablePodcastMeta(coverPhoto: CoverPhoto, language: String, released: Option[NDLADate])
+case class SearchablePodcastMeta(coverPhoto: CoverPhoto, language: String)
 
 object SearchablePodcastMeta {
   implicit val encoder: Encoder[SearchablePodcastMeta] = deriveEncoder
@@ -43,6 +43,7 @@ case class SearchableAudioInformation(
     podcastMeta: Seq[SearchablePodcastMeta],
     manuscript: SearchableLanguageValues,
     series: Option[SearchableSeries],
+    released: NDLADate,
 )
 
 object SearchableAudioInformation {

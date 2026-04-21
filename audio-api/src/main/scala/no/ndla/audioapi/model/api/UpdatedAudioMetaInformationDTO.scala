@@ -12,6 +12,7 @@ import no.ndla.common.model.api.CopyrightDTO
 import sttp.tapir.Schema.annotations.description
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import no.ndla.common.model.NDLADate
 
 @description("Meta information about the audio object")
 case class UpdatedAudioMetaInformationDTO(
@@ -33,6 +34,8 @@ case class UpdatedAudioMetaInformationDTO(
     seriesId: Option[Long],
     @description("Manuscript for the audio")
     manuscript: Option[String],
+    @description("The time the audio was released from its source")
+    released: Option[NDLADate],
 )
 
 object UpdatedAudioMetaInformationDTO {
