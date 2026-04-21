@@ -23,7 +23,7 @@ import no.ndla.common.model.domain.learningpath.{
   StepStatus,
   StepType,
 }
-import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title}
+import no.ndla.common.model.domain.{Author, ContributorType, Priority, Tag, Title}
 import no.ndla.learningpathapi.*
 import no.ndla.learningpathapi.model.domain.*
 import no.ndla.mapping.License
@@ -33,8 +33,6 @@ import org.mockito.Mockito.when
 import scalikejdbc.*
 
 import scala.util.Try
-import no.ndla.common.model.domain.Priority
-import no.ndla.common.model.domain.RevisionMeta
 
 class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite with UnitSuite with TestEnvironment {
   override lazy val schemaName                      = "learningpathapi_test"
@@ -71,7 +69,7 @@ class LearningPathRepositoryIntegrationTest extends DatabaseIntegrationSuite wit
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default,
+    revisionMeta = Seq(TestData.revisionMeta),
     grepCodes = Seq.empty,
   )
 

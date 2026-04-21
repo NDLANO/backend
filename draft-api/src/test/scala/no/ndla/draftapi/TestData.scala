@@ -11,7 +11,7 @@ package no.ndla.draftapi
 import no.ndla.common.configuration.Constants.EmbedTagName
 import no.ndla.common.model
 import no.ndla.common.model.api.{DraftCopyrightDTO, Missing}
-import no.ndla.common.model.domain.{ContributorType, Priority, Title}
+import no.ndla.common.model.domain.{ContributorType, Priority, RevisionMeta, RevisionStatus, Title}
 import no.ndla.common.model.domain.draft.Draft
 import no.ndla.common.model.domain.draft.DraftStatus.*
 import no.ndla.common.model.domain.language.OptLanguageFields
@@ -23,6 +23,8 @@ import no.ndla.mapping.License
 import no.ndla.mapping.License.{CC_BY, CC_BY_NC_SA}
 import no.ndla.network.tapir.auth.Permission.{DRAFT_API_ADMIN, DRAFT_API_PUBLISH, DRAFT_API_WRITE}
 import no.ndla.network.tapir.auth.TokenUser
+
+import java.util.UUID
 
 object TestData {
 
@@ -71,7 +73,10 @@ object TestData {
       None,
       false,
     )
-  val today: NDLADate = NDLADate.now()
+  val today: NDLADate = NDLADate.now().withNano(0)
+
+  val revisionMeta =
+    RevisionMeta(id = UUID.randomUUID(), today.plusYears(5), RevisionMeta.defaultNote, RevisionStatus.NeedsRevision)
 
   val (articleId, externalId) = (1L, "751234")
 
@@ -361,7 +366,7 @@ object TestData {
     conceptIds = Seq.empty,
     availability = common.Availability.everyone,
     relatedContent = Seq.empty,
-    revisionMeta = common.RevisionMeta.default,
+    revisionMeta = Seq(revisionMeta),
     responsible = None,
     slug = None,
     comments = Seq.empty,

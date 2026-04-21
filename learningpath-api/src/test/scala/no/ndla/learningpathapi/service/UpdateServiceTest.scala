@@ -239,7 +239,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default,
+    revisionMeta = Seq(TestData.revisionMeta),
     grepCodes = Seq.empty,
   )
 
@@ -265,7 +265,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default,
+    revisionMeta = Seq(TestData.revisionMeta),
     grepCodes = Seq.empty,
   )
 
@@ -291,7 +291,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default,
+    revisionMeta = Seq(TestData.revisionMeta),
     grepCodes = Seq.empty,
   )
 
@@ -317,7 +317,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default,
+    revisionMeta = Seq(TestData.revisionMeta),
     grepCodes = Seq.empty,
   )
 
@@ -343,7 +343,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = common.RevisionMeta.default,
+    revisionMeta = Seq(TestData.revisionMeta),
     grepCodes = Seq.empty,
   )
   val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2DTO = NewLearningPathV2DTO(
@@ -449,6 +449,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     when(learningPathRepository.insert(any[LearningPath])(using any[DBSession])).thenReturn(
       Success(PRIVATE_LEARNINGPATH)
     )
+    when(clock.now()).thenReturn(today)
 
     val saved = service.addLearningPathV2(NEW_PRIVATE_LEARNINGPATHV2, PRIVATE_OWNER.toCombined)
     assert(saved.get.id == PRIVATE_LEARNINGPATH.id.get)

@@ -16,7 +16,7 @@ import no.ndla.common.model.api.search.{
   SearchableLanguageValues,
 }
 import no.ndla.common.model.api.{AuthorDTO, LicenseDTO}
-import no.ndla.common.model.domain.{ContributorType, Priority, Responsible, RevisionMeta, getNextRevision}
+import no.ndla.common.model.domain.{ContributorType, Priority, Responsible, getNextRevision}
 import no.ndla.common.model.domain.learningpath.{LearningPathStatus, LearningPathVerificationStatus, StepType}
 import no.ndla.mapping.License
 import no.ndla.searchapi.model.api.learningpath.CopyrightDTO
@@ -93,8 +93,8 @@ class SearchableLearningPathTest extends UnitSuite with TestEnvironment {
       primaryRoot = titles,
       resourceTypeName = titles,
       defaultResourceTypeName = titles.defaultValue,
-      revisionMeta = RevisionMeta.default.toList,
-      nextRevision = RevisionMeta.default.getNextRevision,
+      revisionMeta = List(TestData.revisionMeta),
+      nextRevision = List(TestData.revisionMeta).getNextRevision,
       grepCodes = List("grep1", "grep2"),
       responsible = Some(Responsible("some responsible", TestData.today)),
       domainObject = TestData.DefaultLearningPath.copy(id = Some(101), isBasedOn = Some(1001)),

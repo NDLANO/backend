@@ -25,7 +25,7 @@ import no.ndla.common.model.domain.{Author, ContributorType, Tag, Title, learnin
 import no.ndla.language.Language
 import no.ndla.learningpathapi.TestData.searchSettings
 import no.ndla.learningpathapi.model.domain.*
-import no.ndla.learningpathapi.{TestEnvironment, UnitSuite}
+import no.ndla.learningpathapi.{TestData, TestEnvironment, UnitSuite}
 import no.ndla.mapping.License
 import no.ndla.scalatestsuite.ElasticsearchIntegrationSuite
 import org.mockito.ArgumentMatchers.any
@@ -33,7 +33,6 @@ import org.mockito.Mockito.doReturn
 
 import scala.util.Success
 import no.ndla.common.model.domain.Priority
-import no.ndla.common.model.domain.RevisionMeta
 import no.ndla.learningpathapi.model.api.CopyrightDTO
 import no.ndla.search.{Elastic4sClientFactory, NdlaE4sClient, SearchLanguage}
 
@@ -74,7 +73,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = RevisionMeta.default,
+    revisionMeta = Seq(TestData.revisionMeta),
     grepCodes = Seq.empty,
   )
 
