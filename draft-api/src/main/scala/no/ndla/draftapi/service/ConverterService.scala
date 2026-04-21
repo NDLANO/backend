@@ -487,7 +487,7 @@ class ConverterService(using
     contents
   }
 
-  def toArticleApiArticle(draft: Draft): Try[common.article.Article] = {
+  def toArticleApiArticle(draft: Draft, validate: Boolean): Try[common.article.Article] = {
     draft.copyright match {
       case None            => Failure(ValidationException("copyright", "Copyright must be present when publishing an article"))
       case Some(copyright) => Success(
@@ -509,7 +509,9 @@ class ConverterService(using
               created = draft.created,
               updated = draft.updated,
               updatedBy = draft.updatedBy,
-              published = draft.published.getOrElse(clock.now()),
+              published =
+                if (validate) draft.published.getOrElse(clock.now())
+                else draft.published.get,
               revised = draft.revised,
               articleType = draft.articleType,
               grepCodes = draft.grepCodes,

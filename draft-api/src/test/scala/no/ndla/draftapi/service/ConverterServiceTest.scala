@@ -812,13 +812,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         traits = List.empty,
       )
 
-    val result = service.toArticleApiArticle(draft)
+    val result = service.toArticleApiArticle(draft, true)
     result should be(Success(article))
   }
 
   test("that toArticleApiArticle fails if copyright is not present") {
     val draft                                 = TestData.sampleDomainArticle.copy(copyright = None)
-    val Failure(result1: ValidationException) = service.toArticleApiArticle(draft): @unchecked
+    val Failure(result1: ValidationException) = service.toArticleApiArticle(draft, false): @unchecked
     result1.errors.head.message should be("Copyright must be present when publishing an article")
   }
 

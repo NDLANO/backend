@@ -399,7 +399,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     val status = common.Status(END_CONTROL, Set.empty)
 
-    when(converterService.toArticleApiArticle(any[Draft])).thenReturn(Success(article))
+    when(converterService.toArticleApiArticle(any[Draft], any[Boolean])).thenReturn(Success(article))
 
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == END_CONTROL)
     transitionsToTest.foreach(t =>

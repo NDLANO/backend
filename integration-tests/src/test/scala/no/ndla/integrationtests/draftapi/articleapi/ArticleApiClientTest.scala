@@ -112,9 +112,9 @@ class ArticleApiClientTest
     created = NDLADate.fromUnixTime(0),
     updated = NDLADate.fromUnixTime(0),
     updatedBy = "updatedBy",
-    published = None,
+    published = Some(NDLADate.fromUnixTime(0)),
     revised = NDLADate.fromUnixTime(0),
-    firstPublished = None,
+    firstPublished = Some(NDLADate.fromUnixTime(0)),
     articleType = common.ArticleType.Standard,
     notes = Seq.empty,
     previousVersionsNotes = Seq.empty,
@@ -210,7 +210,7 @@ class ArticleApiClientTest
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     val result          = converterService
-      .toArticleApiArticle(testArticle)
+      .toArticleApiArticle(testArticle, true)
       .flatMap(article => articleApiCient.validateArticle(article, importValidate = false, None))
     result.isSuccess should be(true)
   }
@@ -219,7 +219,7 @@ class ArticleApiClientTest
     AuthUser.setHeader(s"Bearer $exampleToken")
     val articleApiCient = new ArticleApiClient(articleApiBaseUrl)
     val result          = converterService
-      .toArticleApiArticle(testArticle.copy(title = Seq(common.Title("", "nb"))))
+      .toArticleApiArticle(testArticle.copy(title = Seq(common.Title("", "nb"))), true)
       .flatMap(article => articleApiCient.validateArticle(article, importValidate = false, None))
     result.isSuccess should be(false)
   }

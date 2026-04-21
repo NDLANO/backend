@@ -65,7 +65,7 @@ class StateTransitionRules(using
   private val validateArticleApiArticle: SideEffect = SideEffect(
     "validateArticleApiArticle",
     (draft: Draft, user: TokenUser) => {
-      val validatedArticle = converterService.toArticleApiArticle(draft) match {
+      val validatedArticle = converterService.toArticleApiArticle(draft, true) match {
         case Failure(ex)      => Failure(ex)
         case Success(article) => articleApiClient.validateArticle(article, importValidate = false, Some(user))
       }

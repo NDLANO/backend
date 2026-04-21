@@ -149,7 +149,7 @@ class ContentValidator(using
         .flatMap {
           case None        => Failure(NotFoundException(s"Article with id $id does not exist"))
           case Some(draft) => converterService
-              .toArticleApiArticle(draft)
+              .toArticleApiArticle(draft, true)
               .flatMap(article => articleApiClient.validateArticle(article, importValidate, Some(user)))
               .map(_ => ContentIdDTO(id))
         }
@@ -167,7 +167,7 @@ class ContentValidator(using
         case None           => Failure(NotFoundException(s"Article with id $id does not exist"))
         case Some(existing) => converterService
             .toDomainArticle(existing, updatedArticle, user)
-            .flatMap(converterService.toArticleApiArticle)
+            .flatMap(da => converterService.toArticleApiArticle(da, true))
             .flatMap(articleApiClient.validateArticle(_, importValidate, Some(user)))
             .map(_ => ContentIdDTO(id))
       }
