@@ -239,7 +239,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = Seq(TestData.revisionMeta),
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 
@@ -265,7 +265,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = Seq(TestData.revisionMeta),
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 
@@ -291,7 +291,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = Seq(TestData.revisionMeta),
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 
@@ -317,7 +317,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = Seq(TestData.revisionMeta),
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 
@@ -343,7 +343,7 @@ class UpdateServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = Seq(TestData.revisionMeta),
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
   val NEW_PRIVATE_LEARNINGPATHV2: NewLearningPathV2DTO = NewLearningPathV2DTO(

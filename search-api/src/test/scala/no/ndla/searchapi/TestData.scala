@@ -1032,8 +1032,9 @@ object TestData {
   val visibleMetadata: Option[Metadata]   = Some(Metadata(Seq.empty, visible = true, Map.empty))
   val invisibleMetadata: Option[Metadata] = Some(Metadata(Seq.empty, visible = false, Map.empty))
 
-  val revisionMeta =
+  val revisionMetaSeq = Seq(
     RevisionMeta(id = UUID.randomUUID(), today.plusYears(5), RevisionMeta.defaultNote, RevisionStatus.NeedsRevision)
+  )
 
   val DefaultLearningPath: LearningPath = LearningPath(
     id = None,
@@ -1057,7 +1058,7 @@ object TestData {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = Seq(revisionMeta),
+    revisionMeta = revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 

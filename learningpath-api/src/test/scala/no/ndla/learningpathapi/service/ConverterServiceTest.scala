@@ -146,7 +146,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = Seq(TestData.revisionMeta),
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 
@@ -189,7 +189,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        Seq(commonConverter.revisionMetaDomainToApi(TestData.revisionMeta)),
+        TestData.revisionMetaSeq.map(commonConverter.revisionMetaDomainToApi),
         api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
         Seq.empty,
       )
@@ -248,7 +248,7 @@ class ConverterServiceTest extends UnitSuite with UnitTestEnvironment {
         None,
         Seq.empty,
         Priority.Unspecified,
-        Seq(commonConverter.revisionMetaDomainToApi(TestData.revisionMeta)),
+        TestData.revisionMetaSeq.map(commonConverter.revisionMetaDomainToApi),
         api.IntroductionDTO("<section><p>introduction</p></section>", props.DefaultLanguage),
         Seq.empty,
       )

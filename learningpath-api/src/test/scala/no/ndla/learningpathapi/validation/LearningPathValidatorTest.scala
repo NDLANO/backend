@@ -64,7 +64,7 @@ class LearningPathValidatorTest extends UnitSuite with TestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = Seq(TestData.revisionMeta),
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 

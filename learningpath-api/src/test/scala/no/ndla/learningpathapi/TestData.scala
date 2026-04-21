@@ -81,8 +81,9 @@ object TestData {
     owner = "me",
   )
 
-  val revisionMeta =
+  val revisionMetaSeq = Seq(
     RevisionMeta(id = UUID.randomUUID(), today.plusYears(5), RevisionMeta.defaultNote, RevisionStatus.NeedsRevision)
+  )
 
   val sampleDomainLearningPath: LearningPath = LearningPath(
     id = Some(1),
@@ -106,7 +107,7 @@ object TestData {
     responsible = None,
     comments = Seq.empty,
     priority = common.Priority.Unspecified,
-    revisionMeta = Seq(revisionMeta),
+    revisionMeta = revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 

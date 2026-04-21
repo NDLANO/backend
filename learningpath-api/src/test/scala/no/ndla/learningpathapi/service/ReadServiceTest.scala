@@ -66,7 +66,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = Seq(TestData.revisionMeta),
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 
@@ -92,7 +92,7 @@ class ReadServiceTest extends UnitSuite with UnitTestEnvironment {
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = Seq(TestData.revisionMeta),
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 

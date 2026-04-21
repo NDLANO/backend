@@ -73,7 +73,7 @@ class SearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuite wit
     responsible = None,
     comments = Seq.empty,
     priority = Priority.Unspecified,
-    revisionMeta = Seq(TestData.revisionMeta),
+    revisionMeta = TestData.revisionMetaSeq,
     grepCodes = Seq.empty,
   )
 

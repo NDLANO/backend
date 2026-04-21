@@ -401,7 +401,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
         content =
           Seq(ArticleContent("<section> Valid Content </section>", "nb"), ArticleContent("<div> content <div", "nn")),
         responsible = Some(Responsible("hei", TestData.today)),
-        revisionMeta = Seq(TestData.revisionMeta),
+        revisionMeta = TestData.revisionMetaSeq,
       )
 
     contentValidator.validateArticleOnLanguage(None, article, Some("nb"))(using dbUtility.readOnlySession).failIfFailure
@@ -415,12 +415,12 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
   test("That validation succeeds if only editor fields are updated") {
     val oldArticle = TestData
       .sampleDomainArticle
-      .copy(id = Some(5), revision = Some(1), responsible = None, revisionMeta = Seq(TestData.revisionMeta))
+      .copy(id = Some(5), revision = Some(1), responsible = None, revisionMeta = TestData.revisionMetaSeq)
     val article = oldArticle.copy(
       id = Some(5),
       revision = Some(2),
       responsible = None,
-      revisionMeta = Seq(TestData.revisionMeta),
+      revisionMeta = TestData.revisionMetaSeq,
       notes = Seq(
         EditorNote("note1", "editor", oldArticle.status, TestData.today),
         EditorNote("note2", "editor", oldArticle.status, TestData.today),
