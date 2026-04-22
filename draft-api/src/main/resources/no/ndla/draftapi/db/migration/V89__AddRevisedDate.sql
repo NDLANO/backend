@@ -1,51 +1,32 @@
 -- Add revised date to articledata based on published date.
+-- Update published date depending
 UPDATE articledata
-SET document = jsonb_set(document, '{revised}', to_jsonb(document->>'published'), true)
+SET document = document
+    || jsonb_build_object('revised', document -> 'published')
+    || jsonb_build_object('published',
+                          CASE
+                              WHEN document -> 'status' ->> 'current' = 'PUBLISHED'
+                                  THEN document -> 'updated'
+                              WHEN NOT (document -> 'status' -> 'other' @> '["PUBLISHED"]'::jsonb)
+                                  THEN 'null'::jsonb
+                              ELSE document -> 'published'
+                              END)
 WHERE document IS NOT NULL;
 
--- Update published with updated date if article is published,
--- otherwise set published to null if article is not published and has never been published before.
-UPDATE articledata
-SET document = jsonb_set(document, '{published}', to_jsonb(document->>'updated'), false)
+-- Add firstPublished based on published from first version published
+WITH first_published AS (SELECT DISTINCT ON (article_id) article_id,
+    document -> 'published' AS published
+FROM articledata
 WHERE document IS NOT NULL
-AND (document->'status' ->> 'current' = 'PUBLISHED');
-
-UPDATE articledata
-SET document = jsonb_set(document, '{published}', 'null'::jsonb, false)
-WHERE document IS NOT NULL
-AND document->'status' ->> 'current' != 'PUBLISHED'
-AND NOT (document->'status' -> 'other' @> '["PUBLISHED"]'::jsonb);
-
--- Set firstPublished to published, including null values.
-UPDATE articledata
-SET document = jsonb_set(document, '{firstPublished}', to_jsonb(document->>'published'), true)
-WHERE document IS NOT NULL;
-
--- Set firstPublished to the first published date for the first revision with published of the article.
--- Updates all the version of the article where published is not null.
-WITH first_published AS (
-    SELECT DISTINCT ON (ad.article_id)
-           ad.article_id,
-           ad.document->>'published' AS published
-    FROM articledata ad
-    WHERE ad.document IS NOT NULL
-      AND ad.document->>'published' IS NOT NULL
-    ORDER BY ad.article_id, ad.revision ASC
-),
-published_article AS (
-    SELECT article_id, revision
-    FROM articledata
-    WHERE document IS NOT NULL
-    AND document->>'published' IS NOT NULL
-)
+  AND document ->> 'published' IS NOT NULL
+ORDER BY article_id, revision ASC)
 UPDATE articledata ad
 SET document = jsonb_set(
         ad.document,
         '{firstPublished}',
-        to_jsonb(fp.published),
+        COALESCE(fp.published, 'null'::jsonb),
         true)
-FROM published_article pa
-JOIN first_published fp
-ON fp.article_id = pa.article_id
-WHERE ad.article_id = pa.article_id
-  AND ad.document IS NOT NULL
+    FROM articledata src
+         LEFT JOIN first_published fp ON fp.article_id = src.article_id
+WHERE ad.id = src.id
+  AND ad.document IS NOT NULL;
