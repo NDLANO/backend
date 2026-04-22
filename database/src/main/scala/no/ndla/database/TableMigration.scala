@@ -28,8 +28,17 @@ abstract class TableMigration[ROW_DATA] extends BaseJavaMigration {
   override def migrate(context: Context): Unit = DB(context.getConnection)
     .autoClose(false)
     .withinTx { session =>
+      invalidateCachedPlans(using session)
       migrateRows(using session)
     }
+
+  /** Drops server-side prepared statements cached on Flyway's shared connection so a later `SELECT *` can't hit a plan
+    * whose result shape was invalidated by an earlier migration's DDL (`ERROR: cached plan must not change result
+    * type`, SQLSTATE 0A000).
+    */
+  private def invalidateCachedPlans(using session: DBSession): Unit = {
+    val _ = sql"DEALLOCATE ALL".execute()
+  }
 
   protected def migrateRows(implicit session: DBSession): Unit = Iterator
     .unfold(tableIdType.zeroValueScala) { lastId =>
