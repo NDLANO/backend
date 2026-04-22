@@ -765,7 +765,7 @@ class FolderRepository(using
             resource.feideId,
             resource.path,
             resource.resourceType.entryName,
-            NDLADate.parameterBinderFactory(resource.created),
+            resource.created,
             document,
           )
         }
@@ -799,7 +799,7 @@ class FolderRepository(using
                     resource.path,
                     c.folderId,
                     c.rank,
-                    NDLADate.parameterBinderFactory(c.favoritedDate),
+                    c.favoritedDate,
                   )
                 )
 
@@ -836,9 +836,9 @@ class FolderRepository(using
           folder.name,
           folder.status.toString,
           folder.rank,
-          NDLADate.parameterBinderFactory(folder.created),
-          NDLADate.parameterBinderFactory(folder.updated),
-          folder.shared.map(d => NDLADate.parameterBinderFactory(d)),
+          folder.created,
+          folder.updated,
+          folder.shared,
           folder.description,
         )
       }

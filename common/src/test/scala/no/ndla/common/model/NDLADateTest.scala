@@ -161,11 +161,10 @@ class NDLADateTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironm
   }
 
   test("that timestamptz binder works") {
-    val date                = NDLADate.fromString("2023-08-03T06:01:31.000Z").get
-    val dateBinderWithValue = date.toTimestamptzParameterBinder
+    val date = NDLADate.fromString("2023-08-03T06:01:31.000Z").get
 
     DB.autoCommit { implicit session =>
-      sql"insert into test_tz values (1, $dateBinderWithValue)".execute()
+      sql"insert into test_tz values (1, $date)".execute()
 
       // Ensure that stored timestamptz is correct
       val res = sql"select 1 from test_tz where data = '2023-08-03T06:01:31.000Z'::timestamptz"
@@ -185,7 +184,7 @@ class NDLADateTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironm
     val date = NDLADate.fromString("2023-08-03T06:01:31.000Z").get
 
     DB.autoCommit { implicit session =>
-      sql"insert into test_without_tz values (1, ${NDLADate.parameterBinderFactory(date)})".execute()
+      sql"insert into test_without_tz values (1, ${date.asUtcLocalDateTime})".execute()
 
       val oldReadWithoutTz = sql"select data from test_without_tz where id = 1"
         .map(rs => NDLADate.fromUtcDate(rs.localDateTime("data")))
