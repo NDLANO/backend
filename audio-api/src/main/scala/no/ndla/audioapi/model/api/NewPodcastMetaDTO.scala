@@ -11,7 +11,6 @@ package no.ndla.audioapi.model.api
 import sttp.tapir.Schema.annotations.description
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import no.ndla.common.model.NDLADate
 
 @description("Meta information about podcast audio")
 case class NewPodcastMetaDTO(
@@ -21,8 +20,6 @@ case class NewPodcastMetaDTO(
     coverPhotoId: String,
     @description("Cover photo alttext for the podcast")
     coverPhotoAltText: String,
-    @description("The time the podcast was released from its source")
-    released: Option[NDLADate],
 )
 object NewPodcastMetaDTO {
   implicit val encoder: Encoder[NewPodcastMetaDTO] = deriveEncoder

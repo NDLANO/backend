@@ -37,6 +37,8 @@ case class AudioSummaryDTO(
     series: Option[SeriesSummaryDTO],
     @description("The time and date of last update")
     lastUpdated: NDLADate,
+    @description("The time the audio was released from its source")
+    released: NDLADate,
 )
 
 object AudioSummaryDTO {

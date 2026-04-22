@@ -63,6 +63,7 @@ object TestData {
     manuscript = Seq.empty,
     seriesId = None,
     series = None,
+    released = NDLADate.now(),
   )
 
   val EpisodelessSampleSeries: domain.Series = domain.Series(
@@ -92,13 +93,13 @@ object TestData {
         introduction = "Intro",
         coverPhoto = domain.CoverPhoto(imageId = "1", altText = "alt"),
         language = "nb",
-        released = None,
       )
     ),
     audioType = AudioType.Podcast,
     manuscript = Seq.empty,
     seriesId = Some(1),
     series = Some(EpisodelessSampleSeries),
+    released = NDLADate.now(),
   )
 
   val SampleSeries: domain.Series = domain.Series(
@@ -139,6 +140,7 @@ object TestData {
     None,
     created,
     updated,
+    created,
   )
 
   val testUser: TokenUser = TokenUser("ndla54321", Set(AUDIO_API_WRITE), None)

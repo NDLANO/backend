@@ -108,6 +108,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     Seq.empty,
     None,
     None,
+    created,
   )
 
   val audio2: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -125,6 +126,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     List(Manuscript("Manuskript", "nb"), Manuscript("Manuscript", "nn")),
     None,
     None,
+    created,
   )
 
   val audio3: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -142,6 +144,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     Seq.empty,
     None,
     None,
+    created,
   )
 
   val audio4: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -163,6 +166,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     Seq.empty,
     None,
     None,
+    created,
   )
 
   val audio5: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -180,6 +184,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     Seq(Manuscript("manuscript", "nb")),
     None,
     None,
+    created,
   )
 
   val audio6: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -197,13 +202,13 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
         introduction = "podcastintroritehere",
         coverPhoto = domain.CoverPhoto("2", "altyo"),
         language = "nb",
-        released = None,
       )
     ),
     AudioType.Podcast,
     Seq.empty,
     Some(1),
     Some(podcastSeries1),
+    created,
   )
 
   val audio7: domain.AudioMetaInformation = domain.AudioMetaInformation(
@@ -217,23 +222,14 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     updated7,
     created,
     Seq(
-      domain.PodcastMeta(
-        introduction = "spanishintro",
-        coverPhoto = domain.CoverPhoto("2", "meta"),
-        language = "es",
-        released = None,
-      ),
-      domain.PodcastMeta(
-        introduction = "ukranian intro",
-        coverPhoto = domain.CoverPhoto("1", "alt "),
-        language = "ukr",
-        released = None,
-      ),
+      domain.PodcastMeta(introduction = "spanishintro", coverPhoto = domain.CoverPhoto("2", "meta"), language = "es"),
+      domain.PodcastMeta(introduction = "ukranian intro", coverPhoto = domain.CoverPhoto("1", "alt "), language = "ukr"),
     ),
     AudioType.Podcast,
     Seq.empty,
     Some(1),
     None,
+    created,
   )
 
   override def beforeAll(): Unit = {
@@ -421,7 +417,7 @@ class AudioSearchServiceTest extends ElasticsearchIntegrationSuite with UnitSuit
     val tag                = "synge"
     val supportedLanguages = Seq("nb")
     val hitString          =
-      s"""{"podcastMeta":[],"filePaths":[],"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","audioType":"$audioType", "authors":["DC Comics"], "lastUpdated": "2018-12-07T17:35:51Z"}"""
+      s"""{"podcastMeta":[],"filePaths":[],"tags":{"nb":["$tag"]},"license":"$license","titles":{"nb":"$title"},"id":"$id","audioType":"$audioType", "authors":["DC Comics"], "lastUpdated": "2018-12-07T17:35:51Z","released":"2020-12-07T17:35:51Z"}"""
 
     val result = audioSearchService.hitToApiModel(hitString, "nb")
 

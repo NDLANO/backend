@@ -89,6 +89,7 @@ class SearchConverterServiceTest extends UnitSuite with TestEnvironment {
     Seq.empty,
     None,
     None,
+    created(),
   )
 
   override def beforeAll(): Unit = {

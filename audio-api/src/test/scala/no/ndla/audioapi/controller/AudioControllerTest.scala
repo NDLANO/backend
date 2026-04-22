@@ -130,6 +130,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
       None,
       TestData.yesterday,
       TestData.today,
+      TestData.yesterday,
     )
     when(writeService.storeNewAudio(any[NewAudioMetaInformationDTO], any, any)).thenReturn(Success(sampleAudioMeta))
 
@@ -304,6 +305,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
       None,
       TestData.yesterday,
       TestData.today,
+      TestData.yesterday,
     )
     val two   = one.copy(id = 2, title = TitleDTO("two", "nb"))
     val three = one.copy(id = 3, title = TitleDTO("three", "nb"))
@@ -352,6 +354,7 @@ class AudioControllerTest extends UnitSuite with TestEnvironment with Retries wi
       None,
       TestData.yesterday,
       TestData.today,
+      TestData.yesterday,
     )
     when(writeService.storeNewAudio(any[NewAudioMetaInformationDTO], any, any)).thenReturn(Success(sampleAudioMeta))
 

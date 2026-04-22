@@ -47,6 +47,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     None,
     None,
     None,
+    None,
   )
 
   val updatedAudioMeta: UpdatedAudioMetaInformationDTO = UpdatedAudioMetaInformationDTO(
@@ -59,6 +60,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     podcastMeta = None,
     manuscript = None,
     seriesId = None,
+    released = None,
   )
 
   val updated: NDLADate       = NDLADate.of(2017, 4, 1, 12, 15, 32)
@@ -106,6 +108,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     Seq.empty,
     None,
     None,
+    created,
   )
 
   override def beforeEach(): Unit = {
@@ -301,6 +304,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
+      None,
     )
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, None, testUser).get
     merged.titles.length should be(1)
@@ -314,6 +318,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       "nb",
       converterService.toApiCopyright(domainAudioMeta.copyright),
       Seq(),
+      None,
       None,
       None,
       None,
@@ -332,6 +337,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       "en",
       converterService.toApiCopyright(domainAudioMeta.copyright),
       Seq(),
+      None,
       None,
       None,
       None,
@@ -356,6 +362,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
+      None,
     )
     val (merged, _) = writeService.mergeAudioMeta(domainAudioMeta, toUpdate, Some(newAudio), testUser).get
     merged.titles.length should be(1)
@@ -374,6 +381,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       "nb",
       converterService.toApiCopyright(domainAudioMeta.copyright),
       Seq(),
+      None,
       None,
       None,
       None,
@@ -539,9 +547,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         domain.Manuscript("Manuscript", "en"),
       ),
       podcastMeta = List(
-        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nb", None),
-        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nn", None),
-        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en", None),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nb"),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nn"),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en"),
       ),
     )
 
@@ -552,8 +560,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       tags = List(common.Tag(List("and"), "nb"), common.Tag(List("duck"), "en")),
       manuscript = List(domain.Manuscript("Manuskript", "nb"), domain.Manuscript("Manuscript", "en")),
       podcastMeta = List(
-        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nb", None),
-        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en", None),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "nb"),
+        domain.PodcastMeta("intro", domain.CoverPhoto("1", "alt"), "en"),
       ),
     )
 
@@ -839,6 +847,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       "en",
       converterService.toApiCopyright(domainAudioMeta.copyright),
       Seq("abc", "123", "abc", "def"),
+      None,
       None,
       None,
       None,

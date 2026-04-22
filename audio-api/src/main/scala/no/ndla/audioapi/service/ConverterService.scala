@@ -107,6 +107,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
         manuscript = findByLanguageOrBestEffort(audioMeta.manuscript, language).map(toApiManuscript),
         created = audioMeta.created,
         updated = audioMeta.updated,
+        released = audioMeta.released,
       )
     )
   }
@@ -172,7 +173,6 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       introduction = meta.introduction,
       coverPhoto = toApiCoverPhoto(meta.coverPhoto),
       language = meta.language,
-      released = meta.released,
     )
   }
 
@@ -191,7 +191,6 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       introduction = meta.introduction,
       coverPhoto = domain.CoverPhoto(meta.coverPhotoId, meta.coverPhotoAltText),
       language = language,
-      released = meta.released,
     )
   }
 
@@ -205,6 +204,7 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
       maybeSeries: Option[domain.Series],
       tokenUser: TokenUser,
   ): domain.AudioMetaInformation = {
+    val created = clock.now()
     domain.AudioMetaInformation(
       id = None,
       revision = None,
@@ -216,12 +216,13 @@ class ConverterService(using clock: Clock, props: Props) extends StrictLogging {
         else Seq(),
       updatedBy = tokenUser.id,
       updated = clock.now(),
-      created = clock.now(),
+      created = created,
       podcastMeta = audioMeta.podcastMeta.map(m => toDomainPodcastMeta(m, audioMeta.language)).toSeq,
       audioType = audioMeta.audioType.flatMap(AudioType.valueOf).getOrElse(AudioType.Standard),
       manuscript = audioMeta.manuscript.map(m => toDomainManuscript(m, audioMeta.language)).toSeq,
       series = maybeSeries.map(_.copy(episodes = None)),
       seriesId = audioMeta.seriesId,
+      released = audioMeta.released.getOrElse(created),
     )
   }
 

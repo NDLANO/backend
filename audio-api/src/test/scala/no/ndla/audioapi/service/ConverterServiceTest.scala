@@ -51,6 +51,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     Seq.empty,
     None,
     None,
+    created,
   )
 
   test("that toApiAudioMetaInformation converts a domain class to an api class") {
@@ -69,6 +70,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       created,
       updated,
+      created,
     )
 
     service.toApiAudioMetaInformation(audioMeta, Some("nb")) should equal(Success(expected))
@@ -89,6 +91,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       created,
       updated,
+      created,
     )
 
     val expectedNoTitles = expectedDefaultLanguage.copy(title = api.TitleDTO("", "nb"))

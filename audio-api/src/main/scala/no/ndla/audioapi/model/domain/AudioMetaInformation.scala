@@ -36,6 +36,7 @@ case class AudioMetaInformation(
     manuscript: Seq[Manuscript],
     seriesId: Option[Long],
     series: Option[Series],
+    released: NDLADate,
 ) {
   lazy val supportedLanguages: Seq[String] = getSupportedLanguages(titles, podcastMeta, manuscript, filePaths, tags)
 }

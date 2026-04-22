@@ -57,11 +57,11 @@ class AudioIndexService(using
       keywordField("defaultTitle"),
       textField("authors").fielddata(true),
       keywordField("audioType"),
+      dateField("released"),
       nestedField("series").fields(seriesIndexService.seriesIndexFields),
       nestedField("podcastMeta").fields(
         keywordField("language"),
         ObjectField("coverPhoto", properties = Seq(keywordField("imageId"), keywordField("altText"))),
-        dateField("released"),
       ),
     )
 
