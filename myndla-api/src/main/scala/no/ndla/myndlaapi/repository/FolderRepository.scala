@@ -232,7 +232,7 @@ class FolderRepository(using
         for {
           resourceId   <- rs.get[Try[UUID]]("resource_id")
           rank          = rs.int("rank")
-          favoritedDate = NDLADate.fromUtcDate(rs.localDateTime("favorited_date"))
+          favoritedDate = rs.get[NDLADate]("favorited_date")
         } yield ResourceConnection(folderId, resourceId, rank, favoritedDate)
       })
       .runSingle()
@@ -253,7 +253,7 @@ class FolderRepository(using
         for {
           resourceId   <- rs.get[Try[UUID]]("resource_id")
           rank          = rs.int("rank")
-          favoritedDate = NDLADate.fromUtcDate(rs.localDateTime("favorited_date"))
+          favoritedDate = rs.get[NDLADate]("favorited_date")
         } yield ResourceConnection(folderId, resourceId, rank, favoritedDate)
       })
       .runListFlat()

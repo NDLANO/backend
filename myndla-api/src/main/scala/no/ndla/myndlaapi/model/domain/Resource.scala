@@ -112,7 +112,7 @@ object Resource {
       id             <- rs.get[Try[UUID]](colNameWrapper("id"))
       jsonString      = rs.string(colNameWrapper("document"))
       feideId         = rs.string(colNameWrapper("feide_id"))
-      created         = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("created")))
+      created         = rs.get[NDLADate](colNameWrapper("created"))
       path            = rs.string(colNameWrapper("path"))
       resourceTypeStr = rs.string(colNameWrapper("resource_type"))
       resourceType   <- ResourceType

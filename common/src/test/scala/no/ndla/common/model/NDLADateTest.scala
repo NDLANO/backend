@@ -29,14 +29,17 @@ class NDLADateTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironm
     DB.autoCommit { implicit session =>
       sql"""
             create schema if not exists testschema;
-            create table test (id int primary key, data timestamptz);""".execute()
+            create table test_tz (id int primary key, data timestamptz);
+            create table test_without_tz (id int primary key, data timestamp);""".execute()
     }
   }
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     DB.autoCommit { implicit session =>
-      sql"delete from test;".execute()
+      sql"""
+            delete from test_tz;
+            delete from test_without_tz""".execute()
     }
   }
 
@@ -162,15 +165,40 @@ class NDLADateTest extends DatabaseIntegrationSuite, UnitTestSuite, TestEnvironm
     val dateBinderWithValue = date.toTimestamptzParameterBinder
 
     DB.autoCommit { implicit session =>
-      sql"insert into test values (1, $dateBinderWithValue)".execute()
+      sql"insert into test_tz values (1, $dateBinderWithValue)".execute()
 
       // Ensure that stored timestamptz is correct
-      val res = sql"select 1 from test where data = '2023-08-03T06:01:31.000Z'::timestamptz".map(_.int(1)).single().get
+      val res = sql"select 1 from test_tz where data = '2023-08-03T06:01:31.000Z'::timestamptz"
+        .map(_.int(1))
+        .single()
+        .get
       res should be(1)
 
-      given TypeBinder[NDLADate] = NDLADate.timestamptzBinder
-      val foundDate              = sql"select data from test where id = 1".map(_.get[NDLADate]("data")).single().get
+      val foundDate = sql"select data from test_tz where id = 1".map(_.get[NDLADate]("data")).single().get
       foundDate should be(date)
+    }
+  }
+
+  test(
+    "that reading timestamp without time zone with TypeBinder gives same result as rs.localDateTime and NDLADate.fromUtcDate"
+  ) {
+    val date = NDLADate.fromString("2023-08-03T06:01:31.000Z").get
+
+    DB.autoCommit { implicit session =>
+      sql"insert into test_without_tz values (1, ${NDLADate.parameterBinderFactory(date)})".execute()
+
+      val oldReadWithoutTz = sql"select data from test_without_tz where id = 1"
+        .map(rs => NDLADate.fromUtcDate(rs.localDateTime("data")))
+        .single()
+        .get
+
+      val newReadWithoutTz = sql"select data from test_without_tz where id = 1"
+        .map(rs => rs.get[NDLADate]("data"))
+        .single()
+        .get
+
+      oldReadWithoutTz should be(date)
+      newReadWithoutTz should be(date)
     }
   }
 }

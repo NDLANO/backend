@@ -101,9 +101,9 @@ object Folder {
     val status      = FolderStatus.valueOfOrError(rs.string(colNameWrapper("status")))
     val description = rs.stringOpt(colNameWrapper("description"))
     val rank        = rs.int(colNameWrapper("rank"))
-    val created     = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("created")))
-    val updated     = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("updated")))
-    val shared      = rs.localDateTimeOpt(colNameWrapper("shared")).map(NDLADate.fromUtcDate)
+    val created     = rs.get[NDLADate](colNameWrapper("created"))
+    val updated     = rs.get[NDLADate](colNameWrapper("updated"))
+    val shared      = rs.getOpt[NDLADate](colNameWrapper("shared"))
 
     for {
       id     <- id
