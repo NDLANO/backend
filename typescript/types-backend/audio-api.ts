@@ -367,6 +367,8 @@ export type components = {
             created: string;
             /** @description The time of last update for the audio-file */
             updated: string;
+            /** @description The time the audio was released from its source */
+            released: string;
         };
         /**
          * AudioSummaryDTO
@@ -395,6 +397,8 @@ export type components = {
             series?: components["schemas"]["SeriesSummaryDTO"];
             /** @description The time and date of last update */
             lastUpdated: string;
+            /** @description The time the audio was released from its source */
+            released: string;
         };
         /**
          * AudioSummarySearchResultDTO
@@ -546,6 +550,8 @@ export type components = {
             seriesId?: number;
             /** @description Manuscript for the audio */
             manuscript?: string;
+            /** @description The time the audio was released from its source */
+            released?: string;
         };
         /**
          * NewPodcastMetaDTO
@@ -558,8 +564,6 @@ export type components = {
             coverPhotoId: string;
             /** @description Cover photo alttext for the podcast */
             coverPhotoAltText: string;
-            /** @description The time the podcast was released from its source */
-            released?: string;
         };
         /**
          * NewSeriesDTO
@@ -616,8 +620,6 @@ export type components = {
             coverPhoto: components["schemas"]["CoverPhotoDTO"];
             /** @description ISO 639-1 code that represents the language used in the title */
             language: string;
-            /** @description The time the podcast was released from its source */
-            released?: string;
         };
         /**
          * SearchParamsDTO
@@ -831,6 +833,8 @@ export type components = {
             seriesId?: number;
             /** @description Manuscript for the audio */
             manuscript?: string;
+            /** @description The time the audio was released from its source */
+            released?: string;
         };
         /**
          * ValidationErrorBody
