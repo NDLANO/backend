@@ -33,7 +33,8 @@ trait JavaDockerComponent extends DockerComponent {
             val newEntry = new ZipEntry(name)
             out.putNextEntry(newEntry)
             if (name == "META-INF/spring.factories") {
-              val original = scala.io.Source.fromInputStream(in.getInputStream(entry))("UTF-8").mkString
+              val is       = in.getInputStream(entry)
+              val original = scala.io.Source.fromInputStream(is)(using "UTF-8").mkString
               val merged   = mergeSpringFactories(original)
               out.write(merged.getBytes("UTF-8"))
             } else {
