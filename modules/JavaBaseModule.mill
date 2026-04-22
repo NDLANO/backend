@@ -12,6 +12,20 @@ trait JavaBaseModule extends MavenModule, AutoEnvLoading, OpenAPITSPlugin, Githu
     super.javacOptions() ++ Seq("-parameters")
   }
 
+  // Mill's `resolvedMvnDeps` uses Maven `compile` scope, which drops transitive deps
+  // declared with `<scope>runtime</scope>` (e.g. hibernate-commons-annotations,
+  // prometheus-metrics-exposition-textformats, jaxb-runtime, byte-buddy). The Spring
+  // Boot apps need those at runtime. Mill's own `./mill <mod>.run` works because it
+  // uses `runClasspath`, but BSP exposes `resolvedMvnDeps` to IntelliJ, so IntelliJ
+  // run configurations fail with NoClassDefFoundError. Merge runtime deps in so the
+  // IDE classpath matches the `mill run` classpath.
+  override def resolvedMvnDeps: T[Seq[PathRef]] = Task {
+    val compileDeps = super.resolvedMvnDeps()
+    val runtimeDeps = resolvedRunMvnDeps()
+    val seen        = compileDeps.map(_.path).toSet
+    compileDeps ++ runtimeDeps.filterNot(p => seen.contains(p.path))
+  }
+
   def fmt(): Task.Command[Unit] = Task.Command {
     spotless(mainargs.Flag(false))()
   }
