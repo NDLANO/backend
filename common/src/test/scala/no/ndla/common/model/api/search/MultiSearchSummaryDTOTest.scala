@@ -61,6 +61,7 @@ class MultiSearchSummaryDTOTest extends UnitTestSuiteBase {
       parentTopicName = None,
       primaryRootName = None,
       published = None,
+      revised = None,
       favorited = None,
       resultType = SearchType.Articles,
       grepCodes = Seq.empty,

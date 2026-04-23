@@ -1231,4 +1231,22 @@ class MultiDraftSearchServiceTest extends ElasticsearchIntegrationSuite with Tes
 
     search2.totalCount should be(1)
   }
+
+  test("That filtering on isRepublished works") {
+    val Success(search) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(isRepublished = Some(true), language = "nb")
+    ): @unchecked
+    val Success(search2) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(isRepublished = Some(false), language = "nb")
+    ): @unchecked
+    val Success(search3) = multiDraftSearchService.matchingQuery(
+      multiDraftSearchSettings.copy(isRepublished = None, language = "nb")
+    ): @unchecked
+
+    search.totalCount should be(2)
+    search.summaryResults.map(_.id) should be(Seq(1, 2))
+
+    search2.totalCount should be(12)
+    search3.totalCount should be(18) // articles and learningpaths
+  }
 }

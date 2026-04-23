@@ -172,7 +172,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = TestData.today,
       updated = TestData.today,
       updatedBy = "theuserthatchangeditid",
-      published = TestData.today,
+      published = Some(TestData.today),
+      revised = TestData.today,
+      firstPublished = Some(TestData.today),
       articleType = ArticleType.Standard,
       notes = Seq(EditorNote("Note here", "sheeps", status, TestData.today)),
       previousVersionsNotes = Seq.empty,
@@ -219,7 +221,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = TestData.today,
       updated = TestData.today,
       updatedBy = "theuserthatchangeditid",
-      published = TestData.today,
+      published = Some(TestData.today),
+      revised = TestData.today,
+      firstPublished = Some(TestData.today),
       articleType = ArticleType.Standard,
       notes = Seq(EditorNote("Note here", "sheeps", status, TestData.today)),
       previousVersionsNotes = Seq.empty,
@@ -256,7 +260,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = TestData.today,
       updated = TestData.today,
       updatedBy = "theuserthatchangeditid",
-      published = TestData.today,
+      published = Some(TestData.today),
+      revised = TestData.today,
+      firstPublished = Some(TestData.today),
       articleType = ArticleType.Standard,
       notes = Seq(EditorNote("Note here", "sheeps", status, TestData.today)),
       previousVersionsNotes = Seq.empty,
@@ -326,7 +332,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = TestData.today,
       updated = TestData.today,
       updatedBy = "theuserthatchangeditid",
-      published = TestData.today,
+      published = Some(TestData.today),
+      revised = TestData.today,
+      firstPublished = Some(TestData.today),
       articleType = ArticleType.Standard,
       notes = Seq(EditorNote("Note here", "sheeps", status, TestData.today)),
       previousVersionsNotes = Seq.empty,
@@ -363,7 +371,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = TestData.today,
       updated = TestData.today,
       updatedBy = "theuserthatchangeditid",
-      published = TestData.today,
+      published = Some(TestData.today),
+      revised = TestData.today,
+      firstPublished = Some(TestData.today),
       articleType = ArticleType.Standard,
       notes = Seq(
         EditorNote("Note here", "sheeps", status, TestData.today),
@@ -744,7 +754,9 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       created = clock.now(),
       updated = clock.now(),
       updatedBy = "meg",
-      published = clock.now(),
+      published = Some(clock.now()),
+      revised = clock.now(),
+      firstPublished = Some(clock.now()),
       articleType = ArticleType.FrontpageArticle,
       notes = Seq(EditorNote("note", "meg", Status(PLANNED, Set.empty), clock.now())),
       previousVersionsNotes = Seq.empty,
@@ -788,6 +800,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         updated = clock.now(),
         updatedBy = "meg",
         published = clock.now(),
+        revised = clock.now(),
         articleType = ArticleType.FrontpageArticle,
         grepCodes = Seq("grep", "codes"),
         conceptIds = Seq(1, 2),
@@ -799,13 +812,13 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         traits = List.empty,
       )
 
-    val result = service.toArticleApiArticle(draft)
+    val result = service.toArticleApiArticle(draft, true)
     result should be(Success(article))
   }
 
   test("that toArticleApiArticle fails if copyright is not present") {
     val draft                                 = TestData.sampleDomainArticle.copy(copyright = None)
-    val Failure(result1: ValidationException) = service.toArticleApiArticle(draft): @unchecked
+    val Failure(result1: ValidationException) = service.toArticleApiArticle(draft, false): @unchecked
     result1.errors.head.message should be("Copyright must be present when publishing an article")
   }
 

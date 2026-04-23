@@ -71,6 +71,7 @@ class ArticleIndexService(using
       textField("typeName"),
       dateField("lastUpdated"),
       dateField("published"),
+      dateField("revised"),
       keywordField("license"),
       keywordField("status"),
       keywordField("owner"),

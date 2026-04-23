@@ -186,13 +186,13 @@ class ConverterService(using props: Props) extends StrictLogging {
       case Delete           => None
       case UpdateWith(date) => Some(date)
     }
-    val newPublishedDate = partialArticle.published.getOrElse(existingArticle.published)
+    val newRevisedDate = partialArticle.revised.getOrElse(existingArticle.revised)
 
     existingArticle.copy(
       copyright = existingArticle.copyright.copy(license = newLicense),
       tags = newTags,
       metaDescription = newMeta,
-      published = newPublishedDate,
+      revised = newRevisedDate,
       grepCodes = newGrepCodes,
       availability = newAvailability,
       relatedContent = newRelatedContent,
@@ -273,6 +273,7 @@ class ConverterService(using props: Props) extends StrictLogging {
           updated = article.updated,
           updatedBy = article.updatedBy,
           published = article.published,
+          revised = article.revised,
           articleType = article.articleType.entryName,
           supportedLanguages = supportedLanguages,
           grepCodes = article.grepCodes,

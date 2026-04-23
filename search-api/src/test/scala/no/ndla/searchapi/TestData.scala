@@ -197,6 +197,7 @@ object TestData {
     today.minusDays(2),
     "ndalId54321",
     today.minusDays(2),
+    today.minusDays(2),
     ArticleType.Standard,
     Seq.empty,
     Seq.empty,
@@ -225,6 +226,7 @@ object TestData {
     today,
     "ndalId54321",
     today,
+    today,
     ArticleType.Standard,
     Seq.empty,
     Seq.empty,
@@ -252,6 +254,7 @@ object TestData {
     today,
     today,
     "ndalId54321",
+    today,
     today,
     ArticleType.Standard,
     Seq.empty,
@@ -570,6 +573,7 @@ object TestData {
     updated = today,
     updatedBy = "",
     published = today,
+    revised = today,
     articleType = ArticleType.Standard,
     grepCodes = Seq.empty,
     conceptIds = Seq.empty,
@@ -598,7 +602,9 @@ object TestData {
     created = today,
     updated = today,
     updatedBy = "",
-    published = today,
+    published = Some(today),
+    revised = today,
+    firstPublished = Some(today),
     articleType = ArticleType.Standard,
     notes = List.empty,
     previousVersionsNotes = List.empty,
@@ -663,7 +669,9 @@ object TestData {
     created = NDLADate.now().withNano(0).minusDays(4),
     updated = NDLADate.now().withNano(0).minusDays(2),
     updatedBy = "ndalId54321",
-    published = NDLADate.now().withNano(0).minusDays(2),
+    published = Some(NDLADate.now().withNano(0).minusDays(2)),
+    revised = NDLADate.now().withNano(0).minusDays(2),
+    firstPublished = Some(NDLADate.now().withNano(0).minusDays(2)),
     articleType = ArticleType.Standard,
     notes = List.empty,
     previousVersionsNotes = List.empty,
@@ -701,6 +709,7 @@ object TestData {
       metaDescription = List.empty,
       created = today.minusDays(4),
       updated = today.minusDays(3),
+      firstPublished = Some(today.minusDays(3)),
       grepCodes = Seq("K123", "K456"),
       responsible = Some(Responsible("ndalId54321", today.minusDays(3))),
     )
@@ -723,6 +732,7 @@ object TestData {
       metaDescription = List.empty,
       created = today.minusDays(4),
       updated = today.minusDays(2),
+      firstPublished = Some(today.minusDays(3)),
       grepCodes = Seq("K456", "K123"),
     )
 
@@ -1855,6 +1865,7 @@ object TestData {
     publishedFilterTo = None,
     resultTypes = None,
     tags = List.empty,
+    isRepublished = None,
   )
 
   val searchableResourceTypes: List[ContextResourceType] = List(
@@ -1985,10 +1996,12 @@ object TestData {
     primaryRoot = searchableTitles,
     resourceTypeName = searchableTitles,
     defaultResourceTypeName = searchableTitles.defaultValue,
-    published = TestData.today,
+    published = Some(TestData.today),
+    revised = TestData.today,
     favorited = 0,
     learningResourceType = LearningResourceType.Article,
     typeName = List(),
+    isRepublished = false,
     domainObject = TestData
       .draft1
       .copy(

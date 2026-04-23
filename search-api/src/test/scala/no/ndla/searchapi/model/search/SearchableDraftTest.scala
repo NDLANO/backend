@@ -120,10 +120,12 @@ class SearchableDraftTest extends UnitSuite with TestEnvironment {
       primaryRoot = titles,
       resourceTypeName = titles,
       defaultResourceTypeName = titles.defaultValue,
-      published = TestData.today,
+      published = Some(TestData.today),
+      revised = TestData.today,
       favorited = 0,
       learningResourceType = LearningResourceType.Article,
       typeName = List.empty,
+      isRepublished = false,
       domainObject = TestData
         .draft1
         .copy(

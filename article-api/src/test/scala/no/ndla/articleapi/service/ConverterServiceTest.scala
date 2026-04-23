@@ -222,7 +222,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       ),
       tags = Some(Seq(ArticleTagDTO(Seq("nye", "Tags"), "nb"))),
       revisionDate = UpdateWith(revisionDate),
-      published = Some(revisionDate),
+      revised = Some(revisionDate),
     )
     val updatedArticle = TestData
       .sampleDomainArticle
@@ -230,7 +230,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
         tags = Seq(Tag(Seq("nye", "Tags"), "nb")),
         metaDescription = Seq(Description("nyDesc", "nb")),
-        published = revisionDate,
+        revised = revisionDate,
         grepCodes = Seq("New", "grep", "codes"),
         availability = Availability.teacher,
         relatedContent = Seq(
@@ -279,7 +279,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         )
       ),
       revisionDate = UpdateWith(revisionDate),
-      published = Some(revisionDate),
+      revised = Some(revisionDate),
     )
     val updatedArticle = TestData
       .sampleDomainArticle
@@ -287,7 +287,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
         copyright = Copyright("newLicense", Some("origin"), Seq(), Seq(), Seq(), None, None, false),
         tags = Seq(Tag(Seq("Guten", "Tag"), "de")),
         metaDescription = Seq(Description("neuDesc", "de")),
-        published = revisionDate,
+        revised = revisionDate,
         grepCodes = Seq("New", "grep", "codes"),
         availability = Availability.teacher,
         relatedContent = Seq(Right(42L), Right(420L), Right(4200L)),

@@ -51,6 +51,8 @@ case class ArticleV2DTO(
     updatedBy: String,
     @description("When the article was last published")
     published: NDLADate,
+    @description("Revision date of the article")
+    revised: NDLADate,
     @description("The type of article this is. Possible values are frontpage-article, standard, topic-article")
     articleType: String,
     @description("The languages this article supports")

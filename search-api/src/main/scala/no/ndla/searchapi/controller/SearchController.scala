@@ -405,6 +405,7 @@ class SearchController(using
             publishedDateTo = dateParamOrNone("published-date-to"),
             resultTypes = stringListParam("result-types").flatMap(SearchType.withNameOption).some,
             tags = stringListParam("tags").some,
+            isRepublished = booleanParamOrNone("is-republished"),
           )
         )
 
@@ -564,6 +565,7 @@ class SearchController(using
           publishedFilterTo = params.publishedDateTo,
           resultTypes = params.resultTypes,
           tags = params.tags.getOrElse(List.empty),
+          isRepublished = params.isRepublished,
         )
     }
   }

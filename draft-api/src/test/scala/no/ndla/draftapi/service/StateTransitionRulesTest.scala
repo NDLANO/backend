@@ -134,9 +134,16 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   }
 
   test("doTransition should publish the article when transitioning to PUBLISHED") {
+    val now             = NDLADate.now()
     val expectedStatus  = common.Status(PUBLISHED, Set.empty)
-    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, NDLADate.now()))
-    val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
+    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, now))
+    val expectedArticle = InProcessArticle.copy(
+      status = expectedStatus,
+      notes = editorNotes,
+      published = Some(now),
+      firstPublished = Some(now),
+    )
+    when(clock.now()).thenReturn(now)
     when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
     when(converterService.getEmbeddedH5PPaths(any[Draft])).thenReturn(Seq.empty)
     when(h5pApiClient.publishH5Ps(eqTo(Seq.empty), any)).thenReturn(Success(()))
@@ -339,7 +346,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       created = clock.now(),
       updated = clock.now(),
       updatedBy = "",
-      published = clock.now(),
+      published = None,
+      revised = clock.now(),
+      firstPublished = None,
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
       previousVersionsNotes = Seq.empty,
@@ -377,6 +386,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
         updated = clock.now(),
         updatedBy = "",
         published = clock.now(),
+        revised = clock.now(),
         articleType = common.ArticleType.Standard,
         grepCodes = Seq.empty,
         conceptIds = Seq.empty,
@@ -389,7 +399,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       )
     val status = common.Status(END_CONTROL, Set.empty)
 
-    when(converterService.toArticleApiArticle(any[Draft])).thenReturn(Success(article))
+    when(converterService.toArticleApiArticle(any[Draft], any[Boolean])).thenReturn(Success(article))
 
     val transitionsToTest = stateTransitionRules.StateTransitions.filter(_.to == END_CONTROL)
     transitionsToTest.foreach(t =>
@@ -409,11 +419,18 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
   test("publishArticle should call h5p api") {
     reset(h5pApiClient)
     reset(articleApiClient)
+    val now             = NDLADate.now()
     val h5pId           = "123-kulid-123"
     val h5pPaths        = Seq(s"/resource/$h5pId")
     val expectedStatus  = common.Status(PUBLISHED, Set.empty)
-    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, NDLADate.now()))
-    val expectedArticle = InProcessArticle.copy(status = expectedStatus, notes = editorNotes)
+    val editorNotes     = Seq(common.EditorNote("Status endret", "unit_test", expectedStatus, now))
+    val expectedArticle = InProcessArticle.copy(
+      status = expectedStatus,
+      notes = editorNotes,
+      published = Some(now),
+      firstPublished = Some(now),
+    )
+    when(clock.now()).thenReturn(now)
     when(converterService.getEmbeddedConceptIds(any[Draft])).thenReturn(Seq.empty)
     when(converterService.getEmbeddedH5PPaths(any[Draft])).thenReturn(h5pPaths)
     when(h5pApiClient.publishH5Ps(eqTo(h5pPaths), any)).thenReturn(Success(()))
@@ -449,7 +466,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       id = Some(articleId),
       revision = None,
       externalIds = None,
-      status = common.Status(PLANNED, Set.empty),
+      status = common.Status(IN_PROGRESS, Set.empty),
       title = Seq.empty,
       content = Seq.empty,
       copyright = Some(
@@ -464,7 +481,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       created = clock.now(),
       updated = clock.now(),
       updatedBy = "updated",
-      published = clock.now(),
+      published = None,
+      revised = clock.now(),
+      firstPublished = None,
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
       previousVersionsNotes = Seq.empty,
@@ -490,6 +509,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       val x = i.getArgument[Draft](1)
       Success(x)
     })
+    when(h5pApiClient.publishH5Ps(any, any)).thenReturn(Success(()))
 
     for (t <- transitionsToTest) {
       val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
@@ -523,7 +543,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       created = clock.now(),
       updated = clock.now(),
       updatedBy = "updated",
-      published = clock.now(),
+      published = None,
+      revised = clock.now(),
+      firstPublished = None,
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
       previousVersionsNotes = Seq.empty,
@@ -552,6 +574,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
     when(articleApiClient.unpublishArticle(any, any)).thenAnswer((i: InvocationOnMock) =>
       Success(i.getArgument[Draft](0))
     )
+    when(searchApiClient.publishedWhereUsed(any, any)).thenReturn(Seq())
     for (t <- transitionsToTest) {
       val fromDraft = draft.copy(status = status.copy(current = t.from), responsible = Some(beforeResponsible))
       val result    = stateTransitionRules.doTransition(fromDraft, ARCHIVED, TestData.userWithAdminAccess)
@@ -569,7 +592,7 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       id = Some(articleId),
       revision = None,
       externalIds = None,
-      status = common.Status(PLANNED, Set.empty),
+      status = common.Status(PUBLISHED, Set.empty),
       title = Seq.empty,
       content = Seq.empty,
       copyright = Some(
@@ -584,7 +607,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       created = clock.now(),
       updated = clock.now(),
       updatedBy = "updated",
-      published = clock.now(),
+      published = Some(clock.now()),
+      revised = clock.now(),
+      firstPublished = Some(clock.now()),
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
       previousVersionsNotes = Seq.empty,
@@ -646,7 +671,9 @@ class StateTransitionRulesTest extends UnitSuite with TestEnvironment {
       created = clock.now(),
       updated = clock.now(),
       updatedBy = "updated",
-      published = clock.now(),
+      published = Some(clock.now()),
+      revised = clock.now(),
+      firstPublished = Some(clock.now()),
       articleType = common.ArticleType.Standard,
       notes = Seq.empty,
       previousVersionsNotes = Seq.empty,

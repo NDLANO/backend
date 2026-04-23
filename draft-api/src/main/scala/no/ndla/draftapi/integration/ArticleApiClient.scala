@@ -53,7 +53,7 @@ class ArticleApiClient(ArticleBaseUrl: String)(using ndlaClient: NdlaClient, con
   def updateArticle(id: Long, draft: Draft, useSoftValidation: Boolean, user: TokenUser): Try[Draft] = {
     val params = Seq("use-import-validation" -> false.toString, "use-soft-validation" -> useSoftValidation.toString)
     for {
-      converted <- converterService.toArticleApiArticle(draft)
+      converted <- converterService.toArticleApiArticle(draft, false)
       _         <- postWithData[common.article.Article, common.article.Article](
         s"$InternalEndpoint/article/$id",
         converted,
@@ -200,7 +200,7 @@ implicit class PartialPublishArticleDTOImplicits(self: PartialPublishArticleDTO)
     }
     self.copy(revisionDate = newRev)
   }
-  def withPublished(published: NDLADate): PartialPublishArticleDTO = self.copy(published = published.some)
+  def withRevised(revised: NDLADate): PartialPublishArticleDTO = self.copy(revised = revised.some)
 }
 
 object PartialPublishArticle {

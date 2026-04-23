@@ -60,10 +60,12 @@ case class SearchableDraft(
     primaryRoot: SearchableLanguageValues,
     resourceTypeName: SearchableLanguageValues,
     defaultResourceTypeName: Option[String],
-    published: NDLADate,
+    published: Option[NDLADate],
+    revised: NDLADate,
     favorited: Long,
     learningResourceType: LearningResourceType,
     typeName: List[String],
+    isRepublished: Boolean,
     domainObject: Draft,
     nodes: List[Node],
 )

@@ -37,6 +37,8 @@ import scala.util.{Failure, Success, Try}
 import common.getNextRevision
 import no.ndla.common.util.TraitUtil
 
+import scala.annotation.nowarn
+
 class ConverterService(using
     clock: Clock,
     commonConverter: CommonConverter,
@@ -108,7 +110,11 @@ class ConverterService(using
         created = now,
         updated = now,
         updatedBy = user.id,
-        published = newArticle.published.getOrElse(now),
+        published = None,
+        firstPublished = None,
+        revised = newArticle.revised.getOrElse(newArticle.published.getOrElse(now)): @nowarn(
+          "msg=value published in class NewArticleDTO is deprecated"
+        ), // TODO: Remove fallback when ed is updated
         articleType = common.ArticleType.valueOfOrError(newArticle.articleType),
         notes = notes,
         previousVersionsNotes = Seq.empty,
@@ -307,6 +313,7 @@ class ConverterService(using
           updated = article.updated,
           updatedBy = article.updatedBy,
           published = article.published,
+          revised = article.revised,
           articleType = article.articleType.entryName,
           supportedLanguages = article.supportedLanguages,
           notes = article.notes.map(toApiEditorNote),
@@ -480,41 +487,46 @@ class ConverterService(using
     contents
   }
 
-  def toArticleApiArticle(draft: Draft): Try[common.article.Article] = {
-    draft.copyright match {
-      case None            => Failure(ValidationException("copyright", "Copyright must be present when publishing an article"))
-      case Some(copyright) => Success(
-          common
-            .article
-            .Article(
-              id = draft.id,
-              revision = draft.revision,
-              externalIds = draft.externalIds,
-              title = draft.title,
-              content = filterComments(draft.content),
-              copyright = toArticleApiCopyright(copyright),
-              tags = draft.tags,
-              requiredLibraries = draft.requiredLibraries,
-              visualElement = draft.visualElement,
-              introduction = draft.introduction,
-              metaDescription = draft.metaDescription,
-              metaImage = draft.metaImage,
-              created = draft.created,
-              updated = draft.updated,
-              updatedBy = draft.updatedBy,
-              published = draft.published,
-              articleType = draft.articleType,
-              grepCodes = draft.grepCodes,
-              conceptIds = draft.conceptIds,
-              availability = draft.availability,
-              relatedContent = draft.relatedContent,
-              revisionDate = draft.revisionMeta.getNextRevision.map(_.revisionDate),
-              slug = draft.slug,
-              disclaimer = draft.disclaimer,
-              traits = draft.traits,
-            )
-        )
-    }
+  def toArticleApiArticle(draft: Draft, validate: Boolean): Try[common.article.Article] = {
+    for {
+      copyright <- draft
+        .copyright
+        .toTry(ValidationException("copyright", "Copyright must be present when publishing an article"))
+      publishedDate <- draft.published match {
+        case Some(p)          => Success(p)
+        case None if validate => Success(clock.now())
+        case _                => Failure(ValidationException("published", "Published must be present when publishing an article"))
+      }
+    } yield common
+      .article
+      .Article(
+        id = draft.id,
+        revision = draft.revision,
+        externalIds = draft.externalIds,
+        title = draft.title,
+        content = filterComments(draft.content),
+        copyright = toArticleApiCopyright(copyright),
+        tags = draft.tags,
+        requiredLibraries = draft.requiredLibraries,
+        visualElement = draft.visualElement,
+        introduction = draft.introduction,
+        metaDescription = draft.metaDescription,
+        metaImage = draft.metaImage,
+        created = draft.created,
+        updated = draft.updated,
+        updatedBy = draft.updatedBy,
+        published = publishedDate,
+        revised = draft.revised,
+        articleType = draft.articleType,
+        grepCodes = draft.grepCodes,
+        conceptIds = draft.conceptIds,
+        availability = draft.availability,
+        relatedContent = draft.relatedContent,
+        revisionDate = draft.revisionMeta.getNextRevision.map(_.revisionDate),
+        slug = draft.slug,
+        disclaimer = draft.disclaimer,
+        traits = draft.traits,
+      )
   }
 
   private def languageFieldIsDefined(article: api.UpdatedArticleDTO): Boolean = {
@@ -631,7 +643,8 @@ class ConverterService(using
     val isNewLanguage       = article.language.exists(l => !toMergeInto.supportedLanguages.contains(l))
     val createdDate         = toMergeInto.created
     val updatedDate         = clock.now()
-    val publishedDate       = article.published.getOrElse(toMergeInto.published)
+    val publishedDate       = toMergeInto.published
+    val revisedDate         = article.revised.getOrElse(toMergeInto.revised)
     val updatedAvailability = common.Availability.valueOf(article.availability).getOrElse(toMergeInto.availability)
     val updatedRevision     = article
       .revisionMeta
@@ -714,6 +727,8 @@ class ConverterService(using
       updated = updatedDate,
       updatedBy = user.id,
       published = publishedDate,
+      revised = revisedDate,
+      firstPublished = toMergeInto.firstPublished,
       articleType = article.articleType.map(common.ArticleType.valueOfOrError).getOrElse(toMergeInto.articleType),
       notes = newNotes,
       previousVersionsNotes = toMergeInto.previousVersionsNotes,

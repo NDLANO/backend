@@ -73,6 +73,7 @@ class DraftIndexService(using
       keywordField("owner"),
       dateField("lastUpdated"),
       dateField("published"),
+      dateField("revised"),
       keywordField("license"),
       keywordField("defaultTitle"),
       textField("typeName"),
@@ -114,6 +115,7 @@ class DraftIndexService(using
       keywordField("defaultParentTopicName"),
       keywordField("defaultRoot"),
       keywordField("defaultResourceTypeName"),
+      booleanField("isRepublished"),
     )
     val dynamics = languageValuesMapping("title", keepRaw = true) ++
       languageValuesMapping("metaDescription") ++
