@@ -38,10 +38,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
     dataObject.setType("jsonb")
     dataObject.setValue(CirceUtil.toJsonString(article))
     val slug                                  = article.slug.map(_.toLowerCase)
-    val (responsibleId, responsibleUpdatedAt) = article
-      .responsible
-      .map(r => (r.responsibleId, r.lastUpdated.toTimestamptzParameterBinder))
-      .unzip
+    val (responsibleId, responsibleUpdatedAt) = article.responsible.map(r => (r.responsibleId, r.lastUpdated)).unzip
 
     for {
       dbId <- tsql"""
@@ -98,7 +95,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
           slug                                  = article.slug.map(_.toLowerCase)
           (responsibleId, responsibleUpdatedAt) = copiedArticle
             .responsible
-            .map(r => (r.responsibleId, r.lastUpdated.toTimestamptzParameterBinder))
+            .map(r => (r.responsibleId, r.lastUpdated))
             .unzip
           _ <- tsql"""
             insert into ${dbDraft.table} (external_id, external_subject_id, document, revision, import_id, article_id, slug, responsible, responsible_updated_at)
@@ -152,10 +149,7 @@ class DraftRepository(using draftErrorHelpers: DraftErrorHelpers, clock: Clock, 
     val oldRevision                           = article.revision.getOrElse(0)
     val newRevision                           = oldRevision + 1
     val slug                                  = article.slug.map(_.toLowerCase)
-    val (responsibleId, responsibleUpdatedAt) = article
-      .responsible
-      .map(r => (r.responsibleId, r.lastUpdated.toTimestamptzParameterBinder))
-      .unzip
+    val (responsibleId, responsibleUpdatedAt) = article.responsible.map(r => (r.responsibleId, r.lastUpdated)).unzip
 
     val whereClause = sqls"""
       where dr.article_id=${article.id}

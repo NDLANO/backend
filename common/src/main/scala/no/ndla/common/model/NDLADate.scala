@@ -13,13 +13,13 @@ import io.circe.{Decoder, Encoder, FailedCursor}
 import scalikejdbc.*
 import sttp.tapir.Schema
 
-import java.sql.ResultSet
+import java.sql.{PreparedStatement, ResultSet}
 import java.time.*
 import java.time.format.DateTimeFormatter
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
-case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate] {
+case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate], ParameterBinder {
 
   private def withUnderlying(f: ZonedDateTime => ZonedDateTime): NDLADate = {
     this.copy(underlying = f(underlying))
@@ -57,7 +57,7 @@ case class NDLADate(underlying: ZonedDateTime) extends Ordered[NDLADate] {
     this.underlying.compareTo(that.underlying)
   }
 
-  def toTimestamptzParameterBinder: ParameterBinderWithValue = NDLADate.timestamptzBinder.apply(this)
+  override def apply(ps: PreparedStatement, idx: Int): Unit = ps.setObject(idx, toOffsetDateTime)
 }
 
 object NDLADate {
@@ -161,16 +161,8 @@ object NDLADate {
 
   implicit val schema: Schema[NDLADate] = Schema.schemaForLocalDateTime.as[NDLADate]
 
-  implicit val parameterBinderFactory: ParameterBinderFactory[NDLADate] = ParameterBinderFactory[NDLADate] {
-    v => (ps, idx) =>
-      ps.setObject(idx, v.asUtcLocalDateTime)
-  }
-
-  val timestamptzBinder: Binders[NDLADate] = new Binders[NDLADate] {
-    override def apply(value: NDLADate): ParameterBinderWithValue = {
-      if (value == null) ParameterBinder.NullParameterBinder
-      else ParameterBinder(value, (ps, idx) => ps.setObject(idx, value.toOffsetDateTime))
-    }
+  given timestamptzBinder: Binders[NDLADate] = new Binders[NDLADate] {
+    override def apply(v: NDLADate): ParameterBinderWithValue = ParameterBinder(v, v.apply)
 
     override def apply(rs: ResultSet, columnIndex: Int): NDLADate = {
       val offsetDateTime = rs.getObject(columnIndex, classOf[OffsetDateTime])
@@ -182,6 +174,4 @@ object NDLADate {
       NDLADate(offsetDateTime.atZoneSameInstant(localZone))
     }
   }
-
-  given TypeBinder[NDLADate] = timestamptzBinder
 }

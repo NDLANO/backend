@@ -73,7 +73,7 @@ class UserRepository(using dbUtility: DBUtility, dbMyNDLAUser: DBMyNDLAUser) ext
 
     tsql"""
         update ${dbMyNDLAUser.table}
-        set document=$dataObject, last_seen=${NDLADate.parameterBinderFactory(lastSeen)}
+        set document=$dataObject, last_seen=$lastSeen
         where feide_id=$feideId
         """
       .updateAndReturnGeneratedKey()
@@ -112,7 +112,7 @@ class UserRepository(using dbUtility: DBUtility, dbMyNDLAUser: DBMyNDLAUser) ext
     tsql"""
         update ${dbMyNDLAUser.table}
                   set document=$dataObject,
-                      last_seen=${NDLADate.parameterBinderFactory(user.lastSeen)}
+                      last_seen=${user.lastSeen}
                   where feide_id=$feideId
         """
       .update()
@@ -127,7 +127,7 @@ class UserRepository(using dbUtility: DBUtility, dbMyNDLAUser: DBMyNDLAUser) ext
   def updateLastSeen(feideId: FeideID, lastSeen: NDLADate)(implicit session: DBSession): Try[NDLADate] = {
     tsql"""
         update ${dbMyNDLAUser.table}
-        set last_seen=${NDLADate.parameterBinderFactory(lastSeen)}
+        set last_seen=$lastSeen
         where feide_id=$feideId
         """
       .update()
@@ -179,7 +179,7 @@ class UserRepository(using dbUtility: DBUtility, dbMyNDLAUser: DBMyNDLAUser) ext
             with inserted as (
                 insert into ${dbMyNDLAUser.table}
                 (feide_id, document, last_seen)
-                values ($feideId, null, ${NDLADate.parameterBinderFactory(lastSeen)})
+                values ($feideId, null, $lastSeen)
                 on conflict do nothing
                 returning id, feide_id, document
             )
@@ -223,7 +223,7 @@ class UserRepository(using dbUtility: DBUtility, dbMyNDLAUser: DBMyNDLAUser) ext
     val u = dbMyNDLAUser.syntax("u")
     tsql"""
          select ${u.result.*} from ${dbMyNDLAUser.as(u)}
-         where last_seen < ${NDLADate.parameterBinderFactory(cutoffDate)}
+         where last_seen < $cutoffDate
          """.map(dbMyNDLAUser.fromResultSet(u)).runList()
   }
 
@@ -249,7 +249,7 @@ class UserRepository(using dbUtility: DBUtility, dbMyNDLAUser: DBMyNDLAUser) ext
   ): Try[InactiveUserCleanupResult] = {
     tsql"""
          insert into user_cleanup_audit (num_cleanup, num_emailed, last_cleanup_date)
-         values ($numCleanup, $numEmailed, ${NDLADate.parameterBinderFactory(lastCleanupDate)})
+         values ($numCleanup, $numEmailed, $lastCleanupDate)
          """
       .updateAndReturnGeneratedKey()
       .map(id =>
