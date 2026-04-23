@@ -10,6 +10,15 @@ object `package` extends JavaBaseModule, JavaDockerComponent {
     Some("no.ndla.taxonomy.TaxonomyApplication")
   }
 
+  // Resources live in `compile-resources/` (Mill's `compileResources` task), not the
+  // standard `src/main/resources/`. Rationale: IntelliJ's BSP integration exposes
+  // `src/main/resources` as a "java-resource" source folder AND the merged compile
+  // output (bspBuildTargetCompileMerged.dest) which also contains those files — so
+  // every resource appears twice on the runtime classpath and Liquibase fails on the
+  // duplicates. `compile-resources` is exposed as a single library entry instead,
+  // giving each file exactly one classpath location.
+  override def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
+
   override def bomMvnDeps: T[Seq[Dep]] = Task {
     SharedDependencies.springBootBoms
   }
