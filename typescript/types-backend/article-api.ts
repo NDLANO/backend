@@ -392,6 +392,8 @@ export type components = {
             updatedBy: string;
             /** @description When the article was last published */
             published: string;
+            /** @description Revision date of the article */
+            revised: string;
             /** @description The type of article this is. Possible values are frontpage-article, standard, topic-article */
             articleType: string;
             /** @description The languages this article supports */

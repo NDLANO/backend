@@ -302,6 +302,8 @@ export type components = {
             resultTypes?: components["schemas"]["SearchType"][];
             /** @description Only return results that have one of the specified tags. */
             tags?: string[];
+            /** @description Only return results matching the isRepublished flag. */
+            isRepublished?: boolean;
         };
         /**
          * ErrorBody
@@ -714,8 +716,10 @@ export type components = {
             parentTopicName?: string;
             /** @description Name of the primary context root if exists */
             primaryRootName?: string;
-            /** @description When the article was last published */
+            /** @description When the resource was last published */
             published?: string;
+            /** @description Revision date of the resource */
+            revised?: string;
             /**
              * Format: int64
              * @description Number of times favorited in MyNDLA

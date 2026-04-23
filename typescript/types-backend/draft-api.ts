@@ -610,7 +610,9 @@ export type components = {
             /** @description By whom the article was last updated */
             updatedBy: string;
             /** @description When the article was last published */
-            published: string;
+            published?: string;
+            /** @description Revision date of the article */
+            revised: string;
             /** @description The type of article this is. Possible values are frontpage-article, standard, topic-article */
             articleType: string;
             /** @description The languages this article supports */
@@ -978,6 +980,8 @@ export type components = {
             title: string;
             /** @description The date the article is published */
             published?: string;
+            /** @description The revision date of the article */
+            revised?: string;
             /** @description The content of the article */
             content?: string;
             /** @description Searchable tags */
@@ -1060,7 +1064,7 @@ export type components = {
          * PartialArticleFieldsDTO
          * @enum {string}
          */
-        PartialArticleFieldsDTO: "availability" | "grepCodes" | "license" | "metaDescription" | "relatedContent" | "tags" | "revisionDate" | "published";
+        PartialArticleFieldsDTO: "availability" | "grepCodes" | "license" | "metaDescription" | "relatedContent" | "tags" | "revisionDate" | "revised";
         /**
          * PartialBulkArticlesDTO
          * @description Partial data about articles to publish in bulk
@@ -1211,6 +1215,8 @@ export type components = {
             status?: string;
             /** @description The date the article is published */
             published?: string;
+            /** @description The revision date of the article */
+            revised?: string;
             /** @description The content of the article */
             content?: string;
             /** @description Searchable tags */
