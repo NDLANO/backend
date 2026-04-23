@@ -36,7 +36,7 @@ object ResourceConnection {
     for {
       resourceId    <- rs.get[Try[UUID]](colNameWrapper("resource_id"))
       rank          <- Try(rs.int(colNameWrapper("rank")))
-      favoritedDate <- Try(NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("favorited_date"))))
+      favoritedDate <- Try(rs.get[NDLADate](colNameWrapper("favorited_date")))
     } yield ResourceConnection(folderId = folderId, resourceId = resourceId, rank = rank, favoritedDate = favoritedDate)
   }
 

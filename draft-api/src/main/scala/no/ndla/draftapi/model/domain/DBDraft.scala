@@ -28,10 +28,9 @@ class DBDraft(using props: Props) extends SQLSyntaxSupport[Draft] {
       .arrayOpt(dr.c("external_id"))
       .map(_.getArray.asInstanceOf[Array[String]].toList.flatMap(Option(_)))
       .filter(_.nonEmpty)
-    val responsibleId          = rs.stringOpt(dr.c("responsible"))
-    given TypeBinder[NDLADate] = NDLADate.timestamptzBinder
-    val responsibleUpdatedAt   = rs.getOpt[NDLADate](dr.c("responsible_updated_at"))
-    val responsible            = responsibleId.zip(responsibleUpdatedAt).map(Responsible.apply)
+    val responsibleId        = rs.stringOpt(dr.c("responsible"))
+    val responsibleUpdatedAt = rs.getOpt[NDLADate](dr.c("responsible_updated_at"))
+    val responsible          = responsibleId.zip(responsibleUpdatedAt).map(Responsible.apply)
 
     meta.copy(
       id = Some(rs.long(dr.c("article_id"))),

@@ -166,7 +166,6 @@ object NDLADate {
       ps.setObject(idx, v.asUtcLocalDateTime)
   }
 
-  // TODO: Make implicit/given after migrating DB columns to timestamptz
   val timestamptzBinder: Binders[NDLADate] = new Binders[NDLADate] {
     override def apply(value: NDLADate): ParameterBinderWithValue = {
       if (value == null) ParameterBinder.NullParameterBinder
@@ -183,4 +182,6 @@ object NDLADate {
       NDLADate(offsetDateTime.atZoneSameInstant(localZone))
     }
   }
+
+  given TypeBinder[NDLADate] = timestamptzBinder
 }

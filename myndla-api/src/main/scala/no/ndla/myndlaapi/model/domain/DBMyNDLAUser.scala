@@ -27,7 +27,7 @@ class DBMyNDLAUser(using props: Props) extends SQLSyntaxSupport[MyNDLAUser] {
     val metaData   = CirceUtil.unsafeParseAs[MyNDLAUserDocument](jsonString)
     val id         = rs.long(colNameWrapper("id"))
     val feideId    = rs.string(colNameWrapper("feide_id"))
-    val lastSeen   = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("last_seen")))
+    val lastSeen   = rs.get[NDLADate](colNameWrapper("last_seen"))
 
     metaData.toFullUser(id = id, feideId = feideId, lastSeen = lastSeen)
   }

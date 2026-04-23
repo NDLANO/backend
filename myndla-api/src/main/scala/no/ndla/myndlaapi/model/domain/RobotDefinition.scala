@@ -94,9 +94,9 @@ object RobotDefinition {
     val status    = RobotStatus
       .withNameOption(statusStr)
       .toTry(new IllegalArgumentException(s"Invalid robot status: $statusStr"))
-    val created       = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("created")))
-    val updated       = NDLADate.fromUtcDate(rs.localDateTime(colNameWrapper("updated")))
-    val shared        = rs.localDateTimeOpt(colNameWrapper("shared")).map(NDLADate.fromUtcDate)
+    val created       = rs.get[NDLADate](colNameWrapper("created"))
+    val updated       = rs.get[NDLADate](colNameWrapper("updated"))
+    val shared        = rs.getOpt[NDLADate](colNameWrapper("shared"))
     val configuration = CirceUtil.tryParseAs[RobotConfiguration](rs.string(colNameWrapper("configuration")))
 
     for {

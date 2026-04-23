@@ -238,7 +238,7 @@ class UserRepository(using dbUtility: DBUtility, dbMyNDLAUser: DBMyNDLAUser) ext
           id = rs.long("id"),
           numCleanup = rs.int("num_cleanup"),
           numEmailed = rs.int("num_emailed"),
-          lastCleanupDate = NDLADate.fromUtcDate(rs.localDateTime("last_cleanup_date")),
+          lastCleanupDate = rs.get[NDLADate]("last_cleanup_date"),
         )
       )
       .runSingle()
