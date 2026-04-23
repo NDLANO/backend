@@ -34,7 +34,7 @@ case class DraftSearchParamsDTO(
     ids: Option[List[Long]],
     @description("Return only resources of specific type(s).")
     resourceTypes: Option[List[String]],
-    @description("Return only results with provided license.")
+    @description("Return only results with provided license. Specifying 'all' gives all results regardless of license.")
     license: Option[String],
     @description("Return only results with content matching the specified query.")
     query: Option[NonEmptyString],
